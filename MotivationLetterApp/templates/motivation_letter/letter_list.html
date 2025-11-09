@@ -1,0 +1,31 @@
+{% extends "motivation_letter/base.html" %}
+{% block title %}Mes lettres — Motivation Letter{% endblock %}
+{% block hero_title %}Mes lettres sauvegardées{% endblock %}
+{% block hero_sub %}Retrouvez, téléchargez et réutilisez vos lettres.{% endblock %}
+{% block content %}
+<div class="card">
+  {% if letters %}
+  <table class="table">
+    <thead><tr>
+      <th>Date</th><th>Nom</th><th>Poste</th><th>Entreprise</th><th>Langue</th><th>Ton</th><th>ATS</th><th></th>
+    </tr></thead>
+    <tbody>
+      {% for l in letters %}
+      <tr>
+        <td>{{ l.created_at|date:"d/m/Y H:i" }}</td>
+        <td>{{ l.full_name }}</td>
+        <td>{{ l.target_role|default:"—" }}</td>
+        <td>{{ l.company|default:"—" }}</td>
+        <td>{{ l.get_language_display }}</td>
+        <td>{{ l.get_tone_display }}</td>
+        <td>{{ l.ats_score }}%</td>
+        <td><a class="btn-link" href="{% url 'motivation_letter:letter_detail' l.pk %}">Ouvrir</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="hint">Aucune lettre encore. Générez-en une depuis l’onglet “Lettre”.</p>
+  {% endif %}
+</div>
+{% endblock %}

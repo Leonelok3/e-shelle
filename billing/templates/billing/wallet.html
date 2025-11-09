@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Mon portefeuille · Immigration97{% endblock %}
+{% block content %}
+<div class="panel">
+  <h2>Mon accès</h2>
+  {% if has_access %}
+    <p class="pill success">✅ Accès actif</p>
+  {% else %}
+    <p class="pill">Accès inactif</p>
+    <p><a class="btn btn-primary" href="{% url 'billing:buy' %}">Acheter un code</a></p>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h3>Mes abonnements</h3>
+  <table class="table">
+    <thead><tr><th>Plan</th><th>Du</th><th>Au</th><th>Actif</th></tr></thead>
+    <tbody>
+      {% for s in subscriptions %}
+      <tr>
+        <td>{{ s.plan.name }}</td>
+        <td>{{ s.starts_at|date:"Y-m-d H:i" }}</td>
+        <td>{{ s.expires_at|date:"Y-m-d H:i" }}</td>
+        <td>{% if s.is_active and s.expires_at > now %}✅{% else %}—{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="muted">Aucun abonnement.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <h3>Mes transactions (20 dernières)</h3>
+  <table class="table">
+    <thead><tr><th>Date</th><th>Type</th><th>Montant</th><th>Devise</th><th>Note</th></tr></thead>
+    <tbody>
+      {% for t in transactions %}
+      <tr>
+        <td>{{ t.created_at|date:"Y-m-d H:i" }}</td>
+        <td>{{ t.type }}</td>
+        <td>{{ t.amount }}</td>
+        <td>{{ t.currency }}</td>
+        <td>{{ t.description }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="muted">Aucune transaction.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

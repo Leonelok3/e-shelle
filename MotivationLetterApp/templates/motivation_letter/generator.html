@@ -1,0 +1,82 @@
+{% extends "motivation_letter/base.html" %}
+{% load static %}
+{% block title %}Génération — Lettre de Motivation{% endblock %}
+{% block hero_title %}Votre lettre, prête à convaincre{% endblock %}
+{% block hero_sub %}Saisissez vos infos ou téléversez un CV. Prévisualisez, scorez, exportez en PDF.{% endblock %}
+
+{% block content %}
+<div class="tabs">
+  <button type="button" class="tab-btn" onclick="openTab('form_tab')">Formulaire</button>
+  <button type="button" class="tab-btn" onclick="openTab('cv_tab')">Upload CV</button>
+</div>
+
+<div class="grid-3">
+  <section id="form_tab" class="card" style="display:block;">
+    <h3>Remplir le formulaire</h3>
+    <form method="post" class="stack">
+      {% csrf_token %}
+      <div class="row-2">
+        <div>{{ form.full_name.label_tag }} {{ form.full_name }}</div>
+        <div>{{ form.phone.label_tag }} {{ form.phone }}</div>
+        <div>{{ form.email.label_tag }} {{ form.email }}</div>
+        <div>{{ form.company.label_tag }} {{ form.company }}</div>
+        <div>{{ form.target_role.label_tag }} {{ form.target_role }}</div>
+        <div>{{ form.keywords.label_tag }} {{ form.keywords }}<small class="hint">{{ form.keywords.help_text }}</small></div>
+      </div>
+      <div>{{ form.experiences.label_tag }} {{ form.experiences }}</div>
+      <div>{{ form.skills.label_tag }} {{ form.skills }}</div>
+      <div class="row-2">
+        <div>{{ form.tone.label_tag }} {{ form.tone }}</div>
+        <div>{{ form.language.label_tag }} {{ form.language }}</div>
+      </div>
+      <div class="row-2">
+        <button type="submit" name="generate_from_form" class="btn-primary">Générer</button>
+        <button type="submit" name="save_letter" class="btn-secondary">Enregistrer</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="cv_tab" class="card" style="display:none;">
+    <h3>Téléverser un CV</h3>
+    <form method="post" enctype="multipart/form-data" class="stack">
+      {% csrf_token %}
+      <div>{{ cv_form.cv_file.label_tag }} {{ cv_form.cv_file }} <small class="hint">{{ cv_form.cv_file.help_text }}</small></div>
+      <div class="row-2">
+        <button type="submit" name="generate_from_cv" class="btn-primary">Générer</button>
+        <button type="submit" name="save_letter" class="btn-secondary">Enregistrer</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h3>Prévisualisation</h3>
+    {% if result %}
+      <div class="preview">{{ result.letter|linebreaksbr }}</div>
+      <form method="post" action="{% url 'motivation_letter:download_pdf' %}" class="actions">
+        {% csrf_token %}
+        <input type="hidden" name="letter" value="{{ result.letter|escape }}">
+        <input type="hidden" name="filename" value="Lettre_{{ result.source|default:'form' }}.pdf">
+        <button type="submit" class="btn-secondary">Télécharger PDF</button>
+      </form>
+      <div class="ats">
+        <h4>Score ATS</h4>
+        <p>Score : <strong>{{ result.ats.score }}%</strong></p>
+        {% if result.ats.matched %}<p>Mots-clés présents : {{ result.ats.matched|join:", " }}</p>{% endif %}
+        {% if result.ats.missing %}<p>Mots-clés manquants : {{ result.ats.missing|join:", " }}</p>{% endif %}
+      </div>
+      {% if result.source == "cv" and result.parsed %}
+      <details class="debug"><summary>Données extraites du CV</summary><pre>{{ result.parsed|safe }}</pre></details>
+      {% endif %}
+    {% else %}
+      <p class="hint">Génère une lettre pour voir l’aperçu, le score ATS et télécharger le PDF.</p>
+    {% endif %}
+  </section>
+</div>
+
+<script>
+function openTab(id){
+  document.getElementById('form_tab').style.display = (id==='form_tab') ? 'block' : 'none';
+  document.getElementById('cv_tab').style.display = (id==='cv_tab') ? 'block' : 'none';
+}
+</script>
+{% endblock %}

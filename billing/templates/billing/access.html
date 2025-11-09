@@ -1,0 +1,25 @@
+{% extends "billing/base_billing.html" %}
+{% block title %}Mon accès | Immigration97{% endblock %}
+{% block content %}
+<section class="b-card">
+  <h1>Mon accès</h1>
+  {% if active %}
+    <p>✅ Accès actif jusqu’au <strong>{{ expires|date:"d/m/Y H:i" }}</strong>.</p>
+  {% else %}
+    <p>❌ Aucun accès actif.</p>
+    <p><a class="b-btn b-primary" href="{% url 'billing:buy' %}">Acheter un code</a>
+       <a class="b-btn" href="{% url 'billing:redeem' %}">J’ai déjà un code</a></p>
+  {% endif %}
+</section>
+
+<section class="b-card">
+  <h2>Plans disponibles</h2>
+  <ul>
+  {% for p in plans %}
+    <li>{{ p.name }} — {{ p.duration_days }} jours — ${{ p.price_usd }}</li>
+  {% empty %}
+    <li>Plans non configurés. (Admin → AccessPlan)</li>
+  {% endfor %}
+  </ul>
+</section>
+{% endblock %}

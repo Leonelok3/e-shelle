@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>CV Professionnel</title>
+  <style>
+    @page { size: A4; margin: 16mm; }
+    body{font-family:Arial,Helvetica,sans-serif;font-size:10.8pt;color:#2c3e50;line-height:1.45;background:#fff}
+    .grid{display:table;width:100%;table-layout:fixed}
+    .left,.right{display:table-cell;vertical-align:top}
+    .left{width:35%;background:#4a5f7f;color:#fff;padding:24px 22px}
+    .right{width:65%;background:#f8f9fa;padding:24px 26px}
+    .circle{width:110px;height:110px;background:#fff;border-radius:55px;margin:0 auto 14px;line-height:110px;text-align:center;color:#4a5f7f;font-weight:700;font-size:34pt}
+    .s-name{text-align:center;font-size:18pt;font-weight:700;text-transform:uppercase;line-height:1.2}
+    .s-job{text-align:center;font-size:10.5pt;text-transform:uppercase;margin-top:4px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid rgba(255,255,255,.35)}
+    .s-title{font-size:11pt;font-weight:700;border-bottom:2px solid #fff;padding-bottom:4px;margin:14px 0 8px;text-transform:uppercase}
+    .s-text{font-size:9.5pt;line-height:1.5;margin:4px 0}
+    .s-item{font-size:9.7pt;margin:4px 0;padding-left:12px}
+    .m-title{background:#f4d03f;color:#2c3e50;padding:7px 10px;font-size:11pt;font-weight:700;text-transform:uppercase;margin:12px 0 10px}
+    .block{margin:10px 0 14px;page-break-inside:avoid}
+    .h{font-weight:700;font-size:10.5pt;text-transform:uppercase;margin-bottom:2px}
+    .sub{color:#7f8c8d;font-size:9.5pt;font-style:italic;margin-bottom:6px}
+    .b{font-size:9.5pt;line-height:1.5;margin:2px 0 0 14px;color:#34495e}
+  </style>
+</head>
+<body>
+  <div class="grid">
+    <div class="left">
+      {% with pi=personal_info %}
+        <div class="circle">{{ pi.prenom|default:""|slice:":1"|upper }}{{ pi.nom|default:""|slice:":1"|upper }}</div>
+        <div class="s-name">{{ pi.nom|default:"" }}<br/>{{ pi.prenom|default:"" }}</div>
+        <div class="s-job">{{ pi.titre|default:cv.profession|default:"" }}</div>
+
+        {% if summary %}
+          <div class="s-title">Profil</div>
+          <div class="s-text">{{ summary|linebreaksbr }}</div>
+        {% endif %}
+
+        <div class="s-title">Contact</div>
+        {% if pi.telephone %}<div class="s-text">{{ pi.telephone }}</div>{% endif %}
+        {% if pi.email %}<div class="s-text">{{ pi.email }}</div>{% endif %}
+        {% if pi.ville or pi.pays %}
+          <div class="s-text">{% if pi.ville %}{{ pi.ville }}{% endif %}{% if pi.ville and pi.pays %}, {% endif %}{% if pi.pays %}{{ pi.pays }}{% endif %}</div>
+        {% endif %}
+        {% if pi.linkedin %}<div class="s-text">{{ pi.linkedin }}</div>{% endif %}
+
+        {% if skills %}
+          <div class="s-title">Compétences</div>
+          {% for s in skills %}<div class="s-item">• {{ s.name|default:s.nom|default:"Compétence" }}</div>{% endfor %}
+        {% endif %}
+
+        {% if hobbies %}
+          <div class="s-title">Centres d’intérêt</div>
+          {% for h in hobbies %}<div class="s-item">• {{ h.name }}</div>{% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <div class="right">
+      {% if experiences %}
+        <div class="m-title">Expérience professionnelle</div>
+        {% for e in experiences %}
+          <div class="block">
+            <div class="h">
+              {{ e.company|default:e.entreprise|default:"Entreprise" }} |
+              {% if e.start_date or e.date_debut %}{{ e.start_date|default:e.date_debut|date:"Y" }}{% endif %} – {% if e.end_date or e.date_fin %}{{ e.end_date|default:e.date_fin|date:"Y" }}{% else %}Présent{% endif %}
+            </div>
+            <div class="sub">{{ e.title|default:e.titre_poste|default:"Poste" }}{% if e.location or e.lieu %}, {{ e.location|default:e.lieu }}{% endif %}</div>
+            {% if e.bullets %}{% for ln in e.bullets %}{% if ln %}<div class="b">• {{ ln }}</div>{% endif %}{% endfor %}{% elif e.description %}<div class="b">{{ e.description|linebreaksbr }}</div>{% endif %}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {% if languages %}
+        <div class="m-title">Langues</div>
+        {% for l in languages %}<div class="b"><strong>{{ l.name }}</strong> — {{ l.get_level_display }}</div>{% endfor %}
+      {% endif %}
+
+      {% if educations %}
+        <div class="m-title">Formation</div>
+        {% for ed in educations %}
+          <div class="block">
+            <div class="sub">
+              {% if ed.start_date or ed.date_debut %}{{ ed.start_date|default:ed.date_debut|date:"Y" }}{% endif %}
+              {% if ed.location or ed.lieu %} | {{ ed.location|default:ed.lieu }}{% endif %}
+            </div>
+            <div class="h">{{ ed.degree|default:ed.diplome|default:"Diplôme" }}</div>
+            <div class="b" style="margin-left:0">{{ ed.school|default:ed.ecole|default:"" }}</div>
+            {% if ed.description %}<div class="b" style="margin-left:0">{{ ed.description|linebreaksbr }}</div>{% endif %}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {% if certifications %}
+        <div class="m-title">Certifications</div>
+        {% for c in certifications %}
+          <div class="block">
+            <div class="h">{{ c.name }}</div>
+            <div class="sub">{{ c.organization }}{% if c.date_obtained %} • {{ c.date_obtained|date:"Y" }}{% endif %}</div>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {% if projects %}
+        <div class="m-title">Projets</div>
+        {% for p in projects %}
+          <div class="block">
+            <div class="h">{{ p.title }}</div>
+            <div class="sub">{% if p.start_date %}{{ p.start_date|date:"Y" }}{% endif %}{% if p.technologies %} • {{ p.technologies }}{% endif %}{% if p.url %} • {{ p.url }}{% endif %}</div>
+            {% if p.description %}<div class="b" style="margin-left:0">{{ p.description|linebreaksbr }}</div>{% endif %}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

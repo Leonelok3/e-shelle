@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Générer un Code d'Accès · Immigration97{% endblock %}
+
+{% block content %}
+<div class="panel" style="max-width:480px; margin:0 auto;">
+  <h2>🪄 Générer un code d'accès</h2>
+
+  <form method="post" class="form">
+    {% csrf_token %}
+
+    <div class="field mb-3">
+      <label for="validity">Durée de validité du code</label>
+      <select name="validity" id="validity" class="input w-full">
+        <option value="24h">24 heures</option>
+        <option value="30j">30 jours</option>
+      </select>
+    </div>
+
+    <div class="field mb-3">
+      <label for="plan">Sélectionnez un plan (facultatif)</label>
+      <select name="plan" id="plan" class="input w-full">
+        {% for plan in plans %}
+          <option value="{{ plan.slug }}">{{ plan.name }} — {{ plan.price_usd }} USD</option>
+        {% empty %}
+          <option disabled>Aucun plan actif disponible</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button class="btn btn-primary w-full mt-2" type="submit">
+      ⚙️ Générer le code
+    </button>
+  </form>
+
+  <p class="muted mt-3 text-center">
+    Une fois généré, le code sera valide pendant la durée choisie.<br>
+    <a href="{% url 'billing:redeem' %}" class="link">➡️ Aller valider un code existant</a>
+  </p>
+</div>
+{% endblock %}

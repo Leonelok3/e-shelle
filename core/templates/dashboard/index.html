@@ -1,0 +1,181 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard – Radar Programmes & Bourses | Immigration97</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <style>
+    :root{--bg:#0b1220; --card:#0f172a; --muted:#94a3b8; --line:#334155; --txt:#e5e7eb; --cta:#16a34a}
+    body{max-width:1100px;margin:20px auto;background:var(--bg);color:var(--txt);font-family:system-ui,Segoe UI,Roboto}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:10px 0}
+    label{font-weight:700;display:block;margin:6px 0}
+    input,select{background:#0b1220;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+    .btn{border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
+    .btn-primary{background:var(--cta);color:#fff}
+    .pill{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid var(--line);padding:10px;text-align:left}
+    .actions a{margin-right:8px}
+  </style>
+</head>
+<body>
+  <header class="row" style="align-items:center;justify-content:space-between">
+    <div>
+      <h1>🎯 Radar – Opportunités & Bourses</h1>
+      <p class="pill">Mise à jour automatique (Celery)</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/visa-photo/">📷 Photo DV</a>
+      <a class="btn" href="/cv-generator/">📝 CV</a>
+      <a class="btn" href="/motivation/">✉️ Lettre</a>
+      <a class="btn" href="/wizard/steps/">🧭 Test d’éligibilité</a>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="row">
+      <div>
+        <label>Pays</label>
+        <select id="f_country">
+          <option value="">Tous</option>
+          <option>Canada</option><option>France</option><option>Allemagne</option>
+          <option>Royaume-Uni</option><option>USA</option><option>Maroc</option>
+        </select>
+      </div>
+      <div>
+        <label>Catégorie</label>
+        <select id="f_category">
+          <option value="">Toutes</option>
+          <option value="study">Études</option>
+          <option value="work">Travail</option>
+          <option value="pr">Résidence permanente</option>
+          <option value="scholarship">Bourse</option>
+        </select>
+      </div>
+      <div>
+        <label>Type</label>
+        <select id="f_type">
+          <option value="">Tous</option>
+          <option value="1">Bourse uniquement</option>
+          <option value="0">Sans bourse</option>
+        </select>
+      </div>
+      <div>
+        <label>Tri</label>
+        <select id="f_order">
+          <option value="-score">Score ↓</option>
+          <option value="deadline">Deadline ↑</option>
+          <option value="-created_at">Récents ↓</option>
+        </select>
+      </div>
+      <div style="align-self:flex-end">
+        <button class="btn btn-primary" id="btn_search">Rechercher</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Résultats</h2>
+    <div id="count" class="pill">0 résultat</div>
+    <div style="overflow:auto">
+      <table id="tbl">
+        <thead>
+          <tr><th>Titre</th><th>Pays</th><th>Catégorie</th><th>Score</th><th>Deadline</th><th>Actions</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Mes alertes</h2>
+    <div class="row">
+      <div>
+        <label>Pays</label>
+        <input id="s_country" placeholder="Ex. Canada">
+      </div>
+      <div>
+        <label>Catégorie</label>
+        <select id="s_category">
+          <option value="">(vide)</option>
+          <option value="study">Études</option>
+          <option value="work">Travail</option>
+          <option value="pr">RP</option>
+          <option value="scholarship">Bourse</option>
+        </select>
+      </div>
+      <div>
+        <label>Score min</label>
+        <input id="s_min" type="number" value="60">
+      </div>
+      <div style="align-self:flex-end">
+        <button class="btn btn-primary" id="btn_sub">Créer alerte</button>
+      </div>
+    </div>
+    <div id="sub_msg" class="pill" style="margin-top:8px"></div>
+  </section>
+
+  <script>
+    function getCookie(name){
+      const v = `; ${document.cookie}`; const p = v.split(`; ${name}=`);
+      if(p.length===2) return p.pop().split(';').shift();
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    async function getOpps(){
+      const params = new URLSearchParams();
+      const c = document.getElementById("f_country").value;
+      const cat = document.getElementById("f_category").value;
+      const t = document.getElementById("f_type").value;
+      const ord = document.getElementById("f_order").value;
+      if(c) params.set("country", c);
+      if(cat) params.set("category", cat);
+      if(t) params.set("is_scholarship", t);
+      if(ord) params.set("ordering", ord);
+
+      const r = await fetch("/api/radar/opportunities/?"+params.toString());
+      const data = await r.json();
+      const body = document.querySelector("#tbl tbody");
+      body.innerHTML = "";
+      (data.results||[]).forEach(op => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><a href="${op.url}" target="_blank" rel="noopener">${op.title}</a><br><small>${op.source_name}</small></td>
+          <td>${op.country}</td>
+          <td>${op.category}${op.is_scholarship ? " 🎓" : ""}</td>
+          <td>${op.score}</td>
+          <td>${op.deadline || "-"}</td>
+          <td class="actions">
+            <a class="btn" href="/wizard/steps/">Tester l’éligibilité</a>
+            <a class="btn" href="/cv-generator/">CV</a>
+            <a class="btn" href="/motivation/">Lettre</a>
+          </td>`;
+        body.appendChild(tr);
+      });
+      document.getElementById("count").textContent = `${(data.count||0)} résultat(s)`;
+    }
+
+    document.getElementById("btn_search").addEventListener("click", ()=>getOpps());
+
+    document.getElementById("btn_sub").addEventListener("click", async ()=>{
+      const payload = {
+        country_filter: document.getElementById("s_country").value,
+        category_filter: document.getElementById("s_category").value,
+        min_score: Number(document.getElementById("s_min").value||60)
+      };
+      const r = await fetch("/api/radar/subscriptions/", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "X-CSRFToken": csrftoken },
+        body: JSON.stringify(payload)
+      });
+      document.getElementById("sub_msg").textContent = r.ok ? "✅ Alerte créée" : "❌ Connexion requise / Abonnement requis";
+    });
+
+    // Boot
+    getOpps();
+  </script>
+</body>
+</html>

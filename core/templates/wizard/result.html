@@ -1,0 +1,71 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Vos résultats – Immigration97</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <style>
+    body{max-width:980px;margin:32px auto;font-family:system-ui;background:#0b1220;color:#e5e7eb}
+    h1{font-size:36px;text-align:center;margin-bottom:16px}
+    .card{background:#0f172a;border:1px solid #334155;border-radius:16px;padding:20px;margin:16px 0}
+    .btn{background:#16a34a;color:#fff;border:none;border-radius:10px;padding:10px 14px;cursor:pointer}
+    .link{color:#93c5fd}
+    .muted{color:#94a3b8}
+  </style>
+</head>
+<body>
+  <h1>Vos résultats</h1>
+
+  <div style="text-align:center;margin-bottom:16px">
+    <a class="btn" href="/wizard/checklist.pdf?session_id={{ session_id }}">Télécharger mon plan (PDF)</a>
+  </div>
+
+  <div id="container" class="card">
+    <p class="muted">Chargement…</p>
+  </div>
+
+  <script>
+    const SESSION_ID = {{ session_id }};
+    async function get(url){
+      const r = await fetch(url);
+      if(!r.ok){ throw new Error(await r.text()); }
+      return r.json();
+    }
+
+    function renderResult(data){
+      const root = document.getElementById("container");
+      const results = (data && data.results) || [];
+      if(results.length === 0){
+        root.innerHTML = "<p>Aucun programme trouvé. Revenez au formulaire et ajustez vos réponses (langues, budget, pays).</p>";
+        return;
+      }
+      root.innerHTML = results.map(r=>`
+        <div class="card">
+          <h3>${r.title} – ${r.country}</h3>
+          <p>Score: <b>${r.score}%</b> — ${r.eligible ? "✅ Éligible" : "❌ Non éligible"}</p>
+          ${r.url_official ? `<p><a class="link" href="${r.url_official}" target="_blank">Source officielle</a></p>` : ""}
+          <h4>Documents</h4>
+          <ul>${(r.checklist && r.checklist.documents ? r.checklist.documents : []).map(d=>`<li>${d.label}${d.required?" *":""}</li>`).join("")}</ul>
+          <h4>Étapes</h4>
+          <ol>${(r.checklist && r.checklist.steps ? r.checklist.steps : []).map(s=>`<li>${s.label}${s.eta_days?` (~${s.eta_days} j)`:``}</li>`).join("")}</ol>
+          ${(r.citations && r.citations.length) ? `<h4>Sources</h4><ul>${r.citations.map(c=>`<li><a class="link" href="${c.url}" target="_blank">${c.title}</a></li>`).join("")}</ul>` : ""}
+        </div>
+      `).join("");
+    }
+
+    async function init(){
+      try{
+        // Lire le résultat stocké par l’API (toujours à jour)
+        const data = await get(`/api/eligibility/sessions/${SESSION_ID}/result/`);
+        renderResult(data);
+      }catch(e){
+        document.getElementById("container").innerHTML =
+          "<p>Impossible de charger le résultat. Réessayez depuis le formulaire.</p>";
+      }
+    }
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Générez votre CV Parfait avec IA | Immigration97{% endblock %}
+{% block meta_description %}Créez un CV optimisé pour les systèmes ATS, rédigé par IA et conforme aux standards internationaux (Canada, France, UK). Démarquez-vous en quelques minutes.{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 text-gray-100 p-6 flex items-center justify-center">
+    <div class="max-w-4xl mx-auto text-center py-20">
+
+        <h1 class="text-5xl md:text-6xl font-extrabold text-white leading-tight mb-4">
+            Générez Votre CV <span class="text-indigo-400">Optimisé par IA</span> et Passez l'ATS.
+        </h1>
+        
+        <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+            Notre technologie d'intelligence artificielle rédige, structure et adapte votre profil aux exigences RH internationales (Canada, Europe, États-Unis). <span class="font-semibold text-green-400">Le CV qui obtient des entretiens.</span>
+        </p>
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'cv_generator:cv_list' %}" class="inline-block px-10 py-4 text-lg font-bold rounded-full bg-indigo-600 hover:bg-indigo-500 transition duration-300 shadow-lg transform hover:scale-105">
+                Accéder à mon Tableau de Bord
+            </a>
+            <div class="mt-3">
+                <a href="{% url 'cv_generator:template_selection' %}" class="text-sm text-indigo-300 hover:text-indigo-200 underline">
+                    Voir les modèles disponibles
+                </a>
+            </div>
+        {% else %}
+            <a href="{% url 'cv_generator:template_selection' %}" class="inline-block px-10 py-4 text-lg font-bold rounded-full bg-indigo-600 hover:bg-indigo-500 transition duration-300 shadow-lg transform hover:scale-105">
+                Commencer Gratuitement avec l'IA →
+            </a>
+            <div class="mt-3">
+                {# Lien alternatif: connexion puis retour vers le tableau de bord #}
+                {% url 'cv_generator:cv_list' as cv_list_url %}
+                <a href="{% url 'login' %}?next={{ cv_list_url|urlencode }}" class="text-sm text-indigo-300 hover:text-indigo-200 underline">
+                    Se connecter pour accéder au Tableau de Bord
+                </a>
+            </div>
+        {% endif %}
+        
+        <div class="mt-12 text-sm text-gray-500">
+            <span class="mr-4">✓ Compatible ATS à 95%</span>
+            <span class="mr-4">✓ Optimisé pour l'immigration (Standards canadiens/européens)</span>
+            <span>✓ Essai gratuit disponible</span>
+        </div>
+
+        <div class="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+            
+            <div class="p-4 bg-gray-800 rounded-lg border border-gray-700">
+                <i class="fas fa-robot text-3xl text-green-400 mb-3" aria-hidden="true"></i>
+                <h3 class="text-xl font-semibold mb-2 text-white">Rédaction Intelligente</h3>
+                <p class="text-gray-400">Laissez l'IA transformer vos tâches brutes en réalisations chiffrées et percutantes, en utilisant les verbes d'action des recruteurs.</p>
+            </div>
+
+            <div class="p-4 bg-gray-800 rounded-lg border border-gray-700">
+                <i class="fas fa-cogs text-3xl text-yellow-400 mb-3" aria-hidden="true"></i>
+                <h3 class="text-xl font-semibold mb-2 text-white">Analyse ATS</h3>
+                <p class="text-gray-400">Chaque CV est scanné avant l'exportation. Obtenez un score de qualité (ATS) et des suggestions de mots-clés pour ne jamais être rejeté par un bot.</p>
+            </div>
+
+            <div class="p-4 bg-gray-800 rounded-lg border border-gray-700">
+                <i class="fas fa-globe-americas text-3xl text-indigo-400 mb-3" aria-hidden="true"></i>
+                <h3 class="text-xl font-semibold mb-2 text-white">Format Canadien & Global</h3>
+                <p class="text-gray-400">Choisissez parmi des modèles adaptés aux normes nord-américaines (sans photo ni âge) ou européennes (traditionnelles).</p>
+            </div>
+
+        </div>
+
+        {# -------- Section preuves & bénéfices concrets -------- #}
+        <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+            <div class="p-4 bg-gray-800/70 rounded-lg border border-gray-700">
+                <p class="text-3xl text-white font-bold">+40%</p>
+                <p class="text-gray-400 text-sm">de taux de réponse grâce aux verbes d’action et chiffres d’impact.</p>
+            </div>
+            <div class="p-4 bg-gray-800/70 rounded-lg border border-gray-700">
+                <p class="text-3xl text-white font-bold">5 min</p>
+                <p class="text-gray-400 text-sm">pour générer un premier CV prêt à l’envoi et compatible ATS.</p>
+            </div>
+            <div class="p-4 bg-gray-800/70 rounded-lg border border-gray-700">
+                <p class="text-3xl text-white font-bold">Multi-pays</p>
+                <p class="text-gray-400 text-sm">Canada, Europe, US. Conformes aux standards locaux (photo, âge, structure).</p>
+            </div>
+        </div>
+
+        {# -------- Comment ça marche -------- #}
+        <section aria-labelledby="how-it-works" class="mt-16 text-left">
+            <h2 id="how-it-works" class="text-2xl font-bold text-white mb-4">Comment ça marche</h2>
+            <ol class="space-y-3 text-gray-300 list-decimal list-inside">
+                <li>Choisissez un modèle (Canadien, Européen, Professionnel, Moderne).</li>
+                <li>Ajoutez vos expériences et laissez l’IA les transformer en réalisations chiffrées.</li>
+                <li>Analyse ATS et téléchargement PDF instantané.</li>
+            </ol>
+            <div class="mt-4">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'cv_generator:template_selection' %}" class="text-sm text-indigo-300 hover:text-indigo-200 underline">
+                        Choisir un modèle maintenant
+                    </a>
+                {% else %}
+                    <a href="{% url 'cv_generator:template_selection' %}" class="text-sm text-indigo-300 hover:text-indigo-200 underline">
+                        Choisir un modèle maintenant
+                    </a>
+                {% endif %}
+            </div>
+        </section>
+
+        {# -------- FAQ SEO (sans JS) -------- #}
+        <section aria-labelledby="faq" class="mt-16 text-left">
+            <h2 id="faq" class="text-2xl font-bold text-white mb-4">Questions fréquentes</h2>
+            <div class="space-y-3">
+                <details class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                    <summary class="cursor-pointer text-white font-semibold">Votre CV est-il compatible avec les ATS ?</summary>
+                    <p class="mt-2 text-gray-300">Oui. Les sections, la hiérarchie (H1/H2), la densité de mots-clés et la structure sont pensées pour les parseurs ATS (Canada, UE, US).</p>
+                </details>
+                <details class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                    <summary class="cursor-pointer text-white font-semibold">Puis-je utiliser un format canadien sans photo ?</summary>
+                    <p class="mt-2 text-gray-300">Oui. Nos modèles canadiens masquent photo, âge et informations sensibles selon les bonnes pratiques locales.</p>
+                </details>
+                <details class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                    <summary class="cursor-pointer text-white font-semibold">Combien de temps pour créer un CV ?</summary>
+                    <p class="mt-2 text-gray-300">Entre 5 et 15 minutes pour un premier PDF propre. Vous pouvez ensuite itérer avec l’IA.</p>
+                </details>
+            </div>
+        </section>
+
+        {# -------- JSON-LD SEO (autorisé dans le body) -------- #}
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "Immigration97 CV Generator",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "description": "Générateur de CV optimisé par IA, compatible ATS, avec modèles Canada/Europe/US et export PDF.",
+          "publisher": {
+            "@type": "Organization",
+            "name": "Immigration97"
+          }
+        }
+        </script>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Acheter un code · Immigration97{% endblock %}
+{% block content %}
+<div class="panel">
+  <h2>Acheter un code d’accès</h2>
+  <p class="muted">Choisissez votre pass : <strong>24h</strong> ou <strong>30 jours</strong>.</p>
+
+  <div class="spec-cards">
+    {% for p in plans %}
+    <article class="spec-card">
+      <div class="spec-title">{{ p.name }}</div>
+      <div class="spec-meta">{{ p.duration_days }} jour(s) · {{ p.price_usd }} USD</div>
+      <form method="post" class="mt-3">
+        {% csrf_token %}
+        <input type="hidden" name="plan_id" value="{{ p.id }}">
+        <input type="hidden" name="next" value="{{ next }}">
+        <div class="grid-3" style="gap:.5rem">
+          <button name="source" value="chario" class="btn btn-primary">Payer via Chario</button>
+          <button name="source" value="paypal" class="btn btn--ghost">PayPal</button>
+          <button name="source" value="orange_money" class="btn btn--ghost">Orange Money</button>
+        </div>
+      </form>
+    </article>
+    {% empty %}
+      <p>⚠️ Aucun plan actif n’est configuré.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

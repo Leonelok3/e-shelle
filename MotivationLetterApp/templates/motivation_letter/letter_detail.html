@@ -1,0 +1,32 @@
+{% extends "motivation_letter/base.html" %}
+{% block title %}Lettre — Détail{% endblock %}
+{% block hero_title %}Lettre sauvegardée{% endblock %}
+{% block hero_sub %}Téléchargez le PDF ou copiez-collez le contenu.{% endblock %}
+{% block content %}
+<div class="grid-2">
+  <section class="card">
+    <h3>Lettre</h3>
+    <div class="preview">{{ letter.content|linebreaksbr }}</div>
+    <form method="post" action="{% url 'motivation_letter:download_pdf' %}" class="actions">
+      {% csrf_token %}
+      <input type="hidden" name="letter" value="{{ letter.content|escape }}">
+      <input type="hidden" name="filename" value="Lettre_{{ letter.pk }}.pdf">
+      <button type="submit" class="btn-secondary">Télécharger PDF</button>
+    </form>
+  </section>
+
+  <aside class="card">
+    <h3>Méta</h3>
+    <ul class="meta">
+      <li><strong>Nom :</strong> {{ letter.full_name }}</li>
+      <li><strong>Poste :</strong> {{ letter.target_role|default:"—" }}</li>
+      <li><strong>Entreprise :</strong> {{ letter.company|default:"—" }}</li>
+      <li><strong>Langue :</strong> {{ letter.get_language_display }}</li>
+      <li><strong>Ton :</strong> {{ letter.get_tone_display }}</li>
+      <li><strong>ATS :</strong> {{ letter.ats_score }}%</li>
+      <li><strong>Créée :</strong> {{ letter.created_at|date:"d/m/Y H:i" }}</li>
+    </ul>
+    <a class="btn-primary" href="{% url 'motivation_letter:generator' %}">Générer une nouvelle lettre</a>
+  </aside>
+</div>
+{% endblock %}

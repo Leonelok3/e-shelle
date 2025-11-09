@@ -1,0 +1,20 @@
+{% extends "billing/base_billing.html" %}
+{% block title %}Abonnements | Immigration97{% endblock %}
+{% block content %}
+<section class="b-card">
+  <h1>Abonnements mensuels</h1>
+  <div class="b-cards">
+    {% for p in plans %}
+      <div class="b-plan">
+        <h3>{{ p.name }}</h3>
+        <div class="b-price">${{ p.price_usd }} / mois</div>
+        <p class="b-desc">{{ p.description|default:"Usage illimité sur la plateforme." }}</p>
+        <a class="b-btn b-primary" href="{% url 'billing:activate_plan' p.slug %}">Activer (mode test)</a>
+      </div>
+    {% empty %}
+      <p>Aucun plan disponible.</p>
+    {% endfor %}
+  </div>
+  <p class="b-hint">⚠️ Pour l’instant: activation test. Les paiements réels viendront via webhook (CinetPay/Flutterwave/…)</p>
+</section>
+{% endblock %}

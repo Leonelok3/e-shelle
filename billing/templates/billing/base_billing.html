@@ -1,0 +1,21 @@
+{% load static %}
+<!doctype html><html lang="fr"><head>
+<meta charset="utf-8"><title>{% block title %}Paiement | Immigration97{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'billing/billing.css' %}">
+</head><body class="b-body">
+<header class="b-header"><div class="b-container">
+  <a class="b-brand" href="/">Immigration97</a>
+  <nav class="b-nav">
+    <a href="{% url 'billing:access' %}">Mon accès</a>
+    <a href="{% url 'billing:redeem' %}">Utiliser un code</a>
+    <a href="{% url 'billing:buy' %}">Acheter un code</a>
+  </nav>
+</div></header>
+<main class="b-container">
+  {% if messages %}
+    <div class="b-messages">{% for m in messages %}<div class="b-msg {{ m.tags }}">{{ m }}</div>{% endfor %}</div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="b-footer"><div class="b-container">© {{ now|date:"Y" }} Immigration97</div></footer>
+</body></html>

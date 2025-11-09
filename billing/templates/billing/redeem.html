@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Valider un Code d'Accès · Immigration97{% endblock %}
+
+{% block content %}
+<div class="panel" style="max-width:480px; margin:0 auto;">
+  <h2>🎟️ Valider votre code d'accès</h2>
+
+  <form method="post" class="form">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    
+    <div class="field">
+      <label for="id_code">Votre code</label>
+      <input 
+        type="text" 
+        id="id_code" 
+        name="code" 
+        placeholder="Ex : I97-24H-ABCD1234" 
+        required 
+        class="input w-full"
+      >
+    </div>
+
+    <button class="btn btn-primary w-full mt-3" type="submit">
+      ✅ Valider le code
+    </button>
+  </form>
+
+  <p class="muted mt-3">
+    Le pass est lié à votre compte et s’active immédiatement.<br>
+    Si vous n’avez pas encore de code :
+    <a href="{% url 'billing:generate_code' %}" class="link">générez-en un ici</a>.
+  </p>
+</div>
+{% endblock %}

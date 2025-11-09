@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{# Title optimisé pour le SEO (conserve le bloc existant) #}
+{% block title %}Générateur de Photo Conforme pour Visa · Immigration97{% endblock %}
+
+{# Si ton base.html propose un bloc meta/head appelé 'meta' il sera utilisé. Sinon ces balises seront ignorées proprement. #}
+{% block meta %}
+  <meta name="description" content="Générez une photo conforme pour tout type de visa (DV Lottery, France, Canada, UK). Validation automatique, centrage du visage et téléchargement du fichier prêt à déposer. Aperçu gratuit avant téléchargement.">
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  <meta property="og:title" content="Générateur de Photo Conforme pour Visa — Immigration97">
+  <meta property="og:description" content="Téléversez, choisissez le type de visa, obtenez une photo conforme validée automatiquement. Aperçu gratuit.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="{{ request.build_absolute_uri }}static/img/photo_ok.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+{% endblock %}
+
+{% block content %}
+<main class="container">
+
+  <!-- JSON-LD Schema pour SEO (service + FAQ + organisation minimale) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "Générateur de Photo Conforme pour Visa",
+    "provider": {
+      "@type": "Organization",
+      "name": "Immigration97",
+      "url": "{{ request.build_absolute_uri }}"
+    },
+    "description": "Générez des photos conformes aux exigences des ambassades (DV Lottery, France, Canada, UK). Validation automatique, centrage du visage et fichier prêt à déposer.",
+    "url": "{{ request.build_absolute_uri }}",
+    "serviceType": "Photo de visa conforme",
+    "areaServed": {"@type": "Country", "name": "Global"}
+  }
+  </script>
+
+  <!-- HERO : gros titre orienté conversion -->
+  <header class="hero text-center" role="banner" aria-label="Générateur de photo conforme">
+    <h1 class="h1 text-gradient">Bienvenue — Générateur de photo conforme pour tout type de visa</h1>
+    <p class="lead mt-3">
+      Assisté par <strong>intelligence artificielle</strong> — sélectionnez le type de visa, téléversez votre photo et laissez-nous faire le reste.
+    </p>
+
+    <p class="mt-4">
+      <a href="#upload" class="btn btn-primary btn-lg" aria-label="Générer ma photo conforme">📸 Générer ma photo conforme — Aperçu gratuit</a>
+      <a href="#specifications" class="btn btn-outline ml-3" aria-label="Voir les spécifications">Voir spécifications</a>
+    </p>
+
+    <p class="muted text-sm mt-3">Aperçu gratuit avant toute opération payante · Confidentialité garantie · Suppression automatique possible après 24h.</p>
+  </header>
+
+  <section class="panel mt-8" aria-labelledby="benefits-heading">
+    <h2 id="benefits-heading" class="sr-only">Avantages du service</h2>
+    <div class="benefits" role="list" aria-label="Avantages">
+      <div class="badge" role="listitem">✅ Conformité automatique</div>
+      <div class="badge" role="listitem">🔎 Détection & centrage du visage</div>
+      <div class="badge" role="listitem">🎯 Fond homogène & compression</div>
+      <div class="badge" role="listitem">📁 Fichier prêt à déposer</div>
+    </div>
+
+    <hr class="divider my-6" />
+
+    <!-- ===== FORMULAIRE DE TÉLÉVERSEMENT (inchangé côté logique) ===== -->
+    <div id="upload" class="upload-box" aria-labelledby="upload-heading">
+      <h2 id="upload-heading" class="text-xl font-semibold mb-4 text-center">Téléversez votre photo — simple & rapide</h2>
+
+      <form method="post" enctype="multipart/form-data" action="{% url 'photos:submit' %}">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="form-row mb-4">
+          <label for="id_photo_type" class="block mb-1">Type de photo</label>
+          {{ form.photo_type }}
+          <p class="muted text-sm mt-1">Ex : DV Lottery (Green Card), Visa France, Visa Canada, Visa UK.</p>
+        </div>
+
+        <div class="form-row mb-2">
+          <label for="id_image" class="block mb-1">Choisir une image (JPEG / PNG)</label>
+          {{ form.image }}
+          <p class="muted text-sm mt-1">Format recommandé : photo face caméra, fond uni, sans ombre. Taille maximum : 10MB.</p>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full mt-4" aria-label="Générer la photo conforme">
+          📸 Générer ma photo conforme — Aperçu gratuit
+        </button>
+      </form>
+
+      <p class="muted text-center mt-3 text-sm">
+        *L’aperçu gratuit s’affiche avant le téléchargement final. Paiement pour téléchargement final (bientôt).
+      </p>
+    </div>
+  </section>
+
+  <hr class="divider my-8" />
+
+  <!-- Spécifications détaillées, structure accessible -->
+  <section id="specifications" class="panel" aria-labelledby="specs-heading">
+    <h2 id="specs-heading">Spécifications prises en charge (MVP)</h2>
+
+    <p class="muted mb-4">Nous supportons les formats et contraintes courantes des représentations officielles. Si vous avez un doute, téléversez pour un contrôle automatique.</p>
+
+    <div class="spec-cards" role="list">
+      <article class="spec-card" role="listitem" aria-labelledby="spec-dv">
+        <div id="spec-dv" class="spec-title">DV Lottery (Green Card)</div>
+        <div class="spec-meta">600×600 · JPEG</div>
+        <p class="muted">Recadrage carré, visage centré, fond clair et homogène.</p>
+      </article>
+
+      <article class="spec-card" role="listitem" aria-labelledby="spec-fr">
+        <div id="spec-fr" class="spec-title">Visa France</div>
+        <div class="spec-meta">413×531 · JPEG</div>
+        <p class="muted">Rapport & marges conformes aux recommandations françaises.</p>
+      </article>
+
+      <article class="spec-card" role="listitem" aria-labelledby="spec-ca">
+        <div id="spec-ca" class="spec-title">Visa Canada</div>
+        <div class="spec-meta">591×827 · JPEG</div>
+        <p class="muted">Fond uniforme, tête dégagée, compression contrôlée.</p>
+      </article>
+
+      <article class="spec-card" role="listitem" aria-labelledby="spec-uk">
+        <div id="spec-uk" class="spec-title">Visa UK</div>
+        <div class="spec-meta">600×750 · JPEG</div>
+        <p class="muted">Centrage automatique et contrôle de la luminosité.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="how-heading">
+    <h3 id="how-heading">Comment ça marche — 4 étapes</h3>
+    <ol class="steps" aria-label="Étapes pour générer la photo conforme">
+      <li><strong>Choisissez</strong> le type de photo (DV, France, Canada, UK).</li>
+      <li><strong>Téléversez</strong> votre image (JPEG/PNG).</li>
+      <li><strong>Génération & validation</strong> : traitement automatique + aperçu.</li>
+      <li><strong>Téléchargez</strong> la photo prête à déposer (paiement bientôt disponible).</li>
+    </ol>
+
+    <p class="muted text-sm">Astuce : pour un résultat optimal, utilisez une photo récente, visage dégagé et fond uni.</p>
+  </section>
+
+  <!-- ASTUCE PHOTO avec images optimisées (lazy) -->
+  <section class="panel highlight" aria-labelledby="examples-heading">
+    <h3 id="examples-heading">Exemples & conseils photo</h3>
+    <p class="muted mb-4">Assurez-vous que votre visage soit bien éclairé et le fond clair. Voici quelques indications :</p>
+
+    <div class="example-grid" role="list">
+      <div class="example good" role="listitem">
+        <img src="/static/img/photo_ok.jpg"
+             alt="Exemple de photo conforme : visage centré, fond clair"
+             loading="lazy"
+             width="600" height="600">
+        <p>✅ Conforme — visage centré, fond uni</p>
+      </div>
+
+      <div class="example bad" role="listitem">
+        <img src="/static/img/photo_non_ok.jpg"
+             alt="Exemple de photo non conforme : ombre et inclinaison"
+             loading="lazy"
+             width="600" height="600">
+        <p>❌ Non conforme — ombre, inclinaison ou lunettes réfléchissantes</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="trust-heading">
+    <h3 id="trust-heading">Confiance & sécurité</h3>
+    <ul class="checklist" aria-label="Mesures de sécurité">
+      <li>✔ Vie privée : <strong>aucune revente</strong> des images.</li>
+      <li>✔ <strong>Suppression automatique</strong> possible après 24&nbsp;h.</li>
+      <li>✔ Contrôles techniques : taille, poids, fond, centrage du visage.</li>
+      <li>✔ Support réactif : réponse sous <strong>24&nbsp;heures ouvrées</strong>.</li>
+    </ul>
+
+    <div class="social-proof mt-4" aria-hidden="true">
+      <span class="badge">+10k photos analysées</span>
+      <span class="badge">4.8/5 (satisfaction)</span>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="faq-heading">
+    <h3 id="faq-heading">FAQ</h3>
+
+    <details class="faq">
+      <summary>Ma photo sera-t-elle acceptée ?</summary>
+      <p>Nous appliquons les tailles, formats et marges recommandées pour chaque pays. Si la photo n’est pas conforme (visage trop incliné, fond non uniforme, ombre), nous indiquons précisément le ou les problèmes afin que vous puissiez retenter l’upload après correction.</p>
+    </details>
+
+    <details class="faq">
+      <summary>Quel est le format final ?</summary>
+      <p>JPEG optimisé selon la spécification demandée (par ex. <strong>600×600 px</strong> pour DV Lottery). Nom de fichier prêt à déposer sur le formulaire officiel.</p>
+    </details>
+
+    <details class="faq">
+      <summary>Le paiement est-il requis ?</summary>
+      <p>Actuellement, l’aperçu est gratuit. Le téléchargement final sera payant (option d’achat intégrée bientôt). Nous afficherons toujours le prix avant paiement.</p>
+    </details>
+
+    <details class="faq">
+      <summary>Confidentialité des images</summary>
+      <p>Vos images sont traitées uniquement pour la génération. Possibilité de suppression automatique au bout de 24h. Pas de revente ni d’usage marketing sans consentement explicite.</p>
+    </details>
+  </section>
+
+  <footer class="panel muted text-sm" aria-label="Informations légales et contact">
+    <p>© {{ now.year }} Immigration97 — Service de génération de photos conformes. Pour assistance : <a href="/contact">Contactez-nous</a>.</p>
+  </footer>
+</main>
+{% endblock %}

@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 12px; color:#111; }
+  h1 { font-size: 18px; margin: 0 0 10px 0; }
+  h2 { font-size: 14px; margin: 14px 0 6px 0; }
+  table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  th, td { border: 1px solid #999; padding: 6px; }
+  .muted { color: #555; }
+</style>
+</head>
+<body>
+  <h1>Plan d’immigration personnalisé</h1>
+
+  {# Sélectionne le premier résultat si présent #}
+  {% if data.results and data.results|length > 0 %}
+    {% with first=data.results|first %}
+      <p><b>Programme :</b> {{ first.title }} — {{ first.country }}</p>
+      <p><b>Score :</b> {{ first.score }}% — {% if first.eligible %}Éligible{% else %}Non éligible{% endif %}</p>
+
+      <h2>Documents requis</h2>
+      {% if first.checklist and first.checklist.documents %}
+        <table>
+          <tr><th>Document</th><th>Obligatoire</th></tr>
+          {% for d in first.checklist.documents %}
+            <tr>
+              <td>{{ d.label }}</td>
+              <td>{% if d.required %}Oui{% else %}Non{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p class="muted">Aucun document listé.</p>
+      {% endif %}
+
+      <h2>Étapes proposées</h2>
+      {% if first.checklist and first.checklist.steps %}
+        <ol>
+          {% for s in first.checklist.steps %}
+            <li>{{ s.label }}{% if s.eta_days %} (~{{ s.eta_days }} jours){% endif %}</li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <p class="muted">Aucune étape disponible.</p>
+      {% endif %}
+
+      <h2>Sources officielles</h2>
+      {% if first.citations %}
+        <ul>
+          {% for c in first.citations %}
+            <li>{{ c.title }} — {{ c.url }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">Sources non disponibles.</p>
+      {% endif %}
+    {% endwith %}
+  {% else %}
+    <p>Aucun résultat disponible pour cette session.</p>
+    <p class="muted">Revenez sur la page résultats et relancez le calcul avant d’exporter.</p>
+  {% endif %}
+</body>
+</html>

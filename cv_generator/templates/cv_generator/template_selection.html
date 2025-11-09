@@ -1,0 +1,150 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Choix du modèle de CV</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- ✅ CSRF dispo même sans formulaire -->
+  <meta name="csrf-token" content="{{ csrf_token }}"/>
+
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#111827; --text:#e5e7eb; --muted:#9ca3af;
+      --brand:#6366f1; --brand-2:#0ea5e9;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial}
+    a{text-decoration:none;color:inherit}
+    .wrap{max-width:1100px;margin:0 auto;padding:28px 20px}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+    .brand{font-weight:700;opacity:.9}
+    h1{font-size:26px;margin:10px 0 6px}
+    p.lead{color:var(--muted);margin:0 0 18px}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+    @media (max-width:1024px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:560px){.grid{grid-template-columns:1fr}}
+
+    .card{background:var(--panel);border:1px solid #1f2937;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+    .thumb{height:150px;background:#0b1220 url("{% static 'cv_generator/cv-thumb.svg' %}") center/110px no-repeat;border-bottom:1px solid #1f2937}
+    .card-body{padding:14px}
+    .title{font-weight:700;margin:2px 0}
+    .tag{display:inline-block;margin:6px 0 10px;padding:3px 10px;border:1px solid #334155;border-radius:999px;color:#cbd5e1;font-size:12px}
+    .desc{color:#cbd5e1;font-size:14px;min-height:44px}
+    .actions{padding:12px 14px 16px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:10px 12px;border-radius:10px;border:1px solid transparent;background:linear-gradient(90deg,var(--brand),var(--brand-2));color:white;font-weight:700;cursor:pointer;transition:.15s}
+    .btn:hover{filter:brightness(1.05)}
+    .btn:disabled{opacity:.55;cursor:not-allowed;filter:none}
+    .pill{display:inline-block;padding:4px 10px;border:1px solid #334155;border-radius:999px;color:#cbd5e1;font-size:12px}
+    .empty{padding:30px;border:1px dashed #334155;border-radius:12px;text-align:center;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">immigration97</div>
+      <a href="{% url 'cv_generator:cv_list' %}" class="pill">Mon CV</a>
+    </header>
+
+    <h1>🎨 Choisissez le modèle de CV qui vous correspond</h1>
+    <p class="lead">Sélectionnez un design. Vos données seront ensuite collectées dans l’éditeur multi-étapes.</p>
+
+    {% if templates %}
+      <div class="grid">
+        {% for t in templates %}
+          {% with st=t.style_type|lower %}
+            {% if st in 'canada,europe,modern,professional' %}
+              <article class="card">
+                <div class="thumb">
+                  {% if t.thumbnail %}
+                    <img src="{{ t.thumbnail.url }}" alt="aperçu {{ t.name }}" style="width:100%;height:100%;object-fit:cover;display:block" />
+                  {% endif %}
+                </div>
+                <div class="card-body">
+                  <div class="title">
+                    {% if st == 'canada' %}CV Canada
+                    {% elif st == 'europe' %}CV Europe
+                    {% elif st == 'modern' %}CV Moderne
+                    {% elif st == 'professional' %}CV Professionnel
+                    {% else %}{{ t.name }}{% endif %}
+                  </div>
+                  <div class="tag">
+                    {% if st == 'canada' %}Canada{% elif st == 'europe' %}Europe{% elif st == 'modern' %}Modern{% else %}Professional{% endif %}
+                  </div>
+                  <div class="desc">
+                    {% if st == 'canada' %}Format orienté marché canadien, clair et concis.
+                    {% elif st == 'europe' %}Style européen propre, lisible, équilibré.
+                    {% elif st == 'modern' %}Design contemporain, hiérarchie visuelle forte.
+                    {% else %}Sobre et robuste, adapté à tout secteur.{% endif %}
+                  </div>
+                </div>
+                <div class="actions">
+                  <button id="btn-{{ t.id }}" class="btn" onclick="chooseTemplate({{ t.id }})">
+                    Choisir ce modèle
+                  </button>
+                </div>
+              </article>
+            {% endif %}
+          {% endwith %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">Aucun template actif. Active au moins un modèle « Canada », « Europe », « Moderne » ou « Professionnel » dans l’admin.</div>
+    {% endif %}
+  </div>
+
+  <!-- ✅ Ceinture CSRF + anti-double-clic + reset au retour -->
+  <script>
+    function csrfToken(){
+      const meta = document.querySelector('meta[name="csrf-token"]');
+      if (meta && meta.content && meta.content !== 'NOTPROVIDED') return meta.content;
+      const m = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+      return m ? m.pop() : '';
+    }
+
+    const DEFAULT_BTN_TEXT = 'Choisir ce modèle';
+
+    function resetButtons(){
+      document.querySelectorAll('.btn').forEach(b => {
+        b.disabled = false;
+        b.textContent = DEFAULT_BTN_TEXT;
+      });
+      localStorage.removeItem('cvCreating');
+    }
+    window.addEventListener('pageshow', resetButtons);
+    document.addEventListener('DOMContentLoaded', resetButtons);
+
+    async function chooseTemplate(templateId){
+      const btn = document.getElementById('btn-'+templateId);
+      try{
+        localStorage.setItem('cvCreating', String(templateId));
+        if (btn){ btn.disabled = true; btn.textContent = 'Création…'; }
+
+        const res = await fetch("{% url 'cv_generator:set_template' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken()
+          },
+          body: JSON.stringify({ template_id: templateId })
+        });
+
+        const data = await res.json();
+        if(!data || !data.success){
+          alert("Erreur: " + (data && data.error ? data.error : "création impossible"));
+          resetButtons();
+          return;
+        }
+        window.location.href = data.data.redirect_url;
+
+      }catch(e){
+        console.error(e);
+        alert("Erreur réseau. Réessaie.");
+        resetButtons();
+      } finally {
+        setTimeout(resetButtons, 8000);
+      }
+    }
+  </script>
+</body>
+</html>

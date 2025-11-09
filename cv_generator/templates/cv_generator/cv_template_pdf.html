@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>CV (Générique)</title>
+  <style>
+    body { font-family: Calibri, Arial, sans-serif; font-size: 12px; color:#111; padding: 20px; }
+    .header { border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 12px; }
+    .name { font-size: 22px; font-weight: 700; color: #222; }
+    .subtitle { font-size: 13px; color: #333; }
+    .meta { font-size: 11px; color: #555; margin-top: 2px; }
+    h2 { background: #333; color: #fff; padding: 4px 6px; font-size: 13px; margin: 14px 0 6px; }
+    .item { margin: 6px 0 8px; page-break-inside: avoid; }
+    .item-title { font-weight: 700; }
+    .muted { color: #555; }
+    ul { margin: 4px 0 0 18px; }
+    .tag { display: inline-block; border: 1px solid #999; border-radius: 999px; padding: 1px 6px; margin: 2px 4px 0 0; font-size: 11px; }
+  </style>
+</head>
+<body>
+
+  {% with pi=personal_info %}
+  <div class="header">
+    <div class="name">
+      {{ pi.nom|default:"" }} {{ pi.prenom|default:"" }}
+    </div>
+    <div class="subtitle">
+      {{ pi.titre|default:cv.profession|default:"" }}
+    </div>
+    <div class="meta">
+      {% if pi.email %}{{ pi.email }}{% endif %}
+      {% if pi.telephone %} | {{ pi.telephone }}{% endif %}
+      {% if pi.ville %} | {{ pi.ville }}{% endif %}
+      {% if pi.province %} ({{ pi.province }}){% endif %}
+      {% if pi.pays %} — {{ pi.pays }}{% endif %}
+      {% if pi.linkedin %} | LinkedIn: {{ pi.linkedin }}{% endif %}
+    </div>
+  </div>
+  {% endwith %}
+
+  {% if summary %}
+    <h2>Résumé</h2>
+    <p>{{ summary|linebreaksbr }}</p>
+  {% endif %}
+
+  {% if skills %}
+    <h2>Compétences</h2>
+    <div>
+      {% for s in skills %}
+        <span class="tag">{{ s.name|default:s.nom|default:"Compétence" }}</span>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if experiences %}
+    <h2>Expériences professionnelles</h2>
+    {% for e in experiences %}
+      <div class="item" style="page-break-inside: avoid;">
+        <div class="item-title">
+          {{ e.title|default:e.titre_poste|default:"Poste" }}
+          {% if e.company or e.entreprise %}
+            — <span class="muted">{{ e.company|default:e.entreprise }}</span>
+          {% endif %}
+        </div>
+        <div class="muted">
+          {% if e.start_date or e.date_debut %}
+            {{ e.start_date|default:e.date_debut|date:"m/Y" }}
+          {% endif %}
+          {% if e.end_date or e.date_fin %}
+            – {{ e.end_date|default:e.date_fin|date:"m/Y" }}
+          {% else %}
+            – Présent
+          {% endif %}
+          {% if e.location or e.lieu %}
+            | {{ e.location|default:e.lieu }}
+          {% endif %}
+        </div>
+
+        {# NOTE: on ne passe plus par raw|lines_to_list #}
+        {% if e.bullets %}
+          <ul>
+            {% for ln in e.bullets %}
+              <li>{{ ln }}</li>
+            {% endfor %}
+          </ul>
+        {% elif e.description %}
+          <ul>
+            {% for ln in e.description.splitlines %}
+              {% if ln.strip %}<li>{{ ln }}</li>{% endif %}
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if educations %}
+    <h2>Formations</h2>
+    {% for ed in educations %}
+      <div class="item">
+        <div class="item-title">
+          {{ ed.degree|default:ed.diplome|default:"Diplôme" }}
+          {% if ed.school or ed.ecole %}
+            — <span class="muted">{{ ed.school|default:ed.ecole }}</span>
+          {% endif %}
+        </div>
+        <div class="muted">
+          {% if ed.start_date or ed.date_debut %}
+            {{ ed.start_date|default:ed.date_debut|date:"m/Y" }}
+          {% endif %}
+          {% if ed.end_date or ed.date_fin %}
+            – {{ ed.end_date|default:ed.date_fin|date:"m/Y" }}
+          {% endif %}
+          {% if ed.location %} | {{ ed.location }}{% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- DEBUG: TEMPLATE = GENERIC_FALLBACK -->
+</body>
+</html>

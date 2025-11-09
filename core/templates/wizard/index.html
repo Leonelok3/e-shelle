@@ -1,0 +1,354 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Éligibilité Immigration – Formulaire Complet | Immigration97</title>
+  <meta name="description" content="Remplissez le formulaire d’éligibilité immigration (profil, études, langues, budget). Recevez des programmes adaptés, une checklist, un plan PDF et des recommandations IA.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="canonical" href="/wizard/">
+  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
+
+  <!-- Open Graph / Twitter -->
+  <meta property="og:title" content="Formulaire Éligibilité Immigration – Résultat en 60s">
+  <meta property="og:description" content="Programmes adaptés (Canada, France, Allemagne, UK, USA, Maroc), checklist, PDF et recommandations IA.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="{% static 'img/og-cover.jpg' %}">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="preload" href="{% static 'css/styles.css' %}" as="style">
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <style>
+    :root { --bg:#0b1220; --card:#0f172a; --muted:#94a3b8; --line:#334155; --txt:#e5e7eb; --cta:#16a34a; --cta2:#1d4ed8; }
+    body { max-width: 980px; margin: 24px auto; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell; background: var(--bg); color: var(--txt); }
+    .hero { margin: 8px 0 18px; }
+    .hero h1 { font-size: 30px; margin: 8px 0; }
+    .sub { color: var(--muted); }
+    .badge { display:inline-block; border:1px solid #22c55e55; color:#22c55e; background:#22c55e1a; border-radius:999px; padding:4px 10px; font-size:12px }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; margin: 16px 0; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+    label { font-weight: 700; display:block; margin: 6px 0 6px; }
+    .hint { color: #93c5fd; font-size: 12px; margin-top: 2px;}
+    input, select, textarea { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--txt); }
+    .row { display:flex; gap: 12px; align-items:center; flex-wrap: wrap; }
+    .actions { display:flex; gap:10px; margin-top: 14px; }
+    .btn { border:0; border-radius: 10px; padding: 12px 16px; cursor: pointer; }
+    .btn-primary { background: var(--cta); color:#fff; }
+    .btn-ghost { background: transparent; color: var(--txt); border:1px solid var(--line); }
+    .muted { color: var(--muted); }
+    .sep { height:1px; background: var(--line); margin: 16px 0; }
+    .pill { font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid var(--line); color: var(--muted); }
+    .error { color: #fca5a5; margin-top: 8px; }
+    .ok { color: #86efac; }
+    .checkbox-list { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .checkbox-list label { font-weight:600; display:flex; gap:8px; align-items:center; }
+    @media (max-width: 820px) {
+      .grid, .grid-3 { grid-template-columns:1fr; }
+      body { margin: 12px; }
+    }
+  </style>
+  <script>document.documentElement.classList.remove('no-js')</script>
+</head>
+<body>
+  <header class="hero">
+    <span class="badge">⚡ Résultat en &lt; 60s</span>
+    <h1>Test d’éligibilité & plan d’action personnalisé</h1>
+    <p class="sub">Remplissez ce formulaire complet. Nous calculons votre score, listons les programmes adaptés (Canada, France, Allemagne, UK, USA, Maroc), générons votre checklist et un PDF.</p>
+    <div class="row" aria-hidden="true">
+      <span class="pill">🎯 Programmes adaptés</span>
+      <span class="pill">🧾 Checklist documentaire</span>
+      <span class="pill">📄 PDF export</span>
+      <span class="pill">🤖 Recos IA</span>
+    </div>
+  </header>
+
+  <form id="eligForm" class="card" method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- Identité & Contact -->
+    <h2>👤 Profil</h2>
+    <div class="grid">
+      <div>
+        <label for="first_name">Prénom</label>
+        <input id="first_name" autocomplete="given-name" placeholder="Ex. Marc">
+      </div>
+      <div>
+        <label for="last_name">Nom</label>
+        <input id="last_name" autocomplete="family-name" placeholder="Ex. NGONO">
+      </div>
+      <div>
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" placeholder="nom@exemple.com">
+        <div class="hint">Pour recevoir votre PDF si besoin.</div>
+      </div>
+      <div>
+        <label for="age">Âge</label>
+        <input id="age" type="number" min="16" max="65" value="25">
+      </div>
+      <div>
+        <label for="origin_country">Pays de citoyenneté</label>
+        <input id="origin_country" placeholder="Ex. Cameroun">
+      </div>
+      <div>
+        <label for="residence_country">Pays de résidence</label>
+        <input id="residence_country" placeholder="Ex. Cameroun">
+      </div>
+      <div>
+        <label for="marital_status">État matrimonial</label>
+        <select id="marital_status">
+          <option value="single">Célibataire</option>
+          <option value="married">Marié(e)</option>
+          <option value="common_law">Union libre</option>
+          <option value="divorced">Divorcé(e)</option>
+        </select>
+      </div>
+      <div>
+        <label for="children_count">Enfants (nombre)</label>
+        <input id="children_count" type="number" min="0" max="10" value="0">
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Projet -->
+    <h2>🎯 Projet d’immigration</h2>
+    <div class="grid">
+      <div>
+        <label for="target_country">Pays cible</label>
+        <select id="target_country">
+          <option>Canada</option><option>France</option><option>Allemagne</option>
+          <option>Royaume-Uni</option><option>USA</option><option>Maroc</option>
+        </select>
+        <div class="hint">Nous adapterons les règles et sources officielles.</div>
+      </div>
+      <div>
+        <label for="project_type">Type de projet</label>
+        <select id="project_type">
+          <option value="study">Études</option>
+          <option value="work">Travail</option>
+          <option value="pr">Résidence permanente</option>
+          <option value="visit">Court séjour</option>
+        </select>
+      </div>
+      <div>
+        <label for="budget">Budget disponible (USD)</label>
+        <input id="budget" type="number" min="0" step="100" value="15000">
+        <div class="hint">💡 Sert à filtrer des options réalistes (vous ne payez rien ici).</div>
+      </div>
+      <div>
+        <label for="timeline">Délai souhaité</label>
+        <select id="timeline">
+          <option value="0-3">0–3 mois</option>
+          <option value="3-6">3–6 mois</option>
+          <option value="6-12">6–12 mois</option>
+          <option value="12+">12+ mois</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Éducation -->
+    <h2>🎓 Éducation</h2>
+    <div class="grid">
+      <div>
+        <label for="education_level">Dernier diplôme</label>
+        <select id="education_level">
+          <option>Secondaire</option><option>Licence</option><option>Master</option><option>Doctorat</option>
+        </select>
+      </div>
+      <div>
+        <label for="education_field">Domaine d’étude</label>
+        <input id="education_field" placeholder="Ex. Informatique">
+      </div>
+      <div>
+        <label for="education_year">Année d’obtention</label>
+        <input id="education_year" type="number" min="1980" max="2025" value="2022">
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Expérience -->
+    <h2>💼 Expérience</h2>
+    <div class="grid">
+      <div>
+        <label for="job_title">Profession actuelle</label>
+        <input id="job_title" placeholder="Ex. Ingénieur logiciel">
+      </div>
+      <div>
+        <label for="exp_years">Années d’expérience</label>
+        <input id="exp_years" type="number" min="0" max="40" value="3">
+      </div>
+      <div>
+        <label for="skills">Compétences (séparées par virgules)</label>
+        <input id="skills" placeholder="Python, Data, Gestion projet">
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Langues -->
+    <h2>🗣️ Langues</h2>
+    <div class="grid-3">
+      <div>
+        <label for="ielts">IELTS (overall)</label>
+        <input id="ielts" placeholder="6.5" value="6.5">
+        <div class="hint">Mettre “0” si non passé.</div>
+      </div>
+      <div>
+        <label for="toefl">TOEFL</label>
+        <input id="toefl" placeholder="0" value="0">
+      </div>
+      <div>
+        <label for="tef">TEF (global)</label>
+        <input id="tef" placeholder="B2 / 400" value="0">
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Documents -->
+    <h2>🧾 Documents disponibles</h2>
+    <div class="checkbox-list">
+      <label><input type="checkbox" id="doc_passport"> Passeport valide</label>
+      <label><input type="checkbox" id="doc_bank"> Relevés bancaires</label>
+      <label><input type="checkbox" id="doc_work"> Attestation de travail</label>
+      <label><input type="checkbox" id="doc_cv"> CV</label>
+      <label><input type="checkbox" id="doc_reco"> Lettre de recommandation</label>
+      <label><input type="checkbox" id="doc_diplomas"> Diplômes / relevés de notes</label>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <label style="display:flex; gap:8px; align-items:center">
+        <input type="checkbox" id="consent" checked> J’accepte d’être recontacté pour recevoir mon plan et des opportunités pertinentes.
+      </label>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" type="submit">Voir mes options</button>
+      <a class="btn btn-ghost" href="/">Retour</a>
+    </div>
+    <div id="formError" class="error" hidden></div>
+    <div id="formOk" class="ok" hidden></div>
+  </form>
+
+  <section class="card">
+    <h2>Ce que vous recevez</h2>
+    <ul>
+      <li>✅ Score d’éligibilité multi-pays & programmes</li>
+      <li>✅ Checklists de documents + liens officiels</li>
+      <li>✅ Étapes & délais estimés (timeline)</li>
+      <li>✅ PDF récapitulatif téléchargeable</li>
+    </ul>
+    <p class="muted">Sources : ministères, ambassades, IRCC, CampusFrance, DAAD, etc.</p>
+  </section>
+
+  <script>
+    // CSRF
+    function getCookie(name){
+      const v = `; ${document.cookie}`; const p = v.split(`; ${name}=`);
+      if(p.length===2) return p.pop().split(';').shift();
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    async function post(url, data){
+      const r = await fetch(url,{
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "X-CSRFToken": csrftoken },
+        body: JSON.stringify(data||{})
+      });
+      if(!r.ok){ throw new Error(await r.text()); }
+      return r.json();
+    }
+
+    function parseFloatSafe(x){
+      if(typeof x!=="string") return Number(x||0);
+      return Number(x.replace(",", ".") || 0);
+    }
+
+    function yes(b){ return b ? true : false; }
+
+    document.getElementById("eligForm").addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      const E = (id)=>document.getElementById(id);
+      const err = E("formError"); const ok = E("formOk");
+      err.hidden = true; err.textContent=""; ok.hidden=true; ok.textContent="";
+
+      // Petites validations UX
+      if(!E("first_name").value.trim() || !E("last_name").value.trim()){
+        err.hidden = false; err.textContent = "Merci d’indiquer votre prénom et votre nom.";
+        return;
+      }
+      if(!E("email").value.trim()){
+        err.hidden=false; err.textContent="Merci d’indiquer votre email.";
+        return;
+      }
+
+      try{
+        // 1) Créer la session
+        const session = await post("/api/eligibility/sessions/", { locale: "fr" });
+        const sid = session.id;
+
+        // 2) Préparer les réponses (clés compatibles avec ton moteur)
+        const payload = {
+          // identité
+          "profile.first_name": E("first_name").value.trim(),
+          "profile.last_name": E("last_name").value.trim(),
+          "contact.email": E("email").value.trim(),
+          "age": Number(E("age").value || 0),
+          "origin_country": E("origin_country").value.trim(),
+          "residence_country": E("residence_country").value.trim(),
+          "marital.status": E("marital_status").value,
+          "children.count": Number(E("children_count").value || 0),
+
+          // projet
+          "target_country": E("target_country").value,
+          "project.type": E("project_type").value,
+          "budget.usd": Number(E("budget").value || 0),
+          "timeline.pref": E("timeline").value,
+
+          // éducation
+          "education.level": E("education_level").value,
+          "education.field": E("education_field").value.trim(),
+          "education.year": Number(E("education_year").value || 0),
+
+          // expérience
+          "job.title": E("job_title").value.trim(),
+          "experience.years": Number(E("exp_years").value || 0),
+          "skills": E("skills").value.split(",").map(s=>s.trim()).filter(Boolean),
+
+          // langues
+          "language.ielts.overall": parseFloatSafe(E("ielts").value),
+          "language.toefl.score": parseFloatSafe(E("toefl").value),
+          "language.tef.global": E("tef").value.trim(),
+
+          // documents (booléens)
+          "docs.passport": yes(E("doc_passport").checked),
+          "docs.bank": yes(E("doc_bank").checked),
+          "docs.work_attestation": yes(E("doc_work").checked),
+          "docs.cv": yes(E("doc_cv").checked),
+          "docs.recommendation": yes(E("doc_reco").checked),
+          "docs.diplomas": yes(E("doc_diplomas").checked),
+
+          // consentement
+          "consent.contact": yes(E("consent").checked)
+        };
+
+        // 3) Enregistrer réponses
+        await post(`/api/eligibility/sessions/${sid}/answers/`, payload);
+
+        // 4) Calcul du score (on passe le pays cible pour affiner)
+        await post(`/api/eligibility/sessions/${sid}/score/`, { country: E("target_country").value });
+
+        // 5) Confirme + redirige
+        ok.hidden=false; ok.textContent="Parfait ! Calcul terminé, redirection…";
+        window.location.href = `/wizard/result/${sid}/`;
+      }catch(e2){
+        err.hidden=false; err.textContent = "Erreur : " + (e2.message || "réseau/serveur");
+      }
+    });
+  </script>
+</body>
+</html>
