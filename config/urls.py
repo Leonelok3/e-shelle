@@ -16,6 +16,7 @@ from core.views import wizard_page, wizard_result_page, wizard_pdf
 from core.views import dashboard_page
 from django.urls import path, include
 from core.views import dashboard_page
+
 def home(request):
     return render(request, "home.html")
 
@@ -33,7 +34,6 @@ urlpatterns = [
     # ✅ MODULE PHOTO VISA (DV Lottery)
     path("visa-photo/", include("photos.urls")),
     
-
     # ✅ MODULES IMMIGRATION (Placeholder pour le futur)
     path('motivation/', include('MotivationLetterApp.urls')),  # ← AJOUT
     path("visa-tourisme/", home),
@@ -41,8 +41,11 @@ urlpatterns = [
     path("visa-travail/", home),
     path("prep-langues/", home),
     path("residence-permanente/", home),
-  
-      # ... tes autres routes ...
+
+    # ✅ PREPARATION TESTS (AJOUT demandé)
+    path("prep/", include("preparation_tests.urls")),
+
+    # ... tes autres routes ...
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/eligibility/", include("eligibility.urls")),
@@ -67,14 +70,12 @@ urlpatterns = [
     # ✅ Django-Allauth (on garde pour le futur Google / Facebook login)
     path("accounts/", include("allauth.urls")),
 
-     # ... tes autres routes ...
+    # ... tes autres routes ...
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/eligibility/", include("eligibility.urls")),
 
-
-
-     # ... tes routes déjà présentes ...
+    # ... tes routes déjà présentes ...
     path("wizard/", wizard_page, name="wizard"),
     path("wizard/result/<int:session_id>/", wizard_result_page, name="wizard_result"),
     path("wizard/checklist.pdf", wizard_pdf, name="wizard_pdf"),

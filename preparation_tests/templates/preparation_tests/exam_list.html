@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examens — Préparation Tests de Langue</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* CONTAINER */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* HEADER SECTION */
+        .text-center {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .display-6 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .text-secondary {
+            color: #b8c5d6;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        /* BUTTONS */
+        .btn {
+            display: inline-block;
+            padding: 12px 28px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .btn-outline-secondary {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-outline-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .me-2 {
+            margin-right: 10px;
+        }
+
+        /* ==== GRID AVEC FLOAT LEFT ==== */
+        .exam-grid {
+            width: 100%;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .exam-item {
+            float: left;
+            width: 31%;
+            margin: 1%;
+            min-width: 260px;
+            max-width: 350px;
+            background: linear-gradient(145deg, #1a2838 0%, #0f1923 100%);
+            border-radius: 16px;
+            padding: 25px;
+            color: #fff;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out both;
+        }
+
+        .exam-item:nth-child(1) { animation-delay: 0.1s; }
+        .exam-item:nth-child(2) { animation-delay: 0.2s; }
+        .exam-item:nth-child(3) { animation-delay: 0.3s; }
+        .exam-item:nth-child(4) { animation-delay: 0.4s; }
+        .exam-item:nth-child(5) { animation-delay: 0.5s; }
+        .exam-item:nth-child(6) { animation-delay: 0.6s; }
+
+        /* Effet de brillance au survol */
+        .exam-item::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
+            opacity: 0;
+        }
+
+        .exam-item:hover::before {
+            opacity: 1;
+            left: 100%;
+        }
+
+        .exam-item:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3), 
+                        0 0 0 1px rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        /* Header de la carte */
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        /* Titre */
+        .exam-item h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Badge langue */
+        .badge-lang {
+            background: linear-gradient(135deg, #0dcaf0 0%, #0ea5d9 100%);
+            color: #000;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(13, 202, 240, 0.4);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Code */
+        .text-muted {
+            color: #8899aa;
+            margin: 8px 0;
+        }
+
+        .small {
+            font-size: 0.875rem;
+        }
+
+        code {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 3px 8px;
+            border-radius: 6px;
+            color: #a0c4ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        /* Liste des compétences */
+        .exam-list {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0 25px 0;
+        }
+
+        .exam-list li {
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            padding-left: 8px;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .exam-list li:hover {
+            border-left-color: #667eea;
+            padding-left: 12px;
+            color: #a0c4ff;
+        }
+
+        /* Bouton */
+        .btn-exam {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 12px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-exam::after {
+            content: '→';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .btn-exam:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+            transform: translateY(-2px);
+            padding-right: 30px;
+        }
+
+        .btn-exam:hover::after {
+            opacity: 1;
+            right: 15px;
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 2px 8px rgba(13, 202, 240, 0.4);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 4px 12px rgba(13, 202, 240, 0.6);
+            }
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 900px) {
+            .exam-item {
+                width: 47%;
+            }
+
+            .display-6 {
+                font-size: 2rem;
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            .exam-item {
+                width: 98%;
+            }
+
+            .display-6 {
+                font-size: 1.75rem;
+            }
+
+            .btn {
+                display: block;
+                margin: 10px 0;
+                width: 100%;
+            }
+
+            .me-2 {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<section class="container">
+
+    <div class="text-center">
+        <h1 class="display-6">Préparation Tests de Langue</h1>
+        <p class="text-secondary">Sélectionnez un examen puis entraînez-vous par compétence.</p>
+
+        <a href="/" class="btn btn-outline-secondary me-2">⬅ Accueil</a>
+        <a href="#exams" class="btn btn-primary">Voir les examens</a>
+    </div>
+
+    <!-- ✅ GRID FLOAT -->
+    <div id="exams" class="exam-grid">
+
+        <!-- Exemple TCF Canada -->
+        <div class="exam-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>TCF Canada</h3>
+                <span class="badge-lang">Français</span>
+            </div>
+            <p class="text-muted small">Code : <code>TCF-CA</code></p>
+            <ul class="exam-list">
+                <li>🎧 Compréhension orale</li>
+                <li>📖 Compréhension écrite</li>
+                <li>✍️ Expression écrite</li>
+                <li>🗣️ Expression orale</li>
+            </ul>
+            <a href="#" class="btn-exam">Voir les sections</a>
+        </div>
+
+        <!-- Exemple TEF Canada -->
+        <div class="exam-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>TEF Canada</h3>
+                <span class="badge-lang">Français</span>
+            </div>
+            <p class="text-muted small">Code : <code>TEF-CA</code></p>
+            <ul class="exam-list">
+                <li>🎧 Compréhension orale</li>
+                <li>📖 Compréhension écrite</li>
+                <li>✍️ Expression écrite</li>
+                <li>🗣️ Expression orale</li>
+            </ul>
+            <a href="#" class="btn-exam">Voir les sections</a>
+        </div>
+
+        <!-- Exemple IELTS -->
+        <div class="exam-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>IELTS</h3>
+                <span class="badge-lang">English</span>
+            </div>
+            <p class="text-muted small">Code : <code>IELTS</code></p>
+            <ul class="exam-list">
+                <li>🎧 Compréhension orale</li>
+                <li>📖 Compréhension écrite</li>
+                <li>✍️ Expression écrite</li>
+                <li>🗣️ Expression orale</li>
+            </ul>
+            <a href="#" class="btn-exam">Voir les sections</a>
+        </div>
+
+        <!-- Exemple CELPIP -->
+        <div class="exam-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>CELPIP</h3>
+                <span class="badge-lang">English</span>
+            </div>
+            <p class="text-muted small">Code : <code>CELPIP</code></p>
+            <ul class="exam-list">
+                <li>🎧 Compréhension orale</li>
+                <li>📖 Compréhension écrite</li>
+                <li>✍️ Expression écrite</li>
+                <li>🗣️ Expression orale</li>
+            </ul>
+            <a href="#" class="btn-exam">Voir les sections</a>
+        </div>
+
+        <!-- Exemple DELF -->
+        <div class="exam-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>DELF B2</h3>
+                <span class="badge-lang">Français</span>
+            </div>
+            <p class="text-muted small">Code : <code>DELF-B2</code></p>
+            <ul class="exam-list">
+                <li>🎧 Compréhension orale</li>
+                <li>📖 Compréhension écrite</li>
+                <li>✍️ Expression écrite</li>
+                <li>🗣️ Expression orale</li>
+            </ul>
+            <a href="#" class="btn-exam">Voir les sections</a>
+        </div>
+
+        <!-- Exemple TOEFL -->
+        <div class="exam-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>TOEFL iBT</h3>
+                <span class="badge-lang">English</span>
+            </div>
+            <p class="text-muted small">Code : <code>TOEFL</code></p>
+            <ul class="exam-list">
+                <li>🎧 Compréhension orale</li>
+                <li>📖 Compréhension écrite</li>
+                <li>✍️ Expression écrite</li>
+                <li>🗣️ Expression orale</li>
+            </ul>
+            <a href="#" class="btn-exam">Voir les sections</a>
+        </div>
+
+        <div style="clear: both;"></div>
+    </div>
+
+</section>
+
+</body>
+</html>
