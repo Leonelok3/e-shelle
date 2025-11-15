@@ -1,0 +1,408 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>{% block title %}TEF — Cours | E-SHELLE{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="{% block meta_description %}Préparation TEF : cours, stratégies, entraînements chronométrés (CO, CE, EE, EO), barèmes et ressources sur E-SHELLE.{% endblock %}" />
+  <meta name="keywords" content="TEF, préparation, cours, compréhension orale, compréhension écrite, expression orale, expression écrite, E-SHELLE" />
+
+  <style>
+    :root{
+      --bg:#050816;
+      --bg2:#060922;
+      --grad1:#050816;
+      --grad2:#0b1630;
+      --grad3:#071629;
+      --panel:rgba(15,23,42,.9);
+      --panel-soft:rgba(15,23,42,.8);
+      --panel2:rgba(30,64,175,.25);
+      --stroke:rgba(148,163,184,.55);
+      --muted:#9ca3af;
+      --text:#e5e7eb;
+      --accent:#4f46e5;
+      --accent-soft:#6366f1;
+      --brand-green:#16a34a;
+      --brand-orange:#f97316;
+      --danger:#ef4444;
+      --radius-xl:22px;
+      --shadow-lg:0 18px 45px rgba(0,0,0,.6);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(900px 500px at -10% 0%,rgba(52,211,153,.16),transparent 60%),
+        radial-gradient(1000px 600px at 110% 10%,rgba(96,165,250,.18),transparent 60%),
+        linear-gradient(135deg,var(--grad1),var(--grad2) 50%,var(--grad3));
+      min-height:100vh;
+    }
+    a{color:inherit;text-decoration:none}
+    main{min-height:calc(100vh - 70px);}
+
+    .shell{
+      max-width:1180px;
+      margin:0 auto;
+      padding:20px 18px 32px;
+    }
+
+    /* === Topbar / Header === */
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:40;
+      backdrop-filter:blur(18px);
+      background:linear-gradient(180deg,rgba(5,10,25,.95),rgba(5,10,25,.78));
+      border-bottom:1px solid rgba(148,163,184,.35);
+    }
+    .topbar-inner{
+      max-width:1180px;
+      margin:0 auto;
+      padding:10px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .brand-logo{
+      width:38px;
+      height:38px;
+      border-radius:14px;
+      background:#020617;
+      position:relative;
+      overflow:hidden;
+      box-shadow:0 10px 25px rgba(0,0,0,.7);
+    }
+    .brand-logo img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .brand-text-title{
+      font-size:.95rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:#e5e7eb;
+      font-weight:700;
+    }
+    .brand-text-sub{
+      font-size:.78rem;
+      color:var(--muted);
+    }
+
+    .pill-nav{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .pill-link{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:7px 14px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.55);
+      background:rgba(15,23,42,.85);
+      font-size:.82rem;
+      font-weight:600;
+      color:var(--muted);
+      cursor:pointer;
+      transition:.18s;
+    }
+    .pill-link span.emoji{font-size:.95rem}
+    .pill-link:hover{
+      transform:translateY(-1px);
+      border-color:var(--accent-soft);
+      color:#e5e7eb;
+      box-shadow:0 8px 22px rgba(0,0,0,.6);
+    }
+    .pill-link.active{
+      background:linear-gradient(135deg,var(--accent),var(--brand-green));
+      color:#fff;
+      border-color:transparent;
+    }
+
+    /* === Hero / header de page === */
+    .hero{
+      margin-top:18px;
+      text-align:center;
+    }
+    .hero-kicker{
+      font-size:.8rem;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--brand-orange);
+      font-weight:700;
+      margin-bottom:6px;
+    }
+    .hero-title{
+      font-size:1.9rem;
+      font-weight:800;
+      margin-bottom:4px;
+    }
+    .hero-title span{
+      color:var(--accent-soft);
+    }
+    .hero-sub{
+      font-size:.95rem;
+      color:var(--muted);
+      max-width:620px;
+      margin:0 auto;
+    }
+
+    .hero-actions{
+      margin-top:16px;
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:9px 18px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.7);
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+      font-weight:600;
+      font-size:.9rem;
+      cursor:pointer;
+      transition:.18s;
+      text-decoration:none;
+    }
+    .btn:hover{
+      transform:translateY(-1px);
+      background:rgba(15,23,42,1);
+      box-shadow:0 10px 26px rgba(0,0,0,.7);
+    }
+    .btn-primary{
+      border-color:transparent;
+      background:linear-gradient(135deg,var(--brand-green),var(--accent-soft));
+      color:#f9fafb;
+    }
+    .btn-ghost{
+      background:rgba(15,23,42,.85);
+    }
+
+    .section{
+      margin-top:26px;
+    }
+    .section-title{
+      font-size:1.1rem;
+      font-weight:700;
+      margin-bottom:10px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .section-title span.emoji{font-size:1.2rem}
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:14px;
+    }
+
+    .card{
+      border-radius:var(--radius-xl);
+      border:1px solid rgba(148,163,184,.45);
+      background:radial-gradient(800px 400px at -10% 0%,rgba(56,189,248,.08),transparent 55%),
+                 radial-gradient(900px 450px at 120% 10%,rgba(96,165,250,.10),transparent 60%),
+                 var(--panel);
+      box-shadow:var(--shadow-lg);
+      padding:16px 16px 14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:8px;
+      margin-bottom:10px;
+    }
+    .card-title{
+      font-size:.98rem;
+      font-weight:700;
+    }
+    .card-kicker{
+      font-size:.78rem;
+      color:var(--muted);
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:.75rem;
+      font-weight:700;
+    }
+    .badge-pill{
+      background:rgba(15,23,42,.95);
+      border:1px solid rgba(148,163,184,.6);
+      color:var(--muted);
+    }
+    .badge-green{
+      background:rgba(22,163,74,.16);
+      border:1px solid rgba(22,163,74,.7);
+      color:#bbf7d0;
+    }
+    .badge-orange{
+      background:rgba(249,115,22,.16);
+      border:1px solid rgba(249,115,22,.7);
+      color:#fed7aa;
+    }
+
+    ul.bullet{
+      margin:6px 0 0 0;
+      padding-left:18px;
+      font-size:.9rem;
+    }
+    ul.bullet li{
+      margin:3px 0;
+      color:#e5e7eb;
+    }
+
+    .lesson-card{
+      margin-top:14px;
+      border-radius:var(--radius-xl);
+      border:1px solid rgba(148,163,184,.5);
+      background:radial-gradient(900px 500px at -10% 0%,rgba(167,139,250,.12),transparent 55%),
+                 var(--panel-soft);
+      box-shadow:var(--shadow-lg);
+      padding:18px 18px 16px;
+    }
+    .lesson-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom:10px;
+    }
+    .lesson-title{
+      font-weight:700;
+      font-size:1rem;
+    }
+    .lesson-meta{
+      font-size:.8rem;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .lesson-meta span.dot{
+      width:6px;
+      height:6px;
+      border-radius:999px;
+      background:#22c55e;
+      box-shadow:0 0 8px rgba(34,197,94,.8);
+    }
+
+    .lesson-body{
+      font-size:.9rem;
+      line-height:1.7;
+      color:#e5e7eb;
+    }
+    .lesson-body p{margin:6px 0;}
+    .lesson-body ul, .lesson-body ol{margin:4px 0 4px 20px;}
+    .lesson-body strong{color:#f9fafb;}
+    .lesson-body em{color:#a5b4fc;}
+    .lesson-body a{color:#a5b4fc;text-decoration:underline;}
+    .lesson-body a:hover{color:#c4b5fd;}
+    .lesson-body audio,
+    .lesson-body iframe{
+      max-width:100%;
+      border-radius:14px;
+      margin:10px 0;
+    }
+
+    .footer{
+      text-align:center;
+      padding:22px 18px 26px;
+      font-size:.8rem;
+      color:var(--muted);
+      border-top:1px solid rgba(15,23,42,.9);
+      background:radial-gradient(900px 500px at 50% -40%,rgba(37,99,235,.2),transparent 60%),
+                 linear-gradient(180deg,#020617,#020617 40%,#030712);
+    }
+
+    @media (max-width:768px){
+      .topbar-inner{flex-direction:column;align-items:flex-start;}
+      .hero-title{font-size:1.6rem;text-align:left;}
+      .hero-sub{text-align:left;}
+      .hero-actions{justify-content:flex-start;}
+    }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-logo">
+<img src="{% static 'preparation_tests/img/logoeshelle.jpg' %}" 
+     alt="E-SHELLE" 
+     class="brand-logo-img">
+        </div>
+        <div>
+          <div class="brand-text-title">E-SHELLE • Préparation TEF</div>
+          <div class="brand-text-sub">Ton futur sans limite</div>
+        </div>
+      </div>
+      <nav class="pill-nav">
+        <a href="{% url 'preparation_tests:tef_co' %}" class="pill-link {% block nav_courses_active %}active{% endblock %}">
+          <span class="emoji">📚</span><span>Cours</span>
+        </a>
+        <a href="{% url 'preparation_tests:tef_hub' %}#train" class="pill-link">
+          <span class="emoji">✏️</span><span>Entraînements</span>
+        </a>
+        <a href="{% url 'preparation_tests:tef_hub' %}#tips" class="pill-link">
+          <span class="emoji">🧭</span><span>Conseils</span>
+        </a>
+        <a href="{% url 'preparation_tests:tef_hub' %}#res" class="pill-link">
+          <span class="emoji">🗂️</span><span>Ressources</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="shell">
+      <section class="hero">
+        {% block hero %}
+        <div class="hero-kicker">Préparation TEF</div>
+        <h1 class="hero-title">Cours <span>TEF</span></h1>
+        <p class="hero-sub">
+          {% block hero_sub %}
+          Modules de cours et d’entraînement pour booster ton score au TEF.
+          {% endblock %}
+        </p>
+        {% endblock %}
+      </section>
+
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <footer class="footer">
+    © {{ now|default:2025 }} E-SHELLE — Prépare ton avenir sans limite.
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

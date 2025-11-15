@@ -1,0 +1,85 @@
+{% extends "visaetude/base.html" %}
+
+{% block title %}Mettre à jour - {{ item.document.nom }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">
+          <i class="fas fa-edit"></i> Mettre à jour le Document
+        </h4>
+      </div>
+
+      <div class="card-body">
+        <h5 class="mb-3">{{ item.document.nom }}</h5>
+        <p class="text-muted">{{ item.document.description }}</p>
+        <hr>
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label for="{{ form.statut.id_for_label }}" class="form-label">
+              <i class="fas fa-flag"></i> Statut du Document
+            </label>
+            {{ form.statut }}
+            <div class="form-text">Indiquez l'état d'avancement de ce document</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.fichier.id_for_label }}" class="form-label">
+              <i class="fas fa-upload"></i> Télécharger le Document
+            </label>
+            {{ form.fichier }}
+            {% if item.fichier %}
+            <div class="mt-2">
+              <small class="text-muted">
+                Fichier actuel:
+                <a href="{{ item.fichier.url }}" target="_blank">
+                  <i class="fas fa-file"></i> Voir le fichier
+                </a>
+              </small>
+            </div>
+            {% endif %}
+            <div class="form-text">Formats acceptés: PDF, JPG, PNG, DOCX (Max 10MB)</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.notes.id_for_label }}" class="form-label">
+              <i class="fas fa-sticky-note"></i> Notes Personnelles
+            </label>
+            {{ form.notes }}
+            <div class="form-text">Ajoutez des notes pour vous souvenir de détails importants</div>
+          </div>
+
+          <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+            <a href="{% url 'visaetude:checklist' item.pays.code %}" class="btn btn-secondary">
+              <i class="fas fa-times"></i> Annuler
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Conseils -->
+    <div class="card shadow-sm mt-4">
+      <div class="card-body">
+        <h5 class="text-primary">
+          <i class="fas fa-lightbulb"></i> Conseils
+        </h5>
+        <ul class="mb-0">
+          <li>Scannez vos documents en haute qualité (300 DPI minimum)</li>
+          <li>Assurez-vous que tous les textes sont lisibles</li>
+          <li>Gardez des copies de sauvegarde de tous vos documents</li>
+          <li>Vérifiez les dates d'expiration des documents officiels</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends "visaetude/base.html" %}
+
+{% block title %}Guide {{ country.nom }} - Visa Étudiant{% endblock %}
+
+{% block content %}
+<!-- En-tête -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-3">
+                    <i class="fas fa-flag text-primary"></i> Guide Visa Étudiant - {{ country.nom }}
+                </h1>
+                <p class="lead text-muted">{{ country.description }}</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'visaetude:checklist' country.code %}" class="btn btn-success btn-lg">
+                    <i class="fas fa-list-check"></i> Ma Checklist
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informations clés -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card text-center h-100 border-primary">
+            <div class="card-body">
+                <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                <h6 class="text-muted">Délai de Traitement</h6>
+                <h4>{{ country.delai_traitement }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center h-100 border-success">
+            <div class="card-body">
+                <i class="fas fa-money-bill-wave fa-2x text-success mb-2"></i>
+                <h6 class="text-muted">Coût du Visa</h6>
+                <h4>{{ country.cout_visa|floatformat:0 }} FCFA</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center h-100 border-info">
+            <div class="card-body">
+                <i class="fas fa-chart-line fa-2x text-info mb-2"></i>
+                <h6 class="text-muted">Taux d'Acceptation</h6>
+                <h4>{{ country.taux_acceptation|default:"N/A" }}%</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Guides -->
+{% if guides %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">
+            <i class="fas fa-book"></i> Guides et Informations
+        </h4>
+    </div>
+    <div class="card-body">
+        {% for guide in guides %}
+        <div class="guide-section mb-4">
+            <h5 class="text-primary">
+                <i class="fas fa-chevron-right"></i> {{ guide.titre }}
+            </h5>
+            <div class="ms-4">
+                {{ guide.contenu|linebreaks }}
+            </div>
+            <hr>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Documents Requis -->
+{% if documents %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white">
+        <h4 class="mb-0">
+            <i class="fas fa-file-alt"></i> Documents Requis
+        </h4>
+    </div>
+    <div class="card-body">
+        <div class="list-group">
+            {% for doc in documents %}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">
+                            {% if doc.obligatoire %}
+                                <span class="badge bg-danger">Obligatoire</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Optionnel</span>
+                            {% endif %}
+                            {{ doc.nom }}
+                        </h6>
+                        <p class="mb-0 text-muted small">{{ doc.description }}</p>
+                    </div>
+                    {% if doc.exemple %}
+                    <a href="{{ doc.exemple.url }}" class="btn btn-sm btn-outline-primary" download>
+                        <i class="fas fa-download"></i> Exemple
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- FAQ -->
+{% if faqs %}
+<div class="card shadow-sm">
+    <div class="card-header bg-warning">
+        <h4 class="mb-0">
+            <i class="fas fa-question-circle"></i> Questions Fréquentes
+        </h4>
+    </div>
+    <div class="card-body">
+        <div class="accordion" id="faqAccordion">
+            {% for faq in faqs %}
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeading{{ forloop.counter }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#faqCollapse{{ forloop.counter }}">
+                        {{ faq.question }}
+                    </button>
+                </h2>
+                <div id="faqCollapse{{ forloop.counter }}" class="accordion-collapse collapse" 
+                     data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        {{ faq.reponse|linebreaks }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends "preparation_tests/tef_course_base.html" %}
+{% load static %}
+
+{% block title %}TEF — Cours CO (Compréhension Orale) | E-SHELLE{% endblock %}
+{% block meta_description %}
+Cours TEF CO : stratégies d’écoute, situations fréquentes, leçons guidées et entraînement progressif pour réussir la Compréhension Orale.
+{% endblock %}
+
+{% block hero %}
+  <div class="hero-kicker">TEF • Compréhension Orale</div>
+  <h1 class="hero-title">Cours – <span>Compréhension Orale</span></h1>
+  <p class="hero-sub">
+    Guide complet pour comprendre les audios du TEF&nbsp;: formats, stratégies d’écoute et entraînement ciblé.
+  </p>
+  <div class="hero-actions">
+
+    {% if lessons %}
+      <!-- Nouveau bouton : commence avec la première leçon -->
+      <a class="btn btn-primary"
+         href="{% url 'preparation_tests:lesson_session_co' lessons.0.id %}">
+        <span class="icon">🎧</span>
+        <span>Commencer une session CO</span>
+      </a>
+    {% else %}
+      <a class="btn btn-primary" href="#cours-co">
+        <span class="icon">🎧</span>
+        <span>Commencer une session CO</span>
+      </a>
+    {% endif %}
+
+    <a href="{% url 'preparation_tests:exam_detail' 'tef' %}#listening"
+       class="btn btn-ghost">
+      📄 Voir le format officiel TEF
+    </a>
+  </div>
+{% endblock %}
+
+{% block content %}
+
+  <!-- SECTION 1 : STRATÉGIES -->
+  <section class="section" id="cours-co">
+    <h2 class="section-title">
+      <span class="emoji">📚</span>
+      Résumé du cours — Compréhension Orale
+    </h2>
+
+    <div class="grid">
+
+      <!-- Carte 1 -->
+      <article class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-kicker">Objectifs</div>
+            <h3 class="card-title">Ce que tu dois maîtriser</h3>
+          </div>
+          <span class="badge badge-pill">B1–C1</span>
+        </div>
+        <ul class="bullet">
+          <li>Identifier les infos clés (heures, lieux, chiffres, montants).</li>
+          <li>Comprendre l’intention du locuteur (demander, proposer, refuser, informer).</li>
+          <li>Réussir même avec une seule écoute.</li>
+        </ul>
+      </article>
+
+      <!-- Carte 2 -->
+      <article class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-kicker">Méthode d’écoute</div>
+            <h3 class="card-title">Avant / pendant / après</h3>
+          </div>
+          <span class="badge badge-green">Méthode</span>
+        </div>
+        <ul class="bullet">
+          <li><strong>Avant</strong> : lire la question et les options.</li>
+          <li><strong>Pendant</strong> : repérer mots clés + chiffres + verbes d’action.</li>
+          <li><strong>Après</strong> : éliminer 2 choix, choisir la réponse logique.</li>
+        </ul>
+      </article>
+
+      <!-- Carte 3 -->
+      <article class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-kicker">Situations fréquentes</div>
+            <h3 class="card-title">Ce que tu entends au TEF</h3>
+          </div>
+          <span class="badge badge-orange">Contexte</span>
+        </div>
+        <ul class="bullet">
+          <li>Annonces (train, avion, bus), appels téléphoniques.</li>
+          <li>Dialogues quotidiens : travail, administration, services.</li>
+          <li>Vie pratique : achats, logement, rendez-vous.</li>
+        </ul>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- SECTION 2 : LISTE DES LEÇONS -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="emoji">📖</span>
+      Cours complets — Compréhension Orale
+    </h2>
+    <p class="card-kicker">Leçons guidées pour entraîner ton oreille et éviter les pièges du TEF.</p>
+
+    {% if lessons %}
+      {% for l in lessons %}
+        <article class="lesson-card" id="lesson-{{ l.id }}">
+          <header class="lesson-header">
+            <div>
+              <div class="lesson-title">{{ l.title }}</div>
+              <div class="lesson-meta">
+                <span class="dot"></span>
+                <span>Mise à jour : {{ l.updated_at|date:"d/m/Y à H:i" }}</span>
+                {% if forloop.first %}
+                  <span class="badge badge-green">Nouveau</span>
+                {% endif %}
+              </div>
+            </div>
+            <span class="badge badge-pill">CO</span>
+          </header>
+
+          <!-- Contenu de la leçon -->
+          <div class="lesson-body">
+            {{ l.content_html|safe }}
+          </div>
+
+          <!-- BOUTON : commencer les exercices liés -->
+          <div class="lesson-actions">
+            <a href="{% url 'preparation_tests:lesson_session_co' l.id %}"
+               class="btn btn-sm btn-outline">
+              🎯 Commencer les exercices de cette leçon
+            </a>
+          </div>
+
+        </article>
+      {% endfor %}
+    {% else %}
+      <article class="lesson-card">
+        <header class="lesson-header">
+          <div>
+            <div class="lesson-title">Cours à venir</div>
+            <div class="lesson-meta">
+              <span class="dot"></span> Arrive bientôt.
+            </div>
+          </div>
+        </header>
+        <div class="lesson-body">
+          Les premières leçons CO seront ajoutées prochainement.  
+          En attendant, commence une <strong>session d’entraînement</strong> pour t’habituer au format.
+        </div>
+      </article>
+    {% endif %}
+  </section>
+
+  <!-- SECTION 3 : Mini-atelier -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="emoji">🧠</span>
+      Mini-atelier — Exemple guidé
+    </h2>
+
+    <article class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-kicker">Exemple simple</div>
+          <h3 class="card-title">Annonce de train</h3>
+        </div>
+      </div>
+
+      <p class="card-kicker"><em>Texte</em> : « Le train pour Lyon partira à <strong>16h40</strong> de la voie B. »</p>
+
+      <ul class="bullet">
+        <li>Question : <strong>À quelle heure part le train&nbsp;?</strong></li>
+        <li>Réponse : <strong>16h40</strong>.</li>
+      </ul>
+    </article>
+  </section>
+
+{% endblock %}

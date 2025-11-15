@@ -1,11 +1,7 @@
-"""
-Modèles de données MVP pour la préparation aux tests.
-Objectif : couvrir une base fonctionnelle (examens, sections, questions QCM/texte, sessions, réponses).
-On s'appuie sur l'utilisateur Django par défaut (AUTH_USER_MODEL).
-"""
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
 
 # ----------- Catalogue d'examens -----------
 
@@ -72,8 +68,7 @@ class Passage(models.Model):
 
 class Asset(models.Model):
     """
-    Ressource média (audio/vidéo/image) - MVP : URL externe.
-    Pour simplifier le démarrage, on stocke une URL plutôt qu'un fichier uploadé.
+    Ressource média (audio/vidéo/image/pdf) — MVP : URL externe.
     """
     KIND_CHOICES = [
         ("audio", "Audio"),
@@ -83,7 +78,11 @@ class Asset(models.Model):
     ]
     kind = models.CharField(max_length=10, choices=KIND_CHOICES)
     url = models.URLField(help_text=_("URL du fichier média"))
-    lang = models.CharField(max_length=2, choices=[("fr", "Français"), ("en", "Anglais"), ("de", "Allemand")], default="fr")
+    lang = models.CharField(
+        max_length=2,
+        choices=[("fr", "Français"), ("en", "Anglais"), ("de", "Allemand")],
+        default="fr",
+    )
 
     class Meta:
         verbose_name = _("Média")
@@ -116,6 +115,13 @@ class Question(models.Model):
 
     def __str__(self) -> str:
         return f"Q#{self.pk} [{self.section.exam.code}/{self.section.code}]"
+
+    @property
+    def audio_url(self):
+        """Retourne l'URL audio si un asset audio est lié, sinon None."""
+        if self.asset and self.asset.kind == "audio" and self.asset.url:
+            return self.asset.url
+        return None
 
 
 class Choice(models.Model):
@@ -179,7 +185,7 @@ class Attempt(models.Model):
     started_at = models.DateTimeField(auto_now_add=True)
     ended_at = models.DateTimeField(null=True, blank=True)
     elapsed_sec = models.PositiveIntegerField(default=0)
-    raw_score = models.FloatField(default=0.0)      # score brut (nombre de bonnes réponses)
+    raw_score = models.FloatField(default=0.0)      # score brut (nb de bonnes réponses)
     total_items = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -195,7 +201,9 @@ class Answer(models.Model):
     """
     Réponse utilisateur à une question.
     - Pour QCM: payload = {"choice_id": X}
-    - Pour short: payload = {"text": "réponse de l'utilisateur"}
+    - Pour short: payload = {"text": "..."}
+
+    Les réponses sont liées à une tentative (Attempt) et une question (Question).
     """
     attempt = models.ForeignKey(Attempt, on_delete=models.CASCADE, related_name="answers")
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="answers")
@@ -210,3 +218,145 @@ class Answer(models.Model):
 
     def __str__(self) -> str:
         return f"Answer A{self.attempt_id}-Q{self.question_id}"
+
+
+# --- CMS Cours TEF (mini) ---
+
+class CourseLesson(models.Model):
+    """
+    Leçons de cours spécifiques à une section d'examen.
+    """
+    SECTION_CHOICES = [
+        ("co", "Compréhension orale"),
+        ("ce", "Compréhension écrite"),
+        ("ee", "Expression écrite"),
+        ("eo", "Expression orale"),
+    ]
+
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name="course_lessons")  # ex: TEF
+    section = models.CharField(max_length=2, choices=SECTION_CHOICES)  # co/ce/ee/eo
+    title = models.CharField(max_length=180)
+    slug = models.SlugField(max_length=200)
+    locale = models.CharField(
+        max_length=2,
+        default="fr",
+        choices=[("fr", "Français"), ("en", "English"), ("de", "Deutsch")]
+    )
+
+    # Contenu HTML (tu peux coller du HTML/embeds simples : <p>, <ul>, <strong>, <em>, <audio>, <iframe>…)
+    content_html = models.TextField(help_text=_("HTML autorisé : paragraphes, listes, titres, audio, iframe."))
+
+    order = models.PositiveIntegerField(default=1, help_text=_("Ordre d’affichage (1=haut)."))
+    is_published = models.BooleanField(default=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Leçon de cours")
+        verbose_name_plural = _("Leçons de cours")
+        ordering = ["exam", "section", "order", "id"]
+        unique_together = (("exam", "section", "slug", "locale"),)
+
+    def __str__(self) -> str:
+        return f"{self.exam.code.upper()} {self.section.upper()} — {self.title} ({self.locale})"
+
+
+# ----------- Exercices de cours (QCM + questions ouvertes) -----------
+
+class CourseExercise(models.Model):
+    """
+    Exercice rattaché à une leçon de cours :
+    - texte (consigne + question)
+    - audio
+    - image
+    - QCM (A/B/C/D) OU question ouverte
+    - résumé / correction
+    """
+    lesson = models.ForeignKey(
+        CourseLesson,
+        on_delete=models.CASCADE,
+        related_name="exercises",
+        verbose_name=_("Leçon")
+    )
+
+    title = models.CharField(_("Titre de l'exercice"), max_length=200)
+
+    instruction = models.TextField(
+        _("Consigne"),
+        blank=True,
+        help_text=_("Ce que l'apprenant doit faire.")
+    )
+
+    question_text = models.TextField(
+        _("Texte / question"),
+        help_text=_("Texte de la question, dialogue, énoncé…")
+    )
+
+    # --- Options QCM (facultatives : si vides -> question ouverte) ---
+    option_a = models.CharField(_("Option A"), max_length=255, blank=True)
+    option_b = models.CharField(_("Option B"), max_length=255, blank=True)
+    option_c = models.CharField(_("Option C"), max_length=255, blank=True)
+    option_d = models.CharField(_("Option D"), max_length=255, blank=True)
+
+    correct_option = models.CharField(
+        _("Bonne réponse"),
+        max_length=1,
+        choices=[("A", "A"), ("B", "B"), ("C", "C"), ("D", "D")],
+        blank=True,
+        help_text=_("Lettre de la bonne réponse (A, B, C, D). Laisser vide pour une question ouverte.")
+    )
+
+    # Médias locaux
+    audio = models.FileField(
+        _("Fichier audio"),
+        upload_to="course_exercises/audio/",
+        blank=True,
+        null=True,
+    )
+
+    image = models.ImageField(
+        _("Image"),
+        upload_to="course_exercises/images/",
+        blank=True,
+        null=True,
+    )
+
+    # Optionnel : texte support générique
+    passage = models.ForeignKey(
+        Passage,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="course_exercises",
+        verbose_name=_("Passage lié"),
+        help_text=_("Texte support si nécessaire.")
+    )
+
+    # Résumé / correction détaillée
+    summary = models.TextField(
+        _("Résumé / correction"),
+        blank=True,
+        help_text=_("Explication affichée après l'exercice.")
+    )
+
+    order = models.PositiveIntegerField(
+        default=1,
+        help_text=_("Ordre d’affichage dans la leçon (1=haut).")
+    )
+    is_active = models.BooleanField(default=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Exercice de cours")
+        verbose_name_plural = _("Exercices de cours")
+        ordering = ["lesson", "order", "id"]
+
+    def __str__(self):
+        return f"{self.lesson.title} — {self.title}"
+
+    @property
+    def is_mcq(self) -> bool:
+        """Retourne True si l'exercice est un QCM (au moins une option + une bonne réponse)."""
+        has_options = any([self.option_a, self.option_b, self.option_c, self.option_d])
+        return bool(has_options and self.correct_option)

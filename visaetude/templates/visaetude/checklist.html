@@ -1,0 +1,114 @@
+{% extends "visaetude/base.html" %}
+
+{% block title %}Ma Checklist {{ country.nom }} - Visa Étudiant{% endblock %}
+
+{% block content %}
+<!-- En-tête avec progression -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h1 class="mb-3">
+            <i class="fas fa-tasks text-primary"></i> Ma Checklist - {{ country.nom }}
+        </h1>
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="mb-2">Progression Globale</h5>
+                <div class="progress" style="height: 30px;">
+                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                         role="progressbar" style="width: {{ progression }}%;">
+                        {{ progression }}%
+                    </div>
+                </div>
+                <p class="small text-muted mt-2">
+                    {{ completed }} / {{ total }} documents complétés
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'visaetude:country_guide' country.code %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> Retour au Guide
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des documents -->
+<div class="row g-4">
+    {% for item in checklist_items %}
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm
+            {% if item.statut == 'complete' %}border-success
+            {% elif item.statut == 'en_cours' %}border-warning
+            {% else %}border-secondary{% endif %}">
+
+            <div class="card-header
+                {% if item.statut == 'complete' %}bg-success text-white
+                {% elif item.statut == 'en_cours' %}bg-warning
+                {% else %}bg-light{% endif %}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        {% if item.statut == 'complete' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif item.statut == 'en_cours' %}
+                            <i class="fas fa-clock"></i>
+                        {% else %}
+                            <i class="fas fa-circle"></i>
+                        {% endif %}
+                        {{ item.document.nom }}
+                    </h6>
+                    {% if item.document.obligatoire %}
+                        <span class="badge bg-danger">Obligatoire</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-body">
+                <p class="text-muted small mb-3">{{ item.document.description }}</p>
+
+                <div class="mb-2">
+                    <strong>Statut:</strong>
+                    {% if item.statut == 'complete' %}
+                        <span class="badge bg-success">Complété</span>
+                    {% elif item.statut == 'en_cours' %}
+                        <span class="badge bg-warning">En cours</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Non commencé</span>
+                    {% endif %}
+                </div>
+
+                {% if item.fichier %}
+                <div class="mb-2">
+                    <strong>Fichier:</strong>
+                    <a href="{{ item.fichier.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-file"></i> Voir le fichier
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if item.notes %}
+                <div class="mb-2">
+                    <strong>Notes:</strong>
+                    <p class="small mb-0">{{ item.notes|truncatewords:20 }}</p>
+                </div>
+                {% endif %}
+
+                <div class="mt-3">
+                    <a href="{% url 'visaetude:update_checklist_item' item.id %}" class="btn btn-primary btn-sm w-100">
+                        <i class="fas fa-edit"></i> Mettre à jour
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-footer text-muted small">
+                Dernière modification: {{ item.date_modification|date:"d/m/Y H:i" }}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle"></i> Aucun document requis pour ce pays.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

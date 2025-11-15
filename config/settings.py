@@ -1,7 +1,6 @@
 """
 Fichier de configuration Django du projet immigration97.
-Ici, on ajoute l'app 'preparation_tests', et on configure les répertoires
-de templates et de fichiers statiques (CSS/JS).
+Optimisé et stabilisé pour supporter tous les modules (dont visaetude, preparation_tests, etc.)
 """
 
 from pathlib import Path
@@ -9,20 +8,17 @@ import os
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv
 
+# Chargement des variables d'environnement (.env)
 load_dotenv()
 
 # === CONFIG GÉNÉRALE ===
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Clé OpenAI (ACTION: Désactivée pour forcer le mode Démo/Fallback)
-OPENAI_API_KEY = ""
-# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-
-# ⚠️ Secret key: ne pas commiter en prod (utiliser les variables d'environnement)
 SECRET_KEY = "django-insecure-r-#hl^4p=7e5)hwqn#moz4=m1cq_7&944$tme&7(dcde!1i%zu"
-
 DEBUG = True
-ALLOWED_HOSTS = ["*"]  # dev only
+ALLOWED_HOSTS = ["*"]
+
+OPENAI_API_KEY = ""  # Gardé vide pour la version dev
 
 # === APPLICATIONS ===
 INSTALLED_APPS = [
@@ -34,24 +30,23 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # Sites & Auth
+    # Sites / Authentification
     "django.contrib.sites",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
 
-    # Outils externes / libs
+    # Outils utiles
     "django_extensions",
+    "widget_tweaks",
+    "django_filters",
 
-    # API / Swagger
+    # API & DRF
     "rest_framework",
     "drf_spectacular",
     "drf_spectacular_sidecar",
 
-    # Filtres DRF
-    "django_filters",
-
-    # Apps projet
+    # Applications internes
     "photos",
     "billing",
     "cv_generator",
@@ -60,9 +55,9 @@ INSTALLED_APPS = [
     "eligibility",
     "core",
     "radar",
-
-    # Module ajouté
     "preparation_tests",
+    "visaetude",
+    
 ]
 
 # === MIDDLEWARE ===
@@ -78,7 +73,7 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 ]
 
-# === ROUTES ===
+# === ROUTES PRINCIPALES ===
 ROOT_URLCONF = "config.urls"
 ASGI_APPLICATION = "config.asgi.application"
 WSGI_APPLICATION = "config.wsgi.application"
@@ -87,7 +82,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -118,18 +113,16 @@ USE_I18N = True
 USE_TZ = True
 
 LANGUAGES = [
-    ("fr", _("French")),
-    ("en", _("English")),
+    ("fr", _("Français")),
+    ("en", _("Anglais")),
 ]
 
-LOCALE_PATHS = [
-    BASE_DIR / "locale",
-]
+LOCALE_PATHS = [BASE_DIR / "locale"]
 
 # === STATIC & MEDIA ===
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -139,9 +132,9 @@ STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
 
-# === AUTH ===
-LOGIN_URL = "/accounts/login/"
-LOGIN_REDIRECT_URL = "/"
+# === AUTHENTIFICATION ===
+LOGIN_URL = "/authentification/login"
+LOGIN_REDIRECT_URL = "/cv-generator/cv/list/"
 LOGOUT_REDIRECT_URL = "/"
 
 SITE_ID = 1
@@ -153,10 +146,6 @@ AUTHENTICATION_BACKENDS = [
 
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
-
-# Redirections spécifiques (conservées)
-LOGIN_URL = "/authentification/login"
-LOGIN_REDIRECT_URL = "/cv-generator/cv/list/"
 
 # === REST FRAMEWORK ===
 REST_FRAMEWORK = {
@@ -181,5 +170,21 @@ EMAIL_HOST_USER = "e-shelle_service@e-shelle.com"
 EMAIL_HOST_PASSWORD = "Leoneldodo12."
 DEFAULT_FROM_EMAIL = "e-shelle_service@e-shelle.com"
 
-# === MODEL DEFAULT FIELD ===
+# === DEFAULT FIELD ===
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# === CRON (Optionnel) ===
+"""
+Pour éviter l’erreur 'django_cron introuvable', le cron est désactivé par défaut.
+Tu pourras le réactiver plus tard quand tu installeras django-cron.
+"""
+# from django_cron import CronJobBase, Schedule
+# from preparation_tests.management.commands.update_tef_content import Command as UpdateCommand
+
+# class WeeklyTEFUpdater(CronJobBase):
+#     RUN_EVERY_MINS = 10080  # toutes les 7 jours
+#     schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
+#     code = "preparation_tests.weekly_tef_updater"
+# 
+#     def do(self):
+#         UpdateCommand().handle()
