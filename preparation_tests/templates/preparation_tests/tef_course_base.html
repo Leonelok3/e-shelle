@@ -2,407 +2,754 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <title>{% block title %}TEF — Cours | E-SHELLE{% endblock %}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="{% block meta_description %}Préparation TEF : cours, stratégies, entraînements chronométrés (CO, CE, EE, EO), barèmes et ressources sur E-SHELLE.{% endblock %}" />
-  <meta name="keywords" content="TEF, préparation, cours, compréhension orale, compréhension écrite, expression orale, expression écrite, E-SHELLE" />
+  <meta charset="utf-8">
+  <title>E-SHELLE • Entraînement TEF</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
-    :root{
-      --bg:#050816;
-      --bg2:#060922;
-      --grad1:#050816;
-      --grad2:#0b1630;
-      --grad3:#071629;
-      --panel:rgba(15,23,42,.9);
-      --panel-soft:rgba(15,23,42,.8);
-      --panel2:rgba(30,64,175,.25);
-      --stroke:rgba(148,163,184,.55);
-      --muted:#9ca3af;
-      --text:#e5e7eb;
-      --accent:#4f46e5;
-      --accent-soft:#6366f1;
-      --brand-green:#16a34a;
-      --brand-orange:#f97316;
-      --danger:#ef4444;
-      --radius-xl:22px;
-      --shadow-lg:0 18px 45px rgba(0,0,0,.6);
+    /* ============================================
+       🎨 PALETTE OFFICIELLE E-SHELLE
+       Vert + Orange + Noir
+       ============================================ */
+    :root {
+      --green: #0ea848;
+      --green-soft: rgba(14,168,72,.18);
+      --orange: #ff7b1a;
+      --orange-soft: rgba(255,123,26,.16);
+
+      --bg: #020617;
+      --surface: #050816;
+      --surface-soft: #070b1b;
+      --surface-alt: #0b1120;
+      --border: rgba(148,163,184,.28);
+      --border-soft: rgba(148,163,184,.18);
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+
+      --radius-lg: 22px;
+      --radius-md: 14px;
+      --shadow-card: 0 20px 55px rgba(0,0,0,.75);
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
-      color:var(--text);
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
       background:
-        radial-gradient(900px 500px at -10% 0%,rgba(52,211,153,.16),transparent 60%),
-        radial-gradient(1000px 600px at 110% 10%,rgba(96,165,250,.18),transparent 60%),
-        linear-gradient(135deg,var(--grad1),var(--grad2) 50%,var(--grad3));
-      min-height:100vh;
-    }
-    a{color:inherit;text-decoration:none}
-    main{min-height:calc(100vh - 70px);}
-
-    .shell{
-      max-width:1180px;
-      margin:0 auto;
-      padding:20px 18px 32px;
+        radial-gradient(900px 500px at -10% 0%, rgba(14,168,72,.18), transparent 60%),
+        radial-gradient(900px 500px at 110% 0%, rgba(255,123,26,.20), transparent 60%),
+        radial-gradient(900px 600px at 50% 120%, rgba(56,189,248,.20), transparent 65%),
+        linear-gradient(135deg, #020617, #020617 45%, #030712);
+      color: var(--text);
+      min-height: 100vh;
     }
 
-    /* === Topbar / Header === */
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:40;
-      backdrop-filter:blur(18px);
-      background:linear-gradient(180deg,rgba(5,10,25,.95),rgba(5,10,25,.78));
-      border-bottom:1px solid rgba(148,163,184,.35);
-    }
-    .topbar-inner{
-      max-width:1180px;
-      margin:0 auto;
-      padding:10px 18px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .brand-logo{
-      width:38px;
-      height:38px;
-      border-radius:14px;
-      background:#020617;
-      position:relative;
-      overflow:hidden;
-      box-shadow:0 10px 25px rgba(0,0,0,.7);
-    }
-    .brand-logo img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-    .brand-text-title{
-      font-size:.95rem;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      color:#e5e7eb;
-      font-weight:700;
-    }
-    .brand-text-sub{
-      font-size:.78rem;
-      color:var(--muted);
+    a { color: inherit; text-decoration: none; }
+    .muted { color: var(--text-muted); }
+
+    /* ============================================
+       🔝 HEADER E-SHELLE
+       ============================================ */
+    .esh-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: linear-gradient(
+        180deg,
+        rgba(2,6,23,.96),
+        rgba(2,6,23,.92),
+        rgba(2,6,23,.80)
+      );
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(15,23,42,.95);
     }
 
-    .pill-nav{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-    .pill-link{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:7px 14px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.55);
-      background:rgba(15,23,42,.85);
-      font-size:.82rem;
-      font-weight:600;
-      color:var(--muted);
-      cursor:pointer;
-      transition:.18s;
-    }
-    .pill-link span.emoji{font-size:.95rem}
-    .pill-link:hover{
-      transform:translateY(-1px);
-      border-color:var(--accent-soft);
-      color:#e5e7eb;
-      box-shadow:0 8px 22px rgba(0,0,0,.6);
-    }
-    .pill-link.active{
-      background:linear-gradient(135deg,var(--accent),var(--brand-green));
-      color:#fff;
-      border-color:transparent;
+    .esh-header-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 10px 18px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
     }
 
-    /* === Hero / header de page === */
-    .hero{
-      margin-top:18px;
-      text-align:center;
-    }
-    .hero-kicker{
-      font-size:.8rem;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:var(--brand-orange);
-      font-weight:700;
-      margin-bottom:6px;
-    }
-    .hero-title{
-      font-size:1.9rem;
-      font-weight:800;
-      margin-bottom:4px;
-    }
-    .hero-title span{
-      color:var(--accent-soft);
-    }
-    .hero-sub{
-      font-size:.95rem;
-      color:var(--muted);
-      max-width:620px;
-      margin:0 auto;
+    .logo-block {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
-    .hero-actions{
-      margin-top:16px;
-      display:flex;
-      justify-content:center;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:9px 18px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.7);
-      background:rgba(15,23,42,.9);
-      color:#e5e7eb;
-      font-weight:600;
-      font-size:.9rem;
-      cursor:pointer;
-      transition:.18s;
-      text-decoration:none;
-    }
-    .btn:hover{
-      transform:translateY(-1px);
-      background:rgba(15,23,42,1);
-      box-shadow:0 10px 26px rgba(0,0,0,.7);
-    }
-    .btn-primary{
-      border-color:transparent;
-      background:linear-gradient(135deg,var(--brand-green),var(--accent-soft));
-      color:#f9fafb;
-    }
-    .btn-ghost{
-      background:rgba(15,23,42,.85);
+    .esh-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      object-fit: cover;
+      box-shadow:
+        0 0 0 1px rgba(148,163,184,.45),
+        0 14px 35px rgba(0,0,0,.85);
     }
 
-    .section{
-      margin-top:26px;
-    }
-    .section-title{
-      font-size:1.1rem;
-      font-weight:700;
-      margin-bottom:10px;
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .section-title span.emoji{font-size:1.2rem}
-
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-      gap:14px;
+    .esh-subtitle {
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--text-muted);
     }
 
-    .card{
-      border-radius:var(--radius-xl);
-      border:1px solid rgba(148,163,184,.45);
-      background:radial-gradient(800px 400px at -10% 0%,rgba(56,189,248,.08),transparent 55%),
-                 radial-gradient(900px 450px at 120% 10%,rgba(96,165,250,.10),transparent 60%),
-                 var(--panel);
-      box-shadow:var(--shadow-lg);
-      padding:16px 16px 14px;
-      position:relative;
-      overflow:hidden;
-    }
-    .card-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:8px;
-      margin-bottom:10px;
-    }
-    .card-title{
-      font-size:.98rem;
-      font-weight:700;
-    }
-    .card-kicker{
-      font-size:.78rem;
-      color:var(--muted);
+    .esh-title {
+      font-size: 1rem;
+      font-weight: 800;
     }
 
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:5px;
-      padding:4px 10px;
-      border-radius:999px;
-      font-size:.75rem;
-      font-weight:700;
-    }
-    .badge-pill{
-      background:rgba(15,23,42,.95);
-      border:1px solid rgba(148,163,184,.6);
-      color:var(--muted);
-    }
-    .badge-green{
-      background:rgba(22,163,74,.16);
-      border:1px solid rgba(22,163,74,.7);
-      color:#bbf7d0;
-    }
-    .badge-orange{
-      background:rgba(249,115,22,.16);
-      border:1px solid rgba(249,115,22,.7);
-      color:#fed7aa;
+    .engine-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
-    ul.bullet{
-      margin:6px 0 0 0;
-      padding-left:18px;
-      font-size:.9rem;
-    }
-    ul.bullet li{
-      margin:3px 0;
-      color:#e5e7eb;
-    }
-
-    .lesson-card{
-      margin-top:14px;
-      border-radius:var(--radius-xl);
-      border:1px solid rgba(148,163,184,.5);
-      background:radial-gradient(900px 500px at -10% 0%,rgba(167,139,250,.12),transparent 55%),
-                 var(--panel-soft);
-      box-shadow:var(--shadow-lg);
-      padding:18px 18px 16px;
-    }
-    .lesson-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-bottom:10px;
-    }
-    .lesson-title{
-      font-weight:700;
-      font-size:1rem;
-    }
-    .lesson-meta{
-      font-size:.8rem;
-      color:var(--muted);
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .lesson-meta span.dot{
-      width:6px;
-      height:6px;
-      border-radius:999px;
-      background:#22c55e;
-      box-shadow:0 0 8px rgba(34,197,94,.8);
+    .engine-tab {
+      padding: 7px 13px;
+      border-radius: 999px;
+      font-size: .84rem;
+      border: 1px solid rgba(31,41,55,.9);
+      background: rgba(15,23,42,.9);
+      color: var(--text-muted);
+      cursor: default;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .lesson-body{
-      font-size:.9rem;
-      line-height:1.7;
-      color:#e5e7eb;
-    }
-    .lesson-body p{margin:6px 0;}
-    .lesson-body ul, .lesson-body ol{margin:4px 0 4px 20px;}
-    .lesson-body strong{color:#f9fafb;}
-    .lesson-body em{color:#a5b4fc;}
-    .lesson-body a{color:#a5b4fc;text-decoration:underline;}
-    .lesson-body a:hover{color:#c4b5fd;}
-    .lesson-body audio,
-    .lesson-body iframe{
-      max-width:100%;
-      border-radius:14px;
-      margin:10px 0;
+    .engine-tab.active {
+      background: radial-gradient(circle at 0 0, rgba(248,250,252,.22), transparent 55%),
+                  linear-gradient(135deg, var(--green), var(--orange));
+      border-color: transparent;
+      color: #020617;
+      box-shadow: 0 12px 30px rgba(0,0,0,.9);
     }
 
-    .footer{
-      text-align:center;
-      padding:22px 18px 26px;
-      font-size:.8rem;
-      color:var(--muted);
-      border-top:1px solid rgba(15,23,42,.9);
-      background:radial-gradient(900px 500px at 50% -40%,rgba(37,99,235,.2),transparent 60%),
-                 linear-gradient(180deg,#020617,#020617 40%,#030712);
+    @media (max-width: 720px) {
+      .esh-header-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .engine-tabs {
+        width: 100%;
+      }
     }
 
-    @media (max-width:768px){
-      .topbar-inner{flex-direction:column;align-items:flex-start;}
-      .hero-title{font-size:1.6rem;text-align:left;}
-      .hero-sub{text-align:left;}
-      .hero-actions{justify-content:flex-start;}
+    /* ============================================
+       🧱 CONTAINER GLOBAL
+       ============================================ */
+    .engine-container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 22px 18px 40px;
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(260px, 1.1fr);
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 900px) {
+      .engine-container {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .engine-card {
+      background:
+        radial-gradient(900px 450px at -10% 0%, rgba(14,168,72,.16), transparent 65%),
+        radial-gradient(900px 450px at 110% 0%, rgba(255,123,26,.15), transparent 65%),
+        var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 18px 18px 20px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .engine-path {
+      font-size: .8rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .engine-main-title {
+      font-size: 1.6rem;
+      margin: 0;
+      font-weight: 800;
+    }
+
+    .highlight {
+      background: linear-gradient(135deg, var(--green), var(--orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .engine-stats-header {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      font-size: .9rem;
+      color: var(--text-muted);
+    }
+
+    .engine-stats-header span strong {
+      color: var(--text);
+    }
+
+    /* ============================================
+       🧩 CARD PRINCIPALE EXERCICE
+       ============================================ */
+    .engine-q-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: .9rem;
+      margin-bottom: 8px;
+    }
+
+    .engine-q-header span {
+      color: var(--text-muted);
+    }
+
+    .sep {
+      border: none;
+      border-top: 1px solid var(--border-soft);
+      margin: 12px 0 16px;
+    }
+
+    .instruction {
+      font-size: .9rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .engine-text {
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      background: var(--surface-soft);
+      border: 1px solid var(--border-soft);
+      font-size: .9rem;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      white-space: pre-line;
+    }
+
+    .engine-question {
+      font-size: 1rem;
+      margin: 6px 0 12px;
+      font-weight: 600;
+    }
+
+    .engine-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .opt {
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-soft);
+      background: var(--surface-soft);
+      cursor: pointer;
+      font-size: .9rem;
+      transition:
+        border-color .15s ease-out,
+        background .15s ease-out,
+        box-shadow .15s ease-out,
+        transform .12s ease-out;
+    }
+
+    .opt:hover {
+      border-color: var(--green);
+      background: var(--green-soft);
+      box-shadow: 0 10px 26px rgba(0,0,0,.75);
+      transform: translateY(-1px);
+    }
+
+    .opt.correct {
+      border-color: var(--green);
+      background: rgba(34,197,94,.22);
+    }
+
+    .opt.wrong {
+      border-color: var(--orange);
+      background: rgba(127,29,29,.75);
+    }
+
+    .opt.disabled {
+      pointer-events: none;
+      opacity: .88;
+    }
+
+    .writing-zone {
+      width: 100%;
+      min-height: 130px;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-soft);
+      background: var(--surface-soft);
+      color: var(--text);
+      font-size: .9rem;
+      resize: vertical;
+      margin-top: 8px;
+    }
+
+    .eo-controls {
+      margin-top: 12px;
+      font-size: .9rem;
+    }
+
+    .btn-mic {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px dashed var(--border);
+      background: rgba(15,23,42,.9);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: .85rem;
+    }
+
+    .explanation {
+      margin-top: 16px;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(34,197,94,.45);
+      background: rgba(22,163,74,.13);
+      font-size: .88rem;
+      color: #ecfdf3;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .engine-nav {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      border-radius: 999px;
+      padding: 9px 18px;
+      font-size: .9rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition:
+        transform .12s ease-out,
+        box-shadow .15s ease-out,
+        background .15s ease-out,
+        filter .12s ease-out;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--green), var(--orange));
+      color: #020617;
+      box-shadow: 0 16px 36px rgba(0,0,0,.9);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+    }
+
+    .btn-secondary {
+      background: var(--surface-soft);
+      border: 1px solid var(--border-soft);
+      color: var(--text-muted);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-alt);
+      color: var(--text);
+    }
+
+    /* ============================================
+       📚 PANNEAU LATÉRAL
+       ============================================ */
+    .engine-side {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .side-card {
+      background: var(--surface-alt);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-soft);
+      padding: 14px 14px 16px;
+      box-shadow: var(--shadow-card);
+      font-size: .9rem;
+    }
+
+    .side-card h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .side-card ul {
+      margin: 8px 0 0 18px;
+      padding: 0;
+      color: var(--text-muted);
+    }
+
+    .side-card li { margin: 4px 0; }
+
+    /* ============================================
+       🎚 BADGE MODE EXAMEN
+       ============================================ */
+    .mode-toggle {
+      margin-top: 8px;
+      font-size: .85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+    }
+
+    .mode-toggle input {
+      accent-color: var(--green);
     }
   </style>
-
-  {% block extra_css %}{% endblock %}
 </head>
+
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <div class="brand">
-        <div class="brand-logo">
-<img src="{% static 'preparation_tests/img/logoeshelle.jpg' %}" 
-     alt="E-SHELLE" 
-     class="brand-logo-img">
-        </div>
-        <div>
-          <div class="brand-text-title">E-SHELLE • Préparation TEF</div>
-          <div class="brand-text-sub">Ton futur sans limite</div>
-        </div>
+
+<!-- HEADER -->
+<header class="esh-header">
+  <div class="esh-header-inner">
+    <div class="logo-block">
+      <img src="{% static 'logoeshelle.jpg' %}" class="esh-logo" alt="E-SHELLE">
+      <div>
+        <div class="esh-subtitle">E-SHELLE • PRÉPARATION TEF &amp; TCF</div>
+        <div class="esh-title">Moteur d’entraînement intelligent</div>
       </div>
-      <nav class="pill-nav">
-        <a href="{% url 'preparation_tests:tef_co' %}" class="pill-link {% block nav_courses_active %}active{% endblock %}">
-          <span class="emoji">📚</span><span>Cours</span>
-        </a>
-        <a href="{% url 'preparation_tests:tef_hub' %}#train" class="pill-link">
-          <span class="emoji">✏️</span><span>Entraînements</span>
-        </a>
-        <a href="{% url 'preparation_tests:tef_hub' %}#tips" class="pill-link">
-          <span class="emoji">🧭</span><span>Conseils</span>
-        </a>
-        <a href="{% url 'preparation_tests:tef_hub' %}#res" class="pill-link">
-          <span class="emoji">🗂️</span><span>Ressources</span>
-        </a>
-      </nav>
     </div>
-  </header>
 
-  <main>
-    <div class="shell">
-      <section class="hero">
-        {% block hero %}
-        <div class="hero-kicker">Préparation TEF</div>
-        <h1 class="hero-title">Cours <span>TEF</span></h1>
-        <p class="hero-sub">
-          {% block hero_sub %}
-          Modules de cours et d’entraînement pour booster ton score au TEF.
-          {% endblock %}
-        </p>
-        {% endblock %}
-      </section>
-
-      {% block content %}{% endblock %}
+    <div class="engine-tabs">
+      <span class="engine-tab active">🧪 Entraînement</span>
+      <span class="engine-tab">📘 Cours</span>
+      <span class="engine-tab">📊 Statistiques</span>
     </div>
-  </main>
+  </div>
+</header>
 
-  <footer class="footer">
-    © {{ now|default:2025 }} E-SHELLE — Prépare ton avenir sans limite.
-  </footer>
 
-  {% block extra_js %}{% endblock %}
+<!-- CONTENU PRINCIPAL -->
+<main class="engine-container">
+
+  <!-- COLONNE GAUCHE : INFOS + EXERCICES -->
+  <div>
+
+    <!-- CARD D’INFOS GÉNÉRALES -->
+    <section class="engine-card">
+      <div class="engine-path muted">
+        TEF • Session d’entraînement — {{ lesson_type }}
+      </div>
+
+      <h1 class="engine-main-title">
+        Session — <span class="highlight">{{ lesson_type }}</span>
+      </h1>
+
+      <p class="muted" style="margin-top: 8px; font-size: .95rem;">
+        Tu es dans une session d’entraînement interactive.  
+        Lis la consigne, analyse soigneusement, puis choisis ta réponse.  
+        L’objectif : <strong>compréhension claire, rapidité et précision</strong>.
+      </p>
+
+      <div class="engine-stats-header">
+        <span>Exercices : <strong>{{ total_exercises }}</strong></span>
+        <span>Score : <strong id="top-score">0</strong></span>
+        <span>Temps : <strong id="top-timer">00:00</strong></span>
+      </div>
+
+      <label class="mode-toggle">
+        <input type="checkbox" id="exam-mode">
+        <span>Activer le mode examen (limite de temps + pas de retour en arrière)</span>
+      </label>
+    </section>
+
+    <!-- CARD MOTEUR D’EXERCICES -->
+    <section class="engine-card" id="exercise-card">
+
+      <div class="engine-q-header">
+        <span>Question <span id="q-index">1</span> / {{ total_exercises }}</span>
+        <span>Score : <span id="score">0</span></span>
+        <span>Temps : <span id="timer">00:00</span></span>
+      </div>
+
+      <hr class="sep">
+
+      <div id="instruction" class="instruction">Chargement de la consigne…</div>
+
+      <div id="text-block" class="engine-text hidden"></div>
+
+      <audio id="audio-player" class="hidden" controls style="width:100%; margin-bottom: 10px;"></audio>
+
+      <h3 id="question" class="engine-question">…</h3>
+
+      <div id="options" class="engine-options"></div>
+
+      <textarea id="writing-zone" class="writing-zone hidden"
+        placeholder="Écris ta réponse ici (Expression écrite)…"></textarea>
+
+      <div id="eo-controls" class="eo-controls hidden">
+        <button class="btn-mic" id="eo-record">🎙️ Commencer l’enregistrement (simulation)</button>
+        <div id="eo-status" class="muted" style="margin-top: 4px;"></div>
+      </div>
+
+      <div id="explanation-block" class="explanation hidden"></div>
+
+      <div class="engine-nav">
+        <button id="next-btn" class="btn-primary">Question suivante</button>
+        <button id="restart-btn" class="btn-secondary">↻ Recommencer</button>
+      </div>
+
+      <hr class="sep">
+
+      <div class="muted">
+        Score total : <span id="score-bottom">0</span> / {{ total_exercises }}
+      </div>
+    </section>
+
+  </div>
+
+  <!-- COLONNE DROITE : ASTUCES -->
+  <aside class="engine-side">
+    <section class="side-card">
+      <h3>Stratégies de réussite</h3>
+      <ul>
+        <li>Lis d’abord la consigne et la question.</li>
+        <li>Repère les mots-clés (dates, montants, conditions, lieux).</li>
+        <li>Ne réponds jamais sur ton intuition : appuie-toi sur le texte.</li>
+        <li>Relis la phrase exacte avant de valider.</li>
+      </ul>
+    </section>
+
+    <section class="side-card">
+      <h3>Erreurs fréquentes</h3>
+      <ul>
+        <li>Confondre « à partir de » et « jusqu’à ».</li>
+        <li>Ignorer les mots comme <em>sauf, uniquement, au moins…</em></li>
+        <li>Répondre trop vite sans vérifier le contexte.</li>
+      </ul>
+    </section>
+  </aside>
+
+</main>
+
+
+<!-- =============================== -->
+<!--    DONNÉES D’EXERCICES (JSON)  -->
+<!-- =============================== -->
+<script>
+  const EXERCISES = JSON.parse('{{ exercises_json|escapejs }}');
+</script>
+
+<!-- =============================== -->
+<!--         LOGIQUE JS MOTEUR      -->
+<!-- =============================== -->
+<script>
+(function() {
+  let index = 0;
+  let score = 0;
+  let timer = 0;
+  let timerInterval = null;
+  let answered = false;
+  let examMode = false;
+
+  const total = EXERCISES.length || 0;
+
+  const qIndexEl = document.getElementById("q-index");
+  const scoreEl = document.getElementById("score");
+  const scoreBottomEl = document.getElementById("score-bottom");
+  const topScoreEl = document.getElementById("top-score");
+  const timerEl = document.getElementById("timer");
+  const topTimerEl = document.getElementById("top-timer");
+  const instructionEl = document.getElementById("instruction");
+  const textBlockEl = document.getElementById("text-block");
+  const audioEl = document.getElementById("audio-player");
+  const questionEl = document.getElementById("question");
+  const optionsEl = document.getElementById("options");
+  const explanationEl = document.getElementById("explanation-block");
+  const writingZoneEl = document.getElementById("writing-zone");
+  const eoControlsEl = document.getElementById("eo-controls");
+  const eoStatusEl = document.getElementById("eo-status");
+  const nextBtn = document.getElementById("next-btn");
+  const restartBtn = document.getElementById("restart-btn");
+  const examModeCheckbox = document.getElementById("exam-mode");
+
+  function formatTime(sec) {
+    const m = String(Math.floor(sec / 60)).padStart(2, "0");
+    const s = String(sec % 60).padStart(2, "0");
+    return m + ":" + s;
+  }
+
+  function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timer++;
+      const t = formatTime(timer);
+      timerEl.textContent = t;
+      topTimerEl.textContent = t;
+    }, 1000);
+  }
+
+  function resetState() {
+    index = 0;
+    score = 0;
+    timer = 0;
+    answered = false;
+    if (timerInterval) clearInterval(timerInterval);
+    startTimer();
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    if (!EXERCISES || EXERCISES.length === 0) {
+      instructionEl.textContent = "Aucun exercice configuré pour cette leçon pour le moment.";
+      questionEl.textContent = "";
+      textBlockEl.classList.add("hidden");
+      optionsEl.innerHTML = "";
+      explanationEl.classList.add("hidden");
+      return;
+    }
+
+    const ex = EXERCISES[index];
+    answered = false;
+
+    qIndexEl.textContent = index + 1;
+    scoreEl.textContent = score;
+    scoreBottomEl.textContent = score;
+    topScoreEl.textContent = score;
+
+    instructionEl.textContent = ex.instruction || "Lis attentivement puis choisis la bonne réponse.";
+
+    const text = ex.text || ex.passage || "";
+    if (text) {
+      textBlockEl.textContent = text;
+      textBlockEl.classList.remove("hidden");
+    } else {
+      textBlockEl.textContent = "";
+      textBlockEl.classList.add("hidden");
+    }
+
+    if (ex.audio_url) {
+      audioEl.src = ex.audio_url;
+      audioEl.classList.remove("hidden");
+    } else {
+      audioEl.classList.add("hidden");
+      audioEl.removeAttribute("src");
+    }
+
+    questionEl.textContent = ex.question || "";
+
+    optionsEl.innerHTML = "";
+    explanationEl.classList.add("hidden");
+    explanationEl.textContent = "";
+
+    writingZoneEl.classList.add("hidden");
+    eoControlsEl.classList.add("hidden");
+
+    if (ex.options && Object.keys(ex.options || {}).length > 0) {
+      Object.entries(ex.options).forEach(([key, val]) => {
+        const div = document.createElement("div");
+        div.className = "opt";
+        div.dataset.key = key;
+        div.textContent = key + ". " + val;
+        div.addEventListener("click", function() {
+          if (answered) return;
+          handleChoice(div, key, ex.correct, ex.explanation || "");
+        });
+        optionsEl.appendChild(div);
+      });
+    } else if (ex.type === "ee") {
+      writingZoneEl.classList.remove("hidden");
+    } else if (ex.type === "eo") {
+      eoControlsEl.classList.remove("hidden");
+      eoStatusEl.textContent = "Simulation des consignes d'expression orale.";
+    }
+  }
+
+  function handleChoice(element, key, correct, explanation) {
+    answered = true;
+
+    const allOptions = optionsEl.querySelectorAll(".opt");
+    allOptions.forEach(o => o.classList.add("disabled"));
+
+    if (key === correct) {
+      element.classList.add("correct");
+      score++;
+      scoreEl.textContent = score;
+      scoreBottomEl.textContent = score;
+      topScoreEl.textContent = score;
+    } else {
+      element.classList.add("wrong");
+      allOptions.forEach(o => {
+        const k = o.dataset.key;
+        if (k === correct) {
+          o.classList.add("correct");
+        }
+      });
+    }
+
+    explanationEl.classList.remove("hidden");
+    if (explanation) {
+      explanationEl.textContent = explanation;
+    } else {
+      explanationEl.textContent = key === correct
+        ? "Bonne réponse ! Continue sur cette lancée."
+        : "Relis bien le texte et repère les mots-clés qui justifient la bonne réponse.";
+    }
+  }
+
+  nextBtn.addEventListener("click", () => {
+    if (!EXERCISES || EXERCISES.length === 0) return;
+
+    if (examMode && !answered) {
+      alert("Tu dois choisir une réponse avant de passer à la question suivante.");
+      return;
+    }
+
+    if (index < EXERCISES.length - 1) {
+      index++;
+      renderQuestion();
+    } else {
+      explanationEl.classList.remove("hidden");
+      explanationEl.textContent =
+        "Session terminée ✅. Tu peux recommencer la session pour consolider ton niveau.";
+    }
+  });
+
+  restartBtn.addEventListener("click", () => {
+    window.location.reload();
+  });
+
+  examModeCheckbox.addEventListener("change", () => {
+    examMode = examModeCheckbox.checked;
+  });
+
+  startTimer();
+  renderQuestion();
+})();
+</script>
+
 </body>
 </html>

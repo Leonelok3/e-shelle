@@ -1,0 +1,706 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Session CE – TEF</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-soft: #02091a;
+      --surface: rgba(15,23,42,.98);
+      --surface-soft: rgba(15,23,42,.90);
+      --surface-alt: rgba(15,23,42,.85);
+      --border: rgba(148,163,184,.28);
+      --border-soft: rgba(148,163,184,.16);
+      --text-muted: #94a3b8;
+      --accent: #7aa2ff;
+      --accent-soft: rgba(122,162,255,.20);
+      --highlight: #a78bfa;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --shadow-card: 0 22px 60px rgba(15,23,42,.85);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(122,162,255,.20), transparent 60%),
+        radial-gradient(1000px 500px at 110% 0%, rgba(167,139,250,.22), transparent 60%),
+        linear-gradient(135deg, #020617, #02091a);
+      color: #e5e7eb;
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 26px 18px 40px;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .muted { color: var(--text-muted); }
+    .small { font-size: .9rem; }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+      padding: 22px 22px 20px;
+      margin-bottom: 26px;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: .8rem;
+      color: var(--text-muted);
+      background: rgba(15,23,42,.95);
+      border: 1px solid var(--border-soft);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      font-weight: 600;
+      font-size: .9rem;
+      cursor: pointer;
+      background: rgba(15,23,42,.96);
+      color: #e5e7eb;
+      box-shadow: 0 0 0 1px rgba(15,23,42,.85);
+      transition: background .15s ease, transform .12s ease, box-shadow .18s ease;
+    }
+
+    .btn:hover {
+      background: rgba(15,23,42,1);
+      transform: translateY(-1px);
+      box-shadow: 0 16px 36px rgba(15,23,42,.95);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--highlight));
+      border-color: transparent;
+      color: #020617;
+      box-shadow: 0 18px 42px rgba(15,23,42,.92);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.05);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border-color: var(--border-soft);
+      color: var(--text-muted);
+    }
+
+    .btn-sm { padding: 7px 14px; font-size: .85rem; }
+
+    /* HEADER SESSION */
+    .session-header {
+      background:
+        radial-gradient(900px 300px at 0% 0%, rgba(59,130,246,.40), transparent 60%),
+        radial-gradient(900px 340px at 110% 0%, rgba(168,85,247,.40), transparent 60%),
+        linear-gradient(135deg, #020617, #02091a);
+      border-radius: 26px;
+      border: 1px solid rgba(148,163,184,.45);
+      padding: 22px 24px 20px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 28px;
+    }
+
+    .session-label {
+      font-size: .8rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .session-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin: 0;
+    }
+    .session-title span {
+      background: linear-gradient(135deg, var(--accent), var(--highlight));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .session-sub {
+      margin-top: 8px;
+      font-size: .95rem;
+      color: var(--text-muted);
+      max-width: 720px;
+    }
+
+    .session-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+      align-items: center;
+    }
+
+    .chip {
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: rgba(15,23,42,.90);
+      border: 1px solid var(--border-soft);
+      font-size: .8rem;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip.mode-exam {
+      background: rgba(248,250,252,.06);
+      border-color: rgba(248,250,252,.18);
+      color: #e5e7eb;
+    }
+
+    /* GRID */
+    .session-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.1fr);
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 960px) {
+      .session-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    /* QUESTION PANEL */
+    .question-header-row {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: .9rem;
+      margin-bottom: 8px;
+    }
+
+    .question-kpis {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .kpi-pill {
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(15,23,42,.9);
+      font-size: .8rem;
+    }
+
+    .question-consigne {
+      border-radius: var(--radius-md);
+      background: rgba(15,23,42,.95);
+      border: 1px solid var(--border-soft);
+      padding: 12px 14px;
+      margin: 16px 0;
+      font-size: .9rem;
+    }
+
+    .question-text-block {
+      margin-top: 6px;
+      margin-bottom: 10px;
+      white-space: pre-line;
+      font-size: .92rem;
+      line-height: 1.6;
+    }
+
+    .question-title {
+      margin-top: 10px;
+      font-weight: 600;
+      font-size: .97rem;
+    }
+
+    .options-list {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-item {
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      padding: 9px 14px;
+      background: var(--surface-soft);
+      cursor: pointer;
+      font-size: .9rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background .15s ease, border-color .15s ease, transform .08s ease;
+    }
+
+    .option-item:hover {
+      background: rgba(15,23,42,1);
+      border-color: var(--accent-soft);
+      transform: translateY(-1px);
+    }
+
+    .option-item.selected {
+      border-color: var(--accent);
+      background: rgba(122,162,255,.20);
+    }
+
+    .option-item.correct {
+      border-color: var(--success);
+      background: rgba(22,163,74,.18);
+    }
+
+    .option-item.wrong {
+      border-color: var(--danger);
+      background: rgba(239,68,68,.18);
+    }
+
+    .option-key {
+      font-weight: 700;
+      margin-right: 8px;
+    }
+
+    .option-mark {
+      font-weight: 700;
+      margin-left: 12px;
+    }
+
+    .explanation {
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(59,130,246,.50);
+      background: rgba(15,23,42,.96);
+      font-size: .9rem;
+    }
+
+    .explanation-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--accent);
+    }
+
+    .question-actions {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* SIDE PANELS */
+    .side-title {
+      font-size: .98rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .side-heading {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .side-card ul {
+      margin: 8px 0 0 18px;
+      padding: 0;
+      font-size: .9rem;
+      color: #e5e7eb;
+    }
+
+    .side-card {
+      background: var(--surface-soft);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 16px 18px 14px;
+      margin-bottom: 12px;
+    }
+
+    .footer-note {
+      margin-top: 22px;
+      text-align: center;
+      font-size: .82rem;
+      color: var(--text-muted);
+    }
+
+  </style>
+</head>
+
+<body>
+<div class="page">
+
+  <!-- HEADER SESSION -->
+  <section class="session-header">
+    <div class="session-label">TEF • SESSION D'ENTRAÎNEMENT — COMPRÉHENSION ÉCRITE</div>
+    <h1 class="session-title">
+      Session CE – <span>{{ lesson.title }}</span>
+    </h1>
+    <p class="session-sub">
+      Tu vas travailler sur les exercices liés à cette leçon. Objectif :
+      <strong>entraîner ta lecture rapide et précise</strong> et valider ta compréhension grâce à des QCM corrigés en direct.
+    </p>
+
+    <div class="session-meta-row">
+      <span class="chip">Leçon TEF • CE</span>
+      <span class="chip">{{ total_exercises }} exercice(s)</span>
+      <span class="chip" id="mode-pill">
+        Mode : <strong style="margin-left: 4px;" id="mode-label">Entraînement</strong>
+      </span>
+      <button id="toggle-exam" class="btn btn-ghost btn-sm">
+        ⏱ Activer le mode examen (15 min)
+      </button>
+    </div>
+  </section>
+
+  <!-- GRID PRINCIPALE -->
+  <section class="session-grid">
+    <!-- COLONNE GAUCHE : QUESTIONS -->
+    <article class="card">
+
+      <div class="question-header-row">
+        <div>
+          <div class="muted small">Entraînement CE</div>
+          <div style="font-size: 1.1rem; font-weight: 700; margin-top: 2px;">
+            Lis le texte puis choisis la bonne réponse.
+          </div>
+        </div>
+
+        <div class="question-kpis">
+          <div class="kpi-pill">
+            Question <span id="q-index">1</span> / {{ total_exercises }}
+          </div>
+          <div class="kpi-pill">
+            ✅ Bonnes : <span id="good-count">0</span> &nbsp;|&nbsp; ❌ Mauvaises : <span id="bad-count">0</span>
+          </div>
+          <div class="kpi-pill" id="timer-label">
+            Temps : <span id="timer">00:00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="question-consigne">
+        <div class="muted small" style="text-transform: uppercase; letter-spacing: .10em;">Consigne</div>
+        <div id="instruction" style="margin-top: 4px;">
+          Charge des exercices en cours…
+        </div>
+      </div>
+
+      <div id="text" class="question-text-block"></div>
+
+      <div id="question" class="question-title">Question…</div>
+
+      <div id="options" class="options-list"></div>
+
+      <div id="explanation" class="explanation" style="display:none;">
+        <div class="explanation-title" id="explanation-title">Analyse de la réponse</div>
+        <div id="explanation-body"></div>
+      </div>
+
+      <div class="question-actions">
+        <button id="next-btn" class="btn btn-primary">
+          Question suivante
+        </button>
+        <button id="restart-btn" class="btn btn-ghost">
+          ↻ Recommencer la session
+        </button>
+      </div>
+
+      <hr style="border-color: var(--border-soft); margin: 18px 0 10px;">
+
+      <div class="small muted">
+        Score global : <strong id="score-bottom">0</strong> / {{ total_exercises }}
+        • Questions répondues : <span id="answered-count">0</span> / {{ total_exercises }}
+      </div>
+
+    </article>
+
+    <!-- COLONNE DROITE : STRATÉGIES / ERREURS -->
+    <aside>
+      <div class="side-card">
+        <div class="side-title">Stratégies de lecture</div>
+        <div class="side-heading">Pour cette session</div>
+        <ul>
+          <li>Lis d’abord la question pour savoir ce que tu dois chercher dans le texte.</li>
+          <li>Balaye rapidement le texte pour repérer mots-clés, dates, montants, noms propres.</li>
+          <li>Attention aux connecteurs : <em>mais, cependant, pourtant, sauf, à condition que…</em></li>
+          <li>Reviens systématiquement au passage précis avant de valider ta réponse.</li>
+        </ul>
+      </div>
+
+      <div class="side-card">
+        <div class="side-title">Erreurs fréquentes</div>
+        <div class="side-heading">À éviter absolument</div>
+        <ul>
+          <li>Répondre en se basant sur tes connaissances générales et non sur le texte.</li>
+          <li>Confondre une idée principale avec un détail secondaire.</li>
+          <li>Ignorer les mots comme <em>sauf, uniquement, à partir de, au moins</em>.</li>
+          <li>Choisir une option trop vague alors que l’énoncé est précis.</li>
+        </ul>
+      </div>
+    </aside>
+  </section>
+
+  <div class="footer-note">
+    E-SHELLE • Préparation aux tests de langue — Progresse chaque jour, vise ton meilleur score. 💪
+  </div>
+
+</div>
+
+<!-- ===========================
+     DONNÉES EXERCICES
+=========================== -->
+<script>
+  const EXERCISES = JSON.parse('{{ exercises_json|escapejs }}');
+
+  // Durée du mode examen (en secondes) – tu peux ajuster ici (15 min)
+  const EXAM_DURATION_SEC = 15 * 60;
+
+  // Détection mode examen via ?mode=exam
+  const params = new URLSearchParams(window.location.search);
+  let examMode = params.get('mode') === 'exam';
+
+  let index = 0;
+  let good = 0;
+  let bad = 0;
+  let answeredCount = 0;
+  let hasAnsweredCurrent = false;
+
+  let timerValue = examMode ? EXAM_DURATION_SEC : 0;
+  let timerInterval = null;
+
+  const qIndexEl = document.getElementById("q-index");
+  const instructionEl = document.getElementById("instruction");
+  const textEl = document.getElementById("text");
+  const questionEl = document.getElementById("question");
+  const optionsEl = document.getElementById("options");
+  const explanationBox = document.getElementById("explanation");
+  const explanationBody = document.getElementById("explanation-body");
+  const goodEl = document.getElementById("good-count");
+  const badEl = document.getElementById("bad-count");
+  const answeredEl = document.getElementById("answered-count");
+  const scoreBottomEl = document.getElementById("score-bottom");
+  const timerEl = document.getElementById("timer");
+  const timerLabel = document.getElementById("timer-label");
+  const modeLabel = document.getElementById("mode-label");
+  const modePill = document.getElementById("mode-pill");
+  const toggleExamBtn = document.getElementById("toggle-exam");
+  const nextBtn = document.getElementById("next-btn");
+  const restartBtn = document.getElementById("restart-btn");
+
+  function formatTime(sec) {
+    const m = String(Math.floor(sec / 60)).padStart(2, "0");
+    const s = String(sec % 60).padStart(2, "0");
+    return `${m}:${s}`;
+  }
+
+  function updateModeUI() {
+    if (examMode) {
+      modeLabel.textContent = "Examen";
+      modePill.classList.add("mode-exam");
+      toggleExamBtn.textContent = "⏱ Revenir au mode entraînement";
+      timerLabel.firstChild.textContent = "Temps restant : ";
+    } else {
+      modeLabel.textContent = "Entraînement";
+      modePill.classList.remove("mode-exam");
+      toggleExamBtn.textContent = "⏱ Activer le mode examen (15 min)";
+      timerLabel.firstChild.textContent = "Temps : ";
+    }
+  }
+
+  function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+
+    timerValue = examMode ? EXAM_DURATION_SEC : 0;
+    timerEl.textContent = formatTime(timerValue);
+
+    timerInterval = setInterval(() => {
+      if (examMode) {
+        timerValue -= 1;
+        if (timerValue < 0) {
+          timerEl.textContent = "00:00";
+          clearInterval(timerInterval);
+          timeIsOver();
+          return;
+        }
+      } else {
+        timerValue += 1;
+      }
+      timerEl.textContent = formatTime(timerValue);
+    }, 1000);
+  }
+
+  function timeIsOver() {
+    // Désactive les interactions quand le temps est écoulé
+    nextBtn.disabled = true;
+    document.querySelectorAll(".option-item").forEach(o => o.style.pointerEvents = "none");
+    explanationBox.style.display = "block";
+    explanationBody.textContent = "⏱ Temps écoulé. La session est terminée. Clique sur « Recommencer la session » pour réessayer en mode entraînement ou examen.";
+  }
+
+  function renderQuestion() {
+    const ex = EXERCISES[index];
+    hasAnsweredCurrent = false;
+    explanationBox.style.display = "none";
+    explanationBody.textContent = "";
+
+    qIndexEl.textContent = index + 1;
+    instructionEl.textContent = ex.instruction || "Lis le texte puis réponds à la question.";
+    textEl.textContent = ex.text || "";
+    questionEl.textContent = ex.question || "";
+
+    optionsEl.innerHTML = "";
+    Object.entries(ex.options || {}).forEach(([key, label]) => {
+      const row = document.createElement("div");
+      row.className = "option-item";
+      row.dataset.key = key;
+
+      const left = document.createElement("div");
+      left.style.display = "flex";
+      left.style.alignItems = "center";
+
+      const keySpan = document.createElement("span");
+      keySpan.className = "option-key";
+      keySpan.textContent = key + ".";
+      const textSpan = document.createElement("span");
+      textSpan.textContent = " " + label;
+
+      left.appendChild(keySpan);
+      left.appendChild(textSpan);
+
+      const mark = document.createElement("span");
+      mark.className = "option-mark";
+      mark.textContent = "";
+
+      row.appendChild(left);
+      row.appendChild(mark);
+
+      row.addEventListener("click", () => handleOptionClick(row, key, ex));
+
+      optionsEl.appendChild(row);
+    });
+
+    // MAJ compteurs bas
+    goodEl.textContent = good;
+    badEl.textContent = bad;
+    answeredEl.textContent = answeredCount;
+    scoreBottomEl.textContent = good;
+  }
+
+  function handleOptionClick(el, key, ex) {
+    if (hasAnsweredCurrent || (examMode && timerValue <= 0)) return;
+    hasAnsweredCurrent = true;
+
+    const correctKey = ex.correct || "";
+    const allOptions = document.querySelectorAll(".option-item");
+
+    allOptions.forEach(o => o.style.pointerEvents = "none"); // plus de changement après choix
+
+    // Marquage visuel
+    allOptions.forEach(o => {
+      const k = o.dataset.key;
+      const mark = o.querySelector(".option-mark");
+      if (k === correctKey) {
+        o.classList.add("correct");
+        mark.textContent = "✔";
+        mark.style.color = "#22c55e";
+      }
+    });
+
+    const mark = el.querySelector(".option-mark");
+    if (key === correctKey) {
+      el.classList.add("correct");
+      mark.textContent = "✔";
+      mark.style.color = "#22c55e";
+      good += 1;
+    } else {
+      el.classList.add("wrong");
+      mark.textContent = "✖";
+      mark.style.color = "#ef4444";
+      bad += 1;
+    }
+    answeredCount += 1;
+
+    // Explication détaillée
+    explanationBox.style.display = "block";
+    const explanation = ex.explanation || "";
+    if (explanation.trim().length > 0) {
+      explanationBody.textContent = explanation;
+    } else {
+      explanationBody.textContent =
+        "La bonne réponse reformule exactement le sens du passage, sans ajouter ni supprimer d'information importante.";
+    }
+
+    // MAJ compteurs
+    goodEl.textContent = good;
+    badEl.textContent = bad;
+    answeredEl.textContent = answeredCount;
+    scoreBottomEl.textContent = good;
+  }
+
+  // Bouton question suivante
+  nextBtn.addEventListener("click", () => {
+    if (index < EXERCISES.length - 1) {
+      index += 1;
+      renderQuestion();
+    } else {
+      explanationBox.style.display = "block";
+      explanationBody.textContent =
+        "👏 Tu es arrivé(e) au bout de la session. Analyse tes bonnes et mauvaises réponses, puis recommence pour viser au moins 80 % de bonnes réponses.";
+    }
+  });
+
+  // Bouton recommencer
+  restartBtn.addEventListener("click", () => {
+    // On recharge la page en conservant le mode actuel (entraînement / examen)
+    if (examMode) {
+      params.set("mode", "exam");
+    } else {
+      params.delete("mode");
+    }
+    window.location.search = params.toString();
+  });
+
+  // Bouton bascule mode examen
+  toggleExamBtn.addEventListener("click", () => {
+    if (examMode) {
+      params.delete("mode");
+    } else {
+      params.set("mode", "exam");
+    }
+    window.location.search = params.toString();
+  });
+
+  // INIT
+  updateModeUI();
+  startTimer();
+  renderQuestion();
+</script>
+
+</body>
+</html>

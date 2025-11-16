@@ -1,182 +1,181 @@
-{% extends "preparation_tests/tef_course_base.html" %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>TEF — Cours CO (Compréhension Orale)</title>
+  <meta name="description" content="CO du TEF : stratégies d'écoute, exercices guidés, repérage des mots-clés, annonces, dialogues, messages administratifs." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-{% block title %}TEF — Cours CO (Compréhension Orale) | E-SHELLE{% endblock %}
-{% block meta_description %}
-Cours TEF CO : stratégies d’écoute, situations fréquentes, leçons guidées et entraînement progressif pour réussir la Compréhension Orale.
-{% endblock %}
+  <style>
+    :root {
+      --bg: #020617;
+      --surface: rgba(15,23,42,.96);
+      --surface-soft: rgba(15,23,42,.88);
+      --border: rgba(148,163,184,.22);
+      --accent: #7aa2ff;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --muted: #94a3b8;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(135deg,#020617,#0f172a 55%,#1e293b);
+      color: #e5e7eb;
+    }
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 25px 20px 60px;
+    }
+    .header-shell {
+      background: rgba(2,6,23,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(148,163,184,.15);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .header-inner {
+      max-width: 1120px;
+      margin: auto;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-shell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(148,163,184,.3);
+      background: #020617;
+      box-shadow: 0 8px 25px rgba(0,0,0,.45);
+    }
+    .brand-logo img { width: 100%; }
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+    }
+    .nav-pill {
+      padding: 8px 15px;
+      border-radius: 999px;
+      font-weight: 600;
+      background: rgba(15,23,42,.72);
+      border: 1px solid rgba(148,163,184,.25);
+      text-decoration: none;
+      color: #e2e8f0;
+    }
+    .nav-pill.active {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      box-shadow: 0 6px 20px rgba(122,162,255,.45);
+    }
+    .lesson-card {
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 12px 40px rgba(0,0,0,.45);
+      overflow: hidden;
+    }
+    .lesson-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .lesson-body {
+      padding: 18px 22px;
+    }
+    .lesson-actions {
+      padding: 16px 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0f172a;
+      padding: 10px 18px;
+      font-weight: 700;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+    }
+  </style>
+</head>
 
-{% block hero %}
-  <div class="hero-kicker">TEF • Compréhension Orale</div>
-  <h1 class="hero-title">Cours – <span>Compréhension Orale</span></h1>
-  <p class="hero-sub">
-    Guide complet pour comprendre les audios du TEF&nbsp;: formats, stratégies d’écoute et entraînement ciblé.
-  </p>
-  <div class="hero-actions">
+<body>
 
-    {% if lessons %}
-      <!-- Nouveau bouton : commence avec la première leçon -->
-      <a class="btn btn-primary"
-         href="{% url 'preparation_tests:lesson_session_co' lessons.0.id %}">
-        <span class="icon">🎧</span>
-        <span>Commencer une session CO</span>
-      </a>
-    {% else %}
-      <a class="btn btn-primary" href="#cours-co">
-        <span class="icon">🎧</span>
-        <span>Commencer une session CO</span>
-      </a>
-    {% endif %}
-
-    <a href="{% url 'preparation_tests:exam_detail' 'tef' %}#listening"
-       class="btn btn-ghost">
-      📄 Voir le format officiel TEF
-    </a>
-  </div>
-{% endblock %}
-
-{% block content %}
-
-  <!-- SECTION 1 : STRATÉGIES -->
-  <section class="section" id="cours-co">
-    <h2 class="section-title">
-      <span class="emoji">📚</span>
-      Résumé du cours — Compréhension Orale
-    </h2>
-
-    <div class="grid">
-
-      <!-- Carte 1 -->
-      <article class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-kicker">Objectifs</div>
-            <h3 class="card-title">Ce que tu dois maîtriser</h3>
-          </div>
-          <span class="badge badge-pill">B1–C1</span>
+<header class="header-shell">
+  <div class="header-inner">
+    <div class="brand-shell">
+      <div class="brand-logo">
+        <img src="{% static 'logoeshelle.jpg' %}" alt="">
+      </div>
+      <div>
+        <div style="font-size:.8rem; text-transform:uppercase; color:var(--muted);">
+          E-SHELLE • PRÉPARATION TEF 
         </div>
-        <ul class="bullet">
-          <li>Identifier les infos clés (heures, lieux, chiffres, montants).</li>
-          <li>Comprendre l’intention du locuteur (demander, proposer, refuser, informer).</li>
-          <li>Réussir même avec une seule écoute.</li>
-        </ul>
-      </article>
-
-      <!-- Carte 2 -->
-      <article class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-kicker">Méthode d’écoute</div>
-            <h3 class="card-title">Avant / pendant / après</h3>
-          </div>
-          <span class="badge badge-green">Méthode</span>
-        </div>
-        <ul class="bullet">
-          <li><strong>Avant</strong> : lire la question et les options.</li>
-          <li><strong>Pendant</strong> : repérer mots clés + chiffres + verbes d’action.</li>
-          <li><strong>Après</strong> : éliminer 2 choix, choisir la réponse logique.</li>
-        </ul>
-      </article>
-
-      <!-- Carte 3 -->
-      <article class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-kicker">Situations fréquentes</div>
-            <h3 class="card-title">Ce que tu entends au TEF</h3>
-          </div>
-          <span class="badge badge-orange">Contexte</span>
-        </div>
-        <ul class="bullet">
-          <li>Annonces (train, avion, bus), appels téléphoniques.</li>
-          <li>Dialogues quotidiens : travail, administration, services.</li>
-          <li>Vie pratique : achats, logement, rendez-vous.</li>
-        </ul>
-      </article>
-
+        <div style="font-weight:700; font-size:1rem;">Compréhension Orale (CO)</div>
+      </div>
     </div>
-  </section>
 
-  <!-- SECTION 2 : LISTE DES LEÇONS -->
-  <section class="section">
-    <h2 class="section-title">
-      <span class="emoji">📖</span>
-      Cours complets — Compréhension Orale
-    </h2>
-    <p class="card-kicker">Leçons guidées pour entraîner ton oreille et éviter les pièges du TEF.</p>
+    <nav class="nav-tabs">
+      <a class="nav-pill active" href="#">📘 Cours</a>
+      <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}#train">🧪 Entraînements</a>
+      <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}#tips">🧭 Conseils</a>
+      <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}#res">📂 Ressources</a>
+    </nav>
 
-    {% if lessons %}
-      {% for l in lessons %}
-        <article class="lesson-card" id="lesson-{{ l.id }}">
-          <header class="lesson-header">
-            <div>
-              <div class="lesson-title">{{ l.title }}</div>
-              <div class="lesson-meta">
-                <span class="dot"></span>
-                <span>Mise à jour : {{ l.updated_at|date:"d/m/Y à H:i" }}</span>
-                {% if forloop.first %}
-                  <span class="badge badge-green">Nouveau</span>
-                {% endif %}
-              </div>
-            </div>
-            <span class="badge badge-pill">CO</span>
-          </header>
+  </div>
+</header>
 
-          <!-- Contenu de la leçon -->
-          <div class="lesson-body">
-            {{ l.content_html|safe }}
-          </div>
+<main class="container">
 
-          <!-- BOUTON : commencer les exercices liés -->
-          <div class="lesson-actions">
-            <a href="{% url 'preparation_tests:lesson_session_co' l.id %}"
-               class="btn btn-sm btn-outline">
-              🎯 Commencer les exercices de cette leçon
-            </a>
-          </div>
+  <h1 style="font-size:2rem; font-weight:800; margin-bottom:10px;">
+    Cours — Compréhension Orale (CO)
+  </h1>
+  <p style="color:var(--muted); font-size:1rem;">
+    Choisis une leçon, apprends la méthode, puis lance les exercices associés.
+  </p>
 
-        </article>
-      {% endfor %}
-    {% else %}
-      <article class="lesson-card">
-        <header class="lesson-header">
-          <div>
-            <div class="lesson-title">Cours à venir</div>
-            <div class="lesson-meta">
-              <span class="dot"></span> Arrive bientôt.
-            </div>
-          </div>
-        </header>
-        <div class="lesson-body">
-          Les premières leçons CO seront ajoutées prochainement.  
-          En attendant, commence une <strong>session d’entraînement</strong> pour t’habituer au format.
-        </div>
-      </article>
-    {% endif %}
-  </section>
+  <section style="display:flex; flex-direction:column; gap:26px; margin-top:30px;">
 
-  <!-- SECTION 3 : Mini-atelier -->
-  <section class="section">
-    <h2 class="section-title">
-      <span class="emoji">🧠</span>
-      Mini-atelier — Exemple guidé
-    </h2>
+    {% for l in lessons %}
+    <article class="lesson-card">
 
-    <article class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-kicker">Exemple simple</div>
-          <h3 class="card-title">Annonce de train</h3>
-        </div>
+      <header class="lesson-header">
+        <h2 style="margin:0; font-size:1.25rem; font-weight:700;">{{ l.title }}</h2>
+        <span style="font-size:.85rem; color:var(--muted);">🎧 Leçon CO</span>
+      </header>
+
+      <div class="lesson-body">
+        {{ l.content_html|safe }}
       </div>
 
-      <p class="card-kicker"><em>Texte</em> : « Le train pour Lyon partira à <strong>16h40</strong> de la voie B. »</p>
+      <div class="lesson-actions">
+        <a href="{% url 'preparation_tests:lesson_session_co' l.id %}" class="btn-primary">🧪 Commencer les exercices</a>
+      </div>
 
-      <ul class="bullet">
-        <li>Question : <strong>À quelle heure part le train&nbsp;?</strong></li>
-        <li>Réponse : <strong>16h40</strong>.</li>
-      </ul>
     </article>
+    {% endfor %}
+
+    {% if lessons|length == 0 %}
+      <p style="color:var(--muted)">Aucune leçon pour le moment.</p>
+    {% endif %}
+
   </section>
 
-{% endblock %}
+</main>
+
+</body>
+</html>

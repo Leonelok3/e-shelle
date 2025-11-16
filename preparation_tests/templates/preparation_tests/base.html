@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Préparation TEF | E-SHELLE{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% block meta %}{% endblock %}
+
+  <link rel="stylesheet" href="{% static 'preparation_tests/styles.css' %}">
+</head>
+<body class="prep-layout">
+
+<header class="topbar">
+  <div class="topbar-left">
+    <a href="{% url 'preparation_tests:home' %}" class="brand">
+      E-SHELLE • Préparation TEF
+    </a>
+  </div>
+
+  <nav class="topbar-nav">
+    {# lien vers l’examen courant, uniquement si on a les infos #}
+    {% if exam %}
+      <a href="{% url 'preparation_tests:exam_detail' exam.code %}">
+        {{ exam.name }} ({{ exam.code|upper }})
+      </a>
+    {% elif session %}
+      <a href="{% url 'preparation_tests:exam_detail' session.exam.code %}">
+        {{ session.exam.name }} ({{ session.exam.code|upper }})
+      </a>
+    {% endif %}
+
+    <a href="{% url 'preparation_tests:french_exams' %}">Français</a>
+    <a href="{% url 'preparation_tests:english_exams' %}">Anglais</a>
+    <a href="{% url 'preparation_tests:german_exams' %}">Allemand</a>
+  </nav>
+</header>
+
+<main class="page-main">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <p>
+    E-SHELLE • Préparation aux tests de langue — 
+    Progresse chaque jour, vise ton meilleur score. 💪
+  </p>
+</footer>
+
+</body>
+</html>

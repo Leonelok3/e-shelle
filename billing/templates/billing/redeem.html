@@ -2,34 +2,181 @@
 {% block title %}Valider un Code d'Accès · Immigration97{% endblock %}
 
 {% block content %}
-<div class="panel" style="max-width:480px; margin:0 auto;">
-  <h2>🎟️ Valider votre code d'accès</h2>
 
-  <form method="post" class="form">
-    {% csrf_token %}
-    <input type="hidden" name="next" value="{{ next }}">
-    
-    <div class="field">
-      <label for="id_code">Votre code</label>
-      <input 
-        type="text" 
-        id="id_code" 
-        name="code" 
-        placeholder="Ex : I97-24H-ABCD1234" 
-        required 
-        class="input w-full"
-      >
-    </div>
+<style>
+  /* ---- Thème Immigration97 – Validation de code (UI 2026) ---- */
 
-    <button class="btn btn-primary w-full mt-3" type="submit">
-      ✅ Valider le code
-    </button>
-  </form>
+  .billing-redeem-wrapper{
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 24px 16px 40px;
+    animation: redeemFadeIn .45s ease-out;
+  }
 
-  <p class="muted mt-3">
-    Le pass est lié à votre compte et s’active immédiatement.<br>
-    Si vous n’avez pas encore de code :
-    <a href="{% url 'billing:generate_code' %}" class="link">générez-en un ici</a>.
-  </p>
+  .panel{
+    background:
+      radial-gradient(circle at top left, rgba(56,189,248,0.18), transparent 55%),
+      radial-gradient(circle at bottom right, rgba(34,197,94,0.16), transparent 55%),
+      rgba(15,23,42,0.94);
+    border-radius: 24px;
+    padding: 26px 22px 26px;
+    border: 1px solid rgba(148,163,184,0.55);
+    box-shadow:
+      0 18px 38px rgba(15,23,42,0.88),
+      0 0 40px rgba(6,182,212,0.18);
+    color: #e5e7eb;
+    backdrop-filter: blur(18px);
+  }
+
+  .panel h2{
+    font-size: 1.7rem;
+    margin-bottom: 18px;
+    font-weight: 800;
+    background: linear-gradient(135deg,#34d399,#06b6d4,#3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display:flex;
+    align-items:center;
+    gap:.4rem;
+  }
+
+  .form{
+    margin-top: 4px;
+  }
+
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+
+  .field label{
+    font-size:.88rem;
+    font-weight:600;
+    color:#e5e7eb;
+  }
+
+  .input{
+    border-radius: 12px;
+    border: 1px solid rgba(148,163,184,0.7);
+    background: rgba(15,23,42,0.96);
+    padding: 10px 12px;
+    color:#e5e7eb;
+    font-size:.9rem;
+    outline:none;
+    transition:
+      border-color 150ms ease-out,
+      box-shadow 180ms ease-out,
+      background 150ms ease-out;
+  }
+
+  .input:focus{
+    border-color: rgba(56,189,248,0.9);
+    box-shadow:0 0 0 1px rgba(56,189,248,0.55), 0 12px 26px rgba(15,23,42,0.9);
+    background:rgba(15,23,42,0.98);
+  }
+
+  .w-full{
+    width:100%;
+  }
+
+  .mt-3{
+    margin-top:.75rem;
+  }
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px 16px;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,0.6);
+    background:rgba(15,23,42,0.95);
+    color:#e5e7eb;
+    font-size:.9rem;
+    font-weight:600;
+    text-decoration:none;
+    cursor:pointer;
+    gap:.35rem;
+    transition:
+      background 180ms ease-out,
+      border-color 160ms ease-out,
+      transform 140ms ease-out,
+      box-shadow 180ms ease-out,
+      color 160ms ease-out;
+  }
+
+  .btn:hover{
+    border-color:rgba(248,250,252,0.9);
+    background:radial-gradient(circle at top left,rgba(56,189,248,0.25),rgba(15,23,42,1));
+    color:#f9fafb;
+    transform:translateY(-1px);
+    box-shadow:0 10px 26px rgba(15,23,42,0.9);
+  }
+
+  .btn-primary{
+    background:linear-gradient(135deg,#06b6d4,#3b82f6);
+    border-color:transparent;
+    color:#020617;
+    box-shadow:0 10px 26px rgba(37,99,235,0.65);
+  }
+
+  .btn-primary:hover{
+    box-shadow:0 14px 36px rgba(37,99,235,0.85);
+  }
+
+  .muted{
+    color:#94a3b8;
+    font-size:.86rem;
+  }
+
+  .link{
+    color:#38bdf8;
+    text-decoration:none;
+    font-weight:500;
+  }
+
+  .link:hover{
+    text-decoration:underline;
+    color:#7dd3fc;
+  }
+
+  @keyframes redeemFadeIn{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+</style>
+
+<div class="billing-redeem-wrapper">
+  <div class="panel" style="max-width:480px; margin:0 auto;">
+    <h2>🎟️ Valider votre code d'accès</h2>
+
+    <form method="post" class="form">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      
+      <div class="field">
+        <label for="id_code">Votre code</label>
+        <input 
+          type="text" 
+          id="id_code" 
+          name="code" 
+          placeholder="Ex : I97-24H-ABCD1234" 
+          required 
+          class="input w-full"
+        >
+      </div>
+
+      <button class="btn btn-primary w-full mt-3" type="submit">
+        ✅ Valider le code
+      </button>
+    </form>
+
+    <p class="muted mt-3">
+      Le pass est lié à votre compte et s’active immédiatement.<br>
+      Si vous n’avez pas encore de code :
+      <a href="{% url 'billing:generate_code' %}" class="link">générez-en un ici</a>.
+    </p>
+  </div>
 </div>
 {% endblock %}

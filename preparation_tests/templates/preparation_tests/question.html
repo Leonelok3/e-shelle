@@ -1,0 +1,226 @@
+{% extends "preparation_tests/tef_course_base.html" %}
+{% load static %}
+
+{% block title %}Question – {{ exam.name }} | E-SHELLE{% endblock %}
+
+{# HERO EN HAUT DE PAGE #}
+{% block hero %}
+  <div class="hero-kicker">
+    {{ exam.code|upper }} • Section {{ section.code|upper }}
+    {% if attempt.session.mode == "mock" %}
+      <span class="badge badge-orange ml-2">Mode examen blanc</span>
+    {% else %}
+      <span class="badge badge-green ml-2">Entraînement</span>
+    {% endif %}
+  </div>
+  <h1 class="hero-title">
+    Question de <span>Compréhension</span>
+  </h1>
+  <p class="hero-sub">
+    Écoute l’audio, lis bien la question, choisis une réponse claire et valide pour passer à la suite.
+  </p>
+{% endblock %}
+
+{% block content %}
+<div class="container exam-page">
+
+  <!-- BARRE D'INFOS HAUT DE PAGE -->
+  <section class="section top-status">
+    <div class="top-status-grid">
+
+      <!-- Infos examen -->
+      <article class="card compact">
+        <div class="card-header">
+          <h3 class="card-title">Informations</h3>
+        </div>
+        <ul class="bullet">
+          <li><strong>Examen :</strong> {{ exam.name }} ({{ exam.code|upper }})</li>
+          <li><strong>Section :</strong> {{ section.code|upper }}</li>
+          <li><strong>Tentative n° :</strong> {{ attempt.id }}</li>
+        </ul>
+      </article>
+
+      <!-- Progression + timer -->
+      <article class="card compact">
+        <div class="card-header">
+          <h3 class="card-title">Progression</h3>
+        </div>
+        <ul class="bullet inline">
+          <li>
+            <strong>Question :</strong>
+            {{ current_index }} / {{ total_questions }}
+          </li>
+
+          {% if attempt.session.mode == "mock" and duration_sec %}
+            <li class="timer">
+              ⏱ Temps restant :
+              <span id="exam-timer" class="timer-value">--:--</span>
+            </li>
+          {% else %}
+            <li><strong>Mode :</strong> Entraînement libre</li>
+          {% endif %}
+        </ul>
+
+        {% if attempt.session.mode == "mock" and duration_sec %}
+          <div class="progress-bar exam-timer-bar">
+            <div id="exam-timer-bar" class="progress"></div>
+          </div>
+          <p class="small text-muted">
+            Le temps est global pour toute la section. Quand il arrive à zéro, la question est bloquée.
+          </p>
+        {% endif %}
+      </article>
+
+    </div>
+  </section>
+
+  <!-- BLOC AUDIO -->
+  <section class="section">
+    <article class="card">
+      <div class="card-header">
+        <h2 class="card-title">Écoute</h2>
+      </div>
+      <div class="card-body">
+        {% if audio_url %}
+          <audio controls style="width: 100%;">
+            <source src="{{ audio_url }}" type="audio/mpeg">
+            Votre navigateur ne supporte pas la lecture audio.
+          </audio>
+        {% else %}
+          <p class="text-muted">
+            Aucun audio associé à cette question.
+          </p>
+        {% endif %}
+      </div>
+    </article>
+  </section>
+
+  <!-- BLOC QUESTION + RÉPONSE -->
+  <section class="section">
+    <article class="card">
+      <div class="card-header">
+        <h2 class="card-title">Question</h2>
+      </div>
+
+      <div class="card-body">
+        <p class="question-stem">
+          {{ question.stem }}
+        </p>
+
+        <form id="answer-form"
+              method="post"
+              action="{% url 'preparation_tests:submit_answer' attempt.id question.id %}">
+          {% csrf_token %}
+
+          {% if choices %}
+            <!-- QCM -->
+            <div class="choices-list">
+              {% for c in choices %}
+                <label class="choice-item">
+                  <input type="radio" name="choice" value="{{ c.id }}">
+                  <span class="choice-label">
+                    {{ c.text }}
+                  </span>
+                </label>
+              {% endfor %}
+            </div>
+          {% else %}
+            <!-- Question ouverte -->
+            <div class="form-group">
+              <textarea name="text"
+                        rows="4"
+                        class="textarea"
+                        placeholder="Écris ta réponse ici..."></textarea>
+            </div>
+          {% endif %}
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              {% if attempt.session.mode == "mock" %}
+                ✅ Valider et passer à la question suivante
+              {% else %}
+                ✅ Valider la réponse
+              {% endif %}
+            </button>
+
+            {# En mode examen blanc, on cache le bouton de fin de session #}
+            {% if attempt.session.mode != "mock" %}
+              <a href="{% url 'preparation_tests:session_result' attempt.session.id %}"
+                 class="btn btn-ghost">
+                Terminer la session
+              </a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </article>
+  </section>
+
+  <!-- FOOTER MOTIVATION -->
+  <section class="section">
+    <p class="small text-muted center">
+      E-SHELLE • Préparation aux tests de langue — Progresse chaque jour, vise ton meilleur score. 💪
+    </p>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  // Mode examen blanc = "mock"
+  const isExam = "{{ attempt.session.mode }}" === "mock";
+  const total = {{ duration_sec|default:0 }};
+
+  if (isExam && total > 0) {
+    let remaining = total;
+    const timerEl = document.getElementById("exam-timer");
+    const barEl = document.getElementById("exam-timer-bar");
+    const form = document.getElementById("answer-form");
+
+    function format(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      const mm = m < 10 ? "0" + m : "" + m;
+      const ss = s < 10 ? "0" + s : "" + s;
+      return mm + ":" + ss;
+    }
+
+    function disableForm() {
+      if (!form) return;
+      const fields = form.querySelectorAll("input, textarea, button, select");
+      fields.forEach(el => el.disabled = true);
+    }
+
+    function tick() {
+      if (remaining < 0) {
+        if (timerEl) timerEl.textContent = "Temps écoulé";
+        disableForm();
+        return;
+      }
+
+      if (timerEl) {
+        timerEl.textContent = format(remaining);
+      }
+
+      if (barEl && total > 0) {
+        const ratio = ((total - remaining) / total) * 100;
+        barEl.style.width = ratio + "%";
+      }
+
+      remaining -= 1;
+      setTimeout(tick, 1000);
+    }
+
+    tick();
+
+    // Empêcher le retour arrière pendant l'examen blanc
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", function () {
+      window.history.pushState(null, "", window.location.href);
+    });
+  }
+})();
+</script>
+{% endblock %}

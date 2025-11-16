@@ -1,14 +1,106 @@
 {% extends "billing/base_billing.html" %}
 {% block title %}Mon accès | Immigration97{% endblock %}
+
 {% block content %}
+
+<style>
+  /* ---- STYLE ULTRA-PRO 2026 (FULL IMMIGRATION97) ---- */
+
+  .billing-wrapper{
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 20px;
+      animation: fadeIn .5s ease;
+  }
+
+  .b-card{
+      background: rgba(15, 23, 42, 0.75);
+      padding: 30px 28px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      box-shadow:
+          0 0 25px rgba(56, 189, 248, 0.15),
+          0 0 40px rgba(16, 185, 129, 0.12),
+          inset 0 0 22px rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      color: #e2e8f0;
+    }
+
+  .b-card h1,
+  .b-card h2{
+      font-weight: 800;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #34d399, #06b6d4, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 1.8rem;
+  }
+
+  .b-card p{
+      margin: 6px 0 14px 0;
+      font-size: 1.05rem;
+      line-height: 1.45;
+  }
+
+  .b-card ul{
+      padding-left: 18px;
+      font-size: 1.03rem;
+  }
+
+  .b-card li{
+      margin-bottom: 8px;
+      color: #d4d7dc;
+  }
+
+  .b-btn{
+      display: inline-block;
+      padding: 10px 22px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 600;
+      margin-right: 8px;
+      transition: .25s ease;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #e2e8f0;
+      background: rgba(255,255,255,0.04);
+  }
+
+  .b-btn:hover{
+      background: rgba(255,255,255,0.12);
+  }
+
+  .b-primary{
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      border: none;
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(59,130,246,0.35);
+  }
+
+  .b-primary:hover{
+      box-shadow: 0 8px 22px rgba(59,130,246,0.45);
+      transform: translateY(-2px);
+  }
+
+  @keyframes fadeIn{
+      from{opacity: 0; transform: translateY(10px);}
+      to{opacity:1; transform: translateY(0);}
+  }
+</style>
+
+
+<div class="billing-wrapper">
+
 <section class="b-card">
   <h1>Mon accès</h1>
   {% if active %}
     <p>✅ Accès actif jusqu’au <strong>{{ expires|date:"d/m/Y H:i" }}</strong>.</p>
   {% else %}
     <p>❌ Aucun accès actif.</p>
-    <p><a class="b-btn b-primary" href="{% url 'billing:buy' %}">Acheter un code</a>
-       <a class="b-btn" href="{% url 'billing:redeem' %}">J’ai déjà un code</a></p>
+    <p>
+      <a class="b-btn b-primary" href="{% url 'billing:buy' %}">Acheter un code</a>
+      <a class="b-btn" href="{% url 'billing:redeem' %}">J’ai déjà un code</a>
+    </p>
   {% endif %}
 </section>
 
@@ -22,4 +114,7 @@
   {% endfor %}
   </ul>
 </section>
+
+</div>
+
 {% endblock %}

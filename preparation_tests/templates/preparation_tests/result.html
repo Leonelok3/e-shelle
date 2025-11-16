@@ -1,0 +1,189 @@
+{% extends "preparation_tests/tef_course_base.html" %}
+{% load static %}
+
+{% block title %}Résultats de ta session | E-SHELLE{% endblock %}
+
+{% block hero %}
+  <div class="hero-kicker">
+    {{ session.exam.code|upper }} • RÉSULTATS DE LA SESSION
+  </div>
+  <h1 class="hero-title">
+    Résultats — <span>{{ session.exam.code|upper }}</span>
+  </h1>
+  <p class="hero-sub">
+    Découvre ton score, tes points forts, tes erreurs et les conseils du coach IA pour viser le meilleur niveau.
+  </p>
+  <div class="hero-actions">
+    <a href="{% url 'preparation_tests:home' %}" class="btn btn-primary">
+      ⬅️ Retour au tableau de bord
+    </a>
+    <a href="{% url 'preparation_tests:exam_detail' session.exam.code %}" class="btn btn-ghost">
+      📘 Voir les informations de l’examen {{ session.exam.code|upper }}
+    </a>
+    {% if session.exam.code|lower == "tef" %}
+      <a href="{% url 'preparation_tests:start_mock_tef_co' %}" class="btn btn-ghost">
+        🎧 Refaire un examen CO
+      </a>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- ===================== Résumé général ===================== -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="emoji">📊</span>
+      Résumé général
+    </h2>
+
+    <article class="card">
+      <div class="card-header">
+        <h3 class="card-title">Performance globale</h3>
+      </div>
+            <div class="card-body">
+        <p class="metric">
+          <strong>{{ total_correct }}</strong> bonnes réponses sur
+          <strong>{{ total_items }}</strong>
+          {% if total_items %}
+            — soit
+            <strong>{{ global_pct }} %</strong>
+          {% endif %}
+        </p>
+
+        {% if total_items %}
+          <div class="progress-bar global-progress">
+            <div class="progress"
+                 style="width: {{ global_pct }}%;"></div>
+          </div>
+        {% endif %}
+
+        <ul class="bullet">
+          <li>Examen : <strong>{{ session.exam.name }} ({{ session.exam.code|upper }})</strong></li>
+          <li>Mode :
+            <strong>
+              {% if session.mode == "exam" %}
+                Examen blanc
+              {% else %}
+                Entraînement
+              {% endif %}
+            </strong>
+          </li>
+          <li>Date : <strong>{{ session.started_at|date:"d/m/Y à H:i" }}</strong></li>
+        </ul>
+      </div>
+
+
+    </article>
+  </section>
+
+  <!-- ===================== Détails par section ===================== -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="emoji">🧩</span>
+      Détails par section
+    </h2>
+
+    {% for a in attempts %}
+      <article class="card">
+        <div class="card-header card-header-between">
+          <div>
+            <div class="card-kicker">
+              {{ session.exam.code|upper }} — {{ a.section.code|upper }}
+            </div>
+            <h3 class="card-title">
+              Section {{ a.section.code|upper }}
+            </h3>
+          </div>
+          <span class="badge badge-pill">
+            {{ a.raw_score|floatformat:0 }}/{{ a.total_items }}
+          </span>
+        </div>
+        <div class="card-body">
+          <ul class="bullet">
+            <li>Score brut : <strong>{{ a.raw_score|floatformat:0 }}</strong></li>
+            <li>Total de questions : <strong>{{ a.total_items }}</strong></li>
+            <li>Temps estimé :
+              <strong>
+                {% if a.elapsed_sec %}
+                  {{ a.elapsed_sec }} s
+                {% else %}
+                  non compté
+                {% endif %}
+              </strong>
+            </li>
+          </ul>
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+
+  <!-- ===================== Coach IA – TEF CO ===================== -->
+  {% if analysis %}
+  <section class="section">
+    <h2 class="section-title">
+      <span class="emoji">🤖</span>
+      Analyse IA — Coach Compréhension Orale
+    </h2>
+
+    <article class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          Résultat TEF CO
+        </h3>
+      </div>
+
+      <div class="card-body">
+        <p class="metric">
+          Score CO :
+          <strong>{{ analysis.score_pct }} %</strong>
+          — Score TEF simulé :
+          <strong>{{ analysis.score_tef }}/360</strong>
+          — Niveau estimé :
+          <strong>{{ analysis.level }}</strong>
+        </p>
+
+        <div class="progress-bar global-progress">
+          <div class="progress" style="width: {{ analysis.score_pct }}%;"></div>
+        </div>
+
+        {% if analysis.errors %}
+          <h4 class="card-subtitle">❌ Types d’erreurs détectées</h4>
+          <ul class="bullet">
+            {% for key, val in analysis.errors.items %}
+              <li><strong>{{ key }}</strong> : {{ val }} erreur(s)</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        {% if analysis.recommendations %}
+          <h4 class="card-subtitle">📌 Recommandations personnalisées</h4>
+          <ul class="bullet">
+            {% for r in analysis.recommendations %}
+              <li>{{ r }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </article>
+  </section>
+  {% endif %}
+
+  <!-- ===================== Boutons de fin ===================== -->
+  <section class="section actions">
+    <a href="{% url 'preparation_tests:home' %}" class="btn btn-primary">
+      🏠 Retour au tableau de bord
+    </a>
+    <a href="{% url 'preparation_tests:exam_detail' session.exam.code %}" class="btn btn-ghost">
+      📘 Voir les informations de l’examen {{ session.exam.code|upper }}
+    </a>
+    {% if session.exam.code|lower == "tef" %}
+      <a href="{% url 'preparation_tests:start_mock_tef_co' %}" class="btn btn-ghost">
+        🎧 Refaire un examen CO
+      </a>
+    {% endif %}
+  </section>
+
+</div>
+{% endblock %}

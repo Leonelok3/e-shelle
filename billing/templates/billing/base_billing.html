@@ -1,21 +1,303 @@
 {% load static %}
-<!doctype html><html lang="fr"><head>
-<meta charset="utf-8"><title>{% block title %}Paiement | Immigration97{% endblock %}</title>
-<link rel="stylesheet" href="{% static 'billing/billing.css' %}">
-</head><body class="b-body">
-<header class="b-header"><div class="b-container">
-  <a class="b-brand" href="/">Immigration97</a>
-  <nav class="b-nav">
-    <a href="{% url 'billing:access' %}">Mon accès</a>
-    <a href="{% url 'billing:redeem' %}">Utiliser un code</a>
-    <a href="{% url 'billing:buy' %}">Acheter un code</a>
-  </nav>
-</div></header>
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Paiement | Immigration97{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'billing/billing.css' %}">
+
+  <!-- Override / thème Immigration97 ultra pro -->
+  <style>
+    :root{
+      --b-bg:#020617;
+      --b-bg-alt:#020617;
+      --b-accent-green:#22c55e;
+      --b-accent-blue:#38bdf8;
+      --b-accent-purple:#a855f7;
+
+      --b-text-strong:#f9fafb;
+      --b-text:#e5e7eb;
+      --b-text-muted:#94a3b8;
+
+      --b-border-subtle:rgba(148,163,184,0.3);
+      --b-border-strong:rgba(148,163,184,0.7);
+
+      --b-radius-lg:18px;
+      --b-radius-pill:999px;
+
+      --b-shadow-soft:0 18px 40px rgba(15,23,42,0.85);
+      --b-shadow-header:0 16px 40px rgba(15,23,42,0.9);
+
+      --b-transition-fast:150ms ease-out;
+      --b-transition:220ms cubic-bezier(0.23,0.88,0.32,1);
+    }
+
+    .b-body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(56,189,248,0.16), transparent 55%),
+        radial-gradient(circle at bottom, rgba(34,197,94,0.14), transparent 55%),
+        radial-gradient(circle at top left, rgba(168,85,247,0.18), transparent 60%),
+        linear-gradient(135deg,var(--b-bg),var(--b-bg-alt));
+      color:var(--b-text);
+      -webkit-font-smoothing:antialiased;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .b-container{
+      max-width:1100px;
+      margin:0 auto;
+      padding:0 20px;
+    }
+
+    /* HEADER */
+    .b-header{
+      position:sticky;
+      top:0;
+      z-index:40;
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      background:linear-gradient(to bottom,rgba(2,6,23,0.98),rgba(2,6,23,0.9),transparent);
+      border-bottom:1px solid rgba(15,23,42,0.9);
+      box-shadow:var(--b-shadow-header);
+    }
+
+    .b-header .b-container{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:13px 0;
+    }
+
+    .b-brand{
+      font-weight:800;
+      font-size:1rem;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      text-decoration:none;
+      background:linear-gradient(120deg,#4ade80,#22c55e,#22c55e,#38bdf8,#a855f7);
+      background-size:220% 220%;
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      animation:brandShift 6s ease-in-out infinite alternate;
+    }
+
+    @keyframes brandShift{
+      from{background-position:0% 50%;}
+      to{background-position:100% 50%;}
+    }
+
+    .b-nav{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      font-size:.9rem;
+    }
+
+    .b-nav a{
+      position:relative;
+      color:var(--b-text);
+      text-decoration:none;
+      padding:6px 0;
+      transition:color var(--b-transition-fast);
+    }
+
+    .b-nav a::after{
+      content:"";
+      position:absolute;
+      left:0;
+      bottom:-3px;
+      width:0;
+      height:2px;
+      border-radius:999px;
+      background:linear-gradient(90deg,var(--b-accent-green),var(--b-accent-blue));
+      transition:width var(--b-transition-fast);
+    }
+
+    .b-nav a:hover{
+      color:var(--b-text-strong);
+    }
+    .b-nav a:hover::after{
+      width:100%;
+    }
+
+    /* MAIN */
+    main.b-container{
+      flex:1;
+      width:100%;
+      padding:26px 20px 40px;
+      box-sizing:border-box;
+    }
+
+    /* Cards génériques (utilisées par tes templates billing) */
+    .b-card{
+      background:rgba(15,23,42,0.86);
+      border-radius:var(--b-radius-lg);
+      padding:24px 22px;
+      margin-bottom:24px;
+      border:1px solid rgba(148,163,184,0.45);
+      box-shadow:var(--b-shadow-soft);
+      backdrop-filter:blur(14px);
+    }
+
+    .b-card h1,
+    .b-card h2{
+      font-weight:800;
+      margin-bottom:14px;
+      background:linear-gradient(135deg,#34d399,#06b6d4,#3b82f6);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      font-size:1.6rem;
+    }
+
+    .b-card p,
+    .b-card li{
+      font-size:.98rem;
+      color:var(--b-text);
+    }
+
+    .b-card ul{
+      padding-left:20px;
+    }
+
+    /* Boutons billing */
+    .b-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:9px 18px;
+      border-radius:var(--b-radius-pill);
+      border:1px solid rgba(148,163,184,0.55);
+      background:rgba(15,23,42,0.9);
+      color:var(--b-text);
+      text-decoration:none;
+      font-size:.9rem;
+      font-weight:600;
+      margin-right:8px;
+      transition:
+        background var(--b-transition),
+        border-color var(--b-transition-fast),
+        box-shadow var(--b-transition-fast),
+        transform var(--b-transition-fast),
+        color var(--b-transition-fast);
+    }
+
+    .b-btn:hover{
+      border-color:var(--b-border-strong);
+      background:radial-gradient(circle at top left,rgba(56,189,248,0.22),rgba(15,23,42,0.96));
+      color:var(--b-text-strong);
+      box-shadow:0 14px 32px rgba(15,23,42,0.95);
+      transform:translateY(-1px);
+    }
+
+    .b-primary{
+      background:linear-gradient(120deg,#4ade80,#22c55e,#22c55e,#38bdf8);
+      border-color:transparent;
+      color:#020617;
+      box-shadow:0 14px 36px rgba(34,197,94,0.7);
+    }
+
+    .b-primary:hover{
+      box-shadow:0 18px 46px rgba(34,197,94,0.85);
+    }
+
+    /* Messages */
+    .b-messages{
+      margin-bottom:20px;
+      display:grid;
+      gap:8px;
+    }
+
+    .b-msg{
+      padding:10px 12px;
+      border-radius:14px;
+      font-size:.9rem;
+      border:1px solid rgba(148,163,184,0.5);
+      background:rgba(15,23,42,0.85);
+      box-shadow:0 10px 26px rgba(15,23,42,0.9);
+    }
+
+    .b-msg.success{
+      border-color:rgba(34,197,94,0.7);
+      background:rgba(22,163,74,0.18);
+      color:#bbf7d0;
+    }
+    .b-msg.error{
+      border-color:rgba(248,113,113,0.8);
+      background:rgba(127,29,29,0.7);
+      color:#fee2e2;
+    }
+    .b-msg.warning{
+      border-color:rgba(251,191,36,0.8);
+      background:rgba(120,53,15,0.7);
+      color:#fef3c7;
+    }
+    .b-msg.info{
+      border-color:rgba(56,189,248,0.8);
+      background:rgba(15,23,42,0.85);
+      color:#e0f2fe;
+    }
+
+    /* FOOTER */
+    .b-footer{
+      border-top:1px solid rgba(15,23,42,0.9);
+      background:radial-gradient(circle at top,rgba(15,23,42,0.96),rgba(2,6,23,0.98));
+      padding:12px 0 16px;
+      font-size:.82rem;
+      color:var(--b-text-muted);
+    }
+
+    .b-footer .b-container{
+      text-align:center;
+    }
+
+    /* Responsive */
+    @media (max-width:768px){
+      .b-header .b-container{
+        flex-wrap:wrap;
+        row-gap:8px;
+      }
+      .b-nav{
+        width:100%;
+        justify-content:flex-start;
+        flex-wrap:wrap;
+      }
+      main.b-container{
+        padding-inline:16px;
+      }
+    }
+  </style>
+</head>
+
+<body class="b-body">
+<header class="b-header">
+  <div class="b-container">
+    <a class="b-brand" href="/">Immigration97</a>
+    <nav class="b-nav">
+      <a href="{% url 'billing:access' %}">Mon accès</a>
+      <a href="{% url 'billing:redeem' %}">Utiliser un code</a>
+      <a href="{% url 'billing:buy' %}">Acheter un code</a>
+    </nav>
+  </div>
+</header>
+
 <main class="b-container">
   {% if messages %}
-    <div class="b-messages">{% for m in messages %}<div class="b-msg {{ m.tags }}">{{ m }}</div>{% endfor %}</div>
+    <div class="b-messages">
+      {% for m in messages %}
+        <div class="b-msg {{ m.tags }}">{{ m }}</div>
+      {% endfor %}
+    </div>
   {% endif %}
   {% block content %}{% endblock %}
 </main>
-<footer class="b-footer"><div class="b-container">© {{ now|date:"Y" }} Immigration97</div></footer>
-</body></html>
+
+<footer class="b-footer">
+  <div class="b-container">© {{ now|date:"Y" }} Immigration97</div>
+</footer>
+</body>
+</html>
