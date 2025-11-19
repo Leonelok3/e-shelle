@@ -37,7 +37,7 @@ urlpatterns = [
     path("prep/", include(("preparation_tests.urls", "preparation_tests"), namespace="preparation_tests")),
 
     # Placeholders
-    #path('visa-travail/', include('work_visa.urls')),
+    path("visa-travail/", include("VisaTravailApp.urls")),
     path("residence-permanente/", home),
     path("visa-tourisme/", home),
 

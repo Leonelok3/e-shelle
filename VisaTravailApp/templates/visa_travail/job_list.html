@@ -1,0 +1,325 @@
+{% extends "visa_travail/base.html" %}
+
+{% block title %}Candidatures – {{ profile.nom|default:"Profil" }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-10">
+
+    <!-- HEADER -->
+    <div class="card card-dark card-dark-hover p-4 p-md-5 mb-4 fade-in-up">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+          <span class="badge-soft mb-2 px-3 py-1">
+            <i class="bi bi-clipboard-check me-1"></i> Tableau de bord des candidatures
+          </span>
+          <h1 class="fw-bold h4 mb-1">
+            Candidatures de {{ profile.nom|default:"ton profil" }}
+          </h1>
+          <p class="text-secondary small mb-0">
+            Suis tes candidatures, priorise les offres stratégiques et visualise ta progression réelle
+            vers un emploi à l’étranger.
+          </p>
+        </div>
+
+        <div class="text-end">
+          <a href="{% url 'visa_travail:job_create' profile.id %}" class="btn btn-primary btn-sm mb-2">
+            <i class="bi bi-plus-circle me-1"></i> Nouvelle candidature
+          </a>
+          <br>
+          <a href="{% url 'visa_travail:job_offers_list' %}" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-briefcase me-1"></i> Voir les offres d’emploi
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs / STATISTIQUES -->
+    <div class="row g-3 mb-4 fade-in-up">
+      <div class="col-md-3">
+        <div class="card card-dark card-dark-hover p-3 h-100">
+          <div class="small text-secondary mb-1">Total candidatures</div>
+          <div class="h4 fw-bold mb-0">{{ total }}</div>
+          <div class="small text-secondary mt-1">
+            {% if last_30_days_count > 0 %}
+              {{ last_30_days_count }} sur les 30 derniers jours
+            {% else %}
+              Aucune candidature récente
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card card-dark card-dark-hover p-3 h-100">
+          <div class="small text-secondary mb-1">Actives</div>
+          <div class="h4 fw-bold mb-0">{{ active }}</div>
+          <div class="small text-secondary mt-1">
+            Envoyées + entretiens en cours
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card card-dark card-dark-hover p-3 h-100">
+          <div class="small text-secondary mb-1">À postuler</div>
+          <div class="h4 fw-bold mb-0">{{ count_a_postuler }}</div>
+          <div class="small text-secondary mt-1">
+            Ajoute une date et passe en “Envoyée” après candidature.
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card card-dark card-dark-hover p-3 h-100">
+          <div class="small text-secondary mb-1">Taux de réussite</div>
+          <div class="h4 fw-bold mb-0">{{ success_rate }}%</div>
+          <div class="small text-secondary mt-1">
+            Basé sur les candidatures marquées “Acceptée”.
+          </div>
+        </div>
+      </div>
+    </div>
+
+   
+<!-- COACH IA niveau1 -->
+<div class="card card-dark card-dark-hover p-4 mb-4 fade-in-up">
+  <div class="d-flex justify-content-between align-items-start mb-2">
+    <div>
+      <span class="badge-soft mb-2 px-3 py-1">
+        <i class="bi bi-robot me-1"></i> Coach IA – Analyse stratégique
+      </span>
+      <h2 class="h6 fw-semibold mb-1">{{ coach.title }}</h2>
+      <p class="text-secondary small mb-1">{{ coach.advice }}</p>
+    </div>
+    <span class="badge-soft">{{ coach.priority }}</span>
+  </div>
+
+  <hr class="border-secondary">
+
+  <h3 class="h6 fw-semibold mb-2">Plan d’action sur 7 jours</h3>
+  <ul class="text-secondary small ps-3">
+    {% for step in coach.week_plan %}
+      <li>{{ step }}</li>
+    {% endfor %}
+  </ul>
+</div>
+ <!-- coach ia niveau2 -->
+  <!-- COACH IA NIV. 2 : Analyse par pays + Matching métier/offres -->
+<div class="card card-dark card-dark-hover p-4 mb-4 fade-in-up">
+  <span class="badge-soft mb-3 px-3 py-1">
+    🌍 Coach IA Niveau 2 – Analyse par Pays & Matching
+  </span>
+
+  <h3 class="h6 fw-semibold mb-3">TOP 3 des pays les plus favorables pour ton profil</h3>
+
+  {% if country_ai.ranked_countries %}
+    <div class="row g-3 mb-4">
+      {% for c in country_ai.ranked_countries %}
+        <div class="col-md-4">
+          <div class="p-3 rounded-4" style="background: rgba(15,23,42,0.85); border: 1px solid rgba(148,163,184,0.25);">
+            <div class="fw-semibold">{{ c.country }}</div>
+            <div class="small text-secondary mt-1">
+              Offres totales : {{ c.total_offers }}<br>
+              Matches : {{ c.matches }} ({{ c.match_rate }}%)<br>
+              Score métier moyen : {{ c.avg_score }} / 100
+            </div>
+            {% if c.is_target %}
+              <div class="badge-soft mt-2">Dans tes pays ciblés</div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-secondary small">Aucune donnée pour l’instant.</p>
+  {% endif %}
+
+  <h3 class="h6 fw-semibold mb-3">TOP 5 des offres compatibles avec ton métier</h3>
+
+  {% if country_ai.top_offers %}
+    <ul class="list-group list-group-flush">
+      {% for offer in country_ai.top_offers %}
+        <a href="{% url 'visa_travail:job_offer_detail' offer.id %}"
+           class="list-group-item bg-transparent text-white border-secondary-subtle list-group-item-action">
+          <div class="fw-semibold">{{ offer.titre }}</div>
+          <div class="small text-secondary">{{ offer.pays }}{% if offer.ville %} · {{ offer.ville }}{% endif %}</div>
+          <div class="small text-secondary">{{ offer.entreprise }}</div>
+        </a>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-secondary small mb-0">Aucune correspondance détectée pour l’instant.</p>
+  {% endif %}
+</div>
+
+
+    <!-- RÉPARTITION PAR STATUT -->
+    <div class="card card-dark p-3 mb-4 fade-in-up">
+      <div class="row g-3 small align-items-center">
+        <div class="col-md-2">
+          <div class="text-secondary mb-1">Répartition</div>
+          <div class="fw-semibold">Par statut</div>
+        </div>
+        <div class="col-md-10">
+          <div class="d-flex flex-wrap gap-2">
+            <span class="btn-pill-soft">
+              <i class="bi bi-circle me-1"></i> À postuler : {{ count_a_postuler }}
+            </span>
+            <span class="btn-pill-soft">
+              <i class="bi bi-send me-1"></i> Envoyées : {{ count_envoyee }}
+            </span>
+            <span class="btn-pill-soft">
+              <i class="bi bi-chat-dots me-1"></i> Entretiens : {{ count_entretien }}
+            </span>
+            <span class="btn-pill-soft">
+              <i class="bi bi-check2-circle me-1"></i> Acceptées : {{ count_acceptee }}
+            </span>
+            <span class="btn-pill-soft">
+              <i class="bi bi-x-circle me-1"></i> Refusées : {{ count_refusee }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTRES -->
+    <div class="card card-dark p-4 mb-4 fade-in-up">
+      <h2 class="h6 fw-semibold mb-3">
+        <i class="bi bi-funnel-fill text-success me-1"></i> Filtrer les candidatures
+      </h2>
+
+      <form method="get" class="row g-3 small">
+        <div class="col-md-4">
+          <label class="form-label">Pays</label>
+          <input type="text" name="pays" value="{{ pays }}" class="form-control form-control-sm"
+                 placeholder="Ex : Canada">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Statut</label>
+          <select name="statut" class="form-select form-select-sm">
+            <option value="">Tous</option>
+            <option value="A_POSTULER" {% if statut == "A_POSTULER" %}selected{% endif %}>À postuler</option>
+            <option value="ENVOYEE" {% if statut == "ENVOYEE" %}selected{% endif %}>Envoyée</option>
+            <option value="ENTRETIEN" {% if statut == "ENTRETIEN" %}selected{% endif %}>Entretien</option>
+            <option value="ACCEPTEE" {% if statut == "ACCEPTEE" %}selected{% endif %}>Acceptée</option>
+            <option value="REFUSEE" {% if statut == "REFUSEE" %}selected{% endif %}>Refusée</option>
+          </select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end gap-2">
+          <button class="btn btn-primary btn-sm" type="submit">
+            <i class="bi bi-search me-1"></i> Filtrer
+          </button>
+          <a href="{% url 'visa_travail:job_list' profile.id %}" class="btn btn-outline-light btn-sm">
+            Réinitialiser
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- TABLEAU DES CANDIDATURES -->
+    <div class="card card-dark p-0 fade-in-up">
+      {% if applications %}
+        <div class="table-responsive">
+          <table class="table table-dark table-hover align-middle mb-0">
+            <thead>
+              <tr class="small text-secondary">
+                <th scope="col" class="px-4">Poste</th>
+                <th scope="col">Entreprise</th>
+                <th scope="col">Pays</th>
+                <th scope="col">Statut</th>
+                <th scope="col">Date</th>
+                <th scope="col" class="text-end px-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="small">
+              {% for app in applications %}
+                <tr>
+                  <td class="px-4">
+                    <div class="fw-semibold">{{ app.titre_poste }}</div>
+                    {% if app.lien_offre %}
+                      <div>
+                        <a href="{{ app.lien_offre }}" target="_blank" class="text-info small">
+                          Voir l’offre →
+                        </a>
+                      </div>
+                    {% endif %}
+                    {% if app.source %}
+                      <div class="text-secondary small">
+                        <i class="bi bi-link-45deg"></i> {{ app.source }}
+                      </div>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {{ app.entreprise|default:"—" }}
+                  </td>
+                  <td>
+                    {{ app.pays|default:"—" }}
+                  </td>
+                  <td>
+                    {% if app.statut == "A_POSTULER" %}
+                      <span class="badge bg-secondary">À postuler</span>
+                    {% elif app.statut == "ENVOYEE" %}
+                      <span class="badge bg-info text-dark">Envoyée</span>
+                    {% elif app.statut == "ENTRETIEN" %}
+                      <span class="badge bg-warning text-dark">Entretien</span>
+                    {% elif app.statut == "ACCEPTEE" %}
+                      <span class="badge bg-success">Acceptée</span>
+                    {% else %}
+                      <span class="badge bg-danger">Refusée</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {{ app.date_candidature|default:"—" }}
+                  </td>
+                  <td class="text-end px-4">
+                    <div class="d-inline-flex gap-1">
+                      <a href="{% url 'visa_travail:job_update' app.id %}" class="btn btn-outline-light btn-sm" title="Modifier">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+
+                      <form method="post" action="{% url 'visa_travail:job_update_status' app.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="statut" value="ENTRETIEN">
+                        <button class="btn btn-outline-light btn-sm" type="submit" title="Marquer en entretien">
+                          <i class="bi bi-chat-dots"></i>
+                        </button>
+                      </form>
+
+                      <form method="post" action="{% url 'visa_travail:job_update_status' app.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="statut" value="ACCEPTEE">
+                        <button class="btn btn-outline-light btn-sm" type="submit" title="Marquer acceptée">
+                          <i class="bi bi-check2-circle"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="p-4">
+          <p class="small text-secondary mb-0">
+            Aucune candidature enregistrée pour ce profil pour l’instant.
+            Commence par ajouter une candidature ou importe une offre depuis le job board.
+          </p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<style>
+.fade-in-up {
+  animation: fadeInUp 0.7s ease both;
+}
+@keyframes fadeInUp {
+  from { opacity:0; transform: translateY(20px); }
+  to { opacity:1; transform: translateY(0); }
+}
+</style>
+{% endblock %}

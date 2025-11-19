@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Plan d’action – Visa Travail</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 12px;
+      color: #0f172a;
+      margin: 0;
+      padding: 0;
+    }
+    .page {
+      padding: 24px 32px;
+    }
+    h1, h2, h3 {
+      margin: 0 0 8px 0;
+    }
+    h1 {
+      font-size: 22px;
+      color: #0f172a;
+    }
+    h2 {
+      font-size: 16px;
+      color: #111827;
+    }
+    h3 {
+      font-size: 14px;
+      color: #111827;
+    }
+    .text-muted {
+      color: #6b7280;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      border: 1px solid #9ca3af;
+      color: #111827;
+    }
+    .header {
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .section {
+      margin-bottom: 18px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+    .section-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .grid-3 > div {
+      flex: 1 1 30%;
+    }
+    .step {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 8px 0;
+      page-break-inside: avoid;
+    }
+    .step:last-child {
+      border-bottom: none;
+    }
+    .step-title {
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .step-desc {
+      font-size: 11px;
+      color: #4b5563;
+    }
+    .step-status {
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .status-a-faire {
+      color: #b91c1c;
+    }
+    .status-en-cours {
+      color: #92400e;
+    }
+    .status-termine {
+      color: #15803d;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #0ea5e9);
+    }
+    .footer {
+      margin-top: 24px;
+      padding-top: 8px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 10px;
+      color: #9ca3af;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div style="display:flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <h1>Plan d’action – Visa Travail</h1>
+        <div class="text-muted">
+          Généré par Immigration97 – Assistant Visa Travail
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div class="badge">Profil #{{ profile.id }}</div><br>
+        {% if profile.nom %}
+          <strong>{{ profile.nom }}</strong><br>
+        {% endif %}
+        <span class="text-muted">
+          {{ profile.domaine_metier }}<br>
+          Pays ciblés : {{ profile.pays_cibles }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RÉSUMÉ PROFIL -->
+  <div class="section">
+    <div class="section-title">Résumé du profil</div>
+    <div class="grid grid-3">
+      <div>
+        <div class="text-muted">Pays de résidence</div>
+        <div>{{ profile.pays_residence }}</div>
+      </div>
+      <div>
+        <div class="text-muted">Niveau d’études</div>
+        <div>{{ profile.get_niveau_etudes_display }}</div>
+      </div>
+      <div>
+        <div class="text-muted">Expérience</div>
+        <div>{{ profile.annees_experience }} an(s)</div>
+      </div>
+      <div>
+        <div class="text-muted">Langue (anglais)</div>
+        <div>{{ profile.niveau_anglais }}</div>
+      </div>
+      <div>
+        <div class="text-muted">Langue pays ciblé</div>
+        <div>{{ profile.niveau_langue_pays }}</div>
+      </div>
+      <div>
+        <div class="text-muted">Horizon de départ</div>
+        <div>{{ profile.get_horizon_depart_display }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESSION -->
+  <div class="section">
+    <div class="section-title">Progression du plan d’action</div>
+    <div>
+      {{ done_steps }} étape(s) sur {{ total_steps }} complétée(s)
+      – {{ progress_percent }}%
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" style="width: {{ progress_percent }}%;"></div>
+    </div>
+    <div class="text-muted" style="margin-top:4px;">
+      {{ progress_label }}
+    </div>
+  </div>
+
+  <!-- LISTE DES ÉTAPES -->
+  <div class="section">
+    <div class="section-title">Détail des étapes</div>
+
+    {% for step in steps %}
+      <div class="step">
+        <div style="display:flex; justify-content: space-between; align-items:flex-start;">
+          <div style="width:80%;">
+            <div class="step-title">
+              Étape {{ forloop.counter }} – {{ step.titre }}
+            </div>
+            {% if step.description %}
+              <div class="step-desc">
+                {{ step.description }}
+              </div>
+            {% endif %}
+          </div>
+          <div style="width:18%; text-align:right;">
+            {% if step.statut == "A_FAIRE" %}
+              <div class="step-status status-a-faire">À faire</div>
+            {% elif step.statut == "EN_COURS" %}
+              <div class="step-status status-en-cours">En cours</div>
+            {% else %}
+              <div class="step-status status-termine">Terminé</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- CONSEIL GLOBAL -->
+  <div class="section">
+    <div class="section-title">Note de stratégie</div>
+    <div class="text-muted" style="font-size:11px;">
+      Ce plan d’action doit être utilisé comme un guide pratique.  
+      Pense à adapter ton CV, ta lettre de motivation et tes candidatures
+      en fonction de chaque pays et de chaque offre.  
+      Vérifie toujours les informations officielles sur les sites gouvernementaux
+      avant toute démarche de visa.
+    </div>
+  </div>
+
+  <div class="footer">
+    Document généré automatiquement – Immigration97 · Assistant Visa Travail
+  </div>
+
+</div>
+</body>
+</html>

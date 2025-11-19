@@ -1,0 +1,167 @@
+{% extends "visa_travail/base.html" %}
+
+{% block title %}Profil & Objectifs – Visa Travail{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-9">
+
+    <!-- Header Section -->
+    <div class="text-center mb-4">
+      <span class="badge-soft px-3 py-1 mb-2">
+        <i class="bi bi-funnel-fill me-1"></i> Analyse de profil
+      </span>
+      <h1 class="fw-bold display-6 mb-2">Construisons ton profil visa travail</h1>
+      <p class="text-secondary small">
+        Ces informations nous permettent de te proposer des programmes réalistes et un plan d’action
+        professionnel, personnalisé et guidé.
+      </p>
+    </div>
+
+    <div class="card card-dark card-dark-hover p-4 p-md-5">
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <!-- IDENTITÉ -->
+        <div class="mb-4">
+          <h2 class="h5 fw-bold mb-3">
+            <i class="bi bi-person-badge me-2 text-success"></i>
+            Identité (optionnel)
+          </h2>
+
+          <div class="row">
+            <div class="col-md-6 mb-3 fade-in-up">
+              <label class="form-label">{{ form.nom.label }}</label>
+              {{ form.nom }}
+            </div>
+
+            <div class="col-md-6 mb-3 fade-in-up">
+              <label class="form-label">{{ form.email.label }}</label>
+              {{ form.email }}
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-4 border-secondary">
+
+        <!-- SITUATION ACTUELLE -->
+        <div class="mb-4">
+          <h2 class="h5 fw-bold mb-3">
+            <i class="bi bi-geo-alt me-2 text-success"></i>
+            Situation actuelle
+          </h2>
+
+          <div class="mb-3 fade-in-up">
+            <label class="form-label">{{ form.pays_residence.label }} *</label>
+            {{ form.pays_residence }}
+          </div>
+
+          <div class="mb-3 fade-in-up">
+            <label class="form-label">{{ form.domaine_metier.label }} *</label>
+            {{ form.domaine_metier }}
+          </div>
+        </div>
+
+        <hr class="my-4 border-secondary">
+
+        <!-- PAYS CIBLES -->
+        <div class="mb-4">
+          <h2 class="h5 fw-bold mb-3">
+            <i class="bi bi-flag me-2 text-success"></i>
+            Pays ciblés
+          </h2>
+
+          <p class="text-secondary small mb-2 fade-in-up">Tu peux en sélectionner plusieurs.</p>
+          <div class="fade-in-up">
+            {{ form.pays_cibles_select }}
+          </div>
+        </div>
+
+        <hr class="my-4 border-secondary">
+
+        <!-- ÉTUDES & EXPÉRIENCE -->
+        <div class="mb-4">
+          <h2 class="h5 fw-bold mb-3">
+            <i class="bi bi-mortarboard me-2 text-success"></i>
+            Formation & expérience
+          </h2>
+
+          <div class="row">
+            <div class="col-md-6 mb-3 fade-in-up">
+              <label class="form-label">{{ form.niveau_etudes.label }} *</label>
+              {{ form.niveau_etudes }}
+            </div>
+
+            <div class="col-md-6 mb-3 fade-in-up">
+              <label class="form-label">{{ form.annees_experience.label }} *</label>
+              {{ form.annees_experience }}
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-4 border-secondary">
+
+        <!-- LANGUES -->
+        <div class="mb-4">
+          <h2 class="h5 fw-bold mb-3">
+            <i class="bi bi-translate me-2 text-success"></i>
+            Niveaux de langue
+          </h2>
+
+          <div class="row">
+            <div class="col-md-6 mb-3 fade-in-up">
+              <label class="form-label">{{ form.niveau_anglais.label }} *</label>
+              {{ form.niveau_anglais }}
+            </div>
+
+            <div class="col-md-6 mb-3 fade-in-up">
+              <label class="form-label">{{ form.niveau_langue_pays.label }} *</label>
+              {{ form.niveau_langue_pays }}
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-4 border-secondary">
+
+        <!-- BUDGET & HORIZON -->
+        <div class="mb-4">
+          <h2 class="h5 fw-bold mb-3">
+            <i class="bi bi-cash-coin me-2 text-success"></i>
+            Budget & horizon de départ
+          </h2>
+
+          <div class="row">
+            <div class="col-md-6 mb-3 fade-in-up">
+              <label class="form-label">{{ form.budget.label }} *</label>
+              {{ form.budget }}
+            </div>
+
+            <div class="col-md-6 mb-3 fade-in-up">
+              <label class="form-label">{{ form.horizon_depart.label }} *</label>
+              {{ form.horizon_depart }}
+            </div>
+          </div>
+        </div>
+
+        <!-- ERREURS -->
+        {% if form.errors %}
+          <div class="alert alert-danger small fade-in-up">
+            🚨 Merci de corriger les champs en rouge. Certains éléments sont manquants ou incorrects.
+          </div>
+        {% endif %}
+
+        <!-- SUBMIT BUTTON -->
+        <div class="text-center mt-4">
+          <button type="submit" class="btn btn-primary btn-lg btn-glow">
+            <i class="bi bi-search-heart me-2"></i>
+            Voir mes options de visa travail
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

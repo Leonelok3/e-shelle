@@ -1,0 +1,207 @@
+{% extends "visa_travail/base.html" %}
+
+{% block title %}Plan d'action – Visa Travail{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+
+    <!-- Carte progression + Coach -->
+    <div class="card card-dark card-dark-hover p-4 p-md-5 mb-4 fade-in-up">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+        <div>
+          <span class="badge-soft mb-2 px-3 py-1">
+            <i class="bi bi-graph-up-arrow me-1"></i> Suivi de ton projet
+          </span>
+          <h1 class="h4 fw-bold mb-1">Plan d’action pour ton Visa Travail</h1>
+          <p class="text-secondary small mb-0">
+            Avance étape par étape avec un suivi clair, un coach intégré et des outils pensés
+            pour décrocher un emploi à l’étranger.
+          </p>
+        </div>
+
+        <!-- Badge progression -->
+        <div class="text-end">
+          <div class="small text-secondary">Progression globale</div>
+          <div class="fw-semibold">
+            {{ done_steps }} / {{ total_steps }} étape(s) • {{ progress_percent }}%
+          </div>
+          <div class="mt-1">
+            <span class="badge-soft">{{ progress_label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barre de progression -->
+      <div class="mb-3">
+        <div class="progress" style="height: 12px; border-radius: 999px; background: rgba(15,23,42,0.9);">
+          <div
+            class="progress-bar"
+            role="progressbar"
+            style="
+              width: {{ progress_percent }}%;
+              background: linear-gradient(90deg, #22c55e, #0ea5e9);
+              box-shadow: 0 0 18px rgba(34,197,94,0.65);
+              border-radius: 999px;
+            "
+            aria-valuenow="{{ progress_percent }}"
+            aria-valuemin="0"
+            aria-valuemax="100">
+          </div>
+        </div>
+      </div>
+
+      <!-- Coach Visa Travail -->
+      <div class="mt-4 p-3 p-md-3 rounded-4"
+           style="background: radial-gradient(circle at top left, rgba(15,23,42,0.95), rgba(3,7,18,0.98)); border: 1px solid rgba(148,163,184,0.45);">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+          <div>
+            <div class="small text-secondary mb-1">Coach Visa Travail</div>
+            <h2 class="h6 fw-semibold mb-1">{{ coach_title }}</h2>
+          </div>
+          <span class="badge-soft">
+            <i class="bi bi-geo-alt me-1"></i> Pays prioritaire : {{ pays_prioritaire }}
+          </span>
+        </div>
+        <p class="small text-secondary mb-0">
+          {{ coach_message }}
+        </p>
+      </div>
+
+      <!-- Boutons rapides -->
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <a href="{% url 'visa_travail:export_plan_pdf' profile.id %}" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-filetype-pdf me-1"></i> Télécharger le plan en PDF
+        </a>
+        <a href="{% url 'visa_travail:job_list' profile.id %}" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-clipboard-check me-1"></i> Gérer mes candidatures
+        </a>
+        <a href="{% url 'visa_travail:job_offers_list' %}" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-briefcase me-1"></i> Voir les offres d’emploi
+        </a>
+        <a href="{% url 'visa_travail:coach_cv' %}" class="btn btn-outline-light btn-sm">
+  <i class="bi bi-file-earmark-text me-1"></i> Analyser mon CV
+</a>
+
+      </div>
+
+      <!-- Infos profil -->
+      <div class="row g-3 mt-4 small">
+        <div class="col-md-4">
+          <div class="text-secondary">Pays ciblés</div>
+          <div class="fw-semibold text-white">{{ profile.pays_cibles }}</div>
+        </div>
+        <div class="col-md-4">
+          <div class="text-secondary">Domaine</div>
+          <div class="fw-semibold text-white">{{ profile.domaine_metier }}</div>
+        </div>
+        <div class="col-md-4">
+          <div class="text-secondary">Horizon de départ</div>
+          <div class="fw-semibold text-white">{{ profile.get_horizon_depart_display }}</div>
+        </div>
+      </div>
+
+      <div class="small text-secondary mt-3 mb-0">
+        Statuts possibles :
+        <span class="badge bg-secondary">À faire</span>,
+        <span class="badge bg-info text-dark">En cours</span>,
+        <span class="badge bg-success">Terminé</span>.
+      </div>
+    </div>
+
+    <!-- Liste des étapes (timeline premium) -->
+    {% if profile.actions.all %}
+      <div class="card card-dark card-dark-hover p-3 p-md-4 fade-in-up">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="h5 fw-semibold mb-0">
+            <i class="bi bi-list-check me-2 text-success"></i> Tes étapes clés
+          </h2>
+          <span class="small text-secondary">
+            Mets à jour le statut pour suivre ton avancée en temps réel.
+          </span>
+        </div>
+
+        <div class="list-group list-group-flush">
+          {% for step in profile.actions.all %}
+            <div class="list-group-item bg-transparent border-secondary-subtle text-white py-3">
+              <div class="d-flex align-items-start gap-3">
+
+                <!-- Timeline bullet -->
+                <div class="d-flex flex-column align-items-center pt-1">
+                  <div style="
+                      width: 24px;
+                      height: 24px;
+                      border-radius: 999px;
+                      background: radial-gradient(circle, #22c55e, #14532d);
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: 0.75rem;
+                    ">
+                    {{ forloop.counter }}
+                  </div>
+                  {% if not forloop.last %}
+                    <div style="
+                        flex-grow: 1;
+                        width: 2px;
+                        background: linear-gradient(to bottom, rgba(148,163,184,0.7), transparent);
+                        margin-top: 2px;
+                      ">
+                    </div>
+                  {% endif %}
+                </div>
+
+                <!-- Contenu étape -->
+                <div class="flex-grow-1">
+                  <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                      <div class="small text-secondary">Étape {{ forloop.counter }}</div>
+                      <div class="fw-semibold">{{ step.titre }}</div>
+                      {% if step.description %}
+                        <div class="small text-secondary mt-1">
+                          {{ step.description }}
+                        </div>
+                      {% endif %}
+                    </div>
+
+                    <!-- Statut + formulaire -->
+                    <div class="ms-3 text-end" style="min-width: 210px;">
+                      <div class="mb-2">
+                        {% if step.statut == "A_FAIRE" %}
+                          <span class="badge bg-secondary">À faire</span>
+                        {% elif step.statut == "EN_COURS" %}
+                          <span class="badge bg-info text-dark">En cours</span>
+                        {% else %}
+                          <span class="badge bg-success">Terminé</span>
+                        {% endif %}
+                      </div>
+
+                      <form method="post" class="d-flex flex-column gap-1 align-items-end">
+                        {% csrf_token %}
+                        <input type="hidden" name="step_id" value="{{ step.id }}">
+                        <select name="statut" class="form-select form-select-sm mb-2">
+                          <option value="A_FAIRE" {% if step.statut == "A_FAIRE" %}selected{% endif %}>À faire</option>
+                          <option value="EN_COURS" {% if step.statut == "EN_COURS" %}selected{% endif %}>En cours</option>
+                          <option value="TERMINE" {% if step.statut == "TERMINE" %}selected{% endif %}>Terminé</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                          Mettre à jour
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% else %}
+      <div class="alert alert-info small">
+        Aucun plan d’action n’a encore été généré.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

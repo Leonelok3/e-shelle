@@ -1,4 +1,5 @@
 {% load static %}
+{# tef_ee.html (page cours + atelier EE) #}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -480,7 +481,7 @@
           <img src="{% static 'logo e-shelle ton futur sans limite.jpg' %}" alt="E-SHELLE" />
         </div>
         <div>
-          <div class="brand-title">E-SHELLE • PRÉPARATION TEF</div>
+          <div class="brand-title">IMMIGRATION97 • PRÉPARATION TEF</div>
           <div class="small">Expression Écrite (EE)</div>
         </div>
       </div>
@@ -496,7 +497,14 @@
   <main class="container">
     <!-- Lien retour -->
     <div class="no-print" style="margin-top:10px;margin-bottom:8px;">
-      <a class="btn btn-soft" href="{% url 'preparation_tests:tef_hub' %}">⬅ Tous les modules TEF</a>
+      <!-- Quick Navigation Cours directs -->
+    <div class="mb-4" style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_co' %}">🎧 Cours CO</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ce' %}">📖 Cours CE</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ee' %}">✍️ Cours EE</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_eo' %}">🎤 Cours EO</a>
+    </div>
+    
     </div>
 
     <!-- ============================================
@@ -581,6 +589,13 @@
               </div>
               <div class="text-body">
                 {{ l.content_html|safe }}
+              </div>
+
+              <!-- Bouton session d'exercices EE pour cette leçon -->
+              <div style="margin-top: 14px; display: flex; justify-content: flex-end; position:relative; z-index:1;">
+                <a href="{% url 'preparation_tests:lesson_session_ee' l.id %}" class="btn btn-primary">
+                  🚀 Lancer la session d'exercices EE
+                </a>
               </div>
             </article>
           {% endfor %}
@@ -720,8 +735,7 @@
 
     <!-- NAV / FOOTER -->
     <div class="footer-nav no-print">
-      <a class="btn btn-soft" href="{% url 'preparation_tests:tef_hub' %}">⬅ Retour hub TEF</a>
-      <a class="btn btn-soft" href="{% url 'preparation_tests:exam_list' %}">📋 Tous les examens</a>
+      <center><a class="btn btn-soft" href="{% url 'preparation_tests:tef_hub' %}">⬅ Retour Menu  TEF</a></center>
     </div>
     <div class="footer-bottom">
       © 2025 E-SHELLE — Prépare ton avenir sans limite.
@@ -729,7 +743,7 @@
   </main>
 
   <!-- ============================================
-       🧠 LOGIQUE JS ATELIER EE (reprend ton code)
+       🧠 LOGIQUE JS ATELIER EE
        ============================================ -->
   <script>
     // Helpers

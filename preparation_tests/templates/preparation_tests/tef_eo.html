@@ -43,12 +43,136 @@
       color: #fff;
       line-height: 1.6;
       min-height: 100vh;
+      padding-top: 84px; /* espace pour le header sticky */
     }
 
     .container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
+    }
+
+    /* ====== UTILITAIRES ====== */
+    .mb-4 { margin-bottom: 1rem; }
+
+    /* ====== HEADER PRINCIPAL STICKY ====== */
+    header.sticky {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: linear-gradient(120deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.9));
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+    }
+
+    .topbar {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+      flex-shrink: 0;
+      background: radial-gradient(circle at 0 0, rgba(122,162,255,.4), transparent 65%);
+    }
+
+    .brand-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .brand-title {
+      font-size: 0.88rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #e5eeff;
+      white-space: nowrap;
+    }
+
+    .brand .small {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.86rem;
+      font-weight: 500;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: radial-gradient(circle at 0 0, rgba(148, 163, 184, 0.2), rgba(15, 23, 42, 0.95));
+      color: #e5e7eb;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.18s ease-out;
+      white-space: nowrap;
+    }
+
+    .tab:hover {
+      border-color: rgba(191, 219, 254, 0.9);
+      background: radial-gradient(circle at 0 0, rgba(122, 162, 255, 0.35), rgba(15, 23, 42, 0.98));
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
+    }
+
+    .tab.active {
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--hot));
+      color: #020617;
+      box-shadow: 0 12px 30px rgba(79, 70, 229, 0.7);
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 16px 12px;
+      }
+      .tabs {
+        width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .tab {
+        font-size: 0.8rem;
+      }
     }
 
     /* ====== NAV TOP ====== */
@@ -78,6 +202,21 @@
       background: var(--panel2);
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(0,0,0,.3);
+    }
+
+    /* boutons fantômes nav rapide */
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      color: #e5edff;
+    }
+    .btn-ghost:hover {
+      background: rgba(148, 163, 184, 0.12);
+    }
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      border-radius: 999px;
     }
 
     /* ====== HEADER / HERO ====== */
@@ -452,7 +591,7 @@
 
     /* PRINT */
     @media print {
-      body { background:#fff; color:#000; }
+      body { background:#fff; color:#000; padding-top: 0; }
       .no-print { display:none !important; }
       .section { box-shadow:none; }
     }
@@ -465,12 +604,38 @@
   </style>
 </head>
 <body>
+
+  <header class="sticky no-print">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-logo">
+          <img src="{% static 'logo e-shelle ton futur sans limite.jpg' %}" alt="E-SHELLE" />
+        </div>
+        <div>
+          <div class="brand-title">IMMIGRATION97 • PRÉPARATION TEF</div>
+          <div class="small">Expression Orale (EO)</div>
+        </div>
+      </div>
+      <nav class="tabs" aria-label="Navigation TEF">
+        <span class="tab active">📚 Cours</span>
+        <a class="tab" href="{% url 'preparation_tests:tef_hub' %}#train">🧪 Entraînements</a>
+        <a class="tab" href="{% url 'preparation_tests:tef_hub' %}#tips">🧭 Conseils &amp; barèmes</a>
+        <a class="tab" href="{% url 'preparation_tests:tef_hub' %}#res">🗂️ Ressources</a>
+      </nav>
+    </div>
+  </header>
   <div class="container">
 
     <!-- NAV TOP -->
-    <div class="nav-top no-print">
-      <a class="nav-btn" href="{% url 'preparation_tests:tef_hub' %}">⬅ Retour hub TEF</a>
-      <a class="nav-btn" href="{% url 'preparation_tests:exam_list' %}">📋 Tous les examens</a>
+<div class="no-print" style="margin-top:10px;margin-bottom:8px;">
+      <!-- Quick Navigation Cours directs -->
+    <div class="mb-4" style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_co' %}">🎧 Cours CO</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ce' %}">📖 Cours CE</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ee' %}">✍️ Cours EE</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_eo' %}">🎤 Cours EO</a>
+    </div>
+    
     </div>
 
     <!-- HEADER -->
@@ -514,6 +679,14 @@
                 </header>
                 <div class="lesson-body">
                   {{ l.content_html|safe }}
+
+                  <!-- Bouton lancer session EO (CourseExercise) -->
+                  <div style="margin-top: 14px; display: flex; justify-content: flex-end;">
+                    <a href="{% url 'preparation_tests:lesson_session_eo' l.id %}"
+                       class="btn btn-primary">
+                      🚀 Lancer la session d'exercices EO
+                    </a>
+                  </div>
                 </div>
               </article>
             {% endfor %}
@@ -707,7 +880,7 @@
 
     <!-- FOOTER NAV -->
     <div class="footer-nav no-print">
-      <a class="nav-btn" href="{% url 'preparation_tests:tef_hub' %}">⬅ Retour hub TEF</a>
+   <CENter><a class="nav-btn" href="{% url 'preparation_tests:tef_hub' %}">⬅ Retour au Menu  TEF</a></CENter>  
     </div>
   </div>
 

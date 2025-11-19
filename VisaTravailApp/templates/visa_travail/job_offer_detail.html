@@ -1,0 +1,132 @@
+{% extends "visa_travail/base.html" %}
+
+{% block title %}{{ offer.titre }} – Offre d’emploi{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-9">
+
+    <!-- HEADER OFFRE -->
+    <div class="card card-dark card-dark-hover p-4 p-md-5 mb-4 fade-in-up">
+      <span class="badge-soft mb-2 px-3 py-1">
+        <i class="bi bi-briefcase me-1"></i> Offre d’emploi internationale
+      </span>
+
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+          <h1 class="fw-bold display-6 mb-1">{{ offer.titre }}</h1>
+
+          {% if offer.entreprise %}
+            <div class="text-secondary small mb-2">
+              <i class="bi bi-building me-1"></i>
+              {{ offer.entreprise }}
+            </div>
+          {% endif %}
+
+          <div class="d-flex flex-wrap gap-2 mt-1">
+            {% if offer.pays %}
+              <span class="badge-soft">
+                <i class="bi bi-geo-alt me-1"></i> {{ offer.pays }}
+              </span>
+            {% endif %}
+
+            {% if offer.ville %}
+              <span class="badge-soft">
+                <i class="bi bi-geo me-1"></i> {{ offer.ville }}
+              </span>
+            {% endif %}
+
+            {% if offer.type_contrat %}
+              <span class="badge-soft">
+                <i class="bi bi-file-earmark-text me-1"></i>
+                {{ offer.get_type_contrat_display }}
+              </span>
+            {% endif %}
+
+            {% if offer.salaire %}
+              <span class="badge-soft">
+                <i class="bi bi-cash me-1"></i> {{ offer.salaire }}
+              </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Date -->
+        <div class="text-end small text-secondary">
+          <i class="bi bi-calendar-event me-1"></i>
+          Publiée le {{ offer.date_publication }}
+        </div>
+      </div>
+    </div>
+
+    <!-- DESCRIPTION -->
+    <div class="card card-dark card-dark-hover p-4 mb-4 fade-in-up">
+      <h2 class="h6 fw-semibold mb-3">
+        <i class="bi bi-file-text me-1"></i> Description du poste
+      </h2>
+      <p class="small text-secondary" style="white-space: pre-line;">
+        {{ offer.description }}
+      </p>
+
+      {% if offer.exigences %}
+        <h2 class="h6 fw-semibold mt-4">
+          <i class="bi bi-person-lines-fill me-1"></i> Profil recherché
+        </h2>
+        <p class="small text-secondary" style="white-space: pre-line;">
+          {{ offer.exigences }}
+        </p>
+      {% endif %}
+
+      {% if offer.avantages %}
+        <h2 class="h6 fw-semibold mt-4">
+          <i class="bi bi-gift me-1"></i> Avantages
+        </h2>
+        <p class="small text-secondary" style="white-space: pre-line;">
+          {{ offer.avantages }}
+        </p>
+      {% endif %}
+    </div>
+
+    <!-- CTA CANDIDATURE + VISA -->
+    <div class="card card-dark card-dark-hover p-4 mb-4 fade-in-up">
+      <h2 class="h6 fw-semibold mb-3 text-success">
+        <i class="bi bi-passport me-1"></i> Candidature & Visa Travail
+      </h2>
+
+      <p class="small text-secondary mb-3">
+        Tu peux ajouter cette offre à ton <strong>tableau de candidatures</strong>
+        en la liant à l’un de tes profils créés dans l’assistant Visa Travail.
+      </p>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'visa_travail:job_create_from_offer' offer.id %}"
+           class="btn btn-outline-light btn-lg">
+          <i class="bi bi-plus-circle me-1"></i> Ajouter à mes candidatures
+        </a>
+
+        {% if offer.lien_candidature %}
+          <a href="{{ offer.lien_candidature }}" target="_blank" class="btn btn-primary btn-lg">
+            <i class="bi bi-box-arrow-up-right me-1"></i>
+            Postuler sur le site officiel
+          </a>
+        {% endif %}
+
+        <a href="{% url 'visa_travail:job_offers_list' %}" class="btn btn-outline-light btn-lg">
+          <i class="bi bi-arrow-left me-1"></i> Retour aux offres
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+.fade-in-up {
+  animation: fadeInUp 0.7s ease both;
+}
+@keyframes fadeInUp {
+  from { opacity:0; transform: translateY(20px); }
+  to { opacity:1; transform: translateY(0); }
+}
+</style>
+{% endblock %}

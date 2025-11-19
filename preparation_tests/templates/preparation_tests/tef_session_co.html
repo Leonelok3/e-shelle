@@ -140,6 +140,12 @@
       color: var(--muted);
     }
 
+    .lesson-name {
+      font-size: .86rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
     /* Layout dessous */
     .layout {
       display: grid;
@@ -228,8 +234,15 @@
       background: #020617;
     }
 
+    .instruction-text {
+      margin-top: 8px;
+      font-size: .85rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
     .question-text {
-      margin-top: 12px;
+      margin-top: 8px;
       font-size: .95rem;
       line-height: 1.6;
     }
@@ -363,10 +376,15 @@
       }
     }
 
-    .lesson-name {
+    .side-section h3 {
+      margin-top: 0;
+      margin-bottom: 6px;
+      font-size: .98rem;
+    }
+    .side-section ul {
+      margin: 4px 0 0 18px;
       font-size: .86rem;
       color: var(--muted);
-      margin-top: 4px;
     }
   </style>
 </head>
@@ -392,7 +410,7 @@
         <strong>valider ta compréhension</strong> avec des QCM corrigés en direct.
       </p>
       <p class="lesson-name">
-        Leçon : {{ lesson.exam.name }} • CO — mise à jour le {{ lesson.updated_at|date:"d/m/Y" }}  
+        Leçon : {{ lesson.exam.name }} • CO — mise à jour le {{ lesson.updated_at|date:"d/m/Y" }}
         {% if total_exercises %}
           • {{ total_exercises }} exercice{{ total_exercises|pluralize:",s" }}
         {% endif %}
@@ -440,6 +458,9 @@
         <div class="audio-block">
           <audio id="audio" controls></audio>
         </div>
+
+        <!-- ✅ nouvelle zone : consigne de l'exercice -->
+        <div class="instruction-text" id="instruction-text"></div>
 
         <div class="question-text" id="question-text">
           Aucune question chargée pour le moment.
@@ -504,6 +525,11 @@
   </div>
 
   <script>
+    // =========================================================
+    // ⚙️ Données injectées depuis la vue Django (lesson_session_co)
+    //     → EXERCISES = liste de dictionnaires :
+    //       { audio_url, instruction, question, options{}, correct, explanation }
+    // =========================================================
     const EXERCISES = JSON.parse('{{ exercises_json|escapejs }}');
 
     let currentIndex = 0;
@@ -515,6 +541,7 @@
     let sessionFinished = false;
 
     const audioEl = document.getElementById('audio');
+    const instructionTextEl = document.getElementById('instruction-text');
     const questionTextEl = document.getElementById('question-text');
     const optionsGridEl = document.getElementById('options-grid');
     const feedbackEl = document.getElementById('feedback');
@@ -534,6 +561,7 @@
     const sumTimeEl = document.getElementById('sum-time');
     const sumMessageEl = document.getElementById('sum-message');
 
+    // ---------------------- TIMER ----------------------
     function startTimer() {
       if (timerHandle) clearInterval(timerHandle);
       timerHandle = setInterval(() => {
@@ -558,6 +586,7 @@
       statTimeEl.textContent = formatTime(timerSeconds);
     }
 
+    // ---------------------- INIT SESSION ----------------------
     function initSession() {
       currentIndex = 0;
       selectedOption = null;
@@ -573,7 +602,9 @@
       updateProgress();
 
       if (EXERCISES.length === 0) {
+        // Aucun exercice configuré dans l'admin pour cette leçon
         questionTextEl.textContent = "Aucun exercice n'est encore configuré pour cette leçon.";
+        instructionTextEl.textContent = "";
         btnValidate.disabled = true;
         btnNext.disabled = true;
         return;
@@ -584,10 +615,12 @@
       startTimer();
     }
 
+    // ---------------------- CHARGEMENT D'UN EXERCICE ----------------------
     function loadCurrentExercise() {
       const ex = EXERCISES[currentIndex];
 
       audioEl.src = ex.audio_url || '';
+      instructionTextEl.textContent = ex.instruction || '';
       questionTextEl.textContent = ex.question || '';
       feedbackEl.textContent = '';
       selectedOption = null;
@@ -603,7 +636,7 @@
         div.innerHTML = `<span class="option-label">${key}.</span> ${label}`;
         div.addEventListener('click', () => {
           if (sessionFinished) return;
-          if (btnNext.disabled === false) return;
+          if (btnNext.disabled === false) return; // on bloque après validation
           selectedOption = key;
           document.querySelectorAll('.option-item').forEach(o => o.classList.remove('selected'));
           div.classList.add('selected');
@@ -620,10 +653,11 @@
         progressBarEl.style.width = '0%';
         return;
       }
-      const pct = ((currentIndex) / EXERCISES.length) * 100;
+      const pct = (currentIndex / EXERCISES.length) * 100;
       progressBarEl.style.width = pct + '%';
     }
 
+    // ---------------------- VALIDATION ----------------------
     function handleValidate() {
       if (sessionFinished) return;
 
@@ -636,6 +670,7 @@
 
       answeredCount++;
 
+      // Mise en couleur des options
       document.querySelectorAll('.option-item').forEach(o => {
         const key = o.dataset.key;
         o.classList.remove('selected');
@@ -666,6 +701,7 @@
       }
     }
 
+    // ---------------------- QUESTION SUIVANTE ----------------------
     function handleNext() {
       if (sessionFinished) return;
       if (currentIndex < EXERCISES.length - 1) {
@@ -674,6 +710,7 @@
       }
     }
 
+    // ---------------------- FIN DE SESSION ----------------------
     function finishSession() {
       sessionFinished = true;
       if (timerHandle) clearInterval(timerHandle);
@@ -700,11 +737,16 @@
       summaryCard.style.display = 'block';
     }
 
+    // ---------------------- BOUTONS ----------------------
     btnValidate.addEventListener('click', handleValidate);
     btnNext.addEventListener('click', handleNext);
     btnRestart.addEventListener('click', initSession);
 
-    document.addEventListener('DOMContentLoaded', initSession);
+    // ⚠️ IMPORTANT :
+    // On appelle directement initSession ici (le script est à la fin du body,
+    // donc le DOM est déjà prêt). Ça évite le bug où DOMContentLoaded
+    // serait déjà déclenché avant l’enregistrement du listener.
+    initSession();
   </script>
 </body>
 </html>

@@ -1,0 +1,980 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>E-SHELLE • Corrigé détaillé</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #020617;
+      --surface: rgba(15,23,42,.96);
+      --surface-soft: rgba(15,23,42,.9);
+      --surface-alt: rgba(15,23,42,.88);
+      --border: rgba(148,163,184,.26);
+      --border-soft: rgba(148,163,184,.18);
+
+      --accent-green: #22c55e;
+      --accent-orange: #fb923c;
+      --accent-blue: #38bdf8;
+      --accent-purple: #a855f7;
+      --accent-red: #f97373;
+
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+
+      --radius-lg: 22px;
+      --radius-pill: 999px;
+      --shadow-card: 0 20px 55px rgba(0,0,0,.85);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(950px 520px at 0% 0%, rgba(56,189,248,.18), transparent 60%),
+        radial-gradient(900px 520px at 110% 0%, rgba(248,113,113,.16), transparent 60%),
+        radial-gradient(1200px 720px at 50% 120%, rgba(34,197,94,.2), transparent 65%),
+        linear-gradient(135deg,#020617,#020617 45%,#02091a);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* HEADER */
+    .shell-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: linear-gradient(180deg,rgba(2,6,23,.96),rgba(2,6,23,.9),rgba(2,6,23,.78));
+      border-bottom: 1px solid rgba(15,23,42,.9);
+      backdrop-filter: blur(18px);
+    }
+
+    .shell-header-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 10px 18px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .brand-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: radial-gradient(circle at 20% 0%, rgba(248,250,252,.35), transparent 55%), #020617;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 0 0 1px rgba(148,163,184,.4),
+        0 14px 35px rgba(15,23,42,.9);
+    }
+    .brand-logo img {
+      width: 125%;
+      height: auto;
+      object-fit: cover;
+      transform: translateY(2px);
+    }
+
+    .brand-kicker {
+      font-size: .8rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .brand-title {
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .nav-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-soft);
+      background: rgba(15,23,42,.9);
+      color: var(--text-main);
+      font-size: .9rem;
+      font-weight: 600;
+      box-shadow: 0 0 0 1px rgba(15,23,42,.8);
+      cursor: pointer;
+      transition:
+        background .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease,
+        transform .16s ease;
+    }
+    .nav-pill span.icon { font-size: 1.05rem; }
+
+    .nav-pill.active {
+      background: radial-gradient(circle at 0 0, rgba(248,250,252,.18), transparent 55%),
+                  linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+      border-color: transparent;
+      color: #020617;
+      box-shadow: 0 12px 30px rgba(0,0,0,.9);
+      transform: translateY(-1px);
+    }
+
+    .nav-pill:hover:not(.active) {
+      border-color: rgba(148,163,184,.6);
+      background: rgba(15,23,42,.96);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 26px rgba(0,0,0,.9);
+    }
+
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 26px 18px 40px;
+    }
+
+    .page-title h1 {
+      font-size: 1.7rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .page-title p {
+      font-size: .95rem;
+      color: var(--text-muted);
+    }
+
+    .mode-tag {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:.8rem;
+      margin-top:8px;
+      background:rgba(56,189,248,.12);
+      border:1px solid rgba(56,189,248,.45);
+      color:#7dd3fc;
+    }
+
+    /* GRID */
+    .grid-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr);
+      gap: 18px;
+      margin-top: 18px;
+      align-items: flex-start;
+    }
+    @media (max-width: 920px) {
+      .grid-main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+      padding: 16px 18px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+    }
+    .card p {
+      font-size: .9rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    /* SCORE BAR */
+    .score-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-top:8px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+    .score-global-block {
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+    .score-circle {
+      width:70px;
+      height:70px;
+      border-radius:999px;
+      background: radial-gradient(circle at 25% 0%, rgba(248,250,252,.28), transparent 55%),
+                  conic-gradient(var(--accent-green) 0deg, var(--accent-blue) 220deg, rgba(15,23,42,1) 220deg);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 16px 40px rgba(0,0,0,.9);
+    }
+    .score-circle-inner {
+      width:56px;
+      height:56px;
+      border-radius:inherit;
+      background:rgba(15,23,42,.96);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.2rem;
+      font-weight:800;
+    }
+    .score-global-text {
+      font-size:.9rem;
+    }
+    .score-global-text strong { font-weight:700; }
+
+    .score-summary-tags {
+      margin-top:4px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      font-size:.78rem;
+    }
+    .pill {
+      padding:3px 9px;
+      border-radius:var(--radius-pill);
+      border:1px solid var(--border-soft);
+      background:rgba(15,23,42,.9);
+      color:var(--text-muted);
+    }
+
+    .back-links {
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:6px;
+      font-size:.85rem;
+    }
+    .back-links a {
+      opacity:.9;
+    }
+    .back-links a:hover {
+      opacity:1;
+      text-decoration:underline;
+    }
+
+    /* FILTER BAR */
+    .filter-bar {
+      margin-top: 10px;
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      background: var(--surface-soft);
+      border: 1px solid var(--border-soft);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      font-size: .82rem;
+    }
+    .filter-group {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+    .filter-label {
+      color: var(--text-muted);
+      font-size: .8rem;
+    }
+    .filter-chip {
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(15,23,42,.98);
+      font-size: .8rem;
+      cursor: pointer;
+      opacity: .8;
+      transition:
+        background .16s ease,
+        border-color .16s ease,
+        opacity .16s ease,
+        transform .12s ease;
+    }
+    .filter-chip:hover {
+      opacity: 1;
+      transform: translateY(-1px);
+      border-color: rgba(148,163,184,.8);
+    }
+    .filter-chip.active {
+      background: radial-gradient(circle at 0 0, rgba(248,250,252,.18), transparent 55%),
+                  linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: #020617;
+      border-color: transparent;
+      opacity: 1;
+      box-shadow: 0 8px 20px rgba(15,23,42,.9);
+    }
+
+    /* QUESTION CARDS GRID */
+    .corrections-list {
+      margin-top:10px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .q-card {
+      border-radius:18px;
+      padding:12px 13px 13px;
+      background:var(--surface-soft);
+      border:1px solid var(--border-soft);
+      position:relative;
+      overflow:hidden;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .q-card::before {
+      content:"";
+      position:absolute;
+      inset:0;
+      opacity:0.06;
+      background:radial-gradient(circle at 0 0, rgba(248,250,252,.4), transparent 60%);
+      pointer-events:none;
+    }
+
+    .q-card.q-correct {
+      border-color:rgba(34,197,94,.55);
+      box-shadow:0 12px 30px rgba(22,163,74,.32);
+    }
+    .q-card.q-wrong {
+      border-color:rgba(239,68,68,.6);
+      box-shadow:0 12px 30px rgba(220,38,38,.35);
+    }
+
+    .q-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      margin-bottom:6px;
+    }
+    .q-title {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:.9rem;
+      font-weight:600;
+    }
+    .q-index-pill {
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:.78rem;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+    .q-card.q-correct .q-index-pill {
+      background:rgba(34,197,94,.16);
+      color:#4ade80;
+    }
+    .q-card.q-wrong .q-index-pill {
+      background:rgba(239,68,68,.16);
+      color:#fca5a5;
+    }
+
+    .q-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      font-size:.78rem;
+      margin-top:2px;
+    }
+    .q-chip {
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid var(--border-soft);
+      background:rgba(15,23,42,.96);
+      color:var(--text-muted);
+    }
+
+    .q-body {
+      font-size:.9rem;
+      margin-top:4px;
+    }
+    .q-stem {
+      margin-bottom:6px;
+      font-weight:500;
+    }
+    .q-section-label {
+      font-size:.78rem;
+      color:var(--text-muted);
+    }
+
+    .answer-line {
+      margin-top:4px;
+      padding:6px 8px;
+      border-radius:12px;
+      font-size:.88rem;
+      display:flex;
+      gap:6px;
+    }
+    .answer-line .label {
+      font-weight:600;
+      min-width:95px;
+    }
+    .answer-line.user.ok {
+      background:rgba(34,197,94,.14);
+      color:#bbf7d0;
+    }
+    .answer-line.user.ko {
+      background:rgba(239,68,68,.18);
+      color:#fecaca;
+    }
+    .answer-line.correct {
+      background:rgba(56,189,248,.16);
+      color:#e0f2fe;
+    }
+
+    .exp-block {
+      margin-top:6px;
+      padding:7px 9px;
+      border-radius:12px;
+      border:1px dashed rgba(148,163,184,.4);
+      background:rgba(15,23,42,.96);
+      font-size:.85rem;
+      color:var(--text-muted);
+    }
+    .exp-title {
+      font-weight:600;
+      font-size:.86rem;
+      margin-bottom:3px;
+      display:flex;
+      align-items:center;
+      gap:5px;
+    }
+
+    .audio-block {
+      margin-top:6px;
+    }
+    .audio-block audio {
+      width:100%;
+    }
+
+    /* SIDE PANEL */
+    .side-card h3 {
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+    .side-card p {
+      font-size: .9rem;
+      color: var(--text-muted);
+    }
+    .side-card ul {
+      margin: 8px 0 0 16px;
+      padding: 0;
+      font-size: .9rem;
+      color: var(--text-muted);
+    }
+    .side-card li + li {
+      margin-top: 4px;
+    }
+
+    .section-stat-list {
+      margin-top:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      font-size:.86rem;
+    }
+    .section-stat-row {
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      align-items:center;
+      padding:7px 9px;
+      border-radius:12px;
+      background:var(--surface-soft);
+      border:1px solid var(--border-soft);
+    }
+    .section-left {
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .section-code-pill {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:rgba(15,23,42,.96);
+      border:1px solid var(--border-soft);
+      font-size:.78rem;
+      color:var(--text-muted);
+    }
+    .section-score {
+      font-size:.86rem;
+    }
+    .section-level {
+      font-size:.8rem;
+      color:var(--text-muted);
+    }
+
+    .recommend-block {
+      margin-top:10px;
+      padding:8px 10px;
+      border-radius:12px;
+      background:rgba(15,23,42,.96);
+      border:1px dashed rgba(148,163,184,.4);
+      font-size:.86rem;
+      color:var(--text-muted);
+    }
+
+    .btn-row {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      font-size: .86rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition:
+        transform .12s ease-out,
+        box-shadow .18s ease-out,
+        background .18s ease-out,
+        filter .12s ease-out;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+      color: #020617;
+      box-shadow: 0 12px 30px rgba(0,0,0,.95);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+    }
+    .btn-ghost {
+      background: var(--surface-soft);
+      border: 1px solid var(--border-soft);
+      color: var(--text-muted);
+    }
+    .btn-ghost:hover {
+      background: var(--surface-alt);
+      color: var(--text-main);
+      transform: translateY(-1px);
+    }
+
+    .ai-note {
+      margin-top:10px;
+      font-size:.82rem;
+      color:var(--text-muted);
+    }
+
+    /* SCROLL TO TOP */
+    .scroll-top-btn {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: #020617;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 12px 30px rgba(0,0,0,.9);
+      font-size: 18px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .15s ease;
+      z-index: 50;
+    }
+    .scroll-top-btn.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .scroll-top-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 720px) {
+      .shell-header-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .nav-tabs { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="shell-header">
+  <div class="shell-header-inner">
+    <div class="brand-block">
+      <div class="brand-logo">
+        <img src="{% static 'logoeshelle.jpg' %}" alt="E-SHELLE">
+      </div>
+      <div>
+        <div class="brand-kicker">E-SHELLE • PRÉPARATION TEF &amp; TCF</div>
+        <div class="brand-title">Corrigé détaillé de la session</div>
+      </div>
+    </div>
+
+    <nav class="nav-tabs" aria-label="Navigation principale">
+      <a class="nav-pill" href="{% url 'preparation_tests:french_exams' %}">
+        <span class="icon">🏠</span><span>Hub examens</span>
+      </a>
+      <a class="nav-pill" href="{% url 'preparation_tests:session_review' %}">
+        <span class="icon">📊</span><span>Mes résultats</span>
+      </a>
+      {% if session.exam.code|lower == "tef" %}
+        <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}">
+          <span class="icon">🇫🇷</span><span>Hub TEF</span>
+        </a>
+      {% elif session.exam.code|lower == "tcf" %}
+        <a class="nav-pill" href="{% url 'preparation_tests:tcf_hub' %}">
+          <span class="icon">🇫🇷</span><span>Hub TCF</span>
+        </a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="page-title">
+    <h1>Corrigé – {{ session.exam.code|upper }} {% if session.mode == "mock" %}(examen blanc){% elif session.mode == "retry_errors" %}(correction ciblée){% else %}(entraînement){% endif %}</h1>
+    <p>
+      Détail question par question, avec tes réponses, les bonnes réponses
+      et les explications. Utilise cette page pour corriger tes réflexes.
+    </p>
+    {% if session.mode == "retry_errors" %}
+      <div class="mode-tag">
+        🔁 Mode correction ciblée — tu revois uniquement tes erreurs d’une session précédente.
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="grid-main">
+    <!-- COLONNE GAUCHE : LISTE DES QUESTIONS -->
+    <article class="card">
+      <div class="score-header">
+        <div class="score-global-block">
+          <div class="score-circle">
+            <div class="score-circle-inner">
+              {{ global_pct }}%
+            </div>
+          </div>
+          <div class="score-global-text">
+            <div>
+              <strong>{{ global_correct }}</strong> bonnes réponses sur
+              <strong>{{ global_total }}</strong> questions.
+            </div>
+            <div class="score-summary-tags">
+              <span class="pill">Examen : {{ session.exam.name }}</span>
+              <span class="pill">
+                Mode :
+                {% if session.mode == "mock" %}
+                  Examen blanc
+                {% elif session.mode == "retry_errors" %}
+                  Correction ciblée
+                {% else %}
+                  Entraînement
+                {% endif %}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="back-links">
+          <a href="{% url 'preparation_tests:session_result' session.id %}">⬅ Revenir au résumé de la session</a>
+          <a href="{% url 'preparation_tests:retry_session_errors' session.id %}">🔁 Refaire seulement mes erreurs</a>
+        </div>
+      </div>
+
+      <!-- BARRE DE FILTRES PREMIUM -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <span class="filter-label">Type de questions :</span>
+          <button class="filter-chip active" data-filter-type="result" data-filter-value="all">Toutes</button>
+          <button class="filter-chip" data-filter-type="result" data-filter-value="errors">Uniquement erreurs</button>
+          <button class="filter-chip" data-filter-type="result" data-filter-value="correct">Uniquement réussies</button>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Section :</span>
+          <button class="filter-chip active" data-filter-type="section" data-filter-value="all">Toutes</button>
+          {% for sec in sections %}
+            <button class="filter-chip" data-filter-type="section" data-filter-value="{{ sec|upper }}">
+              {% if sec|lower == "co" %}🎧 CO{% elif sec|lower == "ce" %}📖 CE{% elif sec|lower == "ee" %}✍️ EE{% elif sec|lower == "eo" %}🗣 EO{% else %}{{ sec|upper }}{% endif %}
+            </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="corrections-list" id="corrections-list">
+        {% for c in corrections %}
+          <div
+            class="q-card {% if c.is_correct %}q-correct{% else %}q-wrong{% endif %}"
+            data-correct="{% if c.is_correct %}1{% else %}0{% endif %}"
+            data-section="{{ c.section|upper }}"
+          >
+            <div class="q-header">
+              <div>
+                <div class="q-title">
+                  <span class="q-index-pill">
+                    {% if c.is_correct %}✅{% else %}❌{% endif %}
+                    Q{{ forloop.counter }}
+                  </span>
+                  <span>{{ c.question.section.exam.code|upper }} – {{ c.question.section.code|upper }}</span>
+                </div>
+                <div class="q-meta">
+                  <span class="q-chip">
+                    Section : {{ c.section }}
+                  </span>
+                  {% if c.question.difficulty %}
+                    <span class="q-chip">
+                      Difficulté : {{ c.question.difficulty }}
+                    </span>
+                  {% endif %}
+                  {% if c.is_correct %}
+                    <span class="q-chip">Bonne réponse 🎯</span>
+                  {% else %}
+                    <span class="q-chip">À retravailler 🧱</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="q-body">
+              {% if c.question.stem %}
+                <p class="q-stem">{{ c.question.stem }}</p>
+              {% endif %}
+
+              <p class="q-section-label">
+                {% if c.question.section.code|lower in "co,listening" %}
+                  🎧 Compréhension orale
+                {% elif c.question.section.code|lower in "ce,reading" %}
+                  📖 Compréhension écrite
+                {% elif c.question.section.code|lower in "ee,writing" %}
+                  ✍️ Expression écrite
+                {% elif c.question.section.code|lower in "eo,speaking" %}
+                  🗣 Expression orale
+                {% else %}
+                  🎯 Compétence générale
+                {% endif %}
+              </p>
+
+              <div class="answer-line user {% if c.is_correct %}ok{% else %}ko{% endif %}">
+                <span class="label">Ta réponse :</span>
+                <span>{{ c.user_answer }}</span>
+              </div>
+
+              {% if c.correct_answer %}
+                <div class="answer-line correct">
+                  <span class="label">Bonne réponse :</span>
+                  <span>{{ c.correct_answer }}</span>
+                </div>
+              {% endif %}
+
+              {% if c.explanation %}
+                <div class="exp-block">
+                  <div class="exp-title">
+                    💡 Explication
+                  </div>
+                  <div>
+                    {{ c.explanation }}
+                  </div>
+                </div>
+              {% endif %}
+
+              {% if c.audio_url %}
+                <div class="audio-block">
+                  <audio controls src="{{ c.audio_url }}">
+                    Votre navigateur ne supporte pas la lecture audio.
+                  </audio>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% empty %}
+          <p>Aucune correction disponible pour cette session.</p>
+        {% endfor %}
+      </div>
+
+      <div class="btn-row">
+        <a class="btn btn-primary" href="{% url 'preparation_tests:retry_session_errors' session.id %}">
+          🔁 Lancer une nouvelle correction ciblée
+        </a>
+        <a class="btn btn-ghost" href="{% url 'preparation_tests:session_result' session.id %}">
+          📊 Revenir au résumé
+        </a>
+      </div>
+    </article>
+
+    <!-- COLONNE DROITE : ANALYSE PAR SECTION + RECO -->
+    <aside>
+      <article class="card side-card">
+        <h3>Analyse par section</h3>
+        <p>Vue rapide des forces et faiblesses pour chaque compétence.</p>
+
+        <div class="section-stat-list">
+          {% for sec_code, data in stats_per_section.items %}
+            <div class="section-stat-row">
+              <div class="section-left">
+                <div class="section-code-pill">
+                  {% if sec_code|lower == "co" %}
+                    🎧 CO
+                  {% elif sec_code|lower == "ce" %}
+                    📖 CE
+                  {% elif sec_code|lower == "ee" %}
+                    ✍️ EE
+                  {% elif sec_code|lower == "eo" %}
+                    🗣 EO
+                  {% else %}
+                    🎯 {{ sec_code }}
+                  {% endif %}
+                  — {{ data.pct }} %
+                </div>
+                <div class="section-score">
+                  {{ data.correct }} / {{ data.total }} bonnes réponses
+                </div>
+                <div class="section-level">
+                  Niveau estimé : {{ data.level }}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="card side-card">
+        <h3>Recommandations ciblées</h3>
+        <p>Prochaines actions conseillées en fonction de tes résultats.</p>
+
+        {% for rec in recommendations %}
+          <div class="recommend-block">
+            <strong>Section {{ rec.section }} ({{ rec.strength }})</strong><br>
+            {{ rec.suggestion }}<br>
+            {% if rec.link %}
+              <span class="section-link">
+                👉 <a href="{{ rec.link }}">Aller au cours dédié</a>
+              </span>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p>Aucune recommandation générée pour cette session.</p>
+        {% endfor %}
+
+        <div class="ai-note">
+          Utilise ce corrigé comme un coach personnel : note les types de questions
+          où tu te trompes souvent et refais des sessions ciblées.
+        </div>
+      </article>
+    </aside>
+  </section>
+</main>
+
+<button class="scroll-top-btn" id="scrollTopBtn" aria-label="Remonter en haut">
+  ↑
+</button>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const cards = document.querySelectorAll(".q-card");
+    const filterChips = document.querySelectorAll(".filter-chip");
+    let currentResultFilter = "all";  // all | errors | correct
+    let currentSectionFilter = "all"; // all | CO | CE | ...
+
+    function applyFilters() {
+      cards.forEach(card => {
+        const isCorrect = card.getAttribute("data-correct") === "1";
+        const section = (card.getAttribute("data-section") || "").toUpperCase();
+
+        let okResult = true;
+        let okSection = true;
+
+        if (currentResultFilter === "errors") {
+          okResult = !isCorrect;
+        } else if (currentResultFilter === "correct") {
+          okResult = isCorrect;
+        }
+
+        if (currentSectionFilter !== "all") {
+          okSection = section === currentSectionFilter;
+        }
+
+        if (okResult && okSection) {
+          card.style.display = "";
+          card.style.opacity = "1";
+          card.style.transform = "translateY(0)";
+        } else {
+          card.style.display = "none";
+        }
+      });
+    }
+
+    filterChips.forEach(chip => {
+      chip.addEventListener("click", () => {
+        const type = chip.getAttribute("data-filter-type");
+        const value = chip.getAttribute("data-filter-value");
+
+        // enlever active sur le même groupe
+        filterChips.forEach(c => {
+          if (c.getAttribute("data-filter-type") === type) {
+            c.classList.remove("active");
+          }
+        });
+        chip.classList.add("active");
+
+        if (type === "result") {
+          currentResultFilter = value;
+        } else if (type === "section") {
+          currentSectionFilter = value;
+        }
+        applyFilters();
+      });
+    });
+
+    // Scroll to top
+    const scrollBtn = document.getElementById("scrollTopBtn");
+    window.addEventListener("scroll", () => {
+      if (window.scrollY > 250) {
+        scrollBtn.classList.add("visible");
+      } else {
+        scrollBtn.classList.remove("visible");
+      }
+    });
+    scrollBtn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+</script>
+
+</body>
+</html>

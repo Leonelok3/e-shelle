@@ -18,17 +18,25 @@
       --radius-md: 16px;
       --muted: #94a3b8;
     }
+
+    * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      font-family: system-ui, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
       background: linear-gradient(135deg,#020617,#0f172a 55%,#1e293b);
       color: #e5e7eb;
     }
+
+    a { color: inherit; text-decoration: none; }
+
     .container {
       max-width: 1100px;
       margin: auto;
       padding: 25px 20px 60px;
     }
+
+    /* HEADER STICKY */
     .header-shell {
       background: rgba(2,6,23,.92);
       backdrop-filter: blur(12px);
@@ -37,6 +45,7 @@
       top: 0;
       z-index: 30;
     }
+
     .header-inner {
       max-width: 1120px;
       margin: auto;
@@ -44,12 +53,15 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 14px;
     }
+
     .brand-shell {
       display: flex;
       align-items: center;
       gap: 12px;
     }
+
     .brand-logo {
       width: 42px;
       height: 42px;
@@ -58,12 +70,35 @@
       border: 1px solid rgba(148,163,184,.3);
       background: #020617;
       box-shadow: 0 8px 25px rgba(0,0,0,.45);
+      flex-shrink: 0;
     }
-    .brand-logo img { width: 100%; }
+
+    .brand-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .brand-sub {
+      font-size:.8rem;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+    }
+
+    .brand-title {
+      font-weight:700;
+      font-size:1rem;
+    }
+
     .nav-tabs {
       display: flex;
       gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
+
     .nav-pill {
       padding: 8px 15px;
       border-radius: 999px;
@@ -72,13 +107,54 @@
       border: 1px solid rgba(148,163,184,.25);
       text-decoration: none;
       color: #e2e8f0;
+      font-size:.9rem;
+      transition: background .15s ease, box-shadow .15s ease, transform .1s ease;
     }
+
+    .nav-pill:hover {
+      background: rgba(30,64,175,.9);
+      box-shadow: 0 8px 22px rgba(15,23,42,.6);
+      transform: translateY(-1px);
+    }
+
     .nav-pill.active {
       background: var(--accent);
       color: #0f172a;
       border: none;
       box-shadow: 0 6px 20px rgba(122,162,255,.45);
     }
+
+    @media (max-width: 768px) {
+      .header-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .nav-tabs {
+        width: 100%;
+      }
+    }
+
+    /* TITRE PAGE */
+    .page-header-title {
+      font-size:2rem;
+      font-weight:800;
+      margin:18px 0 6px;
+    }
+
+    .page-header-sub {
+      color:var(--muted);
+      font-size:1rem;
+      max-width:640px;
+    }
+
+    /* LESSONS / CARDS */
+    .lessons-wrapper {
+      display:flex;
+      flex-direction:column;
+      gap:26px;
+      margin-top:30px;
+    }
+
     .lesson-card {
       background: var(--surface-soft);
       border: 1px solid var(--border);
@@ -86,22 +162,66 @@
       box-shadow: 0 12px 40px rgba(0,0,0,.45);
       overflow: hidden;
     }
+
     .lesson-header {
-      padding: 18px 20px;
+      padding: 16px 20px;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap:10px;
     }
+
+    .lesson-title {
+      margin:0;
+      font-size:1.25rem;
+      font-weight:700;
+    }
+
+    .lesson-tag {
+      font-size:.85rem;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .badge-new {
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:.75rem;
+      font-weight:700;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      color:#022c22;
+      box-shadow:0 2px 8px rgba(34,197,94,.45);
+    }
+
+    .lesson-meta {
+      margin-top:4px;
+      font-size:.8rem;
+      color:var(--muted);
+    }
+
     .lesson-body {
       padding: 18px 22px;
+      line-height:1.7;
+      font-size:.95rem;
     }
+
+    .lesson-body p { margin:8px 0; }
+    .lesson-body ul,
+    .lesson-body ol { margin:8px 0 8px 20px; }
+
     .lesson-actions {
-      padding: 16px 22px;
+      padding: 14px 22px 16px;
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: flex-end;
     }
+
     .btn-primary {
       background: var(--accent);
       color: #0f172a;
@@ -109,6 +229,33 @@
       font-weight: 700;
       border-radius: var(--radius-md);
       text-decoration: none;
+      border:none;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:.92rem;
+      box-shadow:0 10px 26px rgba(15,23,42,.7);
+      transition: transform .1s ease, box-shadow .15s ease, filter .12s ease;
+    }
+
+    .btn-primary:hover {
+      transform:translateY(-1px);
+      filter:brightness(1.05);
+      box-shadow:0 14px 32px rgba(15,23,42,.85);
+    }
+
+    .empty-state {
+      margin-top:26px;
+      padding:18px 20px;
+      border-radius:var(--radius-lg);
+      border:1px dashed var(--border);
+      background:rgba(15,23,42,.8);
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    .empty-state strong {
+      color:#e5e7eb;
     }
   </style>
 </head>
@@ -119,61 +266,88 @@
   <div class="header-inner">
     <div class="brand-shell">
       <div class="brand-logo">
-        <img src="{% static 'logoeshelle.jpg' %}" alt="">
+        <img src="{% static 'logoeshelle.jpg' %}" alt="E-SHELLE">
       </div>
       <div>
-        <div style="font-size:.8rem; text-transform:uppercase; color:var(--muted);">
-          E-SHELLE • PRÉPARATION TEF 
+        <div class="brand-sub">
+          IMMIGRATION97 • PRÉPARATION TEF
         </div>
-        <div style="font-weight:700; font-size:1rem;">Compréhension Orale (CO)</div>
+        <div class="brand-title">Compréhension Orale (CO)</div>
       </div>
     </div>
 
-    <nav class="nav-tabs">
+    <nav class="nav-tabs" aria-label="Navigation TEF CO">
       <a class="nav-pill active" href="#">📘 Cours</a>
       <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}#train">🧪 Entraînements</a>
       <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}#tips">🧭 Conseils</a>
       <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}#res">📂 Ressources</a>
     </nav>
-
   </div>
 </header>
 
 <main class="container">
+ <!-- Quick Navigation Cours directs -->
+   <div class="no-print" style="margin-top:10px;margin-bottom:8px;">
+      <!-- Quick Navigation Cours directs -->
+    <div class="mb-4" style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_co' %}">🎧 Cours CO</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ce' %}">📖 Cours CE</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ee' %}">✍️ Cours EE</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_eo' %}">🎤 Cours EO</a>
+    </div>
 
-  <h1 style="font-size:2rem; font-weight:800; margin-bottom:10px;">
+
+  <h1 class="page-header-title">
     Cours — Compréhension Orale (CO)
   </h1>
-  <p style="color:var(--muted); font-size:1rem;">
-    Choisis une leçon, apprends la méthode, puis lance les exercices associés.
+  <p class="page-header-sub">
+    Choisis une leçon, apprends la méthode (stratégies d’écoute, mots-clés, pièges fréquents),
+    puis lance les exercices associés pour t’entraîner en conditions proches de l’examen.
   </p>
 
-  <section style="display:flex; flex-direction:column; gap:26px; margin-top:30px;">
+  {% if lessons %}
+    <section class="lessons-wrapper">
+      {% for l in lessons %}
+        <article class="lesson-card">
 
-    {% for l in lessons %}
-    <article class="lesson-card">
+          <header class="lesson-header">
+            <div>
+              <h2 class="lesson-title">{{ l.title }}</h2>
+              <div class="lesson-meta">
+                {% if l.updated_at %}
+                  📅 Mise à jour : {{ l.updated_at|date:"d/m/Y à H:i" }}
+                {% endif %}
+              </div>
+            </div>
+            <div class="lesson-tag">
+              🎧 Leçon CO
+              {% if forloop.first %}
+                <span class="badge-new">Nouveau</span>
+              {% endif %}
+            </div>
+          </header>
 
-      <header class="lesson-header">
-        <h2 style="margin:0; font-size:1.25rem; font-weight:700;">{{ l.title }}</h2>
-        <span style="font-size:.85rem; color:var(--muted);">🎧 Leçon CO</span>
-      </header>
+          <div class="lesson-body">
+            {{ l.content_html|safe }}
+          </div>
 
-      <div class="lesson-body">
-        {{ l.content_html|safe }}
-      </div>
+          <div class="lesson-actions">
+            <a href="{% url 'preparation_tests:lesson_session_co' l.id %}" class="btn-primary">
+              🧪 Commencer les exercices
+            </a>
+          </div>
 
-      <div class="lesson-actions">
-        <a href="{% url 'preparation_tests:lesson_session_co' l.id %}" class="btn-primary">🧪 Commencer les exercices</a>
-      </div>
-
-    </article>
-    {% endfor %}
-
-    {% if lessons|length == 0 %}
-      <p style="color:var(--muted)">Aucune leçon pour le moment.</p>
-    {% endif %}
-
-  </section>
+        </article>
+      {% endfor %}
+    </section>
+  {% else %}
+    <div class="empty-state">
+      <strong>Aucune leçon disponible pour le moment.</strong><br>
+      Les cours détaillés de Compréhension Orale seront ajoutés prochainement.
+      En attendant, tu peux déjà utiliser les entraînements depuis le hub TEF.
+    </div>
+  {% endif %} <BR></BR>
+   <CENter><a class="nav-btn" href="{% url 'preparation_tests:tef_hub' %}">⬅ Retour hub TEF</a></CENter>  
 
 </main>
 

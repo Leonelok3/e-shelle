@@ -9,7 +9,6 @@
   <style>
     /* ============================================
        🎨 PALETTE OFFICIELLE E-SHELLE
-       Vert + Orange + Noir
        ============================================ */
     :root {
       --green: #0ea848;
@@ -31,10 +30,9 @@
       --shadow-card: 0 20px 55px rgba(0,0,0,.75);
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
       background:
         radial-gradient(900px 500px at -10% 0%, rgba(14,168,72,.18), transparent 60%),
@@ -49,9 +47,9 @@
     .muted { color: var(--text-muted); }
 
     /* ============================================
-       🔝 HEADER E-SHELLE
+       🔝 HEADER GLOBAL
        ============================================ */
-    .esh-header {
+    .shell-header {
       position: sticky;
       top: 0;
       z-index: 40;
@@ -65,7 +63,7 @@
       border-bottom: 1px solid rgba(15,23,42,.95);
     }
 
-    .esh-header-inner {
+    .shell-header-inner {
       max-width: 1120px;
       margin: 0 auto;
       padding: 10px 18px 12px;
@@ -103,41 +101,55 @@
       font-weight: 800;
     }
 
-    .engine-tabs {
+    /* NAV PILLS (comme les autres pages) */
+    .nav-tabs {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
     }
-
-    .engine-tab {
-      padding: 7px 13px;
-      border-radius: 999px;
-      font-size: .84rem;
-      border: 1px solid rgba(31,41,55,.9);
-      background: rgba(15,23,42,.9);
-      color: var(--text-muted);
-      cursor: default;
+    .nav-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(15,23,42,.9);
+      background: rgba(15,23,42,.9);
+      color: var(--text-muted);
+      font-size: .9rem;
+      font-weight: 600;
+      box-shadow: 0 0 0 1px rgba(15,23,42,.8);
+      cursor: pointer;
+      transition:
+        background .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease,
+        transform .16s ease,
+        color .16s ease;
     }
-
-    .engine-tab.active {
-      background: radial-gradient(circle at 0 0, rgba(248,250,252,.22), transparent 55%),
+    .nav-pill span.icon { font-size: 1.05rem; }
+    .nav-pill:hover:not(.active) {
+      border-color: rgba(148,163,184,.6);
+      background: rgba(15,23,42,.96);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 26px rgba(0,0,0,.9);
+      color: var(--text);
+    }
+    .nav-pill.active {
+      background: radial-gradient(circle at 0 0, rgba(248,250,252,.18), transparent 55%),
                   linear-gradient(135deg, var(--green), var(--orange));
       border-color: transparent;
       color: #020617;
       box-shadow: 0 12px 30px rgba(0,0,0,.9);
+      transform: translateY(-1px);
     }
 
     @media (max-width: 720px) {
-      .esh-header-inner {
+      .shell-header-inner {
         flex-direction: column;
         align-items: flex-start;
       }
-      .engine-tabs {
-        width: 100%;
-      }
+      .nav-tabs { width: 100%; }
     }
 
     /* ============================================
@@ -177,6 +189,7 @@
       letter-spacing: .12em;
       text-transform: uppercase;
       margin-bottom: 4px;
+      color: var(--text-muted);
     }
 
     .engine-main-title {
@@ -206,7 +219,7 @@
     }
 
     /* ============================================
-       🧩 CARD PRINCIPALE EXERCICE
+       🧩 CARD EXERCICE
        ============================================ */
     .engine-q-header {
       display: flex;
@@ -215,9 +228,6 @@
       gap: 10px;
       font-size: .9rem;
       margin-bottom: 8px;
-    }
-
-    .engine-q-header span {
       color: var(--text-muted);
     }
 
@@ -330,9 +340,7 @@
       color: #ecfdf3;
     }
 
-    .hidden {
-      display: none !important;
-    }
+    .hidden { display: none !important; }
 
     .engine-nav {
       margin-top: 20px;
@@ -413,7 +421,7 @@
     .side-card li { margin: 4px 0; }
 
     /* ============================================
-       🎚 BADGE MODE EXAMEN
+       🎚 MODE EXAMEN
        ============================================ */
     .mode-toggle {
       margin-top: 8px;
@@ -427,14 +435,80 @@
     .mode-toggle input {
       accent-color: var(--green);
     }
+
+    /* ============================================
+       🚀 COCKPIT FLOTTANT
+       ============================================ */
+    .quick-nav {
+      position: fixed;
+      right: 20px;
+      bottom: 18px;
+      z-index: 45;
+      background: rgba(15,23,42,.96);
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,.45);
+      box-shadow: 0 18px 40px rgba(0,0,0,.9);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 260px;
+      font-size: .8rem;
+    }
+    .quick-nav-title {
+      font-size:.8rem;
+      color:var(--text-muted);
+      margin-bottom:2px;
+    }
+    .quick-nav-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .quick-nav-btn {
+      flex:1 1 auto;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      padding:6px 8px;
+      border-radius:999px;
+      border:1px solid var(--border-soft);
+      background:var(--surface-soft);
+      font-size:.78rem;
+      cursor:pointer;
+      text-decoration:none;
+      transition:
+        background .15s ease,
+        transform .1s ease,
+        border-color .15s ease;
+      color: var(--text-muted);
+    }
+    .quick-nav-btn span.icon { font-size:.9rem; }
+    .quick-nav-btn:hover {
+      background:var(--surface-alt);
+      border-color:rgba(148,163,184,.7);
+      transform:translateY(-1px);
+      color: var(--text);
+    }
+
+    @media (max-width: 720px) {
+      .quick-nav {
+        left: 50%;
+        transform: translateX(-50%);
+        right: auto;
+        bottom: 12px;
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
-<header class="esh-header">
-  <div class="esh-header-inner">
+<!-- HEADER GLOBAL -->
+<header class="shell-header">
+  <div class="shell-header-inner">
     <div class="logo-block">
       <img src="{% static 'logoeshelle.jpg' %}" class="esh-logo" alt="E-SHELLE">
       <div>
@@ -443,14 +517,22 @@
       </div>
     </div>
 
-    <div class="engine-tabs">
-      <span class="engine-tab active">🧪 Entraînement</span>
-      <span class="engine-tab">📘 Cours</span>
-      <span class="engine-tab">📊 Statistiques</span>
-    </div>
+    <nav class="nav-tabs" aria-label="Navigation principale">
+      <a class="nav-pill" href="{% url 'preparation_tests:french_exams' %}">
+        <span class="icon">🏠</span><span>Hub examens</span>
+      </a>
+      <a class="nav-pill active" href="{% url 'preparation_tests:tef_hub' %}">
+        <span class="icon">🇫🇷</span><span>Hub TEF</span>
+      </a>
+      <a class="nav-pill" href="{% url 'preparation_tests:tcf_hub' %}">
+        <span class="icon">🇫🇷</span><span>Hub TCF</span>
+      </a>
+      <a class="nav-pill" href="{% url 'preparation_tests:session_review' %}">
+        <span class="icon">📊</span><span>Mes résultats</span>
+      </a>
+    </nav>
   </div>
 </header>
-
 
 <!-- CONTENU PRINCIPAL -->
 <main class="engine-container">
@@ -460,7 +542,7 @@
 
     <!-- CARD D’INFOS GÉNÉRALES -->
     <section class="engine-card">
-      <div class="engine-path muted">
+      <div class="engine-path">
         TEF • Session d’entraînement — {{ lesson_type }}
       </div>
 
@@ -469,9 +551,9 @@
       </h1>
 
       <p class="muted" style="margin-top: 8px; font-size: .95rem;">
-        Tu es dans une session d’entraînement interactive.  
-        Lis la consigne, analyse soigneusement, puis choisis ta réponse.  
-        L’objectif : <strong>compréhension claire, rapidité et précision</strong>.
+        Tu es dans une session d’entraînement interactive.
+        Lis la consigne, analyse soigneusement, puis choisis ta réponse.
+        Objectif : <strong>compréhension claire, rapidité et précision</strong>.
       </p>
 
       <div class="engine-stats-header">
@@ -482,7 +564,7 @@
 
       <label class="mode-toggle">
         <input type="checkbox" id="exam-mode">
-        <span>Activer le mode examen (limite de temps + pas de retour en arrière)</span>
+        <span>Activer le mode examen (limite de temps + pas de retour en arrière sur les QCM)</span>
       </label>
     </section>
 
@@ -538,7 +620,7 @@
       <ul>
         <li>Lis d’abord la consigne et la question.</li>
         <li>Repère les mots-clés (dates, montants, conditions, lieux).</li>
-        <li>Ne réponds jamais sur ton intuition : appuie-toi sur le texte.</li>
+        <li>Ne réponds jamais sur ton intuition : appuie-toi sur le texte / l’audio.</li>
         <li>Relis la phrase exacte avant de valider.</li>
       </ul>
     </section>
@@ -547,7 +629,7 @@
       <h3>Erreurs fréquentes</h3>
       <ul>
         <li>Confondre « à partir de » et « jusqu’à ».</li>
-        <li>Ignorer les mots comme <em>sauf, uniquement, au moins…</em></li>
+        <li>Ignorer les mots comme <em>sauf</em>, <em>uniquement</em>, <em>au moins…</em></li>
         <li>Répondre trop vite sans vérifier le contexte.</li>
       </ul>
     </section>
@@ -555,17 +637,29 @@
 
 </main>
 
+<!-- COCKPIT FLOTTANT -->
+<div class="quick-nav">
+  <div class="quick-nav-title">Navigation rapide</div>
+  <div class="quick-nav-row">
+    <a href="{% url 'preparation_tests:tef_hub' %}" class="quick-nav-btn">
+      <span class="icon">🏁</span><span>FR Hub TEF</span>
+    </a>
+    <a href="{% url 'preparation_tests:session_review' %}" class="quick-nav-btn">
+      <span class="icon">📊</span><span>Mes résultats</span>
+    </a>
+  </div>
+</div>
 
-<!-- =============================== -->
-<!--    DONNÉES D’EXERCICES (JSON)  -->
-<!-- =============================== -->
+<!-- ===============================
+     DONNÉES D’EXERCICES (JSON)
+     =============================== -->
 <script>
   const EXERCISES = JSON.parse('{{ exercises_json|escapejs }}');
 </script>
 
-<!-- =============================== -->
-<!--         LOGIQUE JS MOTEUR      -->
-<!-- =============================== -->
+<!-- ===============================
+     LOGIQUE JS MOTEUR
+     =============================== -->
 <script>
 (function() {
   let index = 0;
@@ -610,16 +704,6 @@
       timerEl.textContent = t;
       topTimerEl.textContent = t;
     }, 1000);
-  }
-
-  function resetState() {
-    index = 0;
-    score = 0;
-    timer = 0;
-    answered = false;
-    if (timerInterval) clearInterval(timerInterval);
-    startTimer();
-    renderQuestion();
   }
 
   function renderQuestion() {
@@ -667,8 +751,10 @@
 
     writingZoneEl.classList.add("hidden");
     eoControlsEl.classList.add("hidden");
+    eoStatusEl.textContent = "";
 
     if (ex.options && Object.keys(ex.options || {}).length > 0) {
+      // QCM
       Object.entries(ex.options).forEach(([key, val]) => {
         const div = document.createElement("div");
         div.className = "opt";
@@ -681,10 +767,14 @@
         optionsEl.appendChild(div);
       });
     } else if (ex.type === "ee") {
+      // Expression écrite ouverte
       writingZoneEl.classList.remove("hidden");
+      explanationEl.classList.remove("hidden");
+      explanationEl.textContent = "Rédige ta réponse dans la zone ci-dessus, puis passe à la question suivante.";
     } else if (ex.type === "eo") {
+      // Expression orale : simple simulation
       eoControlsEl.classList.remove("hidden");
-      eoStatusEl.textContent = "Simulation des consignes d'expression orale.";
+      eoStatusEl.textContent = "Simulation d’expression orale : prends 1–2 minutes pour répondre à l’oral.";
     }
   }
 
@@ -723,7 +813,10 @@
   nextBtn.addEventListener("click", () => {
     if (!EXERCISES || EXERCISES.length === 0) return;
 
-    if (examMode && !answered) {
+    const ex = EXERCISES[index];
+    const hasOptions = ex.options && Object.keys(ex.options || {}).length > 0;
+
+    if (examMode && hasOptions && !answered) {
       alert("Tu dois choisir une réponse avant de passer à la question suivante.");
       return;
     }
@@ -745,6 +838,14 @@
   examModeCheckbox.addEventListener("change", () => {
     examMode = examModeCheckbox.checked;
   });
+
+  const eoRecordBtn = document.getElementById("eo-record");
+  if (eoRecordBtn) {
+    eoRecordBtn.addEventListener("click", () => {
+      eoStatusEl.textContent =
+        "🎙️ Simulation en cours… imagine que tu parles à un examinateur pendant 2 minutes.";
+    });
+  }
 
   startTimer();
   renderQuestion();

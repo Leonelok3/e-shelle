@@ -9,13 +9,18 @@ class Exam(models.Model):
     """
     Représente un examen (TCF, TEF, IELTS, CELPIP, Goethe, TestDaF).
     """
-    code = models.SlugField(unique=True, help_text=_("Code court: tcf, tef, ielts, celpip, goethe, testdaf"))
+    code = models.SlugField(
+        unique=True,
+        help_text=_("Code court: tcf, tef, ielts, celpip, goethe, testdaf")
+    )
     name = models.CharField(max_length=100)
     language = models.CharField(
         max_length=2,
         choices=[("fr", "Français"), ("en", "Anglais"), ("de", "Allemand")],
         help_text=_("Langue principale de l'examen"),
     )
+    description = models.TextField(blank=True, null=True)
+
 
     class Meta:
         verbose_name = _("Examen")
@@ -28,6 +33,7 @@ class Exam(models.Model):
 class ExamSection(models.Model):
     """
     Section d'un examen (listening/reading/writing/speaking) avec durée.
+    Exemple : TEF CO / CE / EE / EO, TCF CO / CE / EE / EO, etc.
     """
     class SectionCode(models.TextChoices):
         LISTENING = "listening", _("Compréhension orale")
@@ -35,10 +41,17 @@ class ExamSection(models.Model):
         WRITING = "writing", _("Expression écrite")
         SPEAKING = "speaking", _("Expression orale")
 
-    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name="sections")
+    exam = models.ForeignKey(
+        Exam,
+        on_delete=models.CASCADE,
+        related_name="sections"
+    )
     code = models.CharField(max_length=20, choices=SectionCode.choices)
     order = models.PositiveIntegerField(default=1)
-    duration_sec = models.PositiveIntegerField(default=600, help_text=_("Durée en secondes"))
+    duration_sec = models.PositiveIntegerField(
+        default=600,
+        help_text=_("Durée en secondes")
+    )
 
     class Meta:
         verbose_name = _("Section d'examen")
@@ -102,12 +115,35 @@ class Question(models.Model):
         ("mcq", "QCM (choix unique)"),
         ("short", "Texte court"),
     ]
-    section = models.ForeignKey(ExamSection, on_delete=models.CASCADE, related_name="questions")
-    subtype = models.CharField(max_length=10, choices=SUBTYPE_CHOICES, default="mcq")
+    section = models.ForeignKey(
+        ExamSection,
+        on_delete=models.CASCADE,
+        related_name="questions"
+    )
+    subtype = models.CharField(
+        max_length=10,
+        choices=SUBTYPE_CHOICES,
+        default="mcq"
+    )
     stem = models.TextField(help_text=_("Énoncé de la question"))
-    passage = models.ForeignKey(Passage, on_delete=models.SET_NULL, null=True, blank=True, related_name="questions")
-    asset = models.ForeignKey(Asset, on_delete=models.SET_NULL, null=True, blank=True, related_name="questions")
-    difficulty = models.FloatField(default=0.5, help_text=_("0=très facile, 1=très difficile (indicatif)"))
+    passage = models.ForeignKey(
+        Passage,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="questions"
+    )
+    asset = models.ForeignKey(
+        Asset,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="questions"
+    )
+    difficulty = models.FloatField(
+        default=0.5,
+        help_text=_("0=très facile, 1=très difficile (indicatif)")
+    )
 
     class Meta:
         verbose_name = _("Question")
@@ -128,7 +164,11 @@ class Choice(models.Model):
     """
     Choix de réponse pour QCM (mcq).
     """
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="choices")
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        related_name="choices"
+    )
     text = models.CharField(max_length=300)
     is_correct = models.BooleanField(default=False)
 
@@ -144,7 +184,11 @@ class Explanation(models.Model):
     """
     Explication/feedback relié à une question (utile pour corrections détaillées).
     """
-    question = models.OneToOneField(Question, on_delete=models.CASCADE, related_name="explanation")
+    question = models.OneToOneField(
+        Question,
+        on_delete=models.CASCADE,
+        related_name="explanation"
+    )
     text_md = models.TextField(help_text=_("Explication en Markdown"))
 
     class Meta:
@@ -161,10 +205,26 @@ class Session(models.Model):
     """
     Session d'entraînement (mock ou practice). MVP: pratique simple.
     """
-    MODE_CHOICES = [("practice", "Entraînement"), ("mock", "Examen blanc")]
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="prep_sessions")
-    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name="sessions")
-    mode = models.CharField(max_length=10, choices=MODE_CHOICES, default="practice")
+    MODE_CHOICES = [
+        ("practice", "Entraînement"),
+        ("mock", "Examen blanc"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="prep_sessions"
+    )
+    exam = models.ForeignKey(
+        Exam,
+        on_delete=models.CASCADE,
+        related_name="sessions"
+    )
+    mode = models.CharField(
+        max_length=10,
+        choices=MODE_CHOICES,
+        default="practice"
+    )
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
@@ -180,8 +240,16 @@ class Attempt(models.Model):
     """
     Tentative par section dans une session.
     """
-    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name="attempts")
-    section = models.ForeignKey(ExamSection, on_delete=models.CASCADE, related_name="attempts")
+    session = models.ForeignKey(
+        Session,
+        on_delete=models.CASCADE,
+        related_name="attempts"
+    )
+    section = models.ForeignKey(
+        ExamSection,
+        on_delete=models.CASCADE,
+        related_name="attempts"
+    )
     started_at = models.DateTimeField(auto_now_add=True)
     ended_at = models.DateTimeField(null=True, blank=True)
     elapsed_sec = models.PositiveIntegerField(default=0)
@@ -205,8 +273,16 @@ class Answer(models.Model):
 
     Les réponses sont liées à une tentative (Attempt) et une question (Question).
     """
-    attempt = models.ForeignKey(Attempt, on_delete=models.CASCADE, related_name="answers")
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="answers")
+    attempt = models.ForeignKey(
+        Attempt,
+        on_delete=models.CASCADE,
+        related_name="answers"
+    )
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        related_name="answers"
+    )
     payload = models.JSONField(default=dict)
     is_correct = models.BooleanField(default=False)
     submitted_at = models.DateTimeField(auto_now_add=True)
@@ -220,11 +296,15 @@ class Answer(models.Model):
         return f"Answer A{self.attempt_id}-Q{self.question_id}"
 
 
-# --- CMS Cours TEF (mini) ---
+# ----------- CMS Cours TEF / TCF (mini) -----------
 
 class CourseLesson(models.Model):
     """
     Leçons de cours spécifiques à une section d'examen.
+    Tu pourras créer :
+      - exam = TEF, section = "eo", "ee", "co", "ce"
+      - exam = TCF, section = "eo", "ee", "co", "ce"
+    directement depuis l’admin.
     """
     SECTION_CHOICES = [
         ("co", "Compréhension orale"),
@@ -233,20 +313,35 @@ class CourseLesson(models.Model):
         ("eo", "Expression orale"),
     ]
 
-    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name="course_lessons")  # ex: TEF
-    section = models.CharField(max_length=2, choices=SECTION_CHOICES)  # co/ce/ee/eo
+    exam = models.ForeignKey(
+        Exam,
+        on_delete=models.CASCADE,
+        related_name="course_lessons"
+    )  # ex: TEF / TCF
+    section = models.CharField(
+        max_length=2,
+        choices=SECTION_CHOICES
+    )  # co/ce/ee/eo
+
     title = models.CharField(max_length=180)
     slug = models.SlugField(max_length=200)
+
+    # langue de la leçon (tu peux plus tard traduire)
     locale = models.CharField(
         max_length=2,
         default="fr",
-        choices=[("fr", "Français"), ("en", "English"), ("de", "Deutsch")]
+        choices=[("fr", "Français"), ("en", "English"), ("de", "Deutsch")],
     )
 
     # Contenu HTML (tu peux coller du HTML/embeds simples : <p>, <ul>, <strong>, <em>, <audio>, <iframe>…)
-    content_html = models.TextField(help_text=_("HTML autorisé : paragraphes, listes, titres, audio, iframe."))
+    content_html = models.TextField(
+        help_text=_("HTML autorisé : paragraphes, listes, titres, audio, iframe.")
+    )
 
-    order = models.PositiveIntegerField(default=1, help_text=_("Ordre d’affichage (1=haut)."))
+    order = models.PositiveIntegerField(
+        default=1,
+        help_text=_("Ordre d’affichage (1=haut).")
+    )
     is_published = models.BooleanField(default=True)
 
     updated_at = models.DateTimeField(auto_now=True)
@@ -267,10 +362,10 @@ class CourseExercise(models.Model):
     """
     Exercice rattaché à une leçon de cours :
     - texte (consigne + question)
-    - audio
-    - image
+    - médias (audio/image)
     - QCM (A/B/C/D) OU question ouverte
     - résumé / correction
+    Tu les créeras aussi depuis l’admin, rattachés à une CourseLesson.
     """
     lesson = models.ForeignKey(
         CourseLesson,
@@ -306,7 +401,7 @@ class CourseExercise(models.Model):
         help_text=_("Lettre de la bonne réponse (A, B, C, D). Laisser vide pour une question ouverte.")
     )
 
-    # Médias locaux
+    # Médias locaux (pour tes cours / activités)
     audio = models.FileField(
         _("Fichier audio"),
         upload_to="course_exercises/audio/",
@@ -357,6 +452,10 @@ class CourseExercise(models.Model):
 
     @property
     def is_mcq(self) -> bool:
-        """Retourne True si l'exercice est un QCM (au moins une option + une bonne réponse)."""
+        """
+        Retourne True si l'exercice est un QCM
+        (au moins une option + une bonne réponse).
+        """
         has_options = any([self.option_a, self.option_b, self.option_c, self.option_d])
         return bool(has_options and self.correct_option)
+        # NB : Tu ajouteras les cours + exercices EO/EE directement depuis l’admin.

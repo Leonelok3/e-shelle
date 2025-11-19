@@ -1,0 +1,123 @@
+{% extends "visa_travail/base.html" %}
+
+{% block title %}Coach CV – Visa Travail{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-9">
+
+    <!-- HEADER -->
+    <div class="card card-dark card-dark-hover p-4 p-md-5 mb-4 fade-in-up">
+      <span class="badge-soft mb-2 px-3 py-1">
+        <i class="bi bi-file-earmark-text me-1"></i> Coach CV – Analyse internationale
+      </span>
+      <h1 class="fw-bold h4 mb-1">Optimise ton CV pour un visa travail</h1>
+      <p class="text-secondary small mb-0">
+        Colle ton CV ci-dessous, indique le poste et le pays ciblés. Le coach analyse la structure,
+        les sections, les mots-clés et te donne un plan d’action pour le rendre plus compétitif.
+      </p>
+    </div>
+
+    <!-- FORMULAIRE -->
+    <div class="card card-dark card-dark-hover p-4 mb-4 fade-in-up">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">{{ form.user_profile.label }}</label>
+            {{ form.user_profile }}
+            <div class="form-text text-secondary small">
+              {{ form.user_profile.help_text }}
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">{{ form.intitule_poste.label }}</label>
+            {{ form.intitule_poste }}
+            <div class="form-text text-secondary small">
+              {{ form.intitule_poste.help_text }}
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">{{ form.pays_cible.label }}</label>
+          {{ form.pays_cible }}
+          <div class="form-text text-secondary small">
+            {{ form.pays_cible.help_text }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">{{ form.cv_texte.label }}</label>
+          {{ form.cv_texte }}
+          <div class="form-text text-secondary small">
+            {{ form.cv_texte.help_text }}
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg">
+          <i class="bi bi-stars me-1"></i> Analyser mon CV
+        </button>
+      </form>
+    </div>
+
+    <!-- RÉSULTATS -->
+    {% if analysis %}
+      <div class="card card-dark card-dark-hover p-4 mb-4 fade-in-up">
+        <h2 class="h5 fw-semibold mb-3">
+          <i class="bi bi-bar-chart-line me-1"></i> Résultats de l’analyse
+        </h2>
+
+        <div class="row g-3 mb-3 small">
+          <div class="col-md-3">
+            <div class="text-secondary">Structure</div>
+            <div class="fw-bold h5 mb-0">{{ analysis.structure_score }}%</div>
+            <div class="text-secondary">Sections clés présentes</div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-secondary">Mots-clés métier</div>
+            <div class="fw-bold h5 mb-0">{{ analysis.keyword_score }}%</div>
+            <div class="text-secondary">Alignement avec le poste</div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-secondary">Adaptation pays</div>
+            <div class="fw-bold h5 mb-0">{{ analysis.country_score }}%</div>
+            <div class="text-secondary">Référence au pays ciblé</div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-secondary">Score global</div>
+            <div class="fw-bold h5 mb-0">{{ analysis.global_score }}%</div>
+            <div class="text-secondary">{{ analysis.level }}</div>
+          </div>
+        </div>
+
+        {% if analysis.missing_sections %}
+          <div class="alert alert-warning small mb-3">
+            Sections manquantes ou faibles :
+            {{ analysis.missing_sections|join:", " }}.
+          </div>
+        {% endif %}
+
+        <h3 class="h6 fw-semibold mb-2">Recommandations du coach</h3>
+        <ul class="small text-secondary ps-3 mb-0">
+          {% for s in analysis.suggestions %}
+            <li>{{ s }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<style>
+.fade-in-up {
+  animation: fadeInUp 0.7s ease both;
+}
+@keyframes fadeInUp {
+  from { opacity:0; transform: translateY(20px); }
+  to { opacity:1; transform: translateY(0); }
+}
+</style>
+{% endblock %}

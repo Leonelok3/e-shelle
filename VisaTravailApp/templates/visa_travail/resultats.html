@@ -1,0 +1,153 @@
+{% extends "visa_travail/base.html" %}
+
+{% block title %}Résultats – Options de visa travail{% endblock %}
+
+{% block content %}
+
+<!-- HEADER RESULTATS -->
+<div class="row justify-content-center">
+  <div class="col-xl-9">
+
+    <div class="card card-dark card-dark-hover p-4 p-md-5 mb-4 fade-in-up">
+      <span class="badge-soft mb-3 px-3 py-1">
+        <i class="bi bi-search-heart me-1"></i> Résultats de ton diagnostic
+      </span>
+      <h1 class="fw-bold display-6 mb-2">Tes options de visa travail</h1>
+      <p class="text-secondary small">
+        Basé sur ton profil, voici les programmes les plus réalistes pour un projet professionnel à l’étranger.
+      </p>
+
+      <!-- Résumé du profil -->
+      <div class="border rounded-4 p-3 mt-4 bg-dark bg-opacity-25">
+        <h2 class="h6 text-uppercase text-success fw-semibold mb-3">
+          <i class="bi bi-person-check me-2"></i> Résumé de ton profil
+        </h2>
+
+        <div class="row g-3 small">
+          <div class="col-md-4">
+            <div class="text-secondary">Pays de résidence</div>
+            <div class="fw-semibold text-white">{{ profile.pays_residence }}</div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-secondary">Pays ciblés</div>
+            <div class="fw-semibold text-white">{{ profile.pays_cibles }}</div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-secondary">Métier / domaine</div>
+            <div class="fw-semibold text-white">{{ profile.domaine_metier }}</div>
+          </div>
+        </div>
+
+        <div class="row g-3 small mt-2">
+          <div class="col-md-3">
+            <div class="text-secondary">Niveau d’études</div>
+            <div class="fw-semibold text-white">{{ profile.get_niveau_etudes_display }}</div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-secondary">Expérience</div>
+            <div class="fw-semibold text-white">{{ profile.annees_experience }} an(s)</div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-secondary">Anglais</div>
+            <div class="fw-semibold text-white">{{ profile.niveau_anglais }}</div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-secondary">Langue du pays ciblé</div>
+            <div class="fw-semibold text-white">{{ profile.niveau_langue_pays }}</div>
+          </div>
+        </div>
+
+        <div class="row g-3 small mt-2">
+          <div class="col-md-3">
+            <div class="text-secondary">Budget</div>
+            <div class="fw-semibold text-white">{{ profile.get_budget_display }}</div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-secondary">Horizon</div>
+            <div class="fw-semibold text-white">{{ profile.get_horizon_depart_display }}</div>
+          </div>
+        </div>
+
+        <a href="{% url 'visa_travail:profil' %}" class="small text-info d-inline-block mt-3">
+          Modifier mon profil →
+        </a>
+      </div>
+    </div>
+
+    <!-- PROGRAMMES -->
+    <div class="mb-4">
+      <h2 class="fw-bold h4 mb-3">Programmes suggérés 🎯</h2>
+
+      {% if options %}
+        <div class="row g-4">
+          {% for opt in options %}
+            <div class="col-md-6 fade-in-up">
+              <div class="card card-dark card-hover-zoom p-4 h-100 border border-secondary border-opacity-25 rounded-4">
+
+                <!-- Header visa -->
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <span class="badge-soft px-2 py-1">{{ opt.pays }}</span>
+                    <h3 class="fw-semibold h6 mt-2">{{ opt.nom_programme }}</h3>
+                  </div>
+                  <span class="small text-secondary">{{ opt.difficulte }}</span>
+                </div>
+
+                <p class="text-secondary small mb-3">
+                  {{ opt.profil_cible }}
+                </p>
+
+                <!-- Conditions -->
+                <div class="small mb-3">
+                  <div class="fw-semibold mb-1">Conditions principales :</div>
+                  <ul class="text-secondary mb-2 ps-3">
+                    {% for c in opt.conditions_principales %}
+                      <li>{{ c }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+
+                <!-- Documents -->
+                <div class="small mb-3">
+                  <div class="fw-semibold mb-1">Documents clés :</div>
+                  <ul class="text-secondary mb-2 ps-3">
+                    {% for d in opt.documents_cles %}
+                      <li>{{ d }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+
+                <!-- Délai -->
+                <div class="small mb-3">
+                  <span class="fw-semibold">Délai :</span>
+                  <span class="text-secondary">{{ opt.delai_approx }}</span>
+                </div>
+
+                <!-- Lien officiel -->
+                <a href="{{ opt.lien_officiel }}" target="_blank" class="small text-info">
+                  Consulter la page officielle →
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+      {% else %}
+        <div class="alert alert-warning small fade-in-up">
+          Aucun programme exact ne correspond, mais tu peux avancer grâce à la stratégie “Études → Travail”.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- NEXT BUTTON -->
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-5 fade-in-up">
+      <div class="text-secondary small">Étape suivante : ton plan d’action premium.</div>
+      <a href="{% url 'visa_travail:plan_action' profile.id %}" class="btn btn-primary btn-glow">
+        <i class="bi bi-list-check me-1"></i> Voir mon plan d’action
+      </a>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

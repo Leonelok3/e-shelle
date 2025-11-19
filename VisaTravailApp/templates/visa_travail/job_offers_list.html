@@ -1,0 +1,131 @@
+{% extends "visa_travail/base.html" %}
+
+{% block title %}Offres d’emploi – Visa Travail{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-10">
+
+    <!-- HERO -->
+    <div class="card card-dark card-dark-hover p-4 p-md-5 mb-4 fade-in-up">
+      <span class="badge-soft mb-2 px-3 py-1">
+        <i class="bi bi-briefcase me-1"></i> Marché international de l’emploi
+      </span>
+      <h1 class="fw-bold display-6 mb-2">Offres d’emploi internationales</h1>
+      <p class="text-secondary small mb-0">
+        Consulte les opportunités compatibles avec un visa travail.  
+        Les offres sont ajoutées manuellement pour garantir la qualité et éviter les arnaques.
+      </p>
+    </div>
+
+    <!-- FILTRES -->
+    <div class="card card-dark p-4 mb-4 fade-in-up">
+      <h2 class="h6 fw-semibold mb-3">
+        <i class="bi bi-funnel-fill text-success me-1"></i> Filtrer les offres
+      </h2>
+
+      <form method="get" class="row g-3">
+        <div class="col-md-4 fade-in-up">
+          <label class="form-label small text-secondary">Pays</label>
+          <input type="text" name="pays"
+                 value="{{ pays }}"
+                 class="form-control form-control-sm"
+                 placeholder="Ex : Canada, Allemagne">
+        </div>
+
+        <div class="col-md-4 fade-in-up">
+          <label class="form-label small text-secondary">Domaine / métier</label>
+          <input type="text" name="domaine"
+                 value="{{ domaine }}"
+                 class="form-control form-control-sm"
+                 placeholder="Ex : développeur, infirmier">
+        </div>
+
+        <div class="col-md-4 d-flex align-items-end gap-2 fade-in-up">
+          <button class="btn btn-primary btn-sm" type="submit">
+            <i class="bi bi-search me-1"></i> Filtrer
+          </button>
+
+          <a href="{% url 'visa_travail:job_offers_list' %}"
+             class="btn btn-outline-light btn-sm">
+            Réinitialiser
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- LISTE DES OFFRES -->
+    <div class="fade-in-up">
+      {% if offers %}
+        <div class="row g-4">
+          {% for offer in offers %}
+
+            <div class="col-md-6 col-xl-4">
+              <a href="{% url 'visa_travail:job_offer_detail' offer.id %}"
+                 class="text-white text-decoration-none">
+
+                <div class="card card-dark card-dark-hover p-4 h-100 offer-card">
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <span class="badge-soft mb-2">{{ offer.pays }}</span>
+                      <h3 class="fw-semibold h6 text-white lh-base">
+                        {{ offer.titre }}
+                      </h3>
+                      {% if offer.entreprise %}
+                        <div class="small text-secondary">{{ offer.entreprise }}</div>
+                      {% endif %}
+                    </div>
+
+                    <div class="text-end">
+                      {% if offer.type_contrat %}
+                        <span class="badge-soft small">{{ offer.get_type_contrat_display }}</span>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  {% if offer.domaine %}
+                    <div class="small text-secondary mb-2">
+                      <i class="bi bi-tag me-1"></i> Domaine : {{ offer.domaine }}
+                    </div>
+                  {% endif %}
+
+                  {% if offer.ville %}
+                    <div class="small text-secondary mb-2">
+                      <i class="bi bi-geo-alt me-1"></i> {{ offer.ville }}
+                    </div>
+                  {% endif %}
+
+                  <div class="small text-secondary mt-3">
+                    <i class="bi bi-calendar-event me-1"></i>
+                    Publiée le {{ offer.date_publication }}
+                  </div>
+                </div>
+
+              </a>
+            </div>
+
+          {% endfor %}
+        </div>
+
+      {% else %}
+        <div class="alert alert-info small fade-in-up">
+          Aucune offre trouvée pour le moment.
+          Essaie d’élargir ta recherche ou reviens plus tard :
+          de nouvelles offres seront ajoutées régulièrement.
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<style>
+.offer-card {
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.offer-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 35px rgba(0,0,0,0.35);
+}
+</style>
+{% endblock %}

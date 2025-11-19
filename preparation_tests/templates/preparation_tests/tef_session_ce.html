@@ -370,7 +370,8 @@
       <span class="chip">Leçon TEF • CE</span>
       <span class="chip">{{ total_exercises }} exercice(s)</span>
       <span class="chip" id="mode-pill">
-        Mode : <strong style="margin-left: 4px;" id="mode-label">Entraînement</strong>
+        Mode :
+        <strong style="margin-left: 4px;" id="mode-label">Entraînement</strong>
       </span>
       <button id="toggle-exam" class="btn btn-ghost btn-sm">
         ⏱ Activer le mode examen (15 min)
@@ -393,13 +394,14 @@
 
         <div class="question-kpis">
           <div class="kpi-pill">
-            Question <span id="q-index">1</span> / {{ total_exercises }}
+            Question <span id="q-index">0</span> / {{ total_exercises }}
           </div>
           <div class="kpi-pill">
             ✅ Bonnes : <span id="good-count">0</span> &nbsp;|&nbsp; ❌ Mauvaises : <span id="bad-count">0</span>
           </div>
           <div class="kpi-pill" id="timer-label">
-            Temps : <span id="timer">00:00</span>
+            <span id="timer-prefix">Temps :</span>
+            &nbsp;<span id="timer">00:00</span>
           </div>
         </div>
       </div>
@@ -473,15 +475,16 @@
 </div>
 
 <!-- ===========================
-     DONNÉES EXERCICES
+     DONNÉES EXERCICES + LOGIQUE
 =========================== -->
 <script>
+  // EXERCISES est injecté depuis Django (views.lesson_session_ce)
   const EXERCISES = JSON.parse('{{ exercises_json|escapejs }}');
 
-  // Durée du mode examen (en secondes) – tu peux ajuster ici (15 min)
+  // Durée du mode examen (en secondes) – ici 15 minutes
   const EXAM_DURATION_SEC = 15 * 60;
 
-  // Détection mode examen via ?mode=exam
+  // Détection du mode examen via ?mode=exam
   const params = new URLSearchParams(window.location.search);
   let examMode = params.get('mode') === 'exam';
 
@@ -506,7 +509,7 @@
   const answeredEl = document.getElementById("answered-count");
   const scoreBottomEl = document.getElementById("score-bottom");
   const timerEl = document.getElementById("timer");
-  const timerLabel = document.getElementById("timer-label");
+  const timerPrefixEl = document.getElementById("timer-prefix");
   const modeLabel = document.getElementById("mode-label");
   const modePill = document.getElementById("mode-pill");
   const toggleExamBtn = document.getElementById("toggle-exam");
@@ -524,12 +527,12 @@
       modeLabel.textContent = "Examen";
       modePill.classList.add("mode-exam");
       toggleExamBtn.textContent = "⏱ Revenir au mode entraînement";
-      timerLabel.firstChild.textContent = "Temps restant : ";
+      timerPrefixEl.textContent = "Temps restant :";
     } else {
       modeLabel.textContent = "Entraînement";
       modePill.classList.remove("mode-exam");
       toggleExamBtn.textContent = "⏱ Activer le mode examen (15 min)";
-      timerLabel.firstChild.textContent = "Temps : ";
+      timerPrefixEl.textContent = "Temps :";
     }
   }
 
@@ -564,46 +567,76 @@
   }
 
   function renderQuestion() {
+    // Si aucun exercice configuré, on affiche un message clair
+    if (!EXERCISES || EXERCISES.length === 0) {
+      qIndexEl.textContent = "0";
+      instructionEl.textContent = "Aucun exercice n'est encore configuré pour cette leçon. Ajoute des exercices dans l'admin.";
+      textEl.textContent = "";
+      questionEl.textContent = "";
+      optionsEl.innerHTML = "";
+      explanationBox.style.display = "none";
+      nextBtn.disabled = true;
+      return;
+    }
+
     const ex = EXERCISES[index];
     hasAnsweredCurrent = false;
     explanationBox.style.display = "none";
     explanationBody.textContent = "";
 
     qIndexEl.textContent = index + 1;
+
+    // instruction = consigne de l'exercice
     instructionEl.textContent = ex.instruction || "Lis le texte puis réponds à la question.";
+
+    // Pour CE, si tu veux un texte support, tu pourras plus tard envoyer ex.text via la vue.
+    // Ici, on affiche le texte s'il existe, sinon on laisse vide.
     textEl.textContent = ex.text || "";
+
     questionEl.textContent = ex.question || "";
 
     optionsEl.innerHTML = "";
-    Object.entries(ex.options || {}).forEach(([key, label]) => {
-      const row = document.createElement("div");
-      row.className = "option-item";
-      row.dataset.key = key;
+    const opts = ex.options || {};
 
-      const left = document.createElement("div");
-      left.style.display = "flex";
-      left.style.alignItems = "center";
+    // si aucun choix => on indique que ce n'est pas encore un QCM bien configuré
+    if (Object.keys(opts).length === 0) {
+      const info = document.createElement("div");
+      info.className = "muted small";
+      info.textContent = "Aucune option n'est configurée pour cet exercice. Ajoute A/B/C/D dans l'admin.";
+      optionsEl.appendChild(info);
+      nextBtn.disabled = false;
+    } else {
+      Object.entries(opts).forEach(([key, label]) => {
+        const row = document.createElement("div");
+        row.className = "option-item";
+        row.dataset.key = key;
 
-      const keySpan = document.createElement("span");
-      keySpan.className = "option-key";
-      keySpan.textContent = key + ".";
-      const textSpan = document.createElement("span");
-      textSpan.textContent = " " + label;
+        const left = document.createElement("div");
+        left.style.display = "flex";
+        left.style.alignItems = "center";
 
-      left.appendChild(keySpan);
-      left.appendChild(textSpan);
+        const keySpan = document.createElement("span");
+        keySpan.className = "option-key";
+        keySpan.textContent = key + ".";
 
-      const mark = document.createElement("span");
-      mark.className = "option-mark";
-      mark.textContent = "";
+        const textSpan = document.createElement("span");
+        textSpan.textContent = " " + label;
 
-      row.appendChild(left);
-      row.appendChild(mark);
+        left.appendChild(keySpan);
+        left.appendChild(textSpan);
 
-      row.addEventListener("click", () => handleOptionClick(row, key, ex));
+        const mark = document.createElement("span");
+        mark.className = "option-mark";
+        mark.textContent = "";
 
-      optionsEl.appendChild(row);
-    });
+        row.appendChild(left);
+        row.appendChild(mark);
+
+        row.addEventListener("click", () => handleOptionClick(row, key, ex));
+
+        optionsEl.appendChild(row);
+      });
+    }
 
     // MAJ compteurs bas
     goodEl.textContent = good;
@@ -665,6 +698,8 @@
 
   // Bouton question suivante
   nextBtn.addEventListener("click", () => {
+    if (!EXERCISES || EXERCISES.length === 0) return;
+
     if (index < EXERCISES.length - 1) {
       index += 1;
       renderQuestion();
