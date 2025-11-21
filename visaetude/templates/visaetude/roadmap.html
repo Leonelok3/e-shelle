@@ -1,0 +1,624 @@
+{% extends "visaetude/base.html" %}
+{% block title %}Plan d'action – Visa Études{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --primary: #10b981;
+    --primary-dark: #059669;
+    --text-muted: #cbd5e1;
+    --text-light: #f1f5f9;
+    --card-bg: #0f172a;
+    --card-border: #1e293b;
+  }
+
+  /* Animations */
+  @keyframes slideInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes progressFill {
+    from { width: 0; }
+    to { width: var(--progress-width); }
+  }
+
+  @keyframes shimmerBg {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+
+  @keyframes timelineSlide {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Carte principale */
+  .card-plan-premium {
+    background: linear-gradient(135deg, #020617 0%, #020617 40%, #020617 100%);
+    border-radius: 24px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    padding: 2rem;
+    backdrop-filter: blur(14px);
+    animation: slideInUp 0.7s ease-out;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-plan-premium::before {
+    content: "";
+    position: absolute;
+    top: -40%;
+    left: -20%;
+    width: 480px;
+    height: 480px;
+    background: radial-gradient(circle at top, rgba(16, 185, 129, 0.18), transparent 65%);
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  .card-plan-premium::after {
+    content: "";
+    position: absolute;
+    bottom: -40%;
+    right: -20%;
+    width: 420px;
+    height: 420px;
+    background: radial-gradient(circle at bottom, rgba(6, 182, 212, 0.18), transparent 65%);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .plan-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    animation: slideInDown 0.7s ease-out;
+  }
+
+  .plan-header-content h1 {
+    color: #e5f2ff;
+    font-size: 1.9rem;
+    font-weight: 800;
+    margin-bottom: 0.4rem;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #22c55e, #22d3ee);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .plan-header-content p {
+    color: rgba(226, 232, 240, 0.92);
+    font-size: 0.95rem;
+    max-width: 520px;
+  }
+
+  .badge-plan {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.05));
+    border: 1px solid rgba(45, 212, 191, 0.4);
+    color: #a7f3d0;
+  }
+
+  .progress-section {
+    text-align: right;
+    position: relative;
+    z-index: 1;
+  }
+
+  .progress-section .small {
+    color: #94a3b8;
+    font-weight: 500;
+    margin-bottom: 0.35rem;
+  }
+
+  .progress-section .fw-semibold {
+    color: #e2e8f0;
+  }
+
+  .progress-section .label-badge {
+    display: inline-block;
+    margin-top: 0.4rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    font-size: 0.8rem;
+    color: #cbd5f5;
+  }
+
+  .progress-bar-premium {
+    position: relative;
+    z-index: 1;
+    margin: 1.5rem 0 1.8rem;
+    height: 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9), #020617);
+    overflow: hidden;
+  }
+
+  .progress-bar-premium .fill {
+    --progress-width: {{ visa_progress_percent|default:'0' }}%;
+    width: var(--progress-width);
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22c55e 0%, #22d3ee 100%);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
+    animation: progressFill 0.9s ease-out;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-bar-premium .fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      120deg,
+      transparent 0%,
+      rgba(248, 250, 252, 0.45) 40%,
+      transparent 80%
+    );
+    background-size: 200% 100%;
+    animation: shimmerBg 1.8s linear infinite;
+  }
+
+  /* Coach box */
+  .coach-box-premium {
+    position: relative;
+    z-index: 1;
+    border-radius: 18px;
+    padding: 1.3rem 1.4rem;
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.65), rgba(6, 78, 59, 0.4));
+    border: 1px solid rgba(45, 212, 191, 0.5);
+    margin-bottom: 1.5rem;
+  }
+
+  .coach-label {
+    color: #bbf7d0;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .coach-box-premium h2 {
+    color: #ecfeff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+
+  .coach-box-premium p {
+    color: #e0f2f1;
+    font-size: 0.9rem;
+    margin-bottom: 0;
+  }
+
+  .coach-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    border: 1px solid rgba(187, 247, 208, 0.7);
+    color: #bbf7d0;
+    background: rgba(15, 23, 42, 0.4);
+  }
+
+  /* Boutons rapides */
+  .action-buttons-premium {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn-action-premium {
+    border-radius: 12px;
+    padding: 0.65rem 1.1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.95), #020617);
+    color: #e5f2ff;
+    text-decoration: none;
+    transition: all 0.18s ease-out;
+  }
+
+  .btn-action-premium:hover {
+    border-color: rgba(45, 212, 191, 0.8);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.85);
+    transform: translateY(-1px);
+    color: #e5f2ff;
+  }
+
+  /* Infos profil */
+  .profile-info-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .profile-info-item {
+    border-radius: 14px;
+    padding: 0.9rem 1rem;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+  }
+
+  .profile-info-item .label {
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #94a3b8;
+    margin-bottom: 0.25rem;
+  }
+
+  .profile-info-item .value {
+    color: #e5f2ff;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  /* Timeline */
+  .timeline-card-premium {
+    margin-top: 2rem;
+    background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.96), #020617);
+    border-radius: 24px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    padding: 1.7rem 1.7rem 1.4rem;
+  }
+
+  .timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.3rem;
+  }
+
+  .timeline-header h2 {
+    color: #e5f2ff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .timeline-header span {
+    color: #94a3b8;
+    font-size: 0.85rem;
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(15, 23, 42, 0.94);
+    margin-bottom: 0.9rem;
+    animation: timelineSlide 0.4s ease-out;
+  }
+
+  .timeline-bullet {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: radial-gradient(circle at top, #22c55e, #15803d);
+    color: #ecfeff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.6);
+    flex-shrink: 0;
+  }
+
+  .timeline-content {
+    flex-grow: 1;
+  }
+
+  .timeline-step-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #64748b;
+    margin-bottom: 0.2rem;
+  }
+
+  .timeline-title {
+    color: #e5f2ff;
+    font-size: 0.98rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+
+  .timeline-description {
+    font-size: 0.88rem;
+    color: #cbd5e1;
+    margin-bottom: 0;
+  }
+
+  .timeline-status {
+    align-self: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+
+  .status-afaire {
+    color: #e5e7eb;
+    border-color: rgba(148, 163, 184, 0.8);
+  }
+
+  .status-encours {
+    color: #bfdbfe;
+    border-color: rgba(59, 130, 246, 0.9);
+  }
+
+  .status-termine {
+    color: #bbf7d0;
+    border-color: rgba(16, 185, 129, 0.9);
+  }
+
+  @media (max-width: 768px) {
+    .plan-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .progress-section {
+      text-align: left;
+      width: 100%;
+    }
+    .timeline-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .timeline-status {
+      margin-top: 0.4rem;
+    }
+  }
+</style>
+
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+
+    <!-- Carte progression + coach -->
+    <div class="card-plan-premium mb-4">
+      <div class="plan-header">
+        <div class="plan-header-content">
+          <span class="badge-plan">
+            Suivi Visa Études · Immigration97
+          </span>
+          <h1>Plan d'action pour ton <span class="gradient-text">Visa Études</span></h1>
+          <p>
+            Suis un parcours clair pour passer de ton idée d’études à l’étranger jusqu’à l’obtention
+            de ton visa étudiant : profil, pays adaptés, admissions, visa, intégration.
+          </p>
+        </div>
+
+        <div class="progress-section">
+          <span class="small">Progression globale</span>
+          <div class="fw-semibold">
+            {{ visa_progress.completed_steps|default:0 }} / 5 étape(s)
+          </div>
+          <div class="fw-semibold">
+            {{ visa_progress_percent|default:'0' }}%
+          </div>
+          <span class="label-badge">
+            {{ visa_progress_label|default:'Étape 1/5' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="progress-bar-premium">
+        <div class="fill"></div>
+      </div>
+
+      <div class="coach-box-premium mb-3">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+          <div>
+            <span class="coach-label">Coach Visa Études</span>
+            <h2>Ta feuille de route personnalisée</h2>
+          </div>
+          <span class="coach-badge">
+            Mode recommandé : Profil ➜ Pays ➜ Admissions ➜ Visa ➜ Intégration
+          </span>
+        </div>
+        <p>
+          Commence par compléter ton profil, choisis tes pays cibles (Canada, USA, France, Belgique,
+          Allemagne, Italie, Chine), prépare tes admissions puis ton dossier visa. Le coach IA est
+          toujours disponible pour t’aider sur chaque étape.
+        </p>
+      </div>
+
+      <div class="action-buttons-premium">
+        <a href="{% url 'visaetude:profile' %}" class="btn-action-premium">
+          Profil Visa Études
+        </a>
+        <a href="{% url 'visaetude:countries_list' %}" class="btn-action-premium">
+          Pays & Programmes adaptés
+        </a>
+        <a href="{% url 'visaetude:checklist' %}" class="btn-action-premium">
+          Checklist de mon projet
+        </a>
+        <a href="{% url 'visaetude:coach_ai' %}" class="btn-action-premium">
+          Parler au coach IA
+        </a>
+      </div>
+
+      <div class="profile-info-grid">
+        <div class="profile-info-item">
+          <span class="label">Étape actuelle estimée</span>
+          <span class="value">
+            {{ visa_progress_label|default:'Étape 1/5' }}
+          </span>
+        </div>
+        <div class="profile-info-item">
+          <span class="label">Conseil rapide</span>
+          <span class="value">
+            Si tu as déjà déposé des admissions, commence à préparer ton dossier visa
+            (preuves financières, formulaires, rendez-vous).
+          </span>
+        </div>
+        <div class="profile-info-item">
+          <span class="label">Coach IA</span>
+          <span class="value">
+            Utilise le coach pour vérifier la cohérence pays / budget / niveau d’études.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline premium -->
+    <div class="timeline-card-premium">
+      <div class="timeline-header">
+        <h2>Les 5 grandes étapes de ton projet</h2>
+        <span>Mets à jour ton avancée en visitant chaque section correspondante.</span>
+      </div>
+
+      <!-- Étape 1 -->
+      <div class="timeline-item">
+        <div class="timeline-bullet">1</div>
+        <div class="timeline-content">
+          <div class="timeline-step-label">Étape 1 · Profil</div>
+          <div class="timeline-title">Mon Profil & Diagnostic</div>
+          <p class="timeline-description">
+            Complète ton profil (pays d’origine, niveau, domaine, budget, langue) pour
+            permettre à l’application et au coach IA de te proposer les pays les plus adaptés.
+          </p>
+        </div>
+        {% if visa_progress and visa_progress.step_1_profile %}
+          <div class="timeline-status status-termine">Terminé</div>
+        {% else %}
+          <div class="timeline-status status-afaire">À faire</div>
+        {% endif %}
+      </div>
+
+      <!-- Étape 2 -->
+      <div class="timeline-item">
+        <div class="timeline-bullet">2</div>
+        <div class="timeline-content">
+          <div class="timeline-step-label">Étape 2 · Pays</div>
+          <div class="timeline-title">Pays & Programmes adaptés</div>
+          <p class="timeline-description">
+            Explore les pays (Canada, USA, France, Belgique, Allemagne, Italie, Chine),
+            lis les guides et commence à lister quelques programmes réalistes selon ton profil.
+          </p>
+        </div>
+        {% if visa_progress and visa_progress.step_2_country %}
+          <div class="timeline-status status-termine">Terminé</div>
+        {% elif visa_progress and visa_progress.step_1_profile %}
+          <div class="timeline-status status-encours">En cours</div>
+        {% else %}
+          <div class="timeline-status status-afaire">À faire</div>
+        {% endif %}
+      </div>
+
+      <!-- Étape 3 -->
+      <div class="timeline-item">
+        <div class="timeline-bullet">3</div>
+        <div class="timeline-content">
+          <div class="timeline-step-label">Étape 3 · Admissions</div>
+          <div class="timeline-title">Dossier & demandes d’admission</div>
+          <p class="timeline-description">
+            Prépare tes CV, lettres de motivation, traductions, formulaires et
+            commence à envoyer tes demandes dans les universités sélectionnées.
+          </p>
+        </div>
+        {% if visa_progress and visa_progress.step_3_checklist %}
+          <div class="timeline-status status-termine">Terminé</div>
+        {% elif visa_progress and visa_progress.step_2_country %}
+          <div class="timeline-status status-encours">En cours</div>
+        {% else %}
+          <div class="timeline-status status-afaire">À faire</div>
+        {% endif %}
+      </div>
+
+      <!-- Étape 4 -->
+      <div class="timeline-item">
+        <div class="timeline-bullet">4</div>
+        <div class="timeline-content">
+          <div class="timeline-step-label">Étape 4 · Visa</div>
+          <div class="timeline-title">Préparation du dossier visa</div>
+          <p class="timeline-description">
+            Une fois ton admission reçue, rassemble les preuves financières, formulaires,
+            assurances et prends rendez-vous pour déposer ton dossier visa.
+          </p>
+        </div>
+        {% if visa_progress and visa_progress.step_4_documents %}
+          <div class="timeline-status status-termine">Terminé</div>
+        {% elif visa_progress and visa_progress.step_3_checklist %}
+          <div class="timeline-status status-encours">En cours</div>
+        {% else %}
+          <div class="timeline-status status-afaire">À faire</div>
+        {% endif %}
+      </div>
+
+      <!-- Étape 5 -->
+      <div class="timeline-item mb-0">
+        <div class="timeline-bullet">5</div>
+        <div class="timeline-content">
+          <div class="timeline-step-label">Étape 5 · Intégration</div>
+          <div class="timeline-title">Arrivée & installation</div>
+          <p class="timeline-description">
+            Prépare ton arrivée : logement, assurances, transport, documents à garder sur toi,
+            démarches d’inscription sur place et adaptation à la nouvelle vie étudiante.
+          </p>
+        </div>
+        {% if visa_progress and visa_progress.step_5_coach %}
+          <div class="timeline-status status-termine">Terminé</div>
+        {% elif visa_progress and visa_progress.step_4_documents %}
+          <div class="timeline-status status-encours">En cours</div>
+        {% else %}
+          <div class="timeline-status status-afaire">À faire</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

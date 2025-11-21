@@ -92,3 +92,5 @@ class SessionViewSet(viewsets.ModelViewSet):
     def checklist_pdf(self, request, pk=None):
         session = self.get_object()
         return Response({"pdf": "coming_soon", "result": session.result_json}, status=status.HTTP_200_OK)
+
+

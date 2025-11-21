@@ -1,165 +1,90 @@
 {% extends "visaetude/base.html" %}
-
-{% block title %}Accueil - Visa Étudiant{% endblock %}
+{% block title %}Dashboard Visa Études · Immigration97{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="hero-section text-center py-5 mb-5">
-  <h1 class="display-4 fw-bold text-primary">
-    <i class="fas fa-globe-americas"></i> Obtenez Votre Visa Étudiant
-  </h1>
-  <p class="lead text-muted">
-    Guide complet pour les étudiants africains souhaitant étudier à l'étranger
-  </p>
-
-  {% if not user.is_authenticated %}
-    <div class="mt-4">
-      <a href="{% url 'authentification:register' %}" class="btn btn-primary btn-lg me-2">
-        <i class="fas fa-user-plus"></i> Commencer
-      </a>
-      <a href="{% url 'visaetude:countries_list' %}" class="btn btn-outline-primary btn-lg">
-        <i class="fas fa-search"></i> Explorer les pays
-      </a>
+<div class="row mb-4 fade-in-up">
+    <div class="col-lg-8">
+        <div class="section-title mb-1">Vue d’ensemble · Visa Études</div>
+        <h1 class="h3 fw-bold text-white mb-1">Visa Études – Coach Projet</h1>
+        <p class="text-muted mb-0">
+            Suis ton parcours complet : profil, pays adaptés, admissions, bourses, visa, intégration.
+        </p>
     </div>
-  {% else %}
-    <div class="mt-4">
-      <a href="{% url 'visaetude:profile' %}" class="btn btn-primary btn-lg">
-        <i class="fas fa-tachometer-alt"></i> Mon Tableau de Bord
-      </a>
+   <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+    <div class="progress-bar-app mb-1">
+        <div class="progress-bar-app-inner"
+             style="width: {{ visa_progress_percent }}%;"></div>
     </div>
-  {% endif %}
+    <small class="text-muted d-block">
+        Progression globale estimée : <strong>{{ visa_progress_label }}</strong>
+    </small>
 </div>
 
-<!-- Fonctionnalités -->
-<div class="row g-4 mb-5">
-  <div class="col-md-4">
-    <div class="card h-100 text-center border-0 shadow-sm">
-      <div class="card-body">
-        <i class="fas fa-map-marked-alt fa-3x text-primary mb-3" aria-hidden="true"></i>
-        <h5 class="card-title">Guides par Pays</h5>
-        <p class="card-text">Informations détaillées sur les procédures de visa pour chaque destination</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card h-100 text-center border-0 shadow-sm">
-      <div class="card-body">
-        <i class="fas fa-tasks fa-3x text-success mb-3" aria-hidden="true"></i>
-        <h5 class="card-title">Checklist Interactive</h5>
-        <p class="card-text">Suivez votre progression avec une liste personnalisée de documents</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card h-100 text-center border-0 shadow-sm">
-      <div class="card-body">
-        <i class="fas fa-lightbulb fa-3x text-warning mb-3" aria-hidden="true"></i>
-        <h5 class="card-title">Conseils d'Experts</h5>
-        <p class="card-text">Astuces et recommandations pour maximiser vos chances de succès</p>
-      </div>
-    </div>
-  </div>
 </div>
 
-<!-- Pays Disponibles -->
-<div class="mb-5">
-  <div class="d-flex align-items-center justify-content-between mb-3">
-    <h2 class="mb-0">
-      <i class="fas fa-flag"></i> Destinations Populaires
-    </h2>
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'visaetude:countries_list' %}">
-      Tout voir
-    </a>
-  </div>
-
-  <div class="row g-4">
-    {% for country in countries %}
-      <div class="col-md-4">
-        <div class="card h-100 shadow-sm hover-card">
-          {% if country.image %}
-            <img
-              src="{{ country.image.url }}"
-              class="card-img-top"
-              alt="Drapeau / image {{ country.nom }}"
-              style="height: 200px; object-fit: cover;"
-              loading="lazy"
-            >
-          {% else %}
-            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
-                 style="height: 200px;">
-              <i class="fas fa-flag fa-4x text-white" aria-hidden="true"></i>
+<div class="row g-4 fade-in-up">
+    <div class="col-md-6 col-xl-3">
+        <div class="card card-module h-100 p-3 floating">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge bg-success-subtle text-success-emphasis badge-pill">Étape 1</span>
+                <span class="text-muted small">Obligatoire</span>
             </div>
-          {% endif %}
-
-          <div class="card-body">
-            <h5 class="card-title">{{ country.nom }}</h5>
-            <p class="card-text text-muted small">
-              {{ country.description|default:""|truncatewords:15 }}
+            <h2 class="h5 text-white mb-1">Mon Profil & Diagnostic</h2>
+            <p class="small text-muted mb-3">
+                Défini ton profil académique, ton budget et ta langue pour débloquer les pays les plus adaptés.
             </p>
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="badge bg-info">{{ country.delai_traitement|default:"—" }}</span>
-              <span class="text-primary fw-bold">
-                {{ country.cout_visa|default:0|floatformat:0 }} FCFA
-              </span>
-            </div>
-
-            {% if user.is_authenticated %}
-              <a href="{% url 'visaetude:country_guide' country.code %}" class="btn btn-primary btn-sm w-100">
-                <i class="fas fa-arrow-right"></i> Voir le guide
-              </a>
-            {% else %}
-              <a href="{% url 'authentification:login' %}" class="btn btn-outline-primary btn-sm w-100">
-                Connectez-vous pour voir
-              </a>
-            {% endif %}
-          </div>
+            <a href="{% url 'visaetude:profile' %}" class="btn btn-soft-success w-100">
+                Ouvrir · Mon Profil
+            </a>
         </div>
-      </div>
-    {% empty %}
-      <div class="col-12">
-        <div class="alert alert-info text-center">
-          <i class="fas fa-info-circle"></i> Aucun pays disponible pour le moment.
-        </div>
-      </div>
-    {% endfor %}
-  </div>
-</div>
-
-<!-- FAQ Section -->
-{% if faqs %}
-  <div class="mb-5">
-    <h2 class="text-center mb-4">
-      <i class="fas fa-question-circle"></i> Questions Fréquentes
-    </h2>
-    <div class="accordion" id="faqAccordion">
-      {% for faq in faqs %}
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="heading{{ forloop.counter }}">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#collapse{{ forloop.counter }}">
-              {{ faq.question }}
-            </button>
-          </h2>
-          <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse"
-               data-bs-parent="#faqAccordion">
-            <div class="accordion-body">
-              {{ faq.reponse|linebreaks }}
-            </div>
-          </div>
-        </div>
-      {% endfor %}
     </div>
-  </div>
-{% endif %}
 
-<!-- CTA Section -->
-{% if not user.is_authenticated %}
-  <div class="text-center bg-light p-5 rounded">
-    <h3 class="mb-3">Prêt à Commencer Votre Voyage ?</h3>
-    <p class="text-muted mb-4">Inscrivez-vous gratuitement et accédez à tous nos guides</p>
-    <a href="{% url 'authentification:register' %}" class="btn btn-primary btn-lg">
-      <i class="fas fa-rocket"></i> Créer un Compte Gratuit
-    </a>
-  </div>
-{% endif %}
+    <div class="col-md-6 col-xl-3">
+        <div class="card card-module h-100 p-3 floating">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge bg-info-subtle text-info-emphasis badge-pill">Étape 2</span>
+                <span class="text-muted small">Analyse IA</span>
+            </div>
+            <h2 class="h5 text-white mb-1">Pays & Programmes adaptés</h2>
+            <p class="small text-muted mb-3">
+                Compare Canada, USA, France, Belgique, Allemagne, Italie, Chine selon ton profil.
+            </p>
+            <a href="{% url 'visaetude:countries_list' %}" class="btn btn-soft-success w-100">
+                Explorer les pays
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card card-module h-100 p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge bg-warning-subtle text-warning-emphasis badge-pill">Étape 3</span>
+                <span class="text-muted small">Plan d’action</span>
+            </div>
+            <h2 class="h5 text-white mb-1">Parcours & Checklist</h2>
+            <p class="small text-muted mb-3">
+                Visualise les 5 grandes étapes, avec des tâches claires à cocher jusqu’à l’obtention du visa.
+            </p>
+            <a href="{% url 'visaetude:roadmap' %}" class="btn btn-soft-success w-100">
+                Voir mon parcours
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card card-module h-100 p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge bg-secondary-subtle text-secondary-emphasis badge-pill">Coach</span>
+                <span class="text-muted small">IA dédiée</span>
+            </div>
+            <h2 class="h5 text-white mb-1">Coach IA Visa Études</h2>
+            <p class="small text-muted mb-3">
+                Pose tes questions, clarifie les procédures, reçois des plans d’action adaptés en quelques secondes.
+            </p>
+            <a href="{% url 'visaetude:coach_ai' %}" class="btn btn-soft-success w-100">
+                Parler au coach IA
+            </a>
+        </div>
+    </div>
+</div>
 {% endblock %}

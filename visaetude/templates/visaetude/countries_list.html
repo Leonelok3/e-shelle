@@ -1,74 +1,51 @@
 {% extends "visaetude/base.html" %}
-
-{% block title %}Liste des Pays - Visa Étudiant{% endblock %}
+{% block title %}Pays & Programmes adaptés{% endblock %}
 
 {% block content %}
-<div class="text-center mb-5">
-    <h1 class="display-5">
-        <i class="fas fa-globe-americas text-primary"></i> Choisissez Votre Destination
-    </h1>
-    <p class="lead text-muted">Explorez nos guides complets pour chaque pays</p>
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="section-title mb-1">Étape 2 · Choix du pays</div>
+        <h1 class="h4 text-white mb-1">Pays compatibles avec ton projet</h1>
+        <p class="small text-muted mb-0">
+            Classement indicatif. Tu pourras ensuite voir les guides détaillés et les vidéos étape par étape.
+        </p>
+    </div>
 </div>
 
 <div class="row g-4">
-    {% for country in countries %}
-    <div class="col-md-4">
-        <div class="card h-100 shadow-sm hover-card">
-            {% if country.image %}
-                <img src="{{ country.image.url }}" class="card-img-top" alt="{{ country.nom }}" 
-                     style="height: 200px; object-fit: cover;">
-            {% else %}
-                <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" 
-                     style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <i class="fas fa-flag fa-4x text-white"></i>
+    {% for c in countries %}
+        <div class="col-md-6 col-xl-4">
+            <div class="card card-module h-100 p-3 floating">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-dark border border-success text-success badge-pill">
+                        Destination études
+                    </span>
                 </div>
-            {% endif %}
-            
-            <div class="card-body">
-                <h5 class="card-title">{{ country.nom }}</h5>
-                <p class="card-text text-muted">{{ country.description|truncatewords:20 }}</p>
-                
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted small">
-                            <i class="fas fa-clock"></i> Délai:
-                        </span>
-                        <span class="badge bg-info">{{ country.delai_traitement }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted small">
-                            <i class="fas fa-money-bill-wave"></i> Coût visa:
-                        </span>
-                        <span class="fw-bold text-primary">{{ country.cout_visa|floatformat:0 }} FCFA</span>
-                    </div>
-                    {% if country.taux_acceptation %}
-                    <div class="d-flex justify-content-between">
-                        <span class="text-muted small">
-                            <i class="fas fa-chart-line"></i> Taux d'acceptation:
-                        </span>
-                        <span class="badge bg-success">{{ country.taux_acceptation }}%</span>
-                    </div>
-                    {% endif %}
-                </div>
-                
-                {% if user.is_authenticated %}
-                    <a href="{% url 'visaetude:country_guide' country.code %}" class="btn btn-primary w-100">
-                        <i class="fas fa-book-open"></i> Voir le Guide
-                    </a>
+                <h2 class="h5 text-white mb-1">{{ c.nom }}</h2>
+                {% if c.short %}
+                    <p class="small text-muted mb-2">{{ c.short }}</p>
                 {% else %}
-                    <a href="{% url 'authentification:login' %}" class="btn btn-outline-primary w-100">
-                        Connectez-vous pour accéder
-                    </a>
+                    <p class="small text-muted mb-2">
+                        Dossiers, admission, visa étudiant, bourses principales, intégration.
+                    </p>
                 {% endif %}
+
+                <ul class="small text-muted mb-3">
+                    <li>Exigences académiques principales.</li>
+                    <li>Budget & preuves financières indicatives.</li>
+                    <li>Vidéos tutoriels pour les démarches.</li>
+                </ul>
+
+                <a href="{% url 'visaetude:country_detail' c.code %}"
+                   class="btn btn-soft-success w-100">
+                    Ouvrir le guide {{ c.nom }}
+                </a>
             </div>
         </div>
-    </div>
     {% empty %}
-    <div class="col-12">
-        <div class="alert alert-info text-center">
-            <i class="fas fa-info-circle"></i> Aucun pays disponible pour le moment.
+        <div class="col-12">
+            <p class="text-muted small">Aucun pays disponible pour le moment.</p>
         </div>
-    </div>
     {% endfor %}
 </div>
 {% endblock %}

@@ -18,43 +18,80 @@
       </p>
     </div>
 
-    <!-- FORMULAIRE -->
+    <!-- MESSAGE ERREUR UPLOAD (SI BESOIN) -->
+    {% if upload_error %}
+      <div class="alert alert-danger small mb-3 fade-in-up">
+        {{ upload_error }}
+      </div>
+    {% endif %}
+
+    <!-- FORMULAIRE COACH CV -->
     <div class="card card-dark card-dark-hover p-4 mb-4 fade-in-up">
-      <form method="post" novalidate>
+      <form method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
 
         <div class="row">
+          <!-- Profil lié (optionnel) -->
           <div class="col-md-6 mb-3">
             <label class="form-label">{{ form.user_profile.label }}</label>
             {{ form.user_profile }}
-            <div class="form-text text-secondary small">
-              {{ form.user_profile.help_text }}
-            </div>
+            {% if form.user_profile.help_text %}
+              <div class="form-text text-secondary small">
+                {{ form.user_profile.help_text }}
+              </div>
+            {% endif %}
           </div>
+
+          <!-- Poste ciblé -->
           <div class="col-md-6 mb-3">
             <label class="form-label">{{ form.intitule_poste.label }}</label>
             {{ form.intitule_poste }}
-            <div class="form-text text-secondary small">
-              {{ form.intitule_poste.help_text }}
-            </div>
+            {% if form.intitule_poste.help_text %}
+              <div class="form-text text-secondary small">
+                {{ form.intitule_poste.help_text }}
+              </div>
+            {% endif %}
           </div>
         </div>
 
+        <!-- Pays cible -->
         <div class="mb-3">
           <label class="form-label">{{ form.pays_cible.label }}</label>
           {{ form.pays_cible }}
-          <div class="form-text text-secondary small">
-            {{ form.pays_cible.help_text }}
-          </div>
+          {% if form.pays_cible.help_text %}
+            <div class="form-text text-secondary small">
+              {{ form.pays_cible.help_text }}
+            </div>
+          {% endif %}
         </div>
 
+        <!-- Upload CV -->
         <div class="mb-3">
-          <label class="form-label">{{ form.cv_texte.label }}</label>
-          {{ form.cv_texte }}
-          <div class="form-text text-secondary small">
-            {{ form.cv_texte.help_text }}
-          </div>
+          <label class="form-label">Importer mon CV (PDF, DOCX ou TXT)</label>
+          <input type="file" name="cv_file" class="form-control">
+          {% if uploaded_filename %}
+            <div class="text-secondary small mt-1">
+              Fichier importé : {{ uploaded_filename }}
+            </div>
+          {% endif %}
         </div>
+
+        <!-- Contenu texte du CV -->
+        <div class="mb-3">
+          <label class="form-label">{{ form.texte_cv.label }}</label>
+          {{ form.texte_cv }}
+          {% if form.texte_cv.help_text %}
+            <div class="form-text text-secondary small">
+              {{ form.texte_cv.help_text }}
+            </div>
+          {% endif %}
+        </div>
+
+        {% if form.errors %}
+          <div class="alert alert-danger small mb-3">
+            Merci de vérifier les champs en rouge : certaines informations sont manquantes ou invalides.
+          </div>
+        {% endif %}
 
         <button type="submit" class="btn btn-primary btn-lg">
           <i class="bi bi-stars me-1"></i> Analyser mon CV
@@ -62,49 +99,48 @@
       </form>
     </div>
 
-    <!-- RÉSULTATS -->
-    {% if analysis %}
+    <!-- RÉSULTATS ANALYSE -->
+    {% if analysis_result %}
       <div class="card card-dark card-dark-hover p-4 mb-4 fade-in-up">
         <h2 class="h5 fw-semibold mb-3">
           <i class="bi bi-bar-chart-line me-1"></i> Résultats de l’analyse
         </h2>
 
-        <div class="row g-3 mb-3 small">
-          <div class="col-md-3">
-            <div class="text-secondary">Structure</div>
-            <div class="fw-bold h5 mb-0">{{ analysis.structure_score }}%</div>
-            <div class="text-secondary">Sections clés présentes</div>
-          </div>
-          <div class="col-md-3">
-            <div class="text-secondary">Mots-clés métier</div>
-            <div class="fw-bold h5 mb-0">{{ analysis.keyword_score }}%</div>
-            <div class="text-secondary">Alignement avec le poste</div>
-          </div>
-          <div class="col-md-3">
-            <div class="text-secondary">Adaptation pays</div>
-            <div class="fw-bold h5 mb-0">{{ analysis.country_score }}%</div>
-            <div class="text-secondary">Référence au pays ciblé</div>
-          </div>
-          <div class="col-md-3">
-            <div class="text-secondary">Score global</div>
-            <div class="fw-bold h5 mb-0">{{ analysis.global_score }}%</div>
-            <div class="text-secondary">{{ analysis.level }}</div>
-          </div>
-        </div>
+        <p class="small text-secondary mb-2">
+          Voici les principales recommandations du coach pour rendre ton CV plus fort
+          pour un <strong>visa travail</strong> et des candidatures internationales.
+        </p>
 
-        {% if analysis.missing_sections %}
-          <div class="alert alert-warning small mb-3">
-            Sections manquantes ou faibles :
-            {{ analysis.missing_sections|join:", " }}.
-          </div>
-        {% endif %}
-
-        <h3 class="h6 fw-semibold mb-2">Recommandations du coach</h3>
-        <ul class="small text-secondary ps-3 mb-0">
-          {% for s in analysis.suggestions %}
-            <li>{{ s }}</li>
+        <ul class="small text-secondary ps-3 mb-3">
+          {% for msg in analysis_result %}
+            <li>{{ msg }}</li>
           {% endfor %}
         </ul>
+
+        <!-- Lien vers le générateur de CV -->
+        <hr class="border-secondary mb-3">
+
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <!--
+            On utilise directement /cv-generator/ car ton include est :
+            path("cv-generator/", include(("cv_generator.urls", "cv_generator"), ...))
+
+            On passe en bonus :
+            - profile = id du UserProfile choisi
+            - poste   = intitulé du poste ciblé (url-encodé)
+          -->
+          <a
+            href="/cv-generator/?profile={{ form.user_profile.value|default:'' }}&poste={{ form.intitule_poste.value|urlencode }}"
+            class="btn btn-outline-light btn-sm"
+          >
+            <i class="bi bi-magic me-1"></i> Générer un CV optimisé avec mon profil
+          </a>
+
+          <span class="small text-secondary">
+            Tu seras redirigé vers le module <strong>CV Generator</strong> pour produire une version
+            optimisée de ton CV à partir de ce diagnostic.
+          </span>
+        </div>
       </div>
     {% endif %}
 
@@ -116,8 +152,8 @@
   animation: fadeInUp 0.7s ease both;
 }
 @keyframes fadeInUp {
-  from { opacity:0; transform: translateY(20px); }
-  to { opacity:1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 </style>
 {% endblock %}

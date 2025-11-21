@@ -1,0 +1,146 @@
+{% extends "visaetude/base.html" %}
+{% block title %}Coach IA Visa Études{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card card-module p-3 mb-3">
+            <div class="section-title mb-1">Coach IA Visa Études</div>
+            <h1 class="h5 text-white mb-2">Ton assistant personnel</h1>
+            <p class="small text-muted mb-2">
+                Explique ton profil, ton pays ciblé, ton budget ou une étape précise
+                (admission, bourse, visa…) et le coach IA te proposera un plan d’action.
+            </p>
+            <ul class="small text-muted mb-2">
+                <li>Analyse de profil & pays favorables.</li>
+                <li>Amélioration de CV et lettres (texte).</li>
+                <li>Stratégie bourses & préparation visa.</li>
+            </ul>
+            <p class="small text-muted mb-0">
+                ⚠️ Les réponses sont indicatives. Vérifie toujours les exigences
+                sur les sites officiels (gouvernement, universités, ambassades).
+            </p>
+        </div>
+
+        <div class="card card-module p-3">
+            <div class="section-title mb-1">Astuce</div>
+            <p class="small text-muted mb-2">
+                Pour une réponse ultra précise, envoie dans un même message :
+                pays d’origine, niveau d’études, domaine, budget, pays visés et date
+                de départ souhaitée.
+            </p>
+            <a href="{% url 'visaetude:roadmap' %}" class="btn btn-soft-success btn-sm w-100 mb-2">
+                Voir mon parcours
+            </a>
+            <a href="{% url 'visaetude:checklist' %}" class="btn btn-outline-light btn-sm w-100">
+                Ouvrir la checklist
+            </a>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card card-module p-0 d-flex flex-column chat-container">
+            <div class="chat-messages p-3" id="chatMessages">
+                <div class="chat-message bot">
+                    <div class="bubble">
+                        Bonjour 👋 Je suis ton coach IA Visa Études.<br><br>
+                        Dis-moi où tu en es (profil, pays visés, budget, étape du projet)
+                        et je te propose un plan d’action étape par étape.
+                    </div>
+                </div>
+            </div>
+
+            <form class="chat-input p-3 border-top" id="chatForm" action="#" onsubmit="return false;">
+                <div class="input-group">
+                    <textarea id="chatText"
+                              class="form-control bg-dark text-light border-secondary"
+                              rows="2"
+                              placeholder="Écris ta question ici… (ex : 'Je suis en licence info au Cameroun et je vise le Canada pour un master en 2026')"></textarea>
+                    <button class="btn btn-soft-success ms-2" id="chatSendBtn" type="submit">
+                        Envoyer
+                    </button>
+                </div>
+                <small class="small text-muted mt-1 d-block">
+                    Pour l’instant, le coach utilise une réponse de démonstration.
+                    Tu pourras plus tard brancher une API IA réelle côté serveur.
+                </small>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const form = document.getElementById("chatForm");
+    const textarea = document.getElementById("chatText");
+    const messages = document.getElementById("chatMessages");
+
+    if (!form || !textarea || !messages) return;
+
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const text = textarea.value.trim();
+        if (!text) return;
+
+        addMessage("user", text);
+        textarea.value = "";
+
+        addLoader();
+
+        try {
+            const response = await fetch("{% url 'visaetude:coach_ai_api' %}", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message: text}),
+            });
+
+            removeLoader();
+
+            if (!response.ok) {
+                addMessage("bot", "❌ Une erreur est survenue. Réessaie plus tard.");
+                return;
+            }
+
+            const data = await response.json();
+            if (data.reply) {
+                addMessage("bot", data.reply);
+            } else if (data.error) {
+                addMessage("bot", "⚠️ " + data.error);
+            }
+        } catch (err) {
+            removeLoader();
+            addMessage("bot", "❌ Impossible de contacter le coach pour le moment.");
+        }
+    });
+
+    function addMessage(type, text) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "chat-message " + type;
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.textContent = text;
+
+        wrapper.appendChild(bubble);
+        messages.appendChild(wrapper);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function addLoader() {
+        const loader = document.createElement("div");
+        loader.id = "chatLoader";
+        loader.className = "chat-message bot";
+        loader.innerHTML = '<div class="bubble">⏳ Réflexion…</div>';
+        messages.appendChild(loader);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function removeLoader() {
+        const loader = document.getElementById("chatLoader");
+        if (loader) loader.remove();
+    }
+})();
+</script>
+{% endblock %}

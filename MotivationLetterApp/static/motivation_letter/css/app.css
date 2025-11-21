@@ -1,66 +1,99 @@
-:root{
-  --bg:#0b1220;            /* fond hero sombre */
-  --ink:#111827;           /* texte foncé */
-  --muted:#6b7280;         /* texte secondaire */
-  --card:#ffffff;          /* cartes */
-  --line:#e5e7eb;          /* bordures */
-  --primary:#111827;       /* boutons */
-  --accent:#2563eb;        /* liens/accents */
+/* --- SECTION ACCUEIL MOTIVATION LETTER --- */
+
+/* Grille des 3 cartes */
+.grid-3 {
+  max-width: 1100px;
+  margin: 3rem auto 0;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
 }
 
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:var(--ink); background:#fafafa}
+/* Carte de base */
+.card {
+  position: relative;
+  padding: 2.2rem 2rem;
+  border-radius: 24px;
+  background: radial-gradient(circle at top left, #182b4d 0, #070b18 55%, #050814 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 26px 70px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(0, 0, 0, 0.6);
+  color: #f5f7ff;
+  text-decoration: none;
+  overflow: hidden;
+}
 
-a{color:var(--accent); text-decoration:none}
-a:hover{text-decoration:underline}
+/* Halo léger autour de la carte */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle at top, rgba(0, 255, 142, 0.14), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
 
-.container{max-width:1200px;margin:0 auto;padding:24px}
+/* Titre de la carte */
+.card h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
 
-.navbar{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:10}
-.brand a{font-weight:800;font-size:18px;color:var(--ink);letter-spacing:.3px}
-.menu a{margin-left:14px;color:var(--ink)}
-.menu a:hover{color:var(--accent)}
+/* Texte de la carte */
+.card p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(235, 240, 255, 0.86);
+}
 
-.hero{background:linear-gradient(135deg, #0b1220 0%, #111827 100%);color:#fff;padding:38px 24px}
-.hero h1{margin:0 0 6px 0;font-size:28px}
-.hero .muted{color:#cbd5e1}
+/* Effet hover */
+.card.hover {
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
 
-.footer{padding:18px 24px;border-top:1px solid var(--line);color:var(--muted);background:#fff;margin-top:24px}
+.card.hover:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.85),
+    0 0 25px rgba(0, 255, 142, 0.25);
+  border-color: rgba(0, 255, 142, 0.5);
+  background: radial-gradient(circle at top left, #1f355d 0, #050a18 50%, #040713 100%);
+}
 
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 8px 20px rgba(17,24,39,.04)}
-.card.hover:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(17,24,39,.08);transition:.2s}
+.card.hover:hover::before {
+  opacity: 1;
+}
 
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
-.grid-2{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
-@media (max-width: 1024px){.grid-3{grid-template-columns:1fr 1fr}.grid-2{grid-template-columns:1fr}}
-@media (max-width: 700px){.grid-3{grid-template-columns:1fr}}
+/* Petit badge “clicable” (optionnel) : on peut styliser le curseur */
+.card.hover {
+  cursor: pointer;
+}
 
-.stack>*{margin-bottom:10px}
-.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:700px){.row-2{grid-template-columns:1fr}}
+/* Responsive léger */
+@media (max-width: 640px) {
+  .grid-3 {
+    margin-top: 2.2rem;
+    padding: 0 1rem 2rem;
+  }
 
-label{font-weight:600;font-size:14px;display:block;margin-bottom:6px}
-input, select, textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff}
-textarea{min-height:120px}
+  .card {
+    padding: 1.8rem 1.5rem;
+    border-radius: 20px;
+  }
 
-.btn-primary{padding:10px 14px;border:1px solid var(--primary);background:var(--primary);color:#fff;border-radius:10px;cursor:pointer}
-.btn-primary:hover{filter:brightness(.95)}
-.btn-secondary{padding:10px 14px;border:1px solid var(--primary);background:#fff;color:var(--primary);border-radius:10px;cursor:pointer}
-.btn-secondary:hover{background:#f3f4f6}
-.btn-link{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
-.btn-link:hover{background:#f9fafb}
+  .card h3 {
+    font-size: 1.15rem;
+  }
 
-.preview{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fcfcfc;min-height:240px;white-space:pre-wrap}
-.hint{color:var(--muted);font-size:12px}
-
-.tabs{margin:14px 0}
-.tab-btn{padding:10px 14px;border:1px solid var(--line);background:#fff;border-radius:10px;margin-right:8px;cursor:pointer}
-.tab-btn:hover{background:#f9fafb}
-
-.table{width:100%;border-collapse:collapse}
-.table th,.table td{border-bottom:1px solid var(--line);text-align:left;padding:10px}
-.table th{font-size:13px;color:var(--muted);font-weight:700}
-
-.meta{list-style:none;padding:0;margin:0}
-.meta li{padding:6px 0;border-bottom:1px dashed var(--line)}
+  .card p {
+    font-size: 0.9rem;
+  }
+}

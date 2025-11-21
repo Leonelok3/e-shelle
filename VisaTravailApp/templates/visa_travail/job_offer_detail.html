@@ -4,119 +4,95 @@
 
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-xl-9">
-
-    <!-- HEADER OFFRE -->
+  <div class="col-lg-8">
     <div class="card card-dark card-dark-hover p-4 p-md-5 mb-4 fade-in-up">
-      <span class="badge-soft mb-2 px-3 py-1">
-        <i class="bi bi-briefcase me-1"></i> Offre d’emploi internationale
-      </span>
+      <div class="small text-secondary mb-1">
+        {{ offer.pays }}{% if offer.ville %} · {{ offer.ville }}{% endif %}
+      </div>
+      <h1 class="h4 fw-bold mb-1">{{ offer.titre }}</h1>
+      {% if offer.entreprise %}
+        <div class="small text-secondary mb-3">{{ offer.entreprise }}</div>
+      {% endif %}
 
-      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
-        <div>
-          <h1 class="fw-bold display-6 mb-1">{{ offer.titre }}</h1>
+      <div class="d-flex flex-wrap gap-2 mb-3 small">
+        {% if offer.type_contrat %}
+          <span class="badge-soft">{{ offer.get_type_contrat_display }}</span>
+        {% endif %}
+        {% if offer.salaire %}
+          <span class="badge-soft">Salaire : {{ offer.salaire }}</span>
+        {% endif %}
+        <span class="badge-soft">Publiée le {{ offer.date_publication }}</span>
+      </div>
 
-          {% if offer.entreprise %}
-            <div class="text-secondary small mb-2">
-              <i class="bi bi-building me-1"></i>
-              {{ offer.entreprise }}
+      {% if profile and match %}
+        <div class="p-3 mb-3 rounded-4" style="background: rgba(15,23,42,0.9); border: 1px solid rgba(148,163,184,0.4);">
+          <div class="d-flex justify-content-between align-items-start mb-1">
+            <div>
+              <div class="small text-secondary mb-1">Score de compatibilité (profil : {{ profile.nom|default:"Profil #"|add:profile.id }})</div>
+              <div class="fw-semibold">
+                {{ match.score }}% – {{ match.label }}
+              </div>
             </div>
-          {% endif %}
-
-          <div class="d-flex flex-wrap gap-2 mt-1">
-            {% if offer.pays %}
-              <span class="badge-soft">
-                <i class="bi bi-geo-alt me-1"></i> {{ offer.pays }}
-              </span>
-            {% endif %}
-
-            {% if offer.ville %}
-              <span class="badge-soft">
-                <i class="bi bi-geo me-1"></i> {{ offer.ville }}
-              </span>
-            {% endif %}
-
-            {% if offer.type_contrat %}
-              <span class="badge-soft">
-                <i class="bi bi-file-earmark-text me-1"></i>
-                {{ offer.get_type_contrat_display }}
-              </span>
-            {% endif %}
-
-            {% if offer.salaire %}
-              <span class="badge-soft">
-                <i class="bi bi-cash me-1"></i> {{ offer.salaire }}
-              </span>
+            {% if match.pays_match %}
+              <span class="badge-soft small">Pays dans ta cible</span>
             {% endif %}
           </div>
+          <div class="small text-secondary">
+            {{ match.reason }}
+          </div>
         </div>
+      {% endif %}
 
-        <!-- Date -->
-        <div class="text-end small text-secondary">
-          <i class="bi bi-calendar-event me-1"></i>
-          Publiée le {{ offer.date_publication }}
-        </div>
-      </div>
-    </div>
+      {% if offer.domaine %}
+        <p class="small text-secondary">
+          Domaine / métier ciblé : <strong>{{ offer.domaine }}</strong>
+        </p>
+      {% endif %}
 
-    <!-- DESCRIPTION -->
-    <div class="card card-dark card-dark-hover p-4 mb-4 fade-in-up">
-      <h2 class="h6 fw-semibold mb-3">
-        <i class="bi bi-file-text me-1"></i> Description du poste
-      </h2>
+      <h2 class="h6 fw-semibold mt-4">Description du poste</h2>
       <p class="small text-secondary" style="white-space: pre-line;">
         {{ offer.description }}
       </p>
 
       {% if offer.exigences %}
-        <h2 class="h6 fw-semibold mt-4">
-          <i class="bi bi-person-lines-fill me-1"></i> Profil recherché
-        </h2>
+        <h2 class="h6 fw-semibold mt-3">Profil recherché / exigences</h2>
         <p class="small text-secondary" style="white-space: pre-line;">
           {{ offer.exigences }}
         </p>
       {% endif %}
 
       {% if offer.avantages %}
-        <h2 class="h6 fw-semibold mt-4">
-          <i class="bi bi-gift me-1"></i> Avantages
-        </h2>
+        <h2 class="h6 fw-semibold mt-3">Avantages</h2>
         <p class="small text-secondary" style="white-space: pre-line;">
           {{ offer.avantages }}
         </p>
       {% endif %}
-    </div>
 
-    <!-- CTA CANDIDATURE + VISA -->
-    <div class="card card-dark card-dark-hover p-4 mb-4 fade-in-up">
-      <h2 class="h6 fw-semibold mb-3 text-success">
-        <i class="bi bi-passport me-1"></i> Candidature & Visa Travail
-      </h2>
-
-      <p class="small text-secondary mb-3">
-        Tu peux ajouter cette offre à ton <strong>tableau de candidatures</strong>
-        en la liant à l’un de tes profils créés dans l’assistant Visa Travail.
-      </p>
-
-      <div class="d-flex flex-wrap gap-2">
-        <a href="{% url 'visa_travail:job_create_from_offer' offer.id %}"
-           class="btn btn-outline-light btn-lg">
-          <i class="bi bi-plus-circle me-1"></i> Ajouter à mes candidatures
-        </a>
-
+      <div class="mt-4 d-flex flex-wrap gap-2">
         {% if offer.lien_candidature %}
-          <a href="{{ offer.lien_candidature }}" target="_blank" class="btn btn-primary btn-lg">
-            <i class="bi bi-box-arrow-up-right me-1"></i>
+          <a href="{{ offer.lien_candidature }}" target="_blank" class="btn btn-primary btn-sm">
             Postuler sur le site officiel
           </a>
         {% endif %}
-
-        <a href="{% url 'visa_travail:job_offers_list' %}" class="btn btn-outline-light btn-lg">
-          <i class="bi bi-arrow-left me-1"></i> Retour aux offres
+        {% if profile %}
+          <a href="{% url 'visa_travail:job_create_from_offer' offer.id %}?profile={{ profile.id }}"
+             class="btn btn-outline-light btn-sm">
+            Ajouter à mes candidatures
+          </a>
+        {% endif %}
+        <a href="{% if profile %}{% url 'visa_travail:job_offers_list' %}?profile={{ profile.id }}{% else %}{% url 'visa_travail:job_offers_list' %}{% endif %}"
+           class="btn btn-outline-light btn-sm">
+          Retour aux offres
         </a>
       </div>
-    </div>
 
+      <hr class="border-secondary mt-4">
+
+      <p class="small text-secondary mb-0">
+        Conseil : ajoute cette offre dans ton <strong>tableau de candidatures</strong> dans ton plan d’action
+        pour garder un suivi clair (statut, date, réponses, etc.).
+      </p>
+    </div>
   </div>
 </div>
 

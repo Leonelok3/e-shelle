@@ -1,148 +1,79 @@
 {% extends "visaetude/base.html" %}
-{% load widget_tweaks %}
-
-{% block title %}Mon Profil - Visa Étudiant{% endblock %}
+{% block title %}Mon Profil Visa Études{% endblock %}
 
 {% block content %}
-<div class="row">
-  <!-- Colonne infos + progression -->
-  <div class="col-md-4">
-    <div class="card shadow-sm mb-4">
-      <div class="card-body text-center">
-        <div class="avatar-circle mb-3">
-          <i class="fas fa-user fa-3x text-primary"></i>
-        </div>
-        <h4 class="mb-1">{{ user.get_full_name|default:user.username }}</h4>
-        <p class="text-muted small mb-1">@{{ user.username }}</p>
-        <p class="small">{{ user.email }}</p>
-      </div>
-    </div>
-
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title mb-3">
-          <i class="fas fa-chart-line"></i> Progression Globale
-        </h5>
-        <div class="progress mb-2" style="height: 25px;">
-          <div class="progress-bar bg-success" role="progressbar"
-               style="width: {{ progression }}%;">
-            {{ progression }}%
-          </div>
-        </div>
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="section-title mb-1">Étape 1 · Profil & Diagnostic</div>
+        <h1 class="h4 text-white mb-1">Mon Profil</h1>
         <p class="small text-muted mb-0">
-          {{ documents_completes }} / {{ total_documents }} documents complétés
+            Ces informations permettent d’adapter les recommandations (pays, bourses, visa) à ta situation.
         </p>
-      </div>
     </div>
+</div>
 
-    <div class="card shadow-sm mt-4">
-      <div class="card-body">
-        <h5 class="card-title">
-          <i class="fas fa-compass"></i> Actions Rapides
-        </h5>
-        <div class="d-grid gap-2">
-          <a href="{% url 'visaetude:countries_list' %}" class="btn btn-outline-primary">
-            <i class="fas fa-globe"></i> Explorer les Pays
-          </a>
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card card-module p-4">
+            {% if not user_is_authenticated %}
+                <div class="alert alert-warning small">
+                    Connecte-toi pour sauvegarder ton profil. Pour l’instant, ce formulaire est en mode lecture seule.
+                </div>
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">{{ form.pays_origine.label }}</label>
+                    {{ form.pays_origine }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">{{ form.niveau_etude.label }}</label>
+                    {{ form.niveau_etude }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">{{ form.domaine_etude.label }}</label>
+                    {{ form.domaine_etude }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">{{ form.budget_disponible.label }}</label>
+                    {{ form.budget_disponible }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">{{ form.telephone.label }}</label>
+                    {{ form.telephone }}
+                </div>
+
+                {% if user_is_authenticated %}
+                    <button type="submit" class="btn btn-soft-success w-100">
+                        Enregistrer mon profil
+                    </button>
+                {% else %}
+                    <button type="button" class="btn btn-outline-light w-100" disabled>
+                        Connecte-toi pour sauvegarder ton profil
+                    </button>
+                {% endif %}
+            </form>
         </div>
-      </div>
     </div>
-  </div>
 
-  <!-- Colonne formulaire -->
-  <div class="col-md-8">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h4 class="card-title mb-4">
-          <i class="fas fa-edit"></i> Informations du Profil
-        </h4>
-
-        {# erreurs globales #}
-        {% if form.non_field_errors %}
-          <div class="alert alert-danger">
-            {{ form.non_field_errors }}
-          </div>
-        {% endif %}
-
-        <form method="post" novalidate>
-          {% csrf_token %}
-
-          {# pays_origine #}
-          <div class="mb-3">
-            <label class="form-label" for="{{ form.pays_origine.id_for_label }}">
-              {{ form.pays_origine.label }}
-            </label>
-            {% render_field form.pays_origine class+="form-select" %}
-            {% if form.pays_origine.help_text %}
-              <div class="form-text">{{ form.pays_origine.help_text }}</div>
-            {% endif %}
-            {% for e in form.pays_origine.errors %}
-              <div class="invalid-feedback d-block">{{ e }}</div>
-            {% endfor %}
-          </div>
-
-          {# niveau_etude #}
-          <div class="mb-3">
-            <label class="form-label" for="{{ form.niveau_etude.id_for_label }}">
-              {{ form.niveau_etude.label }}
-            </label>
-            {% render_field form.niveau_etude class+="form-select" %}
-            {% if form.niveau_etude.help_text %}
-              <div class="form-text">{{ form.niveau_etude.help_text }}</div>
-            {% endif %}
-            {% for e in form.niveau_etude.errors %}
-              <div class="invalid-feedback d-block">{{ e }}</div>
-            {% endfor %}
-          </div>
-
-          {# domaine_etude #}
-          <div class="mb-3">
-            <label class="form-label" for="{{ form.domaine_etude.id_for_label }}">
-              {{ form.domaine_etude.label }}
-            </label>
-            {% render_field form.domaine_etude class+="form-control" placeholder=form.domaine_etude.label %}
-            {% if form.domaine_etude.help_text %}
-              <div class="form-text">{{ form.domaine_etude.help_text }}</div>
-            {% endif %}
-            {% for e in form.domaine_etude.errors %}
-              <div class="invalid-feedback d-block">{{ e }}</div>
-            {% endfor %}
-          </div>
-
-          {# budget_disponible #}
-          <div class="mb-3">
-            <label class="form-label" for="{{ form.budget_disponible.id_for_label }}">
-              {{ form.budget_disponible.label }}
-            </label>
-            {% render_field form.budget_disponible class+="form-control" inputmode="numeric" %}
-            {% if form.budget_disponible.help_text %}
-              <div class="form-text">{{ form.budget_disponible.help_text }}</div>
-            {% endif %}
-            {% for e in form.budget_disponible.errors %}
-              <div class="invalid-feedback d-block">{{ e }}</div>
-            {% endfor %}
-          </div>
-
-          {# telephone #}
-          <div class="mb-3">
-            <label class="form-label" for="{{ form.telephone.id_for_label }}">
-              {{ form.telephone.label }}
-            </label>
-            {% render_field form.telephone class+="form-control" autocomplete="tel" placeholder="+237..." %}
-            {% if form.telephone.help_text %}
-              <div class="form-text">{{ form.telephone.help_text }}</div>
-            {% endif %}
-            {% for e in form.telephone.errors %}
-              <div class="invalid-feedback d-block">{{ e }}</div>
-            {% endfor %}
-          </div>
-
-          <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save"></i> Enregistrer les Modifications
-          </button>
-        </form>
-      </div>
+    <div class="col-lg-5 mt-4 mt-lg-0">
+        <div class="card card-module p-3">
+            <div class="section-title mb-1">Pourquoi ce profil ?</div>
+            <p class="small text-muted mb-2">
+                Le profil est utilisé pour :
+            </p>
+            <ul class="small text-muted mb-0">
+                <li>Proposer des pays compatibles avec ton budget.</li>
+                <li>Aider le coach IA à donner des conseils adaptés.</li>
+                <li>Préparer une checklist réaliste pour ton projet.</li>
+            </ul>
+        </div>
     </div>
-  </div>
 </div>
 {% endblock %}

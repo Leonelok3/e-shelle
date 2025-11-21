@@ -1,21 +1,24 @@
 from django.urls import path
 from . import views
 
-app_name = 'visaetude'  # important
+app_name = "visaetude"
 
 urlpatterns = [
-    path('', views.home, name='home'),
-    path('profile/', views.profile, name='profile'),
 
-    path('countries/', views.countries_list, name='countries_list'),
-    path('country/<str:country_code>/', views.country_guide, name='country_guide'),
+    # Pages principales
+    path("", views.home, name="home"),
+    path("profil/", views.profile, name="profile"),
+    path("pays/", views.countries_list, name="countries_list"),
+    path("pays/<str:country>/", views.country_detail, name="country_detail"),
 
-    path('checklist/<str:country_code>/', views.checklist, name='checklist'),
+    # Parcours & checklist
+    path("parcours/", views.roadmap, name="roadmap"),
+    path("checklist/", views.checklist, name="checklist"),
 
-    # ✅ Correction ici : on renomme pour correspondre aux templates
-    path(
-        'checklist/item/<int:item_id>/update/',
-        views.update_checklist_item,
-        name='update_checklist_item'
-    ),
+    # Coach IA
+    path("coach/", views.coach_ai, name="coach_ai"),
+    path("coach-api/", views.coach_ai_api, name="coach_ai_api"),
+
+    # Ressource vidéo / PDF
+    path("resource/<int:resource_id>/", views.resource_view, name="resource_view"),
 ]

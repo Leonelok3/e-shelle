@@ -1,84 +1,38 @@
-<!DOCTYPE html>
+{% load static %}
+<!doctype html>
 <html lang="fr">
 <head>
-    {% load static %}
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
+    <title>{% block title %}Visa Études{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{% block title %}Visa Étudiant{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}Guides pays, checklist interactive et conseils pour obtenir votre visa étudiant.{% endblock %}">
+    <!-- Bootstrap (si tu l'utilises) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Bootstrap + tes styles -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
-    <!-- Favicon / SEO basique -->
-    <link rel="icon" type="image/svg+xml" href="{% static 'visaetude/img/logo.svg' %}">
+    <!-- Style Visa Études -->
+    <link rel="stylesheet" href="{% static 'visaetude/visaetude.css' %}">
 </head>
-<body class="bg-light">
-
-    <!-- Header -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-
-            <!-- ✅ Logo app-scopé (zéro conflit de chemin) -->
-            <a class="navbar-brand d-flex align-items-center" href="{% url 'visaetude:home' %}">
-                <img src="{% static 'visaetude/img/logo.svg' %}" alt="Immigration97" height="28" class="me-2">
-                <span>Visa Étudiant</span>
-            </a>
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'visaetude:home' %}">Accueil</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'visaetude:countries_list' %}">Pays</a></li>
-
-                    {% if user.is_authenticated %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'visaetude:profile' %}">Mon Profil</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'authentification:logout' %}">Déconnexion</a></li>
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'authentification:login' %}">Connexion</a></li>
-                        <li class="nav-item">
-                            <a class="nav-link btn btn-light text-primary ms-2" href="{% url 'authentification:register' %}">
-                                Inscription
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-
-        </div>
-    </nav>
-
-    <!-- Messages -->
-    {% if messages %}
-    <div class="container mt-3">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        {% endfor %}
+<body class="bg-app">
+<nav class="navbar navbar-expand-lg bg-navbar navbar-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'visaetude:home' %}">
+            immigration97 · <span>Visa Études</span>
+        </a>
     </div>
-    {% endif %}
+</nav>
 
-    <!-- Contenu -->
-    <main class="container my-4">
-        {% block content %}{% endblock %}
-    </main>
+<div class="container mb-5">
+    {% block content %}{% endblock %}
+</div>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-white text-center py-4 mt-5">
-        <div class="container d-flex align-items-center justify-content-center gap-2">
-            <img src="{% static 'visaetude/img/logo.svg' %}" alt="Immigration97" height="20">
-            <span>&copy; {% now "Y" %} Visa Étudiant. Tous droits réservés.</span>
-        </div>
-    </footer>
+<footer class="footer-app mt-auto">
+    <div class="container d-flex justify-content-between">
+        <span>Immigration97 · E-SHELLE · Visa & Études</span>
+        <span class="d-none d-sm-inline">Powered by toi 💻</span>
+    </div>
+</footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    {% block extra_js %}{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,27 @@
+{% extends "visaetude/base.html" %}
+{% block title %}Tutoriel – {{ resource.title }}{% endblock %}
+
+{% block content %}
+<div class="card card-module p-4">
+    <div class="section-title mb-1">Tutoriel vidéo / guide</div>
+    <h1 class="h4 text-white">{{ resource.title }}</h1>
+    <p class="text-muted small mb-3">{{ resource.step_label }}</p>
+
+    {% if resource.resource_type == "video" %}
+        <div class="ratio ratio-16x9 mb-3">
+            <iframe src="{{ resource.url }}" allowfullscreen
+                    style="border-radius: 12px; border: 0;"></iframe>
+        </div>
+    {% elif resource.resource_type == "pdf" %}
+        <iframe src="{{ resource.url }}"
+                style="width:100%;height:680px;border-radius: 12px;border:0;background:#000;">
+        </iframe>
+    {% elif resource.resource_type == "capture" %}
+        <img src="{{ resource.url }}" class="w-100 rounded mb-3">
+    {% endif %}
+
+    <a href="javascript:history.back()" class="btn btn-soft-success mt-2">
+        Retour au guide pays
+    </a>
+</div>
+{% endblock %}

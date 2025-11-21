@@ -58,6 +58,9 @@ INSTALLED_APPS = [
     "preparation_tests",
     "visaetude",
     "VisaTravailApp",
+    "permanent_residence",
+    "english_tests",
+    #"german_tests",
     
 ]
 
@@ -94,6 +97,8 @@ TEMPLATES = [
                 "django.template.context_processors.media",
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
+                "visaetude.context_processors.visa_progress",
+
             ],
         },
     },

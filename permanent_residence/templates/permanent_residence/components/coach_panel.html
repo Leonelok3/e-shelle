@@ -1,0 +1,260 @@
+{# permanent_residence/templates/permanent_residence/components/coach_panel.html #}
+
+<!-- COACH IA – PANEL LATÉRAL ULTRA PRO -->
+<div id="rpCoachContainer">
+
+  <!-- Bulle flottante -->
+  <button id="rpCoachBubble"
+          type="button"
+          class="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-emerald-400 to-emerald-600 
+                 text-slate-900 font-semibold px-5 py-3.5 rounded-full shadow-xl shadow-emerald-500/40
+                 hover:scale-105 active:scale-95 transition-all backdrop-blur-lg border border-emerald-400/60
+                 flex items-center gap-2 text-sm">
+      <span class="text-lg">🤖</span>
+      <span>Coach RP</span>
+  </button>
+
+  <!-- Panneau latéral -->
+  <div id="rpCoachPanel"
+       class="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-slate-950/95 
+              backdrop-blur-xl shadow-2xl shadow-black/60 border-l border-slate-800/60
+              translate-x-full transition-transform duration-300 z-50 flex flex-col">
+
+      <!-- Header -->
+      <div class="p-5 border-b border-slate-800/60 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[10px] font-semibold tracking-[0.25em] text-emerald-400/80 uppercase">
+            Coach IA
+          </p>
+          <h2 class="text-sm font-semibold text-slate-50">
+            Résidence Permanente
+          </h2>
+          <p class="text-[11px] text-slate-400">
+            Basé sur ton profil : pays, études, langues, expérience, etc.
+          </p>
+        </div>
+        <button id="rpCoachClose"
+                type="button"
+                class="rounded-full w-8 h-8 flex items-center justify-center border border-slate-700/70
+                       text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 transition-colors text-base">
+          ✕
+        </button>
+      </div>
+
+      <!-- Zone messages -->
+      <div id="rpCoachMessages"
+           class="flex-1 overflow-y-auto px-4 py-5 space-y-4 scroll-smooth text-[13px]">
+
+        <!-- Message d’accueil du bot -->
+        <div class="flex gap-2 items-start">
+          <div class="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center text-slate-950 text-xs font-bold mt-1">
+            IA
+          </div>
+          <div class="msg-bot">
+            <p class="font-semibold text-emerald-200 mb-1">Bienvenue sur ton coach RP 🌍</p>
+            <p class="text-slate-200/90">
+              Pose-moi tes questions sur ta résidence permanente au Canada ou en Australie :
+              <br>- programmes adaptés à ton profil
+              <br>- scores de langue à viser
+              <br>- priorités dans les 30 prochains jours
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Zone input -->
+      <form id="rpCoachForm"
+            class="border-t border-slate-800/60 p-3.5 flex gap-2 bg-slate-950/90">
+        <input id="rpCoachInput"
+               type="text"
+               autocomplete="off"
+               placeholder="Pose ta question sur ta RP…"
+               class="flex-1 rounded-lg bg-slate-900/80 text-slate-200 px-4 py-2.5 
+                      border border-slate-700/70 focus:ring-2 focus:ring-emerald-500/70 outline-none
+                      text-sm placeholder:text-slate-500">
+        <button type="submit"
+                class="bg-gradient-to-r from-emerald-400 to-emerald-500 
+                       text-slate-950 font-semibold px-4 py-2.5 rounded-lg hover:opacity-95
+                       text-sm shadow-md shadow-emerald-500/40 flex items-center gap-1">
+            <span>Envoyer</span>
+            <span class="text-base">➤</span>
+        </button>
+      </form>
+  </div>
+</div>
+
+<style>
+  /* Bulles */
+  .msg-user {
+      background: linear-gradient(to right, #10b98133, #10b98122);
+      border: 1px solid #10b98155;
+      padding: 10px 14px;
+      border-radius: 16px;
+      max-width: 80%;
+      margin-left: auto;
+      color: #d1fae5;
+      font-size: 13px;
+      line-height: 1.5;
+  }
+  .msg-bot {
+      background: linear-gradient(to right, #1e293b88, #020617dd);
+      border: 1px solid #334155;
+      padding: 10px 14px;
+      border-radius: 16px;
+      max-width: 80%;
+      margin-right: auto;
+      color: #e2e8f0;
+      font-size: 13px;
+      line-height: 1.5;
+  }
+
+  /* Bulle "en train d'écrire" */
+  .typing-bubble {
+      width: 46px;
+      height: 22px;
+      border-radius: 999px;
+      background: #020617;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid #1e293b;
+  }
+  .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: #94a3b8;
+      border-radius: 50%;
+      animation: bounce 1.1s infinite;
+  }
+  .typing-dot:nth-child(2){ animation-delay: .2s; }
+  .typing-dot:nth-child(3){ animation-delay: .4s; }
+
+  @keyframes bounce {
+      0%, 100% { transform: translateY(0); opacity: .5; }
+      50%      { transform: translateY(-4px); opacity: 1; }
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      const bubble   = document.getElementById("rpCoachBubble");
+      const panel    = document.getElementById("rpCoachPanel");
+      const closeBtn = document.getElementById("rpCoachClose");
+      const form     = document.getElementById("rpCoachForm");
+      const input    = document.getElementById("rpCoachInput");
+      const messages = document.getElementById("rpCoachMessages");
+
+      if (!bubble || !panel || !form || !messages) {
+          return;
+      }
+
+      // URL de l'API du coach, construite proprement avec Django
+      const coachApiUrl = "{% url 'permanent_residence:coach_api' profile.id %}";
+
+      function openPanel() {
+          panel.classList.remove("translate-x-full");
+      }
+      function closePanel() {
+          panel.classList.add("translate-x-full");
+      }
+
+      bubble.addEventListener("click", openPanel);
+      closeBtn.addEventListener("click", closePanel);
+
+      function scrollToBottom() {
+          messages.scrollTo({
+              top: messages.scrollHeight,
+              behavior: "smooth"
+          });
+      }
+
+      function appendMessage(text, type) {
+          const wrapper = document.createElement("div");
+          wrapper.className = "flex gap-2 items-start";
+
+          if (type === "user") {
+              wrapper.innerHTML = `
+                  <div class="flex-1 msg-user">${text}</div>
+              `;
+          } else {
+              wrapper.innerHTML = `
+                  <div class="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 
+                              flex items-center justify-center text-slate-950 text-xs font-bold mt-1">
+                      IA
+                  </div>
+                  <div class="msg-bot">${text}</div>
+              `;
+          }
+
+          messages.appendChild(wrapper);
+          scrollToBottom();
+      }
+
+      function showTyping() {
+          const wrapper = document.createElement("div");
+          wrapper.className = "flex gap-2 items-start";
+          wrapper.innerHTML = `
+              <div class="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 
+                          flex items-center justify-center text-slate-950 text-xs font-bold mt-1">
+                  IA
+              </div>
+              <div class="typing-bubble">
+                  <div class="typing-dot"></div>
+                  <div class="typing-dot"></div>
+                  <div class="typing-dot"></div>
+              </div>
+          `;
+          messages.appendChild(wrapper);
+          scrollToBottom();
+          return wrapper;
+      }
+
+      form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const text = input.value.trim();
+          if (!text) return;
+
+          appendMessage(text, "user");
+          input.value = "";
+          input.focus();
+
+          const typingEl = showTyping();
+
+          try {
+              const response = await fetch(coachApiUrl, {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({ message: text })
+              });
+
+              const data = await response.json();
+              messages.removeChild(typingEl);
+
+              if (data.answer) {
+                  // On remplace les sauts de ligne par <br>
+                  const safe = data.answer.replace(/\n/g, "<br>");
+                  appendMessage(safe, "bot");
+              } else if (data.error) {
+                  appendMessage(
+                      "Le coach n'a pas pu répondre pour l'instant : " + data.error,
+                      "bot"
+                  );
+              }
+          } catch (err) {
+              console.error(err);
+              if (typingEl.parentNode) {
+                  messages.removeChild(typingEl);
+              }
+              appendMessage(
+                  "Erreur réseau. Vérifie ta connexion et réessaie dans quelques instants.",
+                  "bot"
+              );
+          }
+      });
+  });
+</script>

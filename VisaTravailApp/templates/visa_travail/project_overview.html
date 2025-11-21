@@ -1,0 +1,432 @@
+{% extends "visa_travail/base.html" %}
+
+{% block title %}Vue 360° – Projet Visa Travail{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-xl-11">
+
+    <!-- HEADER + SCORE GLOBAL -->
+    <div class="card card-dark card-dark-hover p-4 p-md-5 mb-4 fade-in-up">
+      <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-4">
+        <div>
+          <span class="badge-soft mb-2 px-3 py-1">
+            🧠 Coach Niveau 7 – Vue 360°
+          </span>
+          <h1 class="h4 fw-bold mb-2">Vue 360° de ton projet Visa Travail</h1>
+          <p class="text-secondary small mb-2">
+            Résumé global de ton profil, de ta stratégie, de ta progression et des opportunités
+            pour t’aider à piloter ton projet comme un véritable <strong>dashboard premium</strong>.
+          </p>
+          <div class="small text-secondary">
+            Profil : <span class="fw-semibold">{{ profile.nom|default:"Profil #"|add:profile.id }}</span> ·
+            Domaine : <span class="fw-semibold">{{ profile.domaine_metier }}</span> ·
+            Pays ciblés : <span class="fw-semibold">{{ profile.pays_cibles|default:"Non défini" }}</span>
+          </div>
+        </div>
+
+        <!-- SCORE GLOBAL CERCLE -->
+        <div class="overview-score-circle text-center">
+          <div class="circle-wrapper">
+            <div class="circle-inner">
+              <div class="score-value">{{ global.global_score }}<span class="score-unit">/100</span></div>
+              <div class="score-label">{{ global.label }}</div>
+            </div>
+          </div>
+          <div class="mt-2 small text-secondary">
+            Score global du projet
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIGNE 1 : PROFIL + PROGRESSION + MATCHING -->
+    <div class="row g-3 mb-4">
+      <!-- PROFIL -->
+      <div class="col-lg-4">
+        <div class="card card-dark card-dark-hover p-3 h-100 fade-in-up">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h6 fw-semibold mb-0">Profil Visa Travail</h2>
+            <span class="badge-soft small">Score : {{ global.profile_part.score }}/40</span>
+          </div>
+          <div class="small text-secondary mb-2">
+            Synthèse de ton profil pour l’immigration professionnelle.
+          </div>
+
+          <div class="overview-item">
+            <div class="label text-secondary">Pays de résidence</div>
+            <div class="value">{{ profile.pays_residence }}</div>
+          </div>
+          <div class="overview-item">
+            <div class="label text-secondary">Niveau d’études</div>
+            <div class="value">{{ profile.get_niveau_etudes_display }}</div>
+          </div>
+          <div class="overview-item">
+            <div class="label text-secondary">Expérience</div>
+            <div class="value">{{ profile.annees_experience }} an(s)</div>
+          </div>
+          <div class="overview-item">
+            <div class="label text-secondary">Langues</div>
+            <div class="value">
+              Anglais : {{ profile.niveau_anglais }} · Langue pays : {{ profile.niveau_langue_pays }}
+            </div>
+          </div>
+          <div class="overview-item">
+            <div class="label text-secondary">Budget & horizon</div>
+            <div class="value">
+              {{ profile.get_budget_display }} · {{ profile.get_horizon_depart_display }}
+            </div>
+          </div>
+
+          <div class="mt-3 small text-secondary">
+            <strong>Interprétation :</strong><br>
+            {{ global.profile_part.level }}
+          </div>
+        </div>
+      </div>
+
+      <!-- PROGRESSION PLAN D'ACTION -->
+      <div class="col-lg-4">
+        <div class="card card-dark card-dark-hover p-3 h-100 fade-in-up">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h6 fw-semibold mb-0">Plan d’action</h2>
+            <span class="badge-soft small">
+              Progression : {{ progress_percent }}%
+            </span>
+          </div>
+          <div class="small text-secondary mb-2">
+            Suivi de tes étapes clés vers le visa travail.
+          </div>
+
+          <div class="small mb-1">
+            {{ done_steps }} étape(s) complétée(s) sur {{ total_steps }}
+          </div>
+          <div class="progress mb-2" style="height: 8px; border-radius: 999px;">
+            <div class="progress-bar" role="progressbar"
+                 style="width: {{ progress_percent }}%;"
+                 aria-valuenow="{{ progress_percent }}" aria-valuemin="0" aria-valuemax="100">
+            </div>
+          </div>
+
+          {% if steps %}
+            <div class="small text-secondary mb-1">
+              Dernières étapes :
+            </div>
+            <ul class="small text-secondary ps-3 mb-2">
+              {% for step in steps|slice:":3" %}
+                <li>
+                  <span class="fw-semibold">{{ step.titre }}</span>
+                  – 
+                  {% if step.statut == "A_FAIRE" %}
+                    <span class="text-muted">À faire</span>
+                  {% elif step.statut == "EN_COURS" %}
+                    <span class="text-info">En cours</span>
+                  {% else %}
+                    <span class="text-success">Terminé</span>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="small text-secondary">
+              Aucune étape n’a encore été générée pour ce profil.
+            </div>
+          {% endif %}
+
+          <div class="mt-auto d-flex justify-content-between gap-2">
+            <a href="{% url 'visa_travail:plan_action' profile.id %}" class="btn btn-outline-light btn-sm">
+              Voir le plan complet
+            </a>
+            <span class="badge-soft small">
+              Score progression : {{ global.progress_part.score }}/20
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATCHING OFFRES -->
+      <div class="col-lg-4">
+        <div class="card card-dark card-dark-hover p-3 h-100 fade-in-up">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h6 fw-semibold mb-0">Marché & offres compatibles</h2>
+            <span class="badge-soft small">
+              Score matching : {{ global.matching_part.score }}/40
+            </span>
+          </div>
+          <div class="small text-secondary mb-2">
+            Analyse de l’alignement entre ton profil et les offres présentes dans ton job board.
+          </div>
+
+          <div class="overview-item">
+            <div class="label text-secondary">Offres analysées</div>
+            <div class="value">
+              {{ global.matching_part.count_offers }}
+            </div>
+          </div>
+          <div class="overview-item">
+            <div class="label text-secondary">Score moyen de compatibilité</div>
+            <div class="value">
+              {{ global.matching_part.avg_match }}%
+            </div>
+          </div>
+
+          {% if top_offers %}
+            <div class="small text-secondary mt-2 mb-1">
+              Top 3 offres pour toi :
+            </div>
+            <ul class="small text-secondary ps-3 mb-2">
+              {% for item in top_offers|slice:":3" %}
+                <li>
+                  <strong>{{ item.offer.titre }}</strong> – {{ item.offer.pays }}
+                  ({{ item.score }}%)
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="small text-secondary">
+              Aucune offre analysée pour l’instant.
+            </div>
+          {% endif %}
+
+          <div class="mt-auto d-flex justify-content-between gap-2">
+            <a href="{% url 'visa_travail:job_offers_list' %}?profile={{ profile.id }}" class="btn btn-outline-light btn-sm">
+              Voir les offres avec score
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIGNE 2 : OPTIONS VISA + CANDIDATURES RÉCENTES -->
+    <div class="row g-3 mb-4">
+      <!-- OPTIONS VISA -->
+      <div class="col-lg-7">
+        <div class="card card-dark card-dark-hover p-3 p-md-4 h-100 fade-in-up">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h6 fw-semibold mb-0">Options de visa travail recommandées</h2>
+            <span class="badge-soft small">
+              {{ visa_options|length }} option(s)
+            </span>
+          </div>
+          <div class="small text-secondary mb-3">
+            Programmes qui semblent compatibles avec ton profil actuel.
+          </div>
+
+          {% if visa_options %}
+            <div class="row g-3 small">
+              {% for opt in visa_options %}
+                <div class="col-md-6">
+                  <div class="p-3 rounded-4" style="background: rgba(15,23,42,0.9); border: 1px solid rgba(148,163,184,0.35);">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div>
+                        <div class="badge-soft mb-1">{{ opt.pays }}</div>
+                        <div class="fw-semibold mb-1">{{ opt.nom_programme }}</div>
+                      </div>
+                    </div>
+                    <div class="text-secondary mb-1">
+                      {{ opt.profil_cible }}
+                    </div>
+                    <div class="text-secondary">
+                      <span class="fw-semibold">Délai :</span> {{ opt.delai_approx }}<br>
+                      <span class="fw-semibold">Difficulté :</span> {{ opt.difficulte }}
+                    </div>
+                    <div class="mt-2">
+                      <a href="{{ opt.lien_officiel }}" target="_blank" rel="noopener"
+                         class="small">
+                        Consulter la page officielle →
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-warning small mb-0">
+              Aucun programme précis n’a été identifié. Tu peux ajuster ton profil ou envisager une
+              stratégie <strong>Études → Travail</strong> pour ouvrir davantage de portes.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- CANDIDATURES RÉCENTES -->
+      <div class="col-lg-5">
+        <div class="card card-dark card-dark-hover p-3 p-md-4 h-100 fade-in-up">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h6 fw-semibold mb-0">Candidatures récentes</h2>
+            <span class="badge-soft small">
+              {{ recent_applications|length }} suivie(s)
+            </span>
+          </div>
+          <div class="small text-secondary mb-3">
+            Suivi rapide de tes dernières candidatures enregistrées.
+          </div>
+
+          {% if recent_applications %}
+            <div class="list-group list-group-flush">
+              {% for app in recent_applications %}
+                <div class="list-group-item bg-transparent border-secondary-subtle text-white py-2">
+                  <div class="d-flex justify-content-between align-items-start small">
+                    <div>
+                      <div class="fw-semibold">{{ app.titre_poste }}</div>
+                      <div class="text-secondary">
+                        {{ app.entreprise|default:"Entreprise non précisée" }} – {{ app.pays }}
+                        {% if app.ville %} · {{ app.ville }}{% endif %}
+                      </div>
+                      {% if app.date_candidature %}
+                        <div class="text-secondary">
+                          Candidature du {{ app.date_candidature }}
+                        </div>
+                      {% endif %}
+                      {% if app.commentaire %}
+                        <div class="text-secondary mt-1">
+                          <em>{{ app.commentaire|truncatechars:80 }}</em>
+                        </div>
+                      {% endif %}
+                    </div>
+                    <div class="text-end ms-2">
+                      <span class="badge-soft small">{{ app.get_statut_display }}</span>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="small text-secondary">
+              Tu n’as pas encore enregistré de candidatures dans ton tableau de bord.
+            </div>
+          {% endif %}
+
+          <div class="mt-3 d-flex justify-content-between gap-2">
+            <a href="{% url 'visa_travail:job_list' profile.id %}" class="btn btn-outline-light btn-sm">
+              Gérer mes candidatures
+            </a>
+            <a href="{% url 'visa_travail:job_offers_list' %}?profile={{ profile.id }}"
+               class="btn btn-outline-light btn-sm">
+              Chercher de nouvelles offres
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIGNE 3 : COACH IA GLOBAL + ACTIONS RAPIDES -->
+    <div class="row g-3 mb-4">
+      <!-- COACH IA GLOBAL -->
+      <div class="col-lg-8">
+        <div class="card card-dark card-dark-hover p-4 h-100 fade-in-up">
+          <h2 class="h6 fw-semibold mb-2">Coach IA – Analyse globale de ton projet</h2>
+          <p class="small text-secondary mb-3">
+            Voici une lecture synthétique de ta situation actuelle et des actions prioritaires pour augmenter
+            tes chances de décrocher un visa travail.
+          </p>
+
+          {% if global.insights %}
+            <ul class="small text-secondary ps-3 mb-0">
+              {% for insight in global.insights %}
+                <li>{{ insight }}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="small text-secondary mb-0">
+              Pas encore assez de données pour une analyse complète. Continue à compléter ton profil,
+              ton plan d’action et tes candidatures.
+            </p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- ACTIONS RAPIDES -->
+      <div class="col-lg-4">
+        <div class="card card-dark card-dark-hover p-4 h-100 fade-in-up">
+          <h2 class="h6 fw-semibold mb-2">Actions rapides</h2>
+          <p class="small text-secondary mb-3">
+            Navigue vers les modules clés pour faire avancer ton projet.
+          </p>
+          <div class="d-flex flex-column gap-2">
+            <a href="{% url 'visa_travail:plan_action' profile.id %}" class="btn btn-primary btn-sm">
+              📝 Continuer mon plan d’action
+            </a>
+            <a href="{% url 'visa_travail:coach_cv' %}" class="btn btn-outline-light btn-sm">
+              📄 Optimiser mon CV
+            </a>
+            <a href="{% url 'visa_travail:job_offers_list' %}?profile={{ profile.id }}"
+               class="btn btn-outline-light btn-sm">
+              💼 Voir les offres avec compatibilité
+            </a>
+            <a href="{% url 'visa_travail:country_strategy' profile.id %}"
+               class="btn btn-outline-light btn-sm">
+              🌍 Voir ma stratégie par pays
+            </a>
+            <a href="{% url 'visa_travail:export_plan_pdf' profile.id %}"
+               class="btn btn-outline-light btn-sm">
+              📎 Télécharger mon plan en PDF
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+.fade-in-up {
+  animation: fadeInUp 0.7s ease both;
+}
+@keyframes fadeInUp {
+  from { opacity:0; transform: translateY(20px); }
+  to { opacity:1; transform: translateY(0); }
+}
+
+.overview-score-circle .circle-wrapper {
+  width: 140px;
+  height: 140px;
+  border-radius: 999px;
+  background: radial-gradient(circle at top, #22c55e, #0f172a);
+  padding: 3px;
+  box-shadow: 0 0 40px rgba(34, 197, 94, 0.8);
+}
+.overview-score-circle .circle-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: radial-gradient(circle at bottom, #020617, #020617);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.overview-score-circle .score-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+.overview-score-circle .score-unit {
+  font-size: 14px;
+  opacity: 0.8;
+}
+.overview-score-circle .score-label {
+  font-size: 11px;
+  color: #e5e7eb;
+  margin-top: 4px;
+}
+.overview-item {
+  margin-bottom: 6px;
+}
+.overview-item .label {
+  font-size: 11px;
+}
+.overview-item .value {
+  font-size: 12px;
+  font-weight: 500;
+}
+.card-dark-hover {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.card-dark-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.85);
+  border-color: rgba(148, 163, 184, 0.45);
+}
+</style>
+{% endblock %}

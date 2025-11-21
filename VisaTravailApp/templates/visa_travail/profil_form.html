@@ -3,159 +3,671 @@
 {% block title %}Profil & Objectifs – Visa Travail{% endblock %}
 
 {% block content %}
+<style>
+  :root {
+    --primary: #10b981;
+    --primary-dark: #059669;
+    --text-muted: #cbd5e1;
+    --text-light: #f1f5f9;
+    --card-bg: #1e293b;
+    --card-border: #334155;
+    --input-bg: #0f172a;
+    --input-border: #334155;
+    --success: #10b981;
+    --error: #ef4444;
+    --warning: #f59e0b;
+  }
+
+  /* Animations avancées */
+  @keyframes slideInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes shimmerLoad {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+
+  @keyframes pulseSuccess {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+  }
+
+  @keyframes floatIn {
+    0% {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Header Premium */
+  .header-premium {
+    animation: slideInDown 0.8s ease-out;
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .badge-premium {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+    padding: 0.6rem 1.2rem;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    backdrop-filter: blur(10px);
+    animation: fadeIn 0.6s ease-out 0.2s both;
+  }
+
+  .header-premium h1 {
+    color: #f1f5f9;
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    animation: slideInUp 0.8s ease-out 0.1s both;
+  }
+
+  .header-premium h1 .gradient-text {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-premium p {
+    color: #cbd5e1;
+    font-size: 1.05rem;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+    animation: fadeIn 0.8s ease-out 0.3s both;
+  }
+
+  /* Card Container */
+  .card-premium {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid #334155;
+    border-radius: 24px;
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    animation: slideInUp 0.8s ease-out 0.2s both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.05), transparent);
+    transition: left 0.5s ease;
+    pointer-events: none;
+  }
+
+  .card-premium:hover::before {
+    left: 100%;
+  }
+
+  /* Section Headers */
+  .section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    animation: slideInUp 0.6s ease-out;
+  }
+
+  .section-header .icon-box {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
+    border: 1.5px solid rgba(16, 185, 129, 0.3);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: #10b981;
+    font-size: 1.5rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+
+  .section-header:hover .icon-box {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.1));
+    border-color: #10b981;
+    transform: scale(1.1) rotate(5deg);
+  }
+
+  .section-header h2 {
+    color: #f1f5f9;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  /* Divider */
+  .divider-premium {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #334155, transparent);
+    margin: 2.5rem 0;
+    animation: slideInUp 0.6s ease-out;
+  }
+
+  /* Form Group */
+  .form-group-premium {
+    animation: floatIn 0.6s ease-out;
+  }
+
+  .form-group-premium:nth-child(1) { animation-delay: 0.05s; }
+  .form-group-premium:nth-child(2) { animation-delay: 0.1s; }
+  .form-group-premium:nth-child(3) { animation-delay: 0.15s; }
+  .form-group-premium:nth-child(4) { animation-delay: 0.2s; }
+  .form-group-premium:nth-child(5) { animation-delay: 0.25s; }
+
+  .form-group-premium.mb-3 {
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* Labels */
+  .form-label-premium {
+    color: #f1f5f9;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.3s ease;
+  }
+
+  .form-label-premium .required {
+    color: #ef4444;
+    font-weight: bold;
+  }
+
+  .form-label-premium .optional {
+    color: #64748b;
+    font-weight: 400;
+    font-size: 0.85rem;
+  }
+
+  /* Inputs & Selects */
+  .form-control-premium,
+  .form-select-premium {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border: 1.5px solid #334155;
+    color: #f1f5f9;
+    padding: 0.875rem 1.25rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    position: relative;
+  }
+
+  .form-control-premium::placeholder,
+  .form-select-premium {
+    color: #64748b;
+  }
+
+  .form-control-premium:focus,
+  .form-select-premium:focus {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-color: #10b981;
+    color: #f1f5f9;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1), 0 0 20px rgba(16, 185, 129, 0.2);
+    outline: none;
+    transform: translateY(-2px);
+  }
+
+  .form-control-premium:hover,
+  .form-select-premium:hover {
+    border-color: rgba(16, 185, 129, 0.5);
+  }
+
+  .form-select-premium option {
+    background: #1e293b;
+    color: #f1f5f9;
+  }
+
+  /* Helper Text */
+  .form-helper-text {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: 0.4rem;
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  /* Multi-Select */
+  .form-check-premium {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: rgba(16, 185, 129, 0.02);
+    border: 1px solid #334155;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+  }
+
+  .form-check-premium:hover {
+    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  .form-check-premium input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #10b981;
+  }
+
+  .form-check-premium label {
+    color: #f1f5f9;
+    margin-bottom: 0;
+    margin-left: 0.75rem;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  /* Alert Messages */
+  .alert-premium {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+    border: 1.5px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    animation: slideInUp 0.4s ease-out;
+    backdrop-filter: blur(10px);
+    font-weight: 500;
+  }
+
+  .alert-premium i {
+    margin-right: 0.5rem;
+  }
+
+  /* Button Submit */
+  .btn-submit-premium {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    width: 100%;
+    max-width: 400px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    animation: slideInUp 0.8s ease-out 0.4s both;
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+  }
+
+  .btn-submit-premium::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  .btn-submit-premium:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .btn-submit-premium:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
+  }
+
+  .btn-submit-premium:active {
+    transform: translateY(-1px);
+  }
+
+  .btn-submit-premium i {
+    margin-right: 0.5rem;
+    transition: transform 0.3s ease;
+  }
+
+  .btn-submit-premium:hover i {
+    transform: translateX(2px);
+  }
+
+  /* Container Rows */
+  .row-premium {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .row-premium {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* Description Text */
+  .description-premium {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    animation: fadeIn 0.6s ease-out 0.1s both;
+  }
+
+  /* Button Submit Container */
+  .submit-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2.5rem;
+    animation: slideInUp 0.8s ease-out 0.5s both;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .header-premium h1 {
+      font-size: 1.8rem;
+    }
+
+    .card-premium {
+      padding: 1.5rem;
+    }
+
+    .row-premium {
+      grid-template-columns: 1fr;
+    }
+
+    .section-header .icon-box {
+      width: 45px;
+      height: 45px;
+      font-size: 1.2rem;
+    }
+
+    .section-header h2 {
+      font-size: 1.1rem;
+    }
+
+    .btn-submit-premium {
+      padding: 0.875rem 1.5rem;
+      font-size: 1rem;
+    }
+  }
+
+  /* Loading State */
+  .form-loading {
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  /* Success Validation */
+  .form-control-premium.is-valid {
+    border-color: #10b981;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.02));
+  }
+
+  /* Error Validation */
+  .form-control-premium.is-invalid {
+    border-color: #ef4444;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.02));
+  }
+</style>
+
 <div class="row justify-content-center">
   <div class="col-xl-9">
 
-    <!-- Header Section -->
-    <div class="text-center mb-4">
-      <span class="badge-soft px-3 py-1 mb-2">
+    <!-- Header Premium -->
+    <div class="header-premium">
+      <span class="badge-premium">
         <i class="bi bi-funnel-fill me-1"></i> Analyse de profil
       </span>
-      <h1 class="fw-bold display-6 mb-2">Construisons ton profil visa travail</h1>
-      <p class="text-secondary small">
-        Ces informations nous permettent de te proposer des programmes réalistes et un plan d’action
+      <h1>Construisons ton <span class="gradient-text">profil visa travail</span></h1>
+      <p>
+        Ces informations nous permettent de te proposer des programmes réalistes et un plan d'action
         professionnel, personnalisé et guidé.
       </p>
     </div>
 
-    <div class="card card-dark card-dark-hover p-4 p-md-5">
+    <!-- Card Premium -->
+    <div class="card-premium">
 
       <form method="post" novalidate>
         {% csrf_token %}
 
         <!-- IDENTITÉ -->
-        <div class="mb-4">
-          <h2 class="h5 fw-bold mb-3">
-            <i class="bi bi-person-badge me-2 text-success"></i>
-            Identité (optionnel)
-          </h2>
+        <div>
+          <div class="section-header">
+            <div class="icon-box">
+              <i class="bi bi-person-badge"></i>
+            </div>
+            <h2>Identité</h2>
+          </div>
 
-          <div class="row">
-            <div class="col-md-6 mb-3 fade-in-up">
-              <label class="form-label">{{ form.nom.label }}</label>
+          <p class="description-premium">
+            <span class="optional">(optionnel)</span> Aide-nous à te connaître mieux.
+          </p>
+
+          <div class="row-premium">
+            <div class="form-group-premium mb-3">
+              <label class="form-label-premium" for="{{ form.nom.id_for_label }}">{{ form.nom.label }}</label>
               {{ form.nom }}
+              {% if form.nom.help_text %}<small class="form-helper-text">{{ form.nom.help_text|safe }}</small>{% endif %}
             </div>
 
-            <div class="col-md-6 mb-3 fade-in-up">
-              <label class="form-label">{{ form.email.label }}</label>
+            <div class="form-group-premium mb-3">
+              <label class="form-label-premium" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
               {{ form.email }}
+              {% if form.email.help_text %}<small class="form-helper-text">{{ form.email.help_text|safe }}</small>{% endif %}
             </div>
           </div>
         </div>
 
-        <hr class="my-4 border-secondary">
+        <div class="divider-premium"></div>
 
         <!-- SITUATION ACTUELLE -->
-        <div class="mb-4">
-          <h2 class="h5 fw-bold mb-3">
-            <i class="bi bi-geo-alt me-2 text-success"></i>
-            Situation actuelle
-          </h2>
-
-          <div class="mb-3 fade-in-up">
-            <label class="form-label">{{ form.pays_residence.label }} *</label>
-            {{ form.pays_residence }}
+        <div>
+          <div class="section-header">
+            <div class="icon-box">
+              <i class="bi bi-geo-alt"></i>
+            </div>
+            <h2>Situation actuelle</h2>
           </div>
 
-          <div class="mb-3 fade-in-up">
-            <label class="form-label">{{ form.domaine_metier.label }} *</label>
-            {{ form.domaine_metier }}
+          <div class="row-premium">
+            <div class="form-group-premium mb-3">
+              <label class="form-label-premium" for="{{ form.pays_residence.id_for_label }}">
+                {{ form.pays_residence.label }}
+                <span class="required">*</span>
+              </label>
+              {{ form.pays_residence }}
+              {% if form.pays_residence.help_text %}<small class="form-helper-text">{{ form.pays_residence.help_text|safe }}</small>{% endif %}
+            </div>
+
+            <div class="form-group-premium mb-3">
+              <label class="form-label-premium" for="{{ form.domaine_metier.id_for_label }}">
+                {{ form.domaine_metier.label }}
+                <span class="required">*</span>
+              </label>
+              {{ form.domaine_metier }}
+              {% if form.domaine_metier.help_text %}<small class="form-helper-text">{{ form.domaine_metier.help_text|safe }}</small>{% endif %}
+            </div>
           </div>
         </div>
 
-        <hr class="my-4 border-secondary">
+        <div class="divider-premium"></div>
 
         <!-- PAYS CIBLES -->
-        <div class="mb-4">
-          <h2 class="h5 fw-bold mb-3">
-            <i class="bi bi-flag me-2 text-success"></i>
-            Pays ciblés
-          </h2>
+        <div>
+          <div class="section-header">
+            <div class="icon-box">
+              <i class="bi bi-flag"></i>
+            </div>
+            <h2>Pays ciblés</h2>
+          </div>
 
-          <p class="text-secondary small mb-2 fade-in-up">Tu peux en sélectionner plusieurs.</p>
-          <div class="fade-in-up">
+          <p class="description-premium">
+            Sélectionne les pays qui t'intéressent. Tu peux en choisir plusieurs. <span class="required">*</span>
+          </p>
+
+          <div class="form-group-premium">
             {{ form.pays_cibles_select }}
           </div>
         </div>
 
-        <hr class="my-4 border-secondary">
+        <div class="divider-premium"></div>
 
         <!-- ÉTUDES & EXPÉRIENCE -->
-        <div class="mb-4">
-          <h2 class="h5 fw-bold mb-3">
-            <i class="bi bi-mortarboard me-2 text-success"></i>
-            Formation & expérience
-          </h2>
+        <div>
+          <div class="section-header">
+            <div class="icon-box">
+              <i class="bi bi-mortarboard"></i>
+            </div>
+            <h2>Formation & expérience</h2>
+          </div>
 
-          <div class="row">
-            <div class="col-md-6 mb-3 fade-in-up">
-              <label class="form-label">{{ form.niveau_etudes.label }} *</label>
+          <div class="row-premium">
+            <div class="form-group-premium mb-3">
+              <label class="form-label-premium" for="{{ form.niveau_etudes.id_for_label }}">
+                {{ form.niveau_etudes.label }}
+                <span class="required">*</span>
+              </label>
               {{ form.niveau_etudes }}
+              {% if form.niveau_etudes.help_text %}<small class="form-helper-text">{{ form.niveau_etudes.help_text|safe }}</small>{% endif %}
             </div>
 
-            <div class="col-md-6 mb-3 fade-in-up">
-              <label class="form-label">{{ form.annees_experience.label }} *</label>
+            <div class="form-group-premium mb-3">
+              <label class="form-label-premium" for="{{ form.annees_experience.id_for_label }}">
+                {{ form.annees_experience.label }}
+                <span class="required">*</span>
+              </label>
               {{ form.annees_experience }}
+              {% if form.annees_experience.help_text %}<small class="form-helper-text">{{ form.annees_experience.help_text|safe }}</small>{% endif %}
             </div>
           </div>
         </div>
 
-        <hr class="my-4 border-secondary">
+        <div class="divider-premium"></div>
 
         <!-- LANGUES -->
-        <div class="mb-4">
-          <h2 class="h5 fw-bold mb-3">
-            <i class="bi bi-translate me-2 text-success"></i>
-            Niveaux de langue
-          </h2>
+        <div>
+          <div class="section-header">
+            <div class="icon-box">
+              <i class="bi bi-translate"></i>
+            </div>
+            <h2>Niveaux de langue</h2>
+          </div>
 
-          <div class="row">
-            <div class="col-md-6 mb-3 fade-in-up">
-              <label class="form-label">{{ form.niveau_anglais.label }} *</label>
+          <div class="row-premium">
+            <div class="form-group-premium mb-3">
+              <label class="form-label-premium" for="{{ form.niveau_anglais.id_for_label }}">
+                {{ form.niveau_anglais.label }}
+                <span class="required">*</span>
+              </label>
               {{ form.niveau_anglais }}
+              {% if form.niveau_anglais.help_text %}<small class="form-helper-text">{{ form.niveau_anglais.help_text|safe }}</small>{% endif %}
             </div>
 
-            <div class="col-md-6 mb-3 fade-in-up">
-              <label class="form-label">{{ form.niveau_langue_pays.label }} *</label>
+            <div class="form-group-premium mb-3">
+              <label class="form-label-premium" for="{{ form.niveau_langue_pays.id_for_label }}">
+                {{ form.niveau_langue_pays.label }}
+                <span class="required">*</span>
+              </label>
               {{ form.niveau_langue_pays }}
+              {% if form.niveau_langue_pays.help_text %}<small class="form-helper-text">{{ form.niveau_langue_pays.help_text|safe }}</small>{% endif %}
             </div>
           </div>
         </div>
 
-        <hr class="my-4 border-secondary">
+        <div class="divider-premium"></div>
 
         <!-- BUDGET & HORIZON -->
-        <div class="mb-4">
-          <h2 class="h5 fw-bold mb-3">
-            <i class="bi bi-cash-coin me-2 text-success"></i>
-            Budget & horizon de départ
-          </h2>
+        <div>
+          <div class="section-header">
+            <div class="icon-box">
+              <i class="bi bi-cash-coin"></i>
+            </div>
+            <h2>Budget & horizon de départ</h2>
+          </div>
 
-          <div class="row">
-            <div class="col-md-6 mb-3 fade-in-up">
-              <label class="form-label">{{ form.budget.label }} *</label>
+          <div class="row-premium">
+            <div class="form-group-premium mb-3">
+              <label class="form-label-premium" for="{{ form.budget.id_for_label }}">
+                {{ form.budget.label }}
+                <span class="required">*</span>
+              </label>
               {{ form.budget }}
+              {% if form.budget.help_text %}<small class="form-helper-text">{{ form.budget.help_text|safe }}</small>{% endif %}
             </div>
 
-            <div class="col-md-6 mb-3 fade-in-up">
-              <label class="form-label">{{ form.horizon_depart.label }} *</label>
+            <div class="form-group-premium mb-3">
+              <label class="form-label-premium" for="{{ form.horizon_depart.id_for_label }}">
+                {{ form.horizon_depart.label }}
+                <span class="required">*</span>
+              </label>
               {{ form.horizon_depart }}
+              {% if form.horizon_depart.help_text %}<small class="form-helper-text">{{ form.horizon_depart.help_text|safe }}</small>{% endif %}
             </div>
           </div>
         </div>
 
         <!-- ERREURS -->
         {% if form.errors %}
-          <div class="alert alert-danger small fade-in-up">
-            🚨 Merci de corriger les champs en rouge. Certains éléments sont manquants ou incorrects.
+          <div class="alert-premium">
+            <i class="bi bi-exclamation-circle-fill"></i> Merci de corriger les champs en rouge. Certains éléments sont manquants ou incorrects.
           </div>
         {% endif %}
 
         <!-- SUBMIT BUTTON -->
-        <div class="text-center mt-4">
-          <button type="submit" class="btn btn-primary btn-lg btn-glow">
-            <i class="bi bi-search-heart me-2"></i>
-            Voir mes options de visa travail
+        <div class="submit-container">
+          <button type="submit" class="btn-submit-premium">
+            <i class="bi bi-search-heart"></i> Voir mes options de visa travail
           </button>
         </div>
 

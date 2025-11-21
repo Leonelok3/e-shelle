@@ -1,4 +1,3 @@
-# visaetude/forms.py
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -10,6 +9,7 @@ ALLOWED_CONTENT_TYPES = {
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 }
 MAX_UPLOAD_MB = 10
+
 
 class UserProfileForm(forms.ModelForm):
     class Meta:
@@ -57,14 +57,11 @@ class ChecklistUpdateForm(forms.ModelForm):
         f = self.cleaned_data.get("fichier")
         if not f:
             return f
-        # Taille
         if f.size > MAX_UPLOAD_MB * 1024 * 1024:
             raise ValidationError(_(f"Fichier trop volumineux (≤ {MAX_UPLOAD_MB} Mo)."))
-        # Type MIME (content_type peut être None selon le backend)
         ctype = getattr(f, "content_type", None)
         if ctype and ctype not in ALLOWED_CONTENT_TYPES:
             raise ValidationError(_("Type de fichier non pris en charge. PDF/JPG/PNG/DOCX uniquement."))
-        # Extension fallback
         ext = (f.name.rsplit(".", 1)[-1] or "").lower()
         if ctype is None and ext not in {"pdf", "jpg", "jpeg", "png", "docx"}:
             raise ValidationError(_("Extension non autorisée. PDF/JPG/PNG/DOCX uniquement."))
