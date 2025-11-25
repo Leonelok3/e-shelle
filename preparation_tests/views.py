@@ -373,12 +373,6 @@ def tef_hub(request: HttpRequest) -> HttpResponse:
 
 
 
-def english_exams(request: HttpRequest) -> HttpResponse:
-    return render(request, "preparation_tests/english_exams.html")
-
-
-def german_exams(request: HttpRequest) -> HttpResponse:
-    return render(request, "preparation_tests/german_exams.html")
 
 
 # =========================================================

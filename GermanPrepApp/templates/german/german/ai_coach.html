@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Coach IA – Allemand – Immigration97{% endblock %}
+
+{% block content %}
+<main class="page page--german-ai-coach">
+  <section class="section">
+    <div class="container-narrow">
+
+      <p class="hero-kicker">Préparation • Allemand • Coach IA</p>
+      <h1 class="hero-title">Ton coach IA d’allemand</h1>
+      <p class="hero-subtitle">
+        Pose tes questions, demande un plan de travail, des exercices personnalisés, des explications
+        sur la grammaire ou les examens (Goethe, telc, TestDaF, DSH). Le coach s’adapte à ton niveau et à ton objectif.
+      </p>
+
+      <div class="profile-summary">
+        <p>Niveau interne : <strong>{{ profile.level }}</strong> • XP : <strong>{{ profile.xp }}</strong></p>
+        <p>Tests passés : <strong>{{ profile.total_tests }}</strong> • Meilleur score : <strong>{{ profile.best_score|default:0|floatformat:1 }} %</strong></p>
+        {% if profile.placement_level %}
+          <p>Niveau conseillé : <strong>{{ profile.placement_level }}</strong> (test de niveau ≈ {{ profile.placement_score|default:0|floatformat:1 }} %)</p>
+        {% endif %}
+        {% if last_session %}
+          <p>Dernier test : <strong>{{ last_session.exam.title }}</strong> ({{ last_session.exam.level }}) – score : {{ last_session.score|default:0|floatformat:1 }} %</p>
+        {% endif %}
+      </div>
+
+      <section class="section section--chat">
+        <div id="chat-box" class="chat-box">
+          <div class="chat-message chat-message--assistant">
+            <div class="chat-message-content">
+              <p>
+                Hallo 👋 Je suis ton coach IA d’allemand sur Immigration97.  
+                Explique-moi ton objectif (visa, études, travail…) et ton niveau actuel, et je te propose un plan.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <textarea id="user-input" class="chat-input" rows="3" placeholder="Écris ton message ici...">{{ preset }}</textarea>
+          <button id="send-btn" class="btn btn-primary">Envoyer ▶</button>
+        </div>
+      </section>
+
+    </div>
+  </section>
+</main>
+
+<script>
+  (function() {
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    // Historique minimal envoyé à l'API
+    let history = [];
+
+    function appendMessage(role, text) {
+      const wrapper = document.createElement('div');
+      wrapper.classList.add('chat-message');
+      if (role === 'assistant') {
+        wrapper.classList.add('chat-message--assistant');
+      } else {
+        wrapper.classList.add('chat-message--user');
+      }
+
+      const content = document.createElement('div');
+      content.classList.add('chat-message-content');
+      content.innerText = text;
+
+      wrapper.appendChild(content);
+      chatBox.appendChild(wrapper);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      appendMessage('user', text);
+      history.push({role: 'user', content: text});
+      userInput.value = '';
+      sendBtn.disabled = true;
+      sendBtn.innerText = 'Envoi...';
+
+      try {
+        const response = await fetch("{% url 'germanprep:ai_coach_api' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: text,
+            history: history,
+          }),
+        });
+
+        const data = await response.json();
+        if (data.reply) {
+          appendMessage('assistant', data.reply);
+          history.push({role: 'assistant', content: data.reply});
+        } else if (data.error) {
+          appendMessage('assistant', "Erreur : " + (data.reply || data.error));
+        }
+      } catch (e) {
+        appendMessage('assistant', "Une erreur est survenue lors de l'appel au coach IA.");
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerText = 'Envoyer ▶';
+      }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  })();
+</script>
+
+<style>
+.chat-box{
+  margin-top:18px;
+  padding:14px 16px;
+  border-radius:18px;
+  background:rgba(15,23,42,0.9);
+  border:1px solid rgba(148,163,184,0.5);
+  max-height:420px;
+  overflow-y:auto;
+}
+.chat-message{
+  margin-bottom:10px;
+  display:flex;
+}
+.chat-message--assistant .chat-message-content{
+  background:rgba(15,23,42,0.95);
+  border:1px solid rgba(148,163,184,0.7);
+  align-self:flex-start;
+}
+.chat-message--user{
+  justify-content:flex-end;
+}
+.chat-message--user .chat-message-content{
+  background:linear-gradient(135deg,#4ade80,#22c55e);
+  color:#020617;
+  align-self:flex-end;
+}
+.chat-message-content{
+  padding:8px 10px;
+  border-radius:14px;
+  max-width:90%;
+  white-space:pre-wrap;
+  font-size:.95rem;
+}
+.chat-input-area{
+  margin-top:14px;
+  display:flex;
+  gap:10px;
+  align-items:flex-end;
+}
+.chat-input{
+  flex:1;
+  border-radius:12px;
+  border:1px solid rgba(148,163,184,0.5);
+  background:rgba(15,23,42,0.9);
+  color:#e5e7eb;
+  padding:10px;
+  font-family:inherit;
+  resize:vertical;
+}
+</style>
+{% endblock %}

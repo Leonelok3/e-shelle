@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Progression & Coach en allemand – Immigration97{% endblock %}
+
+{% block content %}
+<main class="page page--german-progress">
+  <section class="section">
+    <div class="container-narrow">
+
+      <h1 class="hero-title">Ta progression en allemand</h1>
+      <p class="hero-subtitle">
+        Suis tes scores, ton XP, ton niveau recommandé et profite d’un plan d’action personnalisé
+        généré par ton coach.
+      </p>
+
+      <div class="profile-summary">
+        <p>XP total : {{ profile.xp }} • Niveau interne : {{ profile.level }}</p>
+        <p>Tests passés : {{ profile.total_tests }} • Meilleur score : {{ profile.best_score|default:0 }} %</p>
+        {% if profile.placement_level %}
+          <p>Niveau conseillé par le test de niveau : <strong>{{ profile.placement_level }}</strong>
+             (≈ {{ profile.placement_score|default:0|floatformat:1 }} %)</p>
+        {% else %}
+          <p>Tu n’as pas encore fait le test de niveau.
+            <a href="{% url 'germanprep:placement_test' %}">Le faire maintenant →</a>
+          </p>
+        {% endif %}
+      </div>
+
+      <h2 class="section-title">Scores par niveau</h2>
+      {% if stats_by_level %}
+        <div class="level-stats-grid">
+          {% for lvl, stat in stats_by_level.items %}
+            <article class="level-stat-card">
+              <h3>Niveau {{ lvl }}</h3>
+              <p>Nombre de tests : {{ stat.total }}</p>
+              <p>Score moyen : {{ stat.avg }} %</p>
+              <p>Meilleur score : {{ stat.best }} %</p>
+              <a href="{% url 'germanprep:home' %}#levels" class="btn btn-ghost btn-soft">
+                Lancer un nouveau test {{ lvl }}
+              </a>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="section-empty">
+          Aucun test pour l’instant. Commence par choisir un examen sur la page d’accueil allemand
+          ou par faire le test de niveau.
+        </p>
+      {% endif %}
+
+      <h2 class="section-title">Conseils du coach</h2>
+      <p class="section-subtitle">
+        Analyse automatique basée sur ton test de niveau et tes résultats aux examens.
+      </p>
+
+      <div class="coach-box">
+        <p class="coach-summary">{{ coach_summary }}</p>
+        <ol class="coach-plan">
+          {% for step in coach_plan %}
+            <li>{{ step }}</li>
+          {% endfor %}
+        </ol>
+      </div>
+
+      <div class="section-footer-cta">
+        <a href="{% url 'germanprep:home' %}" class="btn btn-primary">
+          Revenir aux examens d’allemand
+        </a>
+        <a href="{% url 'germanprep:placement_test' %}" class="btn btn-ghost">
+          Refaire le test de niveau
+        </a>
+      </div>
+
+    </div>
+  </section>
+</main>
+{% endblock %}

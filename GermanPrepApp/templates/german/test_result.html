@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Résultat – {{ exam.title }} – Immigration97{% endblock %}
+
+{% block content %}
+<main class="page page--german-test-result">
+  <section class="section">
+    <div class="container-narrow">
+
+      <p class="hero-kicker">Préparation • Allemand • Résultat</p>
+      <h1 class="hero-title">{{ exam.title }} ({{ exam.level }})</h1>
+      <p class="hero-subtitle">
+        Session du {{ session.started_at|date:"d/m/Y H:i" }}
+      </p>
+
+      <div class="result-grid">
+        <div class="result-card">
+          <p class="result-label">Score global</p>
+          <p class="result-value">{{ score|floatformat:1 }} %</p>
+          <p class="result-detail">
+            {{ correct_answers }} bonnes réponses sur {{ total }} questions.
+          </p>
+
+          {% if xp_gain %}
+            <p class="result-xp">+ {{ xp_gain }} XP gagnés 🟢</p>
+          {% endif %}
+        </div>
+
+        <div class="result-card">
+          <p class="result-label">Répartition des compétences</p>
+          {% if skill_stats %}
+            <ul class="skill-list">
+              {% for code, data in skill_stats.items %}
+                <li class="skill-item">
+                  <span class="skill-name">{{ data.label }}</span>
+                  <span class="skill-pct">{{ data.pct }} %</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="section-empty">Pas encore de stats détaillées.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="hero-cta-row" style="margin-top: 24px;">
+        <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-primary">
+          🔁 Refaire une simulation
+        </a>
+        <a href="{% url 'germanprep:review_incorrect' session.id %}" class="btn btn-secondary">
+          Revoir uniquement mes erreurs
+        </a>
+        <a href="{% url 'germanprep:skill_analysis' session.id %}" class="btn btn-ghost">
+          Analyse détaillée des compétences
+        </a>
+      </div>
+
+      <section class="section">
+        <h2 class="section-title">Détail des questions</h2>
+        <ul class="question-list">
+          {% for ans in answers %}
+            <li class="question-item {% if ans.is_correct %}question-item--correct{% else %}question-item--wrong{% endif %}">
+              <p class="question-text">
+                {{ ans.exercise.prompt|default:ans.exercise.question_text }}
+              </p>
+              <p class="question-meta">
+                Ta réponse : <strong>{{ ans.selected_option }}</strong> •
+                Bonne réponse : <strong>{{ ans.exercise.correct_option }}</strong>
+              </p>
+              {% if ans.exercise.explanation %}
+                <p class="question-expl">
+                  💡 {{ ans.exercise.explanation }}
+                </p>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+
+    </div>
+  </section>
+</main>
+
+<style>
+.result-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:16px;
+  margin-top:20px;
+}
+.result-card{
+  padding:18px 20px;
+  border-radius:18px;
+  background:rgba(15,23,42,0.9);
+  border:1px solid rgba(148,163,184,0.4);
+}
+.result-label{font-size:.9rem;color:#94a3b8;margin-bottom:6px;}
+.result-value{font-size:2.2rem;font-weight:800;color:#e5feaf;}
+.result-detail{color:#cbd5f5;font-size:.95rem;}
+.result-xp{margin-top:8px;color:#4ade80;font-weight:600;}
+.skill-list{list-style:none;margin:0;padding:0;}
+.skill-item{display:flex;justify-content:space-between;margin:4px 0;}
+.question-list{list-style:none;margin:0;padding:0;margin-top:12px;}
+.question-item{padding:12px 14px;border-radius:14px;margin-bottom:10px;
+  background:rgba(15,23,42,0.9);border:1px solid rgba(148,163,184,0.35);}
+.question-item--correct{border-color:rgba(34,197,94,0.7);}
+.question-item--wrong{border-color:rgba(248,113,113,0.8);}
+.question-text{font-weight:600;margin-bottom:4px;}
+.question-meta{font-size:.9rem;color:#cbd5f5;}
+.question-expl{font-size:.9rem;color:#e5e7eb;margin-top:4px;}
+</style>
+{% endblock %}

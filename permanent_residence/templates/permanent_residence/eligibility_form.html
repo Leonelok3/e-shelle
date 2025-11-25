@@ -1,363 +1,205 @@
 {% extends "base.html" %}
 
-{% block title %}immigration97 · Profil RP{% endblock %}
+{% block title %}
+Diagnostic Résidence Permanente – Canada / Australie | immigration97
+{% endblock %}
 
 {% block content %}
-<style>
-  .rp-page-bg {
-    min-height: 100vh;
-    padding: 3rem 0;
-    background: radial-gradient(circle at top, rgba(15,23,42,0.8), #020617);
-  }
 
-  .rp-card {
-    max-width: 960px;
-    margin: 0 auto;
-    background: #ffffff;
-    border-radius: 1.5rem;
-    border: 1px solid rgba(148,163,184,0.5);
-    box-shadow: 0 22px 60px rgba(15,23,42,0.8);
-    padding: 2.5rem 2rem 2rem;
-    color: #020617;
-  }
+{# === NAVIGATION RP DÉDIÉE === #}
+{% include "permanent_residence/_rp_nav.html" %}
 
-  .rp-card h1 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-  }
+<div class="max-w-5xl mx-auto py-10 px-4">
 
-  .rp-card p.subtitle {
-    font-size: 0.95rem;
-    color: #475569;
-    margin-bottom: 1.8rem;
-  }
-
-  .rp-grid-2 {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.25rem;
-  }
-
-  .rp-field {
-    margin-bottom: 1.1rem;
-  }
-
-  .rp-label {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #0f172a;
-    margin-bottom: 0.3rem;
-  }
-
-  .rp-section-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    margin: 1.4rem 0 0.6rem;
-    color: #020617;
-  }
-
-  .rp-help {
-    font-size: 0.78rem;
-    color: #64748b;
-    margin-top: 0.2rem;
-  }
-
-  .rp-card input[type="text"],
-  .rp-card input[type="number"],
-  .rp-card select,
-  .rp-card textarea {
-    width: 100%;
-    border-radius: 0.85rem;
-    border: 1px solid #e2e8f0;
-    background: #f1f5f9;
-    padding: 0.75rem 1rem;
-    font-size: 0.9rem;
-    color: #020617;
-    box-sizing: border-box;
-  }
-
-  .rp-card input[type="text"]:focus,
-  .rp-card input[type="number"]:focus,
-  .rp-card select:focus,
-  .rp-card textarea:focus {
-    outline: none;
-    border-color: #22c55e;
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(34,197,94,0.35);
-  }
-
-  .rp-card textarea {
-    min-height: 120px;
-    resize: vertical;
-  }
-
-  .rp-checkbox-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1rem;
-  }
-
-  .rp-checkbox-card {
-    display: flex;
-    gap: 0.7rem;
-    padding: 0.8rem 1rem;
-    border-radius: 0.9rem;
-    border: 1px solid #e2e8f0;
-    background: #f1f5f9;
-  }
-
-  .rp-checkbox-card input[type="checkbox"] {
-    margin-top: 0.2rem;
-    width: 18px;
-    height: 18px;
-  }
-
-  .rp-submit {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 1.5rem;
-  }
-
-  .rp-btn {
-    border: none;
-    padding: 0.85rem 2rem;
-    border-radius: 999px;
-    background: linear-gradient(120deg, #22c55e, #16a34a);
-    font-weight: 700;
-    color: #020617;
-    cursor: pointer;
-    font-size: 1rem;
-    box-shadow: 0 15px 40px rgba(34,197,94,0.5);
-  }
-
-  .rp-btn:hover {
-    filter: brightness(1.05);
-    transform: translateY(-1px);
-  }
-
-  .rp-legal {
-    max-width: 960px;
-    margin: 1rem auto 0;
-    text-align: center;
-    font-size: 0.75rem;
-    color: #e2e8f0;
-  }
-
-  /* Style visuel pour les champs désactivés */
-  .rp-disabled {
-    background: #e5e7eb !important;
-    color: #9ca3af !important;
-    cursor: not-allowed !important;
-  }
-
-  @media (max-width: 640px) {
-    .rp-card {
-      padding: 1.75rem 1.25rem 1.5rem;
-      border-radius: 1.25rem;
-    }
-  }
-</style>
-
-<div class="rp-page-bg">
-  <div class="rp-card">
-    <h1>Profil Résidence Permanente</h1>
-    <p class="subtitle">
-      Analyse ton éligibilité RP pour le Canada ou l’Australie
-      (études, langues, expérience, liens familiaux).
+  <!-- HEADER -->
+  <div class="bg-[#0d1b24] border border-[#0d2834] rounded-2xl p-8 shadow-xl mb-8">
+    <p class="text-sm text-emerald-300 mb-2">
+      Étape 1 · Diagnostic RP
     </p>
-
-    <form method="post" novalidate>
-      {% csrf_token %}
-      {{ form.non_field_errors }}
-
-      <!-- Pays -->
-      <div class="rp-field">
-        <label class="rp-label" for="{{ form.country.id_for_label }}">Pays ciblé</label>
-        {{ form.country }}
-      </div>
-
-      <!-- Âge + expérience -->
-      <div class="rp-grid-2">
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.age.id_for_label }}">Âge</label>
-          {{ form.age }}
-        </div>
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.years_experience.id_for_label }}">Années d’expérience (temps plein)</label>
-          {{ form.years_experience }}
-        </div>
-      </div>
-
-      <!-- Études -->
-      <div class="rp-field">
-        <label class="rp-label" for="{{ form.education_level.id_for_label }}">Niveau d’études</label>
-        {{ form.education_level }}
-      </div>
-
-      <!-- FRANÇAIS -->
-      <h3 class="rp-section-title">Français (TEF / TCF / autres)</h3>
-      <p class="rp-help">
-        Si tu n’as pas encore passé de test, choisis “Aucun test” et indique
-        simplement ton <strong>niveau global estimé</strong>. Les sous-champs CO/CE/EO/EE seront désactivés.
-      </p>
-
-      <div class="rp-grid-2">
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.french_exam.id_for_label }}">Test de français (si déjà passé)</label>
-          {{ form.french_exam }}
-        </div>
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.french_level.id_for_label }}">Niveau global de français (estimation)</label>
-          {{ form.french_level }}
-        </div>
-      </div>
-
-      <div class="rp-grid-2">
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.french_co.id_for_label }}">CO – Compréhension orale</label>
-          {{ form.french_co }}
-          <p class="rp-help">Laisse vide si tu ne connais pas ton score.</p>
-        </div>
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.french_ce.id_for_label }}">CE – Compréhension écrite</label>
-          {{ form.french_ce }}
-        </div>
-      </div>
-
-      <div class="rp-grid-2">
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.french_eo.id_for_label }}">EO – Expression orale</label>
-          {{ form.french_eo }}
-        </div>
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.french_ee.id_for_label }}">EE – Expression écrite</label>
-          {{ form.french_ee }}
-        </div>
-      </div>
-
-      <!-- ANGLAIS -->
-      <h3 class="rp-section-title">Anglais (IELTS / CELPIP / PTE…)</h3>
-      <p class="rp-help">
-        Même logique : “Aucun test” = sous-champs Listening/Reading/Speaking/Writing désactivés,
-        mais tu peux indiquer ton <strong>niveau global estimé</strong>.
-      </p>
-
-      <div class="rp-grid-2">
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.english_exam.id_for_label }}">Test d’anglais (si déjà passé)</label>
-          {{ form.english_exam }}
-        </div>
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.english_level.id_for_label }}">Niveau global d’anglais (estimation)</label>
-          {{ form.english_level }}
-        </div>
-      </div>
-
-      <div class="rp-grid-2">
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.english_co.id_for_label }}">CO – Listening</label>
-          {{ form.english_co }}
-        </div>
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.english_ce.id_for_label }}">CE – Reading</label>
-          {{ form.english_ce }}
-        </div>
-      </div>
-
-      <div class="rp-grid-2">
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.english_eo.id_for_label }}">EO – Speaking</label>
-          {{ form.english_eo }}
-        </div>
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.english_ee.id_for_label }}">EE – Writing</label>
-          {{ form.english_ee }}
-        </div>
-      </div>
-
-      <!-- PROFESSION -->
-      <div class="rp-field">
-        <label class="rp-label" for="{{ form.profession_title.id_for_label }}">Profession principale</label>
-        {{ form.profession_title }}
-      </div>
-
-      <!-- Codes -->
-      <div class="rp-grid-2">
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.noc_code.id_for_label }}">Code NOC / TEER (Canada)</label>
-          {{ form.noc_code }}
-        </div>
-        <div class="rp-field">
-          <label class="rp-label" for="{{ form.anzsco_code.id_for_label }}">Code ANZSCO (Australie)</label>
-          {{ form.anzsco_code }}
-        </div>
-      </div>
-
-      <!-- Checkboxes -->
-      <div class="rp-checkbox-row">
-        <label class="rp-checkbox-card">
-          {{ form.has_family_in_country }}
-          <span><strong>Famille sur place</strong><br>J’ai de la famille proche dans le pays ciblé.</span>
-        </label>
-
-        <label class="rp-checkbox-card">
-          {{ form.has_job_offer }}
-          <span><strong>Offre d’emploi valide</strong><br>J’ai déjà une offre d’emploi confirmée.</span>
-        </label>
-      </div>
-
-      <!-- Notes -->
-      <div class="rp-field">
-        <label class="rp-label" for="{{ form.notes.id_for_label }}">Infos complémentaires (facultatif)</label>
-        {{ form.notes }}
-      </div>
-
-      <!-- Bouton -->
-      <div class="rp-submit">
-        <button type="submit" class="rp-btn">Analyser mon profil</button>
-      </div>
-    </form>
+    <h1 class="text-2xl md:text-3xl font-bold text-white mb-3">
+      Complète ton diagnostic Résidence Permanente
+    </h1>
+    <p class="text-gray-300 text-sm md:text-base max-w-3xl">
+      Réponds aux questions clés (âge, études, langues, expérience, profil).  
+      Ensuite tu obtiens :
+      <span class="text-emerald-300 font-semibold">un résumé clair</span>,
+      des <span class="text-emerald-300 font-semibold">programmes adaptés</span>,
+      et un <span class="text-emerald-300 font-semibold">plan d’action RP personnalisé</span>.
+    </p>
   </div>
 
-  <p class="rp-legal">
-    Outil d’analyse préliminaire – immigration97.  
-    Vérifie toujours les critères officiels (IRCC, Home Affairs, etc.).
-  </p>
+  <!-- FORMULAIRE STRUCTURÉ -->
+  <div class="bg-[#0d1b24] border border-[#0d2834] rounded-2xl p-8 shadow-xl">
+    <form method="post" class="permanent-residence-form" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="mb-4 rounded-lg bg-red-900/30 border border-red-700/60 p-3 text-sm text-red-200">
+        {{ form.non_field_errors }}
+      </div>
+      {% endif %}
+
+      <!-- SECTION PROFIL GÉNÉRAL -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-white mb-3">Profil général</h2>
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+          <!-- Pays -->
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.country.label }}</label>
+            {{ form.country }}
+          </div>
+
+          <!-- Âge -->
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.age.label }}</label>
+            {{ form.age }}
+          </div>
+
+          <!-- Expérience -->
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.years_experience.label }}</label>
+            {{ form.years_experience }}
+          </div>
+
+          <!-- Études -->
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.education_level.label }}</label>
+            {{ form.education_level }}
+          </div>
+
+        </div>
+      </div>
+
+      <!-- SECTION FRANÇAIS -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-white mb-3">Français</h2>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.french_exam.label }}</label>
+            {{ form.french_exam }}
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.french_level.label }}</label>
+            {{ form.french_level }}
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.french_co.label }}</label>
+            {{ form.french_co }}
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.french_ce.label }}</label>
+            {{ form.french_ce }}
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.french_eo.label }}</label>
+            {{ form.french_eo }}
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.french_ee.label }}</label>
+            {{ form.french_ee }}
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION ANGLAIS -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-white mb-3">Anglais</h2>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.english_exam.label }}</label>
+            {{ form.english_exam }}
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.english_level.label }}</label>
+            {{ form.english_level }}
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.english_co.label }}</label>
+            {{ form.english_co }}
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.english_ce.label }}</label>
+            {{ form.english_ce }}
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.english_eo.label }}</label>
+            {{ form.english_eo }}
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.english_ee.label }}</label>
+            {{ form.english_ee }}
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION AUTRES INFOS -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-white mb-3">Autres informations</h2>
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.profession_title.label }}</label>
+            {{ form.profession_title }}
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.noc_code.label }}</label>
+            {{ form.noc_code }}
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-1">{{ form.anzsco_code.label }}</label>
+            {{ form.anzsco_code }}
+          </div>
+
+          <!-- Checkboxes alignées -->
+          <div class="md:col-span-2 flex flex-wrap items-center gap-8 mt-4">
+            <label class="flex items-center gap-2 text-sm font-semibold">
+              {{ form.has_job_offer }}
+              <span>{{ form.has_job_offer.label }}</span>
+            </label>
+
+            <label class="flex items-center gap-2 text-sm font-semibold">
+              {{ form.has_family_in_country }}
+              <span>{{ form.has_family_in_country.label }}</span>
+            </label>
+          </div>
+
+        </div>
+
+        <div class="mt-6">
+          <label class="block text-sm font-semibold mb-1">{{ form.notes.label }}</label>
+          {{ form.notes }}
+        </div>
+
+      </div>
+
+      <!-- CTA -->
+      <div class="mt-8 flex flex-wrap items-center justify-between gap-4">
+        <p class="text-xs text-gray-500 max-w-md">
+          Tes données servent uniquement à générer ton diagnostic RP.  
+          Rien n’est partagé avec un tiers.
+        </p>
+
+        <button type="submit"
+          class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-lg shadow-emerald-600/20 transition">
+          Voir mon résultat RP →
+        </button>
+      </div>
+
+    </form>
+  </div>
 </div>
 
-<script>
-  // Active/désactive les sous-champs langue selon le test choisi
-  document.addEventListener("DOMContentLoaded", function () {
-    function setupLanguageBlock(prefix) {
-      const examSelect = document.getElementById("id_" + prefix + "_exam");
-      if (!examSelect) return;
-
-      const subFields = ["co", "ce", "eo", "ee"]
-        .map(suffix => document.getElementById("id_" + prefix + "_" + suffix))
-        .filter(Boolean);
-
-      function update() {
-        const hasRealTest = examSelect.value && examSelect.value !== "none";
-        subFields.forEach(input => {
-          if (!input) return;
-          input.disabled = !hasRealTest;
-          if (!hasRealTest) {
-            input.classList.add("rp-disabled");
-          } else {
-            input.classList.remove("rp-disabled");
-          }
-        });
-      }
-
-      // état initial + sur changement
-      update();
-      examSelect.addEventListener("change", update);
-    }
-
-    setupLanguageBlock("french");
-    setupLanguageBlock("english");
-  });
-</script>
 {% endblock %}

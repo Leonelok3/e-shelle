@@ -133,12 +133,12 @@ def evaluate_eligibility(profile: PRProfile) -> dict:
 # -------------------------------------------------------------------
 #  FORMULAIRE ÉLIGIBILITÉ RP + REDIRECT VERS PAGE RÉSULTAT
 # -------------------------------------------------------------------
+
 @login_required
 def eligibility_view(request):
     """
     GET  -> affiche le formulaire RP
-    POST -> enregistre le profil + crée les étapes du plan + redirige
-            vers la page de résultat ultra premium.
+    POST -> enregistre le profil puis redirige vers la page de résultat stylée
     """
     if request.method == "POST":
         form = PREligibilityForm(request.POST)
@@ -147,15 +147,14 @@ def eligibility_view(request):
             profile.user = request.user
             profile.save()
 
-            # Générer un plan d’action de base pour ce profil
-            _generate_default_steps(profile)
-
-            # On redirige vers la page de résultat
-            return redirect("permanent_residence:result", pk=profile.pk)
+            # 👉 redirection vers la page de résultat
+            return redirect(
+                "permanent_residence:result",
+                profile_id=profile.id,
+            )
     else:
         form = PREligibilityForm()
 
-    # Affichage du formulaire
     return render(
         request,
         "permanent_residence/eligibility_form.html",
@@ -167,25 +166,25 @@ def eligibility_view(request):
 #  PAGE RÉSULTAT (TON TEMPLATE ULTRA PREMIUM)
 # -------------------------------------------------------------------
 @login_required
-def eligibility_result_view(request, pk):
+def eligibility_result_view(request, profile_id: int):
     """
-    Affiche la page résultat RP pour un profil donné.
-    Utilise ton template permanent_residence/eligibility_result.html
-    avec :
-      - profile
-      - evaluation (dict)
-      - program_results (liste de programmes suggérés)
-      - progress_percent (progression du plan d’action)
+    Affiche la page Résultat RP ultra premium pour un profil donné.
+    - calcule l'évaluation générale
+    - calcule les programmes possibles
+    - calcule la progression (plan d'action)
     """
-    profile = get_object_or_404(PRProfile, pk=pk, user=request.user)
+    profile = get_object_or_404(PRProfile, pk=profile_id, user=request.user)
 
-    # Évaluation simplifiée
+    # S'assurer que le plan d'action existe pour ce profil
+    _generate_default_steps(profile)
+
+    # Évaluation générale (texte forces / axes de développement)
     evaluation = evaluate_eligibility(profile)
 
-    # Résultats des programmes (Canada / Australie)
+    # Programmes RP possibles (Canada / Australie)
     program_results = evaluate_profile(profile)
 
-    # Progression basée sur les étapes du plan
+    # Progression globale du plan (pour la barre en %)
     all_steps = list(profile.steps.all())
     total_steps = len(all_steps)
     done_steps = len([s for s in all_steps if s.status == "done"])
@@ -502,3 +501,299 @@ def coach_view(request):
     appeler l’API rp_coach_api en AJAX plus tard.
     """
     return render(request, "permanent_residence/coach.html", {})
+
+
+
+
+#####################################
+# ---------- HELPERS DASHBOARD & STRATÉGIES ----------
+
+def _compute_profile_completion(profile: PRProfile) -> int:
+    """
+    Taux de complétion du profil (0-100).
+    Basé sur les champs clés uniquement.
+    """
+    important_fields = [
+        "country",
+        "age",
+        "education_level",
+        "years_experience",
+        "french_level",
+        "english_level",
+        "profession_title",
+    ]
+    total = len(important_fields)
+    filled = 0
+
+    for f in important_fields:
+        value = getattr(profile, f, None)
+        if value not in [None, "", 0]:
+            filled += 1
+
+    return int(filled * 100 / total) if total else 0
+
+
+def _compute_plan_progress(profile: PRProfile) -> int:
+    """
+    Pourcentage d'étapes de plan déjà terminées.
+    """
+    all_steps = list(profile.steps.all())
+    total = len(all_steps)
+    if total == 0:
+        return 0
+    done = len([s for s in all_steps if s.status == "done"])
+    return int(done * 100 / total)
+
+
+def _score_language_level(level: str) -> int:
+    """
+    Transforme un niveau texte en score (0-100) très approximatif.
+    Tu pourras ajuster plus tard.
+    """
+    if not level:
+        return 0
+
+    lvl = level.lower()
+    mapping = {
+        "a1": 15, "a2": 25,
+        "b1": 40, "b2": 60,
+        "c1": 80, "c2": 95,
+    }
+
+    for key, value in mapping.items():
+        if key in lvl:
+            return value
+
+    # mots clés fréquents
+    if "débutant" in lvl or "basic" in lvl:
+        return 20
+    if "intermédiaire" in lvl or "intermediate" in lvl:
+        return 50
+    if "avancé" in lvl or "advanced" in lvl:
+        return 80
+
+    return 50  # défaut
+
+
+def _compute_language_score(profile: PRProfile) -> int:
+    """
+    Score global langues (moyenne FR / EN).
+    """
+    fr = _score_language_level(getattr(profile, "french_level", "") or "")
+    en = _score_language_level(getattr(profile, "english_level", "") or "")
+    if fr == 0 and en == 0:
+        return 0
+    if fr == 0:
+        return en
+    if en == 0:
+        return fr
+    return int((fr + en) / 2)
+
+
+def _build_next_actions(profile: PRProfile, max_items: int = 3):
+    """
+    Renvoie les prochaines actions à partir du plan RP.
+    """
+    pending = profile.steps.filter(status__in=["todo", "in_progress"]).order_by("order")
+    return list(pending[:max_items])
+
+
+def _build_strategies_for_profile(profile: PRProfile):
+    """
+    Crée 2–3 stratégies RP adaptées au profil.
+    Pas de modèle en base pour l'instant : on renvoie juste une liste de dicts.
+    """
+    country = (str(profile.country) or "").upper()
+
+    base_context = {
+        "age": getattr(profile, "age", None),
+        "exp": getattr(profile, "years_experience", None),
+        "edu": (getattr(profile, "education_level", "") or ""),
+        "fr": (getattr(profile, "french_level", "") or ""),
+        "en": (getattr(profile, "english_level", "") or ""),
+        "job": (getattr(profile, "profession_title", "") or ""),
+    }
+
+    strategies = []
+
+    # --- Stratégie 1 : RP économique "classique" ---
+    if country in ["CA", "CANADA", ""]:
+        strategies.append({
+            "slug": "canada_express_pnp",
+            "label": "Canada – Entrée Express + PNP francophones",
+            "tag": "Voie économique",
+            "color": "emerald",
+            "summary": (
+                "Optimiser ton profil pour Entrée Express (fédéral) tout en ouvrant "
+                "les options des Programmes des candidats des provinces (PNP), "
+                "surtout ceux qui favorisent le français."
+            ),
+            "ideal_for": (
+                "Profil avec au moins 1 an d'expérience qualifiée, "
+                "un bon niveau de français/anglais et des études post-secondaires."
+            ),
+            "key_actions": [
+                "Atteindre un niveau linguistique compétitif (CLB 7–9).",
+                "Lancer l'évaluation des diplômes (EDE).",
+                "Créer le profil Entrée Express et surveiller les PNP alignés sur ton métier.",
+            ],
+        })
+
+    if country in ["AU", "AUS", "AUSTRALIE", ""]:
+        strategies.append({
+            "slug": "australia_points_state",
+            "label": "Australie – Visa à points + nomination d'État",
+            "tag": "Voie points",
+            "color": "sky",
+            "summary": (
+                "Utiliser un visa à points (189/190/491) en ciblant les États "
+                "où ton métier est en demande et en maximisant ton score "
+                "via les langues, l'expérience et les études."
+            ),
+            "ideal_for": (
+                "Profils qualifiés avec expérience dans un métier listé "
+                "sur les listes gouvernementales (MLTSSL, STSOL, etc.)."
+            ),
+            "key_actions": [
+                "Vérifier la présence de ton métier sur les listes officielles.",
+                "Faire le skills assessment auprès de l'organisme compétent.",
+                "Préparer un score d'anglais solide (IELTS/PTE).",
+            ],
+        })
+
+    # --- Stratégie 2 : Études + RP ultérieure ---
+    strategies.append({
+        "slug": "etudes_vers_rp",
+        "label": "Études + expérience locale → Résidence permanente",
+        "tag": "Voie progressive",
+        "color": "violet",
+        "summary": (
+            "Utiliser un programme d'études ciblé pour obtenir un diplôme local, "
+            "un permis de travail post-diplôme et une expérience locale, "
+            "puis basculer vers la RP."
+        ),
+        "ideal_for": (
+            "Profils plus jeunes ou en reconversion, prêts à investir dans un projet d'études "
+            "stratégique (domaine en demande, province/État avantageux)."
+        ),
+        "key_actions": [
+            "Identifier les programmes d'études alignés avec les voies de RP.",
+            "Préparer les preuves financières et les tests de langue pour l'admission.",
+            "Planifier le passage du statut étudiant à la RP dès le début du projet.",
+        ],
+    })
+
+    # --- Stratégie 3 : Offre d'emploi / sponsor ---
+    strategies.append({
+        "slug": "job_sponsor",
+        "label": "Offre d'emploi + sponsorisation",
+        "tag": "Voie employeur",
+        "color": "amber",
+        "summary": (
+            "Cibler les employeurs capables de te sponsoriser, en adaptant ton CV "
+            "au format local et en visant les régions où ton profil est rare."
+        ),
+        "ideal_for": (
+            "Profils avec expérience ciblée et bonne maîtrise de l'anglais, "
+            "prêts à accepter certaines régions ou secteurs en pénurie."
+        ),
+        "key_actions": [
+            "Mettre ton CV au format canadien/australien et optimiser ton LinkedIn.",
+            "Identifier les portails d'emploi sérieux et éviter les arnaques.",
+            "Comprendre les conditions d'un vrai sponsor (LMIA, TSS, etc.).",
+        ],
+    })
+
+    return strategies
+
+
+
+# ---------- COCKPIT RP (DASHBOARD) ----------
+
+@login_required
+def dashboard_view(request):
+    """
+    Cockpit Résidence Permanente :
+    - si profil dispo : montre score de préparation, prochaines actions, accès rapide.
+    - sinon : invite à remplir le simulateur.
+    """
+    # Dernier profil RP de l'utilisateur
+    profile = (
+        PRProfile.objects.filter(user=request.user)
+        .order_by("-id")
+        .first()
+    )
+
+    if not profile:
+        return render(request, "permanent_residence/dashboard.html", {
+            "profile": None,
+        })
+
+    # S'assurer que le plan existe
+    _generate_default_steps(profile)
+
+    profile_completion = _compute_profile_completion(profile)
+    plan_progress = _compute_plan_progress(profile)
+    language_score = _compute_language_score(profile)
+
+    # Score global (pondération simple, que tu pourras ajuster)
+    readiness_score = int(
+        profile_completion * 0.4
+        + plan_progress * 0.4
+        + language_score * 0.2
+    )
+
+    next_actions = _build_next_actions(profile)
+
+    strategies = _build_strategies_for_profile(profile)
+
+    context = {
+        "profile": profile,
+        "readiness_score": readiness_score,
+        "profile_completion": profile_completion,
+        "plan_progress": plan_progress,
+        "language_score": language_score,
+        "next_actions": next_actions,
+        "strategies": strategies,
+    }
+    return render(request, "permanent_residence/dashboard.html", context)
+
+
+
+# ---------- STRATÉGIES RP AVANCÉES ----------
+
+@login_required
+def strategy_view(request, profile_id: int):
+    """
+    Page détaillée des stratégies RP possibles pour un profil donné.
+    """
+    profile = get_object_or_404(PRProfile, pk=profile_id, user=request.user)
+
+    # S'assurer que le plan existe (sert aussi pour les prochaines actions)
+    _generate_default_steps(profile)
+
+    strategies = _build_strategies_for_profile(profile)
+
+    return render(
+        request,
+        "permanent_residence/strategy.html",
+        {
+            "profile": profile,
+            "strategies": strategies,
+        },
+    )
+
+
+
+from django.contrib.auth.decorators import login_required
+
+@csrf_exempt
+@require_POST
+@login_required
+def rp_coach_api(request, profile_id):
+    """
+    Endpoint JSON pour le Coach IA RP.
+    Reçoit { "message": "..."} et renvoie { "answer": "..." }.
+    """
+    profile = get_object_or_404(PRProfile, pk=profile_id, user=request.user)
+    ...

@@ -34,6 +34,7 @@ urlpatterns = [
 
     # ----- AUTHENTIFICATION ----- #
     path("authentification/", include("authentification.urls")),
+    path('documents/', include('DocumentsApp.urls')),
 
 
     # ------------------ MODULES PRINCIPAUX ------------------ #
@@ -43,9 +44,10 @@ urlpatterns = [
     path("visaetude/", include(("visaetude.urls", "visaetude"), namespace="visaetude")),
     path("billing/", include(("billing.urls", "billing"), namespace="billing")),
     path("prep/", include(("preparation_tests.urls", "preparation_tests"), namespace="preparation_tests")),
-    path("prep/en/", include(("english_tests.urls", "english_tests"), namespace="english_tests")),
-    #path("german/", include("german_tests.urls")),
+   
+    
     path("visa-travail/", include("VisaTravailApp.urls")),
+    path('visa-tourisme/', include('VisaTourismeApp.urls')),
 
 
     # ------------------ RÉSIDENCE PERMANENTE (NOUVEAU MODULE) ------------------ #
@@ -75,6 +77,12 @@ urlpatterns = [
     path("wizard/steps/", wizard_steps_page, name="wizard_steps"),
 
     path("dashboard/", dashboard_page, name="dashboard"),
+    path('langue/english/', include('EnglishPrepApp.urls', namespace='englishprep')),
+    path(
+        "langue/german/",
+        include(("GermanPrepApp.urls", "germanprep"), namespace="germanprep"),
+    ),
+
 ]
 
 

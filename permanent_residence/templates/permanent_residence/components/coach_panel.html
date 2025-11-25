@@ -1,130 +1,119 @@
-{# permanent_residence/templates/permanent_residence/components/coach_panel.html #}
-
-<!-- COACH IA – PANEL LATÉRAL ULTRA PRO -->
-<div id="rpCoachContainer">
+<!-- COACH IA – WIDGET PREMIUM AVEC NOTIF -->
+<div id="rpCoachContainer"
+     data-api-url="{% url 'permanent_residence:coach_api' profile.id %}">
 
   <!-- Bulle flottante -->
   <button id="rpCoachBubble"
           type="button"
-          class="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-emerald-400 to-emerald-600 
-                 text-slate-900 font-semibold px-5 py-3.5 rounded-full shadow-xl shadow-emerald-500/40
-                 hover:scale-105 active:scale-95 transition-all backdrop-blur-lg border border-emerald-400/60
-                 flex items-center gap-2 text-sm">
-      <span class="text-lg">🤖</span>
+          class="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-emerald-400 to-emerald-600 
+                 text-slate-900 font-semibold pl-4 pr-9 py-3 rounded-full shadow-xl shadow-emerald-500/40
+                 hover:scale-105 active:scale-95 transition-all backdrop-blur-lg border border-emerald-400/40
+                 text-xs sm:text-sm flex items-center gap-2 relative">
+      <span class="h-6 w-6 rounded-full bg-slate-900/90 flex items-center justify-center text-base">
+        🤖
+      </span>
       <span>Coach RP</span>
+      <!-- Badge notif -->
+      <span id="rpCoachBadge"
+            class="absolute -top-1 -right-1 h-4 min-w-[1rem] px-1 rounded-full text-[0.6rem] 
+                   bg-rose-500 text-white flex items-center justify-center font-bold shadow-lg hidden">
+        •
+      </span>
   </button>
 
-  <!-- Panneau latéral -->
+  <!-- Wrapper du panneau (position) -->
   <div id="rpCoachPanel"
-       class="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-slate-950/95 
-              backdrop-blur-xl shadow-2xl shadow-black/60 border-l border-slate-800/60
-              translate-x-full transition-transform duration-300 z-50 flex flex-col">
+       class="fixed inset-x-0 bottom-0 sm:inset-auto sm:bottom-6 sm:right-6 z-50
+              flex justify-center sm:justify-end translate-x-full transition-transform duration-300">
+
+    <!-- Carte du chat -->
+    <div class="w-full max-w-sm max-h-[70vh] bg-slate-950/95 
+                backdrop-blur-2xl shadow-[0_24px_80px_rgba(15,23,42,0.95)] border border-slate-800/80
+                rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col">
 
       <!-- Header -->
-      <div class="p-5 border-b border-slate-800/60 flex items-center justify-between">
-        <div class="space-y-1">
-          <p class="text-[10px] font-semibold tracking-[0.25em] text-emerald-400/80 uppercase">
-            Coach IA
-          </p>
-          <h2 class="text-sm font-semibold text-slate-50">
-            Résidence Permanente
-          </h2>
-          <p class="text-[11px] text-slate-400">
-            Basé sur ton profil : pays, études, langues, expérience, etc.
-          </p>
+      <div class="px-4 py-3 border-b border-slate-800/70 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-xs font-bold text-slate-950 shadow-md">
+            IA
+          </div>
+          <div class="leading-tight">
+            <h2 class="text-sm font-semibold text-slate-50">Coach IA · Résidence Permanente</h2>
+            <p class="text-[0.7rem] text-slate-400">
+              Canada / Australie · études · langues · expérience
+            </p>
+          </div>
         </div>
-        <button id="rpCoachClose"
-                type="button"
-                class="rounded-full w-8 h-8 flex items-center justify-center border border-slate-700/70
-                       text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 transition-colors text-base">
+        <button id="rpCoachClose" type="button"
+                class="text-slate-400 hover:text-slate-100 text-lg leading-none px-1">
           ✕
         </button>
       </div>
 
       <!-- Zone messages -->
       <div id="rpCoachMessages"
-           class="flex-1 overflow-y-auto px-4 py-5 space-y-4 scroll-smooth text-[13px]">
-
-        <!-- Message d’accueil du bot -->
-        <div class="flex gap-2 items-start">
-          <div class="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center text-slate-950 text-xs font-bold mt-1">
-            IA
-          </div>
-          <div class="msg-bot">
-            <p class="font-semibold text-emerald-200 mb-1">Bienvenue sur ton coach RP 🌍</p>
-            <p class="text-slate-200/90">
-              Pose-moi tes questions sur ta résidence permanente au Canada ou en Australie :
-              <br>- programmes adaptés à ton profil
-              <br>- scores de langue à viser
-              <br>- priorités dans les 30 prochains jours
-            </p>
-          </div>
+           class="flex-1 overflow-y-auto px-3 py-4 space-y-3 scroll-smooth text-xs">
+        <div class="msg-bot">
+          👋 Bonjour, je suis ton coach RP.  
+          Pose-moi une question sur tes chances, les programmes possibles ou les prochaines étapes, 
+          et je t’expliquerai tout clairement.
         </div>
-
       </div>
 
       <!-- Zone input -->
-      <form id="rpCoachForm"
-            class="border-t border-slate-800/60 p-3.5 flex gap-2 bg-slate-950/90">
+      <form id="rpCoachForm" class="border-t border-slate-800/70 px-3 py-3 flex items-center gap-2 bg-slate-950/80">
         <input id="rpCoachInput"
                type="text"
-               autocomplete="off"
                placeholder="Pose ta question sur ta RP…"
-               class="flex-1 rounded-lg bg-slate-900/80 text-slate-200 px-4 py-2.5 
-                      border border-slate-700/70 focus:ring-2 focus:ring-emerald-500/70 outline-none
-                      text-sm placeholder:text-slate-500">
+               autocomplete="off"
+               class="flex-1 rounded-full bg-slate-900/80 text-slate-200 px-3 py-2 
+                      border border-slate-700/70 focus:ring-2 focus:ring-emerald-500 outline-none text-xs placeholder:text-slate-500">
         <button type="submit"
                 class="bg-gradient-to-r from-emerald-400 to-emerald-500 
-                       text-slate-950 font-semibold px-4 py-2.5 rounded-lg hover:opacity-95
-                       text-sm shadow-md shadow-emerald-500/40 flex items-center gap-1">
-            <span>Envoyer</span>
-            <span class="text-base">➤</span>
+                       text-slate-900 font-bold h-8 w-8 rounded-full flex items-center justify-center text-sm hover:opacity-90 active:scale-95">
+            ➤
         </button>
       </form>
+    </div>
   </div>
 </div>
 
 <style>
-  /* Bulles */
   .msg-user {
       background: linear-gradient(to right, #10b98133, #10b98122);
       border: 1px solid #10b98155;
-      padding: 10px 14px;
-      border-radius: 16px;
+      padding: 8px 12px;
+      border-radius: 999px;
       max-width: 80%;
       margin-left: auto;
       color: #d1fae5;
-      font-size: 13px;
-      line-height: 1.5;
+      font-size: 0.8rem;
+      line-height: 1.4;
   }
   .msg-bot {
-      background: linear-gradient(to right, #1e293b88, #020617dd);
+      background: linear-gradient(to right, #1e293b66, #0f172a66);
       border: 1px solid #334155;
-      padding: 10px 14px;
-      border-radius: 16px;
+      padding: 8px 12px;
+      border-radius: 999px;
       max-width: 80%;
       margin-right: auto;
-      color: #e2e8f0;
-      font-size: 13px;
-      line-height: 1.5;
+      color: #cbd5e1;
+      font-size: 0.8rem;
+      line-height: 1.4;
   }
-
-  /* Bulle "en train d'écrire" */
   .typing-bubble {
       width: 46px;
       height: 22px;
       border-radius: 999px;
-      background: #020617;
+      background: #1e293b;
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 4px;
       padding: 4px;
-      border: 1px solid #1e293b;
   }
   .typing-dot {
-      width: 6px;
-      height: 6px;
+      width: 6px; height: 6px;
       background: #94a3b8;
       border-radius: 50%;
       animation: bounce 1.1s infinite;
@@ -134,127 +123,106 @@
 
   @keyframes bounce {
       0%, 100% { transform: translateY(0); opacity: .5; }
-      50%      { transform: translateY(-4px); opacity: 1; }
+      50% { transform: translateY(-4px); opacity: 1; }
   }
 </style>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-      const bubble   = document.getElementById("rpCoachBubble");
-      const panel    = document.getElementById("rpCoachPanel");
-      const closeBtn = document.getElementById("rpCoachClose");
-      const form     = document.getElementById("rpCoachForm");
-      const input    = document.getElementById("rpCoachInput");
-      const messages = document.getElementById("rpCoachMessages");
+document.addEventListener("DOMContentLoaded", function () {
+  const container = document.getElementById("rpCoachContainer");
+  if (!container) return;
 
-      if (!bubble || !panel || !form || !messages) {
-          return;
+  const apiUrl = container.dataset.apiUrl;
+  const bubble = document.getElementById("rpCoachBubble");
+  const panel = document.getElementById("rpCoachPanel");
+  const closeBtn = document.getElementById("rpCoachClose");
+  const form = document.getElementById("rpCoachForm");
+  const input = document.getElementById("rpCoachInput");
+  const messages = document.getElementById("rpCoachMessages");
+  const badge = document.getElementById("rpCoachBadge");
+
+  function isPanelOpen() {
+    return !panel.classList.contains("translate-x-full");
+  }
+
+  function openPanel() {
+    panel.classList.remove("translate-x-full");
+    // On consomme les notifs
+    if (badge) badge.classList.add("hidden");
+  }
+
+  function closePanel() {
+    panel.classList.add("translate-x-full");
+  }
+
+  bubble.addEventListener("click", openPanel);
+  closeBtn.addEventListener("click", closePanel);
+
+  function appendMessage(text, type) {
+    const div = document.createElement("div");
+    div.className = type === "user" ? "msg-user" : "msg-bot";
+    div.textContent = text;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+
+    // Si c'est une réponse bot et que le panneau est fermé → badge notif
+    if (type === "bot" && !isPanelOpen() && badge) {
+      badge.classList.remove("hidden");
+    }
+  }
+
+  function showTyping() {
+    const wrap = document.createElement("div");
+    wrap.id = "rpTyping";
+    wrap.className = "msg-bot";
+    wrap.innerHTML = `
+      <div class="typing-bubble">
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+      </div>`;
+    messages.appendChild(wrap);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function hideTyping() {
+    const el = document.getElementById("rpTyping");
+    if (el) el.remove();
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+
+    appendMessage(text, "user");
+    input.value = "";
+
+    showTyping();
+
+    fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": (document.querySelector('[name=csrfmiddlewaretoken]') || {}).value || ""
+      },
+      body: JSON.stringify({ message: text })
+    })
+    .then(res => res.json())
+    .then(data => {
+      hideTyping();
+      if (data.answer) {
+        appendMessage(data.answer, "bot");
+      } else if (data.error) {
+        appendMessage("Erreur : " + data.error, "bot");
+      } else {
+        appendMessage("Je n'ai pas compris la réponse du serveur.", "bot");
       }
-
-      // URL de l'API du coach, construite proprement avec Django
-      const coachApiUrl = "{% url 'permanent_residence:coach_api' profile.id %}";
-
-      function openPanel() {
-          panel.classList.remove("translate-x-full");
-      }
-      function closePanel() {
-          panel.classList.add("translate-x-full");
-      }
-
-      bubble.addEventListener("click", openPanel);
-      closeBtn.addEventListener("click", closePanel);
-
-      function scrollToBottom() {
-          messages.scrollTo({
-              top: messages.scrollHeight,
-              behavior: "smooth"
-          });
-      }
-
-      function appendMessage(text, type) {
-          const wrapper = document.createElement("div");
-          wrapper.className = "flex gap-2 items-start";
-
-          if (type === "user") {
-              wrapper.innerHTML = `
-                  <div class="flex-1 msg-user">${text}</div>
-              `;
-          } else {
-              wrapper.innerHTML = `
-                  <div class="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 
-                              flex items-center justify-center text-slate-950 text-xs font-bold mt-1">
-                      IA
-                  </div>
-                  <div class="msg-bot">${text}</div>
-              `;
-          }
-
-          messages.appendChild(wrapper);
-          scrollToBottom();
-      }
-
-      function showTyping() {
-          const wrapper = document.createElement("div");
-          wrapper.className = "flex gap-2 items-start";
-          wrapper.innerHTML = `
-              <div class="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 
-                          flex items-center justify-center text-slate-950 text-xs font-bold mt-1">
-                  IA
-              </div>
-              <div class="typing-bubble">
-                  <div class="typing-dot"></div>
-                  <div class="typing-dot"></div>
-                  <div class="typing-dot"></div>
-              </div>
-          `;
-          messages.appendChild(wrapper);
-          scrollToBottom();
-          return wrapper;
-      }
-
-      form.addEventListener("submit", async function (e) {
-          e.preventDefault();
-          const text = input.value.trim();
-          if (!text) return;
-
-          appendMessage(text, "user");
-          input.value = "";
-          input.focus();
-
-          const typingEl = showTyping();
-
-          try {
-              const response = await fetch(coachApiUrl, {
-                  method: "POST",
-                  headers: {
-                      "Content-Type": "application/json"
-                  },
-                  body: JSON.stringify({ message: text })
-              });
-
-              const data = await response.json();
-              messages.removeChild(typingEl);
-
-              if (data.answer) {
-                  // On remplace les sauts de ligne par <br>
-                  const safe = data.answer.replace(/\n/g, "<br>");
-                  appendMessage(safe, "bot");
-              } else if (data.error) {
-                  appendMessage(
-                      "Le coach n'a pas pu répondre pour l'instant : " + data.error,
-                      "bot"
-                  );
-              }
-          } catch (err) {
-              console.error(err);
-              if (typingEl.parentNode) {
-                  messages.removeChild(typingEl);
-              }
-              appendMessage(
-                  "Erreur réseau. Vérifie ta connexion et réessaie dans quelques instants.",
-                  "bot"
-              );
-          }
-      });
+    })
+    .catch(() => {
+      hideTyping();
+      appendMessage("Erreur technique. Réessaie dans quelques instants.", "bot");
+    });
   });
+});
 </script>

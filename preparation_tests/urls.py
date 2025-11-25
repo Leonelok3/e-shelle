@@ -19,8 +19,8 @@ urlpatterns = [
     # 🌍 PAGES HUBS PAR LANGUE
     # =========================================================
     path("exams-fr/", views.french_exams, name="french_exams"),
-    path("exams-en/", views.english_exams, name="english_exams"),
-    path("exams-de/", views.german_exams, name="german_exams"),
+    #path("exams-en/", views.english_exams, name="english_exams"),
+    #path("exams-de/", views.german_exams, name="german_exams"),
 
     # =========================================================
     # 🇫🇷 HUBS FRANÇAIS PAR EXAMEN

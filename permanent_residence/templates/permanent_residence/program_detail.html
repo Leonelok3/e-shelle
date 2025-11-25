@@ -1,206 +1,242 @@
 {% extends "base.html" %}
 
-{% block title %}immigration97 · {{ program.name }}{% endblock %}
+{% block title %}
+{{ program.name }} – Programme Résidence Permanente | immigration97
+{% endblock %}
+
+{% block meta_description %}
+{{ program.summary|default:"Fiche détaillée d’un programme de Résidence Permanente (Canada / Australie) : objectif, profil visé et liens officiels." }}
+{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-slate-950 text-slate-50">
-  <div class="max-w-6xl mx-auto px-4 lg:px-6 py-10 lg:py-14">
+<div class="max-w-6xl mx-auto py-10 px-4">
 
-    <!-- Fil d’Ariane -->
-    <nav class="text-[11px] text-slate-500 mb-6 flex flex-wrap items-center gap-1">
-      <a href="/" class="hover:text-slate-300">Accueil</a>
-      <span>›</span>
-      <a href="{% url 'permanent_residence:program_list' %}" class="hover:text-slate-300">Programmes RP</a>
-      <span>›</span>
-      <span class="text-slate-300">{{ program.name }}</span>
-    </nav>
+  {# ---------- HERO PROGRAMME ---------- #}
+  <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 md:p-8 shadow-xl shadow-black/60 mb-8 backdrop-blur-sm">
+    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+      <div class="flex-1">
+        <p class="text-sm text-emerald-300 mb-1">
+          Programme de Résidence Permanente
+          ·
+          {% if program.country == "CA" %}🇨🇦 Canada{% elif program.country == "AU" %}🇦🇺 Australie{% else %}{{ program.get_country_display }}{% endif %}
+        </p>
+        <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">
+          {{ program.name }}
+        </h1>
 
-    <!-- Header programme -->
-    <header class="mb-8">
-      <p class="text-xs font-bold tracking-[0.2em] text-emerald-400/80 mb-3 uppercase">
-        GUIDE PROGRAMME RP
-      </p>
-      <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 class="text-2xl md:text-3xl font-semibold tracking-tight mb-2">
-            {{ program.name }}
-          </h1>
-          <div class="flex flex-wrap gap-2 items-center">
-            <span class="px-2.5 py-1 rounded-full text-[11px] border border-slate-700 bg-slate-900/80 text-slate-200">
-              {% if program.country == "CA" %}🇨🇦 Canada{% else %}🇦🇺 Australie{% endif %}
-            </span>
-            {% if program.category %}
-              <span class="px-2.5 py-1 rounded-full text-[11px] border border-slate-700 bg-slate-900/80 text-slate-200 uppercase tracking-wide">
-                {{ program.category }}
-              </span>
-            {% endif %}
-            {% if program.short_label %}
-              <span class="px-2.5 py-1 rounded-full text-[11px] border border-emerald-500/50 bg-emerald-500/10 text-emerald-100">
-                {{ program.short_label }}
-              </span>
+        {% if program.short_label %}
+          <p class="inline-flex items-center px-3 py-1 rounded-full bg-slate-900/90 border border-slate-600 text-[0.75rem] text-emerald-300 font-semibold mb-3">
+            {{ program.short_label }}
+          </p>
+        {% endif %}
+
+        {% if program.category %}
+          <p class="text-[0.8rem] text-emerald-300 uppercase tracking-wide mb-2">
+            {{ program.category }}
+          </p>
+        {% endif %}
+
+        {% if program.summary %}
+          <p class="text-sm md:text-base text-gray-300 max-w-2xl">
+            {{ program.summary }}
+          </p>
+        {% else %}
+          <p class="text-sm text-gray-300 max-w-2xl">
+            Fiche d’information simplifiée pour ce programme de Résidence Permanente.
+            Réfère-toi toujours aux sites officiels pour les conditions à jour.
+          </p>
+        {% endif %}
+      </div>
+
+      <div class="w-full md:w-64">
+        <div class="bg-[#020814] rounded-2xl border border-[#132336] p-4 shadow-inner shadow-black/60 text-xs text-gray-300">
+          <p class="text-gray-200 font-semibold mb-2">
+            Bon réflexe : combiner fiche + diagnostic
+          </p>
+          <p class="mb-2">
+            Utilise cette fiche pour comprendre la logique du programme, puis vérifie dans ton
+            <strong>diagnostic RP</strong> si ton profil est aligné (points, langues, expérience).
+          </p>
+
+          <div class="flex flex-col gap-2 mt-2">
+            <a href="{% url 'permanent_residence:dashboard' %}"
+               class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-[0.8rem] shadow-md shadow-emerald-600/40 transition">
+              📊 Ouvrir mon cockpit RP
+            </a>
+            <a href="{% url 'permanent_residence:program_list' %}"
+               class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-slate-600 bg-[#050d16] hover:bg-[#091320] text-gray-200 font-semibold text-[0.8rem] transition">
+              ← Revenir à la liste des programmes
+            </a>
+            {% if program.official_url %}
+              <a href="{{ program.official_url }}" target="_blank" rel="noopener noreferrer"
+                 class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-emerald-500/60 bg-[#041612] hover:bg-[#052018] text-emerald-200 font-semibold text-[0.8rem] shadow-sm shadow-emerald-600/30 transition">
+                🔗 Voir le site officiel
+              </a>
             {% endif %}
           </div>
         </div>
-        <div class="flex flex-col items-end gap-2">
-          {% if program.official_url %}
-            <a href="{{ program.official_url }}" target="_blank" rel="noopener"
-               class="inline-flex items-center gap-2 text-xs text-slate-300 hover:text-emerald-200">
-              <span>Consulter le site officiel</span>
-              <span class="text-base">↗</span>
-            </a>
-          {% endif %}
-        </div>
-      </div>
-      {% if program.summary %}
-        <p class="mt-4 text-sm text-slate-300 max-w-3xl leading-relaxed">
-          {{ program.summary }}
-        </p>
-      {% endif %}
-    </header>
-
-    <!-- Navigation interne -->
-    <div class="mb-8 border-b border-slate-800">
-      <div class="flex flex-wrap gap-3 text-xs">
-        <a href="#overview" class="px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-700 text-slate-200 hover:border-emerald-500/60 hover:text-emerald-100">
-          Vue d’ensemble
-        </a>
-        <a href="#steps" class="px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-700 text-slate-200 hover:border-emerald-500/60 hover:text-emerald-100">
-          Étapes principales
-        </a>
-        <a href="#resources" class="px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-700 text-slate-200 hover:border-emerald-500/60 hover:text-emerald-100">
-          Ressources & guides
-        </a>
       </div>
     </div>
+  </div>
 
-    <!-- Vue d’ensemble -->
-    <section id="overview" class="mb-10">
-      <div class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/80 to-slate-950/90 px-4 py-4 md:px-6 md:py-6 shadow-lg shadow-slate-950/40">
-        <h2 class="text-sm font-semibold text-slate-100 mb-3">Vue d’ensemble</h2>
-        <p class="text-xs md:text-sm text-slate-400 leading-relaxed">
-          Cette fiche a pour objectif de centraliser les informations pratiques pour ce programme
-          (résumé, liens officiels, vidéos explicatives, captures d’écran et checklists).  
-          Tu pourras associer ici plus tard des vidéos et captures depuis la base de données (modèle
-          <code class="text-[11px] text-slate-300">ProgramResource</code>).
-        </p>
-      </div>
-    </section>
+  {# ---------- CONTENU : STRUCTURE PÉDAGOGIQUE ---------- #}
+  <div class="grid lg:grid-cols-3 gap-6">
 
-    <!-- Étapes principales (placeholder text que tu pourras personnaliser par programme plus tard) -->
-    <section id="steps" class="mb-10">
-      <div class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/80 to-slate-950/90 px-4 py-4 md:px-6 md:py-6 shadow-lg shadow-slate-950/40">
-        <h2 class="text-sm font-semibold text-slate-100 mb-4">Étapes principales (à adapter selon le programme)</h2>
-        <ol class="space-y-2 text-xs md:text-sm text-slate-300 list-decimal list-inside">
-          <li>Vérifier les critères d’éligibilité sur le site officiel (âge, études, expérience, langues, fonds, etc.).</li>
-          <li>Faire évaluer les diplômes si nécessaire (EDE pour le Canada, assessment pour l’Australie).</li>
-          <li>Passer les tests de langue (TEF/TCF/IELTS/PTE…) et viser les scores recommandés pour ce programme.</li>
-          <li>Préparer les documents clés (passeport, casier judiciaire, preuves d’expérience, relevés bancaires, etc.).</li>
-          <li>Créer le profil en ligne / déposer une EOI / soumettre la demande complète selon le programme.</li>
-        </ol>
-        <p class="mt-3 text-[11px] text-slate-500">
-          💡 Tu pourras remplacer ce texte par des étapes spécifiques en fonction du programme et, plus tard,
-          connecter ces étapes à ton module de <strong>plan d’action</strong>.
-        </p>
-      </div>
-    </section>
+    {# Colonne 1 & 2 : explications + sections clés #}
+    <section class="lg:col-span-2 space-y-6">
 
-    <!-- Ressources -->
-    <section id="resources">
-      <div class="mb-4 flex items-center justify-between gap-2">
-        <h2 class="text-sm font-semibold text-slate-100">Ressources & guides associés</h2>
-        <p class="text-[11px] text-slate-500">
-          Ajoute des ressources dans l’admin (ProgramResource) pour les afficher ici.
+      {# Bloc "En résumé" #}
+      <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
+        <h2 class="text-lg font-semibold text-white mb-3">
+          En résumé : à quoi sert ce programme ?
+        </h2>
+        <p class="text-sm text-gray-300 mb-3">
+          Utilise ce programme pour comprendre <strong>l’esprit général</strong> de la voie :
+          qui est visé, quel type de profil a le plus de chances, et comment il s’intègre dans une
+          stratégie globale vers la Résidence Permanente.
         </p>
+        <ul class="text-sm text-gray-200 space-y-1.5">
+          <li>● Vérifie toujours les critères officiels (points, niveaux de langue, listes de métiers) sur le site du gouvernement.</li>
+          <li>● Garde en tête que les seuils peuvent changer (scores CRS, invitations, quotas, etc.).</li>
+          <li>● Combine ce programme avec ton plan d’action RP et tes objectifs personnels (province, budget, délais).</li>
+        </ul>
       </div>
 
+      {# Bloc ressources si dispo #}
       {% if grouped_resources %}
-        <div class="space-y-6">
+        <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
+          <h2 class="text-lg font-semibold text-white mb-3">
+            Ressources utiles pour ce programme
+          </h2>
 
-          {% if grouped_resources.OFFICIAL %}
-            <div>
-              <h3 class="text-xs font-semibold text-slate-300 mb-2">Liens officiels</h3>
-              <div class="space-y-2">
-                {% for res in grouped_resources.OFFICIAL %}
-                  <a href="{{ res.url }}" target="_blank" rel="noopener"
-                     class="flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-3 text-xs text-slate-200 hover:border-emerald-500/50 hover:text-emerald-100">
-                    <span>{{ res.title }}</span>
-                    <span class="text-[11px] text-slate-400">↗</span>
-                  </a>
-                {% endfor %}
-              </div>
-            </div>
-          {% endif %}
-
-          {% if grouped_resources.VIDEO %}
-            <div>
-              <h3 class="text-xs font-semibold text-slate-300 mb-2">Vidéos explicatives</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {% for res in grouped_resources.VIDEO %}
-                  <article class="rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs text-slate-200 flex flex-col gap-2">
-                    {% if res.embed_code %}
-                      <div class="aspect-video w-full overflow-hidden rounded-lg border border-slate-800 mb-2">
-                        {{ res.embed_code|safe }}
-                      </div>
-                    {% endif %}
-                    <div class="flex-1">
-                      <p class="font-semibold mb-1">{{ res.title }}</p>
-                      {% if res.description %}
-                        <p class="text-[11px] text-slate-400">{{ res.description }}</p>
-                      {% endif %}
-                    </div>
-                    {% if res.url %}
-                      <a href="{{ res.url }}" target="_blank" rel="noopener"
-                         class="inline-flex items-center gap-1 text-[11px] text-slate-300 hover:text-emerald-200">
-                        Voir sur la plateforme vidéo <span>↗</span>
-                      </a>
-                    {% endif %}
-                  </article>
-                {% endfor %}
-              </div>
-            </div>
-          {% endif %}
-
-          {% if grouped_resources.SCREENSHOT or grouped_resources.DOC or grouped_resources.CHECKLIST or grouped_resources.ARTICLE or grouped_resources.OTHER %}
-            <div>
-              <h3 class="text-xs font-semibold text-slate-300 mb-2">Guides, captures & documents</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {% for type, resources in grouped_resources.items %}
-                  {% if type != "OFFICIAL" and type != "VIDEO" %}
-                    {% for res in resources %}
-                      <article class="rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs text-slate-200 flex gap-3">
-                        {% if res.image %}
-                          <div class="w-20 h-16 flex-shrink-0 overflow-hidden rounded-lg border border-slate-800">
-                            <img src="{{ res.image.url }}" alt="{{ res.title }}" class="w-full h-full object-cover">
-                          </div>
-                        {% endif %}
-                        <div class="flex-1 flex flex-col gap-1">
-                          <p class="font-semibold">{{ res.title }}</p>
-                          {% if res.description %}
-                            <p class="text-[11px] text-slate-400">{{ res.description }}</p>
-                          {% endif %}
-                          {% if res.url %}
-                            <a href="{{ res.url }}" target="_blank" rel="noopener"
-                               class="inline-flex items-center gap-1 text-[11px] text-slate-300 hover:text-emerald-200 mt-1">
-                              Ouvrir la ressource <span>↗</span>
-                            </a>
-                          {% endif %}
-                        </div>
-                      </article>
-                    {% endfor %}
+          <div class="space-y-5">
+            {% for rtype, items in grouped_resources.items %}
+              <div>
+                {# Titre de section selon type #}
+                <h3 class="text-sm font-semibold text-emerald-300 mb-2">
+                  {% if rtype == "OFFICIAL" %}
+                    Liens officiels et pages gouvernementales
+                  {% elif rtype == "VIDEO" %}
+                    Vidéos explicatives
+                  {% elif rtype == "SCREENSHOT" %}
+                    Captures d’écran & visuels
+                  {% elif rtype == "DOC" %}
+                    Documents & PDF
+                  {% elif rtype == "CHECKLIST" %}
+                    Checklists & pas à pas
+                  {% elif rtype == "ARTICLE" %}
+                    Articles & guides détaillés
+                  {% else %}
+                    Autres ressources
                   {% endif %}
-                {% endfor %}
-              </div>
-            </div>
-          {% endif %}
+                </h3>
 
+                <div class="grid sm:grid-cols-2 gap-3">
+                  {% for res in items %}
+                    <article class="bg-[#040b14] border border-slate-700/80 rounded-xl p-3 text-xs text-gray-200 shadow-md shadow-black/50">
+                      <div class="flex items-start justify-between gap-2 mb-1.5">
+                        <p class="font-semibold text-white leading-snug">
+                          {{ res.title }}
+                        </p>
+                        {% if rtype == "OFFICIAL" %}
+                          <span class="px-2 py-0.5 rounded-full text-[0.65rem] bg-emerald-500/15 text-emerald-300 border border-emerald-500/40">
+                            Officiel
+                          </span>
+                        {% elif rtype == "VIDEO" %}
+                          <span class="px-2 py-0.5 rounded-full text-[0.65rem] bg-sky-500/15 text-sky-300 border border-sky-500/40">
+                            Vidéo
+                          </span>
+                        {% elif rtype == "CHECKLIST" %}
+                          <span class="px-2 py-0.5 rounded-full text-[0.65rem] bg-amber-500/15 text-amber-300 border border-amber-500/40">
+                            Checklist
+                          </span>
+                        {% elif rtype == "DOC" %}
+                          <span class="px-2 py-0.5 rounded-full text-[0.65rem] bg-slate-500/15 text-slate-200 border border-slate-500/40">
+                            Document
+                          </span>
+                        {% elif rtype == "ARTICLE" %}
+                          <span class="px-2 py-0.5 rounded-full text-[0.65rem] bg-indigo-500/15 text-indigo-300 border border-indigo-500/40">
+                            Article
+                          </span>
+                        {% endif %}
+                      </div>
+
+                      {% if res.description %}
+                        <p class="text-[0.7rem] text-gray-300 mb-1.5">
+                          {{ res.description }}
+                        </p>
+                      {% endif %}
+
+                      {% if res.image %}
+                        <div class="mb-1.5">
+                          <img src="{{ res.image.url }}" alt="{{ res.title }}" class="w-full h-28 object-cover rounded-lg border border-slate-700/80">
+                        </div>
+                      {% endif %}
+
+                      {% if res.embed_code %}
+                        <div class="mt-1 mb-1.5">
+                          {{ res.embed_code|safe }}
+                        </div>
+                      {% endif %}
+
+                      <div class="flex items-center justify-between mt-1">
+                        {% if res.url %}
+                          <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer"
+                             class="text-[0.7rem] text-emerald-300 hover:text-emerald-200 underline">
+                            Ouvrir la ressource →
+                          </a>
+                        {% endif %}
+                      </div>
+                    </article>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
         </div>
       {% else %}
-        <p class="text-sm text-slate-500">
-          Aucune ressource n’est encore associée à ce programme.  
-          Tu pourras ajouter des vidéos, captures d’écran, checklists et liens depuis l’admin.
-        </p>
+        <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
+          <h2 class="text-lg font-semibold text-white mb-3">
+            Ressources pour ce programme
+          </h2>
+          <p class="text-sm text-gray-300">
+            Pas encore de ressources associées dans la plateforme pour ce programme.
+            Tu peux déjà exploiter le site officiel et ton diagnostic RP pour construire
+            ta stratégie.
+          </p>
+        </div>
       {% endif %}
     </section>
+
+    {# Colonne 3 : encadré stratégie / conseils d’usage #}
+    <aside class="space-y-4">
+      <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
+        <h2 class="text-lg font-semibold text-white mb-2">
+          Comment utiliser cette fiche
+        </h2>
+        <p class="text-xs text-gray-300 mb-2">
+          Cette page ne remplace pas un conseil juridique ou un site officiel. Elle t’aide à :
+        </p>
+        <ul class="text-xs text-gray-200 space-y-1">
+          <li>● Repérer rapidement si ce programme correspond à ta stratégie (fédéral, province, sponsor, etc.).</li>
+          <li>● Lister les ressources clés (guides, vidéos, checklists) sans te perdre sur internet.</li>
+          <li>● Relier ce programme à ton plan d’action RP dans le cockpit Immigration97.</li>
+        </ul>
+      </div>
+
+      <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
+        <h3 class="text-sm font-semibold text-white mb-2">
+          Étapes suivantes possibles
+        </h3>
+        <ul class="text-xs text-gray-200 space-y-1.5">
+          <li>1. Confirmer les critères à jour sur le site officiel (points, listes de métiers, délais).</li>
+          <li>2. Vérifier ton score potentiel avec ton diagnostic RP.</li>
+          <li>3. Mettre à jour ton plan d’action (langues, EDE / skills assessment, documents, budget).</li>
+          <li>4. Si besoin, comparer avec d’autres programmes de la même catégorie (PNP, visas Skilled, etc.).</li>
+        </ul>
+      </div>
+    </aside>
   </div>
+
 </div>
 {% endblock %}

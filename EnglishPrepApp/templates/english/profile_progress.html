@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Profil & progression – Anglais • Immigration97{% endblock %}
+
+{% block content %}
+<main class="relative min-h-screen bg-slate-950 text-slate-50 overflow-hidden">
+
+  <!-- Background -->
+  <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+    <div class="absolute -top-40 -left-32 h-72 w-72 rounded-full bg-gradient-to-br from-blue-500/25 via-emerald-400/10 to-transparent blur-3xl opacity-60"></div>
+    <div class="absolute top-1/3 -right-32 h-80 w-80 rounded-full bg-gradient-to-br from-emerald-500/20 via-blue-500/15 to-transparent blur-3xl opacity-60"></div>
+    <div class="absolute bottom-0 left-1/2 h-72 w-[420px] -translate-x-1/2 translate-y-1/3 rounded-full bg-gradient-to-t from-emerald-500/20 via-amber-500/20 to-transparent blur-3xl opacity-60"></div>
+  </div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-4 pb-14 pt-8 sm:px-6 sm:pb-16 sm:pt-10 lg:pb-20">
+    <!-- Header -->
+    <header class="mb-8 flex flex-col gap-4 border-b border-slate-800/70 pb-5 sm:mb-10 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p class="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
+          Immigration97 • Préparation anglais
+        </p>
+        <h1 class="mt-2 bg-gradient-to-r from-emerald-300 via-blue-300 to-sky-400 bg-clip-text text-3xl font-light tracking-tight text-transparent sm:text-4xl">
+          Profil & progression d'anglais
+        </h1>
+        <p class="mt-2 text-sm font-light text-slate-300 sm:text-[0.9rem]">
+          Suis ton XP, ton niveau, tes badges et l’évolution de tes scores sur les derniers tests.
+        </p>
+      </div>
+
+      <nav class="flex flex-wrap items-center gap-2 text-[0.7rem]">
+        <a href="{% url 'englishprep:dashboard' %}"
+           class="inline-flex items-center gap-1 rounded-3xl border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 font-medium text-slate-200 shadow-sm shadow-slate-950/40 backdrop-blur-xl transition-all duration-300 hover:border-slate-500 hover:bg-slate-800/80">
+          🏠 Tableau de bord
+        </a>
+        <a href="{% url 'englishprep:test_history' %}"
+           class="inline-flex items-center gap-1 rounded-3xl border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 font-medium text-slate-200 shadow-sm shadow-slate-950/40 backdrop-blur-xl transition-all duration-300 hover:border-slate-500 hover:bg-slate-800/80">
+          📋 Historique des tests
+        </a>
+        <a href="{% url 'englishprep:ai_coach' %}"
+           class="inline-flex items-center gap-1 rounded-3xl border border-emerald-500/60 bg-emerald-500/15 px-3 py-1.5 font-semibold text-emerald-100 shadow-sm shadow-emerald-500/40 backdrop-blur-xl transition-all duration-300 hover:bg-emerald-500/25">
+          🤖 Coach IA
+        </a>
+      </nav>
+    </header>
+
+    <!-- GRID PRINCIPALE -->
+    <section class="grid gap-6 lg:grid-cols-3">
+      <!-- Colonne gauche : XP / niveau / badges -->
+      <div class="space-y-4 lg:col-span-1">
+        <!-- Carte XP / niveau -->
+        <div class="rounded-2xl border border-slate-800/80 bg-slate-950/90 p-5 shadow-xl shadow-black/60">
+          <p class="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            XP & niveau
+          </p>
+          <div class="mt-3 flex items-end justify-between gap-4">
+            <div>
+              <p class="text-sm text-slate-400">XP total</p>
+              <p class="text-3xl font-light text-emerald-300">
+                {{ profile.xp }}
+              </p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm text-slate-400">Niveau</p>
+              <p class="text-3xl font-semibold text-blue-300">
+                Lvl {{ current_level }}
+              </p>
+              <p class="text-[0.7rem] text-slate-500">
+                Prochain niveau : Lvl {{ next_level }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Barre de progression vers le prochain niveau -->
+          <div class="mt-4">
+            <div class="flex items-center justify-between text-[0.75rem] text-slate-400">
+              <span>Progression vers le niveau suivant</span>
+              <span class="font-semibold text-emerald-300">{{ xp_pct }}%</span>
+            </div>
+            <div class="mt-2 h-2 w-full rounded-full bg-slate-800/80">
+              <div class="h-2 rounded-full bg-gradient-to-r from-emerald-400 via-blue-500 to-sky-400"
+                   style="width: {{ xp_pct }}%;"></div>
+            </div>
+            <p class="mt-2 text-[0.75rem] text-slate-400">
+              {{ xp_in_level }} XP / {{ xp_needed }} XP dans ce niveau.
+            </p>
+          </div>
+        </div>
+
+        <!-- Carte badges -->
+        <div class="rounded-2xl border border-slate-800/80 bg-slate-950/90 p-5 shadow-xl shadow-black/60">
+          <p class="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            Badges débloqués
+          </p>
+          {% if profile.badges %}
+            <div class="mt-3 flex flex-wrap gap-2">
+              {% for badge in profile.badges %}
+                <span class="inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-[0.75rem] text-emerald-100">
+                  🏅 {{ badge }}
+                </span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="mt-3 text-[0.8rem] text-slate-400">
+              Aucun badge pour le moment. Enchaîne les tests pour débloquer tes premiers badges 💪
+            </p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Colonne droite : timeline + résumé par examen -->
+      <div class="space-y-4 lg:col-span-2">
+        <!-- Timeline des derniers tests -->
+        <div class="rounded-2xl border border-slate-800/80 bg-slate-950/90 p-5 shadow-xl shadow-black/60">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                Derniers tests passés
+              </p>
+              <p class="mt-1 text-[0.85rem] text-slate-300">
+                Aperçu de tes 10 dernières sessions sur Immigration97.
+              </p>
+            </div>
+            <a href="{% url 'englishprep:test_history' %}"
+               class="text-[0.75rem] font-medium text-emerald-300 hover:text-emerald-200">
+              Voir tout l'historique →
+            </a>
+          </div>
+
+          <div class="mt-4 space-y-3">
+            {% if sessions %}
+              {% for s in sessions %}
+                <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-800/80 bg-slate-900/80 px-3 py-2.5">
+                  <div class="flex-1 min-w-0">
+                    <p class="truncate text-sm font-semibold text-slate-100">
+                      {{ s.test.name }}
+                    </p>
+                    <p class="text-[0.75rem] text-slate-400">
+                      {{ s.started_at|date:"d/m/Y H:i" }} • {{ s.test.get_exam_type_display }} • Niveau {{ s.test.level }}
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[0.75rem] text-slate-400">Score</span>
+                    <span class="inline-flex items-center justify-center rounded-full bg-slate-950 px-3 py-1 text-[0.8rem] font-semibold text-emerald-300 border border-emerald-500/40">
+                      {{ s.score|default:"0.0" }}%
+                    </span>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p class="text-[0.8rem] text-slate-400">
+                Tu n'as pas encore de tests enregistrés. Lance ton premier test pour commencer ta progression 🎯
+              </p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Résumé par type d'examen -->
+        <div class="rounded-2xl border border-slate-800/80 bg-slate-950/90 p-5 shadow-xl shadow-black/60">
+          <p class="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            Résumé par type d'examen
+          </p>
+          <p class="mt-1 text-[0.85rem] text-slate-300">
+            Quels examens tu as le plus travaillé et comment tu te situes dessus.
+          </p>
+
+          <div class="mt-4 grid gap-4 md:grid-cols-2">
+            {% for code, data in exam_stats.items %}
+              <div class="rounded-xl border border-slate-800/80 bg-slate-900/80 p-4">
+                <p class="text-sm font-semibold text-slate-100 flex items-center gap-2">
+                  {% if code == "IELTS" %}🎓{% elif code == "TOEFL" %}📘{% elif code == "TOEIC" %}🏢{% else %}🌍{% endif %}
+                  {{ data.label }}
+                </p>
+                {% if data.count %}
+                  <p class="mt-1 text-[0.8rem] text-slate-400">
+                    {{ data.count }} test(s) parmi tes 10 derniers.
+                  </p>
+                  <div class="mt-3 text-[0.8rem] text-slate-300 space-y-1">
+                    <p>Moyenne : <span class="font-semibold text-emerald-300">{{ data.avg_score }}%</span></p>
+                    <p>Meilleur score : <span class="font-semibold text-blue-300">{{ data.best_score }}%</span></p>
+                  </div>
+                  <div class="mt-2 h-1.5 w-full rounded-full bg-slate-800/80">
+                    <div class="h-1.5 rounded-full bg-gradient-to-r from-emerald-400 via-blue-500 to-sky-400"
+                         style="width: {{ data.avg_score }}%;"></div>
+                  </div>
+                {% else %}
+                  <p class="mt-2 text-[0.8rem] text-slate-400">
+                    Aucun test récent pour ce type d'examen. Tu peux en lancer un depuis la liste des examens.
+                  </p>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+{% endblock %}

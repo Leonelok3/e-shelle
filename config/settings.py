@@ -17,9 +17,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-r-#hl^4p=7e5)hwqn#moz4=m1cq_7&944$tme&7(dcde!1i%zu"
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
-
-OPENAI_API_KEY = ""  # Gardé vide pour la version dev
-
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 # === APPLICATIONS ===
 INSTALLED_APPS = [
     # Django apps de base
@@ -59,9 +58,11 @@ INSTALLED_APPS = [
     "visaetude",
     "VisaTravailApp",
     "permanent_residence",
-    "english_tests",
-    #"german_tests",
-    
+    'EnglishPrepApp.apps.EnglishprepappConfig',
+    "GermanPrepApp.apps.GermanprepappConfig",
+    'VisaTourismeApp',
+    'DocumentsApp',
+
 ]
 
 # === MIDDLEWARE ===
@@ -194,3 +195,15 @@ Tu pourras le réactiver plus tard quand tu installeras django-cron.
 # 
 #     def do(self):
 #         UpdateCommand().handle()
+
+
+# Email de base pour l’envoi
+DEFAULT_FROM_EMAIL = "no-reply@e-shelle.com"
+
+# À adapter selon ton fournisseur (Gmail, etc.)
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "TON_EMAIL"
+EMAIL_HOST_PASSWORD = "TON_MOT_DE_PASSE_OU_APP_PASSWORD"

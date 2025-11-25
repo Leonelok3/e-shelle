@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Analyse des compétences – {{ exam.title }} – Immigration97{% endblock %}
+
+{% block content %}
+<main class="page page--german-skill-analysis">
+  <section class="section">
+    <div class="container-narrow">
+
+      <p class="hero-kicker">Préparation • Allemand • Analyse</p>
+      <h1 class="hero-title">Analyse des compétences pour {{ exam.title }}</h1>
+      <p class="hero-subtitle">
+        Session du {{ session.started_at|date:"d/m/Y H:i" }} • Score global : {{ global_pct }} %
+      </p>
+
+      <section class="section">
+        <h2 class="section-title">Compétences évaluées</h2>
+        {% if skills %}
+          <div class="skills-grid">
+            {% for s in skills %}
+              <article class="skill-card">
+                <h3 class="skill-title">{{ s.label }}</h3>
+                <p class="skill-score">{{ s.pct }} %</p>
+                <p class="skill-detail">
+                  {{ s.correct }} bonnes réponses sur {{ s.total }} questions.
+                </p>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="section-empty">
+            Pas encore de statistiques disponibles pour cette session.
+          </p>
+        {% endif %}
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Ce que ton coach IA recommande</h2>
+        {% if suggestions %}
+          <ul class="suggestion-list">
+            {% for s in suggestions %}
+              <li class="suggestion-item">{{ s }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="section-empty">
+            Aucune recommandation spécifique – fais d’abord une simulation complète.
+          </p>
+        {% endif %}
+      </section>
+
+      <div class="hero-cta-row">
+        <a href="{% url 'germanprep:test_result' session.id %}" class="btn btn-secondary">
+          ← Retour au résultat
+        </a>
+        <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-primary">
+          Voir les leçons pour renforcer ces compétences
+        </a>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<style>
+.skills-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:14px;
+}
+.skill-card{
+  padding:14px 16px;
+  border-radius:16px;
+  background:rgba(15,23,42,0.9);
+  border:1px solid rgba(148,163,184,0.4);
+}
+.skill-title{font-weight:700;margin-bottom:4px;}
+.skill-score{font-size:1.7rem;font-weight:800;color:#e5feaf;margin-bottom:6px;}
+.skill-detail{font-size:.9rem;color:#cbd5f5;}
+.suggestion-list{list-style:none;margin:0;padding:0;}
+.suggestion-item{margin-bottom:8px;padding:8px 10px;border-radius:12px;
+  background:rgba(15,23,42,0.9);border:1px solid rgba(148,163,184,0.4);}
+</style>
+{% endblock %}

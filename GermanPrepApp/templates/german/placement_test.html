@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Test de niveau d’allemand A1–C2 – Immigration97{% endblock %}
+
+{% block content %}
+<main class="page page--german-placement">
+  <section class="section">
+    <div class="container-narrow">
+
+      <p class="hero-kicker">Préparation • Allemand • Test de niveau</p>
+      <h1 class="hero-title">
+        Test rapide de niveau d’allemand
+      </h1>
+      <p class="hero-subtitle">
+        Réponds aux questions ci-dessous. À la fin, nous estimerons ton niveau (A1 à C2)
+        et nous l’enregistrerons dans ton profil Immigration97.
+      </p>
+
+      {% if has_result %}
+        <div class="placement-result-card">
+          <h2 class="section-title">Résultat de ton test</h2>
+          <p>Score global : <strong>{{ score }} %</strong></p>
+          <p>Niveau recommandé : <strong>{{ recommended_level }}</strong></p>
+          <p class="small">
+            Tu peux maintenant choisir un examen de niveau {{ recommended_level }} dans le hub allemand,
+            ou lancer une simulation type examen pour confirmer ce niveau.
+          </p>
+          <div class="placement-actions">
+            <a href="{% url 'germanprep:home' %}#levels" class="btn btn-primary">
+              Choisir un examen niveau {{ recommended_level }}
+            </a>
+            <a href="{% url 'germanprep:placement_test' %}" class="btn btn-ghost">
+              Refaire le test
+            </a>
+          </div>
+        </div>
+      {% endif %}
+
+      <section class="section">
+        <h2 class="section-title">Questions du test</h2>
+
+        {% if questions %}
+          <form method="post">
+            {% csrf_token %}
+            <ol class="question-list">
+              {% for q in questions %}
+                <li class="question-item">
+                  <p class="question-text">{{ q.question_text }}</p>
+
+                  <div class="question-options">
+                    <label class="option-line">
+                      <input type="radio" name="q_{{ q.id }}" value="A">
+                      A. {{ q.option_a }}
+                    </label>
+                    <label class="option-line">
+                      <input type="radio" name="q_{{ q.id }}" value="B">
+                      B. {{ q.option_b }}
+                    </label>
+                    {% if q.option_c %}
+                      <label class="option-line">
+                        <input type="radio" name="q_{{ q.id }}" value="C">
+                        C. {{ q.option_c }}
+                      </label>
+                    {% endif %}
+                    {% if q.option_d %}
+                      <label class="option-line">
+                        <input type="radio" name="q_{{ q.id }}" value="D">
+                        D. {{ q.option_d }}
+                      </label>
+                    {% endif %}
+                  </div>
+                </li>
+              {% endfor %}
+            </ol>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                Valider mes réponses et voir mon niveau
+              </button>
+              <a href="{% url 'germanprep:home' %}" class="btn btn-ghost">
+                Annuler et revenir au hub allemand
+              </a>
+            </div>
+          </form>
+        {% else %}
+          <p class="section-empty">
+            Aucune question n’a encore été configurée pour le test de niveau.
+            Ajoute quelques questions dans l’administration (GermanPlacementQuestion).
+          </p>
+        {% endif %}
+      </section>
+
+    </div>
+  </section>
+</main>
+{% endblock %}

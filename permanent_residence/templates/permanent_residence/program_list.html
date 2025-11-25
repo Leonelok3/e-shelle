@@ -1,126 +1,199 @@
 {% extends "base.html" %}
 
-{% block title %}immigration97 · Guides Programmes RP{% endblock %}
+{% block title %}
+Programmes Résidence Permanente – Canada / Australie | immigration97
+{% endblock %}
+
+{% block meta_description %}
+Catalogue des programmes de Résidence Permanente (Entrée Express, PNP, visas australiens, etc.)
+avec filtres par pays et catégorie, résumé rapide et lien vers les sources officielles.
+{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-slate-950 text-slate-50">
-  <div class="max-w-6xl mx-auto px-4 lg:px-6 py-10 lg:py-14">
+<div class="max-w-6xl mx-auto py-10 px-4">
 
-    <!-- Header -->
-    <header class="mb-10">
-      <p class="text-xs font-bold tracking-[0.2em] text-emerald-400/80 mb-3 uppercase">
-        GUIDES PROGRAMMES RP
-      </p>
-      <h1 class="text-3xl md:text-4xl font-semibold tracking-tight mb-3">
-        Programmes d'immigration permanente
-      </h1>
-      <p class="text-sm md:text-base text-slate-400 max-w-2xl">
-        Parcours les principaux programmes pour le Canada et l’Australie. Chaque fiche présente
-        un résumé, les liens officiels et des ressources (vidéos, captures, guides).
-      </p>
-    </header>
-
-    <!-- Filtres -->
-    <section class="mb-8 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <div class="flex flex-wrap gap-2">
-        <span class="text-[11px] uppercase tracking-wide text-slate-500 mr-1 mt-1">Pays :</span>
-        <a href="{% url 'permanent_residence:program_list' %}"
-           class="px-3 py-1.5 rounded-full text-xs border
-           {% if not selected_country %}border-emerald-500/50 bg-emerald-500/10 text-emerald-100{% else %}border-slate-700 bg-slate-900/60 text-slate-200{% endif %}">
-          Tous
-        </a>
-        <a href="{% url 'permanent_residence:program_list' %}?country=CA"
-           class="px-3 py-1.5 rounded-full text-xs border
-           {% if selected_country == 'CA' %}border-emerald-500/50 bg-emerald-500/10 text-emerald-100{% else %}border-slate-700 bg-slate-900/60 text-slate-200{% endif %}">
-          🇨🇦 Canada
-        </a>
-        <a href="{% url 'permanent_residence:program_list' %}?country=AU"
-           class="px-3 py-1.5 rounded-full text-xs border
-           {% if selected_country == 'AU' %}border-emerald-500/50 bg-emerald-500/10 text-emerald-100{% else %}border-slate-700 bg-slate-900/60 text-slate-200{% endif %}">
-          🇦🇺 Australie
-        </a>
+  {# ---------- HERO MARKETING ---------- #}
+  <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 md:p-8 shadow-xl shadow-black/60 mb-8 backdrop-blur-sm">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div>
+        <p class="text-sm text-emerald-300 mb-1">
+          Bibliothèque de programmes · Résidence Permanente
+        </p>
+        <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">
+          Trouve les programmes RP adaptés à ton profil.
+        </h1>
+        <p class="text-sm md:text-base text-gray-300 max-w-2xl mb-3">
+          Filtre les programmes de Résidence Permanente par pays, catégorie et type de voie
+          (Entrée Express, PNP, visas Skilled australiens, mobilité francophone, etc.). Chaque fiche résume
+          l’objectif, le profil visé et renvoie vers les sites officiels.
+        </p>
+        <ul class="text-xs md:text-sm text-gray-300 space-y-1">
+          <li>● Vue rapide des programmes clés Canada & Australie.</li>
+          <li>● Fiches claires pour comprendre l’esprit de chaque voie.</li>
+          <li>● Liens directs vers les ressources officielles gouvernementales.</li>
+        </ul>
       </div>
 
-      {% if categories %}
-      <div class="flex flex-wrap gap-2">
-        <span class="text-[11px] uppercase tracking-wide text-slate-500 mr-1 mt-1">Catégorie :</span>
-        <a href="{% url 'permanent_residence:program_list' %}{% if selected_country %}?country={{ selected_country }}{% endif %}"
-           class="px-3 py-1.5 rounded-full text-xs border
-           {% if not selected_category %}border-emerald-500/50 bg-emerald-500/10 text-emerald-100{% else %}border-slate-700 bg-slate-900/60 text-slate-200{% endif %}">
-          Toutes
-        </a>
-        {% for cat in categories %}
-          {% if selected_country %}
-            {% with url_params="?country="|add:selected_country|add:"&category="|add:cat %}
-          {% else %}
-            {% with url_params="?category="|add:cat %}
-          {% endif %}
-          <a href="{% url 'permanent_residence:program_list' %}{{ url_params }}"
-             class="px-3 py-1.5 rounded-full text-xs border
-             {% if selected_category == cat %}border-emerald-500/50 bg-emerald-500/10 text-emerald-100{% else %}border-slate-700 bg-slate-900/60 text-slate-200{% endif %}">
-            {{ cat }}
+      <div class="w-full md:w-64">
+        <div class="bg-[#020814] rounded-2xl border border-[#132336] p-4 shadow-inner shadow-black/60 text-xs text-gray-300">
+          <p class="text-gray-200 font-semibold mb-2">
+            Astuce : combine cette page avec ton cockpit RP
+          </p>
+          <p class="mb-2">
+            Utilise les recommandations de ton diagnostic, puis retrouve ici les
+            programmes mentionnés pour approfondir et préparer tes documents.
+          </p>
+          <a href="{% url 'permanent_residence:dashboard' %}"
+             class="inline-flex items-center justify-center mt-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-[0.8rem] shadow-md shadow-emerald-600/40 transition">
+            📊 Ouvrir le cockpit RP
           </a>
-          {% endwith %}
-        {% endfor %}
+        </div>
       </div>
-      {% endif %}
-    </section>
+    </div>
+  </div>
 
-    <!-- Liste des programmes -->
+  {# ---------- BARRE DE FILTRES ---------- #}
+  <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-4 md:p-5 shadow-xl shadow-black/60 mb-6 backdrop-blur-sm">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-3">
+      <h2 class="text-sm font-semibold text-white">
+        Filtrer les programmes
+      </h2>
+      <a href="{% url 'permanent_residence:program_list' %}"
+         class="text-[0.75rem] text-gray-400 hover:text-gray-200 underline">
+        Réinitialiser les filtres
+      </a>
+    </div>
+
+    <div class="space-y-3">
+      {# Filtres pays #}
+      <div>
+        <p class="text-[0.7rem] text-gray-400 mb-1 uppercase tracking-wide">
+          Pays
+        </p>
+        <div class="flex flex-wrap gap-2">
+          {# Tous les pays #}
+          <a href="{% if selected_category %}?category={{ selected_category }}{% else %}{% url 'permanent_residence:program_list' %}{% endif %}"
+             class="px-3 py-1.5 rounded-full text-xs font-semibold
+                    {% if not selected_country %}
+                      bg-emerald-500 text-[#020617] shadow-md shadow-emerald-500/40
+                    {% else %}
+                      bg-[#07111b] text-gray-200 border border-slate-600 hover:border-emerald-400 hover:text-emerald-200
+                    {% endif %}">Tous</a>
+
+          {% for code in available_countries %}
+            <a href="?country={{ code }}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+               class="px-3 py-1.5 rounded-full text-xs font-semibold
+                      {% if selected_country == code %}
+                        bg-emerald-500 text-[#020617] shadow-md shadow-emerald-500/40
+                      {% else %}
+                        bg-[#07111b] text-gray-200 border border-slate-600 hover:border-emerald-400 hover:text-emerald-200
+                      {% endif %}">
+              {% if code == "CA" %}🇨🇦 Canada{% elif code == "AU" %}🇦🇺 Australie{% else %}{{ code }}{% endif %}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      {# Filtres catégorie #}
+      <div>
+        <p class="text-[0.7rem] text-gray-400 mb-1 uppercase tracking-wide">
+          Catégories principales
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <a href="{% if selected_country %}?country={{ selected_country }}{% else %}{% url 'permanent_residence:program_list' %}{% endif %}"
+             class="px-3 py-1.5 rounded-full text-xs font-semibold
+                    {% if not selected_category %}
+                      bg-emerald-500 text-[#020617] shadow-md shadow-emerald-500/40
+                    {% else %}
+                      bg-[#07111b] text-gray-200 border border-slate-600 hover:border-emerald-400 hover:text-emerald-200
+                    {% endif %}">Toutes</a>
+
+          {% for cat in categories %}
+            <a href="?category={{ cat }}{% if selected_country %}&country={{ selected_country }}{% endif %}"
+               class="px-3 py-1.5 rounded-full text-xs font-semibold truncate max-w-[180px]
+                      {% if selected_category == cat %}
+                        bg-emerald-500 text-[#020617] shadow-md shadow-emerald-500/40
+                      {% else %}
+                        bg-[#07111b] text-gray-200 border border-slate-600 hover:border-emerald-400 hover:text-emerald-200
+                      {% endif %}">{{ cat }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ---------- LISTE DES PROGRAMMES ---------- #}
+  <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-5 shadow-xl shadow-black/60 backdrop-blur-sm">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <h2 class="text-lg font-semibold text-white">
+        Programmes trouvés
+      </h2>
+      <p class="text-xs text-gray-400">
+        {% if programs %}
+          {{ programs|length }} programme{% if programs|length > 1 %}s{% endif %} affiché{% if programs|length > 1 %}s{% endif %}
+        {% else %}
+          0 programme affiché
+        {% endif %}
+      </p>
+    </div>
+
     {% if programs %}
-      <div class="space-y-4">
+      <div class="grid md:grid-cols-2 gap-4">
         {% for program in programs %}
-          <article class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/80 to-slate-950/90 px-4 py-4 md:px-6 md:py-5 shadow-lg shadow-slate-950/40 hover:border-emerald-500/40 transition-all">
-            <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-              <div class="flex-1">
-                <div class="flex flex-wrap items-center gap-2 mb-1">
-                  <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {% if program.country == "CA" %}🇨🇦 Canada{% else %}🇦🇺 Australie{% endif %}
-                  </span>
-                  {% if program.category %}
-                    <span class="px-2 py-0.5 rounded-full text-[11px] uppercase tracking-wide bg-slate-800/80 text-slate-200 border border-slate-700/70">
-                      {{ program.category }}
-                    </span>
-                  {% endif %}
-                  {% if program.short_label %}
-                    <span class="px-2 py-0.5 rounded-full text-[11px] bg-emerald-500/10 text-emerald-200 border border-emerald-500/40">
-                      {{ program.short_label }}
-                    </span>
-                  {% endif %}
-                </div>
-                <h2 class="text-sm md:text-base font-semibold text-slate-50 mb-1">
+          <article class="bg-gradient-to-br from-[#07111b] via-[#050d16] to-[#071b24] border border-slate-700/80 hover:border-emerald-500/60 rounded-2xl p-4 flex flex-col justify-between shadow-lg shadow-black/60 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/35 transition">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="text-sm font-semibold text-white leading-snug">
                   {{ program.name }}
-                </h2>
-                {% if program.summary %}
-                  <p class="text-xs md:text-sm text-slate-400 max-w-2xl">
-                    {{ program.summary }}
-                  </p>
-                {% endif %}
+                </h3>
+                <span class="text-[0.7rem] px-2 py-1 rounded-full border border-emerald-400/40 bg-emerald-600/10 text-emerald-200">
+                  {% if program.country == "CA" %}🇨🇦 Canada{% elif program.country == "AU" %}🇦🇺 Australie{% else %}Programme RP{% endif %}
+                </span>
               </div>
-              <div class="flex flex-col items-end gap-2">
-                {% if program.official_url %}
-                  <a href="{{ program.official_url }}" target="_blank" rel="noopener"
-                     class="inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-emerald-200">
-                    <span>Site officiel</span>
-                    <span class="text-xs">↗</span>
-                  </a>
-                {% endif %}
+
+              {% if program.short_label %}
+                <p class="text-[0.7rem] inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800/80 text-emerald-300 border border-slate-600 mb-2">
+                  {{ program.short_label }}
+                </p>
+              {% endif %}
+
+              {% if program.category %}
+                <p class="text-[0.75rem] text-emerald-300 mb-1 uppercase tracking-wide">
+                  {{ program.category }}
+                </p>
+              {% endif %}
+
+              {% if program.summary %}
+                <p class="text-xs text-gray-300 mb-2">
+                  {{ program.summary }}
+                </p>
+              {% endif %}
+            </div>
+
+            <div class="mt-3 flex items-center justify-between gap-2">
+              {% if program.slug %}
                 <a href="{% url 'permanent_residence:program_detail' program.slug %}"
-                   class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-emerald-400 to-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/40 hover:from-emerald-300 hover:to-emerald-400 hover:shadow-emerald-500/60 transition-all">
-                  <span>Voir le guide détaillé</span>
-                  <span>→</span>
+                   class="inline-flex items-center justify-center px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[0.8rem] font-semibold text-white shadow-md shadow-emerald-500/40 transition">
+                  Voir la fiche →</a>
+              {% endif %}
+
+              {% if program.official_url %}
+                <a href="{{ program.official_url }}" target="_blank" rel="noopener noreferrer"
+                   class="text-[0.75rem] text-gray-400 hover:text-gray-200 underline">
+                  Site officiel
                 </a>
-              </div>
+              {% endif %}
             </div>
           </article>
         {% endfor %}
       </div>
     {% else %}
-      <p class="text-sm text-slate-500 mt-10">
-        Aucun programme n’est encore configuré dans la base de données pour ces filtres.
-        Ajoute des programmes dans l’admin (ImmigrationProgram) pour les afficher ici.
+      <p class="text-sm text-gray-400">
+        Aucun programme ne correspond actuellement aux filtres sélectionnés.
+        Essaie d’élargir le pays ou la catégorie pour voir plus d’options.
       </p>
     {% endif %}
   </div>
+
 </div>
 {% endblock %}

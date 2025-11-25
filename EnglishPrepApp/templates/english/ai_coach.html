@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Coach IA – Préparation anglais Immigration97{% endblock %}
+
+{% block meta %}
+  <meta name="description" content="Coach IA d'anglais connecté à ton niveau, ton historique de tests et tes objectifs (immigration, études, travail). Pose tes questions sur l’IELTS, le TOEFL, le TOEIC, la grammaire, le vocabulaire et ton organisation d’étude.">
+  <meta name="keywords" content="coach IA anglais, préparation IELTS, préparation TOEFL, préparation TOEIC, test anglais en ligne, Immigration97, E-SHELLE">
+  <meta property="og:title" content="Coach IA – Préparation anglais Immigration97">
+  <meta property="og:description" content="Un coach d'anglais intelligent qui connaît ton niveau, tes tests passés et tes objectifs pour t'aider à progresser.">
+  <meta property="og:type" content="website">
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-950 text-slate-50 relative overflow-hidden">
+  {# Background premium #}
+  <div class="absolute inset-0 overflow-hidden -z-10">
+    <div class="absolute top-0 right-0 w-[700px] h-[700px] bg-gradient-to-br from-blue-600/14 via-emerald-500/7 to-transparent rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-gradient-to-tr from-emerald-500/14 via-blue-500/10 to-transparent rounded-full blur-3xl"></div>
+  </div>
+
+  <main class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16">
+
+    {# Top chips nav #}
+    <section class="mb-6 border-b border-slate-800/50 pb-4">
+      <div class="flex flex-wrap gap-2 justify-end text-[11px]">
+        <a href="{% url 'englishprep:dashboard' %}"
+           class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/60 text-slate-200 hover:bg-slate-800 transition-all">
+          🏠 Tableau de bord
+        </a>
+        <a href="{% url 'englishprep:exam_hub' %}"
+           class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/60 text-slate-200 hover:bg-slate-800 transition-all">
+          🌐 Hub IELTS / TOEFL / TOEIC
+        </a>
+        <a href="{% url 'englishprep:exam_list' %}"
+           class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/60 text-slate-200 hover:bg-slate-800 transition-all">
+          📚 Tous les tests
+        </a>
+        <a href="{% url 'englishprep:test_history' %}"
+           class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/60 text-slate-200 hover:bg-slate-800 transition-all">
+          📋 Historique
+        </a>
+      </div>
+    </section>
+
+    {# Hero #}
+    <section class="mb-10 lg:mb-12">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/40 mb-4">
+        <span class="text-[10px] font-semibold text-emerald-300 tracking-[0.2em] uppercase">
+          Coach IA · Anglais
+        </span>
+        <span class="text-[11px] text-emerald-200/80">Connecté à ton profil</span>
+      </div>
+
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-light tracking-tight mb-4">
+        <span class="bg-gradient-to-r from-slate-50 via-blue-100 to-emerald-200 bg-clip-text text-transparent">
+          Coach IA pour ta préparation d'anglais
+        </span>
+        <span class="ml-1 align-middle text-xl">🇬🇧</span>
+      </h1>
+
+      <p class="text-sm md:text-base text-slate-300/90 max-w-2xl">
+        Pose tes questions sur ta préparation (IELTS, TOEFL, TOEIC, grammaire, vocabulaire, organisation d’étude…).
+        Le coach IA analyse ton niveau et tes derniers tests pour te guider avec des stratégies concrètes
+        et des mini-exercices personnalisés.
+      </p>
+    </section>
+
+    {% if error %}
+      <div class="mb-8 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    {# Main grid #}
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
+      {# Colonne profil #}
+      <div class="lg:col-span-1 space-y-4">
+
+        {% if profile %}
+          <article class="rounded-2xl border border-slate-700/60 bg-slate-900/70 p-5 backdrop-blur-xl">
+            <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 mb-3 uppercase">
+              Ton profil anglais
+            </p>
+
+            <div class="grid grid-cols-2 gap-4 text-xs text-slate-300 mb-4">
+              <div>
+                <p class="text-slate-500 text-[11px] mb-1">Niveau</p>
+                <p class="text-2xl font-bold text-blue-400">{{ profile.level }}</p>
+              </div>
+              <div>
+                <p class="text-slate-500 text-[11px] mb-1">XP</p>
+                <p class="text-xl font-semibold text-emerald-300">{{ profile.xp }}</p>
+              </div>
+              <div>
+                <p class="text-slate-500 text-[11px] mb-1">Meilleur score</p>
+                <p class="text-lg font-semibold text-slate-50">{{ profile.best_score }}%</p>
+              </div>
+              <div>
+                <p class="text-slate-500 text-[11px] mb-1">Tests passés</p>
+                <p class="text-lg font-semibold text-slate-100">{{ profile.total_tests }}</p>
+              </div>
+            </div>
+
+            {% if profile.badges %}
+              <div class="mt-2">
+                <p class="text-[11px] font-semibold text-slate-400 mb-2 uppercase">Badges obtenus</p>
+                <div class="flex flex-wrap gap-2">
+                  {% for badge in profile.badges %}
+                    <span class="px-3 py-1 rounded-full bg-blue-500/15 text-blue-300 text-[11px] border border-blue-500/30">
+                      🏅 {{ badge }}
+                    </span>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+          </article>
+        {% else %}
+          <article class="rounded-2xl border border-slate-700/60 bg-slate-900/70 p-5 backdrop-blur-xl">
+            <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 mb-3 uppercase">
+              Ton profil anglais
+            </p>
+            <p class="text-xs text-slate-300">
+              Tu n’as pas encore de profil complet. Commence par passer un premier test d’anglais,
+              puis reviens ici : le coach IA adaptera ses conseils à ton niveau réel.
+            </p>
+          </article>
+        {% endif %}
+
+        {% if last_sessions %}
+          <article class="rounded-2xl border border-slate-700/60 bg-slate-900/70 p-5 backdrop-blur-xl">
+            <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 mb-3 uppercase">
+              Derniers tests
+            </p>
+            <div class="space-y-3 text-[11px] text-slate-300">
+              {% for s in last_sessions %}
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex-1">
+                    <p class="font-semibold text-slate-100 truncate">
+                      {{ s.exam.name }}
+                    </p>
+                    <p class="text-slate-500">
+                      {{ s.started_at|date:"d/m/Y" }} • {{ s.score|default:"0.0" }}%
+                    </p>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </article>
+        {% else %}
+          <article class="rounded-2xl border border-slate-700/60 bg-slate-900/70 p-5 backdrop-blur-xl">
+            <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 mb-3 uppercase">
+              Derniers tests
+            </p>
+            <p class="text-xs text-slate-400">
+              Aucun test récent. Lance un examen (IELTS, TOEFL, TOEIC ou général) pour que le coach IA
+              puisse s’appuyer sur tes résultats.
+            </p>
+            <a href="{% url 'englishprep:exam_list' %}"
+               class="inline-flex items-center justify-center gap-2 mt-3 px-4 py-2 rounded-xl text-[11px] font-semibold bg-gradient-to-r from-emerald-400 to-blue-500 text-slate-950 shadow-md shadow-emerald-500/30 hover:scale-[1.02] transition-transform">
+              🚀 Voir les examens disponibles
+            </a>
+          </article>
+        {% endif %}
+      </div>
+
+      {# Colonne coach IA #}
+      <div class="lg:col-span-2 space-y-6">
+        <article class="rounded-3xl border border-slate-700/60 bg-slate-900/80 backdrop-blur-xl p-5 md:p-6">
+          <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+              <label class="block text-sm font-medium text-slate-100 mb-2">
+                Pose ta question au coach IA
+              </label>
+              <textarea
+                name="question"
+                rows="5"
+                class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-emerald-500/70"
+                placeholder="Exemples :
+- Comment organiser ma préparation pour obtenir un bon score IELTS ?
+- J'ai du mal avec le listening, que me conseilles-tu ?
+- Comment améliorer mon vocabulaire pour le TOEIC ?"
+              ></textarea>
+            </div>
+
+            <button
+              type="submit"
+              class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold bg-gradient-to-r from-emerald-400 to-blue-500 text-slate-950 shadow-lg shadow-emerald-500/30 hover:scale-[1.02] active:scale-95 transition-transform"
+            >
+              🤖 Lancer le coach IA
+            </button>
+          </form>
+
+          {% if ai_answer %}
+            <div class="mt-8 rounded-2xl border border-emerald-500/40 bg-emerald-500/5 p-5 md:p-6 text-sm text-slate-100 leading-relaxed">
+              <p class="text-[11px] font-bold tracking-[0.18em] text-emerald-300 mb-3 uppercase">
+                Réponse du coach IA
+              </p>
+              <div class="prose prose-invert max-w-none text-sm">
+                {{ ai_answer|linebreaksbr }}
+              </div>
+            </div>
+          {% endif %}
+        </article>
+
+        <article class="rounded-2xl border border-slate-800/60 bg-slate-900/80 p-5 md:p-6 text-xs text-slate-300 backdrop-blur-xl">
+          <p class="text-[11px] font-semibold text-slate-400 tracking-[0.18em] uppercase mb-2">
+            Idées de prompts
+          </p>
+          <ul class="space-y-1.5">
+            <li>• “Crée-moi un mini-plan de révision pour l’IELTS General Training niveau B2.”</li>
+            <li>• “Explique-moi simplement la différence entre will et going to, avec des exemples.”</li>
+            <li>• “Donne-moi 5 phrases à traduire pour pratiquer le present perfect (niveau B1).”</li>
+            <li>• “Analyse cette phrase et dis-moi pourquoi elle est incorrecte : …”</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  </main>
+</div>
+
+{# Pré-remplissage du textarea avec le preset envoyé depuis la page profil #}
+<script>
+  (function () {
+    const textarea = document.querySelector('textarea[name="question"]');
+    const preset = "{{ preset|default:''|escapejs }}";
+    if (preset && textarea && !textarea.value.trim()) {
+      textarea.value = preset;
+    }
+  })();
+</script>
+{% endblock %}

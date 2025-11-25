@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Niveau {{ level_code }} – Hub de préparation allemand – Immigration97{% endblock %}
+
+{% block content %}
+<main class="page page--german-level">
+  <section class="section">
+    <div class="container-narrow">
+
+      <p class="hero-kicker">Préparation • Allemand • Niveau {{ level_code }}</p>
+      <h1 class="hero-title">
+        Niveau {{ level_code }} – {{ level_label }}
+      </h1>
+      <p class="hero-subtitle">
+        {{ level_description }}
+      </p>
+
+      <div class="hero-cta-row" style="margin-bottom: 24px;">
+        <a href="{% url 'germanprep:placement_test' %}" class="btn btn-secondary">
+          🎯 Vérifier si ce niveau me correspond
+        </a>
+        <a href="{% url 'germanprep:home' %}#levels" class="btn btn-ghost">
+          ← Revenir au choix des niveaux
+        </a>
+      </div>
+
+      <div class="profile-summary">
+        <p>XP total : {{ profile.xp }} • Niveau interne : {{ profile.level }}</p>
+        <p>Tests passés : {{ profile.total_tests }} • Meilleur score : {{ profile.best_score|default:0 }} %</p>
+        {% if profile.placement_level %}
+          <p>Niveau conseillé actuellement : <strong>{{ profile.placement_level }}</strong>
+             (test ≈ {{ profile.placement_score|default:0|floatformat:1 }} %)</p>
+        {% endif %}
+      </div>
+
+      <section class="section">
+        <h2 class="section-title">Examens disponibles pour le niveau {{ level_code }}</h2>
+        {% if exams %}
+          <div class="exam-cards-row">
+            {% for exam in exams %}
+              <article class="exam-card">
+                <h3 class="exam-title">{{ exam.title }}</h3>
+                <p class="exam-type">
+                  {{ exam.get_exam_type_display }} • Niveau {{ exam.level }}
+                </p>
+                <p class="exam-desc">
+                  {{ exam.short_description }}
+                </p>
+                <div class="exam-actions">
+                  <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-secondary">
+                    Voir le programme complet
+                  </a>
+                  <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-ghost">
+                    Simulation type examen
+                  </a>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="section-empty">
+            Aucun examen spécifique n’est encore configuré pour ce niveau.
+          </p>
+        {% endif %}
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Cours & leçons clés du niveau {{ level_code }}</h2>
+        {% if lessons %}
+          <ul class="lesson-list">
+            {% for lesson in lessons %}
+              <li class="lesson-item">
+                <div class="lesson-main">
+                  <h3 class="lesson-title">
+                    {{ lesson.title }}
+                    <span class="badge badge-soft">{{ lesson.get_skill_display }}</span>
+                  </h3>
+                  <p class="lesson-meta">
+                    Examen : {{ lesson.exam.title }}
+                  </p>
+                  {% if lesson.intro %}
+                    <p class="lesson-intro">{{ lesson.intro }}</p>
+                  {% endif %}
+                </div>
+                <div class="lesson-actions">
+                  <a href="{% url 'germanprep:lesson_detail' lesson.exam.slug lesson.id %}"
+                     class="btn btn-secondary btn-soft">
+                    Ouvrir la leçon
+                  </a>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="section-empty">
+            Les leçons de ce niveau ne sont pas encore configurées.
+          </p>
+        {% endif %}
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Ressources complètes (PDF, vidéos, fiches)</h2>
+        {% if resources %}
+          <ul class="resource-list">
+            {% for r in resources %}
+              <li class="resource-item">
+                <h3 class="resource-title">
+                  {{ r.title }}
+                  <span class="badge">
+                    {% if r.resource_type == "PDF" %}PDF{% elif r.resource_type == "VIDEO" %}Vidéo{% elif r.resource_type == "LINK" %}Lien{% else %}Ressource{% endif %}
+                  </span>
+                </h3>
+                {% if r.description %}
+                  <p class="resource-desc">{{ r.description }}</p>
+                {% endif %}
+                <p class="resource-meta">
+                  Examen associé : {{ r.exam.title }}
+                </p>
+                <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer"
+                   class="btn btn-ghost btn-soft">
+                  Ouvrir la ressource
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="section-empty">
+            Aucune ressource n’a encore été ajoutée pour ce niveau.
+          </p>
+        {% endif %}
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Tes dernières simulations sur ce niveau</h2>
+        {% if sessions %}
+          <ul class="session-list">
+            {% for s in sessions %}
+              <li class="session-item">
+                <div class="session-main">
+                  <p class="session-title">
+                    {{ s.exam.title }}
+                  </p>
+                  <p class="session-meta">
+                    Passé le {{ s.started_at|date:"d/m/Y H:i" }}
+                  </p>
+                </div>
+                <div class="session-score">
+                  <span class="session-score-value">
+                    {{ s.score|default:"0.0" }} %
+                  </span>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="section-empty">
+            Tu n’as pas encore fait de test pour ce niveau.
+          </p>
+        {% endif %}
+      </section>
+
+    </div>
+  </section>
+</main>
+{% endblock %}

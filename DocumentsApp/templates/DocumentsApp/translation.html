@@ -1,0 +1,35 @@
+{% extends "DocumentsApp/base_documents.html" %}
+
+{% block documents_content %}
+<h1 class="mb-4">Traduction de documents (.docx)</h1>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" class="card p-4">
+    {% csrf_token %}
+    <div class="mb-3">
+        {{ form.file.label_tag }}
+        {{ form.file }}
+        <small class="form-text text-muted">{{ form.file.help_text }}</small>
+    </div>
+    <div class="mb-3">
+        {{ form.source_lang.label_tag }}
+        {{ form.source_lang }}
+    </div>
+    <div class="mb-3">
+        {{ form.target_lang.label_tag }}
+        {{ form.target_lang }}
+    </div>
+    <button type="submit" class="btn btn-primary">
+        Traduire et télécharger
+    </button>
+</form>
+
+<p class="mt-3">
+    <a href="{% url 'DocumentsApp:home' %}">&larr; Retour au module Documents</a>
+</p>
+{% endblock %}

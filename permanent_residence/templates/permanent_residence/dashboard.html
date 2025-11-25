@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}
+Cockpit Résidence Permanente | immigration97
+{% endblock %}
+
+{% block meta_description %}
+Tableau de bord Résidence Permanente : score de préparation, prochaines actions, suivi du plan,
+stratégies RP personnalisées (Canada / Australie) avec Immigration97.
+{% endblock %}
+
+{% block content %}
+
+{# === NAVIGATION RP DÉDIÉE === #}
+{% include "permanent_residence/_rp_nav.html" %}
+
+<div class="max-w-6xl mx-auto py-10 px-4">
+
+  {# --------- CAS SANS PROFIL : INVITATION À FAIRE LE DIAGNOSTIC --------- #}
+  {% if not profile %}
+    <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-8 shadow-xl shadow-black/60 backdrop-blur-sm">
+      <h1 class="text-2xl md:text-3xl font-bold text-white mb-3">
+        Commence par ton diagnostic Résidence Permanente.
+      </h1>
+      <p class="text-sm md:text-base text-gray-300 mb-6 max-w-2xl">
+        Pour activer ton cockpit RP, remplis d’abord le diagnostic : pays ciblé, études,
+        expérience, niveaux de langue. Tu obtiendras ensuite un plan d’action guidé et ce
+        tableau de bord suivra ta progression.
+      </p>
+
+      <div class="flex flex-wrap gap-3">
+        <a href="{% url 'permanent_residence:eligibility' %}"
+           class="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-500 hover:to-emerald-300 text-white text-sm font-semibold shadow-lg shadow-emerald-600/40 transition transform hover:-translate-y-0.5">
+          🚀 Lancer le diagnostic RP
+        </a>
+        <a href="{% url 'permanent_residence:program_list' %}"
+           class="px-5 py-3 rounded-xl border border-emerald-500/60 text-emerald-200 text-sm font-semibold bg-[#071622] hover:bg-[#0b2230] shadow-md shadow-black/40 transition">
+          📚 Voir les programmes RP
+        </a>
+      </div>
+    </div>
+
+  {% else %}
+
+  {# --------- HERO : SCORE GLOBAL + CTA --------- #}
+  <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 md:p-8 shadow-xl shadow-black/60 mb-8 backdrop-blur-sm">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div>
+        <p class="text-sm text-emerald-300 mb-1">
+          Cockpit Résidence Permanente · {{ profile.get_country_display }}
+        </p>
+        <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">
+          Suivi de ton projet de Résidence Permanente.
+        </h1>
+        <p class="text-sm md:text-base text-gray-300 max-w-2xl">
+          Ce tableau de bord regroupe ton score de préparation, la complétion de ton plan,
+          ton niveau en langues et les prochaines actions à réaliser pour avancer vers ta RP.
+        </p>
+
+        <div class="mt-4 flex flex-wrap gap-3">
+          <a href="{% url 'permanent_residence:plan' profile.id %}"
+             class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold shadow-lg shadow-emerald-600/40 transition transform hover:-translate-y-0.5">
+            📝 Ouvrir mon plan d’action
+          </a>
+          <a href="{% url 'permanent_residence:eligibility' %}"
+             class="px-5 py-2.5 rounded-xl border border-slate-600 text-slate-200 text-sm font-semibold bg-[#071622] hover:bg-[#0b2230] transition">
+            ✏️ Mettre à jour mon diagnostic
+          </a>
+          <a href="{% url 'permanent_residence:coach' %}"
+             class="px-5 py-2.5 rounded-xl border border-sky-500/60 text-sky-200 text-sm font-semibold bg-[#071725] hover:bg-[#0b2233] shadow-md shadow-black/40 transition">
+            🤖 Parler au coach IA RP
+          </a>
+        </div>
+      </div>
+
+      {# Gauge readiness #}
+      <div class="w-full md:w-64">
+        <div class="bg-[#020814] rounded-2xl border border-[#132336] p-4 shadow-inner shadow-black/60">
+          <p class="text-xs text-gray-400 mb-2 text-center">
+            Score global de préparation RP
+          </p>
+          <div class="relative mx-auto mb-3 flex items-center justify-center">
+            <div class="h-28 w-28 rounded-full bg-[#050d16] border border-slate-700 flex items-center justify-center shadow-inner shadow-black/70">
+              <div class="h-20 w-20 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/60">
+                <span class="text-2xl font-bold text-[#020617]">
+                  {{ readiness_score }}%
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="text-[0.7rem] text-gray-300 space-y-1">
+            <div class="flex items-center justify-between">
+              <span>Profil complété</span>
+              <span class="text-emerald-300 font-semibold">{{ profile_completion }}%</span>
+            </div>
+            <div class="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden mb-1">
+              <div class="h-1.5 rounded-full bg-emerald-500" style="width: {{ profile_completion }}%;"></div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <span>Plan d’action</span>
+              <span class="text-emerald-300 font-semibold">{{ plan_progress }}%</span>
+            </div>
+            <div class="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden mb-1">
+              <div class="h-1.5 rounded-full bg-emerald-400" style="width: {{ plan_progress }}%;"></div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <span>Score langues</span>
+              <span class="text-sky-300 font-semibold">{{ language_score }}/100</span>
+            </div>
+            <div class="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden">
+              <div class="h-1.5 rounded-full bg-sky-400" style="width: {{ language_score }}%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# --------- GRILLE PRINCIPALE : ACTIONS + STRATÉGIES --------- #}
+  <div class="grid lg:grid-cols-3 gap-6">
+
+    {# Colonne 1 & 2 : prochaines actions + plan #}
+    <section class="lg:col-span-2 space-y-6">
+
+      {# Prochaines actions #}
+      <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-lg font-semibold text-white">
+            Prochaines actions à réaliser
+          </h2>
+          <span class="text-xs px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/40">
+            Plan d’action RP
+          </span>
+        </div>
+
+        {% if next_actions %}
+          <ul class="space-y-3 text-sm">
+            {% for step in next_actions %}
+              <li class="flex items-start gap-3">
+                <div class="mt-1">
+                  {% if step.status == "in_progress" %}
+                    <span class="inline-flex h-4 w-4 rounded-full border-2 border-emerald-400 bg-emerald-500/20"></span>
+                  {% elif step.status == "done" %}
+                    <span class="inline-flex h-4 w-4 rounded-full bg-emerald-500">
+                      <span class="m-auto text-[0.55rem] text-white">✓</span>
+                    </span>
+                  {% else %}
+                    <span class="inline-flex h-4 w-4 rounded-full border border-slate-500 bg-slate-900"></span>
+                  {% endif %}
+                </div>
+                <div>
+                  <p class="font-semibold text-white">
+                    {{ step.title }}
+                  </p>
+                  {% if step.description %}
+                    <p class="text-xs text-gray-300 mt-0.5">
+                      {{ step.description }}
+                    </p>
+                  {% endif %}
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-sm text-gray-400">
+            Les prochaines actions apparaîtront ici une fois que ton plan d’action aura été généré.
+          </p>
+        {% endif %}
+
+        <div class="mt-4">
+          <a href="{% url 'permanent_residence:plan' profile.id %}"
+             class="inline-flex items-center text-xs text-emerald-300 hover:text-emerald-200 underline">
+            Voir toutes les étapes du plan →
+          </a>
+        </div>
+      </div>
+
+      {# Lien vers les programmes #}
+      <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-5 shadow-xl shadow-black/60 backdrop-blur-sm">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-semibold text-white mb-1">
+              Explorer les programmes RP compatibles
+            </h3>
+            <p class="text-xs text-gray-300">
+              Consulte la bibliothèque des programmes RP (Entrée Express, PNP, visas australiens, etc.)
+              et repère ceux qui correspondent à ton profil actuel.
+            </p>
+          </div>
+          <div class="flex gap-2">
+            <a href="{% url 'permanent_residence:program_list' %}"
+               class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-semibold shadow-md shadow-emerald-600/40 transition">
+              📚 Ouvrir la liste des programmes
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# Colonne 3 : stratégies RP #}
+    <aside class="space-y-4">
+      <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-lg font-semibold text-white">
+            Stratégies RP possibles
+          </h2>
+          <a href="{% url 'permanent_residence:strategy' profile.id %}"
+             class="text-[0.7rem] text-emerald-300 hover:text-emerald-200 underline">
+            Tout voir →
+          </a>
+        </div>
+
+        {% if strategies %}
+          <div class="space-y-4">
+            {% for strat in strategies %}
+              <article class="rounded-xl border border-slate-700/80 bg-[#040b13] px-3 py-3 text-xs text-gray-200">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                  <h3 class="font-semibold text-white leading-snug">
+                    {{ strat.label }}
+                  </h3>
+                  {% if strat.tag %}
+                    <span class="px-2 py-0.5 rounded-full text-[0.65rem] bg-emerald-500/15 text-emerald-300 border border-emerald-500/40">
+                      {{ strat.tag }}
+                    </span>
+                  {% endif %}
+                </div>
+                {% if strat.summary %}
+                  <p class="text-[0.7rem] text-gray-300 mb-1.5">
+                    {{ strat.summary }}
+                  </p>
+                {% endif %}
+                {% if strat.ideal_for %}
+                  <p class="text-[0.7rem] text-gray-400 mb-1">
+                    <span class="font-semibold text-slate-100">Idéal si :</span>
+                    {{ strat.ideal_for }}
+                  </p>
+                {% endif %}
+                {% if strat.key_actions %}
+                  <ul class="mt-1 space-y-0.5">
+                    {% for act in strat.key_actions %}
+                      <li class="flex gap-1">
+                        <span class="mt-0.5 text-emerald-400">●</span>
+                        <span>{{ act }}</span>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-xs text-gray-400">
+            Les stratégies RP seront affichées ici lorsque ton profil sera suffisamment complet.
+          </p>
+        {% endif %}
+      </div>
+    </aside>
+  </div>
+
+  {% endif %} {# fin du if profile #}
+
+</div>
+{% endblock %}

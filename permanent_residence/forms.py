@@ -59,3 +59,66 @@ class PREligibilityForm(forms.ModelForm):
             "has_job_offer": "Offre d’emploi valide",
             "notes": "Infos complémentaires",
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # placeholders pro
+        placeholders = {
+            "age": "Ex : 29",
+            "years_experience": "Ex : 3 (années à temps plein)",
+            "french_co": "Ex : 310/360, CLB 7, B2…",
+            "french_ce": "Ex : 280/300, CLB 8, B2…",
+            "french_eo": "Ex : B2 fort, CLB 7…",
+            "french_ee": "Ex : B2, CLB 7…",
+
+            "english_co": "Ex : 6.5, 7.0, CLB 8…",
+            "english_ce": "Ex : 7.0, 7.5, CLB 9…",
+            "english_eo": "Ex : 6.5, 7.0…",
+            "english_ee": "Ex : 6.0, 6.5…",
+
+            "profession_title": "Ex : Enseignant, Ingénieur logiciel, Infirmier…",
+            "noc_code": "Ex : 41220, 21231…",
+            "anzsco_code": "Ex : 241111, 261313…",
+            "notes": "Ajoute ici tout contexte utile (projet, situation familiale, contraintes…).",
+        }
+
+        # classes de base pour le thème dark immigration97
+        input_class = (
+            "w-full px-4 py-2 rounded-xl bg-[#0b1a24] text-white border "
+            "border-[#11303a] focus:border-emerald-500 focus:ring-emerald-500 "
+            "placeholder-gray-500"
+        )
+
+        select_class = (
+            "w-full px-4 py-2 rounded-xl bg-[#0b1a24] text-white border "
+            "border-[#11303a] focus:border-emerald-500 focus:ring-emerald-500"
+        )
+
+        checkbox_class = (
+            "h-4 w-4 rounded bg-[#0b1a24] text-emerald-500 border-[#11303a] "
+            "focus:ring-emerald-600"
+        )
+
+        for name, field in self.fields.items():
+            widget = field.widget
+            widget_name = widget.__class__.__name__
+
+            # placeholders
+            if name in placeholders:
+                widget.attrs["placeholder"] = placeholders[name]
+
+            # récupérer les classes existantes
+            existing_classes = widget.attrs.get("class", "")
+
+            if widget_name in ["TextInput", "NumberInput"]:
+                widget.attrs["class"] = (existing_classes + " " + input_class).strip()
+
+            elif widget_name == "Textarea":
+                widget.attrs["class"] = (existing_classes + " " + input_class + " min-h-[80px]").strip()
+
+            elif widget_name == "Select":
+                widget.attrs["class"] = (existing_classes + " " + select_class).strip()
+
+            elif widget_name == "CheckboxInput":
+                widget.attrs["class"] = (existing_classes + " " + checkbox_class).strip()

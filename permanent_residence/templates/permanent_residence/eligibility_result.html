@@ -1,699 +1,286 @@
 {% extends "base.html" %}
 
-{% block title %}immigration97 · Résultat RP{% endblock %}
-
-{% block content %}
-<div class="min-h-screen bg-slate-950 text-slate-50 relative overflow-hidden">
-  <!-- Ultra premium animated background -->
-  <div class="absolute inset-0 overflow-hidden">
-    <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-br from-emerald-600/8 via-transparent to-transparent rounded-full blur-3xl animate-pulse"></div>
-    <div class="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-gradient-to-tr from-blue-600/5 via-purple-600/5 to-transparent rounded-full blur-3xl" style="animation: float 20s ease-in-out infinite;"></div>
-    <div class="absolute top-1/2 left-1/3 w-[500px] h-[500px] bg-gradient-to-br from-slate-600/3 to-transparent rounded-full blur-3xl" style="animation: float 25s ease-in-out infinite; animation-delay: 5s;"></div>
-  </div>
-
-  <div class="relative z-10">
-    <!-- Premium header section -->
-    <div class="min-h-screen flex flex-col justify-between">
-      <!-- Top navigation bar - ultra clean -->
-      <div class="border-b border-slate-800/30 backdrop-blur-xl sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500"></div>
-            <span class="text-xs font-bold tracking-widest text-slate-300">IMMIGRATION97</span>
-          </div>
-          <div class="h-6 w-px bg-slate-700/50"></div>
-          <span class="text-xs tracking-wide text-slate-400">Résidence Permanente</span>
-        </div>
-      </div>
-
-      <!-- Main content area -->
-      <div class="flex-1 flex flex-col justify-center">
-        <div class="max-w-7xl mx-auto w-full px-6 py-20">
-          <!-- Premium hero section -->
-          <div class="mb-20">
-            <div class="space-y-6 mb-12">
-              <div>
-                <p class="text-xs font-bold tracking-[0.2em] text-emerald-400/80 mb-4">ANALYSE DE PROFIL</p>
-                <h1 class="text-6xl lg:text-7xl font-light tracking-tight leading-tight">
-                  <span class="bg-gradient-to-r from-slate-50 via-emerald-100 to-slate-300 bg-clip-text text-transparent">Résultat</span>
-                  <br />
-                  <span class="bg-gradient-to-r from-emerald-400 via-emerald-300 to-emerald-500 bg-clip-text text-transparent font-semibold">Préliminaire</span>
-                </h1>
-              </div>
-              <p class="text-sm text-slate-400 max-w-xl leading-relaxed font-light">
-                Analyse intelligente de ton profil d'immigration. Les conclusions présentées sont indicatives 
-                et doivent toujours être validées sur les sites officiels (IRCC, provinces, Home Affairs, etc.).
-              </p>
-            </div>
-
-            <!-- Key metrics bar -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-12 border-t border-slate-800/30">
-              <div class="group">
-                <p class="text-xs text-slate-500 font-semibold tracking-wide mb-2">DESTINATION</p>
-                <p class="text-lg font-semibold text-emerald-300 group-hover:text-emerald-200 transition-colors">
-                  {% if profile.country == "CA" or profile.country == "canada" or profile.country == "Canada" %}
-                    Canada
-                  {% elif profile.country == "AU" %}
-                    Australie
-                  {% else %}
-                    -
-                  {% endif %}
-                </p>
-              </div>
-              <div class="group">
-                <p class="text-xs text-slate-500 font-semibold tracking-wide mb-2">ÂGE</p>
-                <p class="text-lg font-semibold text-slate-200">{{ profile.age|default:"-" }}</p>
-              </div>
-              <div class="group">
-                <p class="text-xs text-slate-500 font-semibold tracking-wide mb-2">EXPÉRIENCE</p>
-                <p class="text-lg font-semibold text-slate-200">
-                  {{ profile.years_experience|default:"-" }} ans
-                </p>
-              </div>
-              <div class="group">
-                <p class="text-xs text-slate-500 font-semibold tracking-wide mb-2">STATUT</p>
-                <div class="flex gap-2">
-                  <span class="px-2.5 py-1 text-xs font-semibold rounded-full {% if profile.has_job_offer %}bg-emerald-500/20 text-emerald-300 border border-emerald-500/40{% else %}bg-slate-700/30 text-slate-400 border border-slate-600/40{% endif %}">
-                    {% if profile.has_job_offer %}✓ Offre d'emploi{% else %}—{% endif %}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main content grid -->
-    <div class="relative z-20 max-w-7xl mx-auto px-6 pb-20">
-      <div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
-        <!-- Sidebar - Profile Card ULTRA PREMIUM -->
-        <div class="xl:col-span-1">
-          <div class="sticky top-32 space-y-6">
-            <!-- Profile summary card -->
-            <div class="group">
-              <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/10 to-transparent rounded-2xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div class="relative bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-700/50 rounded-2xl p-8 backdrop-blur-xl hover:border-emerald-500/40 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-emerald-500/5">
-                <!-- Header with accent line -->
-                <div class="flex items-center gap-3 mb-8 pb-8 border-b border-slate-700/30">
-                  <div class="w-1 h-8 bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-full"></div>
-                  <div>
-                    <p class="text-xs font-bold tracking-widest text-slate-400">PROFIL</p>
-                    <p class="text-xs text-slate-500 font-light">Résumé</p>
-                  </div>
-                </div>
-
-                <!-- Profile fields -->
-                <dl class="space-y-5">
-                  <!-- Pays -->
-                  <div class="group/field">
-                    <dt class="text-xs font-semibold tracking-wide text-slate-500 mb-2">Pays ciblé</dt>
-                    <dd class="text-sm font-semibold text-emerald-300">
-                      {% if profile.country == "CA" or profile.country == "canada" or profile.country == "Canada" %}
-                        Canada
-                      {% elif profile.country == "AU" %}
-                        Australie
-                      {% else %}
-                        -
-                      {% endif %}
-                    </dd>
-                  </div>
-
-                  <!-- Age -->
-                  <div class="group/field">
-                    <dt class="text-xs font-semibold tracking-wide text-slate-500 mb-2">Âge</dt>
-                    <dd class="text-sm font-semibold text-slate-200">{{ profile.age|default:"-" }}</dd>
-                  </div>
-
-                  <!-- Études -->
-                  <div class="group/field">
-                    <dt class="text-xs font-semibold tracking-wide text-slate-500 mb-2">Formation</dt>
-                    <dd class="text-sm font-semibold text-slate-200">
-                      {{ profile.get_education_level_display|default:profile.education_level|default:"-" }}
-                    </dd>
-                  </div>
-
-                  <!-- Expérience -->
-                  <div class="group/field">
-                    <dt class="text-xs font-semibold tracking-wide text-slate-500 mb-2">Expérience</dt>
-                    <dd class="text-sm font-semibold text-slate-200">
-                      {{ profile.years_experience|default:"-" }} années
-                    </dd>
-                  </div>
-
-                  <div class="h-px bg-slate-700/30"></div>
-
-                  <!-- Langues -->
-                  <div class="group/field">
-                    <dt class="text-xs font-semibold tracking-wide text-slate-500 mb-2">Test de français</dt>
-                    <dd class="text-xs font-medium text-slate-300">
-                      {{ profile.french_test|default:"—" }}
-                    </dd>
-                  </div>
-                  <div class="group/field">
-                    <dt class="text-xs font-semibold tracking-wide text-slate-500 mb-1">Niveau global de français</dt>
-                    <dd class="text-sm font-semibold text-slate-300">
-                      {{ profile.get_french_level_display|default:profile.french_level|default:"-" }}
-                    </dd>
-                  </div>
-
-                  <div class="group/field">
-                    <dt class="text-xs font-semibold tracking-wide text-slate-500 mb-2">Test d'anglais</dt>
-                    <dd class="text-xs font-medium text-slate-300">
-                      {{ profile.english_test|default:"—" }}
-                    </dd>
-                  </div>
-                  <div class="group/field">
-                    <dt class="text-xs font-semibold tracking-wide text-slate-500 mb-1">Niveau global d'anglais</dt>
-                    <dd class="text-sm font-semibold text-slate-300">
-                      {{ profile.get_english_level_display|default:profile.english_level|default:"-" }}
-                    </dd>
-                  </div>
-
-                  <div class="h-px bg-slate-700/30"></div>
-
-                  <!-- Profession -->
-                  <div class="group/field">
-                    <dt class="text-xs font-semibold tracking-wide text-slate-500 mb-2">Profession principale</dt>
-                    <dd class="text-sm font-semibold text-slate-200">
-                      {{ profile.profession_title|default:"-" }}
-                    </dd>
-                  </div>
-
-                  <!-- Famille -->
-                  <div class="group/field">
-                    <dt class="text-xs font-semibold tracking-wide text-slate-500 mb-2">Famille</dt>
-                    <dd class="inline-flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full {% if profile.has_family_in_country %}bg-emerald-400{% else %}bg-slate-600{% endif %}"></span>
-                      <span class="text-sm font-semibold {% if profile.has_family_in_country %}text-emerald-300{% else %}text-slate-400{% endif %}">
-                        {{ profile.has_family_in_country|yesno:"Oui,Non" }}
-                      </span>
-                    </dd>
-                  </div>
-
-                  <!-- Offre d'emploi -->
-                  <div class="group/field">
-                    <dt class="text-xs font-semibold tracking-wide text-slate-500 mb-2">Offre d'emploi</dt>
-                    <dd class="inline-flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full {% if profile.has_job_offer %}bg-emerald-400{% else %}bg-slate-600{% endif %}"></span>
-                      <span class="text-sm font-semibold {% if profile.has_job_offer %}text-emerald-300{% else %}text-slate-400{% endif %}">
-                        {{ profile.has_job_offer|yesno:"Oui,Non" }}
-                      </span>
-                    </dd>
-                  </div>
-                </dl>
-
-                <!-- Badges orientation -->
-                <div class="mt-6 flex flex-wrap gap-2">
-                  {% if profile.country == "CA" or profile.country == "canada" or profile.country == "Canada" %}
-                    <span class="px-2.5 py-1 rounded-full border border-emerald-500/50 bg-emerald-500/10 text-[11px] uppercase tracking-wide text-emerald-200">
-                      Orientation Canada · Entrée Express / PNP
-                    </span>
-                  {% elif profile.country == "AU" %}
-                    <span class="px-2.5 py-1 rounded-full border border-sky-400/50 bg-sky-500/10 text-[11px] uppercase tracking-wide text-sky-200">
-                      Orientation Australie · Skilled / Sponsor
-                    </span>
-                  {% endif %}
-                  {% if profile.has_family_in_country %}
-                    <span class="px-2 py-1 rounded-full border border-slate-600/60 bg-slate-800/60 text-[11px] text-slate-200">
-                      Lien familial dans le pays
-                    </span>
-                  {% endif %}
-                  {% if profile.has_job_offer %}
-                    <span class="px-2 py-1 rounded-full border border-emerald-500/60 bg-emerald-600/20 text-[11px] text-emerald-100">
-                      Offre d'emploi confirmée
-                    </span>
-                  {% endif %}
-                </div>
-
-                <!-- Notes section -->
-                {% if profile.notes %}
-                  <div class="mt-8 pt-8 border-t border-slate-700/30">
-                    <p class="text-xs font-bold tracking-widest text-slate-400 mb-3">NOTES ADDITIONNELLES</p>
-                    <p class="text-xs text-slate-400 leading-relaxed font-light whitespace-pre-line">
-                      {{ profile.notes }}
-                    </p>
-                  </div>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Main content - Analysis ULTRA PREMIUM -->
-        <div class="xl:col-span-3 space-y-8">
-          <!-- Analysis card -->
-          <div class="group">
-            <div class="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent rounded-2xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative bg-gradient-to-br from-slate-800/30 to-slate-900/30 border border-slate-700/40 rounded-2xl p-8 backdrop-blur-xl hover:border-blue-500/30 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-blue-500/5">
-              <!-- Header -->
-              <div class="flex items-center gap-3 mb-8 pb-8 border-b border-slate-700/30">
-                <div class="w-1 h-8 bg-gradient-to-b from-blue-400 to-blue-600 rounded-full"></div>
-                <div>
-                  <p class="text-xs font-bold tracking-widest text-slate-400">ÉVALUATION</p>
-                  <p class="text-xs text-slate-500 font-light">Analyse générale de ton profil</p>
-                </div>
-              </div>
-
-              <!-- Summary -->
-              <p class="text-sm text-slate-300 leading-relaxed font-light mb-8 text-justify">
-                {{ evaluation.summary }}
-              </p>
-
-              <!-- Two column grid for reasons and suggestions -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Points positifs -->
-                <div>
-                  <div class="flex items-center gap-2 mb-5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    <p class="text-xs font-bold tracking-widest text-slate-300">FORCES</p>
-                  </div>
-                  <ul class="space-y-3">
-                    {% for r in evaluation.reasons %}
-                      <li class="flex gap-3 items-start text-xs text-slate-400 leading-relaxed hover:text-slate-300 transition-colors group/item">
-                        <span class="text-emerald-400 font-bold mt-1.5 text-base group-hover/item:scale-110 transition-transform">→</span>
-                        <span>{{ r }}</span>
-                      </li>
-                    {% empty %}
-                      <li class="text-xs text-slate-600 italic font-light">Aucun point identifié pour l'instant.</li>
-                    {% endfor %}
-                  </ul>
-                </div>
-
-                <!-- Pistes d'amélioration -->
-                <div>
-                  <div class="flex items-center gap-2 mb-5">
-                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-                    <p class="text-xs font-bold tracking-widest text-slate-300">AXES DE DÉVELOPPEMENT</p>
-                  </div>
-                  <ul class="space-y-3">
-                    {% for s in evaluation.suggestions %}
-                      <li class="flex gap-3 items-start text-xs text-slate-400 leading-relaxed hover:text-slate-300 transition-colors group/item">
-                        <span class="text-amber-400 font-bold mt-1.5 text-base group-hover/item:scale-110 transition-transform">◆</span>
-                        <span>{{ s }}</span>
-                      </li>
-                    {% empty %}
-                      <li class="text-xs text-slate-600 italic font-light">Pas de recommandation particulière.</li>
-                    {% endfor %}
-                  </ul>
-                </div>
-              </div>
-
-              <!-- Disclaimer card -->
-              <div class="mt-8 pt-8 border-t border-slate-700/30">
-                <div class="relative overflow-hidden rounded-xl bg-gradient-to-r from-amber-600/5 via-orange-600/5 to-amber-600/5 border border-amber-500/20 p-4">
-                  <p class="text-xs text-amber-200/90 leading-relaxed font-light flex gap-3">
-                    <span class="text-lg flex-shrink-0">⚠</span>
-                    <span>
-                      Ce résultat n'est pas un calcul officiel (CRS, points australiens, etc.).
-                      Utilise toujours les calculateurs officiels et les informations des sites gouvernementaux
-                      avant de déposer une demande.
-                    </span>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Progress card -->
-          <div class="group">
-            <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/10 to-transparent rounded-2xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative bg-gradient-to-br from-slate-800/30 to-slate-900/30 border border-slate-700/40 rounded-2xl p-8 backdrop-blur-xl hover:border-emerald-500/30 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-emerald-500/5">
-              <!-- Header -->
-              <div class="flex items-center justify-between mb-8">
-                <div class="flex items-center gap-3">
-                  <div class="w-1 h-8 bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-full"></div>
-                  <div>
-                    <p class="text-xs font-bold tracking-widest text-slate-400">PROGRESSION</p>
-                    <p class="text-xs text-slate-500 font-light">État d'avancement de ton projet</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="text-4xl font-bold text-transparent bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text">
-                    {{ progress_percent }}<span class="text-2xl">%</span>
-                  </p>
-                </div>
-              </div>
-
-              <!-- Progress bar with glow -->
-              <div class="mb-8">
-                <div class="relative h-1.5 rounded-full bg-slate-800/50 overflow-hidden">
-                  <div class="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-emerald-400/20"></div>
-                  <div class="relative h-full rounded-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 transition-all duration-1000 ease-out shadow-lg shadow-emerald-500/50" style="width: {{ progress_percent }}%; animation: pulse-width 2s ease-in-out infinite;"></div>
-                </div>
-              </div>
-
-              <a href="{% url 'permanent_residence:plan' profile.id %}"
-                 class="inline-flex items-center justify-center gap-2 text-sm font-bold text-slate-950 px-6 py-3 rounded-lg bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-300 hover:to-emerald-400 transition-all duration-200 shadow-lg shadow-emerald-500/40 hover:shadow-emerald-500/60 hover:scale-105 active:scale-95 group-hover:shadow-2xl">
-                <span class="text-base">→</span>
-                <span>Consulter le plan d'action détaillé</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Programs section -->
-          {% if program_results %}
-          <div class="mt-12 pt-12 border-t border-slate-700/30">
-            <div class="mb-10">
-              <div class="flex items-center gap-3 mb-4">
-                <div class="w-1 h-8 bg-gradient-to-b from-purple-400 to-blue-600 rounded-full"></div>
-                <div>
-                  <p class="text-xs font-bold tracking-widest text-slate-400">OPPORTUNITÉS</p>
-                  <h2 class="text-3xl font-light tracking-tight">Programmes compatibles</h2>
-                </div>
-              </div>
-              <p class="text-sm text-slate-400 font-light max-w-2xl">
-                Orientation non-officielle basée sur ton profil actuel. Chaque programme doit être vérifié
-                en détail sur les sites gouvernementaux (IRCC, provinces, Home Affairs, etc.).
-              </p>
-                    <div class="mt-4">
-        <a
-          href="{% url 'permanent_residence:program_list' %}{% if profile.country == 'canada' %}?country=CA{% else %}?country=AU{% endif %}"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900/80 border border-slate-700 text-slate-200 hover:border-emerald-500/60 hover:text-emerald-100 transition-all">
-          <span>Ouvrir tous les guides programmes pour mon pays</span>
-          <span>→</span>
-        </a>
-      </div>
-
-            </div>
-
-            <div class="grid grid-cols-1 gap-4">
-              {% for item in program_results %}
-                <div class="group rounded-2xl border border-slate-700/40 bg-gradient-to-br {% if item.eligible %}from-slate-800/50 to-slate-900/40{% else %}from-slate-800/30 to-slate-900/30{% endif %} p-6 backdrop-blur-xl hover:border-emerald-500/40 transition-all duration-500 hover:shadow-lg{% if item.eligible %} hover:shadow-emerald-500/10{% else %} hover:shadow-slate-500/5{% endif %}">
-                  <div class="flex items-start justify-between gap-4 mb-3">
-                    <div class="flex-1">
-                      <h3 class="text-sm font-bold text-slate-100 mb-1">
-                        {{ item.program.name }}
-                      </h3>
-                      <p class="text-[11px] uppercase tracking-wide text-slate-500 mb-1">
-                        {% if item.program.get_country_display %}
-                          {{ item.program.get_country_display }}
-                        {% else %}
-                          {% if item.program.country == "CA" %}
-                            Canada
-                          {% elif item.program.country == "AU" %}
-                            Australie
-                          {% else %}
-                            -
-                          {% endif %}
-                        {% endif %}
-                        · {{ item.program.category|title }}
-                      </p>
-                      <p class="text-xs text-slate-500 font-light leading-relaxed">
-                        {{ item.program.description }}
-                      </p>
-                    </div>
-                    <span class="flex-shrink-0 px-3 py-1.5 text-xs font-bold rounded-full {% if item.eligible %}bg-emerald-500/20 text-emerald-300 border border-emerald-500/40{% else %}bg-amber-500/15 text-amber-300 border border-amber-500/30{% endif %} whitespace-nowrap">
-                      {% if item.eligible %}✓ Potentiel{% else %}◆ À renforcer{% endif %}
-                    </span>
-                  </div>
-                  <ul class="space-y-2">
-                    {% for r in item.reasons %}
-                      <li class="flex gap-3 items-start text-xs text-slate-400">
-                        <span class="w-1 h-1 rounded-full mt-1.5 {% if item.eligible %}bg-emerald-400{% else %}bg-amber-400{% endif %} flex-shrink-0"></span>
-                        <span>{{ r }}</span>
-                      </li>
-                    {% endfor %}
-                  </ul>
-                </div>
-              {% endfor %}
-            </div>
-          </div>
-          {% endif %}
-
-        </div>
-      </div>
-    </div>
-          <!-- COACH IA RP -->
-          <div class="mt-12 pt-12 border-t border-slate-800/40">
-            <div class="group">
-              <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-sky-500/5 to-transparent rounded-2xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div class="relative bg-gradient-to-br from-slate-900/40 to-slate-950/40 border border-slate-700/50 rounded-2xl p-8 backdrop-blur-2xl hover:border-emerald-500/40 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-emerald-500/10">
-                
-                <!-- Header -->
-                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-                  <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-slate-950 text-xs font-bold shadow-lg shadow-emerald-500/40">
-                      IA
-                    </div>
-                    <div>
-                      <p class="text-xs font-bold tracking-widest text-slate-400 uppercase">Coach IA · Résidence Permanente</p>
-                      <p class="text-xs text-slate-500">
-                        Pose tes questions et reçois des conseils contextualisés selon ton profil.
-                      </p>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2 text-[11px] text-slate-400">
-                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-800/70 border border-slate-700/70">
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                      <span>Actif</span>
-                    </span>
-                    <span class="hidden sm:inline text-slate-500">
-                      Basé sur ton profil : Canada / Australie, études, langues, expérience, etc.
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Thread -->
-                <div id="rp-coach-thread" class="space-y-4 max-h-[360px] overflow-y-auto pr-1 text-sm">
-                  <!-- Message d'accueil -->
-                  <div class="flex gap-3 items-start">
-                    <div class="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-[11px] font-bold text-slate-950 flex-shrink-0">
-                      IA
-                    </div>
-                    <div class="flex-1 rounded-2xl bg-slate-900/80 border border-slate-700/70 px-4 py-3 shadow-md shadow-slate-950/50">
-                      <p class="text-xs font-semibold text-emerald-300 mb-1">Bienvenue dans ton coach RP 👋</p>
-                      <p class="text-xs text-slate-200 leading-relaxed">
-                        Je peux t’aider à comprendre tes chances générales, les programmes possibles (Entrée Express, PNP, Skilled visas, etc.),
-                        et les actions concrètes à faire en priorité pour renforcer ton profil. Pose-moi une question précise, par exemple :
-                      </p>
-                      <ul class="mt-2 space-y-1 text-xs text-slate-300 list-disc list-inside">
-                        <li>« Quels programmes semblent adaptés à mon profil ? »</li>
-                        <li>« Comment améliorer mon score pour le Canada ? »</li>
-                        <li>« Quelles étapes faire en premier pour l’Australie ? »</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Input + quick actions -->
-                <div class="mt-5 space-y-4">
-                  <!-- Quick prompts -->
-                  <div class="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      class="px-3 py-1.5 rounded-full bg-slate-900/70 border border-slate-700/70 text-[11px] text-slate-200 hover:border-emerald-500/60 hover:text-emerald-100 hover:bg-slate-900 transition-all"
-                      data-coach-preset="Donne-moi un plan d’action priorisé sur 90 jours pour améliorer mon profil de résidence permanente.">
-                      📌 Plan d’action 90 jours
-                    </button>
-                    <button
-                      type="button"
-                      class="px-3 py-1.5 rounded-full bg-slate-900/70 border border-slate-700/70 text-[11px] text-slate-200 hover:border-emerald-500/60 hover:text-emerald-100 hover:bg-slate-900 transition-all"
-                      data-coach-preset="Sur la base de mon profil, quels programmes Canada (Entrée Express, PNP) semblent réalistes et pourquoi ?">
-                      🇨🇦 Programmes Canada
-                    </button>
-                    <button
-                      type="button"
-                      class="px-3 py-1.5 rounded-full bg-slate-900/70 border border-slate-700/70 text-[11px] text-slate-200 hover:border-emerald-500/60 hover:text-emerald-100 hover:bg-slate-900 transition-all"
-                      data-coach-preset="Sur la base de mon profil, quels visas australiens (Skilled, State nomination, sponsor) semblent les plus adaptés ?">
-                      🇦🇺 Visas Australie
-                    </button>
-                    <button
-                      type="button"
-                      class="px-3 py-1.5 rounded-full bg-slate-900/70 border border-slate-700/70 text-[11px] text-slate-200 hover:border-emerald-500/60 hover:text-emerald-100 hover:bg-slate-900 transition-all"
-                      data-coach-preset="Comment puis-je améliorer mes résultats en langues pour maximiser mes points pour la RP ?">
-                      🎧 Booster les langues
-                    </button>
-                  </div>
-
-                  <!-- Input zone -->
-                  <div class="flex gap-3 items-end">
-                    <div class="flex-1">
-                      <label for="rp-coach-input" class="sr-only">Question au coach</label>
-                      <textarea
-                        id="rp-coach-input"
-                        rows="2"
-                        class="w-full rounded-2xl bg-slate-950/80 border border-slate-700/80 px-4 py-3 text-sm text-slate-50 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-emerald-500/70 resize-none"
-                        placeholder="Pose ta question au coach RP (ex : « Est-ce que mon profil est plutôt adapté au Canada ou à l’Australie ? »)"></textarea>
-                    </div>
-                    <button
-                      id="rp-coach-send"
-                      type="button"
-                      class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-500 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/40 hover:from-emerald-300 hover:to-emerald-400 hover:shadow-emerald-500/60 transition-all active:scale-95">
-                      <span class="text-base">↗</span>
-                      <span>Envoyer</span>
-                    </button>
-                  </div>
-
-                  <p class="text-[11px] text-slate-500 leading-relaxed">
-                    ℹ️ Le coach IA donne des conseils généraux basés sur ton profil.  
-                    Il ne remplace pas l’avis d’un avocat ou consultant réglementé, ni les informations officielles des gouvernements.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-    <!-- Footer section -->
-    <div class="relative z-20 border-t border-slate-800/30 backdrop-blur-xl">
-      <div class="max-w-7xl mx-auto px-6 py-12">
-        <p class="text-xs text-slate-500 text-center font-light leading-relaxed">
-          💡 <span class="text-slate-400">
-          Prochaine étape : connecter ce module à un coach IA RP avancé pour répondre à tes questions
-          sur les programmes (Entrée Express, PNP, Skilled visas, sponsor, etc.) et t’aider à remplir
-          chaque étape de ton plan d’action.</span>
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <style>
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(20px); }
-    }
-    @keyframes pulse-width {
-      0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); }
-      50% { box-shadow: 0 0 40px rgba(16, 185, 129, 0.8); }
-    }
-  </style>
-    <script>
-    (function () {
-      const thread = document.getElementById("rp-coach-thread");
-      const input = document.getElementById("rp-coach-input");
-      const sendBtn = document.getElementById("rp-coach-send");
-      const presetButtons = document.querySelectorAll("[data-coach-preset]");
-      if (!thread || !input || !sendBtn) return;
-
-      const endpoint = "{% url 'permanent_residence:coach_api' profile.id %}";
-
-      function appendMessage(role, text) {
-        const wrapper = document.createElement("div");
-        wrapper.className = "flex gap-3 items-start";
-
-        const avatar = document.createElement("div");
-        avatar.className =
-          "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0";
-
-        const bubble = document.createElement("div");
-        bubble.className =
-          "flex-1 rounded-2xl px-4 py-3 text-xs leading-relaxed whitespace-pre-line";
-
-        if (role === "user") {
-          avatar.classList.add("bg-slate-100", "text-slate-900");
-          avatar.textContent = "Toi";
-          bubble.classList.add(
-            "bg-slate-900/80",
-            "border",
-            "border-slate-600/70",
-            "text-slate-100"
-          );
-        } else {
-          avatar.classList.add(
-            "bg-gradient-to-br",
-            "from-emerald-400",
-            "to-emerald-600",
-            "text-slate-950"
-          );
-          avatar.textContent = "IA";
-          bubble.classList.add(
-            "bg-slate-900/90",
-            "border",
-            "border-emerald-500/40",
-            "text-slate-100",
-            "shadow-md",
-            "shadow-emerald-500/10"
-          );
-        }
-
-        bubble.textContent = text;
-        wrapper.appendChild(avatar);
-        wrapper.appendChild(bubble);
-        thread.appendChild(wrapper);
-        thread.scrollTop = thread.scrollHeight;
-      }
-
-      async function sendMessage(message) {
-        const content = (message || input.value || "").trim();
-        if (!content) return;
-
-        appendMessage("user", content);
-        input.value = "";
-        input.style.height = "auto";
-
-        sendBtn.disabled = true;
-        sendBtn.classList.add("opacity-70", "cursor-wait");
-        const originalLabel = sendBtn.innerHTML;
-        sendBtn.innerHTML = '<span class="animate-pulse">Analyse...</span>';
-
-        try {
-          const res = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ message: content }),
-          });
-
-          const data = await res.json();
-          if (data && data.answer) {
-            appendMessage("assistant", data.answer);
-          } else if (data && data.error) {
-            appendMessage(
-              "assistant",
-              "Je n'ai pas pu traiter ta demande : " + data.error
-            );
-          } else {
-            appendMessage(
-              "assistant",
-              "Je n'ai pas pu générer de réponse. Réessaie dans un instant."
-            );
-          }
-        } catch (e) {
-          appendMessage(
-            "assistant",
-            "Erreur technique pendant l'appel au coach IA. Vérifie ta connexion ou réessaie plus tard."
-          );
-        } finally {
-          sendBtn.disabled = false;
-          sendBtn.classList.remove("opacity-70", "cursor-wait");
-          sendBtn.innerHTML = originalLabel;
-        }
-      }
-
-      // Bouton envoyer
-      sendBtn.addEventListener("click", function () {
-        sendMessage();
-      });
-
-      // Enter pour envoyer (Shift+Enter = nouvelle ligne)
-      input.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          sendMessage();
-        }
-      });
-
-      // Auto-resize du textarea
-      input.addEventListener("input", function () {
-        this.style.height = "auto";
-        this.style.height = this.scrollHeight + "px";
-      });
-
-      // Boutons presets
-      presetButtons.forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          const preset = btn.getAttribute("data-coach-preset") || "";
-          if (preset) {
-            sendMessage(preset);
-          }
-        });
-      });
-    })();
-  </script>
-
-</div>
-    {% include "permanent_residence/components/coach_panel.html" %}
+{% block title %}
+Résultat Diagnostic Résidence Permanente – Canada / Australie | immigration97
 {% endblock %}
 
+{% block meta_description %}
+Analyse intelligente de ton profil de Résidence Permanente (Canada / Australie) : points forts,
+axes à renforcer, programmes d’immigration à explorer et plan d’action guidé avec Immigration97.
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto py-10 px-4">
+
+  {# ---------------- HERO / RÉSUMÉ GLOBAL ---------------- #}
+  <div class="bg-[#0d1b24]/95 border border-[#0d2834] rounded-2xl p-8 shadow-xl shadow-black/60 mb-8 backdrop-blur-sm">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+      <div>
+        <p class="text-sm text-emerald-300 mb-1">
+          Résultat du diagnostic RP · {{ profile.get_country_display }}
+        </p>
+        <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">
+          Ton profil de Résidence Permanente, analysé.
+        </h1>
+        <p class="text-sm md:text-base text-gray-300 max-w-2xl">
+          Voici une synthèse de ton profil, les points forts, ce qui doit être renforcé
+          et la progression de ton plan d’action vers la Résidence Permanente.
+        </p>
+      </div>
+
+      <div class="flex flex-col items-end gap-3">
+        {# Badge statut profil #}
+        {% if evaluation.status == "profil_potentiellement_interessant" %}
+          <span class="inline-flex items-center px-3 py-1 rounded-full bg-emerald-700/20 text-emerald-300 text-xs font-semibold border border-emerald-500/60 shadow-sm shadow-emerald-500/30">
+            ✅ Profil potentiellement intéressant
+          </span>
+        {% elif evaluation.status == "profil_a_renforcer" %}
+          <span class="inline-flex items-center px-3 py-1 rounded-full bg-amber-700/20 text-amber-300 text-xs font-semibold border border-amber-500/60 shadow-sm shadow-amber-500/30">
+            ⚠️ Profil à renforcer
+          </span>
+        {% elif evaluation.status == "profil_incomplet_ou_faible" %}
+          <span class="inline-flex items-center px-3 py-1 rounded-full bg-rose-700/20 text-rose-300 text-xs font-semibold border border-rose-500/60 shadow-sm shadow-rose-500/30">
+            🧩 Profil incomplet / faible
+          </span>
+        {% else %}
+          <span class="inline-flex items-center px-3 py-1 rounded-full bg-sky-700/20 text-sky-300 text-xs font-semibold border border-sky-500/60 shadow-sm shadow-sky-500/30">
+            Profil analysé
+          </span>
+        {% endif %}
+
+        {# Progression globale #}
+        <div class="w-full min-w-[220px]">
+          <p class="text-xs text-gray-400 mb-1 text-right">
+            Progression du plan d’action
+          </p>
+          <div class="w-full h-2 rounded-full bg-slate-900 overflow-hidden">
+            <div class="h-2 rounded-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-300 transition-all"
+                 style="width: {{ progress_percent }}%;"></div>
+          </div>
+          <p class="text-xs text-gray-300 mt-1 text-right">
+            {{ progress_percent }}% complété
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {# Boutons principaux #}
+    <div class="mt-4 flex flex-wrap gap-3">
+      <a href="{% url 'permanent_residence:plan' profile.id %}"
+         class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-500 hover:to-emerald-300 text-white text-sm font-semibold shadow-lg shadow-emerald-600/40 transition transform hover:-translate-y-0.5">
+        📝 Ouvrir mon plan d’action RP
+      </a>
+      <a href="{% url 'permanent_residence:dashboard' %}"
+         class="px-5 py-2 rounded-xl border border-emerald-500/60 text-emerald-200 text-sm font-semibold bg-[#071622] hover:bg-[#0b2230] shadow-md shadow-black/40 transition transform hover:-translate-y-0.5">
+        📊 Voir le cockpit RP
+      </a>
+      <a href="{% url 'permanent_residence:coach' %}"
+         class="px-5 py-2 rounded-xl border border-sky-500/60 text-sky-200 text-sm font-semibold bg-[#071725] hover:bg-[#0b2233] shadow-md shadow-black/40 transition transform hover:-translate-y-0.5">
+        🤖 Parler au coach IA RP
+      </a>
+    </div>
+  </div>
+
+  {# ---------------- ZONE CENTRALE : SYNTHÈSE + RÉSUMÉ TECHNIQUE ---------------- #}
+  <div class="grid lg:grid-cols-3 gap-6">
+
+    {# Synthèse #}
+    <section class="lg:col-span-2 bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
+      <h2 class="text-lg font-semibold text-white mb-2">
+        Synthèse de ton profil
+      </h2>
+      <p class="text-sm text-gray-300 mb-4">
+        {{ evaluation.summary }}
+      </p>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-sm font-semibold text-emerald-300 mb-2">
+            Points positifs
+          </h3>
+          {% if evaluation.reasons %}
+            <ul class="space-y-2 text-sm text-gray-200">
+              {% for reason in evaluation.reasons %}
+                <li class="flex gap-2">
+                  <span class="mt-1 text-emerald-400">●</span>
+                  <span>{{ reason }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-xs text-gray-500">Les points positifs seront affichés ici.</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <h3 class="text-sm font-semibold text-amber-300 mb-2">
+            Axes à renforcer / conseils
+          </h3>
+          {% if evaluation.suggestions %}
+            <ul class="space-y-2 text-sm text-gray-200">
+              {% for suggestion in evaluation.suggestions %}
+                <li class="flex gap-2">
+                  <span class="mt-1 text-amber-300">●</span>
+                  <span>{{ suggestion }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-xs text-gray-500">Les pistes d’amélioration seront affichées ici.</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    {# Résumé technique #}
+    <aside class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
+      <h2 class="text-lg font-semibold text-white mb-3">
+        Résumé technique
+      </h2>
+      <dl class="space-y-2 text-sm text-gray-300">
+        <div class="flex justify-between gap-4">
+          <dt class="text-gray-400">Pays ciblé</dt>
+          <dd class="font-medium">
+            {% if profile.country == "CA" %}🇨🇦 Canada
+            {% elif profile.country == "AU" %}🇦🇺 Australie
+            {% else %}{{ profile.country }}{% endif %}
+          </dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-gray-400">Âge</dt>
+          <dd class="font-medium">{{ profile.age|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-gray-400">Expérience (années)</dt>
+          <dd class="font-medium">{{ profile.years_experience|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-gray-400">Niveau d’études</dt>
+          <dd class="font-medium">
+            {{ profile.get_education_level_display|default:"—" }}
+          </dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-gray-400">Français</dt>
+          <dd class="font-medium">
+            {{ profile.get_french_level_display|default:"—" }}
+          </dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-gray-400">Anglais</dt>
+          <dd class="font-medium">
+            {{ profile.get_english_level_display|default:"—" }}
+          </dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-gray-400">Profession</dt>
+          <dd class="font-medium text-right">
+            {{ profile.profession_title|default:"—" }}
+          </dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-gray-400">Famille sur place</dt>
+          <dd class="font-medium">
+            {% if profile.has_family_in_country %}Oui{% else %}Non{% endif %}
+          </dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-gray-400">Offre d’emploi</dt>
+          <dd class="font-medium">
+            {% if profile.has_job_offer %}Oui{% else %}Non{% endif %}
+          </dd>
+        </div>
+      </dl>
+    </aside>
+  </div>
+
+  {# ---------------- PROGRAMMES RECOMMANDÉS ---------------- #}
+  <div class="mt-8 bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <h2 class="text-lg font-semibold text-white">
+        Programmes de Résidence Permanente à explorer
+      </h2>
+      <a href="{% url 'permanent_residence:program_list' %}"
+         class="text-sm text-emerald-300 hover:text-emerald-200 underline">
+        Voir tous les programmes RP →
+      </a>
+    </div>
+
+    {% if program_results %}
+      <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {% for item in program_results %}
+          {% with prog=item.program|default:item %}
+            <article class="bg-gradient-to-br from-[#07111b] via-[#050d16] to-[#071b24] border border-emerald-500/30 rounded-2xl p-4 flex flex-col justify-between shadow-lg shadow-black/60 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/35 transition">
+              <div>
+                <div class="flex items-start justify-between gap-2 mb-2">
+                  <h3 class="text-sm font-semibold text-white leading-snug">
+                    {{ prog.name|default:prog.code|default:"Programme RP" }}
+                  </h3>
+                  <span class="text-[0.7rem] px-2 py-1 rounded-full border border-emerald-400/40 bg-emerald-600/10 text-emerald-200">
+                    {% if prog.country == 'CA' %}🇨🇦 Canada
+                    {% elif prog.country == 'AU' %}🇦🇺 Australie
+                    {% else %}Programme RP{% endif %}
+                  </span>
+                </div>
+
+                {% if prog.category %}
+                  <p class="text-[0.75rem] text-emerald-300 mb-1 uppercase tracking-wide">
+                    {{ prog.category }}
+                  </p>
+                {% elif item.strategy_label %}
+                  <p class="text-[0.75rem] text-emerald-300 mb-1 uppercase tracking-wide">
+                    {{ item.strategy_label }}
+                  </p>
+                {% endif %}
+
+                {% if item.summary %}
+                  <p class="text-xs text-gray-300 mb-2">
+                    {{ item.summary }}
+                  </p>
+                {% elif prog.summary %}
+                  <p class="text-xs text-gray-300 mb-2">
+                    {{ prog.summary }}
+                  </p>
+                {% endif %}
+
+                {% if item.score or item.priority %}
+                  <p class="text-[0.7rem] text-gray-400">
+                    {% if item.score %}
+                      Score estimé : <span class="text-emerald-300">{{ item.score }}</span>
+                    {% endif %}
+                    {% if item.priority %}
+                      · Priorité : {{ item.priority }}
+                    {% endif %}
+                  </p>
+                {% endif %}
+              </div>
+
+              <div class="mt-3 flex items-center justify-between gap-2">
+                {% if prog.slug %}
+                  <a href="{% url 'permanent_residence:program_detail' prog.slug %}"
+                     class="inline-flex items-center justify-center px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[0.8rem] font-semibold text-white shadow-md shadow-emerald-500/40 transition">
+                    Voir le programme → 
+                  </a>
+                {% endif %}
+
+                {% if prog.official_url %}
+                  <a href="{{ prog.official_url }}" target="_blank" rel="noopener noreferrer"
+                     class="text-[0.75rem] text-gray-400 hover:text-gray-200 underline">
+                    Site officiel
+                  </a>
+                {% endif %}
+              </div>
+            </article>
+          {% endwith %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-sm text-gray-400">
+        Les résultats détaillés par programme seront affichés ici lorsque la configuration
+        des programmes sera complétée.
+      </p>
+    {% endif %}
+  </div>
+
+</div>
 {% endblock %}

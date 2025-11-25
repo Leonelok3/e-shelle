@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Révision des erreurs – {{ exam.title }} – Immigration97{% endblock %}
+
+{% block content %}
+<main class="page page--german-review">
+  <section class="section">
+    <div class="container-narrow">
+
+      <p class="hero-kicker">Préparation • Allemand • Révision</p>
+      <h1 class="hero-title">Tes erreurs sur {{ exam.title }}</h1>
+      <p class="hero-subtitle">
+        Tu as fait {{ incorrect_count }} erreur(s) sur {{ total }} questions.  
+        Revois-les pour transformer ces points faibles en points forts.
+      </p>
+
+      <div class="hero-cta-row" style="margin-top: 10px;">
+        <a href="{% url 'germanprep:test_result' session.id %}" class="btn btn-ghost">
+          ← Retour au résultat complet
+        </a>
+      </div>
+
+      <section class="section">
+        <h2 class="section-title">Questions à retravailler</h2>
+        <ul class="question-list">
+          {% for ans in incorrect_answers %}
+            <li class="question-item">
+              <p class="question-text">
+                {{ ans.exercise.prompt|default:ans.exercise.question_text }}
+              </p>
+              <p class="question-meta">
+                Ta réponse : <strong>{{ ans.selected_option }}</strong> •
+                Bonne réponse : <strong>{{ ans.exercise.correct_option }}</strong>
+              </p>
+              {% if ans.exercise.explanation %}
+                <p class="question-expl">
+                  💡 {{ ans.exercise.explanation }}
+                </p>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <div class="hero-cta-row" style="margin-top: 16px;">
+        <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-primary">
+          🔁 Refaire l’examen maintenant
+        </a>
+        <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-secondary">
+          Voir les leçons liées à cet examen
+        </a>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<style>
+.question-list{list-style:none;margin:0;padding:0;margin-top:12px;}
+.question-item{padding:12px 14px;border-radius:14px;margin-bottom:10px;
+  background:rgba(15,23,42,0.9);border:1px solid rgba(248,113,113,0.8);}
+.question-text{font-weight:600;margin-bottom:4px;}
+.question-meta{font-size:.9rem;color:#fecaca;}
+.question-expl{font-size:.9rem;color:#e5e7eb;margin-top:4px;}
+</style>
+{% endblock %}

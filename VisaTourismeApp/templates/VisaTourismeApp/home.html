@@ -1,0 +1,372 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Visa Tourisme – Accueil | E-SHELLE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            margin: 0;
+            background: radial-gradient(circle at top, #020617, #020617);
+            color: #e5e7eb;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        a { color: #38bdf8; text-decoration: none; }
+
+        .topbar {
+            border-bottom: 1px solid #020617;
+            background: rgba(15,23,42,0.97);
+            backdrop-filter: blur(14px);
+        }
+        .topbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 12px;
+            background: radial-gradient(circle at 30% 0, #22c55e, #0f172a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .topbar-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .topbar-sub {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .support-chip {
+            font-size: 11px;
+            border-radius: 999px;
+            padding: 4px 10px;
+            background: #0f172a;
+            border: 1px solid #1f2937;
+            color: #e5e7eb;
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: 32px auto 40px auto;
+            padding: 0 16px;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr);
+            gap: 24px;
+            align-items: center;
+        }
+        @media (max-width: 900px) {
+            .hero { grid-template-columns: 1fr; }
+        }
+
+        .hero-title {
+            font-size: 30px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        .hero-subtitle {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 18px;
+        }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 4px 10px;
+            background: #022c22;
+            border: 1px solid #14532d;
+            font-size: 11px;
+            color: #bbf7d0;
+            margin-bottom: 10px;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(to right, #22c55e, #16a34a);
+            border-radius: 999px;
+            padding: 10px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 16px 40px rgba(34,197,94,0.45);
+        }
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 9px 18px;
+            font-size: 13px;
+            color: #e5e7eb;
+            border: 1px solid #1f2937;
+            background: #020617;
+            cursor: pointer;
+        }
+
+        .hero-mini {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .hero-card {
+            background: radial-gradient(circle at top, #0b1120, #020617);
+            border-radius: 20px;
+            padding: 18px;
+            border: 1px solid #1f2937;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.7);
+            font-size: 13px;
+        }
+        .hero-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .hero-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .metric {
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: #020617;
+            border: 1px solid #1f2937;
+            font-size: 11px;
+        }
+        .metric span {
+            display: block;
+        }
+        .metric-value {
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .metric-label {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .sections {
+            margin-top: 32px;
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .sections { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: radial-gradient(circle at top left, rgba(15,23,42,1), rgba(2,6,23,1));
+            border-radius: 18px;
+            padding: 18px;
+            border: 1px solid #020617;
+            box-shadow: 0 14px 35px rgba(0,0,0,0.65);
+        }
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .section-text {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+        ul {
+            padding-left: 18px;
+            font-size: 13px;
+        }
+        li { margin-bottom: 4px; }
+
+        .badge-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #020617;
+            border: 1px solid #1f2937;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <div class="topbar-inner">
+        <div class="topbar-left">
+            <div class="logo-badge">E</div>
+            <div>
+                <div class="topbar-title">E-SHELLE • Visa Tourisme</div>
+                <div class="topbar-sub">Simulation pro des dossiers de visa tourisme</div>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="support-chip">
+                💬 Support WhatsApp : +237 680 62 50 82
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page">
+
+    <!-- HERO -->
+    <div class="hero">
+        <div>
+            <div class="pill">
+                ✈️ Visa Tourisme • Assistant intelligent
+            </div>
+            <h1 class="hero-title">
+                Prépare ton dossier de visa tourisme<br> comme dans une agence professionnelle.
+            </h1>
+            <p class="hero-subtitle">
+                E-SHELLE t’aide à générer un plan de visa complet : documents, étapes, score de chances
+                et conseils personnalisés, en quelques minutes.
+            </p>
+
+            <div class="hero-actions">
+                <a href="{% url 'visa_tourisme:assistant' %}">
+                    <button class="btn-primary" type="button">
+                        🚀 Commencer l’analyse de mon dossier
+                    </button>
+                </a>
+
+                <a href="{% url 'visa_tourisme:historique' %}">
+                    <button class="btn-secondary" type="button">
+                        📊 Voir les dernières simulations (conseiller)
+                    </button>
+                </a>
+            </div>
+
+            <div class="hero-mini">
+                Aucun document n’est envoyé à une ambassade. Tu obtiens un plan clair pour préparer ton dossier
+                avant de déposer officiellement.
+            </div>
+        </div>
+
+        <div class="hero-card">
+            <div class="hero-card-title">Comment ça marche ?</div>
+            <p>
+                1. Tu complètes un formulaire simple (profil, destination, durée, budget).<br>
+                2. L’algorithme analyse ton dossier et calcule un <strong>score de chances</strong>.<br>
+                3. Tu reçois :
+            </p>
+            <ul>
+                <li>Une liste détaillée des documents à fournir</li>
+                <li>Les étapes officielles à suivre</li>
+                <li>Les points forts et les points à renforcer</li>
+                <li>Des conseils stratégiques pour maximiser tes chances</li>
+            </ul>
+
+            <div class="hero-metrics">
+                <div class="metric">
+                    <span class="metric-value">Schengen, USA, UK, Canada…</span>
+                    <span class="metric-label">Compatible avec les grandes zones de voyage</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">PDF & Email</span>
+                    <span class="metric-label">Plan exportable, partageable avec ton client ou ton conseiller</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTIONS INFOS -->
+    <div class="sections">
+        <div class="card">
+            <div class="section-title">Pour qui est ce module ?</div>
+            <p class="section-text">
+                • Voyageurs individuels qui veulent mettre toutes les chances de leur côté.<br>
+                • Étudiants qui préparent un séjour touristique avant ou après leurs études.<br>
+                • Conseillers en immigration qui souhaitent structurer leurs dossiers plus vite.
+            </p>
+
+            <div class="section-title">Ce que tu obtiens précisément :</div>
+            <ul>
+                <li>Check-list personnalisée des pièces à fournir</li>
+                <li>Analyse de risque (score & niveau de solidité du dossier)</li>
+                <li>Plan d’action étape par étape</li>
+                <li>Recommandations pour renforcer ton dossier avant le dépôt</li>
+            </ul>
+
+            <div class="badge-list">
+                <div class="badge">Pas un site officiel de visa</div>
+                <div class="badge">Outil d’aide à la préparation</div>
+                <div class="badge">Utilisable partout dans le monde</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">Astuce pro avant de commencer</div>
+            <p class="section-text">
+                Prépare les infos suivantes :<br>
+                • Destination exacte (pays de séjour principal)<br>
+                • Durée estimée du séjour<br>
+                • Situation professionnelle & revenus<br>
+                • Existence ou non d’une lettre d’invitation
+            </p>
+
+            <p class="section-text">
+                Tu peux faire plusieurs simulations avec différents profils
+                (amis, clients, membres de la famille) pour comparer les risques.
+            </p>
+
+            <p class="section-text">
+                Quand tu es prête, clique sur le bouton ci-dessous :
+            </p>
+
+            <a href="{% url 'visa_tourisme:assistant' %}">
+                <button class="btn-primary" type="button">
+                    ✨ Lancer l’assistant Visa Tourisme maintenant
+                </button>
+            </a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

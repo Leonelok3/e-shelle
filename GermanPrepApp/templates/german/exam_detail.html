@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ exam.title }} – Espace de cours allemand – Immigration97{% endblock %}
+
+{% block content %}
+<main class="page page--german-exam-detail">
+  <section class="section">
+    <div class="container-narrow">
+
+      <p class="hero-kicker">Préparation • Allemand • Niveau {{ exam.level }}</p>
+      <h1 class="hero-title">
+        {{ exam.title }}
+      </h1>
+      <p class="hero-subtitle">
+        {{ exam.description|default:exam.short_description }}
+      </p>
+
+      <div class="exam-meta">
+        <span>Type : {{ exam.get_exam_type_display }}</span>
+        <span>Niveau CECR : {{ exam.level }}</span>
+      </div>
+
+      <div class="exam-actions" style="margin:16px 0 28px;">
+        <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-primary">
+          🚀 Lancer une simulation type examen
+        </a>
+        <a href="{% url 'germanprep:home' %}#levels" class="btn btn-ghost">
+          ← Retour au choix des niveaux
+        </a>
+      </div>
+
+      <section class="section">
+        <h2 class="section-title">Parcours de cours & leçons</h2>
+        <p class="section-subtitle">
+          Suis les leçons dans l’ordre pour construire une base solide, puis utilise les simulations
+          pour vérifier ton niveau.
+        </p>
+
+        {% if lessons %}
+          <ul class="lesson-list">
+            {% for lesson in lessons %}
+              <li class="lesson-item">
+                <div class="lesson-main">
+                  <h3 class="lesson-title">
+                    {{ lesson.order }}. {{ lesson.title }}
+                  </h3>
+                  <p class="lesson-meta">
+                    Compétence principale : {{ lesson.get_skill_display }}
+                  </p>
+                  {% if lesson.intro %}
+                    <p class="lesson-intro">
+                      {{ lesson.intro }}
+                    </p>
+                  {% endif %}
+                </div>
+                <div class="lesson-actions">
+                  <a href="{% url 'germanprep:lesson_detail' exam.slug lesson.id %}" class="btn btn-secondary btn-soft">
+                    Ouvrir la leçon et les exercices
+                  </a>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="section-empty">
+            Aucune leçon n’a encore été ajoutée pour cet examen.
+          </p>
+        {% endif %}
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Ressources complètes pour ce niveau</h2>
+        <p class="section-subtitle">
+          PDFs complets, fiches de cours, séries d’exercices corrigés et vidéos recommandées
+          pour réussir ton examen {{ exam.get_exam_type_display }} niveau {{ exam.level }}.
+        </p>
+
+        {% if exam_resources %}
+          <ul class="resource-list">
+            {% for r in exam_resources %}
+              <li class="resource-item">
+                <h3 class="resource-title">
+                  {{ r.title }}
+                  <span class="badge">
+                    {% if r.resource_type == "PDF" %}PDF{% elif r.resource_type == "VIDEO" %}Vidéo{% elif r.resource_type == "LINK" %}Lien{% else %}Ressource{% endif %}
+                  </span>
+                </h3>
+                {% if r.description %}
+                  <p class="resource-desc">{{ r.description }}</p>
+                {% endif %}
+                <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-soft">
+                  Ouvrir la ressource
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="section-empty">
+            Aucune ressource globale n’a encore été ajoutée pour cet examen.
+          </p>
+        {% endif %}
+      </section>
+
+      {% if last_session %}
+      <section class="section">
+        <h2 class="section-title">Ta dernière simulation sur cet examen</h2>
+        <div class="exam-progress-card">
+          <p>Score : {{ last_session.score|default:0 }} %</p>
+          <p>Date : {{ last_session.started_at|date:"d/m/Y H:i" }}</p>
+        </div>
+      </section>
+      {% endif %}
+
+    </div>
+  </section>
+</main>
+{% endblock %}

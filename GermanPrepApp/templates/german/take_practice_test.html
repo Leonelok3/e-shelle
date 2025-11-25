@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Simulation d’examen {{ exam.title }} – Immigration97{% endblock %}
+
+{% block content %}
+<main class="page page--german-test">
+  <section class="section">
+    <div class="container-narrow">
+
+      <p class="hero-kicker">Simulation d’examen • Allemand</p>
+      <h1 class="hero-title">
+        {{ exam.title }} – Niveau {{ exam.level }}
+      </h1>
+      <p class="hero-subtitle">
+        Réponds aux questions ci-dessous comme dans un vrai test. À la fin, tu obtiendras un score
+        et ton profil sera mis à jour.
+      </p>
+
+      {% if exercises %}
+        <form method="post">
+          {% csrf_token %}
+          <ol class="question-list">
+            {% for ex in exercises %}
+              <li class="question-item">
+                <p class="question-text">{{ ex.question_text }}</p>
+                <div class="question-options">
+                  <label class="option-line">
+                    <input type="radio" name="exercise_{{ ex.id }}" value="A">
+                    A. {{ ex.option_a }}
+                  </label>
+                  <label class="option-line">
+                    <input type="radio" name="exercise_{{ ex.id }}" value="B">
+                    B. {{ ex.option_b }}
+                  </label>
+                  {% if ex.option_c %}
+                    <label class="option-line">
+                      <input type="radio" name="exercise_{{ ex.id }}" value="C">
+                      C. {{ ex.option_c }}
+                    </label>
+                  {% endif %}
+                  {% if ex.option_d %}
+                    <label class="option-line">
+                      <input type="radio" name="exercise_{{ ex.id }}" value="D">
+                      D. {{ ex.option_d }}
+                    </label>
+                  {% endif %}
+                </div>
+              </li>
+            {% endfor %}
+          </ol>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              Valider mes réponses et voir mon score
+            </button>
+            <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-ghost">
+              Annuler et revenir au cours
+            </a>
+          </div>
+        </form>
+      {% else %}
+        <p class="section-empty">
+          Aucun exercice n’est encore configuré pour cet examen.
+        </p>
+        <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-primary">
+          Revenir à l’espace de cours
+        </a>
+      {% endif %}
+
+    </div>
+  </section>
+</main>
+{% endblock %}
