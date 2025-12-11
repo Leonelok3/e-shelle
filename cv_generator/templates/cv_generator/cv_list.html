@@ -1,116 +1,414 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Mes CVs - Tableau de Bord{% endblock %}
+{# ==== SEO ==== #}
+{% block title %}Mes CV — Tableau de bord · Immigration97{% endblock %}
+
+{% block meta_description %}
+  Gérez vos CV créés avec Immigration97 : reprise d’édition, suivi de progression par étape,
+  export PDF prêt pour les candidatures (Canada, Europe, USA, UK) et accès aux modèles optimisés ATS.
+{% endblock %}
+
+{% block head_extra %}
+  <style>
+    .cv-dashboard{
+      min-height:calc(100vh - 140px);
+      padding:26px 0 40px;
+    }
+    .cv-dashboard-inner{
+      max-width:1100px;
+      margin:0 auto;
+    }
+    .cv-header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:1rem;
+      margin-bottom:16px;
+      flex-wrap:wrap;
+    }
+    .cv-header h1{
+      margin:0;
+      font-size:1.6rem;
+      font-weight:750;
+      color:#f9fafb;
+    }
+    .cv-header-lead{
+      font-size:.9rem;
+      color:#94a3b8;
+      margin-top:4px;
+    }
+    .cv-header-lead strong{
+      color:#22c55e;
+      font-weight:600;
+    }
+
+    .cv-header-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.5rem;
+      align-items:center;
+    }
+
+    .btn-main{
+      display:inline-flex;
+      align-items:center;
+      gap:.4rem;
+      padding:9px 16px;
+      border-radius:999px;
+      border:2px solid transparent;
+      background:linear-gradient(120deg,#4ade80,#22c55e,#22c55e,#a855f7);
+      background-size:220% 220%;
+      color:#020617;
+      font-size:.9rem;
+      font-weight:700;
+      text-decoration:none;
+      box-shadow:0 14px 32px rgba(15,23,42,0.9);
+      transition:all .2s ease-out;
+    }
+    .btn-main:hover{
+      background-position:100% 0;
+      transform:translateY(-1px);
+      box-shadow:0 18px 46px rgba(15,23,42,0.96);
+    }
+
+    .btn-ghost{
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      padding:8px 14px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.6);
+      background:rgba(15,23,42,0.95);
+      color:#e5e7eb;
+      font-size:.82rem;
+      text-decoration:none;
+      transition:all .18s ease-out;
+      box-shadow:0 12px 28px rgba(15,23,42,0.9);
+    }
+    .btn-ghost:hover{
+      border-color:rgba(148,163,184,0.95);
+      transform:translateY(-1px);
+      background:radial-gradient(circle at top left,rgba(56,189,248,0.24),rgba(15,23,42,0.98));
+    }
+
+    .cv-upsell-strip{
+      margin-bottom:16px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid rgba(34,197,94,0.35);
+      background:radial-gradient(circle at top left,rgba(34,197,94,0.18),transparent 55%);
+      font-size:.85rem;
+      color:#bbf7d0;
+      display:flex;
+      gap:.6rem;
+      align-items:flex-start;
+    }
+    .cv-upsell-strip .emoji{font-size:1.1rem;}
+    .cv-upsell-strip a{
+      color:#a5b4fc;
+      text-decoration:underline;
+      text-decoration-thickness:1px;
+    }
+
+    .cv-panel{
+      background:rgba(15,23,42,0.96);
+      border-radius:18px;
+      border:1px solid rgba(30,64,175,0.5);
+      padding:16px 14px 18px;
+      box-shadow:0 18px 40px rgba(15,23,42,0.9);
+    }
+
+    .cv-table-wrapper{
+      overflow-x:auto;
+    }
+
+    table.cv-table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.88rem;
+    }
+    .cv-table thead{
+      background:rgba(15,23,42,0.98);
+    }
+    .cv-table th,
+    .cv-table td{
+      padding:10px 10px;
+      text-align:left;
+      white-space:nowrap;
+    }
+    .cv-table th{
+      font-size:.75rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:#9ca3af;
+      border-bottom:1px solid rgba(30,64,175,0.8);
+    }
+    .cv-table tbody tr{
+      border-bottom:1px solid rgba(30,64,175,0.4);
+      transition:background .16s ease-out;
+    }
+    .cv-table tbody tr:hover{
+      background:rgba(15,23,42,0.92);
+    }
+
+    .cv-main-title{
+      font-size:.95rem;
+      font-weight:600;
+      color:#e5e7eb;
+    }
+    .cv-submeta{
+      font-size:.78rem;
+      color:#9ca3af;
+      margin-top:2px;
+    }
+
+    .tag-status{
+      display:inline-flex;
+      align-items:center;
+      gap:.25rem;
+      padding:3px 9px;
+      border-radius:999px;
+      font-size:.74rem;
+      font-weight:600;
+    }
+    .tag-status--done{
+      background:rgba(22,163,74,0.16);
+      color:#bbf7d0;
+      border:1px solid rgba(22,163,74,0.8);
+    }
+    .tag-status--pending{
+      background:rgba(202,138,4,0.18);
+      color:#facc15;
+      border:1px solid rgba(202,138,4,0.85);
+    }
+
+    .progress-bar{
+      width:90px;
+      height:6px;
+      border-radius:999px;
+      background:#1e293b;
+      overflow:hidden;
+    }
+    .progress-bar-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg,#4f46e5,#38bdf8);
+    }
+    .progress-label{
+      margin-left:6px;
+      font-size:.78rem;
+      color:#e5e7eb;
+    }
+
+    .cv-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:.75rem;
+      font-size:.82rem;
+    }
+    .cv-link{
+      color:#a5b4fc;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap:.25rem;
+    }
+    .cv-link:hover{color:#c7d2fe;}
+    .cv-link--muted{
+      color:#4b5563;
+      cursor:not-allowed;
+    }
+
+    .cv-empty{
+      text-align:center;
+      padding:40px 20px;
+      background:rgba(15,23,42,0.96);
+      border-radius:18px;
+      border:1px solid rgba(30,64,175,0.65);
+      box-shadow:0 18px 40px rgba(15,23,42,0.9);
+    }
+    .cv-empty-icon{
+      font-size:2.4rem;
+      color:#4b5563;
+      margin-bottom:8px;
+    }
+    .cv-empty h3{
+      margin:0 0 6px;
+      font-size:1.1rem;
+      color:#f9fafb;
+    }
+    .cv-empty p{
+      margin:0 0 12px;
+      font-size:.9rem;
+      color:#9ca3af;
+    }
+
+    .cv-small-note{
+      margin-top:8px;
+      font-size:.78rem;
+      color:#64748b;
+    }
+    .cv-small-note strong{color:#22c55e;}
+
+    @media (max-width: 768px){
+      .cv-header{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .cv-actions{
+        flex-direction:column;
+        align-items:flex-end;
+      }
+      .cv-table th,
+      .cv-table td{
+        padding:8px 8px;
+      }
+    }
+  </style>
+{% endblock %}
 
 {% block content %}
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-<script src="https://kit.fontawesome.com/9d6b1b0b3f.js" crossorigin="anonymous"></script>
+<main class="cv-dashboard">
+  <div class="cv-dashboard-inner">
 
-<div class="min-h-screen bg-gray-900 text-gray-100 p-6">
-    <div class="max-w-6xl mx-auto">
-        
-        <header class="flex items-center justify-between mb-8">
-            <div>
-                <h1 class="text-3xl font-bold text-white">Mon Tableau de Bord CVs</h1>
-                <p class="text-sm text-gray-400">Gérez vos CVs, reprenez l'édition ou exportez en PDF.</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <a href="{% url 'cv_generator:template_selection' %}" class="px-4 py-2 bg-indigo-600 rounded hover:bg-indigo-500 font-semibold shadow-md">
-                    <i class="fas fa-plus mr-2"></i> Créer un nouveau CV
-                </a>
-            </div>
-        </header>
+    <header class="cv-header">
+      <div>
+        <h1>Mes CV — Tableau de bord</h1>
+        <p class="cv-header-lead">
+          Suis la progression de chaque CV, reprends l’édition en un clic et exporte un PDF
+          <strong>prêt pour les candidatures internationales</strong>.
+        </p>
+      </div>
 
-        {% if cvs %}
-            <div class="bg-gray-800 p-6 rounded-lg shadow-xl">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-700">
-                        <thead class="bg-gray-700">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                    Titre du CV / Profession
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                    Pays Ciblé
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                    Statut
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                    Progression
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-700">
-                            {% for cv in cvs %}
-                            <tr class="hover:bg-gray-700 transition duration-150">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-white">{{ cv.profession|default:"CV Sans Titre" }}</div>
-                                    <div class="text-xs text-gray-400">Modifié le: {{ cv.date_modification|date:"d M Y" }}</div>
-                                </td>
-                                
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-sm text-gray-300">{{ cv.pays_cible|default:"Non Spécifié" }}</span>
-                                </td>
+      <div class="cv-header-actions">
+        <a href="{% url 'cv_generator:template_selection' %}" class="btn-main">
+          <i class="fas fa-plus"></i>
+          Créer un nouveau CV
+        </a>
+        <a href="{% url 'billing:access' %}" class="btn-ghost">
+          <i class="fas fa-rocket"></i>
+          Débloquer tous les modèles & modules
+        </a>
+      </div>
+    </header>
 
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    {% if cv.is_completed %}
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-800 text-green-200">
-                                            <i class="fas fa-check-circle mr-1"></i> Complété
-                                        </span>
-                                    {% else %}
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-800 text-yellow-200">
-                                            <i class="fas fa-edit mr-1"></i> En Cours (Étape {{ cv.current_step }}/3)
-                                        </span>
-                                    {% endif %}
-                                </td>
-                                
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    {% with percentage=cv.get_completion_percentage %}
-                                    <div class="flex items-center">
-                                        <div class="w-20 bg-gray-600 rounded-full h-2.5">
-                                            <div class="bg-indigo-500 h-2.5 rounded-full" style="width: {{ percentage }}%"></div>
-                                        </div>
-                                        <span class="ml-2 text-sm text-gray-300">{{ percentage }}%</span>
-                                    </div>
-                                    {% endwith %}
-                                </td>
-
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-<a href="{% url 'cv_generator:create_cv' cv_id=cv.id %}" class="text-indigo-400 hover:text-indigo-300 mr-3">
-                                        <i class="fas fa-pencil-alt"></i> Éditer
-                                    </a>
-                                    {% if cv.is_completed %}
-                                        <a href="{% url 'cv_generator:export_pdf' cv_id=cv.id %}" target="_blank" class="text-green-400 hover:text-green-300">
-                                            <i class="fas fa-download"></i> PDF
-                                        </a>
-                                    {% else %}
-                                        <span class="text-gray-500 cursor-not-allowed" title="Finalisez le CV pour exporter">
-                                            <i class="fas fa-download"></i> PDF
-                                        </span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        {% else %}
-            <div class="text-center py-12 bg-gray-800 rounded-lg shadow-xl">
-                <i class="fas fa-clipboard-list fa-3x text-gray-500 mb-4"></i>
-                <h3 class="text-xl font-semibold text-white mb-2">Vous n'avez pas encore créé de CV.</h3>
-                <p class="text-gray-400 mb-4">Commencez dès maintenant pour générer votre CV optimisé par l'IA.</p>
-                <a href="{% url 'cv_generator:template_selection' %}" class="px-6 py-3 bg-indigo-600 rounded hover:bg-indigo-500 font-semibold shadow-lg">
-                    Démarrer la création de CV
-                </a>
-            </div>
-        {% endif %}
-
+    <div class="cv-upsell-strip">
+      <span class="emoji">💡</span>
+      <div>
+        En combinant <strong>plusieurs CV adaptés par pays</strong> (Canada, Europe, USA, UK) avec les autres modules
+        Immigration97 (lettres, visa, tests de langue), tu maximises tes chances de réponse.
+        <br>
+        <a href="{% url 'billing:access' %}">Voir les accès Pro & crédits</a>
+      </div>
     </div>
-</div>
+
+    {% if cvs %}
+      <section class="cv-panel" aria-label="Liste de vos CV">
+        <div class="cv-table-wrapper">
+          <table class="cv-table">
+            <thead>
+              <tr>
+                <th>Titre du CV / Profession</th>
+                <th>Pays ciblé</th>
+                <th>Statut</th>
+                <th>Progression</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cv in cvs %}
+                <tr>
+                  <td>
+                    <div class="cv-main-title">
+                      {{ cv.profession|default:"CV sans titre" }}
+                    </div>
+                    <div class="cv-submeta">
+                      Modifié le&nbsp;: {{ cv.date_modification|date:"d M Y" }}
+                    </div>
+                  </td>
+
+                  <td>
+                    <span class="cv-submeta">
+                      {{ cv.pays_cible|default:"Non spécifié" }}
+                    </span>
+                  </td>
+
+                  <td>
+                    {% if cv.is_completed %}
+                      <span class="tag-status tag-status--done">
+                        <i class="fas fa-check-circle"></i>
+                        Complété
+                      </span>
+                    {% else %}
+                      <span class="tag-status tag-status--pending">
+                        <i class="fas fa-edit"></i>
+                        En cours (Étape {{ cv.current_step }}/3)
+                      </span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    {% with percentage=cv.get_completion_percentage %}
+                      <div style="display:flex;align-items:center;">
+                        <div class="progress-bar">
+                          <div class="progress-bar-fill" style="width: {{ percentage }}%;"></div>
+                        </div>
+                        <span class="progress-label">{{ percentage }}%</span>
+                      </div>
+                    {% endwith %}
+                  </td>
+
+                  <td>
+                    <div class="cv-actions">
+                      <a href="{% url 'cv_generator:create_cv' cv_id=cv.id %}" class="cv-link">
+                        <i class="fas fa-pencil-alt"></i>
+                        Éditer
+                      </a>
+
+                      {% if cv.is_completed %}
+                        <a href="{% url 'cv_generator:export_pdf' cv_id=cv.id %}" target="_blank" class="cv-link">
+                          <i class="fas fa-download"></i>
+                          PDF
+                        </a>
+                      {% else %}
+                        <span class="cv-link cv-link--muted" title="Finalisez le CV pour exporter">
+                          <i class="fas fa-download"></i>
+                          PDF
+                        </span>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <p class="cv-small-note">
+          Conseil : vise au moins <strong>90&nbsp;% de complétion</strong> par CV avant d’envoyer aux recruteurs.
+        </p>
+      </section>
+    {% else %}
+      <section class="cv-empty" aria-label="Aucun CV créé">
+        <div class="cv-empty-icon">
+          <i class="fas fa-clipboard-list"></i>
+        </div>
+        <h3>Tu n’as pas encore créé de CV.</h3>
+        <p>
+          Commence avec un modèle optimisé par Immigration97 pour les candidatures
+          <strong>Canada, Europe, USA, UK</strong> et les dossiers d’immigration.
+        </p>
+        <a href="{% url 'cv_generator:template_selection' %}" class="btn-main" style="margin-top:4px;">
+          Démarrer mon premier CV
+        </a>
+        <p class="cv-small-note">
+          Tu peux ensuite ajouter des lettres de motivation, guides visa et préparation aux tests de langue
+          directement depuis ton espace Immigration97.
+        </p>
+      </section>
+    {% endif %}
+
+  </div>
+</main>
 {% endblock %}

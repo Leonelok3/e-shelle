@@ -2,19 +2,119 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>CV (Générique)</title>
+  <title>
+    CV – 
+    {% if personal_info.nom or personal_info.prenom %}
+      {{ personal_info.nom|default:"" }} {{ personal_info.prenom|default:"" }}
+    {% else %}
+      {{ cv.profession|default:"Profil professionnel" }}
+    {% endif %}
+  </title>
   <style>
-    body { font-family: Calibri, Arial, sans-serif; font-size: 12px; color:#111; padding: 20px; }
-    .header { border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 12px; }
-    .name { font-size: 22px; font-weight: 700; color: #222; }
-    .subtitle { font-size: 13px; color: #333; }
-    .meta { font-size: 11px; color: #555; margin-top: 2px; }
-    h2 { background: #333; color: #fff; padding: 4px 6px; font-size: 13px; margin: 14px 0 6px; }
-    .item { margin: 6px 0 8px; page-break-inside: avoid; }
-    .item-title { font-weight: 700; }
-    .muted { color: #555; }
-    ul { margin: 4px 0 0 18px; }
-    .tag { display: inline-block; border: 1px solid #999; border-radius: 999px; padding: 1px 6px; margin: 2px 4px 0 0; font-size: 11px; }
+    /* ---- CONFIG GÉNÉRALE POUR EXPORT PDF ---- */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Calibri, Arial, sans-serif;
+      font-size: 11.5px;
+      color: #111827;
+      margin: 18px 26px;
+      line-height: 1.4;
+    }
+
+    h1, h2 {
+      margin: 0;
+      padding: 0;
+    }
+
+    /* HEADER */
+    .header {
+      border-bottom: 2px solid #111827;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    .name {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: #111827;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #1f2933;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    .meta {
+      font-size: 10.5px;
+      color: #4b5563;
+      margin-top: 4px;
+    }
+
+    .meta span + span::before {
+      content: " • ";
+      color: #9ca3af;
+    }
+
+    /* TITRES DE SECTIONS */
+    h2 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: #111827;
+      color: #ffffff;
+      padding: 4px 6px;
+      margin: 14px 0 6px;
+    }
+
+    /* BLOCS / ITEMS */
+    .item {
+      margin: 6px 0 8px;
+      page-break-inside: avoid;
+    }
+
+    .item-title {
+      font-weight: 700;
+      font-size: 11.5px;
+      color: #111827;
+    }
+
+    .muted {
+      color: #4b5563;
+      font-size: 10.5px;
+    }
+
+    ul {
+      margin: 4px 0 0 16px;
+      padding: 0;
+    }
+
+    ul li {
+      margin-bottom: 2px;
+    }
+
+    /* TAGS COMPÉTENCES */
+    .tag {
+      display: inline-block;
+      border: 1px solid #9ca3af;
+      border-radius: 999px;
+      padding: 1px 7px;
+      margin: 2px 4px 0 0;
+      font-size: 10.5px;
+      color: #111827;
+      background: #f9fafb;
+    }
+
+    /* PETITE RÉDUCTION MARGE DERNIÈRE SECTION */
+    .last-section-bottom {
+      margin-bottom: 0;
+    }
   </style>
 </head>
 <body>
@@ -24,44 +124,60 @@
     <div class="name">
       {{ pi.nom|default:"" }} {{ pi.prenom|default:"" }}
     </div>
+
     <div class="subtitle">
       {{ pi.titre|default:cv.profession|default:"" }}
     </div>
+
     <div class="meta">
-      {% if pi.email %}{{ pi.email }}{% endif %}
-      {% if pi.telephone %} | {{ pi.telephone }}{% endif %}
-      {% if pi.ville %} | {{ pi.ville }}{% endif %}
-      {% if pi.province %} ({{ pi.province }}){% endif %}
-      {% if pi.pays %} — {{ pi.pays }}{% endif %}
-      {% if pi.linkedin %} | LinkedIn: {{ pi.linkedin }}{% endif %}
+      {% if pi.email %}
+        <span>{{ pi.email }}</span>
+      {% endif %}
+      {% if pi.telephone %}
+        <span>{{ pi.telephone }}</span>
+      {% endif %}
+      {% if pi.ville %}
+        <span>{{ pi.ville }}{% if pi.province %} ({{ pi.province }}){% endif %}{% if pi.pays %}, {{ pi.pays }}{% endif %}</span>
+      {% elif pi.pays %}
+        <span>{{ pi.pays }}</span>
+      {% endif %}
+      {% if pi.linkedin %}
+        <span>LinkedIn : {{ pi.linkedin }}</span>
+      {% endif %}
     </div>
   </div>
   {% endwith %}
 
+  {# ===== RÉSUMÉ ===== #}
   {% if summary %}
     <h2>Résumé</h2>
     <p>{{ summary|linebreaksbr }}</p>
   {% endif %}
 
+  {# ===== COMPÉTENCES ===== #}
   {% if skills %}
     <h2>Compétences</h2>
     <div>
       {% for s in skills %}
-        <span class="tag">{{ s.name|default:s.nom|default:"Compétence" }}</span>
+        <span class="tag">
+          {{ s.name|default:s.nom|default:"Compétence" }}
+        </span>
       {% endfor %}
     </div>
   {% endif %}
 
+  {# ===== EXPÉRIENCES ===== #}
   {% if experiences %}
     <h2>Expériences professionnelles</h2>
     {% for e in experiences %}
-      <div class="item" style="page-break-inside: avoid;">
+      <div class="item">
         <div class="item-title">
           {{ e.title|default:e.titre_poste|default:"Poste" }}
           {% if e.company or e.entreprise %}
             — <span class="muted">{{ e.company|default:e.entreprise }}</span>
           {% endif %}
         </div>
+
         <div class="muted">
           {% if e.start_date or e.date_debut %}
             {{ e.start_date|default:e.date_debut|date:"m/Y" }}
@@ -76,7 +192,7 @@
           {% endif %}
         </div>
 
-        {# NOTE: on ne passe plus par raw|lines_to_list #}
+        {# On ne passe plus par un filtre custom : on utilise soit e.bullets, soit splitlines #}
         {% if e.bullets %}
           <ul>
             {% for ln in e.bullets %}
@@ -94,10 +210,11 @@
     {% endfor %}
   {% endif %}
 
+  {# ===== FORMATIONS ===== #}
   {% if educations %}
     <h2>Formations</h2>
     {% for ed in educations %}
-      <div class="item">
+      <div class="item last-section-bottom">
         <div class="item-title">
           {{ ed.degree|default:ed.diplome|default:"Diplôme" }}
           {% if ed.school or ed.ecole %}
@@ -111,7 +228,9 @@
           {% if ed.end_date or ed.date_fin %}
             – {{ ed.end_date|default:ed.date_fin|date:"m/Y" }}
           {% endif %}
-          {% if ed.location %} | {{ ed.location }}{% endif %}
+          {% if ed.location %}
+            | {{ ed.location }}
+          {% endif %}
         </div>
       </div>
     {% endfor %}

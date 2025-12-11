@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">Trouvez le bon professionnel</h1>
+        <p class="lead text-muted">Parcourez notre CV-thèque ou publiez votre propre profil.</p>
+        {% if user.is_authenticated and not user.profile %}
+            <a href="{% url 'profiles:create' %}" class="btn btn-primary btn-lg mt-2">Créer mon profil CV</a>
+        {% endif %}
+    </div>
+
+    <div class="card p-4 mb-5 shadow-sm bg-light border-0">
+        <form method="get" class="row g-3">
+            <div class="col-md-5">
+                <input type="text" name="q" class="form-control" placeholder="Mot-clé (ex: Python, Menuisier...)" value="{{ request.GET.q }}">
+            </div>
+            <div class="col-md-4">
+                <select name="category" class="form-select">
+                    <option value="">Toutes catégories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.slug }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-dark w-100">Rechercher</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row">
+        {% for profile in profiles %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 100px; height: 100px; font-size: 2rem;">
+                            {{ profile.user.username|first|upper }}
+                        </div>
+                    {% endif %}
+                    
+                    <h5 class="card-title fw-bold">{{ profile.user.first_name }} {{ profile.user.last_name }}</h5>
+                    <p class="text-primary mb-1">{{ profile.headline }}</p>
+                    {% if profile.category %}
+                        <span class="badge bg-secondary mb-3">{{ profile.category.name }}</span>
+                    {% endif %}
+                    
+                    <p class="small text-muted"><i class="bi bi-geo-alt"></i> {{ profile.location }}</p>
+                    
+                    <a href="{{ profile.get_absolute_url }}" class="btn btn-outline-primary btn-sm w-100">Voir le profil</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p>Aucun profil trouvé pour cette recherche.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

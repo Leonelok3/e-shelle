@@ -1,150 +1,398 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>Choix du modèle de CV</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- ✅ CSRF dispo même sans formulaire -->
-  <meta name="csrf-token" content="{{ csrf_token }}"/>
+
+{% block title %}Choisissez votre modèle de CV optimisé | Immigration97{% endblock %}
+{% block meta_description %}
+Choisissez un modèle de CV optimisé (Canada, Europe, Moderne, Professionnel) avant de remplir l’éditeur guidé. Compatible ATS et adapté aux candidatures d’immigration.
+{% endblock %}
+
+{% block head_extra %}
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
 
   <style>
-    :root{
-      --bg:#0f172a; --panel:#111827; --text:#e5e7eb; --muted:#9ca3af;
-      --brand:#6366f1; --brand-2:#0ea5e9;
+    .cv-page-wrap{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 20px 40px;
+      color: #e5e7eb;
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial}
-    a{text-decoration:none;color:inherit}
-    .wrap{max-width:1100px;margin:0 auto;padding:28px 20px}
-    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
-    .brand{font-weight:700;opacity:.9}
-    h1{font-size:26px;margin:10px 0 6px}
-    p.lead{color:var(--muted);margin:0 0 18px}
-    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-    @media (max-width:1024px){.grid{grid-template-columns:repeat(2,1fr)}}
-    @media (max-width:560px){.grid{grid-template-columns:1fr}}
+    .cv-page-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:0.75rem;
+      margin-bottom:1.25rem;
+      flex-wrap:wrap;
+    }
+    .cv-page-brand{
+      font-weight:700;
+      font-size:.95rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:#e5e7eb;
+      opacity:.9;
+    }
+    .cv-pill-link{
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      padding:6px 12px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.5);
+      background:rgba(15,23,42,0.9);
+      color:#e5e7eb;
+      font-size:.85rem;
+      text-decoration:none;
+      transition:.15s;
+    }
+    .cv-pill-link:hover{
+      border-color:rgba(129,140,248,0.9);
+      color:#f9fafb;
+    }
 
-    .card{background:var(--panel);border:1px solid #1f2937;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-    .thumb{height:150px;background:#0b1220 url("{% static 'cv_generator/cv-thumb.svg' %}") center/110px no-repeat;border-bottom:1px solid #1f2937}
-    .card-body{padding:14px}
-    .title{font-weight:700;margin:2px 0}
-    .tag{display:inline-block;margin:6px 0 10px;padding:3px 10px;border:1px solid #334155;border-radius:999px;color:#cbd5e1;font-size:12px}
-    .desc{color:#cbd5e1;font-size:14px;min-height:44px}
-    .actions{padding:12px 14px 16px}
-    .btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:10px 12px;border-radius:10px;border:1px solid transparent;background:linear-gradient(90deg,var(--brand),var(--brand-2));color:white;font-weight:700;cursor:pointer;transition:.15s}
-    .btn:hover{filter:brightness(1.05)}
-    .btn:disabled{opacity:.55;cursor:not-allowed;filter:none}
-    .pill{display:inline-block;padding:4px 10px;border:1px solid #334155;border-radius:999px;color:#cbd5e1;font-size:12px}
-    .empty{padding:30px;border:1px dashed #334155;border-radius:12px;text-align:center;color:var(--muted)}
+    .cv-title{
+      font-size:1.6rem;
+      font-weight:800;
+      margin:4px 0 4px;
+      color:#f9fafb;
+    }
+    .cv-lead{
+      font-size:.95rem;
+      color:#9ca3af;
+      margin:0 0 16px;
+      max-width:620px;
+    }
+    .cv-lead strong{ color:#a5b4fc; }
+
+    .cv-badge-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:0.5rem;
+      margin-bottom:0.75rem;
+    }
+    .cv-badge{
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.5);
+      background:rgba(15,23,42,0.9);
+      font-size:.75rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:#cbd5e1;
+    }
+    .cv-badge--accent{
+      border-color:rgba(52,211,153,0.9);
+      background:rgba(16,185,129,0.16);
+      color:#bbf7d0;
+    }
+
+    .cv-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:18px;
+      margin-top:18px;
+    }
+    @media (max-width:1024px){
+      .cv-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width:640px){
+      .cv-grid{ grid-template-columns:minmax(0,1fr); }
+    }
+
+    .cv-card{
+      background:#020617;
+      border-radius:14px;
+      border:1px solid #1f2937;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      box-shadow:0 16px 40px rgba(15,23,42,0.85);
+    }
+    .cv-thumb{
+      height:150px;
+      background:#020617 url("{% static 'cv_generator/cv-thumb.svg' %}") center/110px no-repeat;
+      border-bottom:1px solid #1f2937;
+      position:relative;
+    }
+    .cv-thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .cv-card-body{
+      padding:14px 14px 10px;
+    }
+    .cv-card-title{
+      font-weight:700;
+      margin:2px 0;
+      color:#f9fafb;
+      font-size:.97rem;
+    }
+    .cv-card-tag{
+      display:inline-block;
+      margin:6px 0 8px;
+      padding:3px 10px;
+      border-radius:999px;
+      border:1px solid #334155;
+      color:#cbd5e1;
+      font-size:11px;
+    }
+    .cv-card-desc{
+      color:#cbd5e1;
+      font-size:.85rem;
+      min-height:44px;
+    }
+    .cv-card-actions{
+      padding:10px 14px 14px;
+    }
+    .cv-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+      padding:9px 12px;
+      border-radius:10px;
+      border:1px solid transparent;
+      background:linear-gradient(120deg,#6366f1,#0ea5e9);
+      color:#f9fafb;
+      font-weight:700;
+      font-size:.9rem;
+      cursor:pointer;
+      transition:.16s;
+      box-shadow:0 14px 30px rgba(30,64,175,0.55);
+    }
+    .cv-btn:hover{
+      filter:brightness(1.04);
+      transform:translateY(-1px);
+      box-shadow:0 18px 40px rgba(30,64,175,0.8);
+    }
+    .cv-btn:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+      transform:none;
+      box-shadow:none;
+    }
+
+    .cv-empty{
+      padding:26px;
+      border-radius:12px;
+      border:1px dashed #334155;
+      text-align:center;
+      color:#9ca3af;
+      margin-top:20px;
+      font-size:.9rem;
+      background:rgba(15,23,42,0.9);
+    }
+
+    .cv-bottom-cta{
+      margin-top:26px;
+      padding:16px 18px;
+      border-radius:16px;
+      border:1px solid rgba(79,70,229,0.7);
+      background:radial-gradient(circle at top left,rgba(79,70,229,0.25),transparent 60%),
+                 rgba(15,23,42,0.96);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .cv-bottom-cta-title{
+      font-weight:700;
+      font-size:1rem;
+      color:#e5e7eb;
+    }
+    .cv-bottom-cta-text{
+      font-size:.85rem;
+      color:#cbd5e1;
+    }
+    .cv-bottom-cta strong{ color:#a5b4fc; }
+
+    .cv-bottom-cta-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:6px;
+    }
+    .cv-bottom-btn-primary{
+      padding:8px 14px;
+      border-radius:999px;
+      border:none;
+      background:linear-gradient(120deg,#4ade80,#22c55e,#22c55e,#6366f1);
+      color:#020617;
+      font-weight:700;
+      font-size:.85rem;
+      text-decoration:none;
+      box-shadow:0 14px 36px rgba(22,163,74,0.75);
+    }
+    .cv-bottom-btn-secondary{
+      padding:8px 14px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.6);
+      background:transparent;
+      color:#e5e7eb;
+      font-size:.85rem;
+      text-decoration:none;
+    }
   </style>
-</head>
-<body>
-  <div class="wrap">
-    <header>
-      <div class="brand">immigration97</div>
-      <a href="{% url 'cv_generator:cv_list' %}" class="pill">Mon CV</a>
-    </header>
+{% endblock %}
 
-    <h1>🎨 Choisissez le modèle de CV qui vous correspond</h1>
-    <p class="lead">Sélectionnez un design. Vos données seront ensuite collectées dans l’éditeur multi-étapes.</p>
+{% block content %}
+<div class="cv-page-wrap">
 
-    {% if templates %}
-      <div class="grid">
-        {% for t in templates %}
-          {% with st=t.style_type|lower %}
-            {% if st in 'canada,europe,modern,professional' %}
-              <article class="card">
-                <div class="thumb">
-                  {% if t.thumbnail %}
-                    <img src="{{ t.thumbnail.url }}" alt="aperçu {{ t.name }}" style="width:100%;height:100%;object-fit:cover;display:block" />
+  <header class="cv-page-header">
+    <div>
+      <div class="cv-page-brand">Immigration97 · CV Generator</div>
+      <div class="cv-badge-row">
+        <span class="cv-badge cv-badge--accent">Étape 1 — Choisir un modèle</span>
+        <span class="cv-badge">Compatible ATS · Canada / Europe / US</span>
+      </div>
+    </div>
+
+    <a href="{% url 'cv_generator:cv_list' %}" class="cv-pill-link">
+      📂 Voir mes CV existants
+    </a>
+  </header>
+
+  <h1 class="cv-title">Choisissez le modèle de CV qui vous met le mieux en valeur</h1>
+  <p class="cv-lead">
+    Sélectionnez un design adapté à votre <strong>pays cible</strong> et à votre <strong>style</strong>.
+    Vos informations seront ensuite collectées dans un éditeur guidé en 3 étapes, puis
+    exportées en PDF compatible ATS.
+  </p>
+
+  {% if templates %}
+    <div class="cv-grid">
+      {% for t in templates %}
+        {% with st=t.style_type|lower %}
+          {% if st in 'canada,europe,modern,professional' %}
+            <article class="cv-card">
+              <div class="cv-thumb">
+                {% if t.thumbnail %}
+                  <img src="{{ t.thumbnail.url }}" alt="Aperçu modèle {{ t.name }}">
+                {% endif %}
+              </div>
+              <div class="cv-card-body">
+                <div class="cv-card-title">
+                  {% if st == 'canada' %}CV Canada (sans photo)
+                  {% elif st == 'europe' %}CV Europe
+                  {% elif st == 'modern' %}CV Moderne
+                  {% elif st == 'professional' %}CV Professionnel
+                  {% else %}{{ t.name }}{% endif %}
+                </div>
+                <div class="cv-card-tag">
+                  {% if st == 'canada' %}Recommandé pour Canada / USA{% elif st == 'europe' %}Adapté France / Belgique / UE{% elif st == 'modern' %}Profil dynamique & tech{% else %}Classique & sobre{% endif %}
+                </div>
+                <div class="cv-card-desc">
+                  {% if st == 'canada' %}
+                    Format orienté marché nord-américain, sans photo ni âge, idéal pour l’immigration au Canada.
+                  {% elif st == 'europe' %}
+                    Style européen lisible et structuré, avec sections classiques (formation, expériences, compétences).
+                  {% elif st == 'modern' %}
+                    Design contemporain, hiérarchie visuelle forte, parfait pour les profils digitaux et tech.
+                  {% else %}
+                    Modèle sobre et robuste, compatible avec tous les secteurs (administration, finance, éducation, etc.).
                   {% endif %}
                 </div>
-                <div class="card-body">
-                  <div class="title">
-                    {% if st == 'canada' %}CV Canada
-                    {% elif st == 'europe' %}CV Europe
-                    {% elif st == 'modern' %}CV Moderne
-                    {% elif st == 'professional' %}CV Professionnel
-                    {% else %}{{ t.name }}{% endif %}
-                  </div>
-                  <div class="tag">
-                    {% if st == 'canada' %}Canada{% elif st == 'europe' %}Europe{% elif st == 'modern' %}Modern{% else %}Professional{% endif %}
-                  </div>
-                  <div class="desc">
-                    {% if st == 'canada' %}Format orienté marché canadien, clair et concis.
-                    {% elif st == 'europe' %}Style européen propre, lisible, équilibré.
-                    {% elif st == 'modern' %}Design contemporain, hiérarchie visuelle forte.
-                    {% else %}Sobre et robuste, adapté à tout secteur.{% endif %}
-                  </div>
-                </div>
-                <div class="actions">
-                  <button id="btn-{{ t.id }}" class="btn" onclick="chooseTemplate({{ t.id }})">
-                    Choisir ce modèle
-                  </button>
-                </div>
-              </article>
-            {% endif %}
-          {% endwith %}
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="empty">Aucun template actif. Active au moins un modèle « Canada », « Europe », « Moderne » ou « Professionnel » dans l’admin.</div>
-    {% endif %}
-  </div>
+              </div>
+              <div class="cv-card-actions">
+                <button id="btn-{{ t.id }}" class="cv-btn" onclick="chooseTemplate({{ t.id }})">
+                  Choisir ce modèle et passer à l’édition
+                </button>
+              </div>
+            </article>
+          {% endif %}
+        {% endwith %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="cv-empty">
+      Aucun modèle actif pour le moment.  
+      Active au moins un template « Canada », « Europe », « Moderne » ou « Professionnel » dans l’admin Django.
+    </div>
+  {% endif %}
 
-  <!-- ✅ Ceinture CSRF + anti-double-clic + reset au retour -->
-  <script>
-    function csrfToken(){
-      const meta = document.querySelector('meta[name="csrf-token"]');
-      if (meta && meta.content && meta.content !== 'NOTPROVIDED') return meta.content;
-      const m = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
-      return m ? m.pop() : '';
-    }
+  {# Bandeau CTA bas de page pour pousser l’action #}
+  <section class="cv-bottom-cta" aria-label="Finaliser le choix du modèle">
+    <div class="cv-bottom-cta-title">
+      Commence par un modèle adapté à ton objectif (Canada, Europe, job tech, fonction publique…)
+    </div>
+    <p class="cv-bottom-cta-text">
+      Tu pourras toujours <strong>changer de modèle plus tard</strong> en dupliquant ton CV.
+      L’important est de lancer la première version pour ne plus repousser tes candidatures.
+    </p>
+    <div class="cv-bottom-cta-row">
+      {% if templates %}
+        {# Bouton qui clique le premier modèle dispo (pratique mobile) #}
+        {% with first=templates.0 %}
+          <button type="button"
+                  class="cv-bottom-btn-primary"
+                  onclick="chooseTemplate({{ first.id }})">
+            Commencer avec le premier modèle disponible
+          </button>
+        {% endwith %}
+      {% endif %}
 
-    const DEFAULT_BTN_TEXT = 'Choisir ce modèle';
+      <a href="{% url 'billing:access' %}" class="cv-bottom-btn-secondary">
+        Voir les accès complets Immigration97 (photos, lettres, guides…)
+      </a>
+    </div>
+  </section>
 
-    function resetButtons(){
-      document.querySelectorAll('.btn').forEach(b => {
-        b.disabled = false;
-        b.textContent = DEFAULT_BTN_TEXT;
-      });
-      localStorage.removeItem('cvCreating');
-    }
-    window.addEventListener('pageshow', resetButtons);
-    document.addEventListener('DOMContentLoaded', resetButtons);
+</div>
 
-    async function chooseTemplate(templateId){
-      const btn = document.getElementById('btn-'+templateId);
-      try{
-        localStorage.setItem('cvCreating', String(templateId));
-        if (btn){ btn.disabled = true; btn.textContent = 'Création…'; }
+<script>
+  function csrfToken(){
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content && meta.content !== 'NOTPROVIDED') return meta.content;
+    const m = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+    return m ? m.pop() : '';
+  }
 
-        const res = await fetch("{% url 'cv_generator:set_template' %}", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken()
-          },
-          body: JSON.stringify({ template_id: templateId })
-        });
+  const DEFAULT_BTN_TEXT = 'Choisir ce modèle et passer à l’édition';
 
-        const data = await res.json();
-        if(!data || !data.success){
-          alert("Erreur: " + (data && data.error ? data.error : "création impossible"));
-          resetButtons();
-          return;
-        }
-        window.location.href = data.data.redirect_url;
+  function resetButtons(){
+    document.querySelectorAll('.cv-btn').forEach(b => {
+      b.disabled = false;
+      b.textContent = DEFAULT_BTN_TEXT;
+    });
+    localStorage.removeItem('cvCreating');
+  }
+  window.addEventListener('pageshow', resetButtons);
+  document.addEventListener('DOMContentLoaded', resetButtons);
 
-      }catch(e){
-        console.error(e);
-        alert("Erreur réseau. Réessaie.");
-        resetButtons();
-      } finally {
-        setTimeout(resetButtons, 8000);
+  async function chooseTemplate(templateId){
+    const btn = document.getElementById('btn-'+templateId);
+    try{
+      localStorage.setItem('cvCreating', String(templateId));
+      if (btn){
+        btn.disabled = true;
+        btn.textContent = 'Création du CV…';
       }
+
+      const res = await fetch("{% url 'cv_generator:set_template' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken()
+        },
+        body: JSON.stringify({ template_id: templateId })
+      });
+
+      const data = await res.json();
+      if (!data || !data.success){
+        alert("Erreur : " + (data && data.error ? data.error : "impossible de créer le CV."));
+        resetButtons();
+        return;
+      }
+      window.location.href = data.data.redirect_url;
+
+    }catch(e){
+      console.error(e);
+      alert("Erreur réseau. Vérifie ta connexion et réessaie.");
+      resetButtons();
+    } finally {
+      setTimeout(resetButtons, 8000);
     }
-  </script>
-</body>
-</html>
+  }
+</script>
+{% endblock %}

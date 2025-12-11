@@ -1,8 +1,6 @@
 {% extends "base.html" %}
-{# Title optimisé pour le SEO (conserve le bloc existant) #}
 {% block title %}Générateur de Photo Conforme pour Visa · Immigration97{% endblock %}
 
-{# Si ton base.html propose un bloc meta/head appelé 'meta' il sera utilisé. Sinon ces balises seront ignorées proprement. #}
 {% block meta %}
   <meta name="description" content="Générez une photo conforme pour tout type de visa (DV Lottery, France, Canada, UK). Validation automatique, centrage du visage et téléchargement du fichier prêt à déposer. Aperçu gratuit avant téléchargement.">
   <link rel="canonical" href="{{ request.build_absolute_uri }}">
@@ -28,7 +26,93 @@
     --info: #3b82f6;
   }
 
-  /* Animations Magiques */
+  /* ======== BARRE DE NAVIGATION APPS (GLOBAL) + SOUS-MENU (MODULES) ======== */
+
+  .app-nav-wrapper {
+    margin-bottom: 1.75rem;
+  }
+
+  .app-global-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    box-shadow: 0 10px 30px rgba(15,23,42,0.7);
+    overflow-x: auto;
+  }
+
+  .app-global-nav__item {
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    text-decoration: none;
+    color: #cbd5e1;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    transition: all 0.2s ease-out;
+  }
+
+  .app-global-nav__item:hover {
+    color: #f9fafb;
+    border-color: rgba(148,163,184,0.9);
+    background: radial-gradient(circle at top left, rgba(56,189,248,0.16), rgba(15,23,42,0.9));
+  }
+
+  .app-global-nav__item--active {
+    background: linear-gradient(120deg,#4ade80,#22c55e,#22c55e,#a855f7);
+    color: #020617;
+    border-color: transparent;
+    box-shadow: 0 10px 28px rgba(34,197,94,0.55);
+  }
+
+  .app-subnav {
+    margin-top: 0.85rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.7rem 1rem;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.9);
+    border: 1px solid rgba(30,64,175,0.45);
+    overflow-x: auto;
+  }
+
+  .app-subnav__item {
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    text-decoration: none;
+    color: #cbd5e1;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    transition: all 0.2s ease-out;
+  }
+
+  .app-subnav__item:hover {
+    color: #f9fafb;
+    border-color: rgba(59,130,246,0.7);
+    background: radial-gradient(circle at top, rgba(59,130,246,0.16), rgba(15,23,42,0.95));
+  }
+
+  .app-subnav__item--active {
+    background: rgba(59,130,246,0.16);
+    border-color: rgba(59,130,246,0.8);
+    color: #e0f2fe;
+  }
+
+  @media (max-width: 768px) {
+    .app-global-nav,
+    .app-subnav {
+      padding-inline: 0.75rem;
+      border-radius: 18px;
+    }
+  }
+
+  /* ================== STYLES DE LA PAGE VISA PHOTO ================== */
+
   @keyframes slideInDown {
     from {
       opacity: 0;
@@ -78,49 +162,11 @@
     }
   }
 
-  @keyframes glowPulse {
-    0%, 100% { 
-      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), inset 0 0 20px rgba(16, 185, 129, 0.1);
-    }
-    50% { 
-      box-shadow: 0 0 0 15px rgba(16, 185, 129, 0), inset 0 0 30px rgba(16, 185, 129, 0.2);
-    }
-  }
-
   @keyframes shimmerWave {
     0% { background-position: -1000px 0; }
     100% { background-position: 1000px 0; }
   }
 
-  @keyframes particleFloat {
-    0% { opacity: 0; transform: translateY(20px); }
-    50% { opacity: 1; }
-    100% { opacity: 0; transform: translateY(-100px); }
-  }
-
-  @keyframes badgeReveal {
-    from {
-      opacity: 0;
-      transform: scale(0.5) rotate(-180deg);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1) rotate(0deg);
-    }
-  }
-
-  @keyframes expandIn {
-    from {
-      opacity: 0;
-      clip-path: inset(0 100% 0 0);
-    }
-    to {
-      opacity: 1;
-      clip-path: inset(0 0 0 0);
-    }
-  }
-
-  /* Global Styles */
   body {
     background: linear-gradient(135deg, #0f172a 0%, #1a1f35 50%, #0f172a 100%);
     color: #f1f5f9;
@@ -349,23 +395,9 @@
     font-weight: 600;
     text-align: center;
     transition: all 0.3s ease;
-    animation: badgeReveal 0.6s ease-out;
     backdrop-filter: blur(10px);
   }
 
-  .badge:nth-child(1) { animation-delay: 0.1s; }
-  .badge:nth-child(2) { animation-delay: 0.15s; }
-  .badge:nth-child(3) { animation-delay: 0.2s; }
-  .badge:nth-child(4) { animation-delay: 0.25s; }
-
-  .badge:hover {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.1));
-    border-color: #10b981;
-    transform: scale(1.05) translateY(-4px);
-    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.2);
-  }
-
-  /* Divider */
   .divider {
     border: 0;
     height: 1px;
@@ -390,22 +422,6 @@
     border-color: #10b981;
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.05));
     box-shadow: 0 0 30px rgba(16, 185, 129, 0.15);
-  }
-
-  .upload-box::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent);
-    transition: left 0.8s ease;
-    pointer-events: none;
-  }
-
-  .upload-box:hover::before {
-    left: 100%;
   }
 
   .form-row {
@@ -445,28 +461,6 @@
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1), 0 0 20px rgba(16, 185, 129, 0.2);
   }
 
-  .form-row select option {
-    background: #1e293b;
-    color: #f1f5f9;
-  }
-
-  .mb-1 { margin-bottom: 0.25rem; }
-  .mb-2 { margin-bottom: 0.5rem; }
-  .mb-3 { margin-bottom: 1rem; }
-  .mb-4 { margin-bottom: 1.5rem; }
-  .mt-1 { margin-top: 0.25rem; }
-  .mt-2 { margin-top: 0.5rem; }
-  .mt-3 { margin-top: 1rem; }
-  .mt-4 { margin-top: 1.5rem; }
-  .mt-6 { margin-top: 3rem; }
-  .mt-8 { margin-top: 4rem; }
-  .my-3 { margin: 1rem 0; }
-  .my-4 { margin: 1.5rem 0; }
-  .my-6 { margin: 3rem 0; }
-  .my-8 { margin: 4rem 0; }
-  .ml-3 { margin-left: 1rem; }
-
-  /* Spec Cards */
   .spec-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -480,20 +474,7 @@
     border-radius: 14px;
     padding: 1.5rem;
     transition: all 0.3s ease;
-    animation: slideInUp 0.6s ease-out;
     backdrop-filter: blur(10px);
-  }
-
-  .spec-card:nth-child(1) { animation-delay: 0.1s; }
-  .spec-card:nth-child(2) { animation-delay: 0.15s; }
-  .spec-card:nth-child(3) { animation-delay: 0.2s; }
-  .spec-card:nth-child(4) { animation-delay: 0.25s; }
-
-  .spec-card:hover {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.08));
-    border-color: #10b981;
-    transform: translateY(-6px);
-    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.15);
   }
 
   .spec-title {
@@ -509,7 +490,6 @@
     font-weight: 600;
   }
 
-  /* Steps */
   .steps {
     list-style: none;
     padding: 0;
@@ -523,7 +503,6 @@
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.02));
     border-left: 3px solid #3b82f6;
     border-radius: 8px;
-    animation: slideInUp 0.6s ease-out;
     position: relative;
   }
 
@@ -544,22 +523,6 @@
     box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
   }
 
-  .steps li:nth-child(1) { animation-delay: 0.1s; }
-  .steps li:nth-child(2) { animation-delay: 0.15s; }
-  .steps li:nth-child(3) { animation-delay: 0.2s; }
-  .steps li:nth-child(4) { animation-delay: 0.25s; }
-
-  .steps li:hover {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.08));
-    border-left-color: #06b6d4;
-  }
-
-  .steps li strong {
-    color: #f1f5f9;
-    font-weight: 700;
-  }
-
-  /* Example Grid */
   .example-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -570,33 +533,9 @@
   .example {
     border-radius: 14px;
     overflow: hidden;
-    animation: scaleIn 0.8s ease-out;
     position: relative;
     border: 2px solid rgba(16, 185, 129, 0.2);
     transition: all 0.3s ease;
-  }
-
-  .example:nth-child(1) { animation-delay: 0.1s; }
-  .example:nth-child(2) { animation-delay: 0.2s; }
-
-  .example:hover {
-    border-color: #10b981;
-    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.2);
-    transform: translateY(-8px);
-  }
-
-  .example img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-
-  .example p {
-    padding: 1rem;
-    text-align: center;
-    font-weight: 600;
-    background: rgba(16, 185, 129, 0.05);
-    color: #cbd5e1;
   }
 
   .example.good p {
@@ -609,11 +548,9 @@
     background: rgba(239, 68, 68, 0.1);
   }
 
-  /* Checklist */
   .checklist {
     list-style: none;
     padding: 0;
-    animation: fadeIn 0.8s ease-out;
   }
 
   .checklist li {
@@ -624,39 +561,15 @@
     border-radius: 8px;
     color: #cbd5e1;
     transition: all 0.3s ease;
-    animation: slideInUp 0.6s ease-out;
   }
 
-  .checklist li:nth-child(1) { animation-delay: 0.1s; }
-  .checklist li:nth-child(2) { animation-delay: 0.15s; }
-  .checklist li:nth-child(3) { animation-delay: 0.2s; }
-  .checklist li:nth-child(4) { animation-delay: 0.25s; }
-
-  .checklist li:hover {
-    background: rgba(16, 185, 129, 0.1);
-    transform: translateX(6px);
-  }
-
-  .checklist li strong {
-    color: #10b981;
-    font-weight: 700;
-  }
-
-  /* Social Proof */
   .social-proof {
     display: flex;
     gap: 1rem;
     justify-content: center;
     flex-wrap: wrap;
-    animation: slideInUp 0.8s ease-out 0.3s both;
   }
 
-  .social-proof .badge {
-    margin: 0;
-    animation: badgeReveal 0.6s ease-out;
-  }
-
-  /* FAQ */
   .faq {
     background: rgba(16, 185, 129, 0.05);
     border: 1px solid rgba(16, 185, 129, 0.1);
@@ -665,17 +578,6 @@
     margin-bottom: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    animation: slideInUp 0.6s ease-out;
-  }
-
-  .faq:nth-child(1) { animation-delay: 0.1s; }
-  .faq:nth-child(2) { animation-delay: 0.15s; }
-  .faq:nth-child(3) { animation-delay: 0.2s; }
-  .faq:nth-child(4) { animation-delay: 0.25s; }
-
-  .faq:hover {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: #10b981;
   }
 
   .faq summary {
@@ -703,36 +605,27 @@
     line-height: 1.6;
   }
 
-  .faq strong {
-    color: #10b981;
-    font-weight: 700;
-  }
-
-  /* Footer */
-  footer {
-    text-align: center;
-    border-top: 1px solid rgba(16, 185, 129, 0.1);
-    padding-top: 2rem;
-    animation: fadeIn 1s ease-out 0.5s both;
-  }
-
-  footer a {
-    color: #10b981;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-  }
-
-  footer a:hover {
-    color: #34d399;
-    text-decoration: underline;
-  }
-
-  /* Highlight Panel */
   .panel.highlight {
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.01));
     border: 1.5px solid rgba(16, 185, 129, 0.2);
   }
+
+  footer.panel {
+    border-radius: 18px;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  .block { display: block; }
 
   /* Responsive */
   @media (max-width: 768px) {
@@ -772,30 +665,12 @@
     .text-center {
       text-align: center;
     }
-
-    .ml-3 {
-      margin-left: 0;
-      margin-top: 0.5rem;
-    }
   }
-
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
-  }
-
-  .block { display: block; }
 </style>
 
 <main class="container">
 
-  <!-- JSON-LD Schema pour SEO (service + FAQ + organisation minimale) -->
+  <!-- JSON-LD Schema pour SEO -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -813,7 +688,32 @@
   }
   </script>
 
-  <!-- HERO : gros titre orienté conversion -->
+  <!-- ========= NAVIGATION APPS (GLOBAL) + SOUS-MENU VISA PHOTO ========= -->
+  <div class="app-nav-wrapper" aria-label="Navigation Immigration97">
+    <nav class="app-global-nav" aria-label="Applications Immigration97">
+      <a href="/visa-photo/" class="app-global-nav__item app-global-nav__item--active">Visa Photo</a>
+      <a href="{% url 'wizard' %}" class="app-global-nav__item">Éligibilité &amp; Parcours</a>
+      <a href="/cv-generator/" class="app-global-nav__item">CV Generator</a>
+      <a href="/motivation/" class="app-global-nav__item">Lettres de motivation</a>
+      <a href="{% url 'visa_tourisme:assistant' %}" class="app-global-nav__item">Visa Tourisme</a>
+      <a href="{% url 'visaetude:home' %}" class="app-global-nav__item">Visa Études</a>
+      <a href="/visa-travail/" class="app-global-nav__item">Visa Travail</a>
+      <a href="/prep/" class="app-global-nav__item">Tests de langue</a>
+      <a href="{% url 'residence_permanente' %}" class="app-global-nav__item">Résidence permanente</a>
+      <a href="{% url 'billing:access' %}" class="app-global-nav__item">Système de paiement</a>
+      <a href="{% url 'DocumentsApp:home' %}" class="app-global-nav__item">Traduction &amp; Compression</a>
+    </nav>
+
+    <nav class="app-subnav" aria-label="Modules Visa Photo">
+      <a href="#upload" class="app-subnav__item app-subnav__item--active">Générateur</a>
+      <a href="#specifications" class="app-subnav__item">Spécifications officielles</a>
+      <a href="#examples-heading" class="app-subnav__item">Exemples &amp; conseils</a>
+      <a href="#trust-heading" class="app-subnav__item">Sécurité &amp; confidentialité</a>
+      <a href="#faq-heading" class="app-subnav__item">FAQ Visa Photo</a>
+    </nav>
+  </div>
+
+  <!-- HERO -->
   <header class="hero text-center" role="banner" aria-label="Générateur de photo conforme">
     <h1 class="h1 text-gradient">Bienvenue — Générateur de photo conforme pour tout type de visa</h1>
     <p class="lead mt-3">
@@ -839,7 +739,7 @@
 
     <hr class="divider my-6" />
 
-    <!-- ===== FORMULAIRE DE TÉLÉVERSEMENT (inchangé côté logique) ===== -->
+    <!-- FORMULAIRE DE TÉLÉVERSEMENT -->
     <div id="upload" class="upload-box" aria-labelledby="upload-heading">
       <h2 id="upload-heading" class="text-xl font-semibold mb-4 text-center">Téléversez votre photo — simple & rapide</h2>
 
@@ -872,7 +772,7 @@
 
   <hr class="divider my-8" />
 
-  <!-- Spécifications détaillées, structure accessible -->
+  <!-- Spécifications -->
   <section id="specifications" class="panel" aria-labelledby="specs-heading">
     <h2 id="specs-heading">Spécifications prises en charge (MVP)</h2>
 
@@ -917,7 +817,7 @@
     <p class="muted text-sm">Astuce : pour un résultat optimal, utilisez une photo récente, visage dégagé et fond uni.</p>
   </section>
 
-  <!-- ASTUCE PHOTO avec images optimisées (lazy) -->
+  <!-- Exemples -->
   <section class="panel highlight" aria-labelledby="examples-heading">
     <h3 id="examples-heading">Exemples & conseils photo</h3>
     <p class="muted mb-4">Assurez-vous que votre visage soit bien éclairé et le fond clair. Voici quelques indications :</p>
@@ -941,6 +841,7 @@
     </div>
   </section>
 
+  <!-- Confiance -->
   <section class="panel" aria-labelledby="trust-heading">
     <h3 id="trust-heading">Confiance & sécurité</h3>
     <ul class="checklist" aria-label="Mesures de sécurité">
@@ -956,6 +857,7 @@
     </div>
   </section>
 
+  <!-- FAQ -->
   <section class="panel" aria-labelledby="faq-heading">
     <h3 id="faq-heading">FAQ</h3>
 

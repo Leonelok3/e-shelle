@@ -1,372 +1,716 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>
-    {% if cv.template and cv.template.style_type == 'canada' %}CV Canada{% elif cv.template and cv.template.style_type == 'europe' %}CV Europe{% elif cv.template and cv.template.style_type == 'modern' %}CV Moderne{% elif cv.template and cv.template.style_type == 'professional' %}CV Professionnel{% else %}Éditeur de CV{% endif %}
-    – {{ request.user.get_username }}
-  </title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root{--bg:#0b1220;--panel:#0f172a;--mut:#94a3b8;--txt:#e5e7eb;--ok:#22c55e;--brand:#3b82f6}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    .wrap{max-width:1000px;margin:0 auto;padding:24px}
-    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-    a.btn-link{color:#cbd5e1;text-decoration:none;border:1px solid #334155;padding:6px 10px;border-radius:999px}
-    h1{margin:6px 0 0;font-size:22px}
-    .step{display:inline-block;background:#111827;border:1px solid #1f2937;border-radius:10px;padding:6px 10px;font-size:13px;color:#cbd5e1}
-    .panel{background:var(--panel);border:1px solid #1f2937;border-radius:12px;padding:16px;margin-top:14px}
-    label{display:block;margin:8px 0 4px;color:#cbd5e1;font-size:14px}
-    input, textarea, select{width:100%;background:#0b1220;border:1px solid #334155;border-radius:8px;color:var(--txt);padding:10px;font:inherit}
-    textarea{min-height:120px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .actions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap}
-    .btn{background:linear-gradient(90deg,#6366f1,#0ea5e9);border:1px solid transparent;border-radius:10px;padding:10px 14px;color:#fff;font-weight:700;cursor:pointer}
-    .btn.secondary{background:transparent;border-color:#334155;color:#cbd5e1}
-    .list{margin:8px 0 0;padding:0;list-style:none}
-    .item{padding:10px;border:1px solid #1f2937;border-radius:8px;margin-top:8px;background:#0b1220}
-    .muted{color:var(--mut)}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-    .title-line{display:flex;justify-content:space-between;gap:8px;align-items:center}
-    .danger{color:#ef4444}
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <header>
-      <a class="btn-link" href="{% url 'cv_generator:template_selection' %}">⟵ Choisir un autre modèle</a>
-      <a class="btn-link" href="{% url 'cv_generator:cv_list' %}">Mon CV</a>
-    </header>
 
-    <div class="title-line">
-      <h1>Éditeur de CV</h1>
-      <span class="step">Étape actuelle : {{ current_step }}</span>
+{# ====== SEO : Title dynamique selon le template ====== #}
+{% block title %}
+  {% if cv.template and cv.template.style_type == 'canada' %}
+    CV Canada optimisé (ATS, recruteurs) · Immigration97
+  {% elif cv.template and cv.template.style_type == 'europe' %}
+    CV Europe (Europass / standards UE) · Immigration97
+  {% elif cv.template and cv.template.style_type == 'modern' %}
+    CV Moderne pour candidatures internationales · Immigration97
+  {% elif cv.template and cv.template.style_type == 'professional' %}
+    CV Professionnel pour poste qualifié · Immigration97
+  {% else %}
+    Éditeur de CV — Crée ton CV complet en 3 étapes · Immigration97
+  {% endif %}
+{% endblock %}
+
+{% block meta_description %}
+  Crée un CV professionnel en 3 étapes : infos, expériences, compétences. Modèles Canada, Europe, Moderne, Professionnel.
+  Compatible recruteurs & ATS. Export PDF, IA, langues, projets, certifications. Immigration97.
+{% endblock %}
+
+{% block head_extra %}
+  {# Styles spécifiques à l’éditeur de CV (on garde 100% ta logique, juste stylé proprement) #}
+  <style>
+    :root{
+      --cv-bg:#0b1220;
+      --cv-panel:#0f172a;
+      --cv-muted:#94a3b8;
+      --cv-text:#e5e7eb;
+      --cv-ok:#22c55e;
+      --cv-brand:#3b82f6;
+    }
+    *{box-sizing:border-box}
+
+    .cv-editor-wrap{
+      max-width:1000px;
+      margin:0 auto;
+      padding:24px 0 40px;
+    }
+
+    .cv-editor-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:1rem;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+
+    .cv-editor-header a.btn-link{
+      color:#cbd5e1;
+      text-decoration:none;
+      border:1px solid #334155;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:.85rem;
+      display:inline-flex;
+      align-items:center;
+      gap:.25rem;
+      transition:all .18s ease-out;
+      background:rgba(15,23,42,0.9);
+      box-shadow:0 10px 24px rgba(15,23,42,0.85);
+    }
+    .cv-editor-header a.btn-link:hover{
+      border-color:#64748b;
+      transform:translateY(-1px);
+      background:radial-gradient(circle at top left,rgba(59,130,246,0.25),rgba(15,23,42,0.98));
+      color:#e5e7eb;
+    }
+
+    .cv-title-line{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      margin-bottom:16px;
+      flex-wrap:wrap;
+    }
+
+    .cv-title-line h1{
+      margin:0;
+      font-size:1.35rem;
+      font-weight:750;
+      color:#f9fafb;
+    }
+
+    .cv-step-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:.4rem;
+      background:#020617;
+      border:1px solid #1f2937;
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:.8rem;
+      color:#cbd5e1;
+    }
+
+    .cv-step-pill span.badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      background:linear-gradient(120deg,#22c55e,#16a34a);
+      color:#020617;
+      font-weight:700;
+      font-size:.7rem;
+    }
+
+    .cv-substrap{
+      margin-top:6px;
+      font-size:.85rem;
+      color:#9ca3af;
+    }
+
+    .cv-substrap strong{
+      color:#22c55e;
+      font-weight:600;
+    }
+
+    .cv-upsell{
+      margin-top:14px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(34,197,94,0.35);
+      background:radial-gradient(circle at top left,rgba(34,197,94,0.16),transparent 55%);
+      font-size:.85rem;
+      color:#bbf7d0;
+      display:flex;
+      align-items:flex-start;
+      gap:.6rem;
+    }
+
+    .cv-upsell .emoji{
+      font-size:1.1rem;
+    }
+
+    .cv-upsell a{
+      color:#a5b4fc;
+      text-decoration:underline;
+      text-decoration-thickness:1px;
+    }
+
+    .panel{
+      background:#0f172a;
+      border:1px solid #1f2937;
+      border-radius:12px;
+      padding:16px 14px 18px;
+      margin-top:14px;
+      box-shadow:0 18px 36px rgba(15,23,42,0.85);
+    }
+
+    .panel h2,
+    .panel h3{
+      margin:0 0 8px;
+      font-size:1.05rem;
+      color:#e5e7eb;
+    }
+
+    label{
+      display:block;
+      margin:8px 0 4px;
+      color:#cbd5e1;
+      font-size:14px;
+    }
+
+    input, textarea, select{
+      width:100%;
+      background:#020617;
+      border:1px solid #334155;
+      border-radius:8px;
+      color:#e5e7eb;
+      padding:10px;
+      font:inherit;
+    }
+    textarea{min-height:120px}
+
+    .row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .actions{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      background:linear-gradient(120deg,#6366f1,#0ea5e9);
+      border:1px solid transparent;
+      border-radius:10px;
+      padding:10px 14px;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+      font-size:.9rem;
+      display:inline-flex;
+      align-items:center;
+      gap:.4rem;
+      text-decoration:none;
+      box-shadow:0 14px 32px rgba(15,23,42,0.9);
+      transition:all .18s ease-out;
+    }
+    .btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 18px 44px rgba(15,23,42,0.95);
+    }
+
+    .btn.secondary{
+      background:transparent;
+      border-color:#334155;
+      color:#cbd5e1;
+      box-shadow:none;
+    }
+    .btn.secondary:hover{
+      border-color:#64748b;
+      background:rgba(15,23,42,0.9);
+    }
+
+    .list{
+      margin:8px 0 0;
+      padding:0;
+      list-style:none;
+    }
+
+    .item{
+      padding:10px;
+      border:1px solid #1f2937;
+      border-radius:8px;
+      margin-top:8px;
+      background:#020617;
+    }
+
+    .muted{color:#94a3b8;font-size:.85rem}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+
+    .danger{color:#ef4444;font-size:.9rem}
+
+    .cv-mini-cta{
+      margin-top:8px;
+      font-size:.8rem;
+      color:#9ca3af;
+    }
+    .cv-mini-cta strong{
+      color:#22c55e;
+    }
+
+    @media (max-width: 900px){
+      .row{grid-template-columns:1fr;}
+      .grid2,.grid3{grid-template-columns:1fr;}
+      .cv-editor-header{flex-direction:column;align-items:flex-start;}
+      .cv-title-line{flex-direction:column;align-items:flex-start;}
+    }
+  </style>
+
+  {# JSON-LD pour SEO (Service / CV Builder) #}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "Éditeur de CV Immigration97",
+    "provider": {
+      "@type": "Organization",
+      "name": "Immigration97"
+    },
+    "serviceType": "Création de CV pour immigration, études et travail à l'international",
+    "description": "Éditeur de CV en 3 étapes avec modèles Canada, Europe, moderne et professionnel. Compatible ATS, export PDF, sections expériences, compétences, langues, projets et certifications.",
+    "areaServed": {"@type": "Country", "name": "Global"}
+  }
+  </script>
+{% endblock %}
+
+{% block content %}
+<main class="cv-editor-wrap">
+  <header class="cv-editor-header">
+    <a class="btn-link" href="{% url 'cv_generator:template_selection' %}">
+      ⟵ Changer de modèle
+    </a>
+    <a class="btn-link" href="{% url 'cv_generator:cv_list' %}">
+      📄 Mes CV sauvegardés
+    </a>
+  </header>
+
+  <div class="cv-title-line">
+    <div>
+      <h1>
+        {% if cv.template and cv.template.style_type == 'canada' %}
+          Éditeur de CV — Modèle Canada
+        {% elif cv.template and cv.template.style_type == 'europe' %}
+          Éditeur de CV — Modèle Europe
+        {% elif cv.template and cv.template.style_type == 'modern' %}
+          Éditeur de CV — Modèle Moderne
+        {% elif cv.template and cv.template.style_type == 'professional' %}
+          Éditeur de CV — Modèle Professionnel
+        {% else %}
+          Éditeur de CV — 3 étapes rapides
+        {% endif %}
+      </h1>
+      <p class="cv-substrap">
+        Optimisé pour <strong>les recruteurs & ATS</strong> — remplis chaque étape, puis exporte ton CV en PDF
+        prêt pour <strong>Canada, Europe, USA, UK…</strong>
+      </p>
     </div>
 
-    {# ===================== ÉTAPE 1 : infos personnelles ===================== #}
-    {% if current_step == 1 %}
+    <div class="cv-step-pill">
+      <span class="badge">{{ current_step }}</span>
+      <span>Étape actuelle</span>
+    </div>
+  </div>
+
+  <div class="cv-upsell">
+    <span class="emoji">🚀</span>
+    <div>
+      <strong>Astuce :</strong> avec l’abonnement <strong>Immigration97 Pro</strong>, tu peux créer plusieurs CV,
+      les adapter à différents pays et les mettre à jour sans limite.
+      <br>
+      <a href="{% url 'billing:access' %}">Activer mon accès complet</a>
+    </div>
+  </div>
+
+  {# ===================== ÉTAPE 1 : infos personnelles ===================== #}
+  {% if current_step == 1 %}
+    <div class="panel">
+      <h2>Étape 1 — Informations personnelles stratégiques</h2>
+      <p class="muted">
+        Ces informations s’afficheront en haut de ton CV : c’est ta carte de visite.
+        Utilise un <strong>titre de poste clair</strong> et un <strong>e-mail professionnel</strong>.
+      </p>
+
+      <form method="post" action="">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <p class="danger">{{ form.non_field_errors }}</p>
+        {% endif %}
+
+        <div class="row">
+          <div>
+            <label>Nom</label>
+            {{ form.nom }}
+          </div>
+          <div>
+            <label>Prénom</label>
+            {{ form.prenom }}
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Email</label>
+            {{ form.email }}
+          </div>
+          <div>
+            <label>Téléphone</label>
+            {{ form.telephone }}
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Profession / Titre sur le CV</label>
+            {{ form.profession }}
+            <p class="cv-mini-cta">
+              Exemple : <strong>Développeur Full-Stack junior</strong>, <strong>Infirmier(ère) diplômé(e)</strong>, <strong>Étudiant(e) en Master…</strong>
+            </p>
+          </div>
+          <div>
+            <label>Pays ciblé</label>
+            {{ form.pays_cible }}
+            <p class="cv-mini-cta">
+              Ce champ aide à adapter ton CV aux <strong>codes du pays</strong> (Canada, France, Belgique, etc.).
+            </p>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" type="submit">
+            Continuer → Étape 2 (Expériences)
+          </button>
+          <a class="btn secondary" href="{% url 'wizard' %}">
+            🧭 Vérifier mon parcours avec l’assistant Éligibilité
+          </a>
+        </div>
+      </form>
+    </div>
+  {% endif %}
+
+  {# ===================== ÉTAPE 2 : expériences ===================== #}
+  {% if current_step == 2 %}
+    <div class="panel">
+      <h2>Étape 2 — Expériences professionnelles</h2>
+      <p class="muted">
+        Ajoute chaque expérience avec un <strong>intitulé clair</strong> et une description orientée
+        <strong>résultats</strong> (chiffres, impact, responsabilités).
+      </p>
+
+      <form method="post" action="">
+        {% csrf_token %}
+
+        <div class="row">
+          <div>
+            <label>Intitulé du poste *</label>
+            <input type="text" name="title" required />
+          </div>
+          <div>
+            <label>Entreprise *</label>
+            <input type="text" name="company" required />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Date début (YYYY-MM-DD) *</label>
+            <input type="date" name="start_date" required />
+          </div>
+          <div>
+            <label>Date fin (optionnel)</label>
+            <input type="date" name="end_date" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Lieu</label>
+            <input type="text" name="location" />
+          </div>
+          <div></div>
+        </div>
+
+        <label>Description (une ligne = une puce) *</label>
+        <textarea name="description_raw" required placeholder="- Tâche clé 1
+- Tâche clé 2
+- Résultat chiffré (ex : +25% de ventes)…"></textarea>
+
+        <div class="actions">
+          <button class="btn" type="submit">
+            ➕ Ajouter l’expérience
+          </button>
+          <a class="btn secondary" href="{% url 'cv_generator:create_cv_step3' cv.id %}">
+            Passer à l’étape 3 (Formations & compétences)
+          </a>
+        </div>
+      </form>
+
+      <p class="cv-mini-cta">
+        Plus tu ajoutes d’expériences structurées, plus ton CV sera <strong>crédible pour les recruteurs</strong>.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h3>Expériences ajoutées</h3>
+      <ul class="list">
+        {% for e in experiences %}
+          <li class="item">
+            <div><strong>{{ e.title }}</strong> — {{ e.company }}</div>
+            <div class="muted">
+              {{ e.start_date|date:"d/m/Y" }}
+              {% if e.end_date %} – {{ e.end_date|date:"d/m/Y" }}{% else %} – Présent{% endif %}
+              {% if e.location %} | {{ e.location }}{% endif %}
+            </div>
+            <div class="actions">
+              <a class="btn secondary" href="{% url 'cv_generator:delete_experience' cv.id e.id %}">
+                Supprimer
+              </a>
+            </div>
+          </li>
+        {% empty %}
+          <li class="muted">Aucune expérience pour l’instant. Ajoute au moins une expérience significative.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {# ===================== ÉTAPE 3 : formation / skills / etc. ===================== #}
+  {% if current_step == 3 %}
+    <div class="panel">
+      <h2>Étape 3 — Finalisation de ton CV</h2>
+      <p class="muted">
+        Complète ton CV avec les <strong>formations</strong>, <strong>compétences</strong>, <strong>langues</strong>,
+        <strong>certifications</strong>, <strong>bénévolats</strong> et <strong>projets</strong>, puis
+        <strong>exporte en PDF</strong>.
+      </p>
+    </div>
+
+    <div class="grid2">
       <div class="panel">
-        <h2>Étape 1 — Informations personnelles</h2>
-        <form method="post" action="">
+        <h3>Formations</h3>
+        <form method="post" action="{% url 'cv_generator:add_education' cv.id %}">
           {% csrf_token %}
-          {% if form.non_field_errors %}
-            <p class="danger">{{ form.non_field_errors }}</p>
-          {% endif %}
-
+          <label>Diplôme</label>{{ education_form.diploma }}
+          <label>Établissement</label>{{ education_form.institution }}
           <div class="row">
-            <div>
-              <label>Nom</label>
-              {{ form.nom }}
-            </div>
-            <div>
-              <label>Prénom</label>
-              {{ form.prenom }}
-            </div>
+            <div><label>Début</label>{{ education_form.start_date }}</div>
+            <div><label>Fin</label>{{ education_form.end_date }}</div>
           </div>
-
-          <div class="row">
-            <div>
-              <label>Email</label>
-              {{ form.email }}
-            </div>
-            <div>
-              <label>Téléphone</label>
-              {{ form.telephone }}
-            </div>
-          </div>
-
-          <div class="row">
-            <div>
-              <label>Profession / Titre</label>
-              {{ form.profession }}
-            </div>
-            <div>
-              <label>Pays ciblé</label>
-              {{ form.pays_cible }}
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="btn" type="submit">Continuer → Étape 2</button>
-          </div>
+          <label>Lieu</label>{{ education_form.location }}
+          <label>Description</label>{{ education_form.description }}
+          <div class="actions"><button class="btn" type="submit">Ajouter</button></div>
         </form>
-      </div>
-    {% endif %}
 
-    {# ===================== ÉTAPE 2 : expériences ===================== #}
-    {% if current_step == 2 %}
-      <div class="panel">
-        <h2>Étape 2 — Expériences professionnelles</h2>
-
-        <form method="post" action="">
-          {% csrf_token %}
-          <div class="row">
-            <div>
-              <label>Intitulé du poste *</label>
-              <input type="text" name="title" required />
-            </div>
-            <div>
-              <label>Entreprise *</label>
-              <input type="text" name="company" required />
-            </div>
-          </div>
-
-          <div class="row">
-            <div>
-              <label>Date début (YYYY-MM-DD) *</label>
-              <input type="date" name="start_date" required />
-            </div>
-            <div>
-              <label>Date fin (optionnel)</label>
-              <input type="date" name="end_date" />
-            </div>
-          </div>
-
-          <div class="row">
-            <div>
-              <label>Lieu</label>
-              <input type="text" name="location" />
-            </div>
-            <div></div>
-          </div>
-
-          <label>Description (une ligne = une puce) *</label>
-          <textarea name="description_raw" required placeholder="- Tâche 1
-- Tâche 2
-- Impact chiffré…"></textarea>
-
-          <div class="actions">
-            <button class="btn" type="submit">Ajouter l’expérience</button>
-            <a class="btn secondary" href="{% url 'cv_generator:create_cv_step3' cv.id %}">Passer à l’étape 3</a>
-          </div>
-        </form>
-      </div>
-
-      <div class="panel">
-        <h3>Expériences ajoutées</h3>
         <ul class="list">
-          {% for e in experiences %}
+          {% for ed in educations %}
             <li class="item">
-              <div><strong>{{ e.title }}</strong> — {{ e.company }}</div>
+              <div><strong>{{ ed.diploma }}</strong> — {{ ed.institution }}</div>
               <div class="muted">
-                {{ e.start_date|date:"d/m/Y" }}
-                {% if e.end_date %} – {{ e.end_date|date:"d/m/Y" }}{% else %} – Présent{% endif %}
-                {% if e.location %} | {{ e.location }}{% endif %}
+                {{ ed.start_date|date:"m/Y" }}{% if ed.end_date %} – {{ ed.end_date|date:"m/Y" }}{% endif %}
+                {% if ed.location %} | {{ ed.location }}{% endif %}
               </div>
               <div class="actions">
-                <a class="btn secondary" href="{% url 'cv_generator:delete_experience' cv.id e.id %}">Supprimer</a>
+                <a class="btn secondary" href="{% url 'cv_generator:delete_education' cv.id ed.id %}">Supprimer</a>
               </div>
             </li>
           {% empty %}
-            <li class="muted">Aucune expérience pour l’instant.</li>
+            <li class="muted">Aucune formation. Ajoute au moins ton dernier diplôme.</li>
           {% endfor %}
         </ul>
       </div>
-    {% endif %}
 
-    {# ===================== ÉTAPE 3 : formation / skills / etc. ===================== #}
-    {% if current_step == 3 %}
       <div class="panel">
-        <h2>Étape 3 — Finalisation</h2>
-        <p class="muted">Ajoute tes formations, compétences, langues, etc., puis exporte en PDF.</p>
+        <h3>Résumé professionnel</h3>
+        <form method="post" action="{% url 'cv_generator:update_summary' cv.id %}">
+          {% csrf_token %}
+          <textarea name="summary" placeholder="Court résumé d’impact…">{{ cv.summary }}</textarea>
+          <div class="actions">
+            <button class="btn" type="submit">Enregistrer le résumé</button>
+          </div>
+        </form>
+        <p class="cv-mini-cta">
+          Un bon résumé = <strong>3 à 5 lignes</strong> qui résument ton profil, ton expérience et ton objectif.
+        </p>
       </div>
+    </div>
 
-      <div class="grid2">
-        <div class="panel">
-          <h3>Formations</h3>
-          <form method="post" action="{% url 'cv_generator:add_education' cv.id %}">
-            {% csrf_token %}
-            <label>Diplôme</label>{{ education_form.diploma }}
-            <label>Établissement</label>{{ education_form.institution }}
-            <div class="row">
-              <div><label>Début</label>{{ education_form.start_date }}</div>
-              <div><label>Fin</label>{{ education_form.end_date }}</div>
-            </div>
-            <label>Lieu</label>{{ education_form.location }}
-            <label>Description</label>{{ education_form.description }}
-            <div class="actions"><button class="btn" type="submit">Ajouter</button></div>
-          </form>
-
-          <ul class="list">
-            {% for ed in educations %}
-              <li class="item">
-                <div><strong>{{ ed.diploma }}</strong> — {{ ed.institution }}</div>
-                <div class="muted">
-                  {{ ed.start_date|date:"m/Y" }}{% if ed.end_date %} – {{ ed.end_date|date:"m/Y" }}{% endif %}
-                  {% if ed.location %} | {{ ed.location }}{% endif %}
-                </div>
-                <div class="actions">
-                  <a class="btn secondary" href="{% url 'cv_generator:delete_education' cv.id ed.id %}">Supprimer</a>
-                </div>
-              </li>
-            {% empty %}
-              <li class="muted">Aucune formation.</li>
-            {% endfor %}
-          </ul>
-        </div>
-
-        <div class="panel">
-          <h3>Résumé professionnel</h3>
-          <form method="post" action="{% url 'cv_generator:update_summary' cv.id %}">
-            {% csrf_token %}
-            <textarea name="summary" placeholder="Court résumé d’impact…">{{ cv.summary }}</textarea>
-            <div class="actions">
-              <button class="btn" type="submit">Enregistrer le résumé</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <div class="grid3">
-        <div class="panel">
-          <h3>Compétences</h3>
-          <form method="post" action="{% url 'cv_generator:add_skill' cv.id %}">
-            {% csrf_token %}
-            <label>Nom</label>{{ skill_form.name }}
-            <label>Catégorie</label>{{ skill_form.category }}
-            {% if skill_form.level %}<label>Niveau</label>{{ skill_form.level }}{% endif %}
-            <div class="actions"><button class="btn" type="submit">Ajouter</button></div>
-          </form>
-          <ul class="list">
-            {% for s in skills %}
-              <li class="item">
-                {{ s.name }} <span class="muted">({{ s.get_category_display }})</span>
-                <div class="actions">
-                  <a class="btn secondary" href="{% url 'cv_generator:delete_skill' cv.id s.id %}">Supprimer</a>
-                </div>
-              </li>
-            {% empty %}<li class="muted">Aucune compétence.</li>{% endfor %}
-          </ul>
-        </div>
-
-        <div class="panel">
-          <h3>Langues</h3>
-          <form method="post" action="{% url 'cv_generator:add_language' cv.id %}">
-            {% csrf_token %}
-            <label>Langue</label>{{ language_form.name }}
-            <label>Niveau</label>{{ language_form.level }}
-            <div class="actions"><button class="btn" type="submit">Ajouter</button></div>
-          </form>
-          <ul class="list">
-            {% for lg in languages %}
-              <li class="item">
-                {{ lg.name }} — <span class="muted">{{ lg.get_level_display }}</span>
-                <div class="actions">
-                  <a class="btn secondary" href="{% url 'cv_generator:delete_language' cv.id lg.id %}">Supprimer</a>
-                </div>
-              </li>
-            {% empty %}<li class="muted">Aucune langue.</li>{% endfor %}
-          </ul>
-        </div>
-
-        <div class="panel">
-          <h3>Certifications</h3>
-          <form method="post" action="{% url 'cv_generator:add_certification' cv.id %}">
-            {% csrf_token %}
-            <label>Nom</label>{{ certification_form.name }}
-            <label>Organisme</label>{{ certification_form.organization }}
-            <label>Date d’obtention</label>{{ certification_form.date_obtained }}
-            <div class="actions"><button class="btn" type="submit">Ajouter</button></div>
-          </form>
-          <ul class="list">
-            {% for c in certifications %}
-              <li class="item">
-                {{ c.name }} — <span class="muted">{{ c.organization }}</span>
-                <div class="actions">
-                  <a class="btn secondary" href="{% url 'cv_generator:delete_certification' cv.id c.id %}">Supprimer</a>
-                </div>
-              </li>
-            {% empty %}<li class="muted">Aucune certification.</li>{% endfor %}
-          </ul>
-        </div>
-      </div>
-
-      <div class="grid2">
-        <div class="panel">
-          <h3>Bénévolat</h3>
-          <form method="post" action="{% url 'cv_generator:add_volunteer' cv.id %}">
-            {% csrf_token %}
-            <label>Organisation</label>{{ volunteer_form.organization }}
-            <label>Rôle</label>{{ volunteer_form.role }}
-            <div class="row">
-              <div><label>Début</label>{{ volunteer_form.start_date }}</div>
-              <div><label>Fin</label>{{ volunteer_form.end_date }}</div>
-            </div>
-            <label>Lieu</label>{{ volunteer_form.location }}
-            <label>Description</label>{{ volunteer_form.description }}
-            <div class="actions"><button class="btn" type="submit">Ajouter</button></div>
-          </form>
-          <ul class="list">
-            {% for v in volunteers %}
-              <li class="item">
-                {{ v.role }} — <span class="muted">{{ v.organization }}</span>
-                <div class="actions">
-                  <a class="btn secondary" href="{% url 'cv_generator:delete_volunteer' cv.id v.id %}">Supprimer</a>
-                </div>
-              </li>
-            {% empty %}<li class="muted">Aucun bénévolat.</li>{% endfor %}
-          </ul>
-        </div>
-
-        <div class="panel">
-          <h3>Projets</h3>
-          <form method="post" action="{% url 'cv_generator:add_project' cv.id %}">
-            {% csrf_token %}
-            <label>Titre</label>{{ project_form.title }}
-            <label>Description</label>{{ project_form.description }}
-            <div class="row">
-              <div><label>Début</label>{{ project_form.start_date }}</div>
-              <div><label>Fin</label>{{ project_form.end_date }}</div>
-            </div>
-            <label>URL</label>{{ project_form.url }}
-            <label>Technologies</label>{{ project_form.technologies }}
-            <div class="actions"><button class="btn" type="submit">Ajouter</button></div>
-          </form>
-          <ul class="list">
-            {% for p in projects %}
-              <li class="item">
-                <strong>{{ p.title }}</strong>
-                {% if p.url %}<span class="muted"> — {{ p.url }}</span>{% endif %}
-                <div class="actions">
-                  <a class="btn secondary" href="{% url 'cv_generator:delete_project' cv.id p.id %}">Supprimer</a>
-                </div>
-              </li>
-            {% empty %}<li class="muted">Aucun projet.</li>{% endfor %}
-          </ul>
-        </div>
+    <div class="grid3">
+      <div class="panel">
+        <h3>Compétences</h3>
+        <form method="post" action="{% url 'cv_generator:add_skill' cv.id %}">
+          {% csrf_token %}
+          <label>Nom</label>{{ skill_form.name }}
+          <label>Catégorie</label>{{ skill_form.category }}
+          {% if skill_form.level %}
+            <label>Niveau</label>{{ skill_form.level }}
+          {% endif %}
+          <div class="actions"><button class="btn" type="submit">Ajouter</button></div>
+        </form>
+        <ul class="list">
+          {% for s in skills %}
+            <li class="item">
+              {{ s.name }} <span class="muted">({{ s.get_category_display }})</span>
+              <div class="actions">
+                <a class="btn secondary" href="{% url 'cv_generator:delete_skill' cv.id s.id %}">Supprimer</a>
+              </div>
+            </li>
+          {% empty %}
+            <li class="muted">Aucune compétence. Ajoute au moins 5 à 8 compétences clés.</li>
+          {% endfor %}
+        </ul>
       </div>
 
       <div class="panel">
-        <h3>Finaliser</h3>
-        <div class="actions">
-          <form method="post" action="{% url 'cv_generator:complete_cv' cv.id %}" onsubmit="event.preventDefault(); finalizeCV(this);">
-            {% csrf_token %}
-            <button class="btn" type="submit">Marquer comme terminé</button>
-          </form>
-          <a class="btn secondary" href="{% url 'cv_generator:export_pdf' cv.id %}">Exporter en PDF</a>
-        </div>
+        <h3>Langues</h3>
+        <form method="post" action="{% url 'cv_generator:add_language' cv.id %}">
+          {% csrf_token %}
+          <label>Langue</label>{{ language_form.name }}
+          <label>Niveau</label>{{ language_form.level }}
+          <div class="actions"><button class="btn" type="submit">Ajouter</button></div>
+        </form>
+        <ul class="list">
+          {% for lg in languages %}
+            <li class="item">
+              {{ lg.name }} — <span class="muted">{{ lg.get_level_display }}</span>
+              <div class="actions">
+                <a class="btn secondary" href="{% url 'cv_generator:delete_language' cv.id lg.id %}">Supprimer</a>
+              </div>
+            </li>
+          {% empty %}
+            <li class="muted">Ajoute au moins ta langue maternelle et une langue étrangère.</li>
+          {% endfor %}
+        </ul>
       </div>
-    {% endif %}
-  </div>
 
+      <div class="panel">
+        <h3>Certifications</h3>
+        <form method="post" action="{% url 'cv_generator:add_certification' cv.id %}">
+          {% csrf_token %}
+          <label>Nom</label>{{ certification_form.name }}
+          <label>Organisme</label>{{ certification_form.organization }}
+          <label>Date d’obtention</label>{{ certification_form.date_obtained }}
+          <div class="actions"><button class="btn" type="submit">Ajouter</button></div>
+        </form>
+        <ul class="list">
+          {% for c in certifications %}
+            <li class="item">
+              {{ c.name }} — <span class="muted">{{ c.organization }}</span>
+              <div class="actions">
+                <a class="btn secondary" href="{% url 'cv_generator:delete_certification' cv.id c.id %}">Supprimer</a>
+              </div>
+            </li>
+          {% empty %}
+            <li class="muted">Aucune certification (optionnel mais très apprécié).</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>Bénévolat</h3>
+        <form method="post" action="{% url 'cv_generator:add_volunteer' cv.id %}">
+          {% csrf_token %}
+          <label>Organisation</label>{{ volunteer_form.organization }}
+          <label>Rôle</label>{{ volunteer_form.role }}
+          <div class="row">
+            <div><label>Début</label>{{ volunteer_form.start_date }}</div>
+            <div><label>Fin</label>{{ volunteer_form.end_date }}</div>
+          </div>
+          <label>Lieu</label>{{ volunteer_form.location }}
+          <label>Description</label>{{ volunteer_form.description }}
+          <div class="actions"><button class="btn" type="submit">Ajouter</button></div>
+        </form>
+        <ul class="list">
+          {% for v in volunteers %}
+            <li class="item">
+              {{ v.role }} — <span class="muted">{{ v.organization }}</span>
+              <div class="actions">
+                <a class="btn secondary" href="{% url 'cv_generator:delete_volunteer' cv.id v.id %}">Supprimer</a>
+              </div>
+            </li>
+          {% empty %}
+            <li class="muted">Le bénévolat valorise ton engagement (surtout pour les visas études / travail).</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3>Projets</h3>
+        <form method="post" action="{% url 'cv_generator:add_project' cv.id %}">
+          {% csrf_token %}
+          <label>Titre</label>{{ project_form.title }}
+          <label>Description</label>{{ project_form.description }}
+          <div class="row">
+            <div><label>Début</label>{{ project_form.start_date }}</div>
+            <div><label>Fin</label>{{ project_form.end_date }}</div>
+          </div>
+          <label>URL</label>{{ project_form.url }}
+          <label>Technologies</label>{{ project_form.technologies }}
+          <div class="actions"><button class="btn" type="submit">Ajouter</button></div>
+        </form>
+        <ul class="list">
+          {% for p in projects %}
+            <li class="item">
+              <strong>{{ p.title }}</strong>
+              {% if p.url %}<span class="muted"> — {{ p.url }}</span>{% endif %}
+              <div class="actions">
+                <a class="btn secondary" href="{% url 'cv_generator:delete_project' cv.id p.id %}">Supprimer</a>
+              </div>
+            </li>
+          {% empty %}
+            <li class="muted">Ajoute 1 à 3 projets pour montrer ton savoir-faire (technique ou non).</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Finaliser ton CV</h3>
+      <p class="muted">
+        Quand tout est bon, marque ton CV comme terminé puis exporte la version PDF.
+        Tu pourras toujours revenir modifier si besoin.
+      </p>
+      <div class="actions">
+        <form method="post" action="{% url 'cv_generator:complete_cv' cv.id %}" onsubmit="event.preventDefault(); finalizeCV(this);">
+          {% csrf_token %}
+          <button class="btn" type="submit">
+            ✅ Marquer comme terminé
+          </button>
+        </form>
+        <a class="btn secondary" href="{% url 'cv_generator:export_pdf' cv.id %}">
+          📄 Exporter en PDF
+        </a>
+        <a class="btn secondary" href="{% url 'billing:access' %}">
+          🔐 Débloquer tous les modules Immigration97
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</main>
+{% endblock %}
+
+{% block body_end %}
+  {{ block.super }}
   <script>
-  async function finalizeCV(form){
-    try{
-      const res = await fetch(form.action, {method:'POST', headers:{'X-CSRFToken': '{{ csrf_token }}'}});
-      // on ignore le body; on redirige quoi qu'il arrive si 200
-      if (res.ok){
-        window.location.href = "{% url 'cv_generator:cv_list' %}";
-      }else{
-        alert("Une erreur est survenue.");
+    async function finalizeCV(form){
+      try{
+        const res = await fetch(form.action, {
+          method:'POST',
+          headers:{'X-CSRFToken': '{{ csrf_token }}'}
+        });
+        if (res.ok){
+          window.location.href = "{% url 'cv_generator:cv_list' %}";
+        }else{
+          alert("Une erreur est survenue.");
+        }
+      }catch(e){
+        alert("Réseau indisponible.");
       }
-    }catch(e){
-      alert("Réseau indisponible.");
     }
-  }
-</script>
-
-</body>
-</html>
+  </script>
+{% endblock %}
