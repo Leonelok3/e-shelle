@@ -1,636 +1,240 @@
 {% extends "base.html" %}
 {% load static %}
 
-{# --- SEO principal pour la HOME --- #}
+{# ============================
+   SEO — HOME
+============================ #}
+
 {% block title %}
-Immigration97 – Plateforme d’assistance visa & immigration (DV-Lottery, CV IA, Lettres, Guides, Paiements)
+Immigration97 – Plateforme d’assistance visa & immigration
 {% endblock %}
 
 {% block meta_description %}
-Immigration97 : plateforme d’assistance visa & immigration. Photos DV-Lottery conformes, CV & lettres de motivation via IA, guides visa (tourisme, études, travail, résidence permanente) et système de paiement sécurisé. Accès par abonnement ou crédits.
+Immigration97 est une plateforme premium d’assistance visa & immigration.
+Photos DV-Lottery conformes, CV et lettres IA, tests de langue,
+guides visa (études, travail, tourisme, résidence permanente),
+traduction de documents et paiements sécurisés.
 {% endblock %}
 
 {% block head_extra %}
-  <link rel="canonical" href="{{ request.build_absolute_uri }}"/>
 
-  {# JSON-LD Organisation (SEO) #}
-  <script type="application/ld+json">
-  {
-    "@context":"https://schema.org",
-    "@type":"Organization",
-    "name":"Immigration97",
-    "url":"https://example.com/",
-    "logo":"https://example.com{% static 'img/logo.svg' %}"
-  }
-  </script>
+<!-- Open Graph -->
+<meta property="og:title" content="Immigration97 – Immigration, Études & Carrière Internationale">
+<meta property="og:description" content="DV-Lottery, CV IA, tests de langue, guides visa et paiements sécurisés.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:image" content="{% static 'img/LOGOIMM97.png' %}">
 
-  <script>document.documentElement.classList.remove('no-js')</script>
+<!-- Twitter -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Immigration97 – Plateforme Immigration Premium">
+<meta name="twitter:description" content="Immigration, études, travail et carrière internationale.">
 
-  <style>
-    /* HERO */
-    .hero {
-      display:grid;
-      grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);
-      gap:32px;
-      padding:40px 0 32px;
-      align-items:center;
-    }
+<!-- JSON-LD -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Immigration97",
+  "url": "https://immigration97.com",
+  "logo": "https://immigration97.com/static/img/LOGOIMM97.png"
+}
+</script>
 
-    .hero__title {
-      font-size:clamp(2.1rem,3.1vw,2.7rem);
-      font-weight:800;
-      line-height:1.2;
-      color:var(--text-strong);
-      margin-bottom:10px;
-    }
-
-    .hero__badge-row {
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-bottom:10px;
-    }
-
-    .hero__badge {
-      display:inline-flex;
-      align-items:center;
-      padding:4px 10px;
-      border-radius:var(--radius-pill);
-      font-size:.75rem;
-      font-weight:600;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-      background:rgba(15,23,42,0.9);
-      border:1px solid var(--border-subtle);
-      color:var(--text-muted);
-    }
-
-    .hero__badge--accent {
-      border-color:rgba(34,197,94,0.85);
-      color:#bbf7d0;
-      background:var(--accent-green-soft);
-    }
-
-    .hero__subtitle {
-      font-size:.98rem;
-      color:var(--text-muted);
-      max-width:520px;
-      line-height:1.65;
-      margin-bottom:14px;
-    }
-
-    .tile {
-      display:block;
-      margin-bottom:16px;
-      padding:10px 14px;
-      border-radius:var(--radius-lg);
-      background:radial-gradient(circle at top left,rgba(56,189,248,0.12),transparent 55%),
-                 rgba(15,23,42,0.96);
-      border:1px solid var(--border-subtle);
-      color:var(--text-body);
-      text-decoration:none;
-      font-size:.9rem;
-      line-height:1.55;
-      box-shadow:var(--shadow-soft);
-      transition:
-        transform var(--transition-fast),
-        box-shadow var(--transition-fast),
-        border-color var(--transition-fast),
-        background var(--transition-normal);
-    }
-    .tile:hover {
-      transform:translateY(-2px);
-      box-shadow:var(--shadow-elevated);
-      border-color:var(--border-strong);
-      background:radial-gradient(circle at top left,rgba(56,189,248,0.2),transparent 55%),
-                 rgba(15,23,42,0.98);
-    }
-
-    .hero__cta {
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-bottom:16px;
-    }
-
-    .hero__cta-note {
-      font-size:.8rem;
-      color:var(--text-soft);
-      margin-top:4px;
-    }
-
-    .hero__bullets {
-      list-style:none;
-      padding-left:0;
-      display:grid;
-      gap:6px;
-      font-size:.9rem;
-      color:var(--text-body);
-    }
-
-    .hero__art {
-      display:flex;
-      justify-content:center;
-    }
-
-    .hero-card {
-      border-radius:var(--radius-xl);
-      border:1px solid var(--border-subtle);
-      background:radial-gradient(circle at top left,rgba(56,189,248,0.2),transparent 60%),
-                 rgba(15,23,42,0.96);
-      box-shadow:var(--shadow-elevated);
-      padding:16px 18px;
-      max-width:280px;
-      align-self:flex-start;
-      transform:translateY(8px);
-    }
-
-    .hero-card__badge {
-      display:inline-flex;
-      align-items:center;
-      padding:4px 10px;
-      border-radius:var(--radius-pill);
-      font-size:.75rem;
-      font-weight:650;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      background:var(--accent-green-soft);
-      color:#bbf7d0;
-      border:1px solid rgba(34,197,94,0.85);
-      margin-bottom:10px;
-    }
-
-    .hero-card__icon {
-      font-size:1.6rem;
-      margin-bottom:6px;
-    }
-
-    .hero-card__title {
-      font-weight:700;
-      font-size:1rem;
-      color:var(--text-strong);
-      margin-bottom:3px;
-    }
-
-    .hero-card__desc {
-      font-size:.9rem;
-      color:var(--text-muted);
-    }
-
-    /* FEATURES GRID */
-    .features {
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:16px;
-      padding:12px 0 32px;
-    }
-
-    .card {
-      border-radius:var(--radius-xl);
-      border:1px solid var(--border-subtle);
-      background:radial-gradient(circle at top left,rgba(56,189,248,0.12),transparent 55%),
-                 rgba(15,23,42,0.96);
-      box-shadow:var(--shadow-soft);
-      padding:16px 14px 14px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      outline:none;
-      transition:
-        transform var(--transition-normal),
-        box-shadow var(--transition-normal),
-        border-color var(--transition-fast);
-    }
-
-    .card:focus-visible {
-      outline:2px solid var(--accent-blue);
-      outline-offset:2px;
-    }
-
-    .card:hover {
-      transform:translateY(-3px);
-      box-shadow:var(--shadow-elevated);
-      border-color:var(--border-strong);
-    }
-
-    .card__icon {
-      font-size:1.4rem;
-    }
-
-    .card__title {
-      font-size:1rem;
-      font-weight:650;
-      color:var(--text-strong);
-    }
-
-    .card__desc {
-      font-size:.9rem;
-      color:var(--text-muted);
-      line-height:1.55;
-    }
-
-    .card__btn {
-      margin-top:6px;
-      align-self:flex-start;
-    }
-
-    /* PRICING */
-    .pricing {
-      padding:24px 0 32px;
-    }
-
-    .pricing h2 {
-      font-size:1.3rem;
-      font-weight:700;
-      color:var(--text-strong);
-      margin-bottom:4px;
-    }
-
-    .pricing__row {
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:16px;
-      margin-top:16px;
-    }
-
-    .price-card {
-      border-radius:var(--radius-xl);
-      border:1px solid var(--border-subtle);
-      background:radial-gradient(circle at top left,rgba(56,189,248,0.12),transparent 55%),
-                 rgba(15,23,42,0.96);
-      padding:16px 14px 18px;
-      box-shadow:var(--shadow-soft);
-    }
-
-    .price-card h3 {
-      font-size:1rem;
-      font-weight:650;
-      color:var(--text-strong);
-      margin-bottom:6px;
-    }
-
-    .price {
-      font-size:1.4rem;
-      font-weight:750;
-      margin-bottom:8px;
-    }
-
-    .price span.unit {
-      font-size:.85rem;
-      font-weight:500;
-      color:var(--text-muted);
-    }
-
-    /* FAQ */
-    .faq {
-      padding:20px 0 40px;
-    }
-
-    .faq h2 {
-      font-size:1.2rem;
-      font-weight:700;
-      color:var(--text-strong);
-      margin-bottom:8px;
-    }
-
-    .faq details {
-      border-radius:var(--radius-lg);
-      border:1px solid rgba(148,163,184,0.35);
-      background:rgba(15,23,42,0.92);
-      padding:10px 12px;
-      margin-bottom:8px;
-    }
-
-    .faq summary {
-      cursor:pointer;
-      font-size:.95rem;
-      color:var(--text-body);
-      list-style:none;
-    }
-
-    .faq summary::-webkit-details-marker { display:none; }
-
-    .faq p {
-      margin-top:6px;
-      font-size:.9rem;
-      color:var(--text-muted);
-      line-height:1.5;
-    }
-
-    /* MODAL home */
-    .modal__backdrop {
-      background:rgba(15,23,42,0.85);
-      backdrop-filter:blur(12px);
-      -webkit-backdrop-filter:blur(12px);
-    }
-
-    .modal__card {
-      border-radius:var(--radius-xl);
-      border:1px solid var(--border-subtle);
-      background:rgba(15,23,42,0.98);
-      box-shadow:var(--shadow-elevated);
-    }
-
-    .modal__header {
-      border-bottom:1px solid rgba(15,23,42,0.9);
-      padding:12px 16px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-    }
-
-    .modal__body {
-      padding:14px 16px;
-    }
-
-    .modal__footer {
-      border-top:1px solid rgba(15,23,42,0.9);
-      padding:10px 16px 14px;
-      display:flex;
-      justify-content:flex-end;
-    }
-
-    .modal__close {
-      background:transparent;
-      border:none;
-      color:var(--text-muted);
-      font-size:1.1rem;
-      cursor:pointer;
-    }
-
-    @media (max-width: 960px) {
-      .hero {
-        grid-template-columns:minmax(0,1fr);
-        gap:24px;
-      }
-      .hero__art {
-        justify-content:flex-start;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .hero {
-        padding-top:28px;
-      }
-    }
-  </style>
-{% endblock head_extra %}
+{% endblock %}
 
 {% block content %}
 
-  <section class="hero container">
-    <div class="hero__text">
-      <div class="hero__badge-row">
-        <span class="hero__badge hero__badge--accent">
-          Plateforme d’assistance visa & immigration
-        </span>
-        <span class="hero__badge">
-          DV-Lottery • Études • Travail • RP
-        </span>
-      </div>
+<!-- =========================
+     HERO — HOME
+========================= -->
 
-      <h1 class="hero__title" data-i18n-key="hero_title">
-        Votre voie rapide pour immigrer.
-      </h1>
+<section class="hero container page-home">
 
-      <p class="hero__subtitle" data-i18n-key="hero_subtitle">
-        Une plateforme modulaire, bilingue et professionnelle pour accélérer vos démarches
-        (DV-Lottery, études, travail, résidence permanente, tourisme).
-      </p>
+  <div class="hero__text">
 
-      {# CTA principal – conversion #}
-      <a class="tile" href="{% url 'billing:access' %}">
-        💳 Activez votre code d’accès et débloquez toutes les applications Immigration97
-        (photos DV-Lottery, CV & lettres IA, guides visa, préparation aux tests de langue) avec un accompagnement personnalisé 24h/24, 7j/7.
-      </a>
-
-      <div class="hero__cta">
-        <a class="btn btn--lg" href="/visa-photo/" data-i18n-key="cta_get_started">
-          Commencer maintenant
-        </a>
-        <a class="btn btn--outline btn--lg" href="{% url 'billing:access' %}" data-i18n-key="cta_watch_demo">
-          Voir les offres & abonnements
-        </a>
-      </div>
-
-      <div class="hero__cta-note">
-        🔐 Accès complet via abonnement Pro, ou paiement par service pour tester la plateforme.
-      </div>
-
-      <ul class="hero__bullets">
-        <li>✅ Export 600×600 DV-Lottery + contrôle automatique des critères officiels.</li>
-        <li>✅ CV & lettres de motivation générés par IA, adaptés à votre projet et votre pays cible.</li>
-        <li>✅ Guides visa & checklists détaillées pour tourisme, études, travail, résidence permanente.</li>
-        <li>✅ Paiement par service ou abonnement, via Stripe/PayPal, factures envoyées par e-mail.</li>
-      </ul>
+    <div class="hero__badge-row">
+      <span class="hero__badge hero__badge--accent">
+        Plateforme d’assistance visa & immigration
+      </span>
+      <span class="hero__badge">
+        DV-Lottery • Études • Travail • Résidence Permanente
+      </span>
     </div>
 
-    <div class="hero__art" aria-hidden="true">
-      <div class="hero-card">
-        <div class="hero-card__badge" data-i18n-key="badge_bilingual">Bilingue FR/EN</div>
-        <div class="hero-card__body">
-          <div class="hero-card__icon">🌍</div>
-          <div class="hero-card__title" data-i18n-key="card_fast">Rapide & Automatisé</div>
-          <div class="hero-card__desc" data-i18n-key="card_fast_desc">
-            Résultats en moins d’une minute par service, avec un espace client sécurisé.
-          </div>
-        </div>
-      </div>
+    <h1 class="hero__title">
+      Votre voie rapide pour immigrer.
+    </h1>
+
+    <p class="hero__subtitle">
+      Une plateforme modulaire, bilingue et professionnelle pour accélérer
+      vos démarches d’immigration, d’études et de carrière internationale.
+    </p><br>
+
+    <a href="{% url 'billing:access' %}" class="card hero__notice">
+      💳 Activez votre code d’accès et débloquez toutes les applications Immigration97
+      avec un accompagnement personnalisé 24h/24.
+    </a><br><br><br>
+
+    <div class="hero__cta">
+      <a href="{% url 'billing:access' %}" class="btn btn--primary btn--lg">
+        Commencer maintenant
+      </a>
+      <a href="#pricing" class="btn btn--soft btn--lg">
+        Voir les offres & abonnements
+      </a>
     </div>
-  </section>
 
-  {# SECTION : les applications / modules #}
-  <section id="features" class="features container" aria-label="Applications">
-    <article class="card" tabindex="0">
-      <div class="card__icon" aria-hidden="true">📷</div>
-      <h3 class="card__title" data-i18n-key="m1_title">Visa Photo Generator</h3>
-      <p class="card__desc" data-i18n-key="m1_desc">
-        Photos conformes (taille, fond, format) DV-Lottery & visas, avec validation automatique.
+    <ul class="hero__bullets">
+      <li>✅ Photos DV-Lottery conformes (600×600)</li>
+      <li>✅ CV & lettres de motivation générés par IA</li>
+      <li>✅ Tests de langue FR / EN / DE</li>
+      <li>✅ Paiement sécurisé Stripe & PayPal</li>
+    </ul>
+
+  </div>
+
+  <div class="hero__art">
+    <div class="hero-card">
+      <span class="hero-card__badge">Bilingue FR / EN</span>
+      <div class="hero-card__icon">🌍</div>
+      <div class="hero-card__title">Rapide & Automatisé</div>
+      <p class="hero-card__desc">
+        Résultats en moins d’une minute par service,
+        avec un espace client sécurisé.
       </p>
-      <a class="btn btn--sm card__btn" href="/visa-photo/" data-i18n-key="open">Ouvrir</a>
-    </article>
-
-    <article class="card" tabindex="0">
-      <div class="card__icon" aria-hidden="true">🧭</div>
-      <h3 class="card__title" data-i18n-key="m10_title">Éligibilité & Parcours</h3>
-      <p class="card__desc" data-i18n-key="m10_desc">
-        QCM rapide → programmes adaptés, checklist personnalisée et PDF téléchargeable.
-      </p>
-      <a class="btn btn--sm card__btn" href="{% url 'wizard' %}" data-i18n-key="open">Ouvrir</a>
-    </article>
-
-    <article class="card" tabindex="0">
-      <div class="card__icon" aria-hidden="true">📝</div>
-      <h3 class="card__title" data-i18n-key="m2_title">CV Generator</h3>
-      <p class="card__desc" data-i18n-key="m2_desc">
-        CV pro depuis formulaire ou import, multi-templates optimisés pour l’international.
-      </p>
-      <a class="btn btn--sm card__btn" href="/cv-generator/" data-i18n-key="open">Ouvrir</a>
-    </article>
-
-    <article class="card" tabindex="0">
-      <div class="card__icon" aria-hidden="true">✉️</div>
-      <h3 class="card__title" data-i18n-key="m3_title">Lettre de motivation Generator</h3>
-      <p class="card__desc" data-i18n-key="m3_desc">
-        Templates & génération IA avec conseils adaptés au pays et au type de visa.
-      </p>
-      <a class="btn btn--sm card__btn" href="/motivation/" data-i18n-key="open">Ouvrir</a>
-    </article>
-
-    <article class="card" tabindex="0">
-      <div class="card__icon" aria-hidden="true">🧭</div>
-      <h3 class="card__title" data-i18n-key="m4_title">Guide Visa Tourisme</h3>
-      <p class="card__desc" data-i18n-key="m4_desc">
-        Documents requis, lettre d’invitation, itinéraire type & étapes clés pour le visa tourisme.
-      </p>
-      <a href="{% url 'visa_tourisme:assistant' %}" class="btn btn--sm card__btn ton-style-de-bouton" data-i18n-key="open">
-        Ouvrir
-      </a>
-    </article>
-
-    <article class="card" tabindex="0">
-      <div class="card__icon" aria-hidden="true">🎓</div>
-      <h3 class="card__title" data-i18n-key="m5_title">Visa Études</h3>
-      <p class="card__desc" data-i18n-key="m5_desc">
-        Analyse de profil, sélection d’universités, checklist détaillée et préparation RDV ambassade.
-      </p>
-      <a class="btn btn--sm card__btn" href="{% url 'visaetude:home' %}" data-i18n-key="open">Ouvrir</a>
-    </article>
-
-    <article class="card" tabindex="0">
-      <div class="card__icon" aria-hidden="true">💼</div>
-      <h3 class="card__title" data-i18n-key="m6_title">Visa Travail</h3>
-      <p class="card__desc" data-i18n-key="m6_desc">
-        Offres adaptées, sites emplois, optimisation du CV et préparation aux entretiens.
-      </p>
-      <a class="btn btn--sm card__btn" href="/visa-travail/" data-i18n-key="open">Ouvrir</a>
-    </article>
-
-    <article class="card" tabindex="0">
-      <div class="card__icon" aria-hidden="true">📚</div>
-      <h3 class="card__title" data-i18n-key="m7_title">Préparation Tests de Langue</h3>
-      <p class="card__desc" data-i18n-key="m7_desc">
-        Exercices FR/EN/DE, corrigés, supports PDF/Audio/Vidéo pour TOEFL, IELTS, TCF, TEF & plus.
-      </p>
-      <a class="btn btn--sm card__btn" href="/prep/" data-i18n-key="open">Ouvrir</a>
-    </article>
-
-    <article class="card" tabindex="0">
-      <div class="card__icon" aria-hidden="true">🏠</div>
-      <h3 class="card__title" data-i18n-key="m8_title">Résidence Permanente</h3>
-      <p class="card__desc" data-i18n-key="m8_desc">
-        Guides par pays (ex : Canada), checklists, estimation des chances & des délais.
-      </p>
-      <a class="btn btn--sm card__btn" href="{% url 'residence_permanente' %}" data-i18n-key="open">
-        Ouvrir
-      </a>
-    </article>
-
-    <article class="card" tabindex="0">
-      <div class="card__icon" aria-hidden="true">💳</div>
-      <h3 class="card__title" data-i18n-key="m9_title">Système de Paiement</h3>
-      <p class="card__desc" data-i18n-key="m9_desc">
-        Micropaiements, abonnements, Stripe/PayPal (hooks prêts) + facturation automatique.
-      </p>
-      <a class="btn btn--sm card__btn" href="{% url 'billing:access' %}" data-i18n-key="open">Activer</a>
-    </article>
-
-    <article class="card card-module" tabindex="0">
-      <div class="card__icon" aria-hidden="true">🌐</div>
-      <h3 class="card__title">Traduction & Compression</h3>
-      <p class="card__desc">
-        Traduction professionnelle de documents (.docx) sans changer la mise en forme,
-        + compression de PDF pour les dépôts en ligne (portails visa, universités, employeurs).
-      </p>
-      <a href="{% url 'DocumentsApp:home' %}" class="btn btn--sm card__btn btn-module">
-        Ouvrir
-      </a>
-    </article>
-
-
-
-
-    <article class="card card-module" tabindex="0">
-      <div class="card__icon" aria-hidden="true">🌐</div>
-      <h3 class="card__title">Profil Travailleurs</h3>
-      <p class="card__desc">
-        Créez votre profil et laissez les recruteurs vous contacter facilement pour des entretiens.
-        
-      </p>
-<a href="{% url 'profiles:list' %}" class="btn btn-primary">Voir les profils Candidats</a> 
-      
-    </article>
-  </section>
-
-  {# SECTION PRICING = call to action monétisation #}
-  <section id="pricing" class="pricing container">
-    <h2 data-i18n-key="pricing_title">Tarifs simples</h2>
-    <p class="muted" data-i18n-key="pricing_desc">
-      Micropaiement par service (1.99&nbsp;$) ou accès illimité via abonnement Pro — facturation sécurisée, reçus par e-mail.
-    </p>
-
-    <div class="pricing__row">
-      <div class="price-card">
-        <h3 data-i18n-key="price_starter">Starter</h3>
-        <p class="price">
-          <span>$</span>1.99
-          <span class="unit" data-i18n-key="per_job">par service</span>
-        </p>
-        <a class="btn" href="/visa-photo/" data-i18n-key="buy_now">
-          Tester avec une photo DV-Lottery
-        </a>
-      </div>
-      <div class="price-card">
-        <h3 data-i18n-key="price_pro">Pro</h3>
-        <p class="price">
-          <span>$</span>19
-          <span class="unit" data-i18n-key="per_month">/ mois</span>
-        </p>
-        <a class="btn btn--outline" href="{% url 'billing:access' %}" data-i18n-key="see_plans">
-          Voir les plans & activer l’abonnement
-        </a>
-      </div>
-    </div>
-  </section>
-
-  {# FAQ orientée objections #}
-  <section id="faq" class="faq container">
-    <h2 data-i18n-key="faq_title">FAQ</h2>
-
-    <details>
-      <summary data-i18n-key="faq_q1">Comment fonctionnent les crédits ?</summary>
-      <p data-i18n-key="faq_a1">
-        Chaque service consomme 1 crédit. Vous pouvez recharger via Stripe/PayPal
-        ou passer à l’abonnement Pro pour un accès illimité à toutes les applications Immigration97.
-      </p>
-    </details>
-
-    <details>
-      <summary data-i18n-key="faq_q2">Puis-je utiliser mes propres modèles de CV ?</summary>
-      <p data-i18n-key="faq_a2">
-        Oui, importez votre CV existant : nous générons un template similaire, optimisé pour les candidatures internationales
-        (Canada, Europe, USA…) et compatible avec les filtres ATS.
-      </p>
-    </details>
-  </section>
-
-  {# Modal démo (landing) #}
-  <div id="modal-demo" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
-    <div class="modal__backdrop" data-close-modal></div>
-    <div class="modal__card" role="document">
-      <header class="modal__header">
-        <h3 id="modal-title" data-i18n-key="demo_title">Démo rapide</h3>
-        <button class="modal__close" aria-label="Fermer" data-close-modal>×</button>
-      </header>
-      <div class="modal__body">
-        <p data-i18n-key="demo_body">
-          Cette vidéo/animation présentera le parcours type : choix du pays, type de visa, génération de documents et paiement sécurisé.
-        </p>
-      </div>
-      <footer class="modal__footer">
-        <button class="btn" data-close-modal data-i18n-key="close">Fermer</button>
-      </footer>
     </div>
   </div>
 
-{% endblock content %}
+</section>
+
+<!-- =========================
+     MODULES — HOME
+========================= -->
+
+<section id="features" class="features container" aria-label="Modules Immigration97">
+
+  <article class="card">
+    <div class="card__icon">📷</div>
+    <h3>Visa Photo Generator</h3>
+    <p>Photos DV-Lottery & visas conformes avec validation automatique.</p>
+    <a href="/visa-photo/" class="btn btn--soft">Ouvrir</a>
+  </article>
+
+  <article class="card">
+    <div class="card__icon">🧭</div>
+    <h3>Éligibilité & Parcours</h3>
+    <p>QCM intelligent, programmes adaptés et checklist personnalisée.</p>
+    <a href="{% url 'wizard' %}" class="btn btn--soft">Ouvrir</a>
+  </article>
+
+  <article class="card">
+    <div class="card__icon">📝</div>
+    <h3>Générateur de CV</h3>
+    <p>CV professionnels optimisés pour Canada, Europe & USA.</p>
+    <a href="/cv-generator/" class="btn btn--soft">Ouvrir</a>
+  </article>
+
+  <article class="card">
+    <div class="card__icon">✉️</div>
+    <h3>Lettre de motivation</h3>
+    <p>Lettres IA adaptées au pays et au type de visa.</p>
+    <a href="/motivation/" class="btn btn--soft">Ouvrir</a>
+  </article>
+
+  <article class="card">
+    <div class="card__icon">🧳</div>
+    <h3>Guide Visa Tourisme</h3>
+    <p>Documents requis, itinéraire et étapes clés.</p>
+    <a href="{% url 'visa_tourisme:assistant' %}" class="btn btn--soft">Ouvrir</a>
+  </article>
+
+  <article class="card">
+    <div class="card__icon">🎓</div>
+    <h3>Visa Études</h3>
+    <p>Universités, checklist et préparation ambassade.</p>
+    <a href="{% url 'visaetude:home' %}" class="btn btn--soft">Ouvrir</a>
+  </article>
+
+  <article class="card">
+    <div class="card__icon">💼</div>
+    <h3>Visa Travail</h3>
+    <p>Offres, CV optimisé et préparation entretiens.</p>
+    <a href="/visa-travail/" class="btn btn--soft">Ouvrir</a>
+  </article>
+
+  <article class="card">
+    <div class="card__icon">📚</div>
+    <h3>Tests de Langue</h3>
+    <p>IELTS, TOEFL, TCF, TEF – FR / EN / DE.</p>
+    <a href="/prep/" class="btn btn--soft">Ouvrir</a>
+  </article>
+
+  <article class="card">
+    <div class="card__icon">🏠</div>
+    <h3>Résidence Permanente</h3>
+    <p>Guides pays, estimation des chances & délais.</p>
+    <a href="{% url 'residence_permanente' %}" class="btn btn--soft">Ouvrir</a>
+  </article>
+
+  <article class="card">
+    <div class="card__icon">🌐</div>
+    <h3>Traduction & Compression</h3>
+    <p>Traduction professionnelle et compression PDF.</p>
+    <a href="{% url 'DocumentsApp:home' %}" class="btn btn--soft">Ouvrir</a>
+  </article>
+
+  <article class="card">
+    <div class="card__icon">👤</div>
+    <h3>Profil Travailleurs</h3>
+    <p>Les recruteurs vous contactent directement.</p>
+    <a href="{% url 'profiles:list' %}" class="btn btn--soft">Voir profils</a>
+  </article>
+
+  <article class="card">
+    <div class="card__icon">💳</div>
+    <h3>Système de Paiement</h3>
+    <p>Micropaiements, abonnements & facturation.</p>
+    <a href="{% url 'billing:access' %}" class="btn btn--soft">Activer</a>
+  </article>
+
+</section>
+
+<!-- =========================
+     PRICING — HOME
+========================= -->
+
+<section id="pricing" class="pricing container">
+
+  <h2>Tarifs simples et transparents</h2>
+  <p class="muted">
+    Paiement à l’unité ou accès illimité via abonnement Pro.
+  </p>
+
+  <div class="pricing__row">
+
+    <div class="price-card">
+      <h3>Starter</h3>
+      <p class="price">
+        $2.99 <span class="unit">par service</span>
+      </p>
+      <a href="/visa-photo/" class="btn btn--primary">
+        Tester avec une photo DV-Lottery
+      </a>
+    </div>
+
+    <div class="price-card">
+      <h3>Pro</h3>
+      <p class="price">
+        $24.99 <span class="unit">/ mois</span>
+      </p>
+      <a href="{% url 'billing:access' %}" class="btn btn--soft">
+        Activer l’abonnement
+      </a>
+    </div>
+
+  </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{{ exam.name }} – Informations & barème | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Informations complètes sur {{ exam.name }} : structure de l’examen,
+sections (CO, CE, EE, EO), barème officiel et conseils de préparation.
+{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/exam_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<section class="page page-exam-detail">
+
+  <!-- ===== HERO ===== -->
+  <header class="page-hero">
+    <span class="page-kicker">Test de langue</span>
+
+    <h1 class="page-title">
+      {{ exam.name }}
+    </h1>
+
+    {% if exam.description %}
+      <p class="page-subtitle">
+        {{ exam.description }}
+      </p>
+    {% endif %}
+  </header>
+
+  <!-- ===== STRUCTURE ===== -->
+  <div class="container-narrow">
+
+    <article class="card">
+      <h2>Structure de l’examen</h2>
+
+      <ul class="exam-sections">
+        {% for section in exam.sections.all %}
+          <li>
+            <strong>{{ section.get_code_display }}</strong>
+            <span class="muted">
+              — Durée : {{ section.duration_sec|divisibleby:60|yesno:" , " }}{{ section.duration_sec }} secondes
+            </span>
+          </li>
+        {% empty %}
+          <li>Aucune section définie pour cet examen.</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <!-- ===== ACTIONS ===== -->
+    <article class="card">
+      <h2>Actions disponibles</h2>
+
+      <div class="btn-row">
+
+        {% if exam.code == "tef" %}
+          <a class="btn btn--primary"
+             href="{% url 'preparation_tests:tef_hub' %}">
+            🎯 Préparer le TEF
+          </a>
+
+          <a class="btn btn--soft"
+             href="{% url 'preparation_tests:tef_dashboard' %}">
+            📊 Mon niveau TEF
+          </a>
+        {% endif %}
+
+        <a class="btn btn--ghost"
+           href="{% url 'preparation_tests:exam_list' %}">
+          ← Tous les examens
+        </a>
+
+      </div>
+    </article>
+
+    <!-- ===== CONSEILS ===== -->
+    <article class="card card--info">
+      <h3>Conseils de préparation</h3>
+      <ul>
+        <li>Commence toujours par les <strong>cours + exercices</strong>.</li>
+        <li>Passe aux <strong>examens blancs chronométrés</strong> ensuite.</li>
+        <li>Analyse systématiquement tes erreurs.</li>
+      </ul>
+    </article>
+
+  </div>
+</section>
+
+{% endblock %}

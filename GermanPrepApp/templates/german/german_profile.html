@@ -1,183 +1,140 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Profil allemand – Progression & objectifs – Immigration97{% endblock %}
+{% block title %}
+Profil allemand – Progression & objectifs – Immigration97
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/germanprep.css' %}">
+{% endblock %}
 
 {% block content %}
-<main class="page page--german-profile">
+<main class="page page-dark page-germanprep page--german-profile">
+
   <section class="section">
     <div class="container-narrow">
 
       <p class="hero-kicker">Préparation • Allemand • Profil</p>
-      <h1 class="hero-title">Ton profil d’allemand sur Immigration97</h1>
+
+      <h1 class="hero-title">
+        Ton profil d’allemand sur Immigration97
+      </h1>
+
       <p class="hero-subtitle">
-        Suis ton XP, ton niveau, tes meilleurs scores et laisse le coach IA t’aider à construire un plan
-        sur mesure pour réussir tes tests officiels (Goethe, telc, TestDaF, DSH…).
+        Suis ton XP, ton niveau et tes performances, et laisse le coach IA
+        construire un plan sur mesure pour réussir tes examens officiels
+        (Goethe, telc, TestDaF, DSH).
       </p>
 
-      <!-- Bloc niveau & progression -->
+      <!-- PROFIL GLOBAL -->
       <div class="profile-header-card">
         <div class="profile-main-info">
-          <p class="profile-level">Niveau interne : <strong>{{ profile.level }}</strong></p>
-          <p class="profile-xp">XP total : <strong>{{ profile.xp }}</strong></p>
-          <p class="profile-tests">Tests passés : <strong>{{ profile.total_tests }}</strong></p>
-          <p class="profile-best">Meilleur score : <strong>{{ profile.best_score|default:0|floatformat:1 }} %</strong></p>
+          <p>Niveau interne : <strong>{{ profile.level }}</strong></p>
+          <p>XP total : <strong>{{ profile.xp }}</strong></p>
+          <p>Tests passés : <strong>{{ profile.total_tests }}</strong></p>
+          <p>Meilleur score : <strong>{{ profile.best_score|default:0|floatformat:1 }} %</strong></p>
         </div>
 
         <div class="profile-progress">
-          <p>Progression vers le niveau {{ next_level }} :</p>
+          <p>Progression vers le niveau {{ next_level }}</p>
           <div class="progress-bar">
-            <div class="progress-bar-fill" style="width: {{ level_progress_pct }}%;"></div>
+            <div class="progress-bar-fill"
+                 style="width: {{ level_progress_pct }}%;">
+            </div>
           </div>
           <p class="progress-caption">
-            {{ level_progress_pct }} % du niveau actuel (entre {{ current_min_xp }} XP et {{ next_level_xp }} XP)
+            {{ level_progress_pct }} % ({{ current_min_xp }} → {{ next_level_xp }} XP)
           </p>
         </div>
       </div>
 
       {% if profile.badges %}
-        <section class="section">
-          <h2 class="section-title">Badges débloqués</h2>
-          <ul class="badge-list">
-            {% for b in profile.badges %}
-              <li class="badge-item">{{ b }}</li>
-            {% endfor %}
-          </ul>
-        </section>
+      <section class="section">
+        <h2 class="section-title">Badges débloqués</h2>
+        <ul class="badge-list">
+          {% for b in profile.badges %}
+            <li class="badge-item">{{ b }}</li>
+          {% endfor %}
+        </ul>
+      </section>
       {% endif %}
 
       <section class="section">
         <h2 class="section-title">Résumé par niveau (A1 → C2)</h2>
+
         {% if level_stats %}
-          <div class="stats-grid">
-            {% for code, data in level_stats.items %}
-              <article class="stat-card">
-                <h3 class="stat-title">{{ data.label }}</h3>
-                <p class="stat-line">Tests passés : <strong>{{ data.count }}</strong></p>
-                <p class="stat-line">Score moyen : <strong>{{ data.avg }} %</strong></p>
-                <p class="stat-line">Meilleur score : <strong>{{ data.best }} %</strong></p>
-              </article>
-            {% endfor %}
-          </div>
+        <div class="stats-grid">
+          {% for _, data in level_stats.items %}
+            <article class="stat-card">
+              <h3>{{ data.label }}</h3>
+              <p>Tests : <strong>{{ data.count }}</strong></p>
+              <p>Score moyen : <strong>{{ data.avg }} %</strong></p>
+              <p>Meilleur score : <strong>{{ data.best }} %</strong></p>
+            </article>
+          {% endfor %}
+        </div>
         {% else %}
           <p class="section-empty">
-            Aucun test d’allemand enregistré pour l’instant. Lance ton premier test depuis le hub.
+            Aucun test d’allemand enregistré pour l’instant.
           </p>
         {% endif %}
       </section>
 
       <section class="section">
         <h2 class="section-title">Prochaine étape recommandée</h2>
-        <p class="next-step">
-          {{ next_step }}
-        </p>
+        <p class="next-step">{{ next_step }}</p>
       </section>
 
       <section class="section">
         <h2 class="section-title">Coach IA allemand</h2>
         <p class="section-subtitle">
-          Tu peux copier/coller ce message pour démarrer une conversation avec ton coach IA allemand.
+          Copie ce message pour démarrer une discussion avec ton coach IA.
         </p>
-        <textarea class="coach-preset" rows="8" readonly onclick="this.select();">
-{{ coach_preset }}
-        </textarea>
+
+        <textarea class="coach-preset"
+                  rows="8"
+                  readonly
+                  onclick="this.select();">{{ coach_preset }}</textarea>
+
         <div class="section-footer-cta">
-          <a href="{% url 'germanprep:progress_dashboard' %}" class="btn btn-secondary">
-            Ouvrir mon tableau de bord allemand
+          <a href="{% url 'germanprep:progress_dashboard' %}"
+             class="btn btn-secondary">
+            Ouvrir mon tableau de bord
           </a>
         </div>
       </section>
 
       <section class="section">
         <h2 class="section-title">Derniers tests d’allemand</h2>
+
         {% if sessions %}
-          <ul class="session-list">
-            {% for s in sessions %}
-              <li class="session-item">
-                <div class="session-main">
-                  <p class="session-title">
-                    {{ s.exam.title }} ({{ s.exam.level }})
-                  </p>
-                  <p class="session-meta">
-                    Passé le {{ s.started_at|date:"d/m/Y H:i" }}
-                  </p>
-                </div>
-                <div class="session-score">
-                  <span class="session-score-value">
-                    {{ s.score|default:"0.0" }} %
-                  </span>
-                </div>
-              </li>
-            {% endfor %}
-          </ul>
+        <ul class="session-list">
+          {% for s in sessions %}
+            <li class="session-item">
+              <div class="session-main">
+                <p class="session-title">
+                  {{ s.exam.title }} ({{ s.exam.level }})
+                </p>
+                <p class="session-meta">
+                  {{ s.started_at|date:"d/m/Y H:i" }}
+                </p>
+              </div>
+              <div class="session-score">
+                {{ s.score|default:"0.0" }} %
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
         {% else %}
           <p class="section-empty">
-            Tu n’as pas encore de tests dans ton historique. Commence par choisir un niveau ou un examen.
+            Aucun test enregistré pour l’instant.
           </p>
         {% endif %}
       </section>
 
     </div>
   </section>
-</main>
 
-<style>
-/* petit style pour la barre de progression et les badges */
-.profile-header-card{
-  margin-top:20px;
-  padding:18px 20px;
-  border-radius:18px;
-  background:rgba(15,23,42,0.9);
-  border:1px solid rgba(148,163,184,0.4);
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-.progress-bar{
-  width:100%;
-  height:10px;
-  border-radius:999px;
-  background:rgba(15,23,42,0.9);
-  overflow:hidden;
-}
-.progress-bar-fill{
-  height:100%;
-  border-radius:999px;
-  background:linear-gradient(90deg,#4ade80,#22c55e,#22c55e,#a855f7);
-}
-.badge-list{
-  list-style:none;
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-}
-.badge-item{
-  padding:6px 10px;
-  border-radius:999px;
-  background:rgba(15,23,42,0.9);
-  border:1px solid rgba(148,163,184,0.6);
-  font-size:.85rem;
-}
-.coach-preset{
-  width:100%;
-  border-radius:12px;
-  border:1px solid rgba(148,163,184,0.4);
-  background:rgba(15,23,42,0.9);
-  color:#e5e7eb;
-  padding:12px;
-  font-family:inherit;
-  resize:vertical;
-}
-.stats-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
-  gap:14px;
-}
-.stat-card{
-  padding:14px 16px;
-  border-radius:16px;
-  border:1px solid rgba(148,163,184,0.4);
-  background:rgba(15,23,42,0.9);
-}
-</style>
+</main>
 {% endblock %}

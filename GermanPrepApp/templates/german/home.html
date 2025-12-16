@@ -1,150 +1,156 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Préparation aux tests d’allemand A1–C2 – Immigration97{% endblock %}
+{% block title %}
+Préparation aux tests d’allemand A1–C2 – Immigration97
+{% endblock %}
 
 {% block meta %}
-<meta name="description" content="Prépare les tests d’allemand (Goethe, telc, TestDaF, DSH, visa) du niveau A1 à C2 avec Immigration97. Cours, leçons, exercices et simulations d’examen avec suivi de ta progression.">
+<meta name="description"
+      content="Prépare les tests d’allemand (Goethe, telc, TestDaF, DSH, visa) du niveau A1 à C2 avec Immigration97. Cours, leçons, exercices et simulations d’examen avec suivi de ta progression.">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/germanprep.css' %}">
 {% endblock %}
 
 {% block content %}
-<main class="page page--german-home">
+<main class="page page-dark page-germanprep">
 
-    <section class="hero">
-        <div class="hero-inner container-narrow">
-            <p class="hero-kicker">Préparation • Langues • Allemand</p>
-            <h1 class="hero-title">
-                Apprends l’allemand du niveau A1 à C2<br>
-                et prépare tes tests officiels pour l’Allemagne
-            </h1>
-            <p class="hero-subtitle">
-                Cours structurés, exercices interactifs, simulations d’examen (Goethe, telc, TestDaF, DSH)
-                et un coach intelligent qui suit ta progression.
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner container-narrow">
+
+      <p class="hero-kicker">Préparation • Langues • Allemand</p>
+
+      <h1 class="hero-title">
+        Apprends l’allemand du niveau A1 à C2<br>
+        et prépare tes tests officiels pour l’Allemagne
+      </h1>
+
+      <p class="hero-subtitle">
+        Cours structurés, exercices interactifs, simulations d’examen
+        (Goethe, telc, TestDaF, DSH) et un coach intelligent qui suit ta progression.
+      </p>
+
+      <div class="hero-cta-row">
+        <a href="#levels" class="btn btn-primary">
+          🚀 Choisir mon niveau et commencer
+        </a>
+        <a href="{% url 'germanprep:placement_test' %}" class="btn btn-secondary">
+          🎯 Faire le test de niveau A1–C2
+        </a>
+        <a href="{% url 'germanprep:progress_dashboard' %}" class="btn btn-ghost">
+          Voir ma progression
+        </a>
+      </div>
+
+      <div class="hero-stats">
+        <span>XP total : {{ profile.xp }} • Niveau interne : {{ profile.level }}</span>
+        <span>Tests passés : {{ profile.total_tests }} • Meilleur score : {{ profile.best_score|default:0 }} %</span>
+        {% if profile.placement_level %}
+          <span>
+            Niveau conseillé : {{ profile.placement_level }}
+            (≈ {{ profile.placement_score|default:0|floatformat:1 }} %)
+          </span>
+        {% endif %}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- NIVEAUX -->
+  <section id="levels" class="section section--levels">
+    <div class="container-narrow">
+
+      <h2 class="section-title">Choisis ton niveau de préparation</h2>
+      <p class="section-subtitle">
+        Sélectionne le niveau correspondant à ta situation actuelle.
+      </p>
+
+      {% for level, exams in exams_by_level.items %}
+        <div class="level-block">
+
+          <div class="level-header">
+            <h3 class="level-title">Niveau {{ level }}</h3>
+            <p class="level-tagline">
+              {% if level == "A1" %}Début absolu : bases de la langue.{% endif %}
+              {% if level == "A2" %}Communication simple du quotidien.{% endif %}
+              {% if level == "B1" %}Niveau intermédiaire pour immigration.{% endif %}
+              {% if level == "B2" %}Expression fluide pour travail et études.{% endif %}
+              {% if level == "C1" %}Niveau universitaire avancé.{% endif %}
+              {% if level == "C2" %}Maîtrise quasi native.{% endif %}
             </p>
+          </div>
 
-            <div class="hero-cta-row">
-                <a href="#levels" class="btn btn-primary">
-                    🚀 Choisir mon niveau et commencer
-                </a>
-                <a href="{% url 'germanprep:placement_test' %}" class="btn btn-secondary">
-                    🎯 Faire le test de niveau A1–C2
-                </a>
-                <a href="{% url 'germanprep:progress_dashboard' %}" class="btn btn-ghost">
-                    Voir ma progression en allemand
-                </a>
-            </div>
+          <div class="level-actions">
+            <a href="{% url 'germanprep:level_detail' level %}" class="btn btn-secondary btn-soft">
+              Voir l’espace Niveau {{ level }}
+            </a>
+          </div>
 
-            <div class="hero-stats">
-                <span>XP total : {{ profile.xp }} • Niveau interne : {{ profile.level }}</span>
-                <span>Tests passés : {{ profile.total_tests }} • Meilleur score : {{ profile.best_score|default:0 }} %</span>
-                {% if profile.placement_level %}
-                    <span>Niveau conseillé : {{ profile.placement_level }} (test de niveau ≈ {{ profile.placement_score|default:0|floatformat:1 }} %)</span>
-                {% endif %}
-            </div>
-        </div>
-    </section>
-
-    <section id="levels" class="section section--levels">
-        <div class="container-narrow">
-            <h2 class="section-title">Choisis ton niveau de préparation</h2>
-            <p class="section-subtitle">
-                Sélectionne le niveau qui correspond à ta situation actuelle.
-                Tu pourras toujours passer une évaluation ensuite pour ajuster.
-            </p>
-
-            {% for level, exams in exams_by_level.items %}
-                <div class="level-block">
-                    <div class="level-header">
-                        <h3 class="level-title">Niveau {{ level }}</h3>
-                        <p class="level-tagline">
-                            {% if level == "A1" %}Début absolu : bases de la langue, phrases simples.{% endif %}
-                            {% if level == "A2" %}Communication simple du quotidien, routines et besoins immédiats.{% endif %}
-                            {% if level == "B1" %}Niveau intermédiaire solide pour immigration et vie quotidienne.{% endif %}
-                            {% if level == "B2" %}Expression plus fluide, nécessaire pour travail et études.{% endif %}
-                            {% if level == "C1" %}Compréhension avancée de textes complexes, bon niveau universitaire.{% endif %}
-                            {% if level == "C2" %}Maîtrise quasi native, autonomie complète en contexte pro et académique.{% endif %}
-                        </p>
-                    </div>
-
-                    <!-- 🔹 Bouton vers la page dédiée au niveau -->
-                    <div class="level-actions" style="margin-bottom: 12px;">
-                        <a href="{% url 'germanprep:level_detail' level %}" class="btn btn-secondary btn-soft">
-                            Voir l’espace Niveau {{ level }}
-                        </a>
-                    </div>
-
-                    {% if exams %}
-                        <div class="exam-cards-row">
-                            {% for exam in exams %}
-                                <article class="exam-card">
-                                    <h4 class="exam-title">{{ exam.title }}</h4>
-                                    <p class="exam-type">
-                                        {{ exam.get_exam_type_display }} • Niveau {{ exam.level }}
-                                    </p>
-                                    <p class="exam-desc">
-                                        {{ exam.short_description }}
-                                    </p>
-                                    <div class="exam-actions">
-                                        <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-secondary">
-                                            Voir le programme
-                                        </a>
-                                        <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-ghost">
-                                            Lancer une simulation rapide
-                                        </a>
-                                    </div>
-                                </article>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <p class="section-empty">
-                            Aucun examen configuré pour ce niveau pour l’instant.
-                        </p>
-                    {% endif %}
-                </div>
-            {% endfor %}
-        </div>
-    </section>
-
-    <section class="section section--latest-tests">
-        <div class="container-narrow">
-            <h2 class="section-title">Tes derniers tests d’allemand</h2>
-            {% if last_sessions %}
-                <ul class="session-list">
-                    {% for s in last_sessions %}
-                        <li class="session-item">
-                            <div class="session-main">
-                                <p class="session-title">
-                                    {{ s.exam.title }} ({{ s.exam.level }})
-                                </p>
-                                <p class="session-meta">
-                                    Passé le {{ s.started_at|date:"d/m/Y H:i" }}
-                                </p>
-                            </div>
-                            <div class="session-score">
-                                <span class="session-score-value">
-                                    {{ s.score|default:"0.0" }} %
-                                </span>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-                <div class="section-footer-cta">
-                    <a href="{% url 'germanprep:progress_dashboard' %}" class="btn btn-secondary">
-                        Voir ma progression détaillée
+          {% if exams %}
+            <div class="exam-cards-row">
+              {% for exam in exams %}
+                <article class="exam-card">
+                  <h4 class="exam-title">{{ exam.title }}</h4>
+                  <p class="exam-type">
+                    {{ exam.get_exam_type_display }} • Niveau {{ exam.level }}
+                  </p>
+                  <p class="exam-desc">{{ exam.short_description }}</p>
+                  <div class="exam-actions">
+                    <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-secondary">
+                      Voir le programme
                     </a>
-                </div>
-            {% else %}
-                <p class="section-empty">
-                    Tu n’as pas encore lancé de test d’allemand.
+                    <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-ghost">
+                      Simulation rapide
+                    </a>
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="section-empty">Aucun examen configuré pour ce niveau.</p>
+          {% endif %}
+
+        </div>
+      {% endfor %}
+
+    </div>
+  </section>
+
+  <!-- DERNIERS TESTS -->
+  <section class="section section--latest-tests">
+    <div class="container-narrow">
+
+      <h2 class="section-title">Tes derniers tests d’allemand</h2>
+
+      {% if last_sessions %}
+        <ul class="session-list">
+          {% for s in last_sessions %}
+            <li class="session-item">
+              <div class="session-main">
+                <p class="session-title">
+                  {{ s.exam.title }} ({{ s.exam.level }})
                 </p>
-                <div class="section-footer-cta">
-                    <a href="#levels" class="btn btn-primary">
-                        Commencer ma préparation maintenant
-                    </a>
-                </div>
-            {% endif %}
-        </div>
-    </section>
+                <p class="session-meta">
+                  {{ s.started_at|date:"d/m/Y H:i" }}
+                </p>
+              </div>
+              <div class="session-score">
+                {{ s.score|default:"0.0" }} %
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="section-empty">
+          Tu n’as pas encore lancé de test d’allemand.
+        </p>
+      {% endif %}
+
+    </div>
+  </section>
 
 </main>
 {% endblock %}

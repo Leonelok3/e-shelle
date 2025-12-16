@@ -1,52 +1,82 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Parcours {{ exam.title }} – Cours & exercices – Immigration97{% endblock %}
+{% block title %}
+Parcours {{ exam.title }} – Cours & exercices – Immigration97
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/germanprep.css' %}">
+{% endblock %}
 
 {% block content %}
-<main class="page page--german-exam-learning">
+<main class="page page-dark page-germanprep page--german-exam-learning">
+
   <section class="section">
     <div class="container-narrow">
 
-      <p class="hero-kicker">Préparation • Allemand • Parcours d’examen</p>
-      <h1 class="hero-title">{{ exam.title }} ({{ exam.level }})</h1>
+      <p class="hero-kicker">
+        Préparation • Allemand • Parcours d’examen
+      </p>
+
+      <h1 class="hero-title">
+        {{ exam.title }} <span>({{ exam.level }})</span>
+      </h1>
+
       <p class="hero-subtitle">
-        Suis un parcours structuré : leçons, exercices et ressources pour préparer efficacement cet examen.
+        Suis un parcours structuré composé de leçons, exercices et ressources
+        pour réussir efficacement cet examen officiel.
       </p>
 
       <div class="hero-cta-row">
         <a href="{% url 'germanprep:exam_hub' %}" class="btn btn-ghost">
           ← Revenir au hub des examens
         </a>
-        <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-primary">
+        <a href="{% url 'germanprep:take_practice_test' exam.id %}"
+           class="btn btn-primary">
           Lancer une simulation type examen
         </a>
       </div>
 
-      <section class="section">
-        <h2 class="section-title">Leçons & modules</h2>
+      <!-- LEÇONS -->
+      <section class="section section--lessons">
+
+        <h2 class="section-title">
+          Leçons & modules de préparation
+        </h2>
+
         {% if lessons %}
           <ul class="lesson-list">
             {% for lesson in lessons %}
               <li class="lesson-item">
+
                 <div class="lesson-main">
                   <h3 class="lesson-title">
                     {{ lesson.title }}
-                    <span class="badge badge-soft">{{ lesson.get_skill_display }}</span>
+                    <span class="badge badge-soft">
+                      {{ lesson.get_skill_display }}
+                    </span>
                   </h3>
+
                   {% if lesson.intro %}
-                    <p class="lesson-intro">{{ lesson.intro }}</p>
+                    <p class="lesson-intro">
+                      {{ lesson.intro }}
+                    </p>
                   {% endif %}
+
                   <p class="lesson-meta">
-                    Exercices liés : {{ lesson.exercises.count }} • Ressources : {{ lesson.resources.count }}
+                    Exercices : {{ lesson.exercises.count }}
+                    • Ressources : {{ lesson.resources.count }}
                   </p>
                 </div>
+
                 <div class="lesson-actions">
                   <a href="{% url 'germanprep:lesson_detail' exam.slug lesson.id %}"
                      class="btn btn-secondary btn-soft">
                     Ouvrir la leçon
                   </a>
                 </div>
+
               </li>
             {% endfor %}
           </ul>
@@ -55,9 +85,11 @@
             Aucune leçon n’est encore configurée pour cet examen.
           </p>
         {% endif %}
+
       </section>
 
     </div>
   </section>
+
 </main>
 {% endblock %}

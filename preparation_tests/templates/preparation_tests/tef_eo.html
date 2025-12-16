@@ -1,1367 +1,163 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>TEF — Expression Orale (EO)</title>
-  <meta name="description" content="Entraînement TEF Expression Orale avec simulation d'entretien, enregistrement, transcription et analyse automatique." />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- SEO / Social -->
-  <meta property="og:title" content="TEF — Expression Orale (EO)" />
-  <meta property="og:description" content="Simulation d’entretien TEF, enregistrement audio, transcription et analyse détaillée de ta performance." />
-  <meta property="og:image" content="{% static 'img/tef-eo-cover.jpg' %}" />
-  <meta property="og:url" content="https://www.immigration97.com/fr/tef/eo" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="TEF — Expression Orale (EO)" />
-  <meta name="twitter:description" content="Entraînement complet TEF EO : sujets, relances, enregistrement et feedback chiffré." />
-  <meta name="twitter:image" content="{% static 'img/tef-eo-cover.jpg' %}" />
+{% block title %}
+TEF — Expression Orale (EO) | Immigration97
+{% endblock %}
 
-  <style>
-    :root {
-      --grad1: #0f2027;
-      --grad2: #203a43;
-      --grad3: #2c5364;
-      --panel: rgba(255, 255, 255, .06);
-      --panel2: rgba(255, 255, 255, .08);
-      --stroke: rgba(255, 255, 255, .14);
-      --muted: #b9c6d3;
-      --accent: #7aa2ff;
-      --hot: #a78bfa;
-      --ok: #22c55e;
-      --warn: #f59e0b;
-      --bad: #ef4444;
-      --br: 16px;
-      --shadow: 0 10px 30px rgba(0, 0, 0, .4);
-    }
+{% block meta_description %}
+Entraînement TEF Expression Orale : simulation d’entretien, enregistrement,
+transcription et analyse automatique.
+{% endblock %}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/tef_eo.css' %}">
+{% endblock %}
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-      background: linear-gradient(135deg, var(--grad1), var(--grad2) 50%, var(--grad3));
-      color: #fff;
-      line-height: 1.6;
-      min-height: 100vh;
-      padding-top: 84px; /* espace pour le header sticky */
-    }
+{% block content %}
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
+<section class="page page-tef-eo">
 
-    /* ====== UTILITAIRES ====== */
-    .mb-4 { margin-bottom: 1rem; }
-
-    /* ====== HEADER PRINCIPAL STICKY ====== */
-    header.sticky {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 50;
-      background: linear-gradient(120deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.9));
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(148, 163, 184, 0.35);
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
-    }
-
-    .topbar {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 10px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-
-    .brand-logo {
-      width: 40px;
-      height: 40px;
-      border-radius: 999px;
-      overflow: hidden;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-      flex-shrink: 0;
-      background: radial-gradient(circle at 0 0, rgba(122,162,255,.4), transparent 65%);
-    }
-
-    .brand-logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .brand-title {
-      font-size: 0.88rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      font-weight: 700;
-      color: #e5eeff;
-      white-space: nowrap;
-    }
-
-    .brand .small {
-      font-size: 0.82rem;
-      color: var(--muted);
-    }
-
-    .tabs {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .tab {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-size: 0.86rem;
-      font-weight: 500;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      background: radial-gradient(circle at 0 0, rgba(148, 163, 184, 0.2), rgba(15, 23, 42, 0.95));
-      color: #e5e7eb;
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.18s ease-out;
-      white-space: nowrap;
-    }
-
-    .tab:hover {
-      border-color: rgba(191, 219, 254, 0.9);
-      background: radial-gradient(circle at 0 0, rgba(122, 162, 255, 0.35), rgba(15, 23, 42, 0.98));
-      transform: translateY(-1px);
-      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
-    }
-
-    .tab.active {
-      border: none;
-      background: linear-gradient(135deg, var(--accent), var(--hot));
-      color: #020617;
-      box-shadow: 0 12px 30px rgba(79, 70, 229, 0.7);
-      font-weight: 600;
-    }
-
-    @media (max-width: 768px) {
-      .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 10px 16px 12px;
-      }
-      .tabs {
-        width: 100%;
-        justify-content: flex-start;
-        overflow-x: auto;
-        padding-bottom: 4px;
-      }
-      .tab {
-        font-size: 0.8rem;
-      }
-    }
-
-    /* ====== NAV TOP ====== */
-    .nav-top {
-      margin-bottom: 20px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .nav-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
-      border-radius: 999px;
-      border: 1px solid var(--stroke);
-      background: var(--panel);
-      color: #fff;
-      text-decoration: none;
-      font-weight: 600;
-      transition: all .2s;
-      cursor: pointer;
-      font-size: 0.95rem;
-    }
-    .nav-btn:hover {
-      background: var(--panel2);
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,0,0,.3);
-    }
-
-    /* boutons fantômes nav rapide */
-    .btn-ghost {
-      background: transparent;
-      border: 1px solid rgba(148, 163, 184, 0.45);
-      color: #e5edff;
-    }
-    .btn-ghost:hover {
-      background: rgba(148, 163, 184, 0.12);
-    }
-    .btn-sm {
-      padding: 6px 14px;
-      font-size: 0.85rem;
-      border-radius: 999px;
-    }
-
-    /* ====== HEADER / HERO ====== */
-    .header {
-      text-align: center;
-      padding: 30px 0 20px;
-      margin-bottom: 10px;
-    }
-    .header h1 {
-      font-size: 2.2rem;
-      margin-bottom: 8px;
-      background: linear-gradient(135deg, #fff, var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .header p {
-      color: var(--muted);
-      font-size: 1rem;
-    }
-
-    /* ====== BLOCS GENERIQUES ====== */
-    .section {
-      background: linear-gradient(145deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .04));
-      border: 1px solid var(--stroke);
-      border-radius: var(--br);
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow);
-    }
-
-    .section-title {
-      font-size: 1.5rem;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-subtitle {
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-bottom: 16px;
-    }
-
-    /* ====== COURS COMPLETS (LECONS DB) ====== */
-    .lessons-header {
-      margin-bottom: 10px;
-    }
-
-    .lessons-header-title {
-      font-size: 1.4rem;
-      font-weight: 700;
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .lessons-header-title span.icon {
-      font-size: 1.5rem;
-    }
-    .lessons-header-sub {
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-top: 4px;
-    }
-
-    .lesson-card {
-      margin-top: 14px;
-      border-radius: var(--br);
-      border: 1px solid var(--stroke);
-      background: rgba(15,23,42,.92);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-    .lesson-header {
-      padding: 14px 18px 10px;
-      border-bottom: 1px solid rgba(148,163,184,.4);
-      background: radial-gradient(circle at 0 0, rgba(122,162,255,.25), transparent 55%),
-                  linear-gradient(135deg,#020617,#020617);
-    }
-    .lesson-title-row {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      margin-bottom:4px;
-    }
-    .lesson-title {
-      font-size:1rem;
-      font-weight:700;
-    }
-    .badge-new {
-      display:inline-flex;
-      align-items:center;
-      gap:4px;
-      padding:3px 8px;
-      border-radius:999px;
-      font-size:.75rem;
-      font-weight:700;
-      background:linear-gradient(135deg,#22c55e,#4ade80);
-      color:#022c22;
-    }
-    .lesson-meta {
-      font-size:.8rem;
-      color:var(--muted);
-      display:flex;
-      gap:6px;
-      flex-wrap:wrap;
-    }
-
-    .lesson-body {
-      padding:14px 18px 16px;
-      font-size:.93rem;
-      line-height:1.7;
-    }
-    .lesson-body p { margin:6px 0; }
-    .lesson-body ul, .lesson-body ol { margin:6px 0 6px 18px; }
-    .lesson-body table { width:100%; border-collapse:collapse; margin-top:8px; }
-    .lesson-body th, .lesson-body td {
-      border:1px solid rgba(148,163,184,.4);
-      padding:6px 8px;
-      font-size:.9rem;
-    }
-    .lesson-body th { background:rgba(15,23,42,.95); }
-
-    /* ====== GUIDE COMPLET / CARDS ====== */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
-      margin-top: 10px;
-    }
-
-    .card {
-      background: rgba(255, 255, 255, .04);
-      border: 1px solid var(--stroke);
-      border-radius: 12px;
-      padding: 20px;
-      transition: all .2s;
-    }
-    .card:hover {
-      background: rgba(255, 255, 255, .06);
-      transform: translateY(-2px);
-    }
-    .card h3 {
-      font-size: 1.1rem;
-      margin-bottom: 10px;
-      color: var(--accent);
-    }
-    .card ul {
-      list-style: none;
-      padding-left: 0;
-      font-size:.9rem;
-    }
-    .card li {
-      padding: 5px 0;
-      padding-left: 18px;
-      position: relative;
-    }
-    .card li:before {
-      content: "→";
-      position: absolute;
-      left: 0;
-      color: var(--accent);
-    }
-
-    .pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .pill {
-      display: inline-block;
-      background: rgba(122, 162, 255, .15);
-      border: 1px solid rgba(122, 162, 255, .3);
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 0.85rem;
-      color: var(--accent);
-      font-weight: 500;
-    }
-
-    /* ====== SIMULATEUR ====== */
-    .simulator {
-      background: var(--panel2);
-    }
-
-    .topic-box {
-      background: rgba(122, 162, 255, .1);
-      border: 1px solid rgba(122, 162, 255, .3);
-      border-radius: 12px;
-      padding: 16px;
-      margin: 16px 0 8px;
-      font-size: 1.0rem;
-    }
-    .topic-box.recording {
-      border-color: var(--ok);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%,100% { opacity: 1; }
-      50% { opacity: .7; }
-    }
-    .relance-box {
-      color: var(--muted);
-      font-style: italic;
-      margin-bottom: 8px;
-    }
-    .timer {
-      font-size: 2rem;
-      font-weight: 700;
-      text-align: center;
-      margin: 10px 0 16px;
-      color: var(--accent);
-    }
-
-    .btn-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 16px 0;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
-      border-radius: 999px;
-      border: 1px solid var(--stroke);
-      background: var(--panel);
-      color: #fff;
-      font-weight: 600;
-      transition: all .2s;
-      cursor: pointer;
-      font-size: 0.95rem;
-      text-decoration:none;
-    }
-    .btn:hover:not(:disabled) {
-      background: var(--panel2);
-      transform: translateY(-1px);
-    }
-    .btn:disabled {
-      opacity: .5;
-      cursor: not-allowed;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--hot));
-      border: none;
-    }
-    .btn-primary:hover:not(:disabled) {
-      box-shadow: 0 5px 20px rgba(122, 162, 255, .4);
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: 1px solid var(--stroke);
-      background: rgba(255, 255, 255, .06);
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
-    .audio-player { margin: 16px 0; }
-    .audio-player audio { width: 100%; border-radius: 12px; }
-
-    /* ====== ANALYSE ====== */
-    .instruction-box {
-      background: rgba(245, 158, 11, .1);
-      border: 1px solid rgba(245, 158, 11, .3);
-      border-radius: 12px;
-      padding: 16px;
-      margin: 12px 0;
-      font-size: 0.9rem;
-    }
-    .instruction-box strong { color: var(--warn); }
-
-    .textarea {
-      width: 100%;
-      min-height: 160px;
-      border-radius: 12px;
-      border: 1px solid var(--stroke);
-      background: rgba(255, 255, 255, .06);
-      color: #fff;
-      padding: 14px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      resize: vertical;
-      margin: 12px 0;
-    }
-    .textarea::placeholder { color: var(--muted); }
-
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px;
-      margin: 20px 0;
-    }
-    .metric-card {
-      background: rgba(255, 255, 255, .06);
-      border: 1px solid var(--stroke);
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-    }
-    .metric-label {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-    .metric-value {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: var(--accent);
-    }
-    .metric-unit {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-left: 4px;
-    }
-
-    .tips-box {
-      background: rgba(167, 139, 250, .1);
-      border: 1px solid rgba(167, 139, 250, .3);
-      border-radius: 12px;
-      padding: 20px;
-      margin-top: 20px;
-    }
-    .tips-box h3 { color: var(--hot); margin-bottom: 12px; }
-    .tips-box ul { list-style: none; padding-left: 0; }
-    .tips-box li {
-      padding: 8px 0;
-      padding-left: 24px;
-      position: relative;
-    }
-    .tips-box li:before {
-      content: "💡";
-      position: absolute;
-      left: 0;
-    }
-
-    /* ====== FOOTER ====== */
-    .footer-nav {
-      text-align: center;
-      margin: 30px 0 10px;
-    }
-
-    /* ====== LAYOUT EO : 2 COLONNES ====== */
-    .eo-main { margin-top: 20px; }
-
-    .eo-layout {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    @media (min-width: 1024px) {
-      .eo-layout {
-        display: grid;
-        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.1fr);
-        align-items: flex-start;
-        gap: 20px;
-      }
-    }
-
-    .eo-lessons { width: 100%; }
-    .eo-side   { width: 100%; display:flex; flex-direction:column; gap:20px; }
-
-    /* PRINT */
-    @media print {
-      body { background:#fff; color:#000; padding-top: 0; }
-      .no-print { display:none !important; }
-      .section { box-shadow:none; }
-    }
-
-    @media (max-width: 768px) {
-      .header h1 { font-size: 1.6rem; }
-      .btn-group { flex-direction: column; }
-      .btn { width: 100%; justify-content: center; }
-    }
-  </style>
-</head>
-<body>
-
-  <header class="sticky no-print">
-    <div class="topbar">
-      <div class="brand">
-        <div class="brand-logo">
-          <img src="{% static 'logo e-shelle ton futur sans limite.jpg' %}" alt="E-SHELLE" />
-        </div>
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <article class="hero-card">
+      <div class="hero-top">
         <div>
-          <div class="brand-title">IMMIGRATION97 • PRÉPARATION TEF</div>
-          <div class="small">Expression Orale (EO)</div>
+          <div class="hero-badge">TEF • EXPRESSION ORALE</div>
+          <h1 class="hero-title">
+            Cours — <span class="accent">Expression Orale (EO)</span>
+          </h1>
+          <p class="small">
+            Entraîne-toi dans des conditions réelles :
+            sujets officiels, relances, enregistrement et analyse détaillée.
+          </p>
+        </div>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="{% url 'preparation_tests:start_session' 'tef' %}?section=eo">
+            🎤 Démarrer une session EO
+          </a>
+          <a class="btn btn-soft" href="{% url 'preparation_tests:exam_detail' 'tef' %}#oral">
+            📄 Format officiel TEF
+          </a>
         </div>
       </div>
-      <nav class="tabs" aria-label="Navigation TEF">
-        <span class="tab active">📚 Cours</span>
-        <a class="tab" href="{% url 'preparation_tests:tef_hub' %}#train">🧪 Entraînements</a>
-        <a class="tab" href="{% url 'preparation_tests:tef_hub' %}#tips">🧭 Conseils &amp; barèmes</a>
-        <a class="tab" href="{% url 'preparation_tests:tef_hub' %}#res">🗂️ Ressources</a>
-      </nav>
+    </article>
+  </section>
+
+  <!-- ===== NAV COURS ===== -->
+  <div class="quick-nav no-print">
+    <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_co' %}">🎧 CO</a>
+    <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ce' %}">📖 CE</a>
+    <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ee' %}">✍️ EE</a>
+    <a class="btn btn-ghost btn-sm active">🎤 EO</a>
+  </div>
+
+  <!-- ===== LAYOUT ===== -->
+  <section class="eo-layout">
+
+    <!-- ===== LEÇONS ===== -->
+    <div class="eo-lessons">
+
+      <h2 class="section-title">📚 Cours complets — Expression Orale</h2>
+      <p class="section-subtitle">
+        Travaille la structure O.R.E.C., les relances et l’interaction naturelle.
+      </p>
+
+      {% if lessons %}
+        {% for l in lessons %}
+          <article class="lesson-card">
+            <header class="lesson-header">
+              <h3>{{ l.title }}</h3>
+              <span class="lesson-meta">
+                Mise à jour : {{ l.updated_at|date:"d/m/Y" }}
+              </span>
+            </header>
+
+            <div class="lesson-body">
+              {{ l.content_html|safe }}
+
+              <div class="lesson-actions">
+                <a href="{% url 'preparation_tests:lesson_session_eo' l.id %}"
+                   class="btn btn-primary">
+                  🚀 Exercices EO
+                </a>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      {% else %}
+        <article class="lesson-card">
+          <h3>Leçons EO à venir</h3>
+          <p class="small">
+            Des modèles complets EO seront ajoutés très prochainement.
+          </p>
+        </article>
+      {% endif %}
+
     </div>
-  </header>
-  <div class="container">
 
-    <!-- NAV TOP -->
-<div class="no-print" style="margin-top:10px;margin-bottom:8px;">
-      <!-- Quick Navigation Cours directs -->
-    <div class="mb-4" style="display:flex;flex-wrap:wrap;gap:8px;">
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_co' %}">🎧 Cours CO</a>
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ce' %}">📖 Cours CE</a>
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ee' %}">✍️ Cours EE</a>
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_eo' %}">🎤 Cours EO</a>
-    </div>
-    
-    </div>
+    <!-- ===== SIMULATEUR + ANALYSE ===== -->
+    <aside class="eo-side">
 
-    <!-- HEADER -->
-    <header class="header">
-      <h1>🎤 Expression Orale (EO)</h1>
-      <p>Entraînement complet avec simulation d'entretien, enregistrement et analyse automatique</p>
-    </header>
-
-    <!-- COURS COMPLETS + GUIDE / SIMULATEUR / ANALYSE -->
-    <section class="eo-main">
-
-      <!-- Bandeau "Cours complets" -->
-      <section class="section lessons-header">
-        <div class="lessons-header-title">
-          <span class="icon">📚</span>
-          <span>Cours complets — Expression Orale</span>
-        </div>
-        <p class="lessons-header-sub">
-          Utilise ces leçons comme mini-modules pour travailler la structure O.R.E.C., l’interaction et les relances typiques de l’épreuve EO du TEF.
+      <!-- SIMULATION -->
+      <section class="card simulator">
+        <h3>🎬 Simulation d’entretien</h3>
+        <p class="small">
+          Choisis un sujet, parle 2–3 minutes et enregistre-toi.
         </p>
+
+        <div id="eo-topic" class="topic-box">
+          Clique sur « Nouveau sujet » pour commencer.
+        </div>
+        <div id="eo-relance" class="relance-box"></div>
+
+        <div class="timer" id="eo-timer">00:00</div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" id="eo-new-topic">🎯 Nouveau sujet</button>
+          <button class="btn" id="eo-start">🎙️ Enregistrer</button>
+          <button class="btn" id="eo-stop">⏹️ Stop</button>
+        </div>
+
+        <div id="eo-audio"></div>
       </section>
 
-      <div class="eo-layout">
-        <!-- COLONNE GAUCHE : LEÇONS (DB) -->
-        <div class="eo-lessons">
-          {% if lessons %}
-            {% for l in lessons %}
-              <article class="lesson-card">
-                <header class="lesson-header">
-                  <div class="lesson-title-row">
-                    <h2 class="lesson-title">{{ l.title }}</h2>
-                    {% if forloop.first %}
-                      <span class="badge-new">Nouveau</span>
-                    {% endif %}
-                  </div>
-                  <div class="lesson-meta">
-                    <span>📅 Mise à jour : {{ l.updated_at|date:"d/m/Y à H:i" }}</span>
-                    <span>•</span>
-                    <span>Section : Expression orale (TEF)</span>
-                  </div>
-                </header>
-                <div class="lesson-body">
-                  {{ l.content_html|safe }}
+      <!-- ANALYSE -->
+      <section class="card analysis">
+        <h3>🔬 Analyse & feedback</h3>
 
-                  <!-- Bouton lancer session EO (CourseExercise) -->
-                  <div style="margin-top: 14px; display: flex; justify-content: flex-end;">
-                    <a href="{% url 'preparation_tests:lesson_session_eo' l.id %}"
-                       class="btn btn-primary">
-                      🚀 Lancer la session d'exercices EO
-                    </a>
-                  </div>
-                </div>
-              </article>
-            {% endfor %}
-          {% else %}
-            <article class="lesson-card">
-              <header class="lesson-header">
-                <div class="lesson-title-row">
-                  <h2 class="lesson-title">Leçons EO à venir</h2>
-                </div>
-                <div class="lesson-meta">
-                  <span>📅 Les cours détaillés EO sont en cours de rédaction.</span>
-                </div>
-              </header>
-              <div class="lesson-body">
-                <p>Bientôt, tu retrouveras ici&nbsp;:</p>
-                <ul>
-                  <li>Des modèles de réponses EO (présentation, opinion, interaction).</li>
-                  <li>Des scripts d’examinateur avec relances typiques.</li>
-                  <li>Des transcriptions annotées (connecteurs, vocabulaire, corrections).</li>
-                </ul>
-              </div>
-            </article>
-          {% endif %}
+        <textarea id="eo-transcript" class="textarea"
+          placeholder="Transcription automatique ou manuelle…"></textarea>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" id="eo-analyze">🔍 Analyser</button>
+          <button class="btn" id="eo-export">📄 Export PDF</button>
         </div>
 
-        <!-- COLONNE DROITE : GUIDE + SIMULATEUR + ANALYSE -->
-        <div class="eo-side">
-
-          <!-- Petit panneau : comment utiliser les leçons -->
-          <section class="section">
-            <h2 class="section-title">🎯 Comment utiliser ces leçons EO ?</h2>
-            <p class="section-subtitle">
-              Utilise les contenus de gauche comme modèles, puis travaille ta production avec le simulateur et l’analyse ci-dessous.
-            </p>
-            <div class="tips-box">
-              <ul>
-                <li>Lis une leçon, puis reformule-la à l’oral avec ton propre exemple.</li>
-                <li>Enregistre-toi avec le simulateur EO et garde l’audio pour comparer.</li>
-                <li>Colle la transcription dans la zone d’analyse pour voir ta vitesse, ta richesse lexicale et tes connecteurs.</li>
-              </ul>
-            </div>
-          </section>
-
-          <!-- GUIDE COMPLET -->
-          <section class="section no-print">
-            <h2 class="section-title">📚 Guide complet</h2>
-            <p class="section-subtitle">Maîtrise les techniques essentielles pour réussir l'épreuve d'expression orale</p>
-
-            <div class="grid">
-              <div class="card">
-                <h3>🎯 Déroulement de l'épreuve</h3>
-                <ul>
-                  <li>Présentation rapide (nom, activité, motivation)</li>
-                  <li>Donner ton opinion sur un thème quotidien</li>
-                  <li>Répondre aux relances de l'examinateur</li>
-                  <li>Interagir naturellement et demander des clarifications</li>
-                </ul>
-              </div>
-
-              <div class="card">
-                <h3>🧠 Méthode O.R.E.C.</h3>
-                <ul>
-                  <li><strong>Opinion</strong> : donne ton avis clairement</li>
-                  <li><strong>Raison</strong> : explique pourquoi</li>
-                  <li><strong>Exemple</strong> : illustre avec un cas concret</li>
-                  <li><strong>Conclusion</strong> : résume ta position</li>
-                </ul>
-                <div class="pills">
-                  <span class="pill">à mon avis</span>
-                  <span class="pill">je pense que</span>
-                  <span class="pill">par exemple</span>
-                  <span class="pill">en conclusion</span>
-                </div>
-              </div>
-
-              <div class="card">
-                <h3>🔗 Connecteurs essentiels</h3>
-                <ul>
-                  <li><strong>Introduction :</strong> d'abord, tout d'abord</li>
-                  <li><strong>Ajout :</strong> ensuite, de plus, en outre</li>
-                  <li><strong>Opposition :</strong> cependant, en revanche</li>
-                  <li><strong>Conclusion :</strong> donc, par conséquent</li>
-                </ul>
-              </div>
-
-              <div class="card">
-                <h3>📝 Thèmes fréquents</h3>
-                <ul>
-                  <li>Réseaux sociaux et communication</li>
-                  <li>Télétravail vs bureau</li>
-                  <li>Vie en ville vs campagne</li>
-                  <li>Environnement et écologie</li>
-                  <li>Apprentissage des langues</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          <!-- SIMULATEUR -->
-          <section class="section simulator">
-            <h2 class="section-title">🎬 Simulation d'entretien</h2>
-            <p class="section-subtitle">Entraîne-toi dans des conditions réelles avec sujets et relances automatiques</p>
-
-            <div class="instruction-box">
-              <strong>Comment utiliser :</strong> Clique sur « Nouveau sujet », lis le sujet proposé, puis clique sur « Commencer l'enregistrement ». Réponds pendant 2–3 minutes comme à l'examen.
-            </div>
-
-            <div id="topic" class="topic-box">
-              Clique sur « Nouveau sujet » pour commencer ton entraînement.
-            </div>
-            <div id="relance" class="relance-box"></div>
-
-            <div class="timer" id="timer">⏱️ 00:00</div>
-
-            <div class="btn-group">
-              <button type="button" class="btn btn-primary" id="newTopic">🎯 Nouveau sujet</button>
-              <button type="button" class="btn" id="startRec">🎙️ Commencer l'enregistrement</button>
-              <button type="button" class="btn" id="stopRec">⏹️ Arrêter</button>
-              <button type="button" class="btn" id="downloadRec" disabled>💾 Télécharger l'audio</button>
-            </div>
-
-            <div class="audio-player" id="audioBox"></div>
-
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
-              <span class="badge" id="durBadge">⏱️ Durée : 00:00</span>
-              <span class="badge" id="pauseBadge">⏸️ Pauses : 0</span>
-            </div>
-          </section>
-
-          <!-- ANALYSE -->
-          <section class="section">
-            <h2 class="section-title">🔬 Analyse et feedback</h2>
-            <p class="section-subtitle">Obtiens une analyse détaillée de ta performance avec des conseils personnalisés</p>
-
-            <div class="instruction-box">
-              <strong>Deux options :</strong> 1) Utilise la transcription automatique (si ton navigateur la supporte) 2) Colle ton texte manuellement, puis clique sur « Analyser ma performance ».
-            </div>
-
-            <div class="btn-group">
-              <button type="button" class="btn" id="startSTT">🗣️ Démarrer la transcription</button>
-              <button type="button" class="btn" id="stopSTT">⏹️ Arrêter transcription</button>
-              <span class="badge" id="sttBadge">📝 Transcription : inactive</span>
-            </div>
-
-            <textarea id="transcript" class="textarea" placeholder="Ta transcription apparaîtra ici (ou colle ton texte manuellement)..."></textarea>
-
-            <div class="btn-group">
-              <button type="button" class="btn btn-primary" id="analyzeBtn">🔍 Analyser ma performance</button>
-              <button type="button" class="btn" id="exportPdf">📄 Exporter en PDF</button>
-            </div>
-
-            <div class="metrics-grid">
-              <div class="metric-card">
-                <div class="metric-label">Vitesse</div>
-                <div class="metric-value" id="wpm">—</div>
-                <div class="metric-unit">mots/min</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-label">Phrases</div>
-                <div class="metric-value" id="avgLen">—</div>
-                <div class="metric-unit">mots/phrase</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-label">Richesse</div>
-                <div class="metric-value" id="ttr">—</div>
-                <div class="metric-unit">vocabulaire</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-label">Connecteurs</div>
-                <div class="metric-value" id="conn">—</div>
-                <div class="metric-unit">utilisés</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-label">Hésitations</div>
-                <div class="metric-value" id="fillers">—</div>
-                <div class="metric-unit">euh/ben…</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-label">Score estimé</div>
-                <div class="metric-value" id="score">—</div>
-                <div class="metric-unit">/100</div>
-              </div>
-            </div>
-
-            <div id="tips"></div>
-          </section>
-
-        </div><!-- eo-side -->
-      </div><!-- eo-layout -->
-    </section>
-
-    <!-- FOOTER NAV -->
-    <div class="footer-nav no-print">
-   <CENter><a class="nav-btn" href="{% url 'preparation_tests:tef_hub' %}">⬅ Retour au Menu  TEF</a></CENter>  
-    </div>
-  </div>
-
-  <!-- ================== JS ================== -->
-  <script>
-    // ===== CONFIG =====
-    const topics = [
-      "Penses-tu qu'il est important d'apprendre plusieurs langues ?",
-      "Les réseaux sociaux ont-ils plus d'avantages ou d'inconvénients ?",
-      "Préférerais-tu vivre en ville ou à la campagne ? Pourquoi ?",
-      "Que penses-tu du télétravail ? Est-ce une bonne chose ?",
-      "Comment peut-on protéger l'environnement au quotidien ?",
-      "La technologie améliore-t-elle nos relations sociales ?",
-      "Quel est l'importance du sport dans la vie quotidienne ?",
-      "Les voyages enrichissent-ils vraiment notre culture ?"
-    ];
-
-    const relances = [
-      "Peux-tu donner un exemple concret de ce que tu viens de dire ?",
-      "Et dans ton pays, comment ça se passe ?",
-      "Pourquoi penses-tu cela exactement ?",
-      "Tu pourrais développer cette idée un peu plus ?",
-      "Et toi personnellement, que fais-tu dans cette situation ?",
-      "Y a-t-il des inconvénients à ce que tu proposes ?",
-      "Comment vois-tu l'évolution de ce sujet dans le futur ?"
-    ];
-
-    const connectorsList = [
-      "d'abord", "tout d'abord", "ensuite", "puis", "cependant", "néanmoins",
-      "en revanche", "toutefois", "par conséquent", "donc", "ainsi",
-      "par exemple", "notamment", "en conclusion", "finalement", "de plus",
-      "en outre", "d'une part", "d'autre part"
-    ];
-
-    const fillersList = ["euh", "bah", "ben", "heu", "genre", "tu vois", "voilà", "en fait", "bon"];
-
-    // ===== VARIABLES =====
-    let timer = null;
-    let seconds = 0;
-    let pauseCount = 0;
-    let longestPause = 0;
-    let mediaRecorder, audioChunks = [], analyser, audioCtx, srcNode, micStream;
-    let recognition = null;
-
-    const elements = {
-      topic: document.getElementById('topic'),
-      relance: document.getElementById('relance'),
-      timer: document.getElementById('timer'),
-      durBadge: document.getElementById('durBadge'),
-      pauseBadge: document.getElementById('pauseBadge'),
-      audioBox: document.getElementById('audioBox'),
-      transcript: document.getElementById('transcript'),
-      sttBadge: document.getElementById('sttBadge'),
-      wpm: document.getElementById('wpm'),
-      avgLen: document.getElementById('avgLen'),
-      ttr: document.getElementById('ttr'),
-      conn: document.getElementById('conn'),
-      fillers: document.getElementById('fillers'),
-      score: document.getElementById('score'),
-      tips: document.getElementById('tips')
-    };
-
-    // ===== TIMER =====
-    function startTimer() {
-      clearInterval(timer);
-      timer = setInterval(() => {
-        seconds++;
-        updateTimerDisplay();
-      }, 1000);
-    }
-    function stopTimer() { clearInterval(timer); }
-    function resetTimer() {
-      stopTimer();
-      seconds = 0;
-      pauseCount = 0;
-      longestPause = 0;
-      updateTimerDisplay();
-      updatePauseBadge();
-    }
-    function updateTimerDisplay() {
-      const m = String(Math.floor(seconds / 60)).padStart(2, '0');
-      const s = String(seconds % 60).padStart(2, '0');
-      elements.timer.textContent = `⏱️ ${m}:${s}`;
-      elements.durBadge.textContent = `⏱️ Durée : ${m}:${s}`;
-    }
-    function updatePauseBadge() {
-      elements.pauseBadge.textContent = `⏸️ Pauses : ${pauseCount} (max ${(longestPause / 1000).toFixed(1)}s)`;
-    }
-
-    // ===== NOUVEAU SUJET =====
-    document.getElementById('newTopic').onclick = () => {
-      const t = topics[Math.floor(Math.random() * topics.length)];
-      const r = relances[Math.floor(Math.random() * relances.length)];
-      elements.topic.textContent = '💬 ' + t;
-      elements.relance.textContent = '🔄 Relance : ' + r;
-      resetTimer();
-      elements.audioBox.innerHTML = '';
-      elements.transcript.value = '';
-      clearMetrics();
-    };
-
-    // ===== ENREGISTREMENT =====
-    document.getElementById('startRec').onclick = async () => {
-      try {
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(micStream);
-        audioChunks = [];
-
-        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-        mediaRecorder.onstop = () => {
-          const blob = new Blob(audioChunks, { type: 'audio/webm' });
-          const url = URL.createObjectURL(blob);
-          const audio = document.createElement('audio');
-          audio.controls = true;
-          audio.src = url;
-          elements.audioBox.innerHTML = '';
-          elements.audioBox.appendChild(audio);
-
-          const downloadBtn = document.getElementById('downloadRec');
-          downloadBtn.disabled = false;
-          downloadBtn.onclick = () => {
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'tef_eo_' + Date.now() + '.webm';
-            a.click();
-          };
-          stopTimer();
-        };
-
-        mediaRecorder.start();
-        startTimer();
-        elements.topic.classList.add('recording');
-        setupPauseDetection();
-      } catch (e) {
-        alert("❌ Impossible d'accéder au microphone : " + e.message);
-      }
-    };
-
-    document.getElementById('stopRec').onclick = () => {
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-        elements.topic.classList.remove('recording');
-      }
-      if (audioCtx) {
-        audioCtx.close();
-        analyser = null;
-        srcNode = null;
-      }
-      if (micStream) {
-        micStream.getTracks().forEach(t => t.stop());
-      }
-    };
-
-    function setupPauseDetection() {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      srcNode = audioCtx.createMediaStreamSource(micStream);
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 2048;
-      srcNode.connect(analyser);
-
-      const data = new Uint8Array(analyser.fftSize);
-      let silenceMs = 0;
-      let lastTs = performance.now();
-
-      (function loop() {
-        if (!analyser) return;
-        analyser.getByteTimeDomainData(data);
-
-        let sum = 0;
-        for (let i = 0; i < data.length; i++) {
-          const v = (data[i] - 128) / 128;
-          sum += v * v;
-        }
-        const rms = Math.sqrt(sum / data.length);
-
-        const now = performance.now();
-        const dt = now - lastTs;
-        lastTs = now;
-
-        const SILENCE_THRESHOLD = 0.02;
-        if (rms < SILENCE_THRESHOLD) {
-          silenceMs += dt;
-        } else {
-          if (silenceMs > 600) {
-            pauseCount++;
-            if (silenceMs > longestPause) longestPause = silenceMs;
-            updatePauseBadge();
-          }
-          silenceMs = 0;
-        }
-        requestAnimationFrame(loop);
-      })();
-    }
-
-    // ===== TRANSCRIPTION =====
-    document.getElementById('startSTT').onclick = () => {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) {
-        alert("❌ La transcription automatique n'est pas supportée par ton navigateur.\n\nUtilise Chrome ou Edge et colle ton texte manuellement.");
-        return;
-      }
-
-      recognition = new SR();
-      recognition.lang = 'fr-FR';
-      recognition.interimResults = true;
-      recognition.continuous = true;
-
-      recognition.onresult = (e) => {
-        let text = '';
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          text += e.results[i][0].transcript + ' ';
-        }
-        elements.transcript.value = (elements.transcript.value + ' ' + text).trim();
-      };
-
-      recognition.onstart = () => {
-        elements.sttBadge.textContent = '✅ Transcription : active';
-        elements.sttBadge.classList.add('active');
-      };
-
-      recognition.onend = () => {
-        elements.sttBadge.textContent = '📝 Transcription : inactive';
-        elements.sttBadge.classList.remove('active');
-      };
-
-      recognition.onerror = (e) => {
-        alert('❌ Erreur de transcription : ' + e.error);
-      };
-
-      recognition.start();
-    };
-
-    document.getElementById('stopSTT').onclick = () => {
-      if (recognition) {
-        try { recognition.stop(); } catch(e){}
-      }
-    };
-
-    // ===== ANALYSE =====
-    document.getElementById('analyzeBtn').onclick = analyzePerformance;
-
-    function analyzePerformance() {
-      const txt = (elements.transcript.value || '').replace(/\s+/g, ' ').trim();
-      if (!txt) {
-        alert("⚠️ Ajoute d'abord une transcription !");
-        return null;
-      }
-
-      const durSec = seconds || Math.max(1, Math.round((txt.split(' ').length / 130) * 60));
-      const words = txt.split(' ').filter(Boolean).length;
-      const wpm = Math.round(words / (durSec / 60));
-
-      const sentences = txt.split(/[.!?…]+/).map(s => s.trim()).filter(Boolean);
-      const lengths = sentences.map(s => s.split(/\s+/).filter(Boolean).length);
-      const avgLen = lengths.length ? (lengths.reduce((a,b) => a + b, 0) / lengths.length) : 0;
-
-      const tokens = txt.toLowerCase().split(/\s+/).filter(Boolean);
-      const types = new Set(tokens);
-      const ttr = tokens.length ? (types.size / tokens.length) : 0;
-
-      const lower = txt.toLowerCase();
-      const connCount = connectorsList.reduce((n,c) => n + (lower.includes(c) ? 1 : 0), 0);
-      const fillerCount = fillersList.reduce((n,f) => n + (lower.includes(f) ? 1 : 0), 0);
-
-      let score = 60;
-
-      // Vitesse
-      if (wpm >= 110 && wpm <= 160) score += 10;
-      else if ((wpm >= 90 && wpm < 110) || (wpm > 160 && wpm <= 180)) score += 5;
-      else score -= 5;
-
-      // Longueur phrases
-      if (avgLen >= 10 && avgLen <= 22) score += 10;
-      else if ((avgLen >= 8 && avgLen < 10) || (avgLen > 22 && avgLen <= 26)) score += 5;
-      else score -= 5;
-
-      // Richesse
-      if (ttr >= 0.38) score += 8;
-      else if (ttr >= 0.3) score += 4;
-      else score -= 4;
-
-      // Connecteurs
-      if (connCount >= 3) score += 6;
-      else if (connCount >= 1) score += 3;
-      else score -= 3;
-
-      // Fillers
-      if (fillerCount === 0) score += 6;
-      else if (fillerCount <= 2) score += 3;
-      else score -= 4;
-
-      // Pauses
-      if (pauseCount <= 6) score += 4;
-      else if (pauseCount <= 12) score += 1;
-      else score -= 4;
-
-      score = Math.max(0, Math.min(100, Math.round(score)));
-
-      elements.wpm.textContent = wpm;
-      elements.avgLen.textContent = isFinite(avgLen) ? avgLen.toFixed(1) : '—';
-      elements.ttr.textContent = ttr ? ttr.toFixed(2) : '—';
-      elements.conn.textContent = connCount;
-      elements.fillers.textContent = fillerCount;
-      elements.score.textContent = score;
-
-      generateTips(wpm, avgLen, ttr, connCount, fillerCount, pauseCount);
-
-      return {
-        text: txt,
-        wpm,
-        avgLen,
-        ttr,
-        connCount,
-        fillerCount,
-        score,
-        seconds: durSec,
-        pauseCount,
-        longestPause,
-        topic: elements.topic.textContent,
-        relance: elements.relance.textContent
-      };
-    }
-
-    function generateTips(wpm, avgLen, ttr, connCount, fillerCount, pauseCount) {
-      const tips = [];
-
-      if (wpm < 110) {
-        tips.push("⚡ <strong>Accélère un peu</strong> : vise 120–150 mots/min pour être plus fluide sans te précipiter.");
-      }
-      if (wpm > 160) {
-        tips.push("🐌 <strong>Ralentis légèrement</strong> : reste entre 120–150 mots/min pour garder une bonne clarté.");
-      }
-
-      if (connCount < 3) {
-        tips.push("🔗 <strong>Ajoute des connecteurs</strong> : utilise « cependant », « en outre », « par conséquent » pour structurer ton discours.");
-      }
-
-      if (avgLen < 10) {
-        tips.push("📏 <strong>Développe tes phrases</strong> : ajoute un exemple ou une explication pour atteindre 10–20 mots par phrase.");
-      }
-      if (avgLen > 22) {
-        tips.push("✂️ <strong>Simplifie tes phrases</strong> : coupe les phrases trop longues en plusieurs phrases plus courtes.");
-      }
-
-      if (ttr < 0.3) {
-        tips.push("📚 <strong>Varie ton vocabulaire</strong> : utilise des synonymes et des expressions variées plutôt que répéter les mêmes mots.");
-      }
-
-      if (fillerCount > 2) {
-        tips.push("🤐 <strong>Réduis les hésitations</strong> : remplace « euh », « ben », « en fait » par de courtes pauses silencieuses.");
-      }
-
-      if (pauseCount > 12) {
-        tips.push("🎯 <strong>Fluidifie ton discours</strong> : prépare un plan mental (O.R.E.C.) avant de parler pour éviter les pauses longues.");
-      }
-
-      if (tips.length === 0) {
-        tips.push("🌟 <strong>Excellent travail !</strong> Continue à enrichir ton vocabulaire et à soigner tes transitions.");
-      }
-
-      elements.tips.innerHTML = `
-        <div class="tips-box">
-          <h3>💡 Conseils personnalisés</h3>
-          <ul>${tips.map(t => `<li>${t}</li>`).join('')}</ul>
+        <div class="metrics">
+          <span id="eo-wpm">—</span>
+          <span id="eo-ttr">—</span>
+          <span id="eo-connectors">—</span>
+          <span id="eo-score">—</span>
         </div>
-      `;
-    }
 
-    function clearMetrics() {
-      elements.wpm.textContent = '—';
-      elements.avgLen.textContent = '—';
-      elements.ttr.textContent = '—';
-      elements.conn.textContent = '—';
-      elements.fillers.textContent = '—';
-      elements.score.textContent = '—';
-      elements.tips.innerHTML = '';
-    }
+        <div id="eo-tips" class="tips"></div>
+      </section>
 
-    // ===== EXPORT PDF =====
-    document.getElementById('exportPdf').onclick = () => {
-      const data = analyzePerformance();
-      if (!data) return;
+    </aside>
+  </section>
 
-      const printWindow = window.open('', '_blank', 'width=900,height=700');
-      const html = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <title>Bilan Expression Orale - TEF</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif; padding:30px; line-height:1.6; }
-    .header { border-bottom:3px solid #000; padding-bottom:15px; margin-bottom:25px; }
-    h1 { font-size:1.8rem; margin-bottom:5px; }
-    .date { color:#666; font-size:.9rem; }
-    .section { margin:25px 0; page-break-inside:avoid; }
-    .section h2 { font-size:1.3rem; margin-bottom:12px; color:#333; }
-    .topic-box { background:#f5f5f5; border-left:4px solid #7aa2ff; padding:15px; margin:10px 0; }
-    .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:15px; margin:20px 0; }
-    .metric { border:2px solid #000; border-radius:8px; padding:15px; text-align:center; }
-    .metric-label { font-size:.85rem; color:#666; margin-bottom:8px; }
-    .metric-value { font-size:1.6rem; font-weight:700; color:#000; }
-    .metric-unit { font-size:.8rem; color:#666; }
-    .transcript-box { border:1px solid #ccc; border-radius:8px; padding:15px; background:#fafafa; white-space:pre-wrap; font-size:.95rem; margin-top:10px; }
-    .score-big { text-align:center; font-size:3rem; font-weight:700; color:#7aa2ff; margin:20px 0; }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <h1>📊 Bilan Expression Orale (TEF)</h1>
-    <div class="date">${new Date().toLocaleString('fr-FR',{dateStyle:'full',timeStyle:'short'})}</div>
+  <div class="footer-nav no-print">
+    <a class="btn btn-soft" href="{% url 'preparation_tests:tef_hub' %}">
+      ⬅ Retour menu TEF
+    </a>
   </div>
 
-  <div class="section">
-    <h2>🎯 Sujet traité</h2>
-    <div class="topic-box">
-      <strong>${(data.topic || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</strong><br>
-      <em style="color:#666;">${(data.relance || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</em>
-    </div>
-  </div>
+</section>
 
-  <div class="score-big">Score : ${data.score}/100</div>
+{% endblock %}
 
-  <div class="section">
-    <h2>📈 Métriques détaillées</h2>
-    <div class="grid">
-      <div class="metric">
-        <div class="metric-label">Vitesse</div>
-        <div class="metric-value">${data.wpm}</div>
-        <div class="metric-unit">mots/min</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Phrases</div>
-        <div class="metric-value">${isFinite(data.avgLen) ? data.avgLen.toFixed(1) : '—'}</div>
-        <div class="metric-unit">mots/phrase</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Richesse</div>
-        <div class="metric-value">${data.ttr.toFixed(2)}</div>
-        <div class="metric-unit">vocabulaire</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Connecteurs</div>
-        <div class="metric-value">${data.connCount}</div>
-        <div class="metric-unit">utilisés</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Hésitations</div>
-        <div class="metric-value">${data.fillerCount}</div>
-        <div class="metric-unit">mots</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Pauses</div>
-        <div class="metric-value">${data.pauseCount}</div>
-        <div class="metric-unit">détectées</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Pause max</div>
-        <div class="metric-value">${(data.longestPause/1000).toFixed(1)}</div>
-        <div class="metric-unit">secondes</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Durée totale</div>
-        <div class="metric-value">${String(Math.floor(data.seconds/60)).padStart(2,'0')}:${String(Math.round(data.seconds%60)).padStart(2,'0')}</div>
-        <div class="metric-unit">min:sec</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2>📝 Transcription complète</h2>
-    <div class="transcript-box">${(data.text || 'Aucune transcription disponible').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-  </div>
-
-  <script>window.onload = () => setTimeout(() => window.print(), 500);</script>
-</body>
-</html>`;
-      printWindow.document.open();
-      printWindow.document.write(html);
-      printWindow.document.close();
-    };
-  </script>
-</body>
-</html>
+{% block scripts_extra %}
+<script src="{% static 'js/tef_eo.js' %}"></script>
+{% endblock %}

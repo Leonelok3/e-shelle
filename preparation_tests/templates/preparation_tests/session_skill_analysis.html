@@ -1,424 +1,35 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>E-SHELLE • Analyse de compétences</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Analyse de compétences TEF/TCF : statistiques par section, par difficulté et plan de progression détaillé." />
 
-  <style>
-    :root {
-      --bg: #020617;
-      --surface: rgba(15,23,42,.98);
-      --surface-soft: rgba(15,23,42,.94);
-      --surface-alt: rgba(15,23,42,.9);
-      --border: rgba(148,163,184,.32);
-      --border-soft: rgba(148,163,184,.18);
+{% block title %}
+Analyse de compétences | Immigration97
+{% endblock %}
 
-      --accent-green: #22c55e;
-      --accent-red: #fb7185;
-      --accent-blue: #38bdf8;
-      --accent-purple: #a855f7;
-      --accent-amber: #fbbf24;
+{% block meta_description %}
+Analyse de compétences TEF / TCF : statistiques par section,
+par difficulté et plan de progression personnalisé.
+{% endblock %}
 
-      --text-main: #e5e7eb;
-      --text-muted: #9ca3af;
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/preparation_tests.css' %}">
+{% endblock %}
 
-      --radius-lg: 22px;
-      --radius-pill: 999px;
-      --shadow-card: 0 22px 55px rgba(0,0,0,.88);
-    }
+{% block content %}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+<section class="page page-skill-analysis">
 
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background:
-        radial-gradient(900px 520px at 0% 0%, rgba(56,189,248,.16), transparent 60%),
-        radial-gradient(1000px 620px at 100% 0%, rgba(248,113,113,.18), transparent 60%),
-        radial-gradient(1200px 720px at 50% 120%, rgba(34,197,94,.18), transparent 65%),
-        linear-gradient(135deg,#020617,#020617 45%,#02091a);
-      color: var(--text-main);
-      min-height: 100vh;
-    }
-
-    a { color: inherit; text-decoration: none; }
-
-    /* HEADER */
-    .shell-header {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      background: linear-gradient(180deg,rgba(2,6,23,.98),rgba(2,6,23,.94),rgba(2,6,23,.88));
-      border-bottom: 1px solid rgba(15,23,42,.95);
-      backdrop-filter: blur(18px);
-    }
-
-    .shell-header-inner {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 10px 18px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-    }
-
-    .brand-block {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-logo {
-      width: 40px;
-      height: 40px;
-      border-radius: 14px;
-      overflow: hidden;
-      background: radial-gradient(circle at 20% 0%, rgba(248,250,252,.35), transparent 55%), #020617;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow:
-        0 0 0 1px rgba(148,163,184,.4),
-        0 14px 35px rgba(15,23,42,.9);
-    }
-    .brand-logo img {
-      width: 125%;
-      height: auto;
-      object-fit: cover;
-      transform: translateY(2px);
-    }
-
-    .brand-kicker {
-      font-size: .78rem;
-      letter-spacing: .09em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-    .brand-title {
-      font-weight: 800;
-      font-size: .98rem;
-    }
-
-    .nav-tabs {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .nav-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-soft);
-      background: rgba(15,23,42,.96);
-      color: var(--text-main);
-      font-size: .9rem;
-      font-weight: 600;
-      box-shadow: 0 0 0 1px rgba(15,23,42,.8);
-      cursor: pointer;
-      transition:
-        background .18s ease,
-        border-color .18s ease,
-        box-shadow .18s ease,
-        transform .16s ease;
-    }
-    .nav-pill span.icon { font-size: 1.05rem; }
-
-    .nav-pill.primary {
-      background: radial-gradient(circle at 0 0, rgba(248,250,252,.18), transparent 55%),
-                  linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-      border-color: transparent;
-      color: #020617;
-      box-shadow: 0 12px 30px rgba(0,0,0,.9);
-      transform: translateY(-1px);
-    }
-
-    .nav-pill:hover:not(.primary) {
-      border-color: rgba(148,163,184,.6);
-      background: rgba(15,23,42,.98);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 26px rgba(0,0,0,.9);
-    }
-
-    @media (max-width: 720px) {
-      .shell-header-inner {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .nav-tabs { width: 100%; }
-    }
-
-    /* CONTAINER */
-    .shell-container {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 22px 18px 36px;
-    }
-
-    /* HERO */
-    .hero {
-      margin-bottom: 18px;
-    }
-    .hero-kicker {
-      font-size: .8rem;
-      text-transform: uppercase;
-      letter-spacing: .16em;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-    .hero-title {
-      font-size: 1.7rem;
-      font-weight: 800;
-      margin: 0 0 6px;
-    }
-    .hero-title span {
-      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .hero-sub {
-      font-size: .96rem;
-      color: var(--text-muted);
-      max-width: 620px;
-    }
-
-    .hero-tags {
-      margin-top: 10px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: .8rem;
-    }
-    .pill {
-      padding: 4px 10px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-soft);
-      background: rgba(15,23,42,.9);
-      color: var(--text-muted);
-    }
-
-    /* GRID PRINCIPALE */
-    .grid-main {
-      margin-top: 16px;
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1.1fr);
-      gap: 18px;
-      align-items: flex-start;
-    }
-    @media (max-width: 980px) {
-      .grid-main {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .card {
-      background: var(--surface);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-card);
-      padding: 14px 16px 16px;
-      position: relative;
-      overflow: hidden;
-    }
-    .card h2 {
-      font-size: 1.05rem;
-      margin-bottom: 4px;
-    }
-    .card p.lead {
-      font-size: .9rem;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    /* SCORE */
-    .score-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-top: 4px;
-    }
-    .score-main {
-      font-size: .9rem;
-      color: var(--text-muted);
-    }
-    .score-main strong {
-      color: var(--text-main);
-    }
-
-    .score-badge {
-      padding: 6px 11px;
-      border-radius: var(--radius-pill);
-      font-size: .78rem;
-      border: 1px solid rgba(34,197,94,.5);
-      background: rgba(22,163,74,.22);
-      color: #bbf7d0;
-      white-space: nowrap;
-    }
-
-    /* STAT GRID */
-    .stats-grid {
-      margin-top: 8px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-      gap: 10px;
-    }
-
-    .stat-block {
-      background: var(--surface-alt);
-      border-radius: 16px;
-      border: 1px solid var(--border-soft);
-      padding: 9px 11px 10px;
-      font-size: .86rem;
-    }
-    .stat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 3px;
-    }
-    .stat-label {
-      font-size: .78rem;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--text-muted);
-    }
-    .stat-score {
-      font-weight: 700;
-      font-size: .9rem;
-    }
-    .stat-sub {
-      font-size: .78rem;
-      color: var(--text-muted);
-    }
-    .stat-bar {
-      margin-top: 6px;
-      width: 100%;
-      height: 6px;
-      border-radius: 999px;
-      background: rgba(15,23,42,1);
-      overflow: hidden;
-    }
-    .stat-bar-fill {
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
-      width: 0;
-    }
-
-    /* LISTES */
-    .list {
-      margin-top: 6px;
-      padding-left: 16px;
-      font-size: .9rem;
-      color: var(--text-muted);
-    }
-    .list li + li { margin-top: 4px; }
-
-    .badge-weak {
-      display: inline-block;
-      font-size: .75rem;
-      padding: 2px 7px;
-      border-radius: var(--radius-pill);
-      border: 1px solid rgba(248,113,113,.5);
-      background: rgba(248,113,113,.16);
-      color: #fecaca;
-      margin-left: 4px;
-    }
-
-    /* BOUTONS */
-    .btn-row {
-      margin-top: 10px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 8px 14px;
-      border-radius: var(--radius-pill);
-      font-size: .86rem;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      transition:
-        transform .12s ease-out,
-        box-shadow .18s ease-out,
-        background .18s ease-out,
-        filter .12s ease-out;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-      color: #020617;
-      box-shadow: 0 12px 30px rgba(0,0,0,.95);
-    }
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.03);
-    }
-    .btn-ghost {
-      background: var(--surface-soft);
-      border: 1px solid var(--border-soft);
-      color: var(--text-muted);
-    }
-    .btn-ghost:hover {
-      background: var(--surface-alt);
-      color: var(--text-main);
-      transform: translateY(-1px);
-    }
-  </style>
-</head>
-
-<body>
-
-<header class="shell-header">
-  <div class="shell-header-inner">
-    <div class="brand-block">
-      <div class="brand-logo">
-        <img src="{% static 'logoeshelle.jpg' %}" alt="E-SHELLE">
-      </div>
-      <div>
-        <div class="brand-kicker">E-SHELLE • ANALYSE DE COMPÉTENCES</div>
-        <div class="brand-title">
-          {% if session.exam %}{{ session.exam.name }} ({{ session.exam.code|upper }}){% else %}Session{% endif %}
-        </div>
-      </div>
-    </div>
-
-    <nav class="nav-tabs" aria-label="Navigation résultats">
-      <a class="nav-pill" href="{% url 'preparation_tests:session_correction' session.id %}">
-        <span class="icon">📊</span><span>Corrigé détaillé</span>
-      </a>
-      <span class="nav-pill primary">
-        <span class="icon">📈</span><span>Analyse de compétences</span>
-      </span>
-      <a class="nav-pill" href="{% url 'preparation_tests:french_exams' %}">
-        <span class="icon">🏠</span><span>Retour aux tests</span>
-      </a>
-    </nav>
-  </div>
-</header>
-
-<main class="shell-container">
-
-  <!-- HERO -->
-  <section class="hero">
+  <!-- ===== HERO ===== -->
+  <header class="hero">
     <div class="hero-kicker">Profil de compétences</div>
+
     <h1 class="hero-title">
       Ton profil <span>CO • CE • EE • EO</span> en un coup d’œil
     </h1>
+
     <p class="hero-sub">
-      Voici une vue consolidée de ta session : sections les plus fortes, compétences à renforcer,
-      types de questions sensibles et plan de progression concret.
+      Vue consolidée de ta session :
+      forces, faiblesses, types de questions sensibles
+      et plan d’action concret pour progresser plus vite.
     </p>
 
     <div class="hero-tags">
@@ -426,19 +37,20 @@
       <span class="pill">🎯 Score global : {{ global_pct }} %</span>
       <span class="pill">🧪 Session #{{ session.id }}</span>
     </div>
-  </section>
+  </header>
 
-  <!-- GRID PRINCIPALE -->
+  <!-- ===== GRILLE PRINCIPALE ===== -->
   <section class="grid-main">
 
-    <!-- COLONNE GAUCHE -->
+    <!-- ===== COLONNE GAUCHE ===== -->
     <div>
 
-      <!-- STATS PAR SECTION -->
+      <!-- === PAR SECTION === -->
       <article class="card">
         <h2>Par section (CO / CE / EE / EO)</h2>
         <p class="lead">
-          Visualise ton niveau pour chaque compétence clé. Priorise les sections les plus faibles.
+          Visualise ton niveau par compétence.
+          Commence toujours par la section la plus faible.
         </p>
 
         <div class="stats-grid">
@@ -446,63 +58,69 @@
             <div class="stat-block" data-pct="{{ data.pct|default_if_none:'0' }}">
               <div class="stat-header">
                 <div class="stat-label">
-                  {% if code == "CO" %}CO • Compréhension orale{% elif code == "CE" %}CE • Compréhension écrite{% elif code == "EE" %}EE • Expression écrite{% elif code == "EO" %}EO • Expression orale{% else %}Section {{ code }}{% endif %}
+                  {% if code == "CO" %}CO • Compréhension orale
+                  {% elif code == "CE" %}CE • Compréhension écrite
+                  {% elif code == "EE" %}EE • Expression écrite
+                  {% elif code == "EO" %}EO • Expression orale
+                  {% else %}Section {{ code }}{% endif %}
                 </div>
                 <div class="stat-score">{{ data.pct }} %</div>
               </div>
+
               <div class="stat-sub">
                 {{ data.correct }}/{{ data.total }} bonnes réponses • {{ data.level }}
               </div>
+
               <div class="stat-bar">
                 <div class="stat-bar-fill"></div>
               </div>
             </div>
           {% empty %}
-            <p style="font-size:.88rem;color:var(--text-muted);margin-top:4px;">
-              Aucune statistique par section pour cette session.
-            </p>
+            <p class="muted">Aucune statistique par section disponible.</p>
           {% endfor %}
         </div>
       </article>
 
-      <!-- STATS PAR DIFFICULTÉ -->
-      <article class="card" style="margin-top:16px;">
+      <!-- === PAR DIFFICULTÉ === -->
+      <article class="card mt-16">
         <h2>Par difficulté des questions</h2>
         <p class="lead">
-          Regarde comment tu te débrouilles sur les questions <strong>FACILES / MOYENNES / DIFFICILES</strong>.
+          Analyse ton comportement sur les questions
+          <strong>faciles, moyennes et difficiles</strong>.
         </p>
 
         <div class="stats-grid">
           {% for diff, data in per_diff.items %}
             <div class="stat-block" data-pct="{{ data.pct|default_if_none:'0' }}">
               <div class="stat-header">
-                <div class="stat-label">Niveau : {{ diff }}</div>
+                <div class="stat-label">Niveau {{ diff }}</div>
                 <div class="stat-score">{{ data.pct }} %</div>
               </div>
+
               <div class="stat-sub">
                 {{ data.correct }}/{{ data.total }} bonnes réponses
               </div>
+
               <div class="stat-bar">
                 <div class="stat-bar-fill"></div>
               </div>
             </div>
           {% empty %}
-            <p style="font-size:.88rem;color:var(--text-muted);margin-top:4px;">
-              Aucune information sur la difficulté des questions pour cette session.
-            </p>
+            <p class="muted">Aucune donnée par difficulté disponible.</p>
           {% endfor %}
         </div>
       </article>
+
     </div>
 
-    <!-- COLONNE DROITE -->
+    <!-- ===== COLONNE DROITE ===== -->
     <aside>
 
       <!-- PRIORITÉS -->
       <article class="card">
         <h2>Priorités de travail</h2>
         <p class="lead">
-          Concentre-toi d’abord sur les zones les plus fragiles pour maximiser ton progrès.
+          Zones à renforcer en priorité pour améliorer ton score global.
         </p>
 
         <ul class="list">
@@ -518,76 +136,77 @@
               </li>
             {% endfor %}
           {% else %}
-            <li>Aucune section prioritaire identifiée sur cette session.</li>
+            <li>Aucune section prioritaire détectée.</li>
           {% endif %}
         </ul>
       </article>
 
-      <!-- TYPES DE QUESTIONS SENSIBLES -->
-      <article class="card" style="margin-top:14px;">
+      <!-- TYPES SENSIBLES -->
+      <article class="card mt-14">
         <h2>Types de questions sensibles</h2>
         <p class="lead">
-          Surveille ces formats de questions : ce sont souvent eux qui font chuter la note.
+          Ces formats font souvent chuter la note.
         </p>
 
         <ul class="list">
           {% if weak_difficulties %}
             {% for d in weak_difficulties %}
               <li>
-                Niveau <strong>{{ d.difficulty }}</strong> — {{ d.pct }} % ({{ d.correct }}/{{ d.total }} bonnes)
+                Niveau <strong>{{ d.difficulty }}</strong>
+                — {{ d.pct }} % ({{ d.correct }}/{{ d.total }})
               </li>
             {% endfor %}
           {% else %}
-            <li>Aucun type de question sensible détecté.</li>
+            <li>Aucun type de question critique identifié.</li>
           {% endif %}
         </ul>
       </article>
 
       <!-- PLAN D’ACTION -->
-      <article class="card" style="margin-top:14px;">
+      <article class="card mt-14">
         <h2>Plan d’action concret</h2>
         <p class="lead">
-          Suis ce mini-plan pour transformer ce rapport en progrès réel.
+          Applique ce mini-plan pour transformer l’analyse en progrès réel.
         </p>
 
         <ul class="list">
-          <li>1️⃣ Choisis la section avec le score le plus faible (voir “Priorités de travail”).</li>
-          <li>2️⃣ Reviens au cours correspondant (TEF/TCF) et revois la méthode.</li>
-          <li>3️⃣ Refais une petite session ciblée (10–15 questions) sur cette section.</li>
-          <li>4️⃣ Reviens sur cette page et vérifie si le pourcentage a augmenté.</li>
+          <li>1️⃣ Travaille d’abord la section la plus faible.</li>
+          <li>2️⃣ Revois le cours correspondant (TEF / TCF).</li>
+          <li>3️⃣ Lance une session ciblée courte (10–15 questions).</li>
+          <li>4️⃣ Reviens ici pour mesurer l’amélioration.</li>
         </ul>
 
         <div class="btn-row">
           {% if session.exam %}
-            <a class="btn btn-primary" href="{% url 'preparation_tests:start_session' session.exam.code %}">
-              🔁 Lancer une nouvelle session
+            <a class="btn btn-primary"
+               href="{% url 'preparation_tests:start_session' session.exam.code %}">
+              🔁 Nouvelle session
             </a>
           {% endif %}
-          <a class="btn btn-ghost" href="{% url 'preparation_tests:session_correction' session.id %}">
-            📊 Revenir au corrigé détaillé
+
+          <a class="btn btn-ghost"
+             href="{% url 'preparation_tests:session_correction' session.id %}">
+            📊 Retour au corrigé
           </a>
         </div>
       </article>
+
     </aside>
 
   </section>
 
-</main>
+</section>
 
+{% endblock %}
+
+{% block scripts_extra %}
 <script>
-  // Remplit les barres de progression selon data-pct
-  document.addEventListener("DOMContentLoaded", function() {
-    const blocks = document.querySelectorAll(".stat-block");
-    blocks.forEach(function(block) {
-      const pct = parseFloat(block.getAttribute("data-pct") || "0");
-      const fill = block.querySelector(".stat-bar-fill");
-      if (fill) {
-        const clamped = Math.max(0, Math.min(100, pct));
-        fill.style.width = clamped + "%";
-      }
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".stat-block").forEach(function (block) {
+      const pct = Math.max(0, Math.min(100, parseFloat(block.dataset.pct || 0)));
+      const bar = block.querySelector(".stat-bar-fill");
+      if (bar) bar.style.width = pct + "%";
     });
   });
 </script>
-
-</body>
-</html>
+{% endblock %}

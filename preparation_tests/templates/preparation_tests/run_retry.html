@@ -1,386 +1,114 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>Reprendre mes erreurs | E-SHELLE</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Rejoue uniquement les questions que tu as ratées pour booster ton score plus vite." />
 
-  <style>
-    :root {
-      --bg: #020617;
-      --surface: rgba(15,23,42,.96);
-      --surface-soft: rgba(15,23,42,.9);
-      --surface-alt: rgba(15,23,42,.86);
-      --border: rgba(148,163,184,.26);
-      --border-soft: rgba(148,163,184,.18);
+{% block title %}
+Reprendre mes erreurs | Immigration97
+{% endblock %}
 
-      --accent-green: #22c55e;
-      --accent-orange: #fb923c;
-      --accent-blue: #38bdf8;
-      --accent-purple: #a855f7;
+{% block meta_description %}
+Rejoue uniquement les questions que tu as ratées pour progresser plus vite
+grâce au mode de correction ciblée Immigration97.
+{% endblock %}
 
-      --text-main: #e5e7eb;
-      --text-muted: #9ca3af;
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/preparation_tests.css' %}">
+{% endblock %}
 
-      --radius-lg: 22px;
-      --radius-pill: 999px;
-      --shadow-card: 0 22px 55px rgba(0,0,0,.92);
-    }
+{% block content %}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+<section class="page page-retry-errors">
 
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background:
-        radial-gradient(950px 520px at 0% 0%, rgba(56,189,248,.18), transparent 60%),
-        radial-gradient(900px 520px at 110% 0%, rgba(248,113,113,.16), transparent 60%),
-        radial-gradient(1200px 720px at 50% 120%, rgba(34,197,94,.2), transparent 65%),
-        linear-gradient(135deg,#020617,#020617 45%,#02091a);
-      color: var(--text-main);
-      min-height: 100vh;
-    }
+  <!-- ===== TOP BAR ===== -->
+  <div class="top-bar">
+    <a class="back-link"
+       href="{% url 'preparation_tests:session_result' session.id %}">
+      ← Retour au résultat
+    </a>
 
-    a { color: inherit; text-decoration: none; }
-
-    .page {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 22px 18px 40px;
-    }
-
-    .top-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-soft);
-      background: rgba(15,23,42,.9);
-      font-size: .85rem;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: background .16s ease, transform .12s ease;
-    }
-    .back-link:hover {
-      background: rgba(15,23,42,1);
-      transform: translateY(-1px);
-    }
-
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      justify-content: flex-end;
-      font-size: .78rem;
-    }
-
-    .chip {
-      padding: 4px 10px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-soft);
-      background: rgba(15,23,42,.9);
-      color: var(--text-muted);
-    }
-
-    .chip-strong {
-      border-color: rgba(34,197,94,.7);
-      color: #bbf7d0;
-      background: linear-gradient(135deg, rgba(34,197,94,.15), rgba(56,189,248,.15));
-    }
-
-    .hero {
-      margin-bottom: 18px;
-    }
-    .hero-kicker {
-      font-size: .8rem;
-      text-transform: uppercase;
-      letter-spacing: .16em;
-      color: var(--text-muted);
-      margin-bottom: 5px;
-    }
-    .hero-title {
-      font-size: 1.5rem;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-    .hero-title span {
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .hero-sub {
-      font-size: .92rem;
-      color: var(--text-muted);
-    }
-
-    /* Progress bar */
-    .progress-wrap {
-      margin: 16px 0 18px;
-    }
-    .progress-label {
-      font-size: .8rem;
-      color: var(--text-muted);
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-    .progress-outer {
-      width: 100%;
-      height: 8px;
-      border-radius: 999px;
-      background: rgba(15,23,42,.9);
-      border: 1px solid var(--border-soft);
-      overflow: hidden;
-    }
-    .progress-inner {
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
-      transition: width .25s ease-out;
-    }
-
-    /* Card question */
-    .card {
-      background: var(--surface);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-card);
-      padding: 18px 18px 20px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .badge-section {
-      padding: 3px 10px;
-      border-radius: var(--radius-pill);
-      font-size: .78rem;
-      border: 1px solid rgba(148,163,184,.5);
-      color: var(--text-muted);
-      background: rgba(15,23,42,.9);
-    }
-
-    .badge-mode {
-      padding: 3px 10px;
-      border-radius: var(--radius-pill);
-      font-size: .78rem;
-      border: 1px solid rgba(34,197,94,.6);
-      color: #bbf7d0;
-      background: rgba(22,163,74,.15);
-    }
-
-    .question-text {
-      font-size: 1rem;
-      line-height: 1.5;
-      margin-bottom: 14px;
-    }
-
-    .choices {
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .choice-item {
-      position: relative;
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 9px 11px;
-      border-radius: 16px;
-      border: 1px solid var(--border-soft);
-      background: var(--surface-alt);
-      cursor: pointer;
-      transition:
-        background .15s ease-out,
-        border-color .15s ease-out,
-        transform .1s ease-out,
-        box-shadow .16s ease-out;
-    }
-
-    .choice-item:hover {
-      background: rgba(15,23,42,.98);
-      border-color: rgba(148,163,184,.6);
-      transform: translateY(-1px);
-      box-shadow: 0 12px 26px rgba(0,0,0,.9);
-    }
-
-    .choice-item input[type="radio"] {
-      margin-top: 3px;
-      accent-color: var(--accent-green);
-      transform: scale(1.05);
-    }
-
-    .choice-label {
-      font-size: .85rem;
-      font-weight: 600;
-      opacity: .9;
-    }
-
-    .choice-text {
-      font-size: .9rem;
-      color: var(--text-main);
-    }
-
-    .card-footer {
-      margin-top: 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .hint {
-      font-size: .8rem;
-      color: var(--text-muted);
-    }
-
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 9px 18px;
-      border-radius: var(--radius-pill);
-      font-size: .9rem;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-      color: #020617;
-      box-shadow: 0 16px 32px rgba(0,0,0,.95);
-      transition:
-        transform .12s ease-out,
-        box-shadow .18s ease-out,
-        filter .12s ease-out;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.04);
-      box-shadow: 0 20px 40px rgba(0,0,0,1);
-    }
-
-    @media (max-width: 640px) {
-      .card-footer {
-        flex-direction: column-reverse;
-        align-items: stretch;
-      }
-      .btn-primary {
-        width: 100%;
-        justify-content: center;
-      }
-    }
-
-  </style>
-</head>
-
-<body>
-  <div class="page">
-
-    <!-- Bandeau haut -->
-    <div class="top-bar">
-      <a class="back-link" href="{% url 'preparation_tests:session_result' session.id %}">
-        ← Retour au résultat
-      </a>
-
-      <div class="chips">
-        <span class="chip">Session #{{ session.id }}</span>
-        <span class="chip chip-strong">Refaire uniquement mes erreurs</span>
-      </div>
+    <div class="chips">
+      <span class="chip">Session #{{ session.id }}</span>
+      <span class="chip chip-strong">Correction ciblée</span>
     </div>
-
-    <!-- Titre / intro -->
-    <section class="hero">
-      <div class="hero-kicker">Révision ciblée</div>
-      <h1 class="hero-title">
-        Question {{ index|add:1 }} / {{ total }} — <span>erreurs à corriger</span>
-      </h1>
-      <p class="hero-sub">
-        Concentre-toi seulement sur les questions que tu as ratées.  
-        Chaque bonne réponse ici fait monter ton niveau plus vite. 💪
-      </p>
-    </section>
-
-    <!-- Barre de progression -->
-    <div class="progress-wrap">
-      <div class="progress-label">
-        <span>Progression</span>
-        <span>{{ index|add:1 }} / {{ total }}</span>
-      </div>
-      {% with pct=index|add:1|mul:100|div:total %}
-      <div class="progress-outer">
-        <div class="progress-inner" style="width: {{ pct }}%;"></div>
-      </div>
-      {% endwith %}
-    </div>
-
-    <!-- Carte Question -->
-    <article class="card">
-      <header class="card-header">
-        <div class="badge-section">
-          Question #{{ question.id }}
-        </div>
-        <div class="badge-mode">
-          Mode : reprise des erreurs
-        </div>
-      </header>
-
-      <div class="question-text">
-        {{ question.stem|linebreaksbr }}
-      </div>
-
-      {% if choices %}
-      <form method="post">
-        {% csrf_token %}
-        <div class="choices">
-          {% for choice in choices %}
-          <label class="choice-item">
-            <input type="radio" name="choice" value="{{ choice.id }}">
-            <div>
-              <div class="choice-text">
-                {{ choice.text }}
-              </div>
-            </div>
-          </label>
-          {% endfor %}
-        </div>
-
-        <footer class="card-footer">
-          <p class="hint">
-            Sélectionne ta réponse puis clique sur <strong>Valider</strong>.  
-            Tu verras ton bilan global à la fin de cette série.
-          </p>
-          <button type="submit" class="btn-primary">
-            Valider et passer à la suite →
-          </button>
-        </footer>
-      </form>
-      {% else %}
-        <p>Aucune proposition trouvée pour cette question.</p>
-      {% endif %}
-    </article>
-
   </div>
-</body>
-</html>
+
+  <!-- ===== HERO ===== -->
+  <header class="hero">
+    <span class="hero-kicker">Révision ciblée</span>
+
+    <h1 class="hero-title">
+      Question {{ index|add:1 }} / {{ total }}
+      — <span>erreurs à corriger</span>
+    </h1>
+
+    <p class="hero-sub">
+      Concentre-toi uniquement sur les questions que tu as ratées.
+      Chaque bonne réponse ici accélère ta progression. 💪
+    </p>
+  </header>
+
+  <!-- ===== PROGRESSION ===== -->
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>Progression</span>
+      <span>{{ index|add:1 }} / {{ total }}</span>
+    </div>
+
+    {% widthratio index|add:1 total 100 as pct %}
+    <div class="progress-outer">
+      <div class="progress-inner" style="width: {{ pct }}%;"></div>
+    </div>
+  </div>
+
+  <!-- ===== QUESTION ===== -->
+  <article class="card">
+
+    <header class="card-header">
+      <span class="badge-section">
+        Question #{{ question.id }}
+      </span>
+      <span class="badge-mode">
+        Mode : reprise des erreurs
+      </span>
+    </header>
+
+    <div class="question-text">
+      {{ question.stem|linebreaksbr }}
+    </div>
+
+    {% if choices %}
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="choices">
+        {% for choice in choices %}
+        <label class="choice-item">
+          <input type="radio" name="choice" value="{{ choice.id }}" required>
+          <div class="choice-text">
+            {{ choice.text }}
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+
+      <footer class="card-footer">
+        <p class="hint">
+          Sélectionne ta réponse puis clique sur
+          <strong>Valider</strong>.
+        </p>
+
+        <button type="submit" class="btn btn--primary">
+          Valider et continuer →
+        </button>
+      </footer>
+    </form>
+    {% else %}
+      <p class="muted">
+        Aucune proposition trouvée pour cette question.
+      </p>
+    {% endif %}
+
+  </article>
+
+</section>
+
+{% endblock %}

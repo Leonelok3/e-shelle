@@ -1,746 +1,159 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>E-SHELLE • Entraînement {{ exam.code|upper }} {{ section.code }}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <style>
-    :root {
-      --bg: #020617;
-      --surface: rgba(15,23,42,.96);
-      --surface-soft: rgba(15,23,42,.9);
-      --surface-alt: rgba(15,23,42,.86);
-      --border: rgba(148,163,184,.26);
-      --border-soft: rgba(148,163,184,.18);
+{% block title %}
+Entraînement {{ exam.code|upper }} {{ section.code|upper }} | Immigration97
+{% endblock %}
 
-      --accent-green: #22c55e;
-      --accent-orange: #fb923c;
-      --accent-blue: #38bdf8;
+{% block meta_description %}
+Session d’entraînement {{ exam.code|upper }} – section {{ section.code|upper }} :
+questions chronométrées, QCM, expression écrite/orale et correction intelligente.
+{% endblock %}
 
-      --text-main: #e5e7eb;
-      --text-muted: #9ca3af;
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/preparation_tests.css' %}">
+{% endblock %}
 
-      --radius-lg: 22px;
-      --radius-pill: 999px;
-      --shadow-card: 0 20px 55px rgba(0,0,0,.85);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-   body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  background:
-    radial-gradient(950px 520px at 0% 0%, rgba(56,189,248,.18), transparent 60%),
-    radial-gradient(900px 520px at 110% 0%, rgba(248,113,113,.16), transparent 60%),
-    radial-gradient(1200px 720px at 50% 120%, rgba(34,197,94,.2), transparent 65%),
-    linear-gradient(135deg,#020617,#020617 45%,#02091a);
-  color: var(--text-main);
-  min-height: 100vh;
-
-  /* 🔎 Lisibilité améliorée */
-  font-size: 17px;      /* taille de base un peu plus grande */
-  line-height: 1.6;     /* plus d’espace entre les lignes */
-}
-
-/* 📏 Taille de police boostée pour les éléments clés */
-.q-title,
-.q-stem,
-.choices span,
-.open-text textarea,
-.session-meta,
-.stats-row {
-  font-size: 1.05rem; /* ≈ 18px sur ta base actuelle */
-}
-
-.q-sub,
-.side-card li,
-.side-card h3 {
-  font-size: 1rem; /* texte des conseils & sous-titres */
-}
-
-.btn {
-  font-size: 0.95rem;
-}
-
-/* Tu peux aussi agrandir les labels d’options si tu veux encore plus gros */
-.choice-label {
-  font-size: 1.02rem;
-}
-
-
-    a { color: inherit; text-decoration: none; }
-
-    .shell-container {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 22px 18px 60px;
-    }
-
-    /* HEADER GLOBAL / COCKPIT */
-    .shell-header {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      background: linear-gradient(180deg,rgba(2,6,23,.96),rgba(2,6,23,.9),rgba(2,6,23,.78));
-      border-bottom: 1px solid rgba(15,23,42,.9);
-      backdrop-filter: blur(18px);
-    }
-
-    .shell-header-inner {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 10px 18px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-    }
-
-    .brand-block {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-logo {
-      width: 40px;
-      height: 40px;
-      border-radius: 14px;
-      overflow: hidden;
-      background: radial-gradient(circle at 20% 0%, rgba(248,250,252,.35), transparent 55%), #020617;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow:
-        0 0 0 1px rgba(148,163,184,.4),
-        0 14px 35px rgba(15,23,42,.9);
-    }
-    .brand-logo img {
-      width: 125%;
-      height: auto;
-      object-fit: cover;
-      transform: translateY(2px);
-    }
-
-    .brand-kicker {
-      font-size: .8rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-    .brand-title {
-      font-weight: 800;
-      font-size: 1rem;
-    }
-
-    .nav-tabs {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .nav-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-soft);
-      background: rgba(15,23,42,.9);
-      color: var(--text-main);
-      font-size: .9rem;
-      font-weight: 600;
-      box-shadow: 0 0 0 1px rgba(15,23,42,.8);
-      cursor: pointer;
-      transition:
-        background .18s ease,
-        border-color .18s ease,
-        box-shadow .18s ease,
-        transform .16s ease;
-    }
-    .nav-pill span.icon { font-size: 1.05rem; }
-
-    .nav-pill.active {
-      background: radial-gradient(circle at 0 0, rgba(248,250,252,.18), transparent 55%),
-                  linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-      border-color: transparent;
-      color: #020617;
-      box-shadow: 0 12px 30px rgba(0,0,0,.9);
-      transform: translateY(-1px);
-    }
-
-    .nav-pill:hover:not(.active) {
-      border-color: rgba(148,163,184,.6);
-      background: rgba(15,23,42,.96);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 26px rgba(0,0,0,.9);
-    }
-
-    /* MAIN GRID */
-    .grid-main {
-      margin-top: 24px;
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(280px, 1.1fr);
-      gap: 18px;
-      align-items: flex-start;
-    }
-    @media (max-width: 920px) {
-      .grid-main {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .card {
-      background: var(--surface);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-card);
-      padding: 16px 18px 18px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* SESSION HEADER + MODE */
-    .session-header h1 {
-      font-size: 1.4rem;
-      margin-bottom: 4px;
-    }
-    .hero-kicker {
-      font-size:.8rem;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      color:var(--text-muted);
-      margin-bottom:2px;
-    }
-    .session-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      font-size: .85rem;
-      color: var(--text-muted);
-      margin-top: 6px;
-    }
-    .badge {
-      padding: 3px 9px;
-      border-radius: var(--radius-pill);
-      background: rgba(15,23,42,.9);
-      border: 1px solid var(--border-soft);
-      font-size: .75rem;
-    }
-
-    .mode-tag {
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:4px 10px;
-      border-radius:999px;
-      font-size:.8rem;
-      margin-top:6px;
-      background:rgba(56,189,248,.12);
-      border:1px solid rgba(56,189,248,.45);
-      color:#7dd3fc;
-    }
-    .mode-tag span.icon { font-size:1rem; }
-
-    .stats-row {
-      display: flex;
-      gap: 8px;
-      font-size: .85rem;
-      color: var(--text-muted);
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
-
-    /* QUESTION CARD */
-    .question-card {
-      margin-top: 14px;
-      background: radial-gradient(circle at 0 0, rgba(56,189,248,.22), transparent 55%),
-                  radial-gradient(circle at 110% 0, rgba(34,197,94,.16), transparent 60%),
-                  var(--surface);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
-      padding: 16px 18px 18px;
-    }
-
-    .q-header {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-    .q-title {
-      font-weight: 700;
-      font-size: 1rem;
-    }
-    .q-sub {
-      font-size: .85rem;
-      color: var(--text-muted);
-    }
-
-    .q-main {
-      margin-top: 10px;
-      font-size: .95rem;
-      line-height: 1.5;
-    }
-    .q-stem {
-      margin-bottom: 10px;
-      font-weight: 500;
-    }
-
-    .q-audio {
-      margin-top: 8px;
-      margin-bottom: 12px;
-    }
-
-    /* CHOICES */
-    .choices {
-      display: grid;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .choice-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      border-radius: 14px;
-      border: 1px solid var(--border-soft);
-      background: var(--surface-soft);
-      cursor: pointer;
-      transition:
-        background .15s ease,
-        border-color .15s ease,
-        transform .1s ease;
-      font-size: .92rem;
-    }
-    .choice-label:hover {
-      background: var(--surface-alt);
-      border-color: rgba(148,163,184,.6);
-      transform: translateY(-1px);
-    }
-    .choice-input {
-      accent-color: var(--accent-green);
-    }
-
-    /* OPEN TEXT */
-    .open-text {
-      margin-top: 10px;
-    }
-    .open-text textarea {
-      width: 100%;
-      min-height: 110px;
-      border-radius: 14px;
-      border: 1px solid var(--border-soft);
-      background: var(--surface-soft);
-      color: var(--text-main);
-      padding: 10px 12px;
-      resize: vertical;
-      font-family: inherit;
-      font-size: .92rem;
-    }
-
-    /* FOOTER BUTTONS */
-    .card-footer {
-      margin-top: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .btn-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 8px 16px;
-      border-radius: var(--radius-pill);
-      font-size: .88rem;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      transition:
-        transform .12s ease-out,
-        box-shadow .18s ease-out,
-        background .18s ease-out,
-        filter .12s ease-out;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-orange));
-      color: #020617;
-      box-shadow: 0 12px 30px rgba(0,0,0,.95);
-    }
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.03);
-    }
-    .btn-ghost {
-      background: var(--surface-soft);
-      border: 1px solid var(--border-soft);
-      color: var(--text-muted);
-    }
-    .btn-ghost:hover {
-      background: var(--surface-alt);
-      color: var(--text-main);
-      transform: translateY(-1px);
-    }
-
-    /* SIDE CARDS */
-    .side-card h3 {
-      font-size: 1rem;
-      margin: 0 0 6px;
-    }
-    .side-card ul {
-      margin: 6px 0 0 16px;
-      padding: 0;
-      font-size: .9rem;
-      color: var(--text-muted);
-    }
-    .side-card li + li { margin-top: 4px; }
-
-    /* BANNIÈRE MODE CORRECTION CIBLÉE */
-    .retry-mode-banner {
-      background:linear-gradient(135deg, #007aff, #0050d9);
-      color:white;
-      padding:12px 18px;
-      font-size:15px;
-      border-radius:10px;
-      font-weight:600;
-      margin:10px 18px 0;
-      text-align:center;
-      box-shadow:0 6px 14px rgba(0, 110, 255, 0.25);
-    }
-
-    /* === COCKPIT FLOTTANT – NAVIGATION RAPIDE === */
-    .quick-nav {
-      position: fixed;
-      right: 28px;
-      bottom: 28px;
-      width: 260px;
-      background: var(--surface);
-      border-radius: 22px;
-      border: 1px solid var(--border-soft);
-      box-shadow: 0 22px 60px rgba(0,0,0,.9);
-      padding: 12px 14px 14px;
-      z-index: 60;
-    }
-    .quick-nav-title {
-      font-size: .9rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--text-muted);
-    }
-    .quick-nav-title::before {
-      content: "⚡";
-      font-size: 1rem;
-    }
-    .quick-nav-row {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 2px;
-    }
-    .quick-nav-btn {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 7px 10px;
-      border-radius: 999px;
-      font-size: .8rem;
-      border: 1px solid var(--border-soft);
-      background: var(--surface-soft);
-      cursor: pointer;
-      text-decoration: none;
-      color: var(--text-main);
-      transition:
-        background .16s ease,
-        border-color .16s ease,
-        transform .12s ease,
-        box-shadow .16s ease;
-    }
-    .quick-nav-btn span.icon {
-      font-size: .95rem;
-    }
-    .quick-nav-btn:hover {
-      background: var(--surface-alt);
-      border-color: rgba(148,163,184,.7);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 26px rgba(0,0,0,.75);
-    }
-    .quick-nav-btn.primary {
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-      color: #020617;
-      border-color: transparent;
-      box-shadow: 0 14px 32px rgba(0,0,0,.95);
-    }
-    .quick-nav-btn.primary:hover {
-      filter: brightness(1.03);
-    }
-    .quick-nav-hint {
-      font-size: .75rem;
-      opacity: .82;
-    }
-
-    @media (max-width: 900px) {
-      .quick-nav {
-        position: static;
-        margin: 18px auto 0;
-        max-width: 420px;
-      }
-    }
-  </style>
-</head>
-
-<body>
-
-<header class="shell-header">
-  <div class="shell-header-inner">
-    <div class="brand-block">
-      <div class="brand-logo">
-        <img src="{% static 'logoeshelle.jpg' %}" alt="E-SHELLE">
-      </div>
-      <div>
-        <div class="brand-kicker">E-SHELLE • PRÉPARATION TEF &amp; TCF</div>
-        <div class="brand-title">Moteur d’entraînement intelligent</div>
-      </div>
-    </div>
-
-    <nav class="nav-tabs" aria-label="Navigation principale">
-      <a class="nav-pill" href="{% url 'preparation_tests:french_exams' %}">
-        <span class="icon">🏠</span><span>Hub examens</span>
-      </a>
-      <a class="nav-pill {% if exam.code|lower == 'tef' %}active{% endif %}" href="{% url 'preparation_tests:tef_hub' %}">
-        <span class="icon">🇫🇷</span><span>Hub TEF</span>
-      </a>
-      <a class="nav-pill {% if exam.code|lower == 'tcf' %}active{% endif %}" href="{% url 'preparation_tests:tcf_hub' %}">
-        <span class="icon">🇫🇷</span><span>Hub TCF</span>
-      </a>
-      <a class="nav-pill" href="{% url 'preparation_tests:session_review' %}">
-        <span class="icon">📊</span><span>Statistiques</span>
-      </a>
-    </nav>
-  </div>
-</header>
+{% block content %}
 
 {% if attempt.session.mode == "retry_errors" %}
 <div class="retry-mode-banner">
-    🎯 Mode : Correction ciblée — tu revois uniquement tes erreurs.
+  🎯 Mode correction ciblée — tu retravailles uniquement tes erreurs.
 </div>
 {% endif %}
 
-<main class="shell-container">
+<section class="page page-language container">
 
   <section class="grid-main">
 
-    <!-- COLONNE GAUCHE : session -->
+    <!-- =========================
+         COLONNE GAUCHE — SESSION
+    ========================== -->
     <article class="card">
+
       <header class="session-header">
-        <div class="hero-kicker">
-          {{ exam.code|upper }} • Session d’entraînement — {{ section.code|upper }}
-        </div>
-        <h1>Session —</h1>
+        <p class="hero-kicker">
+          {{ exam.code|upper }} • Entraînement — {{ section.code|upper }}
+        </p>
+
+        <h1>
+          Question {{ current_index }} / {{ total_questions }}
+        </h1>
 
         <div class="mode-tag">
-          <span class="icon">
-            {% if attempt.session.mode == "mock" %}🧪{% elif attempt.session.mode == "retry_errors" %}🔁{% else %}🎯{% endif %}
-          </span>
           {% if attempt.session.mode == "mock" %}
-            Mode examen blanc
+            🧪 Mode examen blanc
           {% elif attempt.session.mode == "retry_errors" %}
-            Mode correction ciblée
+            🔁 Correction ciblée
           {% else %}
-            Mode entraînement
+            🎯 Entraînement
           {% endif %}
         </div>
 
-        <div class="session-meta">
-          <span>Lis la consigne, analyse soigneusement, puis choisis ta réponse.</span>
-        </div>
-
         <div class="stats-row">
-          <span>Exercices : <strong>{{ current_index }}</strong> / {{ total_questions }}</span>
-          <span>Score section : <strong>{{ attempt.raw_score|default:0|floatformat:0 }}</strong></span>
+          <span>Progression : <strong>{{ current_index }}</strong> / {{ total_questions }}</span>
+          <span>Score : <strong>{{ attempt.raw_score|default:0 }}</strong></span>
           <span>Temps : <strong>--:--</strong></span>
-        </div>
-
-        <div style="margin-top:8px;">
-          <label style="font-size:.82rem; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
-            <input type="checkbox" id="exam_mode_toggle" style="accent-color:var(--accent-orange);" />
-            Activer le mode examen (limite de temps + pas de retour en arrière sur les QCM)
-          </label>
         </div>
       </header>
 
-      <!-- QUESTION -->
+      <!-- =========================
+           QUESTION
+      ========================== -->
       <section class="question-card">
-        <header class="q-header">
-          <div>
-            <div class="q-title">Question {{ current_index }} / {{ total_questions }}</div>
-            <div class="q-sub">
-              {% if section.code|lower == "co" or section.code|lower == "listening" %}
-                  Compréhension orale — écoute l’audio puis choisis la bonne réponse.
-              {% elif section.code|lower == "ce" or section.code|lower == "reading" %}
-                  Compréhension écrite — lis le texte puis réponds.
-              {% elif section.code|lower == "ee" or section.code|lower == "writing" %}
-                  Expression écrite — rédige une réponse claire et structurée.
-              {% elif section.code|lower == "eo" or section.code|lower == "speaking" %}
-                  Expression orale — réponds comme dans une vraie situation d’entretien.
-              {% else %}
-                  Question — choisis ou écris ta réponse.
-              {% endif %}
-            </div>
-          </div>
 
+        <header class="q-header">
+          <div class="q-title">
+            {{ section.name }}
+          </div>
           <div class="q-sub">
-            Temps pour cette section : {{ section.duration_sec }} s
+            Temps recommandé : {{ section.duration_sec }} s
           </div>
         </header>
 
         <form
-          action="{% url 'preparation_tests:submit_answer' attempt.id question.id %}"
           method="post"
+          action="{% url 'preparation_tests:submit_answer' attempt.id question.id %}"
         >
           {% csrf_token %}
 
-          <div class="q-main">
-            {% if question.stem %}
-              <div class="q-stem">{{ question.stem|linebreaksbr }}</div>
-            {% endif %}
+          {% if question.stem %}
+            <div class="q-stem">
+              {{ question.stem|linebreaksbr }}
+            </div>
+          {% endif %}
 
-            {% if audio_url %}
-              <div class="q-audio">
-                <audio controls preload="none" style="width:100%;">
-                  <source src="{{ audio_url }}" type="audio/mpeg" />
-                  Ton navigateur ne supporte pas la lecture audio.
-                </audio>
-              </div>
-            {% endif %}
+          {% if audio_url %}
+            <div class="q-audio">
+              <audio controls preload="none">
+                <source src="{{ audio_url }}" type="audio/mpeg">
+              </audio>
+            </div>
+          {% endif %}
 
-            {% if choices %}
-              <div class="choices">
-                {% for choice in choices %}
-                  <label class="choice-label">
-                    <input
-                      type="radio"
-                      name="choice"
-                      value="{{ choice.id }}"
-                      class="choice-input"
-                    />
-                    <span>{{ choice.text|linebreaksbr }}</span>
-                  </label>
-                {% endfor %}
-              </div>
-            {% else %}
-              <div class="open-text">
-                <label for="answer-text" style="font-size:.85rem; color:var(--text-muted);">
-                  Ta réponse :
+          {% if choices %}
+            <div class="choices">
+              {% for choice in choices %}
+                <label class="choice-label">
+                  <input
+                    type="radio"
+                    name="choice"
+                    value="{{ choice.id }}"
+                    class="choice-input"
+                  >
+                  <span>{{ choice.text|linebreaksbr }}</span>
                 </label>
-                <textarea
-                  id="answer-text"
-                  name="text"
-                  placeholder="Écris ta réponse ici..."
-                ></textarea>
-              </div>
-            {% endif %}
-          </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="open-text">
+              <textarea
+                name="text"
+                placeholder="Rédige ta réponse ici…"
+              ></textarea>
+            </div>
+          {% endif %}
 
           <footer class="card-footer">
-            <div class="btn-row">
-              <button type="submit" class="btn btn-primary">
-                Question suivante
-              </button>
-            </div>
+            <button type="submit" class="btn btn--primary">
+              Question suivante
+            </button>
 
-            <div class="btn-row">
-              <a
-                href="{% url 'preparation_tests:exam_detail' exam.code %}"
-                class="btn btn-ghost"
-              >
-                Recommencer / changer de mode
-              </a>
-            </div>
+            <a
+              href="{% url 'preparation_tests:exam_detail' exam.code %}"
+              class="btn btn--soft"
+            >
+              Changer de mode
+            </a>
           </footer>
+
         </form>
+
       </section>
     </article>
 
-    <!-- COLONNE DROITE : conseils -->
+    <!-- =========================
+         COLONNE DROITE — CONSEILS
+    ========================== -->
     <aside class="card side-card">
       <h3>Stratégies de réussite</h3>
       <ul>
-        <li>Lis d’abord la consigne et la question.</li>
-        <li>Repère les mots-clés (dates, montants, conditions, lieux).</li>
-        <li>Ne réponds jamais sur ton intuition : appuie-toi sur le texte / l’audio.</li>
-        <li>Relis la phrase exacte avant de valider.</li>
+        <li>Lis toujours la consigne avant les choix.</li>
+        <li>Repère les mots clés (dates, quantités, exceptions).</li>
+        <li>Ne réponds jamais à l’intuition.</li>
+        <li>Relis la phrase exacte dans le texte ou l’audio.</li>
       </ul>
 
-      <h3 style="margin-top:14px;">Erreurs fréquentes</h3>
+      <h3>Erreurs fréquentes</h3>
       <ul>
-        <li>Confondre « à partir de » et « jusqu’à ».</li>
-        <li>Ignorer les mots comme <em>sauf</em>, <em>uniquement</em>, <em>au moins</em>…</li>
-        <li>Répondre trop vite sans vérifier le contexte.</li>
+        <li>Confusion « à partir de » / « jusqu’à »</li>
+        <li>Mots pièges : <em>sauf</em>, <em>uniquement</em>, <em>au moins</em></li>
+        <li>Réponse hors contexte</li>
       </ul>
     </aside>
 
   </section>
 
-</main>
+</section>
 
-<!-- COCKPIT FLOTTANT -->
-<div class="quick-nav">
-  <div class="quick-nav-title">Navigation rapide</div>
-
-  <div class="quick-nav-row">
-    {% if exam.code|lower == "tef" %}
-      <a href="{% url 'preparation_tests:tef_hub' %}" class="quick-nav-btn">
-        <span><span class="icon">🇫🇷</span> Hub TEF</span>
-        <span class="quick-nav-hint">Retour aux cours & sections</span>
-      </a>
-    {% elif exam.code|lower == "tcf" %}
-      <a href="{% url 'preparation_tests:tcf_hub' %}" class="quick-nav-btn">
-        <span><span class="icon">🇫🇷</span> Hub TCF</span>
-        <span class="quick-nav-hint">Retour aux cours & sections</span>
-      </a>
-    {% else %}
-      <a href="{% url 'preparation_tests:french_exams' %}" class="quick-nav-btn">
-        <span><span class="icon">🏠</span> Hub examens</span>
-        <span class="quick-nav-hint">Tous les examens français</span>
-      </a>
-    {% endif %}
-
-    <a href="{% url 'preparation_tests:session_review' %}" class="quick-nav-btn">
-      <span><span class="icon">📊</span> Mes résultats</span>
-      <span class="quick-nav-hint">Tableau de bord & statistiques</span>
-    </a>
-  </div>
-
-  {% if attempt.session_id %}
-    <div class="quick-nav-row">
-      <a href="{% url 'preparation_tests:session_result' attempt.session_id %}" class="quick-nav-btn">
-        <span><span class="icon">🧾</span> Résumé de la session</span>
-        <span class="quick-nav-hint">Score global & sections</span>
-      </a>
-
-      <a href="{% url 'preparation_tests:retry_session_errors' attempt.session_id %}" class="quick-nav-btn primary">
-        <span><span class="icon">🔁</span> Refaire mes erreurs</span>
-        <span class="quick-nav-hint">Mode correction ciblée</span>
-      </a>
-    </div>
-  {% endif %}
-</div>
-
-</body>
-</html>
+{% endblock %}

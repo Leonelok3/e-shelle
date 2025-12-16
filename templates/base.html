@@ -2,405 +2,141 @@
 <html lang="fr">
 <head>
   {% load static %}
-
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  {# ---- SEO de base ---- #}
-  <title>{% block title %}CV Builder · Immigration97{% endblock %}</title>
-  <meta name="description" content="{% block meta_description %}Générez votre CV optimisé par IA, conforme aux standards RH locaux (Canada, Europe, USA).{% endblock %}">
+  <!-- SEO -->
+  <title>{% block title %}Immigration97{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Plateforme Immigration97 : CV IA, Photos DV Lottery, Tests de langue, Guides Visa.{% endblock %}">
   <link rel="canonical" href="{{ request.build_absolute_uri }}">
   <meta name="robots" content="index, follow">
-  <meta name="csrf-token" content="{{ csrf_token }}">
-  <meta name="theme-color" content="#0ea5e9">
+  <meta name="theme-color" content="#0b1220">
 
-  {# ---- Favicon / PWA minimal ---- #}
-  <link rel="icon" href="{% static 'img/logo.svg' %}" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="{% static 'img/logo.svg' %}">
-  <meta name="application-name" content="Immigration97">
+  <!-- FAVICON -->
+  <link rel="icon" href="{% static 'img/LOGOIMM97.png' %}" type="image/png">
 
-  {# ---- Open Graph / Twitter ---- #}
-  <meta property="og:title" content="Immigration97 — CV Builder, Photos DV-Lottery, Guides & Paiements">
-  <meta property="og:description" content="Générez votre CV optimisé par IA, photos DV-Lottery conformes, guides visa & paiements au clic. Rapide et pro.">
+  <!-- OPEN GRAPH -->
+  <meta property="og:title" content="Immigration97 — Plateforme Immigration Premium">
+  <meta property="og:description" content="CV IA, Photos DV Lottery, Tests de Langue & Guides Visa">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="{{ request.build_absolute_uri }}">
-  <meta property="og:image" content="{% static 'img/logo.svg' %}">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Immigration97 — CV Builder">
-  <meta name="twitter:description" content="CV optimisés par IA + photos DV-Lottery + guides visa.">
+  <meta property="og:image" content="{% static 'img/LOGOIMM97.png' %}">
 
-  {# ---- Perf: préconnexion CDN ---- #}
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-
-  {# ---- CSS : Tailwind puis tes feuilles locales ---- #}
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="preload" href="{% static 'css/tokens.css' %}" as="style">
-  <link rel="preload" href="{% static 'css/main.css' %}" as="style">
-  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'css/main.css' %}">
-  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-
-  {# ---- Override style : thème Immigration97 (dark / glass / pills) ---- #}
-  <style>
-    :root{
-      --bg-body:#020617;
-      --bg-grad-1:#020617;
-      --bg-grad-2:#020617;
-
-      --accent-green:#22c55e;
-      --accent-green-soft:rgba(34,197,94,0.16);
-      --accent-blue:#38bdf8;
-      --accent-purple:#a855f7;
-
-      --text-strong:#f9fafb;
-      --text-body:#e5e7eb;
-      --text-muted:#94a3b8;
-      --text-soft:#64748b;
-
-      --border-subtle:rgba(148,163,184,0.28);
-      --border-strong:rgba(148,163,184,0.55);
-
-      --radius-lg:18px;
-      --radius-xl:24px;
-      --radius-pill:999px;
-
-      --shadow-soft:0 18px 40px rgba(15,23,42,0.85);
-      --shadow-elevated:0 22px 55px rgba(15,23,42,0.95);
-
-      --transition-fast:150ms ease-out;
-      --transition-normal:220ms cubic-bezier(0.23,0.88,0.32,1);
-    }
-
-    /* Skip link (accessibilité) */
-    .skip-link{
-      position:absolute;
-      left:-999px;
-      top:auto;
-      width:1px;
-      height:1px;
-      overflow:hidden;
-    }
-    .skip-link:focus{
-      left:1rem;
-      top:1rem;
-      width:auto;
-      height:auto;
-      background:#000;
-      color:#fff;
-      padding:.5rem .75rem;
-      z-index:9999;
-      border-radius:999px;
-      box-shadow:0 10px 26px rgba(15,23,42,0.8);
-    }
-
-    /* BODY / LAYOUT */
-    body.app{
-      min-height:100vh;
-      background:
-        radial-gradient(circle at top, rgba(56,189,248,0.16), transparent 55%),
-        radial-gradient(circle at bottom, rgba(34,197,94,0.14), transparent 55%),
-        radial-gradient(circle at top left, rgba(168,85,247,0.18), transparent 60%),
-        linear-gradient(135deg,var(--bg-grad-1),var(--bg-grad-2));
-      color:var(--text-body);
-      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-      -webkit-font-smoothing:antialiased;
-    }
-
-    .container{
-      max-width:1100px;
-      margin:0 auto;
-      padding:0 20px;
-    }
-
-    .page{
-      padding:24px 0 40px;
-    }
-
-    .muted{
-      color:var(--text-muted);
-      font-size:.9rem;
-    }
-
-    /* TOPBAR */
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:40;
-      backdrop-filter:blur(18px);
-      -webkit-backdrop-filter:blur(18px);
-      background:linear-gradient(to bottom,rgba(2,6,23,0.98),rgba(2,6,23,0.9),transparent);
-      border-bottom:1px solid rgba(15,23,42,0.9);
-      box-shadow:0 18px 40px rgba(15,23,42,0.85);
-    }
-
-    .topbar .container.row{
-      padding:12px 0;
-    }
-
-    .brand img{
-      border-radius:14px;
-      box-shadow:0 12px 32px rgba(15,23,42,0.9);
-    }
-    .brand span,
-    .brand .font-semibold{
-      color:var(--text-strong);
-      font-weight:700;
-      letter-spacing:.04em;
-    }
-
-    .nav{
-      font-size:.9rem;
-    }
-
-    .chip{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:6px 12px;
-      border-radius:var(--radius-pill);
-      border:1px solid var(--border-subtle);
-      background:rgba(15,23,42,0.9);
-      color:var(--text-body);
-      text-decoration:none;
-      font-weight:600;
-      gap:.25rem;
-      box-shadow:0 10px 26px rgba(15,23,42,0.85);
-      transition:
-        background var(--transition-normal),
-        border-color var(--transition-fast),
-        color var(--transition-fast),
-        transform var(--transition-fast),
-        box-shadow var(--transition-fast);
-    }
-    .chip:hover{
-      border-color:var(--border-strong);
-      background:radial-gradient(circle at top left,rgba(56,189,248,0.22),rgba(15,23,42,0.96));
-      color:var(--text-strong);
-      transform:translateY(-1px);
-      box-shadow:0 16px 40px rgba(15,23,42,0.95);
-    }
-    .chip.active{
-      background:linear-gradient(120deg,#4ade80,#22c55e,#22c55e,#a855f7);
-      background-size:220% 220%;
-      border-color:transparent;
-      color:#020617;
-      box-shadow:0 16px 42px rgba(34,197,94,0.75);
-    }
-
-    /* MAIN content wrapper – pour encadrer les pages internes CV/Photo si besoin */
-    main.container.page{
-      position:relative;
-      z-index:1;
-    }
-
-    /* FOOTER */
-    .footer{
-      border-top:1px solid rgba(15,23,42,0.9);
-      background:radial-gradient(circle at top,rgba(15,23,42,0.96),rgba(2,6,23,0.98));
-      padding:20px 0 24px;
-      margin-top:8px;
-    }
-
-    .foot-grid{
-      display:grid;
-      grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr));
-      gap:18px;
-      align-items:flex-start;
-      margin-bottom:10px;
-    }
-
-    .foot-title{
-      font-size:.9rem;
-      font-weight:650;
-      color:var(--text-strong);
-      margin-bottom:6px;
-    }
-
-    .foot-list{
-      list-style:none;
-      padding-left:0;
-      margin:0;
-      display:grid;
-      gap:4px;
-      font-size:.85rem;
-      color:var(--text-muted);
-    }
-
-    .foot-list a{
-      color:var(--text-muted);
-      text-decoration:none;
-      transition:color var(--transition-fast);
-    }
-    .foot-list a:hover{
-      color:var(--text-strong);
-    }
-
-    .foot-bottom{
-      text-align:center;
-      font-size:.8rem;
-      color:var(--text-soft);
-      padding-top:4px;
-    }
-
-    .footer .brand img{
-      border-radius:10px;
-      box-shadow:0 10px 26px rgba(15,23,42,0.9);
-    }
-    .footer .brand span{
-      color:var(--text-strong);
-      font-weight:600;
-    }
-
-    /* RESPONSIVE */
-    @media (max-width: 768px){
-      .topbar .container.row{
-        flex-wrap:wrap;
-        justify-content:space-between;
-      }
-      .nav{
-        flex-wrap:wrap;
-        justify-content:flex-end;
-      }
-      .foot-grid{
-        grid-template-columns:minmax(0,1fr);
-      }
-    }
-
-  </style>
-  <style>
-/* Surcharge ultra-précise */
-form input[type="text"],
-form input[type="number"],
-form input[type="email"],
-form input[type="password"],
-form textarea,
-form select,
-.permanent-residence-form input,
-.permanent-residence-form select,
-.permanent-residence-form textarea {
-    background-color: #0b1a24 !important;
-    color: #ffffff !important;
-    border: 1px solid #11303a !important;
-    border-radius: 10px !important;
-    padding: 8px 14px !important;
-    width: 100% !important;
-}
-
-/* Placeholder */
-form input::placeholder,
-form textarea::placeholder,
-.permanent-residence-form input::placeholder,
-.permanent-residence-form textarea::placeholder {
-    color: #6b7280 !important;
-}
-</style>
-<style>
-/* Styles universels pour TOUS les champs */
-form input[type="text"],
-form input[type="number"],
-form input[type="email"],
-form input[type="password"],
-textarea,
-select {
-    background-color: #0b1a24 !important;
-    color: white !important;
-    border: 1px solid #11303a !important;
-    border-radius: 10px !important;
-    padding: 8px 14px !important;
-    width: 100% !important;
-}
-
-input::placeholder,
-textarea::placeholder {
-    color: #6b7280 !important;
-}
-
-/* 👉 Labels du formulaire RP : bien lisibles */
-.permanent-residence-form label {
-    color: #0f172a !important;       /* texte foncé, super visible sur fond clair */
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-</style>
+  <!-- CSS GLOBAL (ORDRE STRICT) -->
 
 
+<link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+<link rel="stylesheet" href="{% static 'css/components.css' %}">
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/englishprep.css' %}">
+
+
+  <!-- CSS SPÉCIFIQUE À LA PAGE -->
   {% block head_extra %}{% endblock %}
 </head>
+
 <body class="app">
-  <a class="skip-link" href="#main-content">Aller au contenu</a>
 
-  <header class="topbar" role="banner">
-    <div class="container row" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
-      {# --- BRAND avec LOGO GLOBAL --- #}
-      <a href="{% url 'cv_generator:index' %}" class="brand" style="display:flex;align-items:center;gap:.6rem;text-decoration:none;">
-        <img src="{% static 'img/logo.svg' %}" alt="Immigration97" height="40" width="40" loading="eager">
-        <span class="font-semibold">Immigration97</span>
+<!-- ================= NAVBAR ================= -->
+<header class="navbar">
+  <div class="navbar__container">
+
+    <a href="/" class="navbar__brand">
+      <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97 Logo">
+    </a>
+
+    <nav class="navbar__nav">
+      <a href="/" class="nav-link">Accueil</a>
+      <a href="/prep/" class="nav-link">Tests de langue</a>
+      <a href="/visa-travail/" class="nav-link">Visa Travail</a>
+      <a href="/visa-etudes/" class="nav-link">Visa Études</a>
+      <a href="/residence-permanente/" class="nav-link">Résidence Permanente</a>
+    </nav>
+
+    <div class="navbar__actions">
+      <a href="{% url 'authentification:login' %}" class="btn btn--soft">
+        Se connecter
       </a>
-
-      <nav class="nav" role="navigation" aria-label="Menu principal" style="display:flex;gap:.5rem;align-items:center;">
-        <a class="chip" href="{% url 'cv_generator:cv_list' %}">Mon CV</a>
-        <a class="chip active" href="{% url 'photos:index' %}">Visa Photo</a>
-      </nav>
+      <a href="{% url 'billing:access' %}" class="btn">
+        S’abonner
+      </a>
     </div>
-  </header>
 
-  <main id="main-content" class="container page" role="main">
-    {% block content %}{% endblock %}
-  </main>
+  </div>
+</header>
 
-  <footer class="footer" role="contentinfo">
-    <div class="container">
-      <div class="foot-grid">
-        <div>
-          <div class="brand" style="display:flex;align-items:center;gap:.6rem;">
-            <img src="{% static 'img/logo.svg' %}" alt="Immigration97" height="28" width="28" loading="lazy">
-            <span>Immigration97</span>
-          </div>
-          <p class="muted">Outil rapide pour générer des photos conformes aux demandes de visa.</p>
-        </div>
-        <div>
-          <div class="foot-title">Confiance</div>
-          <ul class="foot-list">
-            <li>Vie privée : jamais de revente d’images</li>
-            <li>Suppression automatique possible (24&nbsp;h)</li>
-            <li>Contrôles techniques à chaque étape</li>
-          </ul>
-        </div>
-        <div>
-          <div class="foot-title">Aide</div>
-          <ul class="foot-list">
-            <li>FAQ en bas de page</li>
-            <li>Support sous 24&nbsp;h ouvrées</li>
-          </ul>
-        </div>
-        <div>
-          <div class="foot-title">Autre Module</div>
-          <ul class="foot-list">
-            <li><a href="{% url 'cv_generator:index' %}">Générateur de CV</a></li>
-            <li><a href="{% url 'photos:index' %}">Visa Photo</a></li>
-          </ul>
-        </div>
+<!-- ================= CONTENT ================= -->
+<main id="main-content" class="page" role="main">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="footer">
+
+  <div class="footer__container">
+
+    <div class="footer__brand">
+      <div class="footer__logo">
+        <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97 Logo" height="160">
       </div>
-      <div class="foot-bottom muted">© {% now "Y" %} Immigration97 — Tous droits réservés.</div>
+
+      <p class="footer__desc">
+        Plateforme premium d’assistance visa, immigration et carrière internationale.
+      </p>
+
+      <ul class="footer__trust">
+        <li>🔒 Données sécurisées</li>
+        <li>🧾 Paiement Stripe & PayPal</li>
+        <li>🌍 Accessible mondialement</li>
+      </ul>
     </div>
-  </footer>
 
-  <noscript>
-    <div style="padding:1rem;background:#fff3cd;color:#856404;text-align:center;">
-      JavaScript est nécessaire pour une expérience complète sur ce site. Activez JavaScript pour utiliser tous les outils.
+    <div class="footer__col">
+      <h4>Modules</h4>
+      <ul>
+        <li><a href="/visa-photo/">Visa Photo</a></li>
+        <li><a href="/cv-generator/">CV IA</a></li>
+        <li><a href="/prep/">Tests de langue</a></li>
+        <li><a href="/visa-travail/">Visa Travail</a></li>
+        <li><a href="/visa-etudes/">Visa Études</a></li>
+        <li><a href="/residence-permanente/">Résidence Permanente</a></li>
+      </ul>
     </div>
-  </noscript>
 
-  {# ---- JS (defer) ---- #}
-  <script src="{% static 'js/csrf.js' %}" defer></script>
-  <script src="{% static 'js/fetch_helpers.js' %}" defer></script>
-  <script src="{% static 'js/i18n.js' %}" defer></script>
-  <script src="{% static 'js/main.js' %}" defer></script>
-  <script src="https://kit.fontawesome.com/9d6b1b0b3f.js" crossorigin="anonymous" defer></script>
-  <script src="https://kit.fontawesome.com/9d6b1b0b3f.js" crossorigin="anonymous" defer></script>
+    <div class="footer__col">
+      <h4>Aide</h4>
+      <ul>
+        <li><a href="/faq/">FAQ</a></li>
+        <li><a href="/guides/">Guides</a></li>
+        <li><a href="/contact/">Support</a></li>
+        <li><a href="/privacy/">Confidentialité</a></li>
+      </ul>
+    </div>
 
+    <div class="footer__cta">
+      <h4>Accès Premium</h4>
+      <p>Débloquez toutes les applications Immigration97.</p>
+      <a href="{% url 'billing:access' %}" class="btn btn--lg">
+        Activer mon accès
+      </a>
+    </div>
 
-  {% block body_end %}{% endblock %}
+  </div>
+
+  <div class="footer__bottom">
+    © {% now "Y" %} Immigration97 — Tous droits réservés.
+  </div>
+
+</footer>
+
+<!-- JS -->
+<script src="{% static 'js/csrf.js' %}" defer></script>
+<script src="{% static 'js/fetch_helpers.js' %}" defer></script>
+<script src="{% static 'js/i18n.js' %}" defer></script>
+<script src="{% static 'js/main.js' %}" defer></script>
+
+{% block body_end %}{% endblock %}
+<script src="{% static 'js/tef_co_session.js' %}" defer></script>
+
 </body>
 </html>

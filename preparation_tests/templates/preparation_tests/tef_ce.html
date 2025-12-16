@@ -1,383 +1,87 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>TEF — Cours CE (Compréhension Écrite)</title>
-  <meta name="description" content="TEF — Cours CE : méthode de lecture efficace, repérage, synonymes, anaphores, pièges sémantiques, exemples guidés et erreurs fréquentes pour réussir la compréhension écrite du TEF Canada / TEFaQ." />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Open Graph / Social SEO -->
-  <meta property="og:title" content="TEF — Cours CE (Compréhension Écrite)" />
-  <meta property="og:description" content="Méthode de lecture efficace, repérage, synonymes, anaphores, pièges sémantiques, exemples guidés et erreurs fréquentes pour la compréhension écrite du TEF." />
-  <meta property="og:image" content="{% static 'img/tef-ce-cover.jpg' %}" />
-  <meta property="og:url" content="https://www.e-shelle.com/prep/fr/tef/ce" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="TEF — Cours CE (Compréhension Écrite)" />
-  <meta name="twitter:description" content="Stratégies de lecture, repérage, synonymes, anaphores, pièges sémantiques et exemples guidés pour la CE du TEF." />
-  <meta name="twitter:image" content="{% static 'img/tef-ce-cover.jpg' %}" />
+{% block title %}
+TEF — Cours CE (Compréhension écrite) | Immigration97
+{% endblock %}
 
-  <style>
-    /* ============================================
-       🎨 THEME GLOBAL - Aligné avec la page CO
-       ============================================ */
-    :root {
-      --bg: #020617;
-      --bg-soft: #02091a;
-      --surface: rgba(15,23,42,.96);
-      --surface-soft: rgba(15,23,42,.88);
-      --surface-alt: rgba(15,23,42,.75);
-      --border: rgba(148,163,184,.35);
-      --border-soft: rgba(148,163,184,.18);
-      --muted: #94a3b8;
-      --accent: #7aa2ff;
-      --accent-soft: rgba(122,162,255,.18);
-      --highlight: #a78bfa;
-      --danger: #ef4444;
-      --success: #22c55e;
-      --radius-lg: 22px;
-      --radius-md: 16px;
-      --shadow-card: 0 20px 60px rgba(15,23,42,.75);
-    }
+{% block meta_description %}
+Méthode de lecture efficace, repérage, synonymes, anaphores,
+pièges sémantiques et erreurs fréquentes pour réussir la
+compréhension écrite du TEF Canada / TEFaQ.
+{% endblock %}
 
-    * { box-sizing: border-box; }
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/tef_courses.css' %}">
+{% endblock %}
 
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(122,162,255,.18), transparent 60%),
-        radial-gradient(1000px 500px at 110% 0%, rgba(167,139,250,.20), transparent 60%),
-        radial-gradient(1200px 800px at 50% 120%, rgba(56,189,248,.20), transparent 65%),
-        linear-gradient(135deg, #020617, #020617 45%, #02091a);
-      color: #e5e7eb;
-      min-height: 100vh;
-    }
+{% block content %}
 
-    .container {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 22px 18px 40px;
-    }
+<section class="page page-tef-ce">
 
-    a { color: inherit; text-decoration: none; }
-    .muted { color: var(--muted); }
-    .small { font-size: .9rem; }
+  <!-- ===== NAVIGATION RAPIDE CO / CE / EE / EO ===== -->
+  <nav class="quick-nav">
+    <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_co' %}">🎧 Cours CO</a>
+    <a class="btn btn-primary btn-sm" href="{% url 'preparation_tests:tef_ce' %}">📖 Cours CE</a>
+    <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ee' %}">✍️ Cours EE</a>
+    <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_eo' %}">🎤 Cours EO</a>
+  </nav>
 
-    .badge-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 11px;
-      border-radius: 999px;
-      background: rgba(15,23,42,.8);
-      border: 1px solid var(--border-soft);
-      font-size: .8rem;
-      color: var(--muted);
-    }
+  <!-- ===== HERO ===== -->
+  <header class="page-hero">
+    <span class="badge-pill">TEF • Compréhension écrite</span>
 
-    /* ============================================
-       🔝 HEADER E-SHELLE + NAV TABS
-       ============================================ */
-    .header-shell {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      background: linear-gradient(180deg, rgba(2,6,23,.95), rgba(2,6,23,.9), rgba(2,6,23,.70));
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(15,23,42,.9);
-    }
+    <h1>Cours — Compréhension Écrite (CE)</h1>
 
-    .header-inner {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 10px 18px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-    }
-
-    .brand-shell {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-logo-wrap {
-      width: 40px;
-      height: 40px;
-      border-radius: 14px;
-      background: radial-gradient(circle at 20% 0%, rgba(248,250,252,.35), transparent 55%),
-                  #020617;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      box-shadow: 0 0 0 1px rgba(148,163,184,.35),
-                  0 14px 35px rgba(15,23,42,.9);
-    }
-
-    .brand-logo-wrap img {
-      width: 125%;
-      height: auto;
-      object-fit: cover;
-      transform: translateY(2px);
-    }
-
-    .brand-text-top {
-      font-size: .8rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .brand-text-main {
-      font-weight: 800;
-      font-size: 1rem;
-    }
-
-    .nav-tabs {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .nav-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 15px;
-      border-radius: 999px;
-      font-size: .9rem;
-      font-weight: 600;
-      border: 1px solid var(--border-soft);
-      background: rgba(15,23,42,.8);
-      color: #e5e7eb;
-      text-decoration: none;
-      box-shadow: 0 0 0 1px rgba(15,23,42,.7);
-      transition: background .18s ease, transform .16s ease, box-shadow .18s ease, border-color .18s ease;
-    }
-
-    .nav-pill span.icon {
-      font-size: 1.1rem;
-    }
-
-    .nav-pill.active {
-      background: radial-gradient(circle at 0 0, rgba(248,250,252,.22), transparent 55%),
-                  linear-gradient(135deg, var(--accent), var(--highlight));
-      border-color: transparent;
-      color: #0b1220;
-      box-shadow: 0 12px 30px rgba(15,23,42,.9);
-      transform: translateY(-1px);
-    }
-
-    .nav-pill:hover:not(.active) {
-      border-color: rgba(148,163,184,.45);
-      background: rgba(15,23,42,.92);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 26px rgba(15,23,42,.9);
-    }
-
-    @media (max-width: 720px) {
-      .header-inner {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .nav-tabs {
-        width: 100%;
-        overflow-x: auto;
-      }
-    }
-
-    /* ============================================
-       💡 PAGE / LEÇONS / BOUTONS
-       ============================================ */
-    .page-container {
-      margin-top: 26px;
-    }
-
-    .lessons-list {
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-
-    .lesson-card {
-      position: relative;
-      background: var(--surface);
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-card);
-      overflow: hidden;
-      transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
-    }
-
-    .lesson-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 22px 55px rgba(15,23,42,.9);
-      border-color: rgba(122,162,255,.55);
-    }
-
-    .lesson-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border-soft);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .lesson-body {
-      padding: 18px 20px 2px;
-    }
-
-    .lesson-actions {
-      padding: 16px 20px;
-      border-top: 1px solid var(--border-soft);
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,.6);
-      font-size: .9rem;
-      cursor: pointer;
-      padding: 10px 18px;
-      transition:
-        transform .18s ease,
-        box-shadow .22s ease,
-        background .18s ease,
-        border-color .18s ease,
-        color .18s ease;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg,#7aa2ff,#4f46e5);
-      color:#0b1120;
-      box-shadow: 0 10px 26px rgba(79,70,229,.6);
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 34px rgba(79,70,229,.85);
-    }
-  </style>
-</head>
-
-<body>
-  <!-- ============================================
-       🔝 HEADER E-SHELLE
-       ============================================ -->
-  <header class="header-shell">
-    <div class="header-inner">
-      <div class="brand-shell">
-        <div class="brand-logo-wrap">
-          <img src="{% static 'logoeshelle.jpg' %}" alt="Logo E-SHELLE">
-        </div>
-        <div>
-          <div class="brand-text-top">IMMIGRATION97 • PRÉPARATION TEF &amp; TCF</div>
-          <div class="brand-text-main">Compréhension Écrite (CE)</div>
-        </div>
-      </div>
-
-      <nav class="nav-tabs" aria-label="Navigation TEF">
-        <a class="nav-pill active" href="#">
-          <span class="icon">📘</span><span>Cours</span>
-        </a>
-        <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}#train">
-          <span class="icon">🧪</span><span>Entraînements</span>
-        </a>
-        <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}#tips">
-          <span class="icon">🧭</span><span>Conseils &amp; barèmes</span>
-        </a>
-        <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}#res">
-          <span class="icon">📂</span><span>Ressources</span>
-        </a>
-      </nav>
-    </div>
+    <p class="lead">
+      Apprends à lire efficacement, repérer l’information utile,
+      éviter les pièges sémantiques et répondre rapidement
+      aux questions du TEF Canada / TEFaQ.
+    </p>
   </header>
 
-  <main class="container page-container">
+  <!-- ===== LISTE DES LEÇONS ===== -->
+  <section class="lessons-list">
 
-    <!-- ============================================
-         📚 TITRE PRINCIPAL
-         ============================================ -->
-          <!-- Quick Navigation Cours directs -->
-    <div class="mb-4" style="display:flex;flex-wrap:wrap;gap:8px;">
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_co' %}">🎧 Cours CO</a>
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ce' %}">📖 Cours CE</a>
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ee' %}">✍️ Cours EE</a>
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_eo' %}">🎤 Cours EO</a>
-    </div>
-
-    <section style="margin-bottom: 40px;">
-      <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 10px;">
-        Cours — Compréhension Écrite (CE)
-      </h1>
-      <p class="muted" style="font-size: 1rem;">
-        Choisis une leçon ci-dessous, apprends la méthode, puis entraîne-toi avec les exercices dédiés.
-      </p>
-    </section>
-
-    <!-- ============================================
-         📘 LISTE DES LEÇONS
-         ============================================ -->
-    <section class="lessons-list">
-
-      {% for l in lessons %}
+    {% for l in lessons %}
       <article class="lesson-card">
 
-        <!-- HEADER DE LA LEÇON -->
         <header class="lesson-header">
-          <h2 style="margin: 0; font-size: 1.25rem; font-weight: 700;">
-            {{ l.title }}
-          </h2>
-
-          <span class="badge-pill">
-            📝 Leçon CE
-          </span>
+          <h2>{{ l.title }}</h2>
+          <span class="badge-pill">📝 Leçon CE</span>
         </header>
 
-        <!-- CONTENU DE LA LEÇON -->
         <div class="lesson-body">
           {{ l.content_html|safe }}
         </div>
 
-        <!-- BOUTON POUR COMMENCER LES EXERCICES DE CETTE LEÇON -->
-        <div class="lesson-actions">
+        <footer class="lesson-actions">
           <a href="{% url 'preparation_tests:lesson_session_ce' l.id %}"
              class="btn btn-primary">
-            🧪 Commencer les exercices de cette leçon
+            🧪 Commencer les exercices
           </a>
-        </div>
+        </footer>
 
       </article>
-      {% endfor %}
-
-      {% if lessons|length == 0 %}
+    {% empty %}
       <p class="muted">Aucune leçon disponible pour le moment.</p>
-      {% endif %}
+    {% endfor %}
 
-    </section>
+  </section>
 
-    <!-- ============================================
-         🌟 CONSEIL MOTIVATION
-         ============================================ -->
-    <section style="margin-top: 50px; text-align: center;">
-      <p class="muted" style="font-size: .95rem;">
-        Continue d’apprendre régulièrement.<br>
-        La clé de la réussite au TEF &amp; TCF, c’est la constance. 🚀📘
-      </p>
-    </section><BR></BR>
-   <CENter><a class="nav-btn" href="{% url 'preparation_tests:tef_hub' %}">⬅ Retour au Menu  TEF</a></CENter>  
+  <!-- ===== MOTIVATION ===== -->
+  <section class="page-footer-note">
+    <p class="muted">
+      La réussite au TEF ne vient pas de la chance,
+      mais de la méthode et de la régularité. 🚀
+    </p>
 
-  </main>
+    <a class="btn btn-ghost"
+       href="{% url 'preparation_tests:tef_hub' %}">
+      ⬅ Retour au menu TEF
+    </a>
+  </section>
 
-</body>
-</html>
+</section>
+
+{% endblock %}

@@ -1,633 +1,52 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>E-SHELLE • Résultat de la session</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <style>
-    :root {
-      --bg: #020617;
-      --surface: rgba(15,23,42,.96);
-      --surface-soft: rgba(15,23,42,.9);
-      --surface-alt: rgba(15,23,42,.88);
-      --border: rgba(148,163,184,.26);
-      --border-soft: rgba(148,163,184,.18);
+{% block title %}
+Résultat de la session | Immigration97
+{% endblock %}
 
-      --accent-green: #22c55e;
-      --accent-orange: #fb923c;
-      --accent-blue: #38bdf8;
-      --accent-purple: #a855f7;
-      --accent-red: #f97373;
+{% block meta_description %}
+Résultat détaillé de votre session {{ session.exam.code|upper }} :
+scores par section, analyse IA et recommandations personnalisées.
+{% endblock %}
 
-      --text-main: #e5e7eb;
-      --text-muted: #9ca3af;
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/preparation_tests.css' %}">
+{% endblock %}
 
-      --radius-lg: 22px;
-      --radius-pill: 999px;
-      --shadow-card: 0 20px 55px rgba(0,0,0,.85);
-    }
+{% block content %}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+<section class="page page-language">
 
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background:
-        radial-gradient(950px 520px at 0% 0%, rgba(56,189,248,.18), transparent 60%),
-        radial-gradient(900px 520px at 110% 0%, rgba(248,113,113,.16), transparent 60%),
-        radial-gradient(1200px 720px at 50% 120%, rgba(34,197,94,.2), transparent 65%),
-        linear-gradient(135deg,#020617,#020617 45%,#02091a);
-      color: var(--text-main);
-      min-height: 100vh;
-    }
-
-    a { color: inherit; text-decoration: none; }
-
-    /* HEADER */
-    .shell-header {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      background: linear-gradient(180deg,rgba(2,6,23,.96),rgba(2,6,23,.9),rgba(2,6,23,.78));
-      border-bottom: 1px solid rgba(15,23,42,.9);
-      backdrop-filter: blur(18px);
-    }
-
-    .shell-header-inner {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 10px 18px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-    }
-
-    .brand-block {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-logo {
-      width: 40px;
-      height: 40px;
-      border-radius: 14px;
-      overflow: hidden;
-      background: radial-gradient(circle at 20% 0%, rgba(248,250,252,.35), transparent 55%), #020617;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow:
-        0 0 0 1px rgba(148,163,184,.4),
-        0 14px 35px rgba(15,23,42,.9);
-    }
-    .brand-logo img {
-      width: 125%;
-      height: auto;
-      object-fit: cover;
-      transform: translateY(2px);
-    }
-
-    .brand-kicker {
-      font-size: .8rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-    .brand-title {
-      font-weight: 800;
-      font-size: 1rem;
-    }
-
-    .nav-tabs {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .nav-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-soft);
-      background: rgba(15,23,42,.9);
-      color: var(--text-main);
-      font-size: .9rem;
-      font-weight: 600;
-      box-shadow: 0 0 0 1px rgba(15,23,42,.8);
-      cursor: pointer;
-      transition:
-        background .18s ease,
-        border-color .18s ease,
-        box-shadow .18s ease,
-        transform .16s ease;
-    }
-    .nav-pill span.icon { font-size: 1.05rem; }
-
-    .nav-pill.active {
-      background: radial-gradient(circle at 0 0, rgba(248,250,252,.18), transparent 55%),
-                  linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-      border-color: transparent;
-      color: #020617;
-      box-shadow: 0 12px 30px rgba(0,0,0,.9);
-      transform: translateY(-1px);
-    }
-
-    .nav-pill:hover:not(.active) {
-      border-color: rgba(148,163,184,.6);
-      background: rgba(15,23,42,.96);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 26px rgba(0,0,0,.9);
-    }
-
-    main {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 26px 18px 40px;
-    }
-
-    .page-title h1 {
-      font-size: 1.8rem;
-      font-weight: 800;
-      margin-bottom: 4px;
-    }
-    .page-title p {
-      font-size: .95rem;
-      color: var(--text-muted);
-    }
-
-    /* GRID */
-    .grid-main {
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr);
-      gap: 18px;
-      margin-top: 18px;
-      align-items: flex-start;
-    }
-    @media (max-width: 920px) {
-      .grid-main {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .card {
-      background: var(--surface);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-card);
-      padding: 16px 18px 18px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card h2 {
-      font-size: 1.1rem;
-      margin-bottom: 6px;
-    }
-    .card p {
-      font-size: .9rem;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    /* SCORE GLOBAL */
-    .score-big {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-top: 10px;
-      margin-bottom: 8px;
-    }
-    .score-circle {
-      width: 82px;
-      height: 82px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 25% 0%, rgba(248,250,252,.28), transparent 55%),
-                  conic-gradient(var(--accent-green) 0deg, var(--accent-blue) 220deg, rgba(15,23,42,1) 220deg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 16px 40px rgba(0,0,0,.9);
-    }
-    .score-circle-inner {
-      width: 66px;
-      height: 66px;
-      border-radius: inherit;
-      background: rgba(15,23,42,.96);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      font-weight: 800;
-    }
-    .score-text-main {
-      font-size: .95rem;
-    }
-    .score-text-main strong {
-      font-weight: 700;
-    }
-    .score-subline {
-      font-size: .85rem;
-      color: var(--text-muted);
-    }
-
-    .score-tags {
-      margin-top: 6px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      font-size: .78rem;
-    }
-    .pill {
-      padding: 3px 9px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-soft);
-      background: rgba(15,23,42,.9);
-      color: var(--text-muted);
-    }
-
-    /* HISTORIQUE RETRY */
-    .session-history-box {
-      background: rgba(15,23,42,.96);
-      padding: 12px 14px;
-      border-left: 3px solid #38bdf8;
-      border-radius: 14px;
-      margin-top: 10px;
-      margin-bottom: 10px;
-      font-size: .86rem;
-      color: var(--text-muted);
-    }
-    .session-history-box strong {
-      color: #e5e7eb;
-    }
-
-    /* TABLEAU DES SECTIONS */
-    .section-table {
-      margin-top: 10px;
-      border-radius: 18px;
-      border: 1px solid var(--border-soft);
-      background: var(--surface-soft);
-      overflow: hidden;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: .88rem;
-    }
-    thead {
-      background: rgba(15,23,42,.96);
-    }
-    th, td {
-      padding: 7px 10px;
-      border-bottom: 1px solid rgba(15,23,42,.9);
-      text-align: left;
-    }
-    th {
-      font-size: .78rem;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--text-muted);
-    }
-    tr:last-child td {
-      border-bottom: none;
-    }
-    tr:hover td {
-      background: rgba(15,23,42,.96);
-    }
-
-    .badge-section {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: rgba(15,23,42,.9);
-      border: 1px solid var(--border-soft);
-      font-size: .78rem;
-      color: var(--text-muted);
-    }
-
-    .score-pill {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2px 9px;
-      border-radius: 999px;
-      font-size: .8rem;
-      font-weight: 600;
-    }
-    .score-good { background: rgba(34,197,94,.15); color: #4ade80; }
-    .score-mid  { background: rgba(234,179,8,.12); color: #facc15; }
-    .score-low  { background: rgba(239,68,68,.15); color: #f87171; }
-
-    .level-tag {
-      font-size: .8rem;
-      color: var(--text-muted);
-    }
-
-    /* PROFIL GLOBAL (barres) */
-    .skill-profile {
-      margin-top: 16px;
-      padding: 12px 14px;
-      border-radius: 16px;
-      background: radial-gradient(circle at 0 0, rgba(56,189,248,.16), transparent 60%),
-                  rgba(15,23,42,.98);
-      border: 1px solid var(--border-soft);
-    }
-    .skill-profile h3 {
-      font-size: .98rem;
-      margin-bottom: 4px;
-    }
-    .skill-profile p {
-      font-size: .86rem;
-      margin-bottom: 8px;
-      color: var(--text-muted);
-    }
-    .skill-bars {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .skill-bar-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1.3fr) minmax(0, 2fr) auto;
-      gap: 8px;
-      align-items: center;
-      font-size: .85rem;
-    }
-    .skill-bar-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .skill-badge {
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border-soft);
-      background: rgba(15,23,42,.96);
-      font-size: .78rem;
-      color: var(--text-muted);
-    }
-    .skill-bar-track {
-      position: relative;
-      height: 8px;
-      border-radius: 999px;
-      background: rgba(15,23,42,1);
-      overflow: hidden;
-      border: 1px solid rgba(15,23,42,.9);
-    }
-    .skill-bar-fill {
-      position: absolute;
-      inset: 0;
-      width: 0%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
-      box-shadow: 0 0 12px rgba(34,197,94,.6);
-    }
-    .skill-bar-value {
-      font-variant-numeric: tabular-nums;
-      font-size: .8rem;
-      color: var(--text-muted);
-    }
-
-    /* STEPS */
-    .premium-steps {
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      margin:18px 0 10px;
-      gap:14px;
-      font-size:.82rem;
-    }
-    .step {
-      text-align:center;
-    }
-    .step .num {
-      display:inline-flex;
-      justify-content:center;
-      align-items:center;
-      width:32px;
-      height:32px;
-      border-radius:50%;
-      font-weight:bold;
-      font-size:.8rem;
-    }
-    .step.completed .num { background:#22c55e; color:#fff; }
-    .step.active .num { background:#38bdf8; color:#fff; animation:pulse 1.5s infinite; }
-    .step.upcoming .num { background:#111827; color:#6b7280; border:1px solid #374151; }
-    .step .label { font-size:.78rem; margin-top:4px; display:block; color:var(--text-muted); }
-
-    .divider {
-      width:34px;
-      height:2px;
-      background:#1f2937;
-      border-radius:999px;
-    }
-
-    @keyframes pulse {
-      0% { transform:scale(1); }
-      50% { transform:scale(1.1); }
-      100% { transform:scale(1); }
-    }
-
-    /* BOUTON PREMIUM RETRY */
-    .retry-premium-btn {
-      display:flex;
-      align-items:center;
-      gap:10px;
-      background: linear-gradient(135deg, #ff9f43, #ff6f61);
-      color:white;
-      padding:10px 16px;
-      border-radius:14px;
-      font-weight:600;
-      text-decoration:none;
-      font-size:.9rem;
-      box-shadow:0 6px 14px rgba(255, 130, 80, 0.35);
-      transition:0.25s ease;
-    }
-    .retry-premium-btn:hover {
-      transform:translateY(-2px);
-      box-shadow:0 10px 18px rgba(255, 130, 80, 0.50);
-    }
-    .retry-premium-btn .badge {
-      background:rgba(255,255,255,0.25);
-      padding:3px 9px;
-      border-radius:999px;
-      font-size:.75rem;
-    }
-
-    .btn-row {
-      margin-top: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 8px 14px;
-      border-radius: var(--radius-pill);
-      font-size: .86rem;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      transition:
-        transform .12s ease-out,
-        box-shadow .18s ease-out,
-        background .18s ease-out,
-        filter .12s ease-out;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-      color: #020617;
-      box-shadow: 0 12px 30px rgba(0,0,0,.95);
-    }
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.03);
-    }
-    .btn-ghost {
-      background: var(--surface-soft);
-      border: 1px solid var(--border-soft);
-      color: var(--text-muted);
-    }
-    .btn-ghost:hover {
-      background: var(--surface-alt);
-      color: var(--text-main);
-      transform: translateY(-1px);
-    }
-
-    /* PANEL DROITE */
-    .side-card h3 {
-      font-size: 1rem;
-      margin-bottom: 6px;
-    }
-    .side-card p {
-      font-size: .9rem;
-      color: var(--text-muted);
-    }
-    .side-card ul {
-      margin: 8px 0 0 16px;
-      padding: 0;
-      font-size: .9rem;
-      color: var(--text-muted);
-    }
-    .side-card li + li {
-      margin-top: 4px;
-    }
-    .chip-list {
-      margin-top: 8px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      font-size: .78rem;
-    }
-
-    .ai-block {
-      margin-top: 12px;
-      padding: 10px 12px;
-      border-radius: 16px;
-      background: rgba(15,23,42,.88);
-      border: 1px dashed rgba(56,189,248,.4);
-    }
-    .ai-block-title {
-      font-size: .9rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .ai-block-title span.icon {
-      font-size: 1.1rem;
-    }
-    .ai-block p {
-      font-size: .86rem;
-      color: var(--text-muted);
-      margin: 0;
-    }
-
-    /* BADGES */
-    .badge-card {
-      margin-top: 14px;
-    }
-    .badge-wall {
-      margin-top: 8px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      font-size: .78rem;
-    }
-    .badge-chip {
-      padding: 4px 9px;
-      border-radius: 999px;
-      border: 1px solid rgba(56,189,248,.4);
-      background: rgba(15,23,42,.96);
-      color: #e5e7eb;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .badge-chip span.icon {
-      font-size: .95rem;
-    }
-  </style>
-</head>
-<body>
-
-<header class="shell-header">
-  <div class="shell-header-inner">
-    <div class="brand-block">
-      <div class="brand-logo">
-        <img src="{% static 'logoeshelle.jpg' %}" alt="E-SHELLE">
-      </div>
-      <div>
-        <div class="brand-kicker">E-SHELLE • PRÉPARATION TEF &amp; TCF</div>
-        <div class="brand-title">Résultat de la session</div>
-      </div>
-    </div>
-
-    <nav class="nav-tabs" aria-label="Navigation principale">
-      <a class="nav-pill" href="{% url 'preparation_tests:french_exams' %}">
-        <span class="icon">🏠</span><span>Hub examens</span>
-      </a>
-      <a class="nav-pill" href="{% url 'preparation_tests:session_review' %}">
-        <span class="icon">📊</span><span>Mes résultats</span>
-      </a>
-      {% if session.exam.code|lower == "tef" %}
-        <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}">
-          <span class="icon">🇫🇷</span><span>Hub TEF</span>
-        </a>
-      {% elif session.exam.code|lower == "tcf" %}
-        <a class="nav-pill" href="{% url 'preparation_tests:tcf_hub' %}">
-          <span class="icon">🇫🇷</span><span>Hub TCF</span>
-        </a>
+  <!-- ===== TITRE ===== -->
+  <header class="page-title">
+    <h1>
+      Session {{ session.exam.code|upper }}
+      {% if session.mode == "mock" %}
+        (Examen blanc)
+      {% elif session.mode == "retry_errors" %}
+        (Correction ciblée)
+      {% else %}
+        (Entraînement)
       {% endif %}
-    </nav>
-  </div>
-</header>
+    </h1>
 
-<main>
-  <section class="page-title">
-    <h1>Session – {{ session.exam.code|upper }} {% if session.mode == "mock" %}(examen blanc){% elif session.mode == "retry_errors" %}(correction ciblée){% else %}(entraînement){% endif %}</h1>
     <p>
-      Date : <strong>{{ session.started_at|date:"d/m/Y" }}</strong>,
-      heure : <strong>{{ session.started_at|time:"H:i" }}</strong> —
-      résumé de tes performances par section et profil global.
+      Date :
+      <strong>{{ session.started_at|date:"d/m/Y" }}</strong>
+      à <strong>{{ session.started_at|time:"H:i" }}</strong>
+      — résumé de tes performances.
     </p>
-  </section>
+  </header>
 
-  <section class="grid-main">
-    <!-- COLONNE GAUCHE -->
+  <div class="grid-main">
+
+    <!-- ======================
+         COLONNE GAUCHE
+    ======================= -->
     <article class="card">
+
       <h2>Score global</h2>
-      <p>Vue d'ensemble de la session.</p>
 
       <div class="score-big">
         <div class="score-circle">
@@ -635,18 +54,20 @@
             {{ global_pct }}%
           </div>
         </div>
+
         <div>
           <div class="score-text-main">
             <strong>{{ total_correct }}</strong> bonnes réponses sur
-            <strong>{{ total_items }}</strong> questions.
+            <strong>{{ total_items }}</strong>
           </div>
+
           <div class="score-subline">
             {% if global_pct >= 80 %}
-              Excellent 🚀 — tu es prêt·e pour des examens blancs complets.
+              Excellent 🚀 — prêt pour les examens blancs complets.
             {% elif global_pct >= 60 %}
-              Bon niveau 💪 — consolide encore 1 ou 2 sections avant le vrai test.
+              Bon niveau 💪 — encore un peu de consolidation.
             {% else %}
-              Base à renforcer 🧱 — refais les cours ciblés sur tes faiblesses.
+              Base à renforcer 🧱 — retravaille les fondamentaux.
             {% endif %}
           </div>
 
@@ -664,31 +85,12 @@
 
       {% if session.mode == "retry_errors" %}
         <div class="session-history-box">
-          <strong>📘 Historique de révision.</strong><br>
-          Cette session est une <strong>correction ciblée</strong>, créée à partir
-          de ta session précédente. Tu ne revois que tes erreurs pour aller plus vite.
+          <strong>📘 Correction ciblée :</strong>
+          tu retravailles uniquement tes erreurs pour progresser plus vite.
         </div>
       {% endif %}
 
-      <!-- STEPS -->
-      <div class="premium-steps">
-        <div class="step completed">
-          <span class="num">1</span>
-          <span class="label">Test terminé</span>
-        </div>
-        <div class="divider"></div>
-        <div class="step active">
-          <span class="num">2</span>
-          <span class="label">Correction ciblée</span>
-        </div>
-        <div class="divider"></div>
-        <div class="step upcoming">
-          <span class="num">3</span>
-          <span class="label">Maîtrise totale</span>
-        </div>
-      </div>
-
-      <!-- TABLEAU DES SECTIONS -->
+      <!-- ===== TABLE DES SECTIONS ===== -->
       <div class="section-table">
         <table>
           <thead>
@@ -701,225 +103,81 @@
           </thead>
           <tbody>
             {% for attempt in attempts %}
-              {% with sec=attempt.section %}
-                {% with total=attempt.total_items correct=attempt.raw_score %}
-                  {% if total > 0 %}
-                    {% widthratio correct total 100 as pct %}
-                  {% else %}
-                    {% with 0 as pct %}{% endwith %}
-                  {% endif %}
-                  <tr>
-                    <td>
-                      <span class="badge-section">
-                        {% if sec.code|lower in "co,listening" %}
-                          🎧
-                        {% elif sec.code|lower in "ce,reading" %}
-                          📖
-                        {% elif sec.code|lower in "ee,writing" %}
-                          ✍️
-                        {% elif sec.code|lower in "eo,speaking" %}
-                          🗣
-                        {% else %}
-                          🎯
-                        {% endif %}
-                        {{ sec.code|upper }} – {{ sec.name }}
-                      </span>
-                    </td>
-                    <td>
-                      {% if pct >= 80 %}
-                        <span class="score-pill score-good">{{ pct }} %</span>
-                      {% elif pct >= 60 %}
-                        <span class="score-pill score-mid">{{ pct }} %</span>
-                      {% else %}
-                        <span class="score-pill score-low">{{ pct }} %</span>
-                      {% endif %}
-                    </td>
-                    <td class="level-tag">
-                      {% if pct < 40 %}
-                        A1–A2 (débutant)
-                      {% elif pct < 60 %}
-                        B1 (intermédiaire)
-                      {% elif pct < 80 %}
-                        B2 (avancé)
-                      {% else %}
-                        C1–C2 (très avancé)
-                      {% endif %}
-                    </td>
-                    <td>{{ correct|floatformat:0 }} / {{ total }}</td>
-                  </tr>
-                {% endwith %}
+              {% with total=attempt.total_items correct=attempt.raw_score %}
+                {% if total > 0 %}
+                  {% widthratio correct total 100 as pct %}
+                {% else %}
+                  {% with 0 as pct %}{% endwith %}
+                {% endif %}
+                <tr>
+                  <td>{{ attempt.section.code|upper }} – {{ attempt.section.name }}</td>
+                  <td>
+                    {% if pct >= 80 %}
+                      <span class="score-pill score-good">{{ pct }}%</span>
+                    {% elif pct >= 60 %}
+                      <span class="score-pill score-mid">{{ pct }}%</span>
+                    {% else %}
+                      <span class="score-pill score-low">{{ pct }}%</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if pct < 40 %}A1–A2
+                    {% elif pct < 60 %}B1
+                    {% elif pct < 80 %}B2
+                    {% else %}C1–C2{% endif %}
+                  </td>
+                  <td>{{ correct }} / {{ total }}</td>
+                </tr>
               {% endwith %}
             {% endfor %}
           </tbody>
         </table>
       </div>
 
-      <!-- PROFIL GLOBAL PAR COMPÉTENCE -->
-      <section class="skill-profile">
-        <h3>Profil global par compétence</h3>
-        <p>
-          Visualise ton niveau pour chaque type d’épreuve. Vise au moins
-          <strong>70&nbsp;%</strong> sur chaque barre avant le vrai test.
-        </p>
-
-        <div class="skill-bars">
-          {% for attempt in attempts %}
-            {% with sec=attempt.section total=attempt.total_items correct=attempt.raw_score %}
-              {% if total > 0 %}
-                {% widthratio correct total 100 as pct %}
-              {% else %}
-                {% with 0 as pct %}{% endwith %}
-              {% endif %}
-              <div class="skill-bar-row">
-                <div class="skill-bar-label">
-                  <span class="skill-badge">
-                    {% if sec.code|lower in "co,listening" %}
-                      🎧 CO
-                    {% elif sec.code|lower in "ce,reading" %}
-                      📖 CE
-                    {% elif sec.code|lower in "ee,writing" %}
-                      ✍️ EE
-                    {% elif sec.code|lower in "eo,speaking" %}
-                      🗣 EO
-                    {% else %}
-                      🎯 {{ sec.code|upper }}
-                    {% endif %}
-                  </span>
-                  <span>{{ sec.name }}</span>
-                </div>
-                <div class="skill-bar-track">
-                  <div class="skill-bar-fill" style="width: {{ pct }}%;"></div>
-                </div>
-                <div class="skill-bar-value">{{ pct }}&nbsp;%</div>
-              </div>
-            {% endwith %}
-          {% endfor %}
-        </div>
-      </section>
-
-      <!-- ACTIONS -->
+      <!-- ===== ACTIONS ===== -->
       <div class="btn-row" style="margin-top:16px;">
-        <a class="btn btn-primary" href="{% url 'preparation_tests:session_correction' session.id %}">
-          ✅ Voir le corrigé détaillé
+        <a class="btn btn--primary"
+           href="{% url 'preparation_tests:session_correction' session.id %}">
+          Voir le corrigé détaillé
         </a>
 
-        <a href="{% url 'preparation_tests:retry_session_errors' session.id %}" class="retry-premium-btn">
-          <span class="icon">🔁</span>
-          <span>Refaire uniquement mes erreurs</span>
-          <span class="badge">Ciblé</span>
+        <a class="btn btn--soft"
+           href="{% url 'preparation_tests:retry_session_errors' session.id %}">
+          Refaire mes erreurs
         </a>
 
-        <a class="btn btn-ghost" href="{% url 'preparation_tests:session_review' %}">
-          📊 Revenir à mes résultats
+        <a class="btn btn--soft"
+           href="{% url 'preparation_tests:session_review' %}">
+          Retour aux résultats
         </a>
-
-        {% if session.exam.code|lower == "tef" %}
-          <a class="btn btn-ghost" href="{% url 'preparation_tests:tef_hub' %}">
-            🇫🇷 Continuer la préparation TEF
-          </a>
-        {% elif session.exam.code|lower == "tcf" %}
-          <a class="btn btn-ghost" href="{% url 'preparation_tests:tcf_hub' %}">
-            🇫🇷 Continuer la préparation TCF
-          </a>
-        {% endif %}
       </div>
+
     </article>
 
-    <!-- COLONNE DROITE : CONSEILS + IA + BADGES -->
+    <!-- ======================
+         COLONNE DROITE
+    ======================= -->
     <aside>
+
       <article class="card side-card">
-        <h3>Que faire maintenant ?</h3>
-        <p>Utilise ce résultat comme un GPS pour cibler tes révisions.</p>
+        <h3>Conseils personnalisés</h3>
         <ul>
-          <li>Les sections avec score <strong>&lt; 60 %</strong> sont prioritaires.</li>
-          <li>Refais d'abord les <strong>cours</strong>, puis les <strong>sessions d'entraînement</strong>.</li>
-          <li>Quand tu te stabilises au-dessus de <strong>70 %</strong>, passe aux examens blancs.</li>
+          <li>Travaille d’abord les sections &lt; 60 %</li>
+          <li>Vise au moins 70 % par section</li>
+          <li>Alterner cours + entraînements chronométrés</li>
         </ul>
-
-        <div class="chip-list">
-          {% for attempt in attempts %}
-            {% with total=attempt.total_items correct=attempt.raw_score %}
-              {% if total > 0 %}
-                {% widthratio correct total 100 as pct %}
-                {% if pct < 60 %}
-                  <span class="pill">À travailler : {{ attempt.section.code|upper }}</span>
-                {% endif %}
-              {% endif %}
-            {% endwith %}
-          {% endfor %}
-        </div>
-
-        {% if session.exam.code|lower == "tef" %}
-          <div style="margin-top: 10px; font-size:.86rem; color:var(--text-muted);">
-            Astuce : les cours TEF sont aussi utiles pour le TCF et les autres tests
-            (mêmes compétences, mêmes pièges).
-          </div>
-        {% endif %}
       </article>
 
       {% if analysis %}
         <article class="card side-card">
-          <h3>Coach IA – Analyse de ta session</h3>
-          <div class="ai-block">
-            <div class="ai-block-title">
-              <span class="icon">🤖</span>
-              <span>Analyse automatique</span>
-            </div>
-            <p>
-              {{ analysis }}
-            </p>
-          </div>
+          <h3>Analyse IA</h3>
+          <p>{{ analysis }}</p>
         </article>
       {% endif %}
 
-      <!-- BADGES DE LA SESSION -->
-      <article class="card side-card badge-card">
-        <h3>Badges de la session</h3>
-        <p>Petit récap des exploits débloqués sur cette session.</p>
-
-        <div class="badge-wall">
-          {% if global_pct >= 80 %}
-            <span class="badge-chip">
-              <span class="icon">🏆</span>
-              Niveau global excellent ({{ global_pct }} %)
-            </span>
-          {% elif global_pct >= 60 %}
-            <span class="badge-chip">
-              <span class="icon">💪</span>
-              Base solide ({{ global_pct }} %)
-            </span>
-          {% else %}
-            <span class="badge-chip">
-              <span class="icon">🧱</span>
-              Session de construction ({{ global_pct }} %)
-            </span>
-          {% endif %}
-
-          {% if session.mode == "retry_errors" %}
-            <span class="badge-chip">
-              <span class="icon">🔁</span>
-              Persévérant·e : tu retravailles tes erreurs
-            </span>
-          {% endif %}
-
-          {% for attempt in attempts %}
-            {% with sec=attempt.section total=attempt.total_items correct=attempt.raw_score %}
-              {% if total > 0 %}
-                {% widthratio correct total 100 as pct %}
-                {% if pct >= 80 %}
-                  <span class="badge-chip">
-                    <span class="icon">🎯</span>
-                    {{ sec.code|upper }} : 80 % + sur cette session
-                  </span>
-                {% endif %}
-              {% endif %}
-            {% endwith %}
-          {% endfor %}
-        </div>
-      </article>
     </aside>
-  </section>
-</main>
 
-</body>
-</html>
+  </div>
+</section>
+
+{% endblock %}

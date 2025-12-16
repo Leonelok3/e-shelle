@@ -1,355 +1,171 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>TEF — Cours CO (Compréhension Orale)</title>
-  <meta name="description" content="CO du TEF : stratégies d'écoute, exercices guidés, repérage des mots-clés, annonces, dialogues, messages administratifs." />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <style>
-    :root {
-      --bg: #020617;
-      --surface: rgba(15,23,42,.96);
-      --surface-soft: rgba(15,23,42,.88);
-      --border: rgba(148,163,184,.22);
-      --accent: #7aa2ff;
-      --radius-lg: 22px;
-      --radius-md: 16px;
-      --muted: #94a3b8;
-    }
+{% block title %}
+TEF Canada – Compréhension orale
+{% endblock %}
 
-    * { box-sizing: border-box; }
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/tef_co_session.css' %}">
+{% endblock %}
 
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background: linear-gradient(135deg,#020617,#0f172a 55%,#1e293b);
-      color: #e5e7eb;
-    }
+{% block content %}
+<main class="container-narrow">
 
-    a { color: inherit; text-decoration: none; }
+  <h1 class="page-title">TEF Canada – Compréhension orale</h1>
 
-    .container {
-      max-width: 1100px;
-      margin: auto;
-      padding: 25px 20px 60px;
-    }
+  {% for lesson in lessons %}
+  <section class="lesson-card" data-lesson>
 
-    /* HEADER STICKY */
-    .header-shell {
-      background: rgba(2,6,23,.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(148,163,184,.15);
-      position: sticky;
-      top: 0;
-      z-index: 30;
-    }
+    <!-- ===== TITRE LEÇON ===== -->
+    <h2 class="lesson-title">
+      Leçon {{ forloop.counter }} : {{ lesson.title }}
+    </h2>
 
-    .header-inner {
-      max-width: 1120px;
-      margin: auto;
-      padding: 12px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-    }
-
-    .brand-shell {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .brand-logo {
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid rgba(148,163,184,.3);
-      background: #020617;
-      box-shadow: 0 8px 25px rgba(0,0,0,.45);
-      flex-shrink: 0;
-    }
-
-    .brand-logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .brand-sub {
-      font-size:.8rem;
-      text-transform:uppercase;
-      letter-spacing:.14em;
-      color:var(--muted);
-    }
-
-    .brand-title {
-      font-weight:700;
-      font-size:1rem;
-    }
-
-    .nav-tabs {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .nav-pill {
-      padding: 8px 15px;
-      border-radius: 999px;
-      font-weight: 600;
-      background: rgba(15,23,42,.72);
-      border: 1px solid rgba(148,163,184,.25);
-      text-decoration: none;
-      color: #e2e8f0;
-      font-size:.9rem;
-      transition: background .15s ease, box-shadow .15s ease, transform .1s ease;
-    }
-
-    .nav-pill:hover {
-      background: rgba(30,64,175,.9);
-      box-shadow: 0 8px 22px rgba(15,23,42,.6);
-      transform: translateY(-1px);
-    }
-
-    .nav-pill.active {
-      background: var(--accent);
-      color: #0f172a;
-      border: none;
-      box-shadow: 0 6px 20px rgba(122,162,255,.45);
-    }
-
-    @media (max-width: 768px) {
-      .header-inner {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .nav-tabs {
-        width: 100%;
-      }
-    }
-
-    /* TITRE PAGE */
-    .page-header-title {
-      font-size:2rem;
-      font-weight:800;
-      margin:18px 0 6px;
-    }
-
-    .page-header-sub {
-      color:var(--muted);
-      font-size:1rem;
-      max-width:640px;
-    }
-
-    /* LESSONS / CARDS */
-    .lessons-wrapper {
-      display:flex;
-      flex-direction:column;
-      gap:26px;
-      margin-top:30px;
-    }
-
-    .lesson-card {
-      background: var(--surface-soft);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: 0 12px 40px rgba(0,0,0,.45);
-      overflow: hidden;
-    }
-
-    .lesson-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap:10px;
-    }
-
-    .lesson-title {
-      margin:0;
-      font-size:1.25rem;
-      font-weight:700;
-    }
-
-    .lesson-tag {
-      font-size:.85rem;
-      color:var(--muted);
-      display:flex;
-      align-items:center;
-      gap:6px;
-    }
-
-    .badge-new {
-      display:inline-flex;
-      align-items:center;
-      gap:4px;
-      padding:3px 8px;
-      border-radius:999px;
-      font-size:.75rem;
-      font-weight:700;
-      background:linear-gradient(135deg,#22c55e,#16a34a);
-      color:#022c22;
-      box-shadow:0 2px 8px rgba(34,197,94,.45);
-    }
-
-    .lesson-meta {
-      margin-top:4px;
-      font-size:.8rem;
-      color:var(--muted);
-    }
-
-    .lesson-body {
-      padding: 18px 22px;
-      line-height:1.7;
-      font-size:.95rem;
-    }
-
-    .lesson-body p { margin:8px 0; }
-    .lesson-body ul,
-    .lesson-body ol { margin:8px 0 8px 20px; }
-
-    .lesson-actions {
-      padding: 14px 22px 16px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #0f172a;
-      padding: 10px 18px;
-      font-weight: 700;
-      border-radius: var(--radius-md);
-      text-decoration: none;
-      border:none;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      font-size:.92rem;
-      box-shadow:0 10px 26px rgba(15,23,42,.7);
-      transition: transform .1s ease, box-shadow .15s ease, filter .12s ease;
-    }
-
-    .btn-primary:hover {
-      transform:translateY(-1px);
-      filter:brightness(1.05);
-      box-shadow:0 14px 32px rgba(15,23,42,.85);
-    }
-
-    .empty-state {
-      margin-top:26px;
-      padding:18px 20px;
-      border-radius:var(--radius-lg);
-      border:1px dashed var(--border);
-      background:rgba(15,23,42,.8);
-      color:var(--muted);
-      font-size:.95rem;
-    }
-
-    .empty-state strong {
-      color:#e5e7eb;
-    }
-  </style>
-</head>
-
-<body>
-
-<header class="header-shell">
-  <div class="header-inner">
-    <div class="brand-shell">
-      <div class="brand-logo">
-        <img src="{% static 'logoeshelle.jpg' %}" alt="E-SHELLE">
+    <!-- ===== PROGRESSION ===== -->
+    <div class="lesson-progress">
+      <div class="progress-text">
+        <span>Score : <strong class="score-current">0</strong> /
+        <span class="score-total">{{ lesson.exercises.all|length }}</span></span>
       </div>
-      <div>
-        <div class="brand-sub">
-          IMMIGRATION97 • PRÉPARATION TEF
-        </div>
-        <div class="brand-title">Compréhension Orale (CO)</div>
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
       </div>
     </div>
 
-    <nav class="nav-tabs" aria-label="Navigation TEF CO">
-      <a class="nav-pill active" href="#">📘 Cours</a>
-      <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}#train">🧪 Entraînements</a>
-      <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}#tips">🧭 Conseils</a>
-      <a class="nav-pill" href="{% url 'preparation_tests:tef_hub' %}#res">📂 Ressources</a>
-    </nav>
-  </div>
-</header>
-
-<main class="container">
- <!-- Quick Navigation Cours directs -->
-   <div class="no-print" style="margin-top:10px;margin-bottom:8px;">
-      <!-- Quick Navigation Cours directs -->
-    <div class="mb-4" style="display:flex;flex-wrap:wrap;gap:8px;">
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_co' %}">🎧 Cours CO</a>
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ce' %}">📖 Cours CE</a>
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ee' %}">✍️ Cours EE</a>
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_eo' %}">🎤 Cours EO</a>
+    <!-- ===== BADGE ===== -->
+    <div class="lesson-badge badge-running">
+      En cours
     </div>
 
-
-  <h1 class="page-header-title">
-    Cours — Compréhension Orale (CO)
-  </h1>
-  <p class="page-header-sub">
-    Choisis une leçon, apprends la méthode (stratégies d’écoute, mots-clés, pièges fréquents),
-    puis lance les exercices associés pour t’entraîner en conditions proches de l’examen.
-  </p>
-
-  {% if lessons %}
-    <section class="lessons-wrapper">
-      {% for l in lessons %}
-        <article class="lesson-card">
-
-          <header class="lesson-header">
-            <div>
-              <h2 class="lesson-title">{{ l.title }}</h2>
-              <div class="lesson-meta">
-                {% if l.updated_at %}
-                  📅 Mise à jour : {{ l.updated_at|date:"d/m/Y à H:i" }}
-                {% endif %}
-              </div>
-            </div>
-            <div class="lesson-tag">
-              🎧 Leçon CO
-              {% if forloop.first %}
-                <span class="badge-new">Nouveau</span>
-              {% endif %}
-            </div>
-          </header>
-
-          <div class="lesson-body">
-            {{ l.content_html|safe }}
-          </div>
-
-          <div class="lesson-actions">
-            <a href="{% url 'preparation_tests:lesson_session_co' l.id %}" class="btn-primary">
-              🧪 Commencer les exercices
-            </a>
-          </div>
-
-        </article>
-      {% endfor %}
-    </section>
-  {% else %}
-    <div class="empty-state">
-      <strong>Aucune leçon disponible pour le moment.</strong><br>
-      Les cours détaillés de Compréhension Orale seront ajoutés prochainement.
-      En attendant, tu peux déjà utiliser les entraînements depuis le hub TEF.
+    <!-- ===== CONTENU COURS ===== -->
+    <div class="lesson-content">
+      {{ lesson.content_html|safe }}
     </div>
-  {% endif %} <BR></BR>
-   <CENter><a class="nav-btn" href="{% url 'preparation_tests:tef_hub' %}">⬅ Retour hub TEF</a></CENter>  
+
+    <!-- ===== EXERCICES ===== -->
+    <h3 class="exercise-title">Exercices</h3>
+
+    {% for ex in lesson.exercises.all %}
+    {% if ex.is_active %}
+    <div class="exercise-card" data-exercise data-correct="{{ ex.correct_option }}">
+
+      <h4>{{ ex.title }}</h4>
+
+      {% if ex.instruction %}
+      <p class="exercise-instruction">{{ ex.instruction }}</p>
+      {% endif %}
+
+      {% if ex.audio %}
+      <audio controls class="exercise-audio">
+        <source src="{{ ex.audio.url }}" type="audio/mpeg">
+        Votre navigateur ne supporte pas l’audio.
+      </audio>
+      {% endif %}
+
+      <p class="exercise-question">{{ ex.question_text }}</p>
+
+      <!-- ===== OPTIONS ===== -->
+      <form class="exercise-form">
+        {% if ex.option_a %}
+        <label>
+          <input type="radio" name="q{{ ex.id }}" value="A">
+          A : {{ ex.option_a }}
+        </label><br>
+        {% endif %}
+
+        {% if ex.option_b %}
+        <label>
+          <input type="radio" name="q{{ ex.id }}" value="B">
+          B : {{ ex.option_b }}
+        </label><br>
+        {% endif %}
+
+        {% if ex.option_c %}
+        <label>
+          <input type="radio" name="q{{ ex.id }}" value="C">
+          C : {{ ex.option_c }}
+        </label><br>
+        {% endif %}
+
+        {% if ex.option_d %}
+        <label>
+          <input type="radio" name="q{{ ex.id }}" value="D">
+          D : {{ ex.option_d }}
+        </label>
+        {% endif %}
+      </form>
+
+      <button type="button" class="btn-check">
+        Vérifier ma réponse
+      </button>
+
+      <div class="exercise-feedback"></div>
+
+      {% if ex.summary %}
+      <details class="exercise-summary">
+        <summary>Voir la correction</summary>
+        <p>{{ ex.summary }}</p>
+      </details>
+      {% endif %}
+
+    </div>
+    {% endif %}
+    {% endfor %}
+
+  </section>
+  {% empty %}
+  <p>Aucune leçon disponible pour le moment.</p>
+  {% endfor %}
 
 </main>
 
-</body>
-</html>
+<!-- ===== JS SCORE & PROGRESSION ===== -->
+<script>
+document.querySelectorAll('[data-lesson]').forEach(lesson => {
+  const exercises = lesson.querySelectorAll('[data-exercise]');
+  const scoreCurrent = lesson.querySelector('.score-current');
+  const scoreTotal = parseInt(lesson.querySelector('.score-total').textContent);
+  const progressFill = lesson.querySelector('.progress-fill');
+  const badge = lesson.querySelector('.lesson-badge');
+
+  let score = 0;
+  let answered = 0;
+
+  exercises.forEach(ex => {
+    const btn = ex.querySelector('.btn-check');
+    const feedback = ex.querySelector('.exercise-feedback');
+    const correct = ex.dataset.correct;
+
+    btn.addEventListener('click', () => {
+      const selected = ex.querySelector('input[type="radio"]:checked');
+      if (!selected || btn.disabled) return;
+
+      answered++;
+
+      if (selected.value === correct) {
+        feedback.textContent = "✅ Bonne réponse";
+        feedback.style.color = "#22c55e";
+        score++;
+      } else {
+        feedback.textContent = "❌ Mauvaise réponse";
+        feedback.style.color = "#ef4444";
+      }
+
+      btn.disabled = true;
+      scoreCurrent.textContent = score;
+
+      const percent = Math.round((answered / scoreTotal) * 100);
+      progressFill.style.width = percent + "%";
+
+      if (percent === 100) {
+        badge.textContent = "Leçon terminée ✔";
+        badge.classList.remove('badge-running');
+        badge.classList.add('badge-done');
+      }
+    });
+  });
+});
+</script>
+
+{% endblock %}

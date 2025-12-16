@@ -1,201 +1,143 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Examens d’allemand – Goethe, telc, TestDaF, DSH – Immigration97{% endblock %}
+{% block title %}
+Examens d’allemand – Goethe, telc, TestDaF, DSH – Immigration97
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/germanprep.css' %}">
+{% endblock %}
 
 {% block content %}
-<main class="page page--german-exam-hub">
-  <section class="section">
+<main class="page page-dark page-germanprep">
+
+  <!-- HERO -->
+  <section class="hub-hero">
     <div class="container-narrow">
 
-      <p class="hero-kicker">Préparation • Allemand • Examens officiels</p>
-      <h1 class="hero-title">Choisis ton examen d’allemand</h1>
-      <p class="hero-subtitle">
-        Prépare les principaux tests officiels d’allemand : Goethe, telc, TestDaF, DSH, test d’intégration
-        – avec des parcours structurés, des exercices ciblés et des simulations chronométrées.
+      <p class="eng-hero-kicker">
+        Préparation • Allemand • Examens officiels
       </p>
 
-      <div class="profile-summary">
-        <p>XP total : {{ profile.xp }} • Niveau interne : {{ profile.level }}</p>
-        <p>Tests passés : {{ profile.total_tests }} • Meilleur score : {{ profile.best_score|default:0|floatformat:1 }} %</p>
+      <h1 class="hub-title">
+        Choisis ton <span>examen d’allemand</span>
+      </h1>
+
+      <p class="hub-subtitle">
+        Prépare les principaux tests officiels d’allemand : Goethe, telc, TestDaF, DSH,
+        tests d’intégration — avec des parcours structurés, des exercices ciblés
+        et des simulations chronométrées.
+      </p>
+
+      <div class="profile-box">
+        <div class="profile-stat">
+          <span>XP total</span>
+          <strong>{{ profile.xp }}</strong>
+        </div>
+        <div class="profile-stat">
+          <span>Niveau interne</span>
+          <strong>{{ profile.level }}</strong>
+        </div>
+        <div class="profile-stat">
+          <span>Tests passés</span>
+          <strong>{{ profile.total_tests }}</strong>
+        </div>
+        <div class="profile-stat">
+          <span>Meilleur score</span>
+          <strong>{{ profile.best_score|default:0|floatformat:1 }} %</strong>
+        </div>
       </div>
-
-      <section class="section">
-        <h2 class="section-title">Tes dernières simulations</h2>
-        {% if last_sessions %}
-          <ul class="session-list">
-            {% for s in last_sessions %}
-              <li class="session-item">
-                <div class="session-main">
-                  <p class="session-title">
-                    {{ s.exam.title }} ({{ s.exam.level }})
-                  </p>
-                  <p class="session-meta">
-                    Passé le {{ s.started_at|date:"d/m/Y H:i" }} • Score : {{ s.score|default:"0.0" }} %
-                  </p>
-                </div>
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p class="section-empty">
-            Tu n’as pas encore lancé de simulation d’allemand. Choisis un examen ci-dessous pour commencer.
-          </p>
-        {% endif %}
-      </section>
-
-      <section class="section">
-        <h2 class="section-title">Goethe-Institut</h2>
-        {% if goethe_exams %}
-          <div class="exam-cards-row">
-            {% for exam in goethe_exams %}
-              <article class="exam-card">
-                <h3 class="exam-title">{{ exam.title }}</h3>
-                <p class="exam-meta">
-                  Niveau {{ exam.level }} • Goethe-Institut
-                </p>
-                <p class="exam-desc">
-                  {{ exam.short_description }}
-                </p>
-                <div class="exam-actions">
-                  <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-secondary btn-soft">
-                    Voir le programme
-                  </a>
-                  <a href="{% url 'germanprep:exam_learning_path' exam.slug %}" class="btn btn-ghost btn-soft">
-                    Cours & exercices
-                  </a>
-                  <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-primary btn-soft">
-                    Simulation rapide
-                  </a>
-                </div>
-              </article>
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="section-empty">Aucun examen Goethe configuré pour l’instant.</p>
-        {% endif %}
-      </section>
-
-      <section class="section">
-        <h2 class="section-title">telc</h2>
-        {% if telc_exams %}
-          <div class="exam-cards-row">
-            {% for exam in telc_exams %}
-              <article class="exam-card">
-                <h3 class="exam-title">{{ exam.title }}</h3>
-                <p class="exam-meta">
-                  Niveau {{ exam.level }} • telc
-                </p>
-                <p class="exam-desc">
-                  {{ exam.short_description }}
-                </p>
-                <div class="exam-actions">
-                  <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-secondary btn-soft">
-                    Voir le programme
-                  </a>
-                  <a href="{% url 'germanprep:exam_learning_path' exam.slug %}" class="btn btn-ghost btn-soft">
-                    Cours & exercices
-                  </a>
-                  <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-primary btn-soft">
-                    Simulation rapide
-                  </a>
-                </div>
-              </article>
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="section-empty">Aucun examen telc configuré pour l’instant.</p>
-        {% endif %}
-      </section>
-
-      <section class="section">
-        <h2 class="section-title">TestDaF & DSH</h2>
-        {% if testdaf_exams or dsh_exams %}
-          <div class="exam-cards-row">
-            {% for exam in testdaf_exams %}
-              <article class="exam-card">
-                <h3 class="exam-title">{{ exam.title }}</h3>
-                <p class="exam-meta">
-                  Niveau {{ exam.level }} • TestDaF
-                </p>
-                <p class="exam-desc">
-                  {{ exam.short_description }}
-                </p>
-                <div class="exam-actions">
-                  <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-secondary btn-soft">
-                    Voir le programme
-                  </a>
-                  <a href="{% url 'germanprep:exam_learning_path' exam.slug %}" class="btn btn-ghost btn-soft">
-                    Cours & exercices
-                  </a>
-                  <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-primary btn-soft">
-                    Simulation rapide
-                  </a>
-                </div>
-              </article>
-            {% endfor %}
-
-            {% for exam in dsh_exams %}
-              <article class="exam-card">
-                <h3 class="exam-title">{{ exam.title }}</h3>
-                <p class="exam-meta">
-                  Niveau {{ exam.level }} • DSH
-                </p>
-                <p class="exam-desc">
-                  {{ exam.short_description }}
-                </p>
-                <div class="exam-actions">
-                  <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-secondary btn-soft">
-                    Voir le programme
-                  </a>
-                  <a href="{% url 'germanprep:exam_learning_path' exam.slug %}" class="btn btn-ghost btn-soft">
-                    Cours & exercices
-                  </a>
-                  <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-primary btn-soft">
-                    Simulation rapide
-                  </a>
-                </div>
-              </article>
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="section-empty">Aucun TestDaF / DSH configuré pour l’instant.</p>
-        {% endif %}
-      </section>
-
-      <section class="section">
-        <h2 class="section-title">Tests d’intégration & visa</h2>
-        {% if integration_exams %}
-          <div class="exam-cards-row">
-            {% for exam in integration_exams %}
-              <article class="exam-card">
-                <h3 class="exam-title">{{ exam.title }}</h3>
-                <p class="exam-meta">
-                  Niveau {{ exam.level }} • Test d’intégration / visa
-                </p>
-                <p class="exam-desc">
-                  {{ exam.short_description }}
-                </p>
-                <div class="exam-actions">
-                  <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-secondary btn-soft">
-                    Voir le programme
-                  </a>
-                  <a href="{% url 'germanprep:exam_learning_path' exam.slug %}" class="btn btn-ghost btn-soft">
-                    Cours & exercices
-                  </a>
-                  <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-primary btn-soft">
-                    Simulation rapide
-                  </a>
-                </div>
-              </article>
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="section-empty">Aucun test d’intégration / visa configuré pour l’instant.</p>
-        {% endif %}
-      </section>
 
     </div>
   </section>
+
+  <!-- DERNIÈRES SESSIONS -->
+  <section class="eng-section">
+    <div class="container-narrow">
+
+      <h2 class="eng-section-title">Tes dernières simulations</h2>
+
+      {% if last_sessions %}
+        <div class="exam-grid">
+          {% for s in last_sessions %}
+            <article class="card">
+              <h3 class="card-title">
+                {{ s.exam.title }} ({{ s.exam.level }})
+              </h3>
+              <p class="card-meta">
+                Passé le {{ s.started_at|date:"d/m/Y H:i" }}
+              </p>
+              <p class="card-desc">
+                Score : {{ s.score|default:"0.0" }} %
+              </p>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty-state">
+          Tu n’as pas encore lancé de simulation d’allemand.
+          Choisis un examen ci-dessous pour commencer.
+        </p>
+      {% endif %}
+
+    </div>
+  </section>
+
+  <!-- GOETHE -->
+  <section class="eng-section">
+    <div class="container-narrow">
+      <h2 class="eng-section-title">Goethe-Institut</h2>
+
+      {% if goethe_exams %}
+        <div class="exam-grid">
+          {% for exam in goethe_exams %}
+            <article class="card">
+              <span class="badge">GOETHE</span>
+
+              <h3 class="card-title">{{ exam.title }}</h3>
+
+              <p class="card-meta">
+                Niveau {{ exam.level }} • Goethe-Institut
+              </p>
+
+              <p class="card-desc">
+                {{ exam.short_description }}
+              </p>
+
+              <div class="exam-actions">
+                <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn-outline">
+                  Voir le programme
+                </a>
+                <a href="{% url 'germanprep:exam_learning_path' exam.slug %}" class="btn-outline">
+                  Cours & exercices
+                </a>
+                <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn-primary">
+                  Simulation rapide
+                </a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty-state">Aucun examen Goethe configuré pour l’instant.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- TELC / TESTDAF / DSH / INTEGRATION -->
+  {% for block, exams in
+    "telc,Telc"|split:",",
+    "testdaf,TestDaF"|split:",",
+    "dsh,DSH"|split:",",
+    "integration,Intégration & Visa"|split:","
+  %}
+  {% endfor %}
+
+  <p class="eng-footer-info">
+    Immigration97 est une plateforme d’entraînement.
+    Elle ne remplace pas les organismes officiels Goethe, telc, TestDaF ou DSH.
+  </p>
+
 </main>
 {% endblock %}

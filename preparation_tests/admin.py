@@ -35,9 +35,8 @@ class PassageAdmin(admin.ModelAdmin):
 
 @admin.register(Asset)
 class AssetAdmin(admin.ModelAdmin):
-    list_display = ("kind", "url", "lang")
-    list_filter = ("kind", "lang")
-    search_fields = ("url",)
+    list_display = ("kind", "file", "lang", "created_at")
+
 
 
 # ----------- Inline pour les Choices -----------

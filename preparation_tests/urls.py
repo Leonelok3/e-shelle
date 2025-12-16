@@ -4,23 +4,24 @@ from . import views
 app_name = "preparation_tests"
 
 urlpatterns = [
+
     # =========================================================
     # 🏠 ACCUEIL
     # =========================================================
     path("", views.home, name="home"),
 
     # =========================================================
-    # 📚 EXAMENS DISPONIBLES
+    # 📚 EXAMENS – LISTE & DÉTAILS
     # =========================================================
     path("exams/", views.exam_list, name="exam_list"),
     path("exams/<slug:exam_code>/", views.exam_detail, name="exam_detail"),
 
     # =========================================================
-    # 🌍 PAGES HUBS PAR LANGUE
+    # 🌍 HUBS PAR LANGUE
     # =========================================================
     path("exams-fr/", views.french_exams, name="french_exams"),
-    #path("exams-en/", views.english_exams, name="english_exams"),
-    #path("exams-de/", views.german_exams, name="german_exams"),
+    # path("exams-en/", views.english_exams, name="english_exams"),
+    # path("exams-de/", views.german_exams, name="german_exams"),
 
     # =========================================================
     # 🇫🇷 HUBS FRANÇAIS PAR EXAMEN
@@ -30,7 +31,7 @@ urlpatterns = [
     path("fr/delf-dalf/", views.delf_hub, name="delf_hub"),
 
     # =========================================================
-    # 📖 TEF - PAGES THÉORIQUES (COURS)
+    # 📖 TEF – COURS THÉORIQUES
     # =========================================================
     path("fr/tef/co/", views.tef_co, name="tef_co"),
     path("fr/tef/ce/", views.tef_ce, name="tef_ce"),
@@ -38,7 +39,7 @@ urlpatterns = [
     path("fr/tef/eo/", views.tef_eo, name="tef_eo"),
 
     # =========================================================
-    # 📝 TEF - SESSIONS PAR LEÇON (CO / CE / EE / EO)
+    # 📝 TEF – SESSIONS PAR LEÇON
     # =========================================================
     path(
         "tef/co/lesson/<int:lesson_id>/session/",
@@ -62,16 +63,21 @@ urlpatterns = [
     ),
 
     # =========================================================
-    # 🎯 TEF - MODE EXAMEN BLANC
+    # 🕒 TEF – EXAMENS BLANCS
     # =========================================================
     path(
         "tef/co/mock/",
         views.start_mock_tef_co,
         name="start_mock_tef_co",
     ),
+    path(
+        "fr/tef/co/examen-blanc/",
+        views.tef_co_mock,
+        name="tef_co_mock",
+    ),
 
     # =========================================================
-    # ✅ TCF - ENTRAÎNEMENTS DÉDIÉS
+    # ✅ TCF – ENTRAÎNEMENTS & EXAMEN TYPE
     # =========================================================
     path(
         "tcf/<slug:section_code>/entrainement/",
@@ -99,7 +105,7 @@ urlpatterns = [
     ),
 
     # =========================================================
-    # 🎓 TENTATIVES (MOTEUR GÉNÉRIQUE)
+    # 🎓 TENTATIVES & RÉPONSES
     # =========================================================
     path(
         "attempt/<int:attempt_id>/",
@@ -113,7 +119,7 @@ urlpatterns = [
     ),
 
     # =========================================================
-    # 📊 RÉSULTATS ET CORRECTIONS DE SESSION
+    # 📊 RÉSULTATS & ANALYSES
     # =========================================================
     path(
         "session/<int:session_id>/result/",
@@ -132,20 +138,35 @@ urlpatterns = [
     ),
 
     # =========================================================
-    # 🔁 RÉVISION ET REPRISE DES SESSIONS
+    # 🔁 RÉVISION & REPRISE
     # =========================================================
     path("sessions/", views.session_review, name="session_review"),
-    path("retry/<int:session_id>/", views.retry_wrong_questions, name="retry_wrong"),
-    path("retry/run/<int:session_id>/", views.run_retry_session, name="run_retry_session"),
+    path(
+        "retry/<int:session_id>/",
+        views.retry_wrong_questions,
+        name="retry_wrong",
+    ),
+    path(
+        "retry/run/<int:session_id>/",
+        views.run_retry_session,
+        name="run_retry_session",
+    ),
     path(
         "session/<int:session_id>/retry-errors/",
         views.retry_session_errors,
         name="retry_session_errors",
     ),
 
-    #=======================================================
-    # session delf/dalf 
-    ##############################################
-    
+    # =========================================================
+    # 📊 DASHBOARD TEF (doublon conservé volontairement)
+    # =========================================================
+    path("dashboard/tef/", views.tef_dashboard, name="tef_dashboard"),
+    path(
+    "tef/co/",
+    views.tef_co,
+    name="tef_co",
+),
 
+    
+    
 ]

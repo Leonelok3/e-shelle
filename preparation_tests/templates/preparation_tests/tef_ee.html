@@ -1,1000 +1,169 @@
+{% extends "base.html" %}
 {% load static %}
-{# tef_ee.html (page cours + atelier EE) #}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>TEF — Cours EE (Expression Écrite)</title>
-  <meta name="description" content="TEF — Cours EE : modèles, structure, connecteurs, barème. Atelier interactif avec plan, compteur, analyse automatique et export PDF." />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- SEO / Social -->
-  <meta property="og:title" content="TEF — Cours EE (Expression Écrite)" />
-  <meta property="og:description" content="Atelier guidé TEF Expression Écrite : modèles, structure, connecteurs, analyse automatique et export PDF." />
-  <meta property="og:image" content="{% static 'img/tef-ee-cover.jpg' %}" />
-  <meta property="og:url" content="https://www.immigration97.com/prep/fr/tef/ee" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="TEF — Cours EE (Expression Écrite)" />
-  <meta name="twitter:description" content="Atelier guidé TEF Expression Écrite : modèles, structure, connecteurs, analyse automatique et export PDF." />
-  <meta name="twitter:image" content="{% static 'img/tef-ee-cover.jpg' %}" />
+{% block title %}
+TEF — Expression Écrite (EE) | Immigration97
+{% endblock %}
 
-  <style>
-    /* ============================================
-       🎨 THEME GLOBAL (aligné CO / CE)
-       ============================================ */
-    :root{
-      --bg:#050816;
-      --grad1:#0f2027;--grad2:#203a43;--grad3:#2c5364;
-      --panel:rgba(255,255,255,.06);
-      --panel2:rgba(255,255,255,.10);
-      --stroke:rgba(255,255,255,.14);
-      --muted:#b9c6d3;
-      --accent:#7aa2ff;
-      --hot:#a78bfa;
-      --ok:#22c55e;
-      --warn:#f59e0b;
-      --bad:#ef4444;
-      --br:18px;
-      --shadow:0 18px 45px rgba(0,0,0,.55);
-    }
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}
+{% block meta_description %}
+Cours et atelier guidé TEF Expression Écrite : structure, modèles,
+analyse automatique et export PDF.
+{% endblock %}
 
-    body{
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
-      background:
-        radial-gradient(1200px 600px at 10% -10%,rgba(122,162,255,.18),transparent 60%),
-        radial-gradient(900px 480px at 110% 0,rgba(167,139,250,.22),transparent 60%),
-        linear-gradient(135deg,var(--grad1),var(--grad2) 50%,var(--grad3));
-      color:#fff;
-      overflow-x:hidden;
-    }
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/tef_ee.css' %}">
+{% endblock %}
 
-    .container{
-      max-width:1180px;
-      margin:0 auto;
-      padding:26px 18px 32px;
-    }
+{% block content %}
 
-    .small{color:var(--muted);font-size:.94rem}
-    .muted{color:var(--muted);}
-    h1{font-size:1.9rem;margin:10px 0}
-    h2{font-size:1.35rem;margin:10px 0}
+<section class="page page-tef-ee">
 
-    /* ============================================
-       🔝 HEADER STICKY (logo + onglets)
-       ============================================ */
-    .sticky{
-      position:sticky;
-      top:0;
-      z-index:30;
-      backdrop-filter:blur(14px);
-      background:linear-gradient(180deg,rgba(4,10,18,.92),rgba(4,10,18,.55));
-      border-bottom:1px solid rgba(255,255,255,.08);
-    }
-    .topbar{
-      max-width:1180px;
-      margin:0 auto;
-      padding:10px 18px 12px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:14px;
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .brand-logo{
-      width:40px;
-      height:40px;
-      border-radius:14px;
-      background:#020617;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-    }
-    .brand-logo img{
-      max-width:140%;
-      height:auto;
-      display:block;
-    }
-    .brand-title{
-      font-weight:700;
-      font-size:.95rem;
-      letter-spacing:.04em;
-    }
-
-    .tabs{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-    .tab{
-      padding:8px 16px;
-      border-radius:999px;
-      border:1px solid var(--stroke);
-      background:rgba(15,23,42,.85);
-      color:#e5ecff;
-      font-size:.92rem;
-      font-weight:700;
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      cursor:pointer;
-      transition:background .15s ease,transform .12s ease,box-shadow .15s ease;
-    }
-    .tab:hover{
-      background:rgba(30,64,175,.9);
-      box-shadow:0 12px 30px rgba(15,23,42,.55);
-      transform:translateY(-1px);
-    }
-    .tab.active{
-      background:linear-gradient(135deg,var(--accent),var(--hot));
-      border-color:transparent;
-      color:#fff;
-    }
-
-    /* ============================================
-       🔘 BOUTONS GLOBAUX
-       ============================================ */
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 16px;
-      border-radius:999px;
-      border:1px solid var(--stroke);
-      background:var(--panel);
-      color:#fff;
-      text-decoration:none;
-      font-weight:700;
-      cursor:pointer;
-      transition:background .18s ease,transform .12s ease,box-shadow .18s ease;
-    }
-    .btn:hover{
-      background:var(--panel2);
-      transform:translateY(-1px);
-      box-shadow:0 10px 30px rgba(0,0,0,.45);
-    }
-    .btn-primary{
-      background:linear-gradient(135deg,var(--accent),var(--hot));
-      border-color:transparent;
-    }
-    .btn-primary:hover{filter:brightness(1.07);}
-    .btn-soft{
-      background:rgba(15,23,42,.8);
-    }
-
-    /* ============================================
-       🧊 CARTES / GRIDS
-       ============================================ */
-    .hero{
-      margin-top:18px;
-    }
-    .hero-card{
-      background:radial-gradient(900px 260px at 10% 0,rgba(122,162,255,.20),transparent 60%),
-                 radial-gradient(900px 260px at 100% 0,rgba(167,139,250,.24),transparent 60%),
-                 linear-gradient(145deg,rgba(15,23,42,.96),rgba(15,23,42,.92));
-      border-radius:24px;
-      border:1px solid rgba(148,163,184,.45);
-      box-shadow:var(--shadow);
-      padding:22px 22px 20px;
-    }
-    .hero-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:16px;
-      margin-bottom:12px;
-    }
-    .hero-title{
-      font-size:1.65rem;
-      font-weight:800;
-    }
-    .hero-badge{
-      font-size:.8rem;
-      color:var(--muted);
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      margin-bottom:6px;
-    }
-    .hero-actions{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      align-items:flex-end;
-    }
-    .hero-actions .btn{
-      width:100%;
-      justify-content:center;
-    }
-    .hero-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-      gap:14px;
-      margin-top:14px;
-    }
-    .hero-col{
-      background:rgba(15,23,42,.86);
-      border-radius:18px;
-      border:1px solid rgba(148,163,184,.35);
-      padding:12px 14px;
-      font-size:.93rem;
-    }
-    .hero-col h3{
-      margin:0 0 6px;
-      font-size:1rem;
-    }
-    .tag{
-      display:inline-block;
-      padding:4px 10px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.6);
-      font-size:.78rem;
-      text-transform:uppercase;
-      letter-spacing:.09em;
-      color:var(--muted);
-      margin-left:6px;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-      gap:18px;
-      margin-top:18px;
-    }
-    .card{
-      background:linear-gradient(145deg,rgba(15,23,42,.96),rgba(15,23,42,.9));
-      border-radius:var(--br);
-      border:1px solid var(--stroke);
-      padding:18px;
-      position:relative;
-      overflow:hidden;
-      box-shadow:var(--shadow);
-      animation:pop .45s ease forwards;
-      opacity:0;
-      transform:translateY(12px);
-    }
-    .card::before{
-      content:"";
-      position:absolute;
-      inset:-1px;
-      border-radius:inherit;
-      background:radial-gradient(500px 140px at 12% -10%,rgba(122,162,255,.16),transparent 60%);
-      pointer-events:none;
-    }
-    .card h3{margin:0 0 8px;font-size:1.08rem;position:relative;z-index:1}
-    .card p,.card ul{position:relative;z-index:1}
-    ul{margin:8px 0 0 18px}
-    .pill{
-      display:inline-block;
-      background:rgba(15,23,42,.9);
-      border:1px solid var(--stroke);
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:.88rem;
-      margin:4px 6px 0 0;
-    }
-
-    @keyframes pop{to{opacity:1;transform:none}}
-    .card:nth-child(1){animation-delay:.04s}
-    .card:nth-child(2){animation-delay:.08s}
-    .card:nth-child(3){animation-delay:.12s}
-    .card:nth-child(4){animation-delay:.16s}
-
-    /* ============================================
-       📚 LEÇONS DYNAMIQUES
-       ============================================ */
-    .lessons-section{
-      margin-top:30px;
-      padding-top:22px;
-      border-top:1px solid rgba(148,163,184,.4);
-    }
-    .lessons-header{
-      text-align:center;
-      margin-bottom:18px;
-    }
-    .lessons-header h2{
-      font-size:1.5rem;
-      margin-bottom:4px;
-      background:linear-gradient(135deg,var(--accent),var(--hot));
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-      background-clip:text;
-    }
-    .lesson-card{
-      background:linear-gradient(145deg,rgba(15,23,42,.97),rgba(15,23,42,.92));
-      border-radius:22px;
-      border:1px solid var(--stroke);
-      padding:18px 18px 16px;
-      position:relative;
-      overflow:hidden;
-      box-shadow:var(--shadow);
-    }
-    .lesson-card::before{
-      content:"";
-      position:absolute;
-      inset:-1px;
-      border-radius:inherit;
-      background:radial-gradient(520px 150px at 8% -10%,rgba(167,139,250,.22),transparent 60%);
-      pointer-events:none;
-    }
-    .lesson-card h3{
-      margin:0 0 8px;
-      font-size:1.1rem;
-      position:relative;
-      z-index:1;
-    }
-    .lesson-meta{
-      font-size:.82rem;
-      color:var(--muted);
-      margin-bottom:10px;
-      display:flex;
-      align-items:center;
-      gap:8px;
-      position:relative;
-      z-index:1;
-    }
-    .lesson-meta::before{content:"📅";}
-    .badge-new{
-      display:inline-block;
-      background:linear-gradient(135deg,#22c55e,#16a34a);
-      color:#fff;
-      font-size:.75rem;
-      font-weight:700;
-      padding:3px 8px;
-      border-radius:999px;
-      margin-left:8px;
-      box-shadow:0 2px 8px rgba(34,197,94,.4);
-    }
-    .text-body{
-      position:relative;
-      z-index:1;
-      line-height:1.7;
-      color:#e0e7ff;
-      font-size:.95rem;
-    }
-    .text-body p{margin:8px 0}
-    .text-body ul,.text-body ol{margin:8px 0 8px 20px}
-    .text-body strong{color:#fff}
-    .text-body em{color:var(--hot)}
-    .text-body a{color:var(--accent);text-decoration:underline;}
-    .text-body a:hover{color:var(--hot);}
-    .text-body audio,.text-body iframe{max-width:100%;border-radius:12px;margin:10px 0;}
-
-    /* ============================================
-       🧪 ATELIER INTERACTIF EE
-       ============================================ */
-    .workshop-section{
-      margin-top:32px;
-    }
-    .workshop-grid{
-      display:grid;
-      grid-template-columns:1.05fr 1.35fr;
-      gap:18px;
-    }
-    @media (max-width:980px){
-      .workshop-grid{grid-template-columns:1fr;}
-      .hero-top{flex-direction:column;align-items:flex-start;}
-      .hero-actions{align-items:flex-start;width:100%;}
-      .hero-actions .btn{width:100%;}
-    }
-
-    .row{display:flex;gap:8px;flex-wrap:wrap;}
-    .input,.select,.textarea{
-      width:100%;
-      padding:11px 12px;
-      border-radius:14px;
-      border:1px solid var(--stroke);
-      background:rgba(15,23,42,.9);
-      color:#e5ecff;
-      font-size:.93rem;
-    }
-    .textarea{min-height:170px;resize:vertical;}
-    .select{appearance:none;-webkit-appearance:none;}
-    .preview{
-      min-height:150px;
-      border-radius:14px;
-      border:1px solid var(--stroke);
-      background:rgba(15,23,42,.9);
-      padding:10px 12px;
-      white-space:pre-wrap;
-    }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:7px 11px;
-      border-radius:999px;
-      border:1px solid var(--stroke);
-      background:rgba(15,23,42,.9);
-      font-size:.82rem;
-      font-weight:700;
-    }
-
-    .checklist{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:8px;
-      margin-top:8px;
-    }
-    .check{
-      display:flex;
-      gap:8px;
-      align-items:flex-start;
-      padding:8px 10px;
-      border-radius:14px;
-      border:1px solid var(--stroke);
-      background:rgba(15,23,42,.92);
-      font-size:.9rem;
-    }
-    .check input{margin-top:3px;}
-
-    .metrics{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-      gap:10px;
-      margin-top:10px;
-    }
-    .metric{
-      border-radius:14px;
-      border:1px solid var(--stroke);
-      background:rgba(15,23,42,.94);
-      padding:8px 10px;
-    }
-    .metric b{font-size:1.05rem;}
-
-    /* FOOTER */
-    .footer-nav{
-      margin-top:26px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .footer-bottom{
-      text-align:center;
-      margin-top:18px;
-      font-size:.8rem;
-      color:var(--muted);
-    }
-
-    @media print{
-      body{background:#fff;color:#000;}
-      .sticky,.footer-nav,.footer-bottom,.no-print{display:none!important;}
-      .card,.lesson-card{box-shadow:none;border:1px solid #000;background:#fff;color:#000;}
-      .text-body a{color:#000;}
-    }
-  </style>
-</head>
-<body>
-  <!-- ============================================
-       🔝 HEADER
-       ============================================ -->
-  <header class="sticky no-print">
-    <div class="topbar">
-      <div class="brand">
-        <div class="brand-logo">
-          <img src="{% static 'logo e-shelle ton futur sans limite.jpg' %}" alt="E-SHELLE" />
-        </div>
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <article class="hero-card">
+      <div class="hero-top">
         <div>
-          <div class="brand-title">IMMIGRATION97 • PRÉPARATION TEF</div>
-          <div class="small">Expression Écrite (EE)</div>
+          <div class="hero-badge">TEF • EXPRESSION ÉCRITE</div>
+          <h1 class="hero-title">
+            Cours — <span class="accent">Expression Écrite (EE)</span>
+          </h1>
+          <p class="small">
+            Atelier complet pour réussir l’EE du TEF :
+            structure, connecteurs, longueur optimale et relecture stratégique.
+          </p>
+        </div>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary"
+             href="{% url 'preparation_tests:start_session' 'tef' %}?section=ee">
+            ✍️ Démarrer une session EE
+          </a>
+          <a class="btn btn-soft"
+             href="{% url 'preparation_tests:exam_detail' 'tef' %}#writing">
+            📄 Format officiel TEF
+          </a>
         </div>
       </div>
-      <nav class="tabs" aria-label="Navigation TEF">
-        <span class="tab active">📚 Cours</span>
-        <a class="tab" href="{% url 'preparation_tests:tef_hub' %}#train">🧪 Entraînements</a>
-        <a class="tab" href="{% url 'preparation_tests:tef_hub' %}#tips">🧭 Conseils &amp; barèmes</a>
-        <a class="tab" href="{% url 'preparation_tests:tef_hub' %}#res">🗂️ Ressources</a>
-      </nav>
-    </div>
-  </header>
 
-  <main class="container">
-    <!-- Lien retour -->
-    <div class="no-print" style="margin-top:10px;margin-bottom:8px;">
-      <!-- Quick Navigation Cours directs -->
-    <div class="mb-4" style="display:flex;flex-wrap:wrap;gap:8px;">
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_co' %}">🎧 Cours CO</a>
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ce' %}">📖 Cours CE</a>
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_ee' %}">✍️ Cours EE</a>
-      <a class="btn btn-ghost btn-sm" href="{% url 'preparation_tests:tef_eo' %}">🎤 Cours EO</a>
-    </div>
-    
-    </div>
+      <div class="hero-grid">
+        <div class="hero-col">
+          <h3>Objectifs clés</h3>
+          <ul>
+            <li>Respecter la consigne et le destinataire</li>
+            <li>Structure claire (intro → 2 idées → conclusion)</li>
+            <li>Connecteurs variés</li>
+            <li>120–180 mots</li>
+          </ul>
+        </div>
+        <div class="hero-col">
+          <h3>Méthode</h3>
+          <ul>
+            <li><strong>Avant</strong> : analyser la consigne</li>
+            <li><strong>Pendant</strong> : développer 2 idées</li>
+            <li><strong>Après</strong> : corriger accords et cohérence</li>
+          </ul>
+        </div>
+        <div class="hero-col">
+          <h3>Pièges fréquents</h3>
+          <ul>
+            <li>Hors sujet</li>
+            <li>Texte trop court</li>
+            <li>Ton inadapté</li>
+            <li>Manque de connecteurs</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+  </section>
 
-    <!-- ============================================
-         🧊 HERO : résumé du cours EE
-         ============================================ -->
-    <section class="hero">
-      <article class="hero-card">
-        <div class="hero-top">
-          <div>
-            <div class="hero-badge">TEF • EXPRESSION ÉCRITE</div>
-            <h1 class="hero-title">Cours – <span style="color:var(--hot)">Expression Écrite</span></h1>
-            <p class="small" style="max-width:520px;margin-top:6px;">
-              Atelier complet pour réussir l’EE du TEF : modèles prêts à l’emploi, structure claire,
-              connecteurs efficaces, gestion de la longueur et relecture stratégique.
-            </p>
-          </div>
-          <div class="hero-actions no-print">
-            <a class="btn btn-primary" href="{% url 'preparation_tests:start_session' 'tef' %}?section=ee">
-              ✍️ Commencer une session EE
-            </a>
-            <a class="btn btn-soft" href="{% url 'preparation_tests:exam_detail' 'tef' %}#writing">
-              📄 Voir le format officiel TEF
-            </a>
-          </div>
+  <!-- ===== LEÇONS ===== -->
+  {% if lessons %}
+  <section class="lessons-section">
+    <h2 class="section-title">📖 Leçons — Expression Écrite</h2>
+
+    <div class="grid">
+      {% for l in lessons %}
+      <article class="lesson-card">
+        <h3>{{ l.title }}</h3>
+        <div class="lesson-meta">
+          Mise à jour : {{ l.updated_at|date:"d/m/Y" }}
         </div>
 
-        <div class="hero-grid">
-          <div class="hero-col">
-            <h3>Ce que tu dois maîtriser <span class="tag">Objectifs</span></h3>
-            <ul>
-              <li>Respecter la consigne (type, destinataire, ton).</li>
-              <li>Organiser ton texte : intro → 2 idées → conclusion.</li>
-              <li>Utiliser des connecteurs logiques variés.</li>
-              <li>Produire ~120–180 mots, avec un français clair.</li>
-            </ul>
-          </div>
-          <div class="hero-col">
-            <h3>Avant / pendant / après écrire <span class="tag">Méthode</span></h3>
-            <ul>
-              <li><strong>Avant</strong> : analyser la consigne, repérer les points à traiter.</li>
-              <li><strong>Pendant</strong> : suivre ton plan, développer 2 idées avec exemples.</li>
-              <li><strong>Après</strong> : vérifier longueur, accords, temps, pronoms, connecteurs.</li>
-            </ul>
-          </div>
-          <div class="hero-col">
-            <h3>Pièges fréquents en EE <span class="tag">Pièges EE</span></h3>
-            <ul>
-              <li>Texte trop court ou hors-sujet.</li>
-              <li>Ne pas répondre à tous les éléments de la consigne.</li>
-              <li>Ton inadapté (trop familier avec une administration).</li>
-              <li>Peu de connecteurs, phrases trop longues ou trop hachées.</li>
-            </ul>
-          </div>
+        <div class="text-body">
+          {{ l.content_html|safe }}
+        </div>
+
+        <div class="lesson-actions">
+          <a href="{% url 'preparation_tests:lesson_session_ee' l.id %}"
+             class="btn btn-primary">
+            🚀 Exercices EE
+          </a>
         </div>
       </article>
-    </section>
-
-    <!-- ============================================
-         📚 LEÇONS DYNAMIQUES
-         ============================================ -->
-    {% if lessons %}
-      <section class="lessons-section">
-        <div class="lessons-header">
-          <h2>📖 Cours complets — Expression Écrite</h2>
-          <p class="small">
-            Utilise ces leçons comme mini-chapitres : méthode, exemples guidés, puis quiz/application.
-            Niveau conseillé : B1–C1.
-          </p>
-        </div>
-
-        <div class="grid">
-          {% for l in lessons %}
-            <article class="lesson-card">
-              <h3>
-                {{ l.title }}
-                {% if forloop.first %}
-                  <span class="badge-new">Nouveau</span>
-                {% endif %}
-              </h3>
-              <div class="lesson-meta">
-                Mise à jour : {{ l.updated_at|date:"d/m/Y à H:i" }}
-              </div>
-              <div class="text-body">
-                {{ l.content_html|safe }}
-              </div>
-
-              <!-- Bouton session d'exercices EE pour cette leçon -->
-              <div style="margin-top: 14px; display: flex; justify-content: flex-end; position:relative; z-index:1;">
-                <a href="{% url 'preparation_tests:lesson_session_ee' l.id %}" class="btn btn-primary">
-                  🚀 Lancer la session d'exercices EE
-                </a>
-              </div>
-            </article>
-          {% endfor %}
-        </div>
-      </section>
-    {% else %}
-      <section class="lessons-section">
-        <div class="lesson-card">
-          <h3>📚 Cours à venir</h3>
-          <p class="small">
-            Les leçons détaillées d’Expression Écrite seront ajoutées très bientôt.
-            En attendant, tu peux utiliser l’atelier interactif ci-dessous pour t’entraîner
-            à structurer et analyser tes productions. ✍️
-          </p>
-        </div>
-      </section>
-    {% endif %}
-
-    <!-- ============================================
-         🧪 ATELIER INTERACTIF EE
-         ============================================ -->
-    <section class="workshop-section">
-      <h2>🛠 Atelier guidé — Expression Écrite (MVP)</h2>
-      <p class="small" style="max-width:760px;margin-bottom:10px;">
-        Utilise cet atelier comme un coach : prépare ton plan, rédige, puis lance l’analyse automatique
-        (longueur, connecteurs, richesse lexicale, phrases). L’option « Exporter le bilan » te permet
-        d’imprimer / enregistrer en PDF pour ton suivi.
-      </p>
-
-      <div class="workshop-grid">
-        <!-- Colonne 1 : Plan / paramètres -->
-        <article class="card">
-          <h3>🧠 Plan &amp; paramètres</h3>
-
-          <div class="row" style="margin-top:4px;">
-            <div style="flex:1 1 260px;">
-              <label for="topic" class="small">Sujet / consigne</label>
-              <input id="topic" class="input" placeholder="Ex. : Demander un changement d’horaire de cours" />
-            </div>
-            <div style="flex:1 1 160px;">
-              <label for="type" class="small">Type de texte</label>
-              <select id="type" class="select">
-                <option value="email">Email</option>
-                <option value="avis">Avis</option>
-                <option value="note">Note</option>
-              </select>
-            </div>
-            <div style="flex:1 1 160px;">
-              <label for="tone" class="small">Ton</label>
-              <select id="tone" class="select">
-                <option value="formel">Formel</option>
-                <option value="neutre">Neutre</option>
-                <option value="amical">Amical</option>
-              </select>
-            </div>
-          </div>
-
-          <div style="margin-top:10px;">
-            <label class="small">Connecteurs rapides</label>
-            <div class="row" id="connectors" style="margin-top:4px;">
-              <button type="button" class="btn btn-soft" data-insert="Premièrement, ">Premièrement</button>
-              <button type="button" class="btn btn-soft" data-insert="D’une part, ">D’une part</button>
-              <button type="button" class="btn btn-soft" data-insert="Cependant, ">Cependant</button>
-              <button type="button" class="btn btn-soft" data-insert="En outre, ">En outre</button>
-              <button type="button" class="btn btn-soft" data-insert="Ainsi, ">Ainsi</button>
-              <button type="button" class="btn btn-soft" data-insert="En conclusion, ">En conclusion</button>
-            </div>
-          </div>
-
-          <div style="margin-top:10px;">
-            <label for="plan" class="small">Plan (brouillon rapide)</label>
-            <textarea id="plan" class="textarea"
-              placeholder="- Intro : ...&#10;- Idée 1 : ...&#10;- Idée 2 : ...&#10;- Conclusion : ..."></textarea>
-          </div>
-
-          <div class="metrics" style="margin-top:10px;">
-            <div class="metric">
-              <div class="small">Longueur cible</div>
-              <b>120–180</b> <span class="small">mots</span>
-            </div>
-            <div class="metric">
-              <div class="small">Temps conseillé</div>
-              <b>20 min</b>
-            </div>
-          </div>
-        </article>
-
-        <!-- Colonne 2 : Rédaction + analyse -->
-        <article class="card">
-          <h3>✍️ Rédige ton texte</h3>
-
-          <label for="text" class="small">Texte final</label>
-          <textarea id="text" class="textarea"
-            placeholder="Rédige ici ta production en respectant le type, le ton et la structure."></textarea>
-
-          <div class="row" style="margin-top:6px;">
-            <span class="badge" id="wcBadge">Mots : 0</span>
-            <span class="badge" id="lenBadge">Longueur : 0 caractères</span>
-          </div>
-
-          <div style="margin-top:10px;">
-            <label class="small">Aperçu</label>
-            <div id="preview" class="preview small">Prévisualisation…</div>
-          </div>
-
-          <div class="row" style="margin-top:10px;">
-            <button type="button" class="btn btn-soft" id="btnCopy">📋 Copier</button>
-            <button type="button" class="btn btn-soft" id="btnTemplate">🧾 Insérer modèle</button>
-            <button type="button" class="btn btn-soft" id="btnClear">🗑 Effacer</button>
-            <button type="button" class="btn btn-primary" id="btnAnalyze">🔍 Analyser</button>
-            <button type="button" class="btn btn-soft no-print" id="btnPdf">🧾 Exporter le bilan (PDF)</button>
-          </div>
-
-          <h3 style="margin-top:16px;">✅ Checklist barème</h3>
-          <div class="checklist">
-            <label class="check"><input type="checkbox" id="chkTask"> <span>Consigne respectée (type, destinataire, but).</span></label>
-            <label class="check"><input type="checkbox" id="chkCoherence"> <span>Structure claire (intro → idées → conclusion).</span></label>
-            <label class="check"><input type="checkbox" id="chkConnectors"> <span>Connecteurs variés et pertinents.</span></label>
-            <label class="check"><input type="checkbox" id="chkLex"> <span>Lexique précis, niveau adapté.</span></label>
-            <label class="check"><input type="checkbox" id="chkGrammar"> <span>Orthographe / grammaire maîtrisées.</span></label>
-            <label class="check"><input type="checkbox" id="chkLength"> <span>Environ 120–180 mots.</span></label>
-          </div>
-
-          <h3 style="margin-top:16px;">📊 Indicateurs automatiques</h3>
-          <div class="metrics">
-            <div class="metric"><div>Longueur</div><b id="ee_words">—</b> <span class="small">mots</span></div>
-            <div class="metric"><div>Phrase moyenne</div><b id="ee_avg">—</b> <span class="small">mots/phrase</span></div>
-            <div class="metric"><div>Connecteurs détectés</div><b id="ee_conn">—</b></div>
-            <div class="metric"><div>Richesse lexicale</div><b id="ee_ttr">—</b> <span class="small">type/token</span></div>
-            <div class="metric"><div>Score estimé</div><b id="ee_score">—</b> <span class="small">/100</span></div>
-          </div>
-
-          <div id="ee_tips" class="small" style="margin-top:10px;"></div>
-        </article>
-      </div>
-    </section>
-
-    <!-- NAV / FOOTER -->
-    <div class="footer-nav no-print">
-      <center><a class="btn btn-soft" href="{% url 'preparation_tests:tef_hub' %}">⬅ Retour Menu  TEF</a></center>
+      {% endfor %}
     </div>
-    <div class="footer-bottom">
-      © 2025 E-SHELLE — Prépare ton avenir sans limite.
+  </section>
+  {% endif %}
+
+  <!-- ===== ATELIER EE ===== -->
+  <section class="workshop-section">
+    <h2>🛠 Atelier guidé — Expression Écrite</h2>
+    <p class="small">
+      Prépare ton plan, rédige ton texte, puis lance l’analyse automatique
+      (longueur, connecteurs, richesse lexicale).
+    </p>
+
+    <div class="workshop-grid">
+
+      <!-- PLAN -->
+      <article class="card">
+        <h3>🧠 Plan & paramètres</h3>
+
+        <input id="topic" class="input" placeholder="Sujet / consigne">
+        <select id="type" class="select">
+          <option value="email">Email</option>
+          <option value="avis">Avis</option>
+          <option value="note">Note</option>
+        </select>
+
+        <select id="tone" class="select">
+          <option value="formel">Formel</option>
+          <option value="neutre">Neutre</option>
+          <option value="amical">Amical</option>
+        </select>
+
+        <textarea id="plan" class="textarea"
+          placeholder="Intro / Idée 1 / Idée 2 / Conclusion"></textarea>
+      </article>
+
+      <!-- RÉDACTION -->
+      <article class="card">
+        <h3>✍️ Rédaction</h3>
+
+        <textarea id="text" class="textarea"
+          placeholder="Rédige ton texte ici…"></textarea>
+
+        <div class="metrics">
+          <span id="wcBadge">Mots : 0</span>
+          <span id="lenBadge">Caractères : 0</span>
+        </div>
+
+        <div class="actions">
+          <button id="btnAnalyze" class="btn btn-primary">🔍 Analyser</button>
+          <button id="btnClear" class="btn btn-soft">🗑 Effacer</button>
+          <button id="btnPdf" class="btn btn-soft">🧾 Export PDF</button>
+        </div>
+
+        <div id="ee_tips" class="analysis-output"></div>
+      </article>
+
     </div>
-  </main>
+  </section>
 
-  <!-- ============================================
-       🧠 LOGIQUE JS ATELIER EE
-       ============================================ -->
-  <script>
-    // Helpers
-    const $ = (s,p=document)=>p.querySelector(s);
-    const $$ = (s,p=document)=>Array.from(p.querySelectorAll(s));
+</section>
 
-    const text = $('#text');
-    const preview = $('#preview');
-    const wcBadge = $('#wcBadge');
-    const lenBadge = $('#lenBadge');
-    const topic = $('#topic');
-    const typeSel = $('#type');
-    const toneSel = $('#tone');
+{% endblock %}
 
-    const eeWordsEl = $('#ee_words');
-    const eeAvgEl = $('#ee_avg');
-    const eeConnEl = $('#ee_conn');
-    const eeTtrEl = $('#ee_ttr');
-    const eeScoreEl = $('#ee_score');
-    const eeTipsEl = $('#ee_tips');
-
-    const connectorsList = [
-      'premièrement','d’une part',"d'une part",'cependant','en outre','ainsi','en conclusion',
-      "tout d'abord","d’abord","par ailleurs","en revanche"
-    ];
-
-    function getWords(str){
-      if(!str) return [];
-      const m = str.toLowerCase().match(/[a-zà-öø-ÿ]+/gi);
-      return m ? m : [];
-    }
-
-    function analyseTexte(){
-      const raw = text.value || '';
-      const words = getWords(raw);
-      const wordCount = words.length;
-      const charCount = raw.length;
-
-      wcBadge.textContent = 'Mots : ' + wordCount;
-      lenBadge.textContent = 'Longueur : ' + charCount + ' caractères';
-      preview.textContent = raw.trim() ? raw : 'Prévisualisation…';
-
-      if(!wordCount){
-        eeWordsEl.textContent = '—';
-        eeAvgEl.textContent = '—';
-        eeConnEl.textContent = '—';
-        eeTtrEl.textContent = '—';
-        eeScoreEl.textContent = '—';
-        eeTipsEl.textContent = '';
-        return;
-      }
-
-      eeWordsEl.textContent = wordCount;
-
-      const sentences = raw.split(/[.!?]+/).map(s=>s.trim()).filter(Boolean);
-      const avg = sentences.length ? wordCount / sentences.length : wordCount;
-      eeAvgEl.textContent = avg.toFixed(1);
-
-      const lower = raw.toLowerCase();
-      let connCount = 0;
-      connectorsList.forEach(c=>{
-        const pattern = c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-        const re = new RegExp('\\b'+pattern+'\\b','gi');
-        const matches = lower.match(re);
-        if(matches) connCount += matches.length;
-      });
-      eeConnEl.textContent = connCount;
-
-      const unique = new Set(words.map(w=>w.toLowerCase()));
-      const ttr = unique.size / wordCount;
-      eeTtrEl.textContent = ttr.toFixed(2);
-
-      let score = 50;
-
-      if(wordCount >= 120 && wordCount <= 180){
-        score += 20;
-      } else if(wordCount >= 90 && wordCount <= 210){
-        score += 10;
-      } else {
-        score -= 10;
-      }
-
-      if(connCount >= 4){
-        score += 10;
-      } else if(connCount >= 2){
-        score += 5;
-      } else if(connCount === 0){
-        score -= 5;
-      }
-
-      if(ttr > 0.55){
-        score += 10;
-      } else if(ttr > 0.4){
-        score += 5;
-      } else {
-        score -= 5;
-      }
-
-      if(avg >= 10 && avg <= 22){
-        score += 10;
-      } else if(avg < 6 || avg > 28){
-        score -= 5;
-      }
-
-      score = Math.max(0, Math.min(100, Math.round(score)));
-      eeScoreEl.textContent = score;
-
-      const tips = [];
-
-      if(wordCount < 120){
-        tips.push('🔸 Ton texte est un peu court : vise au moins 120 mots.');
-      } else if(wordCount > 190){
-        tips.push('🔸 Ton texte est assez long : essaie de rester entre 120 et 180 mots.');
-      } else {
-        tips.push('✅ Longueur correcte pour le TEF.');
-      }
-
-      if(connCount < 2){
-        tips.push('🧩 Ajoute davantage de connecteurs logiques (par ex. : « d’une part », « cependant », « en outre »).');
-      } else if(connCount < 4){
-        tips.push('✅ Connecteurs présents, tu peux encore varier un peu plus.');
-      } else {
-        tips.push('✅ Très bonne utilisation des connecteurs.');
-      }
-
-      if(ttr < 0.4){
-        tips.push('💡 Essaie de varier ton vocabulaire : évite de répéter trop souvent les mêmes mots.');
-      } else if(ttr > 0.6){
-        tips.push('✅ Vocabulaire varié, c’est un bon point pour le barème.');
-      }
-
-      if(avg < 8){
-        tips.push('✏️ Tes phrases sont très courtes : combine certaines phrases avec des connecteurs.');
-      } else if(avg > 25){
-        tips.push('✏️ Tes phrases sont très longues : pense à les couper pour plus de clarté.');
-      }
-
-      eeTipsEl.innerHTML = tips.join('<br>');
-    }
-
-    // Insertion connecteurs
-    $$('#connectors button').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        const insert = btn.getAttribute('data-insert') || '';
-        const el = text;
-        const start = el.selectionStart ?? el.value.length;
-        const end = el.selectionEnd ?? start;
-        const before = el.value.slice(0,start);
-        const after = el.value.slice(end);
-        el.value = before + insert + after;
-        const pos = start + insert.length;
-        el.focus();
-        try{ el.setSelectionRange(pos,pos); }catch(e){}
-        analyseTexte();
-      });
-    });
-
-    function buildTemplate(){
-      const t = typeSel.value;
-      const tone = toneSel.value;
-      const sujet = (topic.value || 'le sujet demandé').toLowerCase();
-
-      let formuleDebut = 'Madame, Monsieur,';
-      let formuleFin = 'Je vous prie d’agréer, Madame, Monsieur, l’expression de mes salutations distinguées.';
-      if(tone === 'amical'){
-        formuleDebut = 'Salut,';
-        formuleFin = 'À bientôt,';
-      } else if(tone === 'neutre'){
-        formuleDebut = 'Bonjour,';
-        formuleFin = 'Cordialement,';
-      }
-
-      if(t === 'email'){
-        return `${formuleDebut}
-
-Je me permets de vous écrire au sujet de ${sujet}. 
-
-Premièrement, ...
-En outre, ...
-
-En conclusion, je vous remercie par avance pour votre aide et reste à votre disposition pour toute information complémentaire.
-
-${formuleFin}
-`;
-      }
-
-      if(t === 'avis'){
-        return `Bonjour,
-
-Je souhaite donner mon avis à propos de ${sujet}.
-
-Premièrement, ...
-D’une part, ...
-Cependant, ...
-
-En conclusion, je pense que ...
-
-${formuleFin}
-`;
-      }
-
-      // NOTE
-      return `NOTE
-
-Objet : ${sujet}
-
-Premièrement, ...
-En outre, ...
-
-Merci de respecter ces consignes avant la date indiquée.
-
-${formuleFin}
-`;
-    }
-
-    $('#btnTemplate').addEventListener('click',()=>{
-      text.value = buildTemplate();
-      analyseTexte();
-    });
-
-    $('#btnClear').addEventListener('click',()=>{
-      text.value = '';
-      analyseTexte();
-    });
-
-    $('#btnCopy').addEventListener('click',()=>{
-      const val = text.value;
-      if(!val) return;
-      if(navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(val).catch(()=>{});
-      }else{
-        const tmp = document.createElement('textarea');
-        tmp.value = val;
-        document.body.appendChild(tmp);
-        tmp.select();
-        try{ document.execCommand('copy'); }catch(e){}
-        document.body.removeChild(tmp);
-      }
-    });
-
-    $('#btnAnalyze').addEventListener('click',()=>{
-      analyseTexte();
-      eeTipsEl.scrollIntoView({behavior:'smooth',block:'start'});
-    });
-
-    $('#btnPdf').addEventListener('click',()=>{
-      window.print();
-    });
-
-    text.addEventListener('input',analyseTexte);
-    analyseTexte();
-  </script>
-</body>
-</html>
+{% block scripts_extra %}
+<script src="{% static 'js/tef_ee_workshop.js' %}"></script>
+{% endblock %}

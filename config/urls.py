@@ -32,7 +32,9 @@ urlpatterns = [
     path("", home, name="home"),
 
     # AUTH
-    path("authentification/", include("authentification.urls")),
+    #path("authentification/", include("authentification.urls")),
+    path("authentification/", include(("authentification.urls", "authentification"))),
+
     path("documents/", include("DocumentsApp.urls")),
 
     # MODULES PRINCIPAUX

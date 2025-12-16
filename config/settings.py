@@ -64,8 +64,8 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework",
     "drf_spectacular",
-    "csp",          # Content Security Policy
-    "axes",         # Bruteforce protection
+    "csp",
+    "axes",
 
     # Internal apps
     "photos",
@@ -96,11 +96,11 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "csp.middleware.CSPMiddleware",  # CSP first
+    "csp.middleware.CSPMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django_otp.middleware.OTPMiddleware",  # 2FA
-    "axes.middleware.AxesMiddleware",       # Bruteforce protection
+    "django_otp.middleware.OTPMiddleware",
+    "axes.middleware.AxesMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -132,25 +132,27 @@ TEMPLATES = [
 ]
 
 # ======================================================
-# ======================================================
-# DATABASE
-# ======================================================
-# The settings prefer a DATABASE_URL env var (good for prod). If not present,
-# check USE_POSTGRES to enable the explicit postgres config. Otherwise fall back
-# ======================================================
-# DATABASE
+# DATABASE (CORRIGÉ)
 # ======================================================
 if os.environ.get("USE_POSTGRES", "False") == "True":
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": "immigration97_db",
-            "USER": "immigration97_user",  # ← REMETTRE ICI
-            "PASSWORD": "Dodipro1207.",
-            "HOST": "localhost",
-            "PORT": "5433",
+            "NAME": os.environ.get("DB_NAME"),
+            "USER": os.environ.get("DB_USER"),
+            "PASSWORD": os.environ.get("DB_PASSWORD"),
+            "HOST": os.environ.get("DB_HOST", "localhost"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
         }
     }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
 # ======================================================
 # INTERNATIONALISATION
 # ======================================================
@@ -168,12 +170,9 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-# Utiliser le storage approprié selon l'environnement
 if DEBUG:
-    # En développement : pas de compression/hashing pour faciliter le debug
     STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 else:
-    # En production : compression et hashing des fichiers
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
@@ -182,10 +181,14 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ======================================================
 # AUTHENTIFICATION
 # ======================================================
+# ======================================================
+# AUTHENTIFICATION (CORRIGÉ & PRO)
+# ======================================================
 SITE_ID = 1
-LOGIN_URL = os.environ.get("LOGIN_URL", "/authentification/login")
-LOGIN_REDIRECT_URL = os.environ.get("LOGIN_REDIRECT_URL", "/cv-generator/cv/list/")
-LOGOUT_REDIRECT_URL = "/"
+
+LOGIN_URL = "authentification:login"
+LOGIN_REDIRECT_URL = "dashboard"
+LOGOUT_REDIRECT_URL = "home"
 
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",
@@ -193,17 +196,14 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # ======================================================
-# SECURITY HEADERS (Adaptés pour dev/prod)
+# SECURITY HEADERS
 # ======================================================
-# Les cookies sécurisés sont désactivés en mode DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_HTTPONLY = True
 
-# SSL Redirect désactivé par défaut (activer en prod via .env)
 SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "False") == "True"
 
-# HSTS uniquement en production
 if not DEBUG:
     SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "31536000"))
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -216,9 +216,8 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 
 # ======================================================
-# CSP (Content Security Policy)
+# CSP
 # ======================================================
-# En mode DEBUG, on assouplit CSP pour faciliter le développement
 if DEBUG:
     CONTENT_SECURITY_POLICY = {
         "DIRECTIVES": {

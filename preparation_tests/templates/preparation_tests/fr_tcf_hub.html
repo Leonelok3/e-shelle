@@ -1,543 +1,167 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>E-SHELLE • Hub TCF (Tests de connaissance du français)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Préparation TCF : cours par section (CO, CE, EE, EO), entraînements chronométrés et simulations proches de l’examen officiel." />
 
-  <style>
-    :root {
-      --bg: #020617;
-      --surface: rgba(15,23,42,.96);
-      --surface-soft: rgba(15,23,42,.9);
-      --surface-alt: rgba(15,23,42,.86);
-      --border: rgba(148,163,184,.26);
-      --border-soft: rgba(148,163,184,.18);
+{# ============================
+   SEO — TCF
+============================ #}
 
-      --accent-green: #22c55e;
-      --accent-orange: #fb923c;
-      --accent-blue: #38bdf8;
-      --accent-purple: #a855f7;
+{% block title %}
+TCF – Hub de préparation | Immigration97
+{% endblock %}
 
-      --text-main: #e5e7eb;
-      --text-muted: #9ca3af;
+{% block meta_description %}
+Préparation complète au TCF : compréhension orale et écrite,
+expression écrite et orale, entraînements chronométrés,
+simulations et stratégies d’examen.
+{% endblock %}
 
-      --radius-lg: 22px;
-      --radius-pill: 999px;
-      --shadow-card: 0 20px 55px rgba(0,0,0,.85);
-    }
+{% block content %}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+<section class="page page-language container">
 
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      font-size: 16px; /* base un peu plus grande */
-      line-height: 1.6;
-      background:
-        radial-gradient(950px 520px at 0% 0%, rgba(56,189,248,.18), transparent 60%),
-        radial-gradient(900px 520px at 110% 0%, rgba(248,113,113,.16), transparent 60%),
-        radial-gradient(1200px 720px at 50% 120%, rgba(34,197,94,.2), transparent 65%),
-        linear-gradient(135deg,#020617,#020617 45%,#02091a);
-      color: var(--text-main);
-      min-height: 100vh;
-    }
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumbs" aria-label="Fil d’Ariane">
+    <a class="crumb" href="{% url 'preparation_tests:home' %}">Tests de langue</a>
+    <span class="crumb-separator">›</span>
+    <a class="crumb" href="{% url 'preparation_tests:french_exams' %}">Français</a>
+    <span class="crumb-separator">›</span>
+    <span class="crumb current">TCF</span>
+  </nav>
 
-    a { color: inherit; text-decoration: none; }
-
-    .shell-container {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 22px 18px 40px;
-    }
-
-    /* HEADER */
-    .shell-header {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      background: linear-gradient(180deg,rgba(2,6,23,.96),rgba(2,6,23,.9),rgba(2,6,23,.78));
-      border-bottom: 1px solid rgba(15,23,42,.9);
-      backdrop-filter: blur(18px);
-    }
-    .shell-header-inner {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 10px 18px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-    }
-    .brand-block { display: flex; align-items: center; gap: 10px; }
-
-    .brand-logo {
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      overflow: hidden;
-      background: radial-gradient(circle at 20% 0%, rgba(248,250,252,.35), transparent 55%), #020617;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow:
-        0 0 0 1px rgba(148,163,184,.4),
-        0 14px 35px rgba(15,23,42,.9);
-    }
-    .brand-logo img {
-      width: 125%;
-      height: auto;
-      object-fit: cover;
-      transform: translateY(2px);
-    }
-    .brand-kicker {
-      font-size: .82rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-    .brand-title { font-weight: 800; font-size: 1.05rem; }
-
-    .nav-tabs {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .nav-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 16px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-soft);
-      background: rgba(15,23,42,.9);
-      color: var(--text-main);
-      font-size: .9rem;
-      font-weight: 600;
-      box-shadow: 0 0 0 1px rgba(15,23,42,.8);
-      cursor: pointer;
-      transition:
-        background .18s ease,
-        border-color .18s ease,
-        box-shadow .18s ease,
-        transform .16s ease;
-    }
-    .nav-pill span.icon { font-size: 1.05rem; }
-
-    .nav-pill.active {
-      background: radial-gradient(circle at 0 0, rgba(248,250,252,.18), transparent 55%),
-                  linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-      border-color: transparent;
-      color: #020617;
-      box-shadow: 0 12px 30px rgba(0,0,0,.9);
-      transform: translateY(-1px);
-    }
-    .nav-pill:hover:not(.active) {
-      border-color: rgba(148,163,184,.6);
-      background: rgba(15,23,42,.96);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 26px rgba(0,0,0,.9);
-    }
-
-    @media (max-width: 720px) {
-      .shell-header-inner {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .nav-tabs { width: 100%; }
-    }
-
-    /* HERO */
-    .hero { padding: 22px 0 18px; }
-    .hero-kicker {
-      font-size: .85rem;
-      text-transform: uppercase;
-      letter-spacing: .16em;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-    .hero-title {
-      font-size: 2rem;
-      font-weight: 800;
-      margin: 0 0 8px;
-    }
-    .hero-title span {
-      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .hero-sub {
-      font-size: 1rem;
-      color: var(--text-muted);
-      max-width: 650px;
-    }
-
-    .hero-badges {
-      margin-top: 14px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: .83rem;
-    }
-    .pill {
-      padding: 4px 11px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-soft);
-      background: rgba(15,23,42,.9);
-      color: var(--text-muted);
-    }
-
-    /* NAV INTERNE (Cours / Entraînements / Conseils / Ressources) */
-    .subnav {
-      margin-top: 14px;
-      display: inline-flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 6px;
-      border-radius: 999px;
-      background: rgba(15,23,42,.85);
-      border: 1px solid rgba(148,163,184,.35);
-    }
-    .subnav-link {
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-size: .86rem;
-      border: 1px solid transparent;
-      color: var(--text-muted);
-      cursor: pointer;
-      text-decoration: none;
-      transition: background .18s ease, color .18s ease, border-color .18s ease, transform .12s ease;
-    }
-    .subnav-link:hover {
-      background: rgba(15,23,42,.96);
-      color: var(--text-main);
-      border-color: rgba(148,163,184,.55);
-      transform: translateY(-1px);
-    }
-    .subnav-link.active {
-      background: linear-gradient(135deg,var(--accent-green),var(--accent-blue));
-      color:#020617;
-      border-color: transparent;
-    }
-
-    /* GRID */
-    .grid-main {
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(260px, 1.1fr);
-      gap: 18px;
-      align-items: flex-start;
-    }
-    @media (max-width: 920px) {
-      .grid-main { grid-template-columns: minmax(0, 1fr); }
-    }
-
-    .card {
-      background: var(--surface);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-card);
-      padding: 16px 18px 18px;
-      position: relative;
-      overflow: hidden;
-    }
-    .card + .card { margin-top: 14px; }
-    .card h2 {
-      font-size: 1.2rem;
-      margin: 0 0 6px;
-    }
-    .card p {
-      font-size: .94rem;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-
-    .section-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 12px;
-      margin-top: 10px;
-    }
-    .section-block {
-      background: var(--surface-alt);
-      border-radius: 18px;
-      border: 1px solid var(--border-soft);
-      padding: 11px 13px 13px;
-      font-size: .9rem;
-    }
-    .section-block h3 {
-      font-size: .98rem;
-      margin: 0 0 4px;
-    }
-    .section-block p {
-      font-size: .9rem;
-      margin-bottom: 8px;
-    }
-    .section-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 3px 9px;
-      border-radius: var(--radius-pill);
-      background: rgba(15,23,42,.9);
-      border: 1px solid var(--border-soft);
-      font-size: .78rem;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-
-    .btn-row {
-      margin-top: 8px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 8px 14px;
-      border-radius: var(--radius-pill);
-      font-size: .88rem;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      transition:
-        transform .12s ease-out,
-        box-shadow .18s ease-out,
-        background .18s ease-out,
-        filter .12s ease-out;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-      color: #020617;
-      box-shadow: 0 12px 30px rgba(0,0,0,.95);
-    }
-    .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.04); }
-    .btn-ghost {
-      background: var(--surface-soft);
-      border: 1px solid var(--border-soft);
-      color: var(--text-muted);
-    }
-    .btn-ghost:hover {
-      background: var(--surface-alt);
-      color: var(--text-main);
-      transform: translateY(-1px);
-    }
-
-    .side-card h3 { font-size: 1.05rem; margin: 0 0 6px; }
-    .side-card ul {
-      margin: 6px 0 0 16px;
-      padding: 0;
-      font-size: .92rem;
-      color: var(--text-muted);
-    }
-    .side-card li + li { margin-top: 4px; }
-
-    .note {
-      margin-top: 18px;
-      font-size: .86rem;
-      color: var(--text-muted);
-    }
-    .note strong { color: var(--text-main); }
-
-    /* Ancres pour scroller plus proprement */
-    .anchor-section {
-      scroll-margin-top: 90px;
-    }
-  </style>
-</head>
-
-<body>
-<header class="shell-header">
-  <div class="shell-header-inner">
-    <div class="brand-block">
-      <div class="brand-logo">
-        <img src="{% static 'logoeshelle.jpg' %}" alt="E-SHELLE">
-      </div>
-      <div>
-        <div class="brand-kicker">E-SHELLE • PRÉPARATION TCF</div>
-        <div class="brand-title">Hub TCF — Immigration &amp; général</div>
-      </div>
-    </div>
-
-    <nav class="nav-tabs" aria-label="Navigation TCF">
-      <span class="nav-pill active">
-        <span class="icon">🏠</span><span>Hub TCF</span>
-      </span>
-      <a class="nav-pill" href="{% url 'preparation_tests:french_exams' %}">
-        <span class="icon">📚</span><span>Tous les examens</span>
-      </a>
-      <a class="nav-pill" href="{% url 'preparation_tests:session_review' %}">
-        <span class="icon">📊</span><span>Mes résultats</span>
-      </a>
-      <a class="nav-pill" href="{% url 'preparation_tests:exam_detail' 'tcf' %}">
-        <span class="icon">ℹ️</span><span>Détails officiels TCF</span>
-      </a>
-    </nav>
-  </div>
-</header>
-
-<main class="shell-container">
-  <section class="hero">
-    <div class="hero-kicker">TCF • Préparation complète</div>
-    <h1 class="hero-title">
-      Prépare ton <span>TCF</span> par sections &amp; examens types
-    </h1>
-    <p class="hero-sub">
-      Utilise les mêmes méthodes que pour le TEF (cours détaillés + exercices)
-      mais avec un suivi dédié au <strong>TCF</strong> : compréhension orale,
-      compréhension écrite, expression écrite et expression orale.
+  <!-- Header -->
+  <header class="page-header">
+    <h1>Hub TCF – Tests de connaissance du français</h1>
+    <p class="lead">
+      Prépare le <strong>TCF</strong> par sections et examens types,
+      avec une méthode progressive et efficace.
     </p>
+  </header>
 
-    <div class="hero-badges">
-      <span class="pill">⏱ Entraînements chronométrés</span>
-      <span class="pill">🎧 Audios &amp; QCM</span>
-      <span class="pill">📊 Résultats détaillés</span>
-    </div>
+  <!-- HERO -->
+  <section class="hero section">
+    <div class="hero__text">
+      <p class="hero__subtitle">
+        Utilise les mêmes méthodes que pour le TEF
+        (cours + entraînements), adaptées au format
+        <strong>TCF</strong> : CO, CE, EE et EO.
+      </p>
 
-    <!-- NAV INTERNE (scroll vers les blocs) -->
-    <div class="subnav">
-      <a href="#cours" class="subnav-link active">📘 Cours (TEF compatibles TCF)</a>
-      <a href="#entrainements" class="subnav-link">🧪 Entraînements TCF</a>
-      <a href="#conseils" class="subnav-link">🎯 Conseils &amp; stratégie</a>
-      <a href="#ressources" class="subnav-link">📎 Ressources / examens types</a>
+      <ul class="hero__bullets">
+        <li>⏱ Entraînements chronométrés</li>
+        <li>🎧 Audios et QCM officiels</li>
+        <li>📊 Résultats et corrections détaillées</li>
+      </ul>
     </div>
   </section>
 
-  <section class="grid-main">
-    <!-- COLONNE GAUCHE -->
-    <div>
-      <!-- BLOC COURS + LANCEMENT PAR SECTION -->
-      <article class="card anchor-section" id="cours">
-        <h2>1. Choisis ta section TCF</h2>
-        <p>
-          Tu peux réviser la méthode avec les <strong>cours TEF</strong>
-          (compatibles TCF) puis lancer un entraînement spécifique au TCF
-          pour chaque compétence.
+  <!-- =========================
+       SECTIONS TCF
+  ========================= -->
+
+  <section class="section">
+    <h2 class="section-title">Choisis ta section TCF</h2>
+
+    <div class="card-grid">
+
+      <!-- CO -->
+      <article class="card">
+        <h3>🎧 Compréhension orale (CO)</h3>
+        <p class="muted">
+          Audios courts, consignes claires et QCM
+          proches de l’examen officiel.
         </p>
 
-        <div class="section-grid">
-          <!-- CO -->
-          <div class="section-block">
-            <div class="section-chip">🎧 CO — Compréhension orale</div>
-            <h3>Écouter, repérer, choisir la bonne réponse</h3>
-            <p>Travail sur des audios courts et des questions à choix multiples.</p>
-            <div class="btn-row">
-              <a class="btn btn-ghost" href="{% url 'preparation_tests:tef_co' %}">
-                📘 Cours &amp; exemples
-              </a>
-              <a class="btn btn-primary" href="{% url 'preparation_tests:start_tcf_training' 'co' %}">
-                🧪 Entraînement TCF CO
-              </a>
-            </div>
-          </div>
-
-          <!-- CE -->
-          <div class="section-block">
-            <div class="section-chip">📖 CE — Compréhension écrite</div>
-            <h3>Lire vite, repérer les infos clés</h3>
-            <p>Textes courts à moyens, pièges sémantiques, synonymes et anaphores.</p>
-            <div class="btn-row">
-              <a class="btn btn-ghost" href="{% url 'preparation_tests:tef_ce' %}">
-                📘 Cours &amp; exemples
-              </a>
-              <a class="btn btn-primary" href="{% url 'preparation_tests:start_tcf_training' 'ce' %}">
-                🧪 Entraînement TCF CE
-              </a>
-            </div>
-          </div>
-
-          <!-- EE -->
-          <div class="section-block">
-            <div class="section-chip">✍️ EE — Expression écrite</div>
-            <h3>Structurer un texte clair et précis</h3>
-            <p>Plan, connecteurs logiques, niveaux de langue adaptés au TCF.</p>
-            <div class="btn-row">
-              <a class="btn btn-ghost" href="{% url 'preparation_tests:tef_ee' %}">
-                📘 Cours &amp; modèles
-              </a>
-              <a class="btn btn-primary" href="{% url 'preparation_tests:start_tcf_training' 'ee' %}">
-                🧪 Entraînement TCF EE
-              </a>
-            </div>
-          </div>
-
-          <!-- EO -->
-          <div class="section-block">
-            <div class="section-chip">🗣 EO — Expression orale</div>
-            <h3>Répondre de façon naturelle &amp; structurée</h3>
-            <p>Scénarios d’entretien, prise de position, interaction guidée.</p>
-            <div class="btn-row">
-              <a class="btn btn-ghost" href="{% url 'preparation_tests:tef_eo' %}">
-                📘 Cours &amp; scripts
-              </a>
-              <a class="btn btn-primary" href="{% url 'preparation_tests:start_tcf_training' 'eo' %}">
-                🧪 Entraînement TCF EO
-              </a>
-            </div>
-          </div>
-        </div>
-      </article>
-
-      <!-- BLOC ENTRAÎNEMENTS GLOBAUX -->
-      <article class="card anchor-section" id="entrainements">
-        <h2>2. Enchaîner plusieurs questions TCF</h2>
-        <p>
-          Lance une session générale avec le moteur d’entraînement.
-          Les questions sont tirées de la <strong>banque TCF</strong>
-          (toutes sections ou section choisie).
-        </p>
         <div class="btn-row">
-          <a class="btn btn-primary" href="{% url 'preparation_tests:start_session' 'tcf' %}">
-            🚀 Démarrer une session TCF (toutes sections)
+          <a href="{% url 'preparation_tests:tef_co' %}" class="btn btn--soft">
+            📘 Cours
           </a>
-          <a class="btn btn-ghost" href="{% url 'preparation_tests:start_tcf_full_exam' %}">
-            🎯 Examen type TCF (simulation complète)
-          </a>
-          <a class="btn btn-ghost" href="{% url 'preparation_tests:exam_detail' 'tcf' %}">
-            ℹ️ Voir les sections et barèmes TCF
+          <a href="{% url 'preparation_tests:start_tcf_training' 'co' %}" class="btn">
+            🧪 Entraînement
           </a>
         </div>
-        <p class="note">
-          <strong>Astuce :</strong> commence par des sessions courtes (10–15 min)
-          puis passe progressivement à des simulations complètes d’examen.
-        </p>
       </article>
+
+      <!-- CE -->
+      <article class="card">
+        <h3>📖 Compréhension écrite (CE)</h3>
+        <p class="muted">
+          Lecture rapide, repérage d’informations
+          et pièges lexicaux.
+        </p>
+
+        <div class="btn-row">
+          <a href="{% url 'preparation_tests:tef_ce' %}" class="btn btn--soft">
+            📘 Cours
+          </a>
+          <a href="{% url 'preparation_tests:start_tcf_training' 'ce' %}" class="btn">
+            🧪 Entraînement
+          </a>
+        </div>
+      </article>
+
+      <!-- EE -->
+      <article class="card">
+        <h3>✍️ Expression écrite (EE)</h3>
+        <p class="muted">
+          Structuration des idées, logique
+          et niveau de langue adapté.
+        </p>
+
+        <div class="btn-row">
+          <a href="{% url 'preparation_tests:tef_ee' %}" class="btn btn--soft">
+            📘 Cours
+          </a>
+          <a href="{% url 'preparation_tests:start_tcf_training' 'ee' %}" class="btn">
+            🧪 Entraînement
+          </a>
+        </div>
+      </article>
+
+      <!-- EO -->
+      <article class="card">
+        <h3>🗣 Expression orale (EO)</h3>
+        <p class="muted">
+          Scénarios guidés, prise de position
+          et interaction structurée.
+        </p>
+
+        <div class="btn-row">
+          <a href="{% url 'preparation_tests:tef_eo' %}" class="btn btn--soft">
+            📘 Cours
+          </a>
+          <a href="{% url 'preparation_tests:start_tcf_training' 'eo' %}" class="btn">
+            🧪 Entraînement
+          </a>
+        </div>
+      </article>
+
     </div>
-
-    <!-- COLONNE DROITE -->
-    <aside>
-      <article class="card side-card anchor-section" id="conseils">
-        <h3>Stratégie générale TCF</h3>
-        <ul>
-          <li>Commence par une section à la fois (CO, CE, EE, EO).</li>
-          <li>Utilise les cours TEF comme base théorique : ils sont compatibles TCF.</li>
-          <li>Note les types de questions où tu te trompes le plus.</li>
-          <li>Alterne <strong>révision de cours</strong> et <strong>exercices chronométrés</strong>.</li>
-        </ul>
-      </article>
-
-      <article class="card side-card anchor-section" id="ressources">
-        <h3>Quand passer à l’examen type ?</h3>
-        <ul>
-          <li>Quand tu atteins ~70 % de bonnes réponses en entraînement.</li>
-          <li>Quand tu gères le temps sans paniquer.</li>
-          <li>Quand tu comprends clairement tes erreurs fréquentes.</li>
-        </ul>
-        <p class="note">
-          Tu peux lancer un <strong>examen type complet</strong> depuis ce hub
-          à tout moment, puis analyser ton corrigé détaillé et utiliser
-          le <strong>mode correction ciblée</strong> pour rejouer uniquement
-          tes erreurs.
-        </p>
-      </article>
-    </aside>
   </section>
-</main>
 
-</body>
-</html>
+  <!-- =========================
+       SESSIONS GLOBALES
+  ========================= -->
+
+  <section class="section">
+    <h2 class="section-title">Sessions et examens types</h2>
+
+    <div class="card">
+      <p class="muted">
+        Lance une session complète ou une simulation
+        d’examen TCF dans des conditions réelles.
+      </p>
+
+      <div class="btn-row">
+        <a href="{% url 'preparation_tests:start_session' 'tcf' %}" class="btn">
+          🚀 Session TCF (toutes sections)
+        </a>
+        <a href="{% url 'preparation_tests:start_tcf_full_exam' %}" class="btn btn--soft">
+          🎯 Examen type TCF
+        </a>
+      </div>
+    </div>
+  </section>
+
+</section>
+
+{% endblock %}

@@ -4,155 +4,106 @@
 
 {% block meta %}
 <meta name="description"
-      content="Choisis ton test d’anglais (IELTS, TOEFL, TOEIC ou général) et entraîne-toi en conditions réelles avec Immigration97 : QCM chronométrés, corrections détaillées et suivi de progression." />
+      content="Choisis ton test d’anglais (IELTS, TOEFL, TOEIC ou général) et entraîne-toi en conditions réelles avec Immigration97." />
 {% endblock %}
 
 {% block content %}
 <main class="relative min-h-screen overflow-hidden bg-slate-950 text-slate-50">
 
-  {# 🌈 BACKGROUND GRADIENTS PREMIUM #}
+  <!-- 🌈 BACKGROUND -->
   <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
     <div class="absolute -top-40 -left-32 h-72 w-72 rounded-full bg-gradient-to-br from-blue-500/25 via-emerald-400/10 to-transparent blur-3xl opacity-60"></div>
     <div class="absolute top-1/3 -right-32 h-80 w-80 rounded-full bg-gradient-to-br from-purple-600/25 via-pink-500/10 to-transparent blur-3xl opacity-60"></div>
-    <div class="absolute bottom-0 left-1/2 h-72 w-[420px] -translate-x-1/2 translate-y-1/3 rounded-full bg-gradient-to-t from-amber-500/20 via-emerald-500/10 to-transparent blur-3xl opacity-60"></div>
   </div>
 
-  <div class="relative z-10 mx-auto max-w-7xl px-4 pb-14 pt-8 sm:px-6 sm:pb-16 sm:pt-10 lg:pb-20">
+  <div class="relative z-10 mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
 
-    {# HERO #}
-    <section class="border-b border-slate-800/60 pb-8 sm:pb-10 lg:pb-12">
-      <p class="text-[0.75rem] font-semibold uppercase tracking-[0.22em] text-slate-400">
+    <!-- HEADER -->
+    <header class="mb-10 border-b border-slate-800/70 pb-6">
+      <p class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-slate-400">
         Préparation d’anglais • Immigration97
       </p>
-      <h1 class="mt-3 bg-gradient-to-r from-blue-400 via-emerald-300 to-purple-400 bg-clip-text text-3xl font-light tracking-tight text-transparent sm:text-4xl lg:text-5xl">
-        Examens d’<span class="text-slate-50/95">anglais disponibles</span>
+
+      <h1 class="mt-3 bg-gradient-to-r from-blue-400 via-emerald-300 to-purple-400 bg-clip-text text-3xl font-light tracking-tight text-transparent sm:text-4xl">
+        Examens d’anglais disponibles
       </h1>
-      <p class="mt-4 max-w-2xl text-sm font-light leading-relaxed text-slate-300 sm:text-base">
-        Choisis un examen et commence ton entraînement en conditions réelles&nbsp;:
-        QCM réalistes, corrections détaillées et suivi précis de ton score et de ton profil d’anglais.
+
+      <p class="mt-3 max-w-2xl text-sm text-slate-300">
+        Choisis un examen et entraîne-toi avec des QCM réalistes,
+        des corrections détaillées et un suivi précis de ton score.
       </p>
 
-      <div class="mt-6 flex flex-wrap gap-3 text-[0.7rem]">
+      <div class="mt-5 flex flex-wrap gap-3">
         <a href="{% url 'englishprep:exam_hub' %}"
-           class="inline-flex items-center justify-center rounded-3xl bg-gradient-to-r from-blue-400 via-emerald-400 to-sky-400 px-4 py-2 text-xs font-semibold text-slate-950 shadow-lg shadow-blue-500/40 transition-all duration-300 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 sm:text-sm">
-          <span class="mr-1.5 text-base" aria-hidden="true">🌐</span>
-          Hub IELTS / TOEFL / TOEIC
+           class="rounded-3xl bg-gradient-to-r from-blue-400 to-emerald-400 px-5 py-2.5 text-sm font-semibold text-slate-950">
+          🌐 Hub IELTS / TOEFL / TOEIC
         </a>
         <a href="{% url 'englishprep:dashboard' %}"
-           class="inline-flex items-center justify-center rounded-3xl border border-slate-700/80 bg-slate-900/80 px-4 py-2 text-xs font-medium text-slate-200 shadow-sm shadow-slate-950/40 backdrop-blur-xl transition-all duration-300 hover:border-slate-500 hover:bg-slate-800/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 sm:text-sm">
-          <span class="mr-1.5 text-base" aria-hidden="true">🏠</span>
-          Retour au tableau de bord
+           class="rounded-3xl border border-slate-700 bg-slate-900/70 px-5 py-2.5 text-sm text-slate-200">
+          🏠 Tableau de bord
         </a>
       </div>
-    </section>
+    </header>
 
-    {# LISTE DES EXAMENS #}
-    <section class="mt-8">
-      <article class="rounded-2xl border border-slate-800/80 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-slate-800/70 p-5 text-sm shadow-2xl shadow-black/70 backdrop-blur-xl sm:p-6">
-        {% if tests %}
-          <header class="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 class="text-lg font-light tracking-tight text-slate-50 sm:text-xl">
-                Sélectionne ton examen
+    <!-- LISTE DES EXAMENS -->
+    <section>
+
+      {% if tests %}
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+          {% for test in tests %}
+            <article class="flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-900/80 p-6 shadow-xl transition hover:border-blue-400/50 hover:bg-slate-900">
+
+              <!-- TAGS -->
+              <div class="mb-3 flex flex-wrap gap-2 text-xs">
+                <span class="rounded-full bg-blue-500/15 px-3 py-1 font-semibold text-blue-300">
+                  {{ test.get_exam_type_display }}
+                </span>
+                <span class="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+                  Niveau {{ test.level }}
+                </span>
+              </div>
+
+              <!-- TITLE -->
+              <h2 class="text-lg font-semibold text-slate-100">
+                {{ test.name }}
               </h2>
-              <p class="mt-1 text-xs font-light text-slate-300 sm:text-sm">
-                Choisis le format adapté à ton projet (immigration, études, carrière) et entraîne-toi comme
-                à l’examen officiel.
+
+              <!-- DESCRIPTION -->
+              <p class="mt-2 text-sm text-slate-300">
+                {{ test.description|default:"Entraînement ciblé en conditions réelles." }}
               </p>
-            </div>
-            <p class="max-w-xs text-[0.75rem] font-light text-slate-400">
-              Plus tu fais de tests, plus ton
-              <span class="font-semibold text-slate-100">profil anglais</span> progresse (XP, badges, niveau).
-            </p>
-          </header>
 
-          <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {% for test in tests %}
-              <article class="group flex flex-col rounded-2xl border border-slate-800/80 bg-slate-950/70 p-4 shadow-lg shadow-black/50 transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/70 hover:shadow-2xl hover:shadow-blue-500/20">
-                <div class="mb-3 flex flex-wrap items-center gap-2 text-[0.7rem]">
-                  <span class="inline-flex items-center gap-1 rounded-full border border-slate-700/80 bg-slate-900/80 px-3 py-1 font-semibold uppercase tracking-[0.15em] text-slate-200">
-                    {% if test.exam_type == "IELTS" %}
-                      <span aria-hidden="true">🇬🇧</span> IELTS
-                    {% elif test.exam_type == "TOEFL" %}
-                      <span aria-hidden="true">🇺🇸</span> TOEFL
-                    {% elif test.exam_type == "TOEIC" %}
-                      <span aria-hidden="true">💼</span> TOEIC
-                    {% else %}
-                      <span aria-hidden="true">🌍</span> Anglais général
-                    {% endif %}
-                  </span>
-                  <span class="inline-flex items-center rounded-full border border-slate-700/70 bg-slate-900/80 px-3 py-1 text-[0.7rem] font-medium text-slate-300">
-                    Niveau {{ test.level }}
-                  </span>
-                </div>
+              <!-- META -->
+              <p class="mt-3 text-xs text-slate-400">
+                ⏱ {{ test.duration_minutes }} minutes
+              </p>
 
-                <h3 class="text-sm font-semibold text-slate-50 sm:text-base">
-                  {{ test.name }}
-                </h3>
+              <!-- ACTIONS -->
+              <div class="mt-5 flex flex-wrap gap-3">
+                <a href="{% url 'englishprep:take_test' test.id %}"
+                   class="rounded-3xl bg-gradient-to-r from-blue-400 to-blue-500 px-4 py-2 text-sm font-semibold text-slate-950">
+                  🚀 Commencer le test
+                </a>
 
-                {% if test.description %}
-                  <p class="mt-2 text-[0.85rem] font-light leading-relaxed text-slate-300">
-                    {{ test.description }}
-                  </p>
-                {% else %}
-                  <p class="mt-2 text-[0.85rem] font-light leading-relaxed text-slate-300">
-                    Entraînement ciblé pour renforcer ton anglais niveau {{ test.level }} en situation d’examen.
-                  </p>
-                {% endif %}
+                <a href="{% url 'englishprep:exam_learning_path' test.id %}"
+                   class="rounded-3xl border border-slate-700 bg-slate-950/70 px-4 py-2 text-sm text-slate-200">
+                  📚 Cours & exercices
+                </a>
+              </div>
 
-                <p class="mt-2 text-[0.75rem] font-light text-slate-400">
-                  ⏱ Durée indicative&nbsp;: {{ test.duration_minutes }} min
-                </p>
+            </article>
+          {% endfor %}
 
-                <div class="mt-4 flex flex-1 items-end">
-                  <a href="{% url 'englishprep:take_test' test.id %}"
-                     class="inline-flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-blue-400 to-emerald-400 px-4 py-2 text-xs font-semibold text-slate-950 shadow-md shadow-blue-500/40 transition-all duration-300 hover:scale-105 group-hover:shadow-lg group-hover:shadow-blue-500/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 sm:text-sm">
-                    <span class="mr-1.5 text-base" aria-hidden="true">🚀</span>
-                    Commencer ce test
-                  </a>
-                  <a href="{% url 'englishprep:exam_learning_path' test.id %}"
-   class="inline-flex items-center justify-center gap-2 mt-2 text-xs font-bold px-4 py-2 rounded-lg border border-emerald-500/40 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25 transition-all">
-  📚 Cours & exercices pour ce test
-</a>
+        </div>
+      {% else %}
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-8 text-center text-sm text-slate-300">
+          Aucun test disponible pour le moment.
+        </div>
+      {% endif %}
 
-                </div>
-              </article>
-            {% endfor %}
-          </div>
-        {% else %}
-          <h2 class="text-lg font-light tracking-tight text-slate-50 sm:text-xl">
-            Aucun test n’est encore disponible.
-          </h2>
-          <p class="mt-2 text-sm font-light text-slate-300">
-            Les examens d’anglais seront bientôt ajoutés (IELTS, TOEFL, TOEIC, général).
-            Tu pourras t’entraîner en conditions réelles et suivre ta progression.
-          </p>
-
-          <div class="mt-4 flex flex-wrap gap-3">
-            <a href="{% url 'englishprep:dashboard' %}"
-               class="inline-flex items-center justify-center rounded-3xl border border-slate-700/80 bg-slate-900/80 px-5 py-2.5 text-xs font-medium text-slate-200 shadow-sm shadow-slate-950/40 backdrop-blur-xl transition-all duration-300 hover:border-slate-500 hover:bg-slate-800/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 sm:text-sm">
-              <span class="mr-1.5 text-base" aria-hidden="true">←</span>
-              Retour au tableau de bord
-            </a>
-          </div>
-        {% endif %}
-      </article>
     </section>
 
-    {# SECTION AVANTAGES #}
-    <section class="mt-6">
-      <article class="rounded-2xl border border-slate-800/80 bg-slate-900/85 p-5 text-sm shadow-xl shadow-black/60 backdrop-blur-xl sm:p-6">
-        <h2 class="text-lg font-light tracking-tight text-slate-50 sm:text-xl">
-          Pourquoi t’entraîner ici&nbsp;?
-        </h2>
-        <ul class="mt-3 list-disc space-y-1.5 pl-5 text-[0.85rem] font-light text-slate-300 sm:text-sm">
-          <li>Questions inspirées des vrais examens (IELTS, TOEFL, TOEIC).</li>
-          <li>Score immédiat, corrections détaillées et explications simples.</li>
-          <li>Profil anglais avec XP, niveaux et badges motivants.</li>
-          <li>Parfait pour les projets d’études, de travail ou d’immigration.</li>
-        </ul>
-      </article>
-    </section>
   </div>
 </main>
 {% endblock %}

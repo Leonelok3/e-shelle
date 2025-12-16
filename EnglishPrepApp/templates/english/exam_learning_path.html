@@ -11,7 +11,7 @@
 {% block content %}
 <main class="relative min-h-screen overflow-hidden bg-slate-950 text-slate-50">
 
-  {# 🌈 BACKGROUND GRADIENTS #}
+  {# BACKGROUND #}
   <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
     <div class="absolute -top-40 -left-32 h-72 w-72 rounded-full bg-gradient-to-br from-blue-500/25 via-emerald-400/10 to-transparent blur-3xl opacity-60"></div>
     <div class="absolute top-1/3 -right-32 h-80 w-80 rounded-full bg-gradient-to-br from-emerald-500/20 via-blue-500/15 to-transparent blur-3xl opacity-60"></div>
@@ -31,206 +31,125 @@
             Immigration97 • Parcours d’anglais
           </p>
           <p class="text-xs font-light text-slate-200">
-            {{ test.get_exam_type_display }} • Niveau {{ test.level }} • Cours & exercices liés au test
+            {{ test.get_exam_type_display }} • Niveau {{ test.level }} • Cours & exercices
           </p>
         </div>
       </div>
 
       <nav class="flex flex-wrap items-center gap-2 text-[0.7rem]">
-        <a href="{% url 'englishprep:dashboard' %}"
-           class="inline-flex items-center gap-1 rounded-3xl border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 font-medium text-slate-200 shadow-sm shadow-slate-950/40 backdrop-blur-xl transition-all duration-300 hover:border-slate-500 hover:bg-slate-800/80">
-          🏠 Tableau de bord
-        </a>
-        <a href="{% url 'englishprep:test_result' test.id %}"
-           class="inline-flex items-center gap-1 rounded-3xl border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 font-medium text-slate-200 shadow-sm shadow-slate-950/40 backdrop-blur-xl transition-all duration-300 hover:border-slate-500 hover:bg-slate-800/80">
-          📊 Résultat du test
-        </a>
-        <a href="{% url 'englishprep:test_list' %}"
-           class="inline-flex items-center gap-1 rounded-3xl border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 font-medium text-slate-200 shadow-sm shadow-slate-950/40 backdrop-blur-xl transition-all duration-300 hover:border-slate-500 hover:bg-slate-800/80">
-          📚 Tous les tests
-        </a>
-        <a href="{% url 'englishprep:exam_hub' %}"
-           class="inline-flex items-center gap-1 rounded-3xl border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 font-medium text-slate-200 shadow-sm shadow-slate-950/40 backdrop-blur-xl transition-all duration-300 hover:border-slate-500 hover:bg-slate-800/80">
-          🌐 Hub IELTS / TOEFL / TOEIC
-        </a>
+        <a href="{% url 'englishprep:dashboard' %}" class="nav-chip">🏠 Tableau de bord</a>
+        <a href="{% url 'englishprep:test_result' test.id %}" class="nav-chip">📊 Résultat</a>
+        <a href="{% url 'englishprep:test_list' %}" class="nav-chip">📚 Tous les tests</a>
+        <a href="{% url 'englishprep:exam_hub' %}" class="nav-chip">🌐 Hub examens</a>
       </nav>
     </header>
 
     {# HERO #}
-    <section class="mb-6 sm:mb-8">
+    <section class="mb-8">
       <p class="text-[0.75rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
         Parcours de cours
       </p>
       <h1 class="mt-3 bg-gradient-to-r from-emerald-300 via-blue-300 to-sky-400 bg-clip-text text-3xl font-light tracking-tight text-transparent sm:text-4xl lg:text-5xl">
-        Cours & exercices pour <span class="text-slate-50/95">{{ test.name }}</span>
+        Cours & exercices pour <span class="text-slate-50">{{ test.name }}</span>
       </h1>
-      <p class="mt-4 max-w-2xl text-sm font-light leading-relaxed text-slate-300 sm:text-base">
-        Retrouve ici les leçons clés pour <span class="font-semibold text-slate-100">{{ test.get_exam_type_display }}</span> :
-        stratégies, rappels de grammaire, vocabulaire ciblé et exercices pratiques, organisés par compétence
-        (listening, reading, writing, speaking, grammaire / vocabulaire).
+      <p class="mt-4 max-w-2xl text-sm font-light leading-relaxed text-slate-300">
+        Leçons et exercices organisés par compétence pour renforcer efficacement ton anglais
+        et améliorer ton score à l’examen.
       </p>
     </section>
 
-    {# SI AUCUNE LEÇON #}
     {% if lessons|length == 0 %}
-      <section class="mt-4">
-        <article class="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-6 text-sm text-slate-200 shadow-xl shadow-black/60 backdrop-blur-xl">
-          <p class="text-[0.8rem] font-semibold uppercase tracking-[0.18em] text-slate-400">
-            Aucun contenu disponible (encore)
+      <section>
+        <article class="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-6 text-sm shadow-xl backdrop-blur-xl">
+          <p class="text-xs uppercase tracking-widest text-slate-400">
+            Aucun contenu disponible
           </p>
-          <p class="mt-3 text-sm text-slate-200">
-            Les cours et exercices pour ce test ne sont pas encore configurés.
-            Tu peux néanmoins utiliser les tests d’anglais pour évaluer ton niveau, puis discuter avec le
-            coach IA pour obtenir un plan de travail personnalisé.
+          <p class="mt-3 text-slate-200">
+            Les cours et exercices seront ajoutés prochainement.
+            En attendant, tu peux utiliser les tests et le coach IA.
           </p>
-          <div class="mt-4 flex flex-wrap gap-3">
-            <a href="{% url 'englishprep:ai_coach' %}"
-               class="inline-flex items-center justify-center gap-2 rounded-3xl bg-gradient-to-r from-emerald-400 via-blue-500 to-sky-400 px-5 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-emerald-500/40 transition-all duration-300 hover:scale-105">
-              🤖 Lancer le coach IA
-            </a>
-            <a href="{% url 'englishprep:test_list' %}"
-               class="inline-flex items-center justify-center gap-2 rounded-3xl border border-slate-700/80 bg-slate-950/80 px-5 py-2.5 text-xs font-medium text-slate-200 shadow-sm shadow-slate-950/50 hover:border-slate-500 hover:bg-slate-800/80">
-              🚀 Refaire un test
-            </a>
+          <div class="mt-4 flex gap-3">
+            <a href="{% url 'englishprep:ai_coach' %}" class="cta-primary">🤖 Coach IA</a>
+            <a href="{% url 'englishprep:test_list' %}" class="cta-secondary">🚀 Refaire un test</a>
           </div>
         </article>
       </section>
     {% else %}
 
-      {# GROUPER LES LEÇONS PAR COMPÉTENCE #}
       {% regroup lessons by skill as lessons_by_skill %}
 
       <section class="space-y-6">
         {% for group in lessons_by_skill %}
-          {# Déterminer un label lisible : on utilise le get_skill_display du premier élément #}
-          {% with group.list.0 as first_lesson %}
-          <article class="rounded-2xl border border-slate-800/80 bg-slate-900/90 p-5 shadow-xl shadow-black/60 backdrop-blur-xl">
-            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+          {% with first_lesson=group.list.0 %}
+          <article class="rounded-2xl border border-slate-800/80 bg-slate-900/90 p-5 shadow-xl backdrop-blur-xl">
+
+            <div class="mb-4 flex items-center justify-between">
               <div>
-                <p class="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                <p class="text-xs uppercase tracking-widest text-slate-400">
                   Compétence
                 </p>
-                <h2 class="mt-1 text-lg font-semibold text-slate-50">
+                <h2 class="text-lg font-semibold text-slate-50">
                   {{ first_lesson.get_skill_display }}
                 </h2>
                 {% if first_lesson.goal %}
-                  <p class="mt-1 text-[0.8rem] text-slate-400">
+                  <p class="text-xs text-slate-400">
                     Objectif : {{ first_lesson.goal }}
                   </p>
                 {% endif %}
               </div>
-              <div class="text-[0.75rem] text-slate-400">
-                {{ group.list|length }} leçon{{ group.list|length|pluralize:"s" }} liées
-              </div>
+              <span class="text-xs text-slate-400">
+                {{ group.list|length }} leçon{{ group.list|length|pluralize:"s" }}
+              </span>
             </div>
 
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {% for lesson in group.list %}
-                <div class="flex h-full flex-col rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4 text-sm shadow-sm shadow-black/40">
-                  <div class="mb-2 flex items-start justify-between gap-2">
-                    <h3 class="text-sm font-semibold text-slate-50">
-                      {{ lesson.title }}
-                    </h3>
-                    {% if lesson.level %}
-                      <span class="inline-flex items-center rounded-full bg-slate-800/80 px-2 py-0.5 text-[0.65rem] font-medium text-slate-300">
-                        Niveau {{ lesson.level }}
-                      </span>
-                    {% endif %}
-                  </div>
+                <div class="flex flex-col rounded-2xl border border-slate-800 bg-slate-950/80 p-4 text-sm">
+
+                  <h3 class="font-semibold text-slate-100">
+                    {{ lesson.title }}
+                  </h3>
 
                   {% if lesson.short_description %}
-                    <p class="mb-2 text-xs text-slate-300">
+                    <p class="mt-1 text-xs text-slate-300">
                       {{ lesson.short_description }}
                     </p>
                   {% endif %}
 
                   {% if lesson.video_url %}
-                    <a href="{{ lesson.video_url }}"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       class="mb-3 inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-[0.7rem] font-medium text-emerald-200 hover:bg-emerald-500/20">
-                      🎬 Vidéo / ressource principale
+                    <a href="{{ lesson.video_url }}" target="_blank" rel="noopener"
+                       class="mt-2 inline-flex items-center gap-1 text-xs text-emerald-300 hover:text-emerald-200">
+                      🎬 Ressource principale
                     </a>
                   {% endif %}
 
-                  {# EXERCICES ASSOCIÉS #}
-                  {% if lesson.exercises.all %}
-                    {% with exercise_list=lesson.exercises.all %}
-                    {% if exercise_list|length > 0 %}
-                      <div class="mt-auto pt-2 border-t border-slate-800/70">
-                        <p class="mb-1 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                          Exercices
-                        </p>
-                        <ul class="space-y-1.5 text-[0.75rem] text-slate-200">
-                          {% for ex in exercise_list %}
-                            <li class="flex items-start gap-2">
-                              <span class="mt-0.5 text-xs">
-                                {% if ex.difficulty == "EASY" %}🟢{% elif ex.difficulty == "MEDIUM" %}🟡{% else %}🔴{% endif %}
-                              </span>
-                              <div class="flex-1">
-                                <p class="font-medium">
-                                  {{ ex.title }}
-                                </p>
-                                {% if ex.description %}
-                                  <p class="text-[0.7rem] text-slate-400">
-                                    {{ ex.description|truncatechars:110 }}
-                                  </p>
-                                {% endif %}
-                                {% if ex.external_url %}
-                                  <a href="{{ ex.external_url }}"
-                                     target="_blank"
-                                     rel="noopener noreferrer"
-                                     class="mt-0.5 inline-flex items-center gap-1 text-[0.7rem] text-emerald-300 hover:text-emerald-200">
-                                    🔗 Ouvrir la ressource
-                                  </a>
-                                {% endif %}
-                              </div>
-                            </li>
-                          {% endfor %}
-                        </ul>
-                      </div>
-                    {% endif %}
-                    {% endwith %}
-                  {% else %}
-                    <p class="mt-3 text-[0.75rem] text-slate-400">
-                      Aucun exercice associé pour le moment.
-                    </p>
+                  {% with exercise_list=lesson.exercises.all %}
+                  {% if exercise_list %}
+                    <div class="mt-3 border-t border-slate-800 pt-2">
+                      <p class="text-xs uppercase tracking-widest text-slate-400 mb-1">
+                        Exercices
+                      </p>
+                      <ul class="space-y-1 text-xs text-slate-200">
+                        {% for ex in exercise_list %}
+                          <li>
+                            {{ ex.title }}
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
                   {% endif %}
+                  {% endwith %}
+
                 </div>
               {% endfor %}
             </div>
+
           </article>
           {% endwith %}
         {% endfor %}
       </section>
-    {% endif %}
 
-    {# FOOTER CTA : COACH IA #}
-    <section class="mt-10">
-      <article class="rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 via-slate-900 to-blue-500/10 p-5 text-sm text-slate-100 shadow-xl shadow-emerald-500/30 backdrop-blur-xl">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p class="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-emerald-300">
-              Besoin d’un plan de travail ?
-            </p>
-            <p class="mt-2 text-sm text-slate-100">
-              Tu peux demander au coach IA de te proposer une routine personnalisée
-              à partir de ce test et des compétences travaillées dans ce parcours de cours.
-            </p>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <a href="{% url 'englishprep:ai_coach' %}"
-               class="inline-flex items-center justify-center gap-2 rounded-3xl bg-gradient-to-r from-emerald-400 via-blue-500 to-sky-400 px-5 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-emerald-500/40 transition-all duration-300 hover:scale-105">
-              🤖 Ouvrir le coach IA
-            </a>
-            <a href="{% url 'englishprep:profile_progress' %}"
-               class="inline-flex items-center justify-center gap-2 rounded-3xl border border-slate-200/30 bg-slate-950/80 px-5 py-2.5 text-xs font-medium text-slate-100 shadow-sm shadow-black/50 hover:border-slate-100/50 hover:bg-slate-900/80">
-              📈 Voir mon profil anglais
-            </a>
-          </div>
-        </div>
-      </article>
-    </section>
+    {% endif %}
 
   </div>
 </main>

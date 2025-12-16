@@ -1,528 +1,36 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>E-SHELLE • Mes résultats</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <style>
-    :root {
-      --bg: #020617;
-      --surface: rgba(15,23,42,.96);
-      --surface-soft: rgba(15,23,42,.9);
-      --surface-alt: rgba(15,23,42,.88);
-      --border: rgba(148,163,184,.26);
-      --border-soft: rgba(148,163,184,.18);
+{% block title %}
+Mes résultats | Immigration97
+{% endblock %}
 
-      --accent-green: #22c55e;
-      --accent-orange: #fb923c;
-      --accent-blue: #38bdf8;
-      --accent-red: #f97373;
-      --accent-purple: #a855f7;
+{% block meta_description %}
+Tableau de bord des performances TEF et TCF :
+scores, progression, statistiques et historique des sessions.
+{% endblock %}
 
-      --text-main: #e5e7eb;
-      --text-muted: #9ca3af;
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/preparation_tests.css' %}">
+{% endblock %}
 
-      --radius-lg: 22px;
-      --radius-pill: 999px;
-      --shadow-card: 0 20px 55px rgba(0,0,0,.85);
-    }
+{% block content %}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+<section class="page page-session-review">
 
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background:
-        radial-gradient(900px 520px at 0% 0%, rgba(56,189,248,.18), transparent 60%),
-        radial-gradient(900px 520px at 110% 0%, rgba(248,113,113,.16), transparent 60%),
-        radial-gradient(1200px 720px at 50% 120%, rgba(34,197,94,.2), transparent 65%),
-        linear-gradient(135deg,#020617,#020617 45%,#02091a);
-      color: var(--text-main);
-      min-height: 100vh;
-    }
-
-    a { color: inherit; text-decoration: none; }
-
-    /* HEADER */
-    .shell-header {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      background: linear-gradient(180deg,rgba(2,6,23,.96),rgba(2,6,23,.9),rgba(2,6,23,.78));
-      border-bottom: 1px solid rgba(15,23,42,.9);
-      backdrop-filter: blur(18px);
-    }
-    .shell-header-inner {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 10px 18px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-    }
-    .brand-block {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .brand-logo {
-      width: 40px;
-      height: 40px;
-      border-radius: 14px;
-      overflow: hidden;
-      background: radial-gradient(circle at 20% 0%, rgba(248,250,252,.35), transparent 55%), #020617;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow:
-        0 0 0 1px rgba(148,163,184,.4),
-        0 14px 35px rgba(15,23,42,.9);
-    }
-    .brand-logo img {
-      width: 125%;
-      height: auto;
-      object-fit: cover;
-      transform: translateY(2px);
-    }
-    .brand-kicker {
-      font-size: .8rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-    .brand-title {
-      font-weight: 800;
-      font-size: 1rem;
-    }
-
-    .nav-tabs {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .nav-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-soft);
-      background: rgba(15,23,42,.9);
-      color: var(--text-main);
-      font-size: .9rem;
-      font-weight: 600;
-      box-shadow: 0 0 0 1px rgba(15,23,42,.8);
-      cursor: pointer;
-      transition:
-        background .18s ease,
-        border-color .18s ease,
-        box-shadow .18s ease,
-        transform .16s ease;
-    }
-    .nav-pill span.icon { font-size: 1.05rem; }
-
-    .nav-pill.active {
-      background: radial-gradient(circle at 0 0, rgba(248,250,252,.18), transparent 55%),
-                  linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-    }
-
-    main {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 26px 18px 40px;
-    }
-
-    .page-title {
-      margin-bottom: 12px;
-    }
-    .page-title h1 {
-      font-size: 1.8rem;
-      font-weight: 800;
-    }
-    .page-title p {
-      font-size: .95rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    /* GRID DASHBOARD */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
-      gap: 18px;
-      align-items: flex-start;
-      margin-bottom: 18px;
-    }
-    @media (max-width: 920px) {
-      .dashboard-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .card {
-      background: var(--surface);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-card);
-      padding: 16px 18px 18px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card h2 {
-      font-size: 1.1rem;
-      margin-bottom: 6px;
-    }
-    .card p {
-      font-size: .9rem;
-      color: var(--text-muted);
-    }
-
-    /* PROFIL GLOBAL */
-    .profile-top {
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:16px;
-      flex-wrap:wrap;
-      margin-top:6px;
-    }
-
-    .score-circle {
-      width:80px;
-      height:80px;
-      border-radius:999px;
-      background: radial-gradient(circle at 25% 0%, rgba(248,250,252,.28), transparent 55%),
-                  conic-gradient(var(--accent-green) 0deg, var(--accent-blue) 220deg, rgba(15,23,42,1) 220deg);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      box-shadow:0 16px 40px rgba(0,0,0,.9);
-    }
-    .score-circle-inner {
-      width:64px;
-      height:64px;
-      border-radius:inherit;
-      background:rgba(15,23,42,.96);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:1.4rem;
-      font-weight:800;
-    }
-
-    .profile-text {
-      font-size:.9rem;
-    }
-    .profile-text strong { font-weight:700; }
-
-    .profile-meta {
-      margin-top:6px;
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      font-size:.8rem;
-    }
-    .pill {
-      padding:3px 9px;
-      border-radius:var(--radius-pill);
-      border:1px solid var(--border-soft);
-      background:rgba(15,23,42,.9);
-      color:var(--text-muted);
-    }
-
-    /* BARRES PAR EXAMEN */
-    .exam-bars {
-      margin-top:10px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      font-size:.86rem;
-    }
-    .exam-row {
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .exam-label {
-      min-width:56px;
-      font-weight:600;
-    }
-    .exam-bar-track {
-      flex:1;
-      height:8px;
-      border-radius:999px;
-      background:rgba(15,23,42,.9);
-      border:1px solid var(--border-soft);
-      overflow:hidden;
-    }
-    .exam-bar {
-      height:100%;
-      border-radius:inherit;
-      background:linear-gradient(90deg, var(--accent-blue), var(--accent-green));
-      width:0;
-    }
-    .exam-pct {
-      min-width:40px;
-      text-align:right;
-      font-size:.82rem;
-      color:var(--text-muted);
-    }
-
-    /* TIMELINE SESSIONS */
-    .timeline {
-      margin-top:12px;
-      padding-top:10px;
-      border-top:1px solid rgba(15,23,42,.9);
-    }
-    .timeline-label {
-      font-size:.82rem;
-      color:var(--text-muted);
-      margin-bottom:6px;
-    }
-    .timeline-row {
-      display:flex;
-      gap:6px;
-      align-items:flex-end;
-    }
-    .timeline-col {
-      flex:1;
-      text-align:center;
-      font-size:.78rem;
-    }
-    .timeline-bar-track {
-      width:100%;
-      height:46px;
-      border-radius:999px;
-      background:rgba(15,23,42,.9);
-      border:1px solid var(--border-soft);
-      display:flex;
-      align-items:flex-end;
-      overflow:hidden;
-    }
-    .timeline-bar {
-      width:100%;
-      background:linear-gradient(180deg, var(--accent-purple), var(--accent-blue));
-    }
-    .timeline-date {
-      margin-top:3px;
-      color:var(--text-muted);
-    }
-
-    /* BADGES */
-    .badges-grid {
-      margin-top:8px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      font-size:.86rem;
-    }
-    .badge-card {
-      border-radius:16px;
-      padding:9px 10px;
-      background:var(--surface-soft);
-      border:1px solid var(--border-soft);
-      display:flex;
-      flex-direction:column;
-      gap:3px;
-    }
-    .badge-title {
-      font-weight:600;
-      display:flex;
-      align-items:center;
-      gap:6px;
-      font-size:.88rem;
-    }
-    .badge-chip {
-      padding:2px 7px;
-      border-radius:999px;
-      font-size:.74rem;
-    }
-    .badge-gold {
-      background:rgba(234,179,8,.2);
-      color:#facc15;
-    }
-    .badge-section {
-      background:rgba(56,189,248,.18);
-      color:#7dd3fc;
-    }
-
-    /* TABLE HISTORIQUE */
-    .table-wrapper {
-      margin-top: 10px;
-      border-radius: 18px;
-      border: 1px solid var(--border-soft);
-      background: var(--surface-soft);
-      overflow: hidden;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: .9rem;
-    }
-    thead {
-      background: rgba(15,23,42,.96);
-    }
-    th, td {
-      padding: 8px 10px;
-      border-bottom: 1px solid rgba(15,23,42,.9);
-      text-align: left;
-    }
-    th {
-      font-size: .8rem;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--text-muted);
-    }
-    tr:last-child td {
-      border-bottom: none;
-    }
-    tr:hover td {
-      background: rgba(15,23,42,.96);
-    }
-
-    .score-pill {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2px 9px;
-      border-radius: 999px;
-      font-size: .8rem;
-      font-weight: 600;
-    }
-    .score-good { background: rgba(34,197,94,.15); color: #4ade80; }
-    .score-mid { background: rgba(234,179,8,.12); color: #facc15; }
-    .score-low { background: rgba(239,68,68,.15); color: #f87171; }
-
-    .badge-mode {
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:2px 8px;
-      border-radius:999px;
-      font-size:.75rem;
-      border:1px solid rgba(148,163,184,.4);
-      color: var(--accent-blue);
-      border-color: rgba(56,189,248,.7);
-    }
-    .badge-mock {
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:2px 8px;
-      border-radius:999px;
-      font-size:.75rem;
-      border:1px solid rgba(148,163,184,.4);
-      color: var(--accent-orange);
-      border-color: rgba(251,146,60,.8);
-    }
-
-    .btn-small {
-      display: inline-flex;
-      align-items: center;
-      padding: 5px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border-soft);
-      background: rgba(15,23,42,.9);
-      font-size: .78rem;
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      gap: 4px;
-    }
-    .btn-small:hover {
-      border-color: rgba(148,163,184,.7);
-      background: rgba(15,23,42,.96);
-    }
-
-    .empty {
-      padding: 18px 10px;
-      text-align: center;
-      font-size: .9rem;
-      color: var(--text-muted);
-    }
-
-    /* SECTION STATS (CO/CE/EE/EO) */
-    .section-stats {
-      margin-top:10px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      font-size:.86rem;
-    }
-    .section-row {
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .section-label {
-      min-width:70px;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-    }
-    .section-bar-track {
-      flex:1;
-      height:6px;
-      border-radius:999px;
-      background:rgba(15,23,42,.9);
-      border:1px solid var(--border-soft);
-      overflow:hidden;
-    }
-    .section-bar {
-      height:100%;
-      border-radius:inherit;
-      background:linear-gradient(90deg, var(--accent-purple), var(--accent-blue));
-      width:0;
-    }
-    .section-pct {
-      min-width:38px;
-      text-align:right;
-      font-size:.8rem;
-      color:var(--text-muted);
-    }
-  </style>
-</head>
-<body>
-
-<header class="shell-header">
-  <div class="shell-header-inner">
-    <div class="brand-block">
-      <div class="brand-logo">
-        <img src="{% static 'logoeshelle.jpg' %}" alt="E-SHELLE">
-      </div>
-      <div>
-        <div class="brand-kicker">E-SHELLE • Préparation TEF &amp; TCF</div>
-        <div class="brand-title">Mes résultats &amp; statistiques</div>
-      </div>
-    </div>
-
-    <nav class="nav-tabs">
-      <a class="nav-pill" href="{% url 'preparation_tests:french_exams' %}">
-        <span class="icon">🏠</span><span>Hub examens</span>
-      </a>
-      <span class="nav-pill active">
-        <span class="icon">📊</span><span>Statistiques</span>
-      </span>
-    </nav>
-  </div>
-</header>
-
-<main>
-  <section class="page-title">
+  <!-- ===== TITRE ===== -->
+  <header class="page-title">
     <h1>Tableau de bord – Tes performances</h1>
     <p>
-      Vue globale de tes sessions TEF / TCF : moyenne générale, progression et badges.
-      Utilise cette page comme ton centre de contrôle.
+      Vue globale de tes sessions TEF / TCF : moyenne générale, progression
+      et badges. Utilise cette page comme ton centre de contrôle.
     </p>
-  </section>
+  </header>
 
-  <!-- DASHBOARD HAUT : PROFIL + BADGES -->
+  <!-- ===== DASHBOARD ===== -->
   <section class="dashboard-grid">
 
-    <!-- PROFIL GLOBAL -->
+    <!-- ===== PROFIL GLOBAL ===== -->
     <article class="card">
       <h2>Profil global</h2>
       <p>Résumé de ton niveau général sur les derniers entraînements.</p>
@@ -538,37 +46,48 @@
               {% endif %}
             </div>
           </div>
+
           <div class="profile-text">
             {% if global_stats.total_sessions %}
               <div>
-                <strong>{{ global_stats.total_sessions }}</strong> session{% if global_stats.total_sessions > 1 %}s{% endif %} enregistrée{% if global_stats.total_sessions > 1 %}s{% endif %}.
+                <strong>{{ global_stats.total_sessions }}</strong>
+                session{% if global_stats.total_sessions > 1 %}s{% endif %}.
               </div>
+
               {% if global_stats.last_pct %}
-                <div>Dernière session : <strong>{{ global_stats.last_pct }} %</strong>.</div>
+                <div>Dernière session :
+                  <strong>{{ global_stats.last_pct }} %</strong>
+                </div>
               {% endif %}
+
               {% if global_stats.best_pct %}
-                <div>Meilleur score : <strong>{{ global_stats.best_pct }} %</strong>.</div>
+                <div>Meilleur score :
+                  <strong>{{ global_stats.best_pct }} %</strong>
+                </div>
               {% endif %}
             {% else %}
-              <div>Pas encore de session enregistrée. Lance un entraînement pour voir ton profil.</div>
+              <div>
+                Pas encore de session enregistrée.
+                Lance un entraînement pour voir ton profil.
+              </div>
             {% endif %}
 
             <div class="profile-meta">
               {% if global_stats.global_avg %}
-                <span class="pill">Moyenne globale : {{ global_stats.global_avg }} %</span>
+                <span class="pill">Moyenne globale {{ global_stats.global_avg }}%</span>
               {% endif %}
               {% if global_stats.tef_avg %}
-                <span class="pill">Moyenne TEF : {{ global_stats.tef_avg }} %</span>
+                <span class="pill">Moyenne TEF {{ global_stats.tef_avg }}%</span>
               {% endif %}
               {% if global_stats.tcf_avg %}
-                <span class="pill">Moyenne TCF : {{ global_stats.tcf_avg }} %</span>
+                <span class="pill">Moyenne TCF {{ global_stats.tcf_avg }}%</span>
               {% endif %}
             </div>
           </div>
         </div>
       </div>
 
-      <!-- BARRES TEF / TCF -->
+      <!-- ===== BARRES TEF / TCF ===== -->
       <div class="exam-bars">
         {% if global_stats.tef_avg %}
           <div class="exam-row">
@@ -579,6 +98,7 @@
             <span class="exam-pct">{{ global_stats.tef_avg }}%</span>
           </div>
         {% endif %}
+
         {% if global_stats.tcf_avg %}
           <div class="exam-row">
             <span class="exam-label">TCF</span>
@@ -590,7 +110,7 @@
         {% endif %}
       </div>
 
-      <!-- STATS PAR SECTION -->
+      <!-- ===== STATS PAR SECTION ===== -->
       {% if section_stats %}
         <div class="section-stats">
           {% for sec in section_stats %}
@@ -605,15 +125,13 @@
               <div class="section-bar-track">
                 <div class="section-bar" style="width: {{ sec.avg_pct }}%;"></div>
               </div>
-              <div class="section-pct">
-                {{ sec.avg_pct }}%
-              </div>
+              <div class="section-pct">{{ sec.avg_pct }}%</div>
             </div>
           {% endfor %}
         </div>
       {% endif %}
 
-      <!-- TIMELINE -->
+      <!-- ===== TIMELINE ===== -->
       {% if timeline %}
         <div class="timeline">
           <div class="timeline-label">Progression des dernières sessions</div>
@@ -625,7 +143,9 @@
                     <div class="timeline-bar" style="height: {{ t.pct }}%;"></div>
                   {% endif %}
                 </div>
-                <div class="timeline-date">{{ t.date }}<br>{{ t.exam }}</div>
+                <div class="timeline-date">
+                  {{ t.date }}<br>{{ t.exam }}
+                </div>
               </div>
             {% endfor %}
           </div>
@@ -633,7 +153,7 @@
       {% endif %}
     </article>
 
-    <!-- BADGES -->
+    <!-- ===== BADGES ===== -->
     <aside class="card">
       <h2>Badges &amp; objectifs</h2>
       <p>Récompenses basées sur ta régularité et tes scores.</p>
@@ -644,38 +164,35 @@
             <div class="badge-card">
               <div class="badge-title">
                 {% if b.kind == "gold" %}
-                  🏅
-                  <span>{{ b.title }}</span>
+                  🏅 {{ b.title }}
                   <span class="badge-chip badge-gold">Elite</span>
                 {% elif b.kind == "section" %}
-                  🎯
-                  <span>{{ b.title }}</span>
+                  🎯 {{ b.title }}
                   <span class="badge-chip badge-section">Section</span>
                 {% else %}
-                  ⭐
-                  <span>{{ b.title }}</span>
+                  ⭐ {{ b.title }}
                 {% endif %}
               </div>
-              <div style="color:var(--text-muted);font-size:.84rem;">
-                {{ b.text }}
-              </div>
+              <div class="badge-desc">{{ b.text }}</div>
             </div>
           {% endfor %}
         </div>
       {% else %}
-        <div style="margin-top:8px;font-size:.86rem;color:var(--text-muted);">
-          Pas encore de badge débloqué. Enchaîne les sessions régulières avec de bons scores
-          pour voir apparaître tes premiers trophées.
-        </div>
+        <p class="empty">
+          Pas encore de badge débloqué.
+          Enchaîne les sessions régulières pour progresser.
+        </p>
       {% endif %}
     </aside>
 
   </section>
 
-  <!-- HISTORIQUE DETAILLE -->
+  <!-- ===== HISTORIQUE ===== -->
   <section class="card">
     <h2>Historique de tes sessions</h2>
-    <p>Les plus récentes apparaissent en premier. Clique sur Résultat ou Corrigé pour revoir une session.</p>
+    <p>
+      Clique sur Résultat ou Corrigé pour revoir une session passée.
+    </p>
 
     <div class="table-wrapper">
       {% if sessions %}
@@ -693,18 +210,8 @@
           <tbody>
             {% for s in sessions %}
               <tr>
-                <td>
-                  {{ s.started_at|date:"d/m/Y" }}
-                  <span style="color:var(--text-muted);font-size:.8rem;">
-                    • {{ s.started_at|time:"H:i" }}
-                  </span>
-                </td>
-                <td>
-                  <strong>{{ s.exam.code|upper }}</strong>
-                  <span style="color:var(--text-muted);font-size:.8rem;">
-                    – {{ s.exam.name }}
-                  </span>
-                </td>
+                <td>{{ s.started_at|date:"d/m/Y H:i" }}</td>
+                <td><strong>{{ s.exam.code|upper }}</strong></td>
                 <td>
                   {% if s.mode == "mock" %}
                     <span class="badge-mock">Examen blanc</span>
@@ -714,23 +221,15 @@
                 </td>
                 <td>
                   {% if s.score_pct != None %}
-                    {% if s.score_pct >= 80 %}
-                      <span class="score-pill score-good">{{ s.score_pct }} %</span>
-                    {% elif s.score_pct >= 50 %}
-                      <span class="score-pill score-mid">{{ s.score_pct }} %</span>
-                    {% else %}
-                      <span class="score-pill score-low">{{ s.score_pct }} %</span>
-                    {% endif %}
-                  {% else %}
-                    <span style="color:var(--text-muted);font-size:.85rem;">–</span>
-                  {% endif %}
+                    <span class="score-pill">
+                      {{ s.score_pct }} %
+                    </span>
+                  {% else %}–{% endif %}
                 </td>
                 <td>
                   {% if s.total_items %}
                     {{ s.total_correct }} / {{ s.total_items }}
-                  {% else %}
-                    –
-                  {% endif %}
+                  {% else %}–{% endif %}
                 </td>
                 <td>
                   <a class="btn-small" href="{% url 'preparation_tests:session_result' s.id %}">
@@ -746,13 +245,12 @@
         </table>
       {% else %}
         <div class="empty">
-          Tu n’as pas encore de session enregistrée.<br>
-          Lance un entraînement TEF ou TCF pour voir tes statistiques ici.
+          Aucune session enregistrée pour le moment.
         </div>
       {% endif %}
     </div>
   </section>
-</main>
 
-</body>
-</html>
+</section>
+
+{% endblock %}
