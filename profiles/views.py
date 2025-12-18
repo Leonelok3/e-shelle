@@ -4,6 +4,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.db.models import Q
+from django.contrib.auth.decorators import login_required
+from billing.models import Subscription
+from cv_generator.models import CV
+from preparation_tests.models import UserSkillResult
+from .forms import AvatarUploadForm
+from django.urls import reverse
 
 from .models import Profile, Category, PortfolioItem
 from .forms import ProfileForm, PortfolioItemForm, ContactCandidateForm
@@ -78,6 +84,10 @@ class ProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def test_func(self):
         return self.request.user == self.get_object().user
 
+    def get_success_url(self):
+        return reverse('profiles:my_space')
+
+
 # Ajouter un fichier au portfolio
 def add_portfolio_item(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
@@ -96,3 +106,57 @@ def add_portfolio_item(request, pk):
         form = PortfolioItemForm()
     
     return render(request, 'profiles/portfolio_form.html', {'form': form, 'profile': profile})
+
+########## ajout #########
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404
+from billing.services import has_active_access, has_session_access
+from .models import Profile
+
+# CV OK
+from cv_generator.models import CV
+
+
+@login_required
+def my_space(request):
+    profile = get_object_or_404(Profile, user=request.user)
+
+    has_premium = has_active_access(request.user)
+    has_temp_access = has_session_access(request)
+
+    # ✅ CV (champ = utilisateur)
+    recent_cvs = CV.objects.filter(
+        utilisateur=request.user
+    ).order_by("-date_modification")[:5]
+
+    # ✅ TESTS (désactivé temporairement)
+    test_results = []
+
+    context = {
+        "profile": profile,
+        "has_premium": has_premium,
+        "has_temp_access": has_temp_access,
+        "recent_cvs": recent_cvs,
+        "test_results": test_results,
+    }
+
+    return render(request, "profiles/my_space.html", context)
+
+#############################
+
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+
+@login_required
+def upload_avatar(request):
+    profile = request.user.profile
+
+    if request.method == "POST" and request.FILES.get("avatar"):
+        profile.avatar = request.FILES["avatar"]
+        profile.save()
+        messages.success(request, "Photo de profil mise à jour ✅")
+        return redirect("profiles:my_space")
+
+    return render(request, "profiles/avatar_upload.html", {
+        "profile": profile
+    })

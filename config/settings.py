@@ -141,6 +141,7 @@ TEMPLATES = [
                 "django.template.context_processors.media",
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
+                "billing.context_processors.premium_status",
             ],
         },
     },
@@ -202,7 +203,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 SITE_ID = 1
 
 LOGIN_URL = "authentification:login"
-LOGIN_REDIRECT_URL = "dashboard"
+LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "home"
 
 AUTHENTICATION_BACKENDS = [
@@ -257,14 +258,31 @@ else:
 # ======================================================
 # EMAIL
 # ======================================================
+# ======================================================
+# EMAIL CONFIG – HOSTINGER (PRODUCTION READY)
+# ======================================================
+
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.hostinger.com")
-EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "465"))
-EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "True") == "True"
-EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "False") == "True"
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+
+# 🔐 Sécurité SMTP Hostinger
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
+EMAIL_USE_SSL = False  # ⚠️ NE PAS UTILISER SSL AVEC 587
+
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "contact@immigration97.com")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "no-reply@immigration97.com")
+
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL",
+    "Immigration97 <contact@immigration97.com>"
+)
+
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+EMAIL_TIMEOUT = 10
+
 
 # ======================================================
 # LOGGING
@@ -283,3 +301,18 @@ LOGGING = {
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# ======================================================
+# SITE & DOMAIN (OBLIGATOIRE POUR EMAILS)
+# ======================================================
+
+SITE_ID = 1
+
+DEFAULT_DOMAIN = "immigration97.com"
+DEFAULT_PROTOCOL = "https"
+
+
+# Utilisé par PasswordResetView
+EMAIL_USE_LOCALTIME = True
+

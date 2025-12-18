@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Photo de profil — Immigration97{% endblock %}
+
+{% block content %}
+<section class="space-container">
+
+  <h1 class="space-title">📸 Photo de profil</h1>
+
+  <div class="space-profile">
+
+    {% if profile.avatar %}
+      <img src="{{ profile.avatar.url }}" class="space-avatar">
+    {% else %}
+      <div class="space-avatar space-avatar--fallback">👤</div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="avatar-form">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      {{ form.avatar.errors }}
+      {{ form.avatar }}
+
+      <button type="submit" class="btn">
+        Mettre à jour
+      </button>
+    </form>
+
+  </div>
+
+</section>
+{% endblock %}

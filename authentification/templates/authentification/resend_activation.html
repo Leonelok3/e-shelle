@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Renvoyer l’email de confirmation – Immigration97{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/authentication.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="auth-layout">
+
+  <section class="auth-container">
+    <div class="auth-card">
+
+      <header class="auth-header">
+        <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97" class="auth-logo">
+        <h1>Email de confirmation</h1>
+        <p>
+          Vous n’avez pas reçu l’email d’activation ?
+          Entrez votre adresse email ci-dessous.
+        </p>
+      </header>
+
+      {% if messages %}
+        <div class="auth-alerts">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" class="auth-form">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="email">Adresse email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            autocomplete="email"
+          >
+        </div>
+
+        <button type="submit" class="btn-auth-primary">
+          Renvoyer l’email de confirmation
+        </button>
+      </form>
+
+      <footer class="auth-footer">
+        <p>
+          <a href="{% url 'authentification:login' %}">
+            ← Retour à la connexion
+          </a>
+        </p>
+      </footer>
+
+    </div>
+  </section>
+
+</main>
+{% endblock %}

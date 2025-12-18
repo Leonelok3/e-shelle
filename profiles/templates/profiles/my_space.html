@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mon espace — Immigration97{% endblock %}
+
+{% block content %}
+
+<section class="space">
+
+  <h1 class="space-title">👤 Mon espace</h1>
+
+  <div class="space-card">
+
+   <div class="space-avatar-wrapper">
+  {% if profile.avatar %}
+    <img src="{{ profile.avatar.url }}" class="space-avatar" alt="Photo de profil">
+  {% else %}
+    <div class="space-avatar space-avatar--fallback">👤</div>
+  {% endif %}
+
+  <a href="{% url 'profiles:avatar' %}" class="space-avatar-action">
+    Changer la photo
+  </a>
+</div>
+
+    <div class="space-info">
+      <h2>{{ user.username|upper }}</h2>
+      <p>{{ user.email }}</p>
+
+      <a href="{% url 'profiles:edit' profile.pk %}" class="btn btn--soft">
+        Modifier mon profil
+      </a>
+    </div>
+
+  </div>
+
+  <div class="space-grid">
+
+    <div class="space-box">
+      <h3>📌 Compte</h3>
+      <p>Email : <span class="status-ok">confirmé</span></p>
+    </div>
+
+    <div class="space-box">
+      <h3>💎 Abonnement</h3>
+      {% if has_premium %}
+        <p class="status-ok">Premium actif</p>
+      {% else %}
+        <p class="status-warn">Aucun abonnement</p>
+        <a href="{% url 'billing:pricing' %}" class="btn btn--soft btn--sm">
+          Activer Premium
+        </a>
+      {% endif %}
+    </div>
+
+  </div>
+
+</section>
+
+{% endblock %}

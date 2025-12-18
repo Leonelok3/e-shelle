@@ -33,7 +33,8 @@ urlpatterns = [
 
     # AUTH
     #path("authentification/", include("authentification.urls")),
-    path("authentification/", include(("authentification.urls", "authentification"))),
+    #path("authentification/", include(("authentification.urls", "authentification"))),
+    path("authentification/", include("authentification.urls", namespace="authentification")),
 
     path("documents/", include("DocumentsApp.urls")),
 

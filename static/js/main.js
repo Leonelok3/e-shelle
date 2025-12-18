@@ -68,3 +68,39 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
+document.addEventListener("DOMContentLoaded", () => {
+  const toggle = document.getElementById("navToggle");
+  const navbar = document.querySelector(".navbar");
+
+  if (toggle && navbar) {
+    toggle.addEventListener("click", () => {
+      navbar.classList.toggle("open");
+    });
+  }
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('a[href*="billing"]').forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (window.gtag) {
+        gtag('event', 'cta_click', {
+          event_category: 'conversion',
+          event_label: 'billing_access'
+        });
+      }
+    });
+  });
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('a[href*="billing"]').forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (window.fbq) {
+        fbq('track', 'InitiateCheckout');
+      }
+    });
+  });
+});

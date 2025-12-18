@@ -1,107 +1,148 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Créer un compte – Immigration97{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/authentication.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-slate-950 bg-gradient-to-br from-slate-950 via-slate-950 to-slate-900 px-4 py-12">
-  <div class="w-full max-w-2xl bg-slate-900/90 backdrop-blur-xl rounded-3xl shadow-2xl shadow-emerald-900/40 border border-emerald-500/30 px-6 py-8 sm:px-10 sm:py-10">
+<main class="auth-layout">
 
-    <!-- Header -->
-    <div class="text-center mb-8">
-      <p class="text-xs font-semibold tracking-[0.2em] uppercase text-emerald-300/80 mb-2">
-        E-SHELLE • CRÉATION DE COMPTE
-      </p>
-      <h1 class="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-emerald-400 via-cyan-300 to-sky-400 bg-clip-text text-transparent">
-        🚀 Rejoignez E-SHELLE
-      </h1>
-      <p class="text-sm sm:text-base font-medium text-slate-300 mt-3">
-        🌟 Ton futur sans limite commence ici
-      </p>
-    </div>
+  <section class="auth-container">
+    <div class="auth-card">
 
-    <!-- Form -->
-    <form method="post" action="{% url 'authentification:register' %}" class="space-y-6">
-      {% csrf_token %}
+      <header class="auth-header">
+        <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97" class="auth-logo">
+        <h1>Créer un compte</h1>
+        <p>Rejoignez la plateforme Immigration97</p>
+      </header>
 
-      <div class="space-y-2">
-        <label for="username" class="block text-sm font-medium text-slate-100">
-          👤 Nom d'utilisateur
-        </label>
-        <input type="text" name="username" id="username" placeholder="Votre nom d'utilisateur"
-               value="{{ prefill.username|default:'' }}" required
-               class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-shadow">
-      </div>
+      {% if messages %}
+        <div class="auth-alerts">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
 
-      <div class="space-y-2">
-        <label for="email" class="block text-sm font-medium text-slate-100">
-          📧 Email
-        </label>
-        <input type="email" name="email" id="email" placeholder="Votre adresse email"
-               value="{{ prefill.email|default:'' }}" required
-               class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-shadow">
-      </div>
-
-      <div class="space-y-2">
-        <label for="password" class="block text-sm font-medium text-slate-100">
-          🔒 Mot de passe
-        </label>
-        <input type="password" name="password" id="password" placeholder="Choisissez un mot de passe"
-               required
-               class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-shadow">
-      </div>
-
-      <div class="space-y-2">
-        <label for="confirm_password" class="block text-sm font-medium text-slate-100">
-          🔒 Confirmer le mot de passe
-        </label>
-        <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirmez votre mot de passe"
-               required
-               class="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-shadow">
-      </div>
-
-      <button type="submit"
-              class="w-full inline-flex justify-center items-center px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400 text-slate-950 font-bold tracking-wide shadow-lg shadow-emerald-700/40 hover:shadow-emerald-500/50 hover:from-emerald-400 hover:via-emerald-300 hover:to-cyan-300 transition transform hover:-translate-y-[1px]">
-        ✅ S'inscrire maintenant
-      </button>
-    </form>
-
-    <!-- Footer -->
-    <div class="mt-8 text-center text-xs sm:text-sm text-slate-300">
-      <p>
-        Déjà inscrit ?
-        <a href="{% url 'authentification:login' %}"
-           class="text-cyan-300 hover:text-cyan-200 font-semibold transition-colors">
-          Connexion
-        </a>
-      </p>
-
-      <form method="post" action="{% url 'authentification:logout' %}" class="mt-2">
+      <form method="post" class="auth-form" novalidate>
         {% csrf_token %}
-        <button type="submit"
-                class="text-emerald-300 hover:text-emerald-200 font-semibold text-xs sm:text-sm transition-colors">
-          Se déconnecter
+
+        <div class="form-group">
+          <label for="username">Nom d’utilisateur</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            value="{{ prefill.username|default:'' }}"
+            required
+            autocomplete="username"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="email">Adresse email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value="{{ prefill.email|default:'' }}"
+            required
+            autocomplete="email"
+          >
+        </div>
+
+        <div class="form-group password-wrapper">
+          <label for="password1">Mot de passe</label>
+          <input
+            id="password1"
+            type="password"
+            name="password"
+            required
+            autocomplete="new-password"
+            class="password-input"
+          >
+          <button
+            type="button"
+            class="password-toggle"
+            aria-label="Afficher le mot de passe"
+            tabindex="-1">
+            👁
+          </button>
+        </div>
+
+        <div class="form-group password-wrapper">
+          <label for="password2">Confirmer le mot de passe</label>
+          <input
+            id="password2"
+            type="password"
+            name="confirm_password"
+            required
+            autocomplete="new-password"
+            class="password-input"
+          >
+          <button
+            type="button"
+            class="password-toggle"
+            aria-label="Afficher le mot de passe"
+            tabindex="-1">
+            👁
+          </button>
+        </div>
+
+        <button type="submit" class="btn-auth-primary">
+          Créer mon compte
         </button>
       </form>
-    </div>
+      <div class="register-info">
+  <p class="info-text">
+    📧 Un email de confirmation vous sera envoyé après l’inscription.
+  </p>
 
-    <!-- Messages -->
-    {% if messages %}
-      <div class="mt-6 space-y-2">
-        {% for message in messages %}
-          <div class="text-sm px-4 py-3 rounded-xl border shadow-sm
-            {% if message.tags == 'success' %}
-              bg-emerald-900/40 border-emerald-500/50 text-emerald-100
-            {% elif message.tags == 'warning' %}
-              bg-amber-900/40 border-amber-500/50 text-amber-100
-            {% elif message.tags == 'error' %}
-              bg-rose-900/40 border-rose-500/50 text-rose-100
-            {% else %}
-              bg-sky-900/40 border-sky-500/50 text-sky-100
-            {% endif %}">
-            {{ message }}
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
+  <details class="resend-box">
+    <summary>Vous n’avez pas reçu l’email ?</summary>
 
-  </div>
+    <form method="post" action="{% url 'authentification:resend_activation_email' %}">
+      {% csrf_token %}
+      <input
+        type="email"
+        name="email"
+        placeholder="Votre adresse email"
+        required
+      >
+      <button type="submit">
+        Renvoyer l’email de confirmation
+      </button>
+    </form>
+  </details>
 </div>
+
+
+      <footer class="auth-footer">
+        <p>
+          Déjà inscrit ?
+          <a href="{% url 'authentification:login' %}">Se connecter</a>
+        </p>
+        <p style="margin-top: 0.5rem;">
+  Vous n’avez pas reçu l’email de confirmation ?
+  <a href="{% url 'authentification:resend_activation' %}">
+    Renvoyer l’email
+  </a>
+</p>
+
+      </footer>
+
+    </div>
+  </section>
+
+</main>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/pages/authentication.js' %}"></script>
 {% endblock %}

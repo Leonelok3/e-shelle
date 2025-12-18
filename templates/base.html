@@ -21,17 +21,17 @@
   <meta property="og:type" content="website">
   <meta property="og:image" content="{% static 'img/LOGOIMM97.png' %}">
 
-  <!-- CSS GLOBAL (ORDRE STRICT) -->
+  <!-- CSS GLOBAL -->
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'css/pages/englishprep.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+  <link rel="stylesheet" href="{% static 'css/pages/profile.css' %}">
 
+  
 
-<link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-<link rel="stylesheet" href="{% static 'css/base.css' %}">
-<link rel="stylesheet" href="{% static 'css/components.css' %}">
-<link rel="stylesheet" href="{% static 'css/main.css' %}">
-<link rel="stylesheet" href="{% static 'css/pages/englishprep.css' %}">
-
-
-  <!-- CSS SPÉCIFIQUE À LA PAGE -->
   {% block head_extra %}{% endblock %}
 </head>
 
@@ -42,8 +42,10 @@
   <div class="navbar__container">
 
     <a href="/" class="navbar__brand">
-      <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97 Logo">
+      <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97 Logo" width="48" height="48">
     </a>
+
+    <div class="navbar__toggle" id="navToggle">☰</div>
 
     <nav class="navbar__nav">
       <a href="/" class="nav-link">Accueil</a>
@@ -53,23 +55,53 @@
       <a href="/residence-permanente/" class="nav-link">Résidence Permanente</a>
     </nav>
 
+    <!-- ===== ACTIONS DYNAMIQUES ===== -->
     <div class="navbar__actions">
+
+      {% if user.is_authenticated %}
+      <!-- UTILISATEUR CONNECTÉ -->
+      <div class="nav-user">
+
+        <button class="nav-user__btn" id="userMenuBtn">
+          {% if user.profile.avatar %}
+            
+          {% else %}
+            <span class="nav-user__avatar--fallback">👤</span>
+          {% endif %}
+          <span class="nav-user__name">{{ user.username }}</span>
+        </button>
+
+        <div class="nav-user__dropdown" id="userDropdown">
+          <a href="{% url 'profiles:my_space' %}">Mon espace</a>
+          
+
+          <hr>
+          <a href="{% url 'authentification:logout' %}" class="danger">Déconnexion</a>
+        </div>
+
+      </div>
+      {% else %}
+      <!-- UTILISATEUR NON CONNECTÉ -->
       <a href="{% url 'authentification:login' %}" class="btn btn--soft">
         Se connecter
       </a>
       <a href="{% url 'billing:access' %}" class="btn">
         S’abonner
       </a>
+      {% endif %}
+
     </div>
 
   </div>
 </header>
 
 <!-- ================= CONTENT ================= -->
-<main id="main-content" class="page" role="main">
+<main class="app-main">
   {% block content %}{% endblock %}
 </main>
 
+
+<!-- ================= FOOTER ================= -->
 <!-- ================= FOOTER ================= -->
 <footer class="footer">
 
@@ -77,7 +109,11 @@
 
     <div class="footer__brand">
       <div class="footer__logo">
-        <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97 Logo" height="160">
+        <img src="{% static 'img/LOGOIMM97.png' %}"
+             alt="Immigration97 Logo"
+             width="160"
+             height="160"
+             loading="lazy">
       </div>
 
       <p class="footer__desc">
@@ -86,7 +122,7 @@
 
       <ul class="footer__trust">
         <li>🔒 Données sécurisées</li>
-        <li>🧾 Paiement Stripe & PayPal</li>
+        <li>🧾 Paiement sécurisé</li>
         <li>🌍 Accessible mondialement</li>
       </ul>
     </div>
@@ -129,14 +165,11 @@
 
 </footer>
 
+
 <!-- JS -->
-<script src="{% static 'js/csrf.js' %}" defer></script>
-<script src="{% static 'js/fetch_helpers.js' %}" defer></script>
-<script src="{% static 'js/i18n.js' %}" defer></script>
 <script src="{% static 'js/main.js' %}" defer></script>
 
 {% block body_end %}{% endblock %}
-<script src="{% static 'js/tef_co_session.js' %}" defer></script>
 
 </body>
 </html>

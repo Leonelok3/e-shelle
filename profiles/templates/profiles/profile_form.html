@@ -1,22 +1,31 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Modifier mon profil — Immigration97{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Mon Profil Professionnel</h4>
-                </div>
-                <div class="card-body">
-                    <form method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                        <button type="submit" class="btn btn-success mt-3">Enregistrer le profil</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+<section class="profile-container">
+
+  <h1 class="profile-title">📝 Modifier mon profil</h1>
+
+  <form method="post" enctype="multipart/form-data" class="profile-form">
+    {% csrf_token %}
+
+    {{ form.non_field_errors }}
+
+    {% for field in form %}
+      <div>
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {{ field.errors }}
+      </div>
+    {% endfor %}
+
+    <div class="profile-submit">
+      <button type="submit">💾 Enregistrer le profil</button>
     </div>
-</div>
+
+  </form>
+
+</section>
 {% endblock %}

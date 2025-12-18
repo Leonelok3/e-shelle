@@ -89,9 +89,15 @@ def _json_body(request):
 def index(request):
     return render(request, "cv_generator/index.html")
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+from billing.services import has_active_access, has_session_access
 
 @login_required
 def cv_list(request):
+    if not has_active_access(request.user) and not has_session_access(request):
+        return redirect(f"/billing/pricing/?next={request.path}")
+
     cvs = CV.objects.filter(utilisateur=request.user).order_by("-date_modification")
     return render(request, "cv_generator/cv_list.html", {"cvs": cvs})
 
@@ -889,3 +895,4 @@ def analyze_cv(request, cv_id=None):
             "Incorporez des mots-clés du poste."
         ]
     }})
+
