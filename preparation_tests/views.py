@@ -10,6 +10,7 @@ from .models import CEFRCertificate
 from preparation_tests.services.ai_coach.coach_global import AICoachGlobal
 
 
+
 # =========================================================
 # 📦 IMPORTS DJANGO
 # =========================================================
@@ -70,7 +71,6 @@ from .ai_coach import AICoachCO
 # =========================================================
 # 🔧 OUTILS INTERNES
 # =========================================================
-
 def _norm(s: str | None) -> str:
     if not s:
         return ""
@@ -79,7 +79,6 @@ def _norm(s: str | None) -> str:
         c for c in unicodedata.normalize("NFD", s)
         if unicodedata.category(c) != "Mn"
     )
-
 
 def _next_unanswered_question(attempt: Attempt):
     answered = set(attempt.answers.values_list("question_id", flat=True))
@@ -106,15 +105,15 @@ def _audio_url_from_question(q: Question):
 # =========================================================
 # 🏠 ACCUEIL & HUBS
 # =========================================================
-
+@login_required
 def home(request):
     return render(request, "preparation_tests/home.html")
 
-
+@login_required
 def french_exams(request):
     return render(request, "preparation_tests/french_exams.html")
 
-
+@login_required
 def tef_hub(request):
     sections = [
         {"code": "co", "title": "Compréhension orale"},
@@ -126,7 +125,7 @@ def tef_hub(request):
     for s in sections:
         s["url"] = reverse(
             "preparation_tests:course_section",
-            args=["tef", s["code"]],
+            args=["TEF", s["code"]],
         )
 
     return render(
@@ -135,11 +134,11 @@ def tef_hub(request):
         {"sections": sections},
     )
 
-
+@login_required
 def tcf_hub(request):
     return render(request, "preparation_tests/fr_tcf_hub.html")
 
-
+@login_required
 def delf_hub(request):
     return render(request, "preparation_tests/fr_delf_hub.html")
 
@@ -147,27 +146,37 @@ def delf_hub(request):
 # =========================================================
 # 📚 EXAMENS
 # =========================================================
-
+@login_required
 def exam_list(request):
     exams = Exam.objects.all().order_by("language", "name")
     return render(request, "preparation_tests/exam_list.html", {"exams": exams})
 
-
+@login_required
 def exam_detail(request, exam_code):
-    exam = get_object_or_404(Exam, code=exam_code)
+    exam = get_object_or_404(
+        Exam,
+        code__iexact=exam_code
+    )
+
+    sections = exam.sections.all()
+
     return render(
         request,
         "preparation_tests/exam_detail.html",
-        {"exam": exam, "sections": exam.sections.all()},
+        {
+            "exam": exam,
+            "sections": sections,
+        },
     )
 
 
 # =========================================================
 # 📖 LISTE DES COURS (🔥 CORRECTION ICI)
 # =========================================================
-
+@login_required
 def course_section(request, exam_code, section):
-    exam = get_object_or_404(Exam, code=exam_code)
+    exam = get_object_or_404(Exam, code__iexact=exam_code)
+
 
     lessons = CourseLesson.objects.filter(
         exam=exam,
@@ -175,23 +184,27 @@ def course_section(request, exam_code, section):
         is_published=True
     )
 
-    cefr = get_cefr_progress(
-        user=request.user,
-        exam_code=exam.code,
-        skill=section,
-    )
+    # ✅ CECR uniquement si utilisateur connecté
+    cefr = None
+    if request.user.is_authenticated:
+        cefr = get_cefr_progress(
+            user=request.user,
+            exam_code=exam.code,
+            skill=section,
+        )
 
     return render(
         request,
         "preparation_tests/course_section.html",
         {
             "exam": exam,
-            "exam_code": exam.code,   # 🔥 CRUCIAL
-            "section": section,       # 🔥 CRUCIAL
+            "exam_code": exam.code,
+            "section": section,
             "lessons": lessons,
             "cefr": cefr,
         }
     )
+
 
 
 # =========================================================
@@ -237,12 +250,16 @@ def lesson_session(request, exam_code, section, lesson_id):
 
 @login_required
 def start_session_generic(request, exam_code):
-    exam = get_object_or_404(Exam, code=exam_code)
+    exam = get_object_or_404(Exam, code__iexact=exam_code)
+
     section = exam.sections.order_by("order").first()
 
     if not section:
         messages.error(request, "Aucune section disponible.")
-        return redirect("preparation_tests:exam_detail", exam_code=exam.code)
+        return redirect(
+            "preparation_tests:exam_detail",
+            exam_code=exam.code
+        )
 
     session = Session.objects.create(
         user=request.user,
@@ -250,8 +267,16 @@ def start_session_generic(request, exam_code):
         mode="practice",
     )
 
-    attempt = Attempt.objects.create(session=session, section=section)
-    return redirect("preparation_tests:take_section", attempt_id=attempt.id)
+    attempt = Attempt.objects.create(
+        session=session,
+        section=section,
+    )
+
+    return redirect(
+        "preparation_tests:take_section",
+        attempt_id=attempt.id
+    )
+
 
 
 @login_required
@@ -447,7 +472,7 @@ def download_certificate(request, exam_code, level):
 
 
 ############ FINISH EXAM #######################################
-
+@login_required
 def finish_exam(session):
     attempt = session.attempts.first()
 
@@ -486,7 +511,10 @@ def start_session_with_section(request, exam_code, section):
 
 @login_required
 def session_correction(request, session_id):
-    return redirect("preparation_tests:session_result", session_id=session_id)
+    return redirect(
+        "preparation_tests:session_result",
+        session_id=session_id
+    )
 
 
 @login_required
@@ -512,18 +540,6 @@ def run_retry_session(request, session_id):
 @login_required
 def retry_session_errors(request, session_id):
     return redirect("preparation_tests:session_result", session_id=session_id)
-
-
-@login_required
-def tef_dashboard(request):
-    return render(
-        request,
-        "preparation_tests/tef_dashboard.html",
-        {
-            "scores": {"co": 0, "ce": 0, "ee": 0, "eo": 0},
-            "global_score": 0,
-        },
-    )
 
 
 @login_required
@@ -660,7 +676,7 @@ def mock_exam_results(request, session_id):
 from django.shortcuts import render, get_object_or_404
 from .models import CEFRCertificate
 
-
+@login_required
 def verify_certificate(request, public_id):
     certificate = get_object_or_404(
         CEFRCertificate,
@@ -906,3 +922,15 @@ def coach_ai_pdf(request, report_id):
         as_attachment=True,
         filename=pdf_path.name,
     )
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+
+@login_required
+def retry_session_errors(request, session_id):
+    session = get_object_or_404(Session, id=session_id, user=request.user)
+
+    # 🔒 Pour l’instant : on redirige vers la session existante
+    # (la logique avancée viendra plus tard)
+    return redirect("session_detail", session_id=session.id)

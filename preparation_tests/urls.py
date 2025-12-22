@@ -84,10 +84,23 @@ urlpatterns = [
         name="download_certificate",
     ),
 
+    path(
+    "session/<int:session_id>/retry-errors/",
+    views.retry_session_errors,
+    name="retry_session_errors",
+),
+
+
+    path(
+    "session/<int:session_id>/correction/",
+    views.session_correction,
+    name="session_correction",
+),
+
+
     # =========================
     # DASHBOARD
     # =========================
-    path("dashboard/tef/", views.tef_dashboard, name="tef_dashboard"),
     path(
         "certificates/<str:public_id>/",
         views.verify_certificate,
