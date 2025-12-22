@@ -64,3 +64,26 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+
+
+function saveProgress(lessonId, completed, total) {
+  fetch("/prep/lesson/progress/save/", {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: new URLSearchParams({
+      lesson_id: lessonId,
+      completed: completed,
+      total: total
+    })
+  });
+}
+
+
+saveProgress(
+  lesson.dataset.lessonId,
+  answered,
+  scoreTotal
+);

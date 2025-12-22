@@ -35,10 +35,10 @@ if DEBUG:
 ALLOWED_HOSTS = [
     "immigration97.com",
     "www.immigration97.com",
-    "31.97.196.197",
-    "localhost",
     "127.0.0.1",
+    "localhost",
 ]
+
 
 
 
@@ -316,3 +316,34 @@ DEFAULT_PROTOCOL = "https"
 # Utilisé par PasswordResetView
 EMAIL_USE_LOCALTIME = True
 
+AXES_ENABLED = True
+AXES_FAILURE_LIMIT = 5
+AXES_LOCK_OUT_AT_FAILURE = True
+AXES_RESET_ON_SUCCESS = True
+AXES_COOLOFF_TIME = 1  # 1 heure
+AXES_LOCKOUT_TEMPLATE = None
+AXES_LOCKOUT_URL = None
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "ERROR",
+    },
+}
+
+
+DEFAULT_CHARSET = "utf-8"
+
+FILE_CHARSET = "utf-8"
+
+#LANGUAGE_CODE = "fr"
+USE_I18N = True
+USE_L10N = True

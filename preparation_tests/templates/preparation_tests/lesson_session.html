@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{{ lesson.title }} – {{ lesson.exam.code|upper }} {{ section|upper }}
+{% endblock %}
+
+{% block content %}
+<main class="lesson-session">
+
+  <!-- ========================= -->
+  <!-- 🎓 HERO LEÇON -->
+  <!-- ========================= -->
+  <section class="lesson-hero">
+    <h1 class="lesson-title">{{ lesson.title }}</h1>
+    {% include "preparation_tests/partials/_cefr_bar.html" %}
+
+    <p class="lesson-meta">
+      Examen : {{ lesson.exam.code|upper }} •
+      Section : {{ section|upper }} •
+      Niveau : {{ lesson.level }}
+    </p>
+  </section>
+
+  <!-- ========================= -->
+  <!-- 🧭 NAVIGATION PARCOURS -->
+  <!-- ========================= -->
+  {% include "preparation_tests/partials/_prep_nav.html" %}
+
+  <!-- ========================= -->
+  <!-- 📘 CONTENU DE LA LEÇON -->
+  <!-- ========================= -->
+  <section class="lesson-body">
+    {{ lesson.content_html|safe }}
+  </section>
+
+  <div class="lesson-divider"></div>
+
+  <!-- ========================= -->
+  <!-- 🎧 EXERCICES -->
+  <!-- ========================= -->
+  <section class="lesson-exercises">
+    <h2 class="exercises-title">🎧 Exercices d’application</h2>
+
+    {% for exercise in exercises %}
+      <article class="exercise-card">
+
+        <header class="exercise-header">
+          <h3>Exercice {{ forloop.counter }}</h3>
+
+          {% if exercise.instruction %}
+            <p class="exercise-instruction">
+              {{ exercise.instruction }}
+            </p>
+          {% endif %}
+        </header>
+
+        <!-- 🔊 AUDIO -->
+        {% if exercise.audio and exercise.audio.file %}
+          <div class="audio-box">
+            <p class="audio-label">🎧 Écoutez attentivement l’audio</p>
+
+            <audio controls preload="metadata">
+              <source src="{{ exercise.audio.file.url }}" type="audio/mpeg">
+              <source src="{{ exercise.audio.file.url }}" type="audio/mp3">
+              Votre navigateur ne supporte pas l’audio.
+            </audio>
+          </div>
+        {% else %}
+          <div class="audio-box audio-box--missing">
+            ⚠️ Aucun audio disponible pour cet exercice
+          </div>
+        {% endif %}
+
+        <!-- ❓ QUESTION -->
+        <p class="exercise-question">
+          {{ exercise.question_text }}
+        </p>
+
+        <!-- ✅ FORMULAIRE -->
+        <form class="exercise-form" data-correct="{{ exercise.correct_option }}">
+
+          {% if exercise.option_a %}
+          <label class="option">
+            <input type="radio" name="q{{ exercise.id }}" value="A">
+            <span>A.</span> {{ exercise.option_a }}
+          </label>
+          {% endif %}
+
+          {% if exercise.option_b %}
+          <label class="option">
+            <input type="radio" name="q{{ exercise.id }}" value="B">
+            <span>B.</span> {{ exercise.option_b }}
+          </label>
+          {% endif %}
+
+          {% if exercise.option_c %}
+          <label class="option">
+            <input type="radio" name="q{{ exercise.id }}" value="C">
+            <span>C.</span> {{ exercise.option_c }}
+          </label>
+          {% endif %}
+
+          {% if exercise.option_d %}
+          <label class="option">
+            <input type="radio" name="q{{ exercise.id }}" value="D">
+            <span>D.</span> {{ exercise.option_d }}
+          </label>
+          {% endif %}
+
+          <button type="button" class="btn-check">
+            Vérifier la réponse
+          </button>
+
+          <p class="feedback"></p>
+        </form>
+
+      </article>
+    {% empty %}
+      <p>Aucun exercice disponible pour cette leçon.</p>
+    {% endfor %}
+  </section>
+
+</main>
+
+<!-- ========================= -->
+<!-- 🧠 SCRIPT DE CORRECTION -->
+<!-- ========================= -->
+<script>
+document.querySelectorAll(".btn-check").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const form = btn.closest("form");
+    const correct = form.dataset.correct;
+    const checked = form.querySelector("input:checked");
+    const feedback = form.querySelector(".feedback");
+
+    if (!checked) {
+      feedback.textContent = "❗ Choisis une réponse";
+      feedback.style.color = "orange";
+      return;
+    }
+
+    if (checked.value === correct) {
+      feedback.textContent = "✅ Bonne réponse";
+      feedback.style.color = "#22c55e";
+    } else {
+      feedback.textContent = "❌ Mauvaise réponse. Réponse correcte : " + correct;
+      feedback.style.color = "#ef4444";
+    }
+  });
+});
+</script>
+{% endblock %}

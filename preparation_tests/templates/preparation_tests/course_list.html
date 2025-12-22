@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Parcours {{ exam_code|upper }} – {{ section|upper }} | Immigration97
+{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/preparation_tests.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<section class="page page-language">
+
+  <!-- =========================
+        EN-TÊTE DU PARCOURS
+  ========================== -->
+  <header class="page-title">
+    <h1>
+      Parcours {{ exam_code|upper }} – {{ section|upper }}
+    </h1>
+    {% include "preparation_tests/partials/_cefr_bar.html" %}
+
+
+    <p class="page-subtitle">
+      Tous les cours sont accessibles 🚀  
+      Suis l’ordre recommandé pour progresser plus vite
+      et débloquer tes certificats CECRL.
+    </p>
+  </header>
+
+  <!-- =========================
+        INFO UTILISATEUR (UX)
+  ========================== -->
+  <div class="info-box">
+    💡 <strong>Conseil :</strong>
+    Tu peux suivre toutes les leçons librement.
+    Les niveaux, badges et certificats sont débloqués
+    uniquement via les tests blancs.
+  </div>
+
+  <!-- =========================
+        LISTE DES LEÇONS
+  ========================== -->
+  <section class="lesson-section">
+    <h2 class="section-title">
+      📘 Leçons du parcours
+    </h2>
+
+    {% if accessible_lessons or locked_lessons %}
+    <div class="lesson-grid">
+
+      {% for lesson in accessible_lessons|default_if_none:locked_lessons %}
+      <div class="lesson-card">
+
+        <!-- ===== HEADER ===== -->
+        <div class="lesson-header">
+          <h3 class="lesson-title">
+            {{ lesson.title }}
+            <span class="lesson-level">
+              Niveau {{ lesson.level }}
+            </span>
+          </h3>
+
+          <!-- BADGE CECRL (VISUEL UNIQUEMENT) -->
+          {% if lesson.level > request.user.profile.level %}
+            <span class="badge badge-warning">
+              🔒 Niveau recommandé plus tard
+            </span>
+          {% else %}
+            <span class="badge badge-success">
+              ✅ Niveau recommandé
+            </span>
+          {% endif %}
+        </div>
+
+        <!-- ===== DESCRIPTION ===== -->
+        <p class="lesson-description">
+          Entraînement ciblé pour améliorer ta compétence
+          <strong>{{ section|upper }}</strong>
+          au niveau <strong>{{ lesson.level }}</strong>.
+        </p>
+
+        <!-- ===== PROGRESSION (SI DISPONIBLE) ===== -->
+        {% if lesson.progress %}
+          <div class="progress-bar">
+            <div class="progress-fill"
+                 style="width: {{ lesson.progress.percent }}%;">
+            </div>
+          </div>
+
+          <div class="progress-text">
+            Progression : {{ lesson.progress.percent }}%
+            {% if lesson.progress.is_completed %}
+              ✔ Leçon terminée
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="progress-text muted">
+            Progression non commencée
+          </div>
+        {% endif %}
+
+        <!-- ===== ACTION ===== -->
+        <div class="lesson-actions">
+          <a href="{% url 'preparation_tests:lesson_session_'|add:section lesson.id %}"
+             class="btn btn-primary">
+            Commencer la leçon →
+          </a>
+        </div>
+
+      </div>
+      {% endfor %}
+
+    </div>
+    {% else %}
+      <p class="empty-message">
+        Aucune leçon disponible pour le moment.
+      </p>
+    {% endif %}
+  </section>
+
+  <!-- =========================
+        CONSEIL FINAL
+  ========================== -->
+  <section class="course-tip">
+    <h3>🎯 Comment progresser efficacement ?</h3>
+    <ul>
+      <li>Commence par les niveaux proches de ton niveau actuel</li>
+      <li>Refais les exercices jusqu’à ≥ <strong>70%</strong></li>
+      <li>Passe un test blanc pour valider ton niveau CECRL</li>
+      <li>Débloque automatiquement badges et certificats 🎓</li>
+    </ul>
+  </section>
+
+</section>
+
+{% endblock %}

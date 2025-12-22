@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django import forms
+
 from .models import (
     Exam, ExamSection, Passage, Asset,
     Question, Choice, Explanation,
@@ -6,8 +8,9 @@ from .models import (
     CourseLesson, CourseExercise,
 )
 
-
-# ----------- Admin pour Exam -----------
+# =====================================================
+# EXAM
+# =====================================================
 
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
@@ -15,15 +18,15 @@ class ExamAdmin(admin.ModelAdmin):
     search_fields = ("name", "code")
 
 
-# ----------- Admin pour ExamSection -----------
-
 @admin.register(ExamSection)
 class ExamSectionAdmin(admin.ModelAdmin):
     list_display = ("exam", "code", "order", "duration_sec")
     list_filter = ("exam", "code")
 
 
-# ----------- Admin pour Passage -----------
+# =====================================================
+# CONTENT
+# =====================================================
 
 @admin.register(Passage)
 class PassageAdmin(admin.ModelAdmin):
@@ -31,22 +34,19 @@ class PassageAdmin(admin.ModelAdmin):
     search_fields = ("title", "text")
 
 
-# ----------- Admin pour Asset -----------
-
 @admin.register(Asset)
 class AssetAdmin(admin.ModelAdmin):
     list_display = ("kind", "file", "lang", "created_at")
 
 
-
-# ----------- Inline pour les Choices -----------
+# =====================================================
+# QUESTIONS
+# =====================================================
 
 class ChoiceInline(admin.TabularInline):
     model = Choice
     extra = 1
 
-
-# ----------- Admin pour Question -----------
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
@@ -56,64 +56,59 @@ class QuestionAdmin(admin.ModelAdmin):
     inlines = [ChoiceInline]
 
 
-# ----------- Admin pour Explanation -----------
-
 @admin.register(Explanation)
 class ExplanationAdmin(admin.ModelAdmin):
     list_display = ("question",)
 
 
-# ----------- Admin pour Session -----------
+# =====================================================
+# SESSIONS
+# =====================================================
 
 @admin.register(Session)
 class SessionAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "exam", "mode", "started_at", "completed_at")
-    list_filter = ("exam", "mode")
 
-
-# ----------- Admin pour Attempt -----------
 
 @admin.register(Attempt)
 class AttemptAdmin(admin.ModelAdmin):
     list_display = ("id", "session", "section", "raw_score", "total_items")
 
 
-# ----------- Admin pour Answer -----------
-
 @admin.register(Answer)
 class AnswerAdmin(admin.ModelAdmin):
     list_display = ("id", "attempt", "question", "is_correct")
-    list_filter = ("is_correct", "attempt__session__exam")
 
 
-# ----------- Inline + Admin pour CourseLesson / CourseExercise -----------
+# =====================================================
+# COURSE LESSONS (🔥 ICI LA CORRECTION)
+# =====================================================
+
+class CourseLessonAdminForm(forms.ModelForm):
+    class Meta:
+        model = CourseLesson
+        fields = "__all__"  # 🔥 FORCE l’affichage de level
+
 
 class CourseExerciseInline(admin.TabularInline):
     model = CourseExercise
     extra = 1
-    fields = (
-        "title",
-        "instruction",
-        "question_text",
-        "audio",
-        "image",
-        "option_a",
-        "option_b",
-        "option_c",
-        "option_d",
-        "correct_option",
-        "summary",
-        "order",
-        "is_active",
-    )
-    ordering = ("order", "id")
 
 
 @admin.register(CourseLesson)
 class CourseLessonAdmin(admin.ModelAdmin):
-    list_display = ("title", "exam", "section", "locale", "order", "is_published", "updated_at")
-    list_filter = ("exam", "section", "locale", "is_published")
-    search_fields = ("title", "slug", "content_html")
-    ordering = ("exam", "section", "order", "id")
+    form = CourseLessonAdminForm
+
+    list_display = (
+        "title",
+        "exam",
+        "section",
+        "level",
+        "order",
+        "is_published",
+    )
+
+    list_filter = ("exam", "section", "level", "locale", "is_published")
+    ordering = ("order", "id")
     prepopulated_fields = {"slug": ("title",)}
     inlines = [CourseExerciseInline]

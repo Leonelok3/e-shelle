@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Plan d’étude {{ exam_code|upper }} | Immigration97
+{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/study_plan.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="page page-study-plan">
+
+  <header class="page-title">
+    <h1>📅 Plan d’étude {{ exam_code|upper }}</h1>
+    <p class="page-subtitle">
+      Niveau {{ plan.level }} • Jour {{ plan.current_day }} / {{ plan.total_days }}
+    </p>
+  </header>
+
+  <!-- 🔵 BARRE DE PROGRESSION -->
+  <div class="study-progress">
+    <div class="study-progress__track">
+      <div
+        class="study-progress__fill"
+        style="width: {{ plan.progress_percent }}%;">
+      </div>
+    </div>
+    <span class="study-progress__label">
+      {{ plan.progress_percent }}%
+    </span>
+  </div>
+
+  <!-- 📅 JOURS -->
+  <div class="study-days">
+    {% for day in plan.days %}
+      <div class="study-day
+        {% if day.is_current %}is-current{% endif %}
+        {% if day.is_completed %}is-completed{% endif %}
+      ">
+        <div class="study-day__header">
+          Jour {{ day.day }}
+        </div>
+
+        {% if day.lesson %}
+          <div class="study-day__body">
+            <strong>{{ day.section }}</strong><br>
+            {{ day.lesson.title }}
+          </div>
+        {% else %}
+          <div class="study-day__body muted">
+            Révision / repos actif
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- ✅ ACTION -->
+  {% if not plan.is_completed %}
+    <div class="study-actions">
+      <a
+        href="{% url 'preparation_tests:complete_study_day' exam_code %}"
+        class="btn btn--primary">
+        ✅ Marquer la journée comme terminée
+      </a>
+    </div>
+  {% else %}
+    <p class="success centered">
+      🎉 Plan terminé ! Tu peux recommencer ou viser un niveau supérieur.
+    </p>
+  {% endif %}
+
+</section>
+{% endblock %}

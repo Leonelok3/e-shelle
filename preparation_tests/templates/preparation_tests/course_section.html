@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Préparation {{ exam_code|upper }} – {{ section|upper }} | Immigration97
+{% endblock %}
+
+{% block content %}
+<section class="page page-language">
+
+  <!-- ========================= -->
+  <!-- 🧠 TITRE & CONTEXTE -->
+  <!-- ========================= -->
+  <header class="page-title">
+    <h1>
+      {{ exam_code|upper }} –
+      {% if section == "co" %}
+        Compréhension orale
+      {% elif section == "ce" %}
+        Compréhension écrite
+      {% elif section == "ee" %}
+        Expression écrite
+      {% elif section == "eo" %}
+        Expression orale
+      {% endif %}
+    </h1>
+    {% include "preparation_tests/partials/_cefr_bar.html" %}
+
+
+    <p class="page-subtitle">
+      Leçons officielles + exercices corrigés
+    </p>
+  </header>
+
+  <!-- ========================= -->
+  <!-- 🧭 SOUS-MENU DE NAVIGATION -->
+  <!-- ========================= -->
+  {% include "preparation_tests/partials/_prep_nav.html" %}
+
+  <!-- ========================= -->
+  <!-- 📘 LISTE DES LEÇONS -->
+  <!-- ========================= -->
+  <h2>📘 Leçons disponibles</h2>
+
+  <div class="lesson-grid">
+    {% for lesson in accessible_lessons %}
+      <div class="lesson-card unlocked">
+
+        <div class="lesson-level">
+          Niveau {{ lesson.level }}
+        </div>
+
+        <h3>{{ lesson.title }}</h3>
+
+        <a
+          href="{% url 'preparation_tests:lesson_session' exam_code section lesson.id %}"
+          class="btn btn--primary"
+        >
+          ▶ Commencer la leçon
+        </a>
+
+      </div>
+    {% empty %}
+      <p>Aucune leçon disponible pour le moment.</p>
+    {% endfor %}
+  </div>
+
+  <!-- ========================= -->
+  <!-- 🔙 RETOUR HUB -->
+  <!-- ========================= -->
+  <div class="centered-block">
+    <a href="{% url 'preparation_tests:tef_hub' %}" class="btn btn--ghost">
+      ← Retour au hub TEF
+    </a>
+  </div>
+
+</section>
+{% endblock %}

@@ -104,3 +104,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  const navToggle = document.getElementById("navToggle");
+  const navMenu = document.querySelector(".navbar__nav");
+  const userBtn = document.getElementById("userMenuBtn");
+  const userDropdown = document.getElementById("userDropdown");
+
+  // 🔥 Menu mobile principal
+  if (navToggle && navMenu) {
+    navToggle.addEventListener("click", function () {
+      navMenu.classList.toggle("is-open");
+    });
+  }
+
+  // 👤 Menu utilisateur
+  if (userBtn && userDropdown) {
+    userBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      userDropdown.classList.toggle("is-open");
+    });
+
+    document.addEventListener("click", function () {
+      userDropdown.classList.remove("is-open");
+    });
+  }
+});

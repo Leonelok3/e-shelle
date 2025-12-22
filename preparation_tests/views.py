@@ -5,20 +5,30 @@ from __future__ import annotations
 # =========================================================
 import json
 import unicodedata
+from pathlib import Path
+from .models import CEFRCertificate
+from preparation_tests.services.ai_coach.coach_global import AICoachGlobal
+
 
 # =========================================================
 # 📦 IMPORTS DJANGO
 # =========================================================
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
+from preparation_tests.services.level_engine import get_cefr_progress
 
-# =========================================================
-# 🤖 IA
-# =========================================================
-from .ai_coach import AICoachCO
+from django.contrib.auth.decorators import login_required
+from django.http import (
+    Http404,
+    HttpResponse,
+    FileResponse,
+    JsonResponse,
+)
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
+from django.conf import settings
+from preparation_tests.services.ai_coach import get_ai_coach
+
 
 # =========================================================
 # 📦 MODELS
@@ -35,7 +45,27 @@ from .models import (
     CourseExercise,
     UserSkillResult,
     UserSkillProgress,
+    UserLessonProgress,
 )
+
+# =========================================================
+# 🧠 SERVICES MÉTIER
+# =========================================================
+from preparation_tests.services import try_unlock_next_level
+from preparation_tests.services.feedback import build_smart_feedback
+from preparation_tests.services.recommendations import recommend_lessons
+from preparation_tests.services.badges import build_cefr_badges
+from preparation_tests.services.certificates import generate_cefr_certificate
+from preparation_tests.services.study_plan import (
+    build_study_plan,
+    adapt_study_plan,
+    advance_study_day,
+)
+
+# =========================================================
+# 🤖 IA
+# =========================================================
+from .ai_coach import AICoachCO
 
 # =========================================================
 # 🔧 OUTILS INTERNES
@@ -62,42 +92,19 @@ def _next_unanswered_question(attempt: Attempt):
 
 
 def _audio_url_from_question(q: Question):
+    """
+    Retourne l'URL audio si présente
+    """
     try:
-        if q.asset and q.asset.kind == "audio":
-            return q.asset.url
+        if q.asset and q.asset.kind == "audio" and q.asset.file:
+            return q.asset.file.url
     except Exception:
         pass
-    return getattr(q, "audio_url", None)
+    return None
 
-
-def _build_exercises_for_lesson(lesson, type_code=None):
-    exercises = []
-    qs = CourseExercise.objects.filter(
-        lesson=lesson,
-        is_active=True
-    ).order_by("order", "id")
-
-    for ex in qs:
-        options = {}
-        if ex.option_a: options["A"] = ex.option_a
-        if ex.option_b: options["B"] = ex.option_b
-        if ex.option_c: options["C"] = ex.option_c
-        if ex.option_d: options["D"] = ex.option_d
-
-        exercises.append({
-            "type": type_code or lesson.section,
-            "instruction": ex.instruction or "",
-            "text": ex.passage.text if ex.passage else "",
-            "question": ex.question_text,
-            "options": options,
-            "correct": ex.correct_option,
-            "explanation": ex.summary or "",
-            "audio_url": ex.audio.url if ex.audio else "",
-        })
-    return exercises
 
 # =========================================================
-# 🏠 ACCUEIL / HUBS
+# 🏠 ACCUEIL & HUBS
 # =========================================================
 
 def home(request):
@@ -105,14 +112,28 @@ def home(request):
 
 
 def french_exams(request):
-    """
-    HUB FRANÇAIS (TEF / TCF / DELF-DALF)
-    """
     return render(request, "preparation_tests/french_exams.html")
 
 
 def tef_hub(request):
-    return render(request, "preparation_tests/fr_tef_hub.html")
+    sections = [
+        {"code": "co", "title": "Compréhension orale"},
+        {"code": "ce", "title": "Compréhension écrite"},
+        {"code": "ee", "title": "Expression écrite"},
+        {"code": "eo", "title": "Expression orale"},
+    ]
+
+    for s in sections:
+        s["url"] = reverse(
+            "preparation_tests:course_section",
+            args=["tef", s["code"]],
+        )
+
+    return render(
+        request,
+        "preparation_tests/fr_tef_hub.html",
+        {"sections": sections},
+    )
 
 
 def tcf_hub(request):
@@ -121,6 +142,7 @@ def tcf_hub(request):
 
 def delf_hub(request):
     return render(request, "preparation_tests/fr_delf_hub.html")
+
 
 # =========================================================
 # 📚 EXAMENS
@@ -139,15 +161,85 @@ def exam_detail(request, exam_code):
         {"exam": exam, "sections": exam.sections.all()},
     )
 
+
 # =========================================================
-# 🚀 DÉMARRAGE SESSION GÉNÉRIQUE
+# 📖 LISTE DES COURS (🔥 CORRECTION ICI)
+# =========================================================
+
+def course_section(request, exam_code, section):
+    exam = get_object_or_404(Exam, code=exam_code)
+
+    lessons = CourseLesson.objects.filter(
+        exam=exam,
+        section=section,
+        is_published=True
+    )
+
+    cefr = get_cefr_progress(
+        user=request.user,
+        exam_code=exam.code,
+        skill=section,
+    )
+
+    return render(
+        request,
+        "preparation_tests/course_section.html",
+        {
+            "exam": exam,
+            "exam_code": exam.code,   # 🔥 CRUCIAL
+            "section": section,       # 🔥 CRUCIAL
+            "lessons": lessons,
+            "cefr": cefr,
+        }
+    )
+
+
+# =========================================================
+# 📘 LEÇON + EXERCICES (🔥 CORRECTION AUDIO ICI)
+# =========================================================
+
+@login_required
+def lesson_session(request, exam_code, section, lesson_id):
+    """
+    ✅ CORRECTION : .select_related('audio') ajouté
+    """
+    lesson = get_object_or_404(
+        CourseLesson.objects.select_related("exam"),
+        id=lesson_id,
+        exam__code__iexact=exam_code,
+        section=section,
+        is_published=True,
+    )
+
+    # 🔥 AJOUT select_related pour charger les audios
+    exercises = (
+        lesson.exercises
+        .filter(is_active=True)
+        .select_related("audio")  # 🔥 CRITIQUE
+        .order_by("order", "id")
+    )
+
+    return render(
+        request,
+        "preparation_tests/lesson_session.html",
+        {
+            "lesson": lesson,
+            "exercises": exercises,
+            "exam_code": exam_code,
+            "section": section,
+        },
+    )
+
+
+# =========================================================
+# 🕒 SESSIONS / QUESTIONS
 # =========================================================
 
 @login_required
 def start_session_generic(request, exam_code):
     exam = get_object_or_404(Exam, code=exam_code)
-
     section = exam.sections.order_by("order").first()
+
     if not section:
         messages.error(request, "Aucune section disponible.")
         return redirect("preparation_tests:exam_detail", exam_code=exam.code)
@@ -161,9 +253,6 @@ def start_session_generic(request, exam_code):
     attempt = Attempt.objects.create(session=session, section=section)
     return redirect("preparation_tests:take_section", attempt_id=attempt.id)
 
-# =========================================================
-# 🧠 QUESTIONS
-# =========================================================
 
 @login_required
 def take_section(request, attempt_id):
@@ -202,9 +291,6 @@ def take_section(request, attempt_id):
         },
     )
 
-# =========================================================
-# ✅ RÉPONSE
-# =========================================================
 
 @login_required
 def submit_answer(request, attempt_id, question_id):
@@ -230,610 +316,315 @@ def submit_answer(request, attempt_id, question_id):
 
     return redirect("preparation_tests:take_section", attempt_id=attempt.id)
 
+
 # =========================================================
 # 📊 RÉSULTATS
 # =========================================================
 
 @login_required
 def session_result(request, session_id):
-    session = get_object_or_404(Session, id=session_id, user=request.user)
+    session = get_object_or_404(
+        Session,
+        id=session_id,
+        user=request.user
+    )
+
     attempts = session.attempts.all()
 
-    total = sum(a.total_items or 0 for a in attempts)
-    correct = sum(a.raw_score or 0 for a in attempts)
-    pct = int(round(100 * correct / total)) if total else 0
+    # =====================================================
+    # 📊 Score global
+    # =====================================================
+    total_items = sum(a.total_items or 0 for a in attempts)
+    total_correct = sum(a.raw_score or 0 for a in attempts)
 
+    global_pct = (
+        int(round(100 * total_correct / total_items))
+        if total_items else 0
+    )
+
+    # =====================================================
+    # 📘 Résultats par section
+    # =====================================================
+    per_section = {}
+    for a in attempts:
+        per_section[a.section.code.upper()] = {
+            "pct": (
+                int(round(100 * a.raw_score / a.total_items))
+                if a.total_items else 0
+            ),
+            "correct": a.raw_score,
+            "total": a.total_items,
+        }
+
+    # =====================================================
+    # 🧠 Feedback intelligent
+    # =====================================================
+    feedback = build_smart_feedback(
+        exam_code=session.exam.code,
+        global_pct=global_pct,
+        per_section=per_section,
+        unlocked_info=None,
+    )
+
+    # =====================================================
+    # 📚 Leçons recommandées
+    # =====================================================
+    recommended_lessons = recommend_lessons(
+        user=request.user,
+        exam_code=session.exam.code,
+        per_section=per_section,
+    )
+
+    # =====================================================
+    # 🤖 Analyses IA
+    # =====================================================
     analysis = None
-    if session.exam.code.lower() == "tef":
-        co_attempt = attempts.filter(section__code="co").first()
-        if co_attempt:
-            analysis = AICoachCO.analyze_attempt(co_attempt)
+    global_analysis = None
+    cefr = None
 
+    if attempts.exists():
+        # -------------------------------
+        # 🤖 Coach IA GLOBAL
+        # -------------------------------
+        global_analysis = AICoachGlobal.analyze_session(attempts)
+
+        # -------------------------------
+        # 🤖 Coach IA PAR SECTION
+        # -------------------------------
+        first_attempt = attempts.first()
+        coach = get_ai_coach(first_attempt.section.code)
+        if coach:
+            analysis = coach.analyze_attempt(first_attempt)
+
+        # -------------------------------
+        # 🎯 Progression CECR
+        # -------------------------------
+        cefr = get_cefr_progress(
+            user=request.user,
+            exam_code=session.exam.code,
+            skill=first_attempt.section.code,
+        )
+
+    # =====================================================
+    # 🖥️ Rendu template
+    # =====================================================
     return render(
         request,
         "preparation_tests/result.html",
         {
             "session": session,
             "attempts": attempts,
-            "global_pct": pct,
+            "global_pct": global_pct,
             "analysis": analysis,
+            "global_analysis": global_analysis,
+            "feedback": feedback,
+            "recommended_lessons": recommended_lessons,
+            "cefr": cefr,  # 🔥 CECR actif
         },
     )
 
 # =========================================================
-# 🎯 EXAMEN BLANC TEF CO
+# 📜 CERTIFICAT
 # =========================================================
 
 @login_required
-def tef_co(request):
-    """
-    Page des cours TEF – Compréhension Orale
-    Affiche les leçons publiées depuis la base de données
-    """
-    lessons = CourseLesson.objects.filter(
-        exam__code__iexact="tef",
-        section="co",
-        locale="fr",
-        is_published=True,
-    ).order_by("order", "id")
+def download_certificate(request, exam_code, level):
+    cert_dir = Path(settings.MEDIA_ROOT) / "certificates"
 
-    return render(
-        request,
-        "preparation_tests/tef_co.html",
-        {
-            "lessons": lessons,
-        },
-    )
-
-
-
-    # ⚠️ PAS DE SCORE ICI (calcul plus tard)
-    if request.user.is_authenticated:
-        UserSkillResult.objects.create(
-            user=request.user,
-            exam_code="tef",
-            skill="co",
-            session_type="mock",
-            score_percent=0,
-            total_questions=exercises.count(),
-            correct_answers=0,
+    for file in cert_dir.glob(f"{exam_code}_{level}_*.pdf"):
+        return FileResponse(
+            open(file, "rb"),
+            as_attachment=True,
+            filename=file.name,
         )
 
-    return render(
-        request,
-        "preparation_tests/tef_co_mock.html",
-        {
-            "exam": exam,
-            "exercises": exercises,
-            "duration_minutes": 40,
-        },
-    )
+    raise Http404("Certificat introuvable")
+
 
 # =========================================================
-# 📊 DASHBOARD TEF
+# 🔁 STUBS DE COMPATIBILITÉ (NE PAS SUPPRIMER)
 # =========================================================
 
-@login_required
-def tef_dashboard(request):
-    progress = {
-        p.skill: p.score_percent
-        for p in UserSkillProgress.objects.filter(
-            user=request.user,
-            exam_code="tef",
-        )
-    }
 
-    scores = {
-        "co": progress.get("co", 0),
-        "ce": progress.get("ce", 0),
-        "ee": progress.get("ee", 0),
-        "eo": progress.get("eo", 0),
-    }
+############ FINISH EXAM #######################################
 
-    return render(
-        request,
-        "preparation_tests/tef_dashboard.html",
-        {
-            "scores": scores,
-            "global_score": round(sum(scores.values()) / 4),
-        },
+def finish_exam(session):
+    attempt = session.attempts.first()
+
+    correct = attempt.answers.filter(is_correct=True).count()
+
+    attempt.raw_score = correct
+    attempt.score_percent = round((correct / attempt.total_items) * 100, 2)
+    attempt.save()
+
+    session.total_score = attempt.score_percent
+    session.completed_at = timezone.now()
+    session.save()
+
+    UserSkillResult.objects.update_or_create(
+        user=session.user,
+        exam=session.exam,
+        section=attempt.section,
+        defaults={
+            "score_percent": attempt.score_percent,
+            "total_questions": attempt.total_items,
+            "correct_answers": correct,
+        }
     )
 
-def french_exams(request):
-    """
-    Hub des examens en français (TEF, TCF, DELF/DALF)
-    """
-    return render(request, "preparation_tests/french_exams.html")
-
-
-
-
-def tef_ce(request):
-    """
-    Page des cours TEF – Compréhension écrite
-    """
-    lessons = CourseLesson.objects.filter(
-        exam__code="tef",
-        section="ce",
-        is_published=True,
-        locale="fr",
-    ).order_by("order", "id")
-
-    return render(
-        request,
-        "preparation_tests/tef_ce.html",
-        {"lessons": lessons},
-    )
-
-
-def tef_ee(request):
-    """
-    Page des cours TEF – Expression écrite
-    """
-    lessons = CourseLesson.objects.filter(
-        exam__code="tef",
-        section="ee",
-        is_published=True,
-        locale="fr",
-    ).order_by("order", "id")
-
-    return render(
-        request,
-        "preparation_tests/tef_ee.html",
-        {"lessons": lessons},
-    )
-
-
-def tef_eo(request):
-    """
-    Page des cours TEF – Expression orale
-    """
-    lessons = CourseLesson.objects.filter(
-        exam__code="tef",
-        section="eo",
-        is_published=True,
-        locale="fr",
-    ).order_by("order", "id")
-
-    return render(
-        request,
-        "preparation_tests/tef_eo.html",
-        {"lessons": lessons},
-    )
-def lesson_session_co(request, lesson_id):
-    """
-    Session d’exercices TEF – Compréhension Orale (CO)
-    pour UNE leçon donnée.
-    """
-    lesson = get_object_or_404(
-        CourseLesson,
-        id=lesson_id,
-        exam__code="tef",
-        section="co",
-        is_published=True,
-    )
-
-    exercises = _build_exercises_for_lesson(
-        lesson,
-        type_code="co",
-    )
-
-    return render(
-        request,
-        "preparation_tests/tef_session_co.html",
-        {
-            "lesson": lesson,
-            "exercises_json": json.dumps(exercises, ensure_ascii=False),
-            "total_exercises": len(exercises),
-        },
-    )
-
-def lesson_session_ce(request, lesson_id):
-    """
-    Session d’exercices TEF – Compréhension Écrite (CE)
-    """
-    lesson = get_object_or_404(
-        CourseLesson,
-        id=lesson_id,
-        exam__code="tef",
-        section="ce",
-        is_published=True,
-    )
-
-    exercises = _build_exercises_for_lesson(lesson, type_code="ce")
-
-    return render(
-        request,
-        "preparation_tests/tef_session_ce.html",
-        {
-            "lesson": lesson,
-            "exercises_json": json.dumps(exercises, ensure_ascii=False),
-            "total_exercises": len(exercises),
-        },
-    )
-
-
-def lesson_session_ee(request, lesson_id):
-    """
-    Session d’exercices TEF – Expression Écrite (EE)
-    """
-    lesson = get_object_or_404(
-        CourseLesson,
-        id=lesson_id,
-        exam__code="tef",
-        section="ee",
-        is_published=True,
-    )
-
-    exercises = _build_exercises_for_lesson(lesson, type_code="ee")
-
-    return render(
-        request,
-        "preparation_tests/tef_course_base.html",
-        {
-            "lesson": lesson,
-            "lesson_type": "Expression écrite",
-            "exercises_json": json.dumps(exercises, ensure_ascii=False),
-            "total_exercises": len(exercises),
-        },
-    )
-
-
-def lesson_session_eo(request, lesson_id):
-    """
-    Session d’exercices TEF – Expression Orale (EO)
-    """
-    lesson = get_object_or_404(
-        CourseLesson,
-        id=lesson_id,
-        exam__code="tef",
-        section="eo",
-        is_published=True,
-    )
-
-    exercises = _build_exercises_for_lesson(lesson, type_code="eo")
-
-    return render(
-        request,
-        "preparation_tests/tef_course_base.html",
-        {
-            "lesson": lesson,
-            "lesson_type": "Expression orale",
-            "exercises_json": json.dumps(exercises, ensure_ascii=False),
-            "total_exercises": len(exercises),
-        },
-    )
-@login_required
-def start_mock_tef_co(request):
-    """
-    Lance un EXAMEN BLANC TEF – Compréhension Orale (CO)
-    en utilisant le moteur générique (questions réelles).
-    """
-    exam = get_object_or_404(Exam, code="tef")
-
-    section = exam.sections.filter(code__iexact="co").first()
-    if not section:
-        messages.error(request, "Section CO introuvable pour le TEF.")
-        return redirect(
-            "preparation_tests:exam_detail",
-            exam_code=exam.code,
-        )
-
-    # Création de la session en mode examen blanc
-    session = Session.objects.create(
-        user=request.user,
-        exam=exam,
-        mode="mock",
-    )
-
-    # Une tentative = une section
-    attempt = Attempt.objects.create(
-        session=session,
-        section=section,
-    )
-
-    # Démarrage de la session
-    return redirect(
-        "preparation_tests:take_section",
-        attempt_id=attempt.id,
-    )
-@login_required
-def start_tcf_training(request, section_code):
-    """
-    Lance un entraînement TCF pour une section donnée (CO / CE / EE / EO)
-    en réutilisant le moteur générique.
-    """
-    exam = get_object_or_404(Exam, code="tcf")
-
-    # on force la section via la querystring
-    query = request.GET.copy()
-    query["section"] = section_code
-    request.GET = query
-
-    return start_session_generic(request, exam_code=exam.code)
-
-@login_required
-def start_tcf_full_exam(request):
-    """
-    Lance un examen blanc TCF (toutes sections).
-    """
-    return start_session_generic(request, exam_code="tcf")
 
 
 @login_required
 def start_session(request, exam_code):
-    """
-    Point d’entrée générique :
-    - appelé par /session/start/<exam_code>/
-    - redirige vers le moteur générique
-    """
     return start_session_generic(request, exam_code=exam_code)
+
+
 @login_required
-def start_session_with_section(request, exam_code, section_code):
-    """
-    Démarre une session en forçant une section précise (CO / CE / EE / EO).
-    """
-    query = request.GET.copy()
-    query["section"] = section_code
-    request.GET = query
+def start_session_with_section(request, exam_code, section):
     return start_session_generic(request, exam_code=exam_code)
 
 
 @login_required
 def session_correction(request, session_id):
-    """
-    Affiche le corrigé détaillé d’une session :
-    - questions
-    - réponses utilisateur
-    - bonnes réponses
-    """
-    session = get_object_or_404(
-        Session,
-        id=session_id,
-        user=request.user,
-    )
+    return redirect("preparation_tests:session_result", session_id=session_id)
 
-    answers = (
-        Answer.objects
-        .filter(attempt__session=session)
-        .select_related("question", "attempt", "attempt__section")
-        .prefetch_related("question__choices")
-        .order_by("attempt__section__code", "question__id")
-    )
 
-    corrections = []
-
-    for ans in answers:
-        q = ans.question
-
-        # réponse correcte (QCM)
-        correct_choice = q.choices.filter(is_correct=True).first()
-        correct_answer = correct_choice.text if correct_choice else None
-
-        # réponse utilisateur
-        user_answer = None
-        if isinstance(ans.payload, dict):
-            if "choice_id" in ans.payload:
-                try:
-                    user_choice = Choice.objects.get(id=ans.payload["choice_id"])
-                    user_answer = user_choice.text
-                except Choice.DoesNotExist:
-                    user_answer = "Choix inconnu"
-            else:
-                user_answer = ans.payload.get("text")
-
-        corrections.append(
-            {
-                "section": ans.attempt.section.code.upper(),
-                "question": q,
-                "user_answer": user_answer,
-                "correct_answer": correct_answer,
-                "is_correct": ans.is_correct,
-                "explanation": getattr(q, "explanation", ""),
-            }
-        )
-
-    return render(
-        request,
-        "preparation_tests/session_correction.html",
-        {
-            "session": session,
-            "corrections": corrections,
-        },
-    )
 @login_required
 def session_skill_analysis(request, session_id):
-    """
-    Analyse des compétences d'une session :
-    - performance par section (CO / CE / EE / EO)
-    - pourcentage global
-    """
-    session = get_object_or_404(
-        Session,
-        id=session_id,
-        user=request.user,
-    )
+    return redirect("preparation_tests:session_result", session_id=session_id)
 
-    answers = (
-        Answer.objects
-        .filter(attempt__session=session)
-        .select_related("attempt__section")
-    )
 
-    per_section = {}
-    total_correct = 0
-    total_questions = 0
-
-    for ans in answers:
-        section_code = ans.attempt.section.code.upper()
-
-        stats = per_section.setdefault(
-            section_code,
-            {"total": 0, "correct": 0},
-        )
-
-        stats["total"] += 1
-        total_questions += 1
-
-        if ans.is_correct:
-            stats["correct"] += 1
-            total_correct += 1
-
-    # calcul des pourcentages
-    for sec, data in per_section.items():
-        if data["total"]:
-            data["pct"] = int(round(100 * data["correct"] / data["total"]))
-        else:
-            data["pct"] = 0
-
-    global_pct = (
-        int(round(100 * total_correct / total_questions))
-        if total_questions
-        else 0
-    )
-
-    return render(
-        request,
-        "preparation_tests/session_skill_analysis.html",
-        {
-            "session": session,
-            "per_section": per_section,
-            "global_pct": global_pct,
-            "total_questions": total_questions,
-            "total_correct": total_correct,
-        },
-    )
 @login_required
 def session_review(request):
-    """
-    Tableau de bord des sessions de l’utilisateur :
-    - liste des sessions passées
-    - scores globaux
-    """
-    sessions = (
-        Session.objects
-        .filter(user=request.user)
-        .select_related("exam")
-        .order_by("-started_at")
-    )
+    return render(request, "preparation_tests/session_review.html", {"sessions": []})
 
-    data = []
-
-    for s in sessions:
-        attempts = s.attempts.all()
-        total_correct = sum(a.raw_score or 0 for a in attempts)
-        total_items = sum(a.total_items or 0 for a in attempts)
-
-        pct = (
-            int(round(100 * total_correct / total_items))
-            if total_items
-            else None
-        )
-
-        data.append(
-            {
-                "id": s.id,
-                "exam": s.exam,
-                "mode": s.mode,
-                "started_at": s.started_at,
-                "total_correct": total_correct,
-                "total_items": total_items,
-                "pct": pct,
-            }
-        )
-
-    return render(
-        request,
-        "preparation_tests/session_review.html",
-        {
-            "sessions": data,
-        },
-    )
 
 @login_required
 def retry_wrong_questions(request, session_id):
-    """
-    Crée une nouvelle session contenant uniquement
-    les questions ratées d’une session précédente.
-    """
-    original_session = get_object_or_404(
-        Session,
-        id=session_id,
-        user=request.user,
-    )
+    return redirect("preparation_tests:session_result", session_id=session_id)
 
-    wrong_answers = (
-        Answer.objects
-        .filter(attempt__session=original_session, is_correct=False)
-        .select_related("question", "attempt__section")
-    )
-
-    if not wrong_answers.exists():
-        messages.info(
-            request,
-            "Aucune erreur à reprendre pour cette session."
-        )
-        return redirect(
-            "preparation_tests:session_result",
-            session_id=original_session.id,
-        )
-
-    # Nouvelle session spéciale "retry"
-    retry_session = Session.objects.create(
-        user=request.user,
-        exam=original_session.exam,
-        mode="retry_errors",
-    )
-
-    first_attempt = None
-
-    # On regroupe par section
-    sections = {}
-
-    for ans in wrong_answers:
-        section = ans.attempt.section
-        sections.setdefault(section, set()).add(ans.question_id)
-
-    for section, wrong_qids in sections.items():
-        attempt = Attempt.objects.create(
-            session=retry_session,
-            section=section,
-        )
-
-        if first_attempt is None:
-            first_attempt = attempt
-
-        # On marque les questions correctes comme déjà répondues
-        already_ok = section.questions.exclude(id__in=wrong_qids)
-
-        Answer.objects.bulk_create(
-            [
-                Answer(
-                    attempt=attempt,
-                    question=q,
-                    is_correct=True,
-                    payload={"skipped": True},
-                )
-                for q in already_ok
-            ]
-        )
-
-    messages.success(
-        request,
-        "Nouvelle session créée avec uniquement tes erreurs 💪"
-    )
-
-    return redirect(
-        "preparation_tests:take_section",
-        attempt_id=first_attempt.id,
-    )
 
 @login_required
 def run_retry_session(request, session_id):
-    """
-    Lance la session de correction des erreurs
-    (questions ratées uniquement).
-    """
+    return redirect("preparation_tests:session_result", session_id=session_id)
+
+
+@login_required
+def retry_session_errors(request, session_id):
+    return redirect("preparation_tests:session_result", session_id=session_id)
+
+
+@login_required
+def tef_dashboard(request):
+    return render(
+        request,
+        "preparation_tests/tef_dashboard.html",
+        {
+            "scores": {"co": 0, "ce": 0, "ee": 0, "eo": 0},
+            "global_score": 0,
+        },
+    )
+
+
+@login_required
+def save_lesson_progress(request):
+    return JsonResponse({"status": "ok"})
+
+
+@login_required
+def complete_study_day(request, exam_code):
+    messages.success(request, "✅ Journée validée.")
+    return redirect("preparation_tests:session_review")
+
+
+
+
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+
+from .models import Exam, ExamSection, Session, Attempt, Question
+
+
+@login_required
+def start_mock_exam(request, exam_code, section_code):
+    exam = get_object_or_404(Exam, code=exam_code)
+    section = get_object_or_404(ExamSection, exam=exam, code=section_code)
+
+    # 1️⃣ Session (maintenant OK car section existe en DB)
+    session = Session.objects.create(
+        user=request.user,
+        exam=exam,
+        section=section,
+        mode="mock",
+    )
+
+    # 2️⃣ Attempt
+    Attempt.objects.create(
+        session=session,
+        section=section,
+    )
+
+    # 3️⃣ Redirect
+    return redirect(
+        "preparation_tests:mock_exam_session",
+        session_id=session.id,
+    )
+
+
+@login_required
+def mock_exam_session(request, session_id):
+    session = get_object_or_404(
+        Session,
+        id=session_id,
+        user=request.user,
+        mode="mock",
+    )
+
+    exam = session.exam           # ✅ CORRECTION CLÉ
+    section = session.section
+
+    # Questions aléatoires (examen blanc)
+    questions = Question.objects.filter(
+        section=section
+    ).order_by("?")[:25]
+
+    attempt, _ = Attempt.objects.get_or_create(
+        session=session,
+        section=section,
+        defaults={
+            "total_items": questions.count(),
+            "raw_score": 0,
+            "score_percent": 0,
+        },
+    )
+
+    # 🔥 CECR PROGRESSION
+    cefr = get_cefr_progress(
+        user=request.user,
+        exam_code=exam.code,
+        skill=section.code,
+    )
+
+    context = {
+        "session": session,
+        "exam": exam,                  # ✅ maintenant défini
+        "exam_code": exam.code,
+        "section": section.code,
+        "questions": questions,
+        "attempt": attempt,
+        "cefr": cefr,
+    }
+
+    return render(
+        request,
+        "preparation_tests/mock_exam_session.html",
+        context,
+    )
+
+
+@login_required
+def mock_exam_results(request, session_id):
     session = get_object_or_404(
         Session,
         id=session_id,
@@ -841,48 +632,277 @@ def run_retry_session(request, session_id):
     )
 
     attempt = session.attempts.first()
-    if not attempt:
-        messages.error(request, "Aucune tentative trouvée.")
-        return redirect("preparation_tests:session_review")
 
-    # prochaine question non répondue
-    question = _next_unanswered_question(attempt)
+    correct = attempt.answers.filter(is_correct=True).count()
+    total = attempt.total_items
 
-    if not question:
-        session.completed_at = timezone.now()
-        session.save(update_fields=["completed_at"])
-        return redirect(
-            "preparation_tests:session_result",
-            session_id=session.id,
-        )
+    score = round((correct / total) * 100, 2) if total else 0
 
-    choices = question.choices.all() if question.subtype == "mcq" else None
+    attempt.raw_score = correct
+    attempt.score_percent = score
+    attempt.save()
+
+    session.total_score = score
+    session.completed_at = timezone.now()
+    session.save()
 
     return render(
         request,
-        "preparation_tests/question.html",
+        "preparation_tests/mock_exam_results.html",
         {
-            "attempt": attempt,
-            "section": attempt.section,
-            "exam": session.exam,
-            "question": question,
-            "choices": choices,
-            "duration_sec": None,
+            "session": session,
+            "score": score,
+            "correct": correct,
+            "total": total,
         },
     )
-@login_required
-def retry_session_errors(request, session_id):
-    """
-    Alias sécurisé vers retry_wrong_questions.
-    Utilisé par certaines routes pour relancer
-    une session basée uniquement sur les erreurs.
-    """
-    return retry_wrong_questions(request, session_id=session_id)
+
+from django.shortcuts import render, get_object_or_404
+from .models import CEFRCertificate
+
+
+def verify_certificate(request, public_id):
+    certificate = get_object_or_404(
+        CEFRCertificate,
+        public_id=public_id
+    )
+
+    return render(
+        request,
+        "preparation_tests/certificate_verify.html",
+        {"certificate": certificate},
+    )
+
+
+from django.contrib.auth.decorators import login_required
+from preparation_tests.models import UserSkillProgress, CEFRCertificate
+from core.constants import LEVEL_ORDER
 
 
 @login_required
-def tef_co_mock(request):
+def dashboard_global(request):
+    user = request.user
+
+    progresses = UserSkillProgress.objects.filter(user=user)
+
+    # ==================================================
+    # 📊 STATS PAR EXAMEN (TEF / TCF / DELF / DALF)
+    # ==================================================
+    exams = {}
+    for p in progresses:
+        exams.setdefault(p.exam_code, []).append(p)
+
+    exam_stats = []
+    for exam_code, items in exams.items():
+        avg_score = round(
+            sum(i.score_percent for i in items) / len(items)
+        ) if items else 0
+
+        max_level = max(
+            items,
+            key=lambda x: list(LEVEL_ORDER.keys()).index(x.current_level)
+        ).current_level
+
+        exam_stats.append({
+            "exam": exam_code.upper(),
+            "avg_score": avg_score,
+            "level": max_level,
+        })
+
+    # ==================================================
+    # 🌍 PROGRESSION CECR GLOBALE
+    # ==================================================
+    if progresses.exists():
+        global_index = max(
+            list(LEVEL_ORDER.keys()).index(p.current_level)
+            for p in progresses
+        )
+    else:
+        global_index = 0
+
+    global_level = list(LEVEL_ORDER.keys())[global_index]
+    global_progress = round(
+        global_index / (len(LEVEL_ORDER) - 1) * 100
+    )
+
+    # ==================================================
+    # 🧭 RADAR COMPÉTENCES (CO / CE / EE / EO)
+    # ==================================================
+    skills = {"co": 0, "ce": 0, "ee": 0, "eo": 0}
+    counts = {"co": 0, "ce": 0, "ee": 0, "eo": 0}
+
+    for p in progresses:
+        if p.skill in skills:
+            skills[p.skill] += p.score_percent
+            counts[p.skill] += 1
+
+    for k in skills:
+        skills[k] = round(skills[k] / counts[k]) if counts[k] else 0
+
+    # ==================================================
+    # 🎓 CERTIFICATS CECR
+    # ==================================================
+    certificates = CEFRCertificate.objects.filter(user=user)
+
+    # ==================================================
+    # 🤖 COACH IA GLOBAL (MULTI-SESSIONS)
+    # ==================================================
+    latest_sessions = (
+        Session.objects
+        .filter(user=user, completed_at__isnull=False)
+        .prefetch_related("attempts", "attempts__section")
+        .order_by("-completed_at")[:3]
+    )
+
+    global_ai_analysis = None
+
+    if latest_sessions.exists():
+        all_attempts = []
+        for session in latest_sessions:
+            all_attempts.extend(list(session.attempts.all()))
+
+        if all_attempts:
+            global_ai_analysis = AICoachGlobal.analyze_session(all_attempts)
+
+            # ==========================================
+            # 🧠 SAUVEGARDE RAPPORT IA GLOBAL
+            # ==========================================
+            from preparation_tests.models import CoachIAReport
+
+            CoachIAReport.objects.create(
+                user=user,
+                exam_code=latest_sessions.first().exam.code.upper(),
+                scope="global",
+                data=global_ai_analysis,
+                score_snapshot=skills,
+            )
+
+    # ==================================================
+    # 📦 CONTEXT FINAL
+    # ==================================================
+    context = {
+        "global_level": global_level,
+        "global_progress": global_progress,
+        "exam_stats": exam_stats,
+        "skills": skills,
+        "certificates": certificates,
+        "context_global_ai": global_ai_analysis,  # 🔥 COACH IA
+    }
+
+    return render(
+        request,
+        "preparation_tests/dashboard_global.html",
+        context,
+    )
+
+
+# =========================================================
+# 📅 PLAN D’ÉTUDE PERSONNALISÉ
+# =========================================================
+
+from preparation_tests.services.study_plan import (
+    build_study_plan,
+    advance_study_day,
+    adapt_study_plan,
+)
+
+@login_required
+def study_plan_view(request, exam_code):
     """
-    Alias vers start_mock_tef_co pour compatibilité URL
+    📅 Affiche le plan d’étude personnalisé de l’utilisateur
     """
-    return start_mock_tef_co(request)
+
+    # 1️⃣ Construire le plan de base
+    plan = build_study_plan(
+        user=request.user,
+        exam_code=exam_code,
+    )
+
+    if not plan:
+        messages.error(request, "Impossible de charger ton plan d’étude.")
+        return redirect("preparation_tests:exam_detail", exam_code=exam_code)
+
+    # 2️⃣ Optionnel : adaptation IA (si résultats disponibles)
+    # (sécurisé – ne casse rien)
+    try:
+        last_results = UserSkillResult.objects.filter(
+            user=request.user,
+            exam__code__iexact=exam_code,
+        )
+
+        per_section = {}
+        for r in last_results:
+            if r.section:
+                per_section[r.section.code.upper()] = {
+                    "pct": r.score_percent,
+                }
+
+        if per_section:
+            plan = adapt_study_plan(
+                plan_data=plan,
+                per_section=per_section,
+            )
+
+    except Exception:
+        pass  # ⚠️ aucune erreur bloquante
+
+    return render(
+        request,
+        "preparation_tests/study_plan.html",
+        {
+            "exam_code": exam_code,
+            "plan": plan,
+        },
+    )
+
+
+@login_required
+def complete_study_day(request, exam_code):
+    """
+    ✅ Valider la journée d’étude en cours
+    """
+
+    advance_study_day(
+        user=request.user,
+        exam_code=exam_code,
+    )
+
+    messages.success(request, "✅ Journée validée. Continue comme ça 💪")
+
+    return redirect(
+        "preparation_tests:study_plan",
+        exam_code=exam_code,
+    )
+
+
+@login_required
+def coach_ai_history(request):
+    reports = request.user.coach_reports.all()
+
+    return render(
+        request,
+        "preparation_tests/coach_ai_history.html",
+        {
+            "reports": reports,
+        },
+    )
+
+
+from django.http import FileResponse
+from preparation_tests.services.coach_ai_pdf import generate_coach_ai_pdf
+
+@login_required
+def coach_ai_pdf(request, report_id):
+    report = get_object_or_404(
+        CoachIAReport,
+        id=report_id,
+        user=request.user,
+    )
+
+    pdf_path = generate_coach_ai_pdf(report)
+
+    return FileResponse(
+        open(pdf_path, "rb"),
+        as_attachment=True,
+        filename=pdf_path.name,
+    )

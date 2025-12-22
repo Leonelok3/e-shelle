@@ -7,7 +7,7 @@ Résultat de la session | Immigration97
 
 {% block meta_description %}
 Résultat détaillé de votre session {{ session.exam.code|upper }} :
-scores par section, analyse IA et recommandations personnalisées.
+scores par section, analyse intelligente et recommandations personnalisées.
 {% endblock %}
 
 {% block head_extra %}
@@ -15,63 +15,63 @@ scores par section, analyse IA et recommandations personnalisées.
 {% endblock %}
 
 {% block content %}
-
 <section class="page page-language">
 
-  <!-- ===== TITRE ===== -->
+  <!-- =====================
+        EN-TÊTE
+  ====================== -->
   <header class="page-title">
     <h1>
-      Session {{ session.exam.code|upper }}
-      {% if session.mode == "mock" %}
-        (Examen blanc)
-      {% elif session.mode == "retry_errors" %}
-        (Correction ciblée)
-      {% else %}
-        (Entraînement)
-      {% endif %}
+      Résultat {{ session.exam.code|upper }}
+      <span class="subtitle">
+        {% if session.mode == "mock" %}
+          Examen blanc
+        {% elif session.mode == "retry_errors" %}
+          Correction ciblée
+        {% else %}
+          Entraînement
+        {% endif %}
+      </span>
     </h1>
 
-    <p>
-      Date :
-      <strong>{{ session.started_at|date:"d/m/Y" }}</strong>
-      à <strong>{{ session.started_at|time:"H:i" }}</strong>
-      — résumé de tes performances.
+    {% include "preparation_tests/partials/_cefr_bar.html" %}
+
+    <p class="page-subtitle">
+      Session du {{ session.started_at|date:"d/m/Y" }}
+      à {{ session.started_at|time:"H:i" }}
     </p>
   </header>
 
   <div class="grid-main">
 
-    <!-- ======================
-         COLONNE GAUCHE
-    ======================= -->
-    <article class="card">
+    <!-- =====================
+         COLONNE PRINCIPALE
+    ====================== -->
+    <article class="card card-main">
 
-      <h2>Score global</h2>
-
-      <div class="score-big">
+      <!-- ===== SCORE GLOBAL ===== -->
+      <section class="score-global">
         <div class="score-circle">
-          <div class="score-circle-inner">
-            {{ global_pct }}%
-          </div>
+          <span>{{ global_pct }}%</span>
         </div>
 
-        <div>
-          <div class="score-text-main">
+        <div class="score-summary">
+          <p class="score-line">
             <strong>{{ total_correct }}</strong> bonnes réponses sur
             <strong>{{ total_items }}</strong>
-          </div>
+          </p>
 
-          <div class="score-subline">
+          <p class="score-eval">
             {% if global_pct >= 80 %}
-              Excellent 🚀 — prêt pour les examens blancs complets.
+              🚀 Excellent niveau — prêt pour l’examen officiel
             {% elif global_pct >= 60 %}
-              Bon niveau 💪 — encore un peu de consolidation.
+              💪 Bon niveau — consolidation recommandée
             {% else %}
-              Base à renforcer 🧱 — retravaille les fondamentaux.
+              🧱 Bases à renforcer — retour aux fondamentaux conseillé
             {% endif %}
-          </div>
+          </p>
 
-          <div class="score-tags">
+          <div class="pill-row">
             <span class="pill">Examen : {{ session.exam.name }}</span>
             <span class="pill">
               Mode :
@@ -81,21 +81,48 @@ scores par section, analyse IA et recommandations personnalisées.
             </span>
           </div>
         </div>
-      </div>
+      </section>
 
-      {% if session.mode == "retry_errors" %}
-        <div class="session-history-box">
-          <strong>📘 Correction ciblée :</strong>
-          tu retravailles uniquement tes erreurs pour progresser plus vite.
+      <!-- ===== CECR MAP ===== -->
+      <section class="cefr-map">
+        <h2>📈 Ta progression CECRL</h2>
+
+        <div class="cefr-grid">
+          {% for c in cefr_map %}
+            <div class="cefr-card
+              {% if c.is_current %}current{% endif %}
+              {% if c.is_unlocked %}unlocked{% else %}locked{% endif %}
+            ">
+              <div class="cefr-level">{{ c.level }}</div>
+
+              <div class="cefr-status">
+                {% if c.is_unlocked %}
+                  ✅ Débloqué
+                {% else %}
+                  🔒 Bloqué
+                {% endif %}
+              </div>
+
+              {% if c.is_current %}
+                <div class="cefr-current">Niveau actuel</div>
+              {% else %}
+                <div class="cefr-goal">
+                  Objectif : {{ c.percent_required }}%
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
         </div>
-      {% endif %}
+      </section>
 
-      <!-- ===== TABLE DES SECTIONS ===== -->
-      <div class="section-table">
-        <table>
+      <!-- ===== TABLEAU DES SECTIONS ===== -->
+      <section class="section-results">
+        <h2>📊 Détail par compétence</h2>
+
+        <table class="results-table">
           <thead>
             <tr>
-              <th>Section</th>
+              <th>Compétence</th>
               <th>Score</th>
               <th>Niveau estimé</th>
               <th>Questions</th>
@@ -112,13 +139,12 @@ scores par section, analyse IA et recommandations personnalisées.
                 <tr>
                   <td>{{ attempt.section.code|upper }} – {{ attempt.section.name }}</td>
                   <td>
-                    {% if pct >= 80 %}
-                      <span class="score-pill score-good">{{ pct }}%</span>
-                    {% elif pct >= 60 %}
-                      <span class="score-pill score-mid">{{ pct }}%</span>
-                    {% else %}
-                      <span class="score-pill score-low">{{ pct }}%</span>
-                    {% endif %}
+                    <span class="score-pill
+                      {% if pct >= 80 %}good
+                      {% elif pct >= 60 %}mid
+                      {% else %}low{% endif %}">
+                      {{ pct }}%
+                    </span>
                   </td>
                   <td>
                     {% if pct < 40 %}A1–A2
@@ -132,52 +158,107 @@ scores par section, analyse IA et recommandations personnalisées.
             {% endfor %}
           </tbody>
         </table>
-      </div>
+      </section>
+
+      <!-- ===== FEEDBACK ===== -->
+      {% if feedback %}
+      <section class="feedback-box {{ feedback.tone }}">
+        <h2>🧠 Analyse intelligente</h2>
+
+        <p class="feedback-main">{{ feedback.global_message }}</p>
+
+        <ul class="feedback-list">
+          {% for s in feedback.skill_feedback %}
+            <li class="{{ s.status }}">
+              <strong>{{ s.skill }}</strong> :
+              {{ s.pct }}% — {{ s.message }}
+            </li>
+          {% endfor %}
+        </ul>
+
+        <p class="feedback-reco">{{ feedback.recommendation }}</p>
+
+        {% if feedback.unlocked.unlocked %}
+          <div class="unlock-box">
+            🔓 Niveau débloqué :
+            <strong>{{ feedback.unlocked.old_level }} → {{ feedback.unlocked.new_level }}</strong>
+          </div>
+        {% endif %}
+      </section>
+      {% endif %}
 
       <!-- ===== ACTIONS ===== -->
-      <div class="btn-row" style="margin-top:16px;">
-        <a class="btn btn--primary"
+      <section class="action-row">
+        <a class="btn btn-primary"
            href="{% url 'preparation_tests:session_correction' session.id %}">
-          Voir le corrigé détaillé
+          Voir le corrigé
         </a>
 
-        <a class="btn btn--soft"
+        <a class="btn btn-soft"
            href="{% url 'preparation_tests:retry_session_errors' session.id %}">
           Refaire mes erreurs
         </a>
 
-        <a class="btn btn--soft"
+        <a class="btn btn-soft"
            href="{% url 'preparation_tests:session_review' %}">
-          Retour aux résultats
+          Historique des sessions
         </a>
-      </div>
+      </section>
 
     </article>
 
-    <!-- ======================
-         COLONNE DROITE
-    ======================= -->
-    <aside>
+    <!-- =====================
+         SIDEBAR
+    ====================== -->
+    <aside class="sidebar">
 
       <article class="card side-card">
-        <h3>Conseils personnalisés</h3>
+        <h3>🎯 Conseils de progression</h3>
         <ul>
-          <li>Travaille d’abord les sections &lt; 60 %</li>
-          <li>Vise au moins 70 % par section</li>
-          <li>Alterner cours + entraînements chronométrés</li>
+          <li>Travailler les sections &lt; 60%</li>
+          <li>Objectif ≥ 70% par compétence</li>
+          <li>Alterner cours et examens blancs</li>
         </ul>
       </article>
 
       {% if analysis %}
-        <article class="card side-card">
-          <h3>Analyse IA</h3>
-          <p>{{ analysis }}</p>
-        </article>
+      <article class="card side-card">
+        <h3>🤖 Analyse IA</h3>
+        <p>{{ analysis }}</p>
+      </article>
       {% endif %}
 
     </aside>
-
   </div>
-</section>
 
+  <!-- =====================
+       COACH IA GLOBAL
+  ====================== -->
+  {% if global_analysis %}
+  <article class="card">
+    <h2>🧠 Coach IA Global</h2>
+
+    <p>
+      <strong>Niveau global estimé :</strong>
+      {{ global_analysis.estimated_level }}
+      ({{ global_analysis.avg_score }}%)
+    </p>
+
+    <h3>📊 Priorités par compétence</h3>
+    <ul>
+      {% for p in global_analysis.priorities %}
+        <li>{{ p.section }} – {{ p.score }}% ({{ p.level }})</li>
+      {% endfor %}
+    </ul>
+
+    <h3>🎯 Recommandations globales</h3>
+    <ul>
+      {% for advice in global_analysis.global_advice %}
+        <li>{{ advice }}</li>
+      {% endfor %}
+    </ul>
+  </article>
+  {% endif %}
+
+</section>
 {% endblock %}

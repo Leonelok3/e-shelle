@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Historique Coach IA | Immigration97{% endblock %}
+
+{% block content %}
+<section class="page page-dashboard">
+
+  <h1>🤖 Historique Coach IA</h1>
+
+  {% for r in reports %}
+    <article class="card">
+      <h3>{{ r.exam_code }} — {{ r.scope|upper }}</h3>
+      <p class="muted">{{ r.created_at|date:"d M Y H:i" }}</p>
+
+      <ul>
+        {% for key, value in r.data.items %}
+          <li><strong>{{ key }}</strong> : {{ value }}</li>
+        {% endfor %}
+      </ul>
+
+      <a href="{% url 'preparation_tests:coach_ai_pdf' r.id %}"
+         class="btn btn--soft">
+        📄 Télécharger le rapport PDF
+      </a>
+    </article>
+  {% empty %}
+    <p>Aucun rapport IA pour le moment.</p>
+  {% endfor %}
+
+</section>
+{% endblock %}

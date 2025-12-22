@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ma progression CECR | Immigration97{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/cefr.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="page page-dashboard">
+
+  <!-- ========================= -->
+  <!-- 📈 HEADER -->
+  <!-- ========================= -->
+  <header class="page-title">
+    <h1>📈 Ma progression globale</h1>
+    <p class="page-subtitle">
+      Vue CECR, examens, compétences et certificats
+    </p>
+
+    {% if exam_stats %}
+      <div class="study-plan-links">
+        {% for exam in exam_stats %}
+          <a
+            href="{% url 'preparation_tests:study_plan' exam.exam|lower %}"
+            class="btn btn--soft btn--xs">
+            📅 Plan d’étude {{ exam.exam }}
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </header>
+
+  <!-- ========================= -->
+  <!-- 🎯 CECR GLOBAL -->
+  <!-- ========================= -->
+  <article class="card">
+    <h2>🎯 Niveau global CECR</h2>
+
+    <div class="cefr-bar">
+      <div class="cefr-bar__track">
+        <div
+          class="cefr-bar__fill"
+          style="width: {{ global_progress }}%">
+        </div>
+      </div>
+
+      <div class="cefr-bar__labels">
+        <span>A1</span><span>A2</span><span>B1</span>
+        <span>B2</span><span>C1</span><span>C2</span>
+      </div>
+    </div>
+
+    <p class="cefr-level">
+      Niveau actuel :
+      <strong>{{ global_level }}</strong>
+    </p>
+  </article>
+
+  <!-- ========================= -->
+  <!-- 🧪 EXAMENS -->
+  <!-- ========================= -->
+  <article class="card">
+    <h2>🧪 Progression par examen</h2>
+
+    <div class="exam-progress-grid">
+      {% for exam in exam_stats %}
+        <div class="exam-progress-card">
+          <h3>{{ exam.exam }}</h3>
+
+          <div class="exam-bar">
+            <div
+              class="exam-bar-fill"
+              style="width: {{ exam.avg_score }}%">
+            </div>
+          </div>
+
+          <div class="exam-meta">
+            <span>Niveau {{ exam.level }}</span>
+            <span>{{ exam.avg_score }}%</span>
+          </div>
+        </div>
+      {% empty %}
+        <p class="muted">Aucune donnée disponible.</p>
+      {% endfor %}
+    </div>
+  </article>
+
+  <!-- ========================= -->
+  <!-- 🧭 RADAR COMPÉTENCES -->
+  <!-- ========================= -->
+  <article class="card">
+    <h2>🧭 Profil de compétences</h2>
+
+    <div class="radar">
+      {% for skill, value in skills.items %}
+        <div class="radar-item">
+          <span class="radar-label">{{ skill|upper }}</span>
+
+          <div class="radar-bar">
+            <div
+              class="radar-fill"
+              style="width: {{ value }}%">
+            </div>
+          </div>
+
+          <span class="radar-score">{{ value }}%</span>
+        </div>
+      {% endfor %}
+    </div>
+  </article>
+
+  <!-- ========================= -->
+  <!-- 🎓 CERTIFICATS -->
+  <!-- ========================= -->
+  <article class="card">
+    <h2>🎓 Mes certificats CECR</h2>
+
+    <ul class="cert-list">
+      {% for cert in certificates %}
+        <li>
+          <strong>{{ cert.exam_code }}</strong>
+          – Niveau {{ cert.level }}
+
+          <a
+            href="{% url 'preparation_tests:download_certificate' cert.exam_code cert.level %}"
+            class="btn btn--soft btn--xs">
+            Télécharger
+          </a>
+        </li>
+      {% empty %}
+        <li class="muted">
+          Aucun certificat généré pour le moment.
+        </li>
+      {% endfor %}
+    </ul>
+  </article>
+
+</section>
+{% if context_global_ai %}
+<article class="card">
+  <h2>🤖 Coach IA – Analyse globale</h2>
+
+  <p>
+    <strong>Niveau estimé par l’IA :</strong>
+    {{ context_global_ai.estimated_level }}
+    ({{ context_global_ai.avg_score }}%)
+  </p>
+
+  <hr>
+
+  <h3>📊 Priorités détectées</h3>
+  <ul class="ai-priority-list">
+    {% for p in context_global_ai.priorities %}
+      <li>
+        <strong>{{ p.section }}</strong> :
+        {{ p.score }}% – Niveau {{ p.level }}
+      </li>
+    {% endfor %}
+  </ul>
+
+  <h3>🎯 Recommandations stratégiques</h3>
+  <ul class="ai-advice-list">
+    {% for advice in context_global_ai.global_advice %}
+      <li>{{ advice }}</li>
+    {% endfor %}
+  </ul>
+</article>
+{% endif %}
+
+{% endblock %}
