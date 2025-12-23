@@ -68,6 +68,8 @@ urlpatterns = [
         "billing/",
         include(("billing.urls", "billing"), namespace="billing"),
     ),
+    path("prep/", include("preparation_tests.urls")),
+
 
     # ============================
     # ✅ PREPARATION TESTS (UNE SEULE FOIS)
@@ -76,6 +78,8 @@ urlpatterns = [
         "prep/",
         include(("preparation_tests.urls", "preparation_tests"), namespace="preparation_tests"),
     ),
+    
+
 
     # ============================
     # VISAS

@@ -1,14 +1,11 @@
 import json
 from django.conf import settings
-from django.db.models import Max, Avg
+
 from openai import OpenAI, OpenAIError
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
 from django.contrib import messages
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.contrib import messages
 from django.http import JsonResponse
@@ -311,17 +308,16 @@ def take_test(request, test_id):
         correct_count = 0
         total_questions = questions.count()
 
-        # On supprime les anciennes réponses de cette session (au cas où)
+        # Nettoyage des anciennes réponses
         UserAnswer.objects.filter(session=session).delete()
 
         for q in questions:
             field_name = f"question_{q.id}"
-            selected_option = request.POST.get(field_name)  # 'A', 'B', 'C' ou 'D'
+            selected_option = request.POST.get(field_name)
             if not selected_option:
                 continue
 
             is_correct = (selected_option == q.correct_option)
-
             if is_correct:
                 correct_count += 1
 
@@ -332,24 +328,32 @@ def take_test(request, test_id):
                 is_correct=is_correct,
             )
 
-        score_percent = 0.0
-        if total_questions > 0:
-            score_percent = round(correct_count * 100.0 / total_questions, 2)
+        score_percent = (
+            round(correct_count * 100.0 / total_questions, 2)
+            if total_questions > 0 else 0.0
+        )
 
         session.score = score_percent
         session.total_questions = total_questions
         session.correct_answers = correct_count
         session.finished_at = timezone.now()
+
+        # ✅ AJOUT CHRONO (SAFE)
+        duration = request.POST.get("duration_seconds")
+        try:
+            session.duration_seconds = int(duration)
+        except (TypeError, ValueError):
+            session.duration_seconds = 0
+
         session.save()
 
-        # Gamification : mise à jour du profil + XP gagnée
+        # Gamification
         profile = _get_or_create_profile(request.user)
         gained_xp = profile.add_result(
             score_percent,
             total_questions,
             exam_type=test.exam_type,
         )
-        # On stocke l'XP gagnée dans la session pour l'afficher sur la page de résultat
         request.session["last_english_xp_gain"] = gained_xp
 
         return redirect("englishprep:test_result", test_id=test.id)
@@ -360,7 +364,8 @@ def take_test(request, test_id):
         "questions": questions,
         "duration_minutes": test.duration_minutes or 20,
     }
-    return render(request, "EnglishPrepApp/english_take_test.html", context)
+    return render(request, "english/take_test.html", context)
+
 
 
 # =========================

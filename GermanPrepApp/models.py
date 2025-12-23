@@ -195,6 +195,10 @@ class GermanTestSession(models.Model):
 
     def __str__(self):
         return f"DE Session {self.id} – {self.user} – {self.exam} ({self.score}%)"
+    duration_seconds = models.PositiveIntegerField(
+    default=0,
+    help_text="Temps total passé sur le test (en secondes)."
+)
 
 
 class GermanUserAnswer(models.Model):

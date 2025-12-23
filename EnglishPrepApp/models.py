@@ -79,6 +79,8 @@ class UserTestSession(models.Model):
     score = models.FloatField(null=True, blank=True)  # en pourcentage
     total_questions = models.PositiveIntegerField(default=0)
     correct_answers = models.PositiveIntegerField(default=0)
+    duration_seconds = models.PositiveIntegerField(default=0)
+    
 
     def __str__(self):
         return f"Session {self.id} - {self.user} - {self.test} ({self.score}%)"

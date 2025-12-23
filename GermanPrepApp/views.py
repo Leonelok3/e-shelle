@@ -249,16 +249,26 @@ def take_practice_test(request, exam_id):
     Simulation type examen pour un GermanExam donné.
     - utilise les GermanExercise liés aux leçons de cet examen
     - crée une GermanTestSession
-    - enregistre les réponses GermanUserAnswer
+    - enregistre les réponses GermanUserAnswer (LIÉES À LA SESSION)
     - met à jour le profil (XP)
     - redirige vers la page de résultat détaillé
     """
-    from .models import GermanExam, GermanExercise, GermanTestSession, GermanUserAnswer
+    from .models import (
+        GermanExam,
+        GermanExercise,
+        GermanTestSession,
+        GermanUserAnswer,
+    )
 
     exam = get_object_or_404(GermanExam, id=exam_id, is_active=True)
-    exercises = GermanExercise.objects.filter(lesson__exam=exam).order_by("id")
+    exercises = GermanExercise.objects.filter(
+        lesson__exam=exam
+    ).order_by("id")
 
     if request.method == "POST":
+        # -------------------------
+        # 1️⃣ Création de la session
+        # -------------------------
         session = GermanTestSession.objects.create(
             user=request.user,
             exam=exam,
@@ -267,6 +277,9 @@ def take_practice_test(request, exam_id):
         correct_count = 0
         total = exercises.count()
 
+        # -------------------------
+        # 2️⃣ Parcours des réponses
+        # -------------------------
         for ex in exercises:
             selected = request.POST.get(f"exercise_{ex.id}")
             if not selected:
@@ -276,6 +289,7 @@ def take_practice_test(request, exam_id):
             if is_correct:
                 correct_count += 1
 
+            # ✅ CORRECTION CRITIQUE : session bien liée
             GermanUserAnswer.objects.create(
                 session=session,
                 exercise=ex,
@@ -283,33 +297,58 @@ def take_practice_test(request, exam_id):
                 is_correct=is_correct,
             )
 
+        # -------------------------
+        # 3️⃣ Calcul du score
+        # -------------------------
         score = (correct_count / total) * 100 if total > 0 else 0
+
         session.score = score
         session.finished_at = timezone.now()
         session.total_questions = total
         session.correct_answers = correct_count
+
+        # -------------------------
+        # 4️⃣ Temps passé (OPTIONNEL)
+        # -------------------------
+        duration = request.POST.get("duration_seconds")
+        try:
+            session.duration_seconds = int(duration)
+        except (TypeError, ValueError):
+            session.duration_seconds = 0
+
         session.save()
 
-        # 🔥 Mise à jour du profil + XP gagnée
+        # -------------------------
+        # 5️⃣ Mise à jour du profil
+        # -------------------------
         profile = _get_or_create_profile(request.user)
         try:
             gained_xp = profile.add_result(score, total)
         except TypeError:
-            # si add_result ne renvoie rien ou n'accepte pas la même signature
             gained_xp = None
 
         request.session["last_german_xp_gain"] = gained_xp
 
-        # 👉 on redirige vers la page de résultat de CETTE session
-        return redirect("germanprep:test_result", session_id=session.id)
+        # -------------------------
+        # 6️⃣ Redirection résultat
+        # -------------------------
+        return redirect(
+            "germanprep:test_result",
+            session_id=session.id
+        )
 
+    # -------------------------
+    # GET → afficher le test
+    # -------------------------
     context = {
         "exam": exam,
         "exercises": exercises,
     }
     return render(request, "german/take_practice_test.html", context)
 
+   
 
+#########################################################
 @login_required
 def german_test_result(request, session_id):
     """

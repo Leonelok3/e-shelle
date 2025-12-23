@@ -117,19 +117,21 @@ from .models import Profile
 from cv_generator.models import CV
 
 
+############# MY SPACE ###############################
+
 @login_required
 def my_space(request):
-    profile = get_object_or_404(Profile, user=request.user)
+    profile, created = Profile.objects.get_or_create(
+        user=request.user
+    )
 
     has_premium = has_active_access(request.user)
     has_temp_access = has_session_access(request)
 
-    # ✅ CV (champ = utilisateur)
     recent_cvs = CV.objects.filter(
         utilisateur=request.user
     ).order_by("-date_modification")[:5]
 
-    # ✅ TESTS (désactivé temporairement)
     test_results = []
 
     context = {
@@ -142,6 +144,7 @@ def my_space(request):
 
     return render(request, "profiles/my_space.html", context)
 
+
 #############################
 
 from django.contrib.auth.decorators import login_required
@@ -149,7 +152,7 @@ from django.views.decorators.http import require_POST
 
 @login_required
 def upload_avatar(request):
-    profile = request.user.profile
+    profile, _ = Profile.objects.get_or_create(user=request.user)
 
     if request.method == "POST" and request.FILES.get("avatar"):
         profile.avatar = request.FILES["avatar"]
@@ -160,3 +163,4 @@ def upload_avatar(request):
     return render(request, "profiles/avatar_upload.html", {
         "profile": profile
     })
+

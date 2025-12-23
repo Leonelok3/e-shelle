@@ -3,24 +3,26 @@
 {% block title %}immigration97 · Stratégies RP{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-slate-950 text-slate-50">
-  <div class="max-w-6xl mx-auto px-4 lg:px-6 py-10 space-y-8">
+<div class="rp-strategies-page">
+  <div class="rp-strategies-container">
 
-    <!-- Header -->
-    <header class="mt-4">
-      <p class="text-xs font-semibold tracking-[0.25em] text-emerald-400/80 uppercase mb-3">
+    <header class="rp-strategies-header">
+      <p class="rp-strategies-kicker">
         Stratégies Résidence Permanente
       </p>
-      <h1 class="text-3xl md:text-4xl font-semibold tracking-tight mb-2">
+
+      <h1 class="rp-strategies-title">
         Choisis la stratégie qui colle à ta vie
       </h1>
-      <p class="text-sm text-slate-400 max-w-2xl">
+
+      <p class="rp-strategies-subtitle">
         Ces stratégies sont générées à partir de ton profil actuel
         (pays ciblé, études, expérience, langues). Elles ne remplacent pas
         un avis juridique, mais t’aident à structurer ton projet.
       </p>
-      <div class="mt-4 flex flex-wrap gap-2 text-xs text-slate-400">
-        <span class="px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700/70">
+
+      <div class="rp-strategies-meta">
+        <span class="rp-meta-pill">
           Destination :
           {% if profile.country == "canada" or profile.country == "CA" %}
             Canada
@@ -30,73 +32,68 @@
             {{ profile.country }}
           {% endif %}
         </span>
-        <span class="px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700/70">
+        <span class="rp-meta-pill">
           Âge : {{ profile.age|default:"-" }}
         </span>
-        <span class="px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700/70">
+        <span class="rp-meta-pill">
           Expérience : {{ profile.years_experience|default:"-" }} ans
         </span>
       </div>
     </header>
 
-    <!-- Stratégies -->
-    <section class="space-y-6 mt-6">
+    <section class="rp-strategy-list">
       {% for strat in strategies %}
-        <article class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/80 to-slate-900/40 p-6 md:p-7">
-          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-            <div class="flex-1">
-              <p class="text-[11px] uppercase tracking-[0.25em] text-slate-500 mb-2">
+        <article class="rp-strategy-card">
+
+          <div class="rp-strategy-header">
+            <div>
+              <p class="rp-strategy-index">
                 Stratégie {{ forloop.counter }}
               </p>
-              <h2 class="text-lg md:text-xl font-semibold mb-2">{{ strat.label }}</h2>
-              <p class="text-sm text-slate-300 mb-3">
-                {{ strat.summary }}
-              </p>
-              <p class="text-xs text-slate-400 mb-2">
+              <h2 class="rp-strategy-title">{{ strat.label }}</h2>
+              <p class="rp-strategy-summary">{{ strat.summary }}</p>
+              <p class="rp-strategy-ideal">
                 Idéal pour : {{ strat.ideal_for }}
               </p>
             </div>
 
-            <div class="md:w-48 flex-shrink-0 flex flex-col gap-2">
-              <span class="inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] font-semibold
-                           border border-slate-700 bg-slate-900/90 text-slate-200">
+            <div class="rp-strategy-actions">
+              <span class="rp-strategy-tag">
                 {{ strat.tag }}
               </span>
+
               <a href="{% url 'permanent_residence:plan' profile.id %}"
-                 class="inline-flex items-center justify-center rounded-full px-3 py-2 text-[11px] font-semibold
-                        bg-gradient-to-r from-emerald-400 to-emerald-500 text-slate-950 mt-1
-                        hover:scale-[1.03] active:scale-95 transition shadow-md shadow-emerald-500/40">
+                 class="rp-btn-primary">
                 Intégrer dans mon plan d’action
               </a>
+
               <a href="{% url 'permanent_residence:dashboard' %}"
-                 class="inline-flex items-center justify-center rounded-full px-3 py-2 text-[11px] font-semibold
-                        bg-slate-900 border border-slate-700 text-slate-200 hover:border-emerald-400/70">
+                 class="rp-btn-secondary">
                 Retour au cockpit
               </a>
             </div>
           </div>
 
-          <div class="mt-4 pt-4 border-t border-slate-800">
-            <p class="text-xs font-semibold text-slate-300 mb-2">
+          <div class="rp-strategy-actions-list">
+            <p class="rp-strategy-actions-title">
               Principales actions à prévoir
             </p>
-            <ul class="space-y-1 text-xs text-slate-400">
+            <ul>
               {% for action in strat.key_actions %}
-                <li class="flex gap-2 items-start">
-                  <span class="mt-1 text-emerald-400">•</span>
-                  <span>{{ action }}</span>
-                </li>
+                <li>{{ action }}</li>
               {% endfor %}
             </ul>
           </div>
+
         </article>
       {% endfor %}
     </section>
 
-    <p class="mt-6 text-[11px] text-slate-500">
+    <p class="rp-strategies-hint">
       Ces stratégies doivent toujours être croisées avec les exigences officielles
       (IRCC, Home Affairs, provinces, États…). Vérifie régulièrement les mises à jour.
     </p>
+
   </div>
 </div>
 {% endblock %}

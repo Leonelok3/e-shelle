@@ -1,205 +1,139 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}
 Diagnostic Résidence Permanente – Canada / Australie | immigration97
 {% endblock %}
 
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/residence_permanente_nav.css' %}">
+{% endblock %}
+
 {% block content %}
 
-{# === NAVIGATION RP DÉDIÉE === #}
 {% include "permanent_residence/_rp_nav.html" %}
 
-<div class="max-w-5xl mx-auto py-10 px-4">
+<div class="rp-diagnostic">
 
   <!-- HEADER -->
-  <div class="bg-[#0d1b24] border border-[#0d2834] rounded-2xl p-8 shadow-xl mb-8">
-    <p class="text-sm text-emerald-300 mb-2">
-      Étape 1 · Diagnostic RP
-    </p>
-    <h1 class="text-2xl md:text-3xl font-bold text-white mb-3">
+  <header class="rp-card rp-diagnostic-header">
+    <p class="rp-kicker">Étape 1 · Diagnostic RP</p>
+
+    <h1 class="rp-title">
       Complète ton diagnostic Résidence Permanente
     </h1>
-    <p class="text-gray-300 text-sm md:text-base max-w-3xl">
-      Réponds aux questions clés (âge, études, langues, expérience, profil).  
-      Ensuite tu obtiens :
-      <span class="text-emerald-300 font-semibold">un résumé clair</span>,
-      des <span class="text-emerald-300 font-semibold">programmes adaptés</span>,
-      et un <span class="text-emerald-300 font-semibold">plan d’action RP personnalisé</span>.
-    </p>
-  </div>
 
-  <!-- FORMULAIRE STRUCTURÉ -->
-  <div class="bg-[#0d1b24] border border-[#0d2834] rounded-2xl p-8 shadow-xl">
-    <form method="post" class="permanent-residence-form" novalidate>
+    <p class="rp-text">
+      Réponds aux questions clés (âge, études, langues, expérience, profil).
+      Ensuite tu obtiens :
+      <strong>un résumé clair</strong>,
+      <strong>des programmes adaptés</strong>,
+      et <strong>un plan d’action RP personnalisé</strong>.
+    </p>
+  </header>
+
+  <!-- FORMULAIRE -->
+  <section class="rp-card">
+    <form method="post" class="rp-form" novalidate>
       {% csrf_token %}
 
       {% if form.non_field_errors %}
-      <div class="mb-4 rounded-lg bg-red-900/30 border border-red-700/60 p-3 text-sm text-red-200">
+      <div class="rp-alert rp-alert--error">
         {{ form.non_field_errors }}
       </div>
       {% endif %}
 
-      <!-- SECTION PROFIL GÉNÉRAL -->
-      <div class="mb-8">
-        <h2 class="text-lg font-semibold text-white mb-3">Profil général</h2>
+      <!-- PROFIL GÉNÉRAL -->
+      <div class="rp-form-section">
+        <h2 class="rp-section-title">Profil général</h2>
 
-        <div class="grid md:grid-cols-2 gap-6">
-
-          <!-- Pays -->
+        <div class="rp-form-grid">
           <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.country.label }}</label>
+            <label>{{ form.country.label }}</label>
             {{ form.country }}
           </div>
 
-          <!-- Âge -->
           <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.age.label }}</label>
+            <label>{{ form.age.label }}</label>
             {{ form.age }}
           </div>
 
-          <!-- Expérience -->
           <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.years_experience.label }}</label>
+            <label>{{ form.years_experience.label }}</label>
             {{ form.years_experience }}
           </div>
 
-          <!-- Études -->
           <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.education_level.label }}</label>
+            <label>{{ form.education_level.label }}</label>
             {{ form.education_level }}
           </div>
-
         </div>
       </div>
 
-      <!-- SECTION FRANÇAIS -->
-      <div class="mb-8">
-        <h2 class="text-lg font-semibold text-white mb-3">Français</h2>
+      <!-- FRANÇAIS -->
+      <div class="rp-form-section">
+        <h2 class="rp-section-title">Français</h2>
 
-        <div class="grid md:grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.french_exam.label }}</label>
-            {{ form.french_exam }}
-          </div>
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.french_level.label }}</label>
-            {{ form.french_level }}
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.french_co.label }}</label>
-            {{ form.french_co }}
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.french_ce.label }}</label>
-            {{ form.french_ce }}
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.french_eo.label }}</label>
-            {{ form.french_eo }}
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.french_ee.label }}</label>
-            {{ form.french_ee }}
-          </div>
+        <div class="rp-form-grid">
+          <div><label>{{ form.french_exam.label }}</label>{{ form.french_exam }}</div>
+          <div><label>{{ form.french_level.label }}</label>{{ form.french_level }}</div>
+          <div><label>{{ form.french_co.label }}</label>{{ form.french_co }}</div>
+          <div><label>{{ form.french_ce.label }}</label>{{ form.french_ce }}</div>
+          <div><label>{{ form.french_eo.label }}</label>{{ form.french_eo }}</div>
+          <div><label>{{ form.french_ee.label }}</label>{{ form.french_ee }}</div>
         </div>
       </div>
 
-      <!-- SECTION ANGLAIS -->
-      <div class="mb-8">
-        <h2 class="text-lg font-semibold text-white mb-3">Anglais</h2>
+      <!-- ANGLAIS -->
+      <div class="rp-form-section">
+        <h2 class="rp-section-title">Anglais</h2>
 
-        <div class="grid md:grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.english_exam.label }}</label>
-            {{ form.english_exam }}
-          </div>
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.english_level.label }}</label>
-            {{ form.english_level }}
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.english_co.label }}</label>
-            {{ form.english_co }}
-          </div>
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.english_ce.label }}</label>
-            {{ form.english_ce }}
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.english_eo.label }}</label>
-            {{ form.english_eo }}
-          </div>
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.english_ee.label }}</label>
-            {{ form.english_ee }}
-          </div>
+        <div class="rp-form-grid">
+          <div><label>{{ form.english_exam.label }}</label>{{ form.english_exam }}</div>
+          <div><label>{{ form.english_level.label }}</label>{{ form.english_level }}</div>
+          <div><label>{{ form.english_co.label }}</label>{{ form.english_co }}</div>
+          <div><label>{{ form.english_ce.label }}</label>{{ form.english_ce }}</div>
+          <div><label>{{ form.english_eo.label }}</label>{{ form.english_eo }}</div>
+          <div><label>{{ form.english_ee.label }}</label>{{ form.english_ee }}</div>
         </div>
       </div>
 
-      <!-- SECTION AUTRES INFOS -->
-      <div class="mb-8">
-        <h2 class="text-lg font-semibold text-white mb-3">Autres informations</h2>
+      <!-- AUTRES INFOS -->
+      <div class="rp-form-section">
+        <h2 class="rp-section-title">Autres informations</h2>
 
-        <div class="grid md:grid-cols-2 gap-6">
+        <div class="rp-form-grid">
+          <div><label>{{ form.profession_title.label }}</label>{{ form.profession_title }}</div>
+          <div><label>{{ form.noc_code.label }}</label>{{ form.noc_code }}</div>
+          <div><label>{{ form.anzsco_code.label }}</label>{{ form.anzsco_code }}</div>
 
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.profession_title.label }}</label>
-            {{ form.profession_title }}
+          <div class="rp-checkbox-group">
+            <label>{{ form.has_job_offer }} {{ form.has_job_offer.label }}</label>
+            <label>{{ form.has_family_in_country }} {{ form.has_family_in_country.label }}</label>
           </div>
-
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.noc_code.label }}</label>
-            {{ form.noc_code }}
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ form.anzsco_code.label }}</label>
-            {{ form.anzsco_code }}
-          </div>
-
-          <!-- Checkboxes alignées -->
-          <div class="md:col-span-2 flex flex-wrap items-center gap-8 mt-4">
-            <label class="flex items-center gap-2 text-sm font-semibold">
-              {{ form.has_job_offer }}
-              <span>{{ form.has_job_offer.label }}</span>
-            </label>
-
-            <label class="flex items-center gap-2 text-sm font-semibold">
-              {{ form.has_family_in_country }}
-              <span>{{ form.has_family_in_country.label }}</span>
-            </label>
-          </div>
-
         </div>
 
-        <div class="mt-6">
-          <label class="block text-sm font-semibold mb-1">{{ form.notes.label }}</label>
+        <div class="rp-textarea">
+          <label>{{ form.notes.label }}</label>
           {{ form.notes }}
         </div>
-
       </div>
 
       <!-- CTA -->
-      <div class="mt-8 flex flex-wrap items-center justify-between gap-4">
-        <p class="text-xs text-gray-500 max-w-md">
-          Tes données servent uniquement à générer ton diagnostic RP.  
+      <div class="rp-form-footer">
+        <p class="rp-muted">
+          Tes données servent uniquement à générer ton diagnostic RP.
           Rien n’est partagé avec un tiers.
         </p>
 
-        <button type="submit"
-          class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-lg shadow-emerald-600/20 transition">
+        <button type="submit" class="rp-btn rp-btn--primary">
           Voir mon résultat RP →
         </button>
       </div>
 
     </form>
-  </div>
+  </section>
+
 </div>
 
 {% endblock %}

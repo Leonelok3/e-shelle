@@ -125,7 +125,7 @@ def tef_hub(request):
     for s in sections:
         s["url"] = reverse(
             "preparation_tests:course_section",
-            args=["TEF", s["code"]],
+            args=["tef", s["code"]],
         )
 
     return render(
@@ -133,6 +133,7 @@ def tef_hub(request):
         "preparation_tests/fr_tef_hub.html",
         {"sections": sections},
     )
+
 
 @login_required
 def tcf_hub(request):
@@ -175,23 +176,22 @@ def exam_detail(request, exam_code):
 # =========================================================
 @login_required
 def course_section(request, exam_code, section):
+    # 🔥 CORRECTION : Normalisation de l'exam_code en MAJUSCULES
+    exam_code = exam_code.upper()
+    
     exam = get_object_or_404(Exam, code__iexact=exam_code)
-
 
     lessons = CourseLesson.objects.filter(
         exam=exam,
         section=section,
         is_published=True
-    )
+    ).order_by("order")
 
-    # ✅ CECR uniquement si utilisateur connecté
-    cefr = None
-    if request.user.is_authenticated:
-        cefr = get_cefr_progress(
-            user=request.user,
-            exam_code=exam.code,
-            skill=section,
-        )
+    cefr = get_cefr_progress(
+        user=request.user,
+        exam_code=exam.code,
+        skill=section,
+    )
 
     return render(
         request,
@@ -205,17 +205,15 @@ def course_section(request, exam_code, section):
         }
     )
 
-
-
 # =========================================================
 # 📘 LEÇON + EXERCICES (🔥 CORRECTION AUDIO ICI)
 # =========================================================
 
 @login_required
 def lesson_session(request, exam_code, section, lesson_id):
-    """
-    ✅ CORRECTION : .select_related('audio') ajouté
-    """
+    # 🔥 CORRECTION : Normalisation
+    exam_code = exam_code.upper()
+    
     lesson = get_object_or_404(
         CourseLesson.objects.select_related("exam"),
         id=lesson_id,
@@ -224,12 +222,11 @@ def lesson_session(request, exam_code, section, lesson_id):
         is_published=True,
     )
 
-    # 🔥 AJOUT select_related pour charger les audios
     exercises = (
         lesson.exercises
         .filter(is_active=True)
-        .select_related("audio")  # 🔥 CRITIQUE
-        .order_by("order", "id")
+        .select_related("audio", "image")
+        .order_by("order")
     )
 
     return render(
@@ -242,7 +239,6 @@ def lesson_session(request, exam_code, section, lesson_id):
             "section": section,
         },
     )
-
 
 # =========================================================
 # 🕒 SESSIONS / QUESTIONS

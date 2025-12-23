@@ -60,6 +60,9 @@
         <form id="exam-form" method="post" class="space-y-5">
           {% csrf_token %}
 
+          <!-- ✅ CHAMP CACHÉ POUR LE TEMPS RÉEL -->
+          <input type="hidden" name="duration_seconds" id="duration_seconds" value="0">
+
           {% for question in questions %}
             <div class="rounded-2xl border border-slate-800/80 bg-slate-950/70 p-4">
               <div class="mb-2 flex justify-between">
@@ -124,12 +127,16 @@
   </div>
 </main>
 
-<!-- TIMER -->
+<!-- ⏱ TIMER + ENREGISTREMENT DU TEMPS RÉEL -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const el = document.getElementById("exam-timer");
-  if (!el) return;
+  const form = document.getElementById("exam-form");
+  const durationField = document.getElementById("duration_seconds");
 
+  if (!el || !form || !durationField) return;
+
+  const startTime = Date.now();
   let remaining = parseInt(el.dataset.duration || 20, 10) * 60;
 
   function tick() {
@@ -138,12 +145,20 @@ document.addEventListener("DOMContentLoaded", () => {
     el.textContent = `${m}:${s}`;
 
     if (remaining <= 0) {
-      document.getElementById("exam-form").submit();
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      durationField.value = elapsed;
+      form.submit();
       return;
     }
     remaining--;
     setTimeout(tick, 1000);
   }
+
+  form.addEventListener("submit", () => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    durationField.value = elapsed;
+  });
+
   tick();
 });
 </script>

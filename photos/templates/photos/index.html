@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Générateur de Photo Conforme pour Visa · Immigration97{% endblock %}
 
 {% block meta %}
@@ -9,664 +11,12 @@
   <meta property="og:type" content="website">
   <meta property="og:image" content="{{ request.build_absolute_uri }}static/img/photo_ok.jpg">
   <meta name="twitter:card" content="summary_large_image">
+
+  <!-- CSS DÉDIÉ VISA PHOTO -->
+  <link rel="stylesheet" href="{% static 'css/pages/visa_photo.css' %}">
 {% endblock %}
 
 {% block content %}
-<style>
-  :root {
-    --primary: #10b981;
-    --primary-dark: #059669;
-    --text-muted: #cbd5e1;
-    --text-light: #f1f5f9;
-    --card-bg: #1e293b;
-    --card-border: #334155;
-    --input-bg: #0f172a;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --info: #3b82f6;
-  }
-
-  /* ======== BARRE DE NAVIGATION APPS (GLOBAL) + SOUS-MENU (MODULES) ======== */
-
-  .app-nav-wrapper {
-    margin-bottom: 1.75rem;
-  }
-
-  .app-global-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.9);
-    border: 1px solid rgba(148, 163, 184, 0.4);
-    box-shadow: 0 10px 30px rgba(15,23,42,0.7);
-    overflow-x: auto;
-  }
-
-  .app-global-nav__item {
-    padding: 0.45rem 0.9rem;
-    border-radius: 999px;
-    font-size: 0.82rem;
-    text-decoration: none;
-    color: #cbd5e1;
-    white-space: nowrap;
-    border: 1px solid transparent;
-    transition: all 0.2s ease-out;
-  }
-
-  .app-global-nav__item:hover {
-    color: #f9fafb;
-    border-color: rgba(148,163,184,0.9);
-    background: radial-gradient(circle at top left, rgba(56,189,248,0.16), rgba(15,23,42,0.9));
-  }
-
-  .app-global-nav__item--active {
-    background: linear-gradient(120deg,#4ade80,#22c55e,#22c55e,#a855f7);
-    color: #020617;
-    border-color: transparent;
-    box-shadow: 0 10px 28px rgba(34,197,94,0.55);
-  }
-
-  .app-subnav {
-    margin-top: 0.85rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.7rem 1rem;
-    border-radius: 999px;
-    background: rgba(15,23,42,0.9);
-    border: 1px solid rgba(30,64,175,0.45);
-    overflow-x: auto;
-  }
-
-  .app-subnav__item {
-    padding: 0.35rem 0.9rem;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    text-decoration: none;
-    color: #cbd5e1;
-    white-space: nowrap;
-    border: 1px solid transparent;
-    transition: all 0.2s ease-out;
-  }
-
-  .app-subnav__item:hover {
-    color: #f9fafb;
-    border-color: rgba(59,130,246,0.7);
-    background: radial-gradient(circle at top, rgba(59,130,246,0.16), rgba(15,23,42,0.95));
-  }
-
-  .app-subnav__item--active {
-    background: rgba(59,130,246,0.16);
-    border-color: rgba(59,130,246,0.8);
-    color: #e0f2fe;
-  }
-
-  @media (max-width: 768px) {
-    .app-global-nav,
-    .app-subnav {
-      padding-inline: 0.75rem;
-      border-radius: 18px;
-    }
-  }
-
-  /* ================== STYLES DE LA PAGE VISA PHOTO ================== */
-
-  @keyframes slideInDown {
-    from {
-      opacity: 0;
-      transform: translateY(-40px) scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  @keyframes slideInUp {
-    from {
-      opacity: 0;
-      transform: translateY(40px) scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes scaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.8) rotateX(30deg);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1) rotateX(0deg);
-    }
-  }
-
-  @keyframes floatMagic {
-    0%, 100% {
-      transform: translateY(0px);
-      filter: drop-shadow(0 4px 15px rgba(16, 185, 129, 0.3));
-    }
-    50% {
-      transform: translateY(-8px);
-      filter: drop-shadow(0 12px 25px rgba(16, 185, 129, 0.5));
-    }
-  }
-
-  @keyframes shimmerWave {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
-  }
-
-  body {
-    background: linear-gradient(135deg, #0f172a 0%, #1a1f35 50%, #0f172a 100%);
-    color: #f1f5f9;
-    overflow-x: hidden;
-  }
-
-  main.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 3rem 1.5rem;
-  }
-
-  /* Hero Section */
-  .hero {
-    animation: slideInDown 1s ease-out;
-    margin-bottom: 4rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .hero::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(16, 185, 129, 0.15), transparent);
-    animation: floatMagic 6s ease-in-out infinite;
-    pointer-events: none;
-  }
-
-  .hero::after {
-    content: '';
-    position: absolute;
-    bottom: -50%;
-    left: -20%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.1), transparent);
-    animation: floatMagic 8s ease-in-out infinite;
-    pointer-events: none;
-  }
-
-  .hero h1 {
-    font-size: 2.5rem;
-    font-weight: 900;
-    line-height: 1.2;
-    margin-bottom: 1rem;
-    animation: slideInUp 1s ease-out 0.1s both;
-    position: relative;
-    z-index: 1;
-  }
-
-  .text-gradient {
-    background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #06b6d4 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: shimmerWave 3s linear infinite;
-    background-size: 200% 200%;
-  }
-
-  .hero .lead {
-    font-size: 1.2rem;
-    color: #cbd5e1;
-    animation: fadeIn 1s ease-out 0.2s both;
-    position: relative;
-    z-index: 1;
-  }
-
-  .hero .lead strong {
-    color: #10b981;
-    font-weight: 700;
-  }
-
-  .hero .btn {
-    animation: slideInUp 1s ease-out 0.3s both;
-    margin: 0.5rem;
-  }
-
-  .btn {
-    padding: 0.875rem 1.75rem;
-    border-radius: 14px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
-  }
-
-  .btn-primary::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-  }
-
-  .btn-primary:hover::before {
-    width: 300px;
-    height: 300px;
-  }
-
-  .btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 40px rgba(16, 185, 129, 0.5);
-  }
-
-  .btn-outline {
-    border: 1.5px solid #10b981;
-    color: #10b981;
-    background: transparent;
-    transition: all 0.3s ease;
-  }
-
-  .btn-outline:hover {
-    background: rgba(16, 185, 129, 0.1);
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-  }
-
-  .btn-lg {
-    padding: 1rem 2.5rem;
-    font-size: 1.05rem;
-  }
-
-  .w-full {
-    width: 100%;
-  }
-
-  .muted {
-    color: #cbd5e1;
-  }
-
-  .text-sm {
-    font-size: 0.85rem;
-  }
-
-  .text-xl {
-    font-size: 1.35rem;
-  }
-
-  .font-semibold {
-    font-weight: 600;
-  }
-
-  .text-center {
-    text-align: center;
-  }
-
-  /* Panel Section */
-  .panel {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border: 1px solid #334155;
-    border-radius: 24px;
-    backdrop-filter: blur(10px);
-    padding: 2.5rem;
-    margin-bottom: 2rem;
-    animation: slideInUp 0.8s ease-out;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .panel::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.05), transparent);
-    transition: left 0.5s ease;
-    pointer-events: none;
-  }
-
-  .panel:hover::before {
-    left: 100%;
-  }
-
-  .panel h2, .panel h3 {
-    color: #f1f5f9;
-    font-weight: 800;
-    margin-bottom: 1.5rem;
-    animation: slideInUp 0.6s ease-out;
-  }
-
-  .panel h2 {
-    font-size: 1.75rem;
-  }
-
-  .panel h3 {
-    font-size: 1.4rem;
-  }
-
-  /* Benefits Panel */
-  .benefits {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .badge {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
-    border: 1.5px solid rgba(16, 185, 129, 0.3);
-    color: #10b981;
-    padding: 1rem;
-    border-radius: 14px;
-    font-weight: 600;
-    text-align: center;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-  }
-
-  .divider {
-    border: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #334155, transparent);
-    margin: 3rem 0;
-  }
-
-  /* Upload Box */
-  .upload-box {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
-    border: 2px dashed rgba(16, 185, 129, 0.3);
-    border-radius: 18px;
-    padding: 2.5rem;
-    margin-bottom: 2rem;
-    animation: scaleIn 0.8s ease-out;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-  }
-
-  .upload-box:hover {
-    border-color: #10b981;
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.05));
-    box-shadow: 0 0 30px rgba(16, 185, 129, 0.15);
-  }
-
-  .form-row {
-    margin-bottom: 1.5rem;
-    animation: fadeIn 0.8s ease-out;
-  }
-
-  .form-row label {
-    color: #f1f5f9;
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    display: block;
-  }
-
-  .form-row input[type="file"],
-  .form-row select {
-    width: 100%;
-    padding: 0.875rem 1.25rem;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    border: 1.5px solid #334155;
-    color: #f1f5f9;
-    border-radius: 12px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-  }
-
-  .form-row input[type="file"]:hover,
-  .form-row select:hover {
-    border-color: rgba(16, 185, 129, 0.5);
-  }
-
-  .form-row input[type="file"]:focus,
-  .form-row select:focus {
-    outline: none;
-    border-color: #10b981;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1), 0 0 20px rgba(16, 185, 129, 0.2);
-  }
-
-  .spec-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-top: 2rem;
-  }
-
-  .spec-card {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.02));
-    border: 1.5px solid rgba(16, 185, 129, 0.2);
-    border-radius: 14px;
-    padding: 1.5rem;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-  }
-
-  .spec-title {
-    color: #10b981;
-    font-weight: 700;
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .spec-meta {
-    color: #64748b;
-    font-size: 0.85rem;
-    font-weight: 600;
-  }
-
-  .steps {
-    list-style: none;
-    padding: 0;
-    counter-reset: step-counter;
-  }
-
-  .steps li {
-    counter-increment: step-counter;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.02));
-    border-left: 3px solid #3b82f6;
-    border-radius: 8px;
-    position: relative;
-  }
-
-  .steps li::before {
-    content: counter(step-counter);
-    position: absolute;
-    left: -18px;
-    top: 1.5rem;
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, #3b82f6, #06b6d4);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-  }
-
-  .example-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-top: 2rem;
-  }
-
-  .example {
-    border-radius: 14px;
-    overflow: hidden;
-    position: relative;
-    border: 2px solid rgba(16, 185, 129, 0.2);
-    transition: all 0.3s ease;
-  }
-
-  .example.good p {
-    color: #86efac;
-    background: rgba(16, 185, 129, 0.1);
-  }
-
-  .example.bad p {
-    color: #fca5a5;
-    background: rgba(239, 68, 68, 0.1);
-  }
-
-  .checklist {
-    list-style: none;
-    padding: 0;
-  }
-
-  .checklist li {
-    padding: 1rem;
-    margin-bottom: 0.75rem;
-    background: rgba(16, 185, 129, 0.05);
-    border-left: 3px solid #10b981;
-    border-radius: 8px;
-    color: #cbd5e1;
-    transition: all 0.3s ease;
-  }
-
-  .social-proof {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .faq {
-    background: rgba(16, 185, 129, 0.05);
-    border: 1px solid rgba(16, 185, 129, 0.1);
-    border-radius: 12px;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-
-  .faq summary {
-    color: #f1f5f9;
-    font-weight: 700;
-    list-style: none;
-    user-select: none;
-  }
-
-  .faq summary::before {
-    content: '▶ ';
-    color: #10b981;
-    margin-right: 0.5rem;
-    display: inline-block;
-    transition: transform 0.3s ease;
-  }
-
-  .faq[open] summary::before {
-    transform: rotate(90deg);
-  }
-
-  .faq p {
-    margin-top: 1rem;
-    color: #cbd5e1;
-    line-height: 1.6;
-  }
-
-  .panel.highlight {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.01));
-    border: 1.5px solid rgba(16, 185, 129, 0.2);
-  }
-
-  footer.panel {
-    border-radius: 18px;
-  }
-
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
-  }
-
-  .block { display: block; }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    main.container {
-      padding: 1.5rem;
-    }
-
-    .hero h1 {
-      font-size: 1.8rem;
-    }
-
-    .hero .lead {
-      font-size: 1rem;
-    }
-
-    .panel {
-      padding: 1.5rem;
-    }
-
-    .btn {
-      padding: 0.75rem 1.25rem;
-      font-size: 0.85rem;
-    }
-
-    .btn-lg {
-      padding: 0.875rem 1.5rem;
-    }
-
-    .benefits {
-      grid-template-columns: 1fr;
-    }
-
-    .example-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .text-center {
-      text-align: center;
-    }
-  }
-</style>
 
 <main class="container">
 
@@ -688,48 +38,35 @@
   }
   </script>
 
-  <!-- ========= NAVIGATION APPS (GLOBAL) + SOUS-MENU VISA PHOTO ========= -->
-  <div class="app-nav-wrapper" aria-label="Navigation Immigration97">
-    <nav class="app-global-nav" aria-label="Applications Immigration97">
-      <a href="/visa-photo/" class="app-global-nav__item app-global-nav__item--active">Visa Photo</a>
-      <a href="{% url 'wizard' %}" class="app-global-nav__item">Éligibilité &amp; Parcours</a>
-      <a href="/cv-generator/" class="app-global-nav__item">CV Generator</a>
-      <a href="/motivation/" class="app-global-nav__item">Lettres de motivation</a>
-      <a href="{% url 'visa_tourisme:assistant' %}" class="app-global-nav__item">Visa Tourisme</a>
-      <a href="{% url 'visaetude:home' %}" class="app-global-nav__item">Visa Études</a>
-      <a href="/visa-travail/" class="app-global-nav__item">Visa Travail</a>
-      <a href="/prep/" class="app-global-nav__item">Tests de langue</a>
-      <a href="{% url 'residence_permanente' %}" class="app-global-nav__item">Résidence permanente</a>
-      <a href="{% url 'billing:access' %}" class="app-global-nav__item">Système de paiement</a>
-      <a href="{% url 'DocumentsApp:home' %}" class="app-global-nav__item">Traduction &amp; Compression</a>
-    </nav>
-
-    <nav class="app-subnav" aria-label="Modules Visa Photo">
-      <a href="#upload" class="app-subnav__item app-subnav__item--active">Générateur</a>
-      <a href="#specifications" class="app-subnav__item">Spécifications officielles</a>
-      <a href="#examples-heading" class="app-subnav__item">Exemples &amp; conseils</a>
-      <a href="#trust-heading" class="app-subnav__item">Sécurité &amp; confidentialité</a>
-      <a href="#faq-heading" class="app-subnav__item">FAQ Visa Photo</a>
-    </nav>
-  </div>
-
   <!-- HERO -->
   <header class="hero text-center" role="banner" aria-label="Générateur de photo conforme">
-    <h1 class="h1 text-gradient">Bienvenue — Générateur de photo conforme pour tout type de visa</h1>
+    <h1 class="h1 text-gradient">
+      Bienvenue — Générateur de photo conforme pour tout type de visa
+    </h1>
+
     <p class="lead mt-3">
-      Assisté par <strong>intelligence artificielle</strong> — sélectionnez le type de visa, téléversez votre photo et laissez-nous faire le reste.
+      Assisté par <strong>intelligence artificielle</strong> — sélectionnez le type
+      de visa, téléversez votre photo et laissez-nous faire le reste.
     </p>
 
     <p class="mt-4">
-      <a href="#upload" class="btn btn-primary btn-lg" aria-label="Générer ma photo conforme">📸 Générer ma photo conforme — Aperçu gratuit</a>
-      <a href="#specifications" class="btn btn-outline btn-lg" aria-label="Voir les spécifications">Voir spécifications</a>
+      <a href="#upload" class="btn btn-primary btn-lg" aria-label="Générer ma photo conforme">
+        📸 Générer ma photo conforme — Aperçu gratuit
+      </a>
+      <a href="#specifications" class="btn btn-outline btn-lg" aria-label="Voir les spécifications">
+        Voir spécifications
+      </a>
     </p>
 
-    <p class="muted text-sm mt-3">Aperçu gratuit avant toute opération payante · Confidentialité garantie · Suppression automatique possible après 24h.</p>
+    <p class="muted text-sm mt-3">
+      Aperçu gratuit avant toute opération payante · Confidentialité garantie ·
+      Suppression automatique possible après 24h.
+    </p>
   </header>
 
   <section class="panel mt-8" aria-labelledby="benefits-heading">
     <h2 id="benefits-heading" class="sr-only">Avantages du service</h2>
+
     <div class="benefits" role="list" aria-label="Avantages">
       <div class="badge" role="listitem">✅ Conformité automatique</div>
       <div class="badge" role="listitem">🔎 Détection & centrage du visage</div>
@@ -741,7 +78,9 @@
 
     <!-- FORMULAIRE DE TÉLÉVERSEMENT -->
     <div id="upload" class="upload-box" aria-labelledby="upload-heading">
-      <h2 id="upload-heading" class="text-xl font-semibold mb-4 text-center">Téléversez votre photo — simple & rapide</h2>
+      <h2 id="upload-heading" class="text-xl font-semibold mb-4 text-center">
+        Téléversez votre photo — simple & rapide
+      </h2>
 
       <form method="post" enctype="multipart/form-data" action="{% url 'photos:submit' %}">
         {% csrf_token %}
@@ -750,13 +89,20 @@
         <div class="form-row mb-4">
           <label for="id_photo_type" class="block mb-1">Type de photo</label>
           {{ form.photo_type }}
-          <p class="muted text-sm mt-1">Ex : DV Lottery (Green Card), Visa France, Visa Canada, Visa UK.</p>
+          <p class="muted text-sm mt-1">
+            Ex : DV Lottery (Green Card), Visa France, Visa Canada, Visa UK.
+          </p>
         </div>
 
         <div class="form-row mb-2">
-          <label for="id_image" class="block mb-1">Choisir une image (JPEG / PNG)</label>
+          <label for="id_image" class="block mb-1">
+            Choisir une image (JPEG / PNG)
+          </label>
           {{ form.image }}
-          <p class="muted text-sm mt-1">Format recommandé : photo face caméra, fond uni, sans ombre. Taille maximum : 10MB.</p>
+          <p class="muted text-sm mt-1">
+            Format recommandé : photo face caméra, fond uni, sans ombre.
+            Taille maximum : 10MB.
+          </p>
         </div>
 
         <button type="submit" class="btn btn-primary w-full mt-4" aria-label="Générer la photo conforme">
@@ -765,126 +111,102 @@
       </form>
 
       <p class="muted text-center mt-3 text-sm">
-        *L'aperçu gratuit s'affiche avant le téléchargement final. Paiement pour téléchargement final (bientôt).
+        *L'aperçu gratuit s'affiche avant le téléchargement final.
+        Paiement pour téléchargement final (bientôt).
       </p>
     </div>
   </section>
 
   <hr class="divider my-8" />
 
-  <!-- Spécifications -->
+  <!-- SPÉCIFICATIONS -->
   <section id="specifications" class="panel" aria-labelledby="specs-heading">
     <h2 id="specs-heading">Spécifications prises en charge (MVP)</h2>
 
-    <p class="muted mb-4">Nous supportons les formats et contraintes courantes des représentations officielles. Si vous avez un doute, téléversez pour un contrôle automatique.</p>
+    <p class="muted mb-4">
+      Nous supportons les formats et contraintes courantes des représentations officielles.
+      En cas de doute, téléversez pour un contrôle automatique.
+    </p>
 
     <div class="spec-cards" role="list">
-      <article class="spec-card" role="listitem" aria-labelledby="spec-dv">
-        <div id="spec-dv" class="spec-title">DV Lottery (Green Card)</div>
+
+      <article class="spec-card" role="listitem">
+        <div class="spec-title">DV Lottery (Green Card)</div>
         <div class="spec-meta">600×600 · JPEG</div>
         <p class="muted">Recadrage carré, visage centré, fond clair et homogène.</p>
       </article>
 
-      <article class="spec-card" role="listitem" aria-labelledby="spec-fr">
-        <div id="spec-fr" class="spec-title">Visa France</div>
+      <article class="spec-card" role="listitem">
+        <div class="spec-title">Visa France</div>
         <div class="spec-meta">413×531 · JPEG</div>
         <p class="muted">Rapport & marges conformes aux recommandations françaises.</p>
       </article>
 
-      <article class="spec-card" role="listitem" aria-labelledby="spec-ca">
-        <div id="spec-ca" class="spec-title">Visa Canada</div>
+      <article class="spec-card" role="listitem">
+        <div class="spec-title">Visa Canada</div>
         <div class="spec-meta">591×827 · JPEG</div>
         <p class="muted">Fond uniforme, tête dégagée, compression contrôlée.</p>
       </article>
 
-      <article class="spec-card" role="listitem" aria-labelledby="spec-uk">
-        <div id="spec-uk" class="spec-title">Visa UK</div>
+      <article class="spec-card" role="listitem">
+        <div class="spec-title">Visa UK</div>
         <div class="spec-meta">600×750 · JPEG</div>
         <p class="muted">Centrage automatique et contrôle de la luminosité.</p>
       </article>
+
     </div>
   </section>
 
   <section class="panel" aria-labelledby="how-heading">
     <h3 id="how-heading">Comment ça marche — 4 étapes</h3>
-    <ol class="steps" aria-label="Étapes pour générer la photo conforme">
-      <li><strong>Choisissez</strong> le type de photo (DV, France, Canada, UK).</li>
-      <li><strong>Téléversez</strong> votre image (JPEG/PNG).</li>
-      <li><strong>Génération & validation</strong> : traitement automatique + aperçu.</li>
-      <li><strong>Téléchargez</strong> la photo prête à déposer (paiement bientôt disponible).</li>
-    </ol>
 
-    <p class="muted text-sm">Astuce : pour un résultat optimal, utilisez une photo récente, visage dégagé et fond uni.</p>
+    <ol class="steps">
+      <li><strong>Choisissez</strong> le type de photo.</li>
+      <li><strong>Téléversez</strong> votre image.</li>
+      <li><strong>Validation automatique</strong> + aperçu.</li>
+      <li><strong>Téléchargez</strong> la photo conforme.</li>
+    </ol>
   </section>
 
-  <!-- Exemples -->
   <section class="panel highlight" aria-labelledby="examples-heading">
     <h3 id="examples-heading">Exemples & conseils photo</h3>
-    <p class="muted mb-4">Assurez-vous que votre visage soit bien éclairé et le fond clair. Voici quelques indications :</p>
 
-    <div class="example-grid" role="list">
-      <div class="example good" role="listitem">
-        <img src="/static/img/photo_ok.jpg"
-             alt="Exemple de photo conforme : visage centré, fond clair"
-             loading="lazy"
-             width="600" height="600">
-        <p>✅ Conforme — visage centré, fond uni</p>
+    <div class="example-grid">
+      <div class="example good">
+        <img src="/static/img/photo_ok.jpg" alt="Photo conforme" loading="lazy">
+        <p>✅ Conforme — visage centré</p>
       </div>
 
-      <div class="example bad" role="listitem">
-        <img src="/static/img/photo_non_ok.jpg"
-             alt="Exemple de photo non conforme : ombre et inclinaison"
-             loading="lazy"
-             width="600" height="600">
-        <p>❌ Non conforme — ombre, inclinaison ou lunettes réfléchissantes</p>
+      <div class="example bad">
+        <img src="/static/img/photo_non_ok.jpg" alt="Photo non conforme" loading="lazy">
+        <p>❌ Non conforme</p>
       </div>
     </div>
   </section>
 
-  <!-- Confiance -->
-  <section class="panel" aria-labelledby="trust-heading">
-    <h3 id="trust-heading">Confiance & sécurité</h3>
-    <ul class="checklist" aria-label="Mesures de sécurité">
-      <li>✔ Vie privée : <strong>aucune revente</strong> des images.</li>
-      <li>✔ <strong>Suppression automatique</strong> possible après 24&nbsp;h.</li>
-      <li>✔ Contrôles techniques : taille, poids, fond, centrage du visage.</li>
-      <li>✔ Support réactif : réponse sous <strong>24&nbsp;heures ouvrées</strong>.</li>
-    </ul>
-
-    <div class="social-proof mt-4" aria-hidden="true">
-      <span class="badge">+10k photos analysées</span>
-      <span class="badge">4.8/5 (satisfaction)</span>
-    </div>
-  </section>
-
-  <!-- FAQ -->
   <section class="panel" aria-labelledby="faq-heading">
     <h3 id="faq-heading">FAQ</h3>
 
     <details class="faq">
       <summary>Ma photo sera-t-elle acceptée ?</summary>
-      <p>Nous appliquons les tailles, formats et marges recommandées pour chaque pays. Si la photo n'est pas conforme (visage trop incliné, fond non uniforme, ombre), nous indiquons précisément le ou les problèmes afin que vous puissiez retenter l'upload après correction.</p>
+      <p>Nous appliquons les spécifications officielles pour chaque pays.</p>
     </details>
 
     <details class="faq">
       <summary>Quel est le format final ?</summary>
-      <p>JPEG optimisé selon la spécification demandée (par ex. <strong>600×600 px</strong> pour DV Lottery). Nom de fichier prêt à déposer sur le formulaire officiel.</p>
+      <p>JPEG optimisé, prêt à déposer.</p>
     </details>
 
     <details class="faq">
       <summary>Le paiement est-il requis ?</summary>
-      <p>Actuellement, l'aperçu est gratuit. Le téléchargement final sera payant (option d'achat intégrée bientôt). Nous afficherons toujours le prix avant paiement.</p>
-    </details>
-
-    <details class="faq">
-      <summary>Confidentialité des images</summary>
-      <p>Vos images sont traitées uniquement pour la génération. Possibilité de suppression automatique au bout de 24h. Pas de revente ni d'usage marketing sans consentement explicite.</p>
+      <p>Aperçu gratuit, paiement au téléchargement.</p>
     </details>
   </section>
 
-  <footer class="panel muted text-sm" aria-label="Informations légales et contact">
-    <p>© {{ now.year }} Immigration97 — Service de génération de photos conformes. Pour assistance : <a href="/contact">Contactez-nous</a>.</p>
+  <footer class="panel muted text-sm">
+    <p>© {{ now.year }} Immigration97 — Service de génération de photos conformes.</p>
   </footer>
+
 </main>
 
 {% endblock %}

@@ -1,542 +1,17 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Immigration97 · Plan d'action RP{% endblock %}
 
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/residence_permanente_nav.css' %}">
+{% endblock %}
+
 {% block content %}
-<style>
-  * {
-    --color-primary: #10b981;
-    --color-primary-light: #34d399;
-    --color-secondary: #3b82f6;
-    --color-bg-dark: #020617;
-    --color-bg-darker: #010409;
-    --color-surface: #0f172a;
-    --color-surface-light: #1e293b;
-    --color-border: rgba(148, 163, 184, 0.15);
-    --color-text: #e5e7eb;
-    --color-text-secondary: #cbd5f5;
-    --color-text-muted: #9ca3af;
-  }
-
-  .rp-page-bg {
-    min-height: 100vh;
-    padding: 4rem 1rem;
-    background: linear-gradient(135deg, #020617 0%, #010409 50%, #0f0f1e 100%);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .rp-page-bg::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 800px;
-    height: 800px;
-    background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
-    border-radius: 50%;
-    animation: float-bg 30s ease-in-out infinite;
-    pointer-events: none;
-  }
-
-  .rp-page-bg::after {
-    content: '';
-    position: absolute;
-    bottom: -30%;
-    left: -10%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 70%);
-    border-radius: 50%;
-    animation: float-bg 40s ease-in-out infinite reverse;
-    pointer-events: none;
-  }
-
-  @keyframes float-bg {
-    0%, 100% { transform: translateY(0px) translateX(0px); }
-    50% { transform: translateY(40px) translateX(30px); }
-  }
-
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.3); }
-    50% { box-shadow: 0 0 60px rgba(16, 185, 129, 0.5); }
-  }
-
-  @keyframes slide-in {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .rp-card {
-    max-width: 1200px;
-    margin: 0 auto;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(2, 6, 23, 0.8) 100%);
-    border-radius: 2rem;
-    border: 1px solid var(--color-border);
-    backdrop-filter: blur(20px);
-    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    padding: 2.5rem 2rem;
-    color: var(--color-text);
-    position: relative;
-    z-index: 10;
-    animation: slide-in 0.8s ease-out;
-  }
-
-  .rp-header-section {
-    text-align: center;
-    margin-bottom: 3rem;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .rp-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    color: var(--color-primary-light);
-    margin-bottom: 1rem;
-    text-transform: uppercase;
-  }
-
-  .rp-badge::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
-    border-radius: 50%;
-  }
-
-  .rp-heading {
-    font-size: 2.8rem;
-    font-weight: 300;
-    letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #e5e7eb 0%, var(--color-primary-light) 50%, #cbd5f5 100%);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 1rem;
-    line-height: 1.1;
-  }
-
-  .rp-subtitle {
-    font-size: 1rem;
-    color: var(--color-text-secondary);
-    max-width: 600px;
-    margin: 0 auto;
-    font-weight: 300;
-    line-height: 1.6;
-  }
-
-  .rp-progress-box {
-    border-radius: 1.5rem;
-    border: 1px solid var(--color-border);
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(16, 185, 129, 0.04) 100%);
-    padding: 2rem;
-    margin-bottom: 2.5rem;
-    backdrop-filter: blur(10px);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .rp-progress-box::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.5), transparent);
-    animation: scan 3s infinite;
-  }
-
-  @keyframes scan {
-    0% { left: -100%; }
-    100% { left: 100%; }
-  }
-
-  .rp-progress-label {
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .rp-progress-label::before {
-    content: '';
-    width: 3px;
-    height: 20px;
-    background: linear-gradient(180deg, var(--color-primary), transparent);
-    border-radius: 999px;
-  }
-
-  .rp-progress-text {
-    font-size: 0.9rem;
-    color: var(--color-text-secondary);
-    margin-bottom: 1.5rem;
-    line-height: 1.6;
-  }
-
-  .rp-progress-bar {
-    width: 100%;
-    height: 8px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
-    overflow: hidden;
-    margin-bottom: 1rem;
-    border: 1px solid var(--color-border);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-
-  .rp-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
-    border-radius: 999px;
-    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
-    position: relative;
-  }
-
-  .rp-progress-fill::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 20px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3));
-    animation: shimmer 2s infinite;
-  }
-
-  @keyframes shimmer {
-    0% { transform: translateX(-100px); opacity: 0; }
-    50% { opacity: 1; }
-    100% { transform: translateX(100px); opacity: 0; }
-  }
-
-  .rp-progress-value {
-    margin-top: 0.75rem;
-    font-size: 0.9rem;
-    text-align: right;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.5rem;
-  }
-
-  .rp-progress-value strong {
-    font-size: 1.8rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .rp-tabs {
-    margin-top: 2rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .rp-tab {
-    border-radius: 999px;
-    padding: 0.7rem 1.2rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-align: center;
-    cursor: pointer;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--color-border);
-    color: var(--color-text-secondary);
-    text-decoration: none;
-    display: inline-block;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .rp-tab::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.5s;
-  }
-
-  .rp-tab:hover {
-    border-color: rgba(148, 163, 184, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  }
-
-  .rp-tab--active {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
-    border-color: var(--color-primary);
-    color: #020617;
-    font-weight: 700;
-    box-shadow: 0 12px 24px rgba(16, 185, 129, 0.4);
-  }
-
-  .rp-steps-title {
-    margin-top: 2.5rem;
-    margin-bottom: 1.5rem;
-    font-size: 1.4rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .rp-steps-title::before {
-    content: '';
-    width: 4px;
-    height: 28px;
-    background: linear-gradient(180deg, var(--color-secondary), transparent);
-    border-radius: 999px;
-  }
-
-  .rp-step-card {
-    margin-bottom: 1.5rem;
-    border-radius: 1.25rem;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(16, 185, 129, 0.06) 100%);
-    border: 1px solid var(--color-border);
-    padding: 1.5rem;
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(10px);
-  }
-
-  .rp-step-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--color-secondary), var(--color-primary), transparent);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .rp-step-card:hover {
-    border-color: rgba(16, 185, 129, 0.3);
-    box-shadow: 0 20px 40px rgba(16, 185, 129, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    transform: translateY(-4px);
-  }
-
-  .rp-step-card:hover::before {
-    opacity: 1;
-  }
-
-  .rp-step-card.status-done {
-    opacity: 0.75;
-  }
-
-  .rp-step-card.status-done::after {
-    content: '✓';
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 32px;
-    height: 32px;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #020617;
-    font-weight: 700;
-    font-size: 1.2rem;
-    box-shadow: 0 8px 16px rgba(16, 185, 129, 0.4);
-  }
-
-  .rp-step-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1.5rem;
-    margin-bottom: 1rem;
-    position: relative;
-  }
-
-  .rp-step-meta {
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  .rp-step-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-
-  .rp-step-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.75rem;
-    min-width: 180px;
-  }
-
-  .rp-step-btn {
-    font-size: 0.8rem;
-    border-radius: 999px;
-    padding: 0.6rem 1.2rem;
-    border: 1px solid var(--color-border);
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.1));
-    color: var(--color-primary-light);
-    cursor: pointer;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    white-space: nowrap;
-  }
-
-  .rp-step-btn::before {
-    content: '→';
-    opacity: 0;
-    transition: all 0.3s;
-  }
-
-  .rp-step-btn:hover {
-    border-color: var(--color-primary);
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.15));
-    box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);
-    transform: translateX(4px);
-  }
-
-  .rp-step-btn:hover::before {
-    opacity: 1;
-    transform: translateX(2px);
-  }
-
-  .rp-step-status-form select {
-    font-size: 0.8rem;
-    border-radius: 999px;
-    padding: 0.5rem 1rem 0.5rem 0.8rem;
-    border: 1px solid var(--color-border);
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.9));
-    color: var(--color-text);
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    appearance: none;
-    padding-right: 2rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2334d399' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.6rem center;
-    background-color: rgba(15, 23, 42, 0.8);
-  }
-
-  .rp-step-status-form select:hover {
-    border-color: var(--color-primary);
-    background-color: rgba(15, 23, 42, 0.9);
-  }
-
-  .rp-step-status-form select:focus {
-    outline: none;
-    border-color: var(--color-primary-light);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-  }
-
-  .rp-step-desc {
-    font-size: 0.9rem;
-    color: var(--color-text-secondary);
-    margin-bottom: 1rem;
-    line-height: 1.6;
-    font-weight: 400;
-  }
-
-  .rp-step-tag {
-    display: inline-block;
-    font-size: 0.75rem;
-    padding: 0.4rem 0.8rem;
-    border-radius: 999px;
-    border: 1px solid var(--color-border);
-    color: var(--color-primary-light);
-    background: rgba(16, 185, 129, 0.1);
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    transition: all 0.3s;
-  }
-
-  .rp-step-tag:hover {
-    background: rgba(16, 185, 129, 0.2);
-    border-color: var(--color-primary);
-    transform: scale(1.05);
-  }
-
-  .rp-empty {
-    margin-top: 2rem;
-    font-size: 1rem;
-    color: var(--color-text-secondary);
-    text-align: center;
-    padding: 3rem 2rem;
-    background: rgba(59, 130, 246, 0.05);
-    border-radius: 1.25rem;
-    border: 1px dashed var(--color-border);
-  }
-
-  .rp-footer-hint {
-    margin-top: 2.5rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--color-border);
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    line-height: 1.7;
-    font-style: italic;
-  }
-
-  @media (max-width: 768px) {
-    .rp-card {
-      padding: 1.5rem 1rem;
-    }
-    .rp-heading {
-      font-size: 1.8rem;
-    }
-    .rp-tabs {
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    }
-    .rp-step-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .rp-step-actions {
-      align-items: flex-start;
-      width: 100%;
-      flex-direction: row;
-      gap: 0.5rem;
-    }
-    .rp-step-btn {
-      flex: 1;
-    }
-  }
-</style>
 
 <div class="rp-page-bg">
   <main class="rp-card">
+
     <!-- Header premium -->
     <div class="rp-header-section">
       <div class="rp-badge">🎯 Plan d'Action</div>
@@ -565,34 +40,24 @@
         <strong>{{ progress_pct }}</strong> <span>% complété</span>
       </div>
 
-      <!-- Onglets de filtres -->
+      <!-- Onglets -->
       <div class="rp-tabs">
         {% with base="/pr/plan/"|add:profile.id|stringformat:"s"|add:"/" %}
           <a href="{{ base }}?category=all"
-             class="rp-tab {% if category == 'all' %}rp-tab--active{% endif %}">
-            📋 Toutes
-          </a>
+             class="rp-tab {% if category == 'all' %}rp-tab--active{% endif %}">📋 Toutes</a>
           <a href="{{ base }}?category=canada"
-             class="rp-tab {% if category == 'canada' %}rp-tab--active{% endif %}">
-            🇨🇦 Canada
-          </a>
+             class="rp-tab {% if category == 'canada' %}rp-tab--active{% endif %}">🇨🇦 Canada</a>
           <a href="{{ base }}?category=australia"
-             class="rp-tab {% if category == 'australia' %}rp-tab--active{% endif %}">
-            🇦🇺 Australie
-          </a>
+             class="rp-tab {% if category == 'australia' %}rp-tab--active{% endif %}">🇦🇺 Australie</a>
           <a href="{{ base }}?category=languages"
-             class="rp-tab {% if category == 'languages' %}rp-tab--active{% endif %}">
-            🗣️ Langues
-          </a>
+             class="rp-tab {% if category == 'languages' %}rp-tab--active{% endif %}">🗣️ Langues</a>
           <a href="{{ base }}?category=documents"
-             class="rp-tab {% if category == 'documents' %}rp-tab--active{% endif %}">
-            📄 Documents
-          </a>
+             class="rp-tab {% if category == 'documents' %}rp-tab--active{% endif %}">📄 Documents</a>
         {% endwith %}
       </div>
     </section>
 
-    <!-- Steps section -->
+    <!-- Steps -->
     <section>
       <h2 class="rp-steps-title">Tes étapes clés</h2>
 
@@ -612,55 +77,34 @@
             </div>
 
             <div class="rp-step-actions">
-              <a href="#"
-                 class="rp-step-btn">
-                Ressources
-              </a>
+              <a href="#" class="rp-step-btn">Ressources</a>
 
-              <form method="post"
-                    class="rp-step-status-form"
-                    action="">
+              <form method="post" class="rp-step-status-form">
                 {% csrf_token %}
                 <input type="hidden" name="step_id" value="{{ step.id }}">
                 <select name="status" onchange="this.form.submit()">
-                  <option value="todo"
-                    {% if step.status == 'todo' %}selected{% endif %}>
-                    À faire
-                  </option>
-                  <option value="in_progress"
-                    {% if step.status == 'in_progress' %}selected{% endif %}>
-                    En cours
-                  </option>
-                  <option value="done"
-                    {% if step.status == 'done' %}selected{% endif %}>
-                    ✓ Terminé
-                  </option>
+                  <option value="todo" {% if step.status == 'todo' %}selected{% endif %}>À faire</option>
+                  <option value="in_progress" {% if step.status == 'in_progress' %}selected{% endif %}>En cours</option>
+                  <option value="done" {% if step.status == 'done' %}selected{% endif %}>✓ Terminé</option>
                 </select>
               </form>
             </div>
           </header>
 
-          <p class="rp-step-desc">
-            {{ step.description }}
-          </p>
-
-          <span class="rp-step-tag">
-            {{ step.category|title }}
-          </span>
+          <p class="rp-step-desc">{{ step.description }}</p>
+          <span class="rp-step-tag">{{ step.category|title }}</span>
         </article>
       {% empty %}
-        <p class="rp-empty">
-          Aucune étape n'est encore définie pour ce profil.
-        </p>
+        <p class="rp-empty">Aucune étape n'est encore définie pour ce profil.</p>
       {% endfor %}
     </section>
 
     <p class="rp-footer-hint">
       💡 <strong>Rappel :</strong> ce plan est une aide générale. Vérifie toujours les exigences officielles
-      (gouvernement du Canada, Home Affairs Australie, provinces, États, etc.) avant de
-      déposer une demande. Tu pourras aussi ajouter tes propres vidéos / captures d'écran
-      en lien avec chaque étape.
+      avant toute soumission.
     </p>
+
   </main>
 </div>
+
 {% endblock %}
