@@ -40,7 +40,7 @@
   <!-- 🎧 EXERCICES -->
   <!-- ========================= -->
   <section class="lesson-exercises">
-    <h2 class="exercises-title">🎧 Exercices d’application</h2>
+    <h2 class="exercises-title">🎧 Exercices d'application</h2>
 
     {% for exercise in exercises %}
       <article class="exercise-card">
@@ -58,12 +58,12 @@
         <!-- 🔊 AUDIO -->
         {% if exercise.audio and exercise.audio.file %}
           <div class="audio-box">
-            <p class="audio-label">🎧 Écoutez attentivement l’audio</p>
+            <p class="audio-label">🎧 Écoutez attentivement l'audio</p>
 
             <audio controls preload="metadata">
               <source src="{{ exercise.audio.file.url }}" type="audio/mpeg">
               <source src="{{ exercise.audio.file.url }}" type="audio/mp3">
-              Votre navigateur ne supporte pas l’audio.
+              Votre navigateur ne supporte pas l'audio.
             </audio>
           </div>
         {% else %}
@@ -78,31 +78,31 @@
         </p>
 
         <!-- ✅ FORMULAIRE -->
-        <form class="exercise-form" data-correct="{{ exercise.correct_option }}">
+        <form class="exercise-form" data-correct="{{ exercise.correct_option }}" data-exercise-id="{{ exercise.id }}">
 
           {% if exercise.option_a %}
-          <label class="option">
+          <label class="option" data-value="A">
             <input type="radio" name="q{{ exercise.id }}" value="A">
             <span>A.</span> {{ exercise.option_a }}
           </label>
           {% endif %}
 
           {% if exercise.option_b %}
-          <label class="option">
+          <label class="option" data-value="B">
             <input type="radio" name="q{{ exercise.id }}" value="B">
             <span>B.</span> {{ exercise.option_b }}
           </label>
           {% endif %}
 
           {% if exercise.option_c %}
-          <label class="option">
+          <label class="option" data-value="C">
             <input type="radio" name="q{{ exercise.id }}" value="C">
             <span>C.</span> {{ exercise.option_c }}
           </label>
           {% endif %}
 
           {% if exercise.option_d %}
-          <label class="option">
+          <label class="option" data-value="D">
             <input type="radio" name="q{{ exercise.id }}" value="D">
             <span>D.</span> {{ exercise.option_d }}
           </label>
@@ -124,29 +124,82 @@
 </main>
 
 <!-- ========================= -->
-<!-- 🧠 SCRIPT DE CORRECTION -->
+<!-- 🧠 SCRIPT DE CORRECTION AMÉLIORÉ -->
 <!-- ========================= -->
 <script>
-document.querySelectorAll(".btn-check").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const form = btn.closest("form");
-    const correct = form.dataset.correct;
-    const checked = form.querySelector("input:checked");
-    const feedback = form.querySelector(".feedback");
+document.addEventListener('DOMContentLoaded', function() {
+  // Attendre que tout soit chargé
+  console.log('🔥 Script de vérification chargé');
 
-    if (!checked) {
-      feedback.textContent = "❗ Choisis une réponse";
-      feedback.style.color = "orange";
-      return;
-    }
+  document.querySelectorAll(".btn-check").forEach(btn => {
+    btn.addEventListener("click", function(e) {
+      e.preventDefault(); // Empêcher tout comportement par défaut
+      
+      console.log('✅ Bouton cliqué');
+      
+      const form = this.closest("form");
+      const correct = form.dataset.correct.trim().toUpperCase();
+      const checked = form.querySelector("input:checked");
+      const feedback = form.querySelector(".feedback");
+      const allLabels = form.querySelectorAll(".option");
 
-    if (checked.value === correct) {
-      feedback.textContent = "✅ Bonne réponse";
-      feedback.style.color = "#22c55e";
-    } else {
-      feedback.textContent = "❌ Mauvaise réponse. Réponse correcte : " + correct;
-      feedback.style.color = "#ef4444";
-    }
+      // Réinitialiser les styles
+      allLabels.forEach(label => {
+        label.style.backgroundColor = '';
+        label.style.border = '';
+      });
+
+      // Vérifier si une réponse est sélectionnée
+      if (!checked) {
+        feedback.textContent = "❗ Choisis une réponse";
+        feedback.style.color = "orange";
+        feedback.style.fontWeight = "bold";
+        feedback.style.marginTop = "10px";
+        return;
+      }
+
+      const userAnswer = checked.value.trim().toUpperCase();
+      console.log('Réponse utilisateur:', userAnswer, 'Correcte:', correct);
+
+      // Désactiver tous les inputs après vérification
+      form.querySelectorAll("input[type='radio']").forEach(input => {
+        input.disabled = true;
+      });
+
+      // Vérifier la réponse
+      if (userAnswer === correct) {
+        // ✅ BONNE RÉPONSE
+        feedback.innerHTML = "✅ Bonne réponse !";
+        feedback.style.color = "#22c55e";
+        feedback.style.fontWeight = "bold";
+        feedback.style.marginTop = "10px";
+        
+        // Mettre en vert la bonne réponse
+        checked.closest('.option').style.backgroundColor = "rgba(34, 197, 94, 0.2)";
+        checked.closest('.option').style.border = "2px solid #22c55e";
+      } else {
+        // ❌ MAUVAISE RÉPONSE
+        feedback.innerHTML = `❌ Mauvaise réponse. Réponse correcte : <strong>${correct}</strong>`;
+        feedback.style.color = "#ef4444";
+        feedback.style.fontWeight = "bold";
+        feedback.style.marginTop = "10px";
+        
+        // Mettre en rouge la mauvaise réponse
+        checked.closest('.option').style.backgroundColor = "rgba(239, 68, 68, 0.2)";
+        checked.closest('.option').style.border = "2px solid #ef4444";
+        
+        // Mettre en vert la bonne réponse
+        allLabels.forEach(label => {
+          if (label.dataset.value === correct) {
+            label.style.backgroundColor = "rgba(34, 197, 94, 0.2)";
+            label.style.border = "2px solid #22c55e";
+          }
+        });
+      }
+
+      // Cacher le bouton après vérification
+      this.style.display = 'none';
+    });
   });
 });
 </script>
