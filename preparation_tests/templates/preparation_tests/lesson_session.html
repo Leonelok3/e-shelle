@@ -5,6 +5,10 @@
 {{ lesson.title }} – {{ lesson.exam.code|upper }} {{ section|upper }}
 {% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/tef_co_session.css' %}">
+{% endblock %}
+
 {% block content %}
 <main class="lesson-session">
 
@@ -81,30 +85,34 @@
         <form class="exercise-form" data-correct="{{ exercise.correct_option }}" data-exercise-id="{{ exercise.id }}">
 
           {% if exercise.option_a %}
-          <label class="option" data-value="A">
+          <label class="option">
             <input type="radio" name="q{{ exercise.id }}" value="A">
-            <span>A.</span> {{ exercise.option_a }}
+            <span class="option-letter">A.</span> 
+            <span class="option-text">{{ exercise.option_a }}</span>
           </label>
           {% endif %}
 
           {% if exercise.option_b %}
-          <label class="option" data-value="B">
+          <label class="option">
             <input type="radio" name="q{{ exercise.id }}" value="B">
-            <span>B.</span> {{ exercise.option_b }}
+            <span class="option-letter">B.</span> 
+            <span class="option-text">{{ exercise.option_b }}</span>
           </label>
           {% endif %}
 
           {% if exercise.option_c %}
-          <label class="option" data-value="C">
+          <label class="option">
             <input type="radio" name="q{{ exercise.id }}" value="C">
-            <span>C.</span> {{ exercise.option_c }}
+            <span class="option-letter">C.</span> 
+            <span class="option-text">{{ exercise.option_c }}</span>
           </label>
           {% endif %}
 
           {% if exercise.option_d %}
-          <label class="option" data-value="D">
+          <label class="option">
             <input type="radio" name="q{{ exercise.id }}" value="D">
-            <span>D.</span> {{ exercise.option_d }}
+            <span class="option-letter">D.</span> 
+            <span class="option-text">{{ exercise.option_d }}</span>
           </label>
           {% endif %}
 
@@ -112,95 +120,18 @@
             Vérifier la réponse
           </button>
 
-          <p class="feedback"></p>
+          <p class="feedback" style="display:none;"></p>
         </form>
 
       </article>
     {% empty %}
-      <p>Aucun exercice disponible pour cette leçon.</p>
+      <p class="no-exercises">Aucun exercice disponible pour cette leçon.</p>
     {% endfor %}
   </section>
 
 </main>
+{% endblock %}
 
-<!-- ========================= -->
-<!-- 🧠 SCRIPT DE CORRECTION AMÉLIORÉ -->
-<!-- ========================= -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Attendre que tout soit chargé
-  console.log('🔥 Script de vérification chargé');
-
-  document.querySelectorAll(".btn-check").forEach(btn => {
-    btn.addEventListener("click", function(e) {
-      e.preventDefault(); // Empêcher tout comportement par défaut
-      
-      console.log('✅ Bouton cliqué');
-      
-      const form = this.closest("form");
-      const correct = form.dataset.correct.trim().toUpperCase();
-      const checked = form.querySelector("input:checked");
-      const feedback = form.querySelector(".feedback");
-      const allLabels = form.querySelectorAll(".option");
-
-      // Réinitialiser les styles
-      allLabels.forEach(label => {
-        label.style.backgroundColor = '';
-        label.style.border = '';
-      });
-
-      // Vérifier si une réponse est sélectionnée
-      if (!checked) {
-        feedback.textContent = "❗ Choisis une réponse";
-        feedback.style.color = "orange";
-        feedback.style.fontWeight = "bold";
-        feedback.style.marginTop = "10px";
-        return;
-      }
-
-      const userAnswer = checked.value.trim().toUpperCase();
-      console.log('Réponse utilisateur:', userAnswer, 'Correcte:', correct);
-
-      // Désactiver tous les inputs après vérification
-      form.querySelectorAll("input[type='radio']").forEach(input => {
-        input.disabled = true;
-      });
-
-      // Vérifier la réponse
-      if (userAnswer === correct) {
-        // ✅ BONNE RÉPONSE
-        feedback.innerHTML = "✅ Bonne réponse !";
-        feedback.style.color = "#22c55e";
-        feedback.style.fontWeight = "bold";
-        feedback.style.marginTop = "10px";
-        
-        // Mettre en vert la bonne réponse
-        checked.closest('.option').style.backgroundColor = "rgba(34, 197, 94, 0.2)";
-        checked.closest('.option').style.border = "2px solid #22c55e";
-      } else {
-        // ❌ MAUVAISE RÉPONSE
-        feedback.innerHTML = `❌ Mauvaise réponse. Réponse correcte : <strong>${correct}</strong>`;
-        feedback.style.color = "#ef4444";
-        feedback.style.fontWeight = "bold";
-        feedback.style.marginTop = "10px";
-        
-        // Mettre en rouge la mauvaise réponse
-        checked.closest('.option').style.backgroundColor = "rgba(239, 68, 68, 0.2)";
-        checked.closest('.option').style.border = "2px solid #ef4444";
-        
-        // Mettre en vert la bonne réponse
-        allLabels.forEach(label => {
-          if (label.dataset.value === correct) {
-            label.style.backgroundColor = "rgba(34, 197, 94, 0.2)";
-            label.style.border = "2px solid #22c55e";
-          }
-        });
-      }
-
-      // Cacher le bouton après vérification
-      this.style.display = 'none';
-    });
-  });
-});
-</script>
+{% block extra_js %}
+<script src="{% static 'js/tef_co_session.js' %}"></script>
 {% endblock %}
