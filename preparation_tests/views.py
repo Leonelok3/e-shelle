@@ -137,7 +137,25 @@ def tef_hub(request):
 
 @login_required
 def tcf_hub(request):
-    return render(request, "preparation_tests/fr_tcf_hub.html")
+    sections = [
+        {"code": "co", "title": "Compréhension orale"},
+        {"code": "ce", "title": "Compréhension écrite"},
+        {"code": "ee", "title": "Expression écrite"},
+        {"code": "eo", "title": "Expression orale"},
+    ]
+
+    for s in sections:
+        s["url"] = reverse(
+            "preparation_tests:course_section",
+            args=["tcf", s["code"]],
+        )
+
+    return render(
+        request,
+        "preparation_tests/fr_tcf_hub.html",
+        {"sections": sections},
+    )
+
 
 @login_required
 def delf_hub(request):
@@ -176,16 +194,15 @@ def exam_detail(request, exam_code):
 # =========================================================
 @login_required
 def course_section(request, exam_code, section):
-    # 🔥 CORRECTION : Normalisation de l'exam_code en MAJUSCULES
     exam_code = exam_code.upper()
-    
+
     exam = get_object_or_404(Exam, code__iexact=exam_code)
 
     lessons = CourseLesson.objects.filter(
-        exam=exam,
+        exams=exam,
         section=section,
         is_published=True
-    ).order_by("order")
+    ).order_by("level", "order")
 
     cefr = get_cefr_progress(
         user=request.user,
@@ -204,6 +221,7 @@ def course_section(request, exam_code, section):
             "cefr": cefr,
         }
     )
+
 
 # =========================================================
 # 📘 LEÇON + EXERCICES (🔥 CORRECTION AUDIO ICI)
