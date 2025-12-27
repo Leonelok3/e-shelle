@@ -10,7 +10,6 @@ urlpatterns = [
     # =====================================================
     path("", views.home, name="home"),
 
-
     # =====================================================
     # 📚 LISTE DES EXAMENS
     # =====================================================
@@ -18,18 +17,19 @@ urlpatterns = [
     path("exams/<slug:exam_code>/", views.exam_detail, name="exam_detail"),
     path("exams-fr/", views.french_exams, name="french_exams"),
 
-
     # =====================================================
-    # 🇫🇷 HUBS FR (POINT D’ENTRÉE)
+    # 🇫🇷 HUBS FR (POINTS D’ENTRÉE)
     # =====================================================
     path("fr/tef/", views.tef_hub, name="tef_hub"),
     path("fr/tcf/", views.tcf_hub, name="tcf_hub"),
-    path("fr/delf-dalf/", views.delf_hub, name="delf_hub"),
-
+    path("fr/delf/", views.delf_hub, name="delf_hub"),
+    path("fr/dalf/", views.delf_hub, name="dalf_hub"),  # même hub (CECR universel)
 
     # =====================================================
-    # 📘 SECTIONS DE COURS
-    # URL EX : /prep/fr/tef/co/
+    # 📘 SECTIONS DE COURS (MOTEUR UNIQUE)
+    # EX : /prep/fr/tef/co/
+    # EX : /prep/fr/tcf/co/
+    # EX : /prep/fr/delf/co/
     # =====================================================
     path(
         "fr/<slug:exam_code>/<slug:section>/",
@@ -37,17 +37,15 @@ urlpatterns = [
         name="course_section",
     ),
 
-
     # =====================================================
     # 📖 LEÇON + EXERCICES
-    # URL EX : /prep/fr/tef/co/lesson/12/
+    # EX : /prep/fr/tef/co/lesson/12/
     # =====================================================
     path(
         "fr/<slug:exam_code>/<slug:section>/lesson/<int:lesson_id>/",
         views.lesson_session,
         name="lesson_session",
     ),
-
 
     # =====================================================
     # 📝 EXAMEN BLANC (NOUVEAU MOTEUR)
@@ -67,7 +65,6 @@ urlpatterns = [
         views.mock_exam_results,
         name="mock_exam_results",
     ),
-
 
     # =====================================================
     # 🕒 ANCIEN MOTEUR (SESSIONS)
@@ -93,7 +90,6 @@ urlpatterns = [
         name="submit_answer",
     ),
 
-
     # =====================================================
     # 📊 RÉSULTATS & CORRECTIONS
     # =====================================================
@@ -113,7 +109,6 @@ urlpatterns = [
         name="retry_session_errors",
     ),
 
-
     # =====================================================
     # 📜 CERTIFICATS
     # =====================================================
@@ -127,7 +122,6 @@ urlpatterns = [
         views.verify_certificate,
         name="verify_certificate",
     ),
-
 
     # =====================================================
     # 📊 DASHBOARD & COACH IA
@@ -152,7 +146,6 @@ urlpatterns = [
         views.session_review,
         name="session_review",
     ),
-
 
     # =====================================================
     # 📅 PLAN D’ÉTUDE
