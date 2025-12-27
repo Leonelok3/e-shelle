@@ -156,10 +156,25 @@ class Answer(models.Model):
 from django.db import models
 
 class CourseLesson(models.Model):
+    """
+    📘 Leçon CECR universelle (TRANSITION)
+    """
+
+    # 🔒 ANCIEN LIEN (NE PAS SUPPRIMER MAINTENANT)
     exam = models.ForeignKey(
         "preparation_tests.Exam",
         on_delete=models.CASCADE,
+        related_name="legacy_lessons",
+        null=True,
+        blank=True,
+    )
+
+    # 🆕 NOUVEAU LIEN MULTI-EXAMENS (PRO)
+    exams = models.ManyToManyField(
+        "preparation_tests.Exam",
         related_name="lessons",
+        blank=True,
+        help_text="Examens utilisant cette leçon (TEF, TCF, DELF, DALF)",
     )
 
     section = models.CharField(
@@ -197,23 +212,21 @@ class CourseLesson(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["order"]
+        ordering = ["level", "order"]
         verbose_name = "Leçon"
         verbose_name_plural = "Leçons"
 
     def __str__(self):
-        return f"{self.exam.code.upper()} {self.section.upper()} – {self.title}"
+        exams = ", ".join(e.code.upper() for e in self.exams.all())
+        return f"[{self.level}] {self.section.upper()} – {self.title} ({exams})"
 
     @property
     def cefr_level(self):
         return self.level
-    
+
     def is_accessible_by(self, user):
-        """
-        Tous les cours sont accessibles.
-        La méthode existe pour cohérence produit et évolutivité future.
-        """
         return True
+
 
 ###############################################################################
 
