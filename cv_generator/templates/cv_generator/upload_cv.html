@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Importer un CV | Immigration97{% endblock %}
+{% block body_class %}cv-generator{% endblock %}
+{% block app_scope %}cv-generator{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cv_generator.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="app-main cv-generator">
+
+  <section class="cv-panel-step">
+
+    <!-- HEADER -->
+    <div class="cv-panel-header">
+      <div class="cv-panel-icon">📤</div>
+      <div>
+        <h3>Importer un CV existant</h3>
+        <p class="cv-panel-help">
+          Importez votre CV (PDF ou Word).  
+          Nous analyserons automatiquement le contenu pour pré-remplir votre CV
+          selon le modèle sélectionné (Canada, Europe, International).
+        </p>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <form method="post" enctype="multipart/form-data" class="cv-form">
+      {% csrf_token %}
+
+      <div class="cv-field">
+        <label for="id_file">Fichier CV (PDF ou DOCX)</label>
+        {{ form.file }}
+        <small class="text-muted">
+          Formats acceptés : PDF, DOCX · Taille recommandée &lt; 5 Mo
+        </small>
+      </div>
+
+      <button type="submit" class="cv-btn-primary">
+        🚀 Importer et analyser mon CV
+      </button>
+    </form>
+
+  </section>
+
+  <!-- INFO -->
+  <section class="cv-panel-step">
+    <div class="cv-panel-header">
+      <div class="cv-panel-icon">🤖</div>
+      <div>
+        <h3>Comment ça marche ?</h3>
+        <p class="cv-panel-help">
+          1. Vous importez votre CV existant<br>
+          2. L’IA extrait les informations clés<br>
+          3. Vous complétez / corrigez si nécessaire<br>
+          4. Vous téléchargez un CV optimisé ATS
+        </p>
+      </div>
+    </div>
+  </section>
+
+</main>
+{% endblock %}

@@ -1,242 +1,184 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}residence-permanente rp-program-detail{% endblock %}
+{% block app_scope %}residence-permanente{% endblock %}
 
 {% block title %}
-{{ program.name }} – Programme Résidence Permanente | immigration97
+{{ program.name }} – Programme Résidence Permanente {{ program.get_country_display }} | Immigration97
 {% endblock %}
 
 {% block meta_description %}
-{{ program.summary|default:"Fiche détaillée d’un programme de Résidence Permanente (Canada / Australie) : objectif, profil visé et liens officiels." }}
+{{ program.summary|default:
+"Programme de Résidence Permanente au Canada ou en Australie : conditions,
+profil recherché, objectifs, conseils stratégiques et accompagnement Immigration97." }}
+{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto py-10 px-4">
 
-  {# ---------- HERO PROGRAMME ---------- #}
-  <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 md:p-8 shadow-xl shadow-black/60 mb-8 backdrop-blur-sm">
-    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-      <div class="flex-1">
-        <p class="text-sm text-emerald-300 mb-1">
-          Programme de Résidence Permanente
-          ·
-          {% if program.country == "CA" %}🇨🇦 Canada{% elif program.country == "AU" %}🇦🇺 Australie{% else %}{{ program.get_country_display }}{% endif %}
+{% include "permanent_residence/_rp_nav.html" %}
+
+<div class="rp-program-page">
+
+  <!-- ================= HERO ================= -->
+  <section class="rp-program-hero">
+    <div class="rp-program-hero-header">
+
+      <div>
+        <p class="rp-program-country">
+          Programme de Résidence Permanente —
+          {% if program.country == "CA" %}🇨🇦 Canada
+          {% elif program.country == "AU" %}🇦🇺 Australie
+          {% else %}{{ program.get_country_display }}{% endif %}
         </p>
-        <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">
+
+        <h1 class="rp-program-title">
           {{ program.name }}
         </h1>
 
         {% if program.short_label %}
-          <p class="inline-flex items-center px-3 py-1 rounded-full bg-slate-900/90 border border-slate-600 text-[0.75rem] text-emerald-300 font-semibold mb-3">
-            {{ program.short_label }}
-          </p>
+          <span class="rp-program-badge">{{ program.short_label }}</span>
         {% endif %}
 
         {% if program.category %}
-          <p class="text-[0.8rem] text-emerald-300 uppercase tracking-wide mb-2">
-            {{ program.category }}
+          <p class="rp-program-category">
+            Catégorie : {{ program.category }}
           </p>
         {% endif %}
 
-        {% if program.summary %}
-          <p class="text-sm md:text-base text-gray-300 max-w-2xl">
-            {{ program.summary }}
-          </p>
-        {% else %}
-          <p class="text-sm text-gray-300 max-w-2xl">
-            Fiche d’information simplifiée pour ce programme de Résidence Permanente.
-            Réfère-toi toujours aux sites officiels pour les conditions à jour.
-          </p>
-        {% endif %}
+        <p class="rp-program-summary">
+          {{ program.summary|default:
+          "Fiche détaillée de ce programme de Résidence Permanente :
+          objectif, logique de sélection et profil ciblé." }}
+        </p>
       </div>
 
-      <div class="w-full md:w-64">
-        <div class="bg-[#020814] rounded-2xl border border-[#132336] p-4 shadow-inner shadow-black/60 text-xs text-gray-300">
-          <p class="text-gray-200 font-semibold mb-2">
-            Bon réflexe : combiner fiche + diagnostic
-          </p>
-          <p class="mb-2">
-            Utilise cette fiche pour comprendre la logique du programme, puis vérifie dans ton
-            <strong>diagnostic RP</strong> si ton profil est aligné (points, langues, expérience).
+      <!-- ================= SIDE ACTIONS ================= -->
+      <aside class="rp-program-side">
+        <div class="rp-program-side-box">
+          <strong>🎯 Conseil stratégique</strong>
+          <p>
+            Ce programme doit toujours être analysé en fonction de ton
+            <strong>âge, niveau de langue, études et expérience professionnelle</strong>.
+            Utilise le diagnostic RP pour vérifier ton éligibilité réelle.
           </p>
 
-          <div class="flex flex-col gap-2 mt-2">
-            <a href="{% url 'permanent_residence:dashboard' %}"
-               class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-[0.8rem] shadow-md shadow-emerald-600/40 transition">
-              📊 Ouvrir mon cockpit RP
+          <div class="rp-program-side-actions">
+            <a href="{% url 'permanent_residence:dashboard' %}" class="rp-btn-primary">
+              📊 Mon cockpit RP
             </a>
-            <a href="{% url 'permanent_residence:program_list' %}"
-               class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-slate-600 bg-[#050d16] hover:bg-[#091320] text-gray-200 font-semibold text-[0.8rem] transition">
-              ← Revenir à la liste des programmes
+
+            <a href="{% url 'permanent_residence:eligibility' %}" class="rp-btn-secondary">
+              🧪 Vérifier mon éligibilité
             </a>
+
+            <a href="{% url 'permanent_residence:program_list' %}" class="rp-btn-secondary">
+              ← Tous les programmes RP
+            </a>
+
             {% if program.official_url %}
               <a href="{{ program.official_url }}" target="_blank" rel="noopener noreferrer"
-                 class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-emerald-500/60 bg-[#041612] hover:bg-[#052018] text-emerald-200 font-semibold text-[0.8rem] shadow-sm shadow-emerald-600/30 transition">
-                🔗 Voir le site officiel
+                 class="rp-btn-secondary">
+                🔗 Source officielle
               </a>
             {% endif %}
           </div>
         </div>
-      </div>
+      </aside>
+
     </div>
-  </div>
+  </section>
 
-  {# ---------- CONTENU : STRUCTURE PÉDAGOGIQUE ---------- #}
-  <div class="grid lg:grid-cols-3 gap-6">
+  <!-- ================= CONTENU PRINCIPAL ================= -->
+  <div class="rp-program-grid">
 
-    {# Colonne 1 & 2 : explications + sections clés #}
-    <section class="lg:col-span-2 space-y-6">
+    <!-- ===== CONTENU SEO ===== -->
+    <section class="rp-program-section">
+      <h2>
+        Présentation du programme {{ program.name }}
+      </h2>
 
-      {# Bloc "En résumé" #}
-      <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
-        <h2 class="text-lg font-semibold text-white mb-3">
-          En résumé : à quoi sert ce programme ?
-        </h2>
-        <p class="text-sm text-gray-300 mb-3">
-          Utilise ce programme pour comprendre <strong>l’esprit général</strong> de la voie :
-          qui est visé, quel type de profil a le plus de chances, et comment il s’intègre dans une
-          stratégie globale vers la Résidence Permanente.
-        </p>
-        <ul class="text-sm text-gray-200 space-y-1.5">
-          <li>● Vérifie toujours les critères officiels (points, niveaux de langue, listes de métiers) sur le site du gouvernement.</li>
-          <li>● Garde en tête que les seuils peuvent changer (scores CRS, invitations, quotas, etc.).</li>
-          <li>● Combine ce programme avec ton plan d’action RP et tes objectifs personnels (province, budget, délais).</li>
-        </ul>
-      </div>
+      <p>
+        Ce programme de Résidence Permanente fait partie des voies officielles
+        permettant d’obtenir un statut permanent
+        {% if program.country == "CA" %}au Canada{% elif program.country == "AU" %}en Australie{% endif %}.
+        Il est conçu pour sélectionner des profils répondant à des critères précis :
+        compétences professionnelles, expérience, langues et potentiel d’intégration.
+      </p>
 
-      {# Bloc ressources si dispo #}
-      {% if grouped_resources %}
-        <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
-          <h2 class="text-lg font-semibold text-white mb-3">
-            Ressources utiles pour ce programme
-          </h2>
+      <h3>
+        À quoi sert ce programme de Résidence Permanente ?
+      </h3>
 
-          <div class="space-y-5">
-            {% for rtype, items in grouped_resources.items %}
-              <div>
-                {# Titre de section selon type #}
-                <h3 class="text-sm font-semibold text-emerald-300 mb-2">
-                  {% if rtype == "OFFICIAL" %}
-                    Liens officiels et pages gouvernementales
-                  {% elif rtype == "VIDEO" %}
-                    Vidéos explicatives
-                  {% elif rtype == "SCREENSHOT" %}
-                    Captures d’écran & visuels
-                  {% elif rtype == "DOC" %}
-                    Documents & PDF
-                  {% elif rtype == "CHECKLIST" %}
-                    Checklists & pas à pas
-                  {% elif rtype == "ARTICLE" %}
-                    Articles & guides détaillés
-                  {% else %}
-                    Autres ressources
-                  {% endif %}
-                </h3>
+      <ul>
+        <li>Identifier les candidats correspondant aux besoins du pays</li>
+        <li>Attribuer des points selon un système officiel</li>
+        <li>Faciliter l’accès à la Résidence Permanente légale</li>
+        <li>Orienter les démarches administratives et documentaires</li>
+      </ul>
 
-                <div class="grid sm:grid-cols-2 gap-3">
-                  {% for res in items %}
-                    <article class="bg-[#040b14] border border-slate-700/80 rounded-xl p-3 text-xs text-gray-200 shadow-md shadow-black/50">
-                      <div class="flex items-start justify-between gap-2 mb-1.5">
-                        <p class="font-semibold text-white leading-snug">
-                          {{ res.title }}
-                        </p>
-                        {% if rtype == "OFFICIAL" %}
-                          <span class="px-2 py-0.5 rounded-full text-[0.65rem] bg-emerald-500/15 text-emerald-300 border border-emerald-500/40">
-                            Officiel
-                          </span>
-                        {% elif rtype == "VIDEO" %}
-                          <span class="px-2 py-0.5 rounded-full text-[0.65rem] bg-sky-500/15 text-sky-300 border border-sky-500/40">
-                            Vidéo
-                          </span>
-                        {% elif rtype == "CHECKLIST" %}
-                          <span class="px-2 py-0.5 rounded-full text-[0.65rem] bg-amber-500/15 text-amber-300 border border-amber-500/40">
-                            Checklist
-                          </span>
-                        {% elif rtype == "DOC" %}
-                          <span class="px-2 py-0.5 rounded-full text-[0.65rem] bg-slate-500/15 text-slate-200 border border-slate-500/40">
-                            Document
-                          </span>
-                        {% elif rtype == "ARTICLE" %}
-                          <span class="px-2 py-0.5 rounded-full text-[0.65rem] bg-indigo-500/15 text-indigo-300 border border-indigo-500/40">
-                            Article
-                          </span>
-                        {% endif %}
-                      </div>
+      <h3>
+        À qui s’adresse ce programme ?
+      </h3>
 
-                      {% if res.description %}
-                        <p class="text-[0.7rem] text-gray-300 mb-1.5">
-                          {{ res.description }}
-                        </p>
-                      {% endif %}
-
-                      {% if res.image %}
-                        <div class="mb-1.5">
-                          <img src="{{ res.image.url }}" alt="{{ res.title }}" class="w-full h-28 object-cover rounded-lg border border-slate-700/80">
-                        </div>
-                      {% endif %}
-
-                      {% if res.embed_code %}
-                        <div class="mt-1 mb-1.5">
-                          {{ res.embed_code|safe }}
-                        </div>
-                      {% endif %}
-
-                      <div class="flex items-center justify-between mt-1">
-                        {% if res.url %}
-                          <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer"
-                             class="text-[0.7rem] text-emerald-300 hover:text-emerald-200 underline">
-                            Ouvrir la ressource →
-                          </a>
-                        {% endif %}
-                      </div>
-                    </article>
-                  {% endfor %}
-                </div>
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-      {% else %}
-        <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
-          <h2 class="text-lg font-semibold text-white mb-3">
-            Ressources pour ce programme
-          </h2>
-          <p class="text-sm text-gray-300">
-            Pas encore de ressources associées dans la plateforme pour ce programme.
-            Tu peux déjà exploiter le site officiel et ton diagnostic RP pour construire
-            ta stratégie.
-          </p>
-        </div>
-      {% endif %}
+      <p>
+        Ce programme s’adresse principalement aux candidats ayant
+        une expérience professionnelle pertinente, un niveau linguistique suffisant
+        (anglais et/ou français) et un projet clair d’installation durable.
+      </p>
     </section>
 
-    {# Colonne 3 : encadré stratégie / conseils d’usage #}
-    <aside class="space-y-4">
-      <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
-        <h2 class="text-lg font-semibold text-white mb-2">
-          Comment utiliser cette fiche
-        </h2>
-        <p class="text-xs text-gray-300 mb-2">
-          Cette page ne remplace pas un conseil juridique ou un site officiel. Elle t’aide à :
-        </p>
-        <ul class="text-xs text-gray-200 space-y-1">
-          <li>● Repérer rapidement si ce programme correspond à ta stratégie (fédéral, province, sponsor, etc.).</li>
-          <li>● Lister les ressources clés (guides, vidéos, checklists) sans te perdre sur internet.</li>
-          <li>● Relier ce programme à ton plan d’action RP dans le cockpit Immigration97.</li>
-        </ul>
-      </div>
+    <!-- ===== ASIDE ===== -->
+    <aside class="rp-program-aside">
 
-      <div class="bg-[#050d16]/95 border border-[#132336] rounded-2xl p-6 shadow-xl shadow-black/60 backdrop-blur-sm">
-        <h3 class="text-sm font-semibold text-white mb-2">
-          Étapes suivantes possibles
-        </h3>
-        <ul class="text-xs text-gray-200 space-y-1.5">
-          <li>1. Confirmer les critères à jour sur le site officiel (points, listes de métiers, délais).</li>
-          <li>2. Vérifier ton score potentiel avec ton diagnostic RP.</li>
-          <li>3. Mettre à jour ton plan d’action (langues, EDE / skills assessment, documents, budget).</li>
-          <li>4. Si besoin, comparer avec d’autres programmes de la même catégorie (PNP, visas Skilled, etc.).</li>
+      <section class="rp-program-section">
+        <h3>Comment l’utiliser intelligemment</h3>
+
+        <ul>
+          <li>Comparer ce programme avec ton score RP</li>
+          <li>Identifier les points à améliorer (langue, expérience, études)</li>
+          <li>L’intégrer dans ton plan d’action personnalisé</li>
+          <li>Suivre les mises à jour officielles</li>
         </ul>
-      </div>
+      </section>
+
+      <section class="rp-program-section">
+        <h3>Étape suivante recommandée</h3>
+
+        <p>
+          Pour savoir si ce programme est réellement accessible pour toi,
+          réalise ou mets à jour ton diagnostic RP.
+        </p>
+
+        <a href="{% url 'permanent_residence:eligibility' %}" class="rp-btn-primary">
+          🚀 Lancer mon diagnostic RP
+        </a>
+      </section>
+
     </aside>
+
   </div>
 
+  <!-- ================= SEO FOOTER ================= -->
+  <section class="rp-program-section">
+    <h3>
+      Résidence Permanente {{ program.get_country_display }} :
+      ce qu’il faut retenir
+    </h3>
+
+    <p>
+      Chaque programme de Résidence Permanente possède ses propres critères,
+      seuils de points et exigences linguistiques.
+      Immigration97 t’aide à comprendre ces règles,
+      comparer les programmes et construire une stratégie réaliste,
+      étape par étape.
+    </p>
+  </section>
+
 </div>
+
 {% endblock %}

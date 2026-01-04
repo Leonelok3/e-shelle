@@ -1,147 +1,185 @@
-{% extends "visaetude/base.html" %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}Guide {{ country.nom }} - Visa Étudiant{% endblock %}
+{% block body_class %}visa-etude{% endblock %}
+
+{% block title %}
+Guide Visa Étudiant {{ country.nom }} – Démarches, Documents & Bourses | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Guide complet du visa étudiant pour {{ country.nom }} :
+conditions, délais, documents requis, coût du visa,
+universités et bourses d’études. Accompagnement Immigration97.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_etude.css' %}">
+{% endblock %}
 
 {% block content %}
-<!-- En-tête -->
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="mb-3">
-                    <i class="fas fa-flag text-primary"></i> Guide Visa Étudiant - {{ country.nom }}
-                </h1>
-                <p class="lead text-muted">{{ country.description }}</p>
-            </div>
-            <div class="col-md-4 text-end">
-                <a href="{% url 'visaetude:checklist' country.code %}" class="btn btn-success btn-lg">
-                    <i class="fas fa-list-check"></i> Ma Checklist
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Informations clés -->
-<div class="row g-4 mb-4">
-    <div class="col-md-4">
-        <div class="card text-center h-100 border-primary">
-            <div class="card-body">
-                <i class="fas fa-clock fa-2x text-primary mb-2"></i>
-                <h6 class="text-muted">Délai de Traitement</h6>
-                <h4>{{ country.delai_traitement }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center h-100 border-success">
-            <div class="card-body">
-                <i class="fas fa-money-bill-wave fa-2x text-success mb-2"></i>
-                <h6 class="text-muted">Coût du Visa</h6>
-                <h4>{{ country.cout_visa|floatformat:0 }} FCFA</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center h-100 border-info">
-            <div class="card-body">
-                <i class="fas fa-chart-line fa-2x text-info mb-2"></i>
-                <h6 class="text-muted">Taux d'Acceptation</h6>
-                <h4>{{ country.taux_acceptation|default:"N/A" }}%</h4>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- ==================================================
+HERO — GUIDE VISA ÉTUDIANT
+================================================== -->
+<section class="ve-dashboard-hero fade-in-up">
+  <div class="container">
 
-<!-- Guides -->
+    <span class="ve-badge">🎓 Guide Visa Étudiant</span>
+
+    <h1>
+      Étudier en {{ country.nom }}<br>
+      <span class="ve-gradient">Visa étudiant, documents & démarches</span>
+    </h1>
+
+    <p class="ve-lead">
+      Ce guide Immigration97 t’explique
+      <strong>comment obtenir un visa étudiant pour {{ country.nom }}</strong> :
+      conditions officielles, documents requis,
+      coûts, délais, universités et bourses.
+    </p>
+
+    <div class="ve-cta-group">
+      <a href="{% url 'visaetude:checklist' %}" class="ve-btn-primary">
+        📋 Ma checklist visa étudiant
+      </a>
+      <a href="{% url 'visaetude:coach_ai' %}" class="ve-btn-secondary">
+        🤖 Poser une question au Coach IA
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================================================
+INFOS CLÉS
+================================================== -->
+<section class="ve-dashboard-modules">
+  <div class="container ve-modules-grid">
+
+    <article class="ve-module-card">
+      <h2>Délai de traitement</h2>
+      <p class="ve-lead">{{ country.delai_traitement }}</p>
+    </article>
+
+    <article class="ve-module-card">
+      <h2>Coût du visa étudiant</h2>
+      <p class="ve-lead">
+        {{ country.cout_visa|floatformat:0 }} FCFA
+      </p>
+    </article>
+
+    <article class="ve-module-card">
+      <h2>Taux d’acceptation</h2>
+      <p class="ve-lead">
+        {{ country.taux_acceptation|default:"Non communiqué" }} %
+      </p>
+    </article>
+
+  </div>
+</section>
+
+<!-- ==================================================
+GUIDES & INFORMATIONS
+================================================== -->
 {% if guides %}
-<div class="card shadow-sm mb-4">
-    <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">
-            <i class="fas fa-book"></i> Guides et Informations
-        </h4>
-    </div>
-    <div class="card-body">
-        {% for guide in guides %}
-        <div class="guide-section mb-4">
-            <h5 class="text-primary">
-                <i class="fas fa-chevron-right"></i> {{ guide.titre }}
-            </h5>
-            <div class="ms-4">
-                {{ guide.contenu|linebreaks }}
-            </div>
-            <hr>
+<section class="ve-dashboard-modules">
+  <div class="container ve-modules-grid">
+
+    <article class="ve-module-card" data-step="📘">
+      <h2>Guides et informations officielles</h2>
+
+      {% for guide in guides %}
+        <h3>{{ guide.titre }}</h3>
+        <div class="small">
+          {{ guide.contenu|linebreaks }}
         </div>
-        {% endfor %}
-    </div>
-</div>
+      {% endfor %}
+
+    </article>
+
+  </div>
+</section>
 {% endif %}
 
-<!-- Documents Requis -->
+<!-- ==================================================
+DOCUMENTS REQUIS
+================================================== -->
 {% if documents %}
-<div class="card shadow-sm mb-4">
-    <div class="card-header bg-success text-white">
-        <h4 class="mb-0">
-            <i class="fas fa-file-alt"></i> Documents Requis
-        </h4>
-    </div>
-    <div class="card-body">
-        <div class="list-group">
-            {% for doc in documents %}
-            <div class="list-group-item">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1">
-                            {% if doc.obligatoire %}
-                                <span class="badge bg-danger">Obligatoire</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Optionnel</span>
-                            {% endif %}
-                            {{ doc.nom }}
-                        </h6>
-                        <p class="mb-0 text-muted small">{{ doc.description }}</p>
-                    </div>
-                    {% if doc.exemple %}
-                    <a href="{{ doc.exemple.url }}" class="btn btn-sm btn-outline-primary" download>
-                        <i class="fas fa-download"></i> Exemple
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
+<section class="ve-dashboard-modules">
+  <div class="container ve-modules-grid">
+
+    <article class="ve-module-card" data-step="📄">
+      <h2>Documents requis pour le visa étudiant</h2>
+
+      <ul>
+        {% for doc in documents %}
+          <li>
+            <strong>
+              {{ doc.nom }}
+              {% if doc.obligatoire %}(obligatoire){% endif %}
+            </strong><br>
+            {{ doc.description }}
+            {% if doc.exemple %}
+              <br>
+              <a href="{{ doc.exemple.url }}" target="_blank">
+                Télécharger un exemple →
+              </a>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+
+    </article>
+
+  </div>
+</section>
 {% endif %}
 
-<!-- FAQ -->
+<!-- ==================================================
+FAQ
+================================================== -->
 {% if faqs %}
-<div class="card shadow-sm">
-    <div class="card-header bg-warning">
-        <h4 class="mb-0">
-            <i class="fas fa-question-circle"></i> Questions Fréquentes
-        </h4>
-    </div>
-    <div class="card-body">
-        <div class="accordion" id="faqAccordion">
-            {% for faq in faqs %}
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="faqHeading{{ forloop.counter }}">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
-                            data-bs-target="#faqCollapse{{ forloop.counter }}">
-                        {{ faq.question }}
-                    </button>
-                </h2>
-                <div id="faqCollapse{{ forloop.counter }}" class="accordion-collapse collapse" 
-                     data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        {{ faq.reponse|linebreaks }}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
+<section class="ve-dashboard-modules">
+  <div class="container ve-modules-grid">
+
+    <article class="ve-module-card" data-step="❓">
+      <h2>Questions fréquentes – Visa étudiant {{ country.nom }}</h2>
+
+      {% for faq in faqs %}
+        <h3>{{ faq.question }}</h3>
+        <p>{{ faq.reponse|linebreaks }}</p>
+      {% endfor %}
+
+    </article>
+
+  </div>
+</section>
 {% endif %}
+
+<!-- ==================================================
+CTA FINAL
+================================================== -->
+<section class="ve-cta-final">
+  <div class="container text-center">
+
+    <h2>Besoin d’un accompagnement personnalisé ?</h2>
+    <p>
+      Immigration97 t’accompagne de A à Z
+      pour maximiser tes chances d’obtenir
+      un visa étudiant pour {{ country.nom }}.
+    </p>
+
+    <div class="ve-cta-group center">
+      <a href="{% url 'visaetude:coach_ai' %}" class="ve-btn-primary">
+        Parler au Coach IA
+      </a>
+      <a href="{% url 'billing:access' %}" class="ve-btn-premium">
+        Activer l’accompagnement Premium
+      </a>
+    </div>
+
+  </div>
+</section>
+
 {% endblock %}

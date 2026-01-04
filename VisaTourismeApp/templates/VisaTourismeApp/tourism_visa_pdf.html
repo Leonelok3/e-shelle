@@ -1,35 +1,99 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Plan Visa Tourisme</title>
-    <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 11pt; }
-        h1 { font-size: 18pt; margin-bottom: 5px; }
-        h2 { font-size: 14pt; margin-top: 16px; margin-bottom: 4px; }
-        p { margin: 2px 0; }
-        ul { margin: 4px 0 8px 18px; padding: 0; }
-        li { margin-bottom: 2px; }
-        .small { font-size: 9pt; color: #555; }
-        .section-title { font-weight: bold; margin-top: 10px; }
-        .header-box {
-            border: 1px solid #000;
-            padding: 8px;
-            margin-bottom: 10px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Plan Visa Tourisme</title>
+
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+      color: #111827;
+      line-height: 1.5;
+      margin: 40px;
+    }
+
+    h1, h2 {
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      font-size: 22px;
+      border-bottom: 2px solid #0ea5e9;
+      padding-bottom: 6px;
+    }
+
+    h2 {
+      font-size: 16px;
+      margin-top: 26px;
+    }
+
+    p {
+      margin: 4px 0;
+    }
+
+    .small {
+      font-size: 10px;
+      color: #6b7280;
+    }
+
+    .header-box {
+      margin-bottom: 24px;
+    }
+
+    .score-box {
+      margin: 14px 0;
+      padding: 10px;
+      background: #e0f2fe;
+      border-left: 4px solid #0284c7;
+      font-weight: bold;
+    }
+
+    .section-title {
+      margin-top: 18px;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 13px;
+      color: #0369a1;
+    }
+
+    ul {
+      margin: 6px 0 10px 18px;
+      padding: 0;
+    }
+
+    li {
+      margin-bottom: 4px;
+    }
+
+    .footer {
+      margin-top: 30px;
+      font-size: 10px;
+      color: #6b7280;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 10px;
+    }
+  </style>
 </head>
+
 <body>
+
 <div class="header-box">
-    <h1>Plan de visa tourisme</h1>
-    <p><strong>E-SHELLE • Immigration & Préparation Visa</strong></p>
-    <p class="small">Généré le {{ result.created_at|date:"d/m/Y H:i" }}</p>
+  <h1>Plan de Visa Tourisme</h1>
+  <p><strong>Immigration97 — Assistance Visa</strong></p>
+  <p class="small">
+    Document généré le {{ result.created_at|date:"d/m/Y H:i" }}
+  </p>
 </div>
 
-<p><strong>Nom :</strong> {{ result.full_name|default:"" }}</p>
-<p><strong>Email :</strong> {{ result.email|default:"" }}</p>
-<p><strong>Téléphone :</strong> {{ result.phone|default:"" }}</p>
+<h2>Informations du demandeur</h2>
+<p><strong>Nom :</strong> {{ result.full_name|default:"—" }}</p>
+<p><strong>Email :</strong> {{ result.email|default:"—" }}</p>
+<p><strong>Téléphone :</strong> {{ result.phone|default:"—" }}</p>
 
+<h2>Détails du voyage</h2>
 <p><strong>Destination :</strong> {{ result.get_destination_display }}</p>
 <p><strong>Nationalité :</strong> {{ result.nationalite }}</p>
 <p><strong>Pays de résidence :</strong> {{ result.pays_residence }}</p>
@@ -37,59 +101,55 @@
 <p><strong>Objet du voyage :</strong> {{ result.objet_voyage }}</p>
 
 <h2>Analyse du dossier</h2>
-<p><strong>Score estimatif de chances :</strong> {{ result.score_chances }}%</p>
-<p><strong>Niveau de risque :</strong> {{ result.niveau_risque }}</p>
+<div class="score-box">
+  Score estimatif : {{ result.score_chances }} %<br>
+  Niveau de risque : {{ result.niveau_risque }}
+</div>
 
-<div class="section-title">Points forts :</div>
+<div class="section-title">Points forts</div>
 <ul>
-    {% for pf in result.points_forts_list %}
-        <li>{{ pf }}</li>
-    {% empty %}
-        <li>(Aucun point fort détecté)</li>
-    {% endfor %}
+  {% for pf in result.points_forts_list %}
+    <li>{{ pf }}</li>
+  {% empty %}
+    <li>Aucun point fort détecté.</li>
+  {% endfor %}
 </ul>
 
-<div class="section-title">Points à renforcer :</div>
+<div class="section-title">Points à renforcer</div>
 <ul>
-    {% for pr in result.points_faibles_list %}
-        <li>{{ pr }}</li>
-    {% empty %}
-        <li>(Aucun point faible détecté)</li>
-    {% endfor %}
+  {% for pr in result.points_faibles_list %}
+    <li>{{ pr }}</li>
+  {% empty %}
+    <li>Aucun point faible détecté.</li>
+  {% endfor %}
 </ul>
 
-<div class="section-title">Documents à préparer :</div>
+<div class="section-title">Documents à préparer</div>
 <ul>
-    {% for d in result.documents_list %}
-        <li>{{ d }}</li>
-    {% endfor %}
+  {% for d in result.documents_list %}
+    <li>{{ d }}</li>
+  {% endfor %}
 </ul>
 
-<div class="section-title">Étapes clés :</div>
+<div class="section-title">Étapes clés</div>
 <ul>
-    {% for e in result.etapes_list %}
-        <li>{{ e }}</li>
-    {% endfor %}
+  {% for e in result.etapes_list %}
+    <li>{{ e }}</li>
+  {% endfor %}
 </ul>
 
-<div class="section-title">Remarques spécifiques à la destination :</div>
+<div class="section-title">Conseils stratégiques</div>
 <ul>
-    {% for r in result.remarques_list %}
-        <li>{{ r }}</li>
-    {% empty %}
-        <li>(Aucune remarque spécifique)</li>
-    {% endfor %}
+  {% for c in result.conseils_list %}
+    <li>{{ c }}</li>
+  {% endfor %}
 </ul>
 
-<div class="section-title">Conseils stratégiques :</div>
-<ul>
-    {% for c in result.conseils_list %}
-        <li>{{ c }}</li>
-    {% endfor %}
-</ul>
+<div class="footer">
+  Ce document est une aide à la préparation.
+  Les décisions finales relèvent exclusivement
+  des autorités consulaires compétentes.
+</div>
 
-<p class="small">
-    Ce document est une aide à la préparation. Les décisions finales appartiennent toujours au consulat / à l’ambassade.
-</p>
 </body>
 </html>

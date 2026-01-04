@@ -2,184 +2,176 @@
 <html lang="fr">
 <head>
   {% load static %}
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- SEO -->
-  <title>{% block title %}Immigration97{% endblock %}</title>
-<meta name="description" content="Immigration97 est une plateforme premium d’assistance visa et immigration : DV Lottery, tests de langue, CV IA, photos visa et accompagnement personnalisé.">
+  <!-- ================= SEO ================= -->
+  <title>{% block title %}Immigration97 — Immigration & Visa Premium{% endblock %}</title>
+
+  <meta name="description"
+        content="{% block meta_description %}
+        Plateforme premium d’assistance immigration : visas, résidence permanente,
+        tests de langue, CV IA et accompagnement international.
+        {% endblock %}">
+
   <link rel="canonical" href="{{ request.build_absolute_uri }}">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#0b1220">
 
-  <!-- FAVICON -->
+  <!-- ================= FAVICON ================= -->
   <link rel="icon" href="{% static 'img/LOGOIMM97.png' %}" type="image/png">
 
-  <!-- OPEN GRAPH -->
-  <meta property="og:title" content="Immigration97 — Plateforme Immigration Premium">
-  <meta property="og:description" content="CV IA, Photos DV Lottery, Tests de Langue & Guides Visa">
+  <!-- ================= OPEN GRAPH ================= -->
+  <meta property="og:site_name" content="Immigration97">
+  <meta property="og:title"
+        content="{% block og_title %}Immigration97 — Plateforme Immigration Premium{% endblock %}">
+  <meta property="og:description"
+        content="{% block og_description %}
+        Visas, résidence permanente, tests de langue, CV IA et guides officiels.
+        {% endblock %}">
   <meta property="og:type" content="website">
   <meta property="og:image" content="{% static 'img/LOGOIMM97.png' %}">
 
-  <!-- CSS GLOBAL -->
-  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'css/base.css' %}">
-  <link rel="stylesheet" href="{% static 'css/components.css' %}">
-  <link rel="stylesheet" href="{% static 'css/main.css' %}">
-  <link rel="stylesheet" href="{% static 'css/pages/englishprep.css' %}">
-  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
-  <link rel="stylesheet" href="{% static 'css/pages/profile.css' %}">
-  <link rel="stylesheet" href="{% static 'css/pages/course_lock.css' %}">
-  <link rel="stylesheet" href="{% static 'css/cefr.css' %}">
-  <link rel="stylesheet" href="{% static 'css/pages/visa_photo.css' %}">
-  <link rel="stylesheet" href="{% static 'css/main.css' %}">
-  
-  
+  <!-- ================= TWITTER ================= -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title"
+        content="{% block twitter_title %}Immigration97{% endblock %}">
+  <meta name="twitter:description"
+        content="{% block twitter_description %}
+        Votre plateforme premium d’immigration et de mobilité internationale.
+        {% endblock %}">
+  <meta name="twitter:image" content="{% static 'img/LOGOIMM97.png' %}">
 
-
-
-  
-
-  {% block head_extra %}{% endblock %}
+  <!-- ================= CSS GLOBAL ================= -->
+{% if not is_pdf %}
+<link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+<link rel="stylesheet" href="{% static 'css/components.css' %}">
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+{% endif %}
+  <!-- ================= CSS APP / PAGE ================= -->
+  {% block extra_css %}{% endblock %}
 </head>
 
-<body class="app">
-   <script src="{% static 'js/main.js' %}"></script>
-   <script src="{% static 'js/cefr.js' %}" defer></script>
+<body class="app {% block body_class %}{% endblock %}">
 
-<!-- ================= NAVBAR ================= -->
-<header class="navbar">
-  <div class="navbar__container">
+<!-- ======================================================
+     NAVBAR — DESIGN SYSTEM COMPLIANT
+====================================================== -->
+<header class="c-navbar">
+  <div class="c-navbar__container">
 
-    <a href="/" class="navbar__brand">
-      <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97 Logo" width="48" height="48">
+    <!-- Brand -->
+    <a href="/" class="c-navbar__brand" aria-label="Accueil Immigration97">
+      <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97 Logo">
     </a>
 
-    <div class="navbar__toggle" id="navToggle">☰</div>
+    <!-- Toggle mobile -->
+    <button class="c-navbar__toggle"
+            aria-label="Ouvrir le menu"
+            aria-expanded="false">
+      ☰
+    </button>
 
-    <nav class="navbar__nav">
-      <a href="/" class="nav-link">Accueil</a>
-      <a href="/prep/" class="nav-link">Tests de langue</a>
-      <a href="/visa-travail/" class="nav-link">Visa Travail</a>
-      <a href="/visa-etudes/" class="nav-link">Visa Études</a>
-      <a href="/residence-permanente/" class="nav-link">Résidence Permanente</a>
+    <!-- Navigation -->
+    <nav class="c-navbar__nav">
+      <a href="/" class="c-nav-link">Accueil</a>
+      <a href="/prep/" class="c-nav-link">Tests de langue</a>
+      <a href="/visa-travail/" class="c-nav-link">Visa Travail</a>
+      <a href="/visa-etudes/" class="c-nav-link">Visa Études</a>
+      <a href="/residence-permanente/" class="c-nav-link">Résidence Permanente</a>
     </nav>
 
-    <!-- ===== ACTIONS DYNAMIQUES ===== -->
-    <div class="navbar__actions">
-
+    <!-- Actions -->
+    <div class="c-navbar__actions">
       {% if user.is_authenticated %}
-      <!-- UTILISATEUR CONNECTÉ -->
-      <div class="nav-user">
-
-        <button class="nav-user__btn" id="userMenuBtn">
-          {% if user.profile.avatar %}
-            
-          {% else %}
-            <span class="nav-user__avatar--fallback">👤</span>
-          {% endif %}
-          <span class="nav-user__name">{{ user.username }}</span>
-        </button>
-
-        <div class="nav-user__dropdown" id="userDropdown">
-          <a href="{% url 'profiles:my_space' %}">Mon espace</a>
-          
-
-          <hr>
-          <a href="{% url 'authentification:logout' %}" class="danger">Déconnexion</a>
-        </div>
-
-      </div>
+        <a href="{% url 'profiles:my_space' %}" class="c-btn c-btn--soft">
+          Mon espace
+        </a>
+        <a href="{% url 'authentification:logout' %}" class="c-btn c-btn--outline">
+          Déconnexion
+        </a>
       {% else %}
-      <!-- UTILISATEUR NON CONNECTÉ -->
-      <a href="{% url 'authentification:login' %}" class="btn btn--soft">
-        Se connecter
-      </a>
-      <a href="{% url 'billing:access' %}" class="btn">
-        S’abonner
-      </a>
+        <a href="{% url 'authentification:login' %}" class="c-btn c-btn--outline">
+          Se connecter
+        </a>
+        <a href="{% url 'billing:access' %}" class="c-btn c-btn--primary">
+          Accès Premium
+        </a>
       {% endif %}
-
     </div>
 
   </div>
 </header>
 
-<!-- ================= CONTENT ================= -->
-<main class="app-main">
-  {% block content %}{% endblock %}
+<!-- ======================================================
+     MAIN CONTENT — WRAPPER GLOBAL STABLE
+====================================================== -->
+<main class="app-main {% block app_scope %}{% endblock %}">
+  {% block before_container %}{% endblock %}
+
+  <div class="app-container {% block container_class %}{% endblock %}">
+    {% block content %}{% endblock %}
+  </div>
+
+  {% block after_container %}{% endblock %}
 </main>
 
 
-<!-- ================= FOOTER ================= -->
-<!-- ================= FOOTER ================= -->
-<footer class="footer">
+<!-- ======================================================
+     FOOTER — DESIGN SYSTEM COMPLIANT
+====================================================== -->
+<footer class="c-footer">
+  <div class="c-footer__container">
 
-  <div class="footer__container">
-
-    <div class="footer__brand">
-      <div class="footer__logo">
-        <img src="{% static 'img/LOGOIMM97.png' %}"
-             alt="Immigration97 Logo"
-             width="160"
-             height="160"
-             loading="lazy">
-      </div>
-
-      <p class="footer__desc">
-        Plateforme premium d’assistance visa, immigration et carrière internationale.
+    <div>
+      <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97" width="140" loading="lazy">
+      <p>
+        Plateforme premium d’assistance visa, immigration
+        et carrière internationale.
       </p>
-
-      <ul class="footer__trust">
-        <li>🔒 Données sécurisées</li>
-        <li>🧾 Paiement sécurisé</li>
-        <li>🌍 Accessible mondialement</li>
-      </ul>
     </div>
 
-    <div class="footer__col">
+    <div>
       <h4>Modules</h4>
       <ul>
         <li><a href="/visa-photo/">Visa Photo</a></li>
         <li><a href="/cv-generator/">CV IA</a></li>
         <li><a href="/prep/">Tests de langue</a></li>
-        <li><a href="/visa-travail/">Visa Travail</a></li>
-        <li><a href="/visa-etudes/">Visa Études</a></li>
         <li><a href="/residence-permanente/">Résidence Permanente</a></li>
       </ul>
     </div>
 
-    <div class="footer__col">
+    <div>
       <h4>Aide</h4>
       <ul>
         <li><a href="/faq/">FAQ</a></li>
         <li><a href="/guides/">Guides</a></li>
         <li><a href="/contact/">Support</a></li>
-        <li><a href="/privacy/">Confidentialité</a></li>
       </ul>
     </div>
 
-    <div class="footer__cta">
+    <div>
       <h4>Accès Premium</h4>
-      <p>Débloquez toutes les applications Immigration97.</p>
-      <a href="{% url 'billing:access' %}" class="btn btn--lg">
+      <p>Débloquez toutes les fonctionnalités Immigration97.</p>
+      <a href="{% url 'billing:access' %}" class="c-btn c-btn--primary">
         Activer mon accès
       </a>
     </div>
 
   </div>
 
-  <div class="footer__bottom">
+  <div class="c-footer__bottom">
     © {% now "Y" %} Immigration97 — Tous droits réservés.
   </div>
-
 </footer>
 
-
-<!-- JS -->
+<!-- ================= JS GLOBAL ================= -->
 <script src="{% static 'js/main.js' %}" defer></script>
 
-{% block body_end %}{% endblock %}
+<!-- ================= JS APP / PAGE ================= -->
+{% block extra_js %}{% endblock %}
 
 </body>
 </html>

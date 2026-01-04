@@ -1,174 +1,146 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Coach Visa E-SHELLE</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            margin: 0;
-            background: radial-gradient(circle at top, #020617, #020617);
-            color: #e5e7eb;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
-        a { color: #38bdf8; text-decoration: none; }
+{% extends "base.html" %}
+{% load static %}
 
-        .page {
-            max-width: 900px;
-            margin: 28px auto;
-            padding: 0 16px;
-        }
-        .title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        .subtitle {
-            font-size: 13px;
-            color: #9ca3af;
-            margin-bottom: 16px;
-        }
-        .card {
-            background: radial-gradient(circle at top left, rgba(15,23,42,1), rgba(2,6,23,1));
-            border-radius: 18px;
-            padding: 18px;
-            box-shadow: 0 18px 40px rgba(0,0,0,0.65);
-            border: 1px solid #020617;
-        }
+{% block title %}
+Coach Visa Tourisme – Conseils Visa Canada, Schengen & Afrique | Immigration97
+{% endblock %}
 
-        .mini-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: #64748b;
-        }
+{% block meta_description %}
+Coach Visa Tourisme Immigration97 : analyse de dossier, conseils personnalisés,
+risques de refus, preuves de retour et stratégie visa pour le Canada, l’espace Schengen
+et l’Afrique.
+{% endblock %}
 
-        .dossier-box {
-            font-size: 12px;
-            background: #020617;
-            border-radius: 12px;
-            padding: 10px;
-            border: 1px solid #1f2937;
-            margin-bottom: 12px;
-        }
+{% block body_class %}visa-tourisme{% endblock %}
+{% block app_scope %}visa-tourisme{% endblock %}
 
-        textarea {
-            width: 100%;
-            background-color: #020617;
-            border-radius: 10px;
-            border: 1px solid #1f2937;
-            padding: 8px 10px;
-            color: #e5e7eb;
-            font-size: 13px;
-            resize: vertical;
-            min-height: 90px;
-        }
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_tourisme.css' %}">
+{% endblock %}
 
-        button {
-            margin-top: 10px;
-            background: linear-gradient(to right, #22c55e, #16a34a);
-            border: none;
-            border-radius: 999px;
-            padding: 9px 20px;
-            color: white;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            box-shadow: 0 12px 28px rgba(34,197,94,0.45);
-        }
+{% block content %}
 
-        .chat-block {
-            margin-top: 16px;
-            font-size: 13px;
-        }
-        .chat-label {
-            font-size: 12px;
-            color: #9ca3af;
-            margin-bottom: 4px;
-        }
-        .bubble-user,
-        .bubble-coach {
-            padding: 10px 12px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-        }
-        .bubble-user {
-            background: #022c22;
-            border: 1px solid #16a34a;
-        }
-        .bubble-coach {
-            background: #020617;
-            border: 1px solid #1f2937;
-        }
+<!-- HERO -->
+<section class="vtm-hero vtm-fade-up">
+  <div class="container">
 
-        .back-link {
-            margin-top: 14px;
-            font-size: 12px;
-        }
-    </style>
-</head>
-<body>
-<div class="page">
-    <h1 class="title">Coach Visa E-SHELLE 🤝</h1>
-    <p class="subtitle">
-        Pose tes questions sur ton dossier de visa tourisme. Le coach t’aide à comprendre les risques
-        et à améliorer ton plan d’action. (Outil d’information, pas un site officiel de visa.)
+    <span class="vtm-badge">🤝 Assistance visa touristique personnalisée</span>
+
+    <h1 class="vtm-title">
+      Coach <span class="vtm-gradient-primary">Visa Tourisme</span>
+    </h1>
+
+    <p class="vtm-subtle">
+      Pose tes questions sur ton dossier de <strong>visa touristique</strong>.
+      Reçois une analyse claire des <strong>risques de refus</strong>,
+      des <strong>preuves de retour</strong> et des stratégies adaptées
+      pour le <strong>Canada</strong>, l’<strong>Europe (Schengen)</strong>
+      et l’<strong>Afrique</strong>.
     </p>
 
-    <div class="card">
-        <div class="mini-label">Dossier analysé</div>
+  </div>
+</section>
+
+<section class="container mt-xl">
+
+  <div class="module-card">
+    <div class="c-card">
+
+      <span class="mini-label">Dossier analysé</span>
+
+      {% if result %}
+        <div class="vtm-info-box">
+          <p><strong>Destination :</strong> {{ result.get_destination_display }}</p>
+          <p><strong>Nationalité :</strong> {{ result.nationalite }}</p>
+          <p><strong>Pays de résidence :</strong> {{ result.pays_residence }}</p>
+          <p><strong>Durée du séjour :</strong> {{ result.get_duree_sejour_display }}</p>
+          <p>
+            <strong>Score estimé :</strong>
+            {{ result.score_chances }} % — <em>{{ result.niveau_risque }}</em>
+          </p>
+        </div>
+      {% else %}
+        <div class="vtm-info-box">
+          <p>
+            Aucun dossier n’est lié à cette conversation.
+            Lance d’abord une <strong>analyse de visa tourisme</strong>,
+            puis clique sur <em>« Parler au Coach Visa »</em>.
+          </p>
+        </div>
+      {% endif %}
+
+      <form method="post" class="mt-lg">
+        {% csrf_token %}
 
         {% if result %}
-            <div class="dossier-box">
-                <strong>Destination :</strong> {{ result.get_destination_display }}<br>
-                <strong>Nationalité :</strong> {{ result.nationalite }}<br>
-                <strong>Pays de résidence :</strong> {{ result.pays_residence }}<br>
-                <strong>Durée :</strong> {{ result.get_duree_sejour_display }}<br>
-                <strong>Score :</strong> {{ result.score_chances }}% – {{ result.niveau_risque }}
-            </div>
-        {% else %}
-            <div class="dossier-box">
-                Aucun dossier précis n’est lié à cette conversation.
-                Retourne d’abord à l’assistant, génère un plan de visa, puis clique
-                sur “Parler au Coach Visa”.
-            </div>
+          <input type="hidden" name="dossier_id" value="{{ result.id }}">
         {% endif %}
 
-        <form method="post">
-            {% csrf_token %}
-            {% if result %}
-                <input type="hidden" name="dossier_id" value="{{ result.id }}">
-            {% endif %}
+        <label class="mini-label">Ta question au coach visa</label>
 
-            <label class="mini-label" style="margin-top:10px;display:block;">Ta question au coach</label>
-            <textarea name="question" placeholder="Exemples : 
-- Est-ce que mon budget semble suffisant ?
-- Comment renforcer mes preuves de retour dans mon pays ?
-- Que dois-je expliquer si j’ai déjà eu un refus de visa ?">{{ question }}</textarea>
+        <textarea
+          name="question"
+          class="vtm-input"
+          rows="5"
+          required
+          maxlength="1200"
+          placeholder="Exemples :
+- Mon budget est-il suffisant pour un visa Canada ?
+- Comment renforcer mes preuves de retour pour le visa Schengen ?
+- Comment expliquer un ancien refus de visa ?"
+        >{{ question }}</textarea>
 
-            <button type="submit">Envoyer au Coach Visa</button>
-        </form>
+        <div class="vtm-cta-group">
+          <button type="submit" class="vtm-btn-primary">
+            🤝 Obtenir l’analyse du Coach Visa
+          </button>
+        </div>
+      </form>
 
-        {% if coach_response %}
-            <div class="chat-block">
-                <div class="chat-label">Dernier échange</div>
+      {% if coach_response %}
+        <div class="mt-xl">
+          <span class="mini-label">Dernier échange</span>
 
-                <div class="bubble-user">
-                    <strong>Toi :</strong><br>
-                    {{ question|linebreaksbr }}
-                </div>
+          <div class="vtm-info-box mt-sm">
+            <p><strong>🧑‍💼 Toi :</strong><br>{{ question|linebreaksbr }}</p>
+          </div>
 
-                <div class="bubble-coach">
-                    <strong>Coach Visa :</strong><br>
-                    {{ coach_response|linebreaksbr }}
-                </div>
-            </div>
-        {% endif %}
+          <div class="vtm-info-box mt-sm">
+            <p><strong>🤖 Coach Visa :</strong><br>{{ coach_response|linebreaksbr }}</p>
+          </div>
+        </div>
+      {% endif %}
+
     </div>
+  </div>
 
-    <p class="back-link">
-        <a href="{% url 'visa_tourisme:assistant' %}">⬅ Retour à l’assistant Visa Tourisme</a>
-    </p>
-</div>
-</body>
-</html>
+  <div class="text-right mt-md">
+    <a href="{% url 'visa_tourisme:assistant' %}" class="vtm-btn-secondary">
+      ⬅ Retour à l’assistant Visa Tourisme
+    </a>
+  </div>
+
+</section>
+
+<!-- SEO GEO -->
+<section class="container mt-xxl">
+
+  <h2 class="section-title">Pourquoi utiliser un coach visa tourisme ?</h2>
+
+  <p class="vtm-subtle">
+    Les refus de <strong>visa touristique</strong> sont fréquents pour les
+    demandes vers le <strong>Canada</strong> et l’<strong>Schengen</strong>.
+    Le coach Immigration97 t’aide à comprendre les attentes des ambassades
+    et à améliorer ton dossier.
+  </p>
+
+  <h3 class="section-title">Pays couverts</h3>
+  <ul>
+    <li>Visa touristique Canada</li>
+    <li>Visa Schengen (France, Belgique, Italie, Espagne, Allemagne)</li>
+    <li>Voyages touristiques depuis l’Afrique</li>
+  </ul>
+
+</section>
+
+{% endblock %}

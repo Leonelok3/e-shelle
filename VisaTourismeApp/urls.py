@@ -18,4 +18,5 @@ urlpatterns = [
 
     # Export PDF d’une analyse
     path('pdf/<int:pk>/', views.visa_tourisme_pdf, name='pdf'),
+    path('result/<int:pk>/', views.visa_tourisme_result, name='result'),
 ]

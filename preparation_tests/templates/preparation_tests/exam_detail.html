@@ -1,94 +1,139 @@
 {% extends "base.html" %}
 {% load static %}
 
+{# ==================================================
+   SCOPE STRICT APP
+================================================== #}
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{# ==================================================
+   SEO — TITLE & META
+================================================== #}
 {% block title %}
-{{ exam.name }} – Informations & barème | Immigration97
+{{ exam.name }} – Structure, sections & barème | Immigration97
 {% endblock %}
 
 {% block meta_description %}
-Informations complètes sur {{ exam.name }} : structure de l’examen,
-sections (CO, CE, EE, EO), barème officiel et conseils de préparation.
+Informations officielles sur {{ exam.name }} :
+structure de l’examen, sections (CO, CE, EE, EO),
+barème et conseils de préparation avec Immigration97.
 {% endblock %}
 
-{% block head_extra %}
-<link rel="stylesheet" href="{% static 'css/pages/exam_detail.css' %}">
+{# ==================================================
+   CSS APP — VERSIONNÉ
+================================================== #}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260104">
 {% endblock %}
 
 {% block content %}
 
-<section class="page page-exam-detail">
+<!-- ==================================================
+HERO — EXAMEN {{ exam.name }}
+================================================== -->
+<section class="pt-hero">
+  <div class="container pt-fade-up">
 
-  <!-- ===== HERO ===== -->
-  <header class="page-hero">
-    <span class="page-kicker">Test de langue</span>
+    <span class="pt-badge">
+      Test de langue
+    </span>
 
-    <h1 class="page-title">
+    <h1 class="pt-title">
       {{ exam.name }}
     </h1>
 
     {% if exam.description %}
-      <p class="page-subtitle">
+      <p class="pt-lead">
         {{ exam.description }}
       </p>
     {% endif %}
-  </header>
 
-  <!-- ===== STRUCTURE ===== -->
-  <div class="container-narrow">
+  </div>
+</section>
 
-    <article class="card">
-      <h2>Structure de l’examen</h2>
+<!-- ==================================================
+CONTENU EXAMEN
+================================================== -->
+<section class="pt-section">
+  <div class="container">
 
-      <ul class="exam-sections">
-        {% for section in exam.sections.all %}
-          <li>
-            <strong>{{ section.get_code_display }}</strong>
-            <span class="muted">
-              — Durée : {{ section.duration_sec|divisibleby:60|yesno:" , " }}{{ section.duration_sec }} secondes
-            </span>
-          </li>
-        {% empty %}
-          <li>Aucune section définie pour cet examen.</li>
-        {% endfor %}
-      </ul>
-    </article>
+    <div class="pt-grid-layout">
 
-    <!-- ===== ACTIONS ===== -->
-    <article class="card">
-      <h2>Actions disponibles</h2>
+      <!-- ================= MAIN ================= -->
+      <div class="pt-main">
 
-      <div class="btn-row">
+        <!-- STRUCTURE -->
+        <article class="pt-card pt-card--exam">
+          <h2>Structure de l’examen</h2>
 
-        {% if exam.code == "tef" %}
-          <a class="btn btn--primary"
-             href="{% url 'preparation_tests:tef_hub' %}">
-            🎯 Préparer le TEF
-          </a>
+          <ul class="pt-exam-sections">
+            {% for section in exam.sections.all %}
+              <li>
+                <strong>{{ section.get_code_display }}</strong>
+                <span class="pt-small">
+                  Durée : {{ section.duration_sec|floatformat:0 }} secondes
+                </span>
+              </li>
+            {% empty %}
+              <li class="pt-small">
+                Aucune section définie pour cet examen.
+              </li>
+            {% endfor %}
+          </ul>
+        </article>
 
-          <a class="btn btn--soft"
-             a href="{% url 'preparation_tests:dashboard_global' %}"
->
-            📊 Mon niveau TEF
-          </a>
-        {% endif %}
+        <!-- ACTIONS -->
+        <article class="pt-card pt-card--actions">
+          <h2>Actions disponibles</h2>
 
-        <a class="btn btn--ghost"
-           href="{% url 'preparation_tests:exam_list' %}">
-          ← Tous les examens
-        </a>
+          <div class="pt-cta-group">
+
+            {% if exam.code == "tef" %}
+              <a
+                href="{% url 'preparation_tests:tef_hub' %}"
+                class="pt-btn-primary"
+              >
+                🎯 Préparer le TEF
+              </a>
+
+              <a
+                href="{% url 'preparation_tests:dashboard_global' %}"
+                class="pt-btn-secondary"
+              >
+                📊 Mon niveau TEF
+              </a>
+            {% endif %}
+
+            <a
+              href="{% url 'preparation_tests:exam_list' %}"
+              class="pt-btn-secondary"
+            >
+              ← Tous les examens
+            </a>
+
+          </div>
+        </article>
 
       </div>
-    </article>
 
-    <!-- ===== CONSEILS ===== -->
-    <article class="card card--info">
-      <h3>Conseils de préparation</h3>
-      <ul>
-        <li>Commence toujours par les <strong>cours + exercices</strong>.</li>
-        <li>Passe aux <strong>examens blancs chronométrés</strong> ensuite.</li>
-        <li>Analyse systématiquement tes erreurs.</li>
-      </ul>
-    </article>
+      <!-- ================= SIDEBAR ================= -->
+      <aside class="pt-side">
+
+        <div class="pt-card pt-card--side">
+          <h3>Conseils de préparation</h3>
+
+          <ul class="pt-side-list">
+            <li>Commence par les <strong>cours + exercices</strong></li>
+            <li>Passe ensuite aux <strong>examens blancs</strong></li>
+            <li>Analyse systématiquement tes erreurs</li>
+            <li>Utilise le <strong>Coach IA</strong> pour progresser</li>
+          </ul>
+        </div>
+
+      </aside>
+
+    </div>
 
   </div>
 </section>

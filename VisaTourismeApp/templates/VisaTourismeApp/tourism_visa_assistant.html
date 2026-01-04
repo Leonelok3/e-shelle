@@ -1,655 +1,126 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Guide Visa Tourisme - E-shelle</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body {
-            margin: 0;
-            background: radial-gradient(circle at top, #020617, #020617);
-            color: #e5e7eb;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
-        a { color: #38bdf8; text-decoration: none; }
+{% block title %}
+Guide Visa Tourisme – Canada, Schengen & Afrique | Immigration97
+{% endblock %}
 
-        /* Topbar globale */
-        .topbar {
-            border-bottom: 1px solid #020617;
-            background: rgba(15,23,42,0.97);
-            backdrop-filter: blur(14px);
-        }
-        .topbar-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .logo-badge {
-            width: 32px;
-            height: 32px;
-            border-radius: 12px;
-            background: radial-gradient(circle at 30% 0, #22c55e, #0f172a);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: 700;
-        }
-        .topbar-title {
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .topbar-sub {
-            font-size: 11px;
-            color: #9ca3af;
-        }
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .lang-switch {
-            display: inline-flex;
-            border-radius: 999px;
-            border: 1px solid #1f2937;
-            overflow: hidden;
-            font-size: 11px;
-        }
-        .lang-pill {
-            padding: 4px 10px;
-            cursor: pointer;
-            background: transparent;
-        }
-        .lang-pill.active {
-            background: #0f172a;
-        }
-        .support-chip {
-            font-size: 11px;
-            border-radius: 999px;
-            padding: 4px 10px;
-            background: #0f172a;
-            border: 1px solid #1f2937;
-            color: #e5e7eb;
-        }
+{% block meta_description %}
+Guide Visa Tourisme Immigration97 : simulation intelligente, score de chances,
+documents requis, étapes officielles et conseils anti-refus pour le Canada,
+l’espace Schengen et l’Afrique.
+{% endblock %}
 
-        /* Page principale */
-        .page {
-            max-width: 1200px;
-            margin: 24px auto 32px auto;
-            padding: 0 16px;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            gap: 12px;
-        }
-        .title {
-            font-size: 26px;
-            font-weight: 700;
-        }
-        .subtitle {
-            color: #9ca3af;
-            font-size: 14px;
-        }
-        .badge {
-            background: rgba(15,23,42,0.9);
-            border-radius: 999px;
-            padding: 6px 14px;
-            font-size: 12px;
-            border: 1px solid #1f2937;
-        }
+{% block body_class %}visa-tourisme{% endblock %}
+{% block app_scope %}visa-tourisme{% endblock %}
 
-        .trust-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 18px;
-        }
-        .trust-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border-radius: 999px;
-            background-color: #020617;
-            border: 1px solid #1f2937;
-            font-size: 11px;
-            color: #9ca3af;
-        }
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_tourisme.css' %}">
+{% endblock %}
 
-        .layout {
-            display: grid;
-            grid-template-columns: minmax(0, 2.1fr) minmax(0, 2.2fr);
-            gap: 20px;
-        }
-        @media (max-width: 900px) {
-            .layout { grid-template-columns: 1fr; }
-        }
+{% block content %}
 
-        .card {
-            background: radial-gradient(circle at top left, rgba(15,23,42,1), rgba(2,6,23,1));
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 20px 45px rgba(0,0,0,0.65);
-            border: 1px solid #020617;
-        }
+<!-- ================= HERO ================= -->
+<section class="vtm-hero vtm-fade-up">
+  <span class="vtm-step">Guide Visa Tourisme</span>
 
-        .mini-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: #64748b;
-        }
+  <h1 class="vtm-title">
+    Préparer un <span class="vtm-gradient-primary">Visa Tourisme</span><br>
+    Canada, Schengen & Afrique
+  </h1>
 
-        /* Formulaire */
-        form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px 18px;
-        }
-        .field {
-            display: flex;
-            flex-direction: column;
-            font-size: 13px;
-        }
-        .field-full {
-            grid-column: 1 / -1;
-        }
-        label {
-            margin-bottom: 4px;
-        }
+  <p class="vtm-subtitle">
+    Assistant intelligent pour préparer un <strong>dossier de visa touristique</strong>
+    crédible, structuré et conforme aux attentes des ambassades.
+  </p>
 
-        input[type="text"],
-        input[type="email"],
-        input[type="number"],
-        select,
-        textarea {
-            background-color: #020617;
-            border-radius: 10px;
-            border: 1px solid #1f2937;
-            padding: 7px 9px;
-            color: #e5e7eb;
-            font-size: 13px;
-        }
+  <div class="vtm-info-box mt-md">
+    ✔ Check-list personnalisée des documents<br>
+    ✔ Score de chances & analyse de risque<br>
+    ✔ Plan exportable en PDF<br>
+    ✔ Compatible Canada, Schengen, Afrique
+  </div>
+</section>
 
-        .radio-options {
-            display: flex;
-            gap: 12px;
-            margin-top: 4px;
-        }
-        .radio-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 13px;
-        }
-        .radio-label input[type="radio"] {
-            transform: scale(1.05);
-        }
+<!-- ================= CONTENU ================= -->
+<section class="vtm-card vtm-fade-up">
 
-        .error {
-            color: #f97373;
-            font-size: 11px;
-            margin-top: 2px;
-        }
+  <form method="post" class="vtm-form" novalidate>
+    {% csrf_token %}
 
-        button[type="submit"] {
-            margin-top: 10px;
-            background: linear-gradient(to right, #22c55e, #16a34a);
-            border: none;
-            border-radius: 999px;
-            padding: 10px 24px;
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            box-shadow: 0 12px 28px rgba(34,197,94,0.45);
-        }
-        button[type="submit"]:hover { opacity: 0.96; }
+    <div class="vtm-grid">
 
-        /* Analyse */
-        .analysis-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        .score-circle {
-            width: 70px;
-            height: 70px;
-            border-radius: 999px;
-            border: 5px solid #22c55e;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 18px;
-        }
-        .risk {
-            font-size: 13px;
-            color: #facc15;
-        }
+      {% for field in form %}
+        <div class="vtm-field {% if field.field.widget.attrs.class == 'field-full' %}vtm-field--full{% endif %}">
+          {{ field.label_tag }}
+          {{ field }}
 
-        .section-title {
-            margin-top: 12px;
-            margin-bottom: 4px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        ul {
-            padding-left: 18px;
-            margin-top: 4px;
-            font-size: 13px;
-        }
-        li { margin-bottom: 4px; }
-
-        .chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 6px;
-        }
-        .chip {
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 999px;
-            background-color: #020617;
-            border: 1px solid #1f2937;
-            color: #9ca3af;
-        }
-
-        .history-link {
-            font-size: 12px;
-            color: #9ca3af;
-            margin-top: 8px;
-            text-align: right;
-        }
-
-        /* Colonne droite : infos pratiques / cross-sell */
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1.15fr 1fr;
-            gap: 12px;
-            margin-top: 12px;
-        }
-        @media (max-width: 1100px) {
-            .info-grid { grid-template-columns: 1fr; }
-        }
-        .info-card {
-            background-color: #020617;
-            border-radius: 14px;
-            padding: 10px 12px;
-            border: 1px solid #1f2937;
-            font-size: 12px;
-        }
-        .info-title {
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        .tag {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 999px;
-            border: 1px solid #1f2937;
-            font-size: 10px;
-            color: #9ca3af;
-            margin-top: 4px;
-        }
-    </style>
-</head>
-
-<body>
-
-<!-- TOPBAR GLOBALE -->
-<div class="topbar">
-    <div class="topbar-inner">
-        <div class="topbar-left">
-            <div class="logo-badge">E</div>
-            <div>
-                <div class="topbar-title">E-SHELLE • Immigration Suite</div>
-                <div class="topbar-sub">Visa tourisme · Tests de langue · CV / Motivation · Photo DV Lottery</div>
+          {% if field.errors %}
+            <div class="error-message">
+              {{ field.errors.0 }}
             </div>
+          {% endif %}
         </div>
-        <div class="topbar-right">
-            <div class="lang-switch">
-                <div class="lang-pill active">FR</div>
-                <div class="lang-pill">EN</div>
-            </div>
-            <div class="support-chip">
-                💬 Support WhatsApp : +237 680 62 50 82
-            </div>
-        </div>
-    </div>
-</div>
+      {% endfor %}
 
-<div class="page">
-
-    <!-- ENTÊTE MODULE -->
-    <div class="header">
-        <div>
-            <div class="title">Guide Visa Tourisme ✈️</div>
-            <div class="subtitle">
-                Assistant intelligent pour préparer un dossier de visa tourisme ultra propre, étape par étape,
-                comme sur les plateformes professionnelles.
-            </div>
-        </div>
-        <div class="badge">
-            E-SHELLE • Préparation Visa & Immigration
-        </div>
     </div>
 
-    <!-- Badges de confiance -->
-    <div class="trust-row">
-        <div class="trust-badge">✅ Check-list complète des documents</div>
-        <div class="trust-badge">🧮 Score de chances & analyse de risque</div>
-        <div class="trust-badge">🧾 Export PDF partageable</div>
-        <div class="trust-badge">🌍 Compatible Schengen, USA, UK, Canada & plus</div>
+    <div class="vtm-actions">
+      <button type="submit" class="vtm-btn-primary">
+        🚀 Générer mon plan de visa
+      </button>
+
+      <p class="vtm-microcopy">
+        Outil d’aide à la préparation. Aucune information n’est transmise à une ambassade.
+      </p>
     </div>
 
-    <div class="layout">
+  </form>
 
-        <!-- COLONNE GAUCHE : FORMULAIRE -->
-        <div class="card">
-            <div class="mini-label">Étape 1</div>
-            <h2 style="margin-top:4px; font-size:18px;">Complétez votre profil voyageur</h2>
-            <p class="subtitle" style="margin-bottom:12px;">
-                Plus vos réponses sont précises, plus le plan de visa sera puissant.
-            </p>
+</section>
 
-            <form method="post" novalidate>
-                {% csrf_token %}
+<!-- ================= RÉSULTAT ================= -->
+{% if result %}
+<section class="vtm-card vtm-fade-up">
 
-                <!-- Identité -->
-                <div class="field">
-                    {{ form.full_name.label_tag }}
-                    {{ form.full_name }}
-                    {% if form.full_name.errors %}
-                        <div class="error">{{ form.full_name.errors.0 }}</div>
-                    {% endif %}
-                </div>
+  <h2 class="vtm-title">Analyse du dossier visa</h2>
 
-                <div class="field">
-                    {{ form.email.label_tag }}
-                    {{ form.email }}
-                    {% if form.email.errors %}
-                        <div class="error">{{ form.email.errors.0 }}</div>
-                    {% endif %}
-                </div>
+  <div class="vtm-info-box">
+    <strong>Score estimé :</strong> {{ result.score_chances }} %
+    — {{ result.niveau_risque }}
+  </div>
 
-                <div class="field">
-                    {{ form.phone.label_tag }}
-                    {{ form.phone }}
-                    {% if form.phone.errors %}
-                        <div class="error">{{ form.phone.errors.0 }}</div>
-                    {% endif %}
-                </div>
+  <div class="vtm-info-box mt-sm">
+    <a href="{% url 'visa_tourisme:pdf' result.id %}" target="_blank">
+      🧾 Télécharger le plan en PDF
+    </a><br>
+    <a href="{% url 'visa_tourisme:coach' %}?id={{ result.id }}">
+      🤝 Parler au Coach Visa
+    </a>
+  </div>
 
-                <!-- Profil voyage -->
-                <div class="field">
-                    {{ form.destination.label_tag }}
-                    {{ form.destination }}
-                    {% if form.destination.errors %}
-                        <div class="error">{{ form.destination.errors.0 }}</div>
-                    {% endif %}
-                </div>
+  <h3 class="vtm-subtitle">Points forts</h3>
+  <ul>
+    {% for pf in result.points_forts_list %}
+      <li>{{ pf }}</li>
+    {% endfor %}
+  </ul>
 
-                <div class="field">
-                    {{ form.nationalite.label_tag }}
-                    {{ form.nationalite }}
-                    {% if form.nationalite.errors %}
-                        <div class="error">{{ form.nationalite.errors.0 }}</div>
-                    {% endif %}
-                </div>
+  <h3 class="vtm-subtitle">Points à renforcer</h3>
+  <ul>
+    {% for pr in result.points_faibles_list %}
+      <li>{{ pr }}</li>
+    {% endfor %}
+  </ul>
 
-                <div class="field">
-                    {{ form.pays_residence.label_tag }}
-                    {{ form.pays_residence }}
-                    {% if form.pays_residence.errors %}
-                        <div class="error">{{ form.pays_residence.errors.0 }}</div>
-                    {% endif %}
-                </div>
+  <h3 class="vtm-subtitle">Documents requis</h3>
+  <ul>
+    {% for doc in result.documents_list %}
+      <li>{{ doc }}</li>
+    {% endfor %}
+  </ul>
 
-                <div class="field">
-                    {{ form.duree_sejour.label_tag }}
-                    {{ form.duree_sejour }}
-                    {% if form.duree_sejour.errors %}
-                        <div class="error">{{ form.duree_sejour.errors.0 }}</div>
-                    {% endif %}
-                </div>
+</section>
+{% endif %}
 
-                <div class="field field-full">
-                    {{ form.objet_voyage.label_tag }}
-                    {{ form.objet_voyage }}
-                    {% if form.objet_voyage.errors %}
-                        <div class="error">{{ form.objet_voyage.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Radios Oui / Non -->
-                <div class="field field-full">
-                    {{ form.a_un_emploi.label_tag }}
-                    <div class="radio-options">
-                        {% for radio in form.a_un_emploi %}
-                            <label class="radio-label">
-                                {{ radio.tag }} {{ radio.choice_label }}
-                            </label>
-                        {% endfor %}
-                    </div>
-                    {% if form.a_un_emploi.errors %}
-                        <div class="error">{{ form.a_un_emploi.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="field field-full">
-                    {{ form.a_invitation.label_tag }}
-                    <div class="radio-options">
-                        {% for radio in form.a_invitation %}
-                            <label class="radio-label">
-                                {{ radio.tag }} {{ radio.choice_label }}
-                            </label>
-                        {% endfor %}
-                    </div>
-                    {% if form.a_invitation.errors %}
-                        <div class="error">{{ form.a_invitation.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="field field-full">
-                    {{ form.a_deja_voyage.label_tag }}
-                    <div class="radio-options">
-                        {% for radio in form.a_deja_voyage %}
-                            <label class="radio-label">
-                                {{ radio.tag }} {{ radio.choice_label }}
-                            </label>
-                        {% endfor %}
-                    </div>
-                    {% if form.a_deja_voyage.errors %}
-                        <div class="error">{{ form.a_deja_voyage.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="field">
-                    {{ form.budget.label_tag }}
-                    {{ form.budget }}
-                    {% if form.budget.errors %}
-                        <div class="error">{{ form.budget.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="field">
-                    {{ form.age.label_tag }}
-                    {{ form.age }}
-                    {% if form.age.errors %}
-                        <div class="error">{{ form.age.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- BOUTON -->
-                <div class="field field-full" style="margin-top:4px;">
-                    <button type="submit">Générer mon plan de visa</button>
-                </div>
-            </form>
-
-            <!-- LIEN HISTORIQUE -->
-            <div class="history-link">
-                <a href="{% url 'visa_tourisme:historique' %}">Voir l’historique des demandes (conseiller)</a>
-            </div>
-        </div>
-
-        <!-- COLONNE DROITE : ANALYSE + INFOS PRATIQUES -->
-        <div class="card">
-            <div class="mini-label">Étape 2</div>
-            <h2 style="margin-top:4px; font-size:18px;">Analyse automatique de votre dossier</h2>
-
-            {% if result %}
-                <div class="analysis-header">
-                    <div>
-                        <div class="mini-label">Score de chances</div>
-                        <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
-                            <div class="score-circle">
-                                {{ result.score_chances }}%
-                            </div>
-                            <div>
-                                <div class="risk">{{ result.niveau_risque }}</div>
-                                <div style="font-size:12px;color:#9ca3af;margin-top:4px;">
-                                    Simulation indicative basée sur vos réponses.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ACTIONS (PDF + email) -->
-                <div style="margin-top:10px;font-size:12px;">
-                    <a href="{% url 'visa_tourisme:pdf' result.id %}" target="_blank">
-                        🧾 Télécharger ce plan en PDF
-                    </a>
-                    {% if result.email %}
-                        <br>📩 Une copie a été envoyée à : <strong>{{ result.email }}</strong>
-                    {% endif %}
-                </div>
-
-                <!-- LIEN COACH VISA -->
-                <div style="margin-top:8px;font-size:12px;">
-                    <a href="{% url 'visa_tourisme:coach' %}?id={{ result.id }}">
-                        🤝 Parler au Coach Visa à propos de ce dossier
-                    </a>
-                </div>
-
-                <!-- Points forts -->
-                <div class="section-title">Points forts du dossier</div>
-                <ul>
-                    {% for pf in result.points_forts_list %}
-                        <li>{{ pf }}</li>
-                    {% empty %}
-                        <li>Aucun point fort détecté.</li>
-                    {% endfor %}
-                </ul>
-
-                <!-- Points faibles -->
-                <div class="section-title">Points à renforcer</div>
-                <ul>
-                    {% for pr in result.points_faibles_list %}
-                        <li>{{ pr }}</li>
-                    {% empty %}
-                        <li>Aucun point faible détecté.</li>
-                    {% endfor %}
-                </ul>
-
-                <!-- Documents -->
-                <div class="section-title">Documents à préparer</div>
-                <ul>
-                    {% for doc in result.documents_list %}
-                        <li>{{ doc }}</li>
-                    {% endfor %}
-                </ul>
-
-                <!-- Étapes -->
-                <div class="section-title">Étapes clés du processus</div>
-                <ul>
-                    {% for step in result.etapes_list %}
-                        <li>{{ step }}</li>
-                    {% endfor %}
-                </ul>
-
-                <!-- Remarques -->
-                {% if result.remarques_list %}
-                    <div class="section-title">Remarques spécifiques</div>
-                    <div class="chips">
-                        {% for r in result.remarques_list %}
-                            <div class="chip">{{ r }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-                <!-- Conseils -->
-                <div class="section-title">Conseils stratégiques</div>
-                <ul>
-                    {% for c in result.conseils_list %}
-                        <li>{{ c }}</li>
-                    {% endfor %}
-                </ul>
-
-            {% else %}
-                <p style="margin-top:12px;color:#9ca3af;font-size:13px;">
-                    Remplissez le formulaire à gauche puis cliquez sur
-                    <strong>“Générer mon plan de visa”</strong>.
-                </p>
-                <ul style="font-size:13px;">
-                    <li>Score estimatif de vos chances de visa</li>
-                    <li>Points forts et risques à corriger</li>
-                    <li>Documents exacts à préparer</li>
-                    <li>Étapes officielles, prêtes à suivre</li>
-                    <li>Conseils pour maximiser vos chances</li>
-                </ul>
-            {% endif %}
-
-            <!-- INFOS PRATIQUES / CROSS-SELL -->
-            <div class="info-grid">
-                <div class="info-card">
-                    <div class="info-title">Délais & bonnes pratiques 🌍</div>
-                    <p>
-                        Déposez votre dossier au moins <strong>4 à 8 semaines</strong> avant la date de départ
-                        (plus tôt pour USA / Canada).
-                    </p>
-                    <p>
-                        Évitez les dépôts bancaires soudains : les fonds doivent être visibles
-                        sur plusieurs mois.
-                    </p>
-                    <span class="tag">Conseil pro</span>
-                </div>
-
-                <div class="info-card">
-                    <div class="info-title">Autres modules E-SHELLE 🔗</div>
-                    <p>
-                        • Photo DV Lottery / Visa : ajustement automatique.<br>
-                        • Préparation tests de langue : FR / EN / DE / autres.<br>
-                        • Générateur de CV & lettres de motivation.
-                    </p>
-                    <p style="margin-top:4px;font-size:11px;color:#9ca3af;">
-                        Retrouvez tous les outils sur <strong>E-shelle.com</strong>.
-                    </p>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-</body>
-</html>
+{% endblock %}

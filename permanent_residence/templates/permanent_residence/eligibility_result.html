@@ -1,22 +1,30 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block body_class %}residence-permanente{% endblock %}
+{% block app_scope %}residence-permanente{% endblock %}
+
+{# ================= SEO ================= #}
 {% block title %}
-Résultat Diagnostic Résidence Permanente – Canada / Australie | immigration97
+Résultat Diagnostic Résidence Permanente Canada & Australie | Immigration97
 {% endblock %}
 
 {% block meta_description %}
-Analyse intelligente de ton profil de Résidence Permanente (Canada / Australie) : points forts,
-axes à renforcer, programmes d’immigration à explorer et plan d’action guidé avec Immigration97.
+Résultat de votre diagnostic Résidence Permanente Canada / Australie :
+analyse complète de votre profil immigration, score, points forts,
+axes à renforcer et plan d’action personnalisé avec Immigration97.
 {% endblock %}
 
-{% block head_extra %}
-<link rel="stylesheet" href="{% static 'css/pages/residence_permanente_nav.css' %}">
+{# ================= CSS (BLOCK CORRECT) ================= #}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
 {% endblock %}
 
 {% block content %}
 
+{# ================= NAV RP UNIFIÉE ================= #}
 {% include "permanent_residence/_rp_nav.html" %}
+
 
 <div class="rp-result">
 
@@ -26,33 +34,39 @@ axes à renforcer, programmes d’immigration à explorer et plan d’action gui
 
       <div>
         <p class="rp-kicker">
-          Résultat du diagnostic RP · {{ profile.get_country_display }}
+          Résultat du diagnostic Résidence Permanente · {{ profile.get_country_display }}
         </p>
 
         <h1 class="rp-title">
-          Ton profil de Résidence Permanente, analysé.
+          Résultat de ton diagnostic Résidence Permanente
         </h1>
 
         <p class="rp-text">
-          Voici une synthèse de ton profil, les points forts, ce qui doit être renforcé
-          et la progression de ton plan d’action vers la Résidence Permanente.
+          Cette analyse repose sur les critères officiels des programmes de
+          <strong>Résidence Permanente au Canada et en Australie</strong>.
+          Elle t’indique clairement <strong>où tu te situes</strong>
+          et <strong>comment améliorer ton dossier d’immigration</strong>.
         </p>
       </div>
 
       <div class="rp-result-hero__status">
 
         {% if evaluation.status == "profil_potentiellement_interessant" %}
-          <span class="rp-badge rp-badge--success">✅ Profil potentiellement intéressant</span>
+          <span class="rp-badge rp-badge--success">
+            ✅ Profil intéressant pour la Résidence Permanente
+          </span>
         {% elif evaluation.status == "profil_a_renforcer" %}
-          <span class="rp-badge rp-badge--warning">⚠️ Profil à renforcer</span>
-        {% elif evaluation.status == "profil_incomplet_ou_faible" %}
-          <span class="rp-badge rp-badge--danger">🧩 Profil incomplet / faible</span>
+          <span class="rp-badge rp-badge--warning">
+            ⚠️ Profil à renforcer avant dépôt
+          </span>
         {% else %}
-          <span class="rp-badge">Profil analysé</span>
+          <span class="rp-badge rp-badge--danger">
+            🧩 Profil insuffisant ou incomplet
+          </span>
         {% endif %}
 
         <div class="rp-progress">
-          <p class="rp-progress__label">Progression du plan d’action</p>
+          <p class="rp-progress__label">Progression de ton plan RP</p>
           <div class="rp-progress__bar">
             <div class="rp-progress__fill" style="width: {{ progress_percent }}%;"></div>
           </div>
@@ -62,15 +76,16 @@ axes à renforcer, programmes d’immigration à explorer et plan d’action gui
       </div>
     </div>
 
+    <!-- CTA -->
     <div class="rp-result-hero__actions">
       <a href="{% url 'permanent_residence:plan' profile.id %}" class="rp-btn rp-btn--primary">
-        📝 Ouvrir mon plan d’action RP
+        📝 Voir mon plan d’action RP
       </a>
-      <a href="{% url 'permanent_residence:dashboard' %}" class="rp-btn rp-btn--outline">
-        📊 Voir le cockpit RP
+      <a href="{% url 'permanent_residence:dashboard' %}" class="rp-btn rp-btn--secondary">
+        📊 Accéder à mon cockpit
       </a>
-      <a href="{% url 'permanent_residence:coach' %}" class="rp-btn rp-btn--info">
-        🤖 Parler au coach IA RP
+      <a href="{% url 'permanent_residence:coach' %}" class="rp-btn rp-btn--ai">
+        🤖 Consulter le coach IA
       </a>
     </div>
   </section>
@@ -78,58 +93,35 @@ axes à renforcer, programmes d’immigration à explorer et plan d’action gui
   <!-- ================= SYNTHÈSE ================= -->
   <div class="rp-grid">
 
-    <section class="rp-card rp-result-summary">
-      <h2 class="rp-section-title">Synthèse de ton profil</h2>
+    <section class="rp-card">
+      <h2 class="rp-section-title">
+        Synthèse de ton profil de Résidence Permanente
+      </h2>
 
       <p class="rp-text">{{ evaluation.summary }}</p>
 
       <div class="rp-result-columns">
 
         <div>
-          <h3 class="rp-subtitle rp-subtitle--success">Points positifs</h3>
-          {% if evaluation.reasons %}
-            <ul class="rp-list">
-              {% for reason in evaluation.reasons %}
-                <li>{{ reason }}</li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="rp-muted">Les points positifs seront affichés ici.</p>
-          {% endif %}
+          <h3 class="rp-subtitle rp-subtitle--success">✔️ Points forts</h3>
+          <ul class="rp-list">
+            {% for reason in evaluation.reasons %}
+              <li>{{ reason }}</li>
+            {% endfor %}
+          </ul>
         </div>
 
         <div>
-          <h3 class="rp-subtitle rp-subtitle--warning">Axes à renforcer / conseils</h3>
-          {% if evaluation.suggestions %}
-            <ul class="rp-list">
-              {% for suggestion in evaluation.suggestions %}
-                <li>{{ suggestion }}</li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="rp-muted">Les pistes d’amélioration seront affichées ici.</p>
-          {% endif %}
+          <h3 class="rp-subtitle rp-subtitle--warning">🔧 Axes d’amélioration</h3>
+          <ul class="rp-list">
+            {% for suggestion in evaluation.suggestions %}
+              <li>{{ suggestion }}</li>
+            {% endfor %}
+          </ul>
         </div>
 
       </div>
     </section>
-
-    <!-- ================= RÉSUMÉ TECHNIQUE ================= -->
-    <aside class="rp-card rp-result-tech">
-      <h2 class="rp-section-title">Résumé technique</h2>
-
-      <dl class="rp-definition-list">
-        <div><dt>Pays ciblé</dt><dd>{{ profile.get_country_display }}</dd></div>
-        <div><dt>Âge</dt><dd>{{ profile.age|default:"—" }}</dd></div>
-        <div><dt>Expérience</dt><dd>{{ profile.years_experience|default:"—" }}</dd></div>
-        <div><dt>Études</dt><dd>{{ profile.get_education_level_display|default:"—" }}</dd></div>
-        <div><dt>Français</dt><dd>{{ profile.get_french_level_display|default:"—" }}</dd></div>
-        <div><dt>Anglais</dt><dd>{{ profile.get_english_level_display|default:"—" }}</dd></div>
-        <div><dt>Profession</dt><dd>{{ profile.profession_title|default:"—" }}</dd></div>
-        <div><dt>Famille sur place</dt><dd>{% if profile.has_family_in_country %}Oui{% else %}Non{% endif %}</dd></div>
-        <div><dt>Offre d’emploi</dt><dd>{% if profile.has_job_offer %}Oui{% else %}Non{% endif %}</dd></div>
-      </dl>
-    </aside>
 
   </div>
 

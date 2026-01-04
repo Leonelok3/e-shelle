@@ -1,20 +1,45 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Renvoyer l’email de confirmation – Immigration97{% endblock %}
+{# ==================================================
+   AUTHENTIFICATION — SCOPE STRICT
+================================================== #}
+{% block body_class %}authentification{% endblock %}
+{% block app_scope %}authentification{% endblock %}
 
-{% block head_extra %}
-<link rel="stylesheet" href="{% static 'css/pages/authentication.css' %}">
+{# ==================================================
+   SEO
+================================================== #}
+{% block title %}
+Renvoyer l’email de confirmation | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Renvoyez l’email de confirmation de votre compte Immigration97
+pour activer votre accès à la plateforme.
+{% endblock %}
+
+{# ==================================================
+   CSS AUTH — VERSIONNÉ (ANTI CACHE)
+================================================== #}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/authentication.css' %}?v=20260104">
 {% endblock %}
 
 {% block content %}
-<main class="auth-layout">
 
+<main class="auth-layout">
   <section class="auth-container">
+
     <div class="auth-card">
 
+      <!-- ================= HEADER ================= -->
       <header class="auth-header">
-        <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97" class="auth-logo">
+        <img
+          src="{% static 'img/LOGOIMM97.png' %}"
+          alt="Immigration97"
+          class="auth-logo"
+        >
         <h1>Email de confirmation</h1>
         <p>
           Vous n’avez pas reçu l’email d’activation ?
@@ -22,6 +47,7 @@
         </p>
       </header>
 
+      <!-- ================= ALERTS ================= -->
       {% if messages %}
         <div class="auth-alerts">
           {% for message in messages %}
@@ -32,7 +58,8 @@
         </div>
       {% endif %}
 
-      <form method="post" class="auth-form">
+      <!-- ================= FORM ================= -->
+      <form method="post" class="auth-form" novalidate>
         {% csrf_token %}
 
         <div class="form-group">
@@ -51,6 +78,7 @@
         </button>
       </form>
 
+      <!-- ================= FOOTER ================= -->
       <footer class="auth-footer">
         <p>
           <a href="{% url 'authentification:login' %}">
@@ -60,7 +88,8 @@
       </footer>
 
     </div>
-  </section>
 
+  </section>
 </main>
+
 {% endblock %}

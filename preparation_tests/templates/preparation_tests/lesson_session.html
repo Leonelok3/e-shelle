@@ -1,141 +1,211 @@
 {% extends "base.html" %}
 {% load static %}
 
+{# ==================================================
+   SCOPE STRICT APP
+================================================== #}
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{# ==================================================
+   SEO — TITLE & META
+================================================== #}
 {% block title %}
-{{ lesson.title }} – {{ lesson.exam.code|upper }} {{ section|upper }}
+{{ lesson.title }} – {{ lesson.exam.code|upper }} {{ section|upper }} | Immigration97
 {% endblock %}
 
+{% block meta_description %}
+Leçon {{ section|upper }} – {{ lesson.exam.code|upper }} niveau {{ lesson.level }} :
+audio, questions corrigées et entraînement progressif CECR
+avec Immigration97.
+{% endblock %}
+
+{# ==================================================
+   CSS APP — VERSIONNÉ
+================================================== #}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/tef_co_session.css' %}">
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260104">
 {% endblock %}
 
 {% block content %}
-<main class="lesson-session">
 
-  <!-- ========================= -->
-  <!-- 🎓 HERO LEÇON -->
-  <!-- ========================= -->
-  <section class="lesson-hero">
-    <h1 class="lesson-title">{{ lesson.title }}</h1>
+<!-- ==================================================
+HERO — LEÇON
+================================================== -->
+<section class="pt-hero pt-hero--lesson">
+  <div class="container pt-fade-up">
+
+    <span class="pt-badge">
+      {{ lesson.exam.code|upper }} · {{ section|upper }} · Niveau {{ lesson.level }}
+    </span>
+
+    <h1 class="pt-title">
+      {{ lesson.title }}
+    </h1>
+
     {% include "preparation_tests/partials/_cefr_bar.html" %}
 
-    <p class="lesson-meta">
-      Examen : {{ lesson.exam.code|upper }} •
-      Section : {{ section|upper }} •
-      Niveau : {{ lesson.level }}
+    <p class="pt-lead">
+      Entraînement guidé avec <strong>audio</strong>,
+      <strong>questions interactives</strong> et
+      <strong>correction immédiate</strong>.
     </p>
-  </section>
 
-  <!-- ========================= -->
-  <!-- 🧭 NAVIGATION PARCOURS -->
-  <!-- ========================= -->
-  {% include "preparation_tests/partials/_prep_nav.html" %}
+  </div>
+</section>
 
-  <!-- ========================= -->
-  <!-- 📘 CONTENU DE LA LEÇON -->
-  <!-- ========================= -->
-  <section class="lesson-body">
-    {{ lesson.content_html|safe }}
-  </section>
+<!-- ==================================================
+NAVIGATION PARCOURS
+================================================== -->
+<section class="pt-section pt-section--nav">
+  <div class="container">
+    {% include "preparation_tests/partials/_prep_nav.html" %}
+  </div>
+</section>
 
-  <div class="lesson-divider"></div>
+<!-- ==================================================
+CONTENU DE LA LEÇON
+================================================== -->
+<section class="pt-section">
+  <div class="container">
 
-  <!-- ========================= -->
-  <!-- 🎧 EXERCICES -->
-  <!-- ========================= -->
-  <section class="lesson-exercises">
-    <h2 class="exercises-title">🎧 Exercices d'application</h2>
+    <div class="pt-grid-layout">
 
-    {% for exercise in exercises %}
-      <article class="exercise-card">
+      <!-- ================= MAIN ================= -->
+      <div class="pt-main">
 
-        <header class="exercise-header">
+        <article class="pt-card pt-card--lesson-content">
+          {{ lesson.content_html|safe }}
+        </article>
+
+      </div>
+
+      <!-- ================= SIDEBAR ================= -->
+      <aside class="pt-side">
+
+        <div class="pt-card pt-card--side">
+          <h3>🎯 Objectif pédagogique</h3>
+          <ul class="pt-side-list">
+            <li>Comprendre les consignes</li>
+            <li>Identifier les informations clés</li>
+            <li>Répondre efficacement sous contrainte de temps</li>
+          </ul>
+        </div>
+
+      </aside>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================================================
+EXERCICES AUDIO
+================================================== -->
+<section class="pt-section pt-section--exercises">
+  <div class="container">
+
+    <h2 class="pt-section-title text-center">
+      🎧 Exercices d’application
+    </h2>
+
+    <div class="pt-exercises-grid">
+
+      {% for exercise in exercises %}
+      <article class="pt-card pt-card--exercise">
+
+        <header class="pt-exercise-header">
           <h3>Exercice {{ forloop.counter }}</h3>
 
           {% if exercise.instruction %}
-            <p class="exercise-instruction">
+            <p class="pt-exercise-instruction">
               {{ exercise.instruction }}
             </p>
           {% endif %}
         </header>
 
-        <!-- 🔊 AUDIO -->
+        <!-- AUDIO -->
         {% if exercise.audio and exercise.audio.file %}
-          <div class="audio-box">
-            <p class="audio-label">🎧 Écoutez attentivement l'audio</p>
-
-            <audio controls preload="metadata">
-              <source src="{{ exercise.audio.file.url }}" type="audio/mpeg">
-              <source src="{{ exercise.audio.file.url }}" type="audio/mp3">
-              Votre navigateur ne supporte pas l'audio.
-            </audio>
-          </div>
+        <div class="pt-audio-box">
+          <audio controls preload="metadata">
+            <source src="{{ exercise.audio.file.url }}" type="audio/mpeg">
+            Votre navigateur ne supporte pas l’audio.
+          </audio>
+        </div>
         {% else %}
-          <div class="audio-box audio-box--missing">
-            ⚠️ Aucun audio disponible pour cet exercice
-          </div>
+        <div class="pt-audio-box pt-audio-box--missing">
+          ⚠️ Aucun audio disponible pour cet exercice
+        </div>
         {% endif %}
 
-        <!-- ❓ QUESTION -->
-        <p class="exercise-question">
+        <!-- QUESTION -->
+        <p class="pt-exercise-question">
           {{ exercise.question_text }}
         </p>
 
-        <!-- ✅ FORMULAIRE -->
+        <!-- FORMULAIRE -->
         <form
-          class="exercise-form"
+          class="pt-exercise-form"
           data-correct="{{ exercise.correct_option }}"
           data-exercise-id="{{ exercise.id }}"
         >
 
+          {% for opt,label in "ABCD"|make_list|zip:
+            exercise.option_a|default_if_none:""|yesno:","
+            exercise.option_b|default_if_none:""|yesno:","
+            exercise.option_c|default_if_none:""|yesno:","
+            exercise.option_d|default_if_none:""|yesno:"," %}
+          {% endfor %}
+
           {% if exercise.option_a %}
-          <label class="option">
+          <label class="pt-option">
             <input type="radio" name="q{{ exercise.id }}" value="A">
-            <span class="option-letter">A.</span>
-            <span class="option-text">{{ exercise.option_a }}</span>
+            <span>A.</span> {{ exercise.option_a }}
           </label>
           {% endif %}
-
           {% if exercise.option_b %}
-          <label class="option">
+          <label class="pt-option">
             <input type="radio" name="q{{ exercise.id }}" value="B">
-            <span class="option-letter">B.</span>
-            <span class="option-text">{{ exercise.option_b }}</span>
+            <span>B.</span> {{ exercise.option_b }}
           </label>
           {% endif %}
-
           {% if exercise.option_c %}
-          <label class="option">
+          <label class="pt-option">
             <input type="radio" name="q{{ exercise.id }}" value="C">
-            <span class="option-letter">C.</span>
-            <span class="option-text">{{ exercise.option_c }}</span>
+            <span>C.</span> {{ exercise.option_c }}
           </label>
           {% endif %}
-
           {% if exercise.option_d %}
-          <label class="option">
+          <label class="pt-option">
             <input type="radio" name="q{{ exercise.id }}" value="D">
-            <span class="option-letter">D.</span>
-            <span class="option-text">{{ exercise.option_d }}</span>
+            <span>D.</span> {{ exercise.option_d }}
           </label>
           {% endif %}
 
-          <button type="button" class="btn-check">
-            Vérifier la réponse
-          </button>
+          <div class="pt-cta-group">
+            <button type="button" class="pt-btn-primary pt-check-answer">
+              Vérifier la réponse
+            </button>
+          </div>
 
-          <p class="feedback" style="display:none;"></p>
+          <p class="pt-feedback" hidden></p>
+
         </form>
 
       </article>
-    {% empty %}
-      <p class="no-exercises">Aucun exercice disponible pour cette leçon.</p>
-    {% endfor %}
-  </section>
+      {% empty %}
+        <p class="pt-empty text-center">
+          Aucun exercice disponible pour cette leçon.
+        </p>
+      {% endfor %}
 
-</main>
+    </div>
+
+  </div>
+</section>
+
 {% endblock %}
 
 {% block body_end %}
-<script src="{% static 'js/tef_co_session.js' %}"></script>
+<script src="{% static 'js/preparation_tests.js' %}" defer></script>
 {% endblock %}

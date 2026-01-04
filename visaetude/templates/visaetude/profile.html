@@ -1,79 +1,155 @@
-{% extends "visaetude/base.html" %}
-{% block title %}Mon Profil Visa Études{% endblock %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}visa-etude{% endblock %}
+
+{% block title %}
+Profil Visa Étudiant | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Profil Visa Études Immigration97 : analyse intelligente de ton niveau,
+budget et objectifs pour identifier les pays, universités, bourses
+et stratégies visa réellement accessibles.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_etude.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-lg-8">
-        <div class="section-title mb-1">Étape 1 · Profil & Diagnostic</div>
-        <h1 class="h4 text-white mb-1">Mon Profil</h1>
-        <p class="small text-muted mb-0">
-            Ces informations permettent d’adapter les recommandations (pays, bourses, visa) à ta situation.
+
+<div class="container ve-container"><!-- ✅ CONTAINER CRITIQUE -->
+
+  <!-- ================= HEADER ================= -->
+  <section class="ve-section-header mb-4">
+    <div class="row">
+      <div class="col-lg-9">
+        <span class="ve-step-badge">
+          Étape 1 · Profil & Diagnostic
+        </span>
+
+        <h1 class="ve-page-title">
+          Mon profil étudiant
+        </h1>
+
+        <p class="ve-page-subtitle">
+          Cette analyse permet à Immigration97 et au coach IA de
+          <strong>déterminer les pays réellement accessibles</strong>,
+          d’éviter les erreurs coûteuses
+          et de construire un parcours visa réaliste.
         </p>
+      </div>
     </div>
-</div>
+  </section>
 
-<div class="row">
+  <!-- ================= CONTENT ================= -->
+  <div class="row g-4">
+
+    <!-- ========== FORMULAIRE ========= -->
     <div class="col-lg-7">
-        <div class="card card-module p-4">
-            {% if not user_is_authenticated %}
-                <div class="alert alert-warning small">
-                    Connecte-toi pour sauvegarder ton profil. Pour l’instant, ce formulaire est en mode lecture seule.
-                </div>
-            {% endif %}
 
-            <form method="post" novalidate>
-                {% csrf_token %}
+      <div class="card card-module ve-form-card p-4">
 
-                <div class="mb-3">
-                    <label class="form-label small text-muted">{{ form.pays_origine.label }}</label>
-                    {{ form.pays_origine }}
-                </div>
+        {% if not user.is_authenticated %}
+          <div class="alert alert-warning ve-alert-soft mb-4">
+            🔒 <strong>Connexion requise</strong><br>
+            <small>
+              En mode invité, le formulaire est consultable
+              mais non enregistrable.
+            </small>
+          </div>
+        {% endif %}
 
-                <div class="mb-3">
-                    <label class="form-label small text-muted">{{ form.niveau_etude.label }}</label>
-                    {{ form.niveau_etude }}
-                </div>
+        <form method="post" novalidate class="ve-form">
+          {% csrf_token %}
 
-                <div class="mb-3">
-                    <label class="form-label small text-muted">{{ form.domaine_etude.label }}</label>
-                    {{ form.domaine_etude }}
-                </div>
+          <div class="ve-form-group">
+            <label class="ve-label">{{ form.pays_origine.label }}</label>
+            {{ form.pays_origine }}
+            <small class="ve-help">
+              Pays depuis lequel tu feras ta demande de visa.
+            </small>
+          </div>
 
-                <div class="mb-3">
-                    <label class="form-label small text-muted">{{ form.budget_disponible.label }}</label>
-                    {{ form.budget_disponible }}
-                </div>
+          <div class="ve-form-group">
+            <label class="ve-label">{{ form.niveau_etude.label }}</label>
+            {{ form.niveau_etude }}
+            <small class="ve-help">
+              Dernier diplôme obtenu ou en cours.
+            </small>
+          </div>
 
-                <div class="mb-3">
-                    <label class="form-label small text-muted">{{ form.telephone.label }}</label>
-                    {{ form.telephone }}
-                </div>
+          <div class="ve-form-group">
+            <label class="ve-label">{{ form.domaine_etude.label }}</label>
+            {{ form.domaine_etude }}
+            <small class="ve-help">
+              Ex : Informatique, Gestion, Santé, Ingénierie…
+            </small>
+          </div>
 
-                {% if user_is_authenticated %}
-                    <button type="submit" class="btn btn-soft-success w-100">
-                        Enregistrer mon profil
-                    </button>
-                {% else %}
-                    <button type="button" class="btn btn-outline-light w-100" disabled>
-                        Connecte-toi pour sauvegarder ton profil
-                    </button>
-                {% endif %}
-            </form>
-        </div>
+          <div class="ve-form-group">
+            <label class="ve-label">{{ form.budget_disponible.label }}</label>
+            {{ form.budget_disponible }}
+            <small class="ve-help">
+              Budget global estimé (frais, logement, visa).
+            </small>
+          </div>
+
+          <div class="ve-form-group">
+            <label class="ve-label">{{ form.telephone.label }}</label>
+            {{ form.telephone }}
+            <small class="ve-help">
+              Optionnel — utilisé pour l’accompagnement personnalisé.
+            </small>
+          </div>
+
+          {% if user.is_authenticated %}
+            <button type="submit" class="ve-btn-primary w-100 mt-3">
+              💾 Enregistrer mon profil étudiant
+            </button>
+          {% else %}
+            <button type="button" class="ve-btn-disabled w-100 mt-3" disabled>
+              🔒 Connexion requise pour enregistrer
+            </button>
+          {% endif %}
+        </form>
+
+      </div>
     </div>
 
-    <div class="col-lg-5 mt-4 mt-lg-0">
-        <div class="card card-module p-3">
-            <div class="section-title mb-1">Pourquoi ce profil ?</div>
-            <p class="small text-muted mb-2">
-                Le profil est utilisé pour :
-            </p>
-            <ul class="small text-muted mb-0">
-                <li>Proposer des pays compatibles avec ton budget.</li>
-                <li>Aider le coach IA à donner des conseils adaptés.</li>
-                <li>Préparer une checklist réaliste pour ton projet.</li>
-            </ul>
-        </div>
+    <!-- ========== SIDEBAR ========= -->
+    <div class="col-lg-5">
+
+      <div class="card card-module ve-info-card p-4 mb-4">
+        <h3 class="ve-card-title">
+          🎯 Pourquoi ce profil est crucial ?
+        </h3>
+
+        <ul class="ve-checklist">
+          <li>Identifier les pays vraiment accessibles</li>
+          <li>Éviter les refus de visa inutiles</li>
+          <li>Adapter les conseils du coach IA</li>
+          <li>Créer une checklist réaliste et priorisée</li>
+        </ul>
+      </div>
+
+      <div class="card card-module ve-info-card p-4">
+        <h3 class="ve-card-title">
+          🤖 Rôle du coach IA
+        </h3>
+
+        <p class="small text-muted mb-0">
+          Le coach analyse ton profil pour proposer
+          des stratégies adaptées à ton niveau académique,
+          ton budget et les exigences réelles des ambassades.
+        </p>
+      </div>
+
     </div>
-</div>
+
+  </div>
+
+</div><!-- ✅ FIN CONTAINER -->
+
 {% endblock %}

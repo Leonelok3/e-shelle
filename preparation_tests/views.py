@@ -948,3 +948,93 @@ def retry_session_errors(request, session_id):
     # 🔒 Pour l’instant : on redirige vers la session existante
     # (la logique avancée viendra plus tard)
     return redirect("session_detail", session_id=session.id)
+
+
+
+############################################### BRANCHEMENT DES HUB CO ET AUTRES ################
+from django.db.models import Count, Q
+
+@login_required
+def co_hub(request):
+    user = request.user
+
+    # Tous les niveaux existants en CO
+    levels = (
+        CourseLesson.objects
+        .filter(section="co", is_published=True)
+        .values_list("level", flat=True)
+        .distinct()
+        .order_by("level")
+    )
+
+    levels_data = []
+
+    for level in levels:
+        # Total des leçons du niveau
+        total_lessons = CourseLesson.objects.filter(
+            section="co",
+            level=level,
+            is_published=True
+        ).count()
+
+        # Leçons complétées par l'utilisateur
+        completed_lessons = UserLessonProgress.objects.filter(
+            user=user,
+            lesson__section="co",
+            lesson__level=level,
+            is_completed=True
+        ).count()
+
+        progress_pct = int(
+            (completed_lessons / total_lessons) * 100
+        ) if total_lessons else 0
+
+        levels_data.append({
+            "level": level,
+            "completed": completed_lessons,
+            "total": total_lessons,
+            "progress_pct": progress_pct,
+        })
+
+    return render(
+        request,
+        "preparation_tests/co_hub.html",
+        {
+            "levels": levels_data,
+        }
+    )
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from preparation_tests.models import CourseLesson, UserLessonProgress
+from preparation_tests.services.level_engine import get_cefr_progress
+
+
+@login_required
+def co_by_level(request, level):
+    level = level.upper()
+    user = request.user
+
+    lessons = CourseLesson.objects.filter(
+        section="co",
+        level=level,
+        is_published=True
+    ).order_by("order")
+
+    cefr = get_cefr_progress(
+        user=user,
+        exam_code="CECR",
+        skill="co",
+    )
+
+    return render(
+        request,
+        "preparation_tests/co_by_level.html",
+        {
+            "section": "co",
+            "level": level,
+            "lessons": lessons,
+            "cefr": cefr,
+        }
+    )

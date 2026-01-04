@@ -3,6 +3,7 @@ import json
 import logging
 import re
 from io import BytesIO
+from .models import CVUpload
 
 from django.utils import timezone
 from django.conf import settings
@@ -13,18 +14,24 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils.text import slugify
-
+from .services.cv_parser import extract_text_from_cv
+from .services.cv_prefill import prefill_cv_from_text
+from cv_generator.services.cv_mapper import map_cv_text_to_models
 from xhtml2pdf import pisa
 
 from .models import (
-    CV, CVTemplate, Experience, Education,
-    Skill, Language, Volunteer, Hobby,
-    Certification, Project, CVExportHistory
+    CV,
+    CVTemplate,
+    Experience,
+    Education,
+    Skill,
+    Language,
 )
+
 from .forms import (
     Step1Form, Step3Form, ExperienceForm,
     EducationForm, SkillForm, LanguageForm, VolunteerForm,
-    HobbyForm, CertificationForm, ProjectForm
+    HobbyForm, CertificationForm, ProjectForm, CVUploadForm 
 )
 
 logger = logging.getLogger(__name__)
@@ -59,22 +66,27 @@ def _safe_manager_list(obj, attr_name):
 
 
 def _cv_context(cv, step, **extra):
-    """Contexte standardisé pour create_cv.html — tolérant aux absences de relations."""
+    """
+    Contexte unique et contractuel pour toute l'app CV.
+    UI = PDF = même source.
+    """
     base = {
         "cv": cv,
         "current_step": step,
-        "experiences": _safe_manager_list(cv, "experiences"),
-        "educations": _safe_manager_list(cv, "education_set"),
-        "skills": _safe_manager_list(cv, "skills"),
-        "languages": _safe_manager_list(cv, "languages"),
-        "certifications": _safe_manager_list(cv, "certifications"),
-        "volunteers": _safe_manager_list(cv, "volunteers"),
-        "projects": _safe_manager_list(cv, "projects"),
-        "hobbies": _safe_manager_list(cv, "hobbies"),
+
+        # Relations STRICTES (models)
+        "experiences": list(cv.experiences.all()),
+        "educations": list(cv.educations.all()),
+        "skills": list(cv.skills.all()),
+        "languages": list(cv.languages.all()),
+        "certifications": list(cv.certifications.all()),
+        "volunteers": list(cv.volunteers.all()),
+        "projects": list(cv.projects.all()),
+        "hobbies": list(cv.hobbies.all()),
     }
+
     base.update(extra or {})
     return base
-
 
 def _json_body(request):
     try:
@@ -95,23 +107,28 @@ from billing.services import has_active_access, has_session_access
 
 @login_required
 def cv_list(request):
-    if not has_active_access(request.user) and not has_session_access(request):
-        return redirect(f"/billing/pricing/?next={request.path}")
+    cvs = CV.objects.filter(
+        utilisateur=request.user
+    ).order_by('-created_at')
 
-    cvs = CV.objects.filter(utilisateur=request.user).order_by("-date_modification")
-    return render(request, "cv_generator/cv_list.html", {"cvs": cvs})
-
-
-@login_required
-def template_selection(request):
-    # Les 4 styles que tu veux afficher
-    styles = ["canada", "europe", "modern", "professional"]
-    templates = (
-        CVTemplate.objects
-        .filter(is_active=True, style_type__in=styles)
-        .order_by("style_type", "name")
+    return render(
+        request,
+        "cv_generator/cv_list.html",
+        {"cvs": cvs}
     )
-    return render(request, "cv_generator/template_selection.html", {"templates": templates})
+
+
+# cv_generator/views.py
+
+from django.shortcuts import render
+from .models import CVTemplate
+
+def template_selection(request):
+    templates = CVTemplate.objects.filter(is_active=True)
+    return render(request, "cv_generator/template_selection.html", {
+        "templates": templates
+    })
+
 
 @login_required
 def create_cv(request, cv_id):
@@ -146,55 +163,90 @@ def create_cv(request, cv_id):
     return render(request, "cv_generator/create_cv.html", _cv_context(cv, 1, form=form))
 
 
+
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .models import CV, Experience
+
+
 @login_required
 def create_cv_step2(request, cv_id):
     cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
 
-    if request.method == "POST":
-        title = request.POST.get('title', '').strip()
-        company = request.POST.get('company', '').strip()
-        start_date = request.POST.get('start_date', '').strip()
-        end_date = request.POST.get('end_date', '').strip() or None
-        location = request.POST.get('location', '').strip()
-        description_raw = request.POST.get('description_raw', '').strip()
+    # 🔹 EXPÉRIENCES EXISTANTES (importées ou ajoutées)
+    experiences = cv.experiences.all().order_by("-start_date")
 
-        if not all([title, company, start_date, description_raw]):
-            messages.error(request, '❌ Veuillez remplir tous les champs obligatoires (*)')
-            return redirect("cv_generator:create_cv_step2", cv_id=cv.id)
+    # 🔹 DÉTECTION SOURCE (LOGIQUE CLÉ)
+    if experiences.exists() and not request.GET.get("edit"):
+        experience_source = "imported"
+    else:
+        experience_source = "manual"
 
-        try:
+    # 🔹 AJOUT MANUEL D’UNE EXPÉRIENCE
+    if request.method == "POST" and experience_source == "manual":
+        title = request.POST.get("title")
+        company = request.POST.get("company")
+        start_date = request.POST.get("start_date")
+        end_date = request.POST.get("end_date") or None
+        description_raw = request.POST.get("description_raw")
+
+        # 🔐 Sécurité minimale
+        if not title or not company or not start_date or not description_raw:
+            messages.error(request, "Veuillez remplir tous les champs obligatoires.")
+        else:
             Experience.objects.create(
                 cv=cv,
                 title=title,
                 company=company,
                 start_date=start_date,
-                end_date=end_date if end_date else None,
-                location=location,
-                description_raw=description_raw
+                end_date=end_date,
+                description_raw=description_raw,
             )
 
-            if not cv.step2_completed:
-                cv.step2_completed = True
-                cv.current_step = 3
-                cv.save(update_fields=["step2_completed", "current_step"])
+            messages.success(request, "Expérience ajoutée avec succès.")
 
-            messages.success(request, "✅ Expérience ajoutée avec succès !")
-            return redirect("cv_generator:create_cv_step2", cv_id=cv.id)
+            # 🔹 Mise à jour progression CV
+            cv.step2_completed = True
+            cv.current_step = max(cv.current_step, 2)
+            cv.save()
 
-        except Exception as e:
-            logger.error("Erreur lors de l'ajout d'expérience: %s", e)
-            messages.error(request, f"❌ Erreur lors de l'ajout : {str(e)}")
-            return redirect("cv_generator:create_cv_step2", cv_id=cv.id)
+            return redirect("cv_generator:create_cv_step2", cv.id)
 
-    return render(request, "cv_generator/create_cv.html", _cv_context(cv, 2))
+    context = {
+        "cv": cv,
+        "experiences": experiences,
+        "experience_source": experience_source,
+    }
 
+    return render(
+        request,
+        "cv_generator/steps/step_2_experience.html",
+        context
+    )
 
 @login_required
 def create_cv_step3(request, cv_id):
     cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
 
+    # 🔒 Sécurité : on ne peut pas accéder à l'étape 3 sans l'étape 2
+    if not cv.step2_completed:
+        messages.warning(
+            request,
+            "⚠️ Veuillez d'abord compléter l'étape Expériences."
+        )
+        return redirect("cv_generator:create_cv_step2", cv_id=cv.id)
+
+    # 🔁 Forcer la cohérence de l'étape
+    if cv.current_step < 3:
+        cv.current_step = 3
+        cv.save(update_fields=["current_step"])
+
     context = _cv_context(
-        cv, 3,
+        cv,
+        step=3,
         education_form=EducationForm(),
         skill_form=SkillForm(),
         language_form=LanguageForm(),
@@ -204,11 +256,11 @@ def create_cv_step3(request, cv_id):
         hobby_form=HobbyForm(),
     )
 
-    if cv.current_step != 3:
-        cv.current_step = 3
-        cv.save(update_fields=["current_step"])
-
-    return render(request, "cv_generator/create_cv.html", context)
+    return render(
+        request,
+        "cv_generator/create_cv.html",
+        context
+    )
 
 
 @login_required
@@ -599,139 +651,224 @@ def _resolve_pdf_template_for_cv(cv, request=None):
 # ---------------------------
 
 # cv_generator/views.py
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+from xhtml2pdf import pisa
+import re
+
+from .models import CV
+
+
+# =========================
+# UTILS — PDF SAFE
+# =========================
+
+def clean_and_split(text):
+    """
+    Nettoie un texte libre et le transforme en bullet points ATS.
+    """
+    if not text:
+        return []
+
+    # Supprimer phrases d'aide / exemples
+    blacklist = [
+        "utiliser des verbes",
+        "par exemple",
+        "exemple",
+        "chatgpt",
+        "guide ia",
+    ]
+
+    text_lower = text.lower()
+    for b in blacklist:
+        if b in text_lower:
+            return []
+
+    # Découpage par lignes ou séparateurs
+    lines = re.split(r"[\n•\-–]+", text)
+
+    bullets = []
+    for line in lines:
+        line = line.strip()
+        if len(line) < 5:
+            continue
+        bullets.append(line.capitalize())
+
+    return bullets[:8]  # max 8 bullets (ATS optimal)
+
+
+def normalize_language_level(level):
+    """
+    Normalisation des niveaux de langue (Canada / International).
+    """
+    if not level:
+        return ""
+
+    level = level.lower()
+
+    mapping = {
+        "débutant": "Basic",
+        "basic": "Basic",
+        "moyen": "Intermediate",
+        "intermédiaire": "Intermediate",
+        "courant": "Fluent",
+        "excellent": "Fluent",
+        "fluent": "Fluent",
+        "natif": "Native",
+        "native": "Native",
+        "b1": "Intermediate",
+        "b2": "Fluent",
+        "c1": "Fluent",
+        "c2": "Native",
+    }
+
+    return mapping.get(level, level.capitalize())
+
+
+# =========================
+# EXPORT PDF
+# =========================
+
 @login_required
 def export_pdf(request, cv_id):
     cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
 
-    # Historique (best effort)
-    try:
-        CVExportHistory.objects.create(cv=cv, export_format='pdf')
-    except Exception:
-        pass
-
-    # ---- Infos perso ----
-    try:
-        pi = cv.get_personal_info() or {}
-    except Exception:
-        pi = (getattr(cv, "data", {}) or {}).get("personal_info", {}) or {}
-
-    # Alias legacy exposés sur cv (lecture seule pour le template)
-    for key in ("nom", "prenom", "email", "telephone", "titre", "ville", "province", "pays", "linkedin"):
-        if not hasattr(cv, key):
-            try:
-                setattr(cv, key, pi.get(key, ""))
-            except Exception:
-                pass
-
-    safe_nom = (pi.get("nom") or getattr(cv, "nom", "") or "CV").strip()
-    filename = f"CV_{slugify(safe_nom) or 'document'}.pdf"
-
-    # ---- Résumé ----
-    try:
-        summary_txt = cv.get_summary() or ""
-    except Exception:
-        summary_txt = getattr(cv, "summary", "") or ""
-
-    # ---- Build helpers sans muter les objets ORM ----
-    def exp_to_dict(e):
-        title      = getattr(e, "title",      getattr(e, "titre_poste", "")) or ""
-        company    = getattr(e, "company",    getattr(e, "entreprise", ""))  or ""
-        start_date = getattr(e, "start_date", getattr(e, "date_debut", None))
-        end_date   = getattr(e, "end_date",   getattr(e, "date_fin", None))
-        location   = getattr(e, "location",   getattr(e, "lieu", "")) or ""
-        raw_desc   = (
-            getattr(e, "description_optimised", "")
-            or getattr(e, "description_raw", "")
-            or getattr(e, "description", "")
-        )
-        description = _clean_description_text(raw_desc)
-        bullets     = _bullets_from_text(raw_desc)
-        return {
-            # champs modernes
-            "title": title, "company": company, "start_date": start_date, "end_date": end_date, "location": location,
-            "description": description, "bullets": bullets,
-            # alias legacy (pour templates qui les lisent)
-            "titre_poste": title, "entreprise": company, "date_debut": start_date, "date_fin": end_date, "lieu": location,
+    # ======================
+    # LABELS (ANTI-MÉLANGE)
+    # ======================
+    LABELS = {
+        "fr": {
+            "summary": "Résumé professionnel",
+            "skills": "Compétences clés",
+            "experience": "Expériences professionnelles",
+            "education": "Formations",
+            "languages": "Langues",
+            "volunteer": "Bénévolat & engagements (optionnel)",
+            "certifications": "Certifications",
+            "present": "Présent",
+            "in_progress": "En cours",
+        },
+        "en": {
+            "summary": "Professional Summary",
+            "skills": "Key Skills",
+            "experience": "Professional Experience",
+            "education": "Education",
+            "languages": "Languages",
+            "volunteer": "Volunteer Experience (optional)",
+            "certifications": "Certifications",
+            "present": "Present",
+            "in_progress": "In progress",
         }
+    }
 
-    def edu_to_dict(ed):
-        degree     = getattr(ed, "degree",     getattr(ed, "diplome",   getattr(ed, "diploma", ""))) or ""
-        school     = getattr(ed, "school",     getattr(ed, "ecole",     getattr(ed, "institution", ""))) or ""
-        start_date = getattr(ed, "start_date", getattr(ed, "date_debut", None))
-        end_date   = getattr(ed, "end_date",   getattr(ed, "date_fin",   None))
-        location   = getattr(ed, "location",   getattr(ed, "lieu", "")) or ""
-        desc       = getattr(ed, "description", "")
-        return {
-            "degree": degree, "school": school, "start_date": start_date, "end_date": end_date, "location": location,
-            "description": desc,
-            # alias legacy
-            "diplome": degree, "ecole": school, "date_debut": start_date, "date_fin": end_date, "lieu": location,
-        }
+    labels = LABELS.get(cv.language, LABELS["fr"])
 
-    # ---- Collections "safe" (listes de dicts) ----
-    experiences = [exp_to_dict(e) for e in getattr(cv, "experiences", []).all()] if hasattr(cv, "experiences") else []
-    educations  = [edu_to_dict(ed) for ed in getattr(cv, "education_set", []).all()] if hasattr(cv, "education_set") else []
+    # ======================
+    # EXPÉRIENCES (NETTOYÉES)
+    # ======================
+    experiences = []
+    for e in cv.experiences.all():
+        bullets = clean_and_split(e.description_raw)
 
-    # Skills : on passe les objets tels quels (les templates lisent .name/.nom)
-    skills = list(getattr(cv, "skills", []).all()) if hasattr(cv, "skills") else []
-    if not skills:
-        # fallback JSON (si tu stockes parfois dans cv.data)
-        raw_skills = cv.get_skills() or []
-        tmp = []
-        for s in raw_skills:
-            if isinstance(s, str):
-                tmp.append(type("S", (), {"name": s, "nom": s})())
-            elif isinstance(s, dict):
-                nm = s.get("name") or s.get("nom") or s.get("label") or ""
-                if nm:
-                    tmp.append(type("S", (), {"name": nm, "nom": nm})())
-        skills = tmp
+        experiences.append({
+            "title": e.title,
+            "company": e.company,
+            "location": e.location,
+            "start_date": e.start_date,
+            "end_date": e.end_date,
+            "bullets": bullets,
+        })
 
-    languages      = list(getattr(cv, "languages", []).all()) if hasattr(cv, "languages") else []
-    certifications = list(getattr(cv, "certifications", []).all()) if hasattr(cv, "certifications") else []
-    volunteers     = list(getattr(cv, "volunteers", []).all()) if hasattr(cv, "volunteers") else []
-    projects       = list(getattr(cv, "projects", []).all()) if hasattr(cv, "projects") else []
-    hobbies        = list(getattr(cv, "hobbies", []).all()) if hasattr(cv, "hobbies") else []
+    # ======================
+    # FORMATIONS
+    # ======================
+    educations = [{
+        "diploma": ed.diploma,
+        "institution": ed.institution,
+        "location": ed.location,
+        "start_date": ed.start_date,
+        "end_date": ed.end_date,
+        "description": ed.description,
+    } for ed in cv.educations.all()]
 
+    # ======================
+    # COMPÉTENCES (PROPRES)
+    # ======================
+    skills = sorted(
+        list(set(s.name.strip().capitalize() for s in cv.skills.all()))
+    )[:15]
+
+    # ======================
+    # LANGUES (NORMALISÉES)
+    # ======================
+    languages = []
+    seen_languages = set()
+
+    for l in cv.languages.all():
+        name = l.name.strip().capitalize()
+        if name in seen_languages:
+            continue
+
+        languages.append({
+            "name": name,
+            "level": normalize_language_level(l.level),
+        })
+        seen_languages.add(name)
+
+    # ======================
+    # BÉNÉVOLAT (OPTIONNEL)
+    # ======================
+    volunteers = [{
+        "role": v.role,
+        "description": v.description,
+        "start_date": v.start_date,
+        "end_date": v.end_date,
+    } for v in cv.volunteers.all()]
+
+    # ======================
+    # CERTIFICATIONS
+    # ======================
+    certifications = [{
+        "name": c.name,
+        "organization": c.organization,
+        "date": c.date_obtained,
+    } for c in cv.certifications.all()]
+
+    # ======================
+    # RÉSUMÉ (SÉCURISÉ)
+    # ======================
+    summary = cv.summary or ""
+    if "immigration97" in summary.lower():
+        summary = ""
+
+    # ======================
+    # CONTEXT
+    # ======================
     context = {
         "cv": cv,
-        "personal_info": pi,
-        "summary": summary_txt,
+        "labels": labels,
+        "personal_info": cv.data.get("personal_info", {}),
+        "summary": summary,
         "experiences": experiences,
         "educations": educations,
         "skills": skills,
         "languages": languages,
-        "certifications": certifications,
         "volunteers": volunteers,
-        "projects": projects,
-        "hobbies": hobbies,
-        "nom": safe_nom,
+        "certifications": certifications,
     }
 
-    # Choix template
-    template_path = _resolve_pdf_template_for_cv(cv, request=request)
-    logger.info("Template PDF utilisé: %s (cv_id=%s)", template_path, cv.id)
+    html = render_to_string(
+        "cv_generator/templates_pdf/cv_canada.html",
+        context
+    )
 
-    # Rendu HTML
-    try:
-        html = render_to_string(template_path, context, request=request)
-    except Exception:
-        logger.exception("Rendu échoué sur %s, fallback générique", template_path)
-        html = render_to_string("cv_generator/cv_template_pdf.html", context)
-        template_path = "cv_generator/cv_template_pdf.html"
-
-    # PDF
     response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
-    response["X-Template-Used"] = template_path
+    response["Content-Disposition"] = "attachment; filename=cv_canada.pdf"
 
-    pisa_status = pisa.CreatePDF(src=html, dest=response)
-    if getattr(pisa_status, "err", 0):
-        logger.error("Erreur xhtml2pdf (%s) sur template %s", pisa_status.err, template_path)
-        return HttpResponse("Erreur lors de la génération du PDF", status=500)
-
+    pisa.CreatePDF(html, dest=response, encoding="UTF-8")
     return response
-
 
 # ---------------------------
 # IA / API rest (inchangés)
@@ -896,3 +1033,220 @@ def analyze_cv(request, cv_id=None):
         ]
     }})
 
+
+
+@login_required
+def choose_template(request, template_id):
+    template = get_object_or_404(
+        CVTemplate,
+        id=template_id,
+        is_active=True
+    )
+
+    cv = CV.objects.create(
+        utilisateur=request.user,
+        template=template,
+        current_step=1,
+        step1_completed=False,
+        step2_completed=False,
+        step3_completed=False,
+        is_completed=False,
+        is_published=False,
+        data={}
+    )
+
+    return redirect("cv_generator:create_cv", cv_id=cv.id)
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, render, redirect
+
+from .models import CV, CVUpload
+from .forms import CVUploadForm
+from .services.cv_parser import extract_text_from_cv
+from .services.cv_mapper import map_cv_text_to_models
+
+
+@login_required
+def upload_cv(request, cv_id):
+    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+
+    try:
+        upload = cv.upload
+    except CVUpload.DoesNotExist:
+        upload = None
+
+    if request.method == "POST":
+        form = CVUploadForm(request.POST, request.FILES, instance=upload)
+        if form.is_valid():
+            upload = form.save(commit=False)
+            upload.cv = cv
+            upload.status = "uploaded"
+            upload.save()
+
+            try:
+                # 1️⃣ EXTRACTION TEXTE
+                text = extract_text_from_cv(upload.file.path)
+                upload.extracted_text = text
+                upload.status = "parsed"
+                upload.save()
+
+                # 2️⃣ MAPPING TEXTE → MODELS (⚠️ C’EST CE QUI MANQUAIT)
+                from .services.cv_mapper import map_cv_text_to_models
+                map_cv_text_to_models(cv, text)
+
+                # 3️⃣ MARQUER STEP 2 COMPLÉTÉ
+                if cv.experiences.exists():
+                    cv.step2_completed = True
+                    cv.current_step = max(cv.current_step, 2)
+                    cv.save()
+
+            except Exception as e:
+                upload.status = "error"
+                upload.save()
+                messages.error(request, "Erreur lors de l’analyse du CV.")
+
+            return redirect("cv_generator:create_cv_step2", cv.id)
+
+    else:
+        form = CVUploadForm(instance=upload)
+
+    return render(
+        request,
+        "cv_generator/upload_cv.html",
+        {
+            "cv": cv,
+            "form": form,
+        }
+    )
+
+
+
+@login_required
+def generate_ai_summary(request, cv_id):
+    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=400)
+
+    summary = ai_generate_summary(cv)  # ton service existant
+    cv.summary = summary
+    cv.save()
+
+    return JsonResponse({"summary": summary})
+
+
+from django.http import JsonResponse
+from .services.ats_scoring import calculate_ats_score
+
+@login_required
+def ats_score(request, cv_id):
+    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+
+    score, feedback, keywords = compute_ats_score(cv)
+
+    return JsonResponse({
+        "score": score,
+        "feedback": feedback,
+        "keywords_found": keywords
+    })
+
+@login_required
+def translate_summary(request, cv_id):
+    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=400)
+
+    target_lang = "en" if cv.language == "fr" else "fr"
+
+    try:
+        translated = translate_cv_text(
+            text=cv.summary,
+            source_lang=cv.language,
+            target_lang=target_lang,
+            job_title=cv.profession
+        )
+
+        return JsonResponse({
+            "translated": translated,
+            "target_lang": target_lang
+        })
+
+    except Exception:
+        return JsonResponse({"error": "Translation failed"}, status=500)
+
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from .models import Experience, CV
+from .services.noc_ai import generate_noc_tasks
+
+
+@login_required
+def generate_experience_tasks(request, cv_id, exp_id):
+    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+    exp = get_object_or_404(Experience, id=exp_id, cv=cv)
+
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=400)
+
+    tasks = ai_optimize_experience_for_canada(exp)
+    exp.description_ai = tasks
+    exp.save()
+
+    return JsonResponse({"tasks": tasks})
+
+
+@login_required
+def edit_cv(request, cv_id):
+    return redirect("cv_generator:create_cv_step1", cv_id)
+
+
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404
+
+@login_required
+@require_POST
+def translate_summary(request, cv_id):
+    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+
+    if not cv.summary:
+        return JsonResponse({"translated": ""})
+
+    # Langue cible
+    target_lang = "en" if cv.language == "fr" else "fr"
+
+    # 👉 ICI tu brancheras OpenAI / DeepL / Gemini
+    translated = cv.summary  # placeholder sécurisé
+
+    return JsonResponse({
+        "translated": translated
+    })
+
+
+@login_required
+def duplicate_cv(request, cv_id):
+    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+
+    new_cv = CV.objects.create(
+        utilisateur=request.user,
+        template=cv.template,
+        profession=cv.profession,
+        pays_cible=cv.pays_cible,
+        summary=cv.summary,
+        data=cv.data,
+        language=cv.language,
+    )
+
+    for exp in cv.experiences.all():
+        exp.pk = None
+        exp.cv = new_cv
+        exp.save()
+
+    messages.success(request, "CV dupliqué avec succès.")
+    return redirect("cv_generator:create_cv", new_cv.id)

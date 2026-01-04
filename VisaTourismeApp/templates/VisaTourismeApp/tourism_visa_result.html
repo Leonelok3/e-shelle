@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Résultat Analyse Visa Tourisme | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Analyse complète de votre dossier de visa tourisme :
+score de chances, risques, documents requis et plan d’action personnalisé.
+{% endblock %}
+
+{% block body_class %}visa-tourisme{% endblock %}
+{% block app_scope %}visa-tourisme{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_tourisme.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ================= HERO RESULTAT ================= -->
+<section class="vtm-hero">
+
+  <span class="vtm-step">Résultat de l’analyse</span>
+
+  <h1 class="vtm-title">
+    Analyse de ton <span class="vtm-gradient-primary">dossier visa</span>
+  </h1>
+
+  <p class="vtm-subtitle">
+    Voici une estimation réaliste basée sur les informations fournies.
+    Cette analyse t’aide à comprendre tes chances et à améliorer ton dossier.
+  </p>
+
+</section>
+
+<!-- ================= SCORE ================= -->
+<section class="vtm-card vtm-score-card">
+
+  <div class="vtm-score-wrapper">
+
+    <div class="vtm-score-circle
+      {% if result.score_chances >= 80 %}is-good
+      {% elif result.score_chances >= 60 %}is-medium
+      {% else %}is-bad{% endif %}">
+      <span class="vtm-score-value">{{ result.score_chances }}%</span>
+      <span class="vtm-score-label">Chances estimées</span>
+    </div>
+
+    <div class="vtm-score-text">
+      <h2 class="vtm-risk-level">
+        {{ result.niveau_risque }}
+      </h2>
+      <p class="vtm-subtle">
+        Destination : <strong>{{ result.get_destination_display }}</strong><br>
+        Durée du séjour : {{ result.get_duree_sejour_display }}
+      </p>
+    </div>
+
+  </div>
+
+  <div class="vtm-actions mt-lg">
+    <a href="{% url 'visa_tourisme:pdf' result.id %}" class="vtm-btn-secondary">
+      📄 Télécharger le plan PDF
+    </a>
+    <a href="{% url 'visa_tourisme:coach' %}?id={{ result.id }}"
+       class="vtm-btn-primary">
+      🤝 Parler au Coach Visa
+    </a>
+  </div>
+
+</section>
+
+<!-- ================= POINTS FORTS / FAIBLES ================= -->
+<section class="vtm-grid-2">
+
+  <div class="vtm-card">
+    <h3 class="vtm-section-title">✅ Points forts</h3>
+    <ul class="vtm-list">
+      {% for pf in result.points_forts_list %}
+        <li>{{ pf }}</li>
+      {% empty %}
+        <li>Aucun point fort identifié.</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="vtm-card">
+    <h3 class="vtm-section-title">⚠️ Points à renforcer</h3>
+    <ul class="vtm-list">
+      {% for pr in result.points_faibles_list %}
+        <li>{{ pr }}</li>
+      {% empty %}
+        <li>Aucun point critique détecté.</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+</section>
+
+<!-- ================= DOCUMENTS ================= -->
+<section class="vtm-card">
+  <h3 class="vtm-section-title">📂 Documents à préparer</h3>
+  <ul class="vtm-list">
+    {% for d in result.documents_list %}
+      <li>{{ d }}</li>
+    {% endfor %}
+  </ul>
+</section>
+
+<!-- ================= ETAPES ================= -->
+<section class="vtm-card">
+  <h3 class="vtm-section-title">🧭 Étapes clés</h3>
+  <ol class="vtm-list">
+    {% for e in result.etapes_list %}
+      <li>{{ e }}</li>
+    {% endfor %}
+  </ol>
+</section>
+
+<!-- ================= CONSEILS ================= -->
+<section class="vtm-card">
+  <h3 class="vtm-section-title">💡 Conseils stratégiques</h3>
+  <ul class="vtm-list">
+    {% for c in result.conseils_list %}
+      <li>{{ c }}</li>
+    {% endfor %}
+  </ul>
+</section>
+
+<div class="vtm-footer-note">
+  Cette analyse est une aide à la préparation.
+  La décision finale appartient exclusivement à l’ambassade ou au consulat.
+</div>
+
+{% endblock %}

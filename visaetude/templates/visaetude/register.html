@@ -1,93 +1,130 @@
-{% extends "visaetude/base.html" %}
+{% extends "base.html" %}
+{% load static %}
 
+{% block title %}
+Créer un compte Visa Études – Démarrer ton projet d’études à l’étranger | Immigration97
+{% endblock %}
 
-{% block title %}Inscription - Visa Étudiant{% endblock %}
+{% block meta_description %}
+Inscription Visa Études Immigration97 : crée ton compte gratuitement pour analyser ton profil étudiant,
+identifier les pays accessibles, préparer admission, bourses et visa étudiant avec accompagnement structuré.
+{% endblock %}
+
+{% block body_class %}visa-etude{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_etude.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow">
-            <div class="card-body p-5">
-                <h2 class="text-center mb-4">
-                    <i class="fas fa-user-plus text-primary"></i> Créer un Compte
-                </h2>
-                
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors }}
-                        </div>
-                    {% endif %}
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">
-                            {{ form.username.label }}
-                        </label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="text-danger small">{{ form.username.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.email.id_for_label }}" class="form-label">
-                            {{ form.email.label }}
-                        </label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                            <div class="text-danger small">{{ form.email.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.first_name.id_for_label }}" class="form-label">
-                                {{ form.first_name.label }}
-                            </label>
-                            {{ form.first_name }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.last_name.id_for_label }}" class="form-label">
-                                {{ form.last_name.label }}
-                            </label>
-                            {{ form.last_name }}
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.password.id_for_label }}" class="form-label">
-                            {{ form.password.label }}
-                        </label>
-                        {{ form.password }}
-                        {% if form.password.errors %}
-                            <div class="text-danger small">{{ form.password.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.password_confirm.id_for_label }}" class="form-label">
-                            {{ form.password_confirm.label }}
-                        </label>
-                        {{ form.password_confirm }}
-                        {% if form.password_confirm.errors %}
-                            <div class="text-danger small">{{ form.password_confirm.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100 mb-3">
-                        <i class="fas fa-check"></i> S'inscrire
-                    </button>
-                </form>
-                
-                <div class="text-center">
-                    <p class="mb-0">Déjà un compte ? 
-                        <a href="{% url 'login' %}">Connectez-vous</a>
-                    </p>
-                </div>
-            </div>
+
+<!-- ==================================================
+HERO — INSCRIPTION VISA ÉTUDES
+================================================== -->
+<section class="ve-dashboard-hero fade-in-up">
+  <div class="container ve-text-block">
+
+    <span class="ve-badge">
+      ✍️ Création de compte · Visa Études
+    </span>
+
+    <h1 class="ve-title">
+      Créer ton compte
+      <span class="ve-gradient">Visa Études Immigration97</span>
+    </h1>
+
+    <p class="ve-lead">
+      Crée gratuitement ton compte pour
+      <strong>analyser ton profil étudiant</strong>,
+      identifier les <strong>pays et universités accessibles</strong>,
+      préparer ton <strong>visa étudiant</strong> et
+      suivre ton projet étape par étape.
+    </p>
+
+  </div>
+</section>
+
+<!-- ==================================================
+FORMULAIRE INSCRIPTION
+================================================== -->
+<section>
+  <div class="container" style="max-width:520px">
+
+    <div class="ve-module-card">
+
+      <span class="ve-step">Accès sécurisé</span>
+      <h2>Inscription gratuite</h2>
+
+      {% if form.non_field_errors %}
+        <div class="ve-card" style="margin-bottom:1rem">
+          <p class="small" style="color:#fca5a5">
+            {{ form.non_field_errors }}
+          </p>
         </div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="ve-field">
+          <label class="small">Nom d’utilisateur</label>
+          {{ form.username }}
+          {{ form.username.errors }}
+        </div>
+
+        <div class="ve-field">
+          <label class="small">Adresse e-mail</label>
+          {{ form.email }}
+          {{ form.email.errors }}
+        </div>
+
+        <div class="ve-field">
+          <label class="small">Prénom</label>
+          {{ form.first_name }}
+        </div>
+
+        <div class="ve-field">
+          <label class="small">Nom</label>
+          {{ form.last_name }}
+        </div>
+
+        <div class="ve-field">
+          <label class="small">Mot de passe</label>
+          {{ form.password }}
+          {{ form.password.errors }}
+        </div>
+
+        <div class="ve-field">
+          <label class="small">Confirmation du mot de passe</label>
+          {{ form.password_confirm }}
+          {{ form.password_confirm.errors }}
+        </div>
+
+        <div class="ve-cta-group">
+          <button type="submit" class="ve-btn-primary" style="width:100%">
+            Créer mon compte Visa Études
+          </button>
+        </div>
+
+        <p class="small" style="margin-top:1rem">
+          🔒 Tes informations sont sécurisées.
+          Aucune donnée n’est partagée sans ton consentement.
+        </p>
+
+      </form>
+
     </div>
-</div>
+
+    <div class="ve-text-block" style="margin-top:2rem;text-align:center">
+      <p class="small">
+        Tu as déjà un compte ?
+        <a href="{% url 'login' %}" class="ve-module-link">
+          Se connecter →
+        </a>
+      </p>
+    </div>
+
+  </div>
+</section>
+
 {% endblock %}

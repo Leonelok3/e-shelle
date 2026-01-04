@@ -1,40 +1,52 @@
-{# barre de navigation dédiée au module Résidence Permanente #}
+
 
 <div class="rp-nav-wrapper">
-  <nav class="rp-nav">
+  <nav class="rp-nav" aria-label="Navigation Résidence Permanente">
     <ul class="rp-nav__list">
 
+      <!-- 🏠 ACCUEIL RP -->
       <li>
-        <a href="/residence-permanente/"
-           class="rp-nav__item">
+        <a href="{% url 'permanent_residence:home' %}"
+           class="rp-nav__item {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">
           🏠 Accueil RP
         </a>
       </li>
 
+      <!-- 🧪 DIAGNOSTIC -->
       <li>
         <a href="{% url 'permanent_residence:eligibility' %}"
-           class="rp-nav__item">
+           class="rp-nav__item {% if request.resolver_match.url_name == 'eligibility' or request.resolver_match.url_name == 'eligibility_result' %}is-active{% endif %}">
           🧪 Diagnostic RP
         </a>
       </li>
 
+      <!-- 📊 DASHBOARD -->
       <li>
         <a href="{% url 'permanent_residence:dashboard' %}"
-           class="rp-nav__item">
+           class="rp-nav__item {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">
           📊 Cockpit RP
         </a>
       </li>
 
+      <!-- 📝 PLAN D’ACTION -->
+      <li>
+{% if plan %}
+  <a href="{% url 'plan' plan.pk %}">💳 Plan RP</a>
+{% endif %}
+      </li>
+
+      <!-- 📚 PROGRAMMES -->
       <li>
         <a href="{% url 'permanent_residence:program_list' %}"
-           class="rp-nav__item">
+           class="rp-nav__item {% if request.resolver_match.url_name == 'program_list' or request.resolver_match.url_name == 'program_detail' %}is-active{% endif %}">
           📚 Programmes RP
         </a>
       </li>
 
+      <!-- 🤖 COACH IA -->
       <li>
         <a href="{% url 'permanent_residence:coach' %}"
-           class="rp-nav__item rp-nav__item--ai">
+           class="rp-nav__item rp-nav__item--ai {% if request.resolver_match.url_name == 'coach' %}is-active{% endif %}">
           🤖 Coach IA RP
         </a>
       </li>

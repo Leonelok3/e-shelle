@@ -18,18 +18,30 @@ urlpatterns = [
     path("exams-fr/", views.french_exams, name="french_exams"),
 
     # =====================================================
-    # 🇫🇷 HUBS FR (POINTS D’ENTRÉE)
+    # 🇫🇷 HUBS FR (POINTS D’ENTRÉEE)
     # =====================================================
     path("fr/tef/", views.tef_hub, name="tef_hub"),
     path("fr/tcf/", views.tcf_hub, name="tcf_hub"),
     path("fr/delf/", views.delf_hub, name="delf_hub"),
-    path("fr/dalf/", views.delf_hub, name="dalf_hub"),  # même hub (CECR universel)
+    path("fr/dalf/", views.delf_hub, name="dalf_hub"),
 
     # =====================================================
-    # 📘 SECTIONS DE COURS (MOTEUR UNIQUE)
-    # EX : /prep/fr/tef/co/
-    # EX : /prep/fr/tcf/co/
-    # EX : /prep/fr/delf/co/
+    # 🎧 HUB CO CECR (⚠️ PRIORITÉ ABSOLUE)
+    # =====================================================
+    path(
+        "fr/co/",
+        views.co_hub,
+        name="co_hub",
+    ),
+    path(
+        "fr/co/<slug:level>/",
+        views.co_by_level,
+        name="co_by_level",
+    ),
+
+    # =====================================================
+    # 📘 SECTIONS DE COURS PAR EXAMEN (TEF / TCF / DELF)
+    # ⚠️ DOIT RESTER APRÈS LES ROUTES CO
     # =====================================================
     path(
         "fr/<slug:exam_code>/<slug:section>/",
@@ -39,7 +51,6 @@ urlpatterns = [
 
     # =====================================================
     # 📖 LEÇON + EXERCICES
-    # EX : /prep/fr/tef/co/lesson/12/
     # =====================================================
     path(
         "fr/<slug:exam_code>/<slug:section>/lesson/<int:lesson_id>/",

@@ -8,70 +8,106 @@ from .models import (
 
 
 class VisaTourismeForm(forms.ModelForm):
-    # Radios Oui/Non pour les booléens
+    """
+    FORMULAIRE UTILISATEUR – ÉTAPE 1
+    Sert UNIQUEMENT à collecter les informations du demandeur.
+    Les champs d’analyse sont exclus volontairement.
+    """
+
     a_un_emploi = forms.TypedChoiceField(
         label="Vous avez un emploi / une activité professionnelle ?",
-        choices=(('True', 'Oui'), ('False', 'Non')),
+        choices=((True, "Oui"), (False, "Non")),
+        widget=forms.RadioSelect(attrs={"class": "vtm-radio"}),
         coerce=lambda x: x == 'True',
-        widget=forms.RadioSelect,
         required=True,
     )
 
     a_invitation = forms.TypedChoiceField(
-        label="Vous avez une lettre d’invitation (famille/ami/hôtel/agence) ?",
-        choices=(('True', 'Oui'), ('False', 'Non')),
+        label="Vous avez une lettre d’invitation (famille / ami / hôtel / agence) ?",
+        choices=((True, "Oui"), (False, "Non")),
+        widget=forms.RadioSelect(attrs={"class": "vtm-radio"}),
         coerce=lambda x: x == 'True',
-        widget=forms.RadioSelect,
         required=True,
     )
 
     a_deja_voyage = forms.TypedChoiceField(
         label="Vous avez déjà voyagé à l’étranger ?",
-        choices=(('True', 'Oui'), ('False', 'Non')),
+        choices=((True, "Oui"), (False, "Non")),
+        widget=forms.RadioSelect(attrs={"class": "vtm-radio"}),
         coerce=lambda x: x == 'True',
-        widget=forms.RadioSelect,
         required=True,
     )
 
-    destination = forms.ChoiceField(choices=DESTINATION_CHOICES)
-    duree_sejour = forms.ChoiceField(choices=DUREE_CHOICES)
-    budget = forms.ChoiceField(choices=BUDGET_CHOICES)
+    destination = forms.ChoiceField(
+        label="Destination",
+        choices=DESTINATION_CHOICES,
+        widget=forms.Select(attrs={"class": "vtm-select"}),
+        required=True,
+    )
+
+    duree_sejour = forms.ChoiceField(
+        label="Durée du séjour",
+        choices=DUREE_CHOICES,
+        widget=forms.Select(attrs={"class": "vtm-select"}),
+        required=True,
+    )
+
+    budget = forms.ChoiceField(
+        label="Budget estimé",
+        choices=BUDGET_CHOICES,
+        widget=forms.Select(attrs={"class": "vtm-select"}),
+        required=True,
+    )
 
     class Meta:
         model = VisaTourismRequest
-        fields = [
-            'full_name',
-            'email',
-            'phone',
-            'destination',
-            'nationalite',
-            'pays_residence',
-            'duree_sejour',
-            'objet_voyage',
-            'a_un_emploi',
-            'a_invitation',
-            'a_deja_voyage',
-            'budget',
-            'age',
-        ]
-        labels = {
-            'full_name': "Nom complet",
-            'email': "Email (pour recevoir le plan détaillé)",
-            'phone': "Téléphone / WhatsApp",
-            'destination': "Destination principale",
-            'nationalite': "Votre nationalité",
-            'pays_residence': "Pays de résidence",
-            'duree_sejour': "Durée prévue du séjour",
-            'objet_voyage': "Objet du voyage (tourisme, visite familiale, etc.)",
-            'budget': "Niveau de budget approximatif",
-            'age': "Votre âge",
-        }
-        widgets = {
-            'objet_voyage': forms.Textarea(attrs={'rows': 3}),
-        }
 
-    def clean_age(self):
-        age = self.cleaned_data['age']
-        if age < 1 or age > 100:
-            raise forms.ValidationError("Âge invalide.")
-        return age
+        # 🚨 CHAMPS AUTORISÉS UNIQUEMENT
+        fields = [
+            "full_name",
+            "email",
+            "phone",
+            "destination",
+            "nationalite",
+            "pays_residence",
+            "duree_sejour",
+            "objet_voyage",
+            "a_un_emploi",
+            "a_invitation",
+            "a_deja_voyage",
+            "budget",
+            "age",
+        ]
+
+        widgets = {
+            "full_name": forms.TextInput(attrs={
+                "class": "vtm-input",
+                "placeholder": "Nom complet",
+            }),
+            "email": forms.EmailInput(attrs={
+                "class": "vtm-input",
+                "placeholder": "Email",
+            }),
+            "phone": forms.TextInput(attrs={
+                "class": "vtm-input",
+                "placeholder": "Téléphone / WhatsApp",
+            }),
+            "nationalite": forms.TextInput(attrs={
+                "class": "vtm-input",
+                "placeholder": "Nationalité",
+            }),
+            "pays_residence": forms.TextInput(attrs={
+                "class": "vtm-input",
+                "placeholder": "Pays de résidence",
+            }),
+            "age": forms.NumberInput(attrs={
+                "class": "vtm-input",
+                "min": 16,
+                "placeholder": "Âge",
+            }),
+            "objet_voyage": forms.Textarea(attrs={
+                "class": "vtm-input",
+                "rows": 3,
+                "placeholder": "Ex : Tourisme, visite familiale, découverte culturelle…",
+            }),
+        }

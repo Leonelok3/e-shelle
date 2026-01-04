@@ -1,38 +1,60 @@
 {% extends "base.html" %}
 {% load static %}
 
+{# =====================================================
+   BODY CLASS — ACTIVE LE SCOPE CSS
+===================================================== #}
+{% block body_class %}residence-permanente{% endblock %}
+{% block app_scope %}residence-permanente{% endblock %}
+
+{# =====================================================
+   SEO
+===================================================== #}
 {% block title %}
-Diagnostic Résidence Permanente – Canada / Australie | immigration97
+Diagnostic Résidence Permanente Canada & Australie | Immigration97
 {% endblock %}
 
-{% block head_extra %}
-<link rel="stylesheet" href="{% static 'css/pages/residence_permanente_nav.css' %}">
+{% block meta_description %}
+Diagnostic Résidence Permanente Immigration97 : évalue gratuitement tes chances
+d’immigrer au Canada ou en Australie. Analyse âge, études, expérience,
+langues (TEF, IELTS), score CRS et stratégies Express Entry.
+{% endblock %}
+
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
 {% endblock %}
 
 {% block content %}
 
+
 {% include "permanent_residence/_rp_nav.html" %}
+
 
 <div class="rp-diagnostic">
 
-  <!-- HEADER -->
+  <!-- ================= HERO SEO ================= -->
   <header class="rp-card rp-diagnostic-header">
-    <p class="rp-kicker">Étape 1 · Diagnostic RP</p>
+    <p class="rp-kicker">Étape 1 · Diagnostic Résidence Permanente</p>
 
     <h1 class="rp-title">
-      Complète ton diagnostic Résidence Permanente
+      Diagnostic Résidence Permanente Canada & Australie
     </h1>
 
     <p class="rp-text">
-      Réponds aux questions clés (âge, études, langues, expérience, profil).
-      Ensuite tu obtiens :
-      <strong>un résumé clair</strong>,
-      <strong>des programmes adaptés</strong>,
-      et <strong>un plan d’action RP personnalisé</strong>.
+      Le <strong>diagnostic Résidence Permanente Immigration97</strong> te permet
+      d’évaluer objectivement tes chances d’<strong>immigrer légalement</strong>
+      vers le <strong>Canada</strong> ou l’<strong>Australie</strong>.
+    </p>
+
+    <p class="rp-text">
+      Analyse complète basée sur les critères officiels :
+      âge, études, expérience professionnelle, niveaux de langue
+      (<strong>TEF, TCF, IELTS</strong>) et adaptabilité.
     </p>
   </header>
 
-  <!-- FORMULAIRE -->
+  <!-- ================= FORMULAIRE ================= -->
   <section class="rp-card">
     <form method="post" class="rp-form" novalidate>
       {% csrf_token %}
@@ -45,35 +67,21 @@ Diagnostic Résidence Permanente – Canada / Australie | immigration97
 
       <!-- PROFIL GÉNÉRAL -->
       <div class="rp-form-section">
-        <h2 class="rp-section-title">Profil général</h2>
+        <h2 class="rp-section-title">
+          Profil général – Immigration permanente
+        </h2>
 
         <div class="rp-form-grid">
-          <div>
-            <label>{{ form.country.label }}</label>
-            {{ form.country }}
-          </div>
-
-          <div>
-            <label>{{ form.age.label }}</label>
-            {{ form.age }}
-          </div>
-
-          <div>
-            <label>{{ form.years_experience.label }}</label>
-            {{ form.years_experience }}
-          </div>
-
-          <div>
-            <label>{{ form.education_level.label }}</label>
-            {{ form.education_level }}
-          </div>
+          <div><label>{{ form.country.label }}</label>{{ form.country }}</div>
+          <div><label>{{ form.age.label }}</label>{{ form.age }}</div>
+          <div><label>{{ form.years_experience.label }}</label>{{ form.years_experience }}</div>
+          <div><label>{{ form.education_level.label }}</label>{{ form.education_level }}</div>
         </div>
       </div>
 
       <!-- FRANÇAIS -->
       <div class="rp-form-section">
-        <h2 class="rp-section-title">Français</h2>
-
+        <h2 class="rp-section-title">Français – TEF / TCF</h2>
         <div class="rp-form-grid">
           <div><label>{{ form.french_exam.label }}</label>{{ form.french_exam }}</div>
           <div><label>{{ form.french_level.label }}</label>{{ form.french_level }}</div>
@@ -86,8 +94,7 @@ Diagnostic Résidence Permanente – Canada / Australie | immigration97
 
       <!-- ANGLAIS -->
       <div class="rp-form-section">
-        <h2 class="rp-section-title">Anglais</h2>
-
+        <h2 class="rp-section-title">Anglais – IELTS</h2>
         <div class="rp-form-grid">
           <div><label>{{ form.english_exam.label }}</label>{{ form.english_exam }}</div>
           <div><label>{{ form.english_level.label }}</label>{{ form.english_level }}</div>
@@ -98,19 +105,14 @@ Diagnostic Résidence Permanente – Canada / Australie | immigration97
         </div>
       </div>
 
-      <!-- AUTRES INFOS -->
+      <!-- AUTRES FACTEURS -->
       <div class="rp-form-section">
-        <h2 class="rp-section-title">Autres informations</h2>
+        <h2 class="rp-section-title">Autres critères d’immigration</h2>
 
         <div class="rp-form-grid">
           <div><label>{{ form.profession_title.label }}</label>{{ form.profession_title }}</div>
           <div><label>{{ form.noc_code.label }}</label>{{ form.noc_code }}</div>
           <div><label>{{ form.anzsco_code.label }}</label>{{ form.anzsco_code }}</div>
-
-          <div class="rp-checkbox-group">
-            <label>{{ form.has_job_offer }} {{ form.has_job_offer.label }}</label>
-            <label>{{ form.has_family_in_country }} {{ form.has_family_in_country.label }}</label>
-          </div>
         </div>
 
         <div class="rp-textarea">
@@ -122,12 +124,11 @@ Diagnostic Résidence Permanente – Canada / Australie | immigration97
       <!-- CTA -->
       <div class="rp-form-footer">
         <p class="rp-muted">
-          Tes données servent uniquement à générer ton diagnostic RP.
-          Rien n’est partagé avec un tiers.
+          🔒 Données utilisées uniquement pour ton diagnostic RP.
         </p>
 
         <button type="submit" class="rp-btn rp-btn--primary">
-          Voir mon résultat RP →
+          🚀 Voir mon résultat RP personnalisé
         </button>
       </div>
 

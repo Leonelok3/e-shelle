@@ -1,69 +1,103 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Immigration97 · Plan d'action RP{% endblock %}
+{% block body_class %}residence-permanente rp-plan{% endblock %}
+{% block app_scope %}residence-permanente{% endblock %}
+
+{% block title %}
+Plan d’action Résidence Permanente – Canada & Australie | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Plan d’action Résidence Permanente Canada et Australie :
+étapes clés, suivi de progression, documents requis, langues,
+stratégie immigration et accompagnement intelligent avec Immigration97.
+{% endblock %}
 
 {% block head_extra %}
-<link rel="stylesheet" href="{% static 'css/pages/residence_permanente_nav.css' %}">
+<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
 {% endblock %}
 
 {% block content %}
 
+{% include "permanent_residence/_rp_nav.html" %}
+
+
 <div class="rp-page-bg">
   <main class="rp-card">
 
-    <!-- Header premium -->
+    <!-- ================= HEADER ================= -->
     <div class="rp-header-section">
-      <div class="rp-badge">🎯 Plan d'Action</div>
+      <div class="rp-badge">🎯 Plan d’action Résidence Permanente</div>
+
       <h1 class="rp-heading">
-        Visa Résidence Permanente
+        Ton plan d’action pour la Résidence Permanente
       </h1>
+
       <p class="rp-subtitle">
-        Voici les grandes étapes pour avancer vers ta résidence permanente en
-        {% if profile.country == "CA" %}Canada{% elif profile.country == "AU" %}Australie{% else %}Canada / Australie{% endif %}.
-        Tu pourras suivre ici ton avancement et marquer les étapes terminées.
+        Suis pas à pas les étapes essentielles pour construire un
+        <strong>projet solide de Résidence Permanente</strong>
+        {% if profile.country == "CA" %}au Canada{% elif profile.country == "AU" %}en Australie{% else %}au Canada ou en Australie{% endif %}.
+        Ce plan t’aide à structurer tes démarches, prioriser les actions
+        et améliorer ton dossier immigration.
       </p>
     </div>
 
-    <!-- Progress section -->
+    <!-- ================= PROGRESSION ================= -->
     <section class="rp-progress-box">
-      <div class="rp-progress-label">Progression de ton projet</div>
+      <div class="rp-progress-label">Progression globale de ton projet RP</div>
+
       <div class="rp-progress-text">
-        Chaque étape marquée comme "terminée" fera augmenter ton pourcentage
-        d'avancement. Modifie le statut via le menu déroulant pour suivre ta progression.
+        Chaque étape complétée augmente ton taux d’avancement.
+        Mets à jour le statut de chaque action pour suivre
+        précisément ta progression vers la Résidence Permanente.
       </div>
 
       <div class="rp-progress-bar">
         <div class="rp-progress-fill" style="width: {{ progress_pct }}%;"></div>
       </div>
+
       <div class="rp-progress-value">
         <strong>{{ progress_pct }}</strong> <span>% complété</span>
       </div>
 
-      <!-- Onglets -->
+      <!-- ================= FILTRES ================= -->
       <div class="rp-tabs">
         {% with base="/pr/plan/"|add:profile.id|stringformat:"s"|add:"/" %}
           <a href="{{ base }}?category=all"
-             class="rp-tab {% if category == 'all' %}rp-tab--active{% endif %}">📋 Toutes</a>
+             class="rp-tab {% if category == 'all' %}rp-tab--active{% endif %}">
+            📋 Toutes les étapes
+          </a>
           <a href="{{ base }}?category=canada"
-             class="rp-tab {% if category == 'canada' %}rp-tab--active{% endif %}">🇨🇦 Canada</a>
+             class="rp-tab {% if category == 'canada' %}rp-tab--active{% endif %}">
+            🇨🇦 Canada
+          </a>
           <a href="{{ base }}?category=australia"
-             class="rp-tab {% if category == 'australia' %}rp-tab--active{% endif %}">🇦🇺 Australie</a>
+             class="rp-tab {% if category == 'australia' %}rp-tab--active{% endif %}">
+            🇦🇺 Australie
+          </a>
           <a href="{{ base }}?category=languages"
-             class="rp-tab {% if category == 'languages' %}rp-tab--active{% endif %}">🗣️ Langues</a>
+             class="rp-tab {% if category == 'languages' %}rp-tab--active{% endif %}">
+            🗣️ Langues
+          </a>
           <a href="{{ base }}?category=documents"
-             class="rp-tab {% if category == 'documents' %}rp-tab--active{% endif %}">📄 Documents</a>
+             class="rp-tab {% if category == 'documents' %}rp-tab--active{% endif %}">
+            📄 Documents
+          </a>
         {% endwith %}
       </div>
     </section>
 
-    <!-- Steps -->
+    <!-- ================= ÉTAPES ================= -->
     <section>
-      <h2 class="rp-steps-title">Tes étapes clés</h2>
+      <h2 class="rp-steps-title">
+        Étapes clés de ton plan d’action RP
+      </h2>
 
       {% for step in steps %}
         <article class="rp-step-card status-{{ step.status }}">
           <header class="rp-step-header">
+
             <div>
               <div class="rp-step-meta">
                 Étape {{ step.order }} ·
@@ -73,36 +107,56 @@
                 {% elif step.category == "documents" %}📄 Documents
                 {% else %}📌 Général{% endif %}
               </div>
-              <h3 class="rp-step-title">{{ step.title }}</h3>
+
+              <h3 class="rp-step-title">
+                {{ step.title }}
+              </h3>
             </div>
 
             <div class="rp-step-actions">
-              <a href="#" class="rp-step-btn">Ressources</a>
+              <a href="#" class="rp-step-btn">
+                📚 Ressources utiles
+              </a>
 
               <form method="post" class="rp-step-status-form">
                 {% csrf_token %}
                 <input type="hidden" name="step_id" value="{{ step.id }}">
                 <select name="status" onchange="this.form.submit()">
-                  <option value="todo" {% if step.status == 'todo' %}selected{% endif %}>À faire</option>
-                  <option value="in_progress" {% if step.status == 'in_progress' %}selected{% endif %}>En cours</option>
-                  <option value="done" {% if step.status == 'done' %}selected{% endif %}>✓ Terminé</option>
+                  <option value="todo" {% if step.status == 'todo' %}>À faire</option>
+                  <option value="in_progress" {% if step.status == 'in_progress' %}>En cours</option>
+                  <option value="done" {% if step.status == 'done' %}>✓ Terminé</option>
                 </select>
               </form>
             </div>
+
           </header>
 
-          <p class="rp-step-desc">{{ step.description }}</p>
-          <span class="rp-step-tag">{{ step.category|title }}</span>
+          <p class="rp-step-desc">
+            {{ step.description }}
+          </p>
+
+          <span class="rp-step-tag">
+            {{ step.category|title }}
+          </span>
         </article>
       {% empty %}
-        <p class="rp-empty">Aucune étape n'est encore définie pour ce profil.</p>
+        <p class="rp-empty">
+          Aucune étape n’est encore définie.
+          Complète ton diagnostic pour générer ton plan RP personnalisé.
+        </p>
       {% endfor %}
     </section>
 
-    <p class="rp-footer-hint">
-      💡 <strong>Rappel :</strong> ce plan est une aide générale. Vérifie toujours les exigences officielles
-      avant toute soumission.
-    </p>
+    <!-- ================= SEO LONG FORM ================= -->
+    <section class="rp-footer-hint">
+      <strong>À propos du plan d’action Résidence Permanente :</strong><br>
+      Ce plan d’action RP est conçu pour t’aider à comprendre
+      les exigences de la Résidence Permanente au Canada et en Australie,
+      organiser tes documents, améliorer ton score linguistique
+      et avancer méthodiquement dans ton projet d’immigration.
+      Il s’agit d’un outil d’aide à la décision, basé sur les critères
+      généraux des programmes d’immigration.
+    </section>
 
   </main>
 </div>

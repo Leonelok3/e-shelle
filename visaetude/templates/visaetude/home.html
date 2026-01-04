@@ -1,90 +1,174 @@
-{% extends "visaetude/base.html" %}
-{% block title %}Dashboard Visa Études · Immigration97{% endblock %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}visa-etude{% endblock %}
+
+{% block title %}
+Profil Étudiant – Diagnostic Visa Études & Orientation Personnalisée | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Complète ton profil étudiant pour obtenir un diagnostic personnalisé Visa Études.
+Analyse du niveau académique, budget, pays compatibles, bourses et stratégie visa étudiant.
+{% endblock %}
+
+
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/visa_etude.css' %}">
+{% endblock %}
+
 
 {% block content %}
-<div class="row mb-4 fade-in-up">
-    <div class="col-lg-8">
-        <div class="section-title mb-1">Vue d’ensemble · Visa Études</div>
-        <h1 class="h3 fw-bold text-white mb-1">Visa Études – Coach Projet</h1>
-        <p class="text-muted mb-0">
-            Suis ton parcours complet : profil, pays adaptés, admissions, bourses, visa, intégration.
-        </p>
-    </div>
-   <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-    <div class="progress-bar-app mb-1">
-        <div class="progress-bar-app-inner"
-             style="width: {{ visa_progress_percent }}%;"></div>
-    </div>
-    <small class="text-muted d-block">
-        Progression globale estimée : <strong>{{ visa_progress_label }}</strong>
-    </small>
-</div>
 
-</div>
+<!-- ==================================================
+HERO — PROFIL ÉTUDIANT
+================================================== -->
+<section class="ve-dashboard-hero fade-in-up">
+  <div class="container">
 
-<div class="row g-4 fade-in-up">
-    <div class="col-md-6 col-xl-3">
-        <div class="card card-module h-100 p-3 floating">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="badge bg-success-subtle text-success-emphasis badge-pill">Étape 1</span>
-                <span class="text-muted small">Obligatoire</span>
-            </div>
-            <h2 class="h5 text-white mb-1">Mon Profil & Diagnostic</h2>
-            <p class="small text-muted mb-3">
-                Défini ton profil académique, ton budget et ta langue pour débloquer les pays les plus adaptés.
-            </p>
-            <a href="{% url 'visaetude:profile' %}" class="btn btn-soft-success w-100">
-                Ouvrir · Mon Profil
-            </a>
+    <span class="ve-badge">📋 Étape 1 · Fondations</span>
+
+    <h1>
+      Profil Étudiant<br>
+      <span class="ve-gradient">Diagnostic & Orientation Visa Études</span>
+    </h1>
+
+    <p class="ve-lead">
+      Complète ton <strong>profil étudiant</strong> pour recevoir une
+      <strong>analyse personnalisée</strong> :
+      pays compatibles, universités accessibles,
+      <strong>visa étudiant</strong>, <strong>bourses</strong>
+      et plan d’action réaliste.
+    </p>
+
+  </div>
+</section>
+
+<!-- ==================================================
+FORMULAIRE PROFIL
+================================================== -->
+<section class="ve-dashboard-modules">
+  <div class="container ve-modules-grid">
+
+    <article class="ve-module-card" data-step="01">
+
+      <h2>Informations académiques & projet</h2>
+
+      <p class="small">
+        Ces informations permettent au Coach IA Immigration97
+        d’évaluer la faisabilité de ton projet d’études à l’étranger.
+      </p>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="ve-form-group">
+          <label>Pays d’origine</label>
+          {{ form.country_of_origin }}
         </div>
+
+        <div class="ve-form-group">
+          <label>Niveau d’études actuel</label>
+          {{ form.education_level }}
+        </div>
+
+        <div class="ve-form-group">
+          <label>Domaine d’études / spécialité</label>
+          {{ form.field_of_study }}
+        </div>
+
+        <div class="ve-form-group">
+          <label>Objectif académique</label>
+          {{ form.study_goal }}
+        </div>
+
+        <div class="ve-form-group">
+          <label>Année de départ souhaitée</label>
+          {{ form.target_year }}
+        </div>
+
+        <div class="ve-form-group">
+          <label>Budget estimatif (par an)</label>
+          {{ form.budget_range }}
+        </div>
+
+        <div class="ve-form-group">
+          <label>Niveau de langue principal</label>
+          {{ form.language_level }}
+        </div>
+
+        <div class="ve-cta-group">
+          <button type="submit" class="ve-btn-primary">
+            💾 Enregistrer mon profil étudiant
+          </button>
+
+          <a href="{% url 'visaetude:countries_list' %}" class="ve-btn-secondary">
+            🌍 Voir les pays compatibles
+          </a>
+        </div>
+
+      </form>
+
+    </article>
+
+    <!-- ==================================================
+    SIDEBAR CONSEILS
+    ================================================== -->
+    <aside class="ve-module-card">
+
+      <span class="ve-step">Conseil expert</span>
+      <h3>Pourquoi ce profil est important ?</h3>
+
+      <ul>
+        <li>Éviter les pays non accessibles à ton niveau</li>
+        <li>Identifier les <strong>bourses d’études</strong> possibles</li>
+        <li>Adapter le <strong>dossier visa étudiant</strong></li>
+        <li>Recevoir des recommandations personnalisées</li>
+      </ul>
+
+      <p class="small">
+        💡 Plus ton profil est précis, plus le Coach IA
+        pourra te proposer une stratégie fiable.
+      </p>
+
+      <div class="ve-cta-group">
+        <a href="{% url 'visaetude:coach_ai' %}" class="ve-btn-secondary">
+          🤖 Parler au Coach IA
+        </a>
+      </div>
+
+    </aside>
+
+  </div>
+</section>
+
+<!-- ==================================================
+CTA FINAL
+================================================== -->
+<section class="ve-cta-final">
+  <div class="container text-center">
+
+    <h2>🎓 Passe à l’étape suivante de ton projet</h2>
+
+    <p>
+      Une fois ton profil complété, Immigration97
+      t’accompagne vers les <strong>meilleurs pays</strong>,
+      <strong>universités adaptées</strong> et
+      une stratégie <strong>visa étudiant réussie</strong>.
+    </p>
+
+    <div class="ve-cta-group center">
+      <a href="{% url 'visaetude:roadmap' %}" class="ve-btn-primary">
+        Accéder à mon parcours Visa Études
+      </a>
+      <a href="{% url 'billing:access' %}" class="ve-btn-premium">
+        Activer l’accompagnement Premium
+      </a>
     </div>
 
-    <div class="col-md-6 col-xl-3">
-        <div class="card card-module h-100 p-3 floating">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="badge bg-info-subtle text-info-emphasis badge-pill">Étape 2</span>
-                <span class="text-muted small">Analyse IA</span>
-            </div>
-            <h2 class="h5 text-white mb-1">Pays & Programmes adaptés</h2>
-            <p class="small text-muted mb-3">
-                Compare Canada, USA, France, Belgique, Allemagne, Italie, Chine selon ton profil.
-            </p>
-            <a href="{% url 'visaetude:countries_list' %}" class="btn btn-soft-success w-100">
-                Explorer les pays
-            </a>
-        </div>
-    </div>
+  </div>
+</section>
 
-    <div class="col-md-6 col-xl-3">
-        <div class="card card-module h-100 p-3">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="badge bg-warning-subtle text-warning-emphasis badge-pill">Étape 3</span>
-                <span class="text-muted small">Plan d’action</span>
-            </div>
-            <h2 class="h5 text-white mb-1">Parcours & Checklist</h2>
-            <p class="small text-muted mb-3">
-                Visualise les 5 grandes étapes, avec des tâches claires à cocher jusqu’à l’obtention du visa.
-            </p>
-            <a href="{% url 'visaetude:roadmap' %}" class="btn btn-soft-success w-100">
-                Voir mon parcours
-            </a>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-xl-3">
-        <div class="card card-module h-100 p-3">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="badge bg-secondary-subtle text-secondary-emphasis badge-pill">Coach</span>
-                <span class="text-muted small">IA dédiée</span>
-            </div>
-            <h2 class="h5 text-white mb-1">Coach IA Visa Études</h2>
-            <p class="small text-muted mb-3">
-                Pose tes questions, clarifie les procédures, reçois des plans d’action adaptés en quelques secondes.
-            </p>
-            <a href="{% url 'visaetude:coach_ai' %}" class="btn btn-soft-success w-100">
-                Parler au coach IA
-            </a>
-        </div>
-    </div>
-</div>
 {% endblock %}

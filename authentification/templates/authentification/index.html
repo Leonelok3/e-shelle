@@ -1,50 +1,94 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{# ==================================================
+   AUTHENTIFICATION — SCOPE STRICT
+================================================== #}
+{% block body_class %}authentification{% endblock %}
+{% block app_scope %}authentification{% endblock %}
+
+{% block title %}
+Authentification | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Accès sécurisé à Immigration97 : connexion, inscription
+et gestion de compte pour les services immigration,
+tests de langue et résidence permanente.
+{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-slate-950 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-16">
 
-  <div class="w-full max-w-xl bg-slate-900/80 backdrop-blur-xl border border-emerald-500/20 rounded-3xl shadow-2xl shadow-emerald-900/40 p-10">
+<section class="auth-wrapper min-h-screen flex items-center justify-center px-4 py-16
+                bg-slate-950 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
 
-    <h1 class="text-center text-3xl sm:text-4xl font-extrabold mb-6 
-               bg-gradient-to-r from-emerald-400 via-cyan-300 to-sky-400 bg-clip-text text-transparent">
-      Bienvenue sur la page d'authentification E-Shelle
+  <div class="auth-card w-full max-w-xl
+              bg-slate-900/80 backdrop-blur-xl
+              border border-emerald-500/20
+              rounded-3xl shadow-2xl shadow-emerald-900/40
+              p-10">
+
+    <!-- ================= TITLE ================= -->
+    <h1 class="auth-title text-center text-3xl sm:text-4xl font-extrabold mb-6
+               bg-gradient-to-r from-emerald-400 via-cyan-300 to-sky-400
+               bg-clip-text text-transparent">
+      Accès sécurisé à Immigration97
     </h1>
 
-    <div class="flex flex-col space-y-4 mt-8">
-      
-      <button type="submit"
-              class="w-full rounded-xl overflow-hidden shadow-lg shadow-emerald-800/40">
-        <a href="register"
-           class="block w-full text-center px-6 py-3 font-bold text-slate-950 
-                  bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400
-                  hover:from-emerald-400 hover:via-emerald-300 hover:to-cyan-300
-                  transition-all">
-          S'enregistrer
-        </a>
-      </button>
+    <p class="auth-subtitle text-center text-slate-300 max-w-md mx-auto">
+      Connecte-toi ou crée ton compte pour accéder
+      aux outils d’immigration, tests de langue
+      et services premium.
+    </p>
 
-      <button type="submit"
-              class="w-full rounded-xl overflow-hidden shadow-lg shadow-cyan-800/40">
-        <a href="login"
-           class="block w-full text-center px-6 py-3 font-bold text-slate-950 
-                  bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-300
-                  hover:from-cyan-300 hover:via-sky-200 hover:to-emerald-200
-                  transition-all">
-          Se connecter
-        </a>
-      </button>
+    <!-- ================= ACTIONS ================= -->
+    <div class="auth-actions flex flex-col space-y-4 mt-10">
 
-      <button type="submit"
-              class="w-full rounded-xl overflow-hidden shadow-lg shadow-rose-800/40">
-        <a href="logout"
-           class="block w-full text-center px-6 py-3 font-bold text-slate-100 
-                  bg-rose-700/80 hover:bg-rose-600 transition-all">
-          Se déconnecter
-        </a>
-      </button>
+      <!-- REGISTER -->
+      <a href="{% url 'authentification:register' %}"
+         class="auth-btn auth-btn--primary
+                block w-full text-center px-6 py-3 font-bold
+                rounded-xl shadow-lg shadow-emerald-800/40
+                bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400
+                text-slate-950
+                hover:from-emerald-400 hover:via-emerald-300 hover:to-cyan-300
+                transition-all">
+        ✨ Créer un compte
+      </a>
+
+      <!-- LOGIN -->
+      <a href="{% url 'authentification:login' %}"
+         class="auth-btn auth-btn--secondary
+                block w-full text-center px-6 py-3 font-bold
+                rounded-xl shadow-lg shadow-cyan-800/40
+                bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-300
+                text-slate-950
+                hover:from-cyan-300 hover:via-sky-200 hover:to-emerald-200
+                transition-all">
+        🔐 Se connecter
+      </a>
+
+      <!-- LOGOUT (optionnel / sécurisé) -->
+      {% if user.is_authenticated %}
+      <a href="{% url 'authentification:logout' %}"
+         class="auth-btn auth-btn--danger
+                block w-full text-center px-6 py-3 font-bold
+                rounded-xl shadow-lg shadow-rose-800/40
+                bg-rose-700/80 text-slate-100
+                hover:bg-rose-600 transition-all">
+        🚪 Se déconnecter
+      </a>
+      {% endif %}
 
     </div>
 
+    <!-- ================= FOOTER ================= -->
+    <p class="auth-footer text-center text-xs text-slate-400 mt-10">
+      Accès sécurisé · Données protégées ·
+      Immigration97 n’est pas un service gouvernemental
+    </p>
+
   </div>
-</div>
+
+</section>
+
 {% endblock %}

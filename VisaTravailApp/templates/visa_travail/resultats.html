@@ -1,729 +1,168 @@
-{% extends "visa_travail/base.html" %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}Résultats – Options de visa travail{% endblock %}
+{% block body_class %}visa-travail{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_travail.css' %}">
+{% endblock %}
 
 {% block content %}
-<style>
-  :root {
-    --primary: #10b981;
-    --primary-dark: #059669;
-    --text-muted: #cbd5e1;
-    --text-light: #f1f5f9;
-    --card-bg: #1e293b;
-    --card-border: #334155;
-    --input-bg: #0f172a;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --info: #3b82f6;
-  }
-
-  /* Animations Avancées */
-  @keyframes slideInDown {
-    from {
-      opacity: 0;
-      transform: translateY(-30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slideInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes scaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.9);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes floatCard {
-    from {
-      opacity: 0;
-      transform: translateY(40px) scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  @keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-    50% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
-  }
-
-  @keyframes shimmerText {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
-  }
-
-  @keyframes slideInLeft {
-    from {
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  /* Header Premium */
-  .header-results-premium {
-    animation: slideInDown 0.8s ease-out;
-    margin-bottom: 3rem;
-  }
-
-  .badge-results-premium {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    color: #10b981;
-    padding: 0.6rem 1.2rem;
-    border-radius: 25px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    backdrop-filter: blur(10px);
-    animation: fadeIn 0.6s ease-out 0.1s both;
-  }
-
-  .header-results-premium h1 {
-    color: #f1f5f9;
-    font-size: 2.5rem;
-    font-weight: 800;
-    line-height: 1.2;
-    margin-bottom: 0.75rem;
-    animation: slideInUp 0.8s ease-out 0.1s both;
-  }
-
-  .header-results-premium h1 .gradient-text {
-    background: linear-gradient(135deg, #10b981, #34d399);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .header-results-premium p {
-    color: #cbd5e1;
-    font-size: 1rem;
-    animation: fadeIn 0.8s ease-out 0.2s both;
-  }
-
-  /* Card Container */
-  .card-results-premium {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border: 1px solid #334155;
-    border-radius: 24px;
-    backdrop-filter: blur(10px);
-    padding: 2rem;
-    animation: slideInUp 0.8s ease-out 0.2s both;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .card-results-premium::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.05), transparent);
-    transition: left 0.5s ease;
-    pointer-events: none;
-  }
-
-  .card-results-premium:hover::before {
-    left: 100%;
-  }
-
-  /* Profile Summary Box */
-  .profile-summary-box {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
-    border: 1.5px solid rgba(16, 185, 129, 0.2);
-    border-radius: 18px;
-    padding: 1.5rem;
-    margin-top: 1.5rem;
-    backdrop-filter: blur(10px);
-    animation: scaleIn 0.6s ease-out 0.3s both;
-  }
-
-  .profile-summary-box h2 {
-    color: #10b981;
-    font-size: 0.95rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    animation: slideInLeft 0.6s ease-out 0.3s both;
-  }
-
-  .profile-summary-box h2 i {
-    font-size: 1.2rem;
-  }
-
-  .profile-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
-    animation: fadeIn 0.8s ease-out;
-  }
-
-  .profile-row:last-of-type {
-    margin-bottom: 0;
-  }
-
-  .profile-item {
-    animation: slideInUp 0.6s ease-out;
-  }
-
-  .profile-item:nth-child(1) { animation-delay: 0.35s; }
-  .profile-item:nth-child(2) { animation-delay: 0.4s; }
-  .profile-item:nth-child(3) { animation-delay: 0.45s; }
-  .profile-item:nth-child(4) { animation-delay: 0.5s; }
-
-  .profile-label {
-    color: #64748b;
-    font-size: 0.85rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    margin-bottom: 0.5rem;
-  }
-
-  .profile-value {
-    color: #f1f5f9;
-    font-weight: 700;
-    font-size: 1.05rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .profile-value::before {
-    content: '✓';
-    color: #10b981;
-    font-weight: bold;
-  }
-
-  .profile-edit-link {
-    color: #3b82f6;
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    display: inline-block;
-    margin-top: 1rem;
-  }
-
-  .profile-edit-link:hover {
-    color: #60a5fa;
-    transform: translateX(4px);
-  }
-
-  /* Section Title */
-  .section-title-premium {
-    color: #f1f5f9;
-    font-size: 1.5rem;
-    font-weight: 800;
-    margin-bottom: 1.5rem;
-    margin-top: 2rem;
-    animation: slideInLeft 0.6s ease-out;
-  }
-
-  .section-title-premium .emoji {
-    margin-left: 0.5rem;
-    animation: scaleIn 0.6s ease-out 0.2s both;
-    display: inline-block;
-  }
-
-  /* Program Cards Grid */
-  .programs-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .program-card-premium {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border: 1.5px solid #334155;
-    border-radius: 18px;
-    padding: 1.75rem;
-    animation: floatCard 0.8s ease-out;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(10px);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-
-  .program-card-premium:nth-child(1) { animation-delay: 0.3s; }
-  .program-card-premium:nth-child(2) { animation-delay: 0.4s; }
-  .program-card-premium:nth-child(3) { animation-delay: 0.5s; }
-  .program-card-premium:nth-child(4) { animation-delay: 0.6s; }
-
-  .program-card-premium::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent);
-    transition: left 0.5s ease;
-    pointer-events: none;
-  }
-
-  .program-card-premium:hover::before {
-    left: 100%;
-  }
-
-  .program-card-premium:hover {
-    border-color: #10b981;
-    box-shadow: 0 0 30px rgba(16, 185, 129, 0.15), inset 0 0 30px rgba(16, 185, 129, 0.05);
-    transform: translateY(-8px);
-  }
-
-  /* Program Header */
-  .program-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1.25rem;
-    animation: slideInDown 0.6s ease-out 0.3s both;
-  }
-
-  .badge-country {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    color: #10b981;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    backdrop-filter: blur(10px);
-  }
-
-  .program-title {
-    color: #f1f5f9;
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-top: 0.75rem;
-    margin-bottom: 0;
-  }
-
-  .program-difficulty {
-    color: #64748b;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-  }
-
-  /* Program Description */
-  .program-description {
-    color: #cbd5e1;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-    animation: fadeIn 0.6s ease-out 0.35s both;
-  }
-
-  /* Program List Section */
-  .program-list-section {
-    margin-bottom: 1.25rem;
-    animation: fadeIn 0.6s ease-out;
-  }
-
-  .program-list-section:nth-child(1) { animation-delay: 0.4s; }
-  .program-list-section:nth-child(2) { animation-delay: 0.45s; }
-  .program-list-section:nth-child(3) { animation-delay: 0.5s; }
-  .program-list-section:nth-child(4) { animation-delay: 0.55s; }
-
-  .program-list-title {
-    color: #f1f5f9;
-    font-weight: 700;
-    font-size: 0.95rem;
-    margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .program-list-title::before {
-    content: '';
-    width: 4px;
-    height: 4px;
-    background: #10b981;
-    border-radius: 50%;
-  }
-
-  .program-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .program-list li {
-    color: #cbd5e1;
-    font-size: 0.9rem;
-    padding: 0.4rem 0 0.4rem 0;
-    line-height: 1.5;
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .program-list li::before {
-    content: '→';
-    color: #10b981;
-    font-weight: bold;
-    flex-shrink: 0;
-  }
-
-  /* Delay Line */
-  .program-delay {
-    padding-top: 1rem;
-    border-top: 1px solid rgba(16, 185, 129, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    animation: slideInUp 0.6s ease-out 0.5s both;
-  }
-
-  .program-delay-label {
-    color: #64748b;
-    font-weight: 600;
-    font-size: 0.9rem;
-  }
-
-  .program-delay-value {
-    color: #10b981;
-    font-weight: 700;
-    font-size: 0.95rem;
-  }
-
-  /* Official Link */
-  .program-official-link {
-    color: #3b82f6;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: auto;
-    animation: slideInUp 0.6s ease-out 0.55s both;
-  }
-
-  .program-official-link:hover {
-    color: #60a5fa;
-    transform: translateX(4px);
-  }
-
-  .program-official-link i {
-    transition: transform 0.3s ease;
-  }
-
-  .program-official-link:hover i {
-    transform: translateX(2px);
-  }
-
-  /* Alert Message */
-  .alert-premium-results {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
-    border: 1.5px solid rgba(245, 158, 11, 0.3);
-    color: #fcd34d;
-    padding: 1.25rem;
-    border-radius: 14px;
-    animation: slideInUp 0.6s ease-out 0.3s both;
-    backdrop-filter: blur(10px);
-    font-weight: 500;
-  }
-
-  .alert-premium-results i {
-    margin-right: 0.75rem;
-  }
-
-  /* Footer Navigation */
-  .footer-nav-premium {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid rgba(16, 185, 129, 0.1);
-    animation: slideInUp 0.8s ease-out 0.4s both;
-  }
-
-  .footer-nav-text {
-    color: #cbd5e1;
-    font-size: 0.95rem;
-  }
-
-  .btn-next-premium {
-    background: linear-gradient(135deg, #10b981, #059669);
-    border: none;
-    color: white;
-    padding: 1rem 2rem;
-    border-radius: 14px;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .btn-next-premium::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-  }
-
-  .btn-next-premium:hover::before {
-    width: 300px;
-    height: 300px;
-  }
-
-  .btn-next-premium:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
-  }
-
-  .btn-next-premium:active {
-    transform: translateY(-1px);
-  }
-
-  .btn-next-premium i {
-    transition: transform 0.3s ease;
-  }
-
-  .btn-next-premium:hover i {
-    transform: translateX(2px);
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .header-results-premium h1 {
-      font-size: 1.8rem;
-    }
-
-    .card-results-premium {
-      padding: 1.5rem;
-    }
-
-    .programs-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .profile-row {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-    }
-
-    .footer-nav-premium {
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .btn-next-premium {
-      width: 100%;
-      justify-content: center;
-    }
-
-    .footer-nav-text {
-      text-align: center;
-    }
-  }
-</style>
-
-<!-- HEADER RESULTATS -->
-<div class="row justify-content-center">
-  <div class="col-xl-9">
-
-    <div class="card-results-premium header-results-premium">
-      <span class="badge-results-premium">
-        <i class="bi bi-search-heart me-1"></i> Résultats de ton diagnostic
+<section class="vt-results">
+
+  <div class="container">
+
+    <!-- ================= HEADER ================= -->
+    <section class="vt-results-header vt-card vt-fade-up">
+      <span class="vt-badge">
+        <i class="bi bi-search-heart"></i>
+        Résultats de ton diagnostic Visa Travail
       </span>
-      <h1>Tes <span class="gradient-text">options de visa travail</span></h1>
-      <p>
-        Basé sur ton profil, voici les programmes les plus réalistes pour un projet professionnel à l'étranger.
+
+      <h1 class="vt-title">
+        Tes
+        <span class="vt-gradient-primary">options de visa travail</span>
+        personnalisées
+      </h1>
+
+      <p class="vt-subtle">
+        À partir des informations fournies,
+        Immigration97 a identifié les
+        <strong>programmes de visa travail les plus réalistes</strong>
+        et adaptés à ton profil professionnel,
+        en s’appuyant exclusivement sur des
+        <strong>dispositifs officiels et légaux</strong>.
       </p>
+    </section>
 
-      <!-- Profile Summary -->
-      <div class="profile-summary-box">
-        <h2>
-          <i class="bi bi-person-check"></i> Résumé de ton profil
-        </h2>
+    <!-- ================= RÉSUMÉ PROFIL ================= -->
+    <section class="vt-card-soft vt-fade-up">
+      <h2 class="vt-section-subtitle">
+        <i class="bi bi-person-check"></i>
+        Résumé de ton profil
+      </h2>
 
-        <div class="profile-row">
-          <div class="profile-item">
-            <div class="profile-label">Pays de résidence</div>
-            <div class="profile-value">{{ profile.pays_residence }}</div>
-          </div>
-          <div class="profile-item">
-            <div class="profile-label">Pays ciblés</div>
-            <div class="profile-value">{{ profile.pays_cibles }}</div>
-          </div>
-          <div class="profile-item">
-            <div class="profile-label">Métier / domaine</div>
-            <div class="profile-value">{{ profile.domaine_metier }}</div>
-          </div>
-        </div>
+      <ul class="vt-profile-list">
+        <li><span>Pays de résidence</span><strong>{{ profile.pays_residence }}</strong></li>
+        <li><span>Pays ciblés</span><strong>{{ profile.pays_cibles }}</strong></li>
+        <li><span>Métier / domaine</span><strong>{{ profile.domaine_metier }}</strong></li>
+        <li><span>Niveau d’études</span><strong>{{ profile.get_niveau_etudes_display }}</strong></li>
+        <li><span>Expérience</span><strong>{{ profile.annees_experience }} an(s)</strong></li>
+        <li><span>Langues</span><strong>Anglais {{ profile.niveau_anglais }} · {{ profile.niveau_langue_pays }}</strong></li>
+        <li><span>Budget</span><strong>{{ profile.get_budget_display }}</strong></li>
+        <li><span>Horizon</span><strong>{{ profile.get_horizon_depart_display }}</strong></li>
+      </ul>
 
-        <div class="profile-row">
-          <div class="profile-item">
-            <div class="profile-label">Niveau d'études</div>
-            <div class="profile-value">{{ profile.get_niveau_etudes_display }}</div>
-          </div>
-          <div class="profile-item">
-            <div class="profile-label">Expérience</div>
-            <div class="profile-value">{{ profile.annees_experience }} an(s)</div>
-          </div>
-          <div class="profile-item">
-            <div class="profile-label">Anglais</div>
-            <div class="profile-value">{{ profile.niveau_anglais }}</div>
-          </div>
-          <div class="profile-item">
-            <div class="profile-label">Langue du pays</div>
-            <div class="profile-value">{{ profile.niveau_langue_pays }}</div>
-          </div>
-        </div>
+      <a href="{% url 'visa_travail:profil' %}" class="vt-btn-secondary">
+        <i class="bi bi-pencil"></i>
+        Modifier mon profil
+      </a>
+    </section>
 
-        <div class="profile-row">
-          <div class="profile-item">
-            <div class="profile-label">Budget</div>
-            <div class="profile-value">{{ profile.get_budget_display }}</div>
-          </div>
-          <div class="profile-item">
-            <div class="profile-label">Horizon</div>
-            <div class="profile-value">{{ profile.get_horizon_depart_display }}</div>
-          </div>
-        </div>
-
-        <a href="{% url 'visa_travail:profil' %}" class="profile-edit-link">
-          <i class="bi bi-pencil-square me-1"></i> Modifier mon profil
-        </a>
-      </div>
-    </div>
-
-    <!-- PROGRAMMES -->
-    <div>
-      <h2 class="section-title-premium">
-        Programmes suggérés <span class="emoji">🎯</span>
+    <!-- ================= PROGRAMMES ================= -->
+    <section class="vt-programs">
+      <h2 class="vt-section-title">
+        Programmes de visa travail recommandés 🎯
       </h2>
 
       {% if options %}
-        <div class="programs-grid">
+        <div class="vt-program-grid">
+
           {% for opt in options %}
-            <div class="program-card-premium">
+            <article class="vt-program-card vt-fade-up">
 
-              <!-- Header visa -->
-              <div class="program-header">
-                <div>
-                  <span class="badge-country">{{ opt.pays }}</span>
-                  <h3 class="program-title">{{ opt.nom_programme }}</h3>
-                </div>
-                <span class="program-difficulty">{{ opt.difficulte }}</span>
-              </div>
+              <header class="vt-program-header">
+                <span class="vt-badge">{{ opt.pays }}</span>
+                <span class="vt-program-level">{{ opt.difficulte }}</span>
+                <h3>{{ opt.nom_programme }}</h3>
+              </header>
 
-              <p class="program-description">
+              <p class="vt-subtle">
                 {{ opt.profil_cible }}
               </p>
 
-              <!-- Conditions -->
-              <div class="program-list-section">
-                <div class="program-list-title">Conditions principales</div>
-                <ul class="program-list">
-                  {% for c in opt.conditions_principales %}
-                    <li>{{ c }}</li>
-                  {% endfor %}
-                </ul>
-              </div>
+              {% if user_has_premium %}
 
-              <!-- Documents -->
-              <div class="program-list-section">
-                <div class="program-list-title">Documents clés</div>
-                <ul class="program-list">
-                  {% for d in opt.documents_cles %}
-                    <li>{{ d }}</li>
-                  {% endfor %}
-                </ul>
-              </div>
+                <!-- 🔓 CONTENU PREMIUM -->
+                <div class="vt-program-block">
+                  <strong>Conditions principales</strong>
+                  <ul>
+                    {% for c in opt.conditions_principales %}
+                      <li>{{ c }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
 
-              <!-- Délai -->
-              <div class="program-delay">
-                <span class="program-delay-label">Délai approximatif</span>
-                <span class="program-delay-value">{{ opt.delai_approx }}</span>
-              </div>
+                <div class="vt-program-block">
+                  <strong>Documents clés requis</strong>
+                  <ul>
+                    {% for d in opt.documents_cles %}
+                      <li>{{ d }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
 
-              <!-- Lien officiel -->
-              <a href="{{ opt.lien_officiel }}" target="_blank" class="program-official-link">
-                <i class="bi bi-arrow-up-right-square"></i> Consulter la page officielle
-              </a>
-            </div>
+                <div class="vt-program-delay">
+                  <span>Délai estimatif</span>
+                  <strong>{{ opt.delai_approx }}</strong>
+                </div>
+
+                <a href="{{ opt.lien_officiel }}"
+                   target="_blank"
+                   rel="noopener"
+                   class="vt-link">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                  Consulter la page officielle
+                </a>
+
+              {% else %}
+
+                <!-- 🔒 PREMIUM LOCK -->
+                <div class="vt-premium-lock">
+                  <i class="bi bi-lock-fill"></i>
+                  <h4>Contenu Premium</h4>
+                  <p>
+                    Conditions détaillées, documents requis
+                    et délais exacts réservés aux membres Premium.
+                  </p>
+
+                  <a href="{% url 'billing:access' %}" class="vt-btn-premium">
+                    <i class="bi bi-stars"></i>
+                    Débloquer l’accès Premium
+                  </a>
+                </div>
+
+              {% endif %}
+
+            </article>
           {% endfor %}
-        </div>
 
+        </div>
       {% else %}
-        <div class="alert-premium-results">
-          <i class="bi bi-lightbulb"></i> Aucun programme exact ne correspond, mais tu peux avancer grâce à la stratégie "Études → Travail".
+        <div class="vt-alert-warning">
+          Aucun programme de visa travail direct n’a été identifié.
+          <br>
+          Une stratégie alternative
+          <strong>Études → Travail</strong>
+          ou une optimisation du profil est recommandée.
         </div>
       {% endif %}
-    </div>
+    </section>
 
-    <!-- NEXT BUTTON -->
-    <div class="footer-nav-premium">
-      <div class="footer-nav-text">Étape suivante : ton plan d'action premium.</div>
-      <a href="{% url 'visa_travail:plan_action' profile.id %}" class="btn-next-premium">
-        <i class="bi bi-list-check"></i> Voir mon plan d'action
+    <!-- ================= CTA FINAL ================= -->
+    <section class="vt-next-step vt-fade-up">
+      <p class="vt-subtle">
+        Étape suivante : transformer ces options
+        en un plan d’action concret et structuré
+      </p>
+
+      <a href="{% url 'visa_travail:plan_action' profile.id %}"
+         class="vt-btn-primary">
+        <i class="bi bi-list-check"></i>
+        Accéder à mon plan d’action personnalisé
       </a>
-    </div>
+    </section>
 
   </div>
-</div>
-
+</section>
 {% endblock %}

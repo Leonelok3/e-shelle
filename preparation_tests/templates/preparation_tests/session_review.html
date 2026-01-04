@@ -1,202 +1,217 @@
 {% extends "base.html" %}
 {% load static %}
 
+{# ==================================================
+   SCOPE STRICT APP
+================================================== #}
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{# ==================================================
+   SEO — TITLE & META
+================================================== #}
 {% block title %}
-Mes résultats | Immigration97
+Mes résultats & progression CECR | Immigration97
 {% endblock %}
 
 {% block meta_description %}
 Tableau de bord des performances TEF et TCF :
-scores, progression, statistiques et historique des sessions.
+scores, progression CECR, statistiques détaillées
+et historique complet des sessions Immigration97.
 {% endblock %}
 
-{% block head_extra %}
-<link rel="stylesheet" href="{% static 'css/pages/preparation_tests.css' %}">
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260104">
 {% endblock %}
 
 {% block content %}
 
-<section class="page page-session-review">
+<!-- ==================================================
+HERO — DASHBOARD
+================================================== -->
+<section class="pt-hero pt-hero--dashboard">
+  <div class="container pt-fade-up">
 
-  <!-- ===== TITRE ===== -->
-  <header class="page-title">
-    <h1>Tableau de bord – Tes performances</h1>
-    <p>
-      Vue globale de tes sessions TEF / TCF : moyenne générale, progression
-      et badges. Utilise cette page comme ton centre de contrôle.
+    <span class="pt-badge">
+      📊 Tableau de bord
+    </span>
+
+    <h1 class="pt-title">
+      Mes performances
+    </h1>
+
+    <p class="pt-lead">
+      Centre de contrôle de tes entraînements
+      <strong>TEF</strong> et <strong>TCF</strong> :
+      progression, scores et historique.
     </p>
-  </header>
 
-  <!-- ===== DASHBOARD ===== -->
-  <section class="dashboard-grid">
+  </div>
+</section>
 
-    <!-- ===== PROFIL GLOBAL ===== -->
-    <article class="card">
-      <h2>Profil global</h2>
-      <p>Résumé de ton niveau général sur les derniers entraînements.</p>
+<!-- ==================================================
+PROFIL GLOBAL
+================================================== -->
+<section class="pt-section">
+  <div class="container">
 
-      <div class="profile-top">
-        <div style="display:flex;align-items:center;gap:14px;">
-          <div class="score-circle">
-            <div class="score-circle-inner">
+    <div class="pt-grid-layout">
+
+      <!-- ================= PROFIL ================= -->
+      <div class="pt-main">
+
+        <article class="pt-card pt-card--profile">
+
+          <h2>🎯 Profil global</h2>
+
+          <div class="pt-profile-top">
+
+            <div class="pt-score-circle">
               {% if global_stats.global_avg %}
-                {{ global_stats.global_avg }}%
+                <span>{{ global_stats.global_avg }}%</span>
               {% else %}
-                –
+                <span>—</span>
               {% endif %}
             </div>
-          </div>
 
-          <div class="profile-text">
-            {% if global_stats.total_sessions %}
-              <div>
-                <strong>{{ global_stats.total_sessions }}</strong>
-                session{% if global_stats.total_sessions > 1 %}s{% endif %}.
-              </div>
+            <div class="pt-profile-text">
 
-              {% if global_stats.last_pct %}
-                <div>Dernière session :
-                  <strong>{{ global_stats.last_pct }} %</strong>
-                </div>
+              {% if global_stats.total_sessions %}
+                <p>
+                  <strong>{{ global_stats.total_sessions }}</strong>
+                  session{% if global_stats.total_sessions > 1 %}s{% endif %}
+                </p>
+
+                {% if global_stats.last_pct %}
+                  <p>Dernière session :
+                    <strong>{{ global_stats.last_pct }}%</strong>
+                  </p>
+                {% endif %}
+
+                {% if global_stats.best_pct %}
+                  <p>Meilleur score :
+                    <strong>{{ global_stats.best_pct }}%</strong>
+                  </p>
+                {% endif %}
+              {% else %}
+                <p class="pt-muted">
+                  Aucune session enregistrée.
+                  Lance un entraînement pour démarrer.
+                </p>
               {% endif %}
 
-              {% if global_stats.best_pct %}
-                <div>Meilleur score :
-                  <strong>{{ global_stats.best_pct }} %</strong>
-                </div>
-              {% endif %}
-            {% else %}
-              <div>
-                Pas encore de session enregistrée.
-                Lance un entraînement pour voir ton profil.
-              </div>
-            {% endif %}
-
-            <div class="profile-meta">
-              {% if global_stats.global_avg %}
-                <span class="pill">Moyenne globale {{ global_stats.global_avg }}%</span>
-              {% endif %}
-              {% if global_stats.tef_avg %}
-                <span class="pill">Moyenne TEF {{ global_stats.tef_avg }}%</span>
-              {% endif %}
-              {% if global_stats.tcf_avg %}
-                <span class="pill">Moyenne TCF {{ global_stats.tcf_avg }}%</span>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== BARRES TEF / TCF ===== -->
-      <div class="exam-bars">
-        {% if global_stats.tef_avg %}
-          <div class="exam-row">
-            <span class="exam-label">TEF</span>
-            <div class="exam-bar-track">
-              <div class="exam-bar" style="width: {{ global_stats.tef_avg }}%;"></div>
-            </div>
-            <span class="exam-pct">{{ global_stats.tef_avg }}%</span>
-          </div>
-        {% endif %}
-
-        {% if global_stats.tcf_avg %}
-          <div class="exam-row">
-            <span class="exam-label">TCF</span>
-            <div class="exam-bar-track">
-              <div class="exam-bar" style="width: {{ global_stats.tcf_avg }}%;"></div>
-            </div>
-            <span class="exam-pct">{{ global_stats.tcf_avg }}%</span>
-          </div>
-        {% endif %}
-      </div>
-
-      <!-- ===== STATS PAR SECTION ===== -->
-      {% if section_stats %}
-        <div class="section-stats">
-          {% for sec in section_stats %}
-            <div class="section-row">
-              <div class="section-label">
-                {% if sec.code|lower == "co" %}🎧 CO
-                {% elif sec.code|lower == "ce" %}📖 CE
-                {% elif sec.code|lower == "ee" %}✍️ EE
-                {% elif sec.code|lower == "eo" %}🗣 EO
-                {% else %}🎯 {{ sec.code }}{% endif %}
-              </div>
-              <div class="section-bar-track">
-                <div class="section-bar" style="width: {{ sec.avg_pct }}%;"></div>
-              </div>
-              <div class="section-pct">{{ sec.avg_pct }}%</div>
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-
-      <!-- ===== TIMELINE ===== -->
-      {% if timeline %}
-        <div class="timeline">
-          <div class="timeline-label">Progression des dernières sessions</div>
-          <div class="timeline-row">
-            {% for t in timeline %}
-              <div class="timeline-col">
-                <div class="timeline-bar-track">
-                  {% if t.pct %}
-                    <div class="timeline-bar" style="height: {{ t.pct }}%;"></div>
-                  {% endif %}
-                </div>
-                <div class="timeline-date">
-                  {{ t.date }}<br>{{ t.exam }}
-                </div>
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-      {% endif %}
-    </article>
-
-    <!-- ===== BADGES ===== -->
-    <aside class="card">
-      <h2>Badges &amp; objectifs</h2>
-      <p>Récompenses basées sur ta régularité et tes scores.</p>
-
-      {% if badges %}
-        <div class="badges-grid">
-          {% for b in badges %}
-            <div class="badge-card">
-              <div class="badge-title">
-                {% if b.kind == "gold" %}
-                  🏅 {{ b.title }}
-                  <span class="badge-chip badge-gold">Elite</span>
-                {% elif b.kind == "section" %}
-                  🎯 {{ b.title }}
-                  <span class="badge-chip badge-section">Section</span>
-                {% else %}
-                  ⭐ {{ b.title }}
+              <div class="pt-pill-row">
+                {% if global_stats.global_avg %}
+                  <span class="pt-pill">
+                    Moyenne globale {{ global_stats.global_avg }}%
+                  </span>
+                {% endif %}
+                {% if global_stats.tef_avg %}
+                  <span class="pt-pill">
+                    TEF {{ global_stats.tef_avg }}%
+                  </span>
+                {% endif %}
+                {% if global_stats.tcf_avg %}
+                  <span class="pt-pill">
+                    TCF {{ global_stats.tcf_avg }}%
+                  </span>
                 {% endif %}
               </div>
-              <div class="badge-desc">{{ b.text }}</div>
+
             </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="empty">
-          Pas encore de badge débloqué.
-          Enchaîne les sessions régulières pour progresser.
-        </p>
-      {% endif %}
-    </aside>
+          </div>
 
-  </section>
+          <!-- BARRES PAR EXAMEN -->
+          <div class="pt-exam-bars">
 
-  <!-- ===== HISTORIQUE ===== -->
-  <section class="card">
-    <h2>Historique de tes sessions</h2>
-    <p>
-      Clique sur Résultat ou Corrigé pour revoir une session passée.
-    </p>
+            {% if global_stats.tef_avg %}
+            <div class="pt-exam-row">
+              <span>TEF</span>
+              <div class="pt-exam-track">
+                <div class="pt-exam-fill"
+                     style="width: {{ global_stats.tef_avg }}%;"></div>
+              </div>
+              <span>{{ global_stats.tef_avg }}%</span>
+            </div>
+            {% endif %}
 
-    <div class="table-wrapper">
+            {% if global_stats.tcf_avg %}
+            <div class="pt-exam-row">
+              <span>TCF</span>
+              <div class="pt-exam-track">
+                <div class="pt-exam-fill"
+                     style="width: {{ global_stats.tcf_avg }}%;"></div>
+              </div>
+              <span>{{ global_stats.tcf_avg }}%</span>
+            </div>
+            {% endif %}
+
+          </div>
+
+          <!-- STATS PAR COMPÉTENCE -->
+          {% if section_stats %}
+          <div class="pt-section-stats">
+            {% for sec in section_stats %}
+            <div class="pt-section-row">
+              <span class="pt-section-label">
+                {{ sec.code|upper }}
+              </span>
+              <div class="pt-section-track">
+                <div class="pt-section-fill"
+                     style="width: {{ sec.avg_pct }}%;"></div>
+              </div>
+              <span>{{ sec.avg_pct }}%</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+        </article>
+
+      </div>
+
+      <!-- ================= BADGES ================= -->
+      <aside class="pt-side">
+
+        <article class="pt-card pt-card--badges">
+          <h2>🏅 Badges & objectifs</h2>
+
+          {% if badges %}
+          <div class="pt-badges-grid">
+            {% for b in badges %}
+            <div class="pt-badge-card">
+              <strong>{{ b.title }}</strong>
+              <p class="pt-muted">{{ b.text }}</p>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+            <p class="pt-muted">
+              Aucun badge débloqué pour le moment.
+            </p>
+          {% endif %}
+
+        </article>
+
+      </aside>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================================================
+HISTORIQUE DES SESSIONS
+================================================== -->
+<section class="pt-section">
+  <div class="container">
+
+    <article class="pt-card">
+      <h2>📚 Historique des sessions</h2>
+
       {% if sessions %}
-        <table>
+      <div class="pt-table-wrapper">
+        <table class="pt-table">
           <thead>
             <tr>
               <th>Date</th>
@@ -208,49 +223,58 @@ scores, progression, statistiques et historique des sessions.
             </tr>
           </thead>
           <tbody>
+
             {% for s in sessions %}
-              <tr>
-                <td>{{ s.started_at|date:"d/m/Y H:i" }}</td>
-                <td><strong>{{ s.exam.code|upper }}</strong></td>
-                <td>
-                  {% if s.mode == "mock" %}
-                    <span class="badge-mock">Examen blanc</span>
-                  {% else %}
-                    <span class="badge-mode">Entraînement</span>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if s.score_pct != None %}
-                    <span class="score-pill">
-                      {{ s.score_pct }} %
-                    </span>
-                  {% else %}–{% endif %}
-                </td>
-                <td>
-                  {% if s.total_items %}
-                    {{ s.total_correct }} / {{ s.total_items }}
-                  {% else %}–{% endif %}
-                </td>
-                <td>
-                  <a class="btn-small" href="{% url 'preparation_tests:session_result' s.id %}">
-                    🧾 Résultat
-                  </a>
-                  <a class="btn-small" href="{% url 'preparation_tests:session_correction' s.id %}">
-                    ✅ Corrigé
-                  </a>
-                </td>
-              </tr>
+            <tr>
+              <td>{{ s.started_at|date:"d/m/Y H:i" }}</td>
+              <td>{{ s.exam.code|upper }}</td>
+              <td>
+                {% if s.mode == "mock" %}
+                  Examen blanc
+                {% else %}
+                  Entraînement
+                {% endif %}
+              </td>
+              <td>
+                {% if s.score_pct != None %}
+                  {{ s.score_pct }}%
+                {% else %}—{% endif %}
+              </td>
+              <td>
+                {% if s.total_items %}
+                  {{ s.total_correct }} / {{ s.total_items }}
+                {% else %}—{% endif %}
+              </td>
+              <td>
+                <a
+                  href="{% url 'preparation_tests:session_result' s.id %}"
+                  class="pt-link"
+                >
+                  Résultat
+                </a>
+                ·
+                <a
+                  href="{% url 'preparation_tests:session_correction' s.id %}"
+                  class="pt-link"
+                >
+                  Corrigé
+                </a>
+              </td>
+            </tr>
             {% endfor %}
+
           </tbody>
         </table>
+      </div>
       {% else %}
-        <div class="empty">
+        <p class="pt-muted">
           Aucune session enregistrée pour le moment.
-        </div>
+        </p>
       {% endif %}
-    </div>
-  </section>
 
+    </article>
+
+  </div>
 </section>
 
 {% endblock %}

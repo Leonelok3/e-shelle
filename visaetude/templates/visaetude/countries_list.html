@@ -1,51 +1,90 @@
-{% extends "visaetude/base.html" %}
-{% block title %}Pays & Programmes adaptés{% endblock %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}visa-etude{% endblock %}
+
+{% block title %}
+Pays & Programmes pour Étudier à l’Étranger | Visa Études Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Découvre les pays compatibles avec ton projet d’études à l’étranger.
+Guides visa étudiant, admission universitaire, bourses d’études et démarches officielles.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_etude.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-lg-8">
-        <div class="section-title mb-1">Étape 2 · Choix du pays</div>
-        <h1 class="h4 text-white mb-1">Pays compatibles avec ton projet</h1>
-        <p class="small text-muted mb-0">
-            Classement indicatif. Tu pourras ensuite voir les guides détaillés et les vidéos étape par étape.
-        </p>
-    </div>
-</div>
 
-<div class="row g-4">
+<!-- ==================================================
+HERO — PAYS & PROGRAMMES
+================================================== -->
+<section class="ve-dashboard-hero fade-in-up">
+  <div class="container">
+
+    <span class="ve-badge">🌍 Étape 2 · Orientation</span>
+
+    <h1>
+      Pays compatibles avec ton projet<br>
+      <span class="ve-gradient">d’études à l’étranger</span>
+    </h1>
+
+    <p class="ve-lead">
+      Sélectionne les <strong>pays les plus adaptés à ton profil étudiant</strong>.
+      Chaque destination inclut un guide complet :
+      <strong>admission universitaire</strong>,
+      <strong>visa étudiant</strong>,
+      <strong>bourses d’études</strong>
+      et démarches officielles.
+    </p>
+
+  </div>
+</section>
+
+<!-- ==================================================
+LISTE DES PAYS
+================================================== -->
+<section class="ve-dashboard-modules">
+  <div class="container ve-modules-grid">
+
     {% for c in countries %}
-        <div class="col-md-6 col-xl-4">
-            <div class="card card-module h-100 p-3 floating">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="badge bg-dark border border-success text-success badge-pill">
-                        Destination études
-                    </span>
-                </div>
-                <h2 class="h5 text-white mb-1">{{ c.nom }}</h2>
-                {% if c.short %}
-                    <p class="small text-muted mb-2">{{ c.short }}</p>
-                {% else %}
-                    <p class="small text-muted mb-2">
-                        Dossiers, admission, visa étudiant, bourses principales, intégration.
-                    </p>
-                {% endif %}
+      <article class="ve-module-card" data-step="🌍">
 
-                <ul class="small text-muted mb-3">
-                    <li>Exigences académiques principales.</li>
-                    <li>Budget & preuves financières indicatives.</li>
-                    <li>Vidéos tutoriels pour les démarches.</li>
-                </ul>
+        <span class="ve-step">Destination études</span>
 
-                <a href="{% url 'visaetude:country_detail' c.code %}"
-                   class="btn btn-soft-success w-100">
-                    Ouvrir le guide {{ c.nom }}
-                </a>
-            </div>
-        </div>
+        <h2>{{ c.nom }}</h2>
+
+        <p>
+          {% if c.short %}
+            {{ c.short }}
+          {% else %}
+            Guide complet pour étudier en {{ c.nom }} :
+            universités, exigences académiques,
+            budget estimatif, visa étudiant et intégration.
+          {% endif %}
+        </p>
+
+        <ul>
+          <li>Exigences académiques principales</li>
+          <li>Budget & preuves financières indicatives</li>
+          <li>Procédure visa étudiant étape par étape</li>
+        </ul>
+
+        <a href="{% url 'visaetude:country_detail' c.code %}"
+           class="ve-module-link">
+          Ouvrir le guide {{ c.nom }} →
+        </a>
+
+      </article>
     {% empty %}
-        <div class="col-12">
-            <p class="text-muted small">Aucun pays disponible pour le moment.</p>
-        </div>
+      <p class="small text-muted">
+        Aucun pays disponible pour le moment.
+      </p>
     {% endfor %}
-</div>
+
+  </div>
+</section>
+
 {% endblock %}

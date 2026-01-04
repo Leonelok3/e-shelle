@@ -4,12 +4,16 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import VisaCountry, VisaResource, UserProfile
 from .forms import UserProfileForm
-from .models import VisaCountry, VisaResource, UserProfile, UserProgress
+
+from .models import VisaCountry, VisaResource, UserProfile, VisaProgress
+
 
 from .models import VisaCountry, University, CountryAdvice, Scholarship
 import json
 
+from django.contrib.auth.decorators import login_required
 
+from .models import VisaProgress
 # ==========================
 # PAGES VISA ÉTUDES
 # ==========================
@@ -131,19 +135,43 @@ def country_detail(request, country):
 
     return render(request, "visaetude/country_detail.html", context)
 
-def roadmap(request):
-    # Calcul de la progression
-    user_progress = request.user.visa_progress
-    total_steps = 5
-    completed_steps = user_progress.completed_steps
-    progress_percent = (completed_steps / total_steps) * 100
-    progress_label = f"Étape {user_progress.current_stage}/{total_steps}"
 
-    # Passer les informations à la vue
-    return render(request, "visaetude/roadmap.html", {
-        'visa_progress_percent': progress_percent,
-        'visa_progress_label': progress_label,
-    })
+
+from django.shortcuts import render
+from .models import VisaProgress
+
+
+def roadmap(request):
+    """
+    Page Plan d’action Visa Études
+    - Fonctionne pour utilisateurs connectés et anonymes
+    - Ne casse jamais le template
+    """
+
+    visa_progress = None
+    progress_percent = 0
+    progress_label = "Étape 1/5"
+
+    if request.user.is_authenticated:
+        visa_progress, _ = VisaProgress.objects.get_or_create(
+            user=request.user
+        )
+
+        total_steps = 5
+        completed_steps = visa_progress.completed_steps
+        progress_percent = int((completed_steps / total_steps) * 100)
+        progress_label = f"Étape {visa_progress.current_stage}/{total_steps}"
+
+    return render(
+        request,
+        "visaetude/roadmap.html",
+        {
+            "visa_progress": visa_progress,
+            "visa_progress_percent": progress_percent,
+            "visa_progress_label": progress_label,
+        },
+    )
+
 
 
 ##################### fin checklist #####################

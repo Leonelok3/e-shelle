@@ -1,32 +1,60 @@
 {% if cefr %}
-<section class="cefr-wrapper">
+<section class="cefr-section my-4">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
 
-  <div class="cefr-header">
-    <span class="cefr-title">🎓 Progression CECR</span>
-    <span class="cefr-level">
-      Niveau actuel :
-      <strong>{{ cefr.current_level }}</strong>
-    </span>
-  </div>
+        <div class="ui-card ui-card--cefr">
 
-  <div class="cefr-bar">
-    <div
-      class="cefr-bar-progress"
-      data-percent="{{ cefr.global_percent }}"
-    ></div>
-  </div>
+          <!-- HEADER -->
+          <div class="cefr-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <span class="cefr-kicker">Progression linguistique</span>
+              <h3 class="cefr-title">Cadre Européen Commun (CECR)</h3>
+            </div>
 
-  <div class="cefr-levels">
-    {% for level in cefr.levels %}
-      <div class="cefr-level-item {% if level.active %}active{% endif %}">
-        {{ level.code }}
+            <div class="cefr-current">
+              Niveau actuel :
+              <strong>{{ cefr.current_level }}</strong>
+            </div>
+          </div>
+
+          <!-- PROGRESSION -->
+          <div class="cefr-progress mt-3">
+            <div class="progress">
+              <div
+                class="progress__fill"
+                style="width: {{ cefr.global_percent }}%;"
+                aria-valuenow="{{ cefr.global_percent }}"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
+            </div>
+            <div class="cefr-percent mt-1">
+              {{ cefr.global_percent }} % complété
+            </div>
+          </div>
+
+          <!-- NIVEAUX -->
+          <div class="cefr-levels mt-4">
+            {% for level in cefr.levels %}
+              <span class="cefr-badge {% if level.active %}active{% endif %}">
+                {{ level.code }}
+              </span>
+            {% endfor %}
+          </div>
+
+          <!-- MESSAGE -->
+          {% if cefr.message %}
+          <div class="cefr-message mt-4">
+            {{ cefr.message }}
+          </div>
+          {% endif %}
+
+        </div>
+
       </div>
-    {% endfor %}
+    </div>
   </div>
-
-  <div class="cefr-message">
-    {{ cefr.message }}
-  </div>
-
 </section>
 {% endif %}

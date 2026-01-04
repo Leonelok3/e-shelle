@@ -1,81 +1,169 @@
 {% extends "base.html" %}
 {% load static %}
 
+{# ==================================================
+   SCOPE STRICT APP
+================================================== #}
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{# ==================================================
+   SEO — TITLE & META
+================================================== #}
 {% block title %}
-Examen blanc – {{ session.exam.name }}
+Examen blanc – {{ session.exam.name }} | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Examen blanc {{ session.exam.name }}
+{% if session.section %}({{ session.section.code|upper }}){% endif %} :
+conditions réelles, chronométrage, correction intelligente
+et validation CECR avec Immigration97.
+{% endblock %}
+
+{# ==================================================
+   CSS APP — VERSIONNÉ
+================================================== #}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260104">
 {% endblock %}
 
 {% block content %}
-<section class="page container-narrow">
 
-  <header class="page-header">
-    <h1>
-      🧪 Examen blanc – {{ session.exam.name }}
+<!-- ==================================================
+HERO — EXAMEN BLANC
+================================================== -->
+<section class="pt-hero pt-hero--exam">
+  <div class="container pt-fade-up">
+
+    <span class="pt-badge pt-badge--exam">
+      🧪 Examen blanc
+    </span>
+
+    <h1 class="pt-title">
+      {{ session.exam.name }}
       {% if session.section %}
-        ({{ session.section.code|upper }})
+        <span class="pt-title-sub">
+          — {{ session.section.code|upper }}
+        </span>
       {% endif %}
     </h1>
+
     {% include "preparation_tests/partials/_cefr_bar.html" %}
 
-
-    <p class="lead">
-      Réponds aux questions comme à l’examen officiel.
-      Le chrono est lancé.
+    <p class="pt-lead">
+      Conditions réelles d’examen.
+      Le <strong>chrono démarre</strong> dès le début
+      et aucune pause n’est possible.
     </p>
-  </header>
 
-  <hr>
-
-  <!-- INFOS SESSION -->
-  <div class="card">
-    <p><strong>Mode :</strong> Examen blanc</p>
-    <p><strong>Section :</strong>
-      {% if session.section %}
-        {{ session.section.code|upper }}
-      {% else %}
-        Toutes sections
-      {% endif %}
-    </p>
-    <p><strong>Nombre de questions :</strong> {{ questions|length }}</p>
-    <p><strong>Durée :</strong> {{ duration|default:"—" }} secondes</p>
   </div>
+</section>
 
-  <hr>
+<!-- ==================================================
+INFOS SESSION
+================================================== -->
+<section class="pt-section">
+  <div class="container">
 
-  <!-- QUESTIONS -->
-  {% if questions %}
-    <form method="post">
+    <article class="pt-card pt-card--session-info">
+
+      <div class="pt-info-grid">
+
+        <div>
+          <span class="pt-info-label">Mode</span>
+          <span class="pt-info-value">Examen blanc</span>
+        </div>
+
+        <div>
+          <span class="pt-info-label">Section</span>
+          <span class="pt-info-value">
+            {% if session.section %}
+              {{ session.section.code|upper }}
+            {% else %}
+              Toutes sections
+            {% endif %}
+          </span>
+        </div>
+
+        <div>
+          <span class="pt-info-label">Questions</span>
+          <span class="pt-info-value">
+            {{ questions|length }}
+          </span>
+        </div>
+
+        <div>
+          <span class="pt-info-label">Durée</span>
+          <span class="pt-info-value">
+            {% if duration %}{{ duration }} s{% else %}—{% endif %}
+          </span>
+        </div>
+
+      </div>
+
+    </article>
+
+  </div>
+</section>
+
+<!-- ==================================================
+QUESTIONS — EXAMEN
+================================================== -->
+<section class="pt-section pt-section--exam">
+  <div class="container">
+
+    {% if questions %}
+    <form method="post" class="pt-exam-form">
       {% csrf_token %}
 
       {% for question in questions %}
-        <div class="card mb-3">
-          <h3>Question {{ forloop.counter }}</h3>
-          <p>{{ question.stem }}</p>
+      <article class="pt-card pt-card--question">
 
-          {% if question.choices.all %}
-            {% for choice in question.choices.all %}
-              <label class="choice">
-                <input
-                  type="radio"
-                  name="q{{ question.id }}"
-                  value="{{ choice.id }}"
-                >
-                {{ choice.text }}
-              </label><br>
-            {% endfor %}
-          {% endif %}
+        <header class="pt-question-header">
+          <span class="pt-question-index">
+            Question {{ forloop.counter }}
+          </span>
+        </header>
+
+        <p class="pt-question-text">
+          {{ question.stem }}
+        </p>
+
+        {% if question.choices.all %}
+        <div class="pt-choices">
+          {% for choice in question.choices.all %}
+          <label class="pt-choice">
+            <input
+              type="radio"
+              name="q{{ question.id }}"
+              value="{{ choice.id }}"
+              required
+            >
+            <span>{{ choice.text }}</span>
+          </label>
+          {% endfor %}
         </div>
+        {% endif %}
+
+      </article>
       {% endfor %}
 
-      <button class="btn btn-primary btn-block">
-        ✅ Terminer l’examen
-      </button>
-    </form>
-  {% else %}
-    <p class="muted">
-      Aucune question disponible pour cette section.
-    </p>
-  {% endif %}
+      <!-- CTA -->
+      <div class="pt-cta-group center">
+        <button type="submit" class="pt-btn-primary pt-btn-lg">
+          ✅ Terminer l’examen
+        </button>
+      </div>
 
+    </form>
+    {% else %}
+      <p class="pt-empty text-center">
+        Aucune question disponible pour cette session.
+      </p>
+    {% endif %}
+
+  </div>
 </section>
+
 {% endblock %}

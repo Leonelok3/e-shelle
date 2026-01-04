@@ -89,18 +89,71 @@ def profil_create(request):
     return render(request, "visa_travail/profil_form.html", {"form": form})
 
 
-def resultats(request, profile_id: int):
-    """
-    Affiche les options de visa recommandées pour un profil donné.
-    Utilise la logique définie dans visa_data.recommend_visa_options.
-    """
-    profile = get_object_or_404(UserProfile, pk=profile_id)
-    options = recommend_visa_options(profile)
-    return render(
-        request,
-        "visa_travail/resultats.html",
-        {"profile": profile, "options": options},
-    )
+from django.shortcuts import render, get_object_or_404
+from .models import UserProfile
+
+
+def resultats(request, profile_id):
+    profile = get_object_or_404(UserProfile, id=profile_id)
+
+    # ===============================
+    # OPTIONS VISA (SIMULATION LOGIQUE)
+    # ===============================
+    options = []
+
+    # Exemple simple basé sur pays ciblés
+    if "Canada" in profile.pays_cibles:
+        options.append({
+            "pays": "Canada",
+            "difficulte": "Moyen",
+            "nom_programme": "Programme des candidats des provinces (PNP)",
+            "profil_cible": "Travailleurs qualifiés avec expérience ciblée",
+            "conditions_principales": [
+                "Métier en demande dans la province",
+                "Expérience professionnelle (1 à 3 ans)",
+                "Bon niveau d’anglais (B1/B2)",
+            ],
+            "documents_cles": [
+                "Passeport valide",
+                "CV professionnel",
+                "Test de langue",
+                "Offre d’emploi (selon province)",
+            ],
+            "delai_approx": "6 à 12 mois",
+            "lien_officiel": "https://www.canada.ca/fr/immigration-refugies-citoyennete/services/immigrer-canada/provinces.html",
+        })
+
+    if "France" in profile.pays_cibles:
+        options.append({
+            "pays": "France",
+            "difficulte": "Facile à moyen",
+            "nom_programme": "Visa salarié / travailleur étranger",
+            "profil_cible": "Profils qualifiés avec promesse d’embauche",
+            "conditions_principales": [
+                "Contrat de travail français",
+                "Autorisation de travail",
+            ],
+            "documents_cles": [
+                "Passeport",
+                "Contrat de travail",
+                "Diplômes",
+            ],
+            "delai_approx": "2 à 4 mois",
+            "lien_officiel": "https://www.service-public.fr/particuliers/vosdroits/F2728",
+        })
+
+    # ===============================
+    # GESTION PREMIUM (POUR PLUS TARD)
+    # ===============================
+    user_has_premium = False
+    if request.user.is_authenticated:
+        user_has_premium = hasattr(request.user, "subscription") and request.user.subscription.is_active
+
+    return render(request, "visa_travail/resultats.html", {
+        "profile": profile,
+        "options": options,
+        "user_has_premium": user_has_premium,
+    })
 
 
 def _create_default_actions_if_needed(profile: UserProfile, options: List[Dict]) -> None:
@@ -1092,3 +1145,24 @@ def export_plan_pdf(request, profile_id: int):
         return HttpResponse("Erreur lors de la génération du PDF.\n\n" + html)
 
     return response
+
+
+from django.db.models import Q
+
+@require_http_methods(["GET"])
+def italie_programme(request):
+    """
+    Page d'information complète sur le Decreto Flussi 2026–2028
+    avec affichage dynamique des offres d’emploi en Italie.
+    """
+    # Récupère les 6 dernières offres d’emploi dont le pays contient "Italie"
+    italy_offers = (
+        JobOffer.objects.filter(pays__icontains="Italie")
+        .order_by("-date_publication")[:6]
+    )
+
+    return render(
+        request,
+        "visa_travail/italie_programme.html",
+        {"italy_offers": italy_offers},
+    )

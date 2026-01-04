@@ -1,137 +1,181 @@
-{% extends "visa_travail/base.html" %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}Offres d’emploi – Visa Travail{% endblock %}
+{% block body_class %}visa-travail{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_travail.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-10">
-    <div class="card card-dark card-dark-hover p-4 p-md-5 mb-4 fade-in-up">
-      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-        <div>
-          <span class="badge-soft mb-2 px-3 py-1">
-            <i class="bi bi-briefcase me-1"></i> Job board international
-          </span>
-          <h1 class="h4 fw-bold mb-1">Offres d’emploi à l’international</h1>
-          <p class="small text-secondary mb-0">
-            Nous ajoutons ici des offres manuellement. Avec un profil sélectionné, tu vois un
-            <strong>score de compatibilité</strong> pour chaque offre (métier + pays).
-          </p>
-        </div>
-        <div class="text-end small">
-          {% if profile %}
-            <div class="badge-soft mb-1">
-              Profil utilisé : {{ profile.nom|default:"Profil #"|add:profile.id }}
-            </div>
-            <div class="text-secondary">
-              Domaine : {{ profile.domaine_metier }}
-            </div>
-          {% else %}
-            <div class="text-secondary">
-              Tu peux accéder à ce job board depuis ton plan d’action pour activer le scoring.
-            </div>
-          {% endif %}
-        </div>
-      </div>
+<section class="vt-job-board">
 
-      <!-- Filtres -->
-      <form method="get" class="row g-2 mb-4">
+  <div class="container">
+
+    <!-- ================= HEADER ================= -->
+    <header class="vt-card vt-fade-up">
+
+      <span class="vt-badge">
+        💼 Job board Visa Travail
+      </span>
+
+      <h1 class="vt-title">
+        Offres d’emploi
+        <span class="vt-gradient-primary">
+          à l’international
+        </span>
+      </h1>
+
+      <p class="vt-subtle">
+        Consulte des <strong>offres d’emploi compatibles visa travail légal</strong>.
+        Avec un profil Visa Travail actif, Immigration97 calcule un
+        <strong>score de compatibilité</strong> selon ton métier, ton expérience
+        et les pays ciblés.
+      </p>
+
+      {% if profile %}
+        <div class="vt-info-box">
+          <strong>Profil actif :</strong>
+          {{ profile.nom|default:"Profil #"|add:profile.id }}<br>
+          <span class="vt-subtle">
+            Domaine : {{ profile.domaine_metier }}
+          </span>
+        </div>
+      {% else %}
+        <div class="vt-info-box">
+          Sélectionne ou crée un
+          <strong>profil Visa Travail</strong>
+          pour activer l’analyse automatique de compatibilité.
+        </div>
+      {% endif %}
+
+    </header>
+
+    <!-- ================= FILTRES ================= -->
+    <section class="vt-card vt-fade-up">
+
+      <h2 class="vt-section-title">
+        Filtrer les offres
+      </h2>
+
+      <form method="get" class="vt-form-grid">
+
         {% if profile %}
           <input type="hidden" name="profile" value="{{ profile.id }}">
         {% endif %}
-        <div class="col-md-4">
-          <label class="form-label small text-secondary">Pays</label>
-          <input type="text" name="pays" value="{{ pays }}" class="form-control form-control-sm" placeholder="Ex : Canada, Allemagne">
+
+        <div class="vt-field">
+          <label>Pays ciblé</label>
+          <input
+            type="text"
+            name="pays"
+            value="{{ pays }}"
+            class="vt-input"
+            placeholder="Canada, Allemagne, Italie">
         </div>
-        <div class="col-md-4">
-          <label class="form-label small text-secondary">Domaine / métier</label>
-          <input type="text" name="domaine" value="{{ domaine }}" class="form-control form-control-sm" placeholder="Ex : développeur, infirmier">
+
+        <div class="vt-field">
+          <label>Domaine / métier</label>
+          <input
+            type="text"
+            name="domaine"
+            value="{{ domaine }}"
+            class="vt-input"
+            placeholder="Développeur, infirmier, BTP">
         </div>
-        <div class="col-md-4 d-flex align-items-end gap-2">
-          <button class="btn btn-primary btn-sm" type="submit">
-            <i class="bi bi-search me-1"></i> Filtrer
+
+        <div class="vt-form-actions">
+          <button type="submit" class="vt-btn-primary">
+            🔍 Filtrer les offres
           </button>
-          <a href="{% if profile %}{% url 'visa_travail:job_offers_list' %}?profile={{ profile.id }}{% else %}{% url 'visa_travail:job_offers_list' %}{% endif %}"
-             class="btn btn-outline-light btn-sm">
+
+          <a href="{% if profile %}
+                     {% url 'visa_travail:job_offers_list' %}?profile={{ profile.id }}
+                   {% else %}
+                     {% url 'visa_travail:job_offers_list' %}
+                   {% endif %}"
+             class="vt-btn-secondary">
             Réinitialiser
           </a>
         </div>
+
       </form>
 
+    </section>
+
+    <!-- ================= LISTE DES OFFRES ================= -->
+    <section class="vt-card vt-fade-up">
+
       {% if offers %}
-        <div class="list-group list-group-flush">
+        <div class="vt-grid-3">
+
           {% for offer in offers %}
-            <a href="{% if profile %}
-                       {% url 'visa_travail:job_offer_detail' offer.id %}?profile={{ profile.id }}
-                     {% else %}
-                       {% url 'visa_travail:job_offer_detail' offer.id %}
-                     {% endif %}"
-               class="list-group-item bg-transparent border-secondary-subtle text-white py-3 list-group-item-action">
-              <div class="d-flex justify-content-between align-items-start">
-                <div>
-                  <div class="small text-secondary mb-1">
-                    {{ offer.pays }}{% if offer.ville %} · {{ offer.ville }}{% endif %}
-                  </div>
-                  <div class="fw-semibold">{{ offer.titre }}</div>
-                  {% if offer.entreprise %}
-                    <div class="small text-secondary">{{ offer.entreprise }}</div>
-                  {% endif %}
-                  {% if offer.domaine %}
-                    <div class="small text-secondary mt-1">Domaine : {{ offer.domaine }}</div>
-                  {% endif %}
+            <article class="vt-card vt-hover">
 
-                  {% if profile and offer.match_score %}
-                    <div class="small mt-1">
-                      <span class="badge-soft">
-                        Compatibilité : {{ offer.match_score }}% – {{ offer.match_label }}
-                        {% if offer.match_pays_ok %}
-                          · Pays dans ta cible
-                        {% endif %}
-                      </span>
-                      <div class="text-secondary mt-1">
-                        {{ offer.match_reason }}
-                      </div>
-                    </div>
-                  {% endif %}
-                </div>
-
-                <div class="text-end ms-3 small">
-                  {% if offer.type_contrat %}
-                    <div class="badge-soft mb-1">{{ offer.get_type_contrat_display }}</div>
-                  {% endif %}
-                  <div class="text-secondary">
-                    Publiée le {{ offer.date_publication }}
-                  </div>
-                  {% if profile %}
-                    <div class="mt-2">
-                      <a href="{% url 'visa_travail:job_create_from_offer' offer.id %}?profile={{ profile.id }}"
-                         class="btn btn-outline-light btn-sm">
-                        Ajouter à mes candidatures
-                      </a>
-                    </div>
-                  {% endif %}
-                </div>
+              <div class="vt-subtle">
+                📍 {{ offer.pays }}{% if offer.ville %} · {{ offer.ville }}{% endif %}
               </div>
-            </a>
+
+              <h3 class="c-card__title">
+                {{ offer.titre }}
+              </h3>
+
+              {% if offer.entreprise %}
+                <p class="vt-subtle">
+                  {{ offer.entreprise }}
+                </p>
+              {% endif %}
+
+              {% if offer.domaine %}
+                <p class="vt-subtle">
+                  Domaine : {{ offer.domaine }}
+                </p>
+              {% endif %}
+
+              {% if profile and offer.match_score %}
+                <div class="vt-info-box">
+                  <strong>Compatibilité :</strong>
+                  {{ offer.match_score }} % — {{ offer.match_label }}
+                  {% if offer.match_pays_ok %}
+                    <br><span class="vt-subtle">Pays conforme à ton objectif</span>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              <div class="vt-cta-group">
+                <a href="{% if profile %}
+                           {% url 'visa_travail:job_offer_detail' offer.id %}?profile={{ profile.id }}
+                         {% else %}
+                           {% url 'visa_travail:job_offer_detail' offer.id %}
+                         {% endif %}"
+                   class="vt-btn-secondary">
+                  Voir l’offre
+                </a>
+
+                {% if profile %}
+                  <a href="{% url 'visa_travail:job_create_from_offer' offer.id %}?profile={{ profile.id }}"
+                     class="vt-btn-primary">
+                    Ajouter à mes candidatures
+                  </a>
+                {% endif %}
+              </div>
+
+            </article>
           {% endfor %}
+
         </div>
+
       {% else %}
-        <div class="alert alert-info small mb-0">
-          Aucune offre ne correspond à tes filtres pour l’instant.
-          Essaie un autre pays ou un domaine plus large, ou reviens plus tard :
-          de nouvelles offres seront ajoutées régulièrement.
+        <div class="vt-alert-info">
+          Aucune offre ne correspond à tes critères pour le moment.<br>
+          Essaie un autre pays ou un domaine plus large.
+          De nouvelles opportunités sont ajoutées régulièrement.
         </div>
       {% endif %}
-    </div>
-  </div>
-</div>
 
-<style>
-.fade-in-up {
-  animation: fadeInUp 0.7s ease both;
-}
-@keyframes fadeInUp {
-  from { opacity:0; transform: translateY(20px); }
-  to { opacity:1; transform: translateY(0); }
-}
-</style>
+    </section>
+
+  </div>
+
+</section>
 {% endblock %}

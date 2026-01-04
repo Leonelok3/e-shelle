@@ -53,4 +53,6 @@ urlpatterns = [
         views.export_plan_pdf,
         name="export_plan_pdf",
     ),
+    path("italie-programme/", views.italie_programme, name="italie_programme"),
+
 ]

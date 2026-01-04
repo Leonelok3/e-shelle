@@ -1,228 +1,86 @@
-<!-- COACH IA – WIDGET PREMIUM AVEC NOTIF -->
+
+
 <div id="rpCoachContainer"
+     class="rp-coach"
      data-api-url="{% url 'permanent_residence:coach_api' profile.id %}">
 
-  <!-- Bulle flottante -->
+  <!-- ================= BULLE FLOTTANTE ================= -->
   <button id="rpCoachBubble"
           type="button"
-          class="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-emerald-400 to-emerald-600 
-                 text-slate-900 font-semibold pl-4 pr-9 py-3 rounded-full shadow-xl shadow-emerald-500/40
-                 hover:scale-105 active:scale-95 transition-all backdrop-blur-lg border border-emerald-400/40
-                 text-xs sm:text-sm flex items-center gap-2 relative">
-      <span class="h-6 w-6 rounded-full bg-slate-900/90 flex items-center justify-center text-base">
-        🤖
-      </span>
-      <span>Coach RP</span>
-      <!-- Badge notif -->
-      <span id="rpCoachBadge"
-            class="absolute -top-1 -right-1 h-4 min-w-[1rem] px-1 rounded-full text-[0.6rem] 
-                   bg-rose-500 text-white flex items-center justify-center font-bold shadow-lg hidden">
-        •
-      </span>
+          class="rp-coach__bubble"
+          aria-label="Ouvrir le Coach IA Résidence Permanente">
+
+    <span class="rp-coach__icon">🤖</span>
+    <span class="rp-coach__label">Coach RP</span>
+
+    <span id="rpCoachBadge"
+          class="rp-coach__badge hidden"
+          aria-hidden="true">
+      •
+    </span>
   </button>
 
-  <!-- Wrapper du panneau (position) -->
+  <!-- ================= PANEL ================= -->
   <div id="rpCoachPanel"
-       class="fixed inset-x-0 bottom-0 sm:inset-auto sm:bottom-6 sm:right-6 z-50
-              flex justify-center sm:justify-end translate-x-full transition-transform duration-300">
+       class="rp-coach__panel is-hidden"
+       role="dialog"
+       aria-labelledby="rpCoachTitle">
 
-    <!-- Carte du chat -->
-    <div class="w-full max-w-sm max-h-[70vh] bg-slate-950/95 
-                backdrop-blur-2xl shadow-[0_24px_80px_rgba(15,23,42,0.95)] border border-slate-800/80
-                rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col">
+    <div class="rp-coach__card">
 
-      <!-- Header -->
-      <div class="px-4 py-3 border-b border-slate-800/70 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-xs font-bold text-slate-950 shadow-md">
-            IA
-          </div>
-          <div class="leading-tight">
-            <h2 class="text-sm font-semibold text-slate-50">Coach IA · Résidence Permanente</h2>
-            <p class="text-[0.7rem] text-slate-400">
-              Canada / Australie · études · langues · expérience
+      <!-- HEADER -->
+      <header class="rp-coach__header">
+        <div class="rp-coach__header-left">
+          <span class="rp-coach__avatar">IA</span>
+          <div>
+            <h2 id="rpCoachTitle" class="rp-coach__title">
+              Coach IA · Résidence Permanente
+            </h2>
+            <p class="rp-coach__subtitle">
+              Canada · Australie · Études · Langues · Expérience
             </p>
           </div>
         </div>
-        <button id="rpCoachClose" type="button"
-                class="text-slate-400 hover:text-slate-100 text-lg leading-none px-1">
+
+        <button id="rpCoachClose"
+                type="button"
+                class="rp-coach__close"
+                aria-label="Fermer le Coach IA">
           ✕
         </button>
-      </div>
+      </header>
 
-      <!-- Zone messages -->
+      <!-- MESSAGES -->
       <div id="rpCoachMessages"
-           class="flex-1 overflow-y-auto px-3 py-4 space-y-3 scroll-smooth text-xs">
-        <div class="msg-bot">
-          👋 Bonjour, je suis ton coach RP.  
-          Pose-moi une question sur tes chances, les programmes possibles ou les prochaines étapes, 
+           class="rp-coach__messages">
+
+        <div class="rp-coach__msg rp-coach__msg--bot">
+          👋 Bonjour, je suis ton coach RP.
+          Pose-moi une question sur tes chances,
+          les programmes possibles ou les prochaines étapes,
           et je t’expliquerai tout clairement.
         </div>
+
       </div>
 
-      <!-- Zone input -->
-      <form id="rpCoachForm" class="border-t border-slate-800/70 px-3 py-3 flex items-center gap-2 bg-slate-950/80">
+      <!-- INPUT -->
+      <form id="rpCoachForm"
+            class="rp-coach__form"
+            autocomplete="off">
+
         <input id="rpCoachInput"
                type="text"
-               placeholder="Pose ta question sur ta RP…"
-               autocomplete="off"
-               class="flex-1 rounded-full bg-slate-900/80 text-slate-200 px-3 py-2 
-                      border border-slate-700/70 focus:ring-2 focus:ring-emerald-500 outline-none text-xs placeholder:text-slate-500">
+               class="rp-coach__input"
+               placeholder="Pose ta question sur ta Résidence Permanente…">
+
         <button type="submit"
-                class="bg-gradient-to-r from-emerald-400 to-emerald-500 
-                       text-slate-900 font-bold h-8 w-8 rounded-full flex items-center justify-center text-sm hover:opacity-90 active:scale-95">
-            ➤
+                class="rp-coach__send"
+                aria-label="Envoyer">
+          ➤
         </button>
       </form>
+
     </div>
   </div>
+
 </div>
-
-<style>
-  .msg-user {
-      background: linear-gradient(to right, #10b98133, #10b98122);
-      border: 1px solid #10b98155;
-      padding: 8px 12px;
-      border-radius: 999px;
-      max-width: 80%;
-      margin-left: auto;
-      color: #d1fae5;
-      font-size: 0.8rem;
-      line-height: 1.4;
-  }
-  .msg-bot {
-      background: linear-gradient(to right, #1e293b66, #0f172a66);
-      border: 1px solid #334155;
-      padding: 8px 12px;
-      border-radius: 999px;
-      max-width: 80%;
-      margin-right: auto;
-      color: #cbd5e1;
-      font-size: 0.8rem;
-      line-height: 1.4;
-  }
-  .typing-bubble {
-      width: 46px;
-      height: 22px;
-      border-radius: 999px;
-      background: #1e293b;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 4px;
-      padding: 4px;
-  }
-  .typing-dot {
-      width: 6px; height: 6px;
-      background: #94a3b8;
-      border-radius: 50%;
-      animation: bounce 1.1s infinite;
-  }
-  .typing-dot:nth-child(2){ animation-delay: .2s; }
-  .typing-dot:nth-child(3){ animation-delay: .4s; }
-
-  @keyframes bounce {
-      0%, 100% { transform: translateY(0); opacity: .5; }
-      50% { transform: translateY(-4px); opacity: 1; }
-  }
-</style>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const container = document.getElementById("rpCoachContainer");
-  if (!container) return;
-
-  const apiUrl = container.dataset.apiUrl;
-  const bubble = document.getElementById("rpCoachBubble");
-  const panel = document.getElementById("rpCoachPanel");
-  const closeBtn = document.getElementById("rpCoachClose");
-  const form = document.getElementById("rpCoachForm");
-  const input = document.getElementById("rpCoachInput");
-  const messages = document.getElementById("rpCoachMessages");
-  const badge = document.getElementById("rpCoachBadge");
-
-  function isPanelOpen() {
-    return !panel.classList.contains("translate-x-full");
-  }
-
-  function openPanel() {
-    panel.classList.remove("translate-x-full");
-    // On consomme les notifs
-    if (badge) badge.classList.add("hidden");
-  }
-
-  function closePanel() {
-    panel.classList.add("translate-x-full");
-  }
-
-  bubble.addEventListener("click", openPanel);
-  closeBtn.addEventListener("click", closePanel);
-
-  function appendMessage(text, type) {
-    const div = document.createElement("div");
-    div.className = type === "user" ? "msg-user" : "msg-bot";
-    div.textContent = text;
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
-
-    // Si c'est une réponse bot et que le panneau est fermé → badge notif
-    if (type === "bot" && !isPanelOpen() && badge) {
-      badge.classList.remove("hidden");
-    }
-  }
-
-  function showTyping() {
-    const wrap = document.createElement("div");
-    wrap.id = "rpTyping";
-    wrap.className = "msg-bot";
-    wrap.innerHTML = `
-      <div class="typing-bubble">
-        <span class="typing-dot"></span>
-        <span class="typing-dot"></span>
-        <span class="typing-dot"></span>
-      </div>`;
-    messages.appendChild(wrap);
-    messages.scrollTop = messages.scrollHeight;
-  }
-
-  function hideTyping() {
-    const el = document.getElementById("rpTyping");
-    if (el) el.remove();
-  }
-
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    const text = input.value.trim();
-    if (!text) return;
-
-    appendMessage(text, "user");
-    input.value = "";
-
-    showTyping();
-
-    fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": (document.querySelector('[name=csrfmiddlewaretoken]') || {}).value || ""
-      },
-      body: JSON.stringify({ message: text })
-    })
-    .then(res => res.json())
-    .then(data => {
-      hideTyping();
-      if (data.answer) {
-        appendMessage(data.answer, "bot");
-      } else if (data.error) {
-        appendMessage("Erreur : " + data.error, "bot");
-      } else {
-        appendMessage("Je n'ai pas compris la réponse du serveur.", "bot");
-      }
-    })
-    .catch(() => {
-      hideTyping();
-      appendMessage("Erreur technique. Réessaie dans quelques instants.", "bot");
-    });
-  });
-});
-</script>

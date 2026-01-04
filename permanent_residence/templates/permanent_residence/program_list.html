@@ -1,43 +1,63 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}residence-permanente{% endblock %}
+{% block app_scope %}residence-permanente{% endblock %}
 
 {% block title %}
-Programmes Résidence Permanente – Canada / Australie | immigration97
+Programmes Résidence Permanente – Canada & Australie | Immigration97
 {% endblock %}
 
 {% block meta_description %}
-Catalogue des programmes de Résidence Permanente (Entrée Express, PNP, visas australiens, etc.)
-avec filtres par pays et catégorie.
+Liste complète des programmes de Résidence Permanente au Canada et en Australie :
+Entrée Express, PNP, visas australiens, critères officiels, profils éligibles
+et diagnostic personnalisé avec Immigration97.
 {% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
+{% endblock %}
+
+
 {% block content %}
+
+{% include "permanent_residence/_rp_nav.html" %}
+
+
+
 <div class="rp-program-list-page">
 
-  <!-- HERO -->
+  <!-- ================= HERO ================= -->
   <section class="rp-program-list-hero">
     <div class="rp-program-list-hero-header">
 
       <div>
         <p class="rp-program-list-kicker">
-          Bibliothèque de programmes · Résidence Permanente
+          Bibliothèque officielle · Résidence Permanente
         </p>
+
         <h1 class="rp-program-list-title">
-          Trouve les programmes RP adaptés à ton profil
+          Programmes de Résidence Permanente Canada & Australie
         </h1>
+
         <p class="rp-program-list-desc">
-          Filtre les programmes par pays et catégorie, consulte chaque fiche
-          et accède aux sources officielles.
+          Cette page regroupe les principaux
+          <strong>programmes de Résidence Permanente au Canada et en Australie</strong>,
+          utilisés par les autorités d’immigration pour sélectionner les candidats
+          selon l’âge, les études, l’expérience professionnelle et le niveau de langue.
         </p>
       </div>
 
       <aside class="rp-program-list-side">
         <div class="rp-program-list-side-box">
-          <strong>Astuce</strong>
+          <strong>🎯 Conseil stratégique</strong>
           <p>
-            Utilise ton diagnostic RP pour identifier les programmes
-            les plus pertinents.
+            Avant de choisir un programme, il est essentiel d’analyser ton profil.
+            Le diagnostic RP permet d’identifier les options les plus réalistes.
           </p>
-          <a href="{% url 'permanent_residence:dashboard' %}">
-            📊 Ouvrir le cockpit RP
+
+          <a href="{% url 'permanent_residence:eligibility' %}">
+            🧪 Faire mon diagnostic RP
           </a>
         </div>
       </aside>
@@ -45,7 +65,45 @@ avec filtres par pays et catégorie.
     </div>
   </section>
 
-  <!-- FILTERS -->
+  <!-- ================= GEO / EXPLICATION ================= -->
+  <section class="rp-card">
+    <h2 class="rp-section-title">
+      Comment fonctionnent les programmes de Résidence Permanente ?
+    </h2>
+
+    <p class="rp-text">
+      Les programmes de Résidence Permanente sont des voies officielles mises en place
+      par les gouvernements du Canada et de l’Australie pour sélectionner des candidats
+      qualifiés souhaitant s’installer durablement.
+    </p>
+
+    <p class="rp-text">
+      Chaque programme cible un type de profil précis :
+      travailleurs qualifiés, diplômés internationaux,
+      métiers en demande, candidats avec offre d’emploi
+      ou expérience locale.
+    </p>
+
+    <p class="rp-text">
+      L’éligibilité repose sur des critères mesurables :
+      âge, niveau d’études, expérience professionnelle,
+      résultats linguistiques (IELTS, TEF, TCF),
+      et parfois des facteurs régionaux ou familiaux.
+    </p>
+
+    <p class="rp-text">
+      👉 C’est pourquoi il est fortement recommandé de
+      <strong>réaliser un diagnostic personnalisé</strong>
+      avant de choisir un programme.
+    </p>
+
+    <a href="{% url 'permanent_residence:eligibility' %}"
+       class="rp-btn rp-btn--primary">
+      🚀 Vérifier mon éligibilité RP
+    </a>
+  </section>
+
+  <!-- ================= FILTRES ================= -->
   <section class="rp-program-filters">
 
     <div class="rp-filter-group">
@@ -55,10 +113,13 @@ avec filtres par pays et catégorie.
            class="rp-filter-pill {% if not selected_country %}active{% endif %}">
           Tous
         </a>
+
         {% for code in available_countries %}
           <a href="?country={{ code }}{% if selected_category %}&category={{ selected_category }}{% endif %}"
              class="rp-filter-pill {% if selected_country == code %}active{% endif %}">
-            {% if code == "CA" %}🇨🇦 Canada{% elif code == "AU" %}🇦🇺 Australie{% else %}{{ code }}{% endif %}
+            {% if code == "CA" %}🇨🇦 Canada
+            {% elif code == "AU" %}🇦🇺 Australie
+            {% else %}{{ code }}{% endif %}
           </a>
         {% endfor %}
       </div>
@@ -71,6 +132,7 @@ avec filtres par pays et catégorie.
            class="rp-filter-pill {% if not selected_category %}active{% endif %}">
           Toutes
         </a>
+
         {% for cat in categories %}
           <a href="?category={{ cat }}{% if selected_country %}&country={{ selected_country }}{% endif %}"
              class="rp-filter-pill {% if selected_category == cat %}active{% endif %}">
@@ -82,27 +144,40 @@ avec filtres par pays et catégorie.
 
   </section>
 
-  <!-- LIST -->
+  <!-- ================= LISTE PROGRAMMES ================= -->
   <section class="rp-program-list-box">
 
     {% if programs %}
       <div class="rp-program-grid">
+
         {% for program in programs %}
           <article class="rp-program-card">
 
             <div>
-              <h3 class="rp-program-card-title">{{ program.name }}</h3>
+              <h3 class="rp-program-card-title">
+                {{ program.name }}
+              </h3>
+
               <span class="rp-program-card-badge">
-                {% if program.country == "CA" %}🇨🇦 Canada{% elif program.country == "AU" %}🇦🇺 Australie{% else %}RP{% endif %}
+                {% if program.country == "CA" %}🇨🇦 Canada
+                {% elif program.country == "AU" %}🇦🇺 Australie
+                {% else %}Résidence Permanente{% endif %}
               </span>
 
               {% if program.category %}
-                <div class="rp-program-card-category">{{ program.category }}</div>
+                <div class="rp-program-card-category">
+                  {{ program.category }}
+                </div>
               {% endif %}
 
               {% if program.summary %}
                 <p class="rp-program-card-summary">
                   {{ program.summary }}
+                </p>
+              {% else %}
+                <p class="rp-program-card-summary">
+                  Programme officiel de Résidence Permanente destiné
+                  aux profils qualifiés selon les critères gouvernementaux.
                 </p>
               {% endif %}
             </div>
@@ -111,19 +186,45 @@ avec filtres par pays et catégorie.
               <a href="{% url 'permanent_residence:program_detail' program.slug %}">
                 Voir la fiche →
               </a>
+
               {% if program.official_url %}
-                <a href="{{ program.official_url }}" target="_blank">Site officiel</a>
+                <a href="{{ program.official_url }}" target="_blank" rel="noopener">
+                  Site officiel
+                </a>
               {% endif %}
             </div>
 
           </article>
         {% endfor %}
+
       </div>
     {% else %}
-      <p>Aucun programme ne correspond aux filtres.</p>
+      <p class="rp-muted">
+        Aucun programme ne correspond aux filtres sélectionnés.
+      </p>
     {% endif %}
 
   </section>
 
+  <!-- ================= CTA FINAL GEO ================= -->
+  <section class="rp-card rp-home-cta">
+    <h2 class="rp-home-cta__title">
+      Tu hésites entre plusieurs programmes de Résidence Permanente ?
+    </h2>
+
+    <p class="rp-text">
+      Chaque profil est unique. Le diagnostic RP Immigration97
+      analyse automatiquement ton âge, tes études,
+      ton expérience professionnelle et ton niveau de langue
+      afin d’identifier les programmes les plus réalistes pour toi.
+    </p>
+
+    <a href="{% url 'permanent_residence:eligibility' %}"
+       class="rp-btn rp-btn--primary rp-btn--lg">
+      🧪 Lancer mon diagnostic RP maintenant
+    </a>
+  </section>
+
 </div>
+
 {% endblock %}

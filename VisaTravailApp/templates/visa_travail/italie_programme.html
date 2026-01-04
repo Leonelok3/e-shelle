@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}visa-travail{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_travail.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="vt-italy">
+
+  <!-- ================= HERO ================= -->
+  <header class="vt-hero vt-hero-italy vt-fade-up">
+    <div class="container">
+
+      <span class="vt-badge">🇮🇹 Programme officiel italien</span>
+
+      <h1 class="vt-title">
+        Travailler légalement en Italie<br>
+        <span class="vt-gradient-primary">
+          Visa Travail & Decreto Flussi 2026–2028
+        </span>
+      </h1>
+
+      <p class="vt-subtle">
+        L’Italie ouvre près de
+        <strong>500 000 visas de travail officiels</strong>
+        entre 2026 et 2028 pour des travailleurs
+        qualifiés et non qualifiés venant d’Afrique.
+      </p>
+
+      <div class="vt-cta-group">
+        <a href="{% url 'visa_travail:profil_create' %}" class="vt-btn-primary">
+          📋 Créer mon profil de candidat
+        </a>
+        <a href="#offres" class="vt-btn-secondary">
+          Voir les offres disponibles
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= INTRO ================= -->
+  <section class="vt-section">
+    <div class="container vt-card vt-fade-up">
+
+      <h2 class="vt-section-title">
+        📘 Le Decreto Flussi : dispositif officiel italien
+      </h2>
+
+      <p>
+        Le <strong>Decreto Flussi</strong> est un programme légal
+        du gouvernement italien qui fixe chaque année
+        le nombre de travailleurs non européens autorisés
+        à entrer en Italie pour travailler.
+      </p>
+
+      <p>
+        Pour la période <strong>2026–2028</strong>,
+        <strong>497 550 permis de travail</strong> sont prévus,
+        dont <strong>164 850 dès 2026</strong>.
+      </p>
+
+    </div>
+  </section>
+
+  <!-- ================= SECTEURS ================= -->
+  <section class="vt-section vt-section-soft">
+    <div class="container vt-card vt-fade-up">
+
+      <h2 class="vt-section-title">
+        🏗️ Secteurs qui recrutent activement
+      </h2>
+
+      <ul class="vt-columns">
+        <li>🌾 Agriculture & pêche</li>
+        <li>🏗️ BTP & construction</li>
+        <li>🏨 Tourisme & hôtellerie</li>
+        <li>🏭 Industrie & manutention</li>
+        <li>🚚 Transport & logistique</li>
+        <li>👩‍⚕️ Santé & aide familiale</li>
+      </ul>
+
+      <p class="vt-subtle">
+        Ces secteurs sont
+        <strong>officiellement ouverts au recrutement étranger</strong>
+        via le visa travail italien.
+      </p>
+
+    </div>
+  </section>
+
+  <!-- ================= CALENDRIER ================= -->
+  <section class="vt-section">
+    <div class="container vt-card vt-fade-up">
+
+      <h2 class="vt-section-title">
+        📅 Calendrier officiel 2026
+      </h2>
+
+      <ul class="vt-timeline">
+        <li><strong>23 octobre 2025</strong> — Préremplissage</li>
+        <li><strong>12 janvier 2026</strong> — Agriculture</li>
+        <li><strong>9 février 2026</strong> — Tourisme</li>
+        <li><strong>16 février 2026</strong> — Non saisonniers</li>
+        <li><strong>18 février 2026</strong> — Aide familiale</li>
+      </ul>
+
+    </div>
+  </section>
+
+  <!-- ================= OFFRES ================= -->
+  <section id="offres" class="vt-section">
+    <div class="container">
+
+      <h2 class="vt-section-title vt-fade-up">
+        💼 Offres compatibles visa travail Italie
+      </h2>
+
+      {% if italy_offers %}
+        <div class="vt-grid-3">
+          {% for offer in italy_offers %}
+            <article class="vt-card vt-hover vt-fade-up">
+              <h3>{{ offer.titre|default:"Offre d’emploi en Italie" }}</h3>
+              <p class="vt-subtle">
+                {{ offer.ville|default:"Italie" }} · {{ offer.pays }}
+              </p>
+              <p>{{ offer.entreprise|default:"Employeur italien" }}</p>
+
+              <a href="{% url 'visa_travail:job_offer_detail' offer.id %}"
+                 class="vt-link">
+                Voir l’offre →
+              </a>
+            </article>
+          {% endfor %}
+        </div>
+
+        <div class="vt-center vt-space-lg">
+          <a href="{% url 'visa_travail:job_offers_list' %}?pays=Italie"
+             class="vt-btn-primary">
+            Voir toutes les offres en Italie
+          </a>
+        </div>
+      {% else %}
+        <div class="vt-alert-info vt-fade-up">
+          Aucune offre disponible pour le moment.<br>
+          <a href="{% url 'visa_travail:profil_create' %}">
+            Crée ton profil
+          </a>
+          pour être alerté dès publication.
+        </div>
+      {% endif %}
+
+    </div>
+  </section>
+
+  <!-- ================= CTA FINAL ================= -->
+  <section class="vt-cta-final">
+    <div class="container vt-fade-up">
+
+      <h2>
+        🚀 Lance ton projet de visa travail en Italie
+      </h2>
+
+      <div class="vt-cta-group">
+        <a href="{% url 'visa_travail:profil_create' %}" class="vt-btn-primary">
+          Créer mon profil
+        </a>
+        <a href="{% url 'visa_travail:coach_cv' %}" class="vt-btn-secondary">
+          Analyser mon CV
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+</section>
+{% endblock %}

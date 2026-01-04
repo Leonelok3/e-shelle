@@ -1,287 +1,164 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ cv.language }}">
 <head>
-  <meta charset="UTF-8" />
-  <title>CV Créatif – Format Canada</title>
-  <style>
-    @page { size: A4; margin: 15mm; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: "Poppins", "Segoe UI", Arial, sans-serif;
-      font-size: 11pt;
-      color: #222;
-      background: #fff;
-      line-height: 1.5;
-    }
-
-    .header {
-      text-align: center;
-      border-bottom: 4px solid #004AAD;
-      padding-bottom: 12px;
-      margin-bottom: 20px;
-    }
-
-    .name {
-      font-size: 26pt;
-      font-weight: 700;
-      color: #004AAD;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .title {
-      font-size: 13pt;
-      color: #333;
-      font-weight: 500;
-      margin-top: 4px;
-    }
-
-    .meta {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px 20px;
-      margin-top: 10px;
-      font-size: 10pt;
-      color: #555;
-      line-height: 1.4;
-    }
-
-    .meta span {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .section {
-      margin-top: 22px;
-    }
-
-    h2 {
-      font-size: 12pt;
-      color: #004AAD;
-      text-transform: uppercase;
-      border-bottom: 2px solid #004AAD;
-      padding-bottom: 4px;
-      margin-bottom: 12px;
-      letter-spacing: 0.4px;
-    }
-
-    .summary {
-      background: #f7faff;
-      border-left: 3px solid #004AAD;
-      padding: 10px 14px;
-      text-align: justify;
-      border-radius: 6px;
-      font-size: 10.8pt;
-    }
-
-    .item {
-      margin-bottom: 14px;
-      page-break-inside: avoid;
-    }
-
-    .item-title {
-      font-weight: 700;
-      font-size: 11pt;
-      color: #111;
-    }
-
-    .item-sub {
-      color: #004AAD;
-      font-weight: 600;
-      font-size: 10.5pt;
-    }
-
-    .muted {
-      color: #666;
-      font-size: 9.6pt;
-      font-style: italic;
-      margin-top: 2px;
-    }
-
-    ul {
-      margin: 5px 0 0 20px;
-    }
-
-    li {
-      margin: 3px 0;
-      text-align: justify;
-    }
-
-    /* --- Compétences et langues sur plusieurs lignes --- */
-    .tag-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px 10px;
-      margin-top: 5px;
-    }
-
-    .tag {
-      background: #e9f2ff;
-      border-radius: 14px;
-      padding: 4px 10px;
-      font-size: 10pt;
-      color: #004AAD;
-      font-weight: 600;
-      border: 1px solid #c6dcff;
-    }
-
-    .dual {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 20px;
-    }
-
-    .col {
-      flex: 1 1 45%;
-    }
-
-    .footer-note {
-      text-align: center;
-      font-size: 9pt;
-      color: #777;
-      margin-top: 20px;
-      border-top: 1px solid #ddd;
-      padding-top: 6px;
-    }
-
-    @media print {
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Resume — Canada</title>
+  <link rel="stylesheet" href="{% static 'css/pdf/cv_canada.css' %}">
 </head>
 
-<body>
-  {% with pi=personal_info %}
-  <div class="header">
-    <div class="name">{{ pi.prenom|default:"" }} {{ pi.nom|default:"" }}</div>
-    <div class="title">{{ pi.titre|default:cv.profession|default:"" }}</div>
-    <div class="meta">
-      {% if pi.email %}<span>📧 {{ pi.email }}</span>{% endif %} <br>
-      {% if pi.telephone %}<span>📞 {{ pi.telephone }}</span>{% endif %}
-      {% if pi.ville %}<span>📍 {{ pi.ville }}{% if pi.province %}, {{ pi.province }}{% endif %}</span>{% endif %}
-      {% if pi.pays %}<span>{{ pi.pays }}</span>{% endif %}
-      {% if pi.linkedin %}<span>🔗 {{ pi.linkedin }}</span>{% endif %}
-    </div>
-  </div>
-  {% endwith %}
+<body class="pdf pdf-cv-canada">
 
-  {% if summary %}
-  <div class="section">
-    <h2>Résumé Professionnel</h2>
-    <div class="summary">{{ summary|linebreaksbr }}</div>
+<!-- ================= HEADER ================= -->
+<header class="header">
+  <div class="name">
+    {{ personal_info.prenom }} {{ personal_info.nom }}
   </div>
+
+  {% if cv.profession %}
+    <div class="job-title">{{ cv.profession }}</div>
   {% endif %}
 
-  {% if skills %}
-  <div class="section">
-    <h2>Compétences</h2>
-    <div class="tag-grid">
-      {% for s in skills %}
-        <p class="tag">{{ s.name|default:s.nom|default:"Compétence" }}</p>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  {% if experiences %}
-  <div class="section">
-    <h2>Expériences Professionnelles</h2>
-    {% for e in experiences %}
-      <div class="item">
-        <div class="item-title">{{ e.title|default:e.titre_poste|default:"Poste" }}</div>
-        {% if e.company or e.entreprise %}
-          <div class="item-sub">{{ e.company|default:e.entreprise }}</div>
-        {% endif %}
-        <div class="muted">
-          {% if e.start_date or e.date_debut %}{{ e.start_date|default:e.date_debut|date:"m/Y" }}{% endif %}
-          {% if e.end_date or e.date_fin %} – {{ e.end_date|default:e.date_fin|date:"m/Y" }}{% else %} – Présent{% endif %}
-          {% if e.location or e.lieu %} | {{ e.location|default:e.lieu }}{% endif %}
-        </div>
-        {% if e.bullets %}
-          <ul>{% for ln in e.bullets %}{% if ln %}<li>{{ ln }}</li>{% endif %}{% endfor %}</ul>
-        {% elif e.description %}
-          <div style="margin-top:6px;">{{ e.description|linebreaksbr }}</div>
-        {% endif %}
-      </div>
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  {% if educations %}
-  <div class="section">
-    <h2>Formation</h2>
-    {% for ed in educations %}
-      <div class="item">
-        <div class="item-title">{{ ed.degree|default:ed.diplome|default:"Diplôme" }}</div>
-        {% if ed.school or ed.ecole %}
-          <div class="item-sub">{{ ed.school|default:ed.ecole }}</div>
-        {% endif %}
-        <div class="muted">
-          {% if ed.start_date or ed.date_debut %}{{ ed.start_date|default:ed.date_debut|date:"m/Y" }}{% endif %}
-          {% if ed.end_date or ed.date_fin %} – {{ ed.end_date|default:ed.date_fin|date:"m/Y" }}{% endif %}
-          {% if ed.location or ed.lieu %} | {{ ed.location|default:ed.lieu }}{% endif %}
-        </div>
-        {% if ed.description %}
-          <div style="margin-top:4px;">{{ ed.description|linebreaksbr }}</div>
-        {% endif %}
-      </div>
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  {% if certifications or languages %}
-  <div class="section dual">
-    {% if certifications %}
-    <div class="col">
-      <h2>Certifications</h2>
-      {% for c in certifications %}
-        <div class="item">
-          <div class="item-title">{{ c.name }}</div>
-          <div class="muted">{{ c.organization }}{% if c.date_obtained %} — {{ c.date_obtained|date:"m/Y" }}{% endif %}</div>
-        </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if languages %}
-    <div class="col">
-      <h2>Langues</h2>
-      <div class="tag-grid">
-        {% for l in languages %}
-          <p class="tag">{{ l.name|default:l.langue }}{% if l.get_level_display %} — {{ l.get_level_display }}{% endif %}</p>
-        {% endfor %}
-      </div>
-    </div>
+  <div class="meta">
+    {% if personal_info.email %}{{ personal_info.email }} ·{% endif %}
+    {% if personal_info.telephone %} {{ personal_info.telephone }} ·{% endif %}
+    {% if personal_info.ville %} {{ personal_info.ville }}{% endif %}
+    {% if personal_info.province %}, {{ personal_info.province }}{% endif %}
+    {% if personal_info.pays %} · {{ personal_info.pays }}{% endif %}
+    {% if personal_info.linkedin %}
+      <br>LinkedIn: {{ personal_info.linkedin }}
     {% endif %}
   </div>
-  {% endif %}
+</header>
 
-  {% if projects %}
-  <div class="section">
-    <h2>Projets</h2>
-    {% for p in projects %}
-      <div class="item">
-        <div class="item-title">{{ p.title|default:p.nom }}</div>
-        <div class="muted">
-          {% if p.start_date %}{{ p.start_date|date:"Y" }}{% endif %}
-          {% if p.technologies %} — {{ p.technologies }}{% endif %}
-          {% if p.url %} — {{ p.url }}{% endif %}
-        </div>
-        {% if p.description %}
-          <div style="margin-top:4px;">{{ p.description|linebreaksbr }}</div>
-        {% endif %}
-      </div>
+<!-- ================= SUMMARY ================= -->
+{% if summary %}
+<section class="section">
+  <div class="section-title">{{ labels.summary }}</div>
+  <p>{{ summary|linebreaksbr }}</p>
+</section>
+{% endif %}
+
+<!-- ================= SKILLS ================= -->
+{% if skills %}
+<section class="section">
+  <div class="section-title">{{ labels.skills }}</div>
+  <ul class="skills-list">
+    {% for s in skills %}
+      <li>{{ s }}</li>
     {% endfor %}
-  </div>
-  {% endif %}
+  </ul>
+</section>
+{% endif %}
 
-  <div class="footer-note">
-    <em>CV généré automatiquement — Modèle “Modern Canada” © 2025</em>
+<!-- ================= EXPERIENCE ================= -->
+{% if experiences %}
+<section class="section">
+  <div class="section-title">{{ labels.experience }}</div>
+
+  {% for e in experiences %}
+  <div class="item">
+    <div class="item-title">
+      {{ e.title }}{% if e.company %} — {{ e.company }}{% endif %}
+    </div>
+
+    <div class="muted">
+      {{ e.start_date|date:"m/Y" }}
+      –
+      {% if e.end_date %}
+        {{ e.end_date|date:"m/Y" }}
+      {% else %}
+        {{ labels.present }}
+      {% endif %}
+      {% if e.location %} | {{ e.location }}{% endif %}
+    </div>
+
+    {% if e.description_ai %}
+      <p>{{ e.description_ai|linebreaksbr }}</p>
+    {% elif e.description %}
+      <p>{{ e.description|linebreaksbr }}</p>
+    {% endif %}
   </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<!-- ================= EDUCATION ================= -->
+{% if educations %}
+<section class="section">
+  <div class="section-title">{{ labels.education }}</div>
+
+  {% for ed in educations %}
+  <div class="item">
+    <div class="item-title">
+      {{ ed.diploma }} — {{ ed.institution }}
+    </div>
+
+    <div class="muted">
+      {{ ed.start_date|date:"Y" }}
+      –
+      {% if ed.end_date %}
+        {{ ed.end_date|date:"Y" }}
+      {% else %}
+        {{ labels.in_progress }}
+      {% endif %}
+      {% if ed.location %} | {{ ed.location }}{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<!-- ================= LANGUAGES ================= -->
+{% if languages %}
+<section class="section">
+  <div class="section-title">{{ labels.languages }}</div>
+  <ul class="skills-list">
+    {% for l in languages %}
+      <li>{{ l.name }} — {{ l.level }}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<!-- ================= VOLUNTEER ================= -->
+{% if volunteers %}
+<section class="section">
+  <div class="section-title">{{ labels.volunteer }}</div>
+
+  {% for v in volunteers %}
+  <div class="item">
+    <div class="item-title">{{ v.role }}</div>
+    <div class="muted">
+      {{ v.start_date|date:"Y" }}
+      –
+      {% if v.end_date %}
+        {{ v.end_date|date:"Y" }}
+      {% else %}
+        {{ labels.in_progress }}
+      {% endif %}
+    </div>
+
+    {% if v.description %}
+      <p>{{ v.description|linebreaksbr }}</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<!-- ================= CERTIFICATIONS ================= -->
+{% if certifications %}
+<section class="section">
+  <div class="section-title">{{ labels.certifications }}</div>
+  {% for c in certifications %}
+    <div class="item">
+      {{ c.name }}{% if c.organization %} — {{ c.organization }}{% endif %}
+      {% if c.date %} ({{ c.date|date:"Y" }}){% endif %}
+    </div>
+  {% endfor %}
+</section>
+{% endif %}
+
 </body>
 </html>

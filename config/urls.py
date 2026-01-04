@@ -39,7 +39,10 @@ urlpatterns = [
     # ============================
     path(
         "authentification/",
-        include(("authentification.urls", "authentification"), namespace="authentification"),
+        include(
+            ("authentification.urls", "authentification"),
+            namespace="authentification",
+        ),
     ),
 
     # ============================
@@ -58,28 +61,23 @@ urlpatterns = [
     ),
 
     path("motivation/", include("MotivationLetterApp.urls")),
-
-    path(
-        "visaetude/",
-        include(("visaetude.urls", "visaetude"), namespace="visaetude"),
-    ),
+    path("visa-etudes/", include("visaetude.urls")),
 
     path(
         "billing/",
         include(("billing.urls", "billing"), namespace="billing"),
     ),
-    path("prep/", include("preparation_tests.urls")),
-
 
     # ============================
-    # ✅ PREPARATION TESTS (UNE SEULE FOIS)
+    # ✅ PREPARATION TESTS (UNE SEULE FOIS – CORRECT)
     # ============================
     path(
         "prep/",
-        include(("preparation_tests.urls", "preparation_tests"), namespace="preparation_tests"),
+        include(
+            ("preparation_tests.urls", "preparation_tests"),
+            namespace="preparation_tests",
+        ),
     ),
-    
-
 
     # ============================
     # VISAS
@@ -90,7 +88,11 @@ urlpatterns = [
     # ============================
     # RÉSIDENCE PERMANENTE
     # ============================
-    path("residence-permanente/", pr_views.home_view, name="residence_permanente"),
+    path(
+        "residence-permanente/",
+        pr_views.home_view,
+        name="residence_permanente",
+    ),
     path("rp/", pr_views.home_view, name="rp_shortcut"),
     path("pr/", include("permanent_residence.urls")),
 
@@ -98,7 +100,11 @@ urlpatterns = [
     # API & DOC
     # ============================
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("api/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path(
+        "api/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
     path("api/eligibility/", include("eligibility.urls")),
     path("api/radar/", include("radar.urls")),
 
@@ -106,7 +112,11 @@ urlpatterns = [
     # WIZARD & DASHBOARD
     # ============================
     path("wizard/", wizard_page, name="wizard"),
-    path("wizard/result/<int:session_id>/", wizard_result_page, name="wizard_result"),
+    path(
+        "wizard/result/<int:session_id>/",
+        wizard_result_page,
+        name="wizard_result",
+    ),
     path("wizard/checklist.pdf", wizard_pdf, name="wizard_pdf"),
     path("wizard/steps/", wizard_steps_page, name="wizard_steps"),
     path("dashboard/", dashboard_page, name="dashboard"),
@@ -129,7 +139,7 @@ urlpatterns = [
     path("profiles/", include("profiles.urls")),
 
     # ============================
-    # 2FA (DÉSACTIVÉ TEMPORAIREMENT)
+    # 2FA (DÉSACTIVÉ)
     # ============================
     # path("account/", include("two_factor.urls")),
 ]
@@ -139,4 +149,3 @@ urlpatterns = [
 # ============================
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-

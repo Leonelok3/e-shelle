@@ -1,85 +1,136 @@
-{% extends "visaetude/base.html" %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}Mettre à jour - {{ item.document.nom }}{% endblock %}
+{% block title %}
+Mettre à jour un document – Checklist Visa Études | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Mise à jour d’un document Visa Études Immigration97 :
+gère l’état d’avancement de ton dossier visa étudiant,
+téléverse tes documents et ajoute des notes de suivi.
+{% endblock %}
+
+{% block body_class %}visa-etude{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_etude.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-8">
-    <div class="card shadow-sm">
-      <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">
-          <i class="fas fa-edit"></i> Mettre à jour le Document
-        </h4>
-      </div>
 
-      <div class="card-body">
-        <h5 class="mb-3">{{ item.document.nom }}</h5>
-        <p class="text-muted">{{ item.document.description }}</p>
-        <hr>
+<!-- ==================================================
+HERO — DOCUMENT CHECKLIST
+================================================== -->
+<section class="ve-dashboard-hero fade-in-up">
+  <div class="container ve-text-block">
 
-        <form method="post" enctype="multipart/form-data">
-          {% csrf_token %}
+    <span class="ve-badge">
+      📄 Checklist Visa Études
+    </span>
 
-          <div class="mb-3">
-            <label for="{{ form.statut.id_for_label }}" class="form-label">
-              <i class="fas fa-flag"></i> Statut du Document
-            </label>
-            {{ form.statut }}
-            <div class="form-text">Indiquez l'état d'avancement de ce document</div>
-          </div>
+    <h1 class="ve-title">
+      Mettre à jour un document
+      <span class="ve-gradient">de ton dossier visa</span>
+    </h1>
 
-          <div class="mb-3">
-            <label for="{{ form.fichier.id_for_label }}" class="form-label">
-              <i class="fas fa-upload"></i> Télécharger le Document
-            </label>
-            {{ form.fichier }}
-            {% if item.fichier %}
-            <div class="mt-2">
-              <small class="text-muted">
-                Fichier actuel:
-                <a href="{{ item.fichier.url }}" target="_blank">
-                  <i class="fas fa-file"></i> Voir le fichier
-                </a>
-              </small>
-            </div>
-            {% endif %}
-            <div class="form-text">Formats acceptés: PDF, JPG, PNG, DOCX (Max 10MB)</div>
-          </div>
+    <p class="ve-lead">
+      Mets à jour l’état d’avancement de ce document,
+      téléverse la version finale et ajoute des notes
+      pour mieux suivre ton <strong>dossier visa étudiant</strong>.
+    </p>
 
-          <div class="mb-3">
-            <label for="{{ form.notes.id_for_label }}" class="form-label">
-              <i class="fas fa-sticky-note"></i> Notes Personnelles
-            </label>
-            {{ form.notes }}
-            <div class="form-text">Ajoutez des notes pour vous souvenir de détails importants</div>
-          </div>
-
-          <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-            <a href="{% url 'visaetude:checklist' item.pays.code %}" class="btn btn-secondary">
-              <i class="fas fa-times"></i> Annuler
-            </a>
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-save"></i> Enregistrer
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Conseils -->
-    <div class="card shadow-sm mt-4">
-      <div class="card-body">
-        <h5 class="text-primary">
-          <i class="fas fa-lightbulb"></i> Conseils
-        </h5>
-        <ul class="mb-0">
-          <li>Scannez vos documents en haute qualité (300 DPI minimum)</li>
-          <li>Assurez-vous que tous les textes sont lisibles</li>
-          <li>Gardez des copies de sauvegarde de tous vos documents</li>
-          <li>Vérifiez les dates d'expiration des documents officiels</li>
-        </ul>
-      </div>
-    </div>
   </div>
-</div>
+</section>
+
+<!-- ==================================================
+FORMULAIRE DOCUMENT
+================================================== -->
+<section>
+  <div class="container" style="max-width:900px">
+
+    <div class="ve-module-card">
+
+      <span class="ve-step">Document requis</span>
+      <h2>{{ item.document.nom }}</h2>
+
+      {% if item.document.description %}
+        <p class="small">
+          {{ item.document.description }}
+        </p>
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        <!-- Statut -->
+        <div class="ve-field">
+          <label class="small">Statut du document</label>
+          {{ form.statut }}
+          <p class="small">
+            Indique où tu en es : à faire, en cours ou terminé.
+          </p>
+        </div>
+
+        <!-- Fichier -->
+        <div class="ve-field">
+          <label class="small">Téléverser le document</label>
+          {{ form.fichier }}
+
+          {% if item.fichier %}
+            <p class="small">
+              📎 Document actuel :
+              <a href="{{ item.fichier.url }}" target="_blank" class="ve-module-link">
+                Voir le fichier →
+              </a>
+            </p>
+          {% endif %}
+
+          <p class="small">
+            Formats acceptés : PDF, JPG, PNG, DOCX — taille max 10 Mo.
+          </p>
+        </div>
+
+        <!-- Notes -->
+        <div class="ve-field">
+          <label class="small">Notes personnelles</label>
+          {{ form.notes }}
+          <p class="small">
+            Ajoute des rappels utiles (date d’expiration, traduction à faire, original requis, etc.).
+          </p>
+        </div>
+
+        <!-- Actions -->
+        <div class="ve-cta-group">
+          <a href="{% url 'visaetude:checklist' %}" class="ve-btn-secondary">
+            ← Retour à la checklist
+          </a>
+
+          <button type="submit" class="ve-btn-primary">
+            Enregistrer le document
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+
+    <!-- CONSEILS -->
+    <div class="ve-text-block" style="margin-top:2rem">
+
+      <span class="ve-step">Conseils pratiques</span>
+      <h3>Bonnes pratiques pour ton dossier visa</h3>
+
+      <ul>
+        <li>Scanne tes documents en bonne qualité (300 DPI recommandé).</li>
+        <li>Vérifie que tous les textes sont lisibles et complets.</li>
+        <li>Garde toujours une copie de sauvegarde.</li>
+        <li>Contrôle les dates d’expiration des documents officiels.</li>
+      </ul>
+
+    </div>
+
+  </div>
+</section>
+
 {% endblock %}

@@ -1,201 +1,209 @@
-{% extends "visaetude/base.html" %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}{{ country }} – Visa Études{% endblock %}
+{% block body_class %}visa-etude{% endblock %}
+
+{% block title %}
+Étudier en {{ country }} – Visa Étudiant, Universités & Bourses | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Guide complet pour étudier en {{ country }} : admission universitaire,
+visa étudiant, bourses d’études, universités et démarches officielles.
+Accompagnement Immigration97.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_etude.css' %}">
+{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <div class="row g-4">
-            <!-- Colonne principale - Guide pays -->
-            <div class="col-lg-8">
-                <div class="card card-module p-4">
-                    <div class="section-title mb-1">Guide pays</div>
-                    <h1 class="h4 text-white mb-3">Étudier en {{ country }}</h1>
 
-                    <!-- Onglets pour Admission, Visa étudiant, Bourses -->
-                    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active btn-sm" id="pills-admission-tab" data-bs-toggle="pill"
-                                    data-bs-target="#pills-admission" type="button" role="tab">
-                                Admission
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link btn-sm" id="pills-visa-tab" data-bs-toggle="pill"
-                                    data-bs-target="#pills-visa" type="button" role="tab">
-                                Visa étudiant
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link btn-sm" id="pills-bourse-tab" data-bs-toggle="pill"
-                                    data-bs-target="#pills-bourse" type="button" role="tab">
-                                Bourses
-                            </button>
-                        </li>
-                    </ul>
+<!-- ==================================================
+HERO — PAYS
+================================================== -->
+<section class="ve-dashboard-hero fade-in-up">
+  <div class="container">
 
-                    <!-- Contenu des onglets -->
-                    <div class="tab-content small text-muted" id="pills-tabContent">
-                        <!-- Onglet Admission -->
-                        <div class="tab-pane fade show active" id="pills-admission" role="tabpanel">
-                            <p>{{ guide }}</p>
-                            <ul>
-                                <li>Conditions d’admission (niveau d’études, moyenne, prérequis).</li>
-                                <li>Calendrier académique & dates limites.</li>
-                                <li>Langue d’enseignement (français / anglais / autre).</li>
-                                <li>Exemples de programmes accessibles.</li>
-                            </ul>
-                            <p class="mt-3">
-                                🎥 <strong>Vidéos admission :</strong> plus bas, tu trouveras des tutoriels pour faire ta demande d’admission toi-même.
-                            </p>
-                        </div>
+    <span class="ve-badge">🌍 Guide pays</span>
 
-                        <!-- Onglet Visa -->
-                        <div class="tab-pane fade" id="pills-visa" role="tabpanel">
-                            <p>Aperçu des grandes étapes du visa étudiant pour {{ country }} :</p>
-                            <ol>
-                                <li>Obtenir une lettre d’acceptation officielle.</li>
-                                <li>Préparer preuves financières et justificatifs académiques.</li>
-                                <li>Remplir le formulaire de demande de visa sur le site officiel.</li>
-                                <li>Prendre rendez-vous et déposer le dossier.</li>
-                                <li>Suivre la demande et préparer le départ.</li>
-                            </ol>
-                            <p class="mt-2">
-                                ⚠️ Vérifie toujours les exigences à jour sur le site officiel du gouvernement de {{ country }}.
-                            </p>
-                            <p class="mt-2">
-                                🎥 <strong>Vidéos visa :</strong> plus bas, tu auras les captures et vidéos qui montrent chaque étape (formulaire, RDV, dépôt).
-                            </p>
-                        </div>
+    <h1>
+      Étudier en {{ country }}<br>
+      <span class="ve-gradient">Visa étudiant, universités & bourses</span>
+    </h1>
 
-                        <!-- Onglet Bourses -->
-                        <div class="tab-pane fade" id="pills-bourse" role="tabpanel">
-                            <p>Principales catégories de bourses pour {{ country }} :</p>
-                            <ul>
-                                <li>Bourses gouvernementales.</li>
-                                <li>Bourses des universités.</li>
-                                <li>Bourses d’organisations internationales.</li>
-                            </ul>
-                            <p>
-                                Le coach IA peut t’aider à rédiger CV & lettres adaptées pour maximiser tes chances.
-                            </p>
-                            <p class="mt-2">
-                                🎥 <strong>Vidéos bourses :</strong> plus bas, des tutoriels pour remplir les formulaires et soumettre les dossiers.
-                            </p>
-                        </div>
-                    </div>
+    <p class="ve-lead">
+      Découvre toutes les étapes pour <strong>étudier légalement en {{ country }}</strong> :
+      admission universitaire, <strong>visa étudiant</strong>,
+      <strong>bourses d’études</strong> et ressources officielles.
+    </p>
 
-                    <hr class="my-4">
+  </div>
+</section>
 
-                    <!-- RESSOURCES VIDÉOS / PDF / CAPTURES -->
-                    <div id="resources">
-                        <div class="section-title mb-1">Ressources vidéo & tutoriels pas à pas</div>
-                        <h2 class="h6 text-white mb-2">Fais toi-même les démarches en suivant les vidéos</h2>
+<!-- ==================================================
+GUIDE STRUCTURÉ
+================================================== -->
+<section class="ve-dashboard-modules">
+  <div class="container ve-modules-grid">
 
-                        {% if resources %}
-                            <ul class="list-unstyled resources-list">
-                                {% for r in resources %}
-                                    <li class="resource-item">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <div class="small text-uppercase text-muted mb-1">
-                                                    {{ r.get_category_display }} · {{ r.get_resource_type_display }}
-                                                </div>
-                                                <div class="fw-semibold text-white">{{ r.title }}</div>
-                                                {% if r.step_label %}
-                                                    <div class="small text-muted">{{ r.step_label }}</div>
-                                                {% endif %}
-                                            </div>
-                                            <a href="{{ r.url }}" target="_blank" rel="noopener"
-                                               class="btn btn-soft-success btn-sm ms-2">
-                                                Ouvrir
-                                            </a>
-                                        </div>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p class="small text-muted mb-0">
-                                Aucune ressource n’est encore ajoutée pour {{ country }}.
-                                Ton équipe pourra bientôt ajouter des vidéos, captures d’écran et PDF
-                                depuis l’espace d’administration.
-                            </p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+    <article class="ve-module-card" data-step="1">
+      <h2>Admission universitaire en {{ country }}</h2>
+      <p>{{ guide }}</p>
+      <ul>
+        <li>Conditions d’admission et prérequis</li>
+        <li>Calendrier académique et délais</li>
+        <li>Langue d’enseignement</li>
+      </ul>
+    </article>
 
-            <!-- Colonne droite résumé -->
-            <div class="col-lg-4">
-                <div class="card card-module p-3 mb-3">
-                    <div class="section-title mb-1">Profil conseillé</div>
-                    <p class="small text-muted mb-2">
-                        Tu auras les meilleures chances si ton projet est cohérent avec :
-                    </p>
-                    <ul class="small text-muted mb-0">
-                        <li>Niveau d’études compatible avec les exigences locales.</li>
-                        <li>Budget ou bourse adaptés au coût de la vie.</li>
-                        <li>Niveau de langue suffisant pour suivre les cours.</li>
-                    </ul>
-                </div>
+    <article class="ve-module-card" data-step="2">
+      <h2>Visa étudiant pour {{ country }}</h2>
+      <ol>
+        <li>Lettre d’acceptation officielle</li>
+        <li>Preuves financières et dossier</li>
+        <li>Dépôt de la demande de visa</li>
+        <li>Rendez-vous et suivi</li>
+      </ol>
+      <p class="small">
+        ⚠️ Vérifie toujours les informations sur les sites officiels.
+      </p>
+    </article>
 
-                <div class="card card-module p-3">
-                    <div class="section-title mb-1">Actions suivantes</div>
-                    <p class="small text-muted mb-2">
-                        Tu peux maintenant intégrer {{ country }} dans ton plan et générer une checklist personnalisée.
-                    </p>
-                    <a href="{% url 'visaetude:roadmap' %}" class="btn btn-soft-success w-100 mb-2">
-                        Ajouter à mon parcours
-                    </a>
-                    <a href="#resources" class="btn btn-outline-light btn-sm w-100 mb-2">
-                        Voir les vidéos étape par étape
-                    </a>
-                    <a href="{% url 'visaetude:coach_ai' %}" class="btn btn-outline-light btn-sm w-100">
-                        Poser une question au coach IA
-                    </a>
-                </div>
-            </div>
-        </div>
+    <article class="ve-module-card" data-step="3">
+      <h2>Bourses d’études disponibles</h2>
+      <ul>
+        <li>Bourses gouvernementales</li>
+        <li>Bourses universitaires</li>
+        <li>Programmes internationaux</li>
+      </ul>
+      <p>
+        Le Coach IA peut t’aider à optimiser CV et lettres.
+      </p>
+    </article>
 
-        <!-- Affichage des universités -->
-        <h3>Universités</h3>
+  </div>
+</section>
+
+<!-- ==================================================
+RESSOURCES
+================================================== -->
+<section class="ve-dashboard-modules">
+  <div class="container ve-modules-grid">
+
+    <article class="ve-module-card" data-step="🎥">
+      <h2>Ressources vidéo & tutoriels</h2>
+
+      {% if resources %}
         <ul>
-            {% for university in universities %}
-                <li>
-                    <strong>{{ university.name }}</strong>
-                    <br>
-                    <a href="{{ university.admission_link }}" target="_blank">Commencer la demande d'admission</a>
-                    <br>
-                    <span>{{ university.advice }}</span>
-                </li>
-            {% empty %}
-                <li>Aucune université n'est listée pour ce pays.</li>
-            {% endfor %}
+          {% for r in resources %}
+            <li>
+              <strong>{{ r.title }}</strong><br>
+              <span class="small">{{ r.get_category_display }} · {{ r.get_resource_type_display }}</span>
+              <br>
+              <a href="{{ r.url }}" target="_blank" rel="noopener">
+                Ouvrir la ressource →
+              </a>
+            </li>
+          {% endfor %}
         </ul>
+      {% else %}
+        <p class="small">
+          Aucune ressource n’est encore disponible pour {{ country }}.
+        </p>
+      {% endif %}
+    </article>
 
-        <!-- Affichage des conseils spécifiques -->
-        <h3>Conseils pour {{ country }}</h3>
+  </div>
+</section>
+
+<!-- ==================================================
+UNIVERSITÉS
+================================================== -->
+<section class="ve-dashboard-modules">
+  <div class="container ve-modules-grid">
+
+    <article class="ve-module-card" data-step="🎓">
+      <h2>Universités en {{ country }}</h2>
+
+      {% if universities %}
         <ul>
-            {% for advice in advices %}
-                <li><strong>{{ advice.advice_title }}</strong>: {{ advice.advice_content }}</li>
-            {% empty %}
-                <li>Aucun conseil disponible pour ce pays.</li>
-            {% endfor %}
+          {% for university in universities %}
+            <li>
+              <strong>{{ university.name }}</strong><br>
+              <a href="{{ university.admission_link }}" target="_blank">
+                Commencer la demande d’admission →
+              </a>
+            </li>
+          {% endfor %}
         </ul>
+      {% else %}
+        <p class="small">Aucune université listée pour le moment.</p>
+      {% endif %}
+    </article>
 
-        <!-- Affichage des bourses -->
-        <h3>Bourses d’études disponibles</h3>
-        <ul>
-            {% for scholarship in scholarships %}
-                <li>
-                    <strong>{{ scholarship.scholarship_name }}</strong> - {{ scholarship.description }}
-                    <br>
-                    <a href="{{ scholarship.application_link }}" target="_blank">Postuler</a>
-                </li>
-            {% empty %}
-                <li>Aucune bourse n'est disponible pour ce pays.</li>
-            {% endfor %}
-        </ul>
+  </div>
+</section>
 
-        <a href="{% url 'visaetude:countries_list' %}">Retour à la liste des pays</a>
+<!-- ==================================================
+CONSEILS & BOURSES
+================================================== -->
+<section class="ve-dashboard-modules">
+  <div class="container ve-modules-grid">
+
+    <article class="ve-module-card">
+      <h2>Conseils pratiques pour {{ country }}</h2>
+      <ul>
+        {% for advice in advices %}
+          <li><strong>{{ advice.advice_title }}</strong> – {{ advice.advice_content }}</li>
+        {% empty %}
+          <li>Aucun conseil spécifique pour le moment.</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="ve-module-card">
+      <h2>Bourses d’études</h2>
+      <ul>
+        {% for scholarship in scholarships %}
+          <li>
+            <strong>{{ scholarship.scholarship_name }}</strong><br>
+            {{ scholarship.description }}<br>
+            <a href="{{ scholarship.application_link }}" target="_blank">
+              Postuler →
+            </a>
+          </li>
+        {% empty %}
+          <li>Aucune bourse listée.</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+  </div>
+</section>
+
+<!-- ==================================================
+CTA FINAL
+================================================== -->
+<section class="ve-cta-final">
+  <div class="container text-center">
+
+    <h2>Besoin d’un accompagnement personnalisé ?</h2>
+    <p>
+      Utilise le Coach IA ou active l’accompagnement Premium
+      pour maximiser tes chances d’étudier en {{ country }}.
+    </p>
+
+    <div class="ve-cta-group center">
+      <a href="{% url 'visaetude:coach_ai' %}" class="ve-btn-primary">
+        Parler au Coach IA
+      </a>
+      <a href="{% url 'visaetude:roadmap' %}" class="ve-btn-secondary">
+        Ajouter à mon parcours
+      </a>
     </div>
+
+  </div>
+</section>
+
 {% endblock %}

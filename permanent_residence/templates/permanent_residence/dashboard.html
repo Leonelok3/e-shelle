@@ -1,51 +1,64 @@
 {% extends "base.html" %}
 {% load static %}
 
+
+{% block body_class %}residence-permanente{% endblock %}
+{% block app_scope %}residence-permanente{% endblock %}
+
+
 {% block title %}
-Cockpit Résidence Permanente | immigration97
+Cockpit Résidence Permanente Canada & Australie | Immigration97
 {% endblock %}
 
 {% block meta_description %}
-Tableau de bord Résidence Permanente : score de préparation, prochaines actions, suivi du plan,
-stratégies RP personnalisées (Canada / Australie) avec Immigration97.
+Cockpit Résidence Permanente Immigration97 : tableau de bord intelligent
+pour immigrer au Canada ou en Australie. Diagnostic RP, score CRS,
+stratégies Express Entry, programmes provinciaux et coach IA immigration.
 {% endblock %}
 
-{% block head_extra %}
-<link rel="stylesheet" href="{% static 'css/pages/residence_permanente_nav.css' %}">
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
 {% endblock %}
 
 {% block content %}
 
+
 {% include "permanent_residence/_rp_nav.html" %}
+
 
 <div class="rp-dashboard">
 
   {% if not profile %}
-  <!-- ===== CAS SANS PROFIL ===== -->
+
   <section class="rp-card rp-card--cta">
     <h1 class="rp-title">
-      Commence par ton diagnostic Résidence Permanente.
+      Diagnostic Résidence Permanente Canada & Australie
     </h1>
 
     <p class="rp-text">
-      Pour activer ton cockpit RP, remplis d’abord le diagnostic : pays ciblé, études,
-      expérience, niveaux de langue. Tu obtiendras ensuite un plan d’action guidé et ce
-      tableau de bord suivra ta progression.
+      Le <strong>diagnostic Résidence Permanente Immigration97</strong>
+      analyse ton âge, tes études, ton expérience professionnelle,
+      ton niveau de langue et ton potentiel d’immigration
+      vers le <strong>Canada</strong> ou l’<strong>Australie</strong>.
     </p>
 
     <div class="rp-actions">
-      <a href="{% url 'permanent_residence:eligibility' %}" class="rp-btn rp-btn--primary">
-        🚀 Lancer le diagnostic RP
+      <a href="{% url 'permanent_residence:eligibility' %}"
+         class="rp-btn rp-btn--primary">
+        🚀 Faire mon diagnostic RP gratuit
       </a>
-      <a href="{% url 'permanent_residence:program_list' %}" class="rp-btn rp-btn--secondary">
-        📚 Voir les programmes RP
+
+      <a href="{% url 'permanent_residence:program_list' %}"
+         class="rp-btn rp-btn--secondary">
+        📚 Découvrir les programmes RP
       </a>
     </div>
   </section>
 
   {% else %}
 
-  <!-- ===== HERO DASHBOARD ===== -->
+
   <section class="rp-card rp-hero">
     <div class="rp-hero-content">
       <p class="rp-kicker">
@@ -53,115 +66,38 @@ stratégies RP personnalisées (Canada / Australie) avec Immigration97.
       </p>
 
       <h1 class="rp-title">
-        Suivi de ton projet de Résidence Permanente.
+        Tableau de bord Résidence Permanente
       </h1>
 
       <p class="rp-text">
-        Ce tableau de bord regroupe ton score de préparation, la complétion de ton plan,
-        ton niveau en langues et les prochaines actions à réaliser.
+        Suivi stratégique de ton <strong>projet d’immigration permanente</strong> :
+        score RP, plan d’action, langues et priorités clés.
       </p>
 
       <div class="rp-actions">
-        <a href="{% url 'permanent_residence:plan' profile.id %}" class="rp-btn rp-btn--primary">
-          📝 Ouvrir mon plan d’action
+        <a href="{% url 'permanent_residence:plan' profile.id %}"
+           class="rp-btn rp-btn--primary">
+          📝 Ouvrir mon plan RP
         </a>
-        <a href="{% url 'permanent_residence:eligibility' %}" class="rp-btn rp-btn--secondary">
-          ✏️ Mettre à jour mon diagnostic
-        </a>
-        <a href="{% url 'permanent_residence:coach' %}" class="rp-btn rp-btn--ai">
-          🤖 Parler au coach IA RP
+
+        <a href="{% url 'permanent_residence:coach' %}"
+           class="rp-btn rp-btn--ai">
+          🤖 Coach IA immigration
         </a>
       </div>
     </div>
 
     <!-- SCORE -->
     <div class="rp-score">
-      <p class="rp-score-label">Score global de préparation RP</p>
+      <p class="rp-score-label">
+        Score global de préparation RP
+      </p>
 
       <div class="rp-score-circle">
         <span>{{ readiness_score }}%</span>
       </div>
-
-      <div class="rp-score-bars">
-        <div>
-          <span>Profil complété</span>
-          <strong>{{ profile_completion }}%</strong>
-          <div class="rp-bar">
-            <div style="width: {{ profile_completion }}%"></div>
-          </div>
-        </div>
-
-        <div>
-          <span>Plan d’action</span>
-          <strong>{{ plan_progress }}%</strong>
-          <div class="rp-bar">
-            <div style="width: {{ plan_progress }}%"></div>
-          </div>
-        </div>
-
-        <div>
-          <span>Score langues</span>
-          <strong>{{ language_score }}/100</strong>
-          <div class="rp-bar rp-bar--sky">
-            <div style="width: {{ language_score }}%"></div>
-          </div>
-        </div>
-      </div>
     </div>
   </section>
-
-  <!-- ===== GRILLE PRINCIPALE ===== -->
-  <div class="rp-grid">
-
-    <!-- PROCHAINES ACTIONS -->
-    <section class="rp-card">
-      <h2 class="rp-section-title">Prochaines actions à réaliser</h2>
-
-      {% if next_actions %}
-      <ul class="rp-steps">
-        {% for step in next_actions %}
-        <li class="rp-step rp-step--{{ step.status }}">
-          <div class="rp-step-content">
-            <strong>{{ step.title }}</strong>
-            {% if step.description %}
-            <p>{{ step.description }}</p>
-            {% endif %}
-          </div>
-        </li>
-        {% endfor %}
-      </ul>
-      {% else %}
-      <p class="rp-muted">
-        Les prochaines actions apparaîtront ici une fois le plan généré.
-      </p>
-      {% endif %}
-
-      <a href="{% url 'permanent_residence:plan' profile.id %}" class="rp-link">
-        Voir toutes les étapes →
-      </a>
-    </section>
-
-    <!-- STRATÉGIES -->
-    <aside class="rp-card">
-      <h2 class="rp-section-title">Stratégies RP possibles</h2>
-
-      {% if strategies %}
-      <div class="rp-strategies">
-        {% for strat in strategies %}
-        <article class="rp-strategy">
-          <h3>{{ strat.label }}</h3>
-          {% if strat.summary %}<p>{{ strat.summary }}</p>{% endif %}
-        </article>
-        {% endfor %}
-      </div>
-      {% else %}
-      <p class="rp-muted">
-        Les stratégies RP apparaîtront lorsque ton profil sera complet.
-      </p>
-      {% endif %}
-    </aside>
-
-  </div>
 
   {% endif %}
 </div>

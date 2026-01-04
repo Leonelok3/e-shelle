@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}cv-generator{% endblock %}
+{% block app_scope %}cv-generator{% endblock %}
+
+{% block title %}
+Étape 1 — Informations personnelles | Immigration97
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"n href="{% static 'css/cv_generator.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="app-main cv-generator">
+
+<section class="cv-step-box">
+
+  <!-- ================= HEADER ================= -->
+  <h2 class="cv-step-title">
+    Étape 1 — Informations personnelles
+  </h2>
+
+  <p class="cv-step-help">
+    Ces informations servent de base pour générer un
+    <strong>CV professionnel conforme aux standards internationaux</strong>
+    (Canada, Europe, International).
+  </p>
+
+  <!-- ================= IMPORT CV ================= -->
+  <div class="cv-alert info" style="margin-bottom:20px;">
+    💡 Vous avez déjà un CV ?
+    Importez-le pour préremplir automatiquement les informations.
+  </div>
+
+  <a href="{% url 'cv_generator:upload_cv' cv.id %}"
+     class="cv-btn-secondary"
+     style="margin-bottom:30px; display:inline-block;">
+    📄 Importer un CV existant (PDF / Word)
+  </a>
+
+  <!-- ================= FORM ================= -->
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="form-group">
+      {{ form.nom.label_tag }}
+      {{ form.nom }}
+    </div>
+
+    <div class="form-group">
+      {{ form.prenom.label_tag }}
+      {{ form.prenom }}
+    </div>
+
+    <div class="form-group">
+      {{ form.email.label_tag }}
+      {{ form.email }}
+    </div>
+
+    <div class="form-group">
+      {{ form.telephone.label_tag }}
+      {{ form.telephone }}
+    </div>
+
+    <div class="form-group">
+      {{ form.profession.label_tag }}
+      {{ form.profession }}
+      <small class="cv-muted">
+        Exemple : Développeur web, Technicien de maintenance, Comptable…
+      </small>
+    </div>
+
+    <div class="form-group">
+      {{ form.pays_cible.label_tag }}
+      {{ form.pays_cible }}
+      <small class="cv-muted">
+        Le contenu du CV sera optimisé selon ce pays.
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.language.id_for_label }}">
+        Langue du CV
+      </label>
+      {{ form.language }}
+      <small class="cv-muted">
+        Exemple : Canada → Français ou Anglais
+      </small>
+    </div>
+
+    <!-- ================= NAVIGATION ================= -->
+    <div class="cv-step-actions"
+         style="margin-top:40px; display:flex; justify-content:flex-end; gap:16px;">
+
+      <button type="submit" class="cv-btn-success">
+        ➡️ Continuer vers les expériences
+      </button>
+
+    </div>
+
+  </form>
+
+</section>
+
+</main>
+{% endblock %}

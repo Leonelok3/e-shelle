@@ -1,125 +1,165 @@
-{% extends "visa_travail/base.html" %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}
-  {% if is_edit %}Modifier une candidature{% else %}Nouvelle candidature{% endif %}
+{% block body_class %}visa-travail{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_travail.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-xl-8">
+<section class="vt-job-form">
 
-    <div class="card card-dark card-dark-hover p-4 p-md-5 mb-4 fade-in-up">
-      <span class="badge-soft mb-2 px-3 py-1">
-        <i class="bi bi-clipboard-plus me-1"></i>
-        {% if is_edit %}Modifier la candidature{% else %}Nouvelle candidature{% endif %}
+  <div class="container">
+
+    <!-- ==================================================
+         HEADER
+    =================================================== -->
+    <header class="vt-card vt-fade-up vt-job-form-header">
+
+      <span class="vt-badge">
+        <i class="bi bi-briefcase"></i>
+        Candidature Visa Travail
       </span>
 
-      <h1 class="h4 fw-bold mb-2">
-        {% if is_edit %}Met à jour ta candidature{% else %}Ajoute une nouvelle candidature{% endif %}
+      <h1 class="vt-title">
+        {% if is_edit %}
+          Modifier une
+        {% else %}
+          Ajouter une
+        {% endif %}
+        <span class="vt-gradient-primary">
+          candidature visa travail
+        </span>
       </h1>
 
-      {% if offer %}
-        <p class="text-secondary small mb-3">
-          Cette candidature a été initialisée à partir de l’offre :
-          <strong>{{ offer.titre }}</strong>
-          {% if offer.entreprise %} chez {{ offer.entreprise }}{% endif %}
-          ({{ offer.pays }}{% if offer.ville %}, {{ offer.ville }}{% endif %}).
-        </p>
-      {% elif profile %}
-        <p class="text-secondary small mb-3">
-          Candidature liée au profil :
-          <strong>{{ profile.nom|default:"Profil" }}</strong>.
-        </p>
-      {% endif %}
+      <p class="vt-subtle">
+        Centralise, organise et pilote toutes tes
+        <strong>candidatures à l’international</strong>
+        afin d’augmenter concrètement
+        tes chances d’obtenir un
+        <strong>visa travail légal</strong>.
+      </p>
 
-      <form method="post" novalidate>
+    </header>
+
+    <!-- ==================================================
+         CONTEXTE
+    =================================================== -->
+    {% if offer %}
+      <div class="vt-card vt-info-box vt-fade-up">
+        <strong>Offre associée :</strong>
+        {{ offer.titre }}
+        {% if offer.entreprise %} — {{ offer.entreprise }}{% endif %}
+        ({{ offer.pays }}{% if offer.ville %}, {{ offer.ville }}{% endif %})
+      </div>
+    {% elif profile %}
+      <div class="vt-card vt-info-box vt-fade-up">
+        <strong>Profil Visa Travail :</strong>
+        {{ profile.nom|default:"Profil utilisateur" }}
+      </div>
+    {% endif %}
+
+    <!-- ==================================================
+         FORMULAIRE
+    =================================================== -->
+    <div class="vt-card vt-fade-up">
+
+      <form method="post" novalidate class="vt-form-grid">
         {% csrf_token %}
 
-        <div class="row">
-          {% if form.user_profile %}
-            <div class="col-12 mb-3">
-              <label class="form-label">{{ form.user_profile.label }}</label>
-              {{ form.user_profile }}
-              <div class="form-text">
-                Sélectionne le profil Visa Travail auquel associer cette candidature.
-              </div>
-            </div>
-          {% endif %}
+        {% if form.user_profile %}
+          <div class="vt-field vt-field-full">
+            <label>{{ form.user_profile.label }}</label>
+            {{ form.user_profile }}
+            <small class="vt-hint">
+              Associe cette candidature à un
+              <strong>profil Visa Travail existant</strong>
+              pour un meilleur suivi stratégique.
+            </small>
+          </div>
+        {% endif %}
+
+        <div class="vt-field">
+          <label>{{ form.titre_poste.label }} *</label>
+          {{ form.titre_poste }}
         </div>
 
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="form-label">{{ form.titre_poste.label }} *</label>
-            {{ form.titre_poste }}
-          </div>
-          <div class="col-md-6 mb-3">
-            <label class="form-label">{{ form.entreprise.label }}</label>
-            {{ form.entreprise }}
-          </div>
+        <div class="vt-field">
+          <label>{{ form.entreprise.label }}</label>
+          {{ form.entreprise }}
         </div>
 
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="form-label">{{ form.pays.label }}</label>
-            {{ form.pays }}
-          </div>
-          <div class="col-md-6 mb-3">
-            <label class="form-label">{{ form.ville.label }}</label>
-            {{ form.ville }}
-          </div>
+        <div class="vt-field">
+          <label>{{ form.pays.label }}</label>
+          {{ form.pays }}
         </div>
 
-        <div class="mb-3">
-          <label class="form-label">{{ form.lien_offre.label }}</label>
+        <div class="vt-field">
+          <label>{{ form.ville.label }}</label>
+          {{ form.ville }}
+        </div>
+
+        <div class="vt-field vt-field-full">
+          <label>{{ form.lien_offre.label }}</label>
           {{ form.lien_offre }}
         </div>
 
-        <div class="mb-3">
-          <label class="form-label">{{ form.source.label }}</label>
+        <div class="vt-field vt-field-full">
+          <label>{{ form.source.label }}</label>
           {{ form.source }}
-          <div class="form-text">
-            Exemple : “LinkedIn”, “Indeed”, “Recommandation interne”, “Job board Visa Travail”… 
-          </div>
+          <small class="vt-hint">
+            Exemple : LinkedIn, Indeed, site officiel,
+            portail gouvernemental, recommandation.
+          </small>
         </div>
 
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="form-label">{{ form.statut.label }}</label>
-            {{ form.statut }}
-          </div>
-          <div class="col-md-6 mb-3">
-            <label class="form-label">{{ form.date_candidature.label }}</label>
-            {{ form.date_candidature }}
-          </div>
+        <div class="vt-field">
+          <label>{{ form.statut.label }}</label>
+          {{ form.statut }}
         </div>
 
-        <div class="mb-4">
-          <label class="form-label">{{ form.commentaire.label }}</label>
+        <div class="vt-field">
+          <label>{{ form.date_candidature.label }}</label>
+          {{ form.date_candidature }}
+        </div>
+
+        <div class="vt-field vt-field-full">
+          <label>{{ form.commentaire.label }}</label>
           {{ form.commentaire }}
         </div>
 
-        <div class="d-flex flex-wrap gap-2">
-          <button type="submit" class="btn btn-primary">
+        <!-- ==================================================
+             ACTIONS
+        =================================================== -->
+        <div class="vt-form-actions">
+
+          <button type="submit" class="vt-btn-primary">
             {% if is_edit %}
-              <i class="bi bi-save me-1"></i> Enregistrer les modifications
+              Enregistrer les modifications
             {% else %}
-              <i class="bi bi-check2-circle me-1"></i> Enregistrer la candidature
+              Enregistrer la candidature
             {% endif %}
           </button>
 
           {% if profile %}
-            <a href="{% url 'visa_travail:job_list' profile.id %}" class="btn btn-outline-light">
-              Annuler et retourner à la liste
+            <a href="{% url 'visa_travail:job_list' profile.id %}"
+               class="vt-btn-secondary">
+              Retour à mes candidatures
             </a>
           {% else %}
-            <a href="{% url 'visa_travail:job_offers_list' %}" class="btn btn-outline-light">
+            <a href="{% url 'visa_travail:job_offers_list' %}"
+               class="vt-btn-secondary">
               Retour aux offres
             </a>
           {% endif %}
+
         </div>
 
       </form>
+
     </div>
+
   </div>
-</div>
+</section>
 {% endblock %}

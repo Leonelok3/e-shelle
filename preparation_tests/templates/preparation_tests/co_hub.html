@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+
+{# ==================================================
+   SCOPE STRICT APP
+================================================== #}
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{# ==================================================
+   SEO — TITLE & META
+================================================== #}
+{% block title %}
+Compréhension Orale – Parcours CECR A1 à C2 | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Parcours complet de Compréhension Orale (CO) selon le CECR.
+Progresse du niveau A1 au C2 avec des leçons audio,
+exercices progressifs et suivi intelligent Immigration97.
+{% endblock %}
+
+{# ==================================================
+   CSS APP — VERSIONNÉ
+================================================== #}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260104">
+{% endblock %}
+
+{% block content %}
+
+<!-- ==================================================
+HERO — PARCOURS COMPRÉHENSION ORALE
+================================================== -->
+<section class="pt-hero">
+  <div class="container pt-fade-up">
+
+    <span class="pt-badge">
+      🎧 Compréhension orale
+    </span>
+
+    <h1 class="pt-title">
+      Parcours CECR<br>
+      de <span class="pt-gradient-primary">A1</span> à
+      <span class="pt-gradient-primary">C2</span>
+    </h1>
+
+    <p class="pt-lead">
+      Progresse étape par étape en
+      <strong>compréhension orale</strong>
+      selon le <strong>Cadre Européen Commun de Référence</strong>.
+      Leçons audio, entraînement progressif et suivi intelligent
+      pour réussir les examens linguistiques officiels.
+    </p>
+
+    {% include "preparation_tests/partials/_cefr_bar.html" %}
+
+  </div>
+</section>
+
+<!-- ==================================================
+NIVEAUX CECR
+================================================== -->
+<section class="pt-section">
+  <div class="container">
+
+    <header class="pt-section-header">
+      <h2>
+        📚 Niveaux disponibles
+      </h2>
+      <p>
+        Chaque niveau correspond à des compétences
+        linguistiques précises selon le CECR.
+        Progresse à ton rythme et débloque les niveaux
+        supérieurs en complétant les leçons.
+      </p>
+    </header>
+
+    <div class="pt-level-grid">
+
+      {% for l in levels %}
+      <article class="pt-card pt-card--level">
+
+        <!-- BADGE NIVEAU -->
+        <span class="pt-level-badge pt-level-{{ l.level|lower }}">
+          {{ l.level }}
+        </span>
+
+        <h3 class="pt-level-title">
+          Niveau {{ l.level }}
+        </h3>
+
+        <p class="pt-card-meta">
+          {{ l.completed }} / {{ l.total }} leçons complétées
+        </p>
+
+        <!-- PROGRESSION -->
+        <div class="pt-progress">
+          <div class="pt-progress-bar">
+            <div
+              class="pt-progress-fill"
+              style="width: {{ l.progress_pct }}%;"
+            ></div>
+          </div>
+          <span class="pt-progress-text">
+            {{ l.progress_pct }} %
+          </span>
+        </div>
+
+        <!-- ACTION -->
+        <div class="pt-cta-group">
+          <a
+            href="{% url 'preparation_tests:co_by_level' l.level %}"
+            class="pt-btn-primary"
+          >
+            ▶ Accéder au niveau {{ l.level }}
+          </a>
+        </div>
+
+      </article>
+      {% endfor %}
+
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

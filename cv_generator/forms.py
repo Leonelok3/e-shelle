@@ -1,4 +1,5 @@
 from django import forms
+from .models import CVUpload
 from cv_generator.models import (
     CV, Experience, Education, Skill, Language,
     Volunteer, Hobby, Certification, Project
@@ -16,30 +17,48 @@ class Step1Form(forms.ModelForm):
 
     class Meta:
         model = CV
-        fields = ["profession", "pays_cible"]
+        fields = ["profession", "pays_cible", "language"]
+        labels = {
+            "profession": "Profession / Poste ciblé",
+            "pays_cible": "Pays ciblé",
+            "language": "Langue du CV",
+        }
+        widgets = {
+            "language": forms.Select(attrs={
+                "class": "form-control"
+            })
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Pré-remplissage depuis JSON
         if self.instance and self.instance.data.get("personal_info"):
-            personal_info = self.instance.data["personal_info"]
-            self.fields["nom"].initial = personal_info.get("nom", "")
-            self.fields["prenom"].initial = personal_info.get("prenom", "")
-            self.fields["email"].initial = personal_info.get("email", "")
-            self.fields["telephone"].initial = personal_info.get("telephone", "")
+            pi = self.instance.data["personal_info"]
+            self.fields["nom"].initial = pi.get("nom", "")
+            self.fields["prenom"].initial = pi.get("prenom", "")
+            self.fields["email"].initial = pi.get("email", "")
+            self.fields["telephone"].initial = pi.get("telephone", "")
 
     def save(self, commit=True, user=None):
         cv = super().save(commit=False)
+
         if user:
             cv.utilisateur = user
+
+        # Stocker infos personnelles
         cv.data["personal_info"] = {
             "nom": self.cleaned_data["nom"],
             "prenom": self.cleaned_data["prenom"],
             "email": self.cleaned_data["email"],
             "telephone": self.cleaned_data["telephone"],
         }
+
         cv.step1_completed = True
+
         if commit:
             cv.save()
+
         return cv
 
 
@@ -159,23 +178,13 @@ class LanguageForm(forms.ModelForm):
 class VolunteerForm(forms.ModelForm):
     class Meta:
         model = Volunteer
-        fields = ['organization', 'role', 'start_date', 'end_date', 'location', 'description']
-        widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'type': 'date'}),
-            'description': forms.Textarea(attrs={
-                'rows': 3,
-                'placeholder': 'Décrivez votre contribution...'
-            })
-        }
-        labels = {
-            'organization': 'Organisation',
-            'role': 'Rôle',
-            'start_date': 'Date de début',
-            'end_date': 'Date de fin (laisser vide si actuel)',
-            'location': 'Lieu',
-            'description': 'Description'
-        }
+        fields = [
+            "role",
+            "start_date",
+            "end_date",
+            "description",
+        ]
+
 
 
 # ------------------------------
@@ -257,3 +266,8 @@ class CVAdminForm(forms.ModelForm):
             "step1_completed", "step2_completed", "step3_completed",
             "is_completed", "is_published"
         ]
+
+class CVUploadForm(forms.ModelForm):
+    class Meta:
+        model = CVUpload
+        fields = ["file"]

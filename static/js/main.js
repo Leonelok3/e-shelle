@@ -131,3 +131,26 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+
+
+/* =====================================================
+   NAVBAR MOBILE TOGGLE — SAFE
+===================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+  const toggle = document.querySelector(".c-navbar__toggle");
+  const nav = document.querySelector(".c-navbar__nav");
+
+  if (!toggle || !nav) return;
+
+  toggle.addEventListener("click", () => {
+    const isOpen = nav.classList.toggle("is-open");
+    toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  });
+});
+
+document.querySelectorAll(".c-nav-link").forEach(link => {
+  link.addEventListener("click", () => {
+    nav.classList.remove("is-open");
+    toggle.setAttribute("aria-expanded", "false");
+  });
+});

@@ -1,27 +1,109 @@
-{% extends "visaetude/base.html" %}
-{% block title %}Tutoriel – {{ resource.title }}{% endblock %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Tutoriel Visa Études – {{ resource.title }} | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Tutoriel Visa Études Immigration97 : {{ resource.title }}.
+Vidéo et guide pas à pas pour admission universitaire, visa étudiant,
+bourses d’études et démarches officielles à l’étranger.
+{% endblock %}
+
+{% block body_class %}visa-etude{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_etude.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="card card-module p-4">
-    <div class="section-title mb-1">Tutoriel vidéo / guide</div>
-    <h1 class="h4 text-white">{{ resource.title }}</h1>
-    <p class="text-muted small mb-3">{{ resource.step_label }}</p>
 
-    {% if resource.resource_type == "video" %}
-        <div class="ratio ratio-16x9 mb-3">
-            <iframe src="{{ resource.url }}" allowfullscreen
-                    style="border-radius: 12px; border: 0;"></iframe>
-        </div>
-    {% elif resource.resource_type == "pdf" %}
-        <iframe src="{{ resource.url }}"
-                style="width:100%;height:680px;border-radius: 12px;border:0;background:#000;">
-        </iframe>
-    {% elif resource.resource_type == "capture" %}
-        <img src="{{ resource.url }}" class="w-100 rounded mb-3">
+<!-- ==================================================
+HERO — RESSOURCE VISA ÉTUDES
+================================================== -->
+<section class="ve-dashboard-hero fade-in-up">
+  <div class="container ve-text-block">
+
+    <span class="ve-badge">
+      🎥 Tutoriel Visa Études
+    </span>
+
+    <h1 class="ve-title">
+      {{ resource.title }}
+    </h1>
+
+    {% if resource.step_label %}
+      <p class="ve-lead">
+        {{ resource.step_label }}
+      </p>
     {% endif %}
 
-    <a href="javascript:history.back()" class="btn btn-soft-success mt-2">
-        Retour au guide pays
-    </a>
-</div>
+  </div>
+</section>
+
+<!-- ==================================================
+CONTENU PRINCIPAL
+================================================== -->
+<section>
+  <div class="container" style="max-width:1100px">
+
+    <div class="ve-module-card">
+
+      <span class="ve-step">Ressource officielle</span>
+      <h2>Suivre le tutoriel pas à pas</h2>
+
+      {% if resource.resource_type == "video" %}
+        <div class="ve-video-wrapper" style="margin-top:1.5rem">
+          <iframe
+            src="{{ resource.url }}"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            style="width:100%;height:520px;border:0;border-radius:16px;">
+          </iframe>
+        </div>
+
+      {% elif resource.resource_type == "pdf" %}
+        <div class="ve-pdf-wrapper" style="margin-top:1.5rem">
+          <iframe
+            src="{{ resource.url }}"
+            loading="lazy"
+            style="width:100%;height:680px;border:0;border-radius:16px;background:#000;">
+          </iframe>
+        </div>
+
+      {% elif resource.resource_type == "capture" %}
+        <div style="margin-top:1.5rem">
+          <img
+            src="{{ resource.url }}"
+            alt="{{ resource.title }}"
+            style="width:100%;border-radius:16px;">
+        </div>
+      {% endif %}
+
+      <div class="ve-text-block" style="margin-top:2rem">
+        <p class="small">
+          💡 <strong>Conseil :</strong> suis exactement les étapes montrées dans ce tutoriel.
+          Les procédures peuvent varier selon le pays et l’année.
+          Vérifie toujours les informations sur les sites officiels
+          (ambassades, universités, gouvernements).
+        </p>
+      </div>
+
+      <div class="ve-cta-group">
+        <a href="javascript:history.back()" class="ve-btn-secondary">
+          ← Retour au guide pays
+        </a>
+
+        <a href="{% url 'visaetude:coach_ai' %}" class="ve-btn-primary">
+          Poser une question au coach IA
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
 {% endblock %}

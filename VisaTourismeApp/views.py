@@ -3,9 +3,10 @@ from io import BytesIO
 from django.conf import settings
 from django.core.mail import send_mail
 from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
-from django.template.loader import get_template, render_to_string
+from django.shortcuts import render, get_object_or_404, redirect
 
+from django.template.loader import get_template, render_to_string
+from django.contrib.auth.decorators import login_required
 from xhtml2pdf import pisa
 
 from .forms import VisaTourismeForm
@@ -296,28 +297,31 @@ def visa_tourisme_home(request):
 
 
 def visa_tourisme_assistant(request):
-    """
-    Formulaire + analyse.
-    """
-    result_obj = None
-
-    if request.method == 'POST':
+    if request.method == "POST":
         form = VisaTourismeForm(request.POST)
         if form.is_valid():
-            instance: VisaTourismRequest = form.save(commit=False)
-            construire_recommandations(instance)
-            instance.save()
-            result_obj = instance
-            # Envoi mail si email présent
-            envoyer_plan_par_email(result_obj)
+            result = form.save(commit=False)
+
+            # 🔥 construire l’analyse AVANT sauvegarde
+            construire_recommandations(result)
+            result.save()
+
+            # (optionnel) envoyer email
+            envoyer_plan_par_email(result)
+
+            # ✅ REDIRECTION VERS LA PAGE RESULTAT
+            return redirect(
+                "visa_tourisme:result",
+                pk=result.pk
+            )
     else:
         form = VisaTourismeForm()
 
-    context = {
-        'form': form,
-        'result': result_obj,
-    }
-    return render(request, 'VisaTourismeApp/tourism_visa_assistant.html', context)
+    return render(
+        request,
+        "VisaTourismeApp/tourism_visa_assistant.html",
+        {"form": form},
+    )
 
 
 def visa_tourisme_history(request):
@@ -379,3 +383,16 @@ def visa_tourisme_coach(request):
         'coach_response': coach_response,
     }
     return render(request, 'VisaTourismeApp/coach_chat.html', context)
+
+@login_required(login_url="authentification:login")
+def visa_tourisme_result(request, pk):
+    """
+    Page résultat de l'analyse Visa Tourisme
+    """
+    result = get_object_or_404(VisaTourismRequest, pk=pk)
+
+    return render(
+        request,
+        "VisaTourismeApp/tourism_visa_result.html",
+        {"result": result},
+    )

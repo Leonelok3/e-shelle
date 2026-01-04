@@ -1,163 +1,216 @@
 {% extends "base.html" %}
 {% load static %}
 
-{# ============================
-   SEO — TCF
-============================ #}
+{# ==================================================
+   SCOPE STRICT APP
+================================================== #}
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
 
+{# ==================================================
+   SEO — TITLE & META
+================================================== #}
 {% block title %}
-TCF – Hub de préparation | Immigration97
+TCF – Hub de préparation CECR (CO, CE, EE, EO) | Immigration97
 {% endblock %}
 
 {% block meta_description %}
-Préparation complète au TCF : compréhension orale et écrite,
-expression écrite et orale, entraînements chronométrés,
-simulations et stratégies d’examen.
+Préparation complète au TCF (Test de Connaissance du Français) :
+compréhension orale et écrite, expression écrite et orale,
+examens blancs et entraînement guidé avec Immigration97.
+{% endblock %}
+
+{# ==================================================
+   CSS APP — VERSIONNÉ
+================================================== #}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260104">
 {% endblock %}
 
 {% block content %}
 
-<section class="page page-language container">
+<!-- ==================================================
+HERO — TCF
+================================================== -->
+<section class="pt-hero">
+  <div class="container pt-fade-up">
 
-  <!-- Breadcrumbs -->
-  <nav class="breadcrumbs" aria-label="Fil d’Ariane">
-    <a class="crumb" href="{% url 'preparation_tests:home' %}">Tests de langue</a>
-    <span class="crumb-separator">›</span>
-    <a class="crumb" href="{% url 'preparation_tests:french_exams' %}">Français</a>
-    <span class="crumb-separator">›</span>
-    <span class="crumb current">TCF</span>
-  </nav>
+    <span class="pt-badge">
+      🇫🇷 TCF · Test de connaissance du français
+    </span>
 
-  <!-- Header -->
-  <header class="page-header">
-    <h1>Hub TCF – Tests de connaissance du français</h1>
-    <p class="lead">
-      Prépare le <strong>TCF</strong> par sections et examens types,
-      avec une méthode progressive et efficace.
+    <h1 class="pt-title">
+      Hub de préparation<br>
+      <span class="pt-gradient-primary">TCF</span>
+    </h1>
+
+    <p class="pt-lead">
+      Prépare le <strong>TCF</strong> avec une méthode
+      <strong>structurée et officielle</strong> :
+      cours, exercices, examens blancs et analyse intelligente
+      pour toutes les compétences
+      <strong>CO, CE, EE et EO</strong>.
     </p>
-  </header>
 
-  <!-- HERO -->
-  <section class="hero section">
-    <div class="hero__text">
-      <p class="hero__subtitle">
-        Préparation structurée au <strong>TCF</strong> :
-        cours, exercices et examens blancs pour
-        CO, CE, EE et EO.
-      </p>
-
-      <ul class="hero__bullets">
-        <li>⏱ Entraînements chronométrés</li>
-        <li>🎧 Audios et QCM proches de l’examen</li>
-        <li>📊 Résultats et corrections détaillées</li>
-      </ul>
+    <div class="pt-badges">
+      <span class="pt-badge pt-badge--soft">⏱ Entraînements chronométrés</span>
+      <span class="pt-badge pt-badge--soft">🎧 Audios & QCM réels</span>
+      <span class="pt-badge pt-badge--soft">📊 Corrections détaillées</span>
     </div>
-  </section>
 
-  <!-- =========================
-       SECTIONS TCF
-  ========================= -->
+  </div>
+</section>
 
-  <section class="section">
-    <h2 class="section-title">Choisis ta section TCF</h2>
+<!-- ==================================================
+SECTIONS TCF
+================================================== -->
+<section class="pt-section">
+  <div class="container">
 
-    <div class="card-grid">
+    <div class="pt-grid-layout">
 
-      <!-- CO -->
-      <article class="card">
-        <h3>🎧 Compréhension orale (CO)</h3>
-        <p class="muted">
-          Audios, consignes et QCM proches
-          du format officiel du TCF.
-        </p>
+      <!-- ================= MAIN ================= -->
+      <div class="pt-main">
 
-        <div class="btn-row">
-          <a href="{% url 'preparation_tests:course_section' 'tcf' 'co' %}" class="btn btn--soft">
-            📘 Cours
-          </a>
-          <a href="{% url 'preparation_tests:start_mock_exam' 'tcf' 'co' %}" class="btn">
-            🧪 Examen blanc
-          </a>
-        </div>
-      </article>
+        <article class="pt-card">
+          <h2>Choisis ta section TCF</h2>
 
-      <!-- CE -->
-      <article class="card">
-        <h3>📖 Compréhension écrite (CE)</h3>
-        <p class="muted">
-          Lecture rapide, analyse et pièges lexicaux.
-        </p>
+          <div class="pt-modules-grid">
 
-        <div class="btn-row">
-          <a href="{% url 'preparation_tests:course_section' 'tcf' 'ce' %}" class="btn btn--soft">
-            📘 Cours
-          </a>
-          <a href="{% url 'preparation_tests:start_mock_exam' 'tcf' 'ce' %}" class="btn">
-            🧪 Examen blanc
-          </a>
-        </div>
-      </article>
+            <!-- CO -->
+            <article class="pt-card pt-card--module">
+              <h3>🎧 Compréhension orale (CO)</h3>
+              <p class="pt-card-meta">
+                Audios, QCM et pièges proches du format officiel du TCF.
+              </p>
 
-      <!-- EE -->
-      <article class="card">
-        <h3>✍️ Expression écrite (EE)</h3>
-        <p class="muted">
-          Organisation des idées, clarté et
-          niveau de langue adapté.
-        </p>
+              <div class="pt-cta-group">
+                <a
+                  href="{% url 'preparation_tests:course_section' 'tcf' 'co' %}"
+                  class="pt-btn-secondary"
+                >
+                  📘 Cours
+                </a>
+                <a
+                  href="{% url 'preparation_tests:start_mock_exam' 'tcf' 'co' %}"
+                  class="pt-btn-primary"
+                >
+                  🧪 Examen blanc
+                </a>
+              </div>
+            </article>
 
-        <div class="btn-row">
-          <a href="{% url 'preparation_tests:course_section' 'tcf' 'ee' %}" class="btn btn--soft">
-            📘 Cours
-          </a>
-          <a href="{% url 'preparation_tests:start_mock_exam' 'tcf' 'ee' %}" class="btn">
-            🧪 Examen blanc
-          </a>
-        </div>
-      </article>
+            <!-- CE -->
+            <article class="pt-card pt-card--module">
+              <h3>📖 Compréhension écrite (CE)</h3>
+              <p class="pt-card-meta">
+                Lecture rapide, analyse fine et vocabulaire ciblé.
+              </p>
 
-      <!-- EO -->
-      <article class="card">
-        <h3>🗣 Expression orale (EO)</h3>
-        <p class="muted">
-          Prise de parole guidée, argumentation
-          et interaction structurée.
-        </p>
+              <div class="pt-cta-group">
+                <a
+                  href="{% url 'preparation_tests:course_section' 'tcf' 'ce' %}"
+                  class="pt-btn-secondary"
+                >
+                  📘 Cours
+                </a>
+                <a
+                  href="{% url 'preparation_tests:start_mock_exam' 'tcf' 'ce' %}"
+                  class="pt-btn-primary"
+                >
+                  🧪 Examen blanc
+                </a>
+              </div>
+            </article>
 
-        <div class="btn-row">
-          <a href="{% url 'preparation_tests:course_section' 'tcf' 'eo' %}" class="btn btn--soft">
-            📘 Cours
-          </a>
-          <a href="{% url 'preparation_tests:start_mock_exam' 'tcf' 'eo' %}" class="btn">
-            🧪 Examen blanc
-          </a>
-        </div>
-      </article>
+            <!-- EE -->
+            <article class="pt-card pt-card--module">
+              <h3>✍️ Expression écrite (EE)</h3>
+              <p class="pt-card-meta">
+                Organisation des idées et niveau de langue attendu au TCF.
+              </p>
 
-    </div>
-  </section>
+              <div class="pt-cta-group">
+                <a
+                  href="{% url 'preparation_tests:course_section' 'tcf' 'ee' %}"
+                  class="pt-btn-secondary"
+                >
+                  📘 Cours
+                </a>
+                <a
+                  href="{% url 'preparation_tests:start_mock_exam' 'tcf' 'ee' %}"
+                  class="pt-btn-primary"
+                >
+                  🧪 Examen blanc
+                </a>
+              </div>
+            </article>
 
-  <!-- =========================
-       SESSION GLOBALE
-  ========================= -->
+            <!-- EO -->
+            <article class="pt-card pt-card--module">
+              <h3>🗣 Expression orale (EO)</h3>
+              <p class="pt-card-meta">
+                Prise de parole guidée, interaction et fluidité.
+              </p>
 
-  <section class="section">
-    <h2 class="section-title">Session complète TCF</h2>
+              <div class="pt-cta-group">
+                <a
+                  href="{% url 'preparation_tests:course_section' 'tcf' 'eo' %}"
+                  class="pt-btn-secondary"
+                >
+                  📘 Cours
+                </a>
+                <a
+                  href="{% url 'preparation_tests:start_mock_exam' 'tcf' 'eo' %}"
+                  class="pt-btn-primary"
+                >
+                  🧪 Examen blanc
+                </a>
+              </div>
+            </article>
 
-    <div class="card">
-      <p class="muted">
-        Lance une session d’entraînement couvrant
-        toutes les sections du TCF.
-      </p>
+          </div>
+        </article>
 
-      <div class="btn-row">
-        <a href="{% url 'preparation_tests:start_session' 'tcf' %}" class="btn">
-          🚀 Démarrer une session TCF
-        </a>
+        <!-- SESSION GLOBALE -->
+        <article class="pt-card pt-card--actions">
+          <h2>Session complète TCF</h2>
+
+          <p class="pt-card-meta">
+            Lance une session d’entraînement couvrant
+            toutes les sections du TCF dans les conditions réelles.
+          </p>
+
+          <div class="pt-cta-group">
+            <a
+              href="{% url 'preparation_tests:start_session' 'tcf' %}"
+              class="pt-btn-primary"
+            >
+              🚀 Démarrer une session TCF
+            </a>
+          </div>
+        </article>
+
       </div>
-    </div>
-  </section>
 
+      <!-- ================= SIDEBAR ================= -->
+      <aside class="pt-side">
+
+        <div class="pt-card pt-card--side">
+          <h3>Pourquoi le TCF ?</h3>
+          <ul class="pt-side-list">
+            <li>Immigration & études à l’international</li>
+            <li>Test officiel reconnu</li>
+            <li>Évaluation rapide du niveau CECR</li>
+            <li>Préparation ciblée par compétence</li>
+          </ul>
+        </div>
+
+      </aside>
+
+    </div>
+
+  </div>
 </section>
 
 {% endblock %}

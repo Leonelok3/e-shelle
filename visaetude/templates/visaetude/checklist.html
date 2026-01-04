@@ -1,196 +1,79 @@
-{% extends "visaetude/base.html" %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}Checklist Visa Études{% endblock %}
+{% block body_class %}visa-etude{% endblock %}
 
-{% block content %}
-<div class="row mb-4 fade-in-up">
-    <div class="col-lg-8">
-        <div class="section-title mb-1">Étape 3 · Checklist</div>
-        <h1 class="h4 text-white mb-1">Checklist de ton projet</h1>
-        <p class="small text-muted mb-0">
-            Coche les éléments au fur et à mesure. Cette checklist est sauvegardée localement sur ton appareil.
-        </p>
-    </div>
-</div>
-
-<div class="card card-module p-4 rounded-lg shadow-lg bg-gradient">
-    <div class="checklist-group" id="checklistGroup">
-        <label class="check-item">
-            <input type="checkbox" data-key="profil">
-            <span>Compléter mon profil (pays d’origine, niveau, domaine, budget, contact).</span>
-        </label>
-        <label class="check-item">
-            <input type="checkbox" data-key="pays">
-            <span>Choisir au moins 1 ou 2 pays cibles dans la liste des pays adaptés.</span>
-        </label>
-        <label class="check-item">
-            <input type="checkbox" data-key="admission">
-            <span>Identifier 3 à 5 universités/programmes possibles et lire leurs exigences.</span>
-        </label>
-        <label class="check-item">
-            <input type="checkbox" data-key="dossier">
-            <span>Préparer mon dossier : relevés de notes, diplômes, CV, lettre de motivation.</span>
-        </label>
-        <label class="check-item">
-            <input type="checkbox" data-key="visa">
-            <span>Consulter le guide visa du pays choisi et lister les documents nécessaires.</span>
-        </label>
-        <label class="check-item">
-            <input type="checkbox" data-key="rdv">
-            <span>Vérifier le délai de prise de rendez-vous visa / biométrie.</span>
-        </label>
-    </div>
-</div>
-
-<div class="checklist-section mt-4">
-    <h3 class="text-white">Ma checklist</h3>
-    {% for document in user_checklist %}
-        <div class="checklist-item">
-            <span class="document-name">{{ document.document.nom }}</span>
-            {% if document.statut == 'non_commence' %}
-                <span class="status badge bg-danger">Non commencé</span>
-            {% elif document.statut == 'en_cours' %}
-                <span class="status badge bg-warning">En cours</span>
-            {% else %}
-                <span class="status badge bg-success">Terminé</span>
-            {% endif %}
-        </div>
-    {% endfor %}
-</div>
-
+{% block title %}
+Checklist Visa Études – Étapes Officielles & Documents | Immigration97
 {% endblock %}
 
-{% block extra_js %}
-<script>
-(function () {
-    const KEY_PREFIX = "visaetude_check_";
-    const items = document.querySelectorAll("#checklistGroup input[type=checkbox]");
-
-    if (!items.length) return;
-
-    items.forEach(cb => {
-        const key = KEY_PREFIX + cb.dataset.key;
-        const stored = localStorage.getItem(key);
-        if (stored === "1") {
-            cb.checked = true;
-        }
-
-        cb.addEventListener("change", () => {
-            localStorage.setItem(key, cb.checked ? "1" : "0");
-        });
-    });
-})();
-</script>
+{% block meta_description %}
+Checklist Visa Études Immigration97 : toutes les étapes essentielles pour réussir
+ton projet d’études à l’étranger. Admission, bourses, dossier et visa étudiant.
 {% endblock %}
 
 {% block extra_css %}
-<style>
-    :root {
-        --primary: #10b981;
-        --primary-dark: #059669;
-        --text-muted: #cbd5e1;
-        --text-light: #f1f5f9;
-        --card-bg: #1e293b;
-        --card-border: #334155;
-        --input-bg: #0f172a;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --info: #3b82f6;
-    }
+<link rel="stylesheet" href="{% static 'css/visa_etude.css' %}">
+{% endblock %}
 
-    .card-module {
-        background: #1f2937;
-        border: 1px solid var(--card-border);
-        border-radius: 12px;
-        padding: 2rem;
-        transition: all 0.3s ease-in-out;
-        animation: fadeIn 0.5s ease-out;
-    }
+{% block content %}
 
-    .card-module:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
+<section class="ve-dashboard-hero fade-in-up">
+  <div class="container">
+    <span class="ve-badge">📋 Étape 3 · Organisation</span>
+    <h1>Checklist Visa Études</h1>
+    <p class="ve-lead">
+      Suis pas à pas les <strong>étapes officielles du visa étudiant</strong>.
+      Chaque action cochée te rapproche de ton départ à l’étranger.
+    </p>
+  </div>
+</section>
 
-    .checklist-group {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
+<section class="ve-dashboard-modules">
+  <div class="container ve-modules-grid">
 
-    .check-item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1rem;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-    }
+    <div class="ve-module-card" data-step="03">
+      <h2>Checklist officielle de ton projet</h2>
+      <p>
+        Cette checklist t’aide à structurer ton projet
+        d’<strong>études à l’étranger</strong> sans oublier
+        aucun document important.
+      </p>
 
-    .check-item:hover {
-        background-color: rgba(16, 185, 129, 0.1);
-        border-radius: 6px;
-    }
+      <div class="ve-checklist" id="checklistGroup">
+        <label class="ve-check-item">
+          <input type="checkbox" data-key="profil">
+          <span>Compléter mon profil étudiant (pays, niveau, domaine, budget).</span>
+        </label>
 
-    .check-item input[type="checkbox"] {
-        margin-right: 1rem;
-        transform: scale(1.3);
-        cursor: pointer;
-    }
+        <label class="ve-check-item">
+          <input type="checkbox" data-key="pays">
+          <span>Choisir 1 à 2 pays cibles adaptés à mon profil.</span>
+        </label>
 
-    .check-item input[type="checkbox"]:checked {
-        background-color: #10b981;
-        border-color: #10b981;
-    }
+        <label class="ve-check-item">
+          <input type="checkbox" data-key="admission">
+          <span>Identifier 3 à 5 universités et vérifier leurs exigences.</span>
+        </label>
 
-    .checklist-item {
-        margin-bottom: 1.5rem;
-        font-size: 1.1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+        <label class="ve-check-item">
+          <input type="checkbox" data-key="dossier">
+          <span>Préparer mon dossier (CV, diplômes, relevés, lettre).</span>
+        </label>
 
-    .checklist-item .status {
-        font-weight: 600;
-        font-size: 1rem;
-    }
+        <label class="ve-check-item">
+          <input type="checkbox" data-key="visa">
+          <span>Consulter le guide visa étudiant du pays choisi.</span>
+        </label>
 
-    .status.badge {
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-    }
+        <label class="ve-check-item">
+          <input type="checkbox" data-key="rdv">
+          <span>Vérifier les délais de rendez-vous visa / biométrie.</span>
+        </label>
+      </div>
+    </div>
 
-    .status.bg-success {
-        background-color: #10b981;
-        color: white;
-    }
+  </div>
+</section>
 
-    .status.bg-warning {
-        background-color: #f59e0b;
-        color: white;
-    }
-
-    .status.bg-danger {
-        background-color: #dc2626;
-        color: white;
-    }
-
-    .checklist-section {
-        margin-top: 2rem;
-    }
-
-    .checklist-section h3 {
-        font-size: 1.25rem;
-        color: var(--text-light);
-        margin-bottom: 1rem;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
-</style>
 {% endblock %}

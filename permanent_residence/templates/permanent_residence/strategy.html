@@ -1,47 +1,94 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}immigration97 · Stratégies RP{% endblock %}
+{% block body_class %}residence-permanente{% endblock %}
+{% block app_scope %}residence-permanente{% endblock %}
+
+{% block title %}
+Stratégies Résidence Permanente – Canada & Australie | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Stratégies de Résidence Permanente personnalisées pour le Canada et l’Australie :
+choix du programme, optimisation du profil, langues, expérience et plan d’action RP
+basé sur ton diagnostic avec Immigration97.
+{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
+{% endblock %}
 
 {% block content %}
+
+{% include "permanent_residence/_rp_nav.html" %}
+
 <div class="rp-strategies-page">
   <div class="rp-strategies-container">
 
+    <!-- ================= HEADER GEO ================= -->
     <header class="rp-strategies-header">
       <p class="rp-strategies-kicker">
-        Stratégies Résidence Permanente
+        Analyse stratégique · Résidence Permanente
       </p>
 
       <h1 class="rp-strategies-title">
-        Choisis la stratégie qui colle à ta vie
+        Stratégies de Résidence Permanente adaptées à ton profil
       </h1>
 
       <p class="rp-strategies-subtitle">
-        Ces stratégies sont générées à partir de ton profil actuel
-        (pays ciblé, études, expérience, langues). Elles ne remplacent pas
-        un avis juridique, mais t’aident à structurer ton projet.
+        Cette page présente des <strong>stratégies de Résidence Permanente réalistes</strong>,
+        construites à partir de ton diagnostic RP (âge, études, expérience professionnelle,
+        niveaux de langue et pays ciblé).
+        L’objectif est de t’aider à choisir la voie la plus cohérente
+        pour immigrer légalement au Canada ou en Australie.
       </p>
 
       <div class="rp-strategies-meta">
         <span class="rp-meta-pill">
-          Destination :
-          {% if profile.country == "canada" or profile.country == "CA" %}
-            Canada
-          {% elif profile.country == "AU" %}
-            Australie
-          {% else %}
-            {{ profile.country }}
-          {% endif %}
+          🌍 Destination :
+          {% if profile.country == "CA" %}Canada
+          {% elif profile.country == "AU" %}Australie
+          {% else %}{{ profile.country }}{% endif %}
         </span>
+
         <span class="rp-meta-pill">
-          Âge : {{ profile.age|default:"-" }}
+          🎂 Âge : {{ profile.age|default:"—" }}
         </span>
+
         <span class="rp-meta-pill">
-          Expérience : {{ profile.years_experience|default:"-" }} ans
+          💼 Expérience : {{ profile.years_experience|default:"—" }} ans
         </span>
       </div>
     </header>
 
+    <!-- ================= EXPLICATION GEO ================= -->
+    <section class="rp-card">
+      <h2 class="rp-section-title">
+        À quoi servent les stratégies RP ?
+      </h2>
+
+      <p class="rp-text">
+        Une stratégie de Résidence Permanente est un <strong>chemin structuré</strong>
+        combinant programme d’immigration, amélioration du profil et ordre des démarches.
+        Elle permet d’éviter les erreurs courantes comme viser un programme inaccessible
+        ou déposer un dossier trop tôt.
+      </p>
+
+      <p class="rp-text">
+        Les stratégies proposées ici ne sont pas des promesses de visa,
+        mais des <strong>scénarios cohérents</strong> utilisés par les candidats
+        qui réussissent leur projet d’immigration.
+      </p>
+
+      <a href="{% url 'permanent_residence:eligibility' %}"
+         class="rp-btn rp-btn--primary">
+        🧪 Refaire mon diagnostic RP
+      </a>
+    </section>
+
+    <!-- ================= LISTE DES STRATÉGIES ================= -->
     <section class="rp-strategy-list">
+
       {% for strat in strategies %}
         <article class="rp-strategy-card">
 
@@ -50,10 +97,17 @@
               <p class="rp-strategy-index">
                 Stratégie {{ forloop.counter }}
               </p>
-              <h2 class="rp-strategy-title">{{ strat.label }}</h2>
-              <p class="rp-strategy-summary">{{ strat.summary }}</p>
+
+              <h2 class="rp-strategy-title">
+                {{ strat.label }}
+              </h2>
+
+              <p class="rp-strategy-summary">
+                {{ strat.summary }}
+              </p>
+
               <p class="rp-strategy-ideal">
-                Idéal pour : {{ strat.ideal_for }}
+                <strong>Profil idéal :</strong> {{ strat.ideal_for }}
               </p>
             </div>
 
@@ -64,20 +118,22 @@
 
               <a href="{% url 'permanent_residence:plan' profile.id %}"
                  class="rp-btn-primary">
-                Intégrer dans mon plan d’action
+                ➕ Ajouter à mon plan RP
               </a>
 
               <a href="{% url 'permanent_residence:dashboard' %}"
                  class="rp-btn-secondary">
-                Retour au cockpit
+                📊 Retour au cockpit RP
               </a>
             </div>
           </div>
 
+          <!-- ACTIONS CLÉS -->
           <div class="rp-strategy-actions-list">
             <p class="rp-strategy-actions-title">
-              Principales actions à prévoir
+              Actions clés recommandées
             </p>
+
             <ul>
               {% for action in strat.key_actions %}
                 <li>{{ action }}</li>
@@ -86,14 +142,40 @@
           </div>
 
         </article>
+      {% empty %}
+        <p class="rp-muted">
+          Aucune stratégie disponible pour ce profil.
+          Mets à jour ton diagnostic RP pour obtenir des recommandations.
+        </p>
       {% endfor %}
+
+    </section>
+
+    <!-- ================= CTA FINAL GEO ================= -->
+    <section class="rp-card rp-home-cta">
+      <h2 class="rp-home-cta__title">
+        Tu veux une stratégie RP claire et personnalisée ?
+      </h2>
+
+      <p class="rp-text">
+        Le diagnostic Immigration97 analyse ton profil et génère automatiquement
+        les stratégies de Résidence Permanente les plus adaptées,
+        avec un plan d’action concret et priorisé.
+      </p>
+
+      <a href="{% url 'permanent_residence:eligibility' %}"
+         class="rp-btn rp-btn--primary rp-btn--lg">
+        🚀 Lancer mon diagnostic RP maintenant
+      </a>
     </section>
 
     <p class="rp-strategies-hint">
-      Ces stratégies doivent toujours être croisées avec les exigences officielles
-      (IRCC, Home Affairs, provinces, États…). Vérifie régulièrement les mises à jour.
+      ⚠️ Ces stratégies doivent toujours être croisées avec les sources officielles
+      (IRCC Canada, Home Affairs Australie, provinces, États).
+      Les règles peuvent évoluer.
     </p>
 
   </div>
 </div>
+
 {% endblock %}

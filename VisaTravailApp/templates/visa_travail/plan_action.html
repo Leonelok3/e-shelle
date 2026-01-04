@@ -1,823 +1,195 @@
-{% extends "visa_travail/base.html" %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}Plan d'action – Visa Travail{% endblock %}
+{% block body_class %}visa-travail{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_travail.css' %}">
+{% endblock %}
 
 {% block content %}
-<style>
-  :root {
-    --primary: #10b981;
-    --primary-dark: #059669;
-    --text-muted: #cbd5e1;
-    --text-light: #f1f5f9;
-    --card-bg: #1e293b;
-    --card-border: #334155;
-    --input-bg: #0f172a;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --info: #3b82f6;
-  }
-
-  /* Animations Premium */
-  @keyframes slideInDown {
-    from {
-      opacity: 0;
-      transform: translateY(-30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slideInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes scaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.9);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes progressFill {
-    from { width: 0; }
-    to { width: var(--progress-width); }
-  }
-
-  @keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-    50% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
-  }
-
-  @keyframes shimmerBg {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
-  }
-
-  @keyframes timelineSlide {
-    from {
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes floatIn {
-    from {
-      opacity: 0;
-      transform: translateY(20px) scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  /* Card Premium */
-  .card-plan-premium {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border: 1px solid #334155;
-    border-radius: 24px;
-    backdrop-filter: blur(10px);
-    padding: 2rem;
-    animation: slideInUp 0.8s ease-out 0.1s both;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .card-plan-premium::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.05), transparent);
-    transition: left 0.5s ease;
-    pointer-events: none;
-  }
-
-  .card-plan-premium:hover::before {
-    left: 100%;
-  }
-
-  /* Header Section */
-  .plan-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-    animation: slideInDown 0.8s ease-out;
-  }
-
-  .plan-header-content h1 {
-    color: #f1f5f9;
-    font-size: 1.8rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-    animation: slideInUp 0.8s ease-out 0.1s both;
-  }
-
-  .plan-header-content h1 .gradient-text {
-    background: linear-gradient(135deg, #10b981, #34d399);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .plan-header-content p {
-    color: #cbd5e1;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    animation: fadeIn 0.8s ease-out 0.2s both;
-  }
-
-  .badge-plan {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    color: #10b981;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    backdrop-filter: blur(10px);
-    animation: fadeIn 0.6s ease-out 0.15s both;
-  }
-
-  .progress-section {
-    text-align: right;
-    animation: scaleIn 0.6s ease-out 0.2s both;
-  }
-
-  .progress-section .small {
-    color: #64748b;
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-  }
-
-  .progress-section .fw-semibold {
-    color: #f1f5f9;
-    font-size: 1.1rem;
-    display: block;
-    margin-bottom: 0.5rem;
-  }
-
-  /* Progress Bar */
-  .progress-bar-premium {
-    height: 14px;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.95);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-    animation: slideInUp 0.8s ease-out 0.15s both;
-  }
-
-  .progress-bar-premium .fill {
-    --progress-width: var(--progress, 0%);
-    width: var(--progress-width);
-    background: linear-gradient(90deg, #10b981 0%, #06b6d4 100%);
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.1);
-    border-radius: 999px;
-    height: 100%;
-    animation: progressFill 1s ease-out 0.3s forwards;
-    position: relative;
-  }
-
-  .progress-bar-premium .fill::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    animation: shimmerBg 2s infinite;
-    border-radius: 999px;
-  }
-
-  /* Coach Box */
-  .coach-box-premium {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
-    border: 1.5px solid rgba(16, 185, 129, 0.2);
-    border-radius: 18px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    animation: floatIn 0.8s ease-out 0.2s both;
-    backdrop-filter: blur(10px);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .coach-box-premium::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(16, 185, 129, 0.1), transparent);
-    animation: pulse 4s ease-in-out infinite;
-    pointer-events: none;
-  }
-
-  .coach-box-premium h2 {
-    color: #f1f5f9;
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    animation: slideInLeft 0.6s ease-out 0.25s both;
-  }
-
-  .coach-box-premium p {
-    color: #cbd5e1;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin: 0;
-    animation: fadeIn 0.8s ease-out 0.3s both;
-  }
-
-  .coach-label {
-    color: #64748b;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: block;
-    margin-bottom: 0.3rem;
-  }
-
-  .coach-badge {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    color: #10b981;
-    padding: 0.4rem 0.8rem;
-    border-radius: 18px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    backdrop-filter: blur(10px);
-  }
-
-  /* Action Buttons */
-  .action-buttons-premium {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 2rem;
-    animation: slideInUp 0.8s ease-out 0.25s both;
-  }
-
-  .btn-action-premium {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
-    border: 1.5px solid rgba(16, 185, 129, 0.3);
-    color: #10b981;
-    padding: 0.7rem 1.2rem;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(10px);
-  }
-
-  .btn-action-premium:hover {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.1));
-    border-color: #10b981;
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
-    transform: translateY(-2px);
-  }
-
-  .btn-action-premium i {
-    transition: transform 0.3s ease;
-  }
-
-  .btn-action-premium:hover i {
-    transform: translateX(2px);
-  }
-
-  /* Profile Info */
-  .profile-info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
-    animation: slideInUp 0.8s ease-out 0.3s both;
-  }
-
-  .profile-info-item {
-    background: rgba(16, 185, 129, 0.03);
-    border: 1px solid rgba(16, 185, 129, 0.1);
-    border-radius: 12px;
-    padding: 1rem;
-    transition: all 0.3s ease;
-  }
-
-  .profile-info-item:hover {
-    background: rgba(16, 185, 129, 0.08);
-    border-color: rgba(16, 185, 129, 0.2);
-  }
-
-  .profile-info-item .label {
-    color: #64748b;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: block;
-    margin-bottom: 0.5rem;
-  }
-
-  .profile-info-item .value {
-    color: #f1f5f9;
-    font-weight: 700;
-    font-size: 1rem;
-  }
-
-  /* Status Badges Legend */
-  .status-legend {
-    color: #64748b;
-    font-size: 0.85rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(16, 185, 129, 0.1);
-    animation: fadeIn 0.8s ease-out 0.35s both;
-  }
-
-  .status-legend .badge {
-    display: inline-block;
-    margin-right: 0.75rem;
-    padding: 0.4rem 0.8rem;
-    border-radius: 8px;
-    font-weight: 600;
-  }
-
-  /* Timeline Card */
-  .timeline-card-premium {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border: 1px solid #334155;
-    border-radius: 24px;
-    backdrop-filter: blur(10px);
-    padding: 1.75rem;
-    animation: slideInUp 0.8s ease-out 0.2s both;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .timeline-card-premium::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.05), transparent);
-    transition: left 0.5s ease;
-    pointer-events: none;
-  }
-
-  .timeline-card-premium:hover::before {
-    left: 100%;
-  }
-
-  .timeline-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    animation: slideInDown 0.6s ease-out 0.2s both;
-  }
-
-  .timeline-header h2 {
-    color: #f1f5f9;
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .timeline-header i {
-    color: #10b981;
-    font-size: 1.3rem;
-  }
-
-  .timeline-header-hint {
-    color: #64748b;
-    font-size: 0.85rem;
-    font-weight: 500;
-  }
-
-  /* Timeline Item */
-  .timeline-item {
-    display: flex;
-    gap: 1.5rem;
-    margin-bottom: 1.75rem;
-    animation: timelineSlide 0.6s ease-out;
-    padding: 1rem;
-    border-radius: 14px;
-    background: rgba(16, 185, 129, 0.02);
-    transition: all 0.3s ease;
-    border: 1px solid transparent;
-  }
-
-  .timeline-item:nth-child(1) { animation-delay: 0.25s; }
-  .timeline-item:nth-child(2) { animation-delay: 0.3s; }
-  .timeline-item:nth-child(3) { animation-delay: 0.35s; }
-  .timeline-item:nth-child(4) { animation-delay: 0.4s; }
-  .timeline-item:nth-child(5) { animation-delay: 0.45s; }
-
-  .timeline-item:hover {
-    background: rgba(16, 185, 129, 0.08);
-    border-color: rgba(16, 185, 129, 0.2);
-  }
-
-  .timeline-bullet-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex-shrink: 0;
-  }
-
-  .timeline-bullet {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #10b981, #059669);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    font-size: 0.85rem;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    animation: scaleIn 0.5s ease-out;
-  }
-
-  .timeline-line {
-    flex-grow: 1;
-    width: 2px;
-    background: linear-gradient(to bottom, rgba(16, 185, 129, 0.3), transparent);
-    margin-top: 0.5rem;
-  }
-
-  .timeline-content {
-    flex-grow: 1;
-    padding-top: 0.3rem;
-  }
-
-  .timeline-step-label {
-    color: #64748b;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: block;
-    margin-bottom: 0.3rem;
-  }
-
-  .timeline-title {
-    color: #f1f5f9;
-    font-weight: 700;
-    font-size: 1.05rem;
-    margin-bottom: 0.3rem;
-  }
-
-  .timeline-description {
-    color: #cbd5e1;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    margin-bottom: 0.75rem;
-  }
-
-  /* Status & Form */
-  .timeline-status-form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: flex-end;
-    min-width: 200px;
-  }
-
-  .status-badge-timeline {
-    padding: 0.4rem 0.8rem;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    display: inline-block;
-  }
-
-  .status-badge-timeline.afaire {
-    background: rgba(107, 114, 128, 0.2);
-    color: #d1d5db;
-    border: 1px solid rgba(107, 114, 128, 0.3);
-  }
-
-  .status-badge-timeline.encours {
-    background: rgba(59, 130, 246, 0.2);
-    color: #93c5fd;
-    border: 1px solid rgba(59, 130, 246, 0.3);
-  }
-
-  .status-badge-timeline.termine {
-    background: rgba(16, 185, 129, 0.2);
-    color: #86efac;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-  }
-
-  .form-select-status {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    border: 1px solid #334155;
-    color: #f1f5f9;
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    transition: all 0.3s ease;
-    font-weight: 600;
-  }
-
-  .form-select-status:hover,
-  .form-select-status:focus {
-    border-color: #10b981;
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  }
-
-  .form-select-status option {
-    background: #1e293b;
-    color: #f1f5f9;
-  }
-
-  .btn-update-status {
-    background: linear-gradient(135deg, #10b981, #059669);
-    border: none;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-
-  .btn-update-status:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
-  }
-
-  .btn-update-status:active {
-    transform: translateY(0);
-  }
-
-  /* No Data Alert */
-  .alert-no-data {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
-    border: 1.5px solid rgba(59, 130, 246, 0.3);
-    color: #93c5fd;
-    padding: 1.25rem;
-    border-radius: 12px;
-    animation: slideInUp 0.6s ease-out;
-    backdrop-filter: blur(10px);
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .plan-header {
-      flex-direction: column;
-    }
-
-    .progress-section {
-      text-align: left;
-    }
-
-    .timeline-status-form {
-      align-items: flex-start;
-      min-width: 100%;
-    }
-
-    .timeline-item {
-      flex-direction: column;
-    }
-
-    .timeline-bullet-container {
-      flex-direction: row;
-      align-items: flex-start;
-      gap: 1rem;
-    }
-
-    .timeline-line {
-      display: none;
-    }
-
-    .action-buttons-premium {
-      flex-direction: column;
-    }
-
-    .btn-action-premium {
-      width: 100%;
-      justify-content: center;
-    }
-
-    .profile-info-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
-
-<div class="row justify-content-center">
-  <div class="col-lg-9">
-
-    <!-- Carte progression + Coach -->
-    <div class="card-plan-premium">
-      <div class="plan-header">
-        <div class="plan-header-content">
-          <span class="badge-plan">
-            <i class="bi bi-graph-up-arrow me-1"></i> Suivi de ton projet
-          </span>
-          <h1>Plan d'action pour ton <span class="gradient-text">Visa Travail</span></h1>
-          <p>
-            Avance étape par étape avec un suivi clair, un coach intégré et des outils pensés
-            pour décrocher un emploi à l'étranger.
-          </p>
-        </div>
-
-        <!-- Badge progression -->
-        <div class="progress-section">
-          <span class="small">Progression globale</span>
-          <div class="fw-semibold">
-            {{ done_steps }} / {{ total_steps }} étape(s)
-          </div>
-          <div class="fw-semibold">{{ progress_percent }}%</div>
-          <div class="mt-2">
-            <span class="badge-plan">{{ progress_label }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Barre de progression -->
-      <div class="progress-bar-premium">
-        <div class="fill" style="--progress: {{ progress_percent }}%"></div>
-      </div>
-
-      <!-- Coach Visa Travail -->
-      <div class="coach-box-premium">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-          <div>
-            <span class="coach-label">Coach Visa Travail</span>
-            <h2>{{ coach_title }}</h2>
-          </div>
-          <span class="coach-badge">
-            <i class="bi bi-geo-alt"></i> Pays prioritaire : {{ pays_prioritaire }}
-          </span>
-        </div>
-        <p>
-          {{ coach_message }}
-        </p>
-      </div>
-
-      <!-- Boutons rapides -->
-      <div class="action-buttons-premium">
-        <a href="{% url 'visa_travail:export_plan_pdf' profile.id %}" class="btn-action-premium">
-          <i class="bi bi-filetype-pdf"></i> Télécharger le plan en PDF
-        </a>
-        <a href="{% url 'visa_travail:job_list' profile.id %}" class="btn-action-premium">
-          <i class="bi bi-clipboard-check"></i> Gérer mes candidatures
-        </a>
-        <a href="{% url 'visa_travail:job_offers_list' %}" class="btn-action-premium">
-          <i class="bi bi-briefcase"></i> Voir les offres d'emploi
-        </a>
-        <a href="{% url 'visa_travail:coach_cv' %}" class="btn-action-premium">
-          <i class="bi bi-file-earmark-text"></i> Analyser mon CV
-        </a>
-        <a href="{% url 'visa_travail:job_offers_list' %}?profile={{ profile.id }}" class="btn-action-premium">
-          <i class="bi bi-star"></i> Offres compatibles
-        </a>
-      </div>
-
-      <!-- Infos profil -->
-      <div class="profile-info-grid">
-        <div class="profile-info-item">
-          <span class="label">Pays ciblés</span>
-          <span class="value">{{ profile.pays_cibles }}</span>
-        </div>
-        <div class="profile-info-item">
-          <span class="label">Domaine</span>
-          <span class="value">{{ profile.domaine_metier }}</span>
-        </div>
-        <div class="profile-info-item">
-          <span class="label">Horizon de départ</span>
-          <span class="value">{{ profile.get_horizon_depart_display }}</span>
-        </div>
-      </div>
-
-      <div class="status-legend">
-        Statuts possibles :
-        <span class="badge status-badge-timeline afaire">À faire</span>
-        <span class="badge status-badge-timeline encours">En cours</span>
-        <span class="badge status-badge-timeline termine">Terminé</span>
-      </div>
-    </div>
-
-    <!-- Liste des étapes (timeline premium) -->
-    {% if profile.actions.all %}
-      <div class="timeline-card-premium">
-        <div class="timeline-header">
-          <h2>
-            <i class="bi bi-list-check"></i> Tes étapes clés
-          </h2>
-          <span class="timeline-header-hint">Mets à jour le statut pour suivre ton avancée en temps réel.</span>
+<section class="vt-plan">
+
+  <div class="container">
+
+    <!-- ================= HEADER ================= -->
+    <section class="vt-card vt-plan-header vt-fade-up">
+
+      <span class="vt-badge">
+        <i class="bi bi-graph-up-arrow"></i>
+        Tableau de pilotage Visa Travail
+      </span>
+
+      <h1 class="vt-title">
+        Ton
+        <span class="vt-gradient-primary">plan d’action personnalisé</span>
+      </h1>
+
+      <p class="vt-subtle">
+        Suis un parcours clair, structuré et priorisé pour
+        <strong>travailler légalement à l’étranger</strong>.
+        Chaque étape est pensée pour maximiser
+        tes chances de succès.
+      </p>
+
+      <!-- ================= PROGRESSION ================= -->
+      <div class="vt-progress-box">
+        <div>
+          <span class="vt-label">Progression globale</span>
+          <strong>{{ done_steps }} / {{ total_steps }} étapes</strong>
         </div>
 
         <div>
-          {% for step in profile.actions.all %}
-            <div class="timeline-item">
-              <div class="timeline-bullet-container">
-                <div class="timeline-bullet">
-                  {{ forloop.counter }}
-                </div>
-                {% if not forloop.last %}
-                  <div class="timeline-line"></div>
-                {% endif %}
-              </div>
-
-              <!-- Contenu étape -->
-              <div style="flex-grow: 1;">
-                <span class="timeline-step-label">Étape {{ forloop.counter }}</span>
-                <h3 class="timeline-title">{{ step.titre }}</h3>
-                {% if step.description %}
-                  <p class="timeline-description">
-                    {{ step.description }}
-                  </p>
-                {% endif %}
-              </div>
-
-              <!-- Statut + formulaire -->
-              <div class="timeline-status-form">
-                <div>
-                  {% if step.statut == "A_FAIRE" %}
-                    <span class="status-badge-timeline afaire">À faire</span>
-                  {% elif step.statut == "EN_COURS" %}
-                    <span class="status-badge-timeline encours">En cours</span>
-                  {% else %}
-                    <span class="status-badge-timeline termine">Terminé</span>
-                  {% endif %}
-                </div>
-
-                <form method="post" style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
-                  {% csrf_token %}
-                  <input type="hidden" name="step_id" value="{{ step.id }}">
-                  <select name="statut" class="form-select-status" style="width: 100%;">
-                    <option value="A_FAIRE" {% if step.statut == "A_FAIRE" %}selected{% endif %}>À faire</option>
-                    <option value="EN_COURS" {% if step.statut == "EN_COURS" %}selected{% endif %}>En cours</option>
-                    <option value="TERMINE" {% if step.statut == "TERMINE" %}selected{% endif %}>Terminé</option>
-                  </select>
-                  <button type="submit" class="btn-update-status" style="width: 100%;">
-                    Mettre à jour
-                  </button>
-                </form>
-              </div>
-            </div>
-          {% endfor %}
+          <span class="vt-label">Avancement</span>
+          <strong>{{ progress_percent }} %</strong>
         </div>
+
+        <span class="vt-badge-soft">
+          {{ progress_label }}
+        </span>
       </div>
+
+      <!-- ================= BARRE ================= -->
+      <div class="vt-progress-bar">
+        <div class="vt-progress-fill" style="width: {{ progress_percent }}%"></div>
+      </div>
+
+    </section>
+
+    <!-- ================= COACH ================= -->
+    <section class="vt-card vt-coach-box vt-fade-up">
+      <div class="vt-coach-header">
+        <div>
+          <span class="vt-coach-label">Coach Visa Travail</span>
+          <h2>{{ coach_title }}</h2>
+        </div>
+
+        <span class="vt-badge">
+          <i class="bi bi-geo-alt"></i>
+          Pays prioritaire : {{ pays_prioritaire }}
+        </span>
+      </div>
+
+      <p class="vt-subtle">
+        {{ coach_message }}
+      </p>
+    </section>
+
+    <!-- ================= ACTIONS RAPIDES ================= -->
+    <section class="vt-card vt-actions-grid vt-fade-up">
+
+      <a href="{% url 'visa_travail:export_plan_pdf' profile.id %}"
+         class="vt-btn-secondary">
+        <i class="bi bi-filetype-pdf"></i>
+        Télécharger le plan PDF
+      </a>
+
+      <a href="{% url 'visa_travail:job_list' profile.id %}"
+         class="vt-btn-secondary">
+        <i class="bi bi-clipboard-check"></i>
+        Suivi des candidatures
+      </a>
+
+      <a href="{% url 'visa_travail:job_offers_list' %}"
+         class="vt-btn-secondary">
+        <i class="bi bi-briefcase"></i>
+        Offres d’emploi
+      </a>
+
+      <a href="{% url 'visa_travail:coach_cv' %}"
+         class="vt-btn-secondary">
+        <i class="bi bi-file-earmark-text"></i>
+        Optimiser mon CV
+      </a>
+
+      <a href="{% url 'visa_travail:job_offers_list' %}?profile={{ profile.id }}"
+         class="vt-btn-primary">
+        <i class="bi bi-star"></i>
+        Offres compatibles avec mon profil
+      </a>
+
+    </section>
+
+    <!-- ================= INFOS PROFIL ================= -->
+    <section class="vt-card vt-profile-summary vt-fade-up">
+      <h2 class="vt-section-title">
+        <i class="bi bi-person-check"></i>
+        Rappel de ton profil
+      </h2>
+
+      <div class="vt-profile-grid">
+        <div><span>Pays ciblés</span><strong>{{ profile.pays_cibles }}</strong></div>
+        <div><span>Domaine</span><strong>{{ profile.domaine_metier }}</strong></div>
+        <div><span>Horizon</span><strong>{{ profile.get_horizon_depart_display }}</strong></div>
+      </div>
+    </section>
+
+    <!-- ================= LÉGENDE ================= -->
+    <div class="vt-status-legend">
+      <span class="status-badge-timeline afaire">À faire</span>
+      <span class="status-badge-timeline encours">En cours</span>
+      <span class="status-badge-timeline termine">Terminé</span>
+    </div>
+
+    <!-- ================= TIMELINE ================= -->
+    {% if profile.actions.all %}
+      <section class="vt-card vt-timeline vt-fade-up">
+
+        <h2 class="vt-section-title">
+          <i class="bi bi-list-check"></i>
+          Étapes clés du projet
+        </h2>
+
+        {% for step in profile.actions.all %}
+          <div class="vt-timeline-item">
+
+            <div class="vt-timeline-index">
+              {{ forloop.counter }}
+            </div>
+
+            <div class="vt-timeline-content">
+              <h3>{{ step.titre }}</h3>
+              {% if step.description %}
+                <p class="vt-subtle">{{ step.description }}</p>
+              {% endif %}
+            </div>
+
+            <div class="vt-timeline-status">
+
+              {% if step.statut == "A_FAIRE" %}
+                <span class="status-badge-timeline afaire">À faire</span>
+              {% elif step.statut == "EN_COURS" %}
+                <span class="status-badge-timeline encours">En cours</span>
+              {% else %}
+                <span class="status-badge-timeline termine">Terminé</span>
+              {% endif %}
+
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="step_id" value="{{ step.id }}">
+
+                <select name="statut" class="vt-select">
+                  <option value="A_FAIRE" {% if step.statut == "A_FAIRE" %}selected{% endif %}>À faire</option>
+                  <option value="EN_COURS" {% if step.statut == "EN_COURS" %}selected{% endif %}>En cours</option>
+                  <option value="TERMINE" {% if step.statut == "TERMINE" %}selected{% endif %}>Terminé</option>
+                </select>
+
+                <button type="submit" class="vt-btn-soft">
+                  Mettre à jour
+                </button>
+              </form>
+
+            </div>
+
+          </div>
+        {% endfor %}
+      </section>
     {% else %}
-      <div class="alert-no-data">
-        <i class="bi bi-info-circle me-2"></i> Aucun plan d'action n'a encore été généré.
+      <div class="vt-alert-warning">
+        Aucun plan d’action n’a encore été généré pour ce profil.
       </div>
     {% endif %}
-  </div>
-</div>
 
+  </div>
+</section>
 {% endblock %}

@@ -1,159 +1,191 @@
 {% extends "base.html" %}
 {% load static %}
 
+{# ==================================================
+   SCOPE STRICT APP
+================================================== #}
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{# ==================================================
+   SEO — TITLE & META
+================================================== #}
 {% block title %}
 Entraînement {{ exam.code|upper }} {{ section.code|upper }} | Immigration97
 {% endblock %}
 
 {% block meta_description %}
-Session d’entraînement {{ exam.code|upper }} – section {{ section.code|upper }} :
-questions chronométrées, QCM, expression écrite/orale et correction intelligente.
+Session {{ exam.code|upper }} – {{ section.code|upper }} :
+question par question, chrono, QCM ou réponse libre
+avec correction intelligente Immigration97.
 {% endblock %}
 
-{% block head_extra %}
-<link rel="stylesheet" href="{% static 'css/pages/preparation_tests.css' %}">
+{# ==================================================
+   CSS APP — VERSIONNÉ
+================================================== #}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260104">
 {% endblock %}
 
 {% block content %}
 
+<!-- ==================================================
+MODE SPÉCIAL — CORRECTION CIBLÉE
+================================================== -->
 {% if attempt.session.mode == "retry_errors" %}
-<div class="retry-mode-banner">
+<section class="pt-banner pt-banner--retry">
   🎯 Mode correction ciblée — tu retravailles uniquement tes erreurs.
-</div>
+</section>
 {% endif %}
 
-<section class="page page-language container">
+<!-- ==================================================
+HERO — SESSION EN COURS
+================================================== -->
+<section class="pt-hero pt-hero--session">
+  <div class="container pt-fade-up">
 
-  <section class="grid-main">
+    <span class="pt-badge">
+      {{ exam.code|upper }} · {{ section.code|upper }}
+    </span>
 
-    <!-- =========================
-         COLONNE GAUCHE — SESSION
-    ========================== -->
-    <article class="card">
+    <h1 class="pt-title">
+      Question {{ current_index }} / {{ total_questions }}
+    </h1>
 
-      <header class="session-header">
-        <p class="hero-kicker">
-          {{ exam.code|upper }} • Entraînement — {{ section.code|upper }}
-        </p>
+    <div class="pt-mode-tag">
+      {% if attempt.session.mode == "mock" %}
+        🧪 Examen blanc
+      {% elif attempt.session.mode == "retry_errors" %}
+        🔁 Correction ciblée
+      {% else %}
+        🎯 Entraînement
+      {% endif %}
+    </div>
 
-        <h1>
-          Question {{ current_index }} / {{ total_questions }}
-        </h1>
+    <div class="pt-stats-row">
+      <span>Progression : <strong>{{ current_index }}</strong> / {{ total_questions }}</span>
+      <span>Score : <strong>{{ attempt.raw_score|default:0 }}</strong></span>
+      <span>Temps : <strong data-timer>--:--</strong></span>
+    </div>
 
-        <div class="mode-tag">
-          {% if attempt.session.mode == "mock" %}
-            🧪 Mode examen blanc
-          {% elif attempt.session.mode == "retry_errors" %}
-            🔁 Correction ciblée
-          {% else %}
-            🎯 Entraînement
-          {% endif %}
-        </div>
+  </div>
+</section>
 
-        <div class="stats-row">
-          <span>Progression : <strong>{{ current_index }}</strong> / {{ total_questions }}</span>
-          <span>Score : <strong>{{ attempt.raw_score|default:0 }}</strong></span>
-          <span>Temps : <strong>--:--</strong></span>
-        </div>
-      </header>
+<!-- ==================================================
+QUESTION EN COURS
+================================================== -->
+<section class="pt-section">
+  <div class="container">
 
-      <!-- =========================
-           QUESTION
-      ========================== -->
-      <section class="question-card">
+    <div class="pt-grid-layout">
 
-        <header class="q-header">
-          <div class="q-title">
-            {{ section.name }}
-          </div>
-          <div class="q-sub">
-            Temps recommandé : {{ section.duration_sec }} s
-          </div>
-        </header>
+      <!-- ================= MAIN ================= -->
+      <div class="pt-main">
 
-        <form
-          method="post"
-          action="{% url 'preparation_tests:submit_answer' attempt.id question.id %}"
-        >
-          {% csrf_token %}
+        <article class="pt-card pt-card--question">
 
-          {% if question.stem %}
-            <div class="q-stem">
-              {{ question.stem|linebreaksbr }}
-            </div>
-          {% endif %}
+          <header class="pt-question-header">
+            <h2 class="pt-question-scope">
+              {{ section.name }}
+            </h2>
+            <span class="pt-question-time">
+              Temps recommandé : {{ section.duration_sec }} s
+            </span>
+          </header>
 
-          {% if audio_url %}
-            <div class="q-audio">
-              <audio controls preload="none">
-                <source src="{{ audio_url }}" type="audio/mpeg">
-              </audio>
-            </div>
-          {% endif %}
+          <form
+            method="post"
+            action="{% url 'preparation_tests:submit_answer' attempt.id question.id %}"
+            class="pt-question-form"
+          >
+            {% csrf_token %}
 
-          {% if choices %}
-            <div class="choices">
-              {% for choice in choices %}
-                <label class="choice-label">
-                  <input
-                    type="radio"
-                    name="choice"
-                    value="{{ choice.id }}"
-                    class="choice-input"
-                  >
-                  <span>{{ choice.text|linebreaksbr }}</span>
-                </label>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="open-text">
-              <textarea
-                name="text"
-                placeholder="Rédige ta réponse ici…"
-              ></textarea>
-            </div>
-          {% endif %}
+            {% if question.stem %}
+              <div class="pt-question-stem">
+                {{ question.stem|linebreaksbr }}
+              </div>
+            {% endif %}
 
-          <footer class="card-footer">
-            <button type="submit" class="btn btn--primary">
-              Question suivante
-            </button>
+            {% if audio_url %}
+              <div class="pt-audio-box">
+                <audio controls preload="none">
+                  <source src="{{ audio_url }}" type="audio/mpeg">
+                </audio>
+              </div>
+            {% endif %}
 
-            {% if attempt.session.exam %}
-  <a href="{% url 'preparation_tests:exam_detail' attempt.session.exam.code %}">
-    ← Retour à l’examen
-  </a>
-{% endif %}
+            {% if choices %}
+              <div class="pt-choices">
+                {% for choice in choices %}
+                  <label class="pt-choice">
+                    <input
+                      type="radio"
+                      name="choice"
+                      value="{{ choice.id }}"
+                      required
+                    >
+                    <span>{{ choice.text|linebreaksbr }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="pt-open-text">
+                <textarea
+                  name="text"
+                  placeholder="Rédige ta réponse ici…"
+                  required
+                ></textarea>
+              </div>
+            {% endif %}
 
-          </footer>
+            <footer class="pt-card-footer">
+              <button type="submit" class="pt-btn-primary">
+                Question suivante →
+              </button>
 
-        </form>
+              {% if attempt.session.exam %}
+                <a
+                  href="{% url 'preparation_tests:exam_detail' attempt.session.exam.code %}"
+                  class="pt-link-muted"
+                >
+                  ← Retour à l’examen
+                </a>
+              {% endif %}
+            </footer>
 
-      </section>
-    </article>
+          </form>
 
-    <!-- =========================
-         COLONNE DROITE — CONSEILS
-    ========================== -->
-    <aside class="card side-card">
-      <h3>Stratégies de réussite</h3>
-      <ul>
-        <li>Lis toujours la consigne avant les choix.</li>
-        <li>Repère les mots clés (dates, quantités, exceptions).</li>
-        <li>Ne réponds jamais à l’intuition.</li>
-        <li>Relis la phrase exacte dans le texte ou l’audio.</li>
-      </ul>
+        </article>
 
-      <h3>Erreurs fréquentes</h3>
-      <ul>
-        <li>Confusion « à partir de » / « jusqu’à »</li>
-        <li>Mots pièges : <em>sauf</em>, <em>uniquement</em>, <em>au moins</em></li>
-        <li>Réponse hors contexte</li>
-      </ul>
-    </aside>
+      </div>
 
-  </section>
+      <!-- ================= SIDEBAR ================= -->
+      <aside class="pt-side">
 
+        <article class="pt-card pt-card--side">
+          <h3>Stratégies de réussite</h3>
+          <ul class="pt-side-list">
+            <li>Lis toujours la consigne avant les choix</li>
+            <li>Repère les mots clés (dates, exceptions)</li>
+            <li>Élimine d’abord les réponses impossibles</li>
+            <li>Reste factuel, jamais à l’intuition</li>
+          </ul>
+        </article>
+
+        <article class="pt-card pt-card--side">
+          <h3>Erreurs fréquentes</h3>
+          <ul class="pt-side-list">
+            <li>Confusion « jusqu’à » / « à partir de »</li>
+            <li>Mots pièges : <em>sauf</em>, <em>uniquement</em></li>
+            <li>Réponse hors contexte</li>
+          </ul>
+        </article>
+
+      </aside>
+
+    </div>
+
+  </div>
 </section>
 
 {% endblock %}

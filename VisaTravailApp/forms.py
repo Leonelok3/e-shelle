@@ -1,8 +1,19 @@
 from django import forms
 from .models import UserProfile, ActionStep, JobApplication
 
+# ======================================================
+# CONSTANTES DESIGN VISA TRAVAIL
+# ======================================================
+VT_INPUT = "vt-input"
+VT_SELECT = "vt-input"
+VT_TEXTAREA = "vt-input"
 
+
+# ======================================================
+# PROFIL VISA TRAVAIL (FORM PRINCIPAL)
+# ======================================================
 class UserProfileForm(forms.ModelForm):
+
     PAYS_CHOICES = [
         ("Canada", "Canada"),
         ("France", "France"),
@@ -46,47 +57,76 @@ class UserProfileForm(forms.ModelForm):
             "budget": "Budget approximatif",
             "horizon_depart": "Horizon de départ souhaité",
         }
+        widgets = {
+            "nom": forms.TextInput(attrs={"class": VT_INPUT}),
+            "email": forms.EmailInput(attrs={"class": VT_INPUT}),
+            "pays_residence": forms.TextInput(attrs={"class": VT_INPUT}),
+            "domaine_metier": forms.TextInput(attrs={"class": VT_INPUT}),
+            "niveau_etudes": forms.Select(attrs={"class": VT_SELECT}),
+            "annees_experience": forms.NumberInput(attrs={
+                "class": VT_INPUT,
+                "min": 0,
+            }),
+            "niveau_anglais": forms.Select(attrs={"class": VT_SELECT}),
+            "niveau_langue_pays": forms.Select(attrs={"class": VT_SELECT}),
+            "budget": forms.Select(attrs={"class": VT_SELECT}),
+            "horizon_depart": forms.Select(attrs={"class": VT_SELECT}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk and self.instance.pays_cibles:
-            pays_list = [p.strip() for p in self.instance.pays_cibles.split(",") if p]
-            self.fields["pays_cibles_select"].initial = pays_list
 
+        # Pré-remplissage des pays cochés
+        if self.instance and self.instance.pk and self.instance.pays_cibles:
+            self.fields["pays_cibles_select"].initial = [
+                p.strip()
+                for p in self.instance.pays_cibles.split(",")
+                if p
+            ]
+
+        # 👉 Classe unique design Visa Travail
         for name, field in self.fields.items():
             if name == "pays_cibles_select":
-                continue
-            field.widget.attrs.setdefault("class", "form-control")
+                field.widget.attrs["class"] = "vt-checkbox-group"
+            else:
+                field.widget.attrs["class"] = VT_INPUT
 
     def clean(self):
         cleaned_data = super().clean()
-        pays_cibles = cleaned_data.get("pays_cibles_select")
-        if pays_cibles:
-            cleaned_data["pays_cibles"] = ", ".join(pays_cibles)
+        pays = cleaned_data.get("pays_cibles_select", [])
+        cleaned_data["pays_cibles"] = ", ".join(pays)
         return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        pays_cibles = self.cleaned_data.get("pays_cibles_select", [])
-        instance.pays_cibles = ", ".join(pays_cibles)
+        instance.pays_cibles = ", ".join(
+            self.cleaned_data.get("pays_cibles_select", [])
+        )
         if commit:
             instance.save()
         return instance
 
 
+# ======================================================
+# STATUT DES ÉTAPES (PLAN D’ACTION)
+# ======================================================
 class ActionStepStatusForm(forms.ModelForm):
+
     class Meta:
         model = ActionStep
         fields = ["statut"]
+        widgets = {
+            "statut": forms.Select(attrs={
+                "class": "vt-input vt-input-sm"
+            })
+        }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["statut"].widget.attrs.setdefault(
-            "class", "form-select form-select-sm"
-        )
 
-
+# ======================================================
+# CANDIDATURE À UNE OFFRE
+# ======================================================
 class JobApplicationForm(forms.ModelForm):
+
     class Meta:
         model = JobApplication
         fields = [
@@ -101,65 +141,61 @@ class JobApplicationForm(forms.ModelForm):
             "date_candidature",
             "commentaire",
         ]
-    widgets = {
-            "date_candidature": forms.DateInput(
-                attrs={"type": "date"}
-            ),
-            "commentaire": forms.Textarea(
-                attrs={"rows": 3}
-            ),
-        }
-    labels = {
-            "user_profile": "Profil lié à cette candidature",
-            "titre_poste": "Titre du poste",
-            "entreprise": "Entreprise",
-            "pays": "Pays",
-            "ville": "Ville",
-            "lien_offre": "Lien vers l'offre",
-            "source": "Source (job board, contact…)",
-            "statut": "Statut de la candidature",
-            "date_candidature": "Date de candidature",
-            "commentaire": "Notes / suivi",
+        widgets = {
+            "user_profile": forms.Select(attrs={"class": VT_SELECT}),
+            "titre_poste": forms.TextInput(attrs={"class": VT_INPUT}),
+            "entreprise": forms.TextInput(attrs={"class": VT_INPUT}),
+            "pays": forms.TextInput(attrs={"class": VT_INPUT}),
+            "ville": forms.TextInput(attrs={"class": VT_INPUT}),
+            "lien_offre": forms.URLInput(attrs={"class": VT_INPUT}),
+            "source": forms.TextInput(attrs={"class": VT_INPUT}),
+            "statut": forms.Select(attrs={"class": VT_SELECT}),
+            "date_candidature": forms.DateInput(attrs={
+                "type": "date",
+                "class": VT_INPUT,
+            }),
+            "commentaire": forms.Textarea(attrs={
+                "class": VT_TEXTAREA,
+                "rows": 4,
+            }),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for name, field in self.fields.items():
-            css_class = "form-control"
-            if isinstance(field.widget, forms.Select):
-                css_class = "form-select"
-            field.widget.attrs.setdefault("class", css_class + " form-control-sm")
 
-
+# ======================================================
+# ANALYSE DE CV (COACH CV)
+# ======================================================
 class CVAnalysisForm(forms.Form):
+
     user_profile = forms.ModelChoiceField(
         queryset=UserProfile.objects.all(),
         required=False,
         label="Associer à un profil",
-        help_text="Optionnel : tu peux lier cette analyse à un profil Visa Travail.",
+        widget=forms.Select(attrs={"class": VT_INPUT}),
     )
+
     intitule_poste = forms.CharField(
         label="Poste ciblé",
         required=True,
-        help_text="Ex : Développeur Python, Infirmier, Soudeur, Data Analyst…",
+        widget=forms.TextInput(attrs={
+            "class": VT_INPUT,
+            "placeholder": "Ex : Développeur Python, Infirmier, Soudeur…"
+        }),
     )
+
     pays_cible = forms.CharField(
         label="Pays ciblé principal",
         required=True,
-        help_text="Ex : Canada, Allemagne, Belgique…",
-    )
-    cv_texte = forms.CharField(
-        label="Colle ici le contenu de ton CV",
-        widget=forms.Textarea(attrs={"rows": 14}),
-        help_text="Tu peux copier-coller ton CV complet (sans mise en page).",
+        widget=forms.TextInput(attrs={
+            "class": VT_INPUT,
+            "placeholder": "Ex : Canada, Allemagne, Belgique…"
+        }),
     )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for name, field in self.fields.items():
-            if isinstance(field.widget, forms.Textarea):
-                field.widget.attrs.setdefault("class", "form-control form-control-sm")
-            elif isinstance(field.widget, forms.Select):
-                field.widget.attrs.setdefault("class", "form-select form-select-sm")
-            else:
-                field.widget.attrs.setdefault("class", "form-control form-control-sm")
+    cv_texte = forms.CharField(
+        label="Contenu du CV",
+        widget=forms.Textarea(attrs={
+            "class": VT_TEXTAREA,
+            "rows": 14,
+            "placeholder": "Colle ici le contenu complet de ton CV…"
+        }),
+    )

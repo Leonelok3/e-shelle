@@ -1,210 +1,237 @@
 {% extends "base.html" %}
 {% load static %}
 
+{# ==================================================
+   SCOPE STRICT APP
+================================================== #}
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{# ==================================================
+   SEO
+================================================== #}
 {% block title %}
-Analyse de compétences | Immigration97
+Analyse de compétences CECR – TEF & TCF | Immigration97
 {% endblock %}
 
 {% block meta_description %}
-Analyse de compétences TEF / TCF : statistiques par section,
-par difficulté et plan de progression personnalisé.
+Analyse détaillée des compétences linguistiques (CO, CE, EE, EO) :
+scores par section, niveaux CECR, priorités détectées
+et plan de progression personnalisé Immigration97.
 {% endblock %}
 
-{% block head_extra %}
-<link rel="stylesheet" href="{% static 'css/pages/preparation_tests.css' %}">
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260104">
 {% endblock %}
 
 {% block content %}
 
-<section class="page page-skill-analysis">
+<!-- ==================================================
+HERO — ANALYSE IA
+================================================== -->
+<section class="pt-hero pt-hero--analysis">
+  <div class="container pt-fade-up">
 
-  <!-- ===== HERO ===== -->
-  <header class="hero">
-    <div class="hero-kicker">Profil de compétences</div>
+    <span class="pt-badge">
+      🧠 Analyse de compétences
+    </span>
 
-    <h1 class="hero-title">
-      Ton profil <span>CO • CE • EE • EO</span> en un coup d’œil
+    <h1 class="pt-title">
+      Ton profil
+      <span class="pt-gradient-secondary">CO · CE · EE · EO</span>
     </h1>
 
-    <p class="hero-sub">
-      Vue consolidée de ta session :
-      forces, faiblesses, types de questions sensibles
-      et plan d’action concret pour progresser plus vite.
+    <p class="pt-lead">
+      Analyse consolidée de ta session :
+      forces, faiblesses et leviers concrets
+      pour améliorer ton score plus rapidement.
     </p>
 
-    <div class="hero-tags">
-      <span class="pill">✅ {{ global_correct }} / {{ global_total }} bonnes réponses</span>
-      <span class="pill">🎯 Score global : {{ global_pct }} %</span>
-      <span class="pill">🧪 Session #{{ session.id }}</span>
-    </div>
-  </header>
-
-  <!-- ===== GRILLE PRINCIPALE ===== -->
-  <section class="grid-main">
-
-    <!-- ===== COLONNE GAUCHE ===== -->
-    <div>
-
-      <!-- === PAR SECTION === -->
-      <article class="card">
-        <h2>Par section (CO / CE / EE / EO)</h2>
-        <p class="lead">
-          Visualise ton niveau par compétence.
-          Commence toujours par la section la plus faible.
-        </p>
-
-        <div class="stats-grid">
-          {% for code, data in per_section.items %}
-            <div class="stat-block" data-pct="{{ data.pct|default_if_none:'0' }}">
-              <div class="stat-header">
-                <div class="stat-label">
-                  {% if code == "CO" %}CO • Compréhension orale
-                  {% elif code == "CE" %}CE • Compréhension écrite
-                  {% elif code == "EE" %}EE • Expression écrite
-                  {% elif code == "EO" %}EO • Expression orale
-                  {% else %}Section {{ code }}{% endif %}
-                </div>
-                <div class="stat-score">{{ data.pct }} %</div>
-              </div>
-
-              <div class="stat-sub">
-                {{ data.correct }}/{{ data.total }} bonnes réponses • {{ data.level }}
-              </div>
-
-              <div class="stat-bar">
-                <div class="stat-bar-fill"></div>
-              </div>
-            </div>
-          {% empty %}
-            <p class="muted">Aucune statistique par section disponible.</p>
-          {% endfor %}
-        </div>
-      </article>
-
-      <!-- === PAR DIFFICULTÉ === -->
-      <article class="card mt-16">
-        <h2>Par difficulté des questions</h2>
-        <p class="lead">
-          Analyse ton comportement sur les questions
-          <strong>faciles, moyennes et difficiles</strong>.
-        </p>
-
-        <div class="stats-grid">
-          {% for diff, data in per_diff.items %}
-            <div class="stat-block" data-pct="{{ data.pct|default_if_none:'0' }}">
-              <div class="stat-header">
-                <div class="stat-label">Niveau {{ diff }}</div>
-                <div class="stat-score">{{ data.pct }} %</div>
-              </div>
-
-              <div class="stat-sub">
-                {{ data.correct }}/{{ data.total }} bonnes réponses
-              </div>
-
-              <div class="stat-bar">
-                <div class="stat-bar-fill"></div>
-              </div>
-            </div>
-          {% empty %}
-            <p class="muted">Aucune donnée par difficulté disponible.</p>
-          {% endfor %}
-        </div>
-      </article>
-
+    <div class="pt-pill-row">
+      <span class="pt-pill">
+        ✅ {{ global_correct }} / {{ global_total }} bonnes réponses
+      </span>
+      <span class="pt-pill">
+        🎯 Score global {{ global_pct }} %
+      </span>
+      <span class="pt-pill">
+        🧪 Session #{{ session.id }}
+      </span>
     </div>
 
-    <!-- ===== COLONNE DROITE ===== -->
-    <aside>
+  </div>
+</section>
+
+<!-- ==================================================
+ANALYSE PAR COMPÉTENCE
+================================================== -->
+<section class="pt-section">
+  <div class="container">
+
+    <article class="pt-card">
+      <h2>📊 Analyse par compétence</h2>
+      <p class="pt-muted">
+        Identifie immédiatement les sections à renforcer en priorité.
+      </p>
+
+      <div class="pt-stats-grid">
+
+        {% for code, data in per_section.items %}
+        <div
+          class="pt-stat-block"
+          data-pct="{{ data.pct|default_if_none:'0' }}"
+        >
+          <div class="pt-stat-header">
+            <span class="pt-stat-label">
+              {% if code == "CO" %}🎧 Compréhension orale
+              {% elif code == "CE" %}📖 Compréhension écrite
+              {% elif code == "EE" %}✍️ Expression écrite
+              {% elif code == "EO" %}🗣 Expression orale
+              {% else %}{{ code }}{% endif %}
+            </span>
+            <strong>{{ data.pct }}%</strong>
+          </div>
+
+          <div class="pt-stat-meta">
+            {{ data.correct }}/{{ data.total }} bonnes réponses
+            — Niveau <strong>{{ data.level }}</strong>
+          </div>
+
+          <div class="pt-progress-bar">
+            <div class="pt-progress-fill"></div>
+          </div>
+        </div>
+        {% empty %}
+          <p class="pt-muted">
+            Aucune statistique par section disponible.
+          </p>
+        {% endfor %}
+
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ==================================================
+ANALYSE PAR DIFFICULTÉ
+================================================== -->
+<section class="pt-section">
+  <div class="container">
+
+    <article class="pt-card">
+      <h2>⚖️ Analyse par difficulté</h2>
+      <p class="pt-muted">
+        Comprends ton comportement face aux questions faciles,
+        moyennes et difficiles.
+      </p>
+
+      <div class="pt-stats-grid">
+
+        {% for diff, data in per_diff.items %}
+        <div
+          class="pt-stat-block"
+          data-pct="{{ data.pct|default_if_none:'0' }}"
+        >
+          <div class="pt-stat-header">
+            <span>Niveau {{ diff }}</span>
+            <strong>{{ data.pct }}%</strong>
+          </div>
+
+          <div class="pt-stat-meta">
+            {{ data.correct }}/{{ data.total }} bonnes réponses
+          </div>
+
+          <div class="pt-progress-bar">
+            <div class="pt-progress-fill"></div>
+          </div>
+        </div>
+        {% empty %}
+          <p class="pt-muted">
+            Aucune donnée par difficulté disponible.
+          </p>
+        {% endfor %}
+
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ==================================================
+PRIORITÉS & PLAN D’ACTION
+================================================== -->
+<section class="pt-section">
+  <div class="container">
+
+    <div class="pt-grid-2">
 
       <!-- PRIORITÉS -->
-      <article class="card">
-        <h2>Priorités de travail</h2>
-        <p class="lead">
-          Zones à renforcer en priorité pour améliorer ton score global.
-        </p>
+      <article class="pt-card pt-card--priority">
+        <h2>🚨 Priorités de travail</h2>
 
-        <ul class="list">
+        <ul class="pt-list">
           {% if weak_sections %}
             {% for s in weak_sections %}
               <li>
-                Section <strong>{{ s.label }}</strong> — {{ s.pct }} %
+                <strong>{{ s.label }}</strong>
+                — {{ s.pct }}%
                 {% if forloop.first %}
-                  <span class="badge-weak">PRIORITÉ N°1</span>
-                {% elif s.pct < 60 %}
-                  <span class="badge-weak">À renforcer</span>
+                  <span class="pt-tag pt-tag--danger">
+                    Priorité n°1
+                  </span>
                 {% endif %}
               </li>
             {% endfor %}
           {% else %}
-            <li>Aucune section prioritaire détectée.</li>
+            <li>Aucune section critique détectée.</li>
           {% endif %}
         </ul>
       </article>
 
-      <!-- TYPES SENSIBLES -->
-      <article class="card mt-14">
-        <h2>Types de questions sensibles</h2>
-        <p class="lead">
-          Ces formats font souvent chuter la note.
-        </p>
+      <!-- PLAN -->
+      <article class="pt-card pt-card--action">
+        <h2>🎯 Plan d’action recommandé</h2>
 
-        <ul class="list">
-          {% if weak_difficulties %}
-            {% for d in weak_difficulties %}
-              <li>
-                Niveau <strong>{{ d.difficulty }}</strong>
-                — {{ d.pct }} % ({{ d.correct }}/{{ d.total }})
-              </li>
-            {% endfor %}
-          {% else %}
-            <li>Aucun type de question critique identifié.</li>
-          {% endif %}
-        </ul>
-      </article>
-
-      <!-- PLAN D’ACTION -->
-      <article class="card mt-14">
-        <h2>Plan d’action concret</h2>
-        <p class="lead">
-          Applique ce mini-plan pour transformer l’analyse en progrès réel.
-        </p>
-
-        <ul class="list">
-          <li>1️⃣ Travaille d’abord la section la plus faible.</li>
-          <li>2️⃣ Revois le cours correspondant (TEF / TCF).</li>
-          <li>3️⃣ Lance une session ciblée courte (10–15 questions).</li>
-          <li>4️⃣ Reviens ici pour mesurer l’amélioration.</li>
+        <ul class="pt-list">
+          <li>1️⃣ Commence par la section la plus faible</li>
+          <li>2️⃣ Revois le cours correspondant</li>
+          <li>3️⃣ Lance une session ciblée (10–15 questions)</li>
+          <li>4️⃣ Reviens analyser les progrès</li>
         </ul>
 
-        <div class="btn-row">
+        <div class="pt-cta-group">
           {% if session.exam %}
-            <a class="btn btn-primary"
-               href="{% url 'preparation_tests:start_session' session.exam.code %}">
-              🔁 Nouvelle session
-            </a>
+          <a
+            href="{% url 'preparation_tests:start_session' session.exam.code %}"
+            class="pt-btn-primary"
+          >
+            🔁 Nouvelle session
+          </a>
           {% endif %}
 
-          <a class="btn btn-ghost"
-             href="{% url 'preparation_tests:session_correction' session.id %}">
-            📊 Retour au corrigé
+          <a
+            href="{% url 'preparation_tests:session_correction' session.id %}"
+            class="pt-btn-ghost"
+          >
+            Retour au corrigé
           </a>
         </div>
       </article>
 
-    </aside>
+    </div>
 
-  </section>
-
+  </div>
 </section>
 
 {% endblock %}
 
-{% block scripts_extra %}
+{% block body_end %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".stat-block").forEach(function (block) {
+    document.querySelectorAll(".pt-stat-block").forEach(function (block) {
       const pct = Math.max(0, Math.min(100, parseFloat(block.dataset.pct || 0)));
-      const bar = block.querySelector(".stat-bar-fill");
+      const bar = block.querySelector(".pt-progress-fill");
       if (bar) bar.style.width = pct + "%";
     });
   });

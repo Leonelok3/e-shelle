@@ -1,31 +1,146 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Historique Coach IA | Immigration97{% endblock %}
+{# ==================================================
+   SCOPE STRICT APP
+================================================== #}
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{# ==================================================
+   SEO — TITLE & META
+================================================== #}
+{% block title %}
+Historique Coach IA – Analyses & Recommandations | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Historique des analyses et recommandations générées par le Coach IA Immigration97.
+Consulte tes rapports personnalisés par examen et compétence linguistique.
+{% endblock %}
+
+{# ==================================================
+   CSS APP — VERSIONNÉ
+================================================== #}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260104">
+{% endblock %}
 
 {% block content %}
-<section class="page page-dashboard">
 
-  <h1>🤖 Historique Coach IA</h1>
+<!-- ==================================================
+HERO — HISTORIQUE COACH IA
+================================================== -->
+<section class="pt-hero">
+  <div class="container pt-fade-up">
 
-  {% for r in reports %}
-    <article class="card">
-      <h3>{{ r.exam_code }} — {{ r.scope|upper }}</h3>
-      <p class="muted">{{ r.created_at|date:"d M Y H:i" }}</p>
+    <span class="pt-badge">
+      🤖 Coach IA
+    </span>
 
-      <ul>
-        {% for key, value in r.data.items %}
-          <li><strong>{{ key }}</strong> : {{ value }}</li>
-        {% endfor %}
-      </ul>
+    <h1 class="pt-title">
+      Historique des analyses<br>
+      et recommandations
+    </h1>
 
-      <a href="{% url 'preparation_tests:coach_ai_pdf' r.id %}"
-         class="btn btn--soft">
-        📄 Télécharger le rapport PDF
-      </a>
-    </article>
-  {% empty %}
-    <p>Aucun rapport IA pour le moment.</p>
-  {% endfor %}
+    <p class="pt-lead">
+      Retrouve l’ensemble des <strong>rapports générés par le Coach IA</strong>
+      après tes entraînements et examens.
+      Chaque analyse t’aide à identifier tes points forts,
+      corriger tes faiblesses et progresser plus vite.
+    </p>
 
+  </div>
 </section>
+
+<!-- ==================================================
+LISTE DES RAPPORTS
+================================================== -->
+<section class="pt-section">
+  <div class="container">
+
+    <div class="pt-grid-layout">
+
+      <!-- ================= MAIN ================= -->
+      <div class="pt-main">
+
+        <h2 class="pt-section-title">
+          📄 Rapports disponibles
+        </h2>
+
+        {% for r in reports %}
+          <article class="pt-card pt-card--report">
+
+            <!-- HEADER -->
+            <div class="pt-report-header">
+              <h3 class="pt-report-title">
+                {{ r.exam_code }} —
+                <span class="pt-report-scope">
+                  {{ r.scope|upper }}
+                </span>
+              </h3>
+
+              <span class="pt-report-date">
+                {{ r.created_at|date:"d M Y · H:i" }}
+              </span>
+            </div>
+
+            <!-- CONTENT -->
+            <ul class="pt-report-list">
+              {% for key, value in r.data.items %}
+                <li>
+                  <strong>{{ key }}</strong> :
+                  {{ value }}
+                </li>
+              {% endfor %}
+            </ul>
+
+            <!-- ACTION -->
+            <div class="pt-cta-group">
+              <a
+                href="{% url 'preparation_tests:coach_ai_pdf' r.id %}"
+                class="pt-btn-secondary"
+              >
+                📄 Télécharger le rapport PDF
+              </a>
+            </div>
+
+          </article>
+
+        {% empty %}
+          <div class="pt-empty">
+            Aucun rapport du Coach IA pour le moment.<br>
+            Commence un entraînement ou un examen blanc
+            pour recevoir une analyse personnalisée.
+          </div>
+        {% endfor %}
+
+      </div>
+
+      <!-- ================= SIDEBAR ================= -->
+      <aside class="pt-side">
+
+        <div class="pt-card pt-card--side">
+          <h3>À quoi servent ces rapports ?</h3>
+
+          <ul class="pt-side-list">
+            <li>Analyser tes performances réelles</li>
+            <li>Identifier tes points faibles</li>
+            <li>Suivre ta progression CECR</li>
+            <li>Optimiser ta stratégie d’examen</li>
+          </ul>
+
+          <p class="pt-small">
+            💡 Les rapports sont générés automatiquement
+            après les examens blancs et certaines leçons avancées.
+          </p>
+        </div>
+
+      </aside>
+
+    </div>
+
+  </div>
+</section>
+
 {% endblock %}

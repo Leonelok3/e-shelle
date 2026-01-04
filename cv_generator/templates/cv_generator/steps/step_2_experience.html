@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}cv-generator{% endblock %}
+{% block app_scope %}cv-generator{% endblock %}
+
+{% block title %}
+Étape 2 — Expériences professionnelles | Immigration97
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cv_generator.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="app-main cv-generator">
+
+<section class="cv-step-box">
+
+  <!-- ================= HEADER ================= -->
+  <h2 class="cv-step-title">
+    Étape 2 — Expériences professionnelles
+  </h2>
+
+  <p class="cv-step-help">
+    Cette étape est essentielle. Les recruteurs canadiens accordent une grande
+    importance à vos <strong>expériences professionnelles détaillées</strong>.
+  </p>
+
+  <!-- ================= IMPORT INFO ================= -->
+  {% if experience_source == "imported" %}
+    <div class="cv-alert success">
+      ✅ Vos expériences ont été automatiquement importées depuis votre CV.
+      <br>
+      <small>
+        Vous pouvez les optimiser pour le Canada ou les modifier manuellement.
+      </small>
+    </div>
+
+    <a href="?edit=1" class="btn btn-secondary" style="margin-bottom:20px;">
+      ✏️ Modifier manuellement mes expériences
+    </a>
+  {% endif %}
+
+  <!-- ================= MANUAL FORM ================= -->
+  {% if experience_source == "manual" %}
+    <div class="cv-alert info">
+      ℹ️ Ajoutez vos expériences une par une.
+      L’IA pourra ensuite les reformuler au format Canada (ATS).
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label>Poste occupé *</label>
+        <input type="text" name="title" required placeholder="Ex : Technicien de maintenance">
+      </div>
+
+      <div class="form-group">
+        <label>Entreprise *</label>
+        <input type="text" name="company" required placeholder="Nom de l’entreprise">
+      </div>
+
+      <div class="form-group">
+        <label>Date de début *</label>
+        <input type="date" name="start_date" required>
+      </div>
+
+      <div class="form-group">
+        <label>Date de fin</label>
+        <input type="date" name="end_date">
+        <small class="cv-muted">Laissez vide si poste actuel</small>
+      </div>
+
+      <div class="form-group">
+        <label>Description (brute) *</label>
+        <textarea
+          name="description_raw"
+          rows="4"
+          placeholder="Décrivez simplement vos missions. L’IA les optimisera ensuite pour le Canada."
+          required></textarea>
+      </div>
+
+      <button type="submit" class="cv-btn-primary">
+        ➕ Ajouter l’expérience
+      </button>
+    </form>
+  {% endif %}
+
+  <hr>
+
+  <!-- ================= EXPERIENCES LIST ================= -->
+  {% if experiences %}
+    <h3>Expériences enregistrées</h3>
+
+    <ul class="cv-list">
+      {% for e in experiences %}
+        <li class="cv-list-item">
+
+          <div class="cv-exp-header">
+            <strong>{{ e.title }}</strong> — {{ e.company }}<br>
+            <small>
+              {{ e.start_date }} →
+              {{ e.end_date|default:"En cours" }}
+            </small>
+          </div>
+
+          {% if e.description_ai %}
+            <div class="cv-ai-box">
+              <strong>🇨🇦 Version Canada (ATS)</strong>
+              <pre>{{ e.description_ai }}</pre>
+            </div>
+          {% else %}
+            <p class="cv-muted">
+              💡 Astuce : optimisez cette expérience pour augmenter vos chances
+              avec les recruteurs canadiens.
+            </p>
+          {% endif %}
+
+          <!-- ===== AI BUTTON (FIXED) ===== -->
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            onclick="generateTasks(this)"
+            data-url="{% url 'cv_generator:generate_experience_tasks' cv.id e.id %}">
+            🤖 Optimiser pour le Canada (ATS)
+          </button>
+
+          <div class="cv-ai-result"></div>
+
+        </li>
+      {% endfor %}
+    </ul>
+
+  {% else %}
+    <p class="cv-empty">
+      Aucune expérience enregistrée pour le moment.
+    </p>
+  {% endif %}
+
+  <!-- ================= NAVIGATION ================= -->
+  <div class="cv-step-actions" style="margin-top:40px; display:flex; justify-content:space-between; gap:16px;">
+
+    <a href="{% url 'cv_generator:create_cv' cv.id %}" class="cv-btn-secondary">
+  ⬅️ Retour
+</a>
+
+    <a href="{% url 'cv_generator:create_cv_step3' cv.id %}"
+       class="cv-btn-success">
+      ➡️ Continuer vers la finalisation
+    </a>
+
+  </div>
+
+</section>
+
+</main>
+{% endblock %}
+
+<!-- ================= IA SCRIPT (FIXED) ================= -->
+<script>
+function generateTasks(btn) {
+  const url = btn.dataset.url;
+  const container = btn.closest("li");
+  const box = container.querySelector(".cv-ai-result");
+
+  btn.innerText = "⏳ Optimisation Canada...";
+  btn.disabled = true;
+
+  fetch(url, {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": "{{ csrf_token }}"
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.tasks) {
+      box.innerHTML = `
+        <div class="cv-ai-box">
+          <strong>🇨🇦 Version optimisée Canada (ATS)</strong>
+          <pre>${data.tasks}</pre>
+          <small>✔ Enregistré automatiquement</small>
+        </div>
+      `;
+    }
+  })
+  .finally(() => {
+    btn.innerText = "🤖 Optimiser pour le Canada (ATS)";
+    btn.disabled = false;
+  });
+}
+</script>
+<script>
+function getCSRFToken() {
+  return document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  /* ===== IA SUMMARY ===== */
+  const aiBtn = document.getElementById("ai-summary-btn");
+  if (aiBtn) {
+    aiBtn.addEventListener("click", function () {
+      const textarea = document.querySelector("textarea[name='summary']");
+      aiBtn.disabled = true;
+      aiBtn.innerText = "⏳ Génération IA...";
+
+      fetch(aiBtn.dataset.url, {
+        method: "POST",
+        headers: { "X-CSRFToken": getCSRFToken() }
+      })
+      .then(res => res.json())
+      .then(data => { if (data.summary) textarea.value = data.summary; })
+      .finally(() => {
+        aiBtn.disabled = false;
+        aiBtn.innerText = "🤖 Générer avec l’IA";
+      });
+    });
+  }
+
+  /* ===== ATS SCORE ===== */
+  const atsBtn = document.getElementById("ats-btn");
+  if (atsBtn) {
+    atsBtn.addEventListener("click", function () {
+      const box = document.getElementById("ats-result");
+      atsBtn.disabled = true;
+      atsBtn.innerText = "⏳ Analyse ATS...";
+
+      fetch(atsBtn.dataset.url)
+        .then(res => res.json())
+        .then(data => {
+          box.innerHTML = `
+            <p><strong>Score ATS :</strong> ${data.score}/100</p>
+            ${data.feedback.length ? `<ul>${data.feedback.map(f => `<li>${f}</li>`).join("")}</ul>` : "<p>Excellent profil ATS</p>"}
+          `;
+        })
+        .finally(() => {
+          atsBtn.disabled = false;
+          atsBtn.innerText = "🔍 Analyser mon CV (ATS)";
+        });
+    });
+  }
+
+});
+</script>
+

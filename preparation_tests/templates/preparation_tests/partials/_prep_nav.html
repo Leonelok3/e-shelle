@@ -1,67 +1,83 @@
 <nav class="prep-subnav" aria-label="Navigation préparation">
-  <ul class="prep-subnav__list">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
 
-    <!-- 📘 COURS -->
-    <li>
-      {% if exam_code and section %}
-        <a href="{% url 'preparation_tests:course_section' exam_code section %}">
-          📘 <span>Cours</span>
-        </a>
-      {% else %}
-        <span class="nav-disabled">📘 Cours</span>
-      {% endif %}
-    </li>
+        <ul class="prep-subnav__list">
 
-    <!-- ⏱️ EXAMEN BLANC -->
-    <li>
-      {% if exam_code and section %}
-        <a href="{% url 'preparation_tests:start_mock_exam' exam_code section %}">
-          ⏱️ <span>Examen blanc</span>
-        </a>
-      {% else %}
-        <span class="nav-disabled">⏱️ Examen blanc</span>
-      {% endif %}
-    </li>
+          <!-- 📘 COURS -->
+          <li class="{% if request.path|startswith:'/prep/fr/co' %}is-active{% endif %}">
+            <a href="{% url 'preparation_tests:co_hub' %}">
+              <span class="icon">📘</span>
+              <span class="label">Cours</span>
+            </a>
+          </li>
 
-    <!-- 📜 HISTORIQUE -->
-    <li>
-      <a href="{% url 'preparation_tests:session_review' %}">
-        📜 <span>Historique</span>
-      </a>
-    </li>
+          <!-- ⏱️ EXAMEN BLANC -->
+          <li>
+            {% if exam_code and section %}
+              <a href="{% url 'preparation_tests:start_mock_exam' exam_code section %}">
+                <span class="icon">⏱️</span>
+                <span class="label">Examen blanc</span>
+              </a>
+            {% else %}
+              <span class="nav-disabled">
+                <span class="icon">⏱️</span>
+                <span class="label">Examen blanc</span>
+              </span>
+            {% endif %}
+          </li>
 
-    <!-- 📈 MA PROGRESSION -->
-    <li>
-      <a href="{% url 'preparation_tests:dashboard_global' %}">
-        📈 <span>Ma progression</span>
-      </a>
-    </li>
+          <!-- 📜 HISTORIQUE -->
+          <li>
+            <a href="{% url 'preparation_tests:session_review' %}">
+              <span class="icon">📜</span>
+              <span class="label">Historique</span>
+            </a>
+          </li>
 
-    <!-- 🎯 AMÉLIORER -->
-    <li>
-  <a href="{% url 'preparation_tests:dashboard_global' %}">
-    🎯 <span>Améliorer</span>
-  </a>
-</li>
+          <!-- 📈 PROGRESSION -->
+          <li>
+            <a href="{% url 'preparation_tests:dashboard_global' %}">
+              <span class="icon">📈</span>
+              <span class="label">Progression</span>
+            </a>
+          </li>
 
+          <!-- 🎯 AMÉLIORER -->
+          <li>
+            <a href="{% url 'preparation_tests:dashboard_global' %}">
+              <span class="icon">🎯</span>
+              <span class="label">Améliorer</span>
+            </a>
+          </li>
 
-    <!-- 🤖 COACH IA -->
-    <li>
-      <a href="{% url 'preparation_tests:coach_ai_history' %}">
-        🤖 <span>Coach IA</span>
-      </a>
-    </li>
+          <!-- 🤖 COACH IA -->
+          <li>
+            <a href="{% url 'preparation_tests:coach_ai_history' %}">
+              <span class="icon">🤖</span>
+              <span class="label">Coach IA</span>
+            </a>
+          </li>
 
-    <!-- ℹ️ EXAMEN -->
-    <li class="prep-subnav__secondary">
-      {% if exam_code %}
-        <a href="{% url 'preparation_tests:exam_detail' exam_code %}">
-          ℹ️ <span>Examen</span>
-        </a>
-      {% else %}
-        <span class="nav-disabled">ℹ️ Examen</span>
-      {% endif %}
-    </li>
+          <!-- ℹ️ EXAMEN (SECONDARY) -->
+          <li class="prep-subnav__secondary">
+            {% if exam_code %}
+              <a href="{% url 'preparation_tests:exam_detail' exam_code %}">
+                <span class="icon">ℹ️</span>
+                <span class="label">Examen</span>
+              </a>
+            {% else %}
+              <span class="nav-disabled">
+                <span class="icon">ℹ️</span>
+                <span class="label">Examen</span>
+              </span>
+            {% endif %}
+          </li>
 
-  </ul>
+        </ul>
+
+      </div>
+    </div>
+  </div>
 </nav>

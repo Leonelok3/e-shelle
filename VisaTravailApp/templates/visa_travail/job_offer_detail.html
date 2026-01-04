@@ -1,108 +1,189 @@
-{% extends "visa_travail/base.html" %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}{{ offer.titre }} – Offre d’emploi{% endblock %}
+{% block body_class %}visa-travail{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_travail.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="card card-dark card-dark-hover p-4 p-md-5 mb-4 fade-in-up">
-      <div class="small text-secondary mb-1">
+<section class="vt-offer-detail">
+
+  <div class="container">
+
+    <article class="vt-offer-card vt-fade-up">
+
+      <!-- ==================================================
+           LOCALISATION
+      =================================================== -->
+      <div class="vt-offer-meta">
+        <i class="bi bi-geo-alt"></i>
         {{ offer.pays }}{% if offer.ville %} · {{ offer.ville }}{% endif %}
       </div>
-      <h1 class="h4 fw-bold mb-1">{{ offer.titre }}</h1>
+
+      <!-- ==================================================
+           TITRE SEO
+      =================================================== -->
+      <h1 class="vt-title">
+        {{ offer.titre }}
+      </h1>
+
       {% if offer.entreprise %}
-        <div class="small text-secondary mb-3">{{ offer.entreprise }}</div>
-      {% endif %}
-
-      <div class="d-flex flex-wrap gap-2 mb-3 small">
-        {% if offer.type_contrat %}
-          <span class="badge-soft">{{ offer.get_type_contrat_display }}</span>
-        {% endif %}
-        {% if offer.salaire %}
-          <span class="badge-soft">Salaire : {{ offer.salaire }}</span>
-        {% endif %}
-        <span class="badge-soft">Publiée le {{ offer.date_publication }}</span>
-      </div>
-
-      {% if profile and match %}
-        <div class="p-3 mb-3 rounded-4" style="background: rgba(15,23,42,0.9); border: 1px solid rgba(148,163,184,0.4);">
-          <div class="d-flex justify-content-between align-items-start mb-1">
-            <div>
-              <div class="small text-secondary mb-1">Score de compatibilité (profil : {{ profile.nom|default:"Profil #"|add:profile.id }})</div>
-              <div class="fw-semibold">
-                {{ match.score }}% – {{ match.label }}
-              </div>
-            </div>
-            {% if match.pays_match %}
-              <span class="badge-soft small">Pays dans ta cible</span>
-            {% endif %}
-          </div>
-          <div class="small text-secondary">
-            {{ match.reason }}
-          </div>
+        <div class="vt-offer-company">
+          {{ offer.entreprise }}
         </div>
       {% endif %}
 
-      {% if offer.domaine %}
-        <p class="small text-secondary">
-          Domaine / métier ciblé : <strong>{{ offer.domaine }}</strong>
-        </p>
+      <!-- ==================================================
+           BADGES CLÉS
+      =================================================== -->
+      <div class="vt-offer-badges">
+        {% if offer.type_contrat %}
+          <span class="vt-badge small">
+            {{ offer.get_type_contrat_display }}
+          </span>
+        {% endif %}
+
+        {% if offer.salaire %}
+          <span class="vt-badge small">
+            Salaire : {{ offer.salaire }}
+          </span>
+        {% endif %}
+
+        <span class="vt-badge small">
+          Publiée le {{ offer.date_publication }}
+        </span>
+      </div>
+
+      <!-- ==================================================
+           MATCH AVEC LE PROFIL
+      =================================================== -->
+      {% if profile and match %}
+        <div class="vt-match-box">
+
+          <div class="vt-match-header">
+            <div>
+              <span class="vt-match-label">
+                Compatibilité avec ton profil
+                ({{ profile.nom|default:"Profil #"|add:profile.id }})
+              </span>
+
+              <div class="vt-match-score">
+                {{ match.score }} %
+                · {{ match.label }}
+              </div>
+            </div>
+
+            {% if match.pays_match %}
+              <span class="vt-badge success small">
+                Pays conforme à ton objectif
+              </span>
+            {% endif %}
+          </div>
+
+          <p class="vt-match-reason">
+            {{ match.reason }}
+          </p>
+        </div>
       {% endif %}
 
-      <h2 class="h6 fw-semibold mt-4">Description du poste</h2>
-      <p class="small text-secondary" style="white-space: pre-line;">
-        {{ offer.description }}
-      </p>
+      <!-- ==================================================
+           DOMAINE
+      =================================================== -->
+      {% if offer.domaine %}
+        <div class="vt-offer-domain">
+          Domaine / métier :
+          <strong>{{ offer.domaine }}</strong>
+        </div>
+      {% endif %}
+
+      <!-- ==================================================
+           DESCRIPTION
+      =================================================== -->
+      <section class="vt-offer-section">
+        <h2 class="vt-section-title">
+          Description du poste
+        </h2>
+        <p class="vt-offer-text">
+          {{ offer.description }}
+        </p>
+      </section>
 
       {% if offer.exigences %}
-        <h2 class="h6 fw-semibold mt-3">Profil recherché / exigences</h2>
-        <p class="small text-secondary" style="white-space: pre-line;">
-          {{ offer.exigences }}
-        </p>
+        <section class="vt-offer-section">
+          <h2 class="vt-section-title">
+            Profil recherché & exigences
+          </h2>
+          <p class="vt-offer-text">
+            {{ offer.exigences }}
+          </p>
+        </section>
       {% endif %}
 
       {% if offer.avantages %}
-        <h2 class="h6 fw-semibold mt-3">Avantages</h2>
-        <p class="small text-secondary" style="white-space: pre-line;">
-          {{ offer.avantages }}
-        </p>
+        <section class="vt-offer-section">
+          <h2 class="vt-section-title">
+            Avantages proposés
+          </h2>
+          <p class="vt-offer-text">
+            {{ offer.avantages }}
+          </p>
+        </section>
       {% endif %}
 
-      <div class="mt-4 d-flex flex-wrap gap-2">
+      <!-- ==================================================
+           ACTIONS PRINCIPALES
+      =================================================== -->
+      <div class="vt-offer-actions">
+
         {% if offer.lien_candidature %}
-          <a href="{{ offer.lien_candidature }}" target="_blank" class="btn btn-primary btn-sm">
+          <a href="{{ offer.lien_candidature }}"
+             target="_blank"
+             rel="noopener"
+             class="vt-btn-primary">
+            <i class="bi bi-box-arrow-up-right"></i>
             Postuler sur le site officiel
           </a>
         {% endif %}
+
         {% if profile %}
           <a href="{% url 'visa_travail:job_create_from_offer' offer.id %}?profile={{ profile.id }}"
-             class="btn btn-outline-light btn-sm">
-            Ajouter à mes candidatures
+             class="vt-btn-secondary">
+            <i class="bi bi-clipboard-check"></i>
+            Ajouter à mon suivi de candidatures
           </a>
         {% endif %}
-        <a href="{% if profile %}{% url 'visa_travail:job_offers_list' %}?profile={{ profile.id }}{% else %}{% url 'visa_travail:job_offers_list' %}{% endif %}"
-           class="btn btn-outline-light btn-sm">
-          Retour aux offres
+
+        <a href="{% if profile %}
+                   {% url 'visa_travail:job_offers_list' %}?profile={{ profile.id }}
+                 {% else %}
+                   {% url 'visa_travail:job_offers_list' %}
+                 {% endif %}"
+           class="vt-link">
+          ← Retour aux offres Visa Travail
         </a>
+
       </div>
 
-      <hr class="border-secondary mt-4">
+      <hr class="vt-divider">
 
-      <p class="small text-secondary mb-0">
-        Conseil : ajoute cette offre dans ton <strong>tableau de candidatures</strong> dans ton plan d’action
-        pour garder un suivi clair (statut, date, réponses, etc.).
-      </p>
-    </div>
+      <!-- ==================================================
+           CONSEIL STRATÉGIQUE
+      =================================================== -->
+      <div class="vt-offer-tip">
+        💡 <strong>Conseil Immigration97</strong><br>
+        Ajoute cette offre à ton
+        <strong>tableau de candidatures</strong>
+        pour suivre les réponses,
+        planifier les relances
+        et maximiser tes chances
+        d’obtenir un
+        <strong>visa travail légal</strong>.
+      </div>
+
+    </article>
+
   </div>
-</div>
-
-<style>
-.fade-in-up {
-  animation: fadeInUp 0.7s ease both;
-}
-@keyframes fadeInUp {
-  from { opacity:0; transform: translateY(20px); }
-  to { opacity:1; transform: translateY(0); }
-}
-</style>
+</section>
 {% endblock %}

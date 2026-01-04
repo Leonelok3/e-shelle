@@ -1,0 +1,308 @@
+{% load static %}
+
+<section class="cv-step">
+
+  <!-- ================= HEADER ================= -->
+  <header class="cv-step-header">
+    <h2>Étape 3 — Finalisation de votre CV professionnel</h2>
+    <p class="cv-step-lead">
+      Finalisez votre CV pour maximiser vos chances auprès des recruteurs
+      et des systèmes ATS
+      <strong>(Canada, Europe, International)</strong>.
+    </p>
+  </header>
+
+  <!-- ================= SUMMARY ================= -->
+  <div class="cv-panel cv-panel-step">
+
+    <div class="cv-panel-header">
+      <div class="cv-panel-icon">📝</div>
+      <div>
+        <h3>Résumé professionnel optimisé ATS</h3>
+        <p class="cv-panel-help">
+          3–4 lignes claires : métier, expérience, compétences clés et objectif.
+        </p>
+      </div>
+    </div>
+
+    <form method="post" action="{% url 'cv_generator:update_summary' cv.id %}">
+      {% csrf_token %}
+
+      <textarea
+        name="summary"
+        rows="4"
+        class="cv-input cv-textarea"
+        placeholder="Ex : Technicien de maintenance avec 5 ans d’expérience en environnement industriel, spécialisé en maintenance préventive, prêt pour un poste au Canada."
+      >{{ cv.summary }}</textarea>
+
+      <div class="cv-inline-actions">
+        <button type="submit" class="cv-btn-primary">
+          💾 Enregistrer
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          id="ai-summary-btn"
+          data-url="{% url 'cv_generator:generate_ai_summary' cv.id %}">
+          🤖 Générer avec l’IA
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          id="translate-summary-btn"
+          data-url="{% url 'cv_generator:translate_summary' cv.id %}">
+          🌐 Traduire en {% if cv.language == "fr" %}anglais{% else %}français{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ================= EDUCATION ================= -->
+  <div class="cv-panel cv-panel-step">
+    <div class="cv-panel-header">
+      <div class="cv-panel-icon">🎓</div>
+      <div>
+        <h3>Formations & Diplômes</h3>
+      </div>
+    </div>
+
+    <form method="post" action="{% url 'cv_generator:add_education' cv.id %}">
+      {% csrf_token %}
+      {{ education_form.as_p }}
+      <button type="submit" class="cv-btn-primary">➕ Ajouter</button>
+    </form>
+
+    {% if educations %}
+      <ul class="cv-list">
+        {% for edu in educations %}
+          <li class="cv-list-item">
+            <strong>{{ edu.diploma }}</strong> — {{ edu.institution }}
+            <small>{{ edu.start_date }} → {{ edu.end_date|default:"En cours" }}</small>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+
+  <!-- ================= SKILLS ================= -->
+  <div class="cv-panel cv-panel-step">
+    <div class="cv-panel-header">
+      <div class="cv-panel-icon">🧠</div>
+      <div>
+        <h3>Compétences clés</h3>
+      </div>
+    </div>
+
+    <form method="post" action="{% url 'cv_generator:add_skill' cv.id %}">
+      {% csrf_token %}
+      {{ skill_form.as_p }}
+      <button type="submit" class="cv-btn-primary">➕ Ajouter</button>
+    </form>
+
+    {% if skills %}
+      <ul class="cv-list">
+        {% for s in skills %}
+          <li class="cv-list-item">{{ s.name }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+
+  <!-- ================= LANGUAGES ================= -->
+  <div class="cv-panel cv-panel-step">
+    <div class="cv-panel-header">
+      <div class="cv-panel-icon">🌍</div>
+      <div>
+        <h3>Langues</h3>
+      </div>
+    </div>
+
+    <form method="post" action="{% url 'cv_generator:add_language' cv.id %}">
+      {% csrf_token %}
+      {{ language_form.as_p }}
+      <button type="submit" class="cv-btn-primary">➕ Ajouter</button>
+    </form>
+
+    {% if languages %}
+      <ul class="cv-list">
+        {% for l in languages %}
+          <li class="cv-list-item">{{ l.name }} — {{ l.level }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+
+  <!-- ================= VOLUNTEER ================= -->
+  <div class="cv-panel cv-panel-step">
+    <div class="cv-panel-header">
+      <div class="cv-panel-icon">🤝</div>
+      <div>
+        <h3>Bénévolat (optionnel)</h3>
+      </div>
+    </div>
+
+    <form method="post" action="{% url 'cv_generator:add_volunteer' cv.id %}">
+      {% csrf_token %}
+      {{ volunteer_form.as_p }}
+      <button type="submit" class="cv-btn-primary">➕ Ajouter</button>
+    </form>
+  </div>
+
+  <!-- ================= ATS SCORE (JUSTE AVANT FIN) ================= -->
+  <div class="cv-panel cv-panel-step cv-panel-ats">
+    <div class="cv-panel-header">
+      <div class="cv-panel-icon">📊</div>
+      <div>
+        <h3>Analyse ATS (Canada)</h3>
+        <p class="cv-panel-help">
+          Vérifiez la compatibilité de votre CV avec les systèmes de tri automatiques.
+        </p>
+      </div>
+    </div>
+
+    <div id="ats-result">
+      <p class="cv-empty">Cliquez pour analyser votre CV.</p>
+    </div>
+
+    <button
+      type="button"
+      class="cv-btn-primary"
+      id="ats-btn"
+      data-url="{% url 'cv_generator:ats_score' cv.id %}">
+      🔍 Analyser mon CV
+    </button>
+  </div>
+
+  <!-- ================= NAVIGATION ================= -->
+  <div class="cv-step-actions">
+    <a href="{% url 'cv_generator:create_cv_step2' cv.id %}"
+       class="cv-btn-secondary">
+      ⬅️ Retour aux expériences
+    </a>
+
+    <a href="{% url 'cv_generator:export_pdf' cv.id %}"
+       class="cv-btn-success">
+      📄 Télécharger mon CV (PDF)
+    </a>
+  </div>
+
+</section>
+
+<!-- ================= JS ================= -->
+<script>
+/* IA SUMMARY */
+document.getElementById("ai-summary-btn")?.addEventListener("click", function () {
+  const btn = this;
+  const textarea = document.querySelector("textarea[name='summary']");
+  btn.innerText = "⏳ Génération...";
+  btn.disabled = true;
+
+  fetch(btn.dataset.url, {
+    method: "POST",
+    headers: { "X-CSRFToken": "{{ csrf_token }}" }
+  })
+  .then(res => res.json())
+  .then(data => { if (data.summary) textarea.value = data.summary; })
+  .finally(() => {
+    btn.innerText = "🤖 Générer avec l’IA";
+    btn.disabled = false;
+  });
+});
+
+/* TRANSLATION */
+document.getElementById("translate-summary-btn")?.addEventListener("click", function () {
+  const btn = this;
+  const textarea = document.querySelector("textarea[name='summary']");
+  btn.innerText = "🌐 Traduction...";
+  btn.disabled = true;
+
+  fetch(btn.dataset.url, {
+    method: "POST",
+    headers: { "X-CSRFToken": "{{ csrf_token }}" }
+  })
+  .then(res => res.json())
+  .then(data => { if (data.translated) textarea.value = data.translated; })
+  .finally(() => {
+    btn.innerText = "🌐 Traduire";
+    btn.disabled = false;
+  });
+});
+
+/* ATS */
+document.getElementById("ats-btn")?.addEventListener("click", function () {
+  const btn = this;
+  const box = document.getElementById("ats-result");
+  btn.innerText = "⏳ Analyse...";
+  btn.disabled = true;
+
+  fetch(btn.dataset.url)
+    .then(res => res.json())
+    .then(data => {
+      box.innerHTML = `
+        <p><strong>Score ATS :</strong> ${data.score} / 100</p>
+        ${data.feedback.length
+          ? `<ul>${data.feedback.map(f => `<li>⚠️ ${f}</li>`).join("")}</ul>`
+          : `<p>✅ Excellent CV ATS</p>`}
+      `;
+    })
+    .finally(() => {
+      btn.innerText = "🔍 Analyser mon CV";
+      btn.disabled = false;
+    });
+});
+</script>
+<script>
+function getCSRFToken() {
+  return document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  /* ===== IA SUMMARY ===== */
+  const aiBtn = document.getElementById("ai-summary-btn");
+  if (aiBtn) {
+    aiBtn.addEventListener("click", function () {
+      const textarea = document.querySelector("textarea[name='summary']");
+      aiBtn.disabled = true;
+      aiBtn.innerText = "⏳ Génération IA...";
+
+      fetch(aiBtn.dataset.url, {
+        method: "POST",
+        headers: { "X-CSRFToken": getCSRFToken() }
+      })
+      .then(res => res.json())
+      .then(data => { if (data.summary) textarea.value = data.summary; })
+      .finally(() => {
+        aiBtn.disabled = false;
+        aiBtn.innerText = "🤖 Générer avec l’IA";
+      });
+    });
+  }
+
+  /* ===== ATS SCORE ===== */
+  const atsBtn = document.getElementById("ats-btn");
+  if (atsBtn) {
+    atsBtn.addEventListener("click", function () {
+      const box = document.getElementById("ats-result");
+      atsBtn.disabled = true;
+      atsBtn.innerText = "⏳ Analyse ATS...";
+
+      fetch(atsBtn.dataset.url)
+        .then(res => res.json())
+        .then(data => {
+          box.innerHTML = `
+            <p><strong>Score ATS :</strong> ${data.score}/100</p>
+            ${data.feedback.length ? `<ul>${data.feedback.map(f => `<li>${f}</li>`).join("")}</ul>` : "<p>Excellent profil ATS</p>"}
+          `;
+        })
+        .finally(() => {
+          atsBtn.disabled = false;
+          atsBtn.innerText = "🔍 Analyser mon CV (ATS)";
+        });
+    });
+  }
+
+});
+</script>

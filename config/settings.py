@@ -50,8 +50,12 @@ CSRF_TRUSTED_ORIGINS = [
 
 
 # API Keys
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+
 GOOGLE_GENAI_API_KEY = os.environ.get("GOOGLE_GENAI_API_KEY", "")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+
 
 # ======================================================
 # APPLICATIONS

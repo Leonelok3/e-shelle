@@ -29,4 +29,7 @@ urlpatterns = [
 
     # Coach IA : API JSON
     path("coach/<int:profile_id>/api/", views.rp_coach_api, name="coach_api"),
+   
+    path("pr/plan/<int:pk>/", views.plan_view, name="plan_detail"),
+
 ]
