@@ -54,5 +54,8 @@ urlpatterns = [
         name="export_plan_pdf",
     ),
     path("italie-programme/", views.italie_programme, name="italie_programme"),
+    path("profil/", views.profil_create, name="profil_create"),
+
+    
 
 ]

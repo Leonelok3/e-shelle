@@ -1,19 +1,17 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-
-from .models import VisaCountry, VisaResource, UserProfile
-from .forms import UserProfileForm
-
-from .models import VisaCountry, VisaResource, UserProfile, VisaProgress
-
-
-from .models import VisaCountry, University, CountryAdvice, Scholarship
+from django.contrib.auth.decorators import login_required
 import json
 
-from django.contrib.auth.decorators import login_required
+from .models import (
+    VisaCountry, VisaResource, UserProfile,
+    VisaProgress, UserProgress, University,
+    CountryAdvice, Scholarship, StudentProfile
+)
+from .forms import UserProfileForm, StudentProfileForm
 
-from .models import VisaProgress
+
 # ==========================
 # PAGES VISA ÉTUDES
 # ==========================
@@ -21,15 +19,14 @@ from .models import VisaProgress
 def home(request):
     return render(request, "visaetude/home.html")
 
-################################## profil #########################
+
+################################## profil utilisateur #########################
+@login_required
 def profile(request):
-    user = request.user if request.user.is_authenticated else None
-    instance = None
+    user = request.user
+    instance, _ = UserProfile.objects.get_or_create(user=user)
 
-    if user:
-        instance, _ = UserProfile.objects.get_or_create(user=user)
-
-    if request.method == "POST" and user:
+    if request.method == "POST":
         form = UserProfileForm(request.POST, instance=instance)
         if form.is_valid():
             form.save()
@@ -43,14 +40,37 @@ def profile(request):
 
     context = {
         "form": form,
-        "user_is_authenticated": bool(user),
+        "user_is_authenticated": True,
     }
     return render(request, "visaetude/profile.html", context)
 
 
-#################### fin profil ##########################
+################################## profil étudiant #########################
+@login_required
+def student_profile(request):
+    user = request.user
+    instance, _ = StudentProfile.objects.get_or_create(user=user)
 
-#################### country list ###################""
+    if request.method == "POST":
+        form = StudentProfileForm(request.POST, instance=instance)
+        if form.is_valid():
+            form.save()
+            # progression : étape 1 validée
+            progress, _ = UserProgress.objects.get_or_create(user=user)
+            if not progress.step_1_profile:
+                progress.step_1_profile = True
+                progress.save()
+    else:
+        form = StudentProfileForm(instance=instance)
+
+    context = {
+        "form": form,
+        "user_is_authenticated": True,
+    }
+    return render(request, "visaetude/student_profile.html", context)
+
+
+#################### liste des pays ##########################
 def countries_list(request):
     user = request.user if request.user.is_authenticated else None
     if user:
@@ -63,11 +83,7 @@ def countries_list(request):
 
     if db_countries:
         countries = [
-            {
-                "code": c.slug,
-                "nom": c.name,
-                "short": c.short_label or "",
-            }
+            {"code": c.slug, "nom": c.name, "short": c.short_label or ""}
             for c in db_countries
         ]
     else:
@@ -83,15 +99,11 @@ def countries_list(request):
 
     return render(request, "visaetude/countries_list.html", {"countries": countries})
 
-##################### fin country list #############################
 
-
-
+#################### détail d’un pays ##########################
 def country_detail(request, country):
-    # Récupération du pays à partir du modèle VisaCountry
     country_obj = VisaCountry.objects.filter(slug=country, is_active=True).first()
 
-    # Dictionnaire des guides pour chaque pays (texte de base)
     guides = {
         "canada": "Guide complet pour étudier au Canada...",
         "france": "Détails du visa étudiant France...",
@@ -102,61 +114,29 @@ def country_detail(request, country):
         "chine": "Visa étudiant Chine...",
     }
 
-    # Si le pays n'existe pas dans la base de données ou dans le guide, rediriger vers la liste des pays
     if not country_obj and country not in guides:
         return redirect("visaetude:countries_list")
 
-    # Nom et texte du guide basé sur le pays
-    country_name = country_obj.name if country_obj else country.capitalize()
-    guide_text = guides.get(country, guides.get("canada", ""))
-
-    # Récupérer les universités disponibles pour ce pays
-    universities = University.objects.filter(country=country_obj) if country_obj else []
-
-    # Récupérer les conseils pour ce pays (par exemple: documents nécessaires, inscription Campus France, etc.)
-    advices = CountryAdvice.objects.filter(country=country_obj) if country_obj else []
-
-    # Récupérer les bourses disponibles pour ce pays
-    scholarships = Scholarship.objects.filter(country=country_obj) if country_obj else []
-
-    # Récupérer toutes les ressources (vidéos, captures, guides) liées à ce pays
-    resources = country_obj.resources.all() if country_obj else []
-
-    # Passer toutes ces informations à la page de rendu
     context = {
-        "country": country_name,
+        "country": country_obj.name if country_obj else country.capitalize(),
         "country_slug": country,
-        "guide": guide_text,  # Texte du guide pour le pays
-        "universities": universities,  # Liste des universités
-        "advices": advices,  # Liste des conseils
-        "scholarships": scholarships,  # Liste des bourses
-        "resources": resources,  # Ressources pour le pays
+        "guide": guides.get(country, guides.get("canada", "")),
+        "universities": University.objects.filter(country=country_obj) if country_obj else [],
+        "advices": CountryAdvice.objects.filter(country=country_obj) if country_obj else [],
+        "scholarships": Scholarship.objects.filter(country=country_obj) if country_obj else [],
+        "resources": country_obj.resources.all() if country_obj else [],
     }
-
     return render(request, "visaetude/country_detail.html", context)
 
 
-
-from django.shortcuts import render
-from .models import VisaProgress
-
-
+#################### roadmap ##########################
 def roadmap(request):
-    """
-    Page Plan d’action Visa Études
-    - Fonctionne pour utilisateurs connectés et anonymes
-    - Ne casse jamais le template
-    """
-
     visa_progress = None
     progress_percent = 0
     progress_label = "Étape 1/5"
 
     if request.user.is_authenticated:
-        visa_progress, _ = VisaProgress.objects.get_or_create(
-            user=request.user
-        )
-
+        visa_progress, _ = VisaProgress.objects.get_or_create(user=request.user)
         total_steps = 5
         completed_steps = visa_progress.completed_steps
         progress_percent = int((completed_steps / total_steps) * 100)
@@ -173,11 +153,7 @@ def roadmap(request):
     )
 
 
-
-##################### fin checklist #####################
-
-################## def coach_ai #################
-
+#################### coach IA ##########################
 def coach_ai(request):
     user = request.user if request.user.is_authenticated else None
     if user:
@@ -185,10 +161,9 @@ def coach_ai(request):
         if not progress.step_5_coach:
             progress.step_5_coach = True
             progress.save()
-
     return render(request, "visaetude/coach_ai.html")
 
-#{}######################### fin def coach_ai #########""
+
 def resource_view(request, resource_id):
     r = VisaResource.objects.filter(id=resource_id).first()
     if not r:
@@ -196,10 +171,7 @@ def resource_view(request, resource_id):
     return render(request, "visaetude/resource_view.html", {"resource": r})
 
 
-# ==========================
-# API COACH IA (FAUSSE RÉPONSE POUR L’INSTANT)
-# ==========================
-
+#################### API coach IA ##########################
 @csrf_exempt
 def coach_ai_api(request):
     if request.method != "POST":
@@ -208,26 +180,40 @@ def coach_ai_api(request):
     try:
         data = json.loads(request.body.decode("utf-8"))
         user_message = data.get("message", "").strip()
-
         if not user_message:
             return JsonResponse({"error": "Message vide"}, status=400)
 
-        response = openai.ChatCompletion.create(
-            model="gpt-4.1-mini",
-            messages=[{"role": "system", "content": "Tu es un expert en immigration et visas étudiants."},
-                      {"role": "user", "content": user_message}],
-            max_tokens=700,
-            temperature=0.4,
-        )
-
-        bot_reply = response["choices"][0]["message"]["content"]
+        # ⚠️ Placeholder IA (à remplacer par ton vrai appel OpenAI)
+        bot_reply = "Réponse simulée du Coach IA."
         return JsonResponse({"reply": bot_reply})
-
     except Exception as e:
         print("Erreur IA:", e)
         return JsonResponse({"error": "Erreur interne"}, status=500)
 
 
+#################### checklist ##########################
 def checklist(request):
-    # Ici tu retournes ta vue pour la checklist, par exemple:
     return render(request, "visaetude/checklist.html")
+
+
+from django.contrib.auth.decorators import login_required
+from .forms import StudentProfileForm
+from .models import StudentProfile, UserProgress
+
+@login_required
+def student_profile(request):
+    user = request.user
+    instance, _ = StudentProfile.objects.get_or_create(user=user)
+
+    if request.method == "POST":
+        form = StudentProfileForm(request.POST, instance=instance)
+        if form.is_valid():
+            form.save()
+            progress, _ = UserProgress.objects.get_or_create(user=user)
+            if not progress.step_1_profile:
+                progress.step_1_profile = True
+                progress.save()
+    else:
+        form = StudentProfileForm(instance=instance)
+
+    return render(request, "visaetude/student_profile.html", {"form": form})

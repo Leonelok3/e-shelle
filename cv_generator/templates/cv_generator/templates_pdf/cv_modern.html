@@ -1,64 +1,93 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>CV Moderne</title>
-  
-</head>
-<body>
-  {% with pi=personal_info %}
-  <div class="header">
-    <div class="name">{{ pi.nom|default:cv.nom }} {{ pi.prenom|default:cv.prenom }}</div>
-    <div class="subtitle">{{ pi.titre|default:cv.profession|default:"" }}</div>
-    <div class="meta">
-      {% if pi.email %}{{ pi.email }}{% endif %}
-      {% if pi.telephone %} | {{ pi.telephone }}{% endif %}
-      {% if pi.ville %} | {{ pi.ville }}{% endif %}
-      {% if pi.pays %} | {{ pi.pays }}{% endif %}
+<article class="cv-doc cv-modern" role="document" aria-label="CV Moderne">
+  <header class="cv-modern-header">
+    <div>
+      <h1 class="cv-modern-name">{{ cv.prenom }} {{ cv.nom }}</h1>
+      {% if cv.titre_poste %}<p class="cv-modern-title">{{ cv.titre_poste }}</p>{% endif %}
     </div>
+    <div class="cv-modern-contact">
+      {% if cv.email %}<span>{{ cv.email }}</span>{% endif %}
+      {% if cv.telephone %}<span>{{ cv.telephone }}</span>{% endif %}
+      {% if cv.ville or cv.province %}<span>{{ cv.ville }}{% if cv.province %}, {{ cv.province }}{% endif %}</span>{% endif %}
+      {% if cv.linkedin %}<span>{{ cv.linkedin }}</span>{% endif %}
+    </div>
+  </header>
+
+  <div class="cv-modern-grid">
+    <aside class="cv-modern-aside">
+      {% with profile=cv.summary|default:cv.resume_professionnel %}
+        {% if profile %}
+          <section class="cv-modern-block">
+            <h2>Profil</h2>
+            <p>{{ profile }}</p>
+          </section>
+        {% endif %}
+      {% endwith %}
+
+      {% if competences %}
+        <section class="cv-modern-block">
+          <h2>Compétences</h2>
+          <ul class="cv-modern-tags">
+            {% for c in competences %}<li>{{ c.nom }}</li>{% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+
+      {% if langues %}
+        <section class="cv-modern-block">
+          <h2>Langues</h2>
+          <ul class="cv-modern-list">
+            {% for l in langues %}<li><strong>{{ l.name }}</strong>{% if l.level %} — {{ l.level }}{% endif %}</li>{% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+    </aside>
+
+    <main class="cv-modern-main">
+      {% if experiences %}
+        <section class="cv-modern-block">
+          <h2>Expériences</h2>
+          {% for exp in experiences %}
+            <div class="cv-modern-item">
+              <div class="cv-modern-top">
+                <div>
+                  <strong>{{ exp.title|default:exp.poste }}</strong>
+                  {% if exp.company or exp.entreprise %}<span class="cv-modern-company"> — {{ exp.company|default:exp.entreprise }}</span>{% endif %}
+                </div>
+                <div class="cv-modern-date">
+                  {% if exp.start_date %}{{ exp.start_date|date:"m/Y" }}{% endif %}
+                  {% if exp.start_date or exp.end_date %} - {% endif %}
+                  {% if exp.end_date %}{{ exp.end_date|date:"m/Y" }}{% else %}Présent{% endif %}
+                </div>
+              </div>
+              {% with bullets=exp.description_ai|default:exp.description|default:exp.description_raw %}
+                {% if bullets %}<div class="cv-modern-desc">{{ bullets|linebreaks }}</div>{% endif %}
+              {% endwith %}
+            </div>
+          {% endfor %}
+        </section>
+      {% endif %}
+
+      {% if formations %}
+        <section class="cv-modern-block">
+          <h2>Formation</h2>
+          {% for edu in formations %}
+            <div class="cv-modern-item">
+              <div class="cv-modern-top">
+                <div>
+                  <strong>{{ edu.diplome|default:edu.diploma }}</strong>
+                  {% if edu.etablissement or edu.institution %}<span class="cv-modern-company"> — {{ edu.etablissement|default:edu.institution }}</span>{% endif %}
+                </div>
+                <div class="cv-modern-date">
+                  {% if edu.start_date %}{{ edu.start_date|date:"Y" }}{% endif %}
+                  {% if edu.start_date and edu.end_date %} - {{ edu.end_date|date:"Y" }}{% endif %}
+                  {% if edu.start_date and not edu.end_date %} - Présent{% endif %}
+                  {% if not edu.start_date and edu.annee_obtention %}{{ edu.annee_obtention }}{% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </section>
+      {% endif %}
+    </main>
   </div>
-  {% endwith %}
-
-  {% if summary %}
-    <h2>À propos</h2>
-    <div>{{ summary|linebreaksbr }}</div>
-  {% endif %}
-
-  {% if skills %}
-    <h2>Compétences</h2>
-    <div>{% for s in skills %}<span class="tag">{{ s.name|default:s.nom|default:"Compétence" }}</span>{% endfor %}</div>
-  {% endif %}
-
-  {% if experiences %}
-    <h2>Expériences</h2>
-    {% for e in experiences %}
-      <div class="item">
-        <div class="item-title">{{ e.title|default:e.titre_poste|default:"Poste" }}{% if e.company or e.entreprise %} — <span class="muted" style="font-style:normal">{{ e.company|default:e.entreprise }}</span>{% endif %}</div>
-        <div class="muted">
-          {% if e.start_date or e.date_debut %}{{ e.start_date|default:e.date_debut|date:"m/Y" }}{% endif %}
-          {% if e.end_date or e.date_fin %} – {{ e.end_date|default:e.date_fin|date:"m/Y" }}{% else %} – Présent{% endif %}
-          {% if e.location or e.lieu %} | {{ e.location|default:e.lieu }}{% endif %}
-        </div>
-        {% if e.bullets %}<ul>{% for ln in e.bullets %}{% if ln %}<li>{{ ln }}</li>{% endif %}{% endfor %}</ul>
-        {% elif e.description %}<div style="margin-top:4px">{{ e.description|linebreaksbr }}</div>{% endif %}
-      </div>
-    {% endfor %}
-  {% endif %}
-
-  {% if educations %}
-    <h2>Formations</h2>
-    {% for ed in educations %}
-      <div class="item">
-        <div class="item-title">{{ ed.degree|default:ed.diplome|default:"Diplôme" }}{% if ed.school or ed.ecole %} — <span class="muted" style="font-style:normal">{{ ed.school|default:ed.ecole }}</span>{% endif %}</div>
-        <div class="muted">
-          {% if ed.start_date or ed.date_debut %}{{ ed.start_date|default:ed.date_debut|date:"m/Y" }}{% endif %}
-          {% if ed.end_date or ed.date_fin %} – {{ ed.end_date|default:ed.date_fin|date:"m/Y" }}{% endif %}
-          {% if ed.location or ed.lieu %} | {{ ed.location|default:ed.lieu }}{% endif %}
-        </div>
-        {% if ed.description %}<div style="margin-top:4px">{{ ed.description|linebreaksbr }}</div>{% endif %}
-      </div>
-    {% endfor %}
-  {% endif %}
-</body>
-</html>
+</article>

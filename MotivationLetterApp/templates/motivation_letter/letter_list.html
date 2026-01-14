@@ -1,31 +1,154 @@
-{% extends "motivation_letter/base.html" %}
-{% block title %}Mes lettres — Motivation Letter{% endblock %}
-{% block hero_title %}Mes lettres sauvegardées{% endblock %}
-{% block hero_sub %}Retrouvez, téléchargez et réutilisez vos lettres.{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes Lettres de Motivation | Immigration97{% endblock %}
+
+{% block meta_description %}
+Consultez toutes vos lettres de motivation sauvegardées. Téléchargez, réutilisez et gérez vos documents professionnels optimisés ATS.
+{% endblock %}
+
+{% block body_class %}motivation-letter{% endblock %}
+{% block app_scope %}motivation-letter list-flow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/MotivationLetterApp.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="card">
-  {% if letters %}
-  <table class="table">
-    <thead><tr>
-      <th>Date</th><th>Nom</th><th>Poste</th><th>Entreprise</th><th>Langue</th><th>Ton</th><th>ATS</th><th></th>
-    </tr></thead>
-    <tbody>
-      {% for l in letters %}
-      <tr>
-        <td>{{ l.created_at|date:"d/m/Y H:i" }}</td>
-        <td>{{ l.full_name }}</td>
-        <td>{{ l.target_role|default:"—" }}</td>
-        <td>{{ l.company|default:"—" }}</td>
-        <td>{{ l.get_language_display }}</td>
-        <td>{{ l.get_tone_display }}</td>
-        <td>{{ l.ats_score }}%</td>
-        <td><a class="btn-link" href="{% url 'motivation_letter:letter_detail' l.pk %}">Ouvrir</a></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p class="hint">Aucune lettre encore. Générez-en une depuis l’onglet “Lettre”.</p>
-  {% endif %}
+
+<!-- Hero Section -->
+<div class="ml-list-hero">
+  <div class="ml-list-hero__header">
+    <div>
+      <h1 class="ml-list-hero__title">Mes Lettres Sauvegardées</h1>
+      <p class="ml-list-hero__subtitle">
+        Retrouvez, consultez et téléchargez toutes vos lettres de motivation générées par IA.
+      </p>
+    </div>
+    <a href="{% url 'motivation_letter:generator' %}" class="ml-list-hero__cta">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      <span>Nouvelle lettre</span>
+    </a>
+  </div>
 </div>
+
+<!-- Letters List -->
+<div class="ml-list-container">
+  
+  {% if letters %}
+  
+  <!-- Table Card -->
+  <div class="ml-list-card">
+    <div class="ml-list-table">
+      <table class="ml-table">
+        <thead>
+          <tr>
+            <th class="ml-table__th--date">Date de création</th>
+            <th class="ml-table__th--name">Nom complet</th>
+            <th class="ml-table__th--role">Poste visé</th>
+            <th class="ml-table__th--company">Entreprise</th>
+            <th class="ml-table__th--lang">Langue</th>
+            <th class="ml-table__th--tone">Ton</th>
+            <th class="ml-table__th--ats">ATS Score</th>
+            <th class="ml-table__th--actions"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in letters %}
+          <tr class="ml-table__row">
+            <td class="ml-table__date">
+              <div class="ml-table__date-day">{{ l.created_at|date:"d/m/Y" }}</div>
+              <div class="ml-table__date-time">{{ l.created_at|date:"H:i" }}</div>
+            </td>
+            <td class="ml-table__name">{{ l.full_name }}</td>
+            <td class="ml-table__role">{{ l.target_role|default:"—" }}</td>
+            <td class="ml-table__company">{{ l.company|default:"—" }}</td>
+            <td class="ml-table__lang">
+              <span class="ml-table__badge">{{ l.get_language_display }}</span>
+            </td>
+            <td class="ml-table__tone">
+              <span class="ml-table__badge ml-table__badge--secondary">{{ l.get_tone_display }}</span>
+            </td>
+            <td class="ml-table__ats">
+              <span class="ml-table__score">{{ l.ats_score }}%</span>
+            </td>
+            <td class="ml-table__actions">
+              <a href="{% url 'motivation_letter:letter_detail' l.pk %}" class="ml-table__btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <span>Ouvrir</span>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Stats Summary (Optional) -->
+  <div class="ml-list-stats">
+    <div class="ml-list-stats__item">
+      <div class="ml-list-stats__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+      </div>
+      <div>
+        <div class="ml-list-stats__value">{{ letters|length }}</div>
+        <div class="ml-list-stats__label">Lettre{{ letters|length|pluralize }} générée{{ letters|length|pluralize }}</div>
+      </div>
+    </div>
+
+    <div class="ml-list-stats__item">
+      <div class="ml-list-stats__icon ml-list-stats__icon--secondary">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <div>
+        <div class="ml-list-stats__value">
+          {% widthratio letters|length 1 1 %}+
+        </div>
+        <div class="ml-list-stats__label">Documents prêts à l'emploi</div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  
+  <!-- Empty State -->
+  <div class="ml-list-empty">
+    <div class="ml-list-empty__icon">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+    </div>
+    <h2 class="ml-list-empty__title">Aucune lettre pour le moment</h2>
+    <p class="ml-list-empty__desc">
+      Vous n'avez pas encore généré de lettre de motivation. 
+      Commencez dès maintenant et créez des lettres professionnelles optimisées ATS en quelques secondes.
+    </p>
+    <a href="{% url 'motivation_letter:generator' %}" class="ml-list-empty__btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+      </svg>
+      <span>Créer ma première lettre</span>
+    </a>
+  </div>
+
+  {% endif %}
+
+</div>
+
 {% endblock %}

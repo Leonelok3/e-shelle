@@ -1,308 +1,481 @@
+{# ==========================
+   cv_generator/steps/step_3_skills.html
+   VERSION SOLIDE (corrigée)
+   - Résumé: affiche FR d'abord puis EN (fallback)
+   - Langues: affiche langue/niveau OU name/level (fallback)
+   - Delete langue: route = delete_language (comme ton urls.py)
+   - JS IA summary: accepte {"summary":...} OU {"data":[...]} OU {"data":"..."}
+   ========================== #}
+
+{% extends "base.html" %}
 {% load static %}
 
-<section class="cv-step">
+{% block body_class %}cv-generator cv-step-finalization{% endblock %}
+{% block app_scope %}cv-generator{% endblock %}
 
-  <!-- ================= HEADER ================= -->
-  <header class="cv-step-header">
-    <h2>Étape 3 — Finalisation de votre CV professionnel</h2>
-    <p class="cv-step-lead">
-      Finalisez votre CV pour maximiser vos chances auprès des recruteurs
-      et des systèmes ATS
-      <strong>(Canada, Europe, International)</strong>.
-    </p>
-  </header>
+{% block title %}Finaliser CV professionnel Canada - Compétences, Formations, Langues ATS | Immigration97{% endblock %}
 
-  <!-- ================= SUMMARY ================= -->
-  <div class="cv-panel cv-panel-step">
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cv_generator.css' %}">
+{% endblock %}
 
-    <div class="cv-panel-header">
-      <div class="cv-panel-icon">📝</div>
-      <div>
-        <h3>Résumé professionnel optimisé ATS</h3>
-        <p class="cv-panel-help">
-          3–4 lignes claires : métier, expérience, compétences clés et objectif.
+{% block content %}
+
+<nav class="cv-breadcrumb" aria-label="Fil d'Ariane">
+  <ol>
+    <li><a href="{% url 'cv_generator:index' %}">Accueil</a></li>
+    <li><a href="{% url 'cv_generator:cv_list' %}">Mes CV</a></li>
+    <li><a href="{% url 'cv_generator:create_cv' cv.id %}">Étape 1</a></li>
+    <li><a href="{% url 'cv_generator:create_cv_step2' cv.id %}">Étape 2</a></li>
+    <li><span>Étape 3 - Finalisation</span></li>
+  </ol>
+</nav>
+
+<main class="app-main cv-generator">
+  <section class="cv-step-box">
+
+    <header class="cv-step-header">
+      <h1 class="cv-step-title">
+        Étape 3 — Finalisation de votre CV professionnel Canada ATS
+      </h1>
+      <p class="cv-step-help">
+        Complétez votre <strong>CV professionnel</strong> avec les éléments clés pour maximiser
+        vos chances auprès des <strong>recruteurs canadiens</strong> et des <strong>systèmes ATS</strong>.
+      </p>
+    </header>
+
+    <!-- ================= MESSAGES ================= -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="cv-alert {% if message.tags %}{{ message.tags }}{% endif %}" role="alert">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- ================= SECTION: RÉSUMÉ ================= -->
+    <fieldset class="cv-form-section">
+      <legend class="cv-section-title">📝 Résumé professionnel optimisé ATS</legend>
+
+      <aside class="cv-alert info">
+        <p>
+          💡 <strong>Le résumé professionnel</strong> est lu en premier par les recruteurs et les ATS.
+          Il doit contenir en <strong>3-4 lignes</strong> : votre <strong>métier</strong>,
+          <strong>années d'expérience</strong>, <strong>compétences clés</strong> et
+          <strong>objectif professionnel</strong>.
         </p>
+      </aside>
+
+      <form method="post" action="{% url 'cv_generator:create_cv_step3' cv.id %}" class="cv-step-form">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="id_summary" class="required">
+            Résumé professionnel
+          </label>
+          <textarea
+            id="id_summary"
+            name="summary"
+            class="form-control"
+            rows="4"
+            required
+            placeholder="Ex : Technicien de maintenance industrielle avec 5 ans d'expérience en environnement manufacturier. Expertise en maintenance préventive, dépannage électromécanique et optimisation des équipements. Recherche un poste au Canada pour contribuer à l'excellence opérationnelle.">{{ cv.resume_professionnel|default:cv.summary|default:"" }}</textarea>
+        </div>
+
+        <div class="cv-inline-actions">
+          <button type="submit" class="cv-btn-primary" name="save_summary">
+            💾 Sauvegarder le résumé
+          </button>
+
+          <button
+            type="button"
+            class="cv-btn-secondary"
+            id="ai-summary-btn"
+            data-url="{% url 'cv_generator:generate_ai_summary' cv.id %}">
+            🤖 Générer avec l'IA
+          </button>
+
+          <button
+            type="button"
+            class="cv-btn-secondary"
+            id="translate-summary-btn"
+            data-url="{% url 'cv_generator:translate_summary' cv.id %}">
+            🌐 Traduire
+          </button>
+        </div>
+      </form>
+
+      <div id="ai-summary-result" role="status" aria-live="polite"></div>
+    </fieldset>
+
+    <hr class="cv-divider">
+
+    <!-- ================= SECTION: FORMATIONS ================= -->
+    <fieldset class="cv-form-section">
+      <legend class="cv-section-title">🎓 Formations et diplômes</legend>
+
+      <form method="post"
+            action="{% url 'cv_generator:create_cv_step3' cv.id %}"
+            class="cv-step-form">
+
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_formation">
+
+        <div class="cv-form-row">
+          <div class="form-group">
+            <label for="id_diplome" class="required">Diplôme / Certification</label>
+            <input type="text" id="id_diplome" name="diplome" class="form-control" required
+                   placeholder="Ex: DEC en Électromécanique">
+          </div>
+
+          <div class="form-group">
+            <label for="id_etablissement" class="required">Établissement</label>
+            <input type="text" id="id_etablissement" name="etablissement" class="form-control" required
+                   placeholder="Ex: Cégep de Trois-Rivières">
+          </div>
+        </div>
+
+        <div class="cv-form-row">
+          <div class="form-group">
+            <label for="id_start_date">Date de début</label>
+            <input type="date" id="id_start_date" name="start_date" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label for="id_end_date">Date de fin</label>
+            <input type="date" id="id_end_date" name="end_date" class="form-control">
+            <small class="cv-muted">Laissez vide si formation en cours</small>
+          </div>
+        </div>
+
+        <button type="submit" class="cv-btn-primary">➕ Ajouter cette formation</button>
+      </form>
+
+      {% if formations %}
+        <div class="cv-list-container">
+          <h3 class="cv-list-title">Formations enregistrées</h3>
+          <ul class="cv-list">
+            {% for edu in formations %}
+              <li class="cv-list-item">
+                <div class="cv-list-header">
+                  <strong>{{ edu.diplome|default:edu.diploma }}</strong>
+                  <span class="cv-list-meta">{{ edu.etablissement|default:edu.institution }}</span>
+                </div>
+
+                <p class="cv-list-dates">
+                  {% if edu.start_date %}
+                    {{ edu.start_date|date:"m/Y" }}
+                  {% endif %}
+                  {% if edu.start_date and edu.end_date %}
+                    →
+                  {% endif %}
+                  {% if edu.end_date %}
+                    {{ edu.end_date|date:"m/Y" }}
+                  {% elif edu.start_date %}
+                    En cours
+                  {% elif edu.annee_obtention %}
+                    {{ edu.annee_obtention }}
+                  {% endif %}
+                </p>
+
+                <a href="{% url 'cv_generator:delete_formation' cv.id edu.id %}"
+                   class="cv-btn-delete-inline"
+                   onclick="return confirm('Supprimer cette formation ?')">🗑️</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </fieldset>
+
+    <hr class="cv-divider">
+
+    <!-- ================= SECTION: COMPÉTENCES ================= -->
+    <fieldset class="cv-form-section">
+      <legend class="cv-section-title">🧠 Compétences techniques</legend>
+
+      <form method="post"
+            action="{% url 'cv_generator:create_cv_step3' cv.id %}"
+            class="cv-step-form">
+
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_competence">
+
+        <div class="form-group">
+          <label for="id_competence" class="required">Compétence</label>
+          <input type="text" id="id_competence" name="competence" class="form-control" required
+                 placeholder="Ex: Python, Leadership, Excel">
+        </div>
+
+        <button type="submit" class="cv-btn-primary">➕ Ajouter</button>
+      </form>
+
+      {% if competences %}
+        <div class="cv-list-container">
+          <h3 class="cv-list-title">Compétences enregistrées</h3>
+          <ul class="cv-skills-grid">
+            {% for comp in competences %}
+              <li class="cv-skill-tag">
+                {{ comp.nom }}
+                <a href="{% url 'cv_generator:delete_competence' cv.id comp.id %}"
+                   class="cv-skill-delete"
+                   onclick="return confirm('Supprimer cette compétence ?')">✕</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </fieldset>
+
+    <hr class="cv-divider">
+
+    <!-- ================= SECTION: LANGUES (CORRIGÉE) ================= -->
+    <fieldset class="cv-form-section">
+      <legend class="cv-section-title">🌍 Langues parlées</legend>
+
+      <form method="post"
+            action="{% url 'cv_generator:create_cv_step3' cv.id %}"
+            class="cv-step-form">
+
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_langue">
+
+        <div class="cv-form-row">
+          <div class="form-group">
+            <label for="id_langue" class="required">Langue</label>
+            <input type="text" id="id_langue" name="langue" class="form-control" required
+                   placeholder="Ex: Français, English, Deutsch">
+          </div>
+
+          <div class="form-group">
+            <label for="id_niveau" class="required">Niveau</label>
+            <input type="text" id="id_niveau" name="niveau" class="form-control" required
+                   placeholder="Ex: Langue maternelle, Courant (C1), Intermédiaire (B2)">
+          </div>
+        </div>
+
+        <button type="submit" class="cv-btn-primary">➕ Ajouter</button>
+      </form>
+
+      {% if langues %}
+        <div class="cv-list-container">
+          <h3 class="cv-list-title">Langues enregistrées</h3>
+          <ul class="cv-list">
+            {% for lang in langues %}
+              <li class="cv-list-item">
+                <div class="cv-list-header">
+                  <strong>{{ lang.langue|default:lang.name }}</strong>
+                  <span class="cv-list-badge">{{ lang.niveau|default:lang.level }}</span>
+                </div>
+
+                {# ✅ IMPORTANT: route = delete_language (ton urls.py) #}
+                <a href="{% url 'cv_generator:delete_language' cv.id lang.id %}"
+                   class="cv-btn-delete-inline"
+                   onclick="return confirm('Supprimer cette langue ?')">🗑️</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </fieldset>
+
+    <hr class="cv-divider">
+
+    <!-- ================= SECTION: ANALYSE ATS ================= -->
+    <fieldset class="cv-form-section cv-ats-section">
+      <legend class="cv-section-title">📊 Analyse ATS gratuite</legend>
+
+      <div id="ats-result" class="cv-ats-result" role="status" aria-live="polite">
+        <p class="cv-empty">Cliquez pour analyser la compatibilité ATS de votre CV.</p>
+      </div>
+
+      <button type="button" class="cv-btn-primary cv-ats-btn" id="ats-btn"
+              data-url="{% url 'cv_generator:ats_score' cv.id %}">
+        🔍 Analyser mon CV (ATS)
+      </button>
+    </fieldset>
+
+    <!-- ================= BOUTON FINAL ================= -->
+    <div class="mt-5 pt-4 border-top">
+      <div class="card border-success">
+        <div class="card-body text-center">
+          <h4 class="card-title text-success">
+            ✅ Votre CV est presque prêt !
+          </h4>
+          <p class="card-text">
+            Vous avez ajouté <strong>{{ experiences.count }} expérience(s)</strong>,
+            <strong>{{ formations.count }} formation(s)</strong> et
+            <strong>{{ competences.count }} compétence(s)</strong>.<br>
+            Passez à l'étape finale pour voir l'aperçu complet et télécharger.
+          </p>
+
+          <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'cv_generator:create_cv_step2' cv.id %}" class="cv-btn-secondary">
+              ⬅️ Retour aux expériences
+            </a>
+
+            <a href="{% url 'cv_generator:finalize_cv' cv.id %}"
+               class="btn btn-success btn-lg px-5">
+              👁️ VOIR L'APERÇU FINAL & TÉLÉCHARGER
+            </a>
+          </div>
+
+          <p class="text-muted mt-3 small">
+            Sur la page finale : Aperçu complet • Téléchargement PDF • Score ATS détaillé
+          </p>
+        </div>
       </div>
     </div>
 
-    <form method="post" action="{% url 'cv_generator:update_summary' cv.id %}">
-      {% csrf_token %}
+  </section>
+</main>
 
-      <textarea
-        name="summary"
-        rows="4"
-        class="cv-input cv-textarea"
-        placeholder="Ex : Technicien de maintenance avec 5 ans d’expérience en environnement industriel, spécialisé en maintenance préventive, prêt pour un poste au Canada."
-      >{{ cv.summary }}</textarea>
+{% endblock %}
 
-      <div class="cv-inline-actions">
-        <button type="submit" class="cv-btn-primary">
-          💾 Enregistrer
-        </button>
-
-        <button
-          type="button"
-          class="btn btn-secondary"
-          id="ai-summary-btn"
-          data-url="{% url 'cv_generator:generate_ai_summary' cv.id %}">
-          🤖 Générer avec l’IA
-        </button>
-
-        <button
-          type="button"
-          class="btn btn-secondary"
-          id="translate-summary-btn"
-          data-url="{% url 'cv_generator:translate_summary' cv.id %}">
-          🌐 Traduire en {% if cv.language == "fr" %}anglais{% else %}français{% endif %}
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <!-- ================= EDUCATION ================= -->
-  <div class="cv-panel cv-panel-step">
-    <div class="cv-panel-header">
-      <div class="cv-panel-icon">🎓</div>
-      <div>
-        <h3>Formations & Diplômes</h3>
-      </div>
-    </div>
-
-    <form method="post" action="{% url 'cv_generator:add_education' cv.id %}">
-      {% csrf_token %}
-      {{ education_form.as_p }}
-      <button type="submit" class="cv-btn-primary">➕ Ajouter</button>
-    </form>
-
-    {% if educations %}
-      <ul class="cv-list">
-        {% for edu in educations %}
-          <li class="cv-list-item">
-            <strong>{{ edu.diploma }}</strong> — {{ edu.institution }}
-            <small>{{ edu.start_date }} → {{ edu.end_date|default:"En cours" }}</small>
-          </li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  </div>
-
-  <!-- ================= SKILLS ================= -->
-  <div class="cv-panel cv-panel-step">
-    <div class="cv-panel-header">
-      <div class="cv-panel-icon">🧠</div>
-      <div>
-        <h3>Compétences clés</h3>
-      </div>
-    </div>
-
-    <form method="post" action="{% url 'cv_generator:add_skill' cv.id %}">
-      {% csrf_token %}
-      {{ skill_form.as_p }}
-      <button type="submit" class="cv-btn-primary">➕ Ajouter</button>
-    </form>
-
-    {% if skills %}
-      <ul class="cv-list">
-        {% for s in skills %}
-          <li class="cv-list-item">{{ s.name }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  </div>
-
-  <!-- ================= LANGUAGES ================= -->
-  <div class="cv-panel cv-panel-step">
-    <div class="cv-panel-header">
-      <div class="cv-panel-icon">🌍</div>
-      <div>
-        <h3>Langues</h3>
-      </div>
-    </div>
-
-    <form method="post" action="{% url 'cv_generator:add_language' cv.id %}">
-      {% csrf_token %}
-      {{ language_form.as_p }}
-      <button type="submit" class="cv-btn-primary">➕ Ajouter</button>
-    </form>
-
-    {% if languages %}
-      <ul class="cv-list">
-        {% for l in languages %}
-          <li class="cv-list-item">{{ l.name }} — {{ l.level }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  </div>
-
-  <!-- ================= VOLUNTEER ================= -->
-  <div class="cv-panel cv-panel-step">
-    <div class="cv-panel-header">
-      <div class="cv-panel-icon">🤝</div>
-      <div>
-        <h3>Bénévolat (optionnel)</h3>
-      </div>
-    </div>
-
-    <form method="post" action="{% url 'cv_generator:add_volunteer' cv.id %}">
-      {% csrf_token %}
-      {{ volunteer_form.as_p }}
-      <button type="submit" class="cv-btn-primary">➕ Ajouter</button>
-    </form>
-  </div>
-
-  <!-- ================= ATS SCORE (JUSTE AVANT FIN) ================= -->
-  <div class="cv-panel cv-panel-step cv-panel-ats">
-    <div class="cv-panel-header">
-      <div class="cv-panel-icon">📊</div>
-      <div>
-        <h3>Analyse ATS (Canada)</h3>
-        <p class="cv-panel-help">
-          Vérifiez la compatibilité de votre CV avec les systèmes de tri automatiques.
-        </p>
-      </div>
-    </div>
-
-    <div id="ats-result">
-      <p class="cv-empty">Cliquez pour analyser votre CV.</p>
-    </div>
-
-    <button
-      type="button"
-      class="cv-btn-primary"
-      id="ats-btn"
-      data-url="{% url 'cv_generator:ats_score' cv.id %}">
-      🔍 Analyser mon CV
-    </button>
-  </div>
-
-  <!-- ================= NAVIGATION ================= -->
-  <div class="cv-step-actions">
-    <a href="{% url 'cv_generator:create_cv_step2' cv.id %}"
-       class="cv-btn-secondary">
-      ⬅️ Retour aux expériences
-    </a>
-
-    <a href="{% url 'cv_generator:export_pdf' cv.id %}"
-       class="cv-btn-success">
-      📄 Télécharger mon CV (PDF)
-    </a>
-  </div>
-
-</section>
-
-<!-- ================= JS ================= -->
-<script>
-/* IA SUMMARY */
-document.getElementById("ai-summary-btn")?.addEventListener("click", function () {
-  const btn = this;
-  const textarea = document.querySelector("textarea[name='summary']");
-  btn.innerText = "⏳ Génération...";
-  btn.disabled = true;
-
-  fetch(btn.dataset.url, {
-    method: "POST",
-    headers: { "X-CSRFToken": "{{ csrf_token }}" }
-  })
-  .then(res => res.json())
-  .then(data => { if (data.summary) textarea.value = data.summary; })
-  .finally(() => {
-    btn.innerText = "🤖 Générer avec l’IA";
-    btn.disabled = false;
-  });
-});
-
-/* TRANSLATION */
-document.getElementById("translate-summary-btn")?.addEventListener("click", function () {
-  const btn = this;
-  const textarea = document.querySelector("textarea[name='summary']");
-  btn.innerText = "🌐 Traduction...";
-  btn.disabled = true;
-
-  fetch(btn.dataset.url, {
-    method: "POST",
-    headers: { "X-CSRFToken": "{{ csrf_token }}" }
-  })
-  .then(res => res.json())
-  .then(data => { if (data.translated) textarea.value = data.translated; })
-  .finally(() => {
-    btn.innerText = "🌐 Traduire";
-    btn.disabled = false;
-  });
-});
-
-/* ATS */
-document.getElementById("ats-btn")?.addEventListener("click", function () {
-  const btn = this;
-  const box = document.getElementById("ats-result");
-  btn.innerText = "⏳ Analyse...";
-  btn.disabled = true;
-
-  fetch(btn.dataset.url)
-    .then(res => res.json())
-    .then(data => {
-      box.innerHTML = `
-        <p><strong>Score ATS :</strong> ${data.score} / 100</p>
-        ${data.feedback.length
-          ? `<ul>${data.feedback.map(f => `<li>⚠️ ${f}</li>`).join("")}</ul>`
-          : `<p>✅ Excellent CV ATS</p>`}
-      `;
-    })
-    .finally(() => {
-      btn.innerText = "🔍 Analyser mon CV";
-      btn.disabled = false;
-    });
-});
-</script>
+{% block extra_js %}
+<script src="{% static 'js/cv_generator.js' %}"></script>
 <script>
 function getCSRFToken() {
-  return document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+  return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+}
+
+function pickSummaryFromResponse(data) {
+  // Supporte:
+  // - {summary: "..."}
+  // - {data: ["...", "..."]}  (ton generate_summary renvoie souvent ça)
+  // - {data: "..."}
+  if (!data) return "";
+  if (typeof data.summary === "string" && data.summary.trim()) return data.summary.trim();
+
+  if (Array.isArray(data.data) && data.data.length) {
+    // si liste de suggestions, prendre la première
+    const first = data.data[0];
+    if (typeof first === "string" && first.trim()) return first.trim();
+    return String(first || "").trim();
+  }
+
+  if (typeof data.data === "string" && data.data.trim()) return data.data.trim();
+  return "";
 }
 
 document.addEventListener("DOMContentLoaded", function () {
 
-  /* ===== IA SUMMARY ===== */
+  // IA SUMMARY
   const aiBtn = document.getElementById("ai-summary-btn");
   if (aiBtn) {
     aiBtn.addEventListener("click", function () {
-      const textarea = document.querySelector("textarea[name='summary']");
+      const textarea = document.getElementById("id_summary");
+      const resultBox = document.getElementById("ai-summary-result");
+      const originalText = aiBtn.innerText;
+
       aiBtn.disabled = true;
-      aiBtn.innerText = "⏳ Génération IA...";
+      aiBtn.innerText = "⏳ Génération...";
 
       fetch(aiBtn.dataset.url, {
         method: "POST",
-        headers: { "X-CSRFToken": getCSRFToken() }
+        headers: {
+          "X-CSRFToken": getCSRFToken(),
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({})
       })
       .then(res => res.json())
-      .then(data => { if (data.summary) textarea.value = data.summary; })
+      .then(data => {
+        const summary = pickSummaryFromResponse(data);
+        if (summary) {
+          textarea.value = summary;
+          resultBox.innerHTML = '<div class="cv-alert success">✅ Résumé généré !</div>';
+        } else {
+          resultBox.innerHTML = '<div class="cv-alert warning">⚠️ Aucune suggestion retournée.</div>';
+        }
+      })
+      .catch(() => {
+        resultBox.innerHTML = '<div class="cv-alert error">❌ Erreur</div>';
+      })
       .finally(() => {
+        aiBtn.innerText = originalText;
         aiBtn.disabled = false;
-        aiBtn.innerText = "🤖 Générer avec l’IA";
       });
     });
   }
 
-  /* ===== ATS SCORE ===== */
+  // TRADUCTION
+  const translateBtn = document.getElementById("translate-summary-btn");
+  if (translateBtn) {
+    translateBtn.addEventListener("click", function () {
+      const textarea = document.getElementById("id_summary");
+      const resultBox = document.getElementById("ai-summary-result");
+      const originalText = translateBtn.innerText;
+
+      translateBtn.disabled = true;
+      translateBtn.innerText = "⏳ Traduction...";
+
+      fetch(translateBtn.dataset.url, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCSRFToken(),
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({})
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.translated) {
+          textarea.value = data.translated;
+          resultBox.innerHTML = '<div class="cv-alert success">✅ Traduit !</div>';
+        } else {
+          resultBox.innerHTML = '<div class="cv-alert warning">⚠️ Rien à traduire.</div>';
+        }
+      })
+      .catch(() => {
+        resultBox.innerHTML = '<div class="cv-alert error">❌ Erreur</div>';
+      })
+      .finally(() => {
+        translateBtn.innerText = originalText;
+        translateBtn.disabled = false;
+      });
+    });
+  }
+
+  // ATS SCORE
   const atsBtn = document.getElementById("ats-btn");
   if (atsBtn) {
     atsBtn.addEventListener("click", function () {
-      const box = document.getElementById("ats-result");
-      atsBtn.disabled = true;
-      atsBtn.innerText = "⏳ Analyse ATS...";
+      const resultBox = document.getElementById("ats-result");
+      const originalText = atsBtn.innerText;
 
-      fetch(atsBtn.dataset.url)
-        .then(res => res.json())
-        .then(data => {
-          box.innerHTML = `
-            <p><strong>Score ATS :</strong> ${data.score}/100</p>
-            ${data.feedback.length ? `<ul>${data.feedback.map(f => `<li>${f}</li>`).join("")}</ul>` : "<p>Excellent profil ATS</p>"}
-          `;
-        })
-        .finally(() => {
-          atsBtn.disabled = false;
-          atsBtn.innerText = "🔍 Analyser mon CV (ATS)";
-        });
+      atsBtn.disabled = true;
+      atsBtn.innerText = "⏳ Analyse...";
+
+      fetch(atsBtn.dataset.url, { method: "GET" })
+      .then(res => res.json())
+      .then(data => {
+        const score = data.score || 0;
+        const feedback = data.feedback || [];
+
+        let scoreClass = score >= 80 ? "success" : score >= 60 ? "warning" : "error";
+        let scoreEmoji = score >= 80 ? "✅" : score >= 60 ? "⚠️" : "❌";
+
+        resultBox.innerHTML = `
+          <div class="cv-alert ${scoreClass}">
+            <h4>${scoreEmoji} Score ATS : ${score} / 100</h4>
+            ${feedback.length > 0 ? `
+              <p><strong>Recommandations :</strong></p>
+              <ul>${feedback.map(f => `<li>• ${f}</li>`).join('')}</ul>
+            ` : `<p>✅ Excellent ! CV bien optimisé ATS.</p>`}
+          </div>
+        `;
+      })
+      .catch(() => {
+        resultBox.innerHTML = '<div class="cv-alert error">❌ Erreur analyse</div>';
+      })
+      .finally(() => {
+        atsBtn.innerText = originalText;
+        atsBtn.disabled = false;
+      });
     });
   }
 
 });
 </script>
+{% endblock %}

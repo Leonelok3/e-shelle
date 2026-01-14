@@ -1,0 +1,14 @@
+{# Routeur : affiche le bon modèle HTML selon cv.template.slug ou cv.template.key #}
+{# Fallback SAFE : Canada ATS #}
+
+{% with slug=cv.template.slug|default:cv.template.key|default:cv.template.name|default:"canada_ats" %}
+  {% if "europe" in slug|lower %}
+    {% include "cv_generator/cv_europe.html" %}
+  {% elif "modern" in slug|lower %}
+    {% include "cv_generator/cv_modern.html" %}
+  {% elif "professional" in slug|lower or "professionnel" in slug|lower %}
+    {% include "cv_generator/cv_professional.html" %}
+  {% else %}
+    {% include "cv_generator/cv_canada_ats.html" %}
+  {% endif %}
+{% endwith %}

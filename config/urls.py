@@ -137,6 +137,7 @@ urlpatterns = [
     # PROFILES
     # ============================
     path("profiles/", include("profiles.urls")),
+   
 
     # ============================
     # 2FA (DÉSACTIVÉ)

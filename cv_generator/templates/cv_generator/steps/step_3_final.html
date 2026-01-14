@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block body_class %}cv-generator cv-step-final{% endblock %}
+
+{% block app_scope %}cv-generator{% endblock %}
+
+{% block title %}CV Canada ATS – Aperçu final & téléchargement | Immigration97{% endblock %}
+
+{% block meta_description %}
+Aperçu final de votre CV Canada ATS optimisé. Téléchargez votre CV professionnel conforme aux standards canadiens de recrutement et d’immigration.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cv_generator.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="app-main cv-generator">
+
+  <!-- ===== HERO ===== -->
+  <section class="cv-final-header">
+    <h1>🎉 Votre CV Canada est prêt</h1>
+    <p>
+      Aperçu final de votre <strong>CV professionnel compatible ATS Canada</strong>.
+      Vérifiez les informations puis téléchargez le PDF.
+    </p>
+  </section>
+
+  <!-- ===== ACTIONS TOP ===== -->
+  <section class="cv-final-actions-top">
+    <a href="{% url 'cv_generator:export_pdf' cv.id %}" class="cv-btn-primary" target="_blank" rel="noopener">
+      ⬇️ Télécharger CV Canada (PDF)
+    </a>
+
+    <a href="{% url 'cv_generator:create_cv_step3' cv.id %}" class="cv-btn-secondary">
+      ✏️ Modifier le contenu
+    </a>
+  </section>
+
+  <!-- =========================
+       PREVIEW (WHITE PAPER)
+  ========================== -->
+  <section class="cv-preview">
+    <div class="cv-preview-wrapper">
+
+      {# ✅ IMPORTANT: on met le modèle ICI, pas seulement sur body #}
+      <div class="cv-doc cv-canada-ats">
+
+        <!-- HEADER -->
+        <header class="cv-header">
+          <h2 class="cv-name">{{ cv.prenom }} {{ cv.nom }}</h2>
+
+          {% if cv.titre_poste %}
+            <div class="cv-headline">{{ cv.titre_poste }}</div>
+          {% endif %}
+
+          <div class="cv-contact">
+            {% if cv.email %}<span>{{ cv.email }}</span>{% endif %}
+            {% if cv.telephone %}<span class="cv-dot">•</span><span>{{ cv.telephone }}</span>{% endif %}
+            {% if cv.ville %}<span class="cv-dot">•</span><span>{{ cv.ville }}</span>{% endif %}
+            {% if cv.province %}<span>, {{ cv.province }}</span>{% endif %}
+          </div>
+
+          <div class="cv-rule"></div>
+        </header>
+
+        <!-- SUMMARY -->
+        {% if cv.resume_professionnel or cv.summary %}
+          <section class="cv-section">
+            <h3 class="cv-section-title">Résumé professionnel</h3>
+            <div class="cv-paragraph cv-preline">
+              {{ cv.resume_professionnel|default:cv.summary }}
+            </div>
+          </section>
+        {% endif %}
+
+        <!-- EXPERIENCE -->
+        {% if experiences %}
+          <section class="cv-section">
+            <h3 class="cv-section-title">Expériences professionnelles</h3>
+
+            {% for exp in experiences %}
+              <div class="cv-item">
+                <div class="cv-item-top">
+                  <div>
+                    <div class="cv-entity">
+                      {{ exp.entreprise|default:exp.company|default:"" }}
+                      {% if exp.ville or exp.location %}
+                        <span class="cv-dot">•</span> {{ exp.ville|default:exp.location }}
+                      {% endif %}
+                    </div>
+
+                    <div class="cv-role">
+                      {{ exp.poste|default:exp.title|default:"Poste" }}
+                    </div>
+                  </div>
+
+                  <div class="cv-right">
+                    {% if exp.start_date %}{{ exp.start_date|date:"Y-m" }}{% else %}—{% endif %}
+                    -
+                    {% if exp.end_date %}{{ exp.end_date|date:"Y-m" }}{% else %}Présent{% endif %}
+                  </div>
+                </div>
+
+                {# Description (filtre simple anti-placeholder) #}
+                {% if exp.description_ai and "Ajoutez vos expériences" not in exp.description_ai %}
+                  <div class="cv-preline">{{ exp.description_ai }}</div>
+                {% elif exp.description and "Ajoutez vos expériences" not in exp.description %}
+                  <div class="cv-preline">{{ exp.description }}</div>
+                {% elif exp.description_raw and "Ajoutez vos expériences" not in exp.description_raw %}
+                  <div class="cv-preline">{{ exp.description_raw }}</div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </section>
+        {% endif %}
+
+        <!-- EDUCATION -->
+        {% if formations %}
+          <section class="cv-section">
+            <h3 class="cv-section-title">Formation</h3>
+
+            {% for edu in formations %}
+              <div class="cv-item cv-item--compact">
+                <div class="cv-item-top">
+                  <div>
+                    <div class="cv-entity">{{ edu.diplome|default:edu.diploma|default:"Diplôme" }}</div>
+                    <div class="cv-role">{{ edu.etablissement|default:edu.institution|default:"" }}</div>
+                  </div>
+                  <div class="cv-right">
+                    {% if edu.start_date %}{{ edu.start_date|date:"Y" }}{% endif %}
+                    {% if edu.start_date and edu.end_date %} - {% endif %}
+                    {% if edu.end_date %}
+                      {{ edu.end_date|date:"Y" }}
+                    {% elif edu.annee_obtention %}
+                      {{ edu.annee_obtention }}
+                    {% else %}
+                      En cours
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </section>
+        {% endif %}
+
+        <!-- SKILLS -->
+        {% if competences %}
+          <section class="cv-section">
+            <h3 class="cv-section-title">Compétences</h3>
+            <div class="cv-skill-line">
+              {% for comp in competences %}
+                {{ comp.nom }}{% if not forloop.last %}<span class="cv-dot"> • </span>{% endif %}
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+
+        <!-- LANGUAGES -->
+        {% if langues %}
+          <section class="cv-section">
+            <h3 class="cv-section-title">Langues</h3>
+            <div class="cv-lang-grid">
+              {% for lang in langues %}
+                <div class="cv-lang-row">
+                  <strong>{{ lang.langue|default:lang.name }}</strong>
+                  <span>{{ lang.niveau|default:lang.level }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ATS SCORE ===== -->
+  <section class="cv-ats-box">
+    <h3>📊 Analyse ATS</h3>
+
+    <div id="ats-result">
+      <p>Cliquez pour analyser votre CV.</p>
+    </div>
+
+    <button id="ats-btn" class="cv-btn-secondary" data-url="{% url 'cv_generator:ats_score' cv.id %}">
+      🔍 Lancer l’analyse ATS
+    </button>
+  </section>
+
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const btn = document.getElementById("ats-btn");
+  const box = document.getElementById("ats-result");
+  if (!btn || !box) return;
+
+  btn.addEventListener("click", function () {
+    const original = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = "Analyse en cours...";
+
+    fetch(btn.dataset.url)
+      .then(r => r.json())
+      .then(data => {
+        const score = data.score || 0;
+        const feedback = Array.isArray(data.feedback) ? data.feedback : [];
+        box.innerHTML = `
+          <div class="cv-alert ${score >= 80 ? "success" : score >= 60 ? "warning" : "error"}">
+            <h4>Score ATS : ${score} / 100</h4>
+            ${feedback.length ? `<ul>${feedback.map(f => `<li>• ${f}</li>`).join("")}</ul>` : `<p>✅ CV bien optimisé.</p>`}
+          </div>
+        `;
+      })
+      .catch(() => {
+        box.innerHTML = '<div class="cv-alert error">❌ Erreur lors de l’analyse.</div>';
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.innerText = original;
+      });
+  });
+});
+</script>
+{% endblock %}
+

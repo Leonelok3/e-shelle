@@ -1,137 +1,276 @@
-{% extends "billing/base_billing.html" %}
-{% block title %}Abonnements | Immigration97{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tarifs & Abonnements Premium | Immigration97{% endblock %}
+
+{% block meta_description %}
+Choisissez votre forfait Immigration97 : accès aux outils IA d'immigration, préparation tests de langue TEF/TCF, simulation visa Canada et Europe. Paiement mobile money disponible.
+{% endblock %}
+
+{% block body_class %}billing{% endblock %}
+{% block app_scope %}billing pricing-flow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/billing.css' %}">
+{% endblock %}
+
 {% block content %}
 
-<style>
-/* ============================================================
-   UI 2026 – Immigration97 Abonnements
-   Glass • Neo-Gradient • Pro Shadows
-   ============================================================ */
-
-.b-card{
-  background:
-    radial-gradient(circle at top left, rgba(56,189,248,0.20), transparent 60%),
-    radial-gradient(circle at bottom right, rgba(34,197,94,0.15), transparent 60%),
-    rgba(15,23,42,0.90);
-  border:1px solid rgba(148,163,184,0.35);
-  padding:32px 24px;
-  border-radius:22px;
-  box-shadow:
-    0 10px 28px rgba(0,0,0,0.55),
-    0 0 34px rgba(56,189,248,0.20);
-  backdrop-filter: blur(18px);
-  color:#e5e7eb;
-  animation: fadeIn .45s ease-out;
-}
-
-/* Layout des cartes */
-.b-cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:22px;
-  margin-top:20px;
-}
-
-/* Carte Plan */
-.b-plan{
-  background:
-    linear-gradient(145deg, rgba(15,23,42,0.95), rgba(2,6,23,0.92));
-  padding:24px;
-  border-radius:20px;
-  border:1px solid rgba(148,163,184,0.25);
-  box-shadow:0 12px 26px rgba(0,0,0,0.40);
-  transition:transform .25s, box-shadow .25s, border-color .25s;
-}
-
-.b-plan:hover{
-  transform:translateY(-5px);
-  border-color:rgba(56,189,248,0.45);
-  box-shadow:
-    0 20px 40px rgba(0,0,0,0.55),
-    0 0 32px rgba(56,189,248,0.25);
-}
-
-/* Titres plan */
-.b-plan h3{
-  font-size:1.35rem;
-  font-weight:800;
-  margin-bottom:6px;
-  background:linear-gradient(135deg,#34d399,#06b6d4,#3b82f6);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
-
-/* Prix */
-.b-price{
-  font-size:1.45rem;
-  font-weight:700;
-  margin-bottom:10px;
-  color:#f1f5f9;
-}
-
-/* Description */
-.b-desc{
-  color:#94a3b8;
-  font-size:.9rem;
-  margin-bottom:16px;
-  line-height:1.45;
-}
-
-/* Bouton */
-.b-btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:10px 16px;
-  border-radius:999px;
-  font-weight:700;
-  font-size:.88rem;
-  text-decoration:none;
-  transition:background .25s, transform .25s, box-shadow .25s;
-}
-
-.b-primary{
-  background:linear-gradient(135deg,#06b6d4,#3b82f6);
-  color:#020617;
-  box-shadow:0 10px 25px rgba(37,99,235,0.55);
-}
-
-.b-primary:hover{
-  transform:translateY(-2px);
-  box-shadow:0 14px 32px rgba(37,99,235,0.75);
-}
-
-/* Hint */
-.b-hint{
-  margin-top:22px;
-  font-size:.85rem;
-  color:#94a3b8;
-}
-
-/* Animation */
-@keyframes fadeIn{
-  from{opacity:0;transform:translateY(10px);}
-  to{opacity:1;transform:translateY(0);}
-}
-</style>
-
-<section class="b-card">
-  <h1>Abonnements mensuels</h1>
-
-  <div class="b-cards">
-    {% for p in plans %}
-      <div class="b-plan">
-        <h3>{{ p.name }}</h3>
-        <div class="b-price">${{ p.price_usd }} / mois</div>
-        <p class="b-desc">{{ p.description|default:"Usage illimité sur la plateforme." }}</p>
-        <a class="b-btn b-primary" href="{% url 'billing:activate_plan' p.slug %}">Activer (mode test)</a>
-      </div>
-    {% empty %}
-      <p>Aucun plan disponible.</p>
-    {% endfor %}
+<!-- Hero Section -->
+<div class="billing-pricing-hero">
+  <div class="billing-pricing-hero__badge">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+      <path d="M2 17l10 5 10-5"/>
+      <path d="M2 12l10 5 10-5"/>
+    </svg>
+    Tarifs 2026
   </div>
 
-  <p class="b-hint">⚠️ Pour l’instant: activation test. Les paiements réels viendront via webhook (CinetPay/Flutterwave/…)</p>
-</section>
+  <h1 class="billing-pricing-hero__title">
+    Débloquez votre potentiel international
+  </h1>
+
+  <p class="billing-pricing-hero__subtitle">
+    Choisissez le plan adapté à vos ambitions d'immigration. Accès immédiat aux outils d'analyse IA, préparation tests de langue et simulation visa pour le Canada et l'Europe.
+  </p>
+</div>
+
+<!-- Plans Grid -->
+<div class="billing-pricing-grid">
+  {% for p in plans %}
+  <article class="billing-pricing-card {% if p.is_popular %}is-featured{% endif %}" 
+           itemscope 
+           itemtype="https://schema.org/Product">
+    
+    <!-- Badge Popular -->
+    {% if p.is_popular %}
+    <div class="billing-pricing-card__badge">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+      Plus Populaire
+    </div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="billing-pricing-card__header">
+      <div class="billing-pricing-card__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          {% if forloop.first %}
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          {% elif forloop.last %}
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          {% else %}
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+          {% endif %}
+        </svg>
+      </div>
+      <h3 class="billing-pricing-card__name" itemprop="name">{{ p.name }}</h3>
+    </div>
+
+    <!-- Price -->
+    <div class="billing-pricing-card__price" 
+         itemprop="offers" 
+         itemscope 
+         itemtype="https://schema.org/Offer">
+      <div class="billing-pricing-card__amount">
+        <span class="currency" itemprop="priceCurrency" content="USD">$</span>
+        <span class="value" itemprop="price" content="{{ p.price_usd }}">{{ p.price_usd }}</span>
+      </div>
+      <span class="billing-pricing-card__period">/ mois</span>
+    </div>
+
+    <!-- Description -->
+    <p class="billing-pricing-card__desc" itemprop="description">
+      {{ p.description|default:"Accès complet à l'écosystème Immigration97 pour réussir votre projet d'immigration." }}
+    </p>
+
+    <!-- Features List -->
+    <ul class="billing-pricing-card__features">
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Tests de langue (TEF/TCF)</span>
+      </li>
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Générateur de CV IA</span>
+      </li>
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Simulation Visa illimitée</span>
+      </li>
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Analyse profil d'immigration</span>
+      </li>
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Support prioritaire 24/7</span>
+      </li>
+    </ul>
+
+    <!-- CTA Button -->
+    <a href="{% url 'billing:buy_plan' p.slug %}" 
+       class="billing-pricing-card__cta">
+      <span>Démarrer l'accès Premium</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </a>
+
+  </article>
+  {% empty %}
+  <div class="billing-pricing-empty">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 16v-4M12 8h.01"/>
+    </svg>
+    <h3>Plans temporairement indisponibles</h3>
+    <p>Nos services sont actuellement en cours de mise à jour. Revenez bientôt.</p>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Trust Section -->
+<div class="billing-pricing-trust">
+  <h2 class="billing-pricing-trust__title">Pourquoi choisir Immigration97 ?</h2>
+  
+  <div class="billing-pricing-trust__grid">
+    
+    <div class="billing-pricing-trust__card">
+      <div class="billing-pricing-trust__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+          <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+      </div>
+      <h3>Paiement Local Sécurisé</h3>
+      <p>Compatible Orange Money, MTN, Moov et Wave. Processus 100% sécurisé.</p>
+    </div>
+
+    <div class="billing-pricing-trust__card">
+      <div class="billing-pricing-trust__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h3>Protection SSL 256 bits</h3>
+      <p>Vos données personnelles et financières sont protégées par cryptage militaire.</p>
+    </div>
+
+    <div class="billing-pricing-trust__card">
+      <div class="billing-pricing-trust__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      </div>
+      <h3>Activation Instantanée</h3>
+      <p>Votre espace premium se débloque automatiquement dès confirmation du paiement.</p>
+    </div>
+
+    <div class="billing-pricing-trust__card">
+      <div class="billing-pricing-trust__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <h3>Garantie 100% Satisfaction</h3>
+      <p>Outils IA validés par des experts en immigration internationale.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- FAQ Section (SEO Boost) -->
+<div class="billing-pricing-faq">
+  <h2 class="billing-pricing-faq__title">Questions Fréquentes</h2>
+  
+  <div class="billing-pricing-faq__list">
+    
+    <details class="billing-pricing-faq__item">
+      <summary>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <span>Quels moyens de paiement acceptez-vous ?</span>
+      </summary>
+      <div class="billing-pricing-faq__content">
+        <p>Nous acceptons les paiements par mobile money (Orange Money, MTN, Moov, Wave) ainsi que les cartes bancaires internationales (Visa, Mastercard). Le paiement est 100% sécurisé via notre partenaire agréé.</p>
+      </div>
+    </details>
+
+    <details class="billing-pricing-faq__item">
+      <summary>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <span>Comment fonctionne l'activation de mon compte ?</span>
+      </summary>
+      <div class="billing-pricing-faq__content">
+        <p>Dès validation de votre paiement, votre compte premium est automatiquement activé. Vous recevez un email de confirmation avec vos accès complets aux outils d'immigration IA.</p>
+      </div>
+    </details>
+
+    <details class="billing-pricing-faq__item">
+      <summary>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <span>Puis-je annuler mon abonnement à tout moment ?</span>
+      </summary>
+      <div class="billing-pricing-faq__content">
+        <p>Oui, vous pouvez annuler votre abonnement à tout moment depuis votre espace personnel. L'accès reste actif jusqu'à la fin de la période payée.</p>
+      </div>
+    </details>
+
+    <details class="billing-pricing-faq__item">
+      <summary>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <span>Les outils sont-ils conformes aux exigences Canada/Europe ?</span>
+      </summary>
+      <div class="billing-pricing-faq__content">
+        <p>Absolument. Nos outils sont calibrés selon les grilles officielles IRCC (Canada), Schengen (Europe) et les standards TEF/TCF Canada. Les algorithmes sont mis à jour régulièrement.</p>
+      </div>
+    </details>
+
+  </div>
+</div>
+
+<!-- CTA Final -->
+<div class="billing-pricing-cta">
+  <h2>Prêt à transformer votre projet d'immigration ?</h2>
+  <p>Rejoignez des centaines d'utilisateurs qui ont déjà réussi leur démarche avec Immigration97.</p>
+  <a href="#plans" class="billing-pricing-cta__btn">
+    <span>Choisir mon plan maintenant</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
+  </a>
+</div>
 
 {% endblock %}

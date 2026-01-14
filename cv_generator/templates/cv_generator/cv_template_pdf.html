@@ -1,143 +1,22 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>CV</title>
+{% extends "cv_generator/templates_pdf/base_pdf.html" %}
+{% load static %}
 
-  <style>
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 11px;
-      color: #000;
-      margin: 20px 28px;
-      line-height: 1.45;
-    }
+{# =========================================
+   Router PDF — choisit le bon template PDF
+   selon cv.template.slug / key / name
+   Fallback SAFE : canada_ats
+   ========================================= #}
 
-    .header {
-      border-bottom: 2px solid #000;
-      margin-bottom: 14px;
-      padding-bottom: 8px;
-    }
-
-    .name {
-      font-size: 20px;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-
-    .meta {
-      font-size: 10px;
-      margin-top: 4px;
-    }
-
-    h2 {
-      font-size: 11px;
-      text-transform: uppercase;
-      border-bottom: 1px solid #000;
-      margin-top: 16px;
-      margin-bottom: 6px;
-      padding-bottom: 2px;
-    }
-
-    .item {
-      margin-bottom: 8px;
-      page-break-inside: avoid;
-    }
-
-    .item-title {
-      font-weight: bold;
-    }
-
-    .muted {
-      font-size: 10px;
-      color: #333;
-    }
-
-    ul {
-      margin: 4px 0 0 16px;
-      padding: 0;
-      list-style-type: disc;
-    }
-
-    li {
-      margin-bottom: 2px;
-    }
-  </style>
-</head>
-
-<body>
-
-<!-- ===== HEADER ===== -->
-<div class="header">
-  <div class="name">
-    {{ personal_info.prenom|default:"" }} {{ personal_info.nom|default:"" }}
-  </div>
-
-  <div class="meta">
-    {% if personal_info.email %}{{ personal_info.email }}{% endif %}
-    {% if personal_info.telephone %} | {{ personal_info.telephone }}{% endif %}
-  </div>
-</div>
-
-<!-- ===== SUMMARY ===== -->
-{% if summary %}
-<h2>Résumé professionnel</h2>
-<p>{{ summary }}</p>
-{% endif %}
-
-<!-- ===== SKILLS ===== -->
-{% if skills %}
-<h2>Compétences</h2>
-<ul>
-  {% for s in skills %}
-    <li>{{ s.name }}</li>
-  {% endfor %}
-</ul>
-{% endif %}
-
-<!-- ===== EXPERIENCE ===== -->
-{% if experiences %}
-<h2>Expériences professionnelles</h2>
-
-{% for e in experiences %}
-<div class="item">
-  <div class="item-title">
-    {{ e.title }}{% if e.company %} — {{ e.company }}{% endif %}
-  </div>
-
-  <div class="muted">
-    {{ e.start_date|date:"m/Y" }}
-    –
-    {% if e.end_date %}{{ e.end_date|date:"m/Y" }}{% else %}Présent{% endif %}
-    {% if e.location %} | {{ e.location }}{% endif %}
-  </div>
-
-  {% if e.description %}
-    <p>{{ e.description }}</p>
-  {% endif %}
-</div>
-{% endfor %}
-{% endif %}
-
-<!-- ===== EDUCATION ===== -->
-{% if educations %}
-<h2>Formations</h2>
-
-{% for ed in educations %}
-<div class="item">
-  <div class="item-title">
-    {{ ed.diploma }} — {{ ed.institution }}
-  </div>
-
-  <div class="muted">
-    {{ ed.start_date|date:"Y" }}
-    –
-    {% if ed.end_date %}{{ ed.end_date|date:"Y" }}{% else %}En cours{% endif %}
-    {% if ed.location %} | {{ ed.location }}{% endif %}
-  </div>
-</div>
-{% endfor %}
-{% endif %}
-
-</body>
-</html>
+{% block content %}
+  {% with slug=cv.template.slug|default:cv.template.key|default:cv.template.name|default:"canada_ats" %}
+    {% if "europe" in slug|lower %}
+      {% include "cv_generator/templates_pdf/cv_europe.html" %}
+    {% elif "modern" in slug|lower %}
+      {% include "cv_generator/templates_pdf/cv_modern.html" %}
+    {% elif "professional" in slug|lower or "professionnel" in slug|lower %}
+      {% include "cv_generator/templates_pdf/cv_professional.html" %}
+    {% else %}
+      {% include "cv_generator/templates_pdf/cv_canada_ats.html" %}
+    {% endif %}
+  {% endwith %}
+{% endblock %}

@@ -1,187 +1,328 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Plans et Tarifs - Immigration97{% endblock %}
+{% block title %}Tarifs Immigration97 | Accès Premium Visa Canada & Europe{% endblock %}
+
+{% block meta_description %}
+Boostez votre dossier d'immigration. Accès illimité aux outils IA : CV aux normes IRCC/Europass, lettres de motivation, tests TEF/TCF/IELTS et assistance permis d'études pour le Canada, la France et la Belgique.
+{% endblock %}
+
+{% block body_class %}billing{% endblock %}
+{% block app_scope %}billing access-flow{% endblock %}
 
 {% block extra_css %}
-<style>
-    .pricing-hero {
-        text-align: center;
-        padding: 3rem 1rem;
-    }
-
-    .pricing-hero h1 {
-        font-size: 2.5rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 1rem;
-    }
-
-    .pricing-hero p {
-        color: var(--text-secondary);
-        font-size: 1.1rem;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    .plans-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 2rem;
-        margin-top: 3rem;
-    }
-
-    .plan-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 2rem;
-        position: relative;
-        transition: all 0.3s;
-    }
-
-    .plan-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--primary);
-        box-shadow: 0 20px 40px rgba(56, 189, 248, 0.2);
-    }
-
-    .plan-card.popular {
-        border-color: var(--primary);
-        border-width: 2px;
-    }
-
-    .popular-badge {
-        position: absolute;
-        top: -15px;
-        right: 20px;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-    }
-
-    .plan-name {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-
-    .plan-price {
-        font-size: 3rem;
-        font-weight: 800;
-        color: var(--primary);
-        margin: 1.5rem 0;
-    }
-
-    .plan-price small {
-        font-size: 1.2rem;
-        color: var(--text-secondary);
-    }
-
-    .plan-duration {
-        color: var(--text-secondary);
-        margin-bottom: 1.5rem;
-    }
-
-    .plan-features {
-        list-style: none;
-        margin: 2rem 0;
-        text-align: left;
-    }
-
-    .plan-features li {
-        padding: 0.75rem 0;
-        color: var(--text-secondary);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        font-size: 0.9rem;
-    }
-
-    .plan-features li:last-child {
-        border-bottom: none;
-    }
-
-    .plan-cta {
-        margin-top: 2rem;
-    }
-
-    .plan-cta .btn {
-        width: 100%;
-    }
-
-    .code-section {
-        text-align: center;
-        margin-top: 4rem;
-        padding: 2rem;
-        background: var(--card-bg);
-        border-radius: 12px;
-        border: 1px solid var(--border);
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/billing.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="pricing-hero">
-    <h1>Choisissez Votre Plan</h1>
-    <p>Accédez à toutes nos applications d'immigration : CV, lettres de motivation, tests de langue, assistance visa et plus encore.</p>
+
+<!-- Hero Section -->
+<div class="billing-access-hero">
+  <div class="billing-access-hero__badge">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
+    </svg>
+    Tarification 2026
+  </div>
+
+  <h1 class="billing-access-hero__title">
+    Préparez votre <span class="billing-access-hero__gradient">Réussite Internationale</span>
+  </h1>
+
+  <p class="billing-access-hero__subtitle">
+    Un abonnement unique pour débloquer toute la puissance de l'IA au service de votre projet d'immigration au Canada, en France ou en Belgique. Outils conformes aux normes IRCC, Europass et exigences Schengen.
+  </p>
 </div>
 
-<div class="plans-grid">
-    {% for plan in plans %}
-    <div class="plan-card {% if plan.is_popular %}popular{% endif %}">
-        {% if plan.is_popular %}
-            <span class="popular-badge">⭐ POPULAIRE</span>
-        {% endif %}
-        
-        <div class="plan-name">{{ plan.name }}</div>
-        
-        <div class="plan-price">
-            ${{ plan.price_usd }}
-            <small>USD</small>
-        </div>
-        
-        <div class="plan-duration">
-            {{ plan.price_xaf|floatformat:0 }} FCFA • {{ plan.get_duration_display }}
-        </div>
-
-        <ul class="plan-features">
-            {% for feature in plan.features %}
-                <li>{{ feature }}</li>
-            {% empty %}
-                <li>✓ Accès à toutes les applications</li>
-                <li>✓ Génération de CV illimitée</li>
-                <li>✓ Lettres de motivation IA</li>
-                <li>✓ Tests de langue</li>
-                <li>✓ Assistance visa</li>
-            {% endfor %}
-        </ul>
-
-        <div class="plan-cta">
-            {% if user.is_authenticated %}
-                <a href="{% url 'billing:buy_plan' plan.slug %}" class="btn btn-primary">
-                    Choisir ce plan
-                </a>
-            {% else %}
-                <a href="/authentification/login/?next={% url 'billing:buy_plan' plan.slug %}" class="btn btn-primary">
-                    Se connecter pour acheter
-                </a>
-            {% endif %}
-        </div>
+<!-- Plans Grid -->
+<div class="billing-access-plans">
+  {% for plan in plans %}
+  <article class="billing-access-card {% if plan.is_popular %}is-popular{% endif %}" 
+           itemscope 
+           itemtype="https://schema.org/Product">
+    
+    <!-- Popular Badge -->
+    {% if plan.is_popular %}
+    <div class="billing-access-card__popular">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+      Recommandé pour l'Afrique
     </div>
-    {% endfor %}
+    {% endif %}
+
+    <!-- Plan Header -->
+    <div class="billing-access-card__header">
+      <div class="billing-access-card__icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          {% if forloop.first %}
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          {% elif forloop.last %}
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          {% else %}
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+          {% endif %}
+        </svg>
+      </div>
+      <h2 class="billing-access-card__name" itemprop="name">{{ plan.name }}</h2>
+    </div>
+
+    <!-- Price USD -->
+    <div class="billing-access-card__price" 
+         itemprop="offers" 
+         itemscope 
+         itemtype="https://schema.org/Offer">
+      <div class="billing-access-card__amount">
+        <span class="currency" itemprop="priceCurrency" content="USD">$</span>
+        <span class="value" itemprop="price" content="{{ plan.price_usd }}">{{ plan.price_usd }}</span>
+        <span class="unit">USD</span>
+      </div>
+    </div>
+
+    <!-- Price FCFA + Duration -->
+    <div class="billing-access-card__local">
+      <strong>{{ plan.price_xaf|floatformat:0 }} FCFA</strong>
+      <span class="billing-access-card__separator">·</span>
+      <span>{{ plan.get_duration_display }}</span>
+    </div>
+
+    <!-- Features List -->
+    <ul class="billing-access-card__features">
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>CV Normes IRCC & Europass</span>
+      </li>
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Analyse d'Éligibilité Visa</span>
+      </li>
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Simulateur de Preuve de Fonds</span>
+      </li>
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Préparation TEF/TCF/IELTS</span>
+      </li>
+      {% for feature in plan.features %}
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>{{ feature }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <!-- CTA Button -->
+    <div class="billing-access-card__cta">
+      {% if user.is_authenticated %}
+        <a href="{% url 'billing:buy_plan' plan.slug %}" 
+           class="billing-access-card__btn">
+          <span>Activer maintenant</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      {% else %}
+        <a href="/authentification/login/?next={% url 'billing:buy_plan' plan.slug %}" 
+           class="billing-access-card__btn">
+          <span>Commencer mon dossier</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      {% endif %}
+    </div>
+
+  </article>
+  {% empty %}
+  <div class="billing-access-empty">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 16v-4M12 8h.01"/>
+    </svg>
+    <h3>Plans temporairement indisponibles</h3>
+    <p>Nos offres sont en cours de mise à jour. Revenez bientôt.</p>
+  </div>
+  {% endfor %}
 </div>
 
-<div class="code-section">
-    <h3 style="margin-bottom:1rem; color:var(--primary);">Vous avez un code prépayé ?</h3>
-    <p style="color:var(--text-secondary); margin-bottom:1.5rem;">
-        Activez votre code pour accéder immédiatement à toutes les fonctionnalités
-    </p>
-    <a href="{% url 'billing:redeem' %}" class="btn btn-secondary">
-        Activer un code
-    </a>
+<!-- Local Payment Section -->
+<div class="billing-access-local">
+  <div class="billing-access-local__content">
+    <div class="billing-access-local__text">
+      <div class="billing-access-local__icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+          <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+      </div>
+      <div>
+        <h3 class="billing-access-local__title">Paiement Local & Codes Prépayés</h3>
+        <p class="billing-access-local__desc">
+          Vous n'avez pas de carte bancaire ? Nos codes d'activation sont disponibles via 
+          <strong>Orange Money, MTN Mobile Money, Moov et Wave</strong> auprès de nos partenaires locaux 
+          au Cameroun, en Côte d'Ivoire, au Sénégal et au Bénin.
+        </p>
+      </div>
+    </div>
+
+    <div class="billing-access-local__cta">
+      <a href="{% url 'billing:redeem' %}" class="billing-access-local__btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+        </svg>
+        <span>Activer un code prépayé</span>
+      </a>
+    </div>
+  </div>
 </div>
+
+<!-- Trust Section -->
+<div class="billing-access-trust">
+  <h2 class="billing-access-trust__title">Immigration97 en chiffres</h2>
+  
+  <div class="billing-access-trust__grid">
+    
+    <div class="billing-access-trust__stat">
+      <div class="billing-access-trust__number">2,500+</div>
+      <p>Dossiers analysés depuis 2024</p>
+    </div>
+
+    <div class="billing-access-trust__stat">
+      <div class="billing-access-trust__number">95%</div>
+      <p>Taux de satisfaction utilisateurs</p>
+    </div>
+
+    <div class="billing-access-trust__stat">
+      <div class="billing-access-trust__number">24/7</div>
+      <p>Support technique disponible</p>
+    </div>
+
+    <div class="billing-access-trust__stat">
+      <div class="billing-access-trust__number">15+</div>
+      <p>Pays de destination couverts</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- SEO Benefits Section -->
+<div class="billing-access-benefits">
+  <h2 class="billing-access-benefits__title">Ce que vous obtenez avec Immigration97</h2>
+  
+  <div class="billing-access-benefits__grid">
+    
+    <div class="billing-access-benefits__item">
+      <div class="billing-access-benefits__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <h3>CV aux Normes Internationales</h3>
+      <p>Formats IRCC (Canada), Europass (UE) et ATS-friendly pour maximiser vos chances.</p>
+    </div>
+
+    <div class="billing-access-benefits__item">
+      <div class="billing-access-benefits__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <h3>Analyse d'Éligibilité Visa</h3>
+      <p>Simulateur basé sur les grilles officielles IRCC, Schengen et UK Immigration.</p>
+    </div>
+
+    <div class="billing-access-benefits__item">
+      <div class="billing-access-benefits__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <h3>Calculateur de Preuve de Fonds</h3>
+      <p>Estimez vos besoins financiers selon votre destination et situation familiale.</p>
+    </div>
+
+    <div class="billing-access-benefits__item">
+      <div class="billing-access-benefits__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </div>
+      <h3>Préparation Tests de Langue</h3>
+      <p>Exercices TEF/TCF Canada, IELTS et examens de français pour l'immigration.</p>
+    </div>
+
+    <div class="billing-access-benefits__item">
+      <div class="billing-access-benefits__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <h3>Coach IA Personnalisé</h3>
+      <p>Accompagnement intelligent adapté à votre profil et vos objectifs d'immigration.</p>
+    </div>
+
+    <div class="billing-access-benefits__item">
+      <div class="billing-access-benefits__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h3>Données 100% Sécurisées</h3>
+      <p>Cryptage SSL 256 bits, conformité RGPD, hébergement sécurisé.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- Schema.org Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "Abonnement Immigration97",
+  "description": "Plateforme IA d'assistance immigration Canada et Europe : CV, tests de langue, simulation visa",
+  "brand": {
+    "@type": "Brand",
+    "name": "Immigration97"
+  },
+  "offers": [
+    {% for plan in plans %}
+    {
+      "@type": "Offer",
+      "name": "{{ plan.name }}",
+      "price": "{{ plan.price_usd }}",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock",
+      "url": "{{ request.build_absolute_uri }}",
+      "priceValidUntil": "2026-12-31"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
 {% endblock %}

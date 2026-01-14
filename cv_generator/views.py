@@ -1,275 +1,541 @@
 # cv_generator/views.py
+# ============================================================
+# IMMIGRATION97 — CV GENERATOR (CLEAN + STABLE)
+# - Wizard Step1 / Step2 / Step3
+# - CRUD (single version)
+# - IA endpoints (fallback safe)
+# - PDF export unique (ReportLab)
+# ============================================================
+
+# ===============================
+# IMPORTS PYTHON STANDARD
+# ===============================
 import json
 import logging
-import re
+import textwrap
 from io import BytesIO
-from .models import CVUpload
+from datetime import datetime
 
-from django.utils import timezone
+# ===============================
+# IMPORTS DJANGO
+# ===============================
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.template.loader import render_to_string
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
-from django.utils.text import slugify
-from .services.cv_parser import extract_text_from_cv
-from .services.cv_prefill import prefill_cv_from_text
-from cv_generator.services.cv_mapper import map_cv_text_to_models
-from xhtml2pdf import pisa
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
+from django.views.decorators.http import require_POST, require_http_methods
 
+# ===============================
+# SERVICES INTERNES (optionnels)
+# ===============================
+try:
+    from billing.services import has_active_access, has_session_access
+except ImportError:
+    has_active_access = None
+    has_session_access = None
+
+try:
+    from .services.cv_parser import extract_text_from_cv
+    from .services.cv_mapper import map_cv_text_to_models
+except ImportError:
+    extract_text_from_cv = None
+    map_cv_text_to_models = None
+
+# ===============================
+# MODÈLES
+# ===============================
 from .models import (
     CV,
     CVTemplate,
+    CVUpload,
     Experience,
-    Education,
+    Formation,
     Skill,
-    Language,
+    Competence,
+    Langue,
+    Certification,
+    Volunteer,
+    Project,
+    Hobby,
 )
 
+# ===============================
+# FORMULAIRES
+# ===============================
 from .forms import (
-    Step1Form, Step3Form, ExperienceForm,
-    EducationForm, SkillForm, LanguageForm, VolunteerForm,
-    HobbyForm, CertificationForm, ProjectForm, CVUploadForm 
+    Step1Form,
+    Step3Form,  # si tu l'utilises ailleurs
+    ExperienceForm,
+    EducationForm,  # si tu l'utilises ailleurs
+    SkillForm,      # si tu l'utilises ailleurs
+    LangueForm,     # si tu l'utilises ailleurs
+    CompetenceForm, # si tu l'utilises ailleurs
+    CertificationForm,
+    VolunteerForm,
+    ProjectForm,
+    HobbyForm,
+    CVUploadForm,
 )
 
+# ===============================
+# LOGGER
+# ===============================
 logger = logging.getLogger(__name__)
 
-# Optionnel: service IA si présent
+# ===============================
+# SERVICE IA (optionnel)
+# ===============================
 try:
     from .services.openai_service import OpenAIService
     _ai_service = OpenAIService()
-except Exception as _e:
-    logger.info("OpenAIService indisponible ou non configuré: %s", _e)
+except Exception as e:
+    logger.info("OpenAIService indisponible: %s", e)
     _ai_service = None
 
 
-# ---------------------------
-# Helpers généraux
-# ---------------------------
-def _safe_manager_list(obj, attr_name):
-    """
-    Retourne list(obj.<attr>.all()) si possible, sinon [].
-    Evite l'AttributeError si la relation n'existe pas.
-    """
-    mgr = getattr(obj, attr_name, None)
-    if mgr is None:
-        return []
-    try:
-        if hasattr(mgr, "all"):
-            return list(mgr.all())
-    except Exception:
-        pass
-    # pas de manager, retourne vide
-    return []
-
-
-def _cv_context(cv, step, **extra):
-    """
-    Contexte unique et contractuel pour toute l'app CV.
-    UI = PDF = même source.
-    """
-    base = {
-        "cv": cv,
-        "current_step": step,
-
-        # Relations STRICTES (models)
-        "experiences": list(cv.experiences.all()),
-        "educations": list(cv.educations.all()),
-        "skills": list(cv.skills.all()),
-        "languages": list(cv.languages.all()),
-        "certifications": list(cv.certifications.all()),
-        "volunteers": list(cv.volunteers.all()),
-        "projects": list(cv.projects.all()),
-        "hobbies": list(cv.hobbies.all()),
-    }
-
-    base.update(extra or {})
-    return base
+# ===============================
+# HELPERS
+# ===============================
 
 def _json_body(request):
+    """Parse JSON body de manière sécurisée"""
     try:
         return json.loads(request.body.decode("utf-8"))
     except Exception:
         return {}
 
+def _has_field(model_instance, field_name):
+    """Vérifie si un modèle possède un champ donné"""
+    try:
+        return any(f.name == field_name for f in model_instance._meta.fields)
+    except Exception:
+        return False
 
-# ---------------------------
-# Pages & CRUD (inchangés fonctionnellement)
-# ---------------------------
+def _parse_date_yyyy_mm_dd(value: str):
+    """Parse une date HTML input (YYYY-MM-DD) -> date() ou None"""
+    value = (value or "").strip()
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+def _user_has_premium_access(user) -> bool:
+    """
+    Accès premium:
+    - si billing.services.has_active_access existe, on l'utilise
+    - sinon -> False (safe)
+    """
+    try:
+        if has_active_access:
+            return bool(has_active_access(user))
+    except Exception:
+        pass
+    return False
+
+
+# ===============================
+# PAGES PRINCIPALES
+# ===============================
+
 def index(request):
     return render(request, "cv_generator/index.html")
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
-from billing.services import has_active_access, has_session_access
 
 @login_required
 def cv_list(request):
-    cvs = CV.objects.filter(
-        utilisateur=request.user
-    ).order_by('-created_at')
-
-    return render(
-        request,
-        "cv_generator/cv_list.html",
-        {"cvs": cvs}
-    )
+    cvs = CV.objects.filter(user=request.user).order_by("-created_at")
+    return render(request, "cv_generator/cv_list.html", {"cvs": cvs})
 
 
-# cv_generator/views.py
+# ===============================
+# TEMPLATES CV
+# ===============================
 
-from django.shortcuts import render
-from .models import CVTemplate
+@login_required
+def template_selection(request, cv_id=None):
+    """Page de sélection/changement de template"""
+    cv = None
+    if cv_id:
+        cv = get_object_or_404(CV, id=cv_id, user=request.user)
 
-def template_selection(request):
-    templates = CVTemplate.objects.filter(is_active=True)
-    return render(request, "cv_generator/template_selection.html", {
-        "templates": templates
-    })
+    templates_free = CVTemplate.objects.filter(
+        is_active=True,
+        is_premium=False
+    ).order_by("order", "name")
+
+    templates_premium = CVTemplate.objects.filter(
+        is_active=True,
+        is_premium=True
+    ).order_by("order", "name")
+
+    total_templates = templates_free.count() + templates_premium.count()
+
+    logger.info("[TEMPLATE_SELECTION] gratuits=%s premium=%s total=%s",
+                templates_free.count(), templates_premium.count(), total_templates)
+
+    if total_templates == 0:
+        logger.warning("[TEMPLATE_SELECTION] ⚠️ Aucun template en base (admin Django ?)")
+
+    context = {
+        "cv": cv,
+        "templates_free": templates_free,
+        "templates_premium": templates_premium,
+        "total_templates": total_templates,
+        "templates": list(templates_free) + list(templates_premium),  # compat template
+    }
+    return render(request, "cv_generator/template_selection.html", context)
 
 
 @login_required
+def choose_template(request, template_id):
+    """Créer un nouveau CV avec le template choisi"""
+    template = get_object_or_404(CVTemplate, id=template_id, is_active=True)
+
+    # si premium -> vérifier accès
+    if template.is_premium and not _user_has_premium_access(request.user):
+        messages.error(request, "⚠️ Ce template est réservé aux abonnés Premium.")
+        return redirect("cv_generator:template_selection")
+
+    cv = CV.objects.create(
+        user=request.user,
+        template=template,
+        nom="",
+        prenom="",
+        titre_poste="",
+        email=getattr(request.user, "email", "") or "",
+        telephone="",
+        ville="",
+        province="",
+        linkedin="",
+        current_step=1,
+        is_published=False,
+        is_completed=False,
+        step1_completed=False,
+        step2_completed=False,
+        step3_completed=False,
+    )
+
+    messages.success(request, f"✅ Nouveau CV créé avec le template '{template.name}'")
+    return redirect("cv_generator:create_cv", cv_id=cv.id)
+
+
+@login_required
+@require_POST
+def change_template(request, cv_id):
+    """Changer le template d'un CV existant"""
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
+
+    template_id = request.POST.get("template_id")
+    if not template_id:
+        messages.error(request, "❌ Template invalide")
+        return redirect("cv_generator:template_selection", cv_id=cv.id)
+
+    template = get_object_or_404(CVTemplate, id=template_id, is_active=True)
+
+    if template.is_premium and not _user_has_premium_access(request.user):
+        messages.error(request, "⚠️ Ce template est réservé aux abonnés Premium.")
+        return redirect("cv_generator:template_selection", cv_id=cv.id)
+
+    cv.template = template
+    cv.save(update_fields=["template"])
+
+    messages.success(request, f"✅ Template changé : {template.name}")
+    return redirect("cv_generator:finalize_cv", cv_id=cv.id)
+
+
+@login_required
+@require_POST
+def set_template(request):
+    """API endpoint pour créer un CV avec un template (JSON)"""
+    data = _json_body(request)
+    template_id = data.get("template_id")
+
+    if not template_id:
+        return JsonResponse({"success": False, "error": "template_id manquant"}, status=400)
+
+    template = get_object_or_404(CVTemplate, id=template_id, is_active=True)
+
+    if template.is_premium and not _user_has_premium_access(request.user):
+        return JsonResponse({"success": False, "error": "Template premium - accès requis"}, status=403)
+
+    cv = CV.objects.create(
+        user=request.user,
+        template=template,
+        nom="",
+        prenom="",
+        titre_poste="",
+        email=getattr(request.user, "email", "") or "",
+        telephone="",
+        ville="",
+        province="",
+        linkedin="",
+        current_step=1,
+        is_published=False,
+        is_completed=False,
+        step1_completed=False,
+        step2_completed=False,
+        step3_completed=False,
+    )
+
+    redirect_url = redirect("cv_generator:create_cv", cv_id=cv.id).url
+    return JsonResponse({"success": True, "data": {"cv_id": cv.id, "redirect_url": redirect_url}})
+
+
+# ===============================
+# WIZARD MULTI-ÉTAPES
+# ===============================
+
+@login_required
 def create_cv(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+    cv = get_object_or_404(
+        CV.objects.select_related("template", "user").prefetch_related(
+            "experiences", "formations", "competences", "langues",
+            "skills", "certifications", "volunteers", "projects", "hobbies"
+        ),
+        id=cv_id,
+        user=request.user
+    )
 
-    if request.method == "POST":
-        form = Step1Form(request.POST, instance=cv)
-        if form.is_valid():
-            cv_obj = form.save(commit=False)
-            cv_obj.utilisateur = request.user
-            cv_obj.step1_completed = True
-            cv_obj.current_step = 2
-            cv_obj.save()
+    current_step = cv.current_step or 1
 
-            # Mettre à jour data.personal_info depuis cleaned_data
-            pi = {
-                "nom": form.cleaned_data.get("nom", "") or "",
-                "prenom": form.cleaned_data.get("prenom", "") or "",
-                "email": form.cleaned_data.get("email", "") or "",
-                "telephone": form.cleaned_data.get("telephone", "") or "",
-            }
-            cv_obj.data["personal_info"] = pi
-            cv_obj.save(update_fields=["data"])
+    # ==================== STEP 1 ====================
+    if current_step == 1:
+        if request.method == "POST":
+            form = Step1Form(request.POST, instance=cv)
+            if form.is_valid():
+                form.save()
 
-            messages.success(request, "✅ Étape 1 complétée avec succès !")
-            return redirect("cv_generator:create_cv_step2", cv_id=cv_obj.id)
+                # Marquer step1
+                if not cv.step1_completed:
+                    cv.step1_completed = True
+                    cv.save(update_fields=["step1_completed"])
+
+                # Avancer step2
+                if cv.current_step < 2:
+                    cv.current_step = 2
+                    cv.save(update_fields=["current_step"])
+
+                messages.success(request, "✅ Étape 1 complétée !")
+                return redirect("cv_generator:create_cv", cv_id=cv.id)
         else:
-            messages.error(request, "❌ Veuillez corriger les erreurs dans le formulaire.")
-    else:
-        form = Step1Form(instance=cv)
+            form = Step1Form(instance=cv)
 
-    return render(request, "cv_generator/create_cv.html", _cv_context(cv, 1, form=form))
+        return render(request, "cv_generator/steps/step_1_personal.html", {
+            "cv": cv,
+            "form": form,
+            "current_step": 1,
+        })
 
+    # ==================== STEP 2 ====================
+    if current_step == 2:
+        return redirect("cv_generator:create_cv_step2", cv_id=cv.id)
 
+    # ==================== STEP 3 ====================
+    if current_step == 3:
+        return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
 
+    # Fallback
+    cv.current_step = 1
+    cv.save(update_fields=["current_step"])
+    return redirect("cv_generator:create_cv", cv_id=cv.id)
+###############################################################################
+#########################
+############################3
+#########################
 
+from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import CV, Experience
+from .models import CV, Experience, Formation, Competence, Langue
+from .forms import ExperienceForm
+
+
+def _parse_date_yyyy_mm_dd(value):
+    """Parse une date 'YYYY-MM-DD' -> date() ou None"""
+    value = (value or "").strip()
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        return None
 
 
 @login_required
 def create_cv_step2(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+    """Étape 2 : Expériences"""
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
 
-    # 🔹 EXPÉRIENCES EXISTANTES (importées ou ajoutées)
-    experiences = cv.experiences.all().order_by("-start_date")
+    if not cv.step1_completed:
+        messages.warning(request, "⚠️ Veuillez d'abord compléter l'étape 1.")
+        return redirect("cv_generator:create_cv", cv_id=cv.id)
 
-    # 🔹 DÉTECTION SOURCE (LOGIQUE CLÉ)
-    if experiences.exists() and not request.GET.get("edit"):
-        experience_source = "imported"
-    else:
-        experience_source = "manual"
+    # Forcer step2
+    if (cv.current_step or 1) != 2:
+        cv.current_step = 2
+        cv.save(update_fields=["current_step"])
 
-    # 🔹 AJOUT MANUEL D’UNE EXPÉRIENCE
-    if request.method == "POST" and experience_source == "manual":
-        title = request.POST.get("title")
-        company = request.POST.get("company")
-        start_date = request.POST.get("start_date")
-        end_date = request.POST.get("end_date") or None
-        description_raw = request.POST.get("description_raw")
+    experience_form = ExperienceForm()
 
-        # 🔐 Sécurité minimale
-        if not title or not company or not start_date or not description_raw:
-            messages.error(request, "Veuillez remplir tous les champs obligatoires.")
-        else:
-            Experience.objects.create(
-                cv=cv,
-                title=title,
-                company=company,
-                start_date=start_date,
-                end_date=end_date,
-                description_raw=description_raw,
-            )
+    if request.method == "POST":
+        experience_form = ExperienceForm(request.POST)
+        if experience_form.is_valid():
+            exp = experience_form.save(commit=False)
+            exp.cv = cv
+            exp.save()
 
-            messages.success(request, "Expérience ajoutée avec succès.")
+            if not cv.step2_completed:
+                cv.step2_completed = True
+                cv.save(update_fields=["step2_completed"])
 
-            # 🔹 Mise à jour progression CV
-            cv.step2_completed = True
-            cv.current_step = max(cv.current_step, 2)
-            cv.save()
+            messages.success(request, "✅ Expérience ajoutée avec succès !")
+            return redirect("cv_generator:create_cv_step2", cv_id=cv.id)
 
-            return redirect("cv_generator:create_cv_step2", cv.id)
+        messages.error(request, "❌ Erreur dans le formulaire. Vérifiez les champs.")
 
-    context = {
+    # ✅ IMPORTANT : ne plus trier par date_debut (inexistant)
+    experiences = cv.experiences.all().order_by("-start_date", "-id")
+
+
+    return render(request, "cv_generator/steps/step_2_experience.html", {
         "cv": cv,
         "experiences": experiences,
-        "experience_source": experience_source,
-    }
+        "experience_form": experience_form,
+        "current_step": 2,
+    })
 
-    return render(
-        request,
-        "cv_generator/steps/step_2_experience.html",
-        context
-    )
 
 @login_required
 def create_cv_step3(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+    """Étape 3 : Formations + Compétences + Langues + Résumé"""
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
 
-    # 🔒 Sécurité : on ne peut pas accéder à l'étape 3 sans l'étape 2
+    # Vérification étape 2
     if not cv.step2_completed:
-        messages.warning(
-            request,
-            "⚠️ Veuillez d'abord compléter l'étape Expériences."
-        )
+        messages.warning(request, "⚠️ Complétez d'abord vos expériences professionnelles.")
         return redirect("cv_generator:create_cv_step2", cv_id=cv.id)
 
-    # 🔁 Forcer la cohérence de l'étape
-    if cv.current_step < 3:
+    # Forcer l’étape 3
+    if (cv.current_step or 1) != 3:
         cv.current_step = 3
         cv.save(update_fields=["current_step"])
 
-    context = _cv_context(
-        cv,
-        step=3,
-        education_form=EducationForm(),
-        skill_form=SkillForm(),
-        language_form=LanguageForm(),
-        certification_form=CertificationForm(),
-        volunteer_form=VolunteerForm(),
-        project_form=ProjectForm(),
-        hobby_form=HobbyForm(),
-    )
+    # ==================== RÉSUMÉ ====================
+    if request.method == "POST" and ("save_summary" in request.POST or ("summary" in request.POST and "action" not in request.POST)):
+        summary = (request.POST.get("summary") or "").strip()
+        if summary:
+            # ✅ décision simple : on remplit summary (EN) + si CV en FR, on copie aussi en FR
+            cv.summary = summary
+            if (cv.language or "").lower().startswith("fr"):
+                cv.resume_professionnel = summary
+                cv.save(update_fields=["summary", "resume_professionnel"])
+            else:
+                cv.save(update_fields=["summary"])
 
-    return render(
-        request,
-        "cv_generator/create_cv.html",
-        context
-    )
+            messages.success(request, "✅ Résumé professionnel sauvegardé !")
+            return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
+
+        messages.error(request, "❌ Le résumé ne peut pas être vide.")
+
+    # ==================== ACTIONS ====================
+    if request.method == "POST" and "action" in request.POST:
+        action = (request.POST.get("action") or "").strip()
+
+        # ----- AJOUT FORMATION -----
+        if action == "add_formation":
+            diplome = (request.POST.get("diplome") or "").strip()
+            etablissement = (request.POST.get("etablissement") or "").strip()
+            start_date = _parse_date_yyyy_mm_dd(request.POST.get("start_date"))
+            end_date = _parse_date_yyyy_mm_dd(request.POST.get("end_date"))
+
+            if diplome and etablissement:
+                formation = Formation.objects.create(
+                    cv=cv,
+                    diplome=diplome,
+                    etablissement=etablissement,
+                    # Compat EN (utile si certains templates lisent ces champs)
+                    diploma=diplome,
+                    institution=etablissement,
+                    start_date=start_date,
+                    end_date=end_date,
+                )
+
+                if end_date:
+                    formation.annee_obtention = str(end_date.year)
+                    formation.save(update_fields=["annee_obtention"])
+
+                messages.success(request, "✅ Formation ajoutée avec succès !")
+                return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
+
+            messages.error(request, "❌ Le diplôme et l'établissement sont obligatoires.")
+
+        # ----- AJOUT COMPÉTENCE -----
+        elif action == "add_competence":
+            competence_nom = (request.POST.get("competence") or "").strip()
+            if competence_nom:
+                Competence.objects.create(cv=cv, nom=competence_nom)
+                messages.success(request, "✅ Compétence ajoutée !")
+                return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
+
+            messages.error(request, "❌ Le nom de la compétence est obligatoire.")
+
+        # ----- AJOUT LANGUE -----
+        elif action == "add_langue":
+            langue = (request.POST.get("langue") or "").strip()
+            niveau = (request.POST.get("niveau") or "").strip()
+
+            if langue and niveau:
+                # ✅ IMPORTANT : on écrit uniquement dans les champs qui existent sûrement en base
+                # (d'après tes erreurs : Langue = name/level)
+                Langue.objects.create(
+                    cv=cv,
+                    name=langue,
+                    level=niveau,
+                )
+                messages.success(request, "✅ Langue ajoutée !")
+                return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
+
+            messages.error(request, "❌ La langue et le niveau sont obligatoires.")
+
+        # ----- TERMINER CV -----
+        elif action == "complete_cv":
+            cv.is_completed = True
+            cv.step3_completed = True
+            cv.current_step = 3
+            cv.save(update_fields=["is_completed", "step3_completed", "current_step"])
+            messages.success(request, "✅ CV marqué comme terminé !")
+            return redirect("cv_generator:finalize_cv", cv_id=cv.id)
+
+    # ==================== CONTEXT ====================
+    context = {
+        "cv": cv,
+        "formations": Formation.objects.filter(cv=cv).order_by("-start_date", "-end_date", "-annee_obtention"),
+        "competences": Competence.objects.filter(cv=cv).order_by("nom"),
+        # ✅ IMPORTANT : ne plus trier/afficher sur langue/niveau si ces champs n’existent pas en base
+        "langues": Langue.objects.filter(cv=cv).order_by("name", "level"),
+        # ✅ IMPORTANT : ne plus trier par date_debut (inexistant)
+        "experiences": cv.experiences.all().order_by("-start_date", "-created_at"),
+        "current_step": 3,
+    }
+    return render(request, "cv_generator/steps/step_3_skills.html", context)
+
 
 
 @login_required
 def delete_experience(request, cv_id, exp_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
     exp = get_object_or_404(Experience, id=exp_id, cv=cv)
     exp.delete()
+
     messages.success(request, "✅ Expérience supprimée.")
 
+    # si plus d'expérience, step2 redevient incomplet
     if cv.experiences.count() == 0 and cv.step2_completed:
         cv.step2_completed = False
         cv.current_step = 2
@@ -279,174 +545,35 @@ def delete_experience(request, cv_id, exp_id):
 
 
 @login_required
-def add_education(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    if request.method == "POST":
-        form = EducationForm(request.POST)
-        if form.is_valid():
-            edu = form.save(commit=False)
-            edu.cv = cv
-            edu.save()
-            messages.success(request, "✅ Formation ajoutée avec succès !")
-        else:
-            messages.error(request, "❌ Erreur lors de l'ajout de la formation.")
-    return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
-
-
-@login_required
-def delete_education(request, cv_id, edu_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    edu = get_object_or_404(Education, id=edu_id, cv=cv)
-    edu.delete()
+def delete_formation(request, cv_id, formation_id):
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
+    formation = get_object_or_404(Formation, id=formation_id, cv=cv)
+    formation.delete()
     messages.success(request, "✅ Formation supprimée.")
     return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
 
 
-# ---------------------------
-# Skills: robust creation / suppression
-# ---------------------------
-def _has_field(model_instance, field_name):
-    try:
-        return any(f.name == field_name for f in model_instance._meta.fields)
-    except Exception:
-        return False
-
-
 @login_required
-def add_skill(request, cv_id):
-    """
-    Ajout de compétence: résilient si Skill a ou non un ForeignKey vers CV.
-    Si Skill n'a pas de champ 'cv' mais CV possède une relation M2M .skills, on l'ajoute.
-    """
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    if request.method == "POST":
-        form = SkillForm(request.POST)
-        if form.is_valid():
-            skill = form.save(commit=False)
-            # Si le modèle Skill a un champ 'cv', on l'affecte
-            if _has_field(skill, "cv"):
-                try:
-                    setattr(skill, "cv", cv)
-                except Exception:
-                    pass
-            # Save toujours
-            skill.save()
-
-            # Si cv possède une relation M2M .skills, on l'ajoute (sécurise les 2 cas)
-            cv_skills = getattr(cv, "skills", None)
-            try:
-                if hasattr(cv_skills, "add"):
-                    cv_skills.add(skill)
-            except Exception:
-                # ignore si pas possible
-                pass
-
-            messages.success(request, "✅ Compétence ajoutée avec succès !")
-        else:
-            messages.error(request, "❌ Erreur lors de l'ajout de la compétence.")
+def delete_competence(request, cv_id, competence_id):
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
+    competence = get_object_or_404(Competence, id=competence_id, cv=cv)
+    competence.delete()
+    messages.success(request, "✅ Compétence supprimée.")
     return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
 
 
 @login_required
-def delete_skill(request, cv_id, skill_id):
-    """
-    Suppression résiliente de compétence:
-    - si Skill.cv existe -> on exige ownership
-    - sinon si cv.skills M2M existe -> on supprime la relation et éventuellement l'objet
-    - sinon on renvoie 403 pour ne pas supprimer une compétence globale
-    """
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    skill = get_object_or_404(Skill, id=skill_id)
-
-    # si skill a champ 'cv', vérifier correspondance
-    if _has_field(skill, "cv"):
-        try:
-            if getattr(skill, "cv", None) != cv:
-                messages.error(request, "❌ Accès refusé à cette compétence.")
-                return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
-            skill.delete()
-            messages.success(request, "✅ Compétence supprimée.")
-            return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
-        except Exception:
-            messages.error(request, "❌ Erreur lors de la suppression de la compétence.")
-            return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
-
-    # sinon, si CV possède relation M2M .skills
-    cv_skills = getattr(cv, "skills", None)
-    if hasattr(cv_skills, "remove"):
-        try:
-            if skill in cv_skills.all():
-                cv_skills.remove(skill)
-                # supprimer l'objet si tu veux ; ici on supprime aussi
-                skill.delete()
-                messages.success(request, "✅ Compétence supprimée.")
-                return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
-        except Exception:
-            messages.error(request, "❌ Erreur lors de la suppression de la compétence.")
-            return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
-
-    # cas par défaut : on refuse pour éviter de supprimer une compétence globale non liée
-    messages.error(request, "❌ Impossible de supprimer cette compétence (non liée au CV).")
-    return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
-
-
-# ---------------------------
-# Languages CRUD (inchangés)
-# ---------------------------
-@login_required
-def add_language(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    if request.method == "POST":
-        form = LanguageForm(request.POST)
-        if form.is_valid():
-            lang = form.save(commit=False)
-            # si Language a champ cv -> l'affecter
-            if _has_field(lang, "cv"):
-                try:
-                    setattr(lang, "cv", cv)
-                except Exception:
-                    pass
-            lang.save()
-            messages.success(request, "✅ Langue ajoutée avec succès !")
-        else:
-            messages.error(request, "❌ Erreur lors de l'ajout de la langue.")
-    return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
-
-
-@login_required
-def delete_language(request, cv_id, lang_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    lang = get_object_or_404(Language, id=lang_id, cv=cv)
-    lang.delete()
+def delete_langue(request, cv_id, langue_id):
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
+    langue = get_object_or_404(Langue, id=langue_id, cv=cv)
+    langue.delete()
     messages.success(request, "✅ Langue supprimée.")
-    return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
-
-
-# ---------------------------
-# Certifications / Volunteers / Projects / Hobbies (inchangés)
-# ---------------------------
-@login_required
-def add_certification(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    if request.method == "POST":
-        form = CertificationForm(request.POST)
-        if form.is_valid():
-            cert = form.save(commit=False)
-            if _has_field(cert, "cv"):
-                try:
-                    setattr(cert, "cv", cv)
-                except Exception:
-                    pass
-            cert.save()
-            messages.success(request, "✅ Certification ajoutée avec succès !")
-        else:
-            messages.error(request, "❌ Erreur lors de l'ajout de la certification.")
     return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
 
 
 @login_required
 def delete_certification(request, cv_id, cert_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
     cert = get_object_or_404(Certification, id=cert_id, cv=cv)
     cert.delete()
     messages.success(request, "✅ Certification supprimée.")
@@ -454,27 +581,8 @@ def delete_certification(request, cv_id, cert_id):
 
 
 @login_required
-def add_volunteer(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    if request.method == "POST":
-        form = VolunteerForm(request.POST)
-        if form.is_valid():
-            vol = form.save(commit=False)
-            if _has_field(vol, "cv"):
-                try:
-                    setattr(vol, "cv", cv)
-                except Exception:
-                    pass
-            vol.save()
-            messages.success(request, "✅ Expérience bénévole ajoutée avec succès !")
-        else:
-            messages.error(request, "❌ Erreur lors de l'ajout de l'expérience bénévole.")
-    return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
-
-
-@login_required
 def delete_volunteer(request, cv_id, vol_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
     vol = get_object_or_404(Volunteer, id=vol_id, cv=cv)
     vol.delete()
     messages.success(request, "✅ Expérience bénévole supprimée.")
@@ -482,27 +590,8 @@ def delete_volunteer(request, cv_id, vol_id):
 
 
 @login_required
-def add_project(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    if request.method == "POST":
-        form = ProjectForm(request.POST)
-        if form.is_valid():
-            proj = form.save(commit=False)
-            if _has_field(proj, "cv"):
-                try:
-                    setattr(proj, "cv", cv)
-                except Exception:
-                    pass
-            proj.save()
-            messages.success(request, "✅ Projet ajouté avec succès !")
-        else:
-            messages.error(request, "❌ Erreur lors de l'ajout du projet.")
-    return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
-
-
-@login_required
 def delete_project(request, cv_id, proj_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
     proj = get_object_or_404(Project, id=proj_id, cv=cv)
     proj.delete()
     messages.success(request, "✅ Projet supprimé.")
@@ -510,566 +599,79 @@ def delete_project(request, cv_id, proj_id):
 
 
 @login_required
-def add_hobby(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    if request.method == "POST":
-        form = HobbyForm(request.POST)
-        if form.is_valid():
-            hobby = form.save(commit=False)
-            if _has_field(hobby, "cv"):
-                try:
-                    setattr(hobby, "cv", cv)
-                except Exception:
-                    pass
-            hobby.save()
-            messages.success(request, "✅ Centre d'intérêt ajouté avec succès !")
-        else:
-            messages.error(request, "❌ Erreur lors de l'ajout du centre d'intérêt.")
-    return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
-
-
-@login_required
 def delete_hobby(request, cv_id, hobby_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
     hobby = get_object_or_404(Hobby, id=hobby_id, cv=cv)
     hobby.delete()
     messages.success(request, "✅ Centre d'intérêt supprimé.")
     return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
 
 
-# ---------------------------
-# Résumé + finalisation
-# ---------------------------
-@login_required
-def update_summary(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    if request.method == "POST":
-        summary = request.POST.get('summary', '').strip()
-        cv.summary = summary
-        cv.save(update_fields=["summary"])
-        messages.success(request, "✅ Résumé professionnel sauvegardé !")
-    return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
-
-
-@login_required
-@require_POST
-def complete_cv(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    cv.is_completed = True
-    cv.step3_completed = True
-    if not cv.date_completion:
-        cv.date_completion = timezone.now()
-    cv.save(update_fields=["is_completed", "step3_completed", "date_completion"])
-    return JsonResponse({"success": True, "message": "CV marqué comme terminé"})
-
-
-# ---------------------------
-# Normalisation & helpers pour export PDF
-# ---------------------------
-def _clean_description_text(text: str) -> str:
-    if not text:
-        return ""
-    s = str(text)
-    s = re.sub(r'(?is)<\s*br\s*/?\s*>', '\n', s)
-    s = re.sub(r'(?is)</?\s*(p|li|ul|ol|div|span)[^>]*>', '\n', s)
-    s = re.sub(r'(?is)<[^>]+>', ' ', s)
-    s = s.replace('&bull;', '•')
-    lines = []
-    for ln in s.splitlines():
-        ln = re.sub(r'^\s*(?:[•\-\–\—\*]+)\s*', '', ln.strip())
-        if not ln:
-            continue
-        if not re.search(r'[A-Za-zÀ-ÿ0-9]', ln):
-            continue
-        lines.append(re.sub(r'\s{2,}', ' ', ln))
-    merged = []
-    buf = ''
-    for ln in lines:
-        if len(ln) < 20 and not re.search(r'[.!?:;]$', ln):
-            buf = (buf + ' ' + ln).strip()
-        else:
-            if buf:
-                merged.append(buf)
-                buf = ''
-            merged.append(ln)
-    if buf:
-        merged.append(buf)
-    return "\n".join(merged[:15])
-
-
-def _bullets_from_text(text: str) -> list:
-    clean = _clean_description_text(text)
-    return [ln.strip() for ln in clean.split("\n") if ln.strip()]
-
-
-def _norm(s):
-    return (s or "").strip().lower()
-
-
-def _resolve_pdf_template_for_cv(cv, request=None):
-    base = "cv_generator/templates_pdf/"
-    mapping = {
-        # Modernes (4 que tu gardes)
-        "canadian":      base + "cv_canada.html",
-        "canada":        base + "cv_canada.html",     # alias accepté
-        "european":      base + "cv_europe.html",
-        "europe":        base + "cv_europe.html",     # alias accepté
-        "modern":        base + "cv_modern.html",
-        "professional":  base + "cv_professional.html",
-
-        # Autres styles (laisse mappés si jamais un ancien objet traîne)
-        "linkedin":      base + "cv_linkedin.html",
-        "faang":         base + "cv_faang.html",
-        "ats":           base + "cv_ats_ultra.html",
-        "europass":      base + "cv_europe.html",
-        "professionnel": base + "cv_professional.html",
-        "moderne":       base + "cv_modern.html",
-    }
-
-    # 1) Override via ?t=...
-    if request:
-        t = (request.GET.get("t") or "").strip().lower()
-        if t in mapping:
-            return mapping[t]
-
-    # 2) Depuis l’objet template
-    style = (getattr(cv.template, "style_type", "") or "").strip().lower() if getattr(cv, "template", None) else ""
-    name  = (getattr(cv.template, "name", "") or "").strip().lower() if getattr(cv, "template", None) else ""
-
-    if style in mapping:
-        return mapping[style]
-
-    for key in mapping.keys():
-        if key and key in name:
-            return mapping[key]
-
-    # 3) Fallback
-    return "cv_generator/cv_template_pdf.html"
-
-# ---------------------------
-# EXPORT PDF (remplacé par version robuste)
-# ---------------------------
-
-# cv_generator/views.py
+# ===============================
+# FINALISATION (APERÇU)
+# ===============================
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from django.template.loader import render_to_string
-from xhtml2pdf import pisa
-import re
+from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import CV
+from .models import CV, Formation, Competence, Langue
 
-
-# =========================
-# UTILS — PDF SAFE
-# =========================
-
-def clean_and_split(text):
-    """
-    Nettoie un texte libre et le transforme en bullet points ATS.
-    """
-    if not text:
-        return []
-
-    # Supprimer phrases d'aide / exemples
-    blacklist = [
-        "utiliser des verbes",
-        "par exemple",
-        "exemple",
-        "chatgpt",
-        "guide ia",
-    ]
-
-    text_lower = text.lower()
-    for b in blacklist:
-        if b in text_lower:
-            return []
-
-    # Découpage par lignes ou séparateurs
-    lines = re.split(r"[\n•\-–]+", text)
-
-    bullets = []
-    for line in lines:
-        line = line.strip()
-        if len(line) < 5:
-            continue
-        bullets.append(line.capitalize())
-
-    return bullets[:8]  # max 8 bullets (ATS optimal)
-
-
-def normalize_language_level(level):
-    """
-    Normalisation des niveaux de langue (Canada / International).
-    """
-    if not level:
-        return ""
-
-    level = level.lower()
-
-    mapping = {
-        "débutant": "Basic",
-        "basic": "Basic",
-        "moyen": "Intermediate",
-        "intermédiaire": "Intermediate",
-        "courant": "Fluent",
-        "excellent": "Fluent",
-        "fluent": "Fluent",
-        "natif": "Native",
-        "native": "Native",
-        "b1": "Intermediate",
-        "b2": "Fluent",
-        "c1": "Fluent",
-        "c2": "Native",
-    }
-
-    return mapping.get(level, level.capitalize())
-
-
-# =========================
-# EXPORT PDF
-# =========================
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db.models import F
+from django.db.models.functions import Coalesce
+from django.shortcuts import get_object_or_404, redirect, render
 
 @login_required
-def export_pdf(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+def finalize_cv(request, cv_id):
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
 
-    # ======================
-    # LABELS (ANTI-MÉLANGE)
-    # ======================
-    LABELS = {
-        "fr": {
-            "summary": "Résumé professionnel",
-            "skills": "Compétences clés",
-            "experience": "Expériences professionnelles",
-            "education": "Formations",
-            "languages": "Langues",
-            "volunteer": "Bénévolat & engagements (optionnel)",
-            "certifications": "Certifications",
-            "present": "Présent",
-            "in_progress": "En cours",
-        },
-        "en": {
-            "summary": "Professional Summary",
-            "skills": "Key Skills",
-            "experience": "Professional Experience",
-            "education": "Education",
-            "languages": "Languages",
-            "volunteer": "Volunteer Experience (optional)",
-            "certifications": "Certifications",
-            "present": "Present",
-            "in_progress": "In progress",
-        }
-    }
+    # ✅ Garde-fous étapes
+    if not cv.step1_completed:
+        messages.warning(request, "⚠️ Complète d’abord l’étape 1.")
+        return redirect("cv_generator:create_cv", cv_id=cv.id)
 
-    labels = LABELS.get(cv.language, LABELS["fr"])
+    if not cv.step2_completed:
+        messages.warning(request, "⚠️ Complète d’abord l’étape 2 (expériences).")
+        return redirect("cv_generator:create_cv_step2", cv_id=cv.id)
 
-    # ======================
-    # EXPÉRIENCES (NETTOYÉES)
-    # ======================
-    experiences = []
-    for e in cv.experiences.all():
-        bullets = clean_and_split(e.description_raw)
+    # ✅ Expériences (tri simple + stable)
+    experiences = cv.experiences.all().order_by("-start_date", "-id")
 
-        experiences.append({
-            "title": e.title,
-            "company": e.company,
-            "location": e.location,
-            "start_date": e.start_date,
-            "end_date": e.end_date,
-            "bullets": bullets,
-        })
+    # ✅ Formations (tri robuste même si end_date/start_date = NULL)
+    # On trie d'abord par end_date (ou start_date si end_date vide), puis start_date, puis id
+    formations = (
+        Formation.objects.filter(cv=cv)
+        .annotate(sort_date=Coalesce("end_date", "start_date"))
+        .order_by(F("sort_date").desc(nulls_last=True), F("start_date").desc(nulls_last=True), "-id")
+    )
 
-    # ======================
-    # FORMATIONS
-    # ======================
-    educations = [{
-        "diploma": ed.diploma,
-        "institution": ed.institution,
-        "location": ed.location,
-        "start_date": ed.start_date,
-        "end_date": ed.end_date,
-        "description": ed.description,
-    } for ed in cv.educations.all()]
+    # ✅ Compétences : champ = nom
+    competences = Competence.objects.filter(cv=cv).order_by("nom", "id")
 
-    # ======================
-    # COMPÉTENCES (PROPRES)
-    # ======================
-    skills = sorted(
-        list(set(s.name.strip().capitalize() for s in cv.skills.all()))
-    )[:15]
+    # ✅ Langues : SEULEMENT name / level
+    langues = Langue.objects.filter(cv=cv).order_by("name", "level", "id")
 
-    # ======================
-    # LANGUES (NORMALISÉES)
-    # ======================
-    languages = []
-    seen_languages = set()
-
-    for l in cv.languages.all():
-        name = l.name.strip().capitalize()
-        if name in seen_languages:
-            continue
-
-        languages.append({
-            "name": name,
-            "level": normalize_language_level(l.level),
-        })
-        seen_languages.add(name)
-
-    # ======================
-    # BÉNÉVOLAT (OPTIONNEL)
-    # ======================
-    volunteers = [{
-        "role": v.role,
-        "description": v.description,
-        "start_date": v.start_date,
-        "end_date": v.end_date,
-    } for v in cv.volunteers.all()]
-
-    # ======================
-    # CERTIFICATIONS
-    # ======================
-    certifications = [{
-        "name": c.name,
-        "organization": c.organization,
-        "date": c.date_obtained,
-    } for c in cv.certifications.all()]
-
-    # ======================
-    # RÉSUMÉ (SÉCURISÉ)
-    # ======================
-    summary = cv.summary or ""
-    if "immigration97" in summary.lower():
-        summary = ""
-
-    # ======================
-    # CONTEXT
-    # ======================
     context = {
         "cv": cv,
-        "labels": labels,
-        "personal_info": cv.data.get("personal_info", {}),
-        "summary": summary,
         "experiences": experiences,
-        "educations": educations,
-        "skills": skills,
-        "languages": languages,
-        "volunteers": volunteers,
-        "certifications": certifications,
+        "formations": formations,
+        "competences": competences,
+        "langues": langues,
     }
 
-    html = render_to_string(
-        "cv_generator/templates_pdf/cv_canada.html",
-        context
-    )
-
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = "attachment; filename=cv_canada.pdf"
-
-    pisa.CreatePDF(html, dest=response, encoding="UTF-8")
-    return response
-
-# ---------------------------
-# IA / API rest (inchangés)
-# ---------------------------
-@login_required
-@require_POST
-def set_template(request):
-    data = _json_body(request)
-    template_id = data.get("template_id")
-    if not template_id:
-        return JsonResponse({"success": False, "error": "template_id manquant"}, status=400)
-
-    template = get_object_or_404(CVTemplate, id=template_id, is_active=True)
-
-    cv = CV.objects.create(
-        utilisateur=request.user,
-        template=template,
-        current_step=1,
-        step1_completed=False,
-        step2_completed=False,
-        step3_completed=False,
-        is_completed=False,
-        is_published=False,
-        data={},
-    )
-
-    redirect_url = redirect("cv_generator:create_cv", cv_id=cv.id).url
-    return JsonResponse({"success": True, "data": {"cv_id": cv.id, "redirect_url": redirect_url}})
-
-
-@login_required
-def recommend_templates(request):
-    templates = list(
-        CVTemplate.objects
-        .filter(is_active=True)
-        .values('id', 'name', 'description', 'style_type')
-    )
-    return JsonResponse({"success": True, "data": templates})
-
-
-@login_required
-@require_POST
-def generate_summary(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    personal = cv.get_personal_info()
-    job_title = cv.profession or personal.get("profession") or "Professionnel"
-    country = cv.pays_cible or "International"
-    industry = cv.template.industry if cv.template else "Général"
-    years = 0
-
-    if _ai_service:
-        try:
-            items = _ai_service.generate_career_summaries(job_title, years, industry, country)
-            return JsonResponse({"success": True, "data": items})
-        except Exception as e:
-            logger.warning("IA generate_summary erreur: %s", e)
-
-    demos = [
-        f"{job_title} orienté résultats, apte à livrer dans des environnements {industry}, culture {country}.",
-        f"Profil {job_title} avec sens du détail, collaboration et rigueur, prêt pour le marché {country}.",
-        f"Expérience en projets {industry}, communication claire et focus qualité, mobile {country}.",
-    ]
-    return JsonResponse({"success": True, "data": demos})
-
-
-@login_required
-@require_POST
-def clarify_experience(request):
-    body = _json_body(request)
-    raw_description = body.get("description", "") or ""
-    job_title = body.get("job_title", "Professionnel")
-    industry = body.get("industry", "Général")
-    if _ai_service:
-        try:
-            qs = _ai_service.generate_clarifying_questions(raw_description, job_title, industry)
-            return JsonResponse({"success": True, "data": qs})
-        except Exception as e:
-            logger.warning("IA clarify_experience erreur: %s", e)
-    return JsonResponse({"success": True, "data": [
-        "Pouvez-vous quantifier vos résultats (chiffres, pourcentages) ?",
-        "Quelle était la taille de l'équipe et votre rôle exact ?",
-        "Quels outils/technologies avez-vous utilisés ?",
-        "Quel impact mesurable pour l'entreprise ?"
-    ]})
-
-
-@login_required
-@require_POST
-def enhance_experience(request):
-    body = _json_body(request)
-    raw = body.get("description", "") or ""
-    job_title = body.get("job_title", "Professionnel")
-    industry = body.get("industry", "Général")
-    clar = body.get("clarifications") or {}
-    if _ai_service:
-        try:
-            text = _ai_service.enhance_experience_description(raw, job_title, industry, clarifications=clar)
-            return JsonResponse({"success": True, "data": text})
-        except Exception as e:
-            logger.warning("IA enhance_experience erreur: %s", e)
-    return JsonResponse({"success": True, "data": f"✓ {raw.strip()[:160]}"})
-
-
-@login_required
-@require_POST
-def optimize_skills(request):
-    body = _json_body(request)
-    skills = body.get("skills", []) or []
-    job_title = body.get("job_title", "Professionnel")
-    industry = body.get("industry", "Général")
-    country = body.get("country", "International")
-    if _ai_service:
-        try:
-            data = _ai_service.optimize_skills(skills, job_title, industry, country)
-            return JsonResponse({"success": True, "data": data})
-        except Exception as e:
-            logger.warning("IA optimize_skills erreur: %s", e)
-    return JsonResponse({"success": True, "data": {
-        "categorized": {"technical": skills, "languages": [], "soft": []},
-        "suggestions": ["Git", "Docker", "CI/CD"],
-        "ats_keywords": ["Agile", "Project Management"]
-    }})
-
-
-@login_required
-@require_POST
-def analyze_cv(request, cv_id=None):
-    if cv_id:
-        cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-        cv_data = {
-            "personal_info": cv.get_personal_info(),
-            "profession": cv.profession,
-            "pays_cible": cv.pays_cible,
-            "summary": cv.get_summary(),
-            "experiences": list(cv.experiences.values()) if hasattr(cv, "experiences") else [],
-            "skills": list(cv.skills.values()) if hasattr(cv, "skills") else [],
-            "languages": list(cv.languages.values()) if hasattr(cv, "languages") else [],
-            "education": list(cv.education_set.values()) if hasattr(cv, "education_set") else [],
-        }
-        industry = cv.template.industry if cv.template else "Général"
-        country = cv.pays_cible or "International"
-    else:
-        body = _json_body(request)
-        cv_data = body.get("cv_data", {}) or {}
-        industry = body.get("industry", "Général")
-        country = body.get("country", "International")
-
-    if _ai_service:
-        try:
-            res = _ai_service.analyze_cv_quality(cv_data, industry, country)
-            return JsonResponse({"success": True, "data": res})
-        except Exception as e:
-            logger.warning("IA analyze_cv erreur: %s", e)
-
-    return JsonResponse({"success": True, "data": {
-        "ats_score": 60,
-        "breakdown": {"ats_compatibility": 20, "action_verbs": 12, "quantification": 14, "grammar": 14},
-        "recommendations": [
-            "Ajoutez plus de métriques chiffrées.",
-            "Commencez par des verbes d'action.",
-            "Incorporez des mots-clés du poste."
-        ]
-    }})
+    return render(request, "cv_generator/steps/step_3_final.html", context)
 
 
 
-@login_required
-def choose_template(request, template_id):
-    template = get_object_or_404(
-        CVTemplate,
-        id=template_id,
-        is_active=True
-    )
 
-    cv = CV.objects.create(
-        utilisateur=request.user,
-        template=template,
-        current_step=1,
-        step1_completed=False,
-        step2_completed=False,
-        step3_completed=False,
-        is_completed=False,
-        is_published=False,
-        data={}
-    )
-
-    return redirect("cv_generator:create_cv", cv_id=cv.id)
-
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render, redirect
-
-from .models import CV, CVUpload
-from .forms import CVUploadForm
-from .services.cv_parser import extract_text_from_cv
-from .services.cv_mapper import map_cv_text_to_models
-
+# ===============================
+# UPLOAD + PARSING CV (OPTIONNEL)
+# ===============================
 
 @login_required
 def upload_cv(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
 
     try:
         upload = cv.upload
@@ -1085,168 +687,728 @@ def upload_cv(request, cv_id):
             upload.save()
 
             try:
-                # 1️⃣ EXTRACTION TEXTE
-                text = extract_text_from_cv(upload.file.path)
-                upload.extracted_text = text
-                upload.status = "parsed"
-                upload.save()
+                if extract_text_from_cv and upload.file:
+                    text = extract_text_from_cv(upload.file.path)
+                    upload.extracted_text = text
+                    upload.status = "parsed"
+                    upload.save(update_fields=["extracted_text", "status"])
 
-                # 2️⃣ MAPPING TEXTE → MODELS (⚠️ C’EST CE QUI MANQUAIT)
-                from .services.cv_mapper import map_cv_text_to_models
-                map_cv_text_to_models(cv, text)
+                    if map_cv_text_to_models:
+                        map_cv_text_to_models(cv, text)
 
-                # 3️⃣ MARQUER STEP 2 COMPLÉTÉ
-                if cv.experiences.exists():
-                    cv.step2_completed = True
-                    cv.current_step = max(cv.current_step, 2)
-                    cv.save()
+                    if cv.experiences.exists():
+                        cv.step2_completed = True
+                        cv.current_step = max(cv.current_step or 1, 3)
+                        cv.save(update_fields=["step2_completed", "current_step"])
 
+                    messages.success(request, "✅ CV importé et analysé avec succès !")
+                else:
+                    messages.warning(request, "⚠️ Service d'extraction non disponible.")
             except Exception as e:
+                logger.error("Erreur parsing CV: %s", e)
                 upload.status = "error"
-                upload.save()
-                messages.error(request, "Erreur lors de l’analyse du CV.")
+                upload.save(update_fields=["status"])
+                messages.error(request, f"❌ Erreur lors de l'analyse du CV: {str(e)}")
 
-            return redirect("cv_generator:create_cv_step2", cv.id)
-
+            return redirect("cv_generator:create_cv_step2", cv_id=cv.id)
     else:
         form = CVUploadForm(instance=upload)
 
-    return render(
-        request,
-        "cv_generator/upload_cv.html",
-        {
-            "cv": cv,
-            "form": form,
-        }
-    )
+    return render(request, "cv_generator/upload_cv.html", {"cv": cv, "form": form, "upload": upload})
 
 
+# ===============================
+# IA ENDPOINTS (SAFE)
+# ===============================
 
 @login_required
+@require_POST
 def generate_ai_summary(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
 
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid method"}, status=400)
+    job_title = cv.profession or cv.titre_poste or "Professionnel"
+    country = cv.pays_cible or "International"
+    industry = cv.template.name if cv.template else "Général"
 
-    summary = ai_generate_summary(cv)  # ton service existant
-    cv.summary = summary
-    cv.save()
+    if _ai_service:
+        try:
+            items = _ai_service.generate_career_summaries(job_title, 0, industry, country)
+            return JsonResponse({"success": True, "data": items})
+        except Exception as e:
+            logger.warning("IA generate_ai_summary erreur: %s", e)
 
-    return JsonResponse({"summary": summary})
+    demos = [
+        f"{job_title} orienté résultats avec une solide expérience en {industry}.",
+        f"Professionnel {job_title} dynamique, spécialisé en {industry}, prêt pour {country}.",
+        f"Expert {job_title} avec un parcours prouvé en gestion de projets complexes.",
+    ]
+    return JsonResponse({"success": True, "data": demos})
 
-
-from django.http import JsonResponse
-from .services.ats_scoring import calculate_ats_score
 
 @login_required
+@require_POST
+def analyze_cv(request, cv_id=None):
+    if cv_id:
+        cv = get_object_or_404(CV, id=cv_id, user=request.user)
+        cv_data = {
+            "profession": cv.profession,
+            "pays_cible": cv.pays_cible,
+            "summary": cv.summary or cv.resume_professionnel,
+        }
+        industry = cv.template.name if cv.template else "Général"
+        country = cv.pays_cible or "International"
+    else:
+        body = _json_body(request)
+        cv_data = body.get("cv_data", {})
+        industry = body.get("industry", "Général")
+        country = body.get("country", "International")
+
+    if _ai_service:
+        try:
+            res = _ai_service.analyze_cv_quality(cv_data, industry, country)
+            return JsonResponse({"success": True, "data": res})
+        except Exception as e:
+            logger.warning("IA analyze_cv erreur: %s", e)
+
+    return JsonResponse({"success": True, "data": {
+        "ats_score": 65,
+        "breakdown": {
+            "ats_compatibility": 20,
+            "action_verbs": 15,
+            "quantification": 15,
+            "grammar": 15
+        },
+        "recommendations": [
+            "Ajoutez plus de métriques chiffrées",
+            "Commencez chaque bullet par un verbe d'action",
+            "Incorporez des mots-clés du secteur"
+        ]
+    }})
+
+
+@login_required
+@require_http_methods(["GET"])
 def ats_score(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+    """Score ATS simple + feedback"""
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
 
-    score, feedback, keywords = compute_ats_score(cv)
+    score = 0
+    feedback = []
 
-    return JsonResponse({
-        "score": score,
-        "feedback": feedback,
-        "keywords_found": keywords
-    })
+    # résumé (25)
+    if cv.summary and len(cv.summary.strip()) >= 30:
+        score += 25
+        if len(cv.summary.strip()) < 100:
+            feedback.append("✅ Résumé présent. Ajoutez des mots-clés métier et quantifiez vos réalisations.")
+    else:
+        feedback.append("📝 Ajoutez un résumé professionnel (2-3 lignes)")
+
+    # expériences (30)
+    exp_count = cv.experiences.count()
+    if exp_count >= 2:
+        score += 30
+    elif exp_count == 1:
+        score += 15
+        feedback.append("👔 Ajoutez une deuxième expérience (stage, bénévolat possible)")
+    else:
+        feedback.append("👔 Ajoutez au moins une expérience")
+
+    # compétences (20)
+    comp_count = cv.competences.count()
+    if comp_count >= 5:
+        score += 20
+    elif comp_count >= 3:
+        score += 10
+        feedback.append("🔧 Ajoutez 2-3 compétences techniques supplémentaires")
+    else:
+        feedback.append("🔧 Ajoutez au moins 5 compétences clés")
+
+    # formations (15)
+    if cv.formations.count() >= 1:
+        score += 15
+    else:
+        feedback.append("🎓 Ajoutez votre formation principale")
+
+    # langues (10)
+    lang_count = cv.langues.count()
+    if lang_count >= 2:
+        score += 10
+    elif lang_count == 1:
+        score += 5
+        feedback.append("🌍 Ajoutez une deuxième langue (anglais conseillé)")
+    else:
+        feedback.append("🌍 Ajoutez vos langues")
+
+    final_score = min(score, 100)
+
+    if final_score >= 80:
+        feedback.insert(0, "🎉 Excellent ! Votre CV est bien optimisé pour les ATS.")
+    elif final_score >= 60:
+        feedback.insert(0, "👍 Bon départ ! Quelques améliorations possibles.")
+    else:
+        feedback.insert(0, "📈 Des améliorations sont nécessaires pour maximiser vos chances.")
+
+    return JsonResponse({"success": True, "score": final_score, "feedback": feedback})
+
+
+# ===============================
+# PDF EXPORT UNIQUE (REPORTLAB)
+# ===============================
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
+from io import BytesIO
+import textwrap
+
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
+
+from .models import CV, Formation, Competence, Langue  # adapte si tes imports diffèrent
+
 
 @login_required
-def translate_summary(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+def export_pdf(request, cv_id):
+    """
+    Export PDF fiable avec ReportLab.
+    1 seule fonction, 1 seule URL.
+    """
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
+
+    # ✅ Champs réels (selon tes erreurs : Experience start_date/end_date, Langue name/level, Competence nom)
+    experiences = cv.experiences.all().order_by("-start_date", "-id")
+    formations = Formation.objects.filter(cv=cv).order_by("-end_date", "-start_date", "-id")
+    competences = Competence.objects.filter(cv=cv).order_by("nom", "id")
+    langues = Langue.objects.filter(cv=cv).order_by("name", "level", "id")
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    margin = inch
+    y = height - margin
+    lh = 14  # line height
+
+    def new_page():
+        nonlocal y
+        p.showPage()
+        y = height - margin
+
+    def ensure_space(min_y=1.2 * inch):
+        nonlocal y
+        if y < min_y:
+            new_page()
+
+    def draw_h2(title):
+        nonlocal y
+        ensure_space()
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(margin, y, (title or "").upper())
+        y -= lh * 1.2
+
+    def draw_text_lines(text, wrap=90, font="Helvetica", size=10, indent=0, max_lines=None):
+        nonlocal y
+        p.setFont(font, size)
+        lines = textwrap.wrap((text or "").strip(), width=wrap)
+        if max_lines:
+            lines = lines[:max_lines]
+        for line in lines:
+            ensure_space()
+            p.drawString(margin + indent, y, line)
+            y -= lh
+
+    def fmt_ym(d):
+        """YYYY-MM pour date/datetime, sinon fallback."""
+        if not d:
+            return ""
+        try:
+            return d.strftime("%Y-%m")
+        except Exception:
+            return str(d)[:7]
+
+    def fmt_y(d):
+        """YYYY pour date/datetime, sinon fallback."""
+        if not d:
+            return ""
+        try:
+            return d.strftime("%Y")
+        except Exception:
+            return str(d)[:4]
+
+    # ===== HEADER =====
+    p.setFont("Helvetica-Bold", 20)
+    full_name = f"{(cv.prenom or '').upper()} {(cv.nom or '').upper()}".strip()
+    p.drawString(margin, y, full_name or "CV")
+    y -= lh * 1.6
+
+    if getattr(cv, "titre_poste", None):
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(margin, y, (cv.titre_poste or "").upper())
+        y -= lh * 1.4
+
+    # Contact
+    p.setFont("Helvetica", 10)
+    contact = []
+    if getattr(cv, "email", None):
+        contact.append(cv.email)
+    if getattr(cv, "telephone", None):
+        contact.append(cv.telephone)
+
+    loc = ", ".join([x for x in [getattr(cv, "ville", None), getattr(cv, "province", None)] if x])
+    if loc:
+        contact.append(loc)
+
+    if getattr(cv, "linkedin", None):
+        contact.append(cv.linkedin)
+
+    if contact:
+        draw_text_lines(" | ".join(contact), wrap=110, size=9)
+        y -= lh * 0.5
+
+    # ===== SUMMARY =====
+    summary = (getattr(cv, "summary", None) or getattr(cv, "resume_professionnel", None) or "").strip()
+    if summary:
+        draw_h2("Resume professionnel")
+        draw_text_lines(summary, wrap=105, size=10)
+        y -= lh * 0.6
+
+    # ===== EXPERIENCE =====
+    if experiences.exists():
+        draw_h2("Experiences professionnelles")
+        for exp in experiences:
+            ensure_space(1.5 * inch)
+
+            poste = getattr(exp, "title", None) or getattr(exp, "poste", None) or "Poste"
+            entreprise = getattr(exp, "company", None) or getattr(exp, "entreprise", None) or ""
+            ville = getattr(exp, "location", None) or getattr(exp, "ville", None) or ""
+
+            p.setFont("Helvetica-Bold", 11)
+            p.drawString(margin, y, f"• {poste}")
+            y -= lh
+
+            p.setFont("Helvetica", 10)
+            meta = " — ".join([x for x in [entreprise, ville] if x])
+            if meta:
+                p.drawString(margin + 18, y, meta)
+                y -= lh
+
+            start = getattr(exp, "start_date", None)
+            end = getattr(exp, "end_date", None)
+
+            dates = []
+            if start:
+                dates.append(fmt_ym(start))
+            if end:
+                dates.append(fmt_ym(end))
+            else:
+                dates.append("Present")
+
+            p.setFont("Helvetica-Oblique", 9)
+            p.drawString(margin + 18, y, " - ".join(dates))
+            y -= lh
+
+            desc = (
+                (getattr(exp, "description_ai", None) or "")
+                or (getattr(exp, "description", None) or "")
+                or (getattr(exp, "description_raw", None) or "")
+            ).strip()
+
+            if desc:
+                raw_lines = [l.strip("•- \t") for l in desc.splitlines() if l.strip()]
+                if len(raw_lines) == 1:
+                    raw_lines = textwrap.wrap(raw_lines[0], width=95)
+
+                p.setFont("Helvetica", 9)
+                for line in raw_lines[:6]:
+                    ensure_space()
+                    p.drawString(margin + 28, y, f"– {line[:140]}")
+                    y -= lh
+
+            y -= lh * 0.6
+
+    # ===== EDUCATION =====
+    if formations.exists():
+        draw_h2("Formation")
+        for edu in formations:
+            ensure_space(1.5 * inch)
+
+            diplome = getattr(edu, "diplome", None) or getattr(edu, "diploma", None) or "Diplome"
+            etab = getattr(edu, "etablissement", None) or getattr(edu, "institution", None) or ""
+
+            p.setFont("Helvetica-Bold", 10)
+            p.drawString(margin, y, f"• {diplome}")
+            y -= lh
+
+            p.setFont("Helvetica", 10)
+            if etab:
+                p.drawString(margin + 18, y, etab)
+                y -= lh
+
+            start = getattr(edu, "start_date", None)
+            end = getattr(edu, "end_date", None)
+            annee = getattr(edu, "annee_obtention", None)  # si existe chez toi, sinon None
+
+            dates = []
+            if start:
+                dates.append(fmt_y(start))
+            if end:
+                dates.append(fmt_y(end))
+            elif annee:
+                dates.append(str(annee))
+            else:
+                dates.append("En cours")
+
+            p.setFont("Helvetica-Oblique", 9)
+            p.drawString(margin + 18, y, " - ".join(dates))
+            y -= lh * 1.2
+
+    # ===== SKILLS =====
+    if competences.exists():
+        draw_h2("Competences")
+        skills_text = ", ".join([(c.nom or "").strip() for c in competences if (c.nom or "").strip()])
+        if skills_text:
+            draw_text_lines(skills_text, wrap=110, size=10)
+            y -= lh * 0.6
+
+    # ===== LANGUAGES =====
+    if langues.exists():
+        draw_h2("Langues")
+        langs = ", ".join(
+            [
+                f"{(l.name or '').strip()} ({(l.level or '').strip()})".strip()
+                for l in langues
+                if (l.name or "").strip()
+            ]
+        )
+        if langs:
+            draw_text_lines(langs, wrap=110, size=10)
+
+    # Footer
+    ensure_space(1.0 * inch)
+    p.setFont("Helvetica-Oblique", 8)
+    p.drawString(margin, 0.6 * inch, f"Genere le {timezone.now().strftime('%d/%m/%Y %H:%M')}")
+
+    p.save()
+    buffer.seek(0)
+
+    filename = f"CV_{(cv.prenom or '').strip()}_{(cv.nom or '').strip()}.pdf".replace(" ", "_")
+    response = HttpResponse(buffer, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+
+from .models import CV
+
+
+@login_required
+def update_summary(request, cv_id):
+    """
+    Sauvegarde du résumé (compatible avec tes templates qui postent vers update_summary).
+    - Accepte summary (EN) et/ou resume_professionnel (FR)
+    - Redirige vers l'étape 3
+    """
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
 
     if request.method != "POST":
-        return JsonResponse({"error": "Invalid request"}, status=400)
+        return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
 
-    target_lang = "en" if cv.language == "fr" else "fr"
+    summary = (request.POST.get("summary") or "").strip()
+    resume_fr = (request.POST.get("resume_professionnel") or "").strip()
 
-    try:
-        translated = translate_cv_text(
-            text=cv.summary,
-            source_lang=cv.language,
-            target_lang=target_lang,
-            job_title=cv.profession
-        )
+    updated_fields = []
 
-        return JsonResponse({
-            "translated": translated,
-            "target_lang": target_lang
-        })
+    # si ton template envoie "summary" (ton step3.html le fait)
+    if summary:
+        cv.summary = summary
+        updated_fields.append("summary")
 
-    except Exception:
-        return JsonResponse({"error": "Translation failed"}, status=500)
+    # si un autre template envoie resume_professionnel
+    if resume_fr:
+        cv.resume_professionnel = resume_fr
+        updated_fields.append("resume_professionnel")
+
+    if not updated_fields:
+        messages.error(request, "❌ Le résumé ne peut pas être vide.")
+        return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
+
+    cv.save(update_fields=updated_fields)
+    messages.success(request, "✅ Résumé sauvegardé avec succès !")
+    return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
 
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+
+from .models import CV
+
+
+@login_required
+def complete_cv(request, cv_id):
+    """
+    Marque le CV comme complété (compatibilité route /complete/).
+    Redirige vers la page finalize.
+    """
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
+
+    # on accepte POST (recommandé), mais on tolère GET pour éviter blocages
+    if request.method not in ("POST", "GET"):
+        return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
+
+    cv.is_completed = True
+    cv.step3_completed = True
+    cv.current_step = max(cv.current_step, 3)
+    cv.save(update_fields=["is_completed", "step3_completed", "current_step"])
+
+    messages.success(request, "✅ CV marqué comme terminé !")
+    return redirect("cv_generator:finalize_cv", cv_id=cv.id)
+
+
+import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
-from .models import Experience, CV
-from .services.noc_ai import generate_noc_tasks
+from django.shortcuts import get_object_or_404
+
+from .models import CV
 
 
 @login_required
-def generate_experience_tasks(request, cv_id, exp_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
-    exp = get_object_or_404(Experience, id=exp_id, cv=cv)
+@require_POST
+def generate_summary(request, cv_id):
+    """
+    Retourne un résumé IA (JSON). Version SAFE: fallback si IA pas branchée.
+    """
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
 
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid method"}, status=400)
+    # ✅ si tu veux brancher OpenAI après, tu remplaceras ce bloc
+    # Pour l’instant on génère un résumé basique basé sur les champs.
+    job = (cv.titre_poste or cv.profession or "").strip()
+    city = (cv.ville or "").strip()
+    target = (cv.pays_cible or "").strip()
 
-    tasks = ai_optimize_experience_for_canada(exp)
-    exp.description_ai = tasks
-    exp.save()
+    summary = f"{job} basé à {city}. Profil orienté résultats, avec compétences clés adaptées au poste. Objectif : décrocher un poste en {target}.".strip()
+    summary = summary.replace("  ", " ")
 
-    return JsonResponse({"tasks": tasks})
-
-
-@login_required
-def edit_cv(request, cv_id):
-    return redirect("cv_generator:create_cv_step1", cv_id)
-
-
+    return JsonResponse({"summary": summary})
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 
+from .models import CV
+
+
 @login_required
 @require_POST
 def translate_summary(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+    """
+    Traduit le résumé (JSON).
+    Version SAFE: traduction simple FR<->EN sans API externe.
+    Tu pourras remplacer par DeepL/OpenAI plus tard.
+    """
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
 
-    if not cv.summary:
-        return JsonResponse({"translated": ""})
+    text = (cv.summary or "").strip() or (cv.resume_professionnel or "").strip()
+    if not text:
+        return JsonResponse({"error": "Aucun résumé à traduire."}, status=400)
 
-    # Langue cible
-    target_lang = "en" if cv.language == "fr" else "fr"
+    # --- Heuristique simple pour deviner la langue ---
+    # Si beaucoup de mots FR courants -> on traduit vers EN (fallback)
+    fr_markers = ["je ", "avec", "et", "pour", "dans", "expérience", "compétence", "poste", "recherche"]
+    is_probably_fr = any(m in text.lower() for m in fr_markers)
 
-    # 👉 ICI tu brancheras OpenAI / DeepL / Gemini
-    translated = cv.summary  # placeholder sécurisé
+    # --- Traduction placeholder (sans API) ---
+    # Objectif: ne pas casser ton flow front, renvoyer un JSON.
+    if is_probably_fr:
+        translated = (
+            "Professional profile: " + text
+        )
+    else:
+        translated = (
+            "Profil professionnel : " + text
+        )
 
-    return JsonResponse({
-        "translated": translated
-    })
+    return JsonResponse({"translated": translated})
+
+
+import json
+import re
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404
+
+from .models import CV, Experience
+
+
+def _bulletize(text: str) -> list[str]:
+    """
+    Transforme un texte libre en liste de bullets propres.
+    """
+    if not text:
+        return []
+
+    # split sur lignes ou tirets
+    parts = re.split(r"(?:\r?\n)+|(?:^\s*-\s+)|(?:\s+-\s+)", text.strip(), flags=re.MULTILINE)
+    bullets = []
+    for p in parts:
+        p = p.strip(" \t\r\n•-*")
+        if p:
+            bullets.append(p)
+
+    # dédoublonnage simple
+    seen = set()
+    cleaned = []
+    for b in bullets:
+        key = b.lower()
+        if key not in seen:
+            seen.add(key)
+            cleaned.append(b)
+
+    return cleaned[:8]  # max 8 bullets
 
 
 @login_required
-def duplicate_cv(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, utilisateur=request.user)
+@require_POST
+def generate_experience_tasks(request, cv_id, experience_id):
+    """
+    Génère des tâches (bullets) pour une expérience.
+    Retour JSON: {"tasks": [...]}.
+    """
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
+    exp = get_object_or_404(Experience, id=experience_id, cv=cv)
 
-    new_cv = CV.objects.create(
-        utilisateur=request.user,
-        template=cv.template,
-        profession=cv.profession,
-        pays_cible=cv.pays_cible,
-        summary=cv.summary,
-        data=cv.data,
-        language=cv.language,
-    )
+    # Base texte à enrichir
+    base = (exp.description_raw or exp.description or "").strip()
 
-    for exp in cv.experiences.all():
-        exp.pk = None
-        exp.cv = new_cv
-        exp.save()
+    # Si vide, on construit une base minimale à partir du poste/entreprise
+    title = (exp.poste or exp.title or "").strip()
+    company = (exp.entreprise or exp.company or "").strip()
 
-    messages.success(request, "CV dupliqué avec succès.")
-    return redirect("cv_generator:create_cv", new_cv.id)
+    if not base:
+        base = f"{title} - {company}".strip(" -")
+
+    if not base:
+        return JsonResponse({"error": "Ajoute d'abord une description ou un poste/entreprise."}, status=400)
+
+    # ✅ VERSION SANS API (fallback) — bullets standards ATS
+    # Tu pourras remplacer par OpenAI après (même signature JSON).
+    generic = [
+        f"Assuré les responsabilités clés du poste de {title or 'ce rôle'} avec rigueur et autonomie.",
+        "Collaboré avec l’équipe pour atteindre les objectifs et améliorer les processus.",
+        "Analysé les besoins, proposé des solutions et suivi la mise en œuvre.",
+        "Rédigé / documenté les actions et assuré un reporting régulier.",
+        "Optimisé la qualité et réduit les erreurs grâce à des contrôles et standards.",
+    ]
+
+    # Si l'utilisateur a déjà écrit des bullets, on les garde prioritairement
+    user_bullets = _bulletize(base)
+
+    tasks = user_bullets if len(user_bullets) >= 3 else (user_bullets + generic)[:6]
+
+    # Stockage
+    exp.description_ai = "\n".join([f"- {t}" for t in tasks])
+    exp.save(update_fields=["description_ai"])
+
+    return JsonResponse({
+        "tasks": tasks,
+        "description_ai": exp.description_ai,
+        "experience_id": exp.id
+    })
+
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+
+from .models import CV, Formation, Competence, Langue
+
+
+@login_required
+def delete_formation(request, cv_id, formation_id):
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
+    formation = get_object_or_404(Formation, id=formation_id, cv=cv)
+    formation.delete()
+    messages.success(request, "✅ Formation supprimée.")
+    return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
+
+
+@login_required
+def delete_competence(request, cv_id, competence_id):
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
+    comp = get_object_or_404(Competence, id=competence_id, cv=cv)
+    comp.delete()
+    messages.success(request, "✅ Compétence supprimée.")
+    return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
+
+
+@login_required
+def delete_langue(request, cv_id, langue_id):
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
+    lang = get_object_or_404(Langue, id=langue_id, cv=cv)
+    lang.delete()
+    messages.success(request, "✅ Langue supprimée.")
+    return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
+
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+
+from .models import CV, Langue
+
+
+@login_required
+def delete_language(request, cv_id, lang_id):
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
+    lang = get_object_or_404(Langue, id=lang_id, cv=cv)
+    lang.delete()
+    messages.success(request, "✅ Langue supprimée.")
+    return redirect("cv_generator:create_cv_step3", cv_id=cv.id)
+
+
+
+
+from django.shortcuts import get_object_or_404, render
+from .models import CV
+
+def edit_cv(request, cv_id):
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
+    return render(request, "cv_generator/edit_cv.html", {"cv": cv})
+
+
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .models import CV
+from .forms import CVForm
+
+@login_required
+def edit_cv(request, cv_id):
+    cv = get_object_or_404(CV, id=cv_id, user=request.user)
+
+    if request.method == "POST":
+        form = CVForm(request.POST, instance=cv)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "CV mis à jour avec succès.")
+            return redirect("cv_generator:edit_cv", cv_id=cv.id)
+        messages.error(request, "Corrige les champs en erreur.")
+    else:
+        form = CVForm(instance=cv)
+
+    return render(request, "cv_generator/edit_cv.html", {"cv": cv, "form": form})

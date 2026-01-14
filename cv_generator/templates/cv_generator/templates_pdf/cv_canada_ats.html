@@ -1,0 +1,110 @@
+<article class="cv-doc cv-canada-ats">
+  <header class="cv-header">
+    <h1 class="cv-name">{{ cv.prenom|default_if_none:"" }} {{ cv.nom|default_if_none:"" }}</h1>
+
+    {% if cv.titre_poste %}
+      <p class="cv-headline">{{ cv.titre_poste }}</p>
+    {% endif %}
+
+    <div class="cv-contact">
+      {% if cv.email %}<span>{{ cv.email }}</span>{% endif %}
+      {% if cv.linkedin %}<span class="cv-sep">•</span><span>{{ cv.linkedin }}</span>{% endif %}
+      {% if cv.ville or cv.province %}<span class="cv-sep">•</span><span>{{ cv.ville }}{% if cv.province %}, {{ cv.province }}{% endif %}</span>{% endif %}
+      {% if cv.telephone %}<span class="cv-sep">•</span><span>{{ cv.telephone }}</span>{% endif %}
+    </div>
+
+    <div class="cv-rule"></div>
+  </header>
+
+  {% with profile=cv.summary|default:cv.resume_professionnel %}
+    {% if profile %}
+      <section class="cv-section">
+        <h2 class="cv-section-title">Profil professionnel</h2>
+        <div class="cv-rule"></div>
+        <p class="cv-paragraph">{{ profile }}</p>
+      </section>
+    {% endif %}
+  {% endwith %}
+
+  {% if experiences %}
+    <section class="cv-section">
+      <h2 class="cv-section-title">Expérience</h2>
+      <div class="cv-rule"></div>
+
+      {% for exp in experiences %}
+        <div class="cv-item">
+          <div class="cv-item-top">
+            <div class="cv-left">
+              <div class="cv-entity">{{ exp.company|default:exp.entreprise|default:"" }}</div>
+              <div class="cv-role">{{ exp.title|default:exp.poste|default:"Poste" }}</div>
+            </div>
+            <div class="cv-right">
+              <div class="cv-loc">{{ exp.location|default:exp.ville|default:"" }}</div>
+              <div class="cv-date">
+                {% if exp.start_date %}{{ exp.start_date|date:"m/Y" }}{% endif %}
+                -
+                {% if exp.end_date %}{{ exp.end_date|date:"m/Y" }}{% else %}Présent{% endif %}
+              </div>
+            </div>
+          </div>
+
+          {% with text=exp.description_ai|default:exp.description|default:exp.description_raw %}
+            {% if text %}
+              <div class="cv-preline">{{ text }}</div>
+            {% endif %}
+          {% endwith %}
+        </div>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  {% if formations %}
+    <section class="cv-section">
+      <h2 class="cv-section-title">Formation</h2>
+      <div class="cv-rule"></div>
+
+      {% for edu in formations %}
+        <div class="cv-item cv-item--compact">
+          <div class="cv-item-top">
+            <div class="cv-left">
+              <div class="cv-entity">{{ edu.etablissement|default:edu.institution|default:"" }}</div>
+              <div class="cv-role">{{ edu.diplome|default:edu.diploma|default:"Diplôme" }}</div>
+            </div>
+            <div class="cv-right">
+              <div class="cv-date">
+                {% if edu.start_date %}{{ edu.start_date|date:"Y" }}{% endif %}
+                {% if edu.start_date and edu.end_date %} - {{ edu.end_date|date:"Y" }}{% endif %}
+                {% if edu.start_date and not edu.end_date %} - Présent{% endif %}
+                {% if not edu.start_date and edu.annee_obtention %}{{ edu.annee_obtention }}{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  {% if competences %}
+    <section class="cv-section">
+      <h2 class="cv-section-title">Compétences</h2>
+      <div class="cv-rule"></div>
+      <p class="cv-skill-line">
+        {% for c in competences %}
+          {{ c.nom }}{% if not forloop.last %}<span class="cv-dot"> · </span>{% endif %}
+        {% endfor %}
+      </p>
+    </section>
+  {% endif %}
+
+  {% if langues %}
+    <section class="cv-section">
+      <h2 class="cv-section-title">Langues</h2>
+      <div class="cv-rule"></div>
+      <ul class="cv-lang-list">
+        {% for l in langues %}
+          <li><strong>{{ l.name }}</strong>{% if l.level %} — {{ l.level }}{% endif %}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+</article>

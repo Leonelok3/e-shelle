@@ -1,273 +1,319 @@
 from django import forms
-from .models import CVUpload
-from cv_generator.models import (
-    CV, Experience, Education, Skill, Language,
-    Volunteer, Hobby, Certification, Project
+from django.core.exceptions import FieldError
+
+from .models import (
+    CV, CVUpload, Experience, Formation, Skill, Langue,
+    Volunteer, Hobby, Certification, Project, Competence
 )
 
-# ------------------------------
-# 🔹 FORMULAIRES MULTI-STEP CV
-# ------------------------------
+# =====================================================
+# CONSTANTES
+# =====================================================
+
+LANGUAGE_CHOICES = [
+    ("fr", "Français"),
+    ("en", "Anglais"),
+    ("de", "Allemand"),
+    ("es", "Espagnol"),
+    ("it", "Italien"),
+]
+
+
+# =====================================================
+# FORMULAIRES MULTI-STEP CV
+# =====================================================
 
 class Step1Form(forms.ModelForm):
-    nom = forms.CharField(max_length=100, required=True, label="Nom")
-    prenom = forms.CharField(max_length=100, required=True, label="Prénom")
-    email = forms.EmailField(required=True, label="Email")
-    telephone = forms.CharField(max_length=20, required=False, label="Téléphone")
+    """Étape 1 : Informations personnelles + Configuration CV"""
 
     class Meta:
         model = CV
-        fields = ["profession", "pays_cible", "language"]
+        fields = [
+            "nom", "prenom", "email", "telephone",
+            "ville", "province", "linkedin",
+            "titre_poste", "profession", "pays_cible", "language",
+        ]
         labels = {
-            "profession": "Profession / Poste ciblé",
+            "nom": "Nom",
+            "prenom": "Prénom",
+            "email": "Email",
+            "telephone": "Téléphone",
+            "ville": "Ville",
+            "province": "Province/État",
+            "linkedin": "LinkedIn (optionnel)",
+            "titre_poste": "Titre du poste ciblé",
+            "profession": "Profession/Secteur",
             "pays_cible": "Pays ciblé",
             "language": "Langue du CV",
         }
         widgets = {
-            "language": forms.Select(attrs={
-                "class": "form-control"
-            })
+            "nom": forms.TextInput(attrs={"class": "form-control", "placeholder": "Dupont"}),
+            "prenom": forms.TextInput(attrs={"class": "form-control", "placeholder": "Jean"}),
+            "email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "jean.dupont@email.com"}),
+            "telephone": forms.TextInput(attrs={"class": "form-control", "placeholder": "+33 6 12 34 56 78"}),
+            "ville": forms.TextInput(attrs={"class": "form-control", "placeholder": "Paris"}),
+            "province": forms.TextInput(attrs={"class": "form-control", "placeholder": "Île-de-France"}),
+            "linkedin": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://linkedin.com/in/votre-profil"}),
+            "titre_poste": forms.TextInput(attrs={"class": "form-control", "placeholder": "Développeur Full-Stack"}),
+            "profession": forms.TextInput(attrs={"class": "form-control", "placeholder": "Informatique / IT"}),
+            "pays_cible": forms.TextInput(attrs={"class": "form-control", "placeholder": "Canada"}),
+            "language": forms.Select(attrs={"class": "form-control"}, choices=LANGUAGE_CHOICES),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Pré-remplissage depuis JSON
-        if self.instance and self.instance.data.get("personal_info"):
-            pi = self.instance.data["personal_info"]
-            self.fields["nom"].initial = pi.get("nom", "")
-            self.fields["prenom"].initial = pi.get("prenom", "")
-            self.fields["email"].initial = pi.get("email", "")
-            self.fields["telephone"].initial = pi.get("telephone", "")
-
-    def save(self, commit=True, user=None):
+    def save(self, commit=True):
         cv = super().save(commit=False)
-
-        if user:
-            cv.utilisateur = user
-
-        # Stocker infos personnelles
-        cv.data["personal_info"] = {
-            "nom": self.cleaned_data["nom"],
-            "prenom": self.cleaned_data["prenom"],
-            "email": self.cleaned_data["email"],
-            "telephone": self.cleaned_data["telephone"],
-        }
-
         cv.step1_completed = True
-
+        cv.current_step = max(cv.current_step or 1, 2)
         if commit:
             cv.save()
-
         return cv
 
 
 class Step3Form(forms.ModelForm):
+    """Étape 3 : Résumé professionnel + Finalisation"""
+
     class Meta:
         model = CV
-        fields = ["summary", "is_published"]
+        fields = ["summary", "resume_professionnel"]
+        labels = {
+            "summary": "Résumé professionnel (EN)",
+            "resume_professionnel": "Résumé professionnel (FR)",
+        }
         widgets = {
-            'summary': forms.Textarea(attrs={
-                'rows': 4,
-                'placeholder': 'Résumé professionnel (optionnel, peut être généré par IA)',
-                'class': 'w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-gray-100'
-            })
+            "summary": forms.Textarea(attrs={
+                "rows": 4,
+                "class": "form-control",
+                "placeholder": "Professional summary in English (optional, can be AI-generated)"
+            }),
+            "resume_professionnel": forms.Textarea(attrs={
+                "rows": 4,
+                "class": "form-control",
+                "placeholder": "Résumé professionnel en français (optionnel, peut être généré par IA)"
+            }),
         }
 
     def save(self, commit=True):
         cv = super().save(commit=False)
         cv.step3_completed = True
+        cv.is_completed = True
         if commit:
             cv.save()
         return cv
 
 
-# ------------------------------
-# 🔹 FORMULAIRES D'EXPÉRIENCE
-# ------------------------------
+# =====================================================
+# FORMULAIRES D'EXPÉRIENCE
+# =====================================================
+
 class ExperienceForm(forms.ModelForm):
     class Meta:
         model = Experience
-        fields = ['title', 'company', 'start_date', 'end_date', 'location', 'description_raw']
-        widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'type': 'date'}),
-            'description_raw': forms.Textarea(attrs={
-                'rows': 5,
-                'placeholder': 'Décrivez vos missions, réalisations et responsabilités...'
-            })
-        }
+        fields = ["title", "company", "location", "start_date", "end_date", "description_raw"]
         labels = {
-            'title': 'Titre du poste',
-            'company': 'Entreprise',
-            'start_date': 'Date de début',
-            'end_date': 'Date de fin (laisser vide si poste actuel)',
-            'location': 'Lieu',
-            'description_raw': 'Description'
+            "title": "Titre du poste",
+            "company": "Entreprise",
+            "location": "Lieu",
+            "start_date": "Date de début",
+            "end_date": "Date de fin (laisser vide si poste actuel)",
+            "description_raw": "Description des missions",
         }
-
-
-class ExperienceEditForm(forms.ModelForm):
-    class Meta:
-        model = Experience
-        fields = ['title', 'company', 'start_date', 'end_date', 'location', 'description_raw']
         widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'type': 'date'}),
-            'description_raw': forms.Textarea(attrs={'rows': 5})
+            "title": forms.TextInput(attrs={"class": "form-control", "placeholder": "Développeur Full-Stack"}),
+            "company": forms.TextInput(attrs={"class": "form-control", "placeholder": "Google"}),
+            "location": forms.TextInput(attrs={"class": "form-control", "placeholder": "Paris, France"}),
+            "start_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "end_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "description_raw": forms.Textarea(attrs={"rows": 6, "class": "form-control"}),
         }
 
 
-# ------------------------------
-# 🔹 FORMULAIRE ÉDUCATION
-# ------------------------------
+# =====================================================
+# FORMULAIRES ÉDUCATION/FORMATION
+# =====================================================
+
 class EducationForm(forms.ModelForm):
     class Meta:
-        model = Education
-        fields = ['diploma', 'institution', 'start_date', 'end_date', 'location', 'description']
+        model = Formation
+        fields = ["diploma", "institution", "location", "start_date", "end_date", "description"]
         widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'type': 'date'}),
-            'description': forms.Textarea(attrs={
-                'rows': 3,
-                'placeholder': 'Spécialisation, mentions, projets notables...'
-            })
-        }
-        labels = {
-            'diploma': 'Diplôme',
-            'institution': 'Établissement',
-            'start_date': 'Date de début',
-            'end_date': 'Date de fin (laisser vide si en cours)',
-            'location': 'Lieu',
-            'description': 'Description'
+            "diploma": forms.TextInput(attrs={"class": "form-control"}),
+            "institution": forms.TextInput(attrs={"class": "form-control"}),
+            "location": forms.TextInput(attrs={"class": "form-control"}),
+            "start_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "end_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "description": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
         }
 
+FormationForm = EducationForm
 
-# ------------------------------
-# 🆕 FORMULAIRE COMPÉTENCES
-# ------------------------------
+
+# =====================================================
+# FORMULAIRES COMPÉTENCES
+# =====================================================
+
 class SkillForm(forms.ModelForm):
     class Meta:
         model = Skill
-        fields = ['name', 'category']  # ✅ Enlève 'level'
+        fields = ["name", "category"]
         widgets = {
-            'name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ex: Python, Leadership, Excel'
-            }),
-            'category': forms.Select(attrs={
-                'class': 'form-control'
-            })
-        }
-# ------------------------------
-# 🆕 FORMULAIRE LANGUES
-# ------------------------------
-class LanguageForm(forms.ModelForm):
-    class Meta:
-        model = Language
-        fields = ['name', 'level']
-        labels = {
-            'name': 'Langue',
-            'level': 'Niveau'
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: Python, Leadership"}),
+            "category": forms.Select(attrs={"class": "form-control"}),
         }
 
 
-# ------------------------------
-# 🆕 FORMULAIRE BÉNÉVOLAT
-# ------------------------------
-class VolunteerForm(forms.ModelForm):
+class CompetenceForm(forms.ModelForm):
     class Meta:
-        model = Volunteer
-        fields = [
-            "role",
-            "start_date",
-            "end_date",
-            "description",
-        ]
+        model = Competence
+        fields = ["nom"]
+        widgets = {"nom": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: Excel"})}
 
 
+# =====================================================
+# FORMULAIRES LANGUES (ANTI-CRASH ✅)
+# =====================================================
 
-# ------------------------------
-# 🆕 FORMULAIRE CERTIFICATIONS
-# ------------------------------
+class LangueForm(forms.ModelForm):
+    """
+    IMPORTANT: on NE met PAS fields=['langue','niveau'] ici,
+    sinon Django crash si le modèle n'a que name/level.
+    """
+
+    class Meta:
+        model = Langue
+        fields = "__all__"  # ✅ ne crash jamais
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        model_fields = {f.name for f in self._meta.model._meta.get_fields() if hasattr(f, "name")}
+
+        # On vide tout puis on remet seulement les bons champs
+        for k in list(self.fields.keys()):
+            self.fields.pop(k, None)
+
+        # Cas 1 : modèle FR (langue/niveau)
+        if "langue" in model_fields and "niveau" in model_fields:
+            self.fields["langue"] = forms.CharField(
+                required=True,
+                label="Langue",
+                widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex : Français, Anglais"})
+            )
+            self.fields["niveau"] = forms.CharField(
+                required=True,
+                label="Niveau",
+                widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex : Courant (C1)"})
+            )
+
+        # Cas 2 : modèle EN (name/level)
+        elif "name" in model_fields and "level" in model_fields:
+            self.fields["name"] = forms.CharField(
+                required=True,
+                label="Language",
+                widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: English"})
+            )
+            self.fields["level"] = forms.CharField(
+                required=True,
+                label="Level",
+                widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: Fluent"})
+            )
+        else:
+            raise FieldError("Le modèle Langue ne contient ni (langue,niveau) ni (name,level). Vérifie models.py.")
+
+
+class LanguageForm(LangueForm):
+    """Alias : même comportement, pour compatibilité."""
+    pass
+
+
+# =====================================================
+# FORMULAIRES CERTIFICATIONS
+# =====================================================
+
 class CertificationForm(forms.ModelForm):
     class Meta:
         model = Certification
-        fields = ['name', 'organization', 'date_obtained', 'expiry_date', 'credential_id', 'credential_url']
+        fields = ["name", "organization", "date_obtained", "expiry_date", "credential_id", "credential_url"]
         widgets = {
-            'date_obtained': forms.DateInput(attrs={'type': 'date'}),
-            'expiry_date': forms.DateInput(attrs={'type': 'date'}),
-        }
-        labels = {
-            'name': 'Nom de la certification',
-            'organization': 'Organisme délivrant',
-            'date_obtained': "Date d'obtention",
-            'expiry_date': "Date d'expiration (optionnel)",
-            'credential_id': 'ID de certification (optionnel)',
-            'credential_url': 'URL de vérification (optionnel)'
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "organization": forms.TextInput(attrs={"class": "form-control"}),
+            "date_obtained": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "expiry_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "credential_id": forms.TextInput(attrs={"class": "form-control"}),
+            "credential_url": forms.URLInput(attrs={"class": "form-control"}),
         }
 
 
-# ------------------------------
-# 🆕 FORMULAIRE PROJETS
-# ------------------------------
+# =====================================================
+# FORMULAIRES BÉNÉVOLAT
+# =====================================================
+
+class VolunteerForm(forms.ModelForm):
+    class Meta:
+        model = Volunteer
+        fields = ["role", "organization", "start_date", "end_date", "description"]
+        widgets = {
+            "role": forms.TextInput(attrs={"class": "form-control"}),
+            "organization": forms.TextInput(attrs={"class": "form-control"}),
+            "start_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "end_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "description": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
+        }
+
+
+# =====================================================
+# FORMULAIRES PROJETS
+# =====================================================
+
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        fields = ['title', 'description', 'start_date', 'end_date', 'url', 'technologies']
+        fields = ["title", "description", "technologies", "start_date", "end_date", "url"]
         widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'type': 'date'}),
-            'description': forms.Textarea(attrs={
-                'rows': 4,
-                'placeholder': 'Décrivez le projet, vos contributions et résultats...'
-            }),
-            'technologies': forms.TextInput(attrs={
-                'placeholder': 'Ex: Python, Django, React, PostgreSQL'
-            })
-        }
-        labels = {
-            'title': 'Titre du projet',
-            'description': 'Description',
-            'start_date': 'Date de début',
-            'end_date': 'Date de fin (optionnel)',
-            'url': 'URL du projet (optionnel)',
-            'technologies': 'Technologies utilisées'
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"rows": 4, "class": "form-control"}),
+            "technologies": forms.TextInput(attrs={"class": "form-control"}),
+            "start_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "end_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "url": forms.URLInput(attrs={"class": "form-control"}),
         }
 
 
-# ------------------------------
-# 🆕 FORMULAIRE LOISIRS
-# ------------------------------
+# =====================================================
+# FORMULAIRES LOISIRS
+# =====================================================
+
 class HobbyForm(forms.ModelForm):
     class Meta:
         model = Hobby
-        fields = ['name', 'description']
+        fields = ["name", "description"]
         widgets = {
-            'description': forms.Textarea(attrs={
-                'rows': 2,
-                'placeholder': 'Détails supplémentaires (optionnel)'
-            })
-        }
-        labels = {
-            'name': "Centre d'intérêt",
-            'description': 'Description'
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: Photographie"}),
+            "description": forms.Textarea(attrs={"rows": 2, "class": "form-control"}),
         }
 
 
-# ------------------------------
-# 🔹 FORMULAIRE ADMIN CV
-# ------------------------------
-class CVAdminForm(forms.ModelForm):
-    class Meta:
-        model = CV
-        fields = [
-            "profession", "pays_cible", "summary", "current_step",
-            "step1_completed", "step2_completed", "step3_completed",
-            "is_completed", "is_published"
-        ]
+# =====================================================
+# FORMULAIRE UPLOAD CV
+# =====================================================
 
 class CVUploadForm(forms.ModelForm):
     class Meta:
         model = CVUpload
         fields = ["file"]
+        widgets = {
+            "file": forms.FileInput(attrs={"class": "form-control", "accept": ".pdf,.doc,.docx"}),
+        }
+
+
+from django import forms
+from .models import CV
+
+class CVForm(forms.ModelForm):
+    class Meta:
+        model = CV
+        exclude = ("user",)
+        # Mets ici les champs QUI EXISTENT réellement dans ton modèle CV
+        fields = fields = "__all__"
+        widgets = {
+            "summary": forms.Textarea(attrs={"rows": 5}),
+        }

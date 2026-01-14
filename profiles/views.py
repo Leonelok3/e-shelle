@@ -130,7 +130,7 @@ def my_space(request):
 
     recent_cvs = CV.objects.filter(
         utilisateur=request.user
-    ).order_by("-date_modification")[:5]
+    ).order_by("-created_at")[:5]
 
     test_results = []
 

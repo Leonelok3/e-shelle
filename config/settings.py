@@ -104,6 +104,7 @@ INSTALLED_APPS = [
     "VisaTourismeApp",
     "DocumentsApp",
     "profiles",
+    "ai_engine",
 ]
 
 # ======================================================

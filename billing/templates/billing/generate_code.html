@@ -1,199 +1,171 @@
-{% extends "base.html" %}
-{% block title %}Générer un Code d'Accès · Immigration97{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Générateur de Licence Premium | Immigration97{% endblock %}
+
+{% block meta_description %}
+Créez des clés d'activation pour accéder aux outils d'immigration IA : visa travail, visa études, résidence permanente. Générateur administrateur Immigration97.
+{% endblock %}
+
+{% block body_class %}billing{% endblock %}
+{% block app_scope %}billing generate-flow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/billing.css' %}">
+{% endblock %}
 
 {% block content %}
+<div class="billing-hero">
+  <div class="billing-hero__badge">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+      <path d="M2 17l10 5 10-5"/>
+      <path d="M2 12l10 5 10-5"/>
+    </svg>
+    Espace Administrateur
+  </div>
+  
+  <h1 class="billing-hero__title">
+    Générateur de Licence Premium
+  </h1>
+  
+  <p class="billing-hero__subtitle">
+    Créez une clé d'activation unique pour débloquer l'accès aux outils d'immigration IA (visas, résidence permanente, tests de langue).
+  </p>
+</div>
 
-<style>
-  /* ---- Thème Immigration97 – Génération de code (UI 2026) ---- */
+<div class="billing-generate">
+  <div class="billing-card">
+    
+    <!-- Header Card -->
+    <div class="billing-card__header">
+      <div class="billing-card__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="billing-card__title">Nouvelle Clé d'Activation</h2>
+        <p class="billing-card__desc">Configurez la validité et le plan associé avant génération.</p>
+      </div>
+    </div>
 
-  .billing-generate-wrapper{
-    max-width: 540px;
-    margin: 0 auto;
-    padding: 24px 16px 40px;
-    animation: genFadeIn .45s ease-out;
-  }
-
-  .panel{
-    background:
-      radial-gradient(circle at top left, rgba(56,189,248,0.18), transparent 55%),
-      radial-gradient(circle at bottom right, rgba(34,197,94,0.16), transparent 55%),
-      rgba(15,23,42,0.94);
-    border-radius: 24px;
-    padding: 26px 22px 26px;
-    border: 1px solid rgba(148,163,184,0.55);
-    box-shadow:
-      0 18px 38px rgba(15,23,42,0.88),
-      0 0 40px rgba(6,182,212,0.18);
-    color: #e5e7eb;
-    backdrop-filter: blur(18px);
-  }
-
-  .panel h2{
-    font-size: 1.7rem;
-    margin-bottom: 18px;
-    font-weight: 800;
-    background: linear-gradient(135deg,#34d399,#06b6d4,#3b82f6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display:flex;
-    align-items:center;
-    gap:.4rem;
-  }
-
-  .form{
-    margin-top: 4px;
-  }
-
-  .field{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-  }
-
-  .field label{
-    font-size:.88rem;
-    font-weight:600;
-    color:#e5e7eb;
-  }
-
-  .input{
-    border-radius: 12px;
-    border: 1px solid rgba(148,163,184,0.7);
-    background: rgba(15,23,42,0.96);
-    padding: 10px 12px;
-    color:#e5e7eb;
-    font-size:.9rem;
-    outline:none;
-    transition:
-      border-color 150ms ease-out,
-      box-shadow 180ms ease-out,
-      background 150ms ease-out;
-  }
-
-  .input:focus{
-    border-color: rgba(56,189,248,0.9);
-    box-shadow:0 0 0 1px rgba(56,189,248,0.55), 0 12px 26px rgba(15,23,42,0.9);
-    background:rgba(15,23,42,0.98);
-  }
-
-  .w-full{
-    width:100%;
-  }
-
-  .mb-3{
-    margin-bottom: 14px;
-  }
-
-  .mt-2{
-    margin-top:.5rem;
-  }
-
-  .mt-3{
-    margin-top:.75rem;
-  }
-
-  .btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    padding:10px 16px;
-    border-radius:999px;
-    border:1px solid rgba(148,163,184,0.6);
-    background:rgba(15,23,42,0.95);
-    color:#e5e7eb;
-    font-size:.9rem;
-    font-weight:600;
-    text-decoration:none;
-    cursor:pointer;
-    gap:.35rem;
-    transition:
-      background 180ms ease-out,
-      border-color 160ms ease-out,
-      transform 140ms ease-out,
-      box-shadow 180ms ease-out,
-      color 160ms ease-out;
-  }
-
-  .btn:hover{
-    border-color:rgba(248,250,252,0.9);
-    background:radial-gradient(circle at top left,rgba(56,189,248,0.25),rgba(15,23,42,1));
-    color:#f9fafb;
-    transform:translateY(-1px);
-    box-shadow:0 10px 26px rgba(15,23,42,0.9);
-  }
-
-  .btn-primary{
-    background:linear-gradient(135deg,#06b6d4,#3b82f6);
-    border-color:transparent;
-    color:#020617;
-    box-shadow:0 10px 26px rgba(37,99,235,0.65);
-  }
-
-  .btn-primary:hover{
-    box-shadow:0 14px 36px rgba(37,99,235,0.85);
-  }
-
-  .muted{
-    color:#94a3b8;
-    font-size:.86rem;
-  }
-
-  .text-center{
-    text-align:center;
-  }
-
-  .link{
-    color:#38bdf8;
-    text-decoration:none;
-    font-weight:500;
-  }
-
-  .link:hover{
-    text-decoration:underline;
-    color:#7dd3fc;
-  }
-
-  @keyframes genFadeIn{
-    from{opacity:0; transform:translateY(10px);}
-    to{opacity:1; transform:translateY(0);}
-  }
-</style>
-
-<div class="billing-generate-wrapper">
-  <div class="panel" style="max-width:480px; margin:0 auto;">
-    <h2>🪄 Générer un code d'accès</h2>
-
-    <form method="post" class="form">
+    <!-- Form -->
+    <form method="post" class="billing-form">
       {% csrf_token %}
 
-      <div class="field mb-3">
-        <label for="validity">Durée de validité du code</label>
-        <select name="validity" id="validity" class="input w-full">
-          <option value="24h">24 heures</option>
-          <option value="30j">30 jours</option>
-        </select>
+      <!-- Champ 1 : Validité -->
+      <div class="billing-form__group">
+        <label for="validity" class="billing-form__label">
+          Type de Pass (Validité)
+        </label>
+        <div class="billing-form__input-wrapper">
+          <svg class="billing-form__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <select name="validity" id="validity" class="billing-form__select" required>
+            <option value="24h">🚀 Accès Rapide — 24 heures</option>
+            <option value="30j">💎 Pack Premium — 30 jours</option>
+          </select>
+        </div>
+        <small class="billing-form__hint">
+          Définit la durée d'accès après activation par l'utilisateur.
+        </small>
       </div>
 
-      <div class="field mb-3">
-        <label for="plan">Sélectionnez un plan (facultatif)</label>
-        <select name="plan" id="plan" class="input w-full">
-          {% for plan in plans %}
-            <option value="{{ plan.slug }}">{{ plan.name }} — {{ plan.price_usd }} USD</option>
-          {% empty %}
-            <option disabled>Aucun plan actif disponible</option>
-          {% endfor %}
-        </select>
+      <!-- Champ 2 : Plan -->
+      <div class="billing-form__group">
+        <label for="plan" class="billing-form__label">
+          Associer à un Plan Immigration
+        </label>
+        <div class="billing-form__input-wrapper">
+          <svg class="billing-form__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <select name="plan" id="plan" class="billing-form__select" required>
+            {% for plan in plans %}
+              <option value="{{ plan.slug }}">
+                {{ plan.name }} — {{ plan.price_usd }} USD
+              </option>
+            {% empty %}
+              <option disabled>Aucun plan actif configuré</option>
+            {% endfor %}
+          </select>
+        </div>
+        <small class="billing-form__hint">
+          Le code héritera des privilèges et fonctionnalités du plan choisi.
+        </small>
       </div>
 
-      <button class="btn btn-primary w-full mt-2" type="submit">
-        ⚙️ Générer le code
+      <!-- Submit Button -->
+      <button type="submit" class="billing-form__submit">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+        </svg>
+        <span>Générer la Clé d'Activation</span>
       </button>
     </form>
 
-    <p class="muted mt-3 text-center">
-      Une fois généré, le code sera valide pendant la durée choisie.<br>
-      <a href="{% url 'billing:redeem' %}" class="link">➡️ Aller valider un code existant</a>
-    </p>
+    <!-- Footer Card -->
+    <div class="billing-card__footer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 16v-4M12 8h.01"/>
+      </svg>
+      <p>
+        Besoin d'activer un code existant ?
+        <a href="{% url 'billing:redeem' %}" class="billing-card__link">
+          Passer à l'activation
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </p>
+    </div>
+
   </div>
 </div>
+
+<!-- Section Info Premium (SEO + Conversion) -->
+<div class="billing-info">
+  <div class="billing-info__grid">
+    
+    <div class="billing-info__card">
+      <div class="billing-info__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <h3>Plans Flexibles</h3>
+      <p>Accès 24h ou 30 jours selon vos besoins d'immigration.</p>
+    </div>
+
+    <div class="billing-info__card">
+      <div class="billing-info__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <h3>Activation Instantanée</h3>
+      <p>Code valide immédiatement après génération.</p>
+    </div>
+
+    <div class="billing-info__card">
+      <div class="billing-info__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h3>Sécurité Maximale</h3>
+      <p>Clés uniques, cryptées, usage unique par utilisateur.</p>
+    </div>
+
+  </div>
+</div>
+
 {% endblock %}

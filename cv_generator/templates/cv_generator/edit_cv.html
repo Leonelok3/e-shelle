@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Modifier CV – Immigration97{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/pages/cv_generator.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="app-main cv-generator">
+  <section class="cv-wrap">
+    <header class="cv-header">
+      <div class="cv-eyebrow">CV #{{ cv.id }}</div>
+      <h1 class="cv-title">Modifier le CV</h1>
+      <p class="cv-subtitle">Mets à jour les informations principales. Les sections (expériences, formations, etc.) restent gérées dans leurs écrans.</p>
+    </header>
+
+    {% if messages %}
+      <div class="cv-alerts">
+        {% for message in messages %}
+          <div class="cv-alert cv-alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" class="cv-card">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="cv-alert cv-alert-error">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div class="cv-grid">
+        {% for field in form.visible_fields %}
+          <div class="cv-field">
+            <label class="cv-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="cv-help">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="cv-error">{{ field.errors|striptags }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="cv-actions">
+        <a class="btn btn-ghost" href="{% url 'cv_generator:cv_list' %}">← Retour</a>
+        <button class="btn btn-primary" type="submit">Enregistrer</button>
+      </div>
+    </form>
+  </section>
+</main>
+{% endblock %}

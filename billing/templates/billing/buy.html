@@ -1,183 +1,338 @@
-{% extends "base.html" %}
-{% block title %}Acheter un code · Immigration97{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Acheter Code d'Accès Premium Immigration Canada - Visa & Résidence Permanente | Immigration97{% endblock %}
+
+{% block meta_description %}Obtenez votre code d'activation Immigration97 instantané. Accès 24h ou 30 jours aux outils premium : visa Canada, résidence permanente, tests IELTS TCF TEF, CV international. Paiement sécurisé Mobile Money Afrique (Orange, MTN, Moov) et PayPal international.{% endblock %}
+
+{% block body_class %}billing{% endblock %}
+{% block app_scope %}billing{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/billing.css' %}">
+{% endblock %}
 
 {% block content %}
-
-<style>
-  /* ---- Thème Immigration97 – section achat de code (UI 2026) ---- */
-
-  .billing-buy-wrapper{
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 24px 16px 40px;
-    animation: buyFadeIn .45s ease-out;
+<!-- Schema.org pour SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "Code d'Accès Premium Immigration97",
+  "description": "Code d'activation pour accéder aux outils premium d'immigration Canada, résidence permanente, tests de langue et CV international",
+  "brand": {
+    "@type": "Organization",
+    "name": "Immigration97"
+  },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "USD",
+    "lowPrice": "{{ plans.0.price_usd }}",
+    "highPrice": "{{ plans.last.price_usd }}",
+    "offerCount": "{{ plans|length }}"
   }
+}
+</script>
 
-  .panel{
-    background: radial-gradient(circle at top left, rgba(56,189,248,0.18), transparent 55%),
-                radial-gradient(circle at bottom right, rgba(34,197,94,0.16), transparent 55%),
-                rgba(15,23,42,0.92);
-    border-radius: 24px;
-    padding: 26px 22px 26px;
-    border: 1px solid rgba(148,163,184,0.55);
-    box-shadow:
-      0 18px 38px rgba(15,23,42,0.85),
-      0 0 40px rgba(6,182,212,0.18);
-    color: #e5e7eb;
-    backdrop-filter: blur(18px);
-  }
+<div class="buycode-container">
+    <!-- HEADER SECTION -->
+    <header class="buycode-header">
+        <div class="header-badge">🎟️ Codes d'activation instantanés</div>
+        <h1 class="buycode-title">Obtenez votre Code d'Accès Premium</h1>
+        <p class="buycode-subtitle">
+            Débloquez instantanément tous les outils premium d'immigration Canada : visa travail, résidence permanente, tests IELTS/TCF/TEF, CV international ATS-optimisé et guides officiels IRCC 2026.
+        </p>
+        
+        <!-- AVANTAGES RAPIDES -->
+        <div class="quick-benefits">
+            <div class="benefit-item">
+                <span class="benefit-icon">⚡</span>
+                <span>Activation immédiate</span>
+            </div>
+            <div class="benefit-item">
+                <span class="benefit-icon">🔒</span>
+                <span>Paiement 100% sécurisé</span>
+            </div>
+            <div class="benefit-item">
+                <span class="benefit-icon">🌍</span>
+                <span>Mobile Money Afrique</span>
+            </div>
+            <div class="benefit-item">
+                <span class="benefit-icon">💳</span>
+                <span>PayPal International</span>
+            </div>
+        </div>
+    </header>
 
-  .panel h2{
-    font-size: 1.8rem;
-    margin-bottom: 10px;
-    font-weight: 800;
-    background: linear-gradient(135deg,#34d399,#06b6d4,#3b82f6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+    <!-- PLANS GRID -->
+    <div class="buycode-plans-grid">
+        {% for p in plans %}
+        <article class="buycode-plan {% if p.duration_days > 1 %}plan-featured{% endif %}" 
+                 itemscope itemtype="https://schema.org/Offer">
+            
+            {% if p.duration_days > 1 %}
+            <div class="featured-badge">🏆 Recommandé</div>
+            {% elif p.duration_days == 1 %}
+            <div class="featured-badge featured-badge--trial">⚡ Essai</div>
+            {% endif %}
+            
+            <div class="plan-header">
+                <h2 class="plan-name" itemprop="name">{{ p.name }}</h2>
+                <p class="plan-description">
+                    {% if p.duration_days == 1 %}
+                    Parfait pour tester nos outils premium pendant 24 heures
+                    {% else %}
+                    Accès complet à tous les outils premium d'immigration
+                    {% endif %}
+                </p>
+            </div>
 
-  .panel .muted{
-    color: #94a3b8;
-    font-size: .96rem;
-    margin-bottom: 18px;
-  }
+            <!-- PRIX -->
+            <div class="plan-price-box">
+                <div class="price-main">
+                    <span class="price-currency" itemprop="priceCurrency" content="USD">$</span>
+                    <span class="price-amount" itemprop="price" content="{{ p.price_usd }}">{{ p.price_usd }}</span>
+                    <span class="price-unit">USD</span>
+                </div>
+                
+                <div class="price-local">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 6v6l4 2"></path>
+                    </svg>
+                    Environ {{ p.price_xaf|floatformat:0 }} FCFA
+                </div>
+                
+                <div class="duration-badge">
+                    ⏱️ {{ p.duration_days }} jour{% if p.duration_days > 1 %}s{% endif %} d'accès illimité
+                </div>
+            </div>
 
-  .spec-cards{
-    display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
-    gap: 18px;
-    margin-top: 12px;
-  }
+            <!-- FEATURES INCLUSES -->
+            <div class="plan-features-mini">
+                <h3 class="features-mini-title">✅ Accès inclus :</h3>
+                <ul class="features-mini-list">
+                    <li>Générateur CV International</li>
+                    <li>Photo Visa Biométrique</li>
+                    <li>Tests IELTS, TCF, TEF</li>
+                    <li>Guides Visa & RP Canada</li>
+                    <li>Calculateurs Immigration</li>
+                    {% if p.duration_days > 1 %}
+                    <li>Support prioritaire 24/7</li>
+                    <li>Suivi dossier personnel</li>
+                    {% endif %}
+                </ul>
+            </div>
 
-  .spec-card{
-    background: rgba(15,23,42,0.96);
-    border-radius: 18px;
-    padding: 18px 16px 18px;
-    border: 1px solid rgba(148,163,184,0.4);
-    box-shadow: 0 16px 32px rgba(15,23,42,0.9);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    position: relative;
-    overflow: hidden;
-  }
+            <!-- FORMULAIRE PAIEMENT -->
+            <form method="post" class="buycode-form">
+                {% csrf_token %}
+                <input type="hidden" name="plan_id" value="{{ p.id }}">
+                <input type="hidden" name="next" value="{{ next }}">
+                
+                <div class="payment-buttons">
+                    <p class="payment-label">Choisissez votre mode de paiement :</p>
+                    
+                    <button type="submit" name="source" value="chario" 
+                            class="btn-payment btn-payment--primary">
+                        <span class="btn-icon">📱</span>
+                        <span class="btn-text">
+                            <strong>Mobile Money Afrique</strong>
+                            <small>Orange, MTN, Moov, Wave</small>
+                        </span>
+                    </button>
+                    
+                    <button type="submit" name="source" value="orange_money" 
+                            class="btn-payment btn-payment--orange">
+                        <span class="btn-icon">
+                            <img src="{% static 'img/om-logo.png' %}" alt="Orange Money" width="24" height="24">
+                        </span>
+                        <span class="btn-text">
+                            <strong>Orange Money</strong>
+                            <small>Cameroun, CI, Sénégal</small>
+                        </span>
+                    </button>
+                    
+                    <button type="submit" name="source" value="paypal" 
+                            class="btn-payment btn-payment--paypal">
+                        <span class="btn-icon">💳</span>
+                        <span class="btn-text">
+                            <strong>PayPal</strong>
+                            <small>Carte bancaire internationale</small>
+                        </span>
+                    </button>
+                </div>
+            </form>
 
-  .spec-card::before{
-    content:"";
-    position:absolute;
-    inset:-1px;
-    border-radius:inherit;
-    background:radial-gradient(420px 140px at 10% -10%,rgba(56,189,248,0.25),transparent 60%);
-    opacity:.8;
-    pointer-events:none;
-  }
-
-  .spec-title{
-    position:relative;
-    font-weight: 700;
-    font-size: 1.05rem;
-    color:#f9fafb;
-  }
-
-  .spec-meta{
-    position:relative;
-    font-size: .9rem;
-    color:#cbd5f5;
-  }
-
-  .mt-3{
-    margin-top: .75rem;
-    position:relative;
-  }
-
-  .grid-3{
-    display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));
-  }
-
-  .btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    padding:9px 10px;
-    border-radius:999px;
-    border:1px solid rgba(148,163,184,0.6);
-    background:rgba(15,23,42,0.9);
-    color:#e5e7eb;
-    font-size:.82rem;
-    font-weight:600;
-    text-decoration:none;
-    cursor:pointer;
-    white-space:nowrap;
-    transition:
-      background 180ms ease-out,
-      border-color 160ms ease-out,
-      transform 140ms ease-out,
-      box-shadow 180ms ease-out,
-      color 160ms ease-out;
-  }
-
-  .btn:hover{
-    border-color:rgba(248,250,252,0.9);
-    background:radial-gradient(circle at top left,rgba(56,189,248,0.25),rgba(15,23,42,1));
-    color:#f9fafb;
-    transform:translateY(-1px);
-    box-shadow:0 10px 26px rgba(15,23,42,0.9);
-  }
-
-  .btn-primary{
-    background:linear-gradient(135deg,#06b6d4,#3b82f6);
-    border-color:transparent;
-    color:#0b1120;
-    box-shadow:0 10px 26px rgba(37,99,235,0.65);
-  }
-
-  .btn-primary:hover{
-    box-shadow:0 14px 36px rgba(37,99,235,0.85);
-  }
-
-  .btn--ghost{
-    background:rgba(15,23,42,0.9);
-  }
-
-  @keyframes buyFadeIn{
-    from{opacity:0; transform:translateY(12px);}
-    to{opacity:1; transform:translateY(0);}
-  }
-
-  @media (max-width: 640px){
-    .grid-3{
-      grid-template-columns:1fr;
-    }
-  }
-</style>
-
-<div class="billing-buy-wrapper">
-  <div class="panel">
-    <h2>Acheter un code d’accès</h2>
-    <p class="muted">Choisissez votre pass : <strong>24h</strong> ou <strong>30 jours</strong>.</p>
-
-    <div class="spec-cards">
-      {% for p in plans %}
-      <article class="spec-card">
-        <div class="spec-title">{{ p.name }}</div>
-        <div class="spec-meta">{{ p.duration_days }} jour(s) · {{ p.price_usd }} USD</div>
-        <form method="post" class="mt-3">
-          {% csrf_token %}
-          <input type="hidden" name="plan_id" value="{{ p.id }}">
-          <input type="hidden" name="next" value="{{ next }}">
-          <div class="grid-3" style="gap:.5rem">
-            <button name="source" value="chario" class="btn btn-primary">Payer via Chario</button>
-            <button name="source" value="paypal" class="btn btn--ghost">PayPal</button>
-            <button name="source" value="orange_money" class="btn btn--ghost">Orange Money</button>
-          </div>
-        </form>
-      </article>
-      {% empty %}
-        <p>⚠️ Aucun plan actif n’est configuré.</p>
-      {% endfor %}
+            <!-- TAGS SEO -->
+            <div class="plan-tags">
+                <span class="tag">#VisaCanada</span>
+                <span class="tag">#RésidencePermanente</span>
+                <span class="tag">#IELTS</span>
+                <span class="tag">#TCF</span>
+                <span class="tag">#CVInternational</span>
+                {% if p.duration_days > 1 %}
+                <span class="tag">#EntréeExpress</span>
+                <span class="tag">#PNP</span>
+                {% endif %}
+            </div>
+        </article>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-icon">⚠️</div>
+            <h3 class="empty-title">Aucun plan disponible</h3>
+            <p class="empty-text">
+                Les codes d'activation sont temporairement indisponibles. 
+                Veuillez réessayer dans quelques instants ou contactez notre support.
+            </p>
+            <a href="{% url 'billing:pricing' %}" class="btn btn-primary">
+                Voir les abonnements classiques
+            </a>
+        </div>
+        {% endfor %}
     </div>
-  </div>
-</div>
 
+    <!-- SECTION CONFIANCE -->
+    <aside class="trust-section-buycode">
+        <h3 class="trust-title">🔐 Pourquoi choisir Immigration97 ?</h3>
+        <div class="trust-grid-buycode">
+            <div class="trust-card">
+                <div class="trust-card-icon">⚡</div>
+                <h4 class="trust-card-title">Activation Instantanée</h4>
+                <p class="trust-card-text">
+                    Recevez votre code d'activation par email dans les 2 minutes après paiement. Accès immédiat à tous les outils premium.
+                </p>
+            </div>
+            
+            <div class="trust-card">
+                <div class="trust-card-icon">🔒</div>
+                <h4 class="trust-card-title">Paiement 100% Sécurisé</h4>
+                <p class="trust-card-text">
+                    Cryptage SSL 256-bit, certifié PCI-DSS. Vos données bancaires sont protégées par les standards internationaux.
+                </p>
+            </div>
+            
+            <div class="trust-card">
+                <div class="trust-card-icon">📱</div>
+                <h4 class="trust-card-title">Mobile Money Afrique</h4>
+                <p class="trust-card-text">
+                    Payez facilement depuis votre téléphone avec Orange Money, MTN, Moov Money, Wave ou Airtel Money.
+                </p>
+            </div>
+            
+            <div class="trust-card">
+                <div class="trust-card-icon">🌍</div>
+                <h4 class="trust-card-title">PayPal International</h4>
+                <p class="trust-card-text">
+                    Acceptons Visa, Mastercard, American Express via PayPal. Disponible partout dans le monde.
+                </p>
+            </div>
+            
+            <div class="trust-card">
+                <div class="trust-card-icon">💯</div>
+                <h4 class="trust-card-title">Satisfait ou Remboursé</h4>
+                <p class="trust-card-text">
+                    Garantie 30 jours. Si nos outils ne vous conviennent pas, nous vous remboursons intégralement.
+                </p>
+            </div>
+            
+            <div class="trust-card">
+                <div class="trust-card-icon">💬</div>
+                <h4 class="trust-card-title">Support 24/7</h4>
+                <p class="trust-card-text">
+                    Équipe francophone disponible par email, chat et WhatsApp pour vous accompagner dans votre projet d'immigration.
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- SECTION PROCESSUS -->
+    <section class="process-section">
+        <h3 class="process-title">📋 Comment ça marche ?</h3>
+        <div class="process-steps">
+            <div class="process-step">
+                <div class="step-number">1</div>
+                <h4 class="step-title">Choisissez votre plan</h4>
+                <p class="step-text">
+                    Sélectionnez la durée qui correspond à votre projet : 24h pour tester ou 30 jours pour un accès complet.
+                </p>
+            </div>
+            
+            <div class="process-step">
+                <div class="step-number">2</div>
+                <h4 class="step-title">Payez en toute sécurité</h4>
+                <p class="step-text">
+                    Choisissez Mobile Money (Afrique) ou PayPal (international). Paiement crypté 256-bit SSL.
+                </p>
+            </div>
+            
+            <div class="process-step">
+                <div class="step-number">3</div>
+                <h4 class="step-title">Recevez votre code</h4>
+                <p class="step-text">
+                    Code d'activation envoyé par email dans les 2 minutes. Vérifiez aussi vos spams.
+                </p>
+            </div>
+            
+            <div class="process-step">
+                <div class="step-number">4</div>
+                <h4 class="step-title">Activez et profitez</h4>
+                <p class="step-text">
+                    Entrez votre code dans "Mon espace" et accédez instantanément à tous les outils premium d'immigration.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ RAPIDE -->
+    <section class="faq-buycode">
+        <h3 class="faq-buycode-title">❓ Questions Fréquentes</h3>
+        
+        <details class="faq-buycode-item">
+            <summary>Quel est le délai de réception du code ?</summary>
+            <p>
+                Votre code d'activation est envoyé <strong>instantanément par email</strong> après confirmation du paiement. Dans 99% des cas, vous le recevez en moins de 2 minutes. Pensez à vérifier vos spams si vous ne le voyez pas.
+            </p>
+        </details>
+
+        <details class="faq-buycode-item">
+            <summary>Comment activer mon code d'accès ?</summary>
+            <p>
+                Rendez-vous dans <a href="{% url 'billing:redeem' %}">Mon espace → Activer un code</a>, collez votre code reçu par email et cliquez sur "Activer". Votre accès premium sera activé immédiatement pour la durée choisie.
+            </p>
+        </details>
+
+        <details class="faq-buycode-item">
+            <summary>Puis-je payer avec Orange Money depuis le Cameroun ?</summary>
+            <p>
+                Oui, nous acceptons Orange Money depuis le Cameroun, Côte d'Ivoire, Sénégal, Mali, Burkina Faso et autres pays d'Afrique francophone. Nous acceptons aussi MTN Money, Moov Money et Wave.
+            </p>
+        </details>
+
+        <details class="faq-buycode-item">
+            <summary>Le code est-il valable pour tous les outils ?</summary>
+            <p>
+                Oui, votre code d'activation donne accès à <strong>100% des outils premium</strong> : générateur CV, photo visa, tests IELTS/TCF/TEF, guides visa Canada, calculateurs immigration, et support prioritaire.
+            </p>
+        </details>
+
+        <details class="faq-buycode-item">
+            <summary>Puis-je prolonger mon accès avant expiration ?</summary>
+            <p>
+                Absolument ! Vous pouvez acheter un nouveau code à tout moment. La durée sera ajoutée à votre temps restant. Par exemple, si vous avez 5 jours restants et achetez un code 30 jours, vous aurez 35 jours au total.
+            </p>
+        </details>
+    </section>
+
+    <!-- CTA FINAL -->
+    <div class="final-cta-buycode">
+        <h3 class="cta-title">🚀 Prêt à démarrer votre projet d'immigration ?</h3>
+        <p class="cta-text">
+            Rejoignez des milliers d'africains qui ont réussi leur immigration au Canada grâce à Immigration97. Activation instantanée, support francophone 24/7.
+        </p>
+        <a href="#" class="btn btn-primary btn-lg" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+            Choisir mon plan maintenant
+        </a>
+    </div>
+</div>
 {% endblock %}

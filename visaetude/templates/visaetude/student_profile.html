@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}visa-etude{% endblock %}
+
+{% block title %}Profil Étudiant – Immigration97{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa_etude.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="ve-dashboard-hero fade-in-up">
+  <div class="container">
+    <span class="ve-badge">📋 Étape 1 · Fondations</span>
+    <h1>Profil Étudiant<br><span class="ve-gradient">Diagnostic & Orientation Visa Études</span></h1>
+    <p class="ve-lead">
+      Complète ton <strong>profil étudiant</strong> pour recevoir une
+      <strong>analyse personnalisée</strong> : pays compatibles, universités accessibles,
+      <strong>visa étudiant</strong>, <strong>bourses</strong> et plan d’action réaliste.
+    </p>
+  </div>
+</section>
+
+<section class="ve-dashboard-modules">
+  <div class="container ve-modules-grid">
+    <article class="ve-module-card" data-step="01">
+      <h2>Informations académiques & projet</h2>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="ve-form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <div class="error">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+        <div class="ve-cta-group">
+          <button type="submit" class="ve-btn-primary">💾 Enregistrer mon profil étudiant</button>
+          <a href="{% url 'visaetude:countries_list' %}" class="ve-btn-secondary">🌍 Voir les pays compatibles</a>
+        </div>
+      </form>
+    </article>
+
+    <aside class="ve-module-card">
+      <span class="ve-step">Conseil expert</span>
+      <h3>Pourquoi ce profil est important ?</h3>
+      <ul>
+        <li>Éviter les pays non accessibles à ton niveau</li>
+        <li>Identifier les <strong>bourses d’études</strong> possibles</li>
+        <li>Adapter le <strong>dossier visa étudiant</strong></li>
+        <li>Recevoir des recommandations personnalisées</li>
+      </ul>
+      <p class="small">💡 Plus ton profil est précis, plus le Coach IA pourra te proposer une stratégie fiable.</p>
+      <div class="ve-cta-group">
+        <a href="{% url 'visaetude:coach_ai' %}" class="ve-btn-secondary">🤖 Parler au Coach IA</a>
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}

@@ -1,108 +1,358 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block body_class %}cv-generator{% endblock %}
+{% block body_class %}cv-generator cv-step-personal{% endblock %}
 {% block app_scope %}cv-generator{% endblock %}
 
-{% block title %}
-Étape 1 — Informations personnelles | Immigration97
+{% block title %}Créer un CV professionnel - Informations personnelles | Générateur CV Canada Europe | Immigration97{% endblock %}
+
+{% block meta_description %}
+Créez votre CV professionnel pour le Canada, l'Europe et l'international. Générateur de CV conforme aux standards ATS. Étape 1 : Renseignez vos informations personnelles pour un CV optimisé immigration, emploi et recrutement.
+{% endblock %}
+
+{% block meta_keywords %}
+CV professionnel Canada, créer CV immigration, générateur CV ATS, CV Europass, CV moderne gratuit, template CV international, CV pour l'emploi Canada, CV conformes standards RH, optimisation CV recrutement, CV multilingue français anglais
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Générateur de CV professionnel Immigration97",
+  "description": "Créez un CV professionnel conforme aux standards internationaux (Canada, Europe, International) avec notre générateur intelligent",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "EUR"
+  },
+  "featureList": [
+    "Génération CV Canada ATS-friendly",
+    "Template CV Europass Europe",
+    "CV multilingue (Français, Anglais, Allemand, Espagnol, Italien)",
+    "Optimisation mots-clés recrutement",
+    "Export PDF professionnel"
+  ]
+}
+</script>
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet"n href="{% static 'css/cv_generator.css' %}">
+<link rel="stylesheet" href="{% static 'css/cv_generator.css' %}">
 {% endblock %}
 
 {% block content %}
-<main class="app-main cv-generator">
 
-<section class="cv-step-box">
+<!-- ================= BREADCRUMB SEO ================= -->
+<nav class="cv-breadcrumb" aria-label="Fil d'Ariane" itemscope itemtype="https://schema.org/BreadcrumbList">
+  <ol>
+    <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+      <a itemprop="item" href="{% url 'cv_generator:index' %}">
+        <span itemprop="name">Accueil Générateur CV</span>
+      </a>
+      <meta itemprop="position" content="1" />
+    </li>
+    <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+      <a itemprop="item" href="{% url 'cv_generator:cv_list' %}">
+        <span itemprop="name">Mes CV</span>
+      </a>
+      <meta itemprop="position" content="2" />
+    </li>
+    <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+      <span itemprop="name">Étape 1 - Informations personnelles</span>
+      <meta itemprop="position" content="3" />
+    </li>
+  </ol>
+</nav>
 
-  <!-- ================= HEADER ================= -->
-  <h2 class="cv-step-title">
-    Étape 1 — Informations personnelles
-  </h2>
+<!-- ================= MAIN SECTION ================= -->
+<section class="cv-step-box" itemscope itemtype="https://schema.org/CreativeWork">
 
-  <p class="cv-step-help">
-    Ces informations servent de base pour générer un
-    <strong>CV professionnel conforme aux standards internationaux</strong>
-    (Canada, Europe, International).
-  </p>
+  <!-- ================= HEADER SEO-OPTIMIZED ================= -->
+  <header class="cv-step-header">
+    <h1 class="cv-step-title" itemprop="headline">
+      Étape 1 — Créer votre CV professionnel : Informations personnelles
+    </h1>
 
-  <!-- ================= IMPORT CV ================= -->
-  <div class="cv-alert info" style="margin-bottom:20px;">
-    💡 Vous avez déjà un CV ?
-    Importez-le pour préremplir automatiquement les informations.
-  </div>
+    <p class="cv-step-help" itemprop="description">
+      Renseignez vos <strong>informations de contact</strong> pour générer un
+      <strong>CV professionnel conforme aux standards internationaux</strong> :
+      <em>CV Canada ATS-friendly</em>, <em>CV Europass Europe</em>, et
+      <em>CV moderne international</em>. Optimisé pour l'<strong>immigration</strong>,
+      le <strong>recrutement</strong> et l'<strong>emploi à l'étranger</strong>.
+    </p>
+  </header>
+
+  <!-- ================= IMPORT CV - SEO ================= -->
+  <aside class="cv-alert info" role="complementary" aria-label="Option d'import de CV existant">
+    <p>
+      💡 <strong>Vous avez déjà un CV ?</strong>
+      Importez votre CV existant (PDF, Word) pour <strong>préremplir automatiquement</strong>
+      vos informations et gagner du temps. Compatible avec les CV canadiens, européens et internationaux.
+    </p>
+  </aside>
 
   <a href="{% url 'cv_generator:upload_cv' cv.id %}"
-     class="cv-btn-secondary"
-     style="margin-bottom:30px; display:inline-block;">
+     class="cv-btn-secondary cv-import-btn"
+     aria-label="Importer un CV existant au format PDF ou Word">
     📄 Importer un CV existant (PDF / Word)
   </a>
 
-  <!-- ================= FORM ================= -->
-  <form method="post">
+  <!-- ================= FORMULAIRE PRINCIPAL ================= -->
+  <form method="post" 
+        action="{% url 'cv_generator:create_cv' cv.id %}"
+        class="cv-step-form"
+        aria-label="Formulaire de création de CV - Étape 1"
+        novalidate>
+    
     {% csrf_token %}
 
-    <div class="form-group">
-      {{ form.nom.label_tag }}
-      {{ form.nom }}
-    </div>
+    <!-- Messages d'erreur globaux -->
+    {% if form.non_field_errors %}
+      <div class="cv-alert error" role="alert">
+        <ul>
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
 
-    <div class="form-group">
-      {{ form.prenom.label_tag }}
-      {{ form.prenom }}
-    </div>
+    <!-- ================= SECTION: IDENTITÉ ================= -->
+    <fieldset class="cv-form-section">
+      <legend class="cv-section-title">Identité</legend>
 
-    <div class="form-group">
-      {{ form.email.label_tag }}
-      {{ form.email }}
-    </div>
+      <div class="cv-form-row">
+        <div class="form-group">
+          <label for="{{ form.nom.id_for_label }}" class="required">
+            Nom de famille
+          </label>
+          {{ form.nom }}
+          {% if form.nom.errors %}
+            <span class="error-message" role="alert">{{ form.nom.errors.0 }}</span>
+          {% endif %}
+        </div>
 
-    <div class="form-group">
-      {{ form.telephone.label_tag }}
-      {{ form.telephone }}
-    </div>
+        <div class="form-group">
+          <label for="{{ form.prenom.id_for_label }}" class="required">
+            Prénom
+          </label>
+          {{ form.prenom }}
+          {% if form.prenom.errors %}
+            <span class="error-message" role="alert">{{ form.prenom.errors.0 }}</span>
+          {% endif %}
+        </div>
+      </div>
 
-    <div class="form-group">
-      {{ form.profession.label_tag }}
-      {{ form.profession }}
-      <small class="cv-muted">
-        Exemple : Développeur web, Technicien de maintenance, Comptable…
-      </small>
-    </div>
+      <div class="cv-form-row">
+        <div class="form-group">
+          <label for="{{ form.email.id_for_label }}" class="required">
+            Adresse email professionnelle
+          </label>
+          {{ form.email }}
+          <small class="cv-muted">
+            Format : prenom.nom@email.com
+          </small>
+          {% if form.email.errors %}
+            <span class="error-message" role="alert">{{ form.email.errors.0 }}</span>
+          {% endif %}
+        </div>
 
-    <div class="form-group">
-      {{ form.pays_cible.label_tag }}
-      {{ form.pays_cible }}
-      <small class="cv-muted">
-        Le contenu du CV sera optimisé selon ce pays.
-      </small>
-    </div>
+        <div class="form-group">
+          <label for="{{ form.telephone.id_for_label }}">
+            Téléphone
+          </label>
+          {{ form.telephone }}
+          <small class="cv-muted">
+            Exemple : +33 6 12 34 56 78 (France) ou +1 514 123 4567 (Canada)
+          </small>
+          {% if form.telephone.errors %}
+            <span class="error-message" role="alert">{{ form.telephone.errors.0 }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </fieldset>
 
-    <div class="form-group">
-      <label for="{{ form.language.id_for_label }}">
-        Langue du CV
-      </label>
-      {{ form.language }}
-      <small class="cv-muted">
-        Exemple : Canada → Français ou Anglais
-      </small>
-    </div>
+    <!-- ================= SECTION: LOCALISATION ================= -->
+    <fieldset class="cv-form-section">
+      <legend class="cv-section-title">Localisation</legend>
 
-    <!-- ================= NAVIGATION ================= -->
-    <div class="cv-step-actions"
-         style="margin-top:40px; display:flex; justify-content:flex-end; gap:16px;">
+      <div class="cv-form-row">
+        <div class="form-group">
+          <label for="{{ form.ville.id_for_label }}">
+            Ville de résidence
+          </label>
+          {{ form.ville }}
+          <small class="cv-muted">
+            Exemple : Paris, Montréal, Bruxelles, Genève
+          </small>
+          {% if form.ville.errors %}
+            <span class="error-message" role="alert">{{ form.ville.errors.0 }}</span>
+          {% endif %}
+        </div>
 
-      <button type="submit" class="cv-btn-success">
-        ➡️ Continuer vers les expériences
+        <div class="form-group">
+          <label for="{{ form.province.id_for_label }}">
+            Province / Région / État
+          </label>
+          {{ form.province }}
+          <small class="cv-muted">
+            Exemple : Île-de-France, Québec, Ontario
+          </small>
+          {% if form.province.errors %}
+            <span class="error-message" role="alert">{{ form.province.errors.0 }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ================= SECTION: PROFIL PROFESSIONNEL ================= -->
+    <fieldset class="cv-form-section">
+      <legend class="cv-section-title">Profil professionnel</legend>
+
+      <div class="form-group">
+        <label for="{{ form.titre_poste.id_for_label }}" class="required">
+          Titre du poste recherché
+        </label>
+        {{ form.titre_poste }}
+        <small class="cv-muted">
+          Exemples optimisés SEO :
+          <strong>Développeur Full-Stack</strong>,
+          <strong>Infirmier autorisé</strong>,
+          <strong>Ingénieur mécanique</strong>,
+          <strong>Comptable agréé</strong>,
+          <strong>Chef de projet IT</strong>
+        </small>
+        {% if form.titre_poste.errors %}
+          <span class="error-message" role="alert">{{ form.titre_poste.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.profession.id_for_label }}">
+          Secteur d'activité / Industrie
+        </label>
+        {{ form.profession }}
+        <small class="cv-muted">
+          Exemples : Informatique / IT, Santé, Ingénierie, Finance, Commerce, BTP, Hôtellerie
+        </small>
+        {% if form.profession.errors %}
+          <span class="error-message" role="alert">{{ form.profession.errors.0 }}</span>
+        {% endif %}
+      </div>
+    </fieldset>
+
+    <!-- ================= SECTION: CONFIGURATION CV ================= -->
+    <fieldset class="cv-form-section">
+      <legend class="cv-section-title">Configuration du CV</legend>
+
+      <div class="cv-form-row">
+        <div class="form-group">
+          <label for="{{ form.pays_cible.id_for_label }}">
+            Pays ciblé pour l'emploi
+          </label>
+          {{ form.pays_cible }}
+          <small class="cv-muted">
+            <strong>Important :</strong> Le CV sera optimisé selon les normes RH du pays choisi
+            (Canada, France, Belgique, Suisse, Allemagne, UK, etc.)
+          </small>
+          {% if form.pays_cible.errors %}
+            <span class="error-message" role="alert">{{ form.pays_cible.errors.0 }}</span>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.language.id_for_label }}">
+            Langue principale du CV
+          </label>
+          {{ form.language }}
+          <small class="cv-muted">
+            Choisissez la langue dans laquelle votre CV sera généré.
+            <strong>Traduction automatique disponible</strong> pour 5 langues.
+          </small>
+          {% if form.language.errors %}
+            <span class="error-message" role="alert">{{ form.language.errors.0 }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ================= SECTION: RÉSEAUX PROFESSIONNELS ================= -->
+    <fieldset class="cv-form-section">
+      <legend class="cv-section-title">Réseaux professionnels (optionnel)</legend>
+
+      <div class="form-group">
+        <label for="{{ form.linkedin.id_for_label }}">
+          Profil LinkedIn
+        </label>
+        {{ form.linkedin }}
+        <small class="cv-muted">
+          Exemple : https://linkedin.com/in/votre-profil
+          <br><strong>Conseil :</strong> Un profil LinkedIn complet augmente vos chances de 40%
+        </small>
+        {% if form.linkedin.errors %}
+          <span class="error-message" role="alert">{{ form.linkedin.errors.0 }}</span>
+        {% endif %}
+      </div>
+    </fieldset>
+
+    <!-- ================= NAVIGATION WIZARD ================= -->
+    <nav class="cv-step-actions" aria-label="Navigation du formulaire">
+      <a href="{% url 'cv_generator:cv_list' %}" 
+         class="cv-btn-secondary"
+         aria-label="Retour à la liste des CV">
+        ← Retour à mes CV
+      </a>
+
+      <button type="submit" 
+              class="cv-btn-success"
+              aria-label="Sauvegarder et passer à l'étape 2 - Expériences professionnelles">
+        Continuer vers les expériences →
       </button>
-
-    </div>
+    </nav>
 
   </form>
 
 </section>
 
-</main>
+<!-- ================= SEO CONTENT FOOTER ================= -->
+<aside class="cv-seo-content" role="complementary">
+  <h2 class="cv-seo-title">Pourquoi créer un CV professionnel avec Immigration97 ?</h2>
+  <div class="cv-seo-grid">
+    <article class="cv-seo-card">
+      <h3>🇨🇦 CV conforme Canada</h3>
+      <p>
+        Générez un <strong>CV ATS-friendly</strong> respectant les normes canadiennes :
+        format chronologique, sans photo, optimisé pour les <strong>logiciels de recrutement</strong>.
+      </p>
+    </article>
+
+    <article class="cv-seo-card">
+      <h3>🇪🇺 CV Europass Europe</h3>
+      <p>
+        Créez un <strong>CV Europass</strong> ou moderne conforme aux standards européens
+        pour postuler en France, Belgique, Suisse, Allemagne, Espagne, Italie.
+      </p>
+    </article>
+
+    <article class="cv-seo-card">
+      <h3>🌍 Multilingue</h3>
+      <p>
+        Générez votre CV en <strong>5 langues</strong> : Français, Anglais, Allemand, Espagnol, Italien.
+        Traduction automatique optimisée pour chaque marché.
+      </p>
+    </article>
+
+    <article class="cv-seo-card">
+      <h3>🤖 Optimisation IA</h3>
+      <p>
+        Notre <strong>intelligence artificielle</strong> analyse et améliore votre CV :
+        mots-clés sectoriels, verbes d'action, quantification des résultats.
+      </p>
+    </article>
+  </div>
+</aside>
+
 {% endblock %}

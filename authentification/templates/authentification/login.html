@@ -1,28 +1,29 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Connexion – Immigration97{% endblock %}
+{% block title %}Connexion sécurisée – Immigration97{% endblock %}
 {% block body_class %}authentification{% endblock %}
 {% block app_scope %}authentification{% endblock %}
-{% block container_class %}container-free{% endblock %}
 
-
-{% block head_extra %}
+{% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/authentication.css' %}">
 {% endblock %}
 
 {% block content %}
-<main class="auth-layout">
-
-  <section class="auth-container">
+<div class="auth-layout">
+  <div class="auth-container">
     <div class="auth-card">
 
-      <header class="auth-header">
-        <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97" class="auth-logo">
-        <h1>Connexion sécurisée</h1>
-        <p>Accédez à votre espace personnel Immigration97</p>
-      </header>
+      <!-- ================= HEADER ================= -->
+      <div class="auth-header">
+        <img src="{% static 'img/LOGOIMM97.png' %}" 
+             alt="Immigration97" 
+             class="auth-logo">
+        <h1>Connexion</h1>
+        <p>Accédez à votre espace Immigration97</p>
+      </div>
 
+      <!-- ================= ALERTS ================= -->
       {% if messages %}
         <div class="auth-alerts">
           {% for message in messages %}
@@ -33,6 +34,7 @@
         </div>
       {% endif %}
 
+      <!-- ================= FORM ================= -->
       <form method="post" class="auth-form" novalidate>
         {% csrf_token %}
 
@@ -41,65 +43,59 @@
         {% endif %}
 
         <div class="form-group">
-<label for="username">Email ou nom d’utilisateur</label>
-<input
-  type="text"
-  name="username"
-  id="username"
-  placeholder="Email ou nom d’utilisateur"
-  required
->
-
+          <label for="username">Email ou nom d'utilisateur</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Entrez votre email"
+            required
+            autocomplete="username">
         </div>
 
-        <div class="form-group password-wrapper">
-  <label for="password-input">Mot de passe</label>
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <div class="password-wrapper">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="••••••••"
+              required
+              autocomplete="current-password">
+            <button
+              type="button"
+              class="password-toggle"
+              aria-label="Afficher le mot de passe">
+              <span class="eye-icon">👁</span>
+            </button>
+          </div>
+        </div>
 
-  <input
-    id="password-input"
-    type="password"
-    name="password"
-    required
-    autocomplete="current-password"
-    class="password-input"
-  >
-
-  <button
-    type="button"
-    class="password-toggle"
-    aria-label="Afficher le mot de passe"
-    tabindex="-1">
-    👁
-  </button>
-</div>
-
+        <div class="forgot-password">
+          <a href="{% url 'authentification:password_reset' %}">
+            Mot de passe oublié ?
+          </a>
+        </div>
 
         <button type="submit" class="btn-auth-primary">
           Se connecter
         </button>
-        <div class="forgot-password">
-  <a href="{% url 'authentification:password_reset' %}">
-    Mot de passe oublié ?
-  </a>
-</div>
-
       </form>
 
-      <footer class="auth-footer">
+      <!-- ================= FOOTER ================= -->
+      <div class="auth-footer">
         <p>
           Pas encore inscrit ?
           <a href="{% url 'authentification:register' %}">Créer un compte</a>
         </p>
-
-        
-      </footer>
+      </div>
 
     </div>
-  </section>
-
-</main>
+  </div>
+</div>
 {% endblock %}
 
-{% block scripts_extra %}
-<script src="{% static 'js/pages/authentication.js' %}"></script>
+{% block extra_js %}
+<script src="{% static 'js/pages/authentication.js' %}" defer></script>
 {% endblock %}

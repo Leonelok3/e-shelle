@@ -1,199 +1,306 @@
 /* =========================================================
    IMMIGRATION97 — AUTHENTIFICATION
-   UI PREMIUM — SCOPE STRICT
-   Scope : body.app.authentification
+   Mode overlay isolé - Zero impact sur base.html
 ========================================================= */
 
-/* =========================================================
-   BASE
-========================================================= */
-body.app.authentification .app-container.container-free {
-    max-width: none;
-    padding: 0;
-  }
-  
-
+/* ==================== BASE AUTH PAGE ==================== */
 body.app.authentification {
-    background: radial-gradient(
-        900px 400px at 20% -10%,
-        rgba(34,197,94,.18),
-        transparent 40%
-      ),
-      #020617;
-    color: #e5e7eb;
+  background: #020617;
+  color: #e5e7eb;
+  overflow-x: hidden;
+}
+
+/* Masque navbar et footer sur les pages auth */
+body.app.authentification .c-navbar,
+body.app.authentification .c-footer {
+  display: none !important;
+}
+
+/* ==================== MAIN CONTAINER ==================== */
+body.app.authentification .app-main.authentification {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  padding: 0;
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(900px 400px at 20% -10%, rgba(34,197,94,.18), transparent 40%),
+    #020617;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.app.authentification .app-container {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* ==================== LAYOUT ==================== */
+.auth-layout {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+/* ==================== CARD ==================== */
+.auth-card {
+  background: rgba(7,17,27,.96);
+  border: 1px solid rgba(30,41,59,.9);
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  box-shadow: 
+    0 30px 70px rgba(0,0,0,.65),
+    0 0 0 1px rgba(255,255,255,.03) inset;
+  backdrop-filter: blur(20px);
+}
+
+/* ==================== HEADER ==================== */
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-logo {
+  width: 90px;
+  height: auto;
+  margin: 0 auto 1rem;
+  display: block;
+}
+
+.auth-header h1 {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #f8fafc;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.auth-header p {
+  font-size: 0.9rem;
+  color: rgba(226,232,240,.7);
+  margin: 0;
+}
+
+/* ==================== ALERTS ==================== */
+.auth-alerts {
+  margin-bottom: 1.5rem;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid transparent;
+}
+
+.alert:last-child {
+  margin-bottom: 0;
+}
+
+.alert-error {
+  background: rgba(239,68,68,.12);
+  border-color: rgba(239,68,68,.2);
+  color: #fca5a5;
+}
+
+.alert-success {
+  background: rgba(34,197,94,.12);
+  border-color: rgba(34,197,94,.2);
+  color: #6ee7b7;
+}
+
+/* ==================== FORM ==================== */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(226,232,240,.85);
+  display: block;
+}
+
+.form-group input {
+  width: 100%;
+  background: #020617;
+  border: 1px solid rgba(71,85,105,.6);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  color: #e5e7eb;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.form-group input::placeholder {
+  color: rgba(148,163,184,.5);
+}
+
+.form-group input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16,185,129,.15);
+}
+
+/* ==================== PASSWORD FIELD ==================== */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  padding-right: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: rgba(148,163,184,.7);
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle:hover {
+  color: #10b981;
+}
+
+.eye-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* ==================== FORGOT PASSWORD ==================== */
+.forgot-password {
+  text-align: right;
+  margin-top: -0.5rem;
+}
+
+.forgot-password a {
+  font-size: 0.85rem;
+  color: #6ee7b7;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.forgot-password a:hover {
+  color: #10b981;
+  text-decoration: underline;
+}
+
+/* ==================== BUTTON ==================== */
+.btn-auth-primary {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: #020617;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.btn-auth-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(16,185,129,.35);
+}
+
+.btn-auth-primary:active {
+  transform: translateY(0);
+}
+
+/* ==================== FOOTER ==================== */
+.auth-footer {
+  text-align: center;
+  margin-top: 1.75rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid rgba(71,85,105,.3);
+}
+
+.auth-footer p {
+  font-size: 0.9rem;
+  color: rgba(226,232,240,.7);
+  margin: 0;
+}
+
+.auth-footer a {
+  color: #6ee7b7;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.auth-footer a:hover {
+  color: #10b981;
+  text-decoration: underline;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 640px) {
+  .auth-layout {
+    padding: 1rem;
   }
-  
-  /* Neutraliser le layout global */
-  body.app.authentification .app-container {
-    max-width: none;
-    padding: 0;
+
+  .auth-card {
+    padding: 2rem 1.5rem;
+    border-radius: 20px;
   }
-  
-  /* =========================================================
-     LAYOUT
-  ========================================================= */
-  body.app.authentification .auth-layout {
-    min-height: calc(100vh - 140px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4rem 1rem;
+
+  .auth-header h1 {
+    font-size: 1.5rem;
   }
-  
-  body.app.authentification .auth-container {
-    width: 100%;
-    max-width: 460px;
+
+  .auth-logo {
+    width: 75px;
   }
-  
-  /* =========================================================
-     CARD
-  ========================================================= */
-  body.app.authentification .auth-card {
-    background: rgba(7,17,27,.96);
-    border: 1px solid rgba(30,41,59,.9);
-    border-radius: 24px;
-    padding: 2.5rem 2rem;
-    box-shadow: 0 30px 70px rgba(0,0,0,.65);
+
+  .form-group input {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.9rem;
   }
-  
-  body.app.authentification .auth-center {
-    text-align: center;
+
+  .btn-auth-primary {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
   }
-  
-  /* =========================================================
-     HEADER
-  ========================================================= */
-  body.app.authentification .auth-header {
-    text-align: center;
-    margin-bottom: 2rem;
+}
+
+@media (max-width: 400px) {
+  .auth-card {
+    padding: 1.5rem 1.25rem;
   }
-  
-  body.app.authentification .auth-logo {
-    width: 90px;
-    margin-bottom: 1rem;
-  }
-  
-  body.app.authentification .auth-header h1 {
-    font-size: 1.6rem;
-    font-weight: 900;
-    margin-bottom: .5rem;
-  }
-  
-  body.app.authentification .auth-header p {
-    font-size: .9rem;
-    color: rgba(226,232,240,.75);
-  }
-  
-  /* =========================================================
-     FORM
-  ========================================================= */
-  body.app.authentification .auth-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-  }
-  
-  body.app.authentification .form-group label {
-    display: block;
-    font-size: .8rem;
-    font-weight: 600;
-    margin-bottom: .35rem;
-    color: rgba(226,232,240,.8);
-  }
-  
-  body.app.authentification .form-group input {
-    width: 100%;
-    background: #020617;
-    border: 1px solid rgba(71,85,105,.6);
-    border-radius: 12px;
-    padding: .65rem .75rem;
-    color: #e5e7eb;
-    font-size: .85rem;
-  }
-  
-  body.app.authentification .form-group input:focus {
-    outline: none;
-    border-color: #34d399;
-    box-shadow: 0 0 0 2px rgba(52,211,153,.25);
-  }
-  
-  /* =========================================================
-     PASSWORD TOGGLE
-  ========================================================= */
-  body.app.authentification .password-wrapper {
-    position: relative;
-  }
-  
-  body.app.authentification .password-toggle {
-    position: absolute;
-    right: 10px;
-    top: 32px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: #94a3b8;
-  }
-  
-  /* =========================================================
-     BUTTON
-  ========================================================= */
-  body.app.authentification .btn-auth-primary {
-    margin-top: .5rem;
-    padding: .7rem 1.2rem;
-    border-radius: 999px;
-    font-size: .85rem;
-    font-weight: 800;
-    border: none;
-    cursor: pointer;
-    background: linear-gradient(135deg,#10b981,#34d399);
-    color: #020617;
-    transition: all .25s ease;
-  }
-  
-  body.app.authentification .btn-auth-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 12px 28px rgba(16,185,129,.45);
-  }
-  
-  /* =========================================================
-     FOOTER LINKS
-  ========================================================= */
-  body.app.authentification .auth-footer {
-    margin-top: 1.5rem;
-    text-align: center;
-    font-size: .8rem;
-  }
-  
-  body.app.authentification .auth-footer a {
-    color: #6ee7b7;
-    text-decoration: none;
-  }
-  
-  body.app.authentification .auth-footer a:hover {
-    text-decoration: underline;
-  }
-  
-  /* =========================================================
-     ALERTS
-  ========================================================= */
-  body.app.authentification .auth-alerts {
-    margin-bottom: 1rem;
-  }
-  
-  body.app.authentification .alert {
-    padding: .6rem .8rem;
-    border-radius: 10px;
-    font-size: .8rem;
-    margin-bottom: .5rem;
-  }
-  
-  body.app.authentification .alert-error {
-    background: rgba(239,68,68,.15);
-    border: 1px solid rgba(239,68,68,.4);
-  }
-  
-  body.app.authentification .alert-success {
-    background: rgba(34,197,94,.15);
-    border: 1px solid rgba(34,197,94,.4);
-  }
-  
+}

@@ -1,8 +1,12 @@
+# visaetude/forms.py
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from .models import UserProfile, UserChecklist
+from .models import UserProfile, UserChecklist, StudentProfile
 
+# ============================================================
+# Constantes pour la validation des fichiers
+# ============================================================
 ALLOWED_CONTENT_TYPES = {
     "application/pdf",
     "image/jpeg", "image/png",
@@ -10,7 +14,9 @@ ALLOWED_CONTENT_TYPES = {
 }
 MAX_UPLOAD_MB = 10
 
-
+# ============================================================
+# Formulaire Profil Utilisateur (Visa Études)
+# ============================================================
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
@@ -37,7 +43,9 @@ class UserProfileForm(forms.ModelForm):
             raise ValidationError(_("Le budget ne peut pas être négatif."))
         return v
 
-
+# ============================================================
+# Formulaire Mise à jour Checklist
+# ============================================================
 class ChecklistUpdateForm(forms.ModelForm):
     class Meta:
         model = UserChecklist
@@ -66,3 +74,44 @@ class ChecklistUpdateForm(forms.ModelForm):
         if ctype is None and ext not in {"pdf", "jpg", "jpeg", "png", "docx"}:
             raise ValidationError(_("Extension non autorisée. PDF/JPG/PNG/DOCX uniquement."))
         return f
+
+# ============================================================
+# Formulaire Profil Étudiant (Diagnostic Visa Études)
+# ============================================================
+class StudentProfileForm(forms.ModelForm):
+    class Meta:
+        model = StudentProfile
+        fields = [
+            "country_of_origin",
+            "education_level",
+            "field_of_study",
+            "study_goal",
+            "target_year",
+            "budget_range",
+            "language_level",
+        ]
+        labels = {
+            "country_of_origin": _("Pays d’origine"),
+            "education_level": _("Niveau d’études actuel"),
+            "field_of_study": _("Domaine d’études / spécialité"),
+            "study_goal": _("Objectif académique"),
+            "target_year": _("Année de départ souhaitée"),
+            "budget_range": _("Budget estimatif (par an)"),
+            "language_level": _("Niveau de langue principal"),
+        }
+        widgets = {
+            "country_of_origin": forms.TextInput(attrs={"class": "form-control"}),
+            "education_level": forms.Select(attrs={"class": "form-select"}),
+            "field_of_study": forms.TextInput(attrs={"class": "form-control"}),
+            "study_goal": forms.TextInput(attrs={"class": "form-control"}),
+            "target_year": forms.NumberInput(attrs={"class": "form-control", "min": "2025"}),
+            "budget_range": forms.Select(attrs={"class": "form-select"}),
+            "language_level": forms.Select(attrs={"class": "form-select"}),
+        }
+from django import forms
+from .models import StudentProfile
+
+class StudentProfileForm(forms.ModelForm):
+    class Meta:
+        model = StudentProfile
+        fields = ['school', 'program', 'start_date']

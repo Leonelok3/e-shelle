@@ -1166,3 +1166,14 @@ def italie_programme(request):
         "visa_travail/italie_programme.html",
         {"italy_offers": italy_offers},
     )
+
+
+# in views.py
+from django.shortcuts import render
+
+def italie_programme(request):
+    """
+    Page dédiée au programme Italie.
+    """
+    return render(request, "visa_travail/italie_programme.html")
+

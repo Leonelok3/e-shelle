@@ -1,178 +1,254 @@
-{% extends "base.html" %}
-{% block title %}Mon portefeuille · Immigration97{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mon Portefeuille & Abonnements | Immigration97{% endblock %}
+
+{% block meta_description %}
+Gérez votre compte Immigration97 : consultez votre solde wallet, vos abonnements actifs, et l'historique de vos transactions pour les services d'immigration IA.
+{% endblock %}
+
+{% block body_class %}billing{% endblock %}
+{% block app_scope %}billing dashboard-flow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/billing.css' %}">
+{% endblock %}
+
 {% block content %}
 
-<style>
+<!-- Dashboard Header -->
+<div class="billing-dashboard-header">
+  <div>
+    <h1 class="billing-dashboard-header__title">État du Compte</h1>
+    <p class="billing-dashboard-header__subtitle">Gérez vos accès aux services d'immigration IA</p>
+  </div>
 
-/* ============================
-   🎨 Immigration97 – Dashboard Wallet UI 2026
-   ============================ */
-
-.panel{
-  background:
-    radial-gradient(circle at top left, rgba(56,189,248,0.18), transparent 55%),
-    radial-gradient(circle at bottom right, rgba(34,197,94,0.16), transparent 55%),
-    rgba(15,23,42,0.94);
-  padding:28px 26px;
-  border-radius:24px;
-  border:1px solid rgba(148,163,184,0.55);
-  box-shadow:
-    0 18px 38px rgba(15,23,42,0.88),
-    0 0 40px rgba(6,182,212,0.18);
-  backdrop-filter: blur(18px);
-  animation: fadePanel .45s ease-out;
-  margin-bottom: 2.2rem;
-  color:#e5e7eb;
-}
-
-.panel h2,
-.panel h3{
-  font-weight:800;
-  margin-bottom:1.1rem;
-  background: linear-gradient(135deg,#34d399,#06b6d4,#3b82f6);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
-
-
-/* Pills */
-.pill{
-  display:inline-block;
-  padding:6px 14px;
-  border-radius:18px;
-  font-size:.86rem;
-  border:1px solid rgba(148,163,184,0.4);
-  background:rgba(255,255,255,0.06);
-  color:#e5e7eb;
-}
-
-.pill.success{
-  background:rgba(34,197,94,0.15);
-  border-color:rgba(34,197,94,0.55);
-  color:#bbf7d0;
-}
-
-/* Button */
-.btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:11px 22px;
-  border-radius:999px;
-  font-weight:600;
-  transition:all .18s ease-out;
-}
-
-.btn-primary{
-  background:linear-gradient(135deg,#06b6d4,#3b82f6);
-  border:none;
-  color:#020617;
-  box-shadow:0 10px 26px rgba(37,99,235,.55);
-}
-
-.btn-primary:hover{
-  transform:translateY(-1px);
-  box-shadow:0 14px 36px rgba(37,99,235,.8);
-}
-
-/* Tables */
-.table{
-  width:100%;
-  border-collapse:collapse;
-  color:#e5e7eb;
-  font-size:.9rem;
-}
-
-.table thead{
-  background:rgba(255,255,255,0.06);
-}
-
-.table th, .table td{
-  padding:10px 12px;
-  border-bottom:1px solid rgba(148,163,184,0.25);
-}
-
-.table tbody tr:hover{
-  background:rgba(255,255,255,0.04);
-}
-
-.muted{
-  color:#9ca3af;
-  text-align:center;
-}
-
-/* Anim */
-@keyframes fadePanel{
-  from{opacity:0; transform:translateY(10px);}
-  to{opacity:1; transform:translateY(0);}
-}
-
-</style>
-
-<!-- ======================
-     🟩 PANEL – ACCESS
-     ====================== -->
-<div class="panel">
-  <h2>Mon accès</h2>
-  {% if has_access %}
-    <p class="pill success">✅ Accès actif</p>
-  {% else %}
-    <p class="pill">Accès inactif</p>
-    <p><a class="btn btn-primary" href="{% url 'billing:buy' %}">Acheter un code</a></p>
-  {% endif %}
+  <!-- Wallet Balance Card -->
+  <div class="billing-dashboard-balance">
+    <div class="billing-dashboard-balance__label">Solde disponible</div>
+    <div class="billing-dashboard-balance__amount">
+      <span class="value">{% if wallet %}{{ wallet.balance }}{% else %}0.00{% endif %}</span>
+      <span class="currency">USD</span>
+    </div>
+    <a href="{% url 'billing:reload' %}" class="billing-dashboard-balance__link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      <span>Recharger mon compte</span>
+    </a>
+  </div>
 </div>
 
-<!-- ======================
-     🟦 PANEL – SUBSCRIPTIONS
-     ====================== -->
-<div class="panel">
-  <h3>Mes abonnements</h3>
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Plan</th><th>Du</th><th>Au</th><th>Actif</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for s in subscriptions %}
-      <tr>
-        <td>{{ s.plan.name }}</td>
-        <td>{{ s.starts_at|date:"Y-m-d H:i" }}</td>
-        <td>{{ s.expires_at|date:"Y-m-d H:i" }}</td>
-        <td>{% if s.is_active and s.expires_at > now %}✅{% else %}—{% endif %}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="4" class="muted">Aucun abonnement.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<!-- Quick Status Grid -->
+<div class="billing-dashboard-grid">
+  
+  <!-- Premium Status Card -->
+  <div class="billing-dashboard-card">
+    <div class="billing-dashboard-card__header">
+      <div class="billing-dashboard-card__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          {% if has_access %}
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+          {% else %}
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+          {% endif %}
+        </svg>
+      </div>
+      <h3 class="billing-dashboard-card__title">Statut Premium</h3>
+    </div>
+
+    {% if has_access %}
+    <div class="billing-dashboard-card__status billing-dashboard-card__status--active">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <span>Accès Premium Actif</span>
+    </div>
+    <p class="billing-dashboard-card__desc">
+      Félicitations ! Vous avez accès à tous les générateurs de documents et outils d'immigration IA.
+    </p>
+    {% else %}
+    <div class="billing-dashboard-card__status billing-dashboard-card__status--inactive">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 16v-4M12 8h.01"/>
+      </svg>
+      <span>Accès Standard (Limité)</span>
+    </div>
+    <p class="billing-dashboard-card__desc">
+      Débloquez les outils IA pour vos démarches visa, tests de langue et CV internationaux.
+    </p>
+    <a href="{% url 'billing:pricing' %}" class="billing-dashboard-card__cta">
+      <span>Activer un Pass Premium</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Prepaid Code Card -->
+  <div class="billing-dashboard-card">
+    <div class="billing-dashboard-card__header">
+      <div class="billing-dashboard-card__icon billing-dashboard-card__icon--secondary">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+        </svg>
+      </div>
+      <h3 class="billing-dashboard-card__title">Code Prépayé</h3>
+    </div>
+
+    <p class="billing-dashboard-card__desc">
+      Utilisez un ticket de recharge pour ajouter du temps d'accès premium à votre compte.
+    </p>
+
+    <a href="{% url 'billing:redeem' %}" class="billing-dashboard-card__cta billing-dashboard-card__cta--ghost">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <span>Valider un nouveau code</span>
+    </a>
+  </div>
+
 </div>
 
-<!-- ======================
-     🟨 PANEL – TRANSACTIONS
-     ====================== -->
-<div class="panel">
-  <h3>Mes transactions (20 dernières)</h3>
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Date</th><th>Type</th><th>Montant</th><th>Devise</th><th>Note</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for t in transactions %}
-      <tr>
-        <td>{{ t.created_at|date:"Y-m-d H:i" }}</td>
-        <td>{{ t.type }}</td>
-        <td>{{ t.amount }}</td>
-        <td>{{ t.currency }}</td>
-        <td>{{ t.description }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5" class="muted">Aucune transaction.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<!-- Subscriptions History -->
+<div class="billing-dashboard-section">
+  <div class="billing-dashboard-section__header">
+    <div class="billing-dashboard-section__icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+      </svg>
+    </div>
+    <h2 class="billing-dashboard-section__title">Historique des Abonnements</h2>
+  </div>
+
+  <div class="billing-dashboard-table">
+    <table class="billing-table">
+      <thead>
+        <tr>
+          <th>Plan</th>
+          <th>Date de début</th>
+          <th>Date d'expiration</th>
+          <th class="billing-table__cell--right">Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in subscriptions %}
+        <tr>
+          <td class="billing-table__cell--bold">{{ s.plan.name }}</td>
+          <td>{{ s.starts_at|date:"d M Y" }}</td>
+          <td>{{ s.expires_at|date:"d M Y" }}</td>
+          <td class="billing-table__cell--right">
+            {% if s.is_active and s.expires_at > now %}
+            <span class="billing-table__badge billing-table__badge--success">ACTIF</span>
+            {% else %}
+            <span class="billing-table__badge billing-table__badge--inactive">EXPIRÉ</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="billing-table__empty">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            <p>Vous n'avez aucun abonnement actif pour le moment.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Transactions History -->
+<div class="billing-dashboard-section">
+  <div class="billing-dashboard-section__header">
+    <div class="billing-dashboard-section__icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="1" x2="12" y2="23"/>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+    </div>
+    <h2 class="billing-dashboard-section__title">Flux Financiers</h2>
+  </div>
+
+  <div class="billing-dashboard-table">
+    <table class="billing-table">
+      <thead>
+        <tr>
+          <th>Date & Heure</th>
+          <th>Description</th>
+          <th class="billing-table__cell--right">Montant</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transactions %}
+        <tr>
+          <td>
+            <div class="billing-table__date">{{ t.created_at|date:"d/m/Y" }}</div>
+            <div class="billing-table__time">{{ t.created_at|date:"H:i" }}</div>
+          </td>
+          <td>
+            <div class="billing-table__desc">{{ t.description|default:t.type }}</div>
+            <div class="billing-table__ref">Ref: TXN-{{ t.id|stringformat:"05d" }}</div>
+          </td>
+          <td class="billing-table__cell--right">
+            {% if t.amount > 0 %}
+            <div class="billing-table__amount billing-table__amount--positive">
+              +{{ t.amount }} <span>{{ t.currency }}</span>
+            </div>
+            {% else %}
+            <div class="billing-table__amount billing-table__amount--negative">
+              {{ t.amount }} <span>{{ t.currency }}</span>
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" class="billing-table__empty">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            <p>Aucun mouvement financier enregistré.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Help Section -->
+<div class="billing-dashboard-help">
+  <div class="billing-dashboard-help__icon">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  </div>
+  <div>
+    <h3 class="billing-dashboard-help__title">Besoin d'aide ?</h3>
+    <p class="billing-dashboard-help__desc">
+      Notre équipe support est disponible 24/7 pour vous accompagner dans vos démarches d'immigration.
+    </p>
+    <a href="/contact/" class="billing-dashboard-help__link">
+      <span>Contacter le support</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </a>
+  </div>
 </div>
 
 {% endblock %}

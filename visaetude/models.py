@@ -213,3 +213,44 @@ class VisaProgress(models.Model):
 
     def __str__(self):
         return f"Progress Visa Études – {self.user}"
+
+
+# ==================================================
+# PROGRESSION UTILISATEUR — POUR LES ÉTAPES DANS LES VUES
+# (Aligne avec ce que tes vues utilisent: step_1_profile, step_2_country, step_5_coach)
+# ==================================================
+class UserProgress(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="user_progress"
+    )
+    step_1_profile = models.BooleanField(default=False)
+    step_2_country = models.BooleanField(default=False)
+    step_5_coach = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"UserProgress – {self.user}"
+
+
+# ==================================================
+# PROFIL ÉTUDIANT — UNIFIÉ
+# ==================================================
+class StudentProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student_profile")
+
+    school = models.CharField(max_length=255, blank=True, null=True)
+    program = models.CharField(max_length=255, blank=True, null=True)
+    start_date = models.DateField(blank=True, null=True)
+
+    field_of_study = models.CharField(max_length=200, blank=True, null=True)
+    country_of_origin = models.CharField(max_length=100, blank=True, null=True)
+    target_year = models.IntegerField(blank=True, null=True)
+    education_level = models.CharField(max_length=100, blank=True, null=True)
+    language_level = models.CharField(max_length=100, blank=True, null=True)
+    study_goal = models.TextField(blank=True, null=True)
+    budget_range = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.program or 'Profil étudiant'}"

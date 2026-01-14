@@ -1,123 +1,244 @@
-{% extends "billing/base_billing.html" %}
-{% block title %}Recharger (test) | Immigration97{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Recharger mon Wallet | Immigration97{% endblock %}
+
+{% block meta_description %}
+Rechargez votre portefeuille Immigration97 pour accéder aux services premium : CV IA, tests de langue, simulation visa Canada et Europe.
+{% endblock %}
+
+{% block body_class %}billing{% endblock %}
+{% block app_scope %}billing reload-flow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/billing.css' %}">
+{% endblock %}
+
 {% block content %}
 
-<style>
-/* ---- Style Immigration97 – Wallet Reload (UI 2026) ---- */
+<!-- Hero Section -->
+<div class="billing-reload-hero">
+  <div class="billing-reload-hero__icon">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+      <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+      <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+    </svg>
+  </div>
 
-.b-card{
-  background:
-    radial-gradient(circle at top left, rgba(56,189,248,0.18), transparent 55%),
-    radial-gradient(circle at bottom right, rgba(34,197,94,0.16), transparent 55%),
-    rgba(15,23,42,0.94);
-  padding: 32px 26px;
-  border-radius: 24px;
-  border:1px solid rgba(148,163,184,0.55);
-  box-shadow:
-    0 18px 38px rgba(15,23,42,0.88),
-    0 0 40px rgba(6,182,212,0.18);
-  backdrop-filter: blur(18px);
-  animation: fadePanel .45s ease-out;
-  color:#e5e7eb;
-}
+  <h1 class="billing-reload-hero__title">
+    Recharger le Wallet
+  </h1>
 
-.b-card h1{
-  font-size: 1.8rem;
-  margin-bottom: 1.3rem;
-  font-weight: 800;
-  background: linear-gradient(135deg,#34d399,#06b6d4,#3b82f6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
+  <p class="billing-reload-hero__subtitle">
+    Ajoutez des fonds à votre portefeuille pour accéder instantanément aux services premium d'immigration IA.
+  </p>
+</div>
 
-.b-form{
-  display:flex;
-  flex-direction:column;
-  gap:1.2rem;
-}
+<!-- Reload Card -->
+<div class="billing-reload-card">
+  
+  <!-- Card Header -->
+  <div class="billing-reload-card__header">
+    <div class="billing-reload-card__icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+    </div>
+    <div>
+      <h2 class="billing-reload-card__title">Recharge de Fonds</h2>
+      <p class="billing-reload-card__desc">Choisissez le montant à ajouter</p>
+    </div>
+  </div>
 
-.b-form-row{
-  display:flex;
-  flex-direction:column;
-  gap:.45rem;
-}
-
-.b-form-row label{
-  font-weight:600;
-  font-size:.9rem;
-  color:#d1d5db;
-}
-
-.b-form-row input,
-.b-form-row textarea,
-.b-form-row select{
-  background:rgba(15,23,42,0.95);
-  border:1px solid rgba(148,163,184,0.55);
-  border-radius:12px;
-  padding:10px 14px;
-  width:100%;
-  font-size:.92rem;
-  color:#e5e7eb;
-  transition:all .18s ease-out;
-}
-
-.b-form-row input:focus,
-.b-form-row textarea:focus,
-.b-form-row select:focus{
-  border-color:rgba(56,189,248,0.85);
-  box-shadow:0 0 0 1px rgba(56,189,248,.5), 0 8px 20px rgba(15,23,42,.9);
-}
-
-.b-error{
-  color:#fca5a5;
-  font-size:.82rem;
-  margin-top: -2px;
-}
-
-.b-btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:11px 22px;
-  border-radius:999px;
-  border:1px solid rgba(148,163,184,.55);
-  font-weight:600;
-  cursor:pointer;
-  transition:all .18s ease-out;
-}
-
-.b-primary{
-  background:linear-gradient(135deg,#06b6d4,#3b82f6);
-  border:none;
-  color:#020617;
-  box-shadow:0 10px 26px rgba(37,99,235,.55);
-}
-
-.b-primary:hover{
-  box-shadow:0 14px 36px rgba(37,99,235,.8);
-  transform:translateY(-1px);
-}
-
-@keyframes fadePanel{
-  from{opacity:0; transform:translateY(10px);}
-  to{opacity:1; transform:translateY(0);}
-}
-
-</style>
-
-<section class="b-card">
-  <h1>Recharger mon wallet (mode test)</h1>
-  <form method="post" class="b-form">
+  <!-- Form -->
+  <form method="post" class="billing-reload-form">
     {% csrf_token %}
-    <div class="b-form-row">
-      {{ form.amount.label_tag }} {{ form.amount }}
-      {% if form.amount.errors %}<div class="b-error">{{ form.amount.errors }}</div>{% endif %}
+
+    <!-- Amount Input -->
+    <div class="billing-reload-form__group">
+      <label for="{{ form.amount.id_for_label }}" class="billing-reload-form__label">
+        Montant à ajouter
+      </label>
+      
+      <div class="billing-reload-form__input-wrapper">
+        <span class="billing-reload-form__prefix">$</span>
+        <input 
+          type="number" 
+          name="{{ form.amount.name }}" 
+          id="{{ form.amount.id_for_label }}"
+          class="billing-reload-form__input"
+          placeholder="50"
+          min="1"
+          step="0.01"
+          required
+          {% if form.amount.value %}value="{{ form.amount.value }}"{% endif %}
+        >
+        <span class="billing-reload-form__suffix">USD</span>
+      </div>
+
+      {% if form.amount.errors %}
+        {% for error in form.amount.errors %}
+        <div class="billing-reload-form__error">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>{{ error }}</span>
+        </div>
+        {% endfor %}
+      {% endif %}
+
+      <small class="billing-reload-form__hint">
+        Montant minimum : <strong>$1 USD</strong>
+      </small>
     </div>
-    <div class="b-form-row">
-      {{ form.note.label_tag }} {{ form.note }}
+
+    <!-- Quick Amount Buttons -->
+    <div class="billing-reload-form__quick">
+      <span class="billing-reload-form__quick-label">Montants rapides :</span>
+      <div class="billing-reload-form__quick-grid">
+        <button type="button" class="billing-reload-form__quick-btn" data-amount="10">$10</button>
+        <button type="button" class="billing-reload-form__quick-btn" data-amount="25">$25</button>
+        <button type="button" class="billing-reload-form__quick-btn" data-amount="50">$50</button>
+        <button type="button" class="billing-reload-form__quick-btn" data-amount="100">$100</button>
+      </div>
     </div>
-    <button class="b-btn b-primary" type="submit">Ajouter</button>
+
+    <!-- Note Input -->
+    <div class="billing-reload-form__group">
+      <label for="{{ form.note.id_for_label }}" class="billing-reload-form__label">
+        Note ou Référence <span class="billing-reload-form__optional">(optionnel)</span>
+      </label>
+      
+      <textarea 
+        name="{{ form.note.name }}" 
+        id="{{ form.note.id_for_label }}"
+        class="billing-reload-form__textarea"
+        placeholder="Ex: Recharge pour préparation TEF Canada"
+        rows="3"
+      >{% if form.note.value %}{{ form.note.value }}{% endif %}</textarea>
+
+      {% if form.note.errors %}
+        {% for error in form.note.errors %}
+        <div class="billing-reload-form__error">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>{{ error }}</span>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="billing-reload-form__submit">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <span>Confirmer la recharge</span>
+    </button>
   </form>
-</section>
+
+  <!-- Card Footer (Test Mode Notice) -->
+  <div class="billing-reload-card__footer">
+    <div class="billing-reload-card__notice">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 16v-4M12 8h.01"/>
+      </svg>
+      <div>
+        <p><strong>Mode Test Actif</strong></p>
+        <p>En production, cette action redirigera vers <strong>CinetPay</strong>, <strong>Stripe</strong> ou <strong>PayPal</strong> pour un paiement sécurisé réel.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Payment Methods Info -->
+<div class="billing-reload-methods">
+  <h3 class="billing-reload-methods__title">Moyens de paiement disponibles</h3>
+  
+  <div class="billing-reload-methods__grid">
+    
+    <div class="billing-reload-methods__card">
+      <div class="billing-reload-methods__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+          <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+      </div>
+      <h4>Carte Bancaire</h4>
+      <p>Visa, Mastercard, American Express</p>
+    </div>
+
+    <div class="billing-reload-methods__card">
+      <div class="billing-reload-methods__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      </div>
+      <h4>Mobile Money</h4>
+      <p>Orange Money, MTN, Moov, Wave</p>
+    </div>
+
+    <div class="billing-reload-methods__card">
+      <div class="billing-reload-methods__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+          <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+          <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+        </svg>
+      </div>
+      <h4>Portefeuille Crypto</h4>
+      <p>Bitcoin, USDT (bientôt disponible)</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- Security Notice -->
+<div class="billing-reload-security">
+  <div class="billing-reload-security__icon">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  </div>
+  <div>
+    <h3 class="billing-reload-security__title">Paiement 100% Sécurisé</h3>
+    <p class="billing-reload-security__desc">
+      Toutes les transactions sont protégées par cryptage SSL 256 bits. 
+      Vos données bancaires ne sont jamais stockées sur nos serveurs. 
+      Conformité PCI-DSS et RGPD garantie.
+    </p>
+  </div>
+</div>
+
+<!-- Quick Amount Button Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
+  const quickButtons = document.querySelectorAll('.billing-reload-form__quick-btn');
+  
+  quickButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const amount = this.getAttribute('data-amount');
+      amountInput.value = amount;
+      
+      // Remove active class from all buttons
+      quickButtons.forEach(btn => btn.classList.remove('active'));
+      // Add active class to clicked button
+      this.classList.add('active');
+    });
+  });
+});
+</script>
 
 {% endblock %}
