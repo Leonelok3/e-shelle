@@ -6,120 +6,117 @@
 
 {% block title %}Mes CV — Tableau de bord · Immigration97{% endblock %}
 
-{% block meta_description %}
-Gérez vos CV Immigration97 : édition, suivi par étapes, export PDF
-optimisé ATS pour Canada, Europe, USA et Afrique francophone.
-{% endblock %}
+{% block meta_description %}Gérez vos CV Immigration97 : édition, suivi par étapes, export PDF optimisé ATS pour Canada, Europe, USA et Afrique francophone.{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/cv_generator.css' %}">
 {% endblock %}
 
 {% block content %}
-<main class="app-main cv-generator">
-  <div class="cv-dashboard">
+<div class="cv-dashboard">
 
-    <header class="cv-header">
-      <div>
-        <h1>Mes CV — Tableau de bord</h1>
-        <p class="cv-header-lead">
-          Suivez la progression de vos CV et exportez des PDF
-          <strong>prêts pour les candidatures internationales</strong>.
-        </p>
-      </div>
-
-      <div class="cv-header-actions">
-        <a href="{% url 'cv_generator:template_selection' %}" class="btn-main">
-          ➕ Créer un nouveau CV
-        </a>
-        <a href="{% url 'billing:access' %}" class="btn-ghost">
-          🚀 Accès complet Immigration97
-        </a>
-      </div>
-    </header>
-
-    <div class="cv-upsell-strip">
-      💡 Multipliez vos chances en utilisant <strong>plusieurs CV adaptés par pays</strong>
-      (Canada, Europe, USA).
-      <a href="{% url 'billing:access' %}">Voir les accès Pro</a>
+  <header class="cv-header">
+    <div>
+      <h1>Mes CV — Tableau de bord</h1>
+      <p class="cv-header-lead">
+        Suivez la progression de vos CV et exportez des PDF
+        <strong>prêts pour les candidatures internationales</strong>.
+      </p>
     </div>
 
-    {% if cvs %}
-      <section class="cv-panel">
-        <div class="cv-table-wrapper">
-          <table class="cv-table">
-            <thead>
-              <tr>
-                <th>CV / Profession</th>
-                <th>Pays</th>
-                <th>Statut</th>
-                <th>Progression</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for cv in cvs %}
-              <tr>
-                <td>
-                  <div class="cv-main-title">
-                    {{ cv.profession|default:"CV sans titre" }}
-                  </div>
-                  <div class="cv-submeta">
-                    Créé le {{ cv.created_at|date:"d M Y" }}
-                  </div>
-                </td>
+    <div class="cv-header-actions">
+      <a href="{% url 'cv_generator:template_selection' %}" class="btn-primary">
+        ➕ Créer un nouveau CV
+      </a>
+      <a href="{% url 'billing:access' %}" class="btn-ghost">
+        🚀 Accès complet Immigration97
+      </a>
+    </div>
+  </header>
 
-                <td>{{ cv.pays_cible|default:"—" }}</td>
-
-                <td>
-                  {% if cv.is_completed %}
-                    <span class="tag-status done">✔ Complété</span>
-                  {% else %}
-                    <span class="tag-status pending">
-                      En cours ({{ cv.current_step }}/3)
-                    </span>
-                  {% endif %}
-                </td>
-
-                <td>
-                  {% with p=cv.get_completion_percentage %}
-                  <div class="progress">
-                    <div class="bar">
-                      <span style="width:{{ p }}%"></span>
-                    </div>
-                    <small>{{ p }}%</small>
-                  </div>
-                  {% endwith %}
-                </td>
-
-                <td class="cv-actions">
-                  <a href="{% url 'cv_generator:edit_cv' cv.id %}">Modifier</a>
-
-                  {% if cv.is_completed %}
-                    <a href="{% url 'cv_generator:export_pdf' cv.id %}" target="_blank">📄 PDF</a>
-                  {% else %}
-                    <span class="disabled">📄 PDF</span>
-                  {% endif %}
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    {% else %}
-      <section class="cv-empty">
-        <h3>Aucun CV créé</h3>
-        <p>
-          Commencez avec un modèle optimisé pour
-          <strong>Canada, Europe et immigration</strong>.
-        </p>
-        <a href="{% url 'cv_generator:template_selection' %}" class="btn-main">
-          Démarrer mon premier CV
-        </a>
-      </section>
-    {% endif %}
-
+  <div class="cv-upsell-strip">
+    💡 Multipliez vos chances en utilisant <strong>plusieurs CV adaptés par pays</strong>
+    (Canada, Europe, USA).
+    <a href="{% url 'billing:access' %}">Voir les accès Pro</a>
   </div>
-</main>
+
+  {% if cvs %}
+    <section class="cv-panel">
+      <div class="cv-table-wrapper">
+        <table class="cv-table">
+          <thead>
+            <tr>
+              <th>CV / Profession</th>
+              <th>Pays</th>
+              <th>Statut</th>
+              <th>Progression</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cv in cvs %}
+            <tr>
+              <td>
+                <div class="cv-main-title">
+                  {{ cv.profession|default:"CV sans titre" }}
+                </div>
+                <div class="cv-submeta">
+                  Créé le {{ cv.created_at|date:"d M Y" }}
+                </div>
+              </td>
+
+              <td>{{ cv.pays_cible|default:"—" }}</td>
+
+              <td>
+                {% if cv.is_completed %}
+                  <span class="tag-status tag-status--done">✔ Complété</span>
+                {% else %}
+                  <span class="tag-status tag-status--pending">
+                    En cours ({{ cv.current_step }}/3)
+                  </span>
+                {% endif %}
+              </td>
+
+              <td>
+                {% with p=cv.get_completion_percentage %}
+                <div class="progress" data-progress="{{ p }}">
+                  <div class="bar"><span></span></div>
+                  <small>{{ p }}%</small>
+                </div>
+                {% endwith %}
+              </td>
+
+              <td class="cv-actions">
+                <a href="{% url 'cv_generator:edit_cv' cv.id %}">Modifier</a>
+
+                {% if cv.is_completed %}
+                  <a href="{% url 'cv_generator:export_pdf' cv.id %}" target="_blank">📄 PDF</a>
+                {% else %}
+                  <span class="disabled">📄 PDF</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  {% else %}
+    <section class="cv-empty">
+      <h3>Aucun CV créé</h3>
+      <p>
+        Commencez avec un modèle optimisé pour
+        <strong>Canada, Europe et immigration</strong>.
+      </p>
+      <a href="{% url 'cv_generator:template_selection' %}" class="btn-primary">
+        Démarrer mon premier CV
+      </a>
+    </section>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/cv_progress.js' %}" defer></script>
 {% endblock %}

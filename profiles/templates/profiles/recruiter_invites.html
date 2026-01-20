@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Invitations envoyées — Recruteur | Immigration97{% endblock %}
+{% block meta_description %}
+Suivez vos invitations d’entretien (envoyée, acceptée, refusée). Sélectionnez des talents Premium disponibles pour l’international (Afrique • Canada • Europe).
+{% endblock %}
+
+{% block body_class %}profiles{% endblock %}
+{% block app_scope %}profiles{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profiles.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<section class="p-hero">
+  <div class="p-hero__inner">
+    <div class="p-hero__left">
+      <h1 class="p-hero__title">Invitations envoyées</h1>
+      <p class="p-hero__lead">
+        Suivez les réponses des candidats (envoyée, acceptée, refusée). Cela aide à prioriser les profils.
+      </p>
+
+      <div class="p-hero__meta">
+        <span class="p-pill">📊 Suivi clair</span>
+        <span class="p-pill">🧩 Décision rapide</span>
+        <span class="p-pill">🌍 Talents Premium</span>
+      </div>
+    </div>
+
+    <div class="p-hero__right">
+      <a class="p-btn p-btn--outline" href="{% url 'profiles:list' %}">Retour aux talents</a>
+      <a class="p-btn p-btn--primary" href="{% url 'profiles:my_space' %}">Mon espace</a>
+    </div>
+  </div>
+</section>
+
+<section class="p-card p-card--soft">
+  <div class="p-card__head">
+    <h2 class="p-section-title">Historique</h2>
+    <div class="p-kpi">
+      <span class="p-kpi__label">Total</span>
+      <span class="p-kpi__value">{{ invites|length }}</span>
+    </div>
+  </div>
+
+  {% if invites %}
+    <div class="p-table">
+      <div class="p-table__row p-table__row--head">
+        <div>Candidat</div>
+        <div>Sujet</div>
+        <div>Statut</div>
+        <div>Date</div>
+        <div>Profil</div>
+      </div>
+
+      {% for inv in invites %}
+      <div class="p-table__row">
+        <div class="p-table__cell">
+          <div class="p-mini">
+            <div class="p-mini__title">{{ inv.candidate_user.username|default:"Candidat" }}</div>
+            <div class="p-mini__sub">Recrutement international</div>
+          </div>
+        </div>
+
+        <div class="p-table__cell">
+          <div class="p-mini__title">{{ inv.subject|default:"Invitation à entretien" }}</div>
+          <div class="p-mini__sub">{{ inv.message|truncatechars:140 }}</div>
+        </div>
+
+        <div class="p-table__cell">
+          {% if inv.status == "accepted" %}
+            <span class="p-badge p-badge--success">Acceptée</span>
+          {% elif inv.status == "declined" %}
+            <span class="p-badge p-badge--danger">Refusée</span>
+          {% else %}
+            <span class="p-badge p-badge--info">Envoyée</span>
+          {% endif %}
+        </div>
+
+        <div class="p-table__cell">
+          <span class="p-muted">{{ inv.created_at|date:"d/m/Y H:i" }}</span>
+        </div>
+
+        <div class="p-table__cell">
+          {% if inv.candidate_user.profile %}
+            <a class="p-btn p-btn--outline p-btn--sm" href="{% url 'profiles:detail' inv.candidate_user.profile.pk %}">
+              Voir profil
+            </a>
+          {% else %}
+            <span class="p-muted">Profil indisponible</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="p-empty">
+      <h3>Aucune invitation envoyée</h3>
+      <p>Parcourez les talents Premium puis envoyez une invitation claire.</p>
+      <div class="p-actions">
+        <a class="p-btn p-btn--primary" href="{% url 'profiles:list' %}">Voir les talents</a>
+      </div>
+    </div>
+  {% endif %}
+</section>
+
+{% endblock %}

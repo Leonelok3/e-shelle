@@ -1,0 +1,38 @@
+{% load actualite_extras %}
+<div class="a-card">
+  <div class="a-card__head">
+    <h3>Filtres</h3>
+    <p>SEO GEO + intent utilisateur.</p>
+  </div>
+
+  <form method="get" class="a-form">
+    <label class="a-label">Recherche</label>
+    <input class="a-input" type="text" name="q" value="{{ request.GET.q }}" placeholder="ex: visa travail, nurse, student…">
+
+    <label class="a-label">Pays</label>
+    <select class="a-select" name="country">
+      <option value="">Tous</option>
+      <option value="US" {% if request.GET.country == "US" %}selected{% endif %}>USA</option>
+      <option value="CA" {% if request.GET.country == "CA" %}selected{% endif %}>Canada</option>
+      <option value="DE" {% if request.GET.country == "DE" %}selected{% endif %}>Allemagne</option>
+      <option value="IT" {% if request.GET.country == "IT" %}selected{% endif %}>Italie</option>
+      <option value="FR" {% if request.GET.country == "FR" %}selected{% endif %}>France</option>
+    </select>
+
+    <label class="a-label">Catégorie</label>
+    <select class="a-select" name="category">
+      <option value="">Toutes</option>
+      <option value="job" {% if request.GET.category == "job" %}selected{% endif %}>Offres d'emploi</option>
+      <option value="law" {% if request.GET.category == "law" %}selected{% endif %}>Loi & Immigration</option>
+      <option value="conference" {% if request.GET.category == "conference" %}selected{% endif %}>Conférences</option>
+      <option value="opportunity" {% if request.GET.category == "opportunity" %}selected{% endif %}>Opportunités</option>
+      <option value="advice" {% if request.GET.category == "advice" %}selected{% endif %}>Conseils</option>
+      <option value="alert" {% if request.GET.category == "alert" %}selected{% endif %}>Alertes</option>
+    </select>
+
+    <div class="a-form__row">
+      <button class="c-btn c-btn--primary" type="submit">Appliquer</button>
+      <a class="c-btn c-btn--outline" href="{% url 'actualite:list' %}">Réinitialiser</a>
+    </div>
+  </form>
+</div>

@@ -1,200 +1,137 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Studio Lettres de Motivation IA | Immigration97{% endblock %}
-
-{% block meta_description %}
-Générez des lettres de motivation professionnelles optimisées ATS pour vos démarches d'immigration, emploi au Canada, France et Belgique. IA + export PDF.
-{% endblock %}
-
-{% block body_class %}motivation-letter{% endblock %}
-{% block app_scope %}motivation-letter home-flow{% endblock %}
+{% block title %}Générateur de Lettre IA | Immigration97{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/MotivationLetterApp.css' %}">
+<style>
+  .ml-wrap{max-width:1100px;margin:24px auto;padding:0 16px}
+  .ml-panels{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:900px){.ml-panels{grid-template-columns:1fr}}
+  .ml-panel{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:16px}
+  .ml-title{font-weight:950;font-size:18px;margin:0 0 10px}
+  .ml-help{color:rgba(255,255,255,.70);line-height:1.6;margin:0 0 12px}
+  label{display:block;font-weight:850;margin:10px 0 6px}
+  input,select,textarea{width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);color:rgba(255,255,255,.92);outline:none}
+  textarea{min-height:110px}
+  .ml-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .btn{border:0;border-radius:999px;padding:12px 16px;font-weight:900;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:10px}
+  .btn-primary{background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:1px solid rgba(16,185,129,.35)}
+  .btn-ghost{background:rgba(255,255,255,.03);color:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.16)}
+  .ml-result{margin-top:16px}
+  .ml-box{white-space:pre-wrap;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;line-height:1.7}
+  .ml-pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.12);font-weight:900;font-size:12px}
+</style>
 {% endblock %}
 
 {% block content %}
+<div class="ml-wrap">
 
-<!-- Hero Section -->
-<div class="ml-hero">
-  <div class="ml-hero__badge">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/>
-      <line x1="16" y1="13" x2="8" y2="13"/>
-      <line x1="16" y1="17" x2="8" y2="17"/>
-      <polyline points="10 9 9 9 8 9"/>
-    </svg>
-    Studio Lettres IA
+  <div class="ml-hero" style="margin-bottom:14px">
+    <div class="ml-hero__badge">Studio Lettres IA</div>
+    <h1 class="ml-hero__title">Générateur de lettre de motivation</h1>
+    <p class="ml-hero__subtitle">Choisis : remplir le formulaire OU importer ton CV (PDF/DOCX). Ensuite tu peux sauvegarder et télécharger en PDF.</p>
   </div>
 
-  <h1 class="ml-hero__title">
-    Créez des <span class="ml-hero__gradient">Lettres de Motivation</span> Professionnelles
-  </h1>
+  <div class="ml-panels">
 
-  <p class="ml-hero__subtitle">
-    Générez des lettres de motivation optimisées ATS pour vos candidatures au Canada, en France et en Belgique. 
-    Analyse IA, score de compatibilité et export PDF instantané.
-  </p>
-</div>
+    <!-- ===== PANEL 1: FORMULAIRE ===== -->
+    <section class="ml-panel">
+      <h2 class="ml-title">✍️ Générer depuis formulaire</h2>
+      <p class="ml-help">Remplis les infos essentielles. (Ta vue attend les champs du <b>FullCoverForm</b>.)</p>
 
-<!-- Main Grid -->
-<div class="ml-grid">
-  
-  <!-- Card 1: Generator -->
-  <a href="{% url 'motivation_letter:generator' %}" class="ml-card ml-card--featured">
-    <div class="ml-card__icon">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
-      </svg>
-    </div>
-    <h3 class="ml-card__title">Générateur de Lettre IA</h3>
-    <p class="ml-card__desc">
-      Formulaire ou import CV → Lettre optimisée ATS + score de compatibilité + export PDF professionnel.
-    </p>
-    <div class="ml-card__cta">
-      <span>Créer une lettre</span>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M5 12h14M12 5l7 7-7 7"/>
-      </svg>
-    </div>
-  </a>
+      <form method="post" action="">
+        {% csrf_token %}
 
-  <!-- Card 2: My Letters -->
-  <a href="{% url 'motivation_letter:letter_list' %}" class="ml-card">
-    <div class="ml-card__icon ml-card__icon--secondary">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-      </svg>
-    </div>
-    <h3 class="ml-card__title">Mes Lettres</h3>
-    <p class="ml-card__desc">
-      Retrouvez, téléchargez et réutilisez vos lettres de motivation sauvegardées. Historique complet.
-    </p>
-    <div class="ml-card__cta">
-      <span>Voir mes lettres</span>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M5 12h14M12 5l7 7-7 7"/>
-      </svg>
-    </div>
-  </a>
+        {{ form.non_field_errors }}
 
-  <!-- Card 3: CV Generator -->
-  <a href="/cv-generator/" class="ml-card">
-    <div class="ml-card__icon ml-card__icon--tertiary">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-        <polyline points="10 9 9 9 8 9"/>
-      </svg>
-    </div>
-    <h3 class="ml-card__title">Générateur de CV</h3>
-    <p class="ml-card__desc">
-      Créez des CV modernes aux normes IRCC et Europass. Modèles professionnels, sections modulaires.
-    </p>
-    <div class="ml-card__cta">
-      <span>Créer un CV</span>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M5 12h14M12 5l7 7-7 7"/>
-      </svg>
-    </div>
-  </a>
+        <label for="{{ form.full_name.id_for_label }}">Nom complet</label>
+        {{ form.full_name }}
 
-</div>
+        <label for="{{ form.email.id_for_label }}">Email</label>
+        {{ form.email }}
 
-<!-- Features Section -->
-<div class="ml-features">
-  <h2 class="ml-features__title">Pourquoi utiliser notre Studio Lettres ?</h2>
-  
-  <div class="ml-features__grid">
-    
-    <div class="ml-features__item">
-      <div class="ml-features__icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-          <polyline points="22 4 12 14.01 9 11.01"/>
-        </svg>
-      </div>
-      <h3>Optimisé ATS</h3>
-      <p>Lettres optimisées pour passer les systèmes de tracking automatisés des recruteurs.</p>
-    </div>
+        <label for="{{ form.phone.id_for_label }}">Téléphone</label>
+        {{ form.phone }}
 
-    <div class="ml-features__item">
-      <div class="ml-features__icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-          <line x1="12" y1="22.08" x2="12" y2="12"/>
-        </svg>
-      </div>
-      <h3>IA Contextuelle</h3>
-      <p>Génération intelligente adaptée à votre profil, secteur et pays de destination.</p>
-    </div>
+        <label for="{{ form.target_role.id_for_label }}">Poste visé</label>
+        {{ form.target_role }}
 
-    <div class="ml-features__item">
-      <div class="ml-features__icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-        </svg>
-      </div>
-      <h3>Export PDF Professionnel</h3>
-      <p>Téléchargement instantané au format PDF compatible avec toutes les plateformes.</p>
-    </div>
+        <label for="{{ form.company.id_for_label }}">Entreprise</label>
+        {{ form.company }}
 
-    <div class="ml-features__item">
-      <div class="ml-features__icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-      </div>
-      <h3>Génération Instantanée</h3>
-      <p>Résultats en moins de 30 secondes. Pas d'attente, productivité maximale.</p>
-    </div>
+        <label for="{{ form.experiences.id_for_label }}">Expériences</label>
+        {{ form.experiences }}
 
-    <div class="ml-features__item">
-      <div class="ml-features__icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-      </div>
-      <h3>Import CV Automatique</h3>
-      <p>Importez votre CV existant pour générer une lettre cohérente et personnalisée.</p>
-    </div>
+        <label for="{{ form.skills.id_for_label }}">Compétences</label>
+        {{ form.skills }}
 
-    <div class="ml-features__item">
-      <div class="ml-features__icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-      </div>
-      <h3>Données Sécurisées</h3>
-      <p>Cryptage SSL 256 bits. Vos informations personnelles sont protégées.</p>
-    </div>
+        <label for="{{ form.keywords.id_for_label }}">Mots-clés ATS (séparés par virgules)</label>
+        {{ form.keywords }}
+
+        <label for="{{ form.language.id_for_label }}">Langue</label>
+        {{ form.language }}
+
+        <label for="{{ form.tone.id_for_label }}">Ton</label>
+        {{ form.tone }}
+
+        <div class="ml-actions">
+          <button class="btn btn-primary" type="submit" name="generate_from_form" value="1">⚡ Générer</button>
+          <button class="btn btn-ghost" type="submit" name="save_letter" value="1">💾 Générer + Sauvegarder</button>
+          <a class="btn btn-ghost" href="{% url 'motivation_letter:home' %}">⬅ Retour</a>
+        </div>
+      </form>
+    </section>
+
+    <!-- ===== PANEL 2: UPLOAD CV ===== -->
+    <section class="ml-panel">
+      <h2 class="ml-title">📎 Générer depuis un CV</h2>
+      <p class="ml-help">Import PDF/DOCX. (Ta vue attend <b>CVUploadForm</b> et le champ <b>cv_file</b>.)</p>
+
+      <form method="post" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {{ cv_form.non_field_errors }}
+
+        <label for="{{ cv_form.cv_file.id_for_label }}">Fichier CV</label>
+        {{ cv_form.cv_file }}
+
+        <div class="ml-actions">
+          <button class="btn btn-primary" type="submit" name="generate_from_cv" value="1">⚡ Générer</button>
+          <button class="btn btn-ghost" type="submit" name="save_letter" value="1">💾 Générer + Sauvegarder</button>
+          <a class="btn btn-ghost" href="{% url 'motivation_letter:letter_list' %}">📚 Mes lettres</a>
+        </div>
+      </form>
+    </section>
 
   </div>
-</div>
 
-<!-- CTA Section -->
-<div class="ml-cta">
-  <h2 class="ml-cta__title">Prêt à créer votre lettre de motivation ?</h2>
-  <p class="ml-cta__desc">
-    Rejoignez des centaines de candidats qui ont optimisé leurs démarches d'immigration avec Immigration97.
-  </p>
-  <a href="{% url 'motivation_letter:generator' %}" class="ml-cta__btn">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
-    </svg>
-    <span>Commencer maintenant</span>
-  </a>
-</div>
+  <!-- ===== RESULT ===== -->
+  <div class="ml-result">
+    {% if result %}
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:16px 0 10px">
+        <span class="ml-pill">✅ Source: {{ result.source }}</span>
+        {% if result.ats %}
+          <span class="ml-pill">📊 ATS: {{ result.ats.score }}%</span>
+        {% endif %}
+      </div>
 
+      <div class="ml-box" id="letterBox">{{ result.letter }}</div>
+
+      <div class="ml-actions" style="margin-top:12px">
+        <!-- PDF DOWNLOAD -->
+        <form method="post" action="{% url 'motivation_letter:download_pdf' %}">
+          {% csrf_token %}
+          <input type="hidden" name="letter" value="{{ result.letter|escape }}">
+          <input type="hidden" name="filename" value="lettre_de_motivation.pdf">
+          <button class="btn btn-primary" type="submit">📄 Télécharger PDF</button>
+        </form>
+
+        <a class="btn btn-ghost" href="{% url 'motivation_letter:letter_list' %}">📚 Mes lettres</a>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
 {% endblock %}

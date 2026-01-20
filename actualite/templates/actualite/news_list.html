@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+{% load actualite_extras %}
+
+{% block title %}
+  {% if seo_title %}{{ seo_title }}{% else %}Actualités Immigration{% endif %} – Immigration97
+{% endblock %}
+
+{% block meta_description %}
+  Dernières actualités, opportunités, lois et offres d’emploi immigration (USA, Canada, Allemagne, Italie, France).
+  Guides fiables et sources officielles.
+{% endblock %}
+
+{% block body_class %}actualite{% endblock %}
+{% block app_scope %}actualite{% endblock %}
+
+{% block extra_css %}
+  {# ✅ Chemin correct selon ta structure #}
+  <link rel="stylesheet" href="{% static 'css/actualite.css' %}">
+{% endblock %}
+
+{% block content %}
+  {% include "actualite/partials/_seo_meta.html" with page="list" %}
+
+  <!-- HERO -->
+  <section class="a-hero">
+    <div class="a-hero__content">
+      <h1>Actualités & Opportunités Immigration</h1>
+      <p>
+        Des informations utiles, vérifiées, orientées résultats — pour
+        <strong>USA</strong>, <strong>Canada</strong>, <strong>Allemagne</strong>,
+        <strong>Italie</strong>, <strong>France</strong>.
+      </p>
+
+      <div class="a-hero__actions">
+        <a class="c-btn c-btn--primary" href="/billing/access/">Accès Premium</a>
+        <a class="c-btn c-btn--outline" href="/wizard/">Vérifier mon éligibilité</a>
+      </div>
+    </div>
+
+    <div class="a-hero__stats">
+      <div class="a-stat">
+        <div class="a-stat__k">SEO GEO</div>
+        <div class="a-stat__v">USA • EU</div>
+      </div>
+      <div class="a-stat">
+        <div class="a-stat__k">Updates</div>
+        <div class="a-stat__v">Quotidiennes</div>
+      </div>
+      <div class="a-stat">
+        <div class="a-stat__k">Sources</div>
+        <div class="a-stat__v">Officielles</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LAYOUT -->
+  <section class="a-layout">
+    <!-- SIDEBAR -->
+    <aside class="a-sidebar">
+
+      {% include "actualite/partials/_filters.html" %}
+
+      <!-- ✅ LIENS PAYS (toujours visibles) -->
+      <div class="a-card">
+        <div class="a-card__head">
+          <h3>Immigration par pays</h3>
+          <p>Pages SEO GEO dédiées (USA, Canada, Europe).</p>
+        </div>
+
+        <ul class="a-country-links">
+          <li><a href="{% url 'actualite:by_country' 'usa' %}">Immigration USA</a></li>
+          <li><a href="{% url 'actualite:by_country' 'canada' %}">Immigration Canada</a></li>
+          <li><a href="{% url 'actualite:by_country' 'allemagne' %}">Immigration Allemagne</a></li>
+          <li><a href="{% url 'actualite:by_country' 'italie' %}">Immigration Italie</a></li>
+          <li><a href="{% url 'actualite:by_country' 'france' %}">Immigration France</a></li>
+        </ul>
+      </div>
+{% include "actualite/partials/_newsletter.html" with source_page="list" %}
+
+      {% include "actualite/partials/_cta.html" %}
+      {% include "actualite/partials/_ads_slot.html" with slot="sidebar" %}
+    </aside>
+
+    <!-- MAIN -->
+    <div class="a-main">
+
+      {% if featured %}
+        <div class="a-block">
+          <div class="a-block__head">
+            <h2>À la une</h2>
+            <p>Articles mis en avant (fort impact prospects).</p>
+          </div>
+
+          <div class="a-grid a-grid--featured">
+            {% for item in featured %}
+              {% include "actualite/partials/_news_card.html" with item=item featured=True %}
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% include "actualite/partials/_ads_slot.html" with slot="top" %}
+
+      <div class="a-block">
+        <div class="a-block__head">
+          <h2>Dernières publications</h2>
+          <p>Filtrées par pays, catégorie, mots-clés.</p>
+        </div>
+
+        {% if page_obj.object_list %}
+          <div class="a-grid">
+            {% for item in page_obj.object_list %}
+              {% include "actualite/partials/_news_card.html" with item=item featured=False %}
+            {% endfor %}
+          </div>
+
+          <nav class="a-pagination" aria-label="Pagination">
+            {% if page_obj.has_previous %}
+              <a class="a-page" href="?{% querystring request page=page_obj.previous_page_number %}">← Précédent</a>
+            {% else %}
+              <span class="a-page a-page--disabled">← Précédent</span>
+            {% endif %}
+
+            <span class="a-page a-page--current">
+              Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+              <a class="a-page" href="?{% querystring request page=page_obj.next_page_number %}">Suivant →</a>
+            {% else %}
+              <span class="a-page a-page--disabled">Suivant →</span>
+            {% endif %}
+          </nav>
+        {% else %}
+          <div class="a-empty">
+            <h3>Aucun résultat</h3>
+            <p>Essaie un autre pays, une autre catégorie, ou une recherche différente.</p>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </section>
+
+{% endblock %}

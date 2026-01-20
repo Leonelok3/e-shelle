@@ -1,23 +1,24 @@
 from rest_framework import serializers
-from .models import Program, ProgramCriterion, Session, Answer, ChecklistTemplate, JourneyStepTemplate
+from .models import Session
 
-class ProgramCriterionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProgramCriterion
-        fields = ("id","key","op","value_json","weight","required")
 
-class ProgramSerializer(serializers.ModelSerializer):
-    criteria = ProgramCriterionSerializer(many=True, read_only=True)
-    class Meta:
-        model = Program
-        fields = ("id","code","title","country","category","url_official","min_score","active","criteria")
-
-class SessionSerializer(serializers.ModelSerializer):
+class SessionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Session
-        fields = ("id","locale","status","score_total","result_json")
+        fields = ["id", "locale", "source", "created_at"]
 
-class AnswerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Answer
-        fields = ("id","key","value_json","created_at")
+    def create(self, validated_data):
+        user = self.context["request"].user
+        return Session.objects.create(user=user, **validated_data)
+
+
+class AnswersPatchSerializer(serializers.Serializer):
+    # payload libre clé->valeur
+    def to_internal_value(self, data):
+        if not isinstance(data, dict):
+            raise serializers.ValidationError("Payload must be a JSON object.")
+        return data
+
+
+class ScoreSerializer(serializers.Serializer):
+    country = serializers.CharField(required=False, allow_blank=True)

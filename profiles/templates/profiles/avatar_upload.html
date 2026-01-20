@@ -1,33 +1,39 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Photo de profil — Immigration97{% endblock %}
+{% block meta_description %}Ajoutez une photo professionnelle pour renforcer votre crédibilité auprès des recruteurs (Canada, Europe, Afrique).{% endblock %}
+
+{% block body_class %}profiles{% endblock %}
+{% block app_scope %}profiles{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profiles.css' %}">
+{% endblock %}
 
 {% block content %}
-<section class="space-container">
+<section class="p-card">
+  <h1 class="space-title">Photo de profil</h1>
+  <p class="space-sub">Une photo claire augmente la confiance des recruteurs.</p>
 
-  <h1 class="space-title">📸 Photo de profil</h1>
-
-  <div class="space-profile">
-
+  <div class="space-row" style="margin-top:12px;">
     {% if profile.avatar %}
-      <img src="{{ profile.avatar.url }}" class="space-avatar">
+      <img src="{{ profile.avatar.url }}" class="space-avatar" alt="Votre photo de profil">
     {% else %}
-      <div class="space-avatar space-avatar--fallback">👤</div>
+      <div class="space-avatar space-avatar--fallback" aria-hidden="true">👤</div>
     {% endif %}
 
-    <form method="post" enctype="multipart/form-data" class="avatar-form">
+    <form method="post" enctype="multipart/form-data" class="p-form">
       {% csrf_token %}
       {{ form.non_field_errors }}
-
       {{ form.avatar.errors }}
       {{ form.avatar }}
 
-      <button type="submit" class="btn">
-        Mettre à jour
-      </button>
+      <button type="submit" class="p-btn p-btn--primary">Mettre à jour</button>
+      <a class="p-btn p-btn--outline" href="{% url 'profiles:my_space' %}">Retour</a>
+
+      <p class="p-help">Formats acceptés : JPG/PNG — max 2 Mo.</p>
     </form>
-
   </div>
-
 </section>
 {% endblock %}

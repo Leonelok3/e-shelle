@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mes favoris (Shortlist) | Immigration97{% endblock %}
+{% block meta_description %}Votre shortlist recruteur : profils Premium enregistrés pour recrutement Canada/Europe.{% endblock %}
+
+{% block body_class %}profiles{% endblock %}
+{% block app_scope %}profiles{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profiles.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<section class="p-fav">
+  <div class="p-card p-fav__hero">
+    <div>
+      <h1 class="p-fav__title">Mes favoris ⭐</h1>
+      <p class="p-fav__lead">Votre shortlist recruteur. Gardez les meilleurs profils sous la main, puis invitez.</p>
+    </div>
+    <div class="p-fav__actions">
+      <a class="p-btn p-btn--outline" href="{% url 'profiles:list' %}">Retour aux talents</a>
+      <a class="p-btn p-btn--primary" href="{% url 'profiles:my_space' %}">Mon espace</a>
+    </div>
+  </div>
+
+  {% if favorites %}
+    <div class="p-cards">
+      {% for fav in favorites %}
+        <article class="p-card p-card--talent">
+          <div class="p-card__top">
+            <div class="p-avatar">
+              {% if fav.profile.avatar %}
+                <img src="{{ fav.profile.avatar.url }}" alt="Photo">
+              {% else %}
+                <div class="p-avatar__fallback">👤</div>
+              {% endif %}
+            </div>
+
+            <div class="p-card__id">
+              <div class="p-card__name">
+                {{ fav.profile.user.get_full_name|default:fav.profile.user.username }}
+              </div>
+              <div class="p-card__sub">
+                {{ fav.profile.category.name|default:"Métier" }} • {{ fav.profile.location|default:"International" }}
+              </div>
+            </div>
+
+            <div class="p-card__badges">
+              <span class="p-badge p-badge--success">Premium</span>
+              <span class="p-badge p-badge--info">Langue {{ fav.profile.level }}</span>
+            </div>
+          </div>
+
+          <div class="p-card__actions">
+            <a class="p-btn p-btn--primary" href="{% url 'profiles:detail' fav.profile.pk %}">Voir</a>
+
+            <form method="post" action="{% url 'profiles:toggle_favorite' fav.profile.pk %}">
+              {% csrf_token %}
+              <button class="p-btn p-btn--outline" type="submit">Retirer</button>
+            </form>
+
+            <a class="p-btn p-btn--outline" href="{% url 'profiles:detail' fav.profile.pk %}#invite">Inviter</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="p-card">
+      <h2 class="p-section-title">Aucun favori pour le moment</h2>
+      <p class="p-help">Ajoutez des profils Premium à votre shortlist pour recruter plus vite.</p>
+      <a class="p-btn p-btn--primary" href="{% url 'profiles:list' %}">Voir les talents</a>
+    </div>
+  {% endif %}
+</section>
+
+{% endblock %}

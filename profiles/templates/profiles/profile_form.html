@@ -1,31 +1,133 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Modifier mon profil — Immigration97{% endblock %}
+{% block title %}
+  {% if object %}Modifier mon profil — Immigration97{% else %}Créer mon profil — Immigration97{% endif %}
+{% endblock %}
+
+{% block meta_description %}
+Créez un profil professionnel premium avec CV, portfolio et informations clés. Soyez visible par des recruteurs au Canada, en Europe et en Afrique.
+{% endblock %}
+
+{% block body_class %}profiles{% endblock %}
+{% block app_scope %}profiles{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profiles.css' %}">
+{% endblock %}
 
 {% block content %}
-<section class="profile-container">
 
-  <h1 class="profile-title">📝 Modifier mon profil</h1>
+<section class="p-card">
+  <h1 class="space-title">
+    {% if object %}Modifier mon profil{% else %}Créer mon profil{% endif %}
+  </h1>
+  <p class="space-sub">
+    Remplissez l’essentiel (métier, titre, localisation, bio) puis ajoutez votre portfolio.
+    Votre profil devient visible aux recruteurs uniquement si votre accès Premium est actif.
+  </p>
 
-  <form method="post" enctype="multipart/form-data" class="profile-form">
-    {% csrf_token %}
-
-    {{ form.non_field_errors }}
-
-    {% for field in form %}
-      <div>
-        <label>{{ field.label }}</label>
-        {{ field }}
-        {{ field.errors }}
-      </div>
-    {% endfor %}
-
-    <div class="profile-submit">
-      <button type="submit">💾 Enregistrer le profil</button>
-    </div>
-
-  </form>
-
+  <div class="space-actions">
+    <a class="p-btn p-btn--outline" href="{% url 'profiles:my_space' %}">Retour à mon espace</a>
+    <a class="p-btn p-btn--outline" href="{% url 'billing:access' %}">Activer Premium</a>
+  </div>
 </section>
+
+<section class="p-detail">
+  <div class="p-card">
+    <h2 class="p-section-title">Informations professionnelles</h2>
+
+    <form method="post" enctype="multipart/form-data" class="p-form">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div>
+        <label for="{{ form.category.id_for_label }}"><strong>Métier / Catégorie</strong></label>
+        {{ form.category }}
+        {{ form.category.errors }}
+      </div>
+
+      <div>
+        <label for="{{ form.headline.id_for_label }}"><strong>Titre du profil</strong></label>
+        {{ form.headline }}
+        {{ form.headline.errors }}
+        <p class="p-help">Ex: “Comptable SAP • 5 ans d’expérience” ou “Menuisier • Pose & finition”.</p>
+      </div>
+
+      <div>
+        <label for="{{ form.location.id_for_label }}"><strong>Ville / Localisation</strong></label>
+        {{ form.location }}
+        {{ form.location.errors }}
+        <p class="p-help">Ex: Dakar, Abidjan, Montréal, Paris — ou “Remote”.</p>
+      </div>
+
+      <div>
+        <label for="{{ form.bio.id_for_label }}"><strong>À propos</strong></label>
+        {{ form.bio }}
+        {{ form.bio.errors }}
+        <p class="p-help">
+          Conseillé : 5–8 lignes. Missions, compétences, outils, secteurs, disponibilité.
+          (Afrique • Canada • Europe)
+        </p>
+      </div>
+
+      <div>
+        <label for="{{ form.linkedin_url.id_for_label }}"><strong>Lien LinkedIn</strong></label>
+        {{ form.linkedin_url }}
+        {{ form.linkedin_url.errors }}
+      </div>
+
+      <div>
+        <label for="{{ form.avatar.id_for_label }}"><strong>Photo (optionnel)</strong></label>
+        {{ form.avatar }}
+        {{ form.avatar.errors }}
+        <p class="p-help">Une photo claire augmente la confiance.</p>
+      </div>
+
+      <div>
+        <label for="{{ form.is_public.id_for_label }}"><strong>Publier mon profil</strong></label>
+        <div>
+          {{ form.is_public }}
+          <span class="p-help">
+            Cochez pour demander la publication. Visible uniquement si Premium actif.
+          </span>
+        </div>
+        {{ form.is_public.errors }}
+      </div>
+
+      <div class="space-actions">
+        <button type="submit" class="p-btn p-btn--primary">
+          {% if object %}Enregistrer{% else %}Créer mon profil{% endif %}
+        </button>
+
+        {% if object %}
+          <a class="p-btn p-btn--outline" href="{% url 'profiles:detail' object.pk %}">Voir mon profil</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <aside class="p-card">
+    <h2 class="p-section-title">Checklist “profil qui recrute”</h2>
+    <p class="p-card__text">Pour augmenter vos chances d’entretien :</p>
+    <div class="p-chiprow">
+      <span class="p-chip">Titre clair</span>
+      <span class="p-chip">Bio concrète</span>
+      <span class="p-chip">Portfolio</span>
+      <span class="p-chip">Localisation</span>
+      <span class="p-chip">Disponibilité</span>
+    </div>
+    <p class="p-help">
+      Ensuite : ajoutez votre CV et vos preuves (photos, lettres) dans votre portfolio.
+    </p>
+    {% if object %}
+      <div class="space-actions">
+        <a class="p-btn p-btn--primary" href="{% url 'profiles:add_portfolio' object.pk %}">
+          Ajouter au portfolio
+        </a>
+      </div>
+    {% endif %}
+  </aside>
+</section>
+
 {% endblock %}

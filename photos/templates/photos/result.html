@@ -1,95 +1,173 @@
 {% extends "base.html" %}
-{% block title %}Résultat · Photo Visa & DV Lottery{% endblock %}
+{% load static %}
 
+{% block title %}Résultat — Photo Conforme Visa | Immigration97{% endblock %}
+{% block meta_description %}
+Aperçu et résultat de votre photo conforme visa : cadrage, centrage du visage, fond homogène et export optimisé (DV Lottery, France, Canada, UK).
+{% endblock %}
 
+{% block body_class %}visa-photo{% endblock %}
+{% block app_scope %}visa-photo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa-photo.css' %}">
+{% endblock %}
 
 {% block content %}
+<section class="vp-result">
 
-
-<div class="result-wrap hover-zoom">
-  <div class="result-head">
+  <!-- HEAD -->
+  <header class="vp-rhead" aria-labelledby="vp-rtitle">
     {% if photo.photo_type == "dv_lottery" %}
-      <h2>🎯 Photo conforme DV Lottery (600×600)</h2>
-      <p class="muted">Votre photo respecte 100% les exigences officielles de la DV Lottery. Vous êtes prêt à soumettre votre candidature !</p>
+      <h1 class="vp-rtitle" id="vp-rtitle">🎯 Photo conforme DV Lottery (600×600)</h1>
+      <p class="vp-rsub">
+        Aperçu prêt : cadrage carré, visage centré et export optimisé pour dépôt en ligne.
+      </p>
     {% else %}
-      <h2>📸 Photo générée avec succès</h2>
-      <p class="muted">Votre photo a été optimisée pour un rendu professionnel : visage centré, fond net et format officiel.</p>
-    {% endif %}
-  </div>
-
-  <div class="preview-grid">
-    <div class="card">
-      <div class="card-title">Avant</div>
-      <img class="photo-preview" src="{{ photo.image.url }}" alt="Photo originale">
-    </div>
-    <div class="card arrow">→</div>
-    <div class="card">
-      <div class="card-title">Après</div>
-      <div class="processed-wrap">
-        <img class="photo-preview processed"
-             src="{% if photo.processed_image %}{{ photo.processed_image.url }}{% else %}{{ photo.image.url }}{% endif %}"
-             alt="Photo traitée conforme">
-        {% if not has_access %}
-          <div class="watermark">APERÇU</div>
-        {% endif %}
-      </div>
-      <ul class="checklist">
-        <li>Recadrage parfait ({{ photo.width|default:"600" }}×{{ photo.height|default:"600" }})</li>
-        <li>Visage détecté & centré</li>
-        <li>Fond clair & homogène</li>
-        <li>Compression JPEG optimisée</li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- ✅ Zone CTA améliorée avec téléchargement conditionnel -->
-  <div class="cta-banner">
-    <div class="cta-banner__text">
-      <div class="cta-banner__title">✅ Photo conforme prête !</div>
-      <div class="cta-banner__subtitle">
-        Débloquez votre téléchargement HD sans filigrane et obtenez votre guide DV Lottery exclusif.
-      </div>
-    </div>
-
-    {% if has_access %}
-      <div class="cta-row">
-        <a class="btn btn-primary" href="{% url 'photos:download' pk=photo.pk %}">⬇️ Télécharger la photo HD</a>
-      </div>
-      <p class="muted small">Merci d'avoir validé votre code. Votre photo HD est disponible sans filigrane.</p>
-    {% else %}
-      <div class="cta-row">
-        <a class="btn btn-primary" href="{% url 'billing:buy' %}">💳 Acheter un code d'accès</a>
-      </div>
-      <a class="btn btn--ghost" href="{% url 'billing:redeem' %}?next={{ request.path|urlencode }}">🔑 J'ai déjà un code</a>
-      <p class="muted small">
-        Paiement possible via <strong>Orange Money</strong>, <strong>MTN MoMo</strong> ou carte.<br>
-        Accès valable 30 jours, assistance incluse.
+      <h1 class="vp-rtitle" id="vp-rtitle">📸 Photo générée avec succès</h1>
+      <p class="vp-rsub">
+        Aperçu prêt : cadrage, centrage du visage, fond homogène et format adapté au type sélectionné.
       </p>
     {% endif %}
 
-    <div style="margin-top:1.5rem;">
-      <a class="btn btn--ghost" href="{% url 'photos:index' %}">↩️ Traiter une autre photo</a>
+    <div class="vp-rmeta" role="list" aria-label="Résumé">
+      <div class="vp-pill" role="listitem">Format : JPEG</div>
+      <div class="vp-pill" role="listitem">
+        Taille : {{ photo.width|default:"600" }}×{{ photo.height|default:"600" }} px
+      </div>
+      <div class="vp-pill" role="listitem">Statut : Aperçu</div>
     </div>
-  </div>
+  </header>
 
-  <!-- Détails techniques -->
-  <div class="spec-box">
-    <h3>🧾 Détails techniques</h3>
-    <div class="spec-grid">
-      <div><strong>Taille finale</strong><br>600×600 px</div>
-      <div><strong>Format</strong><br>JPEG optimisé</div>
-      <div><strong>Fond</strong><br>Clair et homogène</div>
-      <div><strong>Poids</strong><br>Adapté pour la DV Lottery</div>
+  <!-- PREVIEW -->
+  <section class="vp-preview" aria-label="Comparaison avant après">
+    <div class="vp-compare">
+      <article class="vp-card2">
+        <div class="vp-card2__t">Avant</div>
+        <img class="vp-img"
+             src="{{ photo.image.url }}"
+             alt="Photo originale"
+             loading="lazy">
+      </article>
+
+      <div class="vp-arrow" aria-hidden="true">→</div>
+
+      <article class="vp-card2">
+        <div class="vp-card2__t">Après</div>
+
+        <div class="vp-processed">
+          <img class="vp-img vp-img--processed"
+               src="{% if photo.processed_image %}{{ photo.processed_image.url }}{% else %}{{ photo.image.url }}{% endif %}"
+               alt="Photo traitée conforme"
+               loading="lazy">
+
+          {% if not has_access %}
+            <div class="vp-watermark" aria-label="Aperçu">APERÇU</div>
+          {% endif %}
+        </div>
+
+        <ul class="vp-check" aria-label="Vérifications">
+          <li>Recadrage ({{ photo.width|default:"600" }}×{{ photo.height|default:"600" }})</li>
+          <li>Visage détecté & centré</li>
+          <li>Fond clair & homogène</li>
+          <li>Export compressé et propre</li>
+        </ul>
+      </article>
     </div>
-  </div>
+  </section>
 
-  <!-- Partage / Affiliation -->
-  <div class="share-box">
-    <h3>🔥 Partagez et gagnez !</h3>
-    <p>
-      Parrainez vos amis et recevez des <strong>crédits Shelles</strong> utilisables sur tous nos services (photo, visa, documents…).
-    </p>
-    <a href="#" class="btn btn--ghost">🤝 Rejoindre le programme d'affiliation</a>
-  </div>
-</div>
+  <!-- CTA -->
+  <section class="vp-cta-panel" aria-label="Actions">
+    <div class="vp-cta-panel__copy">
+      <h2 class="vp-cta-panel__title">Photo prête</h2>
+      <p class="vp-cta-panel__sub">
+        Télécharge la version HD sans filigrane. Si tu as déjà un code, active-le en 10 secondes.
+      </p>
+    </div>
+
+    {% if has_access %}
+      <div class="vp-cta-panel__actions">
+        <a class="c-btn c-btn--primary vp-action"
+           href="{% url 'photos:download' pk=photo.pk %}">
+          ⬇️ Télécharger la photo HD
+        </a>
+
+        <a class="c-btn c-btn--outline vp-action"
+           href="{% url 'photos:index' %}">
+          Traiter une autre photo
+        </a>
+
+        <p class="vp-cta-panel__note">
+          Accès actif : téléchargement disponible sans filigrane.
+        </p>
+      </div>
+    {% else %}
+      <div class="vp-cta-panel__actions">
+        <a class="c-btn c-btn--primary vp-action"
+           href="{% url 'billing:buy' %}">
+          💳 Obtenir un code d’accès
+        </a>
+
+        <a class="c-btn c-btn--outline vp-action"
+           href="{% url 'billing:redeem' %}?next={{ request.path|urlencode }}">
+          🔑 J’ai déjà un code
+        </a>
+
+        <a class="c-btn c-btn--ghost vp-action"
+           href="{% url 'photos:index' %}">
+          ↩️ Traiter une autre photo
+        </a>
+
+        <p class="vp-cta-panel__note">
+          Paiement : Orange Money, MTN MoMo ou carte. Accès valable 30 jours.
+        </p>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- TECH SPECS -->
+  <section class="vp-section vp-section--soft" aria-labelledby="vp-tech-title">
+    <div class="vp-section__head">
+      <h2 class="vp-h2" id="vp-tech-title">Détails techniques</h2>
+      <p class="vp-sub">Informations utiles pour le dépôt (MVP).</p>
+    </div>
+
+    <div class="vp-specgrid" role="list">
+      <div class="vp-spec" role="listitem">
+        <div class="vp-spec__k">Taille finale</div>
+        <div class="vp-spec__v">{{ photo.width|default:"600" }}×{{ photo.height|default:"600" }} px</div>
+      </div>
+      <div class="vp-spec" role="listitem">
+        <div class="vp-spec__k">Format</div>
+        <div class="vp-spec__v">JPEG optimisé</div>
+      </div>
+      <div class="vp-spec" role="listitem">
+        <div class="vp-spec__k">Fond</div>
+        <div class="vp-spec__v">Clair, homogène</div>
+      </div>
+      <div class="vp-spec" role="listitem">
+        <div class="vp-spec__k">Poids</div>
+        <div class="vp-spec__v">Optimisé pour dépôt</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPTIONAL: AFFILIATION (soft CTA) -->
+  <section class="vp-section vp-section--seo" aria-labelledby="vp-share-title">
+    <div class="vp-section__head">
+      <h2 class="vp-h2" id="vp-share-title">Partager (optionnel)</h2>
+      <p class="vp-sub">
+        Si tu aides un proche à préparer sa photo, tu peux partager le service.
+      </p>
+    </div>
+
+    <div class="vp-share">
+      <p class="vp-share__text">
+        Programme parrainage : crédits utilisables sur photo, visa, documents.
+      </p>
+      <a href="#" class="c-btn c-btn--outline">🤝 Voir le parrainage</a>
+    </div>
+  </section>
+
+</section>
 {% endblock %}

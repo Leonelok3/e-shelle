@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% load static %}
+{% load actualite_extras %}
+
+{% block title %}{{ seo_title }} – Immigration97{% endblock %}
+{% block meta_description %}{{ seo_description }}{% endblock %}
+
+{% block body_class %}actualite{% endblock %}
+{% block app_scope %}actualite{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/actualite.css' %}">
+{% endblock %}
+
+{% block content %}
+
+  {# ✅ SEO/Schema (ne doit produire AUCUN texte visible) #}
+  {% include "actualite/partials/_seo_meta.html" with page="country" %}
+
+  <!-- HERO COUNTRY -->
+  <section class="a-hero">
+    <div class="a-hero__content">
+      <h1>Immigration {{ country_label }} : actualités & opportunités</h1>
+      <p>
+        Mises à jour fiables sur <strong>{{ country_label }}</strong> :
+        visas, travail, études, résidence permanente, programmes et annonces officielles.
+      </p>
+
+      <div class="a-hero__actions">
+        <a class="c-btn c-btn--primary" href="/wizard/">Vérifier mon éligibilité</a>
+        <a class="c-btn c-btn--outline" href="/billing/access/">Accès Premium</a>
+      </div>
+    </div>
+
+    <div class="a-hero__stats">
+      <div class="a-stat">
+        <div class="a-stat__k">Pays ciblé</div>
+        <div class="a-stat__v">{{ country_label }}</div>
+      </div>
+      <div class="a-stat">
+        <div class="a-stat__k">Objectif</div>
+        <div class="a-stat__v">Infos + Prospects</div>
+      </div>
+      <div class="a-stat">
+        <div class="a-stat__k">Sources</div>
+        <div class="a-stat__v">Officielles</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LAYOUT -->
+  <section class="a-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="a-sidebar">
+
+      <!-- ✅ Navigation GEO -->
+      <div class="a-card">
+        <div class="a-card__head">
+          <h3>Changer de pays</h3>
+          <p>Pages SEO GEO dédiées.</p>
+        </div>
+
+        <ul class="a-country-links">
+          <li><a href="{% url 'actualite:by_country' 'usa' %}">Immigration USA</a></li>
+          <li><a href="{% url 'actualite:by_country' 'canada' %}">Immigration Canada</a></li>
+          <li><a href="{% url 'actualite:by_country' 'allemagne' %}">Immigration Allemagne</a></li>
+          <li><a href="{% url 'actualite:by_country' 'italie' %}">Immigration Italie</a></li>
+          <li><a href="{% url 'actualite:by_country' 'france' %}">Immigration France</a></li>
+        </ul>
+      </div>
+
+      <!-- ✅ TOP ITEMS (bloc séparé, propre) -->
+      {% if top_items %}
+        <div class="a-card">
+          <div class="a-card__head">
+            <h3>Top {{ country_label }}</h3>
+            <p>Les articles les plus consultés.</p>
+          </div>
+
+          <ul class="a-mini-list">
+            {% for item in top_items %}
+              <li class="a-mini-list__item">
+                <a class="a-mini-list__link" href="{% url 'actualite:detail' item.slug %}">
+                  {{ item.title }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+{% include "actualite/partials/_newsletter.html" with source_page="country" %}
+
+      {% include "actualite/partials/_cta.html" %}
+      {% include "actualite/partials/_ads_slot.html" with slot="sidebar" %}
+    </aside>
+
+    <!-- MAIN -->
+    <div class="a-main">
+
+      <!-- ✅ Evergreen SEO -->
+      <div class="a-card">
+        <div class="a-card__head">
+          <h2>Guide rapide : réussir son projet {{ country_label }}</h2>
+          <p>Un cadre clair pour éviter les erreurs et avancer.</p>
+        </div>
+
+        <div class="a-evergreen">
+          <ul class="a-evergreen__list">
+            <li><strong>Choisir le bon programme</strong> : travail, études, regroupement familial, résidence.</li>
+            <li><strong>Préparer les preuves</strong> : diplômes, expérience, fonds, documents officiels.</li>
+            <li><strong>Optimiser ton dossier</strong> : cohérence, traduction, justificatifs, dates.</li>
+            <li><strong>Éviter les arnaques</strong> : sources officielles uniquement, aucune “accélération payante”.</li>
+          </ul>
+
+          <div class="a-evergreen__cta">
+            <a class="c-btn c-btn--primary" href="/wizard/">Vérifier mon éligibilité</a>
+            <a class="c-btn c-btn--outline" href="/cv-generator/">Créer mon CV</a>
+          </div>
+        </div>
+      </div>
+
+      {% include "actualite/partials/_ads_slot.html" with slot="top" %}
+
+      <!-- ✅ LIST -->
+      <div class="a-block">
+        <div class="a-block__head">
+          <h2>Dernières publications – {{ country_label }}</h2>
+          <p>Opportunités, lois, annonces et conseils récents.</p>
+        </div>
+
+        {% if page_obj.object_list %}
+          <div class="a-grid">
+            {% for item in page_obj.object_list %}
+              {% include "actualite/partials/_news_card.html" with item=item featured=False %}
+            {% endfor %}
+          </div>
+
+          <nav class="a-pagination" aria-label="Pagination">
+            {% if page_obj.has_previous %}
+              <a class="a-page" href="?page={{ page_obj.previous_page_number }}">← Précédent</a>
+            {% else %}
+              <span class="a-page a-page--disabled">← Précédent</span>
+            {% endif %}
+
+            <span class="a-page a-page--current">
+              Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+              <a class="a-page" href="?page={{ page_obj.next_page_number }}">Suivant →</a>
+            {% else %}
+              <span class="a-page a-page--disabled">Suivant →</span>
+            {% endif %}
+          </nav>
+        {% else %}
+          <div class="a-empty">
+            <h3>Aucune publication pour {{ country_label }} pour le moment</h3>
+            <p>
+              Ajoute des articles dans l’admin et ils apparaîtront ici automatiquement.
+              En attendant, consulte la page générale.
+            </p>
+            <div style="margin-top: 12px;">
+              <a class="c-btn c-btn--outline" href="{% url 'actualite:list' %}">Voir toutes les actualités</a>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- ✅ À LIRE AUSSI -->
+      {% if recent_items %}
+        <div class="a-card">
+          <div class="a-card__head">
+            <h2>À lire aussi ({{ country_label }})</h2>
+            <p>Récents, utiles, orientés action.</p>
+          </div>
+
+          <div class="a-grid">
+            {% for item in recent_items %}
+              {% include "actualite/partials/_news_card.html" with item=item featured=False %}
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- ✅ FAQ -->
+      {% if faq %}
+        <div class="a-card">
+          <div class="a-card__head">
+            <h2>FAQ – Immigration {{ country_label }}</h2>
+            <p>Réponses rapides aux questions les plus fréquentes.</p>
+          </div>
+
+          <div class="a-faq">
+            {% for q, a in faq %}
+              <details class="a-faq__item">
+                <summary class="a-faq__q">{{ q }}</summary>
+                <div class="a-faq__a">{{ a }}</div>
+              </details>
+            {% endfor %}
+          </div>
+        </div>
+
+        <script type="application/ld+json">
+        {
+          "@context":"https://schema.org",
+          "@type":"FAQPage",
+          "mainEntity":[
+            {% for q, a in faq %}
+            {
+              "@type":"Question",
+              "name":"{{ q|escapejs }}",
+              "acceptedAnswer":{
+                "@type":"Answer",
+                "text":"{{ a|escapejs }}"
+              }
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+          ]
+        }
+        </script>
+      {% endif %}
+
+      {% include "actualite/partials/_ads_slot.html" with slot="bottom" %}
+
+    </div>
+  </section>
+
+{% endblock %}

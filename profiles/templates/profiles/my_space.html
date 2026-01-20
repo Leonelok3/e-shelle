@@ -1,60 +1,165 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Mon espace — Immigration97{% endblock %}
+{% block title %}Mon espace — Profil & Portfolio | Immigration97{% endblock %}
+{% block meta_description %}Gérez votre profil professionnel, photo, portfolio et visibilité Premium. Soyez visible par des recruteurs au Canada, en Europe et en Afrique.{% endblock %}
+
+{% block body_class %}profiles{% endblock %}
+{% block app_scope %}profiles{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profiles.css' %}">
+{% endblock %}
 
 {% block content %}
 
-<section class="space">
+<section class="space-head">
+  <div class="space-head__left">
+    <h1 class="space-title">Mon espace</h1>
+    <p class="space-sub">
+      Complétez votre profil, ajoutez votre portfolio, et publiez votre profil Premium pour être visible par des recruteurs internationaux.
+    </p>
 
-  <h1 class="space-title">👤 Mon espace</h1>
+    <!-- ✅ Progress -->
+    <div class="p-progress">
+      <div class="p-progress__top">
+        <div class="p-progress__title">Progression du profil</div>
+        <div class="p-progress__meta">{{ profile_done }}/{{ profile_total }} • {{ profile_progress }}%</div>
+      </div>
 
-  <div class="space-card">
+      <div class="p-progress__bar" role="progressbar"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ profile_progress }}">
+        <div class="p-progress__fill" style="width: {{ profile_progress }}%;"></div>
+      </div>
 
-   <div class="space-avatar-wrapper">
-  {% if profile.avatar %}
-    <img src="{{ profile.avatar.url }}" class="space-avatar" alt="Photo de profil">
-  {% else %}
-    <div class="space-avatar space-avatar--fallback">👤</div>
-  {% endif %}
-
-  <a href="{% url 'profiles:avatar' %}" class="space-avatar-action">
-    Changer la photo
-  </a>
-</div>
-
-    <div class="space-info">
-      <h2>{{ user.username|upper }}</h2>
-      <p>{{ user.email }}</p>
-
-      <a href="{% url 'profiles:edit' profile.pk %}" class="btn btn--soft">
-        Modifier mon profil
-      </a>
+      <div class="p-progress__checks">
+        {% for label, ok in profile_checks.items %}
+          <div class="p-check {% if ok %}is-ok{% endif %}">
+            <span class="p-check__dot"></span>
+            <span class="p-check__label">{{ label }}</span>
+          </div>
+        {% endfor %}
+      </div>
     </div>
 
   </div>
 
-  <div class="space-grid">
+  <div class="space-actions">
+    <a class="p-btn p-btn--outline" href="{% url 'profiles:edit' profile.pk %}">Modifier mon profil</a>
+    <a class="p-btn p-btn--outline" href="{% url 'profiles:upload_avatar' %}">Changer ma photo</a>
+    <a class="p-btn p-btn--outline" href="{% url 'profiles:my_invitations' %}">Mes invitations</a>
+    <a class="p-btn p-btn--outline" href="{% url 'profiles:recruiter_invites' %}">Invitations envoyées</a>
+  </div>
+</section>
 
-    <div class="space-box">
-      <h3>📌 Compte</h3>
-      <p>Email : <span class="status-ok">confirmé</span></p>
-    </div>
+<!-- ✅ Quick Actions (3 boutons très clairs) -->
+<section class="p-quick">
+  <div class="p-quick__card">
+    <div class="p-quick__title">Quick actions</div>
+    <div class="p-quick__grid">
+      <a class="p-qa" href="{% url 'profiles:edit' profile.pk %}">
+        <div class="p-qa__icon">✍️</div>
+        <div class="p-qa__text">
+          <div class="p-qa__label">Compléter mon profil</div>
+          <div class="p-qa__hint">Titre, bio, localisation, LinkedIn</div>
+        </div>
+      </a>
 
-    <div class="space-box">
-      <h3>💎 Abonnement</h3>
+      <a class="p-qa" href="{% url 'profiles:add_portfolio' profile.pk %}">
+        <div class="p-qa__icon">📎</div>
+        <div class="p-qa__text">
+          <div class="p-qa__label">Ajouter au portfolio</div>
+          <div class="p-qa__hint">CV, preuves, recommandations</div>
+        </div>
+      </a>
+
       {% if has_premium %}
-        <p class="status-ok">Premium actif</p>
+        <form method="post" action="{% url 'profiles:toggle_public' %}">
+          {% csrf_token %}
+          <button class="p-qa p-qa--cta" type="submit">
+            <div class="p-qa__icon">🚀</div>
+            <div class="p-qa__text">
+              <div class="p-qa__label">
+                {% if profile.is_public %}Dépublier mon profil{% else %}Publier mon profil{% endif %}
+              </div>
+              <div class="p-qa__hint">Visible par les recruteurs</div>
+            </div>
+          </button>
+        </form>
       {% else %}
-        <p class="status-warn">Aucun abonnement</p>
-        <a href="{% url 'billing:pricing' %}" class="btn btn--soft btn--sm">
-          Activer Premium
+        <a class="p-qa p-qa--cta" href="{% url 'billing:access' %}">
+          <div class="p-qa__icon">🔓</div>
+          <div class="p-qa__text">
+            <div class="p-qa__label">Activer Premium</div>
+            <div class="p-qa__hint">Débloque la visibilité recruteur</div>
+          </div>
         </a>
       {% endif %}
     </div>
+  </div>
+</section>
 
+<section class="space-grid">
+
+  <div class="p-card">
+    <h2 class="p-section-title">Statut Premium</h2>
+    {% if has_premium %}
+      <p class="p-card__text">✅ Accès Premium actif — votre profil peut être publié.</p>
+    {% else %}
+      <p class="p-card__text">🔒 Accès Premium requis pour rendre votre profil visible aux recruteurs.</p>
+      <div class="space-actions">
+        <a class="p-btn p-btn--primary" href="{% url 'billing:access' %}">Activer Premium</a>
+      </div>
+    {% endif %}
   </div>
 
+  <div class="p-card">
+    <h2 class="p-section-title">Visibilité</h2>
+
+    {% if has_premium %}
+      {% if profile.is_public %}
+        <p class="p-card__text">✅ Profil publié — visible par les recruteurs.</p>
+      {% else %}
+        <p class="p-card__text">Votre profil est prêt, mais non publié.</p>
+        <p class="p-help">Publiez pour apparaître dans la liste des profils Premium.</p>
+      {% endif %}
+
+      <form method="post" action="{% url 'profiles:toggle_public' %}">
+        {% csrf_token %}
+        <div class="space-actions">
+          {% if profile.is_public %}
+            <button class="p-btn p-btn--outline" type="submit">Dépublier</button>
+          {% else %}
+            <button class="p-btn p-btn--primary" type="submit">Publier mon profil</button>
+          {% endif %}
+          <a class="p-btn p-btn--outline" href="{% url 'profiles:detail' profile.pk %}">Voir mon profil</a>
+        </div>
+      </form>
+
+    {% else %}
+      <p class="p-card__text">🔒 Accès Premium requis pour publier votre profil.</p>
+      <p class="p-help">Premium active la visibilité auprès des recruteurs (Canada • Europe • Afrique).</p>
+      <div class="space-actions">
+        <a class="p-btn p-btn--primary" href="{% url 'billing:access' %}">Activer Premium</a>
+        <a class="p-btn p-btn--outline" href="{% url 'profiles:edit' profile.pk %}">Compléter mon profil</a>
+      </div>
+    {% endif %}
+  </div>
+
+</section>
+
+<section class="p-card">
+  <h2 class="p-section-title">Mes 5 derniers CV</h2>
+  {% if recent_cvs %}
+    <ul>
+      {% for cv in recent_cvs %}
+        <li>{{ cv.created_at|date:"d/m/Y" }} — {{ cv.titre|default:"CV" }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="p-card__text">Aucun CV récent trouvé.</p>
+    <p class="p-help">Vous pouvez générer un CV IA depuis le module CV IA.</p>
+  {% endif %}
 </section>
 
 {% endblock %}

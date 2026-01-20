@@ -4,6 +4,7 @@ from .models import Profile
 
 
 
+
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
@@ -14,6 +15,7 @@ class ProfileForm(forms.ModelForm):
             "bio",
             "linkedin_url",
             "avatar",
+            "is_public",
         ]
         widgets = {
             "category": forms.Select(attrs={"class": "profile-input"}),
@@ -21,6 +23,7 @@ class ProfileForm(forms.ModelForm):
             "location": forms.TextInput(attrs={"class": "profile-input"}),
             "bio": forms.Textarea(attrs={"class": "profile-input"}),
             "linkedin_url": forms.URLInput(attrs={"class": "profile-input"}),
+            "is_public": forms.CheckboxInput(attrs={"class": "profile-check"}),
         }
 
 

@@ -154,3 +154,100 @@ document.querySelectorAll(".c-nav-link").forEach(link => {
     toggle.setAttribute("aria-expanded", "false");
   });
 });
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  const wrap = document.querySelector(".nl-global");
+  if (!wrap) return;
+
+  const KEY = "imm97_newsletter_closed_v1";
+  const closeBtn = wrap.querySelector(".nl-global__close");
+
+  // Si déjà fermé avant => ne pas afficher
+  if (localStorage.getItem(KEY) === "1") {
+    wrap.classList.add("is-hidden");
+    return;
+  }
+
+  // Optionnel: éviter l’apparition immédiate (plus premium)
+  // wrap.classList.add("is-hidden");
+  // setTimeout(() => wrap.classList.remove("is-hidden"), 600);
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", function () {
+      localStorage.setItem(KEY, "1");
+      wrap.classList.add("is-closing");
+      // après l’anim, on cache
+      setTimeout(() => {
+        wrap.classList.add("is-hidden");
+      }, 360);
+    });
+  }
+});
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  const wrap = document.getElementById("nl-global");
+  const closeBtn = document.getElementById("nl-close");
+  if (!wrap || !closeBtn) return;
+
+  // ✅ cooldown: si l'utilisateur ferme, on cache X heures puis ça revient
+  const KEY = "imm97_newsletter_dismissed_until_v1";
+  const COOLDOWN_HOURS = 6; // <- change à 24 si tu veux 1 jour
+
+  const now = Date.now();
+  const dismissedUntil = parseInt(localStorage.getItem(KEY) || "0", 10);
+
+  // Si encore dans le cooldown => ne pas afficher
+  if (dismissedUntil && now < dismissedUntil) {
+    wrap.classList.add("is-hidden");
+    wrap.setAttribute("aria-hidden", "true");
+    return;
+  }
+
+  let shown = false;
+
+  const show = () => {
+    if (shown) return;
+    shown = true;
+
+    wrap.classList.remove("is-hidden");
+    wrap.setAttribute("aria-hidden", "false");
+
+    // petit hack repaint (stabilité sur certains navigateurs)
+    requestAnimationFrame(() => {
+      wrap.classList.remove("is-hidden");
+    });
+  };
+
+  // ✅ Affiche après un scroll léger
+  const onScroll = () => {
+    const sc = window.scrollY || document.documentElement.scrollTop || 0;
+    if (sc > 220) show();
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  // ✅ Fallback : si page courte (pas assez de scroll) OU navigateur capricieux
+  // Affiche après 4 secondes si rien ne s'est déclenché
+  setTimeout(() => {
+    // Si pas de scroll possible, ou juste pour assurer l'apparition
+    const pageScrollable = (document.documentElement.scrollHeight - window.innerHeight) > 60;
+    if (!shown) {
+      if (!pageScrollable) show();
+      else show(); // tu peux retirer ce else si tu veux uniquement scroll
+    }
+  }, 4000);
+
+  // ✅ Fermeture : cache temporaire (pas permanent)
+  closeBtn.addEventListener("click", function () {
+    const until = Date.now() + COOLDOWN_HOURS * 60 * 60 * 1000;
+    localStorage.setItem(KEY, String(until));
+
+    wrap.classList.add("is-closing");
+    setTimeout(() => {
+      wrap.classList.add("is-hidden");
+      wrap.setAttribute("aria-hidden", "true");
+    }, 360);
+  });
+});

@@ -6,70 +6,422 @@
   <title>Vos résultats – Immigration97</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
   <style>
-    body{max-width:980px;margin:32px auto;font-family:system-ui;background:#0b1220;color:#e5e7eb}
-    h1{font-size:36px;text-align:center;margin-bottom:16px}
-    .card{background:#0f172a;border:1px solid #334155;border-radius:16px;padding:20px;margin:16px 0}
-    .btn{background:#16a34a;color:#fff;border:none;border-radius:10px;padding:10px 14px;cursor:pointer}
-    .link{color:#93c5fd}
-    .muted{color:#94a3b8}
+    :root{
+      --bg:#070c16;
+      --card: rgba(255,255,255,.04);
+      --card2: rgba(0,0,0,.22);
+      --line: rgba(255,255,255,.10);
+      --txt: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --green:#10b981;
+      --green2:#059669;
+      --blue:#3b82f6;
+      --amber:#f59e0b;
+      --danger:#fb7185;
+      --shadow: 0 24px 80px rgba(0,0,0,.55);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(16,185,129,.14), transparent 70%), var(--bg);
+      color: var(--txt);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    .wrap{max-width: 1120px; margin: 32px auto; padding: 0 16px;}
+    .hero{
+      background: linear-gradient(135deg, rgba(16,185,129,.14) 0%, rgba(59,130,246,.08) 40%, rgba(255,255,255,.03) 100%);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero:before{
+      content:"";
+      position:absolute;
+      inset:-50%;
+      background: radial-gradient(circle, rgba(16,185,129,.18) 0%, transparent 55%);
+      filter: blur(12px);
+      pointer-events:none;
+    }
+    .hero-inner{position:relative; z-index:1;}
+    h1{
+      margin:0 0 8px;
+      font-size: clamp(28px, 3.5vw, 44px);
+      letter-spacing:-.02em;
+      line-height:1.08;
+      font-weight: 950;
+      text-shadow: 0 12px 48px rgba(0,0,0,.45);
+    }
+    .sub{
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(16,185,129,.14);
+      border: 1px solid rgba(16,185,129,.28);
+      font-weight: 900;
+      letter-spacing:.08em;
+      text-transform: uppercase;
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:50%;
+      background: var(--amber);
+      box-shadow: 0 0 0 6px rgba(245,158,11,.18);
+    }
+
+    .actions{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .btn{
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-weight: 950;
+      letter-spacing: .01em;
+      text-decoration: none;
+      display:inline-flex;
+      align-items:center;
+      gap: 10px;
+      cursor:pointer;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+      will-change: transform;
+      user-select:none;
+    }
+    .btn-primary{
+      background: linear-gradient(135deg, var(--green) 0%, var(--green2) 100%);
+      color:#fff;
+      border: 1px solid rgba(16,185,129,.40);
+      box-shadow: 0 18px 55px rgba(16,185,129,.30);
+    }
+    .btn-primary:hover{transform: translateY(-2px); box-shadow: 0 24px 70px rgba(16,185,129,.42);}
+    .btn-outline{
+      background: rgba(255,255,255,.02);
+      color: rgba(255,255,255,.92);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 14px 44px rgba(0,0,0,.30);
+    }
+    .btn-outline:hover{transform: translateY(-2px); border-color: rgba(16,185,129,.35); background: rgba(255,255,255,.06);}
+
+    .grid{
+      margin-top: 18px;
+      display:grid;
+      grid-template-columns: 1.4fr .6fr;
+      gap: 14px;
+      align-items:start;
+    }
+    @media (max-width: 920px){
+      .grid{grid-template-columns: 1fr;}
+    }
+
+    .panel{
+      background: rgba(0,0,0,.18);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .panel-title{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 10px;
+      font-weight: 950;
+      letter-spacing:-.01em;
+      font-size: 16px;
+    }
+
+    .err{
+      margin-top: 12px;
+      background: rgba(251,113,133,.10);
+      border: 1px solid rgba(251,113,133,.25);
+      color: rgba(255,255,255,.90);
+      padding: 10px 12px;
+      border-radius: 14px;
+      display:none;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .result-card{
+      background: linear-gradient(135deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,.02) 100%);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      margin: 12px 0;
+      transition: transform .18s ease, border-color .18s ease;
+    }
+    .result-card:hover{transform: translateY(-2px); border-color: rgba(16,185,129,.40);}
+    .result-title{margin:0 0 6px; font-size: 18px; font-weight: 950;}
+    .meta{color: var(--muted); font-size: 13px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 6px 10px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.16);
+      font-weight: 800;
+      font-size: 12px;
+      color: rgba(255,255,255,.86);
+    }
+    .pill.ok{border-color: rgba(16,185,129,.30); background: rgba(16,185,129,.08);}
+    .pill.no{border-color: rgba(251,113,133,.30); background: rgba(251,113,133,.08);}
+
+    .cols{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    @media (max-width: 720px){ .cols{grid-template-columns: 1fr;} }
+
+    .box{
+      background: rgba(0,0,0,.14);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .box h4{margin:0 0 8px; font-size: 14px; font-weight: 950;}
+    ul,ol{margin: 0; padding-left: 18px; color: rgba(255,255,255,.86); line-height: 1.6;}
+    a.link{color: rgba(147,197,253,.95); font-weight: 850; text-decoration: none;}
+    a.link:hover{color: rgba(16,185,129,.95);}
+
+    .loading{color: var(--muted); padding: 10px 0;}
+    .empty{
+      color: rgba(255,255,255,.88);
+      background: rgba(255,255,255,.02);
+      border: 1px solid rgba(255,255,255,.10);
+      padding: 14px;
+      border-radius: 16px;
+    }
   </style>
 </head>
+
 <body>
-  <h1>Vos résultats</h1>
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="badge"><span class="dot"></span> RÉSULTATS VÉRIFIÉS</div>
+        <h1>Vos résultats</h1>
+        <p class="sub">
+          Voici votre plan personnalisé. Téléchargez le PDF et consultez les programmes recommandés.
+          <span style="opacity:.9">Session : <b>#{{ session_id }}</b></span>
+        </p>
 
-  <div style="text-align:center;margin-bottom:16px">
-    <a class="btn" href="/wizard/checklist.pdf?session_id={{ session_id }}">Télécharger mon plan (PDF)</a>
-  </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="/wizard/checklist.pdf?session_id={{ session_id }}">
+            📄 Télécharger mon plan (PDF)
+          </a>
+          <a class="btn btn-outline" href="/wizard/steps/" id="restartBtn">
+            🔁 Recommencer le test
+          </a>
+          <a class="btn btn-outline" href="/wizard/steps/">
+            ✅ Voir les étapes
+          </a>
+        </div>
 
-  <div id="container" class="card">
-    <p class="muted">Chargement…</p>
+        <div class="grid">
+          <div class="panel">
+            <div class="panel-title">
+              <span>📌 Programmes recommandés</span>
+              <span class="pill">API: <span id="apiState">chargement…</span></span>
+            </div>
+
+            <div id="container">
+              <div class="loading">Chargement…</div>
+            </div>
+
+            <div id="errBox" class="err"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">✅ Ce que vous recevez</div>
+            <ul>
+              <li>Score d’éligibilité multi-pays & programmes</li>
+              <li>Checklists de documents + liens officiels</li>
+              <li>Étapes & délais estimés (timeline)</li>
+              <li>PDF récapitulatif téléchargeable</li>
+            </ul>
+            <div style="height:10px"></div>
+            <div class="box">
+              <h4>Astuce</h4>
+              <div style="color:var(--muted); line-height:1.6">
+                Si aucun programme n’apparaît : ajustez <b>langues</b>, <b>budget</b>, et <b>pays cible</b> puis relancez.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
   </div>
 
   <script>
-    const SESSION_ID = {{ session_id }};
-    async function get(url){
-      const r = await fetch(url);
-      if(!r.ok){ throw new Error(await r.text()); }
-      return r.json();
+    const SESSION_ID = Number("{{ session_id }}");
+
+    // ✅ CSRF helper (indispensable pour POST)
+    function getCookie(name){
+      const v = `; ${document.cookie}`;
+      const p = v.split(`; ${name}=`);
+      if(p.length===2) return p.pop().split(';').shift();
+    }
+    const csrftoken = getCookie("csrftoken");
+
+    function safeText(x){
+      if(!x) return "";
+      return String(x).slice(0, 1200);
+    }
+
+    async function apiGet(url){
+      const r = await fetch(url, { credentials: "same-origin" });
+      const ct = (r.headers.get("content-type")||"").toLowerCase();
+
+      if(!r.ok){
+        let msg = `HTTP ${r.status}`;
+        if(ct.includes("application/json")){
+          try{ const j = await r.json(); msg = j.detail || JSON.stringify(j); }catch(e){}
+        }else{
+          const t = await r.text();
+          msg = safeText(t).replace(/<[^>]*>/g, "").trim() || msg;
+        }
+        throw new Error(msg);
+      }
+
+      if(ct.includes("application/json")) return r.json();
+      const t = await r.text();
+      throw new Error("Réponse inattendue (non JSON). " + safeText(t));
+    }
+
+    async function apiPost(url, body){
+      const r = await fetch(url, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrftoken
+        },
+        body: JSON.stringify(body || {})
+      });
+
+      const ct = (r.headers.get("content-type")||"").toLowerCase();
+
+      if(!r.ok){
+        let msg = `HTTP ${r.status}`;
+        if(ct.includes("application/json")){
+          try{ const j = await r.json(); msg = j.detail || JSON.stringify(j); }catch(e){}
+        }else{
+          const t = await r.text();
+          msg = safeText(t).replace(/<[^>]*>/g, "").trim() || msg;
+        }
+        throw new Error(msg);
+      }
+
+      if(ct.includes("application/json")) return r.json();
+      return {};
     }
 
     function renderResult(data){
       const root = document.getElementById("container");
-      const results = (data && data.results) || [];
-      if(results.length === 0){
-        root.innerHTML = "<p>Aucun programme trouvé. Revenez au formulaire et ajustez vos réponses (langues, budget, pays).</p>";
+      const results = (data && data.results) ? data.results : [];
+
+      if(!Array.isArray(results) || results.length === 0){
+        root.innerHTML = `
+          <div class="empty">
+            Aucun programme trouvé. Revenez au formulaire et ajustez vos réponses (langues, budget, pays).
+          </div>
+        `;
         return;
       }
-      root.innerHTML = results.map(r=>`
-        <div class="card">
-          <h3>${r.title} – ${r.country}</h3>
-          <p>Score: <b>${r.score}%</b> — ${r.eligible ? "✅ Éligible" : "❌ Non éligible"}</p>
-          ${r.url_official ? `<p><a class="link" href="${r.url_official}" target="_blank">Source officielle</a></p>` : ""}
-          <h4>Documents</h4>
-          <ul>${(r.checklist && r.checklist.documents ? r.checklist.documents : []).map(d=>`<li>${d.label}${d.required?" *":""}</li>`).join("")}</ul>
-          <h4>Étapes</h4>
-          <ol>${(r.checklist && r.checklist.steps ? r.checklist.steps : []).map(s=>`<li>${s.label}${s.eta_days?` (~${s.eta_days} j)`:``}</li>`).join("")}</ol>
-          ${(r.citations && r.citations.length) ? `<h4>Sources</h4><ul>${r.citations.map(c=>`<li><a class="link" href="${c.url}" target="_blank">${c.title}</a></li>`).join("")}</ul>` : ""}
-        </div>
-      `).join("");
+
+      root.innerHTML = results.map(r => {
+        const title = safeText(r.title || "Programme");
+        const country = safeText(r.country || "");
+        const score = (typeof r.score === "number") ? r.score : (r.score ? Number(r.score) : 0);
+        const eligible = !!r.eligible;
+
+        const docs = (r.checklist && Array.isArray(r.checklist.documents)) ? r.checklist.documents : [];
+        const steps = (r.checklist && Array.isArray(r.checklist.steps)) ? r.checklist.steps : [];
+        const cites = Array.isArray(r.citations) ? r.citations : [];
+
+        return `
+          <div class="result-card">
+            <div class="result-title">${title}${country ? ` – ${country}` : ""}</div>
+
+            <div class="meta">
+              <span class="pill ${eligible ? "ok" : "no"}">${eligible ? "✅ Éligible" : "❌ Non éligible"}</span>
+              <span class="pill">📊 Score: <b>${isFinite(score) ? score : 0}%</b></span>
+              ${r.url_official ? `<a class="link" href="${r.url_official}" target="_blank" rel="noopener">Source officielle →</a>` : ``}
+            </div>
+
+            <div class="cols">
+              <div class="box">
+                <h4>📎 Documents</h4>
+                <ul>${docs.map(d => `<li>${safeText(d.label || "Document")}${d.required ? " *" : ""}</li>`).join("")}</ul>
+              </div>
+              <div class="box">
+                <h4>🧭 Étapes</h4>
+                <ol>${steps.map(s => `<li>${safeText(s.label || "Étape")}${s.eta_days ? ` (~${s.eta_days} j)` : ""}</li>`).join("")}</ol>
+              </div>
+            </div>
+
+            ${cites.length ? `
+              <div class="box" style="margin-top:12px">
+                <h4>🔎 Sources</h4>
+                <ul>${cites.map(c => `<li><a class="link" href="${c.url}" target="_blank" rel="noopener">${safeText(c.title || c.url)}</a></li>`).join("")}</ul>
+              </div>
+            ` : ``}
+          </div>
+        `;
+      }).join("");
     }
 
     async function init(){
+      const apiState = document.getElementById("apiState");
+      const errBox = document.getElementById("errBox");
+
       try{
-        // Lire le résultat stocké par l’API (toujours à jour)
-        const data = await get(`/api/eligibility/sessions/${SESSION_ID}/result/`);
+        apiState.textContent = "calcul…";
+
+        // ✅ recalcul (safe) - endpoint OK
+        await apiPost(`/api/eligibility/sessions/${SESSION_ID}/compute_score/`, {});
+
+        apiState.textContent = "chargement…";
+        const data = await apiGet(`/api/eligibility/sessions/${SESSION_ID}/result/`);
+
+        apiState.textContent = "OK";
         renderResult(data);
       }catch(e){
+        apiState.textContent = "ERREUR";
+        errBox.style.display = "block";
+        errBox.textContent = "Erreur API : " + (e && e.message ? e.message : "inconnue");
         document.getElementById("container").innerHTML =
-          "<p>Impossible de charger le résultat. Réessayez depuis le formulaire.</p>";
+          `<div class="empty">Impossible de charger le résultat. Recommencez le test (bouton ci-dessus).</div>`;
       }
     }
+
+    // ✅ Restart propre
+    document.getElementById("restartBtn").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("wiz_session_id");
+      localStorage.removeItem("wiz_step");
+      window.location.href = "/wizard/steps/";
+    });
+
     init();
   </script>
-  <a class="btn btn-primary" href="{% url 'preparation_tests:retry_wrong' session.id %}">
-  🔁 Refaire uniquement mes erreurs
-</a>
-
 </body>
 </html>

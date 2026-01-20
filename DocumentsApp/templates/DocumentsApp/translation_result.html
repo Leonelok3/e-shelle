@@ -1,0 +1,86 @@
+{% extends "DocumentsApp/base_documents.html" %}
+
+{% block body_class %}documents{% endblock %}
+{% block app_scope %}documents{% endblock %}
+
+{% block title %}Traduction prête — Téléchargement | Immigration97{% endblock %}
+{% block meta_description %}
+Téléchargez votre document traduit, vérifiez le résumé (langues, date, format) et relancez une traduction si besoin.
+{% endblock %}
+
+{% block documents_content %}
+<div class="docs-page">
+
+  <header class="docs-page__header">
+    <a href="{% url 'DocumentsApp:translation' %}" class="docs-page__back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Refaire une traduction
+    </a>
+
+    <div class="docs-page__icon docs-page__icon--success" aria-hidden="true">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+    </div>
+
+    <h1 class="docs-page__title">Document traduit</h1>
+    <p class="docs-page__subtitle">
+      Ton fichier est prêt. Télécharge-le et vérifie rapidement les noms propres (écoles, villes, dates).
+    </p>
+  </header>
+
+  {% if messages %}
+    <div class="docs-messages">
+      {% for message in messages %}
+        <div class="docs-alert docs-alert--{{ message.tags }}">
+          <div class="docs-alert__icon">
+            {% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✕{% else %}ℹ{% endif %}
+          </div>
+          <div class="docs-alert__content">{{ message }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <section class="docs-result">
+    <div class="docs-result__card">
+
+      <div class="docs-result__top">
+        <div class="docs-result__file">
+          <div class="docs-result__file-ic" aria-hidden="true">📄</div>
+          <div>
+            <div class="docs-result__name">{{ result.original_name|default:"Document.docx" }}</div>
+            <div class="docs-result__meta">
+              {{ result.source_lang }} → {{ result.target_lang }} · {{ result.created_at|date:"d/m/Y H:i" }}
+            </div>
+          </div>
+        </div>
+
+        <div class="docs-result__actions">
+          <a class="docs-btn docs-btn--primary" href="{{ result.translated_file.url }}">
+            Télécharger le DOCX traduit
+          </a>
+          <a class="docs-btn docs-btn--secondary" href="{% url 'DocumentsApp:compression' %}">
+            Compresser un PDF
+          </a>
+        </div>
+      </div>
+
+      <div class="docs-divider"></div>
+
+      <div class="docs-result__tips">
+        <h2 class="docs-result__h">Vérifications rapides (recommandé)</h2>
+        <ul class="docs-result__list">
+          <li>Les noms propres (universités, villes, organismes) restent corrects</li>
+          <li>Les dates et numéros (référence, matricule) n’ont pas été modifiés</li>
+          <li>La mise en page est cohérente (titres, puces, tableaux)</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+{% endblock %}

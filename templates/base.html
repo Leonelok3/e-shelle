@@ -43,13 +43,17 @@
   <meta name="twitter:image" content="{% static 'img/LOGOIMM97.png' %}">
 
   <!-- ================= CSS GLOBAL ================= -->
-{% if not is_pdf %}
-<link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-<link rel="stylesheet" href="{% static 'css/base.css' %}">
-<link rel="stylesheet" href="{% static 'css/components.css' %}">
-<link rel="stylesheet" href="{% static 'css/main.css' %}">
-<link rel="stylesheet" href="{% static 'css/mobile.css' %}">
-{% endif %}
+  {% if not is_pdf %}
+    <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+
+    <!-- ✅ CSS Newsletter Global (scopé, safe) -->
+    <link rel="stylesheet" href="{% static 'css/components/newsletter-global.css' %}">
+  {% endif %}
+
   <!-- ================= CSS APP / PAGE ================= -->
   {% block extra_css %}{% endblock %}
 </head>
@@ -81,12 +85,20 @@
       <a href="/visa-travail/" class="c-nav-link">Visa Travail</a>
       <a href="/visa-etudes/" class="c-nav-link">Visa Études</a>
       <a href="/residence-permanente/" class="c-nav-link">Résidence Permanente</a>
-      <a href="{% url 'authentification:login' %}" class="c-btn c-btn--outline">
+
+      {% if user.is_authenticated %}
+        <a href="/profiles/" class="c-btn c-btn--outline">Mon espace</a>
+        <a href="/logout/" class="c-btn c-btn--primary">
+          Se déconnecter
+        </a>
+      {% else %}
+        <a href="{% url 'authentification:login' %}" class="c-btn c-btn--outline">
           Se connecter
         </a>
         <a href="{% url 'billing:access' %}" class="c-btn c-btn--primary">
           Accès Premium
         </a>
+      {% endif %}
     </nav>
   </div>
 </header>
@@ -147,6 +159,100 @@
     © {% now "Y" %} Immigration97 — Tous droits réservés.
   </div>
 </footer>
+
+<!-- ======================================================
+     ✅ NEWSLETTER GLOBAL (visible partout)
+     - Style via newsletter-global.css (scopé .nl-global)
+     - Apparition après un scroll léger (non agressif)
+     - Fermeture mémorisée (localStorage)
+     - Animation sortie (classe is-closing)
+====================================================== -->
+{% if not is_pdf %}
+<div class="nl-global is-hidden" id="nl-global" aria-hidden="true">
+  <div class="nl-global__card" role="region" aria-label="Newsletter Immigration97">
+    <div class="nl-global__top">
+      <div class="nl-global__badge">
+        <span class="nl-global__dot"></span>
+        Alertes immigration officielles
+      </div>
+      <button class="nl-global__close" id="nl-close" type="button" aria-label="Fermer">✕</button>
+    </div>
+
+    <div class="nl-global__body">
+      <div>
+        <h3 class="nl-global__title">
+          Reçois les <span>ouvertures & alertes</span> (USA • Canada • Europe)
+        </h3>
+        <p class="nl-global__text">
+          DV Lottery, dates, quotas, lois, opportunités : une alerte claire, rapide et vérifiée.
+        </p>
+        <div class="nl-global__hint">
+          ✅ Gratuit • Tu peux te désinscrire à tout moment.
+        </div>
+      </div>
+
+      <form class="nl-global__form" method="post" action="{% url 'actualite:newsletter_subscribe' %}">
+        {% csrf_token %}
+        <input class="nl-global__input"
+               type="email"
+               name="email"
+               placeholder="Ton email (ex: nom@gmail.com)"
+               required>
+
+        <!-- utile pour ton modèle NewsletterSubscriber -->
+        <input type="hidden" name="source_page" value="{% block newsletter_source %}global{% endblock %}">
+
+        <!-- On garde ton design system -->
+        <button class="c-btn c-btn--primary nl-global__btn" type="submit">
+          M’inscrire
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const wrap = document.getElementById("nl-global");
+  const closeBtn = document.getElementById("nl-close");
+  if (!wrap || !closeBtn) return;
+
+  const KEY = "imm97_newsletter_closed_v1";
+
+  // Déjà fermé avant => ne pas afficher
+  if (localStorage.getItem(KEY) === "1") {
+    wrap.classList.add("is-hidden");
+    wrap.setAttribute("aria-hidden", "true");
+    return;
+  }
+
+  // Montre après un scroll léger (UX premium)
+  let shown = false;
+  const show = () => {
+    wrap.classList.remove("is-hidden");
+    wrap.setAttribute("aria-hidden", "false");
+  };
+
+  window.addEventListener("scroll", function () {
+    if (shown) return;
+    const sc = window.scrollY || document.documentElement.scrollTop || 0;
+    if (sc > 220) {
+      shown = true;
+      show();
+    }
+  }, { passive: true });
+
+  closeBtn.addEventListener("click", function () {
+    localStorage.setItem(KEY, "1");
+    wrap.classList.add("is-closing");
+    setTimeout(() => {
+      wrap.classList.add("is-hidden");
+      wrap.setAttribute("aria-hidden", "true");
+    }, 360);
+  });
+});
+</script>
+{% endif %}
 
 <!-- ================= JS GLOBAL ================= -->
 <script src="{% static 'js/main.js' %}" defer></script>

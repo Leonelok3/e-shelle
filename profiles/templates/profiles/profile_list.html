@@ -1,64 +1,251 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Talents Premium Afrique → Canada & Europe | Immigration97{% endblock %}
+{% block meta_description %}
+Découvrez des profils professionnels Premium (CV + portfolio) disponibles pour le Canada et l’Europe.
+Recruteurs : filtrez par métier et localisation. Candidats : activez Premium pour être visible.
+{% endblock %}
+
+{% block body_class %}profiles{% endblock %}
+{% block app_scope %}profiles{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profiles.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold">Trouvez le bon professionnel</h1>
-        <p class="lead text-muted">Parcourez notre CV-thèque ou publiez votre propre profil.</p>
-        {% if user.is_authenticated and not user.profile %}
-            <a href="{% url 'profiles:create' %}" class="btn btn-primary btn-lg mt-2">Créer mon profil CV</a>
+
+<!-- HERO -->
+<section class="p-market-hero">
+  <div class="p-market-hero__inner">
+    <div class="p-market-hero__left">
+      <div class="p-kicker">Talents Premium • Afrique • Canada • Europe</div>
+      <h1 class="p-market-hero__title">Profils Premium prêts pour l’international</h1>
+      <p class="p-market-hero__lead">
+        Recruteurs : trouvez des profils qualifiés (CV + portfolio). Candidats : activez Premium pour rendre votre profil visible
+        et recevoir des invitations à entretien.
+      </p>
+
+      <div class="p-market-hero__actions">
+        {% if user.is_authenticated %}
+          <a class="p-btn p-btn--primary" href="{% url 'profiles:my_space' %}">Mon espace</a>
+
+          {% if user.profile %}
+            <a class="p-btn p-btn--outline" href="{% url 'profiles:edit' user.profile.pk %}">Compléter mon profil</a>
+          {% else %}
+            <a class="p-btn p-btn--outline" href="{% url 'profiles:my_space' %}">Créer mon profil</a>
+          {% endif %}
+        {% else %}
+          <a class="p-btn p-btn--primary" href="{% url 'authentification:login' %}">Se connecter</a>
+          <a class="p-btn p-btn--outline" href="{% url 'billing:access' %}">Accès Premium</a>
         {% endif %}
+      </div>
+
+      <div class="p-market-hero__bullets">
+        <div class="p-bullet">✅ Profils Premium vérifiables</div>
+        <div class="p-bullet">📎 CV + Portfolio (preuves)</div>
+        <div class="p-bullet">🌍 Mobilité internationale</div>
+      </div>
     </div>
 
-    <div class="card p-4 mb-5 shadow-sm bg-light border-0">
-        <form method="get" class="row g-3">
-            <div class="col-md-5">
-                <input type="text" name="q" class="form-control" placeholder="Mot-clé (ex: Python, Menuisier...)" value="{{ request.GET.q }}">
-            </div>
-            <div class="col-md-4">
-                <select name="category" class="form-select">
-                    <option value="">Toutes catégories</option>
-                    {% for cat in categories %}
-                    <option value="{{ cat.slug }}">{{ cat.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-dark w-100">Rechercher</button>
-            </div>
-        </form>
+    <div class="p-market-hero__right">
+      <div class="p-market-cta">
+        <h2 class="p-market-cta__title">Vous recrutez ?</h2>
+        <p class="p-market-cta__text">
+          Filtrez par métier, ville et mots-clés. Sélectionnez des profils Premium prêts pour l’entretien.
+        </p>
+        <div class="p-market-cta__chips">
+          <span class="p-chip">BTP</span>
+          <span class="p-chip">Santé</span>
+          <span class="p-chip">IT</span>
+          <span class="p-chip">Comptabilité</span>
+          <span class="p-chip">Hôtellerie</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FILTERS -->
+<section class="p-filters">
+  <form class="p-filters__form" method="get" action="{% url 'profiles:list' %}">
+    <div class="p-filters__row">
+      <div class="p-filters__field">
+        <label class="p-label" for="q">Recherche</label>
+        <input
+          id="q"
+          class="p-input"
+          type="text"
+          name="q"
+          value="{{ request.GET.q|default:'' }}"
+          placeholder="Métier, ville, mots-clés…"
+        >
+      </div>
+
+      <div class="p-filters__field">
+        <label class="p-label" for="category">Métier</label>
+        <select id="category" class="p-input" name="category">
+          <option value="">Tous les métiers</option>
+          {% for c in categories %}
+            <option value="{{ c.slug }}" {% if request.GET.category == c.slug %}selected{% endif %}>
+              {{ c.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="p-filters__actions">
+        <button class="p-btn p-btn--primary" type="submit">Filtrer</button>
+        <a class="p-btn p-btn--outline" href="{% url 'profiles:list' %}">Réinitialiser</a>
+      </div>
     </div>
 
-    <div class="row">
-        {% for profile in profiles %}
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-body text-center">
-                    {% if profile.avatar %}
-                        <img src="{{ profile.avatar.url }}" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
-                    {% else %}
-                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 100px; height: 100px; font-size: 2rem;">
-                            {{ profile.user.username|first|upper }}
-                        </div>
-                    {% endif %}
-                    
-                    <h5 class="card-title fw-bold">{{ profile.user.first_name }} {{ profile.user.last_name }}</h5>
-                    <p class="text-primary mb-1">{{ profile.headline }}</p>
-                    {% if profile.category %}
-                        <span class="badge bg-secondary mb-3">{{ profile.category.name }}</span>
-                    {% endif %}
-                    
-                    <p class="small text-muted"><i class="bi bi-geo-alt"></i> {{ profile.location }}</p>
-                    
-                    <a href="{{ profile.get_absolute_url }}" class="btn btn-outline-primary btn-sm w-100">Voir le profil</a>
-                </div>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-12 text-center">
-            <p>Aucun profil trouvé pour cette recherche.</p>
-        </div>
-        {% endfor %}
+    <div class="p-filters__hint">
+      Conseil recruteur : utilisez des mots-clés précis (ex: “SAP”, “Menuiserie”, “Aide-soignant”, “Soudeur”, “BTP”, “Comptabilité”).
     </div>
+  </form>
+</section>
+
+<!-- RESULTS -->
+<section class="p-results">
+  <div class="p-results__head">
+    <h2 class="p-results__title">Talents Premium</h2>
+    <div class="p-results__meta">
+      {% if page_obj %}
+        <span>{{ page_obj.paginator.count }} profil{{ page_obj.paginator.count|pluralize }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if profiles %}
+    <div class="p-cards">
+      {% for p in profiles %}
+        <article class="p-card p-card--talent">
+
+          <div class="p-card__top">
+            <div class="p-avatar">
+              {% if p.avatar %}
+                <img src="{{ p.avatar.url }}" alt="Photo de {{ p.user.username }}">
+              {% else %}
+                <div class="p-avatar__fallback">👤</div>
+              {% endif %}
+            </div>
+
+            <div class="p-card__id">
+              <div class="p-card__name">
+                {{ p.user.get_full_name|default:p.user.username }}
+              </div>
+              <div class="p-card__sub">
+                {{ p.category.name|default:"Métier non défini" }} • {{ p.location|default:"Localisation non précisée" }}
+              </div>
+            </div>
+
+            <div class="p-card__badges">
+              <span class="p-badge p-badge--success">Premium</span>
+              <span class="p-badge p-badge--info">Langue {{ p.level }}</span>
+            </div>
+          </div>
+
+          <div class="p-card__body">
+            <div class="p-card__headline">
+              {{ p.headline|default:"Titre du profil à compléter" }}
+            </div>
+            <div class="p-card__bio">
+              {{ p.bio|default:"Bio à compléter."|truncatechars:160 }}
+            </div>
+
+            <div class="p-card__stats">
+              <div class="p-stat">
+                <div class="p-stat__k">Portfolio</div>
+                <div class="p-stat__v">{{ p.portfolio_items.count }} fichier{{ p.portfolio_items.count|pluralize }}</div>
+              </div>
+              <div class="p-stat">
+                <div class="p-stat__k">Disponibilité</div>
+                <div class="p-stat__v">International</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-card__actions">
+
+  <a class="p-btn p-btn--primary" href="{% url 'profiles:detail' p.pk %}">
+    Voir le profil
+  </a>
+
+  <a class="p-btn p-btn--outline" href="{% url 'profiles:detail' p.pk %}#invite">
+    Inviter
+  </a>
+
+  {% if user.is_authenticated %}
+    <form method="post" action="{% url 'profiles:toggle_favorite' p.pk %}" class="p-favForm">
+      {% csrf_token %}
+      <button class="p-btn p-btn--outline p-btn--icon {% if p.id in fav_ids %}is-fav{% endif %}"
+        type="submit"
+        aria-label="Ajouter aux favoris">
+  ⭐
+</button>
+    </form>
+  {% endif %}
+
 </div>
+
+
+        </article>
+      {% endfor %}
+    </div>
+
+    <!-- PAGINATION -->
+    {% if is_paginated %}
+      <nav class="p-pagination" aria-label="Pagination">
+        {% if page_obj.has_previous %}
+          <a class="p-page" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">← Précédent</a>
+        {% else %}
+          <span class="p-page p-page--disabled">← Précédent</span>
+        {% endif %}
+
+        <span class="p-page p-page--current">
+          Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+          <a class="p-page" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">Suivant →</a>
+        {% else %}
+          <span class="p-page p-page--disabled">Suivant →</span>
+        {% endif %}
+      </nav>
+    {% endif %}
+
+  {% else %}
+    <div class="p-empty">
+      <h3>Aucun profil trouvé</h3>
+      <p>Essayez une autre recherche (métier, ville) ou réinitialisez les filtres.</p>
+      <a class="p-btn p-btn--outline" href="{% url 'profiles:list' %}">Réinitialiser</a>
+    </div>
+  {% endif %}
+</section>
+
+<!-- SEO GEO -->
+<section class="p-seo">
+  <div class="p-seo__card">
+    <h2>Recruter des talents d’Afrique pour le Canada et l’Europe</h2>
+    <p>
+      Immigration97 aide à connecter des <strong>profils Premium</strong> (CV + portfolio) aux recruteurs internationaux.
+      Notre objectif : rendre la sélection plus simple, plus fiable et plus rapide, en mettant en avant les preuves de compétences.
+    </p>
+
+    <h3>Talents disponibles : Cameroun, Sénégal, Côte d’Ivoire, RDC…</h3>
+    <p>
+      Que vous recrutiez dans le <strong>BTP</strong>, la <strong>santé</strong>, l’<strong>informatique</strong>,
+      l’<strong>hôtellerie</strong> ou la <strong>comptabilité</strong>, filtrez les profils Premium par métier, localisation et mots-clés.
+    </p>
+
+    <h3>Candidats : comment être visible par les recruteurs ?</h3>
+    <p>
+      Complétez votre profil, ajoutez un portfolio (CV, réalisations, recommandations), puis activez l’accès Premium
+      pour apparaître dans la liste des talents et recevoir des invitations à entretien.
+    </p>
+  </div>
+</section>
+
 {% endblock %}

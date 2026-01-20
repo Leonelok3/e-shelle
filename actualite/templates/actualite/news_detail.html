@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+{% load static %}
+{% load actualite_extras %}
+
+{% block title %}{{ article.title }} – Immigration97{% endblock %}
+{% block meta_description %}
+  {% if article.summary %}{{ article.summary|truncatechars:160 }}{% else %}
+    Informations officielles, opportunités et conseils immigration — Immigration97.
+  {% endif %}
+{% endblock %}
+
+{% block body_class %}actualite{% endblock %}
+{% block app_scope %}actualite{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/actualite.css' %}">
+{% endblock %}
+
+{% block content %}
+
+  {# ================= SEO / Schema ================= #}
+  {% include "actualite/partials/_seo_meta.html" with page="detail" article=article %}
+
+  <!-- ================= HERO ARTICLE ================= -->
+  <section class="a-hero a-hero--detail">
+    <div class="a-hero__content">
+
+      <div class="a-breadcrumbs">
+        <a href="{% url 'actualite:list' %}">Actualités</a>
+        <span>›</span>
+        <a href="{% url 'actualite:by_country' article.country_target|country_slug %}">
+          {{ article.country_target|country_label }}
+        </a>
+      </div>
+
+      <h1 class="a-title">{{ article.title }}</h1>
+
+      {% if article.summary %}
+        <p class="a-subtitle">{{ article.summary }}</p>
+      {% endif %}
+
+      <div class="a-meta">
+        <span class="a-badge">{{ article.country_target|country_label }}</span>
+        <span class="a-dot">•</span>
+        <span>{{ article.get_category_display }}</span>
+        <span class="a-dot">•</span>
+        <span>Publié : {{ article.publish_date|date:"d M Y" }}</span>
+        <span class="a-dot">•</span>
+        <span>{{ article.views_count }} vues</span>
+      </div>
+
+      <!-- ✅ TRUST BAR : crédibilité + lecture -->
+      <div class="a-trustbar">
+        <span class="a-trust a-trust--verified">Info vérifiée</span>
+
+        {# ✅ USA: force DV official link #}
+        {% if article.country_target == "US" %}
+          <a class="a-trust a-trust--source"
+             href="https://dvprogram.state.gov"
+             target="_blank" rel="noopener nofollow">
+            Source officielle
+          </a>
+        {% elif article.source_url %}
+          <a class="a-trust a-trust--source"
+             href="{{ article.source_url }}"
+             target="_blank" rel="noopener">
+            Source officielle
+          </a>
+        {% else %}
+          <span class="a-trust a-trust--source">Source officielle</span>
+        {% endif %}
+
+        <span class="a-trust a-trust--time" id="reading-time">⏱️ Temps de lecture : —</span>
+
+        <span class="a-trust a-trust--date">
+          Mis à jour :
+          {% if article.updated_at %}
+            {{ article.updated_at|date:"d M Y" }}
+          {% else %}
+            {{ article.publish_date|date:"d M Y" }}
+          {% endif %}
+        </span>
+      </div>
+
+      <!-- ✅ SHARE BAR (premium + icônes) -->
+      <div class="a-share" id="share-bar"
+           data-url="{{ request.build_absolute_uri }}"
+           data-title="{{ article.title|escapejs }}"
+           data-text="{% if article.summary %}{{ article.summary|escapejs }}{% else %}Article Immigration97{% endif %}">
+
+        <button type="button" class="a-share__btn a-share__btn--native" id="btn-share-native" aria-label="Partager">
+          <span class="a-share__icon" aria-hidden="true">
+            <!-- Share icon -->
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M16 8a3 3 0 1 0-2.83-4H13a3 3 0 0 0 3 4ZM6 14a3 3 0 1 0 2.83 4H9a3 3 0 0 0-3-4Zm10 2a3 3 0 1 0 2.83 4H19a3 3 0 0 0-3-4Z" opacity=".0"/>
+              <path d="M15.5 6.5 8.7 10.2M8.7 13.8l6.8 3.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M18 5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm10 7a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+          </span>
+          Partager
+        </button>
+
+        <a class="a-share__btn a-share__btn--wa" id="btn-share-whatsapp" target="_blank" rel="noopener" aria-label="Partager sur WhatsApp">
+          <span class="a-share__icon" aria-hidden="true">
+            <!-- WhatsApp icon -->
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 2.3c-5.35 0-9.7 4.1-9.7 9.16 0 1.62.45 3.18 1.3 4.54L2 22l6.25-1.63c1.25.65 2.66.99 4.1.99 5.35 0 9.7-4.1 9.7-9.16C21.7 6.4 17.35 2.3 12 2.3Z" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M9.2 8.2c.2-.5.4-.5.7-.5h.6c.2 0 .5.1.6.4l.9 2.1c.1.3.1.6-.1.8l-.5.6c-.1.2-.2.4 0 .6.4.8 1.5 2.1 3.2 2.8.3.1.5.1.6-.1l.8-.9c.2-.2.4-.3.7-.2l2.3.8c.3.1.5.4.4.7-.1.7-.4 1.4-1 1.9-.7.6-1.6.8-2.5.6-1.2-.2-2.5-.8-3.8-1.7-1.3-.9-2.5-2.2-3.3-3.6-.6-1.1-.9-2.2-.7-3.1.2-.8.8-1.5 1.5-1.9Z" fill="currentColor"/>
+            </svg>
+          </span>
+          WhatsApp
+        </a>
+
+        <a class="a-share__btn a-share__btn--fb" id="btn-share-facebook" target="_blank" rel="noopener" aria-label="Partager sur Facebook">
+          <span class="a-share__icon" aria-hidden="true">
+            <!-- Facebook icon -->
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M13.5 9H15V6.5c0-1.3 1.1-2.5 2.6-2.5H20V7h-1.6c-.5 0-.9.4-.9.9V9H20l-.4 3H17.5v8h-3.1v-8H12V9h2.4V7.7c0-2.2 1.6-3.7 3.8-3.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          Facebook
+        </a>
+
+        <a class="a-share__btn a-share__btn--ln" id="btn-share-linkedin" target="_blank" rel="noopener" aria-label="Partager sur LinkedIn">
+          <span class="a-share__icon" aria-hidden="true">
+            <!-- LinkedIn icon -->
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M6.5 9.5V20M6.5 6.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM10.5 20v-6.2c0-2.1 1.2-3.3 3-3.3s2.8 1.2 2.8 3.3V20M10.5 12.2V20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          LinkedIn
+        </a>
+
+        <button type="button" class="a-share__btn a-share__btn--copy" id="btn-copy-link" aria-label="Copier le lien">
+          <span class="a-share__icon" aria-hidden="true">
+            <!-- Link icon -->
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M10 13a5 5 0 0 1 0-7l1.2-1.2a5 5 0 0 1 7 7L17 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M14 11a5 5 0 0 1 0 7L12.8 19.2a5 5 0 0 1-7-7L7 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </span>
+          Copier
+        </button>
+
+        <span class="a-share__ok" id="copy-ok" aria-live="polite"></span>
+      </div>
+
+      <div class="a-hero__actions">
+        <a class="c-btn c-btn--primary" href="/wizard/">Vérifier mon éligibilité</a>
+        <a class="c-btn c-btn--outline" href="/billing/access/">Accès Premium</a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= LAYOUT ================= -->
+  <section class="a-layout">
+
+    <!-- ========== SIDEBAR ========== -->
+    <aside class="a-sidebar">
+
+      {% include "actualite/partials/_newsletter.html" with source_page="detail" country_slug=article.country_target|country_slug %}
+
+      {% include "actualite/partials/_cta.html" %}
+      {% include "actualite/partials/_ads_slot.html" with slot="sidebar" %}
+
+      {% if article.tags.all %}
+        <div class="a-card">
+          <div class="a-card__head">
+            <h3>Mots-clés</h3>
+            <p>Pour explorer plus vite.</p>
+          </div>
+          <div class="a-tags">
+            {% for t in article.tags.all %}
+              <span class="a-tag">#{{ t.name }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+    </aside>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <div class="a-main">
+
+      {% if article.image %}
+        <div class="a-cover">
+          <img src="{{ article.image.url }}" alt="{{ article.title }}" loading="lazy">
+        </div>
+      {% endif %}
+
+      {% if article.video_url %}
+        <div class="a-video">
+          <a class="c-btn c-btn--outline" href="{{ article.video_url }}" target="_blank" rel="noopener">
+            ▶️ Voir la vidéo
+          </a>
+        </div>
+      {% endif %}
+
+      {# ✅ Source propre (pas d'URL brute) #}
+      {% if article.country_target == "US" %}
+        <div class="a-source">
+          <strong>Source officielle :</strong>
+          <a href="https://dvprogram.state.gov" target="_blank" rel="noopener nofollow">
+            dvprogram.state.gov
+          </a>
+        </div>
+      {% elif article.source_url %}
+        <div class="a-source">
+          <strong>Source officielle :</strong>
+          <a href="{{ article.source_url }}" target="_blank" rel="noopener">
+            Consulter la source
+          </a>
+        </div>
+      {% endif %}
+
+      <!-- ========== SOMMAIRE AUTOMATIQUE ========== -->
+      <div class="a-toc" id="toc-container">
+        <div class="a-toc__head">
+          <strong>Sommaire</strong>
+        </div>
+        <ul class="a-toc__list" id="toc-list"></ul>
+      </div>
+
+      <!-- ========== RÉSUMÉ AUTOMATIQUE (5 POINTS) ========== -->
+      <div class="a-summary" id="auto-summary" style="display:none;">
+        <div class="a-summary__head">
+          <h3>Résumé rapide</h3>
+          <p>Les 5 points essentiels à retenir.</p>
+        </div>
+        <ul class="a-summary__list" id="auto-summary-list"></ul>
+      </div>
+
+      <!-- ========== ARTICLE CONTENT ========== -->
+      <article class="a-article">
+        <div id="article-content">
+          {% if article.content %}
+            {{ article.content|safe }}
+          {% else %}
+            <p>Contenu en préparation.</p>
+          {% endif %}
+        </div>
+      </article>
+
+      {% include "actualite/partials/_ads_slot.html" with slot="in_article" %}
+
+      {% if related %}
+        <div class="a-card">
+          <div class="a-card__head">
+            <h2>Articles similaires ({{ article.country_target|country_label }})</h2>
+            <p>Pour aller plus loin sur le même pays.</p>
+          </div>
+          <div class="a-grid">
+            {% for item in related %}
+              {% include "actualite/partials/_news_card.html" with item=item featured=False %}
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if by_tags %}
+        <div class="a-card">
+          <div class="a-card__head">
+            <h2>Recommandés par mots-clés</h2>
+            <p>Articles liés par thèmes.</p>
+          </div>
+          <div class="a-grid">
+            {% for item in by_tags %}
+              {% include "actualite/partials/_news_card.html" with item=item featured=False %}
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="a-card">
+        <div class="a-card__head">
+          <h2>Prêt à passer à l’action ?</h2>
+          <p>Ne lis pas seulement l’info : transforme-la en résultat.</p>
+        </div>
+        <div class="a-evergreen__cta">
+          <a class="c-btn c-btn--primary" href="/wizard/">Vérifier mon éligibilité</a>
+          <a class="c-btn c-btn--outline" href="/cv-generator/">Créer mon CV</a>
+        </div>
+      </div>
+
+      {% include "actualite/partials/_ads_slot.html" with slot="bottom" %}
+
+    </div>
+  </section>
+
+  <!-- ========== NEWSLETTER STICKY (INTELLIGENTE) ========== -->
+  <div class="a-nl-sticky" id="nl-sticky" aria-hidden="true">
+    <button class="a-nl-sticky__close" id="nl-sticky-close" aria-label="Fermer">✕</button>
+    <div class="a-nl-sticky__content">
+      <div>
+        <div class="a-nl-sticky__title">Recevoir les alertes immigration</div>
+        <div class="a-nl-sticky__text">USA • Canada • Europe — opportunités, lois, offres.</div>
+      </div>
+      <a class="c-btn c-btn--primary a-nl-sticky__btn" href="#newsletter-form">Je m’inscris</a>
+    </div>
+  </div>
+
+  <!-- ========== JS : SHARE + TOC + RÉSUMÉ + LECTURE + STICKY ========== -->
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const content = document.getElementById("article-content");
+    if (!content) return;
+
+    // ===== SHARE LINKS =====
+    const shareBar = document.getElementById("share-bar");
+    if (shareBar) {
+      const url = shareBar.dataset.url || window.location.href;
+      const title = shareBar.dataset.title || document.title;
+      const text = shareBar.dataset.text || "";
+
+      const encodedURL = encodeURIComponent(url);
+      const encodedTitle = encodeURIComponent(title);
+      const encodedText = encodeURIComponent(text);
+
+      const wa = document.getElementById("btn-share-whatsapp");
+      const fb = document.getElementById("btn-share-facebook");
+      const ln = document.getElementById("btn-share-linkedin");
+
+      if (wa) wa.href = `https://wa.me/?text=${encodedTitle}%0A${encodedURL}`;
+      if (fb) fb.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedURL}`;
+      if (ln) ln.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedURL}`;
+
+      const btnNative = document.getElementById("btn-share-native");
+      if (btnNative) {
+        if (navigator.share) {
+          btnNative.addEventListener("click", async () => {
+            try { await navigator.share({ title, text, url }); } catch (e) {}
+          });
+        } else {
+          btnNative.style.display = "none";
+        }
+      }
+
+      const btnCopy = document.getElementById("btn-copy-link");
+      const ok = document.getElementById("copy-ok");
+      if (btnCopy) {
+        btnCopy.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(url);
+            if (ok) ok.textContent = "Lien copié ✅";
+            setTimeout(() => { if (ok) ok.textContent = ""; }, 2000);
+          } catch (e) {
+            if (ok) ok.textContent = "Impossible de copier.";
+          }
+        });
+      }
+    }
+
+    // ===== TOC =====
+    const tocList = document.getElementById("toc-list");
+    const tocContainer = document.getElementById("toc-container");
+    if (tocList && tocContainer) {
+      const headings = content.querySelectorAll("h2, h3");
+      if (headings.length < 2) {
+        tocContainer.style.display = "none";
+      } else {
+        headings.forEach((heading, index) => {
+          const id = "section-" + index;
+          if (!heading.id) heading.setAttribute("id", id);
+
+          const li = document.createElement("li");
+          li.className = "a-toc__item a-toc__item--" + heading.tagName.toLowerCase();
+
+          const a = document.createElement("a");
+          a.href = "#" + heading.id;
+          a.textContent = heading.textContent;
+
+          li.appendChild(a);
+          tocList.appendChild(li);
+        });
+      }
+    }
+
+    // ===== Reading time =====
+    const output = document.getElementById("reading-time");
+    if (output) {
+      const text = (content.innerText || content.textContent || "").trim();
+      const words = text ? text.split(/\s+/).length : 0;
+      const minutes = Math.max(1, Math.round(words / 200));
+      output.textContent = "⏱️ Temps de lecture : " + minutes + " min";
+    }
+
+    // ===== Auto summary (5 points) =====
+    const box = document.getElementById("auto-summary");
+    const list = document.getElementById("auto-summary-list");
+    if (box && list) {
+      const text = (content.innerText || content.textContent || "").replace(/\s+/g, " ").trim();
+      if (text.length > 220) {
+        const sentences = text
+          .split(/[.!?]\s+/)
+          .map(s => s.trim())
+          .filter(s => s.length > 50 && s.length < 170);
+
+        const picked = [];
+        const used = new Set();
+        for (let s of sentences) {
+          const key = s.slice(0, 50).toLowerCase();
+          if (used.has(key)) continue;
+          used.add(key);
+          picked.push(s);
+          if (picked.length >= 5) break;
+        }
+
+        if (picked.length >= 3) {
+          list.innerHTML = "";
+          picked.forEach(s => {
+            const li = document.createElement("li");
+            li.textContent = s.endsWith(".") ? s : (s + ".");
+            list.appendChild(li);
+          });
+          box.style.display = "block";
+        }
+      }
+    }
+
+    // ===== Sticky newsletter =====
+    const sticky = document.getElementById("nl-sticky");
+    const closeBtn = document.getElementById("nl-sticky-close");
+    if (sticky && closeBtn) {
+      const KEY = "imm97_nl_sticky_closed";
+      if (localStorage.getItem(KEY) !== "1") {
+        function showSticky() {
+          sticky.classList.add("is-visible");
+          sticky.setAttribute("aria-hidden", "false");
+        }
+        function hideSticky() {
+          sticky.classList.remove("is-visible");
+          sticky.setAttribute("aria-hidden", "true");
+        }
+        closeBtn.addEventListener("click", function () {
+          localStorage.setItem(KEY, "1");
+          hideSticky();
+        });
+
+        window.addEventListener("scroll", function () {
+          const doc = document.documentElement;
+          const scrollTop = doc.scrollTop || document.body.scrollTop;
+          const scrollHeight = doc.scrollHeight - doc.clientHeight;
+          const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) : 0;
+          if (progress > 0.25) showSticky();
+        }, { passive: true });
+      }
+    }
+  });
+  </script>
+
+{% endblock %}

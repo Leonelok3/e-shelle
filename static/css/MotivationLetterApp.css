@@ -1414,3 +1414,117 @@ body.motivation-letter .ml-list-hero {
       height: 80px;
     }
   }
+
+
+  /* ================================
+   FIX CLICKABLE CARDS & BUTTONS
+================================ */
+
+.ml-card,
+.ml-card * {
+  pointer-events: auto;
+}
+
+.ml-card {
+  position: relative;
+  z-index: 5;
+}
+
+.ml-card::before,
+.ml-card::after {
+  pointer-events: none;
+}
+
+
+.ml-card--featured {
+  cursor: pointer;
+}
+
+
+.ml-hero::before,
+.ml-hero::after {
+  pointer-events: none;
+}
+
+.ml-card {
+  position: relative;
+  z-index: 2;
+}
+
+.ml-card > * {
+  position: relative;
+  z-index: 3;
+}
+
+.glow,
+.overlay,
+.background-effect {
+  pointer-events: none;
+}
+
+
+/* ================================
+   FIX: Boutons / liens non cliquables (overlay global)
+================================ */
+
+/* 1) On garantit que l'app est au-dessus des décors */
+body.motivation-letter .app-main.motivation-letter,
+body.motivation-letter .ml-hero,
+body.motivation-letter .ml-features,
+body.motivation-letter .ml-quick,
+body.motivation-letter .ml-benefits,
+body.motivation-letter .ml-cta {
+  position: relative;
+  z-index: 5;
+}
+
+/* 2) CTA au premier plan */
+body.motivation-letter .ml-hero__cta,
+body.motivation-letter .ml-hero__btn,
+body.motivation-letter .ml-cta__btn,
+body.motivation-letter .ml-quick__card {
+  position: relative;
+  z-index: 20;
+  pointer-events: auto;
+}
+/* ================================
+   FIX: overlay menu (hamburger) qui bloque les clics
+   -> fermé = pointer-events:none
+================================ */
+
+.nav-overlay,
+.menu-overlay,
+.drawer-overlay,
+.drawer-backdrop,
+.mobile-menu-overlay,
+.backdrop {
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* si tu as une classe "open / active / show" */
+.nav-overlay.is-open,
+.menu-overlay.is-open,
+.drawer-overlay.is-open,
+.drawer-backdrop.is-open,
+.mobile-menu-overlay.is-open,
+.backdrop.is-open,
+.nav-overlay.active,
+.menu-overlay.active,
+.drawer-overlay.active,
+.backdrop.active {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+/* ============================================================
+   FIX FORCÉ — CTA toujours au-dessus (anti overlay)
+============================================================ */
+body.motivation-letter .ml-hero__cta,
+body.motivation-letter .ml-hero__btn,
+body.motivation-letter .ml-cta__btn,
+body.motivation-letter .ml-quick__card {
+  position: relative;
+  z-index: 9999;
+  pointer-events: auto;
+}

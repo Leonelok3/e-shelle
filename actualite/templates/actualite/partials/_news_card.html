@@ -1,0 +1,41 @@
+{% load actualite_extras %}
+
+<a class="a-news {% if featured %}a-news--featured{% endif %}" href="{% url 'actualite:detail' item.slug %}">
+  <div class="a-news__media">
+    {% if item.image_url %}
+      <img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy">
+    {% else %}
+      <div class="a-news__placeholder">IMM97</div>
+    {% endif %}
+  </div>
+
+  <div class="a-news__body">
+
+    <div class="a-news__badges">
+      <span class="a-badge a-badge--country">{{ item.country_target|country_label }}</span>
+      <span class="a-badge a-badge--cat">{{ item.get_category_display }}</span>
+
+      {# ⭐ Badges éditoriaux #}
+      {% if item.is_urgent %}
+        <span class="a-pill a-pill--urgent">Urgent</span>
+      {% endif %}
+      {% if item.is_important %}
+        <span class="a-pill a-pill--important">Important</span>
+      {% endif %}
+    </div>
+
+    <h3 class="a-news__title">{{ item.title }}</h3>
+    <p class="a-news__summary">{{ item.summary|truncatechars:140 }}</p>
+
+    <div class="a-news__meta">
+      <span>{{ item.publish_date|date:"d M Y" }}</span>
+      <span>•</span>
+      <span>{{ item.reading_time_minutes }} min</span>
+      {% if item.views_count %}
+        <span>•</span>
+        <span>{{ item.views_count }} vues</span>
+      {% endif %}
+    </div>
+
+  </div>
+</a>

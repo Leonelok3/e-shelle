@@ -1,68 +1,222 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  {% if profile and profile.user %}
+    {{ profile.user.get_full_name|default:profile.user.username }} — Profil candidat | Immigration97
+  {% else %}
+    Profil candidat | Immigration97
+  {% endif %}
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-body text-center">
-                    {% if profile.avatar %}
-                        <img src="{{ profile.avatar.url }}" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
-                    {% endif %}
-                    <h3>{{ profile.user.first_name }} {{ profile.user.last_name }}</h3>
-                    <p class="fw-bold text-primary">{{ profile.headline }}</p>
-                    <hr>
-                    <p class="text-start"><i class="bi bi-geo-alt"></i> {{ profile.location }}</p>
-                    {% if profile.linkedin_url %}
-                        <p class="text-start"><a href="{{ profile.linkedin_url }}" target="_blank">Voir LinkedIn</a></p>
-                    {% endif %}
+<body class="profiles">
+  <main class="app-main profiles">
+    <div class="profiles-shell">
 
-                    {% if request.user == profile.user %}
-                        <div class="d-grid gap-2 mt-3">
-                            <a href="{% url 'profiles:edit' profile.pk %}" class="btn btn-warning btn-sm">Modifier Profil</a>
-                            <a href="{% url 'profiles:add_portfolio' profile.pk %}" class="btn btn-success btn-sm">Ajouter au Portfolio</a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-dark text-white">Contacter ce candidat</div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ contact_form.as_p }}
-                        <button type="submit" class="btn btn-primary w-100 mt-2">Envoyer</button>
-                    </form>
-                </div>
-            </div>
+      {# URLs safe (évite NoReverseMatch) #}
+      {% url 'profiles:profile_list' as profiles_list_url %}
+      {% url 'profiles:toggle_favorite' profile.pk as fav_url %}
+      {% url 'profiles:recruiter_invite_create' profile.pk as invite_url %}
+
+      <div class="profiles-topbar">
+        <nav class="profiles-breadcrumbs" aria-label="Fil d’ariane">
+          <a class="crumb" href="{% if profiles_list_url %}{{ profiles_list_url }}{% else %}/profiles/{% endif %}">Profils</a>
+          <span class="crumb-sep">/</span>
+          <span class="crumb-current">Détail</span>
+        </nav>
+
+        <div class="profiles-top-actions">
+          <a class="btn btn-ghost" href="{% if profiles_list_url %}{{ profiles_list_url }}{% else %}/profiles/{% endif %}">Retour</a>
         </div>
+      </div>
 
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-body">
-                    <h4 class="card-title">À propos</h4>
-                    <p class="card-text">{{ profile.bio|linebreaks }}</p>
-                </div>
+      <div class="profiles-grid">
+
+        {# ===== Left: contenu principal ===== #}
+        <section class="profile-main" aria-label="Profil candidat">
+          <header class="profile-hero">
+            <div class="profile-identity">
+              <div class="avatar-wrap">
+                {% if profile.avatar %}
+                  <img class="avatar" src="{{ profile.avatar.url }}" alt="Photo de {{ profile.user.get_full_name|default:profile.user.username }}">
+                {% else %}
+                  <div class="avatar avatar-fallback" aria-hidden="true">
+                    <span>{{ profile.user.get_full_name|default:profile.user.username|first|upper }}</span>
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="identity-text">
+                <h1 class="profile-name">{{ profile.user.get_full_name|default:profile.user.username }}</h1>
+
+                <p class="profile-headline">
+                  {% if profile.headline %}{{ profile.headline }}
+                  {% elif profile.title %}{{ profile.title }}
+                  {% else %}Profil professionnel premium{% endif %}
+                </p>
+
+                <ul class="profile-meta">
+                  {% if profile.location %}<li><span class="meta-dot">•</span> {{ profile.location }}</li>{% endif %}
+                  {% if profile.years_experience %}<li><span class="meta-dot">•</span> {{ profile.years_experience }} ans d’expérience</li>{% endif %}
+                  {% if profile.availability %}<li><span class="meta-dot">•</span> Disponible : {{ profile.availability }}</li>{% endif %}
+                </ul>
+              </div>
             </div>
 
-            <h4 class="mb-3">Portfolio & Documents</h4>
-            <div class="row">
-                {% for item in profile.portfolio_items.all %}
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body">
-                            <h6>{{ item.title }} <span class="badge bg-info text-dark">{{ item.get_item_type_display }}</span></h6>
-                            <p class="small text-muted">{{ item.description }}</p>
-                            <a href="{{ item.file.url }}" target="_blank" class="btn btn-sm btn-outline-dark">Télécharger / Voir</a>
-                        </div>
+            <div class="proof-strip" aria-label="Points clés">
+              <div class="proof">
+                <div class="proof-k">Profil</div>
+                <div class="proof-v">{% if profile.is_public %}Publié{% else %}Non publié{% endif %}</div>
+              </div>
+              <div class="proof">
+                <div class="proof-k">Compétences</div>
+                <div class="proof-v">{% if profile.skills %}{{ profile.skills|length }}+{% else %}—{% endif %}</div>
+              </div>
+              <div class="proof">
+                <div class="proof-k">Portfolio</div>
+                <div class="proof-v">{% if profile.portfolio_url or profile.website_url %}Oui{% else %}—{% endif %}</div>
+              </div>
+            </div>
+          </header>
+
+          <div class="card card-section">
+            <div class="card-head">
+              <h2 class="card-title">À propos</h2>
+            </div>
+            <div class="card-body">
+              {% if profile.bio %}
+                <p class="bio">{{ profile.bio|linebreaksbr }}</p>
+              {% else %}
+                <p class="muted">Le candidat n’a pas encore ajouté de présentation.</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="card card-section">
+            <div class="card-head">
+              <h2 class="card-title">Compétences</h2>
+              <p class="card-subtitle">Ce que le candidat maîtrise (vue rapide).</p>
+            </div>
+            <div class="card-body">
+              {% if profile.skills %}
+                <div class="chips">
+                  {% for s in profile.skills %}
+                    <span class="chip">{{ s }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="muted">Aucune compétence renseignée.</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="card card-section card-portfolio">
+            <div class="card-head">
+              <h2 class="card-title">Portfolio & preuves</h2>
+              <p class="card-subtitle">Liens et réalisations vérifiables (priorité recruteur).</p>
+            </div>
+            <div class="card-body">
+              <div class="portfolio-grid">
+                {% if profile.portfolio_url %}
+                  <a class="portfolio-item" href="{{ profile.portfolio_url }}" target="_blank" rel="noopener">
+                    <div class="p-ic" aria-hidden="true">↗</div>
+                    <div class="p-txt">
+                      <div class="p-title">Portfolio</div>
+                      <div class="p-desc">Voir les réalisations</div>
                     </div>
-                </div>
-                {% empty %}
-                <p>Aucun document dans le portfolio.</p>
-                {% endfor %}
+                  </a>
+                {% endif %}
+
+                {% if profile.website_url %}
+                  <a class="portfolio-item" href="{{ profile.website_url }}" target="_blank" rel="noopener">
+                    <div class="p-ic" aria-hidden="true">↗</div>
+                    <div class="p-txt">
+                      <div class="p-title">Site / Vitrine</div>
+                      <div class="p-desc">Découvrir le profil en ligne</div>
+                    </div>
+                  </a>
+                {% endif %}
+
+                {% if profile.linkedin_url %}
+                  <a class="portfolio-item" href="{{ profile.linkedin_url }}" target="_blank" rel="noopener">
+                    <div class="p-ic" aria-hidden="true">in</div>
+                    <div class="p-txt">
+                      <div class="p-title">LinkedIn</div>
+                      <div class="p-desc">Expériences & recommandations</div>
+                    </div>
+                  </a>
+                {% endif %}
+
+                {% if profile.github_url %}
+                  <a class="portfolio-item" href="{{ profile.github_url }}" target="_blank" rel="noopener">
+                    <div class="p-ic" aria-hidden="true">⌂</div>
+                    <div class="p-txt">
+                      <div class="p-title">GitHub</div>
+                      <div class="p-desc">Code & contributions</div>
+                    </div>
+                  </a>
+                {% endif %}
+
+                {% if not profile.portfolio_url and not profile.website_url and not profile.linkedin_url and not profile.github_url %}
+                  <div class="portfolio-empty">
+                    <p class="muted">Aucun lien de portfolio n’a été ajouté.</p>
+                  </div>
+                {% endif %}
+              </div>
             </div>
-        </div>
+          </div>
+
+        </section>
+
+        {# ===== Right: sticky CTA ===== #}
+        <aside class="profile-side" aria-label="Actions recruteur">
+          <div class="sticky-card">
+
+            <div class="side-head">
+              <div class="side-title">Actions recruteur</div>
+              <div class="side-subtitle">Clair, pro, non agressif.</div>
+            </div>
+
+            {# CTA principal (safe) #}
+            {% if invite_url %}
+              <a class="btn btn-primary btn-block" href="{{ invite_url }}">
+                Inviter à un entretien
+              </a>
+            {% else %}
+              <div class="hint muted">Action “inviter” non configurée (URL manquante).</div>
+            {% endif %}
+
+            <div class="side-divider"></div>
+
+            {# Favori (UN SEUL endroit) #}
+            {% if fav_url %}
+              <form method="post" action="{{ fav_url }}" class="fav-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary btn-block">
+                  <span aria-hidden="true">{% if is_favorited %}★{% else %}☆{% endif %}</span>
+                  {% if is_favorited %}Retirer des favoris{% else %}Ajouter aux favoris{% endif %}
+                </button>
+              </form>
+            {% else %}
+              <div class="hint muted">Favoris non configurés (URL manquante).</div>
+            {% endif %}
+
+            <div class="side-footer">
+              <div class="trust">
+                <div class="trust-dot" aria-hidden="true"></div>
+                <div class="trust-text">
+                  Astuce : propose un créneau précis + une phrase sur le poste pour maximiser la réponse.
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </aside>
+
+      </div>
+
     </div>
-</div>
+  </main>
+</body>
 {% endblock %}

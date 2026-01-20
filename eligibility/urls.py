@@ -1,8 +1,9 @@
-from rest_framework.routers import DefaultRouter
-from .views import ProgramViewSet, SessionViewSet
+from django.urls import path
+from . import views
 
-router = DefaultRouter()
-router.register(r'programs', ProgramViewSet, basename='program')
-router.register(r'sessions', SessionViewSet, basename='session')
-
-urlpatterns = router.urls
+urlpatterns = [
+    path("sessions/create/", views.create_session, name="eligibility_create_session"),
+    path("sessions/<int:session_id>/answers/", views.patch_answers, name="eligibility_patch_answers"),
+    path("sessions/<int:session_id>/compute_score/", views.compute_score, name="eligibility_compute_score"),
+    path("sessions/<int:session_id>/result/", views.get_result, name="eligibility_get_result"),
+]

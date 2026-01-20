@@ -1,23 +1,88 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ajouter un document — Portfolio | Immigration97{% endblock %}
+{% block meta_description %}
+Ajoutez un CV PDF, une photo de réalisation ou une recommandation. Un portfolio solide augmente la confiance des recruteurs (Canada, Europe, Afrique).
+{% endblock %}
+
+{% block body_class %}profiles{% endblock %}
+{% block app_scope %}profiles{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profiles.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header">Ajouter un document (CV, Image...)</div>
-                <div class="card-body">
-                    <form method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                        <div class="d-flex justify-content-between mt-3">
-                            <a href="{% url 'profiles:detail' profile.pk %}" class="btn btn-secondary">Retour</a>
-                            <button type="submit" class="btn btn-success">Uploader</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+
+<section class="p-card">
+  <h1 class="space-title">Ajouter un document au portfolio</h1>
+  <p class="space-sub">
+    Le portfolio est ce qui transforme un profil “bon” en profil “recrutable”.
+    Ajoutez votre CV (PDF), vos réalisations (images), ou une recommandation.
+  </p>
+
+  <div class="space-actions">
+    <a class="p-btn p-btn--outline" href="{% url 'profiles:detail' profile.pk %}">Retour au profil</a>
+    <a class="p-btn p-btn--outline" href="{% url 'profiles:my_space' %}">Mon espace</a>
+  </div>
+</section>
+
+<section class="p-detail">
+  <div class="p-card">
+    <h2 class="p-section-title">Téléverser un fichier</h2>
+
+    <form method="post" enctype="multipart/form-data" class="p-form">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div>
+        <label for="{{ form.title.id_for_label }}"><strong>Titre</strong></label>
+        {{ form.title }}
+        {{ form.title.errors }}
+        <p class="p-help">Ex: “CV 2026”, “Chantier cuisine”, “Lettre de recommandation”.</p>
+      </div>
+
+      <div>
+        <label for="{{ form.item_type.id_for_label }}"><strong>Type</strong></label>
+        {{ form.item_type }}
+        {{ form.item_type.errors }}
+      </div>
+
+      <div>
+        <label for="{{ form.file.id_for_label }}"><strong>Fichier</strong></label>
+        {{ form.file }}
+        {{ form.file.errors }}
+        <p class="p-help">Conseil : CV en PDF, images nettes, fichiers légers.</p>
+      </div>
+
+      <div>
+        <label for="{{ form.description.id_for_label }}"><strong>Description (optionnel)</strong></label>
+        {{ form.description }}
+        {{ form.description.errors }}
+        <p class="p-help">1–2 phrases : contexte, rôle, résultats, outils.</p>
+      </div>
+
+      <div class="space-actions">
+        <button type="submit" class="p-btn p-btn--primary">Ajouter au portfolio</button>
+        <a class="p-btn p-btn--outline" href="{% url 'profiles:detail' profile.pk %}">Annuler</a>
+      </div>
+    </form>
+  </div>
+
+  <aside class="p-card">
+    <h2 class="p-section-title">Ce que les recruteurs aiment voir</h2>
+    <div class="p-chiprow">
+      <span class="p-chip">CV PDF</span>
+      <span class="p-chip">Preuves (photos)</span>
+      <span class="p-chip">Recommandations</span>
+      <span class="p-chip">Résultats</span>
     </div>
-</div>
+    <p class="p-help">
+      Un bon portfolio accélère la décision et augmente les invitations à entretien.
+      (Canada • Europe • Afrique)
+    </p>
+  </aside>
+</section>
+
 {% endblock %}

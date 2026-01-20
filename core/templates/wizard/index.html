@@ -39,7 +39,7 @@
     .muted { color: var(--muted); }
     .sep { height:1px; background: var(--line); margin: 16px 0; }
     .pill { font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid var(--line); color: var(--muted); }
-    .error { color: #fca5a5; margin-top: 8px; }
+    .error { color: #fca5a5; margin-top: 8px; white-space: pre-wrap; word-break: break-word; }
     .ok { color: #86efac; }
     .checkbox-list { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     .checkbox-list label { font-weight:600; display:flex; gap:8px; align-items:center; }
@@ -253,14 +253,34 @@
     }
     const csrftoken = getCookie('csrftoken');
 
+    function safeText(t){
+      if(!t) return "";
+      return String(t).slice(0, 900).replace(/<[^>]*>/g, "").trim();
+    }
+
     async function post(url, data){
       const r = await fetch(url,{
         method:"POST",
+        credentials: "same-origin",
         headers:{ "Content-Type":"application/json", "X-CSRFToken": csrftoken },
         body: JSON.stringify(data||{})
       });
-      if(!r.ok){ throw new Error(await r.text()); }
-      return r.json();
+
+      const ct = (r.headers.get("content-type")||"").toLowerCase();
+
+      if(!r.ok){
+        if(ct.includes("application/json")){
+          let j = {};
+          try{ j = await r.json(); }catch(e){}
+          throw new Error(j.detail || JSON.stringify(j) || `HTTP ${r.status}`);
+        }
+        const t = await r.text();
+        throw new Error(safeText(t) || `HTTP ${r.status}`);
+      }
+
+      if(ct.includes("application/json")) return r.json();
+      const t = await r.text();
+      throw new Error("Réponse inattendue (non JSON). " + safeText(t));
     }
 
     function parseFloatSafe(x){
@@ -287,13 +307,12 @@
       }
 
       try{
-        // 1) Créer la session
-        const session = await post("/api/eligibility/sessions/", { locale: "fr" });
+        // ✅ 1) Créer la session (endpoint correct)
+        const session = await post("/api/eligibility/sessions/create/", { locale: "fr" });
         const sid = session.id;
 
-        // 2) Préparer les réponses (clés compatibles avec ton moteur)
+        // 2) Préparer les réponses
         const payload = {
-          // identité
           "profile.first_name": E("first_name").value.trim(),
           "profile.last_name": E("last_name").value.trim(),
           "contact.email": E("email").value.trim(),
@@ -303,28 +322,23 @@
           "marital.status": E("marital_status").value,
           "children.count": Number(E("children_count").value || 0),
 
-          // projet
           "target_country": E("target_country").value,
           "project.type": E("project_type").value,
           "budget.usd": Number(E("budget").value || 0),
           "timeline.pref": E("timeline").value,
 
-          // éducation
           "education.level": E("education_level").value,
           "education.field": E("education_field").value.trim(),
           "education.year": Number(E("education_year").value || 0),
 
-          // expérience
           "job.title": E("job_title").value.trim(),
           "experience.years": Number(E("exp_years").value || 0),
           "skills": E("skills").value.split(",").map(s=>s.trim()).filter(Boolean),
 
-          // langues
           "language.ielts.overall": parseFloatSafe(E("ielts").value),
           "language.toefl.score": parseFloatSafe(E("toefl").value),
           "language.tef.global": E("tef").value.trim(),
 
-          // documents (booléens)
           "docs.passport": yes(E("doc_passport").checked),
           "docs.bank": yes(E("doc_bank").checked),
           "docs.work_attestation": yes(E("doc_work").checked),
@@ -332,15 +346,14 @@
           "docs.recommendation": yes(E("doc_reco").checked),
           "docs.diplomas": yes(E("doc_diplomas").checked),
 
-          // consentement
           "consent.contact": yes(E("consent").checked)
         };
 
         // 3) Enregistrer réponses
         await post(`/api/eligibility/sessions/${sid}/answers/`, payload);
 
-        // 4) Calcul du score (on passe le pays cible pour affiner)
-        await post(`/api/eligibility/sessions/${sid}/score/`, { country: E("target_country").value });
+        // ✅ 4) Calcul du score (endpoint correct)
+        await post(`/api/eligibility/sessions/${sid}/compute_score/`, { country: E("target_country").value });
 
         // 5) Confirme + redirige
         ok.hidden=false; ok.textContent="Parfait ! Calcul terminé, redirection…";

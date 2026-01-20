@@ -1,0 +1,111 @@
+{% extends "DocumentsApp/base_documents.html" %}
+
+{% block body_class %}documents{% endblock %}
+{% block app_scope %}documents{% endblock %}
+
+{% block title %}Conversion DOCX ⇄ PDF — Outils Documents | Immigration97{% endblock %}
+{% block meta_description %}
+Convertissez DOCX en PDF ou PDF en DOCX. Optimisé pour dossiers d’immigration : fichier propre, prêt à déposer. PDF texte recommandé pour PDF→DOCX.
+{% endblock %}
+
+{% block documents_content %}
+<div class="docs-page">
+
+  <header class="docs-page__header">
+    <a href="{% url 'DocumentsApp:home' %}" class="docs-page__back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Retour au module Documents
+    </a>
+
+    <div class="docs-page__icon docs-page__icon--primary" aria-hidden="true">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M7 7h10M7 12h10M7 17h10"/><path d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/>
+      </svg>
+    </div>
+
+    <h1 class="docs-page__title">Conversion DOCX ⇄ PDF</h1>
+    <p class="docs-page__subtitle">
+      DOCX → PDF (propre) et PDF → DOCX (meilleur si PDF texte). Pour un PDF scanné, la conversion peut être limitée.
+    </p>
+  </header>
+
+  {% if messages %}
+    <div class="docs-messages">
+      {% for message in messages %}
+        <div class="docs-alert docs-alert--{{ message.tags }}">
+          <div class="docs-alert__icon">
+            {% if message.tags == "success" %}✓{% elif message.tags == "error" %}✕{% else %}ℹ{% endif %}
+          </div>
+          <div class="docs-alert__content">{{ message }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="docs-form" action="{% url 'DocumentsApp:conversion' %}">
+    {% csrf_token %}
+
+    <div class="docs-form__card">
+
+      <div class="docs-form__group">
+        <label class="docs-form__label">{{ form.mode.label }}</label>
+        <div class="docs-field">
+          {{ form.mode }}
+        </div>
+        {% if form.mode.errors %}
+          <div class="docs-form__error">{{ form.mode.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="docs-form__group">
+        <label class="docs-form__label">{{ form.file.label }}</label>
+
+        <div class="docs-form__upload">
+          {{ form.file }}
+          <div class="docs-form__upload-placeholder">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+              <path d="M9 13h6m-6 4h6"/>
+            </svg>
+            <span class="docs-form__upload-text">Clique pour sélectionner un fichier</span>
+            <span class="docs-form__upload-hint">DOCX ou PDF selon la conversion</span>
+          </div>
+        </div>
+
+        {% if form.file.help_text %}
+          <small class="docs-form__help">{{ form.file.help_text }}</small>
+        {% endif %}
+        {% if form.file.errors %}
+          <div class="docs-form__error">{{ form.file.errors }}</div>
+        {% endif %}
+        {% if form.non_field_errors %}
+          <div class="docs-form__error">{{ form.non_field_errors }}</div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="docs-form__submit docs-form__submit--primary">
+        Convertir et télécharger
+      </button>
+
+      <div class="docs-note">
+        Astuce : si ton PDF est un scan (image), la conversion PDF→DOCX sera limitée. Dans ce cas, il faut un OCR.
+      </div>
+    </div>
+  </form>
+
+  <div class="docs-info docs-info--compact">
+    <div class="docs-info__icon">💡</div>
+    <div class="docs-info__content">
+      <h3 class="docs-info__title">Recommandations</h3>
+      <ul class="docs-info__list">
+        <li><strong>DOCX → PDF</strong> : rendu le plus propre pour soumission (universités, portails).</li>
+        <li><strong>PDF → DOCX</strong> : meilleur résultat si le PDF contient du texte (pas un scan).</li>
+        <li>Si tu prépares un dossier, compresse ensuite le PDF pour respecter 2–5 MB.</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

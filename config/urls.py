@@ -22,9 +22,17 @@ from core.views import (
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+# ✅ Sitemap
+from django.contrib.sitemaps.views import sitemap
+from actualite.sitemaps import NewsItemSitemap
+
 
 def home(request):
     return render(request, "home.html")
+
+
+# ✅ Déclarer le dict sitemaps ICI (pas dans urlpatterns)
+sitemaps = {"actualite": NewsItemSitemap}
 
 
 urlpatterns = [
@@ -60,7 +68,11 @@ urlpatterns = [
         include(("cv_generator.urls", "cv_generator"), namespace="cv_generator"),
     ),
 
-    path("motivation/", include("MotivationLetterApp.urls")),
+    path(
+    "motivation/",
+    include(("MotivationLetterApp.urls", "motivation_letter"), namespace="motivation_letter"),
+),
+
     path("visa-etudes/", include("visaetude.urls")),
 
     path(
@@ -69,7 +81,7 @@ urlpatterns = [
     ),
 
     # ============================
-    # ✅ PREPARATION TESTS (UNE SEULE FOIS – CORRECT)
+    # ✅ PREPARATION TESTS
     # ============================
     path(
         "prep/",
@@ -88,13 +100,22 @@ urlpatterns = [
     # ============================
     # RÉSIDENCE PERMANENTE
     # ============================
-    path(
-        "residence-permanente/",
-        pr_views.home_view,
-        name="residence_permanente",
-    ),
+    path("residence-permanente/", pr_views.home_view, name="residence_permanente"),
     path("rp/", pr_views.home_view, name="rp_shortcut"),
     path("pr/", include("permanent_residence.urls")),
+
+    # ============================
+    # ✅ ACTUALITÉ (UNE SEULE FOIS)
+    # ============================
+    path(
+        "actualite/",
+        include(("actualite.urls", "actualite"), namespace="actualite"),
+    ),
+
+    # ============================
+    # ✅ SITEMAP
+    # ============================
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
 
     # ============================
     # API & DOC
@@ -112,11 +133,7 @@ urlpatterns = [
     # WIZARD & DASHBOARD
     # ============================
     path("wizard/", wizard_page, name="wizard"),
-    path(
-        "wizard/result/<int:session_id>/",
-        wizard_result_page,
-        name="wizard_result",
-    ),
+    path("wizard/result/<int:session_id>/", wizard_result_page, name="wizard_result"),
     path("wizard/checklist.pdf", wizard_pdf, name="wizard_pdf"),
     path("wizard/steps/", wizard_steps_page, name="wizard_steps"),
     path("dashboard/", dashboard_page, name="dashboard"),
@@ -137,13 +154,14 @@ urlpatterns = [
     # PROFILES
     # ============================
     path("profiles/", include("profiles.urls")),
-   
 
     # ============================
     # 2FA (DÉSACTIVÉ)
     # ============================
     # path("account/", include("two_factor.urls")),
+    path("api/eligibility/", include("eligibility.urls")),
 ]
+
 
 # ============================
 # MEDIA EN DEBUG

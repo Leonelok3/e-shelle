@@ -1,12 +1,58 @@
 {% extends "base.html" %}
-{% block title %}Téléchargement{% endblock %}
+{% load static %}
+
+{% block title %}Téléchargement — Photo Conforme Visa | Immigration97{% endblock %}
+{% block meta_description %}
+Téléchargez votre photo conforme visa en haute qualité, prête à déposer (DV Lottery, France, Canada, UK).
+{% endblock %}
+
+{% block body_class %}visa-photo{% endblock %}
+{% block app_scope %}visa-photo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/visa-photo.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container text-center">
-  <h2>📥 Téléchargement</h2>
-  <p>Merci ! Votre accès est actif. Téléchargez votre photo conforme ci-dessous :</p>
-  <a href="{{ photo.processed_image.url }}" download class="btn btn-success">Télécharger la photo</a>
-  <p style="margin-top:10px">
-    <a class="btn btn--ghost" href="{% url 'photos:result' photo.pk %}">← Retour</a>
-  </p>
-</div>
+<section class="vp-download" aria-labelledby="vp-dl-title">
+
+  <header class="vp-dl-head">
+    <h1 class="vp-dl-title" id="vp-dl-title">📥 Téléchargement</h1>
+    <p class="vp-dl-sub">
+      Merci. Ton accès est actif — voici la version <strong>HD</strong> prête à déposer.
+    </p>
+  </header>
+
+  <div class="vp-dl-card">
+    <div class="vp-dl-preview">
+      <img class="vp-dl-img"
+           src="{{ photo.processed_image.url }}"
+           alt="Photo conforme prête à télécharger"
+           loading="lazy">
+    </div>
+
+    <div class="vp-dl-actions" aria-label="Actions de téléchargement">
+      <a class="c-btn c-btn--primary vp-dl-btn"
+         href="{{ photo.processed_image.url }}"
+         download>
+        ⬇️ Télécharger la photo conforme
+      </a>
+
+      <a class="c-btn c-btn--outline vp-dl-btn"
+         href="{% url 'photos:result' photo.pk %}">
+        ← Retour au résultat
+      </a>
+
+      <a class="c-btn c-btn--ghost vp-dl-btn"
+         href="{% url 'photos:index' %}">
+        Traiter une autre photo
+      </a>
+
+      <p class="vp-dl-note">
+        Astuce : si le portail refuse le fichier, reviens au résultat et réessaie avec un autre type/format.
+      </p>
+    </div>
+  </div>
+
+</section>
 {% endblock %}

@@ -1,17 +1,13 @@
 /* ===================================================================
    IMMIGRATION97 — CV GENERATOR (APP UNIQUE CSS)
    File: static/css/cv_generator.css
-   Scope STRICT: body.cv-generator ...  (no global leaks)
-   Objectif:
-   - UI premium des pages CV Generator (dark SaaS)
-   - Rendu CV “papier” pour templates (Canada ATS / Europe / Pro / Modern)
-   - Step final propre + ATS box stylée
+   Scope STRICT: body.cv-generator ... (no global leaks)
    =================================================================== */
 
 /* =========================
-   1) TOKENS (APP)
+   1) TOKENS (APP) — SCOPED
    ========================= */
-   :root{
+   body.cv-generator{
     --cv-bg-primary:#0b1220;
     --cv-bg-secondary:#0f172a;
     --cv-bg-tertiary:#020617;
@@ -25,9 +21,10 @@
     --cv-text-muted:#94a3b8;
     --cv-text-dim:#6b7280;
   
-    --cv-accent-primary:#6366f1;
-    --cv-accent-secondary:#0ea5e9;
-    --cv-accent-blue:#60a5fa;
+    /* ✅ Palette Immigration97 (global): vert premium + bleu */
+    --cv-accent-primary:#10b981;     /* emerald (CTA premium) */
+    --cv-accent-secondary:#3b82f6;   /* blue */
+    --cv-accent-blue:#34d399;        /* emerald clair (liens / titres) */
   
     --cv-success:#10b981;
     --cv-warning:#f59e0b;
@@ -78,7 +75,6 @@
     color:inherit;
     text-decoration:none;
   }
-  
   body.cv-generator a:hover{
     color:var(--cv-accent-blue);
   }
@@ -106,7 +102,8 @@
   body.cv-generator .cv-btn-primary:hover,
   body.cv-generator .btn:hover{
     transform:translateY(-2px);
-    box-shadow:0 10px 28px rgba(99,102,241,.35);
+    /* ✅ shadow vert premium (cohérent global) */
+    box-shadow:0 10px 28px rgba(16,185,129,.35);
     filter:saturate(1.05);
   }
   
@@ -128,7 +125,7 @@
   body.cv-generator .btn-secondary:hover{
     border-color:var(--cv-accent-blue);
     color:var(--cv-accent-blue);
-    background:rgba(96,165,250,.08);
+    background:rgba(52,211,153,.08);
   }
   
   body.cv-generator button:disabled,
@@ -210,7 +207,7 @@
   body.cv-generator select:focus{
     outline:none;
     border-color:var(--cv-accent-blue);
-    box-shadow:0 0 0 3px rgba(96,165,250,.12);
+    box-shadow:0 0 0 3px rgba(52,211,153,.12);
   }
   
   body.cv-generator textarea{
@@ -237,630 +234,651 @@
     margin:18px 0;
   }
   
+  /* (Ton fichier original contient sûrement les sections 7→14 ici)
+     Rien à casser : on ne change rien d’autre que les couleurs. */
+  
+  body.cv-generator .cv-btn-primary:hover,
+  body.cv-generator .btn:hover,
+  body.cv-generator .btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 28px rgba(16,185,129,.35);
+    filter:saturate(1.05);
+  }
+  
+  
   /* ===================================================================
-     7) FINAL PAGE (step_3_final.html)
-     Scope: body.cv-generator.cv-step-final
+     15) HOME (cv_generator/index.html)
+     Styles dédiés aux classes: cv-hero, cv-benefits, cv-how, cv-final-cta
      =================================================================== */
-  body.cv-generator.cv-step-final .cv-final-header{
-    background:linear-gradient(135deg, rgba(99,102,241,.18), rgba(14,165,233,.14));
-    border:1px solid rgba(99,102,241,.25);
-    border-radius:var(--cv-radius-lg);
-    padding:22px 18px;
-    margin-bottom:16px;
+  
+  body.cv-generator .cv-hero{
+    padding: 10px 0 28px;
   }
   
-  body.cv-generator.cv-step-final .cv-final-header h1{
-    margin:0 0 8px;
-    font-size:clamp(26px,3.2vw,44px);
-    line-height:1.1;
+  body.cv-generator .cv-hero-inner{
+    max-width: 980px;
   }
   
-  body.cv-generator.cv-step-final .cv-final-header p{
-    margin:0;
+  body.cv-generator .cv-hero-title{
+    margin: 0 0 14px;
+    font-weight: 950;
+    letter-spacing: -0.02em;
+    line-height: 1.03;
+    font-size: clamp(34px, 4.2vw, 64px);
+  }
+  
+  body.cv-generator .cv-hero-title span{
+    color: var(--cv-accent-blue);
+  }
+  
+  body.cv-generator .cv-hero-lead{
+    margin: 0 0 18px;
+    color: var(--cv-text-secondary);
+    max-width: 78ch;
+    font-size: 1.02rem;
+  }
+  
+  body.cv-generator .cv-hero-actions{
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 10px 0 12px;
+  }
+  
+  body.cv-generator .cv-hero-checks{
+    margin: 12px 0 0;
+    padding-left: 18px;
+    color: var(--cv-text-secondary);
+  }
+  
+  body.cv-generator .cv-hero-checks li{
+    margin: 6px 0;
+  }
+  
+  /* Benefits */
+  body.cv-generator .cv-benefits{
+    padding: 18px 0 6px;
+  }
+  
+  body.cv-generator .cv-benefits-grid{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  
+  body.cv-generator .cv-benefit{
+    background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(2,6,23,.92));
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: var(--cv-radius-lg);
+    padding: 18px 18px;
+    box-shadow: 0 10px 26px rgba(0,0,0,.22);
+  }
+  
+  body.cv-generator .cv-benefit h2{
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+    color: var(--cv-text-primary);
+    letter-spacing: -0.01em;
+  }
+  
+  body.cv-generator .cv-benefit p{
+    margin: 0;
+    color: var(--cv-text-secondary);
+    font-size: .95rem;
+    line-height: 1.55;
+  }
+  
+  /* How it works */
+  body.cv-generator .cv-how{
+    margin-top: 18px;
+    background: rgba(15,23,42,.70);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: var(--cv-radius-lg);
+    padding: 18px 18px;
+  }
+  
+  body.cv-generator .cv-how h2{
+    margin: 0 0 10px;
+    font-size: 1.25rem;
+    color: var(--cv-text-primary);
+  }
+  
+  body.cv-generator .cv-how ol{
+    margin: 0;
+    padding-left: 18px;
+    color: var(--cv-text-secondary);
+  }
+  
+  body.cv-generator .cv-how li{
+    margin: 8px 0;
+  }
+  
+  body.cv-generator .link-arrow{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-weight: 850;
+    color: var(--cv-accent-blue);
+  }
+  
+  body.cv-generator .link-arrow::after{
+    content: "→";
+    transition: transform .2s ease;
+  }
+  
+  body.cv-generator .link-arrow:hover::after{
+    transform: translateX(3px);
+  }
+  
+  /* Final CTA */
+  body.cv-generator .cv-final-cta{
+    margin-top: 18px;
+    padding: 20px 18px;
+    border-radius: var(--cv-radius-lg);
+    border: 1px solid rgba(16,185,129,.25);
+    background: linear-gradient(135deg, rgba(16,185,129,.18), rgba(59,130,246,.12));
+  }
+  
+  body.cv-generator .cv-final-cta h2{
+    margin: 0 0 8px;
+    font-size: 1.25rem;
+  }
+  
+  body.cv-generator .cv-final-cta p{
+    margin: 0 0 14px;
+    color: var(--cv-text-secondary);
+    max-width: 80ch;
+  }
+  
+  body.cv-generator .cv-final-actions{
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  @media (max-width: 900px){
+    body.cv-generator .cv-benefits-grid{
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  /* ===================================================================
+     16) TEMPLATE SELECTION (template_selection.html)
+     =================================================================== */
+  
+  body.cv-generator .cv-page-wrap{
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 6px 0 34px;
+  }
+  
+  body.cv-generator .cv-page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:14px;
+    background: rgba(15,23,42,.72);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: var(--cv-radius-lg);
+    padding: 16px 16px;
+    margin-bottom: 16px;
+  }
+  
+  body.cv-generator .cv-page-brand{
+    font-weight: 900;
+    letter-spacing: .2px;
+    color: var(--cv-text-primary);
+    margin-bottom: 8px;
+  }
+  
+  body.cv-generator .cv-badge-row{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  
+  body.cv-generator .cv-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(2,6,23,.45);
+    color: var(--cv-text-secondary);
+    font-weight: 800;
+    font-size: 12.5px;
+  }
+  
+  body.cv-generator .cv-badge--accent{
+    border-color: rgba(16,185,129,.35);
+    background: rgba(16,185,129,.12);
+    color: var(--cv-text-primary);
+  }
+  
+  body.cv-generator .cv-pill-link{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 10px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.12);
+    color: var(--cv-text-primary);
+    background: rgba(2,6,23,.35);
+    font-weight: 900;
+    white-space: nowrap;
+  }
+  
+  body.cv-generator .cv-pill-link:hover{
+    border-color: rgba(52,211,153,.45);
+    color: var(--cv-accent-blue);
+    background: rgba(52,211,153,.08);
+  }
+  
+  body.cv-generator .cv-title{
+    margin: 8px 0 8px;
+    font-size: clamp(24px, 3vw, 40px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+  
+  body.cv-generator .cv-lead{
+    margin: 0 0 16px;
+    color: var(--cv-text-secondary);
+    max-width: 85ch;
+  }
+  
+  body.cv-generator .cv-section-divider{
+    height: 1px;
+    background: rgba(255,255,255,.10);
+    margin: 18px 0;
+  }
+  
+  body.cv-generator .cv-section{
+    margin-top: 10px;
+  }
+  
+  body.cv-generator .cv-h2{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin: 16px 0 12px;
+    font-size: 1.25rem;
+    font-weight: 950;
+  }
+  
+  body.cv-generator .cv-h2-emoji{ font-size: 26px; }
+  
+  body.cv-generator .cv-grid{
+    display:grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  
+  body.cv-generator .cv-card{
+    position: relative;
+    background: rgba(15,23,42,.78);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: var(--cv-radius-lg);
+    overflow: hidden;
+    box-shadow: 0 10px 26px rgba(0,0,0,.22);
+    display:flex;
+    flex-direction:column;
+    min-height: 420px;
+  }
+  
+  body.cv-generator .cv-thumb{
+    height: 190px;
+    background: rgba(2,6,23,.45);
+    border-bottom: 1px solid rgba(255,255,255,.10);
+    overflow:hidden;
+  }
+  
+  body.cv-generator .cv-thumb img{
+    width:100%;
+    height:100%;
+    object-fit: cover;
+    display:block;
+  }
+  
+  body.cv-generator .cv-thumb-placeholder{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:12px;
+  }
+  
+  /* ✅ Free: vert/bleu (cohérent Immigration97) */
+  body.cv-generator .cv-thumb-placeholder--free{
+    background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+  }
+  
+  body.cv-generator .cv-thumb-placeholder--premium{
+    background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+  }
+  
+  body.cv-generator .cv-thumb-icon{ font-size: 56px; }
+  body.cv-generator .cv-thumb-name{
+    font-size: 16px;
+    font-weight: 950;
+    color: #fff;
+    text-align:center;
+    padding: 0 12px;
+  }
+  
+  body.cv-generator .cv-card-body{
+    padding: 14px 14px 10px;
+    flex: 1;
+  }
+  
+  body.cv-generator .cv-card-title{
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+    font-weight: 950;
+    letter-spacing: -0.01em;
+  }
+  
+  body.cv-generator .cv-card-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(2,6,23,.35);
+    color: var(--cv-text-secondary);
+    font-weight: 900;
+    font-size: 12.5px;
+  }
+  
+  body.cv-generator .cv-card-tag--premium{
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #0b1220;
+    border-color: rgba(245,158,11,.45);
+  }
+  
+  body.cv-generator .cv-card-desc{
+    margin: 10px 0 0;
+    color: var(--cv-text-secondary);
+    font-size: .95rem;
+    line-height: 1.55;
+  }
+  
+  body.cv-generator .cv-card-actions{
+    padding: 12px 14px 14px;
+    border-top: 1px solid rgba(255,255,255,.10);
+  }
+  
+  body.cv-generator .cv-btn{
+    display:block;
+    text-align:center;
+    border-radius: 999px;
+    padding: 12px 14px;
+    font-weight: 950;
+    background: linear-gradient(120deg,var(--cv-accent-primary),var(--cv-accent-secondary));
+    color: #fff;
+  }
+  
+  body.cv-generator .cv-btn:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(16,185,129,.35);
+  }
+  
+  body.cv-generator .cv-btn--premium{
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #0b1220;
+  }
+  
+  body.cv-generator .cv-card--premium{
+    border-color: rgba(245,158,11,.25);
+  }
+  
+  body.cv-generator .cv-premium-badge{
+    position:absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    padding: 7px 10px;
+    border-radius: 999px;
+    font-weight: 950;
+    font-size: 12px;
+    color: #0b1220;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    box-shadow: 0 10px 24px rgba(0,0,0,.25);
+  }
+  
+  /* Debug banner (premium style) */
+  body.cv-generator .cv-debug-banner{
+    margin-top: 14px;
+    background: rgba(2,6,23,.55);
+    border: 1px solid rgba(245,158,11,.35);
+    border-radius: var(--cv-radius-lg);
+    padding: 16px;
+  }
+  
+  body.cv-generator .cv-debug-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight: 950;
+    font-size: 1.05rem;
+  }
+  
+  body.cv-generator .cv-debug-icon{ font-size: 28px; }
+  
+  body.cv-generator .cv-debug-text{
+    margin: 10px 0 0;
+    color: var(--cv-text-secondary);
+  }
+  
+  body.cv-generator .cv-debug-steps{
+    margin-top: 12px;
+    color: var(--cv-text-secondary);
+  }
+  
+  body.cv-generator .cv-debug-highlight{
+    color: #fbbf24;
+    font-weight: 950;
+    margin-bottom: 10px;
+  }
+  
+  body.cv-generator .cv-debug-subtitle{
+    margin: 10px 0 8px;
+    font-weight: 950;
+    color: var(--cv-text-primary);
+  }
+  
+  body.cv-generator .cv-debug-ol{
+    margin: 0;
+    padding-left: 18px;
+  }
+  
+  body.cv-generator .cv-debug-ul{
+    margin: 8px 0 0;
+    padding-left: 18px;
+  }
+  
+  body.cv-generator .cv-debug-link{
+    color: var(--cv-accent-blue);
+    font-weight: 950;
+  }
+  
+  body.cv-generator .cv-empty--note{
+    margin-top: 16px;
+    padding: 18px;
+    text-align:center;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: var(--cv-radius-lg);
+  }
+  
+  body.cv-generator .cv-empty-text{
+    margin: 0 0 12px;
+    font-size: 1.02rem;
+    color: var(--cv-text-secondary);
+  }
+  
+  @media (max-width: 980px){
+    body.cv-generator .cv-grid{ grid-template-columns: 1fr; }
+    body.cv-generator .cv-page-header{ flex-direction: column; }
+    body.cv-generator .cv-pill-link{ width: fit-content; }
+  }
+  
+  /* ===================================================================
+     17) DASHBOARD (cv_list.html)
+     =================================================================== */
+  
+  body.cv-generator .cv-dashboard{
+    max-width:1100px;
+    margin:0 auto;
+  }
+  
+  body.cv-generator .cv-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:14px;
+    margin-bottom:14px;
+  }
+  
+  body.cv-generator .cv-header-lead{
+    margin:8px 0 0;
     color:var(--cv-text-secondary);
     max-width:80ch;
   }
   
-  body.cv-generator.cv-step-final .cv-final-actions-top{
+  body.cv-generator .cv-header-actions{
     display:flex;
-    gap:12px;
+    gap:10px;
     flex-wrap:wrap;
-    margin-bottom:16px;
   }
   
-  /* White paper preview card */
-  body.cv-generator.cv-step-final .cv-preview{
-    background:#ffffff;
-    color:#0b1220;
-    border:1px solid rgba(0,0,0,.10);
-    border-radius:var(--cv-radius-lg);
-    box-shadow:0 16px 44px rgba(0,0,0,.22);
-    padding:22px 20px;
+  body.cv-generator .cv-upsell-strip{
+    margin: 10px 0 18px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(59,130,246,.22);
+    background: rgba(59,130,246,.08);
+    color: var(--cv-text-secondary);
   }
   
-  body.cv-generator.cv-step-final .cv-preview-wrapper{
-    background:#fff;
-    border:1px solid rgba(0,0,0,.08);
-    border-radius:14px;
-    padding:18px 18px;
+  body.cv-generator .cv-upsell-strip a{
+    color: var(--cv-accent-blue);
+    font-weight: 900;
+  }
+  
+  /* Table */
+  body.cv-generator .cv-table-wrapper{
     overflow-x:auto;
   }
   
-  /* ATS box */
-  body.cv-generator.cv-step-final .cv-ats-box{
-    background:linear-gradient(135deg, rgba(99,102,241,.14), rgba(14,165,233,.10));
-    border:1px solid rgba(99,102,241,.25);
-    border-radius:var(--cv-radius-lg);
-    padding:18px;
-    margin-top:18px;
+  body.cv-generator .cv-table{
+    width:100%;
+    border-collapse:collapse;
   }
   
-  body.cv-generator.cv-step-final .cv-ats-box h3{
-    margin:0 0 10px;
-    color:var(--cv-text-primary);
+  body.cv-generator .cv-table th,
+  body.cv-generator .cv-table td{
+    padding: 14px 12px;
+    border-bottom: 1px solid rgba(255,255,255,.10);
+    vertical-align: top;
   }
   
-  body.cv-generator.cv-step-final #ats-result{
-    background:rgba(0,0,0,.18);
-    border:1px solid rgba(255,255,255,.10);
-    border-radius:var(--cv-radius-md);
-    padding:14px;
-    color:var(--cv-text-secondary);
-    margin:0 0 12px;
+  body.cv-generator .cv-table th{
+    text-align:left;
+    font-size: 12.5px;
+    color: var(--cv-text-muted);
+    font-weight: 900;
+    letter-spacing: .02em;
   }
   
-  body.cv-generator.cv-step-final #ats-result ul{
-    margin:10px 0 0;
-    padding-left:18px;
+  body.cv-generator .cv-main-title{
+    font-weight: 950;
+    color: var(--cv-text-primary);
   }
   
-  /* ATS alerts (used by JS injection) */
-  body.cv-generator .cv-alert{
-    padding:12px 14px;
-    border-radius:12px;
-    border:1px solid rgba(0,0,0,.10);
-    background:#fff;
-    color:#0b1220;
+  body.cv-generator .cv-submeta{
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: var(--cv-text-muted);
   }
   
-  body.cv-generator .cv-alert.success{
-    border-left:4px solid var(--cv-success);
-    background:rgba(16,185,129,.08);
-  }
-  
-  body.cv-generator .cv-alert.warning{
-    border-left:4px solid var(--cv-warning);
-    background:rgba(245,158,11,.10);
-  }
-  
-  body.cv-generator .cv-alert.error{
-    border-left:4px solid var(--cv-error);
-    background:rgba(239,68,68,.10);
-  }
-  
-  body.cv-generator .cv-alert h4{
-    margin:0 0 8px;
-    font-size:14px;
-    font-weight:900;
-  }
-  
-  @media (max-width:768px){
-    body.cv-generator .cv-form-row{ grid-template-columns:1fr; }
-    body.cv-generator.cv-step-final .cv-final-actions-top{ flex-direction:column; }
-    body.cv-generator.cv-step-final .cv-preview{ padding:16px 14px; }
-    body.cv-generator.cv-step-final .cv-preview-wrapper{ padding:14px; }
-  }
-  
-  /* ===================================================================
-     8) CV DOCUMENT BASE (COMMON PAPER)
-     Apply to any template when wrapped in: <div class="cv-doc ...">
-     =================================================================== */
-  body.cv-generator .cv-doc{
-    color:#111;
-    font-family:Arial, Helvetica, sans-serif;
-    max-width:920px;
-    margin:0 auto;
-    line-height:1.35;
-    font-size:13.5px;
-  }
-  
-  body.cv-generator .cv-doc *{
-    box-sizing:border-box;
-  }
-  
-  body.cv-generator .cv-doc p{ margin:0 0 10px; }
-  body.cv-generator .cv-doc ul{ margin:0; padding-left:18px; }
-  body.cv-generator .cv-doc li{ margin:6px 0; }
-  
-  /* Handy helper */
-  body.cv-generator .cv-preline{ white-space:pre-line; }
-  
-  /* ===================================================================
-     9) TEMPLATE: CANADA ATS  (ATS-friendly, 1 column)
-     Wrapper: <div class="cv-doc cv-canada-ats">
-     =================================================================== */
-  body.cv-generator .cv-canada-ats{
-    font-family:Georgia,"Times New Roman",serif;
-    padding:10px 8px;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-header{
-    text-align:center;
-    margin-bottom:16px;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-name{
-    margin:0;
-    font-size:28px;
-    letter-spacing:.6px;
-    text-transform:uppercase;
-    font-weight:800;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-headline{
-    margin:6px 0 8px;
-    font-size:14px;
-    color:#1a73e8;
-    font-family:Arial, Helvetica, sans-serif;
-    font-weight:800;
-    letter-spacing:.3px;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-contact{
-    font-size:12px;
-    font-family:Arial, Helvetica, sans-serif;
-    display:flex;
-    justify-content:center;
-    flex-wrap:wrap;
-    gap:6px;
-    color:#111;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-dot{ opacity:.65; }
-  
-  body.cv-generator .cv-canada-ats .cv-rule{
-    border-top:1px solid rgba(0,0,0,.25);
-    margin:14px auto 0;
-    max-width:820px;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-section{
-    margin-top:16px;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-section-title{
-    margin:0;
-    text-align:center;
-    font-size:15px;
-    font-weight:900;
-    letter-spacing:.4px;
-    text-transform:uppercase;
-    color:#111;
-    border:none;
-    padding:0;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-paragraph{
-    margin:10px 0 0;
-    font-size:13px;
-    line-height:1.45;
-    font-family:Arial, Helvetica, sans-serif;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-item{
-    margin-top:14px;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-item--compact{
-    margin-top:10px;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-item-top{
-    display:flex;
-    justify-content:space-between;
-    gap:16px;
-    align-items:flex-start;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-right{
-    text-align:right;
-    font-family:Arial, Helvetica, sans-serif;
-    font-size:12px;
-    white-space:nowrap;
-    color:#111;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-entity{
-    font-family:Arial, Helvetica, sans-serif;
-    font-size:13px;
-    font-weight:900;
-    color:#1a73e8;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-role{
-    margin-top:2px;
-    font-family:Arial, Helvetica, sans-serif;
-    font-size:13px;
-    font-weight:800;
-    color:#111;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-bullets{
-    margin:8px 0 0;
-    padding-left:18px;
-    font-family:Arial, Helvetica, sans-serif;
-    font-size:12.5px;
-    line-height:1.45;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-skill-line{
-    margin:10px 0 0;
-    font-family:Arial, Helvetica, sans-serif;
-    font-size:12.5px;
-    line-height:1.5;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-lang-grid{
-    margin-top:10px;
-    display:grid;
-    gap:8px;
-  }
-  
-  body.cv-generator .cv-canada-ats .cv-lang-row{
-    display:flex;
-    justify-content:space-between;
+  /* Status tags */
+  body.cv-generator .tag-status{
+    display:inline-flex;
     align-items:center;
-    gap:14px;
-    font-family:Arial, Helvetica, sans-serif;
-    font-size:12.5px;
+    gap:8px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    font-weight: 950;
+    font-size: 12.5px;
+    border: 1px solid rgba(255,255,255,.10);
   }
   
-  /* ===================================================================
-     10) TEMPLATE: EUROPE (2 columns, ultra pro)
-     Wrapper: <div class="cv-doc cv-europe">
-     Needs HTML structure:
-     .cv-eu-header, .cv-eu-grid, .cv-eu-aside, .cv-eu-main, etc.
-     =================================================================== */
-  body.cv-generator .cv-europe{
-    font-family:Arial, Helvetica, sans-serif;
-    color:#111;
-    background:#fff;
-    line-height:1.35;
-    font-size:14px;
-  
-    max-width:920px;
-    margin:0 auto;
-    padding:22px;
-  
-    border:1px solid rgba(0,0,0,.08);
-    border-radius:14px;
-    box-shadow:0 10px 30px rgba(0,0,0,.06);
+  body.cv-generator .tag-status--done{
+    background: rgba(16,185,129,.10);
+    border-color: rgba(16,185,129,.28);
+    color: var(--cv-text-primary);
   }
   
-  /* Header */
-  body.cv-generator .cv-europe .cv-eu-header{
-    display:flex;
-    gap:18px;
-    align-items:flex-start;
-    justify-content:space-between;
+  body.cv-generator .tag-status--pending{
+    background: rgba(245,158,11,.10);
+    border-color: rgba(245,158,11,.28);
+    color: var(--cv-text-primary);
   }
   
-  body.cv-generator .cv-europe .cv-eu-name{
-    margin:0;
-    font-size:28px;
-    line-height:1.15;
-    letter-spacing:.2px;
-    font-weight:900;
-    text-transform:uppercase;
-  }
-  
-  body.cv-generator .cv-europe .cv-eu-title{
-    margin:6px 0 0;
-    font-size:14.5px;
-    font-weight:900;
-    letter-spacing:.4px;
-    text-transform:uppercase;
-    color:#1f3a8a;
-  }
-  
-  body.cv-generator .cv-europe .cv-eu-right{
-    text-align:right;
-    min-width:38%;
-    font-size:12.5px;
-    color:#222;
-  }
-  
-  body.cv-generator .cv-europe .cv-eu-rule{
-    height:1px;
-    background:rgba(0,0,0,.12);
-    margin:14px 0 18px;
-  }
-  
-  /* 2 cols */
-  body.cv-generator .cv-europe .cv-eu-grid{
-    display:grid;
-    grid-template-columns:290px 1fr;
-    gap:18px;
-  }
-  
-  body.cv-generator .cv-europe .cv-eu-aside{
-    background:#f7f9fc;
-    border:1px solid rgba(0,0,0,.06);
-    border-radius:14px;
-    padding:14px;
-  }
-  
-  body.cv-generator .cv-europe .cv-eu-main{
-    padding:4px 2px;
-  }
-  
-  body.cv-generator .cv-europe .cv-eu-block{ margin-bottom:16px; }
-  
-  body.cv-generator .cv-europe .cv-eu-block h2{
-    margin:0 0 10px;
-    font-size:12px;
-    letter-spacing:.9px;
-    text-transform:uppercase;
-    font-weight:900;
-    color:#0f172a;
+  /* Progress */
+  body.cv-generator .progress{
     display:flex;
     align-items:center;
     gap:10px;
   }
   
-  body.cv-generator .cv-europe .cv-eu-block h2::after{
-    content:"";
+  body.cv-generator .progress .bar{
+    width: 170px;
+    height: 10px;
+    background: rgba(255,255,255,.08);
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.10);
+    overflow:hidden;
+  }
+  
+  body.cv-generator .progress .bar span{
     display:block;
-    height:1px;
-    background:rgba(0,0,0,.12);
-    flex:1;
+    height:100%;
+    width:0%;
+    border-radius: 999px;
+    background: linear-gradient(120deg,var(--cv-accent-primary),var(--cv-accent-secondary));
   }
   
-  body.cv-generator .cv-europe .cv-eu-tags{
-    list-style:none;
-    padding:0;
-    margin:0;
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
+  body.cv-generator .progress small{
+    color: var(--cv-text-muted);
+    font-weight: 900;
   }
   
-  body.cv-generator .cv-europe .cv-eu-tags li{
-    font-size:12.5px;
-    background:#fff;
-    border:1px solid rgba(0,0,0,.10);
-    border-radius:999px;
-    padding:6px 10px;
-    line-height:1.1;
-    color:#0f172a;
-  }
-  
-  body.cv-generator .cv-europe .cv-eu-item{
-    padding:10px;
-    border:1px solid rgba(0,0,0,.06);
-    border-radius:14px;
-    background:#fff;
-    margin-bottom:10px;
-  }
-  
-  body.cv-generator .cv-europe .cv-eu-item-top{
-    display:flex;
-    justify-content:space-between;
-    gap:10px;
-    align-items:flex-start;
-  }
-  
-  body.cv-generator .cv-europe .cv-eu-date{
-    font-size:12px;
-    font-weight:900;
-    color:#0f172a;
+  /* Actions */
+  body.cv-generator .cv-actions{
     white-space:nowrap;
   }
   
-  /* Responsive */
-  @media (max-width:900px){
-    body.cv-generator .cv-europe{
-      padding:16px 14px;
-      border-radius:12px;
-    }
-    body.cv-generator .cv-europe .cv-eu-grid{
-      grid-template-columns:1fr;
-    }
-    body.cv-generator .cv-europe .cv-eu-right{
-      text-align:left;
-      margin-top:8px;
-    }
-    body.cv-generator .cv-europe .cv-eu-header{
-      flex-direction:column;
-    }
+  body.cv-generator .cv-actions a{
+    margin-right: 10px;
+    color: var(--cv-accent-blue);
+    font-weight: 900;
   }
   
-  /* ===================================================================
-     11) TEMPLATE: PROFESSIONAL (1 column, clean)
-     Wrapper: <div class="cv-doc cv-pro">
-     =================================================================== */
-  body.cv-generator .cv-pro .cv-pro-header{
-    display:flex;
-    justify-content:space-between;
-    gap:16px;
-    padding-bottom:12px;
-    border-bottom:2px solid #111;
-    margin-bottom:14px;
+  body.cv-generator .disabled{
+    opacity:.55;
+    cursor:not-allowed;
   }
   
-  body.cv-generator .cv-pro .cv-pro-name{
-    margin:0;
-    font-size:22px;
-    font-weight:900;
-    text-transform:uppercase;
+  /* Mobile */
+  @media (max-width: 980px){
+    body.cv-generator .cv-header{ flex-direction: column; }
+    body.cv-generator .progress .bar{ width: 140px; }
   }
-  
-  body.cv-generator .cv-pro .cv-pro-title{
-    margin:4px 0 0;
-    opacity:.9;
-    font-weight:800;
-  }
-  
-  body.cv-generator .cv-pro .cv-pro-contact{
-    display:flex;
-    flex-direction:column;
-    text-align:right;
-    font-size:12px;
-    opacity:.9;
-    gap:4px;
-  }
-  
-  body.cv-generator .cv-pro .cv-pro-section{ margin-top:14px; }
-  
-  body.cv-generator .cv-pro .cv-pro-section h2{
-    margin:0 0 8px;
-    font-size:12px;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-    font-weight:900;
-  }
-  
-  body.cv-generator .cv-pro .cv-pro-item{ margin-top:10px; }
-  
-  body.cv-generator .cv-pro .cv-pro-top{
-    display:flex;
-    justify-content:space-between;
-    gap:12px;
-    font-size:12.5px;
-  }
-  
-  body.cv-generator .cv-pro .cv-pro-date{
-    opacity:.75;
-    white-space:nowrap;
-    font-weight:800;
-  }
-  
-  /* ===================================================================
-     12) TEMPLATE: MODERN (2 columns)
-     Wrapper: <div class="cv-doc cv-modern">
-     =================================================================== */
-  body.cv-generator .cv-modern .cv-modern-header{
-    display:flex;
-    justify-content:space-between;
-    gap:16px;
-    border-bottom:1px solid #e5e7eb;
-    padding-bottom:12px;
-    margin-bottom:14px;
-  }
-  
-  body.cv-generator .cv-modern .cv-modern-name{
-    margin:0;
-    font-size:22px;
-    font-weight:900;
-    text-transform:uppercase;
-  }
-  
-  body.cv-generator .cv-modern .cv-modern-contact{
-    display:flex;
-    flex-direction:column;
-    text-align:right;
-    font-size:12px;
-    opacity:.9;
-    gap:4px;
-  }
-  
-  body.cv-generator .cv-modern .cv-modern-grid{
-    display:grid;
-    grid-template-columns:1fr 2fr;
-    gap:18px;
-  }
-  
-  body.cv-generator .cv-modern .cv-modern-aside{
-    border-right:1px solid #e5e7eb;
-    padding-right:14px;
-  }
-  
-  body.cv-generator .cv-modern .cv-modern-block{ margin-bottom:14px; }
-  
-  body.cv-generator .cv-modern .cv-modern-block h2{
-    margin:0 0 8px;
-    font-size:12px;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-    font-weight:900;
-  }
-  
-  body.cv-generator .cv-modern .cv-modern-tags{
-    list-style:none;
-    padding:0;
-    margin:0;
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-  }
-  
-  body.cv-generator .cv-modern .cv-modern-tags li{
-    font-size:12px;
-    background:#f3f4f6;
-    padding:6px 10px;
-    border-radius:999px;
-  }
-  
-  @media (max-width:820px){
-    body.cv-generator .cv-modern .cv-modern-grid{ grid-template-columns:1fr; }
-    body.cv-generator .cv-modern .cv-modern-aside{ border-right:none; padding-right:0; }
-  }
-  
-  /* ===================================================================
-     13) PRINT (PDF-like)
-     Important: keep paper clean
-     =================================================================== */
-  @media print{
-    body.cv-generator{
-      background:#fff !important;
-      color:#111 !important;
-    }
-    body.cv-generator .c-navbar,
-    body.cv-generator .c-footer,
-    body.cv-generator .cv-final-header,
-    body.cv-generator .cv-final-actions-top,
-    body.cv-generator .cv-ats-box{
-      display:none !important;
-    }
-    body.cv-generator .app-main.cv-generator{
-      padding:0 !important;
-      min-height:auto !important;
-      background:#fff !important;
-    }
-    body.cv-generator .cv-preview{
-      border:none !important;
-      border-radius:0 !important;
-      box-shadow:none !important;
-      padding:0 !important;
-    }
-    body.cv-generator .cv-preview-wrapper{
-      border:none !important;
-      border-radius:0 !important;
-      padding:0 !important;
-    }
-  
-    body.cv-generator .cv-europe{
-      box-shadow:none !important;
-      border:none !important;
-      border-radius:0 !important;
-      max-width:100% !important;
-      padding:0 !important;
-    }
-  
-    body.cv-generator .cv-canada-ats{
-      max-width:100% !important;
-      padding:0 !important;
-    }
-  }
-  
-  /* ===================================================================
-     14) UTILITIES (APP)
-     =================================================================== */
-  body.cv-generator .text-center{ text-align:center; }
-  body.cv-generator .mt-1{ margin-top:.5rem; }
-  body.cv-generator .mt-2{ margin-top:1rem; }
-  body.cv-generator .mt-3{ margin-top:1.5rem; }
-  body.cv-generator .mb-1{ margin-bottom:.5rem; }
-  body.cv-generator .mb-2{ margin-bottom:1rem; }
-  body.cv-generator .mb-3{ margin-bottom:1.5rem; }
   

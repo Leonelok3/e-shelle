@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mes invitations — Entretiens | Immigration97{% endblock %}
+{% block meta_description %}
+Consultez vos invitations d’entretien. Répondez en un clic (accepter/refuser) et augmentez vos chances avec un profil Premium complet (Afrique • Canada • Europe).
+{% endblock %}
+
+{% block body_class %}profiles{% endblock %}
+{% block app_scope %}profiles{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profiles.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<section class="p-hero">
+  <div class="p-hero__inner">
+    <div class="p-hero__left">
+      <h1 class="p-hero__title">Mes invitations</h1>
+      <p class="p-hero__lead">
+        Répondez rapidement : les recruteurs internationaux sélectionnent souvent les candidats les plus réactifs.
+      </p>
+
+      <div class="p-hero__meta">
+        <span class="p-pill">✅ Réponse en 1 clic</span>
+        <span class="p-pill">🔒 Sécurisé</span>
+        <span class="p-pill">🌍 International</span>
+      </div>
+    </div>
+
+    <div class="p-hero__right">
+      <a class="p-btn p-btn--outline" href="{% url 'profiles:my_space' %}">Retour à mon espace</a>
+      <a class="p-btn p-btn--primary" href="{% url 'profiles:detail' profile.pk %}">Voir mon profil</a>
+    </div>
+  </div>
+</section>
+
+<section class="p-card p-card--soft">
+  <div class="p-card__head">
+    <h2 class="p-section-title">Invitations reçues</h2>
+    <div class="p-kpi">
+      <span class="p-kpi__label">Total</span>
+      <span class="p-kpi__value">{{ invites|length }}</span>
+    </div>
+  </div>
+
+  {% if invites %}
+    <div class="p-table">
+      <div class="p-table__row p-table__row--head">
+        <div>Recruteur</div>
+        <div>Sujet</div>
+        <div>Statut</div>
+        <div>Date</div>
+        <div>Action</div>
+      </div>
+
+      {% for inv in invites %}
+      <div class="p-table__row">
+        <div class="p-table__cell">
+          <div class="p-mini">
+            <div class="p-mini__title">{{ inv.recruiter.username|default:"Recruteur" }}</div>
+            <div class="p-mini__sub">Invitation via Immigration97</div>
+          </div>
+        </div>
+
+        <div class="p-table__cell">
+          <div class="p-mini__title">{{ inv.subject|default:"Invitation à entretien" }}</div>
+          <div class="p-mini__sub">
+            {{ inv.message|truncatechars:140 }}
+          </div>
+        </div>
+
+        <div class="p-table__cell">
+          {% if inv.status == "accepted" %}
+            <span class="p-badge p-badge--success">Acceptée</span>
+          {% elif inv.status == "declined" %}
+            <span class="p-badge p-badge--danger">Refusée</span>
+          {% else %}
+            <span class="p-badge p-badge--info">En attente</span>
+          {% endif %}
+        </div>
+
+        <div class="p-table__cell">
+          <span class="p-muted">{{ inv.created_at|date:"d/m/Y H:i" }}</span>
+        </div>
+
+        <div class="p-table__cell">
+          {% if inv.status == "sent" %}
+            <div class="p-actions">
+              <form method="post" action="{% url 'profiles:invite_accept' inv.id %}">
+                {% csrf_token %}
+                <button class="p-btn p-btn--primary p-btn--sm" type="submit">Accepter</button>
+              </form>
+
+              <form method="post" action="{% url 'profiles:invite_decline' inv.id %}">
+                {% csrf_token %}
+                <button class="p-btn p-btn--outline p-btn--sm" type="submit">Refuser</button>
+              </form>
+            </div>
+          {% else %}
+            <span class="p-muted">Action terminée</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="p-note">
+      <strong>Conseil :</strong> si vous acceptez, mettez votre profil à jour (titre, bio, portfolio) pour maximiser vos chances.
+    </div>
+
+  {% else %}
+    <div class="p-empty">
+      <h3>Aucune invitation pour le moment</h3>
+      <p>
+        Complétez votre profil + ajoutez un portfolio pour augmenter vos chances d’être contacté.
+      </p>
+      <div class="p-actions">
+        <a class="p-btn p-btn--primary" href="{% url 'profiles:edit' profile.pk %}">Compléter mon profil</a>
+        <a class="p-btn p-btn--outline" href="{% url 'profiles:add_portfolio' profile.pk %}">Ajouter au portfolio</a>
+      </div>
+    </div>
+  {% endif %}
+</section>
+
+{% endblock %}

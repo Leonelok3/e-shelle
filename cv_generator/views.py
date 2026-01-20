@@ -854,261 +854,74 @@ def ats_score(request, cv_id):
 # ===============================
 # PDF EXPORT UNIQUE (REPORTLAB)
 # ===============================
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from reportlab.lib.units import inch
-from io import BytesIO
-import textwrap
-
+# cv_generator/views.py
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 from django.utils import timezone
+from django.contrib.staticfiles import finders
 
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from reportlab.lib.units import inch
-
-from .models import CV, Formation, Competence, Langue  # adapte si tes imports diffèrent
-
+from .models import CV, Formation, Competence, Langue  # adapte si besoin
 
 @login_required
 def export_pdf(request, cv_id):
     """
-    Export PDF fiable avec ReportLab.
-    1 seule fonction, 1 seule URL.
+    Export PDF PRO via HTML -> PDF (WeasyPrint)
+    - Respecte le rendu CSS du template Canada ATS
+    - 1 seule URL, 1 seule fonction
     """
+
     cv = get_object_or_404(CV, id=cv_id, user=request.user)
 
-    # ✅ Champs réels (selon tes erreurs : Experience start_date/end_date, Langue name/level, Competence nom)
     experiences = cv.experiences.all().order_by("-start_date", "-id")
     formations = Formation.objects.filter(cv=cv).order_by("-end_date", "-start_date", "-id")
     competences = Competence.objects.filter(cv=cv).order_by("nom", "id")
     langues = Langue.objects.filter(cv=cv).order_by("name", "level", "id")
 
-    buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
+    context = {
+        "cv": cv,
+        "experiences": experiences,
+        "formations": formations,
+        "competences": competences,
+        "langues": langues,
+        "generated_at": timezone.now(),
+    }
 
-    margin = inch
-    y = height - margin
-    lh = 14  # line height
+    template_name = "cv_generator/templates_pdf/cv_template_pdf.html"
 
-    def new_page():
-        nonlocal y
-        p.showPage()
-        y = height - margin
+    html_string = render_to_string(template_name, context=context, request=request)
 
-    def ensure_space(min_y=1.2 * inch):
-        nonlocal y
-        if y < min_y:
-            new_page()
+    # CSS PDF dédié (ne pas charger cv_generator.css ici)
+    css_file = finders.find("css/cv_pdf_canada_ats.css")
 
-    def draw_h2(title):
-        nonlocal y
-        ensure_space()
-        p.setFont("Helvetica-Bold", 12)
-        p.drawString(margin, y, (title or "").upper())
-        y -= lh * 1.2
-
-    def draw_text_lines(text, wrap=90, font="Helvetica", size=10, indent=0, max_lines=None):
-        nonlocal y
-        p.setFont(font, size)
-        lines = textwrap.wrap((text or "").strip(), width=wrap)
-        if max_lines:
-            lines = lines[:max_lines]
-        for line in lines:
-            ensure_space()
-            p.drawString(margin + indent, y, line)
-            y -= lh
-
-    def fmt_ym(d):
-        """YYYY-MM pour date/datetime, sinon fallback."""
-        if not d:
-            return ""
-        try:
-            return d.strftime("%Y-%m")
-        except Exception:
-            return str(d)[:7]
-
-    def fmt_y(d):
-        """YYYY pour date/datetime, sinon fallback."""
-        if not d:
-            return ""
-        try:
-            return d.strftime("%Y")
-        except Exception:
-            return str(d)[:4]
-
-    # ===== HEADER =====
-    p.setFont("Helvetica-Bold", 20)
-    full_name = f"{(cv.prenom or '').upper()} {(cv.nom or '').upper()}".strip()
-    p.drawString(margin, y, full_name or "CV")
-    y -= lh * 1.6
-
-    if getattr(cv, "titre_poste", None):
-        p.setFont("Helvetica-Bold", 12)
-        p.drawString(margin, y, (cv.titre_poste or "").upper())
-        y -= lh * 1.4
-
-    # Contact
-    p.setFont("Helvetica", 10)
-    contact = []
-    if getattr(cv, "email", None):
-        contact.append(cv.email)
-    if getattr(cv, "telephone", None):
-        contact.append(cv.telephone)
-
-    loc = ", ".join([x for x in [getattr(cv, "ville", None), getattr(cv, "province", None)] if x])
-    if loc:
-        contact.append(loc)
-
-    if getattr(cv, "linkedin", None):
-        contact.append(cv.linkedin)
-
-    if contact:
-        draw_text_lines(" | ".join(contact), wrap=110, size=9)
-        y -= lh * 0.5
-
-    # ===== SUMMARY =====
-    summary = (getattr(cv, "summary", None) or getattr(cv, "resume_professionnel", None) or "").strip()
-    if summary:
-        draw_h2("Resume professionnel")
-        draw_text_lines(summary, wrap=105, size=10)
-        y -= lh * 0.6
-
-    # ===== EXPERIENCE =====
-    if experiences.exists():
-        draw_h2("Experiences professionnelles")
-        for exp in experiences:
-            ensure_space(1.5 * inch)
-
-            poste = getattr(exp, "title", None) or getattr(exp, "poste", None) or "Poste"
-            entreprise = getattr(exp, "company", None) or getattr(exp, "entreprise", None) or ""
-            ville = getattr(exp, "location", None) or getattr(exp, "ville", None) or ""
-
-            p.setFont("Helvetica-Bold", 11)
-            p.drawString(margin, y, f"• {poste}")
-            y -= lh
-
-            p.setFont("Helvetica", 10)
-            meta = " — ".join([x for x in [entreprise, ville] if x])
-            if meta:
-                p.drawString(margin + 18, y, meta)
-                y -= lh
-
-            start = getattr(exp, "start_date", None)
-            end = getattr(exp, "end_date", None)
-
-            dates = []
-            if start:
-                dates.append(fmt_ym(start))
-            if end:
-                dates.append(fmt_ym(end))
-            else:
-                dates.append("Present")
-
-            p.setFont("Helvetica-Oblique", 9)
-            p.drawString(margin + 18, y, " - ".join(dates))
-            y -= lh
-
-            desc = (
-                (getattr(exp, "description_ai", None) or "")
-                or (getattr(exp, "description", None) or "")
-                or (getattr(exp, "description_raw", None) or "")
-            ).strip()
-
-            if desc:
-                raw_lines = [l.strip("•- \t") for l in desc.splitlines() if l.strip()]
-                if len(raw_lines) == 1:
-                    raw_lines = textwrap.wrap(raw_lines[0], width=95)
-
-                p.setFont("Helvetica", 9)
-                for line in raw_lines[:6]:
-                    ensure_space()
-                    p.drawString(margin + 28, y, f"– {line[:140]}")
-                    y -= lh
-
-            y -= lh * 0.6
-
-    # ===== EDUCATION =====
-    if formations.exists():
-        draw_h2("Formation")
-        for edu in formations:
-            ensure_space(1.5 * inch)
-
-            diplome = getattr(edu, "diplome", None) or getattr(edu, "diploma", None) or "Diplome"
-            etab = getattr(edu, "etablissement", None) or getattr(edu, "institution", None) or ""
-
-            p.setFont("Helvetica-Bold", 10)
-            p.drawString(margin, y, f"• {diplome}")
-            y -= lh
-
-            p.setFont("Helvetica", 10)
-            if etab:
-                p.drawString(margin + 18, y, etab)
-                y -= lh
-
-            start = getattr(edu, "start_date", None)
-            end = getattr(edu, "end_date", None)
-            annee = getattr(edu, "annee_obtention", None)  # si existe chez toi, sinon None
-
-            dates = []
-            if start:
-                dates.append(fmt_y(start))
-            if end:
-                dates.append(fmt_y(end))
-            elif annee:
-                dates.append(str(annee))
-            else:
-                dates.append("En cours")
-
-            p.setFont("Helvetica-Oblique", 9)
-            p.drawString(margin + 18, y, " - ".join(dates))
-            y -= lh * 1.2
-
-    # ===== SKILLS =====
-    if competences.exists():
-        draw_h2("Competences")
-        skills_text = ", ".join([(c.nom or "").strip() for c in competences if (c.nom or "").strip()])
-        if skills_text:
-            draw_text_lines(skills_text, wrap=110, size=10)
-            y -= lh * 0.6
-
-    # ===== LANGUAGES =====
-    if langues.exists():
-        draw_h2("Langues")
-        langs = ", ".join(
-            [
-                f"{(l.name or '').strip()} ({(l.level or '').strip()})".strip()
-                for l in langues
-                if (l.name or "").strip()
-            ]
+    # WeasyPrint
+    try:
+        from weasyprint import HTML, CSS
+    except Exception as e:
+        return HttpResponse(
+            "WeasyPrint n'est pas installé. Installe-le pour un rendu PDF fidèle au CSS.\n"
+            "Commande: pip install weasyprint",
+            content_type="text/plain",
+            status=500,
         )
-        if langs:
-            draw_text_lines(langs, wrap=110, size=10)
 
-    # Footer
-    ensure_space(1.0 * inch)
-    p.setFont("Helvetica-Oblique", 8)
-    p.drawString(margin, 0.6 * inch, f"Genere le {timezone.now().strftime('%d/%m/%Y %H:%M')}")
+    base_url = request.build_absolute_uri("/")  # important pour résoudre les assets si besoin
 
-    p.save()
-    buffer.seek(0)
+    stylesheets = []
+    if css_file:
+        stylesheets.append(CSS(filename=css_file))
+
+    pdf_bytes = HTML(string=html_string, base_url=base_url).write_pdf(stylesheets=stylesheets)
 
     filename = f"CV_{(cv.prenom or '').strip()}_{(cv.nom or '').strip()}.pdf".replace(" ", "_")
-    response = HttpResponse(buffer, content_type="application/pdf")
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
 
 
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect
-
-from .models import CV
-
+#########################################################
 
 @login_required
 def update_summary(request, cv_id):

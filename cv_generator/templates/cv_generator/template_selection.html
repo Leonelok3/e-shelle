@@ -1,37 +1,27 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}
-Choisissez votre modèle de CV optimisé | Immigration97
-{% endblock %}
+{% block title %}Choisissez votre modèle de CV optimisé | Immigration97{% endblock %}
 
-{% block meta_description %}
-Choisissez un modèle de CV optimisé (Canada, Europe, Moderne, Professionnel)
-avant de remplir l'éditeur guidé. Compatible ATS et immigration.
-{% endblock %}
+{% block meta_description %}Choisissez un modèle de CV optimisé (Canada, Europe, Moderne, Professionnel) avant de remplir l'éditeur guidé. Compatible ATS et immigration.{% endblock %}
 
 {% block body_class %}cv-generator{% endblock %}
 {% block app_scope %}cv-generator{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/cv_generator.css' %}">
-
 {% endblock %}
 
 {% block content %}
-<main class="cv-page-wrap">
+<div class="cv-page-wrap">
 
   <!-- HEADER -->
   <header class="cv-page-header">
     <div>
       <div class="cv-page-brand">Immigration97 · CV Generator</div>
       <div class="cv-badge-row">
-        <span class="cv-badge cv-badge--accent">
-          Étape 1 — Choisir un modèle
-        </span>
-        <span class="cv-badge">
-          Compatible ATS · Canada / Europe / USA
-        </span>
+        <span class="cv-badge cv-badge--accent">Étape 1 — Choisir un modèle</span>
+        <span class="cv-badge">Compatible ATS · Canada / Europe / USA</span>
       </div>
     </div>
 
@@ -40,42 +30,35 @@ avant de remplir l'éditeur guidé. Compatible ATS et immigration.
     </a>
   </header>
 
-  <h1 class="cv-title">
-    Choisissez le modèle de CV qui vous met le mieux en valeur
-  </h1>
+  <h1 class="cv-title">Choisissez le modèle de CV qui vous met le mieux en valeur</h1>
 
   <p class="cv-lead">
     Sélectionnez un design adapté à votre pays cible et à votre objectif professionnel.
   </p>
 
-  <!-- 🔥 DEBUG : Afficher si aucun template -->
   {% if total_templates == 0 %}
     <div class="cv-debug-banner">
       <div class="cv-debug-title">
-        <span style="font-size: 32px;">⚠️</span>
+        <span class="cv-debug-icon">⚠️</span>
         <span>Aucun modèle de CV disponible</span>
       </div>
-      
+
       <p class="cv-debug-text">
-        Les templates de CV n'ont pas encore été créés dans la base de données. 
+        Les templates de CV n'ont pas encore été créés dans la base de données.
         Vous devez d'abord créer des templates avant de pouvoir générer des CV.
       </p>
-      
+
       <div class="cv-debug-steps">
-        <p style="color: #fbbf24; font-weight: bold; margin-bottom: 12px;">
-          🔧 Pour corriger ce problème en 2 minutes :
-        </p>
-        
-        <p style="margin-bottom: 12px; font-weight: bold;">
-          OPTION 1 : Via l'admin Django (Recommandé)
-        </p>
-        <ol>
+        <p class="cv-debug-highlight">🔧 Pour corriger ce problème en 2 minutes :</p>
+
+        <p class="cv-debug-subtitle">OPTION 1 : Via l'admin Django (Recommandé)</p>
+        <ol class="cv-debug-ol">
           <li>Allez sur <a href="/admin" class="cv-debug-link" target="_blank">/admin</a></li>
           <li>Connectez-vous avec votre compte superuser</li>
           <li>Cliquez sur "<strong>Templates de CV</strong>"</li>
           <li>Cliquez sur "<strong>Ajouter Template de CV</strong>"</li>
           <li>Remplissez les champs :
-            <ul style="margin-left: 20px; margin-top: 8px;">
+            <ul class="cv-debug-ul">
               <li><strong>Nom</strong> : "Canada ATS Optimisé"</li>
               <li><strong>Description</strong> : "Template optimisé pour les systèmes ATS canadiens"</li>
               <li><strong>Template file</strong> : "cv_canada_ats.html"</li>
@@ -87,30 +70,27 @@ avant de remplir l'éditeur guidé. Compatible ATS et immigration.
           <li>Cliquez sur "Enregistrer"</li>
           <li>Répétez pour créer d'autres templates</li>
         </ol>
-        
+
         <div class="cv-section-divider"></div>
-        
-        <p style="margin: 12px 0; font-weight: bold;">
-          OPTION 2 : Via le terminal (Automatique)
-        </p>
-        <ol>
+
+        <p class="cv-debug-subtitle">OPTION 2 : Via le terminal (Automatique)</p>
+        <ol class="cv-debug-ol">
           <li>Créez le dossier : <code>mkdir -p cv_generator/management/commands</code></li>
-          <li>Créez les fichiers __init__.py</li>
-          <li>Créez le script create_default_templates.py (voir la documentation)</li>
+          <li>Créez les fichiers <code>__init__.py</code></li>
+          <li>Créez le script <code>create_default_templates.py</code></li>
           <li>Exécutez : <code>python manage.py create_default_templates</code></li>
         </ol>
       </div>
     </div>
   {% endif %}
 
-  <!-- TEMPLATES GRATUITS -->
   {% if templates_free %}
-    <section>
-      <h2 class="cv-section-title" style="margin: 48px 0 24px 0; font-size: 28px; font-weight: bold; display: flex; align-items: center; gap: 12px;">
-        <span style="font-size: 32px;">🆓</span>
+    <section class="cv-section">
+      <h2 class="cv-h2 cv-h2--free">
+        <span class="cv-h2-emoji">🆓</span>
         <span>Modèles Gratuits</span>
       </h2>
-      
+
       <div class="cv-grid">
         {% for t in templates_free %}
           <article class="cv-card">
@@ -118,16 +98,15 @@ avant de remplir l'éditeur guidé. Compatible ATS et immigration.
               {% if t.thumbnail %}
                 <img src="{{ t.thumbnail.url }}" alt="Aperçu {{ t.name }}">
               {% else %}
-                <!-- Placeholder avec icône -->
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); flex-direction: column; gap: 16px;">
-                  <span style="font-size: 64px;">📄</span>
-                  <span style="font-size: 20px; font-weight: bold; color: white;">{{ t.name }}</span>
+                <div class="cv-thumb-placeholder cv-thumb-placeholder--free">
+                  <span class="cv-thumb-icon">📄</span>
+                  <span class="cv-thumb-name">{{ t.name }}</span>
                 </div>
               {% endif %}
             </div>
 
             <div class="cv-card-body">
-              <h2 class="cv-card-title">{{ t.name }}</h2>
+              <h3 class="cv-card-title">{{ t.name }}</h3>
 
               <span class="cv-card-tag">
                 {% if "canada" in t.name|lower or "ats" in t.name|lower %}
@@ -159,52 +138,41 @@ avant de remplir l'éditeur guidé. Compatible ATS et immigration.
     </section>
   {% endif %}
 
-  <!-- TEMPLATES PREMIUM -->
   {% if templates_premium %}
     <div class="cv-section-divider"></div>
-    
-    <section>
-      <h2 class="cv-section-title" style="margin: 48px 0 24px 0; font-size: 28px; font-weight: bold; display: flex; align-items: center; gap: 12px;">
-        <span style="font-size: 32px;">⭐</span>
+
+    <section class="cv-section">
+      <h2 class="cv-h2 cv-h2--premium">
+        <span class="cv-h2-emoji">⭐</span>
         <span>Modèles Premium</span>
       </h2>
-      
+
       <div class="cv-grid">
         {% for t in templates_premium %}
           <article class="cv-card cv-card--premium">
-            
-            <!-- Badge Premium -->
-            <div class="cv-premium-badge">
-              ⭐ PREMIUM
-            </div>
-            
+            <div class="cv-premium-badge">⭐ PREMIUM</div>
+
             <div class="cv-thumb">
               {% if t.thumbnail %}
                 <img src="{{ t.thumbnail.url }}" alt="Aperçu {{ t.name }}">
               {% else %}
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #b45309 0%, #92400e 100%); flex-direction: column; gap: 16px;">
-                  <span style="font-size: 64px;">📄</span>
-                  <span style="font-size: 20px; font-weight: bold; color: white;">{{ t.name }}</span>
+                <div class="cv-thumb-placeholder cv-thumb-placeholder--premium">
+                  <span class="cv-thumb-icon">📄</span>
+                  <span class="cv-thumb-name">{{ t.name }}</span>
                 </div>
               {% endif %}
             </div>
 
             <div class="cv-card-body">
-              <h2 class="cv-card-title">{{ t.name }}</h2>
-
-              <span class="cv-card-tag" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #000;">
-                ⭐ Premium
-              </span>
-
+              <h3 class="cv-card-title">{{ t.name }}</h3>
+              <span class="cv-card-tag cv-card-tag--premium">⭐ Premium</span>
               <p class="cv-card-desc">
                 {{ t.description|default:"Modèle de CV premium pour se démarquer." }}
               </p>
             </div>
 
             <div class="cv-card-actions">
-              <a href="{% url 'cv_generator:choose_template' t.id %}" 
-                 class="cv-btn" 
-                 style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #000;">
+              <a href="{% url 'cv_generator:choose_template' t.id %}" class="cv-btn cv-btn--premium">
                 ⭐ Choisir Premium
               </a>
             </div>
@@ -214,19 +182,16 @@ avant de remplir l'éditeur guidé. Compatible ATS et immigration.
     </section>
   {% endif %}
 
-  <!-- Message si vraiment aucun template (après debug banner) -->
   {% if total_templates == 0 %}
-    <div class="cv-empty" style="margin-top: 32px; padding: 24px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; text-align: center;">
-      <p style="font-size: 18px; margin-bottom: 16px;">
+    <div class="cv-empty cv-empty--note">
+      <p class="cv-empty-text">
         Une fois les templates créés, rechargez cette page pour les voir apparaître. 🔄
       </p>
-      <a href="{% url 'cv_generator:template_selection' %}" 
-         class="cv-btn" 
-         style="display: inline-block;">
+      <a href="{% url 'cv_generator:template_selection' %}" class="cv-btn">
         ↻ Recharger la page
       </a>
     </div>
   {% endif %}
 
-</main>
+</div>
 {% endblock %}

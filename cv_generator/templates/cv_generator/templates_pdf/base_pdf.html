@@ -1,34 +1,14 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/cv_pdf_canada_ats.css' %}">
-<!DOCTYPE html>
-<html lang="{{ cv.language|default:'fr' }}">
+<!doctype html>
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>{{ cv.profession|default:"CV" }}</title>
-  {% block pdf_css %}{% endblock %}
+  <meta charset="utf-8">
+  <title>{% block title %}CV{% endblock %}</title>
+
+  {# ✅ CSS PDF UNIQUEMENT #}
+  <link rel="stylesheet" href="{% static 'css/cv_pdf_canada_ats.css' %}">
 </head>
-
-<body class="pdf {% block pdf_class %}{% endblock %}">
-
-<!-- ===== HEADER ===== -->
-<header class="header">
-  <div class="name">
-    {{ personal_info.prenom }} {{ personal_info.nom }}
-  </div>
-
-  {% if cv.profession %}
-    <div class="job-title">{{ cv.profession }}</div>
-  {% endif %}
-
-  <div class="meta">
-    {% if personal_info.email %}{{ personal_info.email }} · {% endif %}
-    {% if personal_info.telephone %}{{ personal_info.telephone }}{% endif %}
-    {% if personal_info.ville %} · {{ personal_info.ville }}{% endif %}
-    {% if personal_info.pays %} · {{ personal_info.pays }}{% endif %}
-  </div>
-</header>
-
-{% block content %}{% endblock %}
-
+<body>
+  {% block content %}{% endblock %}
 </body>
 </html>

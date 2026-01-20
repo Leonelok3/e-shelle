@@ -103,8 +103,12 @@ INSTALLED_APPS = [
     "GermanPrepApp.apps.GermanprepappConfig",
     "VisaTourismeApp",
     "DocumentsApp",
-    "profiles",
     "ai_engine",
+    "actualite.apps.ActualiteConfig",
+    "accounts.apps.AccountsConfig",
+    "recruiters",
+    "profiles",
+
 ]
 
 # ======================================================
