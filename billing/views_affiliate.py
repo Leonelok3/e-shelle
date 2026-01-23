@@ -91,3 +91,39 @@ def commission_base_from_transaction(tx):
         return Decimal(str((tx.metadata or {}).get("commission_base", "0")))
     except Exception:
         return Decimal("0")
+
+
+# billing/views_affiliate.py
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.utils import timezone
+
+from .models import AffiliateProfile, Referral
+
+
+def ref_redirect(request, ref_code: str):
+    """
+    /billing/ref/<ref_code>/
+    Enregistre le ref_code dans la session puis redirige vers pricing (ou next).
+    """
+    ref_code = (ref_code or "").strip().upper()
+    try:
+        affiliate = AffiliateProfile.objects.select_related("user").get(
+            ref_code=ref_code,
+            is_enabled=True
+        )
+    except AffiliateProfile.DoesNotExist:
+        messages.error(request, "Code de parrainage invalide.")
+        return redirect("billing:pricing")
+
+    # On stocke en session (et timestamp)
+    request.session["ref_code"] = affiliate.ref_code
+    request.session["ref_set_at"] = timezone.now().isoformat()
+    request.session.modified = True
+
+    nxt = request.GET.get("next")
+    if nxt:
+        return redirect(nxt)
+
+    messages.success(request, "✅ Code parrain enregistré.")
+    return redirect("billing:pricing")
