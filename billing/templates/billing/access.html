@@ -1,8 +1,8 @@
+{# billing/templates/billing/access.html #}
 {% extends "base.html" %}
 {% load static %}
 
 {% block title %}Mon Accès Premium Immigration Canada · Abonnement Visa & Résidence Permanente | Immigration97{% endblock %}
-
 {% block meta_description %}Gérez votre abonnement premium Immigration97 : accès illimité aux outils visa Canada, résidence permanente, tests IELTS TCF TEF, CV international, photo visa biométrique. Activez votre plan dès maintenant.{% endblock %}
 
 {% block body_class %}billing{% endblock %}
@@ -41,16 +41,16 @@
     <article class="status-card">
         {% if active_subscription %}
             <div class="status-icon status-icon--active" aria-label="Abonnement actif">🛡️</div>
-            
+
             <div class="status-content">
                 <h2 class="status-text status-text--active">Abonnement Premium Actif</h2>
-                
+
                 <div class="status-details">
                     <p class="plan-name">
                         Plan <strong>{{ active_subscription.plan.name }}</strong>
                         <span class="badge badge-success">Actif</span>
                     </p>
-                    
+
                     <div class="access-benefits">
                         <h3 class="benefits-title">🎯 Accès illimité à :</h3>
                         <ul class="benefits-list">
@@ -64,7 +64,7 @@
                         </ul>
                     </div>
                 </div>
-                
+
                 <div class="expiry-info">
                     <div class="expiry-date">
                         📅 Expire le : <strong>{{ active_subscription.expires_at|date:"d F Y à H:i" }}</strong>
@@ -79,7 +79,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="status-actions">
                 <a href="/" class="btn btn-primary btn-lg">
                     🚀 Accéder à mes outils premium
@@ -91,13 +91,13 @@
 
         {% elif session_active %}
             <div class="status-icon status-icon--warning" aria-label="Accès temporaire">⏱️</div>
-            
+
             <div class="status-content">
                 <h2 class="status-text status-text--warning">Accès Temporaire Actif</h2>
                 <p class="status-description">
                     Votre session d'essai est valide. Profitez-en pour tester nos outils d'immigration premium.
                 </p>
-                
+
                 <div class="trial-features">
                     <p class="features-intro">🎁 Accès temporaire à :</p>
                     <ul class="benefits-list">
@@ -107,7 +107,7 @@
                     </ul>
                 </div>
             </div>
-            
+
             <div class="status-actions">
                 <a href="/" class="btn btn-primary">
                     ▶️ Continuer l'exploration
@@ -119,13 +119,13 @@
 
         {% else %}
             <div class="status-icon status-icon--inactive" aria-label="Pas d'accès actif">🔓</div>
-            
+
             <div class="status-content">
                 <h2 class="status-text status-text--inactive">Aucun Accès Actif</h2>
                 <p class="status-description">
                     Débloquez tous les outils premium d'immigration Canada, visa travail, résidence permanente, tests de langue IELTS/TCF/TEF et générateur CV international.
                 </p>
-                
+
                 <div class="premium-teaser">
                     <h3 class="teaser-title">🎯 Que contient l'accès Premium ?</h3>
                     <ul class="benefits-list">
@@ -139,7 +139,7 @@
                     </ul>
                 </div>
             </div>
-            
+
             <div class="status-actions">
                 <a href="{% url 'billing:pricing' %}" class="btn btn-primary btn-lg cta-pulse">
                     ⭐ Découvrir les Abonnements Premium
@@ -156,50 +156,52 @@
         <div class="plans-header">
             <h2 class="plans-title">💎 Plans d'Abonnement Premium Immigration</h2>
             <p class="plans-description">
-                Choisissez le plan qui correspond à votre projet d'immigration au Canada : visa travail, résidence permanente, études ou PVT. Tous les plans incluent l'accès complet aux outils premium.
+                Choisissez le plan qui correspond à votre projet d'immigration au Canada : visa travail, résidence permanente, études ou PVT.
             </p>
         </div>
-        
+
         <div class="plans-grid">
             {% for plan in plans %}
             <article class="mini-plan">
                 <div class="plan-badge">
-                    {% if plan.duration == 365 %}🏆 Populaire
-                    {% elif plan.duration == 30 %}⚡ Essai
-                    {% else %}💼 Pro{% endif %}
+                    {% if plan.is_popular %}🏆 Populaire
+                    {% elif plan.duration_days >= 365 %}💎 Annuel
+                    {% elif plan.duration_days == 30 %}⚡ Mensuel
+                    {% elif plan.duration_days == 7 %}🧪 Semaine
+                    {% else %}💼 Plan{% endif %}
                 </div>
-                
+
                 <div class="plan-content">
                     <h3 class="plan-title">{{ plan.name }}</h3>
+
                     <p class="plan-meta">
                         ⏱️ {{ plan.get_duration_display }} d'accès complet
                     </p>
+
                     <div class="plan-price">
                         <span class="price-amount">{{ plan.price_xaf|floatformat:0 }} FCFA</span>
-                        <span class="price-period">
-                            {% if plan.duration == 30 %}/ mois
-                            {% elif plan.duration == 90 %}/ 3 mois
-                            {% else %}/ an{% endif %}
-                        </span>
+                        <span class="price-period">({{ plan.price_usd }} $)</span>
                     </div>
-                    
+
                     <ul class="plan-features">
                         <li>✅ Tous les outils premium</li>
                         <li>✅ Tests de langue illimités</li>
                         <li>✅ Support prioritaire</li>
-                        {% if plan.duration >= 365 %}
+                        {% if plan.duration_days >= 365 %}
                         <li>⭐ Consultation gratuite</li>
                         <li>⭐ Mises à jour exclusives</li>
                         {% endif %}
                     </ul>
                 </div>
-                
+
                 <div class="plan-action">
-                    <a href="{% url 'billing:pricing' %}" class="btn btn-primary">
+                    <a href="{% url 'billing:buy_plan' plan.slug %}" class="btn btn-primary">
                         Choisir {{ plan.name }}
                     </a>
                 </div>
             </article>
+            {% empty %}
+            <p>Aucun plan disponible pour le moment.</p>
             {% endfor %}
         </div>
     </section>
@@ -208,12 +210,13 @@
     <aside class="final-cta">
         <h3 class="cta-title">🎯 Prêt à démarrer votre projet d'immigration ?</h3>
         <p class="cta-description">
-            Rejoignez des milliers d'utilisateurs qui ont réussi leur immigration au Canada grâce à Immigration97. Accès instantané à tous les outils premium.
+            Accès instantané à tous les outils premium.
         </p>
         <div class="cta-buttons">
             <a href="{% url 'billing:pricing' %}" class="btn btn-primary btn-lg">
                 🚀 Commencer maintenant
             </a>
+            {# Mets le bon lien quand ta page FAQ existe #}
             <a href="/faq/" class="btn btn-secondary">
                 ❓ Questions fréquentes
             </a>
@@ -240,8 +243,8 @@
             </div>
             <div class="trust-item">
                 <div class="trust-icon">🎓</div>
-                <h4 class="trust-title">Expertise Certifiée</h4>
-                <p class="trust-text">Outils validés IRCC</p>
+                <h4 class="trust-title">Expertise</h4>
+                <p class="trust-text">Outils & contenus mis à jour</p>
             </div>
         </div>
     </aside>
@@ -249,25 +252,25 @@
     <!-- FAQ RAPIDE -->
     <section class="quick-faq">
         <h3 class="faq-title">❓ Questions Fréquentes sur l'Abonnement Premium</h3>
-        
+
         <div class="faq-item">
             <h4 class="faq-question">Que comprend l'abonnement premium Immigration97 ?</h4>
             <p class="faq-answer">
-                L'accès premium inclut : générateur CV international, photo visa biométrique, préparation complète tests IELTS/TCF/TEF, guides visa Canada (travail, études, RP), calculateurs immigration, et support 24/7.
+                Générateur CV, photo visa biométrique, préparation tests (IELTS/TCF/TEF), guides visa Canada, calculateurs et support.
             </p>
         </div>
-        
+
         <div class="faq-item">
             <h4 class="faq-question">Comment activer mon abonnement premium ?</h4>
             <p class="faq-answer">
-                Après paiement, votre accès est activé instantanément. Vous recevez un email de confirmation avec vos identifiants pour accéder immédiatement à tous les outils premium d'immigration.
+                Après paiement, votre accès est activé automatiquement. Vous pouvez aussi activer via un code prépayé.
             </p>
         </div>
-        
+
         <div class="faq-item">
             <h4 class="faq-question">Puis-je annuler mon abonnement ?</h4>
             <p class="faq-answer">
-                Oui, vous pouvez annuler à tout moment. Garantie satisfait ou remboursé 30 jours. Votre accès reste actif jusqu'à la fin de la période payée.
+                Oui. Vous gardez l'accès jusqu'à la fin de la période payée.
             </p>
         </div>
     </section>

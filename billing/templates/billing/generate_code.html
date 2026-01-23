@@ -1,3 +1,4 @@
+{# billing/templates/billing/generate_code.html #}
 {% extends 'base.html' %}
 {% load static %}
 
@@ -24,11 +25,11 @@ Créez des clés d'activation pour accéder aux outils d'immigration IA : visa t
     </svg>
     Espace Administrateur
   </div>
-  
+
   <h1 class="billing-hero__title">
     Générateur de Licence Premium
   </h1>
-  
+
   <p class="billing-hero__subtitle">
     Créez une clé d'activation unique pour débloquer l'accès aux outils d'immigration IA (visas, résidence permanente, tests de langue).
   </p>
@@ -36,7 +37,7 @@ Créez des clés d'activation pour accéder aux outils d'immigration IA : visa t
 
 <div class="billing-generate">
   <div class="billing-card">
-    
+
     <!-- Header Card -->
     <div class="billing-card__header">
       <div class="billing-card__icon">
@@ -51,11 +52,45 @@ Créez des clés d'activation pour accéder aux outils d'immigration IA : visa t
       </div>
     </div>
 
-    <!-- Form -->
-    <form method="post" class="billing-form">
-      {% csrf_token %}
+    {# =========================
+       LISTE DES CODES GÉNÉRÉS
+       (ta vue renvoie "codes")
+       ========================= #}
+    {% if codes %}
+      <div class="billing-card__body" style="margin-bottom: 18px;">
+        <div class="billing-alert billing-alert--success" role="status" aria-live="polite">
+          ✅ <strong>{{ codes|length }}</strong> code(s) généré(s) avec succès.
+        </div>
 
-      <!-- Champ 1 : Validité -->
+        <div class="billing-generated">
+          <h3 class="billing-generated__title">Codes générés</h3>
+
+          <div class="billing-generated__list">
+            {% for c in codes %}
+              <div class="billing-generated__item">
+                <div class="billing-generated__code">{{ c.code }}</div>
+                <div class="billing-generated__meta">
+                  Plan : <strong>{{ c.plan.name }}</strong> · Expiration : {{ c.expiration_date|date:"d/m/Y H:i" }}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="billing-generated__actions" style="margin-top: 10px;">
+            <a class="billing-form__submit" href="{% url 'billing:generate_code' %}">
+              Générer d'autres codes
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="post" action="{% url 'billing:generate_code' %}" class="billing-form">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next|default:'' }}">
+
+      <!-- Champ 1 : Validité (UI) -->
       <div class="billing-form__group">
         <label for="validity" class="billing-form__label">
           Type de Pass (Validité)
@@ -67,15 +102,15 @@ Créez des clés d'activation pour accéder aux outils d'immigration IA : visa t
           </svg>
           <select name="validity" id="validity" class="billing-form__select" required>
             <option value="24h">🚀 Accès Rapide — 24 heures</option>
-            <option value="30j">💎 Pack Premium — 30 jours</option>
+            <option value="30j" selected>💎 Pack Premium — 30 jours</option>
           </select>
         </div>
         <small class="billing-form__hint">
-          Définit la durée d'accès après activation par l'utilisateur.
+          Ce champ est informatif côté UI. Le code est associé au <strong>plan</strong> choisi ci-dessous (plan 1 jour, 7 jours, 30 jours, etc.).
         </small>
       </div>
 
-      <!-- Champ 2 : Plan -->
+      <!-- Champ 2 : Plan (IMPORTANT: correspond à ta vue -> name="plan") -->
       <div class="billing-form__group">
         <label for="plan" class="billing-form__label">
           Associer à un Plan Immigration
@@ -85,18 +120,48 @@ Créez des clés d'activation pour accéder aux outils d'immigration IA : visa t
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
           </svg>
+
           <select name="plan" id="plan" class="billing-form__select" required>
             {% for plan in plans %}
-              <option value="{{ plan.slug }}">
-                {{ plan.name }} — {{ plan.price_usd }} USD
+              <option
+                value="{{ plan.slug }}"
+                data-duration="{{ plan.duration_days }}"
+              >
+                {{ plan.name }} — {{ plan.price_usd }} USD · {{ plan.duration_days }} jour{% if plan.duration_days > 1 %}s{% endif %}
               </option>
             {% empty %}
-              <option disabled>Aucun plan actif configuré</option>
+              <option disabled selected>Aucun plan actif configuré</option>
             {% endfor %}
           </select>
         </div>
         <small class="billing-form__hint">
           Le code héritera des privilèges et fonctionnalités du plan choisi.
+        </small>
+      </div>
+
+      {# Champ 3 : Quantité (IMPORTANT: correspond à ta vue -> name="quantity") #}
+      <div class="billing-form__group">
+        <label for="quantity" class="billing-form__label">
+          Quantité de codes à générer
+        </label>
+        <div class="billing-form__input-wrapper">
+          <svg class="billing-form__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3h18v18H3z"/>
+            <path d="M7 7h10M7 12h10M7 17h10"/>
+          </svg>
+          <input
+            type="number"
+            name="quantity"
+            id="quantity"
+            class="billing-form__select"
+            value="1"
+            min="1"
+            max="500"
+            required
+          >
+        </div>
+        <small class="billing-form__hint">
+          Exemple : 10 pour générer 10 codes d’un coup.
         </small>
       </div>
 
@@ -117,7 +182,7 @@ Créez des clés d'activation pour accéder aux outils d'immigration IA : visa t
       </svg>
       <p>
         Besoin d'activer un code existant ?
-        <a href="{% url 'billing:redeem' %}" class="billing-card__link">
+        <a href="{% url 'billing:redeem' %}?next={{ next|urlencode }}" class="billing-card__link">
           Passer à l'activation
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -132,7 +197,7 @@ Créez des clés d'activation pour accéder aux outils d'immigration IA : visa t
 <!-- Section Info Premium (SEO + Conversion) -->
 <div class="billing-info">
   <div class="billing-info__grid">
-    
+
     <div class="billing-info__card">
       <div class="billing-info__icon">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -140,7 +205,7 @@ Créez des clés d'activation pour accéder aux outils d'immigration IA : visa t
         </svg>
       </div>
       <h3>Plans Flexibles</h3>
-      <p>Accès 24h ou 30 jours selon vos besoins d'immigration.</p>
+      <p>Choisissez le plan (1 jour, 7 jours, 30 jours, 1 an…) selon vos besoins d'immigration.</p>
     </div>
 
     <div class="billing-info__card">
@@ -151,7 +216,7 @@ Créez des clés d'activation pour accéder aux outils d'immigration IA : visa t
         </svg>
       </div>
       <h3>Activation Instantanée</h3>
-      <p>Code valide immédiatement après génération.</p>
+      <p>Codes valides immédiatement après génération (et utilisables via la page d'activation).</p>
     </div>
 
     <div class="billing-info__card">
@@ -162,7 +227,7 @@ Créez des clés d'activation pour accéder aux outils d'immigration IA : visa t
         </svg>
       </div>
       <h3>Sécurité Maximale</h3>
-      <p>Clés uniques, cryptées, usage unique par utilisateur.</p>
+      <p>Clés uniques. Utilisation contrôlée par <strong>max_uses / uses_count</strong> côté serveur.</p>
     </div>
 
   </div>

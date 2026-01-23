@@ -19,6 +19,7 @@ Ce fichier est organisé en sections :
 # ============================================================
 
 from typing import Dict, List, Tuple
+from billing.decorators import subscription_required
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -702,7 +703,7 @@ def project_overview(request, profile_id: int):
 # 4) JOB BOARD MANUEL (OFFRES EN BASE + DÉTAIL)
 # ============================================================
 
-
+@subscription_required
 @require_http_methods(["GET"])
 def job_offers_list(request):
     """

@@ -1,3 +1,4 @@
+{# billing/templates/billing/pricing.html #}
 {% extends 'base.html' %}
 {% load static %}
 
@@ -37,12 +38,12 @@ Choisissez votre forfait Immigration97 : accès aux outils IA d'immigration, pr�
 </div>
 
 <!-- Plans Grid -->
-<div class="billing-pricing-grid">
+<div id="plans" class="billing-pricing-grid">
   {% for p in plans %}
-  <article class="billing-pricing-card {% if p.is_popular %}is-featured{% endif %}" 
-           itemscope 
+  <article class="billing-pricing-card {% if p.is_popular %}is-featured{% endif %}"
+           itemscope
            itemtype="https://schema.org/Product">
-    
+
     <!-- Badge Popular -->
     {% if p.is_popular %}
     <div class="billing-pricing-card__badge">
@@ -68,22 +69,54 @@ Choisissez votre forfait Immigration97 : accès aux outils IA d'immigration, pr�
           {% endif %}
         </svg>
       </div>
+
       <h3 class="billing-pricing-card__name" itemprop="name">{{ p.name }}</h3>
     </div>
 
-    <!-- Price -->
-    <div class="billing-pricing-card__price" 
-         itemprop="offers" 
-         itemscope 
-         itemtype="https://schema.org/Offer">
-      <div class="billing-pricing-card__amount">
-        <span class="currency" itemprop="priceCurrency" content="USD">$</span>
-        <span class="value" itemprop="price" content="{{ p.price_usd }}">{{ p.price_usd }}</span>
-      </div>
-      <span class="billing-pricing-card__period">/ mois</span>
-    </div>
+    {# ---------
+       PÉRIODE (safe)
+       --------- #}
+    {% with d=p.duration_days %}
+      {% if d == 1 %}
+        {% with period_label=" / 24h" %}{% endwith %}
+      {% elif d == 7 %}
+        {% with period_label=" / semaine" %}{% endwith %}
+      {% elif d == 30 %}
+        {% with period_label=" / mois" %}{% endwith %}
+      {% elif d == 365 %}
+        {% with period_label=" / an" %}{% endwith %}
+      {% else %}
+        {% with period_label=" / " %}{% endwith %}
+      {% endif %}
 
-    <!-- Description -->
+      <!-- Price -->
+      <div class="billing-pricing-card__price"
+           itemprop="offers"
+           itemscope
+           itemtype="https://schema.org/Offer">
+
+        <meta itemprop="priceCurrency" content="USD">
+        <meta itemprop="availability" content="https://schema.org/InStock">
+
+        <div class="billing-pricing-card__amount">
+          <span class="currency">$</span>
+          <span class="value" itemprop="price" content="{{ p.price_usd }}">{{ p.price_usd }}</span>
+        </div>
+
+        <span class="billing-pricing-card__period">
+          {% if d == 1 %}/ 24h
+          {% elif d == 7 %}/ semaine
+          {% elif d == 30 %}/ mois
+          {% elif d == 365 %}/ an
+          {% else %}/ {{ d }} jours{% endif %}
+        </span>
+
+        {# url de l'offre #}
+        <meta itemprop="url" content="{% url 'billing:buy_plan' p.slug %}">
+      </div>
+    {% endwith %}
+
+    <!-- Description (safe : p.description peut ne pas exister) -->
     <p class="billing-pricing-card__desc" itemprop="description">
       {{ p.description|default:"Accès complet à l'écosystème Immigration97 pour réussir votre projet d'immigration." }}
     </p>
@@ -123,7 +156,7 @@ Choisissez votre forfait Immigration97 : accès aux outils IA d'immigration, pr�
     </ul>
 
     <!-- CTA Button -->
-    <a href="{% url 'billing:buy_plan' p.slug %}" 
+    <a href="{% url 'billing:buy_plan' p.slug %}?next={{ next|default:''|urlencode }}"
        class="billing-pricing-card__cta">
       <span>Démarrer l'accès Premium</span>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -147,9 +180,9 @@ Choisissez votre forfait Immigration97 : accès aux outils IA d'immigration, pr�
 <!-- Trust Section -->
 <div class="billing-pricing-trust">
   <h2 class="billing-pricing-trust__title">Pourquoi choisir Immigration97 ?</h2>
-  
+
   <div class="billing-pricing-trust__grid">
-    
+
     <div class="billing-pricing-trust__card">
       <div class="billing-pricing-trust__icon">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -199,9 +232,9 @@ Choisissez votre forfait Immigration97 : accès aux outils IA d'immigration, pr�
 <!-- FAQ Section (SEO Boost) -->
 <div class="billing-pricing-faq">
   <h2 class="billing-pricing-faq__title">Questions Fréquentes</h2>
-  
+
   <div class="billing-pricing-faq__list">
-    
+
     <details class="billing-pricing-faq__item">
       <summary>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">

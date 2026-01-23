@@ -26,6 +26,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views.decorators.http import require_POST, require_http_methods
+from billing.decorators import subscription_required
 
 # ===============================
 # SERVICES INTERNES (optionnels)
@@ -863,7 +864,7 @@ from django.utils import timezone
 from django.contrib.staticfiles import finders
 
 from .models import CV, Formation, Competence, Langue  # adapte si besoin
-
+@subscription_required
 @login_required
 def export_pdf(request, cv_id):
     """

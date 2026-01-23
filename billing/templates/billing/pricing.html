@@ -1,3 +1,4 @@
+{# billing/templates/billing/access.html #}
 {% extends 'base.html' %}
 {% load static %}
 
@@ -38,10 +39,10 @@ Boostez votre dossier d'immigration. Accès illimité aux outils IA : CV aux nor
 <!-- Plans Grid -->
 <div class="billing-access-plans">
   {% for plan in plans %}
-  <article class="billing-access-card {% if plan.is_popular %}is-popular{% endif %}" 
-           itemscope 
+  <article class="billing-access-card {% if plan.is_popular %}is-popular{% endif %}"
+           itemscope
            itemtype="https://schema.org/Product">
-    
+
     <!-- Popular Badge -->
     {% if plan.is_popular %}
     <div class="billing-access-card__popular">
@@ -71,12 +72,17 @@ Boostez votre dossier d'immigration. Accès illimité aux outils IA : CV aux nor
     </div>
 
     <!-- Price USD -->
-    <div class="billing-access-card__price" 
-         itemprop="offers" 
-         itemscope 
+    <div class="billing-access-card__price"
+         itemprop="offers"
+         itemscope
          itemtype="https://schema.org/Offer">
+
+      <meta itemprop="priceCurrency" content="USD">
+      <meta itemprop="availability" content="https://schema.org/InStock">
+      <meta itemprop="url" content="{{ request.build_absolute_uri|cut:request.get_full_path }}{% url 'billing:buy_plan' plan.slug %}">
+
       <div class="billing-access-card__amount">
-        <span class="currency" itemprop="priceCurrency" content="USD">$</span>
+        <span class="currency">$</span>
         <span class="value" itemprop="price" content="{{ plan.price_usd }}">{{ plan.price_usd }}</span>
         <span class="unit">USD</span>
       </div>
@@ -115,6 +121,8 @@ Boostez votre dossier d'immigration. Accès illimité aux outils IA : CV aux nor
         </svg>
         <span>Préparation TEF/TCF/IELTS</span>
       </li>
+
+      {# Features dynamiques (JSONField list) #}
       {% for feature in plan.features %}
       <li>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
@@ -128,7 +136,7 @@ Boostez votre dossier d'immigration. Accès illimité aux outils IA : CV aux nor
     <!-- CTA Button -->
     <div class="billing-access-card__cta">
       {% if user.is_authenticated %}
-        <a href="{% url 'billing:buy_plan' plan.slug %}" 
+        <a href="{% url 'billing:buy_plan' plan.slug %}?next={{ next|default:''|urlencode }}"
            class="billing-access-card__btn">
           <span>Activer maintenant</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -136,7 +144,7 @@ Boostez votre dossier d'immigration. Accès illimité aux outils IA : CV aux nor
           </svg>
         </a>
       {% else %}
-        <a href="/authentification/login/?next={% url 'billing:buy_plan' plan.slug %}" 
+        <a href="/authentification/login/?next={% url 'billing:buy_plan' plan.slug %}?next={{ next|default:''|urlencode }}"
            class="billing-access-card__btn">
           <span>Commencer mon dossier</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -172,15 +180,15 @@ Boostez votre dossier d'immigration. Accès illimité aux outils IA : CV aux nor
       <div>
         <h3 class="billing-access-local__title">Paiement Local & Codes Prépayés</h3>
         <p class="billing-access-local__desc">
-          Vous n'avez pas de carte bancaire ? Nos codes d'activation sont disponibles via 
-          <strong>Orange Money, MTN Mobile Money, Moov et Wave</strong> auprès de nos partenaires locaux 
+          Vous n'avez pas de carte bancaire ? Nos codes d'activation sont disponibles via
+          <strong>Orange Money, MTN Mobile Money, Moov et Wave</strong> auprès de nos partenaires locaux
           au Cameroun, en Côte d'Ivoire, au Sénégal et au Bénin.
         </p>
       </div>
     </div>
 
     <div class="billing-access-local__cta">
-      <a href="{% url 'billing:redeem' %}" class="billing-access-local__btn">
+      <a href="{% url 'billing:redeem' %}?next={{ next|default:''|urlencode }}" class="billing-access-local__btn">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
         </svg>
@@ -193,9 +201,9 @@ Boostez votre dossier d'immigration. Accès illimité aux outils IA : CV aux nor
 <!-- Trust Section -->
 <div class="billing-access-trust">
   <h2 class="billing-access-trust__title">Immigration97 en chiffres</h2>
-  
+
   <div class="billing-access-trust__grid">
-    
+
     <div class="billing-access-trust__stat">
       <div class="billing-access-trust__number">2,500+</div>
       <p>Dossiers analysés depuis 2024</p>
@@ -222,9 +230,9 @@ Boostez votre dossier d'immigration. Accès illimité aux outils IA : CV aux nor
 <!-- SEO Benefits Section -->
 <div class="billing-access-benefits">
   <h2 class="billing-access-benefits__title">Ce que vous obtenez avec Immigration97</h2>
-  
+
   <div class="billing-access-benefits__grid">
-    
+
     <div class="billing-access-benefits__item">
       <div class="billing-access-benefits__icon">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -313,11 +321,11 @@ Boostez votre dossier d'immigration. Accès illimité aux outils IA : CV aux nor
     {% for plan in plans %}
     {
       "@type": "Offer",
-      "name": "{{ plan.name }}",
+      "name": "{{ plan.name|escapejs }}",
       "price": "{{ plan.price_usd }}",
       "priceCurrency": "USD",
       "availability": "https://schema.org/InStock",
-      "url": "{{ request.build_absolute_uri }}",
+      "url": "{{ request.build_absolute_uri|cut:request.get_full_path }}{% url 'billing:buy_plan' plan.slug %}",
       "priceValidUntil": "2026-12-31"
     }{% if not forloop.last %},{% endif %}
     {% endfor %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mon Parrainage | Immigration97{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 980px; margin: 30px auto;">
+  <h1>Parrainage (Affiliate)</h1>
+  <p>Commission: <strong>{{ profile.rate|floatformat:2 }}</strong> (ex: 0.50 = 50%)</p>
+
+  <div style="background:#111827; color:#fff; padding:16px; border-radius:12px; margin:16px 0;">
+    <div style="opacity:.9;">Votre lien de parrainage :</div>
+    <input value="{{ referral_link }}" readonly style="width:100%; padding:10px; margin-top:10px; border-radius:10px;">
+    <small style="opacity:.8;">Partage ce lien. Quand quelqu’un s’inscrit/active, tu touches 50%.</small>
+  </div>
+
+  <div style="display:flex; gap:12px; margin: 18px 0;">
+    <div style="flex:1; padding:14px; border:1px solid #e5e7eb; border-radius:12px;">
+      <div style="opacity:.8;">En attente</div>
+      <div style="font-size:22px;"><strong>{{ total_pending }}</strong> USD</div>
+    </div>
+    <div style="flex:1; padding:14px; border:1px solid #e5e7eb; border-radius:12px;">
+      <div style="opacity:.8;">Payé</div>
+      <div style="font-size:22px;"><strong>{{ total_paid }}</strong> USD</div>
+    </div>
+  </div>
+
+  <h2>Dernières commissions</h2>
+  <table style="width:100%; border-collapse: collapse;">
+    <thead>
+      <tr style="text-align:left; border-bottom:1px solid #e5e7eb;">
+        <th style="padding:10px;">Date</th>
+        <th style="padding:10px;">Filleul</th>
+        <th style="padding:10px;">Plan</th>
+        <th style="padding:10px;">Montant</th>
+        <th style="padding:10px;">Statut</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in commissions %}
+      <tr style="border-bottom:1px solid #f1f5f9;">
+        <td style="padding:10px;">{{ c.created_at|date:"d/m/Y H:i" }}</td>
+        <td style="padding:10px;">{{ c.transaction.user.username }}</td>
+        <td style="padding:10px;">{% if c.transaction.plan %}{{ c.transaction.plan.name }}{% else %}-{% endif %}</td>
+        <td style="padding:10px;"><strong>{{ c.amount }}</strong> {{ c.currency }}</td>
+        <td style="padding:10px;">{{ c.status }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" style="padding:14px;">Aucune commission pour le moment.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

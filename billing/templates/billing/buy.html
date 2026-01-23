@@ -1,3 +1,4 @@
+{# billing/templates/billing/buy.html #}
 {% extends 'base.html' %}
 {% load static %}
 
@@ -27,8 +28,8 @@
   "offers": {
     "@type": "AggregateOffer",
     "priceCurrency": "USD",
-    "lowPrice": "{{ plans.0.price_usd }}",
-    "highPrice": "{{ plans.last.price_usd }}",
+    "lowPrice": "{% if plans and plans|length > 0 %}{{ plans.0.price_usd }}{% else %}0{% endif %}",
+    "highPrice": "{% if plans and plans|length > 0 %}{{ plans|last.price_usd }}{% else %}0{% endif %}",
     "offerCount": "{{ plans|length }}"
   }
 }
@@ -42,7 +43,7 @@
         <p class="buycode-subtitle">
             Débloquez instantanément tous les outils premium d'immigration Canada : visa travail, résidence permanente, tests IELTS/TCF/TEF, CV international ATS-optimisé et guides officiels IRCC 2026.
         </p>
-        
+
         <!-- AVANTAGES RAPIDES -->
         <div class="quick-benefits">
             <div class="benefit-item">
@@ -67,15 +68,15 @@
     <!-- PLANS GRID -->
     <div class="buycode-plans-grid">
         {% for p in plans %}
-        <article class="buycode-plan {% if p.duration_days > 1 %}plan-featured{% endif %}" 
+        <article class="buycode-plan {% if p.duration_days > 1 %}plan-featured{% endif %}"
                  itemscope itemtype="https://schema.org/Offer">
-            
+
             {% if p.duration_days > 1 %}
             <div class="featured-badge">🏆 Recommandé</div>
             {% elif p.duration_days == 1 %}
             <div class="featured-badge featured-badge--trial">⚡ Essai</div>
             {% endif %}
-            
+
             <div class="plan-header">
                 <h2 class="plan-name" itemprop="name">{{ p.name }}</h2>
                 <p class="plan-description">
@@ -94,7 +95,7 @@
                     <span class="price-amount" itemprop="price" content="{{ p.price_usd }}">{{ p.price_usd }}</span>
                     <span class="price-unit">USD</span>
                 </div>
-                
+
                 <div class="price-local">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -102,7 +103,7 @@
                     </svg>
                     Environ {{ p.price_xaf|floatformat:0 }} FCFA
                 </div>
-                
+
                 <div class="duration-badge">
                     ⏱️ {{ p.duration_days }} jour{% if p.duration_days > 1 %}s{% endif %} d'accès illimité
                 </div>
@@ -125,15 +126,15 @@
             </div>
 
             <!-- FORMULAIRE PAIEMENT -->
-            <form method="post" class="buycode-form">
+            <form method="post" action="{% url 'billing:buy' %}" class="buycode-form">
                 {% csrf_token %}
                 <input type="hidden" name="plan_id" value="{{ p.id }}">
-                <input type="hidden" name="next" value="{{ next }}">
-                
+                <input type="hidden" name="next" value="{{ next|default:'' }}">
+
                 <div class="payment-buttons">
                     <p class="payment-label">Choisissez votre mode de paiement :</p>
-                    
-                    <button type="submit" name="source" value="chario" 
+
+                    <button type="submit" name="source" value="chario"
                             class="btn-payment btn-payment--primary">
                         <span class="btn-icon">📱</span>
                         <span class="btn-text">
@@ -141,8 +142,8 @@
                             <small>Orange, MTN, Moov, Wave</small>
                         </span>
                     </button>
-                    
-                    <button type="submit" name="source" value="orange_money" 
+
+                    <button type="submit" name="source" value="orange_money"
                             class="btn-payment btn-payment--orange">
                         <span class="btn-icon">
                             <img src="{% static 'img/om-logo.png' %}" alt="Orange Money" width="24" height="24">
@@ -152,8 +153,8 @@
                             <small>Cameroun, CI, Sénégal</small>
                         </span>
                     </button>
-                    
-                    <button type="submit" name="source" value="paypal" 
+
+                    <button type="submit" name="source" value="paypal"
                             class="btn-payment btn-payment--paypal">
                         <span class="btn-icon">💳</span>
                         <span class="btn-text">
@@ -182,7 +183,7 @@
             <div class="empty-icon">⚠️</div>
             <h3 class="empty-title">Aucun plan disponible</h3>
             <p class="empty-text">
-                Les codes d'activation sont temporairement indisponibles. 
+                Les codes d'activation sont temporairement indisponibles.
                 Veuillez réessayer dans quelques instants ou contactez notre support.
             </p>
             <a href="{% url 'billing:pricing' %}" class="btn btn-primary">
@@ -203,7 +204,7 @@
                     Recevez votre code d'activation par email dans les 2 minutes après paiement. Accès immédiat à tous les outils premium.
                 </p>
             </div>
-            
+
             <div class="trust-card">
                 <div class="trust-card-icon">🔒</div>
                 <h4 class="trust-card-title">Paiement 100% Sécurisé</h4>
@@ -211,7 +212,7 @@
                     Cryptage SSL 256-bit, certifié PCI-DSS. Vos données bancaires sont protégées par les standards internationaux.
                 </p>
             </div>
-            
+
             <div class="trust-card">
                 <div class="trust-card-icon">📱</div>
                 <h4 class="trust-card-title">Mobile Money Afrique</h4>
@@ -219,7 +220,7 @@
                     Payez facilement depuis votre téléphone avec Orange Money, MTN, Moov Money, Wave ou Airtel Money.
                 </p>
             </div>
-            
+
             <div class="trust-card">
                 <div class="trust-card-icon">🌍</div>
                 <h4 class="trust-card-title">PayPal International</h4>
@@ -227,7 +228,7 @@
                     Acceptons Visa, Mastercard, American Express via PayPal. Disponible partout dans le monde.
                 </p>
             </div>
-            
+
             <div class="trust-card">
                 <div class="trust-card-icon">💯</div>
                 <h4 class="trust-card-title">Satisfait ou Remboursé</h4>
@@ -235,7 +236,7 @@
                     Garantie 30 jours. Si nos outils ne vous conviennent pas, nous vous remboursons intégralement.
                 </p>
             </div>
-            
+
             <div class="trust-card">
                 <div class="trust-card-icon">💬</div>
                 <h4 class="trust-card-title">Support 24/7</h4>
@@ -257,15 +258,15 @@
                     Sélectionnez la durée qui correspond à votre projet : 24h pour tester ou 30 jours pour un accès complet.
                 </p>
             </div>
-            
+
             <div class="process-step">
                 <div class="step-number">2</div>
                 <h4 class="step-title">Payez en toute sécurité</h4>
                 <p class="step-text">
-                    Choisissez Mobile Money (Afrique) ou PayPal (international). Paiement crypté 256-bit SSL.
+                    Choisissez Mobile Money (Afrique) ou PayPal (international). Paiement crypté SSL.
                 </p>
             </div>
-            
+
             <div class="process-step">
                 <div class="step-number">3</div>
                 <h4 class="step-title">Recevez votre code</h4>
@@ -273,7 +274,7 @@
                     Code d'activation envoyé par email dans les 2 minutes. Vérifiez aussi vos spams.
                 </p>
             </div>
-            
+
             <div class="process-step">
                 <div class="step-number">4</div>
                 <h4 class="step-title">Activez et profitez</h4>
@@ -287,7 +288,7 @@
     <!-- FAQ RAPIDE -->
     <section class="faq-buycode">
         <h3 class="faq-buycode-title">❓ Questions Fréquentes</h3>
-        
+
         <details class="faq-buycode-item">
             <summary>Quel est le délai de réception du code ?</summary>
             <p>
@@ -298,28 +299,28 @@
         <details class="faq-buycode-item">
             <summary>Comment activer mon code d'accès ?</summary>
             <p>
-                Rendez-vous dans <a href="{% url 'billing:redeem' %}">Mon espace → Activer un code</a>, collez votre code reçu par email et cliquez sur "Activer". Votre accès premium sera activé immédiatement pour la durée choisie.
+                Rendez-vous dans <a href="{% url 'billing:redeem' %}?next={{ next|urlencode }}">Mon espace → Activer un code</a>, collez votre code reçu par email et cliquez sur "Activer".
             </p>
         </details>
 
         <details class="faq-buycode-item">
             <summary>Puis-je payer avec Orange Money depuis le Cameroun ?</summary>
             <p>
-                Oui, nous acceptons Orange Money depuis le Cameroun, Côte d'Ivoire, Sénégal, Mali, Burkina Faso et autres pays d'Afrique francophone. Nous acceptons aussi MTN Money, Moov Money et Wave.
+                Oui. Nous acceptons Orange Money (Cameroun, Côte d'Ivoire, Sénégal, etc.) et aussi MTN, Moov, Wave.
             </p>
         </details>
 
         <details class="faq-buycode-item">
             <summary>Le code est-il valable pour tous les outils ?</summary>
             <p>
-                Oui, votre code d'activation donne accès à <strong>100% des outils premium</strong> : générateur CV, photo visa, tests IELTS/TCF/TEF, guides visa Canada, calculateurs immigration, et support prioritaire.
+                Oui, votre code d'activation donne accès à <strong>100% des outils premium</strong>.
             </p>
         </details>
 
         <details class="faq-buycode-item">
             <summary>Puis-je prolonger mon accès avant expiration ?</summary>
             <p>
-                Absolument ! Vous pouvez acheter un nouveau code à tout moment. La durée sera ajoutée à votre temps restant. Par exemple, si vous avez 5 jours restants et achetez un code 30 jours, vous aurez 35 jours au total.
+                Oui ! La durée s'ajoute à votre temps restant (stacking).
             </p>
         </details>
     </section>
@@ -328,7 +329,7 @@
     <div class="final-cta-buycode">
         <h3 class="cta-title">🚀 Prêt à démarrer votre projet d'immigration ?</h3>
         <p class="cta-text">
-            Rejoignez des milliers d'africains qui ont réussi leur immigration au Canada grâce à Immigration97. Activation instantanée, support francophone 24/7.
+            Rejoignez des milliers d'africains qui ont réussi leur immigration au Canada grâce à Immigration97.
         </p>
         <a href="#" class="btn btn-primary btn-lg" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
             Choisir mon plan maintenant

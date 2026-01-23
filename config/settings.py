@@ -3,6 +3,7 @@ Django settings (durdi) pour immigration97.
 NE PAS committer de secrets — utiliser .env exclusivement.
 """
 
+
 from pathlib import Path
 import os
 from django.utils.translation import gettext_lazy as _
@@ -11,11 +12,15 @@ from django.utils.translation import gettext_lazy as _
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Charger .env (pour le dev)
-try:
-    from dotenv import load_dotenv
-    load_dotenv(BASE_DIR / ".env")
-except Exception:
-    pass
+from pathlib import Path
+import os
+from django.utils.translation import gettext_lazy as _
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=BASE_DIR / ".env", override=False)
+
 
 # ======================================================
 # 🔐 SÉCURITÉ — OBLIGATOIREMENT VIA ENV
@@ -127,6 +132,9 @@ MIDDLEWARE = [
     "axes.middleware.AxesMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "billing.middleware.ReferralTrackingMiddleware",
+    "billing.middleware.ReferralTrackingMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

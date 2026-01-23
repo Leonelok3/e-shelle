@@ -1,3 +1,4 @@
+# MotivationLetterApp/models.py
 from django.conf import settings
 from django.db import models
 
@@ -17,11 +18,13 @@ class Letter(models.Model):
         ("en", "English"),
     ]
 
-    # ✅ IMPORTANT : le user doit être DANS la classe
+    # ✅ TEMPORAIRE POUR PASSER LA MIGRATION
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="letters",
+        null=True,
+        blank=True,
     )
 
     full_name = models.CharField(max_length=120)

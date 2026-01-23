@@ -1,3 +1,4 @@
+{# billing/templates/billing/buy_plan.html #}
 {% extends 'base.html' %}
 {% load static %}
 
@@ -46,12 +47,12 @@
         <aside class="plan-summary">
             <div class="summary-sticky">
                 <div class="plan-badge">⚡ Activation instantanée</div>
-                
+
                 <h1 class="plan-title">{{ plan.name }}</h1>
                 <p class="plan-subtitle">
                     Abonnement premium immigration Canada
                 </p>
-                
+
                 <!-- PRIX PRINCIPAL -->
                 <div class="price-display">
                     <div class="price-main">
@@ -59,7 +60,7 @@
                         <span class="amount">{{ plan.price_usd }}</span>
                         <span class="unit">USD</span>
                     </div>
-                    
+
                     <div class="price-local">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"></circle>
@@ -67,7 +68,7 @@
                         </svg>
                         Environ {{ plan.price_xaf|floatformat:0 }} FCFA
                     </div>
-                    
+
                     <p class="duration-badge">
                         ⏱️ Accès complet {{ plan.get_duration_display }}
                     </p>
@@ -84,7 +85,7 @@
                         <li>🧮 Calculateurs CRS & Éligibilité</li>
                         <li>💬 Support prioritaire 24/7</li>
                         <li>📊 Suivi dossier immigration</li>
-                        {% if plan.duration >= 365 %}
+                        {% if plan.duration_days >= 365 %}
                         <li>⭐ Consultation gratuite incluse</li>
                         <li>🎁 Mises à jour exclusives</li>
                         {% endif %}
@@ -123,6 +124,9 @@
             <form method="POST" action="{% url 'billing:initiate_payment' transaction.id %}" class="payment-form">
                 {% csrf_token %}
 
+                {# IMPORTANT: conserver next #}
+                <input type="hidden" name="next" value="{{ next|default:'' }}">
+
                 <!-- HEADER SÉCURITÉ -->
                 <div class="security-header">
                     <h2 class="section-title">Finaliser mon abonnement</h2>
@@ -137,7 +141,7 @@
                 <!-- MÉTHODES DE PAIEMENT -->
                 <div class="payment-methods">
                     <h3 class="methods-title">Choisissez votre mode de paiement</h3>
-                    
+
                     {% if cinetpay_available %}
                     <label class="payment-method">
                         <input type="radio" name="payment_method" value="MOBILE_MONEY" required>
@@ -206,7 +210,7 @@
                         <div class="alert-content">
                             <h4>Maintenance temporaire</h4>
                             <p>Nos passerelles de paiement sont momentanément indisponibles.</p>
-                            <a href="{% url 'billing:redeem' %}" class="btn btn-secondary">
+                            <a href="{% url 'billing:redeem' %}?next={{ next|urlencode }}" class="btn btn-secondary">
                                 Utiliser un code d'activation →
                             </a>
                         </div>
@@ -221,10 +225,10 @@
                         <span class="btn-text">Confirmer et Payer</span>
                         <span class="btn-icon">🔒</span>
                     </button>
-                    
+
                     <p class="checkout-notice">
-                        En cliquant sur "Confirmer et Payer", vous acceptez nos 
-                        <a href="/terms/" target="_blank">conditions d'utilisation</a> et 
+                        En cliquant sur "Confirmer et Payer", vous acceptez nos
+                        <a href="/terms/" target="_blank">conditions d'utilisation</a> et
                         <a href="/privacy/" target="_blank">politique de confidentialité</a>.
                     </p>
 
@@ -255,25 +259,25 @@
             <!-- SECTION FAQ RAPIDE -->
             <div class="checkout-faq">
                 <h3 class="faq-title">❓ Questions fréquentes</h3>
-                
+
                 <details class="faq-item">
                     <summary>Quand aurais-je accès à mon abonnement ?</summary>
-                    <p>Votre accès est activé <strong>immédiatement</strong> après confirmation du paiement. Vous recevrez un email avec vos identifiants et pourrez utiliser tous les outils premium dans les 2 minutes.</p>
+                    <p>Votre accès est activé <strong>immédiatement</strong> après confirmation du paiement. Vous recevrez un email et pourrez utiliser tous les outils premium dans les 2 minutes.</p>
                 </details>
 
                 <details class="faq-item">
                     <summary>Le paiement Mobile Money est-il sécurisé ?</summary>
-                    <p>Oui, 100% sécurisé. Nous utilisons CinetPay, certifié PCI-DSS, avec cryptage SSL 256-bit. Vos données bancaires ne transitent jamais par nos serveurs.</p>
+                    <p>Oui, 100% sécurisé. Nous utilisons une passerelle certifiée, avec cryptage SSL. Vos données bancaires ne transitent jamais par nos serveurs.</p>
                 </details>
 
                 <details class="faq-item">
                     <summary>Puis-je obtenir une facture ?</summary>
-                    <p>Oui, une facture PDF est générée automatiquement et disponible dans votre espace membre. Vous la recevrez également par email.</p>
+                    <p>Oui, une facture peut être générée et disponible dans votre espace membre (selon votre intégration).</p>
                 </details>
 
                 <details class="faq-item">
                     <summary>Que se passe-t-il si le paiement échoue ?</summary>
-                    <p>Si votre paiement échoue, vous serez redirigé vers cette page avec un message d'erreur. Vous pourrez réessayer immédiatement ou choisir une autre méthode de paiement. Aucun frais ne sera débité.</p>
+                    <p>Vous pourrez réessayer ou choisir une autre méthode. Aucun frais ne sera débité si le paiement n’est pas validé.</p>
                 </details>
             </div>
 
@@ -283,11 +287,11 @@
                 <div class="security-grid">
                     <div class="security-item">
                         <span class="security-icon">🛡️</span>
-                        <p>Cryptage SSL 256-bit</p>
+                        <p>Cryptage SSL</p>
                     </div>
                     <div class="security-item">
                         <span class="security-icon">🏦</span>
-                        <p>Certifié PCI-DSS</p>
+                        <p>Paiement certifié</p>
                     </div>
                     <div class="security-item">
                         <span class="security-icon">✅</span>
@@ -309,15 +313,13 @@
 // Animation radio buttons
 document.addEventListener('DOMContentLoaded', function() {
     const radioInputs = document.querySelectorAll('.payment-method input[type="radio"]');
-    
+
     radioInputs.forEach(input => {
         input.addEventListener('change', function() {
-            // Retirer la classe active de tous les labels
             document.querySelectorAll('.payment-method').forEach(label => {
                 label.classList.remove('is-selected');
             });
-            
-            // Ajouter la classe active au label parent
+
             if (this.checked) {
                 this.closest('.payment-method').classList.add('is-selected');
             }

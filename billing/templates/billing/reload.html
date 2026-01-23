@@ -1,0 +1,136 @@
+{# billing/templates/billing/reload.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Recharger mon Wallet | Immigration97{% endblock %}
+
+{% block meta_description %}
+Rechargez votre portefeuille Immigration97 pour accéder aux services premium : CV IA, tests de langue, simulation visa Canada et Europe.
+{% endblock %}
+
+{% block body_class %}billing{% endblock %}
+{% block app_scope %}billing reload-flow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/billing.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="billing-reload-hero">
+  <div class="billing-reload-hero__icon">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+      <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+      <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+    </svg>
+  </div>
+
+  <h1 class="billing-reload-hero__title">Recharger le Wallet</h1>
+
+  <p class="billing-reload-hero__subtitle">
+    Ajoutez des fonds à votre portefeuille pour accéder instantanément aux services premium d'immigration IA.
+  </p>
+</div>
+
+{% if messages %}
+<div class="billing-redeem-messages">
+  {% for message in messages %}
+  <div class="billing-redeem-alert billing-redeem-alert--{{ message.tags }}">
+    <span>{{ message }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="billing-reload-card">
+
+  <div class="billing-reload-card__header">
+    <div class="billing-reload-card__icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+    </div>
+    <div>
+      <h2 class="billing-reload-card__title">Recharge de Fonds</h2>
+      <p class="billing-reload-card__desc">Choisissez le montant à ajouter</p>
+    </div>
+  </div>
+
+  <form method="post" class="billing-reload-form">
+    {% csrf_token %}
+
+    <div class="billing-reload-form__group">
+      <label for="{{ form.amount.id_for_label }}" class="billing-reload-form__label">Montant à ajouter</label>
+
+      <div class="billing-reload-form__input-wrapper">
+        <span class="billing-reload-form__prefix">$</span>
+        {{ form.amount }}
+        <span class="billing-reload-form__suffix">USD</span>
+      </div>
+
+      {% if form.amount.errors %}
+        {% for error in form.amount.errors %}
+        <div class="billing-reload-form__error"><span>{{ error }}</span></div>
+        {% endfor %}
+      {% endif %}
+
+      <small class="billing-reload-form__hint">Montant minimum : <strong>$1 USD</strong></small>
+    </div>
+
+    <div class="billing-reload-form__quick">
+      <span class="billing-reload-form__quick-label">Montants rapides :</span>
+      <div class="billing-reload-form__quick-grid">
+        <button type="button" class="billing-reload-form__quick-btn" data-amount="10">$10</button>
+        <button type="button" class="billing-reload-form__quick-btn" data-amount="25">$25</button>
+        <button type="button" class="billing-reload-form__quick-btn" data-amount="50">$50</button>
+        <button type="button" class="billing-reload-form__quick-btn" data-amount="100">$100</button>
+      </div>
+    </div>
+
+    <div class="billing-reload-form__group">
+      <label for="{{ form.note.id_for_label }}" class="billing-reload-form__label">
+        Note ou Référence <span class="billing-reload-form__optional">(optionnel)</span>
+      </label>
+      {{ form.note }}
+
+      {% if form.note.errors %}
+        {% for error in form.note.errors %}
+        <div class="billing-reload-form__error"><span>{{ error }}</span></div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <button type="submit" class="billing-reload-form__submit">
+      <span>Confirmer la recharge</span>
+    </button>
+  </form>
+
+  <div class="billing-reload-card__footer">
+    <div class="billing-reload-card__notice">
+      <p><strong>Mode Test Actif</strong></p>
+      <p>En production, cette action redirigera vers CinetPay/Stripe/PayPal.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
+  const quickButtons = document.querySelectorAll('.billing-reload-form__quick-btn');
+
+  quickButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const amount = this.getAttribute('data-amount');
+      amountInput.value = amount;
+
+      quickButtons.forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+});
+</script>
+
+{% endblock %}
