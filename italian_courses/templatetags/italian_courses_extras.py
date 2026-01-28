@@ -1,19 +1,15 @@
+# italian_courses/templatetags/italian_courses_extras.py
 from django import template
 
 register = template.Library()
 
+
 @register.filter
-def get_item(value, key):
+def get_item(dictionary, key):
     """
-    Usage: {{ my_dict|get_item:my_key }}
-    Permet d'accéder à un dict avec une clé dynamique dans un template Django.
+    Usage :
+    {{ my_dict|get_item:object.id }}
     """
-    if value is None:
+    if not dictionary:
         return None
-    try:
-        return value.get(key)
-    except AttributeError:
-        try:
-            return value[key]
-        except Exception:
-            return None
+    return dictionary.get(key)

@@ -1,6 +1,5 @@
 # italian_courses/urls.py
 from django.urls import path
-
 from . import views
 
 app_name = "italian_courses"
@@ -19,10 +18,14 @@ urlpatterns = [
         name="lesson_detail",
     ),
 
+    # ✅ Terminer une leçon (unique grâce à category + slug)
+    path(
+        "cours/<slug:category_slug>/<slug:slug>/terminer/",
+        views.mark_lesson_completed,
+        name="lesson_complete",
+    ),
+
     # Quiz
     path("quiz/<int:quiz_id>/", views.quiz_take, name="quiz_take"),
     path("quiz/<int:quiz_id>/resultat/", views.quiz_result, name="quiz_result"),
-
-    # Compat (si ton ancien template/urls l'utilise encore)
-    path("lecon/<slug:slug>/terminer/", views.mark_lesson_completed, name="lesson_complete"),
 ]

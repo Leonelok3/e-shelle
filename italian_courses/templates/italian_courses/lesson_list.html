@@ -7,16 +7,8 @@
   <div class="card">
     <h2 style="margin-top:0;">{{ category.name }}</h2>
 
-    {# Filtre simple (la vue ne filtre pas encore par q/level, mais le form reste OK) #}
     <form method="get" class="row" style="margin-top:12px;">
-      <input type="text" name="q" placeholder="Rechercher..." value="{{ request.GET.q|default:'' }}">
-      <select name="level">
-        <option value="">Tous niveaux</option>
-        <option value="A0" {% if request.GET.level == "A0" %}selected{% endif %}>A0</option>
-        <option value="A1" {% if request.GET.level == "A1" %}selected{% endif %}>A1</option>
-        <option value="A2" {% if request.GET.level == "A2" %}selected{% endif %}>A2</option>
-      </select>
-
+      <input type="text" name="q" placeholder="Rechercher..." value="{{ request.GET.q }}">
       <button class="btn primary" type="submit">Filtrer</button>
       <a class="btn" href="{% url 'italian_courses:category_list' %}">← Catégories</a>
     </form>
@@ -29,7 +21,7 @@
           <span class="badge">Leçon {{ lesson.order }}</span>
 
           {% if prog and prog.completed %}
-            <span class="badge ok">Terminé ✅</span>
+            <span class="badge ok">Terminée ✅</span>
           {% endif %}
         </div>
 
@@ -39,7 +31,9 @@
           </a>
         </h3>
 
-        {# On n'a pas de "excerpt" dans le modèle. Si tu veux un résumé, on ajoutera un champ plus tard. #}
+        {% if lesson.estimated_minutes %}
+          <p class="muted">⏱ {{ lesson.estimated_minutes }} min</p>
+        {% endif %}
 
         <div class="row">
           <a class="btn primary"
@@ -50,6 +44,6 @@
       </div>
     {% endwith %}
   {% empty %}
-    <div class="card">Aucune leçon publiée dans cette catégorie.</div>
+    <div class="card">Aucune leçon disponible pour le moment.</div>
   {% endfor %}
 {% endblock %}

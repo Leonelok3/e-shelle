@@ -4,16 +4,13 @@
 
 {% block content %}
   <div class="card">
-    <div class="row" style="justify-content:space-between; align-items:center;">
-      <div>
-        <p class="muted" style="margin:0;">
-          <a href="{% url 'italian_courses:lesson_list' category_slug=category.slug %}">← Retour à la liste</a>
-        </p>
-        <h2 style="margin:10px 0 0 0;">{{ lesson.title }}</h2>
-      </div>
-    </div>
+    <p class="muted" style="margin:0;">
+      <a href="{% url 'italian_courses:lesson_list' category_slug=category.slug %}">← Retour à la liste</a>
+    </p>
 
-    {# ✅ AUDIO PLAYER #}
+    <h2 style="margin:10px 0 0 0;">{{ lesson.title }}</h2>
+
+    {# ✅ AUDIO #}
     {% if lesson.audio_file %}
       <div style="margin-top:16px;">
         <p class="muted" style="margin:0 0 6px 0;">Audio</p>
@@ -21,17 +18,10 @@
           <source src="{{ lesson.audio_file.url }}" type="audio/mpeg">
           Ton navigateur ne supporte pas l’audio.
         </audio>
-        <p class="muted" style="margin-top:6px; font-size:12px;">
-          Si l’audio ne se lance pas, vérifie que le fichier est bien en .mp3.
-        </p>
-      </div>
-    {% else %}
-      <div style="margin-top:16px;">
-        <p class="muted" style="margin:0;">Aucun audio pour cette leçon.</p>
       </div>
     {% endif %}
 
-    {# ✅ CONTENU HTML (ton cours) #}
+    {# ✅ CONTENU #}
     {% if lesson.content_html %}
       <div style="margin-top:18px;">
         {{ lesson.content_html|safe }}
@@ -46,7 +36,7 @@
       </div>
     {% endif %}
 
-    {# ✅ QUIZZES #}
+    {# ✅ QUIZ #}
     {% if quizzes %}
       <div class="card" style="margin-top:18px;">
         <h3 style="margin-top:0;">Quiz</h3>
@@ -62,13 +52,17 @@
       </div>
     {% endif %}
 
-    {# ✅ MARQUER TERMINÉ (si connecté) #}
+    {# ✅ PROGRESSION #}
     <div style="margin-top:18px;">
       {% if user.is_authenticated %}
         <a class="btn primary"
-           href="{% url 'italian_courses:lesson_complete' slug=lesson.slug %}">
+           href="{% url 'italian_courses:lesson_complete' category_slug=category.slug slug=lesson.slug %}">
           Marquer terminé
         </a>
+
+        {% if progress and progress.completed %}
+          <span class="badge ok" style="margin-left:10px;">Terminé ✅</span>
+        {% endif %}
       {% else %}
         <p class="muted">Connecte-toi pour enregistrer ta progression.</p>
       {% endif %}
