@@ -6,6 +6,9 @@ from datetime import timedelta
 import csv
 import uuid
 
+from django.utils.html import format_html
+from django.urls import path
+
 from .models import (
     SubscriptionPlan,
     Subscription,
@@ -14,7 +17,10 @@ from .models import (
     AffiliateProfile,
     Referral,
     Commission,
+    Receipt,
 )
+
+from .utils.receipt_pdf import render_receipt_pdf
 
 
 @admin.register(SubscriptionPlan)
@@ -46,7 +52,6 @@ class CreditCodeAdmin(admin.ModelAdmin):
     list_filter = ("is_used", "plan")
     search_fields = ("code", "batch_id")
     readonly_fields = ("created_at", "used_at", "uses_count")
-
     actions = ["export_csv", "generate_10", "generate_50", "generate_100"]
 
     def export_csv(self, request, queryset):
@@ -94,14 +99,9 @@ class CreditCodeAdmin(admin.ModelAdmin):
 
         self.message_user(request, f"{created} codes générés (batch {batch_id}) sur le plan {plan.name}.")
 
-    def generate_10(self, request, queryset):
-        self._generate_bulk(request, 10)
-
-    def generate_50(self, request, queryset):
-        self._generate_bulk(request, 50)
-
-    def generate_100(self, request, queryset):
-        self._generate_bulk(request, 100)
+    def generate_10(self, request, queryset): self._generate_bulk(request, 10)
+    def generate_50(self, request, queryset): self._generate_bulk(request, 50)
+    def generate_100(self, request, queryset): self._generate_bulk(request, 100)
 
     generate_10.short_description = "Générer 10 codes (plan par défaut)"
     generate_50.short_description = "Générer 50 codes (plan par défaut)"
@@ -129,3 +129,35 @@ class CommissionAdmin(admin.ModelAdmin):
     list_filter = ("status", "currency")
     search_fields = ("affiliate__ref_code", "transaction__user__username", "transaction__user__email")
     readonly_fields = ("created_at",)
+
+
+@admin.register(Receipt)
+class ReceiptAdmin(admin.ModelAdmin):
+    list_display = ("receipt_number", "client_full_name", "service_name", "amount", "currency", "status", "issued_at", "pdf_link")
+    search_fields = ("receipt_number", "client_full_name", "client_email", "client_phone", "transaction_id")
+    list_filter = ("status", "currency", "issued_at")
+    readonly_fields = ("receipt_number", "created_at")
+
+    def pdf_link(self, obj: Receipt):
+        url = f"/admin/billing/receipt/{obj.id}/pdf/"
+        return format_html('<a href="{}" target="_blank">📄 PDF</a>', url)
+    pdf_link.short_description = "PDF"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                "<uuid:pk>/pdf/",
+                self.admin_site.admin_view(self.receipt_pdf_view),
+                name="billing_receipt_pdf",
+            ),
+        ]
+        return custom + urls
+
+    def receipt_pdf_view(self, request, pk):
+        receipt = Receipt.objects.get(pk=pk)
+        filename = f"recu-{receipt.receipt_number}.pdf"
+        response = HttpResponse(content_type="application/pdf")
+        response["Content-Disposition"] = f'inline; filename="{filename}"'
+        render_receipt_pdf(receipt, response)
+        return response

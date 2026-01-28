@@ -113,6 +113,8 @@ INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
     "recruiters",
     "profiles",
+    "legal",
+    "italian_courses",
 
 ]
 

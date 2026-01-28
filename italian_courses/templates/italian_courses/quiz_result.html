@@ -1,0 +1,22 @@
+{% extends "italian_courses/base.html" %}
+{% block title %}Résultat — {{ lesson.title }}{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2 style="margin-top:0;">Résultat du quiz</h2>
+    <p class="muted">Score : <b>{{ score }}</b> / <b>{{ total }}</b></p>
+
+    {% for r in results %}
+      <div class="card" style="background:#fafafa;">
+        <h3 style="margin-top:0;">{{ r.q.prompt }}</h3>
+        <p><b>Ta réponse :</b> {{ r.selected.text if r.selected else "Aucune" }}</p>
+        <p><b>Bonne réponse :</b> {{ r.correct.text if r.correct else "-" }}</p>
+        <p>{% if r.is_ok %}✅ Correct{% else %}❌ Incorrect{% endif %}</p>
+      </div>
+    {% endfor %}
+
+    <div class="row">
+      <a class="btn primary" href="{{ lesson.get_absolute_url }}">Retour à la leçon</a>
+      <a class="btn" href="{% url 'italian_courses:quiz_take' slug=lesson.slug %}">Refaire le quiz</a>
+    </div>
+  </div>
+{% endblock %}

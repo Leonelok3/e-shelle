@@ -1,0 +1,20 @@
+
+
+{% extends "italian_courses/base.html" %}
+{% block title %}Catégories — Cours Italien{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>Catégories de cours</h2>
+    <p class="muted">Choisis une catégorie (ex: Italien Nulla Osta, Logistique, Usine, Entretien).</p>
+  </div>
+
+  {% for c in categories %}
+    <div class="card">
+      <h3 style="margin:0 0 6px 0;">{{ c.name }}</h3>
+      <p class="muted" style="margin:0 0 10px 0;">/italien/cours/{{ c.slug }}/</p>
+      <a class="btn primary" href="{% url 'italian_courses:lesson_list' category_slug=c.slug %}">Voir les leçons</a>
+    </div>
+  {% empty %}
+    <div class="card">Aucune catégorie pour le moment.</div>
+  {% endfor %}
+{% endblock %}

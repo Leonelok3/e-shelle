@@ -376,3 +376,104 @@ def reload_wallet(request):
         messages.error(request, "❌ Vérifie le montant et réessaie.")
 
     return render(request, "billing/reload.html", {"form": form, "wallet": wallet})
+
+
+
+
+################################## facture ###################################
+
+from django.http import HttpResponse, Http404
+from django.shortcuts import get_object_or_404, render
+from .models import Receipt
+from .pdf import build_receipt_pdf
+
+
+def receipt_detail(request, receipt_id):
+    receipt = get_object_or_404(Receipt, id=receipt_id)
+    return render(request, "billing/receipt_detail.html", {"receipt": receipt})
+
+
+def receipt_pdf(request, receipt_id):
+    receipt = get_object_or_404(Receipt, id=receipt_id)
+    pdf_bytes = build_receipt_pdf(receipt)
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="{receipt.receipt_number}.pdf"'
+    return response
+
+
+def contract_protection(request):
+    """
+    Page bilingue (FR/EN) : Contrat de protection Immigration97.
+    """
+    return render(request, "billing/contract_protection.html")
+
+
+
+from django.http import Http404, HttpResponse
+from django.contrib.auth.decorators import login_required
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from django.utils import timezone
+
+from .models import Receipt
+
+
+def render_receipt_pdf(receipt: Receipt, response: HttpResponse) -> None:
+    # même fonction que dans admin (copie-colle si besoin)
+    p = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+    x, y = 50, height - 60
+
+    p.setFont("Helvetica-Bold", 18)
+    p.drawString(x, y, "IMMIGRATION97")
+    p.setFont("Helvetica", 10)
+    p.drawString(x, y - 18, "Plateforme d'immigration légale — www.immigration97.com")
+
+    y -= 60
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(x, y, "REÇU / FACTURE")
+
+    y -= 22
+    p.setFont("Helvetica", 10)
+    p.drawString(x, y, f"N° Reçu : {receipt.receipt_number}")
+    p.drawString(x + 260, y, f"Date : {timezone.localtime(receipt.issued_at).strftime('%d/%m/%Y %H:%M')}")
+
+    y -= 18
+    p.drawString(x, y, f"Statut : {receipt.get_status_display()}")
+    p.drawString(x + 260, y, f"Méthode : {receipt.payment_method or '-'}")
+
+    y -= 35
+    p.setFont("Helvetica-Bold", 11)
+    p.drawString(x, y, "Client")
+    y -= 16
+    p.setFont("Helvetica", 10)
+    p.drawString(x, y, receipt.client_full_name)
+
+    y -= 35
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(x, y, "Total")
+    y -= 18
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(x, y, f"{receipt.amount} {receipt.currency}")
+
+    p.setFont("Helvetica", 9)
+    p.drawString(x, 55, "Ce reçu est généré automatiquement par Immigration97.")
+    p.drawString(x, 40, "support@immigration97.com")
+
+    p.showPage()
+    p.save()
+
+
+@login_required
+def receipt_pdf(request, pk):
+    try:
+        receipt = Receipt.objects.get(pk=pk)
+    except Receipt.DoesNotExist:
+        raise Http404("Reçu introuvable")
+
+    filename = f"recu-{receipt.receipt_number}.pdf"
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="{filename}"'
+    render_receipt_pdf(receipt, response)
+    return response

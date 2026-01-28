@@ -1,0 +1,55 @@
+{% extends "italian_courses/base.html" %}
+{% load italian_courses_extras %}
+
+{% block title %}{{ category.name }} — Cours Italien{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <h2 style="margin-top:0;">{{ category.name }}</h2>
+
+    {# Filtre simple (la vue ne filtre pas encore par q/level, mais le form reste OK) #}
+    <form method="get" class="row" style="margin-top:12px;">
+      <input type="text" name="q" placeholder="Rechercher..." value="{{ request.GET.q|default:'' }}">
+      <select name="level">
+        <option value="">Tous niveaux</option>
+        <option value="A0" {% if request.GET.level == "A0" %}selected{% endif %}>A0</option>
+        <option value="A1" {% if request.GET.level == "A1" %}selected{% endif %}>A1</option>
+        <option value="A2" {% if request.GET.level == "A2" %}selected{% endif %}>A2</option>
+      </select>
+
+      <button class="btn primary" type="submit">Filtrer</button>
+      <a class="btn" href="{% url 'italian_courses:category_list' %}">← Catégories</a>
+    </form>
+  </div>
+
+  {% for lesson in lessons %}
+    {% with prog=progress_by_lesson_id|get_item:lesson.id %}
+      <div class="card">
+        <div class="row">
+          <span class="badge">Leçon {{ lesson.order }}</span>
+
+          {% if prog and prog.completed %}
+            <span class="badge ok">Terminé ✅</span>
+          {% endif %}
+        </div>
+
+        <h3 style="margin:10px 0 8px 0;">
+          <a href="{% url 'italian_courses:lesson_detail' category_slug=category.slug lesson_slug=lesson.slug %}">
+            {{ lesson.title }}
+          </a>
+        </h3>
+
+        {# On n'a pas de "excerpt" dans le modèle. Si tu veux un résumé, on ajoutera un champ plus tard. #}
+
+        <div class="row">
+          <a class="btn primary"
+             href="{% url 'italian_courses:lesson_detail' category_slug=category.slug lesson_slug=lesson.slug %}">
+            Ouvrir
+          </a>
+        </div>
+      </div>
+    {% endwith %}
+  {% empty %}
+    <div class="card">Aucune leçon publiée dans cette catégorie.</div>
+  {% endfor %}
+{% endblock %}

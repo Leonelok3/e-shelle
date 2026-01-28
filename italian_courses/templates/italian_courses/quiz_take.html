@@ -1,0 +1,25 @@
+{% extends "italian_courses/base.html" %}
+{% block title %}Quiz — {{ lesson.title }}{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2 style="margin-top:0;">{{ quiz.title }} — {{ lesson.title }}</h2>
+    <p class="muted">Choisis la bonne réponse. (Si tu as 80% ou plus et que tu es connecté, la leçon peut se marquer “terminée”.)</p>
+
+    <form method="post">
+      {% csrf_token %}
+      {% for q in questions %}
+        <div class="card" style="background:#fafafa;">
+          <div class="muted">Question {{ forloop.counter }}</div>
+          <h3 style="margin:8px 0;">{{ q.prompt }}</h3>
+          {% for c in q.choices.all %}
+            <label style="display:block;margin:8px 0;">
+              <input type="radio" name="q{{ q.id }}" value="{{ c.id }}"> {{ c.text }}
+            </label>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <button class="btn primary" type="submit">Voir le résultat</button>
+      <a class="btn" href="{{ lesson.get_absolute_url }}">← Retour à la leçon</a>
+    </form>
+  </div>
+{% endblock %}

@@ -160,6 +160,7 @@ urlpatterns = [
     # ============================
     # path("account/", include("two_factor.urls")),
     path("api/eligibility/", include("eligibility.urls")),
+    path("italien/", include("italian_courses.urls")),
 ]
 
 

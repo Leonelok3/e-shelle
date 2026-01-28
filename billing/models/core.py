@@ -9,16 +9,15 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
-from django.db import models, IntegrityError
-from django.db.models import Q
+from django.db import models
 from django.utils import timezone
 
-from django.utils import timezone
-from datetime import timedelta
+User = get_user_model()
+
 
 def default_expiration_date():
-    # Valeur par défaut utilisée par l'ancienne migration 0001_initial.py
     return timezone.now() + timedelta(days=90)
+
 
 User = get_user_model()
 
@@ -315,3 +314,4 @@ class Commission(models.Model):
 
     def __str__(self) -> str:
         return f"Commission({self.affiliate.ref_code}) {self.amount} {self.currency}"
+    
