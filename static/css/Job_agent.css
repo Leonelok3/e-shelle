@@ -1,0 +1,227 @@
+/* static/job_agent/job_agent.js */
+/* CSP-friendly: no inline scripts, no eval, no external deps */
+
+(function () {
+  "use strict";
+
+  // ---------------------------
+  // Utilities
+  // ---------------------------
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return "";
+  }
+
+  function qs(sel, root) {
+    return (root || document).querySelector(sel);
+  }
+
+  function qsa(sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  }
+
+  // ---------------------------
+  // Toast (optional but premium)
+  // ---------------------------
+  function ensureToast() {
+    let toast = qs(".ja-toast");
+    if (!toast) {
+      // If template didn't include it, we won't inject markup (keeps templates explicit).
+      return null;
+    }
+    const btn = qs("[data-toast-dismiss]", toast);
+    if (btn) {
+      btn.addEventListener("click", function () {
+        toast.classList.remove("is-visible");
+      });
+    }
+    return toast;
+  }
+
+  function showToast(message) {
+    const toast = ensureToast();
+    if (!toast) return;
+
+    const msg = qs(".ja-toast__msg", toast);
+    if (msg) msg.textContent = message;
+
+    toast.classList.add("is-visible");
+
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(function () {
+      toast.classList.remove("is-visible");
+    }, 2400);
+  }
+
+  // ---------------------------
+  // Copy to clipboard
+  // ---------------------------
+  async function copyText(text) {
+    // Prefer async clipboard; fallback to execCommand if needed
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "readonly");
+    ta.style.position = "absolute";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch (e) {
+      ok = false;
+    }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  function initCopyButtons() {
+    qsa("[data-copy]").forEach(function (btn) {
+      btn.addEventListener("click", async function () {
+        const targetSel = btn.getAttribute("data-copy-target");
+        const direct = btn.getAttribute("data-copy-text");
+
+        let text = "";
+        if (direct) {
+          text = direct;
+        } else if (targetSel) {
+          const el = qs(targetSel);
+          if (!el) return;
+          // Prefer value for textarea/input; else textContent
+          text = (el.value !== undefined && el.value !== null) ? el.value : el.textContent;
+        } else {
+          return;
+        }
+
+        try {
+          const ok = await copyText(text.trim());
+          if (ok) showToast(btn.getAttribute("data-copy-toast") || "Copié ✅");
+        } catch (e) {
+          // silent
+        }
+      });
+    });
+  }
+
+  // ---------------------------
+  // Kanban DnD (no Sortable)
+  // ---------------------------
+  function initKanban() {
+    const board = qs("[data-kanban]");
+    if (!board) return;
+
+    let dragged = null;
+
+    function onDragStart(e) {
+      const card = e.currentTarget;
+      dragged = card;
+      card.classList.add("ja-dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", card.getAttribute("data-lead-id") || "");
+    }
+
+    function onDragEnd(e) {
+      const card = e.currentTarget;
+      card.classList.remove("ja-dragging");
+      dragged = null;
+      qsa(".ja-kanban__list").forEach(function (l) {
+        l.classList.remove("ja-drop--over");
+      });
+    }
+
+    function onDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      e.currentTarget.classList.add("ja-drop--over");
+    }
+
+    function onDragLeave(e) {
+      e.currentTarget.classList.remove("ja-drop--over");
+    }
+
+    async function postStatus(cardEl, newStatus) {
+      const url = cardEl.getAttribute("data-set-status-url");
+      if (!url) return;
+
+      const csrftoken = getCookie("csrftoken");
+      const body = new URLSearchParams();
+      body.set("status", newStatus);
+
+      await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          "X-CSRFToken": csrftoken
+        },
+        credentials: "same-origin",
+        body: body.toString()
+      });
+    }
+
+    async function onDrop(e) {
+      e.preventDefault();
+      const list = e.currentTarget;
+      list.classList.remove("ja-drop--over");
+
+      if (!dragged) return;
+      const newStatus = list.getAttribute("data-status");
+      if (!newStatus) return;
+
+      // Move in UI
+      list.prepend(dragged);
+
+      try {
+        await postStatus(dragged, newStatus);
+        showToast("Statut mis à jour ✅");
+      } catch (e2) {
+        showToast("Impossible de mettre à jour");
+      }
+    }
+
+    qsa("[data-draggable-card='true']", board).forEach(function (card) {
+      card.addEventListener("dragstart", onDragStart);
+      card.addEventListener("dragend", onDragEnd);
+    });
+
+    qsa(".ja-kanban__list[data-droppable='true']", board).forEach(function (list) {
+      list.addEventListener("dragover", onDragOver);
+      list.addEventListener("dragleave", onDragLeave);
+      list.addEventListener("drop", onDrop);
+
+      // Accessibility: allow focus outline
+      list.setAttribute("tabindex", "0");
+    });
+  }
+
+  // ---------------------------
+  // Boot
+  // ---------------------------
+  document.addEventListener("DOMContentLoaded", function () {
+    ensureToast();
+    initCopyButtons();
+    initKanban();
+  });
+})();
+
+
+body.job-agent .app-main.job-agent .ja-menu__link.is-disabled,
+body.job-agent .app-main.job-agent .ja-menu__link[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+  background: transparent;
+  border-color: transparent;
+}
+
+body.job-agent .app-main.job-agent .ja-menu__link.is-disabled:hover,
+body.job-agent .app-main.job-agent .ja-menu__link[aria-disabled="true"]:hover {
+  background: transparent;
+  border-color: transparent;
+}

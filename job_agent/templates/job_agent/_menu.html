@@ -1,0 +1,49 @@
+<nav class="ja-menu" aria-label="Navigation Job Agent">
+  <div class="ja-menu__head">
+    <p class="ja-appname"><strong>Job Agent</strong></p>
+    <p class="ja-apphint">Postuler vite, suivre proprement.</p>
+  </div>
+
+  <div class="ja-menu__nav">
+
+    <a class="ja-menu__link"
+       href="{% url 'job_agent:dashboard' %}"
+       {% if active == "dashboard" %}aria-current="page"{% endif %}
+       aria-label="Aller au dashboard">
+      <span>Dashboard</span>
+      <span class="ja-menu__meta">Vue d’ensemble</span>
+    </a>
+
+    <a class="ja-menu__link"
+       href="{% url 'job_agent:lead_list' %}"
+       {% if active == "leads" %}aria-current="page"{% endif %}
+       aria-label="Voir la liste des offres">
+      <span>Offres</span>
+      <span class="ja-menu__meta">Liste</span>
+    </a>
+
+    {% if menu_pack_lead_id %}
+      <a class="ja-menu__link"
+         href="{% url 'job_agent:pack_detail' menu_pack_lead_id %}"
+         {% if active == "pack" %}aria-current="page"{% endif %}
+         aria-label="Ouvrir le pack de candidature">
+        <span>Pack</span>
+        <span class="ja-menu__meta">Email / Lettre</span>
+      </a>
+    {% else %}
+      <span class="ja-menu__link is-disabled" aria-disabled="true">
+        <span>Pack</span>
+        <span class="ja-menu__meta">Choisis une offre</span>
+      </span>
+    {% endif %}
+
+    <a class="ja-menu__link"
+       href="{% url 'job_agent:kanban' %}"
+       {% if active == "kanban" %}aria-current="page"{% endif %}
+       aria-label="Ouvrir le kanban de suivi">
+      <span>Kanban</span>
+      <span class="ja-menu__meta">Suivi rapide</span>
+    </a>
+
+  </div>
+</nav>

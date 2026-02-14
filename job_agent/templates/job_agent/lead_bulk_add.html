@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block body_class %}job-agent{% endblock %}
+{% block app_scope %}job-agent{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'job_agent/job_agent.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'job_agent/job_agent.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="app-main job-agent">
+  <div class="ja-container">
+
+    <div class="ja-pagehead">
+      <div class="ja-pagehead__title">
+        <h1>Ajout en masse</h1>
+        <p>Importe plusieurs offres d’un coup. Plus tu ajoutes la description, meilleur sera le score et le pack.</p>
+      </div>
+      <div class="ja-pagehead__actions">
+        <a class="c-btn" href="{% url 'job_agent:lead_list' %}" aria-label="Retour à la liste des offres">Offres</a>
+        <a class="c-btn" href="{% url 'job_agent:lead_add' %}" aria-label="Ajouter une offre">Ajouter</a>
+        <a class="c-btn c-btn--primary" href="{% url 'job_agent:kanban' %}" aria-label="Ouvrir le kanban">Kanban</a>
+      </div>
+    </div>
+
+    <div class="ja-layout">
+      {% include "job_agent/_menu.html" with active="leads" %}
+
+      <div class="ja-content">
+
+        <section class="ja-card" aria-label="Instructions import">
+          <div class="ja-card__head">
+            <h2>Format d’import</h2>
+            <span class="ja-muted-2">Sépare chaque offre avec <strong>---</strong></span>
+          </div>
+          <div class="ja-card__body">
+            <div class="ja-calloutgrid" aria-label="Règles">
+              <div class="ja-callout">
+                <p class="ja-callout__k">Minimum</p>
+                <p class="ja-callout__v"><strong>URL:</strong> obligatoire</p>
+              </div>
+              <div class="ja-callout">
+                <p class="ja-callout__k">Recommandé</p>
+                <p class="ja-callout__v"><strong>Description:</strong> pour un score fiable</p>
+              </div>
+              <div class="ja-callout">
+                <p class="ja-callout__k">Résultat</p>
+                <p class="ja-callout__v">Import + scoring auto (si description)</p>
+              </div>
+            </div>
+
+            <div class="ja-divider" aria-hidden="true"></div>
+
+            <div class="ja-alert ja-alert--info" role="note">
+              <strong>Astuce :</strong> si tu n’as pas envie de coller tout le bloc, tu peux coller une URL par ligne.
+              Le système importera rapidement, puis tu complètes la description plus tard.
+            </div>
+          </div>
+        </section>
+
+        <div class="ja-divider" aria-hidden="true"></div>
+
+        <section class="ja-card" aria-label="Formulaire ajout en masse">
+          <div class="ja-card__head">
+            <h2>Importer</h2>
+            <span class="ja-muted-2">Ultra rapide. Ultra propre.</span>
+          </div>
+
+          <div class="ja-card__body">
+
+            {% if form.errors %}
+              <div class="ja-alert ja-alert--warn" role="alert" aria-label="Erreurs de formulaire">
+                <strong>Vérifie le formulaire :</strong> certains champs sont invalides.
+              </div>
+            {% endif %}
+
+            <form method="post" class="ja-form" novalidate>
+              {% csrf_token %}
+
+              <div class="ja-formgrid" aria-label="Champs import">
+
+                <div class="ja-col-6">
+                  <div class="ja-field">
+                    <label for="{{ form.default_source.id_for_label }}">Source par défaut</label>
+                    {{ form.default_source|add_class:"c-input" }}
+                    <p class="ja-help">Optionnel — ex: Indeed, LinkedIn, Site entreprise.</p>
+                    {% if form.default_source.errors %}<div class="ja-error">{{ form.default_source.errors }}</div>{% endif %}
+                  </div>
+                </div>
+
+                <div class="ja-col-12">
+                  <div class="ja-field">
+                    <label for="{{ form.payload.id_for_label }}">Offres à importer</label>
+                    {{ form.payload|add_class:"c-input ja-textarea ja-textarea--lg" }}
+                    <p class="ja-help">
+                      Colle tes offres ici. Sépare chaque offre avec <strong>---</strong>.
+                      Si tu colles seulement des URLs (une par ligne), c’est aussi OK.
+                    </p>
+                    {% if form.payload.errors %}<div class="ja-error">{{ form.payload.errors }}</div>{% endif %}
+                  </div>
+                </div>
+
+                <div class="ja-col-12">
+                  <div class="ja-sample" role="note" aria-label="Exemple de format">
+                    <div class="ja-sample__head">
+                      <strong>Exemple</strong>
+                      <span class="ja-muted-2">Copie/colle et adapte</span>
+                    </div>
+                    <pre class="ja-sample__code">URL: https://exemple.com/offre-1
+Titre: Développeur Python
+Entreprise: ACME
+Lieu: Paris
+Source: Indeed
+Description:
+Colle ici la description...
+---
+URL: https://exemple.com/offre-2
+Description:
+Colle ici la description...</pre>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="ja-divider" aria-hidden="true"></div>
+
+              <div class="ja-actions" aria-label="Actions import">
+                <button class="c-btn c-btn--primary" type="submit" aria-label="Importer et scorer automatiquement">
+                  Importer + scorer automatiquement
+                </button>
+                <a class="c-btn" href="{% url 'job_agent:lead_list' %}" aria-label="Retour aux offres">
+                  Retour aux offres
+                </a>
+              </div>
+            </form>
+
+          </div>
+
+          <div class="ja-card__foot">
+            <span class="ja-muted-2">
+              Après import, ouvre une offre pour vérifier le score, générer le pack et planifier la relance.
+            </span>
+          </div>
+        </section>
+
+        <div class="ja-toast" role="status" aria-live="polite" aria-atomic="true">
+          <span class="ja-toast__msg">OK</span>
+          <button class="ja-toast__btn" type="button" data-toast-dismiss aria-label="Fermer la notification">OK</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

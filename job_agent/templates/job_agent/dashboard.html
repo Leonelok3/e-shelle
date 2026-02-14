@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}job-agent{% endblock %}
+{% block app_scope %}job-agent{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'job_agent/job_agent.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'job_agent/job_agent.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="app-main job-agent">
+  <div class="ja-container">
+
+    <div class="ja-pagehead">
+      <div class="ja-pagehead__title">
+        <h1>Job Agent</h1>
+        <p>Postuler vite. Suivre proprement. Zéro friction.</p>
+      </div>
+      <div class="ja-pagehead__actions">
+        <a class="c-btn" href="{% url 'job_agent:lead_list' %}" aria-label="Voir les offres">Offres</a>
+        <a class="c-btn" href="{% url 'job_agent:lead_add' %}" aria-label="Ajouter une offre">Ajouter</a>
+        <a class="c-btn c-btn--primary" href="{% url 'job_agent:kanban' %}" aria-label="Ouvrir le kanban">Kanban</a>
+      </div>
+    </div>
+
+    <div class="ja-layout">
+      {% include "job_agent/_menu.html" with active="dashboard" %}
+
+      <div class="ja-content">
+
+        <section class="ja-stats" aria-label="Statistiques">
+          <div class="ja-stat">
+            <p class="ja-stat__k">Trouvées</p>
+            <p class="ja-stat__v">{{ counts.found|default:"0" }}</p>
+            <p class="ja-stat__hint">Nouvelles opportunités</p>
+          </div>
+
+          <div class="ja-stat">
+            <p class="ja-stat__k">À postuler</p>
+            <p class="ja-stat__v">{{ counts.to_apply|default:"0" }}</p>
+            <p class="ja-stat__hint">Action immédiate</p>
+          </div>
+
+          <div class="ja-stat">
+            <p class="ja-stat__k">Postulées</p>
+            <p class="ja-stat__v">{{ counts.applied|default:"0" }}</p>
+            <p class="ja-stat__hint">Suivi actif</p>
+          </div>
+
+          <div class="ja-stat">
+            <p class="ja-stat__k">Relances</p>
+            <p class="ja-stat__v">{{ counts.followup|default:"0" }}</p>
+            <p class="ja-stat__hint">À relancer / relancé</p>
+          </div>
+
+          <div class="ja-stat">
+            <p class="ja-stat__k">Réponses</p>
+            <p class="ja-stat__v">{{ counts.reply|default:"0" }}</p>
+            <p class="ja-stat__hint">Pipeline chaud</p>
+          </div>
+        </section>
+
+        <section class="ja-card" aria-label="Dernières offres">
+          <div class="ja-card__head">
+            <h2>Dernières offres</h2>
+            <div class="ja-pagehead__actions">
+              <a class="c-btn" href="{% url 'job_agent:lead_list' %}" aria-label="Voir toutes les offres">Tout voir</a>
+              <a class="c-btn c-btn--primary" href="{% url 'job_agent:lead_add' %}" aria-label="Ajouter une offre">Ajouter</a>
+            </div>
+          </div>
+
+          <div class="ja-card__body">
+            {% if leads %}
+              <div class="ja-grid">
+                {% for lead in leads %}
+                  {% include "job_agent/_lead_card.html" with lead=lead %}
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="ja-empty" role="note">
+                <div class="ja-empty__inner">
+                  <div class="ja-empty__icon" aria-hidden="true">
+                    <span class="ja-empty__glyph">✦</span>
+                  </div>
+                  <div>
+                    <h3 class="ja-empty__title">Aucune offre pour l’instant</h3>
+                    <p class="ja-empty__text">
+                      Ajoute une offre pour commencer : score, pack candidature, relance et suivi.
+                    </p>
+                    <div class="ja-empty__actions">
+                      <a class="c-btn c-btn--primary" href="{% url 'job_agent:lead_add' %}" aria-label="Ajouter une offre">Ajouter une offre</a>
+                      <a class="c-btn" href="{% url 'job_agent:kanban' %}" aria-label="Ouvrir le kanban">Ouvrir le kanban</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </section>
+
+        <div class="ja-toast" role="status" aria-live="polite" aria-atomic="true">
+          <span class="ja-toast__msg">Copié ✅</span>
+          <button class="ja-toast__btn" type="button" data-toast-dismiss aria-label="Fermer la notification">OK</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

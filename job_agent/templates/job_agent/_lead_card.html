@@ -1,0 +1,68 @@
+{# Expects: lead. Optional: kanban=True (renders inner instead of <a> wrapper) #}
+
+{% if kanban %}
+  <div class="ja-leadcard__body">
+    <div class="ja-leadcard__top">
+      <div class="ja-leadcard__title">
+        <strong>{{ lead.title|default:"Offre" }}</strong>
+        <span>
+          {{ lead.company|default:"Entreprise" }}{% if lead.location %} • {{ lead.location }}{% endif %}
+        </span>
+      </div>
+      {% include "job_agent/_status_badge.html" with status=lead.status %}
+    </div>
+
+    <div class="ja-leadcard__meta">
+      {% with s=lead.match_score|default:0 %}
+        <span class="ja-score {% if s >= 75 %}ja-score--good{% elif s >= 45 %}ja-score--mid{% else %}ja-score--low{% endif %}">
+          <span class="ja-score__dot" aria-hidden="true"></span>
+          <span>Score</span> <strong>{{ s }}</strong>
+        </span>
+      {% endwith %}
+
+      {% if lead.updated_at %}
+        <span class="ja-muted-2">Maj: {{ lead.updated_at|date:"d/m/Y" }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="ja-leadcard__foot">
+    <span class="ja-muted-2">Ouvrir le détail</span>
+    <a class="c-btn" href="{% url 'job_agent:lead_detail' lead.id %}" aria-label="Ouvrir le détail de l'offre">
+      Détail
+    </a>
+  </div>
+
+{% else %}
+  <a class="ja-leadcard" href="{% url 'job_agent:lead_detail' lead.id %}" aria-label="Ouvrir le détail de l'offre {{ lead.title|default:'Offre' }}">
+    <div class="ja-leadcard__body">
+      <div class="ja-leadcard__top">
+        <div class="ja-leadcard__title">
+          <strong>{{ lead.title|default:"Offre" }}</strong>
+          <span>
+            {{ lead.company|default:"Entreprise" }}{% if lead.location %} • {{ lead.location }}{% endif %}
+          </span>
+        </div>
+        {% include "job_agent/_status_badge.html" with status=lead.status %}
+      </div>
+
+      <div class="ja-leadcard__meta">
+        {% with s=lead.match_score|default:0 %}
+          <span class="ja-score {% if s >= 75 %}ja-score--good{% elif s >= 45 %}ja-score--mid{% else %}ja-score--low{% endif %}">
+            <span class="ja-score__dot" aria-hidden="true"></span>
+            <span>Score</span> <strong>{{ s }}</strong>
+          </span>
+        {% endwith %}
+
+        {% if lead.updated_at %}
+          <span class="ja-muted-2">Maj: {{ lead.updated_at|date:"d/m/Y" }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="ja-leadcard__foot">
+      <span class="ja-muted-2">Voir, générer pack, relancer</span>
+      <span class="ja-muted-2">Voir →</span>
+    </div>
+  </a>
+{% endif %}

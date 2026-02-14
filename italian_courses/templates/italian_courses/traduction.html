@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Traduction → Audio</title>
+  <style>
+    body { font-family: system-ui, Arial; max-width: 900px; margin: 24px auto; padding: 0 16px; }
+    textarea { width: 100%; min-height: 140px; padding: 12px; font-size: 16px; }
+    select, button { padding: 10px 12px; font-size: 16px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+    .box { background: #f6f6f6; padding: 12px; border-radius: 10px; }
+    .muted { opacity: .75; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Traduction de texte → Audio</h1>
+  <p class="muted">Traduction via LibreTranslate + Lecture audio via SpeechSynthesis (navigateur).</p>
+
+  <div class="box">
+    <label><strong>Texte à traduire</strong></label>
+    <textarea id="input" placeholder="Écris ton texte ici..."></textarea>
+
+    <div class="row">
+      <div>
+        <label class="muted">Langue source</label><br/>
+        <select id="source">
+          <option value="fr" selected>Français (fr)</option>
+          <option value="en">Anglais (en)</option>
+          <option value="es">Espagnol (es)</option>
+          <option value="de">Allemand (de)</option>
+          <option value="it">Italien (it)</option>
+          <option value="auto">Auto</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="muted">Langue cible</label><br/>
+        <select id="target">
+          <option value="it" selected>Italien (it)</option>
+          <option value="fr">Français (fr)</option>
+          <option value="en">Anglais (en)</option>
+          <option value="es">Espagnol (es)</option>
+          <option value="de">Allemand (de)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="muted">Vitesse voix</label><br/>
+        <select id="rate">
+          <option value="0.9">0.9</option>
+          <option value="1" selected>1.0</option>
+          <option value="1.1">1.1</option>
+          <option value="1.2">1.2</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <button id="btnTranslate">Traduire</button>
+      <button id="btnSpeak" disabled>🔊 Lire en audio</button>
+      <button id="btnStop">⏹ Stop</button>
+    </div>
+  </div>
+
+  <h2>Résultat (texte traduit)</h2>
+  <div class="box">
+    <textarea id="output" placeholder="La traduction apparaîtra ici..." readonly></textarea>
+    <div id="voiceInfo" class="muted"></div>
+  </div>
+
+  <script>
+    const input = document.getElementById("input");
+    const output = document.getElementById("output");
+    const source = document.getElementById("source");
+    const target = document.getElementById("target");
+    const rate = document.getElementById("rate");
+    const btnTranslate = document.getElementById("btnTranslate");
+    const btnSpeak = document.getElementById("btnSpeak");
+    const btnStop = document.getElementById("btnStop");
+    const voiceInfo = document.getElementById("voiceInfo");
+
+    // Endpoint public LibreTranslate (peut changer / limiter selon trafic)
+    const LT_URL = "https://libretranslate.de/translate";
+
+    async function translateText() {
+      const text = input.value.trim();
+      if (!text) { alert("Écris un texte d'abord 🙂"); return; }
+
+      btnTranslate.disabled = true;
+      btnSpeak.disabled = true;
+      output.value = "Traduction en cours...";
+
+      try {
+        const from = source.value;
+        const to = target.value;
+
+        const body = {
+          q: text,
+          source: from === "auto" ? "auto" : from,
+          target: to,
+          format: "text"
+        };
+
+        const res = await fetch(LT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        if (!res.ok) throw new Error("Erreur API traduction: " + res.status);
+        const data = await res.json();
+
+        output.value = data.translatedText || "";
+        btnSpeak.disabled = !output.value.trim();
+      } catch (e) {
+        output.value = "";
+        alert("Impossible de traduire. Essaie plus tard ou utilise un proxy.\n\n" + e.message);
+      } finally {
+        btnTranslate.disabled = false;
+      }
+    }
+
+    function pickVoice(lang) {
+      const voices = speechSynthesis.getVoices();
+      // essaye de trouver une voix correspondant à la langue (ex: "it-IT")
+      const exact = voices.find(v => (v.lang || "").toLowerCase().startsWith(lang.toLowerCase()));
+      return exact || voices[0] || null;
+    }
+
+    function speakText() {
+      const text = output.value.trim();
+      if (!text) return;
+
+      speechSynthesis.cancel();
+
+      const utter = new SpeechSynthesisUtterance(text);
+      const lang = target.value; // on lit dans la langue cible
+      utter.lang = lang;
+      utter.rate = parseFloat(rate.value);
+
+      const v = pickVoice(lang);
+      if (v) utter.voice = v;
+
+      voiceInfo.textContent = v ? `Voix: ${v.name} (${v.lang})` : "Voix: automatique";
+      speechSynthesis.speak(utter);
+    }
+
+    function stopSpeak() {
+      speechSynthesis.cancel();
+    }
+
+    btnTranslate.addEventListener("click", translateText);
+    btnSpeak.addEventListener("click", speakText);
+    btnStop.addEventListener("click", stopSpeak);
+
+    // Important: certaines voix chargent après coup
+    speechSynthesis.onvoiceschanged = () => {
+      const v = pickVoice(target.value);
+      if (v) voiceInfo.textContent = `Voix prête: ${v.name} (${v.lang})`;
+    };
+  </script>
+</body>
+</html>

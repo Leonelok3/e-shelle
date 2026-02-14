@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block body_class %}job-agent{% endblock %}
+{% block app_scope %}job-agent{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'job_agent/job_agent.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'job_agent/job_agent.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="app-main job-agent">
+  <div class="ja-container">
+
+    <div class="ja-pagehead">
+      <div class="ja-pagehead__title">
+        <h1>Ajouter une offre</h1>
+        <p>Colle un lien + (optionnel) la description pour obtenir un scoring immédiat.</p>
+      </div>
+      <div class="ja-pagehead__actions">
+        <a class="c-btn" href="{% url 'job_agent:lead_list' %}" aria-label="Retour à la liste des offres">Offres</a>
+        <a class="c-btn" href="{% url 'job_agent:dashboard' %}" aria-label="Retour au dashboard">Dashboard</a>
+        <a class="c-btn c-btn--primary" href="{% url 'job_agent:kanban' %}" aria-label="Ouvrir le kanban">Kanban</a>
+      </div>
+    </div>
+
+    <div class="ja-layout">
+      {% include "job_agent/_menu.html" with active="leads" %}
+
+      <div class="ja-content">
+
+        <section class="ja-card" aria-label="Conseils pour ajouter une offre">
+          <div class="ja-card__head">
+            <h2>Ajout rapide</h2>
+            <span class="ja-muted-2">2 étapes : URL → description (si tu l’as).</span>
+          </div>
+          <div class="ja-card__body">
+            <div class="ja-alert ja-alert--info" role="note">
+              <strong>Tip :</strong> si tu colles la description de l’offre, le score est plus fiable et le pack sera meilleur.
+            </div>
+            <div class="ja-calloutgrid" aria-label="Raccourcis">
+              <div class="ja-callout">
+                <p class="ja-callout__k">URL</p>
+                <p class="ja-callout__v">Indeed, LinkedIn, site entreprise…</p>
+              </div>
+              <div class="ja-callout">
+                <p class="ja-callout__k">Description</p>
+                <p class="ja-callout__v">Copier/coller (recommandé)</p>
+              </div>
+              <div class="ja-callout">
+                <p class="ja-callout__k">Résultat</p>
+                <p class="ja-callout__v">Score + statut suggéré</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="ja-divider" aria-hidden="true"></div>
+
+        <section class="ja-card" aria-label="Formulaire ajout offre">
+          <div class="ja-card__head">
+            <h2>Détails de l’offre</h2>
+            <span class="ja-muted-2">Tu peux remplir le minimum, puis compléter plus tard.</span>
+          </div>
+
+          <div class="ja-card__body">
+
+            {% if form.errors %}
+              <div class="ja-alert ja-alert--warn" role="alert" aria-label="Erreurs de formulaire">
+                <strong>Vérifie le formulaire :</strong> certains champs sont invalides.
+              </div>
+            {% endif %}
+
+            <form method="post" class="ja-form" novalidate>
+              {% csrf_token %}
+
+              <div class="ja-formgrid" aria-label="Champs offre">
+
+                <div class="ja-col-6">
+                  <div class="ja-field">
+                    <label for="{{ form.search.id_for_label }}">Recherche associée</label>
+                    {{ form.search|add_class:"c-input" }}
+                    <p class="ja-help">Optionnel — si vide, on associe automatiquement ta dernière recherche.</p>
+                  </div>
+                </div>
+
+                <div class="ja-col-6">
+                  <div class="ja-field">
+                    <label for="{{ form.source.id_for_label }}">Source</label>
+                    {{ form.source|add_class:"c-input" }}
+                    <p class="ja-help">Ex: Indeed, LinkedIn, Site entreprise…</p>
+                  </div>
+                </div>
+
+                <div class="ja-col-12">
+                  <div class="ja-field">
+                    <label for="{{ form.url.id_for_label }}">URL de l’offre</label>
+                    {{ form.url|add_class:"c-input" }}
+                    <p class="ja-help">Ce champ est le plus important : il évite les doublons et garde la trace.</p>
+                    {% if form.url.errors %}<div class="ja-error">{{ form.url.errors }}</div>{% endif %}
+                  </div>
+                </div>
+
+                <div class="ja-col-6">
+                  <div class="ja-field">
+                    <label for="{{ form.title.id_for_label }}">Titre</label>
+                    {{ form.title|add_class:"c-input" }}
+                    <p class="ja-help">Optionnel — utile si le site ne l’affiche pas clairement.</p>
+                  </div>
+                </div>
+
+                <div class="ja-col-6">
+                  <div class="ja-field">
+                    <label for="{{ form.company.id_for_label }}">Entreprise</label>
+                    {{ form.company|add_class:"c-input" }}
+                    <p class="ja-help">Optionnel — utile pour organiser ta liste.</p>
+                  </div>
+                </div>
+
+                <div class="ja-col-6">
+                  <div class="ja-field">
+                    <label for="{{ form.location.id_for_label }}">Lieu</label>
+                    {{ form.location|add_class:"c-input" }}
+                    <p class="ja-help">Ville / pays / remote.</p>
+                  </div>
+                </div>
+
+                <div class="ja-col-6">
+                  <div class="ja-field">
+                    <label for="{{ form.status.id_for_label }}">Statut</label>
+                    {{ form.status|add_class:"c-input" }}
+                    <p class="ja-help">Par défaut : “Trouvée”. Le score peut suggérer “À postuler”.</p>
+                  </div>
+                </div>
+
+                <div class="ja-col-12">
+                  <div class="ja-field">
+                    <label for="{{ form.description_text.id_for_label }}">Description (recommandé)</label>
+                    {{ form.description_text|add_class:"c-input ja-textarea" }}
+                    <p class="ja-help">
+                      Colle la description ici (ou les points clés). Ça améliore le scoring et la génération du pack.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="ja-divider" aria-hidden="true"></div>
+
+              <div class="ja-actions" aria-label="Actions formulaire">
+                <button class="c-btn c-btn--primary" type="submit" aria-label="Ajouter l'offre">
+                  Ajouter l’offre
+                </button>
+                <a class="c-btn" href="{% url 'job_agent:lead_list' %}" aria-label="Annuler et revenir aux offres">
+                  Annuler
+                </a>
+              </div>
+
+            </form>
+          </div>
+
+          <div class="ja-card__foot">
+            <span class="ja-muted-2">
+              Après ajout : tu pourras recalculer le score, générer le pack et envoyer une relance depuis le détail.
+            </span>
+          </div>
+
+        </section>
+
+        <div class="ja-toast" role="status" aria-live="polite" aria-atomic="true">
+          <span class="ja-toast__msg">OK</span>
+          <button class="ja-toast__btn" type="button" data-toast-dismiss aria-label="Fermer la notification">OK</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

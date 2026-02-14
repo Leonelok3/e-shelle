@@ -161,6 +161,9 @@ urlpatterns = [
     # path("account/", include("two_factor.urls")),
     path("api/eligibility/", include("eligibility.urls")),
     path("italien/", include("italian_courses.urls")),
+    # AGENT IA POUR POSTULER
+    path("jobs/", include(("job_agent.urls", "job_agent"), namespace="job_agent")),
+
 ]
 
 

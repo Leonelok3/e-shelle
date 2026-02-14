@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}job-agent{% endblock %}
+{% block app_scope %}job-agent{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'job_agent/job_agent.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'job_agent/job_agent.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="app-main job-agent">
+  <div class="ja-container">
+
+    <div class="ja-pagehead">
+      <div class="ja-pagehead__title">
+        <h1>Kanban</h1>
+        <p>Déplace tes offres pour garder un pipeline net (et postuler vite).</p>
+      </div>
+      <div class="ja-pagehead__actions">
+        <a class="c-btn" href="{% url 'job_agent:lead_list' %}" aria-label="Retour à la liste des offres">Offres</a>
+        <a class="c-btn" href="{% url 'job_agent:dashboard' %}" aria-label="Retour au dashboard">Dashboard</a>
+      </div>
+    </div>
+
+    <div class="ja-layout">
+      {% include "job_agent/_menu.html" with active="kanban" %}
+
+      <div class="ja-content">
+
+        <form class="ja-hidden" aria-hidden="true" tabindex="-1">
+          {% csrf_token %}
+        </form>
+
+        <section class="ja-card" aria-label="Tableau kanban">
+          <div class="ja-card__head">
+            <h2>Pipeline</h2>
+            <span class="ja-muted-2">Astuce : clique une carte pour ouvrir le détail.</span>
+          </div>
+
+          <div class="ja-card__body">
+
+            <div class="ja-kanban" data-kanban>
+
+              <div class="ja-kanban__col" aria-label="Colonne Trouvées">
+                <div class="ja-kanban__colhead">
+                  <strong>Trouvées</strong>
+                  <span class="ja-kanban__count">{{ grouped.found|length }}</span>
+                </div>
+
+                <div class="ja-kanban__list" data-droppable="true" data-status="found" aria-label="Liste Trouvées">
+                  {% for lead in grouped.found %}
+                    <article class="ja-kanban__card ja-kanban__card--lead"
+                             data-draggable-card="true"
+                             draggable="true"
+                             data-lead-id="{{ lead.id }}"
+                             aria-label="Offre {{ lead.title|default:'Offre' }}">
+                      {% include "job_agent/_lead_card.html" with lead=lead kanban=True %}
+                    </article>
+                  {% empty %}
+                    <div class="ja-kanban__empty" role="note">
+                      <p class="ja-muted">Dépose une offre ici.</p>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="ja-kanban__col" aria-label="Colonne À postuler">
+                <div class="ja-kanban__colhead">
+                  <strong>À postuler</strong>
+                  <span class="ja-kanban__count">{{ grouped.to_apply|length }}</span>
+                </div>
+
+                <div class="ja-kanban__list" data-droppable="true" data-status="to_apply" aria-label="Liste À postuler">
+                  {% for lead in grouped.to_apply %}
+                    <article class="ja-kanban__card ja-kanban__card--lead"
+                             data-draggable-card="true"
+                             draggable="true"
+                             data-lead-id="{{ lead.id }}"
+                             aria-label="Offre {{ lead.title|default:'Offre' }}">
+                      {% include "job_agent/_lead_card.html" with lead=lead kanban=True %}
+                    </article>
+                  {% empty %}
+                    <div class="ja-kanban__empty" role="note">
+                      <p class="ja-muted">Dépose une offre ici.</p>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="ja-kanban__col" aria-label="Colonne Postulées">
+                <div class="ja-kanban__colhead">
+                  <strong>Postulées</strong>
+                  <span class="ja-kanban__count">{{ grouped.applied|length }}</span>
+                </div>
+
+                <div class="ja-kanban__list" data-droppable="true" data-status="applied" aria-label="Liste Postulées">
+                  {% for lead in grouped.applied %}
+                    <article class="ja-kanban__card ja-kanban__card--lead"
+                             data-draggable-card="true"
+                             draggable="true"
+                             data-lead-id="{{ lead.id }}"
+                             aria-label="Offre {{ lead.title|default:'Offre' }}">
+                      {% include "job_agent/_lead_card.html" with lead=lead kanban=True %}
+                    </article>
+                  {% empty %}
+                    <div class="ja-kanban__empty" role="note">
+                      <p class="ja-muted">Dépose une offre ici.</p>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="ja-kanban__col" aria-label="Colonne Relance">
+                <div class="ja-kanban__colhead">
+                  <strong>Relance</strong>
+                  <span class="ja-kanban__count">{{ grouped.followup|length }}</span>
+                </div>
+
+                <div class="ja-kanban__list" data-droppable="true" data-status="followup" aria-label="Liste Relance">
+                  {% for lead in grouped.followup %}
+                    <article class="ja-kanban__card ja-kanban__card--lead"
+                             data-draggable-card="true"
+                             draggable="true"
+                             data-lead-id="{{ lead.id }}"
+                             aria-label="Offre {{ lead.title|default:'Offre' }}">
+                      {% include "job_agent/_lead_card.html" with lead=lead kanban=True %}
+                    </article>
+                  {% empty %}
+                    <div class="ja-kanban__empty" role="note">
+                      <p class="ja-muted">Dépose une offre ici.</p>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="ja-kanban__col" aria-label="Colonne Réponse">
+                <div class="ja-kanban__colhead">
+                  <strong>Réponse</strong>
+                  <span class="ja-kanban__count">{{ grouped.reply|length }}</span>
+                </div>
+
+                <div class="ja-kanban__list" data-droppable="true" data-status="reply" aria-label="Liste Réponse">
+                  {% for lead in grouped.reply %}
+                    <article class="ja-kanban__card ja-kanban__card--lead"
+                             data-draggable-card="true"
+                             draggable="true"
+                             data-lead-id="{{ lead.id }}"
+                             aria-label="Offre {{ lead.title|default:'Offre' }}">
+                      {% include "job_agent/_lead_card.html" with lead=lead kanban=True %}
+                    </article>
+                  {% empty %}
+                    <div class="ja-kanban__empty" role="note">
+                      <p class="ja-muted">Dépose une offre ici.</p>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+            </div>
+
+            {% if grouped.found|length == 0 and grouped.to_apply|length == 0 and grouped.applied|length == 0 and grouped.followup|length == 0 and grouped.reply|length == 0 %}
+              <div class="ja-divider" aria-hidden="true"></div>
+              <div class="ja-empty" role="note">
+                <div class="ja-empty__inner">
+                  <div class="ja-empty__icon" aria-hidden="true">
+                    <span class="ja-empty__glyph">✦</span>
+                  </div>
+                  <div>
+                    <h3 class="ja-empty__title">Kanban vide</h3>
+                    <p class="ja-empty__text">Ajoute des offres, puis organise-les par statut.</p>
+                    <div class="ja-empty__actions">
+                      <a class="c-btn c-btn--primary" href="{% url 'job_agent:lead_add' %}" aria-label="Ajouter une offre">Ajouter une offre</a>
+                      <a class="c-btn" href="{% url 'job_agent:lead_list' %}" aria-label="Voir les offres">Voir les offres</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+
+          </div>
+        </section>
+
+        <div class="ja-toast" role="status" aria-live="polite" aria-atomic="true">
+          <span class="ja-toast__msg">Statut mis à jour ✅</span>
+          <button class="ja-toast__btn" type="button" data-toast-dismiss aria-label="Fermer la notification">OK</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

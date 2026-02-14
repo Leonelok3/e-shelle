@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}job-agent{% endblock %}
+{% block app_scope %}job-agent{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'job_agent/job_agent.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'job_agent/job_agent.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="app-main job-agent">
+  <div class="ja-container">
+
+    <!-- HEADER -->
+    <div class="ja-pagehead">
+      <div class="ja-pagehead__title">
+        <h1>Pack de candidature</h1>
+        <p>
+          {% if lead %}
+            <span class="ja-muted">{{ lead.title }}</span>
+            <span class="ja-muted-2"> • {{ lead.company|default:"Entreprise" }}</span>
+          {% else %}
+            Email + lettre + réponses suggérées.
+          {% endif %}
+        </p>
+      </div>
+
+      <div class="ja-pagehead__actions">
+        <a class="c-btn" href="{% url 'job_agent:lead_list' %}">
+          Offres
+        </a>
+
+        {% if lead %}
+          <a class="c-btn" href="{% url 'job_agent:lead_detail' lead.id %}">
+            Détail offre
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="ja-layout">
+      {% include "job_agent/_menu.html" with active="pack" %}
+
+      <div class="ja-content">
+
+        {% if not pack %}
+          {% include "job_agent/_empty.html" with
+            title="Pack indisponible"
+            text="Génère un pack depuis le détail d’une offre."
+            primary_label="Retour au détail"
+            primary_href=lead_detail_url
+            secondary_label="Voir les offres"
+            secondary_href=leads_url
+          %}
+        {% else %}
+
+        <!-- ========================= -->
+        <!-- EMAIL -->
+        <!-- ========================= -->
+        <section class="ja-card">
+          <div class="ja-card__head">
+            <h2>Email</h2>
+
+            <div class="ja-pagehead__actions">
+              <button class="c-btn"
+                      type="button"
+                      data-copy
+                      data-copy-target="#ja-email-subject"
+                      data-copy-toast="Objet copié ✅">
+                Copier objet
+              </button>
+
+              <button class="c-btn c-btn--primary"
+                      type="button"
+                      data-copy
+                      data-copy-target="#ja-email-body"
+                      data-copy-toast="Email copié ✅">
+                Copier email
+              </button>
+            </div>
+          </div>
+
+          <div class="ja-card__body">
+
+            <div class="ja-block">
+              <div class="ja-block__head">
+                <h3>Objet</h3>
+              </div>
+              <pre id="ja-email-subject">{{ pack.email_subject }}</pre>
+            </div>
+
+            <div class="ja-divider"></div>
+
+            <div class="ja-block">
+              <div class="ja-block__head">
+                <h3>Message</h3>
+              </div>
+              <pre id="ja-email-body">{{ pack.generated_email }}</pre>
+            </div>
+
+          </div>
+
+          <div class="ja-card__foot">
+            <button class="c-btn"
+                    type="button"
+                    data-copy
+                    data-copy-target="#ja-email-full"
+                    data-copy-toast="Email complet copié ✅">
+              Copier objet + message
+            </button>
+
+            <!-- bloc invisible pour copie complète -->
+            <pre id="ja-email-full" class="ja-hidden">
+{{ pack.email_subject }}
+
+{{ pack.generated_email }}
+            </pre>
+          </div>
+        </section>
+
+        <div class="ja-divider"></div>
+
+        <!-- ========================= -->
+        <!-- LETTRE -->
+        <!-- ========================= -->
+        <section class="ja-card">
+          <div class="ja-card__head">
+            <h2>Lettre</h2>
+
+            <div class="ja-pagehead__actions">
+              <button class="c-btn c-btn--primary"
+                      type="button"
+                      data-copy
+                      data-copy-target="#ja-letter"
+                      data-copy-toast="Lettre copiée ✅">
+                Copier la lettre
+              </button>
+            </div>
+          </div>
+
+          <div class="ja-card__body">
+            <pre id="ja-letter">{{ pack.generated_letter }}</pre>
+          </div>
+        </section>
+
+        <div class="ja-divider"></div>
+
+        <!-- ========================= -->
+        <!-- RÉPONSES -->
+        <!-- ========================= -->
+        <section class="ja-card">
+          <div class="ja-card__head">
+            <h2>Réponses suggérées</h2>
+
+            <div class="ja-pagehead__actions">
+              <button class="c-btn"
+                      type="button"
+                      data-copy
+                      data-copy-target="#ja-answers"
+                      data-copy-toast="Réponses copiées ✅">
+                Copier réponses
+              </button>
+            </div>
+          </div>
+
+          <div class="ja-card__body">
+            <pre id="ja-answers">
+{% for key, value in pack.suggested_answers.items %}
+{{ key }} :
+{{ value }}
+
+{% endfor %}
+            </pre>
+          </div>
+
+          <div class="ja-card__foot">
+            <button class="c-btn c-btn--primary"
+                    type="button"
+                    data-copy
+                    data-copy-target="#ja-pack-full"
+                    data-copy-toast="Pack complet copié ✅">
+              Copier tout
+            </button>
+
+            <!-- bloc invisible pour copie complète -->
+            <pre id="ja-pack-full" class="ja-hidden">
+{{ pack.email_subject }}
+
+{{ pack.generated_email }}
+
+---
+
+{{ pack.generated_letter }}
+
+---
+
+{% for key, value in pack.suggested_answers.items %}
+{{ key }} :
+{{ value }}
+
+{% endfor %}
+            </pre>
+          </div>
+        </section>
+
+        {% endif %}
+
+        <!-- TOAST -->
+        <div class="ja-toast" role="status" aria-live="polite" aria-atomic="true">
+          <span class="ja-toast__msg">Copié ✅</span>
+          <button class="ja-toast__btn"
+                  type="button"
+                  data-toast-dismiss>
+            OK
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

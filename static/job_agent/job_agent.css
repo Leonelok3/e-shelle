@@ -1,0 +1,761 @@
+/* =========================================================
+   Job Agent — Premium UI (scoped)
+   Scope STRICT:
+   - body.job-agent
+   - .app-main.job-agent
+   ========================================================= */
+
+body.job-agent .app-main.job-agent {
+  /* Local design tokens (fallbacks only) */
+  --ja-bg: var(--color-bg, #0b1020);
+  --ja-surface: var(--color-surface, rgba(255, 255, 255, 0.06));
+  --ja-surface-2: var(--color-surface-2, rgba(255, 255, 255, 0.08));
+  --ja-border: var(--color-border, rgba(255, 255, 255, 0.12));
+  --ja-text: var(--color-text, rgba(255, 255, 255, 0.92));
+  --ja-muted: var(--color-muted, rgba(255, 255, 255, 0.72));
+  --ja-muted-2: var(--color-muted-2, rgba(255, 255, 255, 0.56));
+  --ja-focus: var(--color-focus, rgba(99, 102, 241, 0.55));
+
+  --ja-radius: 18px;
+  --ja-radius-sm: 12px;
+
+  --ja-shadow-1: 0 10px 30px rgba(0, 0, 0, 0.25);
+  --ja-shadow-2: 0 16px 50px rgba(0, 0, 0, 0.35);
+
+  --ja-gap-1: 10px;
+  --ja-gap-2: 14px;
+  --ja-gap-3: 18px;
+  --ja-gap-4: 24px;
+  --ja-gap-5: 32px;
+
+  color: var(--ja-text);
+}
+
+/* Typography helpers */
+body.job-agent .app-main.job-agent .ja-muted { color: var(--ja-muted); }
+body.job-agent .app-main.job-agent .ja-muted-2 { color: var(--ja-muted-2); }
+
+body.job-agent .app-main.job-agent a {
+  color: inherit;
+  text-decoration: none;
+}
+
+body.job-agent .app-main.job-agent a:focus-visible,
+body.job-agent .app-main.job-agent button:focus-visible,
+body.job-agent .app-main.job-agent input:focus-visible,
+body.job-agent .app-main.job-agent select:focus-visible {
+  outline: 2px solid var(--ja-focus);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+body.job-agent .app-main.job-agent .sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Container */
+body.job-agent .app-main.job-agent .ja-container {
+  width: min(1160px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 46px;
+}
+
+/* Page header */
+body.job-agent .app-main.job-agent .ja-pagehead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ja-gap-3);
+  margin-bottom: var(--ja-gap-4);
+}
+
+body.job-agent .app-main.job-agent .ja-pagehead__title h1 {
+  margin: 0 0 8px;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+}
+
+body.job-agent .app-main.job-agent .ja-pagehead__title p {
+  margin: 0;
+  color: var(--ja-muted);
+  line-height: 1.5;
+  max-width: 62ch;
+}
+
+body.job-agent .app-main.job-agent .ja-pagehead__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Layout with left menu */
+body.job-agent .app-main.job-agent .ja-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--ja-gap-4);
+  align-items: start;
+}
+
+body.job-agent .app-main.job-agent .ja-content {
+  min-width: 0;
+}
+
+/* Menu */
+body.job-agent .app-main.job-agent .ja-menu {
+  position: sticky;
+  top: 18px;
+  border-radius: var(--ja-radius);
+  border: 1px solid var(--ja-border);
+  background: linear-gradient(180deg, var(--ja-surface), rgba(255,255,255,0.03));
+  box-shadow: var(--ja-shadow-1);
+  overflow: hidden;
+}
+
+body.job-agent .app-main.job-agent .ja-menu__head {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--ja-border);
+}
+
+body.job-agent .app-main.job-agent .ja-appname {
+  margin: 0 0 4px;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--ja-text);
+}
+
+body.job-agent .app-main.job-agent .ja-apphint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ja-muted);
+  line-height: 1.4;
+}
+
+body.job-agent .app-main.job-agent .ja-menu__nav {
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+body.job-agent .app-main.job-agent .ja-menu__link {
+  display: grid;
+  gap: 2px;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ja-text);
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+body.job-agent .app-main.job-agent .ja-menu__link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+body.job-agent .app-main.job-agent .ja-menu__link[aria-current="page"] {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+body.job-agent .app-main.job-agent .ja-menu__meta {
+  font-size: 12px;
+  color: var(--ja-muted-2);
+}
+
+body.job-agent .app-main.job-agent .ja-menu__link.is-disabled,
+body.job-agent .app-main.job-agent .ja-menu__link[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Cards */
+body.job-agent .app-main.job-agent .ja-card {
+  border-radius: var(--ja-radius);
+  border: 1px solid var(--ja-border);
+  background: linear-gradient(180deg, var(--ja-surface), rgba(255,255,255,0.03));
+  box-shadow: var(--ja-shadow-1);
+  overflow: hidden;
+}
+
+body.job-agent .app-main.job-agent .ja-card__head {
+  padding: 16px 16px;
+  border-bottom: 1px solid var(--ja-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ja-gap-2);
+}
+
+body.job-agent .app-main.job-agent .ja-card__head h2,
+body.job-agent .app-main.job-agent .ja-card__head h3 {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+
+body.job-agent .app-main.job-agent .ja-card__body {
+  padding: 16px;
+}
+
+body.job-agent .app-main.job-agent .ja-card__foot {
+  padding: 14px 16px;
+  border-top: 1px solid var(--ja-border);
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Inner card (used in lead_detail) */
+body.job-agent .app-main.job-agent .ja-card--inner {
+  border-radius: var(--ja-radius-sm);
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.04);
+  box-shadow: none;
+}
+
+/* Dividers */
+body.job-agent .app-main.job-agent .ja-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.10);
+  margin: 16px 0;
+}
+
+/* Blocks (pre/code text areas) */
+body.job-agent .app-main.job-agent .ja-block {
+  border-radius: var(--ja-radius-sm);
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.20);
+  overflow: hidden;
+}
+
+body.job-agent .app-main.job-agent .ja-block__head {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+body.job-agent .app-main.job-agent .ja-block__head h3 {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ja-text);
+}
+
+body.job-agent .app-main.job-agent pre {
+  margin: 0;
+  padding: 12px;
+  color: rgba(255,255,255,0.90);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Forms */
+body.job-agent .app-main.job-agent .ja-field label {
+  display: block;
+  font-size: 13px;
+  color: var(--ja-muted);
+  margin: 0 0 6px;
+}
+
+body.job-agent .app-main.job-agent .ja-help {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--ja-muted-2);
+  line-height: 1.45;
+}
+
+body.job-agent .app-main.job-agent .ja-formgrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--ja-gap-3);
+}
+
+body.job-agent .app-main.job-agent .ja-col-6 { min-width: 0; }
+
+/* Stats (dashboard) */
+body.job-agent .app-main.job-agent .ja-stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--ja-gap-3);
+  margin-bottom: var(--ja-gap-4);
+}
+
+body.job-agent .app-main.job-agent .ja-stat {
+  border-radius: var(--ja-radius);
+  border: 1px solid var(--ja-border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+  box-shadow: var(--ja-shadow-1);
+  padding: 16px;
+}
+
+body.job-agent .app-main.job-agent .ja-stat__k {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--ja-muted-2);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+body.job-agent .app-main.job-agent .ja-stat__v {
+  margin: 0 0 6px;
+  font-size: 26px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+body.job-agent .app-main.job-agent .ja-stat__hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ja-muted);
+}
+
+/* Grid of cards */
+body.job-agent .app-main.job-agent .ja-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--ja-gap-3);
+}
+
+/* Lead card */
+body.job-agent .app-main.job-agent .ja-leadcard {
+  display: grid;
+  border-radius: var(--ja-radius);
+  border: 1px solid var(--ja-border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+  box-shadow: var(--ja-shadow-1);
+  overflow: hidden;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+body.job-agent .app-main.job-agent .ja-leadcard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,0.18);
+  background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.04));
+}
+
+body.job-agent .app-main.job-agent .ja-leadcard__body {
+  padding: 14px 14px 10px;
+}
+
+body.job-agent .app-main.job-agent .ja-leadcard__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+body.job-agent .app-main.job-agent .ja-leadcard__title strong {
+  display: block;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+body.job-agent .app-main.job-agent .ja-leadcard__title span {
+  display: block;
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--ja-muted);
+  line-height: 1.35;
+}
+
+body.job-agent .app-main.job-agent .ja-leadcard__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+body.job-agent .app-main.job-agent .ja-leadcard__foot {
+  padding: 10px 14px 12px;
+  border-top: 1px solid rgba(255,255,255,0.10);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Badge + Status */
+body.job-agent .app-main.job-agent .ja-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.88);
+  white-space: nowrap;
+}
+
+/* Soft badge helper (dashboard searches) */
+body.job-agent .app-main.job-agent .ja-badge--soft {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.82);
+}
+
+/* Status color variants (no inline colors; class-based) */
+body.job-agent .app-main.job-agent .ja-status--found {
+  background: rgba(59, 130, 246, 0.14);
+  border-color: rgba(59, 130, 246, 0.26);
+  color: rgba(219, 234, 254, 0.95);
+}
+
+body.job-agent .app-main.job-agent .ja-status--to-apply {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.28);
+  color: rgba(255, 237, 213, 0.95);
+}
+
+body.job-agent .app-main.job-agent .ja-status--applied {
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(16, 185, 129, 0.28);
+  color: rgba(209, 250, 229, 0.95);
+}
+
+body.job-agent .app-main.job-agent .ja-status--followup {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.28);
+  color: rgba(224, 231, 255, 0.96);
+}
+
+body.job-agent .app-main.job-agent .ja-status--reply {
+  background: rgba(236, 72, 153, 0.16);
+  border-color: rgba(236, 72, 153, 0.28);
+  color: rgba(251, 207, 232, 0.96);
+}
+
+/* Score pill */
+body.job-agent .app-main.job-agent .ja-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  font-size: 12px;
+  color: rgba(255,255,255,0.86);
+}
+
+body.job-agent .app-main.job-agent .ja-score__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+  background: rgba(148, 163, 184, 0.9);
+}
+
+body.job-agent .app-main.job-agent .ja-score--low .ja-score__dot { background: rgba(239, 68, 68, 0.9); }
+body.job-agent .app-main.job-agent .ja-score--mid .ja-score__dot { background: rgba(245, 158, 11, 0.95); }
+body.job-agent .app-main.job-agent .ja-score--good .ja-score__dot { background: rgba(16, 185, 129, 0.95); }
+
+/* Empty state */
+body.job-agent .app-main.job-agent .ja-empty {
+  border-radius: var(--ja-radius);
+  border: 1px dashed rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.04);
+  padding: 18px;
+}
+
+body.job-agent .app-main.job-agent .ja-empty__inner {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+body.job-agent .app-main.job-agent .ja-empty__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  display: grid;
+  place-items: center;
+}
+
+body.job-agent .app-main.job-agent .ja-empty__glyph {
+  font-size: 18px;
+  color: rgba(255,255,255,0.78);
+}
+
+body.job-agent .app-main.job-agent .ja-empty__title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+body.job-agent .app-main.job-agent .ja-empty__text {
+  margin: 0;
+  color: var(--ja-muted);
+  line-height: 1.5;
+}
+
+body.job-agent .app-main.job-agent .ja-empty__hint {
+  margin: 10px 0 0;
+  color: var(--ja-muted-2);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+body.job-agent .app-main.job-agent .ja-empty__actions {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Toast */
+body.job-agent .app-main.job-agent .ja-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%) translateY(10px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 60;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--ja-shadow-2);
+}
+
+body.job-agent .app-main.job-agent .ja-toast.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+body.job-agent .app-main.job-agent .ja-toast__msg {
+  font-size: 13px;
+  color: rgba(255,255,255,0.92);
+}
+
+body.job-agent .app-main.job-agent .ja-toast__btn {
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.92);
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+/* Hide helper used for copy buffers */
+body.job-agent .app-main.job-agent .ja-hidden {
+  position: absolute !important;
+  left: -9999px !important;
+  top: auto !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
+/* List rows (dashboard searches) */
+body.job-agent .app-main.job-agent .ja-list {
+  display: grid;
+  gap: 10px;
+}
+
+body.job-agent .app-main.job-agent .ja-list__row {
+  border-radius: var(--ja-radius-sm);
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.04);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+body.job-agent .app-main.job-agent .ja-list__main { min-width: 0; }
+body.job-agent .app-main.job-agent .ja-list__title {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.job-agent .app-main.job-agent .ja-list__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Kanban */
+body.job-agent .app-main.job-agent .ja-kanban {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--ja-gap-3);
+}
+
+body.job-agent .app-main.job-agent .ja-kanban__col {
+  border-radius: var(--ja-radius);
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.04);
+  overflow: hidden;
+}
+
+body.job-agent .app-main.job-agent .ja-kanban__colhead {
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+body.job-agent .app-main.job-agent .ja-kanban__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  font-size: 12px;
+  color: rgba(255,255,255,0.86);
+}
+
+body.job-agent .app-main.job-agent .ja-kanban__list {
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+  min-height: 72px;
+}
+
+body.job-agent .app-main.job-agent .ja-kanban__list.is-over {
+  outline: 2px solid rgba(99, 102, 241, 0.35);
+  outline-offset: -2px;
+  border-radius: 14px;
+}
+
+body.job-agent .app-main.job-agent .ja-kanban__card {
+  border-radius: var(--ja-radius);
+  overflow: hidden;
+}
+
+body.job-agent .app-main.job-agent .ja-kanban__card.is-dragging {
+  opacity: 0.82;
+  transform: rotate(0.2deg) scale(0.995);
+}
+
+body.job-agent .app-main.job-agent .ja-kanban__empty {
+  border-radius: 14px;
+  border: 1px dashed rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.03);
+  padding: 12px;
+}
+
+body.job-agent .app-main.job-agent .ja-kanban__fallback {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Search form in lead_list */
+body.job-agent .app-main.job-agent .ja-search {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Responsive */
+@media (min-width: 720px) {
+  body.job-agent .app-main.job-agent .ja-formgrid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--ja-gap-4);
+  }
+
+  body.job-agent .app-main.job-agent .ja-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  body.job-agent .app-main.job-agent .ja-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  body.job-agent .app-main.job-agent .ja-kanban {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  body.job-agent .app-main.job-agent .ja-stats {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  body.job-agent .app-main.job-agent .ja-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  body.job-agent .app-main.job-agent .ja-kanban {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 920px) {
+  body.job-agent .app-main.job-agent .ja-layout {
+    grid-template-columns: 1fr;
+  }
+
+  body.job-agent .app-main.job-agent .ja-menu {
+    position: static;
+  }
+
+  body.job-agent .app-main.job-agent .ja-pagehead {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  body.job-agent .app-main.job-agent .ja-pagehead__actions {
+    justify-content: flex-start;
+  }
+
+  body.job-agent .app-main.job-agent .ja-search {
+    width: 100%;
+  }
+
+  body.job-agent .app-main.job-agent .ja-search .c-input {
+    flex: 1;
+    min-width: 0;
+  }
+}

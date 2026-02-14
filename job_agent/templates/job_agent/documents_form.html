@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block title %}CV / Lettre{% endblock %}
+
+{% block content %}
+<h1>CV / Lettre</h1>
+{% include "job_agent/_menu.html" %}
+
+
+<div class="c-card" style="padding:14px; margin-bottom:14px;">
+  <p>
+    Pour un scoring précis, colle le texte du CV + la lettre de base.
+    (Upload fichiers utile pour ton archive, mais le matching MVP utilise surtout le texte.)
+  </p>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="c-card" style="padding:14px;">
+  {% csrf_token %}
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <div>
+      <label>Fichier CV</label>
+      {{ form.cv_file }}
+    </div>
+    <div>
+      <label>Fichier lettre</label>
+      {{ form.cover_letter_file }}
+    </div>
+  </div>
+
+  <div style="margin-top:12px;">
+    <label>Texte CV (recommandé)</label>
+    {{ form.cv_text|add_class:"c-input" }}
+  </div>
+
+  <div style="margin-top:12px;">
+    <label>Lettre de motivation de base</label>
+    {{ form.base_letter_text|add_class:"c-input" }}
+  </div>
+
+  <div style="margin-top:14px; display:flex; gap:10px;">
+
+    <div style="margin-top:12px;">
+  <label style="display:flex; gap:10px; align-items:center;">
+    {{ form.auto_extract_cv }}
+    <span>Extraire automatiquement le texte du CV (PDF)</span>
+  </label>
+  <small>{{ form.auto_extract_cv.help_text }}</small>
+</div>
+
+    <button class="c-btn c-btn--primary" type="submit">Enregistrer</button>
+    <a class="c-btn c-btn--outline" href="{% url 'job_agent:dashboard' %}">Retour</a>
+  </div>
+</form>
+{% endblock %}

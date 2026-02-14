@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Offres publiques{% endblock %}
+
+{% block content %}
+<h1>Offres publiques</h1>
+{% include "job_agent/_menu.html" %}
+
+<div class="c-card" style="padding:14px;">
+  {% if offers %}
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="text-align:left; padding:8px;">Offre</th>
+          <th style="text-align:left; padding:8px;">Entreprise</th>
+          <th style="text-align:left; padding:8px;">Lieu</th>
+          <th style="text-align:left; padding:8px;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in offers %}
+          <tr>
+            <td style="padding:8px;">
+              <strong>{{ o.title }}</strong><br>
+              <small><a href="{{ o.url }}" target="_blank" rel="noopener">Ouvrir</a></small>
+            </td>
+            <td style="padding:8px;">{{ o.company|default:"—" }}</td>
+            <td style="padding:8px;">{{ o.location|default:"—" }}</td>
+            <td style="padding:8px;">
+              <a class="c-btn c-btn--primary" href="{% url 'job_agent:import_public_offer' o.id %}">
+                Importer
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Aucune offre publique disponible.</p>
+  {% endif %}
+</div>
+{% endblock %}

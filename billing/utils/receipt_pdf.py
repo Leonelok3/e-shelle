@@ -182,3 +182,4 @@ def render_receipt_pdf(receipt, response: HttpResponse) -> None:
 
     p.showPage()
     p.save()
+

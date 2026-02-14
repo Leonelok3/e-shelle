@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}job-agent{% endblock %}
+{% block app_scope %}job-agent{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'job_agent/job_agent.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'job_agent/job_agent.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="app-main job-agent">
+  <div class="ja-container">
+
+    <div class="ja-pagehead">
+      <div class="ja-pagehead__title">
+        <h1>Offres</h1>
+        <p>Décide vite : statut, score, prochaine action.</p>
+      </div>
+      <div class="ja-pagehead__actions">
+        <a class="c-btn" href="{% url 'job_agent:dashboard' %}" aria-label="Retour au dashboard">Dashboard</a>
+        <a class="c-btn" href="{% url 'job_agent:lead_add' %}" aria-label="Ajouter une offre">Ajouter</a>
+        <a class="c-btn" href="{% url 'job_agent:lead_bulk_add' %}" aria-label="Ajouter des offres en masse">Ajout masse</a>
+        <a class="c-btn c-btn--primary" href="{% url 'job_agent:kanban' %}" aria-label="Ouvrir le kanban">Kanban</a>
+      </div>
+    </div>
+
+    <div class="ja-layout">
+      {% include "job_agent/_menu.html" with active="leads" %}
+
+      <div class="ja-content">
+        <section class="ja-card" aria-label="Liste des offres">
+          <div class="ja-card__head">
+            <h2>Offres suivies</h2>
+          </div>
+
+          <div class="ja-card__body">
+            {% if leads %}
+              <div class="ja-grid">
+                {% for lead in leads %}
+                  {% include "job_agent/_lead_card.html" with lead=lead %}
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="ja-empty" role="note">
+                <div class="ja-empty__inner">
+                  <div class="ja-empty__icon" aria-hidden="true">
+                    <span class="ja-empty__glyph">✦</span>
+                  </div>
+                  <div>
+                    <h3 class="ja-empty__title">Aucune offre</h3>
+                    <p class="ja-empty__text">
+                      Ajoute une offre (ou importe en masse) pour générer rapidement tes packs de candidature.
+                    </p>
+                    <div class="ja-empty__actions">
+                      <a class="c-btn c-btn--primary" href="{% url 'job_agent:lead_add' %}" aria-label="Ajouter une offre">Ajouter une offre</a>
+                      <a class="c-btn" href="{% url 'job_agent:lead_bulk_add' %}" aria-label="Ajout en masse">Ajout en masse</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </section>
+
+        <div class="ja-toast" role="status" aria-live="polite" aria-atomic="true">
+          <span class="ja-toast__msg">Copié ✅</span>
+          <button class="ja-toast__btn" type="button" data-toast-dismiss aria-label="Fermer la notification">OK</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

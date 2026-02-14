@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block title %}Profil candidat{% endblock %}
+
+{% block content %}
+<h1>Profil candidat</h1>
+{% include "job_agent/_menu.html" %}
+
+
+<form method="post" class="c-card" style="padding:14px;">
+  {% csrf_token %}
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <div>
+      <label>Nom complet</label>
+      {{ form.full_name|add_class:"c-input" }}
+    </div>
+    <div>
+      <label>Téléphone</label>
+      {{ form.phone|add_class:"c-input" }}
+    </div>
+    <div>
+      <label>Ville</label>
+      {{ form.city|add_class:"c-input" }}
+    </div>
+    <div>
+      <label>Pays</label>
+      {{ form.country|add_class:"c-input" }}
+    </div>
+    <div>
+      <label>LinkedIn</label>
+      {{ form.linkedin_url|add_class:"c-input" }}
+    </div>
+    <div>
+      <label>Portfolio</label>
+      {{ form.portfolio_url|add_class:"c-input" }}
+    </div>
+
+    <div>
+      <label>Localisation souhaitée</label>
+      {{ form.preferred_location|add_class:"c-input" }}
+    </div>
+    <div>
+      <label>Contrat souhaité</label>
+      {{ form.preferred_contract|add_class:"c-input" }}
+    </div>
+
+    <div>
+      <label>Prétentions salariales</label>
+      {{ form.preferred_salary|add_class:"c-input" }}
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px; margin-top:22px;">
+      {{ form.preferred_remote }}
+      <label style="margin:0;">Télétravail ok</label>
+    </div>
+
+    <div>
+      <label>Langue (fr/en)</label>
+      {{ form.language|add_class:"c-input" }}
+    </div>
+  </div>
+
+  <div style="margin-top:14px; display:flex; gap:10px;">
+    <button class="c-btn c-btn--primary" type="submit">Enregistrer</button>
+    <a class="c-btn c-btn--outline" href="{% url 'job_agent:dashboard' %}">Retour</a>
+  </div>
+</form>
+{% endblock %}
