@@ -258,17 +258,18 @@ AXES_COOLOFF_TIME = 1
 # ======================================================
 # CSP
 # ======================================================
-
+# Nouvelle configuration django-csp 4.0+
 CONTENT_SECURITY_POLICY = {
-    "DIRECTIVES": {
-        "default-src": ("'self'",),
-        "script-src": ("'self'", "https://cdnjs.cloudflare.com"),
-        "style-src": ("'self'", "https://fonts.googleapis.com"),
-        "img-src": ("'self'", "data:", "https://res.cloudinary.com"),
-        "font-src": ("'self'", "https://fonts.gstatic.com"),
+    'DIRECTIVES': {
+        'default-src': ("'self'",),
+        'connect-src': ("'self'",),
+        'font-src': ("'self'", 'https://fonts.gstatic.com', 'data:'),
+        'frame-src': ("'self'",),
+        'img-src': ("'self'", 'data:', 'https://res.cloudinary.com'),
+        'script-src': ("'self'", 'https://cdnjs.cloudflare.com', "'unsafe-inline'"),
+        'style-src': ("'self'", 'https://fonts.googleapis.com', "'unsafe-inline'"),
     }
 }
-
 # ======================================================
 # LOGGING
 # ======================================================
