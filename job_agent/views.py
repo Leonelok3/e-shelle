@@ -417,6 +417,16 @@ def lead_add(request):
     )
 
 
+from django.core import signing  # Ajout de l'import pour le token
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.utils import timezone
+from datetime import timedelta
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from django.contrib import messages
+
 @login_required
 @transaction.atomic
 def lead_detail(request, lead_id: int):
@@ -562,8 +572,6 @@ def lead_detail(request, lead_id: int):
             messages.success(request, "Pack candidature généré (email + lettre + réponses) ✅")
             return redirect("job_agent:pack_detail", lead_id=lead.id)
 
-
-
         # ======================================================
         # ✅ 5) SET STATUS (auto applied_at)
         # ======================================================
@@ -585,7 +593,11 @@ def lead_detail(request, lead_id: int):
 
             return redirect("job_agent:lead_detail", lead_id=lead.id)
 
-    # ✅ IMPORTANT: on renvoie aussi profile + status_choices + menu_pack_lead_id
+    # --- GÉNÉRATION DU TOKEN POUR AUTOFILL ---
+    imm97_token = signing.dumps({"uid": request.user.id, "lead_id": lead.id},salt="imm97_autofill")
+
+
+    # ✅ IMPORTANT: on renvoie aussi profile + status_choices + menu_pack_lead_id + imm97_token
     return render(
         request,
         "job_agent/lead_detail.html",
@@ -595,10 +607,9 @@ def lead_detail(request, lead_id: int):
             "profile": profile,
             "status_choices": JobLead.STATUS_CHOICES,
             "menu_pack_lead_id": lead.id,
+            "imm97_token": imm97_token,  # Ajout au contexte
         },
     )
-
-
 @login_required
 def pack_detail(request, lead_id: int):
     lead = get_object_or_404(JobLead, id=lead_id, user=request.user)
