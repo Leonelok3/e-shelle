@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+  <h1>Postuler vite</h1>
+  <p><strong>{{ lead.title }}</strong> — {{ lead.company }} ({{ lead.location }})</p>
+
+  <hr>
+
+  <h3>Infos candidat</h3>
+  <p><b>Nom:</b> {{ draft.full_name }}</p>
+  <p><b>Email:</b> {{ draft.email }}</p>
+  <p><b>Téléphone:</b> {{ draft.phone }}</p>
+  <p><b>LinkedIn:</b> {{ draft.linkedin }}</p>
+  <p><b>Portfolio:</b> {{ draft.portfolio }}</p>
+
+  <hr>
+
+  <h3>Email prêt à envoyer</h3>
+  <p><b>Objet:</b></p>
+  <textarea rows="2" style="width:100%">{{ draft.email_subject }}</textarea>
+
+  <p><b>Message:</b></p>
+  <textarea rows="10" style="width:100%">{{ draft.email_body }}</textarea>
+
+  <hr>
+
+  <h3>Lettre de motivation</h3>
+  <textarea rows="14" style="width:100%">{{ draft.letter }}</textarea>
+
+  <hr>
+
+  <h3>Réponses rapides (formulaires)</h3>
+  {% if draft.answers %}
+    <ul>
+      {% for k,v in draft.answers.items %}
+        <li><b>{{ k }}</b> : {{ v }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Aucune réponse générée.</p>
+  {% endif %}
+
+  <hr>
+
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="mark_applied">
+    <button type="submit" class="btn btn-primary">
+      J’ai postulé (marquer comme postulée)
+    </button>
+  </form>
+
+  <p style="margin-top:12px;">
+    <a href="{% url 'job_agent:lead_detail' lead.id %}">← Retour offre</a>
+  </p>
+</div>
+
+{% endblock %}

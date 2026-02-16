@@ -113,6 +113,81 @@ def _followup_template_for_language(language: str):
     lang = (language or "fr").lower()
     return FollowUpTemplate.objects.filter(is_active=True, language=lang).order_by("-id").first()
 
+def build_or_update_pack(*, user, lead, profile, docs) -> ApplicationPack:
+    """
+    Construit ou met à jour le pack candidature pour une offre (lead).
+    SAFE: reprend exactement la logique existante du bouton "generate_pack".
+    """
+    language = (lead.search.language if lead.search else (profile.language or "fr")) or "fr"
+    language = (language or "fr").lower()
+
+    admin_answers = _answers_from_admin_templates(language)
+    lt = _letter_template_for_language(language)
+
+    offer_title = lead.title or (lead.search.title if lead.search else "Poste")
+    company = lead.company or ""
+    location = lead.location or ""
+    name = profile.full_name or user.get_username()
+
+    email_subject = ""
+    email_body = ""
+
+    # Si on a un template admin pour lettre: on l'utilise
+    if lt and lt.content:
+        letter = _render_letter_from_template(
+            lt.content,
+            title=offer_title,
+            company=company,
+            location=location,
+            name=name,
+        )
+        answers = admin_answers or {}
+
+        # email via service (même si lettre vient d'un template)
+        data = generate_application_texts(
+            offer_title=offer_title,
+            company=company,
+            location=location,
+            offer_text=lead.description_text or "",
+            cv_text=docs.cv_text or "",
+            base_letter=docs.base_letter_text or "",
+            language=language,
+        )
+        email_subject = (data.get("email_subject") or "").strip()
+        email_body = (data.get("email_body") or "").strip()
+
+    else:
+        # sinon on génère tout via le service
+        data = generate_application_texts(
+            offer_title=offer_title,
+            company=company,
+            location=location,
+            offer_text=lead.description_text or "",
+            cv_text=docs.cv_text or "",
+            base_letter=docs.base_letter_text or "",
+            language=language,
+        )
+        letter = (data.get("letter") or "").strip()
+        answers = data.get("answers") or {}
+        email_subject = (data.get("email_subject") or "").strip()
+        email_body = (data.get("email_body") or "").strip()
+
+        # admin answers priorité
+        if admin_answers:
+            merged = dict(answers)
+            for k, v in admin_answers.items():
+                merged[k] = v
+            answers = merged
+
+    # Enregistrer / mettre à jour le pack
+    pack, _ = ApplicationPack.objects.get_or_create(user=user, lead=lead)
+    pack.generated_letter = (letter or "").strip()
+    pack.suggested_answers = answers or {}
+    pack.email_subject = email_subject
+    pack.generated_email = email_body
+    pack.save()
+
+    return pack
 
 def _menu_pack_lead_id_for_user(user) -> int | None:
     """
@@ -483,74 +558,11 @@ def lead_detail(request, lead_id: int):
         # ✅ 4) GENERATE PACK (EMAIL + LETTRE + REPONSES)
         # ======================================================
         if action == "generate_pack":
-            language = (lead.search.language if lead.search else (profile.language or "fr")) or "fr"
-            language = (language or "fr").lower()
-
-            admin_answers = _answers_from_admin_templates(language)
-            lt = _letter_template_for_language(language)
-
-            offer_title = lead.title or (lead.search.title if lead.search else "Poste")
-            company = lead.company or ""
-            location = lead.location or ""
-            name = profile.full_name or request.user.get_username()
-
-            email_subject = ""
-            email_body = ""
-
-            if lt and lt.content:
-                letter = _render_letter_from_template(
-                    lt.content,
-                    title=offer_title,
-                    company=company,
-                    location=location,
-                    name=name,
-                )
-                answers = admin_answers or {}
-
-                # email via service (même si lettre vient de template)
-                data = generate_application_texts(
-                    offer_title=offer_title,
-                    company=company,
-                    location=location,
-                    offer_text=lead.description_text or "",
-                    cv_text=docs.cv_text or "",
-                    base_letter=docs.base_letter_text or "",
-                    language=language,
-                )
-                email_subject = (data.get("email_subject") or "").strip()
-                email_body = (data.get("email_body") or "").strip()
-            else:
-                data = generate_application_texts(
-                    offer_title=offer_title,
-                    company=company,
-                    location=location,
-                    offer_text=lead.description_text or "",
-                    cv_text=docs.cv_text or "",
-                    base_letter=docs.base_letter_text or "",
-                    language=language,
-                )
-                letter = (data.get("letter") or "").strip()
-                answers = data.get("answers") or {}
-                email_subject = (data.get("email_subject") or "").strip()
-                email_body = (data.get("email_body") or "").strip()
-
-                # admin answers priorité
-                if admin_answers:
-                    merged = dict(answers)
-                    for k, v in admin_answers.items():
-                        merged[k] = v
-                    answers = merged
-
-            pack, _ = ApplicationPack.objects.get_or_create(user=request.user, lead=lead)
-            pack.generated_letter = (letter or "").strip()
-            pack.suggested_answers = answers or {}
-            # Phase 5 champs email
-            pack.email_subject = email_subject
-            pack.generated_email = email_body
-            pack.save()
-
+            build_or_update_pack(user=request.user, lead=lead, profile=profile, docs=docs)
             messages.success(request, "Pack candidature généré (email + lettre + réponses) ✅")
             return redirect("job_agent:pack_detail", lead_id=lead.id)
+
+
 
         # ======================================================
         # ✅ 5) SET STATUS (auto applied_at)
@@ -788,3 +800,111 @@ def kanban_move(request, lead_id: int):
             messages.error(request, "Statut invalide.")
 
     return redirect("job_agent:kanban")
+
+@login_required
+@transaction.atomic
+def apply_wizard(request, lead_id: int):
+    lead = get_object_or_404(JobLead, id=lead_id, user=request.user)
+    profile, _ = CandidateProfile.objects.get_or_create(user=request.user)
+    docs, _ = CandidateDocuments.objects.get_or_create(user=request.user)
+
+    # 1) Pack existant ou génération si incomplet
+    pack, _ = ApplicationPack.objects.get_or_create(user=request.user, lead=lead)
+
+    pack_missing = (
+        not (pack.generated_letter or "").strip()
+        or not (pack.generated_email or "").strip()
+        or not (pack.email_subject or "").strip()
+    )
+    if pack_missing:
+        pack = build_or_update_pack(user=request.user, lead=lead, profile=profile, docs=docs)
+
+    # 2) Helpers safe pour éviter crash si champs non présents
+    def safe_attr(obj, name: str, default: str = ""):
+        return getattr(obj, name, default) or default
+
+    # 3) Draft (pré-remplissage)
+    draft = {
+        "full_name": (profile.full_name or request.user.get_username()),
+        "email": (safe_attr(profile, "email") or request.user.email),
+        "phone": safe_attr(profile, "phone"),
+        "linkedin": safe_attr(profile, "linkedin_url"),
+        "portfolio": (safe_attr(docs, "portfolio_url") or safe_attr(profile, "portfolio_url")),
+        "cv_text": (docs.cv_text or ""),
+        "email_subject": (pack.email_subject or ""),
+        "email_body": (pack.generated_email or ""),
+        "letter": (pack.generated_letter or ""),
+        "answers": (pack.suggested_answers or {}),
+    }
+
+    # 4) Validation : marquer comme postulée
+    if request.method == "POST" and (request.POST.get("action") == "mark_applied"):
+        lead.status = JobLead.STATUS_APPLIED
+        if not lead.applied_at:
+            lead.applied_at = timezone.now()
+        lead.save(update_fields=["status", "applied_at"])
+        messages.success(request, "Candidature marquée comme postulée ✅")
+        return redirect("job_agent:lead_detail", lead_id=lead.id)
+
+    return render(
+        request,
+        "job_agent/apply_wizard.html",
+        {
+            "lead": lead,
+            "profile": profile,
+            "docs": docs,
+            "pack": pack,
+            "draft": draft,
+            "menu_pack_lead_id": lead.id,
+        },
+    )
+
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_GET
+
+@login_required
+@require_GET
+def indeed_autofill_api(request, lead_id: int):
+    # Récupération sécurisée des objets
+    lead = get_object_or_404(JobLead, id=lead_id, user=request.user)
+    profile, _ = CandidateProfile.objects.get_or_create(user=request.user)
+    docs, _ = CandidateDocuments.objects.get_or_create(user=request.user)
+
+    # Logique de pack d'application
+    pack, _ = ApplicationPack.objects.get_or_create(user=request.user, lead=lead)
+    if not pack.generated_letter or not pack.generated_email:
+        pack = build_or_update_pack(user=request.user, lead=lead, profile=profile, docs=docs)
+
+    # Construction de l'URL du CV
+    cv_url = ""
+    try:
+        if docs.cv_file:
+            cv_url = request.build_absolute_uri(docs.cv_file.url)
+    except Exception:
+        pass
+
+    # Structuration des données
+    data = {
+        "candidate": {
+            "full_name": profile.full_name or request.user.get_username(),
+            "email": request.user.email or getattr(profile, "email", ""),
+            "phone": getattr(request.user, "phone", "") or getattr(profile, "phone", ""),
+            "city": getattr(profile, "city", ""),
+            "linkedin": getattr(profile, "linkedin_url", ""),
+            "portfolio": getattr(docs, "portfolio_url", "") or getattr(profile, "portfolio_url", ""),
+            "cv_url": cv_url,
+        },
+        "application": {
+            "cover_letter": pack.generated_letter or "",
+            "email_subject": pack.email_subject or "",
+            "answers": pack.suggested_answers or {},
+        }
+    }
+
+    return JsonResponse(data)

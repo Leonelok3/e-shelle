@@ -111,6 +111,7 @@ INSTALLED_APPS = [
     "legal",
     "italian_courses",
     "job_agent",
+    "corsheaders",
 ]
 
 # ======================================================
@@ -118,6 +119,8 @@ INSTALLED_APPS = [
 # ======================================================
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -297,3 +300,31 @@ LOGGING = {
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+CORS_ALLOWED_ORIGINS = [
+    "https://fr.indeed.com",
+    "https://www.indeed.com",
+    "https://immigration97.com",
+    "https://www.immigration97.com",
+]
+if DEBUG:
+    CORS_ALLOWED_ORIGINS += [
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+    ]
+
+CORS_ALLOW_CREDENTIALS = True
+
+
+# ======================================================
+# Cookies cross-site (sinon Indeed -> API n'envoie pas la session)
+# ======================================================
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "None"
+
+# En prod (https) => True ; en local debug => False
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^chrome-extension://.*$",
+]

@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Immigration97 - Multi-Platform AutoFill",
+  "version": "1.0.0",
+  "description": "Auto-remplit les formulaires de candidature (Indeed / Greenhouse / Lever) avec les données du Job Agent (validation humaine).",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*",
+    "http://localhost:8000/*",
+    "https://*.indeed.com/*",
+    "https://*.indeed.fr/*",
+    "https://boards.greenhouse.io/*",
+    "https://job-boards.greenhouse.io/*",
+    "https://jobs.lever.co/*"
+  ],
+  "action": {
+    "default_title": "Immigration97 AutoFill"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.indeed.com/*", "https://*.indeed.fr/*"],
+      "js": ["content/indeed_autofill.js"]
+    },
+    {
+      "matches": ["https://boards.greenhouse.io/*", "https://job-boards.greenhouse.io/*"],
+      "js": ["content/greenhouse_autofill.js"]
+    },
+    {
+      "matches": ["https://jobs.lever.co/*"],
+      "js": ["content/lever_autofill.js"]
+    }
+  ]
+}

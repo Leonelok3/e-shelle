@@ -21,15 +21,17 @@
         <h1>{{ lead.title|default:"Offre" }}</h1>
         <p>
           <span class="ja-muted">{{ lead.company|default:"Entreprise" }}</span>
-          {% if lead.location %}<span class="ja-muted-2"> • {{ lead.location }}</span>{% endif %}
+          {% if lead.location %}
+            <span class="ja-muted-2"> • {{ lead.location }}</span>
+          {% endif %}
         </p>
       </div>
 
       <div class="ja-pagehead__actions">
-        <a class="c-btn" href="{% url 'job_agent:lead_list' %}" aria-label="Retour à la liste des offres">Offres</a>
-        <a class="c-btn" href="{% url 'job_agent:kanban' %}" aria-label="Ouvrir le kanban">Kanban</a>
+        <a class="c-btn" href="{% url 'job_agent:lead_list' %}">Offres</a>
+        <a class="c-btn" href="{% url 'job_agent:kanban' %}">Kanban</a>
         {% if lead.pack %}
-          <a class="c-btn c-btn--primary" href="{% url 'job_agent:pack_detail' lead.id %}" aria-label="Voir le pack de candidature">
+          <a class="c-btn c-btn--primary" href="{% url 'job_agent:pack_detail' lead.id %}">
             Voir le pack
           </a>
         {% endif %}
@@ -41,16 +43,19 @@
 
       <div class="ja-content">
 
-        <section class="ja-card" aria-label="Résumé de l'offre">
+        <!-- ========================= -->
+        <!-- Résumé -->
+        <!-- ========================= -->
+        <section class="ja-card">
           <div class="ja-card__head">
             <h2>Résumé</h2>
 
-            <div class="ja-leadcard__meta" aria-label="Statut et score">
+            <div class="ja-leadcard__meta">
               {% include "job_agent/_status_badge.html" with status=lead.status %}
 
               {% with s=lead.match_score %}
                 <span class="ja-score {% if s >= 75 %}ja-score--good{% elif s >= 45 %}ja-score--mid{% else %}ja-score--low{% endif %}">
-                  <span class="ja-score__dot" aria-hidden="true"></span>
+                  <span class="ja-score__dot"></span>
                   <span>Score</span> <strong>{{ s }}</strong>
                 </span>
               {% endwith %}
@@ -62,21 +67,21 @@
             {% if lead.url %}
               <p class="ja-muted">
                 Lien annonce :
-                <a href="{{ lead.url }}" target="_blank" rel="noopener" aria-label="Ouvrir l'annonce dans un nouvel onglet">
+                <a href="{{ lead.url }}" target="_blank" rel="noopener">
                   Ouvrir l’annonce ↗
                 </a>
               </p>
             {% endif %}
 
             {% if not lead.description_text %}
-              <div class="ja-alert ja-alert--warn" role="note">
+              <div class="ja-alert ja-alert--warn">
                 <strong>Description manquante.</strong>
-                Ajoute la description pour un scoring plus précis et un pack plus pertinent.
+                Ajoute la description pour un scoring plus précis.
               </div>
             {% endif %}
 
             {% if lead.description_text %}
-              <div class="ja-block" aria-label="Description de l'offre">
+              <div class="ja-block">
                 <div class="ja-block__head">
                   <h3>Description</h3>
                   <span class="ja-muted-2">Copiée depuis l’annonce</span>
@@ -88,134 +93,146 @@
           </div>
         </section>
 
-        <div class="ja-divider" aria-hidden="true"></div>
+        <div class="ja-divider"></div>
 
-        <div class="ja-formgrid" aria-label="Actions et suivi">
+        <!-- ========================= -->
+        <!-- Actions -->
+        <!-- ========================= -->
+        <div class="ja-formgrid">
 
-          <!-- Actions rapides -->
           <div class="ja-col-6">
-            <section class="ja-card" aria-label="Actions sur l'offre">
+            <section class="ja-card">
               <div class="ja-card__head">
                 <h2>Actions</h2>
                 <span class="ja-muted-2">Score → Pack → Candidature</span>
               </div>
 
               <div class="ja-card__body">
-                <div class="ja-actions ja-actions--wrap" aria-label="Boutons actions">
+
+                <div class="ja-actions ja-actions--wrap">
+
+                  <!-- Recalculer score -->
                   <form method="post" action="{% url 'job_agent:lead_detail' lead.id %}">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="score">
-                    <button class="c-btn" type="submit" aria-label="Recalculer le score">
+                    <button class="c-btn" type="submit">
                       Recalculer score
                     </button>
                   </form>
 
+                  <!-- Générer pack -->
                   <form method="post" action="{% url 'job_agent:lead_detail' lead.id %}">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="generate_pack">
-                    <button class="c-btn c-btn--primary" type="submit" aria-label="Générer le pack de candidature">
+                    <button class="c-btn c-btn--primary" type="submit">
                       Générer le pack
                     </button>
                   </form>
 
+                  <!-- Postuler vite (wizard interne) -->
+                  <a class="c-btn"
+                     href="{% url 'job_agent:apply_wizard' lead.id %}">
+                    Postuler vite
+                  </a>
+
+                  <!-- Postuler AutoFill (Indeed + extension) -->
+                  {% if lead.url %}
+                    <a
+                      class="c-btn c-btn--primary"
+                      target="_blank"
+                      rel="noopener"
+                      href="{{ lead.url }}{% if '?' in lead.url %}&{% else %}?{% endif %}imm97_lead={{ lead.id }}&imm97_api={{ request.scheme }}://{{ request.get_host }}"
+                    >
+                      Postuler (AutoFill)
+                    </a>
+                  {% endif %}
+
                   {% if lead.pack %}
-                    <a class="c-btn" href="{% url 'job_agent:pack_detail' lead.id %}" aria-label="Ouvrir le pack de candidature">
+                    <a class="c-btn"
+                       href="{% url 'job_agent:pack_detail' lead.id %}">
                       Ouvrir le pack
                     </a>
                   {% endif %}
+
                 </div>
 
-                <div class="ja-divider" aria-hidden="true"></div>
+                <div class="ja-divider"></div>
 
-                <form method="post" action="{% url 'job_agent:lead_detail' lead.id %}" aria-label="Changer le statut">
+                <!-- Changer statut -->
+                <form method="post" action="{% url 'job_agent:lead_detail' lead.id %}">
                   {% csrf_token %}
                   <input type="hidden" name="action" value="set_status">
 
                   <div class="ja-field">
                     <label for="ja-status">Statut</label>
-                    <select class="c-input" id="ja-status" name="status" aria-label="Sélectionner un statut">
+                    <select class="c-input" id="ja-status" name="status">
                       {% for key,label in status_choices %}
-                        <option value="{{ key }}" {% if lead.status == key %}selected{% endif %}>{{ label }}</option>
+                        <option value="{{ key }}" {% if lead.status == key %}selected{% endif %}>
+                          {{ label }}
+                        </option>
                       {% endfor %}
                     </select>
-                    <p class="ja-help">Garde un pipeline net : trouvée → à postuler → postulée → relance → réponse.</p>
                   </div>
 
-                  <button class="c-btn" type="submit" aria-label="Enregistrer le statut">
+                  <button class="c-btn" type="submit">
                     Enregistrer
                   </button>
                 </form>
+
               </div>
             </section>
           </div>
 
-          <!-- Contact & relance -->
+          <!-- ========================= -->
+          <!-- Contact -->
+          <!-- ========================= -->
           <div class="ja-col-6">
-            <section class="ja-card" aria-label="Contact recruteur et relance">
+            <section class="ja-card">
               <div class="ja-card__head">
                 <h2>Contact recruteur</h2>
-                <span class="ja-muted-2">Pour relancer proprement</span>
               </div>
 
               <div class="ja-card__body">
 
                 {% if lead.contact_email %}
-                  <div class="ja-alert ja-alert--ok" role="note">
+                  <div class="ja-alert ja-alert--ok">
                     Email enregistré : <strong>{{ lead.contact_email }}</strong>
-                  </div>
-                {% else %}
-                  <div class="ja-alert ja-alert--warn" role="note">
-                    Email recruteur manquant. Ajoute-le pour pouvoir envoyer une relance.
                   </div>
                 {% endif %}
 
-                <form method="post" action="{% url 'job_agent:lead_detail' lead.id %}" aria-label="Sauvegarder l'email recruteur">
+                <form method="post" action="{% url 'job_agent:lead_detail' lead.id %}">
                   {% csrf_token %}
                   <input type="hidden" name="action" value="save_contact_email">
 
                   <div class="ja-field">
-                    <label for="ja-contact-email">Email recruteur</label>
+                    <label>Email recruteur</label>
                     <input
                       class="c-input"
-                      id="ja-contact-email"
                       name="contact_email"
                       type="email"
                       value="{{ lead.contact_email|default:'' }}"
-                      placeholder="recruteur@entreprise.com"
-                      aria-label="Email recruteur"
-                      autocomplete="email"
-                    >
-                    <p class="ja-help">On l’utilise uniquement pour le suivi de cette offre.</p>
+                      placeholder="recruteur@entreprise.com">
                   </div>
 
-                  <button class="c-btn" type="submit" aria-label="Enregistrer l'email recruteur">
+                  <button class="c-btn" type="submit">
                     Enregistrer
                   </button>
                 </form>
 
-                <div class="ja-divider" aria-hidden="true"></div>
+                <div class="ja-divider"></div>
 
-                <form method="post" action="{% url 'job_agent:lead_detail' lead.id %}" aria-label="Envoyer une relance maintenant">
+                <form method="post" action="{% url 'job_agent:lead_detail' lead.id %}">
                   {% csrf_token %}
                   <input type="hidden" name="action" value="send_followup_now">
-
-                  <button class="c-btn c-btn--primary" type="submit" aria-label="Envoyer une relance">
+                  <button class="c-btn c-btn--primary" type="submit">
                     Envoyer relance
                   </button>
-                  <p class="ja-help">
-                    Relance seulement si la candidature a été envoyée et si le contexte est complet.
-                  </p>
                 </form>
 
               </div>
             </section>
           </div>
 
-        </div>
-
-        <div class="ja-toast" role="status" aria-live="polite" aria-atomic="true">
-          <span class="ja-toast__msg">OK</span>
-          <button class="ja-toast__btn" type="button" data-toast-dismiss aria-label="Fermer la notification">OK</button>
         </div>
 
       </div>
