@@ -106,12 +106,52 @@
   }
 }
 
+/* =====================================================
+   LEGACY MENU RULES (SAFE)
+   ⚠️ Avant: z-index:9999 sur des classes génériques pouvait
+      recouvrir le menu .c-navbar et bloquer les taps.
+   ✅ Maintenant: on limite aux anciens menus UNIQUEMENT
+      quand ils sont réellement ouverts.
+===================================================== */
 
-.mobile-menu, .navbar-menu, .menu-panel {
+/* Ancien comportement — seulement si "open/is-open" est présent */
+.mobile-menu.open,
+.navbar-menu.open,
+.menu-panel.open,
+.mobile-menu.is-open,
+.navbar-menu.is-open,
+.menu-panel.is-open {
   position: relative;
   z-index: 9999;
 }
 
-.menu-overlay, .overlay {
+/* Overlays legacy: on évite de désactiver tous les overlays du site */
+.menu-overlay,
+.overlay {
+  pointer-events: auto; /* SAFE par défaut */
+}
+
+/* Si tu as un overlay legacy purement décoratif, donne-lui explicitement une classe dédiée */
+.overlay.is-noninteractive {
   pointer-events: none;
+}
+
+/* =====================================================
+   ✅ C-NAVBAR SAFETY FIX (ANTI "LINKS NOT CLICKABLE")
+   - garantit que la navbar et le menu sont au-dessus du contenu
+   - garantit que le menu ouvert reçoit les taps
+===================================================== */
+.c-navbar {
+  z-index: var(--z-header, 9999);
+}
+
+@media (max-width: 980px) {
+  .c-navbar__nav.is-open {
+    pointer-events: auto;
+    z-index: calc(var(--z-header, 9999) + 1);
+  }
+
+  .c-navbar__toggle {
+    z-index: calc(var(--z-header, 9999) + 2);
+  }
 }

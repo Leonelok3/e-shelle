@@ -50,11 +50,7 @@ function setValue(el, value) {
   }
 }
 
-/**
- * ✅ NOUVEAU: Fetch via token (imm97_t) dans l'URL Indeed
- * - plus besoin des cookies cross-site
- * - plus besoin credentials: "include"
- */
+// ✅ TOKEN-BASED FETCH (imm97_t) => plus besoin de cookies cross-site
 async function fetchAutofill(apiBaseUrl, leadId) {
   const token = getParam("imm97_t"); // <-- récupère le token dans l'URL Indeed
   if (!token) {
@@ -67,7 +63,17 @@ async function fetchAutofill(apiBaseUrl, leadId) {
   const url = `${base}/jobs/api/indeed/autofill-token/${leadId}/?t=${encodeURIComponent(token)}`;
 
   const res = await fetch(url); // <-- plus besoin de credentials
-  if (!res.ok) throw new Error("API error " + res.status);
+  if (!res.ok) {
+    // aide debug : essayer de lire un bout de texte (souvent HTML 404/login)
+    let snippet = "";
+    try {
+      const txt = await res.text();
+      snippet = txt.slice(0, 180).replace(/\s+/g, " ");
+    } catch (e) {}
+    throw new Error(`API error ${res.status}. Réponse: ${snippet}`);
+  }
+
+  // si c'est JSON ok, sinon ça plantera ici (et on verra dans l'erreur)
   return await res.json();
 }
 
@@ -165,9 +171,7 @@ function fillIndeed(data) {
   filled += setValue(
     byLabelText("Nom") || byNameOrIdContains(["name", "fullname", "full name"]),
     c.full_name
-  )
-    ? 1
-    : 0;
+  ) ? 1 : 0;
 
   // Email
   filled += setValue(byLabelText("Email") || byNameOrIdContains(["email"]), c.email) ? 1 : 0;
@@ -176,30 +180,21 @@ function fillIndeed(data) {
   filled += setValue(
     byLabelText("Téléphone") || byNameOrIdContains(["phone", "mobile", "tel"]),
     c.phone
-  )
-    ? 1
-    : 0;
+  ) ? 1 : 0;
 
   // Ville / Localisation
   filled += setValue(
     byLabelText("Ville") || byNameOrIdContains(["city", "location"]),
     c.city
-  )
-    ? 1
-    : 0;
+  ) ? 1 : 0;
 
   // LinkedIn / Portfolio
-  filled += setValue(byLabelText("LinkedIn") || byNameOrIdContains(["linkedin"]), c.linkedin)
-    ? 1
-    : 0;
+  filled += setValue(byLabelText("LinkedIn") || byNameOrIdContains(["linkedin"]), c.linkedin) ? 1 : 0;
 
-  // ⚠️ "url" est très large => on le garde mais ça peut remplir un champ non voulu
   filled += setValue(
     byLabelText("Portfolio") || byNameOrIdContains(["portfolio", "website", "url"]),
     c.portfolio
-  )
-    ? 1
-    : 0;
+  ) ? 1 : 0;
 
   // Lettre / Cover letter (textarea)
   const cover =
@@ -221,7 +216,7 @@ function fillIndeed(data) {
     }
   }
 
-  // ✅ On guide l’utilisateur vers Submit et Upload
+  // ✅ Guide user
   highlightSubmitAndFile();
   assistCvUpload(c);
 
@@ -273,27 +268,20 @@ function injectFloatingButton() {
   document.body.appendChild(btn);
 }
 
-// Inject direct + aussi après chargements dynamiques
 injectFloatingButton();
 setTimeout(injectFloatingButton, 1500);
 setTimeout(injectFloatingButton, 3000);
 
 // ==================================
-// ✅ Toujours compatible popup (étape 2)
+// ✅ Toujours compatible popup
 // ==================================
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   (async () => {
     if (!msg || msg.type !== "INDEED_AUTOFILL") return;
 
     try {
-      const leadId =
-        msg.leadId ||
-        parseInt(getParam("imm97_lead") || "0", 10);
-
-      const apiBaseUrl =
-        msg.apiBaseUrl ||
-        getParam("imm97_api") ||
-        "http://127.0.0.1:8000";
+      const leadId = msg.leadId || parseInt(getParam("imm97_lead") || "0", 10);
+      const apiBaseUrl = msg.apiBaseUrl || getParam("imm97_api") || "http://127.0.0.1:8000";
 
       if (!leadId) {
         sendResponse({ ok: false, error: "Lead ID manquant (imm97_lead)." });
@@ -309,5 +297,5 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
   })();
 
-  return true; // async
+  return true;
 });

@@ -3,7 +3,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.shortcuts import render
 from django.urls import path, include
+from django.shortcuts import render
 
+def about_page(request):
+    return render(request, "about.html")
+
+def services_page(request):
+    return render(request, "services.html")
 from permanent_residence import views as pr_views
 from core.views import (
     wizard_page,
@@ -87,6 +93,8 @@ urlpatterns = [
     path("italien/", include("italian_courses.urls")),
 
     path("jobs/", include(("job_agent.urls", "job_agent"), namespace="job_agent")),
+    path("about/", about_page, name="about"),
+    path("services/", services_page, name="services"),
 ]
 
 

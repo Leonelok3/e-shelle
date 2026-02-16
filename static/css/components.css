@@ -9,7 +9,7 @@
 .c-navbar {
   position: sticky;
   top: 0;
-  z-index: var(--z-header);
+  z-index: var(--z-header, 9999); /* fallback safe */
   background: rgba(2, 6, 23, 0.9);
   backdrop-filter: blur(var(--blur-lg)) saturate(180%);
   border-bottom: 1px solid var(--border-subtle);
@@ -26,6 +26,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  /* ✅ SAFE: nécessaire pour que le menu mobile absolute se place correctement */
+  position: relative;
 }
 
 /* Brand */
@@ -37,6 +40,22 @@
 
 .c-navbar__brand:hover img {
   transform: scale(1.04);
+}
+
+/* ✅ Toggle (burger) — caché desktop, visible mobile via media query */
+.c-navbar__toggle {
+  display: none; /* desktop */
+  background: transparent;
+  border: 0;
+  padding: 10px 12px;
+  line-height: 1;
+  color: var(--text-main);
+  cursor: pointer;
+  border-radius: 10px;
+
+  /* mobile taps */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Navigation */
@@ -78,6 +97,23 @@
   width: 100%;
 }
 
+/* ✅ SAFE responsive navbar helpers (ne remplace pas ton mobile.css, ça sécurise) */
+@media (max-width: 768px) {
+  .c-navbar__toggle {
+    display: inline-flex; /* mobile */
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    position: relative;
+    z-index: calc(var(--z-header, 9999) + 2);
+  }
+
+  /* la nav desktop en ligne n’est pas souhaitée sur mobile */
+  .c-navbar__nav {
+    gap: var(--space-md);
+  }
+}
+
 /* =====================================================
    BUTTONS — GLOBAL & BULLETPROOF
 ===================================================== */
@@ -113,7 +149,8 @@ a.c-btn {
     var(--brand-primary),
     var(--brand-primary-hover)
   );
-  color: var(--text-inverse);
+  color: var(--text-inverse-strong);
+
   box-shadow: var(--shadow-primary);
 }
 
@@ -234,13 +271,26 @@ a.c-btn {
   border-top: 1px solid var(--border-subtle);
 }
 
-.c-footer__container {
+/* ⚠️ tu utilises .c-footer__main dans ton template premium.
+   On garde .c-footer__container (compat), et on ajoute .c-footer__main (safe).
+*/
+.c-footer__container,
+.c-footer__main {
   max-width: 1200px;
   margin-inline: auto;
   padding: var(--space-2xl) var(--space-md);
   display: grid;
-  grid-template-columns: 2fr repeat(3, 1fr);
   gap: var(--space-xl);
+}
+
+/* Layout par défaut (si tu utilises container) */
+.c-footer__container {
+  grid-template-columns: 2fr repeat(3, 1fr);
+}
+
+/* Layout premium (ton HTML actuel) */
+.c-footer__main {
+  grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
 }
 
 .c-footer h4 {
@@ -287,7 +337,8 @@ a.c-btn {
 }
 
 @media (max-width: 768px) {
-  .c-footer__container {
+  .c-footer__container,
+  .c-footer__main {
     grid-template-columns: 1fr;
   }
 }

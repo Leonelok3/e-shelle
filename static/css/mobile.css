@@ -34,12 +34,14 @@
   .c-navbar {
     position: sticky;
     top: 0;
-    z-index: var(--z-header);
+    z-index: var(--z-header, 9999); /* fallback safe */
   }
 
+  /* IMPORTANT: ancre pour le menu en absolute */
   .c-navbar__container {
     padding: var(--space-sm);
     flex-wrap: wrap;
+    position: relative; /* SAFE: permet à .c-navbar__nav absolute de se placer correctement */
   }
 
   .c-navbar__brand img {
@@ -53,6 +55,12 @@
     color: var(--text-main);
     cursor: pointer;
     user-select: none;
+
+    /* SAFE: améliore les taps mobile + évite recouvrement */
+    position: relative;
+    z-index: calc(var(--z-header, 9999) + 2);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* Menu */
@@ -61,11 +69,16 @@
     top: 100%;
     left: 0;
     width: 100%;
+
     display: none;
     flex-direction: column;
+
     background: var(--bg-main);
     border-top: 1px solid var(--border-subtle);
     padding: var(--space-md);
+
+    /* SAFE: au-dessus du contenu */
+    z-index: calc(var(--z-header, 9999) + 1);
   }
 
   .c-navbar__nav.is-open {
@@ -77,6 +90,10 @@
     font-size: var(--text-md);
     font-weight: 600;
     border-bottom: 1px solid var(--border-subtle);
+
+    /* SAFE: mobile taps */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .c-nav-link:last-child {
@@ -116,10 +133,20 @@
 
   /* =====================
      FOOTER
+     (Ton template utilise .c-footer__main, pas .c-footer__container)
   ===================== */
+
+  /* Garde ton ancien sélecteur (au cas où une autre page l’utilise) */
   .c-footer__container {
     grid-template-columns: 1fr;
     text-align: center;
+    gap: var(--space-lg);
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  /* ✅ Ajout SAFE: sélecteur réel du footer dans ton HTML */
+  .c-footer__main {
+    grid-template-columns: 1fr;
     gap: var(--space-lg);
     padding: var(--space-lg) var(--space-md);
   }
@@ -132,20 +159,27 @@
 
 /* ================================
    FIX NAV MOBILE: fermé = ne bloque pas
+   SAFE + cohérent avec le JS patch
 ================================ */
 
+/* Par défaut: rien de destructif */
 .c-navbar__nav {
   pointer-events: auto;
 }
 
-/* Version mobile : nav fermée doit être "non-interactive" */
+/* Version mobile/tablette : nav fermée doit être "non-interactive"
+   + ouverte => interactive
+   (Ton menu est déjà display:none fermé, mais ce fix protège
+    contre les overlays / bugs de stacking sur certains mobiles)
+*/
 @media (max-width: 980px) {
   .c-navbar__nav {
     pointer-events: none; /* fermé => ne capte rien */
   }
 
-  /* quand le menu est ouvert, on réactive */
-  .c-navbar.is-open .c-navbar__nav {
+  /* quand le menu est ouvert (navbar + nav), on réactive */
+  .c-navbar.is-open .c-navbar__nav,
+  .c-navbar__nav.is-open {
     pointer-events: auto;
   }
 }

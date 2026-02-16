@@ -1,62 +1,74 @@
-(function(){
-  const $ = (s,r=document)=>r.querySelector(s);
-  const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+/* =====================================================
+   IMMIGRATION97 — main.js (SAFE)
+   ✅ Menu mobile .c-navbar fiable (taps OK)
+   ✅ Modals / Forms / Newsletter / Tracking conservés
+   ✅ Guards partout (rien ne casse si élément absent)
+===================================================== */
 
-  document.addEventListener('DOMContentLoaded', ()=>{
-    const y = document.getElementById('year');
+(function () {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const y = document.getElementById("year");
     if (y) y.textContent = new Date().getFullYear();
   });
 
-  document.addEventListener('click', (e)=>{
-    const burger = e.target.closest('#menuToggle');
-    const menu = $('#navMenu');
-    if (burger && menu){
-      const open = menu.classList.toggle('is-open');
-      burger.setAttribute('aria-expanded', String(open));
+  document.addEventListener("click", (e) => {
+    // Legacy burger: #menuToggle + #navMenu (si utilisé sur d’autres pages)
+    const burger = e.target.closest("#menuToggle");
+    const menu = $("#navMenu");
+    if (burger && menu) {
+      const open = menu.classList.toggle("is-open");
+      burger.setAttribute("aria-expanded", String(open));
     }
-    if (e.target.matches('[data-close-modal], .modal__backdrop')){
-      const modal = e.target.closest('.modal') || document.getElementById('modal-demo');
+
+    // Modals close
+    if (e.target.matches("[data-close-modal], .modal__backdrop")) {
+      const modal =
+        e.target.closest(".modal") || document.getElementById("modal-demo");
       if (modal) modal.hidden = true;
     }
-    const openBtn = e.target.closest('[data-open-modal]');
-    if (openBtn){
-      const id = openBtn.getAttribute('data-open-modal');
+
+    // Modals open
+    const openBtn = e.target.closest("[data-open-modal]");
+    if (openBtn) {
+      const id = openBtn.getAttribute("data-open-modal");
       const m = document.getElementById(`modal-${id}`);
       if (m) m.hidden = false;
     }
   });
 
-  document.addEventListener('change', (e)=>{
-    if (e.target.id === 'langSwitch'){
-      window.I97_I18N.applyLang(e.target.value);
+  document.addEventListener("change", (e) => {
+    if (e.target.id === "langSwitch") {
+      // SAFE: évite crash si I97_I18N n’est pas chargé
+      window.I97_I18N?.applyLang?.(e.target.value);
     }
   });
 
-  // micro-anim cartes
-  $$('.card').forEach(c=>{
-    c.addEventListener('mouseenter',()=> c.style.transform='translateY(-3px)');
-    c.addEventListener('mouseleave',()=> c.style.transform='');
+  // micro-anim cartes (hover desktop)
+  $$(".card").forEach((c) => {
+    c.addEventListener("mouseenter", () => (c.style.transform = "translateY(-3px)"));
+    c.addEventListener("mouseleave", () => (c.style.transform = ""));
   });
 })();
 
-
-// --- Loader pendant le submit du formulaire photos ---
-document.addEventListener('submit', (e)=>{
+/* --- Loader pendant le submit du formulaire photos --- */
+document.addEventListener("submit", (e) => {
   const form = e.target;
-  if (form.matches('[data-photo-form]')) {
+  if (form.matches("[data-photo-form]")) {
     const btn = form.querySelector('button[type="submit"]');
-    const wrap = form.querySelector('.progress-wrap');
-    btn?.setAttribute('disabled', 'true');
-    wrap && (wrap.style.display = 'block');
-    // Laisse le submit natif faire la redirection 302 vers /result/<uuid>/
+    const wrap = form.querySelector(".progress-wrap");
+    btn?.setAttribute("disabled", "true");
+    if (wrap) wrap.style.display = "block";
   }
 });
 
-
-// --- Empêche la soumission sans fichier ---
+/* --- Empêche la soumission sans fichier --- */
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.querySelector("[data-photo-form]");
   if (!form) return;
+
   const fileInput = form.querySelector('input[type="file"]');
   const submitBtn = form.querySelector('button[type="submit"]');
 
@@ -68,7 +80,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
+/* =====================================================
+   LEGACY NAV SYSTEMS (SAFE)
+   (On garde: utile si certaines pages utilisent .navbar)
+===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
   const toggle = document.getElementById("navToggle");
   const navbar = document.querySelector(".navbar");
@@ -80,126 +95,111 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll('a[href*="billing"]').forEach(btn => {
-    btn.addEventListener("click", () => {
-      if (window.gtag) {
-        gtag('event', 'cta_click', {
-          event_category: 'conversion',
-          event_label: 'billing_access'
-        });
-      }
-    });
-  });
-});
-
-
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll('a[href*="billing"]').forEach(btn => {
-    btn.addEventListener("click", () => {
-      if (window.fbq) {
-        fbq('track', 'InitiateCheckout');
-      }
-    });
-  });
-});
-
-
-document.addEventListener("DOMContentLoaded", function () {
   const navToggle = document.getElementById("navToggle");
   const navMenu = document.querySelector(".navbar__nav");
   const userBtn = document.getElementById("userMenuBtn");
   const userDropdown = document.getElementById("userDropdown");
 
-  // 🔥 Menu mobile principal
   if (navToggle && navMenu) {
-    navToggle.addEventListener("click", function () {
+    navToggle.addEventListener("click", () => {
       navMenu.classList.toggle("is-open");
     });
   }
 
-  // 👤 Menu utilisateur
   if (userBtn && userDropdown) {
-    userBtn.addEventListener("click", function (e) {
+    userBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       userDropdown.classList.toggle("is-open");
     });
 
-    document.addEventListener("click", function () {
+    document.addEventListener("click", () => {
       userDropdown.classList.remove("is-open");
     });
   }
 });
 
-
 /* =====================================================
-   NAVBAR MOBILE TOGGLE — SAFE
+   TRACKING (SAFE) — billing
+   (fusion gtag + fbq, même comportement)
 ===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('a[href*="billing"]').forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (window.gtag) {
+        window.gtag("event", "cta_click", {
+          event_category: "conversion",
+          event_label: "billing_access",
+        });
+      }
+      if (window.fbq) {
+        window.fbq("track", "InitiateCheckout");
+      }
+    });
+  });
+});
+
+/* =====================================================
+   ✅ NAVBAR MOBILE TOGGLE — C-SYSTEM (FIXED)
+   Cible ton HTML actuel:
+   .c-navbar, .c-navbar__toggle, .c-navbar__nav
+===================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+  const navbar = document.querySelector(".c-navbar");
   const toggle = document.querySelector(".c-navbar__toggle");
   const nav = document.querySelector(".c-navbar__nav");
 
-  if (!toggle || !nav) return;
+  if (!navbar || !toggle || !nav) return;
 
-  toggle.addEventListener("click", () => {
-    const isOpen = nav.classList.toggle("is-open");
-    toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  if (!toggle.getAttribute("type")) toggle.setAttribute("type", "button");
+
+  const setOpen = (open) => {
+    navbar.classList.toggle("is-open", open);
+    nav.classList.toggle("is-open", open);
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+  };
+
+  toggle.addEventListener("click", (e) => {
+    e.preventDefault();
+    setOpen(!nav.classList.contains("is-open"));
+  });
+
+  // ferme au clic sur un lien
+  nav.addEventListener("click", (e) => {
+    const a = e.target.closest("a");
+    if (a) setOpen(false);
+  });
+
+  // ferme clic dehors
+  document.addEventListener(
+    "click",
+    (e) => {
+      if (!nav.classList.contains("is-open")) return;
+      if (!navbar.contains(e.target)) setOpen(false);
+    },
+    { passive: true }
+  );
+
+  // ferme ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setOpen(false);
   });
 });
 
-document.querySelectorAll(".c-nav-link").forEach(link => {
-  link.addEventListener("click", () => {
-    nav.classList.remove("is-open");
-    toggle.setAttribute("aria-expanded", "false");
-  });
-});
-
-
-document.addEventListener("DOMContentLoaded", function () {
-  const wrap = document.querySelector(".nl-global");
-  if (!wrap) return;
-
-  const KEY = "imm97_newsletter_closed_v1";
-  const closeBtn = wrap.querySelector(".nl-global__close");
-
-  // Si déjà fermé avant => ne pas afficher
-  if (localStorage.getItem(KEY) === "1") {
-    wrap.classList.add("is-hidden");
-    return;
-  }
-
-  // Optionnel: éviter l’apparition immédiate (plus premium)
-  // wrap.classList.add("is-hidden");
-  // setTimeout(() => wrap.classList.remove("is-hidden"), 600);
-
-  if (closeBtn) {
-    closeBtn.addEventListener("click", function () {
-      localStorage.setItem(KEY, "1");
-      wrap.classList.add("is-closing");
-      // après l’anim, on cache
-      setTimeout(() => {
-        wrap.classList.add("is-hidden");
-      }, 360);
-    });
-  }
-});
-
-
-
-document.addEventListener("DOMContentLoaded", function () {
+/* =====================================================
+   NEWSLETTER GLOBAL (cooldown) — #nl-global
+===================================================== */
+document.addEventListener("DOMContentLoaded", () => {
   const wrap = document.getElementById("nl-global");
   const closeBtn = document.getElementById("nl-close");
   if (!wrap || !closeBtn) return;
 
-  // ✅ cooldown: si l'utilisateur ferme, on cache X heures puis ça revient
   const KEY = "imm97_newsletter_dismissed_until_v1";
-  const COOLDOWN_HOURS = 6; // <- change à 24 si tu veux 1 jour
+  const COOLDOWN_HOURS = 6;
 
   const now = Date.now();
   const dismissedUntil = parseInt(localStorage.getItem(KEY) || "0", 10);
 
-  // Si encore dans le cooldown => ne pas afficher
   if (dismissedUntil && now < dismissedUntil) {
     wrap.classList.add("is-hidden");
     wrap.setAttribute("aria-hidden", "true");
@@ -215,32 +215,22 @@ document.addEventListener("DOMContentLoaded", function () {
     wrap.classList.remove("is-hidden");
     wrap.setAttribute("aria-hidden", "false");
 
-    // petit hack repaint (stabilité sur certains navigateurs)
     requestAnimationFrame(() => {
       wrap.classList.remove("is-hidden");
     });
   };
 
-  // ✅ Affiche après un scroll léger
   const onScroll = () => {
     const sc = window.scrollY || document.documentElement.scrollTop || 0;
     if (sc > 220) show();
   };
   window.addEventListener("scroll", onScroll, { passive: true });
 
-  // ✅ Fallback : si page courte (pas assez de scroll) OU navigateur capricieux
-  // Affiche après 4 secondes si rien ne s'est déclenché
   setTimeout(() => {
-    // Si pas de scroll possible, ou juste pour assurer l'apparition
-    const pageScrollable = (document.documentElement.scrollHeight - window.innerHeight) > 60;
-    if (!shown) {
-      if (!pageScrollable) show();
-      else show(); // tu peux retirer ce else si tu veux uniquement scroll
-    }
+    if (!shown) show();
   }, 4000);
 
-  // ✅ Fermeture : cache temporaire (pas permanent)
-  closeBtn.addEventListener("click", function () {
+  closeBtn.addEventListener("click", () => {
     const until = Date.now() + COOLDOWN_HOURS * 60 * 60 * 1000;
     localStorage.setItem(KEY, String(until));
 
@@ -249,5 +239,38 @@ document.addEventListener("DOMContentLoaded", function () {
       wrap.classList.add("is-hidden");
       wrap.setAttribute("aria-hidden", "true");
     }, 360);
+  });
+});
+
+
+/* =====================================================
+   USER DROPDOWN (ELITE) — SAFE
+===================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+  const wrap = document.getElementById("userNav");
+  const btn = document.getElementById("userNavBtn");
+  const menu = document.getElementById("userNavMenu");
+  if (!wrap || !btn || !menu) return;
+
+  const setOpen = (open) => {
+    wrap.classList.toggle("is-open", open);
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    menu.setAttribute("aria-hidden", open ? "false" : "true");
+  };
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setOpen(!wrap.classList.contains("is-open"));
+  });
+
+  document.addEventListener("click", () => setOpen(false), { passive: true });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setOpen(false);
+  });
+
+  menu.addEventListener("click", (e) => {
+    const a = e.target.closest("a");
+    if (a) setOpen(false);
   });
 });

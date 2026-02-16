@@ -1,0 +1,233 @@
+/* =====================================================
+   IMMIGRATION97 — CONTACT FAB (WhatsApp + Email)
+   Floating button + mini panel (SAFE, token-based)
+===================================================== */
+
+.i97-contactfab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1500;
+  display: grid;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.i97-contactfab__btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* ✅ bouton “pill” avec texte */
+  height: 56px;
+  padding: 0 16px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(10px) saturate(180%);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+  cursor: pointer;
+
+  color: var(--text-main);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+  gap: 10px;
+}
+
+.i97-contactfab__btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(34,197,94,0.35);
+  box-shadow: 0 22px 48px rgba(0,0,0,0.45);
+}
+
+.i97-contactfab__btn:focus-visible {
+  outline: 2px solid var(--brand-secondary);
+  outline-offset: 3px;
+}
+
+.i97-contactfab__icon {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+/* ✅ icône WhatsApp en vert */
+.i97-contactfab__btn .i97-contactfab__icon {
+  color: var(--brand-primary);
+  filter: drop-shadow(0 0 10px rgba(34,197,94,0.25));
+}
+
+/* ✅ texte à côté */
+.i97-contactfab__label {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* ✅ micro texte optionnel sous le label (si tu veux) */
+.i97-contactfab__sub {
+  display: block;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+/* Sur petits écrans: on garde seulement l’icône (option safe) */
+@media (max-width: 420px) {
+  .i97-contactfab__btn {
+    width: 58px;
+    padding: 0;
+    justify-content: center;
+  }
+  .i97-contactfab__label {
+    display: none;
+  }
+}
+
+.i97-contactfab__panel {
+  pointer-events: auto;
+  width: min(320px, calc(100vw - 36px));
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(2, 6, 23, 0.92);
+  backdrop-filter: blur(12px) saturate(180%);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+
+  transform-origin: bottom right;
+  transform: translateY(10px) scale(0.98);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-base), transform var(--transition-base), visibility var(--transition-base);
+}
+
+.i97-contactfab.is-open .i97-contactfab__panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.i97-contactfab__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.14),
+    rgba(56, 189, 248, 0.10)
+  );
+}
+
+.i97-contactfab__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.i97-contactfab__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.i97-contactfab__close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.06);
+  color: var(--text-main);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.i97-contactfab__close:hover {
+  border-color: rgba(255,255,255,0.18);
+}
+
+.i97-contactfab__body {
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.i97-contactfab__text {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.i97-contactfab__actions {
+  display: grid;
+  gap: 10px;
+}
+
+.i97-contactfab__link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.05);
+  color: var(--text-main);
+  text-decoration: none;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.i97-contactfab__link:hover {
+  transform: translateY(-1px);
+  border-color: rgba(34,197,94,0.35);
+  background: rgba(34,197,94,0.10);
+}
+
+.i97-contactfab__link:focus-visible {
+  outline: 2px solid var(--brand-secondary);
+  outline-offset: 2px;
+}
+
+.i97-contactfab__link small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+.i97-contactfab__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 480px) {
+  .i97-contactfab {
+    right: 14px;
+    bottom: 14px;
+  }
+}

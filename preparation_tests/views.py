@@ -1038,3 +1038,76 @@ def co_by_level(request, level):
             "cefr": cefr,
         }
     )
+
+
+
+@login_required
+def ce_hub(request):
+    user = request.user
+
+    levels = (
+        CourseLesson.objects
+        .filter(section="ce", is_published=True)
+        .values_list("level", flat=True)
+        .distinct()
+        .order_by("level")
+    )
+
+    levels_data = []
+    for level in levels:
+        total_lessons = CourseLesson.objects.filter(
+            section="ce",
+            level=level,
+            is_published=True
+        ).count()
+
+        completed_lessons = UserLessonProgress.objects.filter(
+            user=user,
+            lesson__section="ce",
+            lesson__level=level,
+            is_completed=True
+        ).count()
+
+        progress_pct = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
+
+        levels_data.append({
+            "level": level,
+            "completed": completed_lessons,
+            "total": total_lessons,
+            "progress_pct": progress_pct,
+        })
+
+    return render(
+        request,
+        "preparation_tests/ce_hub.html",
+        {"levels": levels_data},
+    )
+
+
+@login_required
+def ce_by_level(request, level):
+    level = level.upper()
+    user = request.user
+
+    lessons = CourseLesson.objects.filter(
+        section="ce",
+        level=level,
+        is_published=True
+    ).order_by("order")
+
+    cefr = get_cefr_progress(
+        user=user,
+        exam_code="CECR",
+        skill="ce",
+    )
+
+    return render(
+        request,
+        "preparation_tests/ce_by_level.html",
+        {
+            "section": "ce",
+            "level": level,
+            "lessons": lessons,
+            "cefr": cefr,
+        },
+    )
