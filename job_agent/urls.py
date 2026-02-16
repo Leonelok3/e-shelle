@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from . import api_views
-
+from .api_views import indeed_autofill_token
 app_name = "job_agent"
 
 urlpatterns = [
@@ -50,9 +50,11 @@ urlpatterns = [
     # KANBAN (SUIVI RAPIDE)
     # =========================
     path("kanban/", views.kanban, name="kanban"),
+    
     path("kanban/<int:lead_id>/move/", views.kanban_move, name="kanban_move"),
     path("api/indeed/autofill/<int:lead_id>/", api_views.indeed_autofill, name="indeed_autofill"),
-    path("api/indeed/autofill/<int:lead_id>/", views.indeed_autofill_api, name="indeed_autofill_api"),
+    path("api/indeed/autoill/<int:lead_id>/", views.indeed_autofill_api, name="indeed_afutofill_api"),
+    path("api/indeed/autofill-token/<int:lead_id>/", indeed_autofill_token, name="indeed_autofill_token"),
 
 
 ]

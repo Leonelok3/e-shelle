@@ -50,9 +50,23 @@ function setValue(el, value) {
   }
 }
 
+/**
+ * ✅ NOUVEAU: Fetch via token (imm97_t) dans l'URL Indeed
+ * - plus besoin des cookies cross-site
+ * - plus besoin credentials: "include"
+ */
 async function fetchAutofill(apiBaseUrl, leadId) {
-  const url = `${String(apiBaseUrl || "").replace(/\/$/, "")}/jobs/api/indeed/autofill/${leadId}/`;
-  const res = await fetch(url, { credentials: "include" }); // utilise la session Django (login)
+  const token = getParam("imm97_t"); // <-- récupère le token dans l'URL Indeed
+  if (!token) {
+    throw new Error(
+      "Token manquant (imm97_t). Ouvre l'offre via le bouton 'Postuler (AutoFill)' depuis Immigration97."
+    );
+  }
+
+  const base = String(apiBaseUrl || "").replace(/\/$/, "");
+  const url = `${base}/jobs/api/indeed/autofill-token/${leadId}/?t=${encodeURIComponent(token)}`;
+
+  const res = await fetch(url); // <-- plus besoin de credentials
   if (!res.ok) throw new Error("API error " + res.status);
   return await res.json();
 }
@@ -141,7 +155,6 @@ function assistCvUpload(candidate) {
   });
 }
 
-
 function fillIndeed(data) {
   const c = data.candidate || {};
   const a = data.application || {};
@@ -181,7 +194,6 @@ function fillIndeed(data) {
     : 0;
 
   // ⚠️ "url" est très large => on le garde mais ça peut remplir un champ non voulu
-  // si tu veux être plus strict plus tard, on réduira à ["portfolio","website"]
   filled += setValue(
     byLabelText("Portfolio") || byNameOrIdContains(["portfolio", "website", "url"]),
     c.portfolio
@@ -199,7 +211,7 @@ function fillIndeed(data) {
     filled += setValue(cover, a.cover_letter) ? 1 : 0;
   }
 
-  // Réponses génériques (si tu as “salaire”, “disponibilité”, etc.)
+  // Réponses génériques
   const answers = a.answers || {};
   for (const [k, v] of Object.entries(answers)) {
     const key = String(k).toLowerCase();
@@ -212,7 +224,6 @@ function fillIndeed(data) {
   // ✅ On guide l’utilisateur vers Submit et Upload
   highlightSubmitAndFile();
   assistCvUpload(c);
-
 
   return filled;
 }
@@ -275,7 +286,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (!msg || msg.type !== "INDEED_AUTOFILL") return;
 
     try {
-      // ✅ Étape 2 : si msg.leadId/apiBaseUrl manquants, on prend depuis l’URL
       const leadId =
         msg.leadId ||
         parseInt(getParam("imm97_lead") || "0", 10);
