@@ -1,46 +1,68 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const root = document.getElementById("userNav");
-  const btn = document.getElementById("userNavBtn");
-  const menu = document.getElementById("userNavMenu");
+(function () {
+  function ready(fn) {
+    if (document.readyState !== "loading") fn();
+    else document.addEventListener("DOMContentLoaded", fn);
+  }
 
-  if (!root || !btn || !menu) return;
+  ready(function () {
+    const root = document.getElementById("userNav");
+    const btn = document.getElementById("userNavBtn");
+    const menu = document.getElementById("userNavMenu");
+    if (!root || !btn || !menu) return;
 
-  const open = () => {
-    btn.setAttribute("aria-expanded", "true");
-    menu.setAttribute("aria-hidden", "false");
-    root.classList.add("is-open");
-  };
-
-  const close = () => {
-    btn.setAttribute("aria-expanded", "false");
+    // état initial
     menu.setAttribute("aria-hidden", "true");
-    root.classList.remove("is-open");
-  };
+    btn.setAttribute("aria-expanded", "false");
 
-  const toggle = () => {
-    const isOpen = btn.getAttribute("aria-expanded") === "true";
-    isOpen ? close() : open();
-  };
+    function openMenu() {
+      btn.setAttribute("aria-expanded", "true");
+      menu.setAttribute("aria-hidden", "false");
+      menu.classList.add("is-open");
+      root.classList.add("is-open");
+    }
 
-  btn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggle();
+    function closeMenu() {
+      btn.setAttribute("aria-expanded", "false");
+      menu.setAttribute("aria-hidden", "true");
+      menu.classList.remove("is-open");
+      root.classList.remove("is-open");
+    }
+
+    function toggleMenu() {
+      const isOpen = btn.getAttribute("aria-expanded") === "true";
+      if (isOpen) closeMenu();
+      else openMenu();
+    }
+
+    // IMPORTANT: empêcher la propagation sinon "document click" referme direct
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleMenu();
+    });
+
+    // empêche click dans le menu de fermer
+    menu.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+
+    // click dehors => ferme
+    document.addEventListener("click", function () {
+      closeMenu();
+    });
+
+    // mobile: touchstart dehors => ferme
+    document.addEventListener(
+      "touchstart",
+      function () {
+        closeMenu();
+      },
+      { passive: true }
+    );
+
+    // ESC => ferme
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeMenu();
+    });
   });
-
-  // click outside
-  document.addEventListener("click", (e) => {
-    if (!root.contains(e.target)) close();
-  });
-
-  // ESC to close
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") close();
-  });
-
-  // close after menu click (optional but premium feeling)
-  menu.addEventListener("click", (e) => {
-    const link = e.target.closest("a");
-    if (link) close();
-  });
-});
+})();

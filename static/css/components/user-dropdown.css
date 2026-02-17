@@ -5,6 +5,13 @@
    - Better hover polish
    - No duplicates
 ===================================================== */
+.hero, .hero::before, .hero::after,
+.page-hero, .page-hero::before, .page-hero::after {
+  pointer-events: none;
+}
+.c-navbar, .c-navbar * {
+  pointer-events: auto;
+}
 
 /* Wrapper */
 .c-usernav{
@@ -373,3 +380,40 @@
 
 .c-usernav { position: relative; z-index: 8000; }
 .c-usernav__menu { z-index: 9000; }
+
+
+
+/* =========================================================
+   FIX: dropdown parfois "non cliquable" (overlay / z-index)
+   ========================================================= */
+
+/* la navbar doit toujours être au-dessus */
+.c-navbar {
+  position: relative;
+  z-index: 9999;
+  isolation: isolate;
+}
+
+/* le bouton + actions au-dessus */
+.c-navbar__actions,
+.c-usernav,
+.c-usernav__btn,
+.c-usernav__menu {
+  position: relative;
+  z-index: 10000;
+}
+
+/* les pseudo layers ne doivent jamais capter les clics */
+.c-navbar::before,
+.c-navbar::after,
+.c-navbar__container::before,
+.c-navbar__container::after {
+  pointer-events: none !important;
+}
+
+/* sécurise les clics */
+.c-usernav__btn,
+.c-usernav__menu,
+.c-usernav__menu * {
+  pointer-events: auto;
+}
