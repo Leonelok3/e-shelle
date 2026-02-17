@@ -227,18 +227,26 @@ def course_section(request, exam_code, section):
 # 📘 LEÇON + EXERCICES (🔥 CORRECTION AUDIO ICI)
 # =========================================================
 
+from django.db.models import Q
+
 @login_required
 def lesson_session(request, exam_code, section, lesson_id):
-    # 🔥 CORRECTION : Normalisation
-    exam_code = exam_code.upper()
-    
-    lesson = get_object_or_404(
-        CourseLesson.objects.select_related("exam"),
+    exam_code = (exam_code or "").upper()
+
+    qs = CourseLesson.objects.filter(
         id=lesson_id,
-        exam__code__iexact=exam_code,
         section=section,
         is_published=True,
     )
+
+    # ✅ Mode CECR : on ne force pas un exam en DB
+    if exam_code != "CECR":
+        # ✅ Supporte les 2 champs possibles (exam FK ou exams M2M)
+        qs = qs.filter(
+            Q(exams__code__iexact=exam_code) | Q(exam__code__iexact=exam_code)
+        ).distinct()
+
+    lesson = get_object_or_404(qs)
 
     exercises = (
         lesson.exercises
@@ -257,6 +265,8 @@ def lesson_session(request, exam_code, section, lesson_id):
             "section": section,
         },
     )
+
+
 
 # =========================================================
 # 🕒 SESSIONS / QUESTIONS
@@ -1022,11 +1032,15 @@ def co_by_level(request, level):
         is_published=True
     ).order_by("order")
 
-    cefr = get_cefr_progress(
-        user=user,
-        exam_code="CECR",
-        skill="co",
-    )
+    # ✅ Anti-500 : si CECR n'existe pas ou bug service, on ne casse pas la page
+    try:
+        cefr = get_cefr_progress(
+            user=user,
+            exam_code="CECR",
+            skill="co",
+        )
+    except Exception:
+        cefr = None
 
     return render(
         request,
@@ -1083,7 +1097,6 @@ def ce_hub(request):
         {"levels": levels_data},
     )
 
-
 @login_required
 def ce_by_level(request, level):
     level = level.upper()
@@ -1095,11 +1108,14 @@ def ce_by_level(request, level):
         is_published=True
     ).order_by("order")
 
-    cefr = get_cefr_progress(
-        user=user,
-        exam_code="CECR",
-        skill="ce",
-    )
+    try:
+        cefr = get_cefr_progress(
+            user=user,
+            exam_code="CECR",
+            skill="ce",
+        )
+    except Exception:
+        cefr = None
 
     return render(
         request,
