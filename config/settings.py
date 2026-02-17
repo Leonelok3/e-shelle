@@ -250,9 +250,15 @@ EMAIL_TIMEOUT = 10
 # AUTH
 # ======================================================
 
+# AUTH
 LOGIN_URL = "authentification:login"
-LOGIN_REDIRECT_URL = "home"
+
+# ✅ Après connexion -> Mon espace (dashboard)
+LOGIN_REDIRECT_URL = "/profiles/"   # ou ton URL exacte dashboard
+
+# ✅ Après logout -> Accueil
 LOGOUT_REDIRECT_URL = "home"
+
 
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",
@@ -324,12 +330,21 @@ CORS_ALLOW_CREDENTIALS = True
 # ======================================================
 # Cookies cross-site (sinon Indeed -> API n'envoie pas la session)
 # ======================================================
-SESSION_COOKIE_SAMESITE = "None"
-CSRF_COOKIE_SAMESITE = "None"
+if DEBUG:
+    # ✅ Localhost (HTTP) -> cookies acceptés
+    SESSION_COOKIE_SAMESITE = "Lax"
+    CSRF_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    # ✅ Production (HTTPS) -> cross-site OK
+    SESSION_COOKIE_SAMESITE = "None"
+    CSRF_COOKIE_SAMESITE = "None"
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
-# En prod (https) => True ; en local debug => False
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^chrome-extension://.*$",

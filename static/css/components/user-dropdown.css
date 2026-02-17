@@ -1,419 +1,277 @@
-/* =====================================================
-   IMMIGRATION97 — USER AVATAR DROPDOWN (ELITE 2026)
-   Safe add-on (doesn't break existing navbar)
-   - Premium sections / badges / right tags
-   - Better hover polish
-   - No duplicates
-===================================================== */
-.hero, .hero::before, .hero::after,
-.page-hero, .page-hero::before, .page-hero::after {
-  pointer-events: none;
+/* =========================================================
+   IMM97 — USER NAV (PRODUCTION LOOK)
+   File: static/css/components/user-dropdown.css
+========================================================= */
+
+/* ---------------------------------
+   SAFETY: la navbar reste cliquable
+---------------------------------- */
+.c-navbar{
+  position: relative;
+  z-index: 9999;
+  overflow: visible;
 }
-.c-navbar, .c-navbar * {
-  pointer-events: auto;
+.c-navbar::before,
+.c-navbar::after{ pointer-events:none; }
+
+.c-navbar__actions{
+  position: relative;
+  z-index: 10000;
+  margin-left: auto;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap: 12px;
 }
 
-/* Wrapper */
+/* ---------------------------------
+   USER NAV PILL (comme prod)
+---------------------------------- */
 .c-usernav{
   position: relative;
+  z-index: 11000;
   display: inline-flex;
   align-items: center;
 }
 
-/* Trigger button */
 .c-usernav__btn{
+  /* look pill */
   display: inline-flex;
   align-items: center;
-  gap: .75rem;
+  gap: 12px;
 
-  padding: .58rem .9rem;
-  border-radius: 16px;
+  padding: 10px 14px;
+  min-height: 54px;
 
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+
+  background: rgba(10, 22, 40, 0.62);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+
+  box-shadow: 0 10px 30px rgba(3, 8, 23, .35),
+              inset 0 1px 0 rgba(255,255,255,.06);
 
   color: rgba(255,255,255,.92);
-  cursor: pointer;
 
-  transition: transform .25s ease,
-              background .25s ease,
-              border-color .25s ease,
-              box-shadow .25s ease;
+  cursor: pointer;
+  user-select: none;
+
+  position: relative;
+  z-index: 12000;
 }
 
 .c-usernav__btn:hover{
-  background: rgba(255,255,255,.09);
   border-color: rgba(255,255,255,.18);
   transform: translateY(-1px);
-  box-shadow: 0 10px 35px rgba(0,0,0,.25);
 }
 
 .c-usernav__btn:active{
   transform: translateY(0);
 }
 
-/* Avatar */
-.c-usernav__avatar{
-  width: 38px;
-  height: 38px;
-  border-radius: 999px;
-
-  display: grid;
-  place-items: center;
-
-  font-weight: 800;
-  font-size: .95rem;
-
-  background: linear-gradient(135deg,
-    rgba(14,165,233,.28),
-    rgba(34,197,94,.22)
-  );
-  border: 1px solid rgba(255,255,255,.12);
-
-  box-shadow:
-    0 10px 30px rgba(14,165,233,.16),
-    0 10px 30px rgba(34,197,94,.10);
+.c-usernav__btn:focus-visible{
+  outline: 2px solid rgba(16,185,129,.65);
+  outline-offset: 4px;
 }
 
-/* Name + role */
+/* avatar rond */
+.c-usernav__avatar{
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-weight: 800;
+  letter-spacing: .02em;
+
+  background: radial-gradient(circle at 30% 30%,
+    rgba(16,185,129,.35),
+    rgba(14,165,233,.18) 55%,
+    rgba(255,255,255,.06) 100%
+  );
+
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 10px 22px rgba(3, 8, 23, .35);
+}
+
+/* texte à droite */
 .c-usernav__meta{
-  display: flex;
-  flex-direction: column;
+  display:flex;
+  flex-direction:column;
   line-height: 1.1;
   text-align: left;
+  gap: 2px;
 }
 
 .c-usernav__name{
-  font-weight: 700;
-  font-size: .95rem;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: .01em;
+  color: rgba(255,255,255,.96);
 }
 
 .c-usernav__role{
-  font-size: .78rem;
-  opacity: .78;
+  font-weight: 600;
+  font-size: 13px;
+  color: rgba(255,255,255,.70);
 }
 
+/* chevron */
 .c-usernav__chev{
-  opacity: .8;
-  transform: translateY(-1px);
-  transition: transform .2s ease, opacity .2s ease;
+  margin-left: 6px;
+  font-size: 14px;
+  opacity: .85;
+  transform: translateY(1px);
 }
 
 .c-usernav.is-open .c-usernav__chev{
-  transform: translateY(-1px) rotate(180deg);
-  opacity: .95;
+  transform: translateY(1px) rotate(180deg);
 }
 
-/* =====================================================
-   DROPDOWN MENU
-===================================================== */
+/* petit point “online” (comme sur ton bouton prod) */
+.c-usernav__btn::after{
+  content:"";
+  position:absolute;
+  right: 44px;   /* ajuste si tu veux plus proche */
+  top: 12px;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 10px rgba(34,197,94,.85);
+  border: 2px solid rgba(10,22,40,.9);
+}
+
+/* ---------------------------------
+   DROPDOWN MENU (clean + au-dessus)
+---------------------------------- */
 .c-usernav__menu{
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 12px);
   right: 0;
+  left: auto;
 
+  z-index: 999999;
   min-width: 320px;
-  padding: .65rem;
+  width: min(420px, 92vw);
 
   border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
 
-  background: rgba(10,22,40,.84);
+  background: rgba(10, 22, 40, 0.82);
   backdrop-filter: blur(18px) saturate(170%);
   -webkit-backdrop-filter: blur(18px) saturate(170%);
 
-  border: 1px solid rgba(255,255,255,.10);
-  box-shadow:
-    0 18px 60px rgba(0,0,0,.45),
-    0 2px 18px rgba(16,185,129,.08);
+  box-shadow: 0 24px 60px rgba(0,0,0,.45);
 
-  transform: translateY(8px);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
+  /* hidden by default */
+  display:block;
+  visibility:hidden;
+  opacity:0;
+  transform: translateY(-6px);
+  transition: opacity .15s ease, transform .15s ease, visibility .15s ease;
 
-  transition: opacity .18s ease,
-              transform .18s ease,
-              visibility .18s ease;
-  z-index: 9999;
+  max-height: min(72vh, 640px);
+  overflow:auto;
 }
 
 .c-usernav.is-open .c-usernav__menu{
-  opacity: 1;
   visibility: visible;
-  pointer-events: auto;
+  opacity: 1;
   transform: translateY(0);
 }
 
-/* Small top glow (elite) */
-.c-usernav__menu::before{
-  content: "";
-  position: absolute;
-  top: -1px;
-  left: 10px;
-  right: 10px;
-  height: 1px;
-  background: linear-gradient(90deg,
-    transparent,
-    rgba(16,185,129,.35),
-    rgba(14,165,233,.45),
-    rgba(16,185,129,.35),
-    transparent
-  );
-  opacity: .8;
+.c-usernav__menu[aria-hidden="true"]{
+  pointer-events:none;
 }
 
-/* Header block */
-.c-usernav__header{
-  padding: .65rem .65rem .75rem;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  margin-bottom: .5rem;
-}
-
-.c-usernav__headerLine{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .75rem;
-  color: rgba(255,255,255,.95);
-}
-
-.c-usernav__status{
-  font-size: .78rem;
-  opacity: .92;
-}
-
-.c-usernav__sub{
-  margin-top: .35rem;
-  font-size: .82rem;
-  color: rgba(255,255,255,.72);
-}
-
-/* =====================================================
-   CHIPS (header mini pills)
-===================================================== */
-.c-usernav__chips{
-  display:flex;
-  gap:.5rem;
-  margin-top:.75rem;
-  flex-wrap:wrap;
-}
-
-.c-usernav__chip{
-  font-size:.78rem;
-  padding:.35rem .6rem;
-  border-radius:999px;
-  color:rgba(255,255,255,.86);
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.08);
-}
-
-.c-usernav__chip--premium{
-  background: linear-gradient(135deg,
-    rgba(16,185,129,.18),
-    rgba(14,165,233,.10)
-  );
-  border-color: rgba(16,185,129,.22);
-}
-
-/* =====================================================
-   SECTION TITLES + BADGES
-===================================================== */
-.c-usernav__sectionTitle{
-  margin: .75rem .75rem .35rem;
-  font-size: .78rem;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,.55);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-}
-
-.c-usernav__badge{
-  font-size: .72rem;
-  padding: .2rem .5rem;
-  border-radius: 999px;
-  background: rgba(16,185,129,.14);
-  border: 1px solid rgba(16,185,129,.20);
-  color: rgba(255,255,255,.88);
-  text-transform: none;
-  letter-spacing: 0;
-}
-
-/* Right tag */
-.c-usernav__rightTag{
-  margin-left: auto;
-  font-size: .75rem;
-  padding: .18rem .5rem;
-  border-radius: 999px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.08);
-  color: rgba(255,255,255,.78);
-}
-
-/* =====================================================
-   ITEMS
-===================================================== */
+/* menu items (tes classes existent déjà) */
 .c-usernav__item{
-  display: flex;
-  align-items: center;
-  gap: .55rem;
-
-  padding: .68rem .75rem;
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  padding: 12px 14px;
+  color: rgba(255,255,255,.90);
+  text-decoration:none;
   border-radius: 12px;
-
-  color: rgba(255,255,255,.86);
-  text-decoration: none;
-
-  transition: background .2s ease,
-              transform .2s ease,
-              border-color .2s ease;
 }
 
 .c-usernav__item:hover{
   background: rgba(255,255,255,.06);
-  transform: translateX(2px);
 }
 
-/* Separator */
-.c-usernav__sep{
-  height: 1px;
-  background: rgba(255,255,255,.08);
-  margin: .55rem .2rem;
-}
-
-/* Premium highlight item */
-.c-usernav__item--premium{
-  background: linear-gradient(135deg,
-    rgba(16,185,129,.14),
-    rgba(14,165,233,.08)
-  );
-  border: 1px solid rgba(16,185,129,.18);
-}
-
-.c-usernav__item--premium:hover{
-  border-color: rgba(16,185,129,.35);
-  background: linear-gradient(135deg,
-    rgba(16,185,129,.18),
-    rgba(14,165,233,.10)
-  );
-}
-
-/* Danger item */
 .c-usernav__item--danger{
-  color: rgba(255,255,255,.92);
-  background: rgba(239,68,68,.10);
-  border: 1px solid rgba(239,68,68,.22);
+  color: #fecaca;
 }
-
 .c-usernav__item--danger:hover{
-  background: rgba(239,68,68,.16);
+  background: rgba(239,68,68,.14);
 }
 
-/* =====================================================
-   MOBILE SAFETY
-===================================================== */
+/* header section (optionnel si tu le gardes) */
+.c-usernav__header{
+  padding: 14px 14px 10px;
+}
+.c-usernav__sep{
+  height:1px;
+  background: rgba(255,255,255,.08);
+  margin: 8px 0;
+}
+.c-usernav__sectionTitle{
+  padding: 10px 14px 6px;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.55);
+}
+
+/* mobile: menu full width */
 @media (max-width: 768px){
   .c-usernav__menu{
     right: 0;
     left: 0;
-    min-width: auto;
+    width: auto;
+    min-width: 0;
   }
 }
 
-/* =====================================================
-   ACCESSIBILITY
-===================================================== */
-.c-usernav__btn:focus-visible,
-.c-usernav__item:focus-visible{
-  outline: 2px solid rgba(16,185,129,.9);
-  outline-offset: 3px;
-}
-
-/* =====================================================
-   FIX: Dropdown doit toujours être au-dessus (navbar + FAB)
-   Safe patch — n'écrase pas ton design
-===================================================== */
-
-/* 1) Navbar au-dessus du contenu */
-.c-navbar{
-  position: sticky; /* déjà le cas chez toi mais on sécurise */
-  top: 0;
-  z-index: 5000; /* plus haut que la plupart des overlays */
-}
-
-/* 2) IMPORTANT: le menu dropdown au-dessus de tout */
-.c-usernav__menu{
-  z-index: 9000; /* au-dessus du FAB WhatsApp */
-  isolation: isolate; /* évite certains bugs de stacking */
-}
-
-/* 3) Si un parent a overflow hidden, le dropdown peut être “coupé” */
-.c-navbar__container,
-.c-navbar__actions{
-  overflow: visible !important;
-}
-
-/* 4) Le FAB WhatsApp doit rester en dessous du dropdown */
-.i97-contactfab{
-  z-index: 3000; /* dropdown = 9000 donc il passe au-dessus */
-}
-
-/* 5) Confort: si l’écran est petit, le dropdown scroll au lieu de se superposer */
-.c-usernav__menu{
-  max-height: calc(100vh - 120px);
-  overflow: auto;
-}
-
-/* 6) Bonus: le dropdown ne doit pas être caché par un parent transform */
-.c-usernav{
-  position: relative;
-  z-index: 9001;
-}
-
-
-/* FIX anti "click blocked" */
-.c-usernav,
-.c-usernav__btn,
-.c-usernav__menu { pointer-events: auto !important; }
-
-.c-usernav { position: relative; z-index: 8000; }
-.c-usernav__menu { z-index: 9000; }
-
-
-
 /* =========================================================
-   FIX: dropdown parfois "non cliquable" (overlay / z-index)
-   ========================================================= */
+   IMM97 — TUNING SIZE (reduce spacing)
+========================================================= */
 
-/* la navbar doit toujours être au-dessus */
-.c-navbar {
-  position: relative;
-  z-index: 9999;
-  isolation: isolate;
+/* Le pill "Mon espace" plus compact */
+.c-usernav__btn{
+  min-height: 46px !important;
+  padding: 8px 12px !important;
+  border-radius: 16px !important;
+  gap: 10px !important;
 }
 
-/* le bouton + actions au-dessus */
-.c-navbar__actions,
-.c-usernav,
-.c-usernav__btn,
-.c-usernav__menu {
-  position: relative;
-  z-index: 10000;
+/* Avatar plus petit */
+.c-usernav__avatar{
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 14px !important;
 }
 
-/* les pseudo layers ne doivent jamais capter les clics */
-.c-navbar::before,
-.c-navbar::after,
-.c-navbar__container::before,
-.c-navbar__container::after {
-  pointer-events: none !important;
+/* Texte plus compact */
+.c-usernav__name{
+  font-size: 15px !important;
+  line-height: 1.05 !important;
+}
+.c-usernav__role{
+  font-size: 12px !important;
 }
 
-/* sécurise les clics */
-.c-usernav__btn,
-.c-usernav__menu,
-.c-usernav__menu * {
-  pointer-events: auto;
+/* Point online repositionné (car bouton plus petit) */
+.c-usernav__btn::after{
+  top: 10px !important;
+  right: 42px !important;
+  width: 8px !important;
+  height: 8px !important;
 }
