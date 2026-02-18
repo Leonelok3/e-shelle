@@ -1,6 +1,8 @@
 /* =====================================================
    IMMIGRATION97 — RESPONSIVE GLOBAL (LOCKED)
    Mobile-first • Token-based • SAFE
+   IMPORTANT: La navbar est gérée UNIQUEMENT par:
+   static/css/components/navbar-premium-2026.css
 ===================================================== */
 
 @media (max-width: 768px) {
@@ -10,6 +12,7 @@
   ===================== */
   body {
     overflow-x: hidden;
+    font-size: var(--text-sm);
   }
 
   /* Container global (léger, non destructif) */
@@ -20,97 +23,25 @@
   /* =====================
      TYPOGRAPHY (SAFE)
   ===================== */
-  body {
-    font-size: var(--text-sm);
-  }
-
   h1 {
     line-height: 1.25;
   }
 
   /* =====================
-     NAVBAR MOBILE (C-SYSTEM)
+     NAVBAR MOBILE (IMPORTANT)
+     ✅ Ne pas redéfinir .c-navbar__nav / toggle / open state ici
+     ✅ La navbar est gérée par navbar-premium-2026.css
+     On garde seulement des micro-ajustements non destructifs.
   ===================== */
+
   .c-navbar {
     position: sticky;
     top: 0;
-    z-index: var(--z-header, 9999); /* fallback safe */
-  }
-
-  /* IMPORTANT: ancre pour le menu en absolute */
-  .c-navbar__container {
-    padding: var(--space-sm);
-    flex-wrap: wrap;
-    position: relative; /* SAFE: permet à .c-navbar__nav absolute de se placer correctement */
+    z-index: var(--z-header, 9999);
   }
 
   .c-navbar__brand img {
     height: 44px;
-  }
-
-  /* Burger */
-  .c-navbar__toggle {
-    display: block;
-    font-size: 26px;
-    color: var(--text-main);
-    cursor: pointer;
-    user-select: none;
-
-    /* SAFE: améliore les taps mobile + évite recouvrement */
-    position: relative;
-    z-index: calc(var(--z-header, 9999) + 2);
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Menu */
-  .c-navbar__nav {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-
-    display: none;
-    flex-direction: column;
-
-    background: var(--bg-main);
-    border-top: 1px solid var(--border-subtle);
-    padding: var(--space-md);
-
-    /* SAFE: au-dessus du contenu */
-    z-index: calc(var(--z-header, 9999) + 1);
-  }
-
-  .c-navbar__nav.is-open {
-    display: flex;
-  }
-
-  .c-nav-link {
-    padding: var(--space-sm) 0;
-    font-size: var(--text-md);
-    font-weight: 600;
-    border-bottom: 1px solid var(--border-subtle);
-
-    /* SAFE: mobile taps */
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .c-nav-link:last-child {
-    border-bottom: none;
-  }
-
-  /* Navbar actions (FIXED NAMING) */
-  .c-navbar__actions {
-    margin-top: var(--space-md);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-    width: 100%;
-  }
-
-  .c-navbar__actions .c-btn {
-    width: 100%;
   }
 
   /* =====================
@@ -144,7 +75,7 @@
     padding: var(--space-lg) var(--space-md);
   }
 
-  /* ✅ Ajout SAFE: sélecteur réel du footer dans ton HTML */
+  /* ✅ Sélecteur réel du footer dans ton HTML */
   .c-footer__main {
     grid-template-columns: 1fr;
     gap: var(--space-lg);
@@ -157,29 +88,8 @@
   }
 }
 
-/* ================================
-   FIX NAV MOBILE: fermé = ne bloque pas
-   SAFE + cohérent avec le JS patch
-================================ */
-
-/* Par défaut: rien de destructif */
-.c-navbar__nav {
-  pointer-events: auto;
-}
-
-/* Version mobile/tablette : nav fermée doit être "non-interactive"
-   + ouverte => interactive
-   (Ton menu est déjà display:none fermé, mais ce fix protège
-    contre les overlays / bugs de stacking sur certains mobiles)
-*/
-@media (max-width: 980px) {
-  .c-navbar__nav {
-    pointer-events: none; /* fermé => ne capte rien */
-  }
-
-  /* quand le menu est ouvert (navbar + nav), on réactive */
-  .c-navbar.is-open .c-navbar__nav,
-  .c-navbar__nav.is-open {
-    pointer-events: auto;
-  }
-}
+/* =====================================================
+   IMPORTANT:
+   ✅ On supprime les anciens "fix nav mobile" (pointer-events)
+   car la navbar premium gère déjà open/close, overlay, interactions
+===================================================== */
