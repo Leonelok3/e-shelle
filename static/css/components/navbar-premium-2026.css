@@ -1,5 +1,6 @@
 /* =========================================================
-   IMMIGRATION97 — NAVBAR PREMIUM 2026
+   IMMIGRATION97 — NAVBAR PREMIUM 2026 (LOCKED)
+   Objectif: 1 seule source de vérité navbar + mobile safe
 ========================================================= */
 
 .c-navbar {
@@ -34,6 +35,7 @@
   height: auto;
 }
 
+/* ================= NAV (desktop layout) ================= */
 .c-navbar__nav {
   display: flex;
   align-items: center;
@@ -49,7 +51,7 @@
   font-weight: 600;
   font-size: 14px;
   color: rgba(255, 255, 255, 0.86);
-  transition: transform 120ms ease, background 120ms ease, color 120ms ease;
+  transition: background 120ms ease, color 120ms ease;
 }
 
 .c-nav-link:hover {
@@ -57,6 +59,63 @@
   color: #fff;
 }
 
+/* ============= Job Agent Group (details/summary) ============= */
+.c-nav-group {
+  position: relative;
+}
+
+.c-nav-group__summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.c-nav-group__summary::-webkit-details-marker {
+  display: none;
+}
+
+.c-nav-group__summary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.c-nav-group__menu {
+  display: none;
+}
+
+@media (min-width: 961px) {
+  .c-nav-group[open] .c-nav-group__menu {
+    display: block;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    min-width: 240px;
+    background: rgba(11, 18, 32, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 14px;
+    padding: 10px;
+    box-shadow: 0 18px 44px rgba(0,0,0,.35);
+    z-index: 1002;
+  }
+
+  .c-nav-link--sub {
+    width: 100%;
+    padding: 12px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    margin: 6px 0;
+  }
+}
+
+/* ================= Actions ================= */
 .c-navbar__actions {
   display: flex;
   align-items: center;
@@ -74,16 +133,21 @@
   line-height: 1;
 }
 
-.c-navbar__toggle:active {
-  transform: scale(0.98);
-}
-
-/* Backdrop */
 .c-navbar__backdrop {
   display: none;
 }
 
-/* ✅ IMPORTANT: bloc actions mobile JAMAIS visible en desktop */
+/* =========================================================
+   ✅ HARD LOCK: les actions mobiles DOIVENT être invisibles en desktop
+   On met une règle avec forte spécificité + !important
+========================================================= */
+@media (min-width: 961px) {
+  .c-navbar .c-navbar__nav .c-navbar__actions--mobile {
+    display: none !important;
+  }
+}
+
+/* Et par défaut aussi (au cas où) */
 .c-navbar__actions--mobile {
   display: none !important;
   margin-top: 14px;
@@ -143,11 +207,37 @@ body.is-nav-open {
     border: 1px solid rgba(255, 255, 255, 0.06);
   }
 
-  .c-navbar__nav .c-nav-link:hover {
-    background: rgba(255, 255, 255, 0.07);
+  /* Mobile: Job Agent group comme bloc */
+  .c-nav-group {
+    width: 100%;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    overflow: hidden;
   }
 
-  /* ✅ Mobile : on affiche les actions mobile */
+  .c-nav-group__summary {
+    width: 100%;
+    padding: 14px 14px;
+    border-radius: 0;
+  }
+
+  .c-nav-group[open] .c-nav-group__menu {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 10px 12px 10px;
+    gap: 8px;
+  }
+
+  .c-nav-link--sub {
+    width: 100%;
+    padding: 12px 12px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* ✅ Mobile: on affiche les actions mobile */
   .c-navbar__actions--mobile {
     display: flex !important;
     flex-direction: column;
