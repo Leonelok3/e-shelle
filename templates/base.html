@@ -95,13 +95,18 @@
 
 <body class="app {% block body_class %}{% endblock %}">
 
+<!-- ======================================================
+     NAVBAR — PREMIUM + MOBILE SAFE
+====================================================== -->
 <header class="c-navbar" data-navbar>
   <div class="c-navbar__container">
 
+    <!-- Brand -->
     <a href="/" class="c-navbar__brand" aria-label="Accueil Immigration97">
       <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97 Logo" width="140" height="40">
     </a>
 
+    <!-- Toggle mobile -->
     <button type="button"
             class="c-navbar__toggle"
             aria-label="Ouvrir le menu"
@@ -111,22 +116,35 @@
       ☰
     </button>
 
+    <!-- Backdrop mobile -->
     <div class="c-navbar__backdrop" data-nav-backdrop aria-hidden="true"></div>
 
+    <!-- Navigation -->
     <nav class="c-navbar__nav" id="primaryNav" aria-label="Navigation principale" data-nav-panel>
       <a href="/" class="c-nav-link">Accueil</a>
       <a href="/services/" class="c-nav-link">Services</a>
       <a href="/prep/" class="c-nav-link">Tests de langue</a>
-      <a href="/visa-travail/" class="c-nav-link">Travail</a>
+
+      <!-- ✅ Travail retiré ici, remplacé par Résidence permanente -->
+      <a href="/residence-permanente/" class="c-nav-link">Résidence permanente</a>
+
       <a href="/visa-etudes/" class="c-nav-link">Étude</a>
       <a href="/about/" class="c-nav-link">À propos</a>
 
       {% if user.is_authenticated %}
-        <a href="{% url 'job_agent:dashboard' %}" class="c-nav-link">Job Agent</a>
+        <!-- ✅ Job Agent devient un groupe qui contient aussi Travail -->
+        <details class="c-nav-group">
+          <summary class="c-nav-group__summary">Job Agent</summary>
+          <div class="c-nav-group__menu">
+            <a href="{% url 'job_agent:dashboard' %}" class="c-nav-link c-nav-link--sub">🤖 Dashboard Job Agent</a>
+            <a href="/visa-travail/" class="c-nav-link c-nav-link--sub">💼 Travail</a>
+          </div>
+        </details>
+      {% else %}
+        <a href="/jobs/" class="c-nav-link">Job Agent</a>
       {% endif %}
 
-      <!-- ✅ ACTIONS MOBILE : on supprime Mon profil + Se déconnecter
-           ✅ on remplace par CTA Abonnement/Premium -->
+      <!-- Actions mobile -->
       <div class="c-navbar__actions c-navbar__actions--mobile" data-nav-actions>
         {% if user.is_authenticated %}
           <a href="{% url 'billing:access' %}" class="c-btn c-btn--primary">💎 Mon abonnement</a>
@@ -140,11 +158,10 @@
     <!-- Actions desktop -->
     <div class="c-navbar__actions c-navbar__actions--desktop">
       {% if user.is_authenticated %}
+        <!-- ✅ CTA Premium visible en desktop -->
+        <a href="{% url 'billing:access' %}" class="c-btn c-btn--primary">💎 Mon abonnement</a>
 
-        <!-- ✅ CTA abonnement visible en desktop -->
-        
-
-        <!-- 👤 User dropdown (profil/logout dedans) -->
+        <!-- Dropdown user -->
         <div class="c-usernav" id="userNav">
           <button type="button"
                   class="c-usernav__btn"
@@ -212,32 +229,43 @@
   </div>
 </header>
 
+<!-- ======================================================
+     MAIN CONTENT
+====================================================== -->
 <main class="app-main {% block app_scope %}{% endblock %}">
   <div class="app-container">
     {% block content %}{% endblock %}
   </div>
 </main>
 
-<!-- FOOTER (inchangé) -->
+<!-- ======================================================
+     FOOTER PREMIUM — (TON FOOTER COMPLET RESTAURÉ)
+====================================================== -->
 <footer class="c-footer">
   <div class="c-footer__main">
+
+    <!-- Brand -->
     <div class="c-footer__brand-section">
       <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97" width="160" height="45" loading="lazy">
+
       <p class="c-footer__brand-text">
         <strong>Immigration97</strong> est la plateforme premium qui accompagne
         <strong>+15 000 candidats</strong> dans leur projet d'immigration vers le
         <strong>Canada, USA, Europe et Australie</strong>.
       </p>
+
       <div class="c-footer__trust-badges">
         <span class="c-footer__badge">✓ Paiement sécurisé</span>
         <span class="c-footer__badge">✓ Support réactif</span>
         <span class="c-footer__badge">✓ Outils IA premium</span>
       </div>
+
       <div class="c-footer__contact" aria-label="Contacts Immigration97">
         <strong>Contact direct</strong>
         <a href="https://wa.me/237693649944" target="_blank" rel="noopener">WhatsApp : +237 693 649 944</a>
         <a href="mailto:CONTACT@IMMIGRATION97.COM">Email : CONTACT@IMMIGRATION97.COM</a>
       </div>
+
       <div class="c-footer__social">
         <a href="https://facebook.com/immigration97" class="c-footer__social-link" aria-label="Facebook" target="_blank" rel="noopener">
           <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
@@ -254,6 +282,7 @@
       </div>
     </div>
 
+    <!-- Services -->
     <div class="c-footer__section">
       <h4>Services</h4>
       <ul class="c-footer__links">
@@ -266,6 +295,7 @@
       </ul>
     </div>
 
+    <!-- Destinations -->
     <div class="c-footer__section">
       <h4>Destinations</h4>
       <ul class="c-footer__links">
@@ -277,6 +307,7 @@
       </ul>
     </div>
 
+    <!-- Ressources -->
     <div class="c-footer__section">
       <h4>Ressources</h4>
       <ul class="c-footer__links">
@@ -288,6 +319,7 @@
       </ul>
     </div>
 
+    <!-- Applications -->
     <div class="c-footer__section">
       <h4>Applications</h4>
       <ul class="c-footer__links">
@@ -301,6 +333,7 @@
       </ul>
     </div>
 
+    <!-- Formations -->
     <div class="c-footer__section">
       <h4>Formations</h4>
       <ul class="c-footer__links">
@@ -310,6 +343,7 @@
         <li><a href="/billing/">💎 Premium</a></li>
       </ul>
     </div>
+
   </div>
 
   <div class="c-footer__geo-section">
@@ -344,13 +378,161 @@
 </footer>
 
 {% if not is_pdf %}
-  <!-- Contact FAB + Newsletter (inchangés chez toi) -->
-  <script src="{% static 'js/main.js' %}" defer></script>
-  <script src="{% static 'js/contact-fab.js' %}" defer></script>
-  <script src="{% static 'js/user-dropdown.js' %}" defer></script>
-  {% block extra_js %}{% endblock %}
-  <script src="{% static 'js/navbar-premium.js' %}" defer></script>
+<!-- ======================================================
+     ✅ CONTACT FLOATING BUTTON (WhatsApp + Email) — RESTAURÉ
+====================================================== -->
+<div class="i97-contactfab" aria-label="Contact rapide Immigration97">
+  <div class="i97-contactfab__panel" role="dialog" aria-label="Contact Immigration97" aria-hidden="true">
+    <div class="i97-contactfab__top">
+      <div class="i97-contactfab__title">
+        <span class="i97-contactfab__badge">🟢 En ligne</span>
+        Contact Immigration97
+      </div>
+      <button type="button" class="i97-contactfab__close" aria-label="Fermer">✕</button>
+    </div>
+
+    <div class="i97-contactfab__body">
+      <p class="i97-contactfab__text">
+        Besoin d’aide ? Contacte-nous directement via WhatsApp ou email.
+      </p>
+
+      <div class="i97-contactfab__actions">
+        <a class="i97-contactfab__link"
+           href="https://wa.me/237693649944"
+           target="_blank" rel="noopener"
+           aria-label="Contacter sur WhatsApp">
+          <svg class="i97-contactfab__icon" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+            <path d="M19.11 17.53c-.27-.14-1.6-.79-1.85-.88-.25-.09-.43-.14-.61.14-.18.27-.7.88-.86 1.06-.16.18-.32.2-.59.07-.27-.14-1.15-.42-2.18-1.35-.8-.71-1.34-1.59-1.5-1.86-.16-.27-.02-.42.12-.56.12-.12.27-.32.41-.48.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.61-1.47-.84-2.02-.22-.53-.44-.46-.61-.47l-.52-.01c-.18 0-.48.07-.73.34-.25.27-.95.93-.95 2.26 0 1.33.98 2.61 1.11 2.79.14.18 1.92 2.93 4.66 4.11.65.28 1.15.45 1.54.57.65.21 1.25.18 1.72.11.52-.08 1.6-.65 1.83-1.28.23-.63.23-1.17.16-1.28-.07-.11-.25-.18-.52-.32z"/>
+            <path d="M16 3C9.37 3 4 8.2 4 14.62c0 2.25.68 4.33 1.85 6.07L4 29l8.56-1.78c1.66.9 3.57 1.42 5.64 1.42 6.63 0 12-5.2 12-11.62C30.2 8.2 22.63 3 16 3zm0 22.04c-1.88 0-3.62-.52-5.1-1.42l-.37-.22-5.07 1.06 1.1-4.83-.24-.38c-1.06-1.65-1.67-3.59-1.67-5.63C4.65 9.77 9.75 5.04 16 5.04S27.35 9.77 27.35 14.62 22.25 25.04 16 25.04z"/>
+          </svg>
+          <div>
+            <strong>WhatsApp</strong>
+            <small>+237 693 649 944</small>
+          </div>
+        </a>
+
+        <a class="i97-contactfab__link"
+           href="mailto:CONTACT@IMMIGRATION97.COM"
+           aria-label="Contacter par email">
+          <svg class="i97-contactfab__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
+          </svg>
+          <div>
+            <strong>Email</strong>
+            <small>CONTACT@IMMIGRATION97.COM</small>
+          </div>
+        </a>
+
+        <span class="i97-contactfab__pill">✅ Réponse rapide • Support</span>
+      </div>
+    </div>
+  </div>
+
+  <button type="button" class="i97-contactfab__btn"
+        aria-label="Contacter Immigration97"
+        aria-expanded="false">
+    <svg class="i97-contactfab__icon" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+      <path d="M19.11 17.53c-.27-.14-1.6-.79-1.85-.88-.25-.09-.43-.14-.61.14-.18.27-.7.88-.86 1.06-.16.18-.32.2-.59.07-.27-.14-1.15-.42-2.18-1.35-.8-.71-1.34-1.59-1.5-1.86-.16-.27-.02-.42.12-.56.12-.12.27-.32.41-.48.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.61-1.47-.84-2.02-.22-.53-.44-.46-.61-.47l-.52-.01c-.18 0-.48.07-.73.34-.25.27-.95.93-.95 2.26 0 1.33.98 2.61 1.11 2.79.14.18 1.92 2.93 4.66 4.11.65.28 1.15.45 1.54.57.65.21 1.25.18 1.72.11.52-.08 1.6-.65 1.83-1.28.23-.63.23-1.17.16-1.28-.07-.11-.25-.18-.52-.32z"/>
+      <path d="M16 3C9.37 3 4 8.2 4 14.62c0 2.25.68 4.33 1.85 6.07L4 29l8.56-1.78c1.66.9 3.57 1.42 5.64 1.42 6.63 0 12-5.2 12-11.62C30.2 8.2 22.63 3 16 3zm0 22.04c-1.88 0-3.62-.52-5.1-1.42l-.37-.22-5.07 1.06 1.1-4.83-.24-.38c-1.06-1.65-1.67-3.59-1.67-5.63C4.65 9.77 9.75 5.04 16 5.04S27.35 9.77 27.35 14.62 22.25 25.04 16 25.04z"/>
+    </svg>
+
+    <span class="i97-contactfab__label">Contact Whatsapp</span>
+  </button>
+</div>
 {% endif %}
+
+<!-- ======================================================
+     ✅ NEWSLETTER GLOBAL (visible partout) — RESTAURÉ
+====================================================== -->
+{% if not is_pdf %}
+<div class="nl-global is-hidden" id="nl-global" aria-hidden="true">
+  <div class="nl-global__card" role="region" aria-label="Newsletter Immigration97">
+    <div class="nl-global__top">
+      <div class="nl-global__badge">
+        <span class="nl-global__dot"></span>
+        Alertes immigration officielles
+      </div>
+      <button class="nl-global__close" id="nl-close" type="button" aria-label="Fermer">✕</button>
+    </div>
+
+    <div class="nl-global__body">
+      <div>
+        <h3 class="nl-global__title">
+          Reçois les <span>ouvertures & alertes</span> (USA • Canada • Europe)
+        </h3>
+        <p class="nl-global__text">
+          DV Lottery, dates, quotas, lois, opportunités : une alerte claire, rapide et vérifiée.
+        </p>
+        <div class="nl-global__hint">
+          ✅ Gratuit • Tu peux te désinscrire à tout moment.
+        </div>
+      </div>
+
+      <form class="nl-global__form" method="post" action="{% url 'actualite:newsletter_subscribe' %}">
+        {% csrf_token %}
+        <input class="nl-global__input"
+               type="email"
+               name="email"
+               placeholder="Ton email (ex: nom@gmail.com)"
+               required>
+        <input type="hidden" name="source_page" value="{% block newsletter_source %}global{% endblock %}">
+        <button class="c-btn c-btn--primary nl-global__btn" type="submit">
+          M'inscrire
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const wrap = document.getElementById("nl-global");
+  const closeBtn = document.getElementById("nl-close");
+  if (!wrap || !closeBtn) return;
+
+  const KEY = "imm97_newsletter_closed_v1";
+
+  if (localStorage.getItem(KEY) === "1") {
+    wrap.classList.add("is-hidden");
+    wrap.setAttribute("aria-hidden", "true");
+    return;
+  }
+
+  let shown = false;
+  const show = () => {
+    wrap.classList.remove("is-hidden");
+    wrap.setAttribute("aria-hidden", "false");
+  };
+
+  window.addEventListener("scroll", function () {
+    if (shown) return;
+    const sc = window.scrollY || document.documentElement.scrollTop || 0;
+    if (sc > 220) {
+      shown = true;
+      show();
+    }
+  }, { passive: true });
+
+  closeBtn.addEventListener("click", function () {
+    localStorage.setItem(KEY, "1");
+    wrap.classList.add("is-closing");
+    setTimeout(() => {
+      wrap.classList.add("is-hidden");
+      wrap.setAttribute("aria-hidden", "true");
+    }, 360);
+  });
+});
+</script>
+{% endif %}
+
+<!-- ================= JS GLOBAL ================= -->
+<script src="{% static 'js/main.js' %}" defer></script>
+<script src="{% static 'js/contact-fab.js' %}" defer></script>
+<script src="{% static 'js/user-dropdown.js' %}" defer></script>
+
+<!-- ================= JS APP / PAGE ================= -->
+{% block extra_js %}{% endblock %}
+<script src="{% static 'js/navbar-premium.js' %}" defer></script>
 
 </body>
 </html>
