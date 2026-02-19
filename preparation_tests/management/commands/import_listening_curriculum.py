@@ -2,33 +2,26 @@
 # -*- coding: utf-8 -*-
 """
 Management command pour importer le curriculum de compréhension orale
-depuis un fichier JSON vers la base de données Django.
+depuis un fichier JSON vers les CourseLesson et CourseExercise.
 
 Usage:
     python manage.py import_listening_curriculum --file ai_engine/learning_content/listening_curriculum_A1_fr.json
-    python manage.py import_listening_curriculum --file <path> --level A1 --language fr
+    python manage.py import_listening_curriculum --file <path> --level A1 --language fr --clear
 """
 
 import json
 import os
 from pathlib import Path
+from django.utils.text import slugify
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from preparation_tests.models import (
-    Exam,
-    ExamSection,
-    Passage,
-    Question,
-    Choice,
-    Explanation,
-    Asset,
-)
+from preparation_tests.models import CourseLesson, CourseExercise
 
 
 class Command(BaseCommand):
-    help = "Importe un curriculum de compréhension orale depuis un fichier JSON"
+    help = "Importe un curriculum de compréhension orale dans CourseLesson & CourseExercise"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -52,7 +45,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--clear",
             action="store_true",
-            help="Supprime les données existantes avant import",
+            help="Supprime les leçons existantes avant import",
         )
 
     @transaction.atomic
@@ -82,135 +75,132 @@ class Command(BaseCommand):
         if "lessons" not in data or not isinstance(data["lessons"], list):
             raise CommandError("❌ Structure JSON invalide: 'lessons' manquant")
 
-        # Créer ou récupérer l'examen
-        exam_code = f"listening_co_{level.lower()}_{language}"
-        exam_name = f"Compréhension Orale {level}"
-
+        # Supprimer les leçons existantes si --clear
         if clear_existing:
-            Exam.objects.filter(code=exam_code).delete()
-            self.stdout.write(self.style.WARNING(f"🗑️  Données existantes supprimées"))
-
-        exam, created = Exam.objects.get_or_create(
-            code=exam_code,
-            defaults={
-                "name": exam_name,
-                "language": language,
-                "description": f"Curriculum de compréhension orale niveau {level} en {self._lang_name(language)}",
-            },
-        )
-
-        if created:
-            self.stdout.write(self.style.SUCCESS(f"✅ Examen créé: {exam.name}"))
-        else:
-            self.stdout.write(self.style.WARNING(f"⚠️  Examen existant: {exam.name}"))
-
-        # Créer la section Compréhension Orale
-        section, _ = ExamSection.objects.get_or_create(
-            exam=exam,
-            code="co",
-            defaults={"order": 1, "duration_sec": 1800},
-        )
-        self.stdout.write(
-            self.style.SUCCESS(f"✅ Section créée: Compréhension Orale")
-        )
+            CourseLesson.objects.filter(level=level, locale=language).delete()
+            self.stdout.write(self.style.WARNING(f"🗑️  Leçons existantes supprimées"))
 
         # Compteurs
         lesson_count = 0
-        question_count = 0
-        choice_count = 0
+        exercise_count = 0
 
         # Importer les leçons
         for lesson_data in data["lessons"]:
             lesson_number = lesson_data.get("lesson_number", 0)
             lesson_title = lesson_data.get("title", "")
+            lesson_obj = lesson_data.get("objective", "")
+            vocab_focus = lesson_data.get("vocabulary_focus", [])
 
-            # Créer un passage pour la leçon
-            passage, _ = Passage.objects.get_or_create(
-                title=f"Leçon {lesson_number}: {lesson_title}",
-                defaults={"text": lesson_data.get("objective", "")},
-            )
+            try:
+                # Créer la leçon
+                slug = slugify(f"{level}-lecon-{lesson_number}-{lesson_title}")
+                
+                # Générer un HTML simple pour le contenu
+                content_html = f"""
+                <h2>{lesson_title}</h2>
+                <p><strong>Objectif:</strong> {lesson_obj}</p>
+                <p><strong>Vocabulaire:</strong> {', '.join(vocab_focus)}</p>
+                """
 
-            exercises = lesson_data.get("exercises", [])
-
-            for exercise_data in exercises:
-                try:
-                    # Créer la question
-                    audio_script = exercise_data.get("audio_script", "")
-                    question_text = exercise_data.get("question", "")
-
-                    question = Question.objects.create(
-                        section=section,
-                        stem=question_text,
-                        passage=passage,
-                        subtype="mcq",
-                        difficulty=self._map_difficulty(
-                            exercise_data.get("difficulty_progression", 5)
-                        ),
-                    )
-
-                    question_count += 1
-
-                    # Ajouter les choix (options)
-                    options = exercise_data.get("options", {})
-                    correct_answer = exercise_data.get("correct_answer", "")
-
-                    for option_key, option_text in options.items():
-                        is_correct = option_key == correct_answer
-                        Choice.objects.create(
-                            question=question,
-                            text=option_text,
-                            is_correct=is_correct,
-                        )
-                        choice_count += 1
-
-                    # Ajouter l'explication
-                    explanation_text = exercise_data.get("explanation", "")
-                    Explanation.objects.create(
-                        question=question,
-                        text_md=f"**Audio:** {audio_script}\n\n**Réponse:** {explanation_text}",
-                    )
-
-                except Exception as e:
-                    self.stdout.write(
-                        self.style.ERROR(
-                            f"❌ Erreur Leçon {lesson_number}, Exercice {exercise_data.get('exercise_number')}: {e}"
-                        )
-                    )
-
-            lesson_count += 1
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"  ✅ Leçon {lesson_number}: {len(exercises)} exercices importés"
+                lesson, created = CourseLesson.objects.get_or_create(
+                    slug=slug,
+                    defaults={
+                        "title": lesson_title,
+                        "level": level,
+                        "section": "co",  # Compréhension Orale
+                        "locale": language,
+                        "content_html": content_html,
+                        "order": lesson_number,
+                        "is_published": True,
+                    },
                 )
-            )
+
+                if created:
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f"  ✅ Leçon {lesson_number}: {lesson_title} créée"
+                        )
+                    )
+                else:
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"  ⚠️  Leçon {lesson_number}: {lesson_title} existante"
+                        )
+                    )
+
+                lesson_count += 1
+
+                # Importer les exercices
+                exercises = lesson_data.get("exercises", [])
+
+                for exercise_data in exercises:
+                    try:
+                        exercise_number = exercise_data.get("exercise_number", 0)
+                        question_text = exercise_data.get("question", "")
+                        audio_script = exercise_data.get("audio_script", "")
+                        options = exercise_data.get("options", {})
+                        correct_answer = exercise_data.get("correct_answer", "")
+                        explanation = exercise_data.get("explanation", "")
+                        difficulty_prog = exercise_data.get("difficulty_progression", 5)
+
+                        # Mapper les options A, B, C, D
+                        option_a = options.get("A", "")
+                        option_b = options.get("B", "")
+                        option_c = options.get("C", "")
+                        option_d = options.get("D", "")
+
+                        # Créer l'exercice
+                        exercise, ex_created = CourseExercise.objects.get_or_create(
+                            lesson=lesson,
+                            title=f"Exercice {exercise_number}",
+                            defaults={
+                                "instruction": audio_script,
+                                "question_text": question_text,
+                                "option_a": option_a,
+                                "option_b": option_b,
+                                "option_c": option_c or "",
+                                "option_d": option_d or "",
+                                "correct_option": correct_answer,
+                                "summary": explanation,
+                                "order": exercise_number,
+                                "is_active": True,
+                            },
+                        )
+
+                        if ex_created:
+                            exercise_count += 1
+
+                    except Exception as e:
+                        self.stdout.write(
+                            self.style.ERROR(
+                                f"    ❌ Erreur exercice {exercise_number}: {e}"
+                            )
+                        )
+
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"    📝 {len(exercises)} exercices importés pour leçon {lesson_number}"
+                    )
+                )
+
+            except Exception as e:
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"❌ Erreur leçon {lesson_number}: {e}"
+                    )
+                )
 
         # Résumé
         self.stdout.write(self.style.SUCCESS("\n" + "=" * 60))
         self.stdout.write(self.style.SUCCESS(f"📊 RÉSUMÉ DE L'IMPORT"))
         self.stdout.write(self.style.SUCCESS("=" * 60))
-        self.stdout.write(self.style.SUCCESS(f"✅ Leçons: {lesson_count}"))
-        self.stdout.write(self.style.SUCCESS(f"✅ Questions: {question_count}"))
-        self.stdout.write(self.style.SUCCESS(f"✅ Choix: {choice_count}"))
-        self.stdout.write(self.style.SUCCESS(f"✅ Examen: {exam.name} ({exam.code})"))
+        self.stdout.write(self.style.SUCCESS(f"✅ Leçons créées: {lesson_count}"))
+        self.stdout.write(self.style.SUCCESS(f"✅ Exercices créés: {exercise_count}"))
+        self.stdout.write(self.style.SUCCESS(f"✅ Niveau: {level} ({language})"))
+        self.stdout.write(self.style.SUCCESS(f"✅ Section: Compréhension Orale"))
         self.stdout.write(self.style.SUCCESS("=" * 60))
         self.stdout.write(
             self.style.SUCCESS(
-                "\n🎯 Import réussi! Le contenu est prêt pour la production.\n"
+                "\n🎯 Import réussi! Les leçons sont prêtes pour les examens.\n"
             )
         )
-
-    @staticmethod
-    def _map_difficulty(progression_value):
-        """Map la difficulté (1-10) aux choix Django"""
-        if progression_value <= 3:
-            return "easy"
-        elif progression_value <= 7:
-            return "medium"
-        else:
-            return "hard"
-
-    @staticmethod
-    def _lang_name(lang_code):
-        """Traduit les codes langue"""
-        langs = {"fr": "Français", "en": "Anglais", "de": "Allemand", "it": "Italien"}
-        return langs.get(lang_code, lang_code)
