@@ -138,16 +138,26 @@ class Command(BaseCommand):
                         exercise_number = exercise_data.get("exercise_number", 0)
                         question_text = exercise_data.get("question", "")
                         audio_script = exercise_data.get("audio_script", "")
+                        exercise_type = exercise_data.get("type", "multiple_choice")
                         options = exercise_data.get("options", {})
                         correct_answer = exercise_data.get("correct_answer", "")
                         explanation = exercise_data.get("explanation", "")
                         difficulty_prog = exercise_data.get("difficulty_progression", 5)
 
                         # Mapper les options A, B, C, D
-                        option_a = options.get("A", "")
-                        option_b = options.get("B", "")
-                        option_c = options.get("C", "")
-                        option_d = options.get("D", "")
+                        # Gérer les exercices vrai/faux en les convertissant en A/B
+                        if exercise_type == "vrai_faux":
+                            option_a = "Vrai"
+                            option_b = "Faux"
+                            option_c = ""
+                            option_d = ""
+                            # Convertir la réponse "Vrai"/"Faux" en "A"/"B"
+                            correct_answer = "A" if correct_answer == "Vrai" else "B"
+                        else:
+                            option_a = options.get("A", "")
+                            option_b = options.get("B", "")
+                            option_c = options.get("C", "")
+                            option_d = options.get("D", "")
 
                         # Créer l'exercice
                         exercise, ex_created = CourseExercise.objects.get_or_create(
