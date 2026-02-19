@@ -19,7 +19,7 @@
     font-size: var(--text-sm);
   }
 
-  /* ✅ CRITIQUE: ton layout utilise app-container, pas seulement .container */
+  /* ✅ CRITIQUE: ton layout utilise app-container */
   .app-container,
   .container {
     width: 100%;
@@ -29,7 +29,6 @@
     box-sizing: border-box;
   }
 
-  /* Evite des débordements causés par des éléments très larges */
   .app-main {
     overflow-x: hidden;
   }
@@ -56,8 +55,6 @@
 
   /* =====================
      BUTTONS & FORMS (MOBILE FRIENDLY)
-     - évite les boutons qui débordent
-     - rend les champs plus faciles à taper
   ===================== */
   .c-btn,
   a.c-btn,
@@ -68,7 +65,6 @@
     justify-content: center;
   }
 
-  /* Si tu as des groupes de boutons (CTA) */
   .home-hero__actions,
   .actions,
   .btn-row,
@@ -84,7 +80,7 @@
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    font-size: 16px; /* ✅ empêche le zoom auto iOS */
+    font-size: 16px; /* ✅ empêche zoom auto iOS */
   }
 
   /* =====================
@@ -105,16 +101,53 @@
     border-radius: var(--radius-md);
   }
 
-  /* =====================
-     TABLES (si tu en as)
-     - évite casse layout
-  ===================== */
-  table {
-    width: 100%;
-    display: block;
+  /* =====================================================
+     ✅ TABLE RESPONSIVE (LE VRAI FIX)
+     - empêche le tableau de casser la page
+     - permet un scroll horizontal fluide sur mobile
+     - fonctionne même si le tableau n’est pas wrapped
+  ===================================================== */
+
+  /* 1) Tous les wrappers courants (bootstrap-like, custom, datatables) */
+  .table-responsive,
+  .table-wrap,
+  .table-container,
+  .datatable,
+  .dataTables_wrapper,
+  .dataTables_scrollBody,
+  .c-table,
+  .c-table-wrap {
+    max-width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
+
+  /* 2) Si le tableau est direct dans le contenu (sans wrapper) */
+  .app-container table,
+  .container table,
+  main table {
+    display: block;            /* permet overflow */
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-collapse: collapse;
+  }
+
+  /* 3) Evite que les colonnes “explosent” */
+  .app-container table th,
+  .app-container table td,
+  .container table th,
+  .container table td,
+  main table th,
+  main table td {
+    white-space: nowrap;       /* clé pour empêcher le wrapping bizarre */
+  }
+
+  /* 4) Bonus: si tu veux autoriser le retour à la ligne sur mobile
+        (utile quand les cellules sont des phrases) :
+        -> commente white-space:nowrap ci-dessus et active ça :
+        th, td { white-space: normal; } */
 
   /* =====================
      FOOTER
@@ -137,7 +170,6 @@
     padding: var(--space-sm);
   }
 
-  /* Si ton footer premium contient des listes flex */
   .c-footer__geo-list {
     flex-direction: column;
     gap: var(--space-sm);
