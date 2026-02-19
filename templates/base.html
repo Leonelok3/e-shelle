@@ -8,11 +8,7 @@
   <!-- ================= SEO ================= -->
   <title>{% block title %}Immigration97 — Immigration & Visa Premium{% endblock %}</title>
 
-  <meta name="description"
-        content="{% block meta_description %}
-        Plateforme premium d'assistance immigration : visas, résidence permanente,
-        tests de langue, CV IA et accompagnement international.
-        {% endblock %}">
+  <meta name="description" content="{% block meta_description %}Plateforme premium d'assistance immigration : visas, résidence permanente, tests de langue, CV IA et accompagnement international.{% endblock %}">
 
   <link rel="canonical" href="{{ request.build_absolute_uri }}">
   <meta name="robots" content="index, follow">
@@ -47,12 +43,8 @@
 
   <!-- ================= OPEN GRAPH ================= -->
   <meta property="og:site_name" content="Immigration97">
-  <meta property="og:title"
-        content="{% block og_title %}Immigration97 — Plateforme Immigration Premium{% endblock %}">
-  <meta property="og:description"
-        content="{% block og_description %}
-        Visas, résidence permanente, tests de langue, CV IA et guides officiels.
-        {% endblock %}">
+  <meta property="og:title" content="{% block og_title %}Immigration97 — Plateforme Immigration Premium{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Visas, résidence permanente, tests de langue, CV IA et guides officiels.{% endblock %}">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ request.build_absolute_uri }}">
   <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/LOGOIMM97.png' %}">
@@ -61,27 +53,22 @@
   <!-- ================= TWITTER ================= -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@immigration97">
-  <meta name="twitter:title"
-        content="{% block twitter_title %}Immigration97{% endblock %}">
-  <meta name="twitter:description"
-        content="{% block twitter_description %}
-        Votre plateforme premium d'immigration et de mobilité internationale.
-        {% endblock %}">
+  <meta name="twitter:title" content="{% block twitter_title %}Immigration97{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}Votre plateforme premium d'immigration et de mobilité internationale.{% endblock %}">
   <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/LOGOIMM97.png' %}">
 
-  <!-- ================= CSS GLOBAL ================= -->
-  {% if not is_pdf %}
-    <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/components.css' %}">
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
-    <link rel="stylesheet" href="{% static 'css/components/newsletter-global.css' %}">
-    <link rel="stylesheet" href="{% static 'css/components/contact-fab.css' %}">
-    <link rel="stylesheet" href="{% static 'css/components/navbar-premium-2026.css' %}">
-    <link rel="stylesheet" href="{% static 'css/components/user-dropdown.css' %}">
-  {% endif %}
+  <!-- ================= CSS GLOBAL =================
+       ✅ NE PLUS BLOQUER PAR is_pdf (sinon mobile peut finir sans CSS)
+       ✅ cache-busting pour purger le cache mobile
+  ================================================== -->
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}?v=20260219">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=20260219">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}?v=20260219">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}?v=20260219">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}?v=20260219">
+  <link rel="stylesheet" href="{% static 'css/components/newsletter-global.css' %}?v=20260219">
 
+  <!-- ================= CSS APP / PAGE ================= -->
   {% block extra_css %}{% endblock %}
 
   <!-- ================= Google AdSense ================= -->
@@ -90,15 +77,264 @@
     crossorigin="anonymous">
   </script>
 
-  <link rel="stylesheet" href="{% static 'css/components/footer-premium.css' %}">
+  <style>
+    /* ================= PREMIUM FOOTER STYLES ================= */
+    .c-footer {
+      background: linear-gradient(135deg, #0a0e1a 0%, #161c2e 100%);
+      color: #e8eaed;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .c-footer__main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 4rem 2rem 2rem;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+      gap: 3rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .c-footer__brand-section { max-width: 320px; }
+    .c-footer__brand-section img { width: 160px; margin-bottom: 1.25rem; }
+
+    .c-footer__brand-text {
+      color: #b4b9c5;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .c-footer__social {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .c-footer__social-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      color: #e8eaed;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .c-footer__social-link:hover {
+      background: var(--color-primary, #10b981);
+      transform: translateY(-2px);
+      color: #fff;
+    }
+
+    .c-footer__section h4 {
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
+
+    .c-footer__section h4::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 30px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--color-primary, #10b981), transparent);
+    }
+
+    .c-footer__links { list-style: none; padding: 0; margin: 0; }
+    .c-footer__links li { margin-bottom: 0.75rem; }
+
+    .c-footer__links a {
+      color: #b4b9c5;
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .c-footer__links a:hover {
+      color: var(--color-primary, #10b981);
+      transform: translateX(3px);
+    }
+
+    .c-footer__links a::before {
+      content: '→';
+      font-size: 0.85rem;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .c-footer__links a:hover::before { opacity: 1; }
+
+    .c-footer__cta-section {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 12px;
+      padding: 1.75rem;
+    }
+
+    .c-footer__cta-section h4 { margin-bottom: 1rem; }
+
+    .c-footer__cta-text {
+      color: #b4b9c5;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 1.25rem;
+    }
+
+    .c-footer__cta-highlight {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--color-primary, #10b981);
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 1.25rem;
+    }
+
+    .c-footer__trust-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .c-footer__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: #b4b9c5;
+    }
+
+    .c-footer__geo-section {
+      max-width: 1280px;
+      margin: 3rem auto 0;
+      padding: 2rem 2rem 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: center;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .c-footer__geo-title {
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .c-footer__geo-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .c-footer__geo-item {
+      color: #b4b9c5;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .c-footer__geo-item::before {
+      content: '📍';
+      font-size: 1rem;
+    }
+
+    .c-footer__bottom {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .c-footer__copyright {
+      color: #7d8590;
+      font-size: 0.9rem;
+    }
+
+    .c-footer__legal {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .c-footer__legal a {
+      color: #7d8590;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s ease;
+    }
+
+    .c-footer__legal a:hover { color: var(--color-primary, #10b981); }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .c-footer__main {
+        grid-template-columns: 1fr 1fr;
+        gap: 2.5rem;
+      }
+      .c-footer__brand-section {
+        grid-column: 1 / -1;
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .c-footer__main {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 3rem 1.5rem 1.5rem;
+      }
+      .c-footer__bottom {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.5rem;
+      }
+      .c-footer__geo-list {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+    }
+  </style>
+
 </head>
 
 <body class="app {% block body_class %}{% endblock %}">
 
 <!-- ======================================================
-     NAVBAR — PREMIUM + MOBILE SAFE
+     NAVBAR — DESIGN SYSTEM COMPLIANT
 ====================================================== -->
-<header class="c-navbar" data-navbar>
+<header class="c-navbar">
   <div class="c-navbar__container">
 
     <!-- Brand -->
@@ -107,130 +343,34 @@
     </a>
 
     <!-- Toggle mobile -->
-    <button type="button"
-            class="c-navbar__toggle"
+    <button class="c-navbar__toggle"
             aria-label="Ouvrir le menu"
-            aria-controls="primaryNav"
-            aria-expanded="false"
-            data-nav-toggle>
+            aria-expanded="false">
       ☰
     </button>
 
-    <!-- Backdrop mobile -->
-    <div class="c-navbar__backdrop" data-nav-backdrop aria-hidden="true"></div>
-
     <!-- Navigation -->
-    <nav class="c-navbar__nav" id="primaryNav" aria-label="Navigation principale" data-nav-panel>
+    <nav class="c-navbar__nav">
       <a href="/" class="c-nav-link">Accueil</a>
-      <a href="/services/" class="c-nav-link">Services</a>
       <a href="/prep/" class="c-nav-link">Tests de langue</a>
-
-      <!-- ✅ Travail retiré ici, remplacé par Résidence permanente -->
-      <a href="/residence-permanente/" class="c-nav-link">Résidence permanente</a>
-
-      <a href="/visa-etudes/" class="c-nav-link">Étude</a>
-      <a href="/about/" class="c-nav-link">À propos</a>
+      <a href="/visa-travail/" class="c-nav-link">Visa Travail</a>
+      <a href="/visa-etudes/" class="c-nav-link">Visa Études</a>
+      <a href="/residence-permanente/" class="c-nav-link">Résidence Permanente</a>
 
       {% if user.is_authenticated %}
-        <!-- ✅ Job Agent devient un groupe qui contient aussi Travail -->
-        <details class="c-nav-group">
-          <summary class="c-nav-group__summary">Job Agent</summary>
-          <div class="c-nav-group__menu">
-            <a href="{% url 'job_agent:dashboard' %}" class="c-nav-link c-nav-link--sub">🤖 Dashboard Job Agent</a>
-            <a href="/visa-travail/" class="c-nav-link c-nav-link--sub">💼 Travail</a>
-          </div>
-        </details>
-      {% else %}
-        <a href="/jobs/" class="c-nav-link">Job Agent</a>
-      {% endif %}
-
-      <!-- Actions mobile -->
-      <div class="c-navbar__actions c-navbar__actions--mobile" data-nav-actions>
-        {% if user.is_authenticated %}
-          <a href="{% url 'billing:access' %}" class="c-btn c-btn--primary">💎 Mon abonnement</a>
-        {% else %}
-          <a href="{% url 'authentification:login' %}" class="c-btn c-btn--outline">Se connecter</a>
-          <a href="{% url 'billing:access' %}" class="c-btn c-btn--primary">Accès Premium</a>
-        {% endif %}
-      </div>
-    </nav>
-
-    <!-- Actions desktop -->
-    <div class="c-navbar__actions c-navbar__actions--desktop">
-      {% if user.is_authenticated %}
-        <!-- ✅ CTA Premium visible en desktop -->
-        <a href="{% url 'billing:access' %}" class="c-btn c-btn--primary">💎 Mon abonnement</a>
-
-        <!-- Dropdown user -->
-        <div class="c-usernav" id="userNav">
-          <button type="button"
-                  class="c-usernav__btn"
-                  id="userNavBtn"
-                  aria-expanded="false"
-                  aria-haspopup="menu">
-            <span class="c-usernav__avatar" aria-hidden="true">
-              {% if user.first_name %}
-                {{ user.first_name|slice:":1"|upper }}
-              {% else %}
-                {{ user.username|slice:":1"|upper }}
-              {% endif %}
-            </span>
-
-            <span class="c-usernav__meta">
-              <span class="c-usernav__name">
-                {% if user.first_name %}
-                  {{ user.first_name }}
-                {% else %}
-                  {{ user.username }}
-                {% endif %}
-              </span>
-              <span class="c-usernav__role">Mon espace</span>
-            </span>
-
-            <span class="c-usernav__chev" aria-hidden="true">▾</span>
-          </button>
-
-          <div class="c-usernav__menu"
-               id="userNavMenu"
-               role="menu"
-               aria-hidden="true">
-
-            <div class="c-usernav__header">
-              <div class="c-usernav__headerLine">
-                <strong>
-                  {% if user.get_full_name %}
-                    {{ user.get_full_name }}
-                  {% else %}
-                    {{ user.username }}
-                  {% endif %}
-                </strong>
-                <span class="c-usernav__status">🟢 Connecté</span>
-              </div>
-            </div>
-
-            <a class="c-usernav__item" role="menuitem" href="/profiles/">
-              👤 Mon profil
-            </a>
-
-            <a class="c-usernav__item c-usernav__item--danger"
-               role="menuitem"
-               href="{% url 'authentification:logout' %}">
-              🔒 Se déconnecter
-            </a>
-          </div>
-        </div>
-
+        <a href="{% url 'job_agent:dashboard' %}" class="c-nav-link">Job Agent</a>
+        <a href="/profiles/" class="c-btn c-btn--outline">Mon espace</a>
+        <a href="{% url 'authentification:logout' %}" class="c-btn c-btn--primary">Se déconnecter</a>
       {% else %}
         <a href="{% url 'authentification:login' %}" class="c-btn c-btn--outline">Se connecter</a>
         <a href="{% url 'billing:access' %}" class="c-btn c-btn--primary">Accès Premium</a>
       {% endif %}
-    </div>
-
+    </nav>
   </div>
 </header>
 
 <!-- ======================================================
-     MAIN CONTENT
+     MAIN CONTENT — WRAPPER GLOBAL STABLE
 ====================================================== -->
 <main class="app-main {% block app_scope %}{% endblock %}">
   <div class="app-container">
@@ -239,33 +379,24 @@
 </main>
 
 <!-- ======================================================
-     FOOTER PREMIUM — (TON FOOTER COMPLET RESTAURÉ)
+     FOOTER PREMIUM — 2026 BEST PRACTICES
 ====================================================== -->
 <footer class="c-footer">
   <div class="c-footer__main">
 
-    <!-- Brand -->
+    <!-- Brand & Mission -->
     <div class="c-footer__brand-section">
       <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97" width="160" height="45" loading="lazy">
-
       <p class="c-footer__brand-text">
         <strong>Immigration97</strong> est la plateforme premium qui accompagne
         <strong>+15 000 candidats</strong> dans leur projet d'immigration vers le
         <strong>Canada, USA, Europe et Australie</strong>.
       </p>
-
       <div class="c-footer__trust-badges">
+        <span class="c-footer__badge">✓ Certifié RCIC</span>
         <span class="c-footer__badge">✓ Paiement sécurisé</span>
-        <span class="c-footer__badge">✓ Support réactif</span>
-        <span class="c-footer__badge">✓ Outils IA premium</span>
+        <span class="c-footer__badge">✓ Support 24/7</span>
       </div>
-
-      <div class="c-footer__contact" aria-label="Contacts Immigration97">
-        <strong>Contact direct</strong>
-        <a href="https://wa.me/237693649944" target="_blank" rel="noopener">WhatsApp : +237 693 649 944</a>
-        <a href="mailto:CONTACT@IMMIGRATION97.COM">Email : CONTACT@IMMIGRATION97.COM</a>
-      </div>
-
       <div class="c-footer__social">
         <a href="https://facebook.com/immigration97" class="c-footer__social-link" aria-label="Facebook" target="_blank" rel="noopener">
           <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
@@ -277,7 +408,7 @@
           <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
         </a>
         <a href="https://instagram.com/immigration97" class="c-footer__social-link" aria-label="Instagram" target="_blank" rel="noopener">
-          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/></svg>
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
         </a>
       </div>
     </div>
@@ -289,9 +420,9 @@
         <li><a href="/visa-photo/">Photos Visa</a></li>
         <li><a href="/cv-generator/">CV Builder IA</a></li>
         <li><a href="/prep/">Tests de langue</a></li>
-        <li><a href="/jobs/">Job Agent IA</a></li>
-        <li><a href="/motivation/">Lettres de motivation</a></li>
-        <li><a href="/documents/">Documents</a></li>
+        <li><a href="{% url 'job_agent:dashboard' %}">Job Agent IA</a></li>
+        <li><a href="/motivation-letter/">Lettres de motivation</a></li>
+        <li><a href="/traduction/">Traduction certifiée</a></li>
       </ul>
     </div>
 
@@ -302,50 +433,42 @@
         <li><a href="/residence-permanente/">🇨🇦 Canada RP</a></li>
         <li><a href="/visa-travail/">💼 Visa Travail</a></li>
         <li><a href="/visa-etudes/">🎓 Visa Études</a></li>
-        <li><a href="/visa-tourisme/">🧳 Visa Tourisme</a></li>
-        <li><a href="/actualite/">📰 Alertes & Actualités</a></li>
+        <li><a href="/usa-dv-lottery/">🇺🇸 USA DV Lottery</a></li>
+        <li><a href="/europe-visa/">🇪🇺 Europe</a></li>
+        <li><a href="/australia-visa/">🇦🇺 Australie</a></li>
       </ul>
     </div>
 
-    <!-- Ressources -->
+    <!-- Support & Resources -->
     <div class="c-footer__section">
       <h4>Ressources</h4>
       <ul class="c-footer__links">
-        <li><a href="/services/">📦 Nos services</a></li>
-        <li><a href="/about/">🏢 À propos</a></li>
-        <li><a href="/actualite/">📰 Actualités</a></li>
-        <li><a href="/wizard/">🧭 Wizard / Checklist</a></li>
-        <li><a href="/dashboard/">📊 Dashboard</a></li>
+        <li><a href="/guides/">📚 Guides officiels</a></li>
+        <li><a href="/faq/">❓ FAQ</a></li>
+        <li><a href="/blog/">📰 Blog immigration</a></li>
+        <li><a href="/success-stories/">⭐ Témoignages</a></li>
+        <li><a href="/contact/">✉️ Contact Support</a></li>
+        <li><a href="/partners/">🤝 Partenaires RCIC</a></li>
       </ul>
     </div>
 
-    <!-- Applications -->
-    <div class="c-footer__section">
-      <h4>Applications</h4>
-      <ul class="c-footer__links">
-        <li><a href="/documents/">📁 Documents</a></li>
-        <li><a href="/visa-photo/">📸 Visa Photo</a></li>
-        <li><a href="/cv-generator/">📄 CV Generator</a></li>
-        <li><a href="/motivation/">✍️ Motivation Letter</a></li>
-        <li><a href="/prep/">🧠 Préparation Tests</a></li>
-        <li><a href="/jobs/">🤖 Job Agent</a></li>
-        <li><a href="/profiles/">👤 Profiles</a></li>
-      </ul>
-    </div>
-
-    <!-- Formations -->
-    <div class="c-footer__section">
-      <h4>Formations</h4>
-      <ul class="c-footer__links">
-        <li><a href="/langue/english/">🇬🇧 English Prep</a></li>
-        <li><a href="/langue/german/">🇩🇪 German Prep</a></li>
-        <li><a href="/italien/">🇮🇹 Italien</a></li>
-        <li><a href="/billing/">💎 Premium</a></li>
-      </ul>
+    <!-- CTA Premium Section -->
+    <div class="c-footer__cta-section">
+      <h4>🚀 Débloque tout Immigration97</h4>
+      <p class="c-footer__cta-text">
+        Accède à tous les outils IA, templates premium, accompagnement personnalisé et support prioritaire.
+      </p>
+      <div class="c-footer__cta-highlight">
+        ✓ Essai gratuit 7 jours • Sans engagement
+      </div>
+      <a href="{% url 'billing:access' %}" class="c-btn c-btn--primary" style="width: 100%; justify-content: center;">
+        Activer mon Premium
+      </a>
     </div>
 
   </div>
 
+  <!-- Geographic Targeting (SEO) -->
   <div class="c-footer__geo-section">
     <p class="c-footer__geo-title">🌍 Immigration97 accompagne les candidats dans le monde entier</p>
     <ul class="c-footer__geo-list">
@@ -364,6 +487,7 @@
     </ul>
   </div>
 
+  <!-- Bottom Bar -->
   <div class="c-footer__bottom">
     <div class="c-footer__copyright">
       © {% now "Y" %} Immigration97 — Tous droits réservés.
@@ -377,72 +501,8 @@
   </div>
 </footer>
 
-{% if not is_pdf %}
 <!-- ======================================================
-     ✅ CONTACT FLOATING BUTTON (WhatsApp + Email) — RESTAURÉ
-====================================================== -->
-<div class="i97-contactfab" aria-label="Contact rapide Immigration97">
-  <div class="i97-contactfab__panel" role="dialog" aria-label="Contact Immigration97" aria-hidden="true">
-    <div class="i97-contactfab__top">
-      <div class="i97-contactfab__title">
-        <span class="i97-contactfab__badge">🟢 En ligne</span>
-        Contact Immigration97
-      </div>
-      <button type="button" class="i97-contactfab__close" aria-label="Fermer">✕</button>
-    </div>
-
-    <div class="i97-contactfab__body">
-      <p class="i97-contactfab__text">
-        Besoin d’aide ? Contacte-nous directement via WhatsApp ou email.
-      </p>
-
-      <div class="i97-contactfab__actions">
-        <a class="i97-contactfab__link"
-           href="https://wa.me/237693649944"
-           target="_blank" rel="noopener"
-           aria-label="Contacter sur WhatsApp">
-          <svg class="i97-contactfab__icon" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
-            <path d="M19.11 17.53c-.27-.14-1.6-.79-1.85-.88-.25-.09-.43-.14-.61.14-.18.27-.7.88-.86 1.06-.16.18-.32.2-.59.07-.27-.14-1.15-.42-2.18-1.35-.8-.71-1.34-1.59-1.5-1.86-.16-.27-.02-.42.12-.56.12-.12.27-.32.41-.48.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.61-1.47-.84-2.02-.22-.53-.44-.46-.61-.47l-.52-.01c-.18 0-.48.07-.73.34-.25.27-.95.93-.95 2.26 0 1.33.98 2.61 1.11 2.79.14.18 1.92 2.93 4.66 4.11.65.28 1.15.45 1.54.57.65.21 1.25.18 1.72.11.52-.08 1.6-.65 1.83-1.28.23-.63.23-1.17.16-1.28-.07-.11-.25-.18-.52-.32z"/>
-            <path d="M16 3C9.37 3 4 8.2 4 14.62c0 2.25.68 4.33 1.85 6.07L4 29l8.56-1.78c1.66.9 3.57 1.42 5.64 1.42 6.63 0 12-5.2 12-11.62C30.2 8.2 22.63 3 16 3zm0 22.04c-1.88 0-3.62-.52-5.1-1.42l-.37-.22-5.07 1.06 1.1-4.83-.24-.38c-1.06-1.65-1.67-3.59-1.67-5.63C4.65 9.77 9.75 5.04 16 5.04S27.35 9.77 27.35 14.62 22.25 25.04 16 25.04z"/>
-          </svg>
-          <div>
-            <strong>WhatsApp</strong>
-            <small>+237 693 649 944</small>
-          </div>
-        </a>
-
-        <a class="i97-contactfab__link"
-           href="mailto:CONTACT@IMMIGRATION97.COM"
-           aria-label="Contacter par email">
-          <svg class="i97-contactfab__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
-          </svg>
-          <div>
-            <strong>Email</strong>
-            <small>CONTACT@IMMIGRATION97.COM</small>
-          </div>
-        </a>
-
-        <span class="i97-contactfab__pill">✅ Réponse rapide • Support</span>
-      </div>
-    </div>
-  </div>
-
-  <button type="button" class="i97-contactfab__btn"
-        aria-label="Contacter Immigration97"
-        aria-expanded="false">
-    <svg class="i97-contactfab__icon" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
-      <path d="M19.11 17.53c-.27-.14-1.6-.79-1.85-.88-.25-.09-.43-.14-.61.14-.18.27-.7.88-.86 1.06-.16.18-.32.2-.59.07-.27-.14-1.15-.42-2.18-1.35-.8-.71-1.34-1.59-1.5-1.86-.16-.27-.02-.42.12-.56.12-.12.27-.32.41-.48.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.61-1.47-.84-2.02-.22-.53-.44-.46-.61-.47l-.52-.01c-.18 0-.48.07-.73.34-.25.27-.95.93-.95 2.26 0 1.33.98 2.61 1.11 2.79.14.18 1.92 2.93 4.66 4.11.65.28 1.15.45 1.54.57.65.21 1.25.18 1.72.11.52-.08 1.6-.65 1.83-1.28.23-.63.23-1.17.16-1.28-.07-.11-.25-.18-.52-.32z"/>
-      <path d="M16 3C9.37 3 4 8.2 4 14.62c0 2.25.68 4.33 1.85 6.07L4 29l8.56-1.78c1.66.9 3.57 1.42 5.64 1.42 6.63 0 12-5.2 12-11.62C30.2 8.2 22.63 3 16 3zm0 22.04c-1.88 0-3.62-.52-5.1-1.42l-.37-.22-5.07 1.06 1.1-4.83-.24-.38c-1.06-1.65-1.67-3.59-1.67-5.63C4.65 9.77 9.75 5.04 16 5.04S27.35 9.77 27.35 14.62 22.25 25.04 16 25.04z"/>
-    </svg>
-
-    <span class="i97-contactfab__label">Contact Whatsapp</span>
-  </button>
-</div>
-{% endif %}
-
-<!-- ======================================================
-     ✅ NEWSLETTER GLOBAL (visible partout) — RESTAURÉ
+     ✅ NEWSLETTER GLOBAL (visible partout)
 ====================================================== -->
 {% if not is_pdf %}
 <div class="nl-global is-hidden" id="nl-global" aria-hidden="true">
@@ -527,12 +587,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <!-- ================= JS GLOBAL ================= -->
 <script src="{% static 'js/main.js' %}" defer></script>
-<script src="{% static 'js/contact-fab.js' %}" defer></script>
-<script src="{% static 'js/user-dropdown.js' %}" defer></script>
 
 <!-- ================= JS APP / PAGE ================= -->
 {% block extra_js %}{% endblock %}
-<script src="{% static 'js/navbar-premium.js' %}" defer></script>
 
 </body>
 </html>
