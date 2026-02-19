@@ -1,0 +1,305 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Management command pour importer les exams de compréhension écrite (CE)
+depuis un fichier JSON vers les modèles Exam, ExamSection, Passage, Question, Choice, Explanation.
+
+Usage:
+    python manage.py import_reading_exams --file ai_engine/learning_content/exams_reading_a_b_fr.json
+"""
+
+import json
+import os
+from pathlib import Path
+from django.utils.text import slugify
+
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
+
+from preparation_tests.models import (
+    Exam,
+    ExamSection,
+    Question,
+    Choice,
+    Explanation,
+    Passage,
+)
+
+
+class Command(BaseCommand):
+    help = "Importe les exams de compréhension écrite dans Exam & ExamSection & Question & Passage"
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--file",
+            type=str,
+            required=True,
+            help="Chemin du fichier JSON à importer",
+        )
+        parser.add_argument(
+            "--level",
+            type=str,
+            default="",
+            help="Niveau spécifique (A1, A2, B1, B2, C1, C2) - vide = tous les niveaux",
+        )
+        parser.add_argument(
+            "--language",
+            type=str,
+            default="fr",
+            help="Code langue (fr, en, de, it)",
+        )
+        parser.add_argument(
+            "--clear",
+            action="store_true",
+            help="Supprime les exams existants avant import",
+        )
+
+    @transaction.atomic
+    def handle(self, *args, **options):
+        file_path = options["file"]
+        level_filter = options["level"]
+        language = options["language"]
+        clear_existing = options["clear"]
+
+        # Valider le fichier
+        if not os.path.exists(file_path):
+            raise CommandError(f"❌ Fichier introuvable: {file_path}")
+
+        if not file_path.endswith(".json"):
+            raise CommandError("❌ Le fichier doit être au format JSON")
+
+        # Charger le JSON
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except json.JSONDecodeError as e:
+            raise CommandError(f"❌ Erreur JSON: {e}")
+
+        self.stdout.write(self.style.SUCCESS("✅ Fichier JSON chargé"))
+
+        # Valider la structure
+        if "exams" not in data or not isinstance(data["exams"], list):
+            raise CommandError("❌ Structure JSON invalide: 'exams' manquant")
+
+        # Supprimer les exams existants si --clear
+        if clear_existing:
+            if level_filter:
+                Exam.objects.filter(code__contains=f"CE_{level_filter}").delete()
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"🗑️  Exams CE {level_filter} existants supprimés"
+                    )
+                )
+            else:
+                Exam.objects.filter(code__startswith="CE_").delete()
+                self.stdout.write(
+                    self.style.WARNING(f"🗑️  Tous les exams CE supprimés")
+                )
+
+        # Compteurs
+        exam_count = 0
+        section_count = 0
+        passage_count = 0
+        question_count = 0
+        choice_count = 0
+
+        # Importer les exams
+        for exam_data in data["exams"]:
+            exam_code = exam_data.get("exam_code", "")
+            exam_name = exam_data.get("exam_name", "")
+            exam_level = exam_data.get("level", "A1")
+            exam_language = exam_data.get("language", language)
+            description = exam_data.get("description", "")
+
+            # Filtrer par niveau si spécifié
+            if level_filter and exam_level != level_filter:
+                continue
+
+            try:
+                # Créer l'examen
+                exam, exam_created = Exam.objects.get_or_create(
+                    code=exam_code,
+                    defaults={
+                        "name": exam_name,
+                        "language": exam_language,
+                        "description": description,
+                    },
+                )
+
+                if exam_created:
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f"  ✅ Examen: {exam_name} ({exam_code}) créé"
+                        )
+                    )
+                    exam_count += 1
+                else:
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"  ⚠️  Examen: {exam_name} ({exam_code}) existant"
+                        )
+                    )
+
+                # Importer les sections
+                sections = exam_data.get("sections", [])
+
+                for section_data in sections:
+                    section_code = section_data.get("section_code", "ce")
+                    section_name = section_data.get("section_name", "")
+                    section_order = section_data.get("order", 1)
+                    duration_sec = section_data.get("duration_sec", 900)
+
+                    try:
+                        # Créer ou récupérer la section
+                        section, sec_created = ExamSection.objects.get_or_create(
+                            exam=exam,
+                            code=section_code,
+                            defaults={
+                                "order": section_order,
+                                "duration_sec": duration_sec,
+                            },
+                        )
+
+                        if sec_created:
+                            section_count += 1
+
+                        # Importer les passages d'abord
+                        passages_data = section_data.get("passages", [])
+                        passages_map = {}
+
+                        for passage_data in passages_data:
+                            try:
+                                passage_title = passage_data.get("title", "")
+                                passage_text = passage_data.get("text", "")
+                                
+                                passage, pass_created = Passage.objects.get_or_create(
+                                    title=passage_title,
+                                    defaults={"text": passage_text},
+                                )
+                                
+                                passages_map[passage_data.get("passage_id", 1)] = passage
+                                if pass_created:
+                                    passage_count += 1
+                            except Exception as e:
+                                self.stdout.write(
+                                    self.style.WARNING(
+                                        f"      ⚠️  Erreur passage '{passage_title}': {e}"
+                                    )
+                                )
+
+                        # Importer les questions (parts = groupes de questions)
+                        parts = section_data.get("parts", [])
+
+                        for part_data in parts:
+                            part_number = part_data.get("part_number", 0)
+                            part_title = part_data.get("part_title", "")
+                            questions_list = part_data.get("questions", [])
+
+                            for question_data in questions_list:
+                                try:
+                                    question_number = question_data.get(
+                                        "question_number", 0
+                                    )
+                                    stem = question_data.get("stem", "")
+                                    passage_ref = question_data.get("passage_reference", None)
+                                    subtype = question_data.get("subtype", "mcq")
+                                    difficulty = question_data.get("difficulty", "medium")
+
+                                    # Convertir difficulty si numérique
+                                    difficulty_map = {
+                                        1: "easy",
+                                        2: "medium",
+                                        3: "hard",
+                                        "easy": "easy",
+                                        "medium": "medium",
+                                        "hard": "hard",
+                                    }
+                                    difficulty = difficulty_map.get(
+                                        difficulty, "medium"
+                                    )
+
+                                    # Récupérer la passage si référencée
+                                    passage_fk = None
+                                    if passage_ref and passage_ref in passages_map:
+                                        passage_fk = passages_map[passage_ref]
+
+                                    # Créer la question
+                                    question = Question.objects.create(
+                                        section=section,
+                                        stem=stem,
+                                        passage=passage_fk,
+                                        subtype=subtype,
+                                        difficulty=difficulty,
+                                    )
+
+                                    question_count += 1
+
+                                    # Importer les choix
+                                    choices = question_data.get("choices", [])
+
+                                    for choice_data in choices:
+                                        choice_text = choice_data.get("text", "")
+                                        is_correct = choice_data.get(
+                                            "is_correct", False
+                                        )
+
+                                        choice = Choice.objects.create(
+                                            question=question,
+                                            text=choice_text,
+                                            is_correct=is_correct,
+                                        )
+
+                                        choice_count += 1
+
+                                    # Importer l'explication si présente
+                                    explanation_text = question_data.get(
+                                        "explanation", ""
+                                    )
+                                    if explanation_text:
+                                        Explanation.objects.get_or_create(
+                                            question=question,
+                                            defaults={
+                                                "text_md": explanation_text
+                                            },
+                                        )
+
+                                except Exception as e:
+                                    self.stdout.write(
+                                        self.style.ERROR(
+                                            f"      ❌ Erreur question {question_number}: {e}"
+                                        )
+                                    )
+
+                        self.stdout.write(
+                            self.style.SUCCESS(
+                                f"    📝 {len(questions_list)} questions importées pour section {section_code}"
+                            )
+                        )
+
+                    except Exception as e:
+                        self.stdout.write(
+                            self.style.ERROR(f"  ❌ Erreur section {section_code}: {e}")
+                        )
+
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f"❌ Erreur examen {exam_code}: {e}"))
+
+        # Résumé
+        self.stdout.write(self.style.SUCCESS("\n" + "=" * 60))
+        self.stdout.write(self.style.SUCCESS(f"📊 RÉSUMÉ DE L'IMPORT EXAMS CE"))
+        self.stdout.write(self.style.SUCCESS("=" * 60))
+        self.stdout.write(self.style.SUCCESS(f"✅ Exams créés: {exam_count}"))
+        self.stdout.write(self.style.SUCCESS(f"✅ Sections créées: {section_count}"))
+        self.stdout.write(self.style.SUCCESS(f"✅ Passages créés: {passage_count}"))
+        self.stdout.write(self.style.SUCCESS(f"✅ Questions créées: {question_count}"))
+        self.stdout.write(self.style.SUCCESS(f"✅ Choix créés: {choice_count}"))
+        self.stdout.write(self.style.SUCCESS(f"✅ Section: Compréhension Écrite (CE)"))
+        self.stdout.write(self.style.SUCCESS(f"✅ Langue: {language}"))
+        if level_filter:
+            self.stdout.write(self.style.SUCCESS(f"✅ Niveau: {level_filter}"))
+        self.stdout.write(self.style.SUCCESS("=" * 60))
+        self.stdout.write(
+            self.style.SUCCESS(
+                "\n✨ Import réussi! Les exams CE sont prêts pour les étudiants.\n"
+            )
+        )
