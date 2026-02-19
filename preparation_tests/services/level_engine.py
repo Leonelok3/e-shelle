@@ -87,16 +87,12 @@ def try_unlock_next_level(
         )
 
         if created:
-            # 🔐 ID public vérifiable (QR / lien public)
-            cert.public_id = uuid.uuid4().hex[:12].upper()
-            cert.save(update_fields=["public_id"])
-
-            # 📄 Génération PDF premium
+            # 📄 Génération PDF premium (utiliser l'UUID existant et le convertir en str)
             generate_cefr_certificate(
                 user=user,
                 exam_code=exam_code,
                 level=new_level,
-                public_id=cert.public_id,
+                public_id=str(cert.public_id),
             )
 
             certificate_generated = True

@@ -76,7 +76,7 @@ def build_study_plan(*, user, exam_code):
     # 📚 Leçons disponibles (filtrage strict & sûr)
     lessons_qs = (
         CourseLesson.objects.filter(
-            exam__code__iexact=exam_code,
+            exams__code__iexact=exam_code,
             level=level,
             section__in=config["focus"],
             is_published=True,

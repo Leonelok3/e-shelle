@@ -169,6 +169,10 @@ class CreditCode(models.Model):
             return False
         return True
 
+    # Backwards compatible helper expected by tests
+    def is_valid(self) -> bool:
+        return self.can_use()
+
     def use(self, user=None, ip=None):
         """
         Consommation atomique

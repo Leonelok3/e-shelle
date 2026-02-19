@@ -33,7 +33,7 @@ def recommend_lessons(
         # leçons accessibles uniquement
         lessons = (
             CourseLesson.objects.filter(
-                exam__code__iexact=exam_code,
+                exams__code__iexact=exam_code,
                 section=section_code,
                 is_published=True,
             )

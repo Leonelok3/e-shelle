@@ -91,5 +91,7 @@ urlpatterns = [
     # 📅 PLAN D’ÉTUDE
     # =====================================================
     path("<slug:exam_code>/study-plan/", views.study_plan_view, name="study_plan"),
+    path("exercise-progress/", views.exercise_progress, name="exercise_progress"),
+
     path("<slug:exam_code>/study-plan/complete/", views.complete_study_day, name="complete_study_day"),
 ]

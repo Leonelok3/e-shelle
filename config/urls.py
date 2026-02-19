@@ -3,6 +3,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.shortcuts import render
 from django.urls import path, include
+from django.views.generic import RedirectView
 from django.shortcuts import render
 
 def about_page(request):
@@ -95,6 +96,12 @@ urlpatterns = [
     path("jobs/", include(("job_agent.urls", "job_agent"), namespace="job_agent")),
     path("about/", about_page, name="about"),
     path("services/", services_page, name="services"),
+    path("protected-media/", include("mediafiles.urls")),
+    
+    # Legacy URL aliases for backward compatibility
+    path("prep-langues/", RedirectView.as_view(url="/prep/", permanent=False), name="prep_langues"),
+    path("motivation-letter/", RedirectView.as_view(url="/motivation/", permanent=False), name="motivation_letter_legacy"),
+
 ]
 
 

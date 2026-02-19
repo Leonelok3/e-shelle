@@ -62,6 +62,31 @@ class Asset(models.Model):
     def __str__(self):
         return f"{self.kind} ({self.lang})"
 
+    @property
+    def public_url(self) -> str:
+        """
+        URL classique (non protégée) servie par MEDIA_URL.
+        Ne casse rien : c'est le comportement actuel.
+        """
+        try:
+            return self.file.url
+        except Exception:
+            return ""
+
+    @property
+    def secure_url(self) -> str:
+        """
+        URL protégée : passe par /protected-media/...
+        Compatible avec notre endpoint mediafiles (dev/prod-ready).
+        """
+        if not self.file:
+            return ""
+
+        # file.name ressemble à "assets/xxx.mp3"
+        # On veut /protected-media/assets/xxx.mp3
+        return f"{settings.PROTECTED_MEDIA_URL}{self.file.name}"
+
+
 
 # =====================================================
 # 📝 QUESTIONS
@@ -280,6 +305,27 @@ class CourseExercise(models.Model):
     def __str__(self):
         return f"{self.lesson.title} – Exercice {self.order}"
 
+    @property
+    def audio_url(self) -> str:
+        """
+        URL audio recommandée (premium-ready).
+        Pour l'instant: si audio existe, on renvoie la secure_url.
+        Plus tard: on mettra une logique premium (abonnement).
+        """
+        if not self.audio or self.audio.kind != "audio":
+            return ""
+        return self.audio.secure_url
+
+    @property
+    def audio_public_url(self) -> str:
+        """
+        URL audio publique (legacy) si tu as besoin de comparer.
+        """
+        if not self.audio or self.audio.kind != "audio":
+            return ""
+        return self.audio.public_url
+
+
 # =====================================================
 # 📊 PROGRESSION & CERTIFICATS
 # =====================================================
@@ -289,6 +335,14 @@ class UserSkillProgress(models.Model):
     exam_code = models.CharField(max_length=20)
     skill = models.CharField(max_length=2)
     score_percent = models.PositiveIntegerField(default=0)
+    # Niveau CECR courant (A1..C2)
+    current_level = models.CharField(
+        max_length=2,
+        choices=LEVEL_CHOICES,
+        default="A1",
+    )
+    # Nombre total de tentatives prises en compte
+    total_attempts = models.PositiveIntegerField(default=0)
 
 
 class UserSkillResult(models.Model):
@@ -360,6 +414,7 @@ class StudyPlanProgress(models.Model):
     started_at = models.DateTimeField(auto_now_add=True)
     last_activity = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
+    is_completed = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ["user", "exam_code"]
@@ -399,3 +454,39 @@ class CoachIAReport(models.Model):
 
     def __str__(self):
         return f"IA {self.exam_code} ({self.scope}) – {self.created_at:%Y-%m-%d}"
+
+
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+
+
+class UserExerciseProgress(models.Model):
+    """
+    1 ligne par (user, exercise).
+    Permet d’éviter le double comptage et d’avoir une progression fiable.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    lesson = models.ForeignKey("preparation_tests.CourseLesson", on_delete=models.CASCADE)
+    exercise = models.ForeignKey("preparation_tests.CourseExercise", on_delete=models.CASCADE)
+
+    is_completed = models.BooleanField(default=False)  # completed = réponse correcte validée
+    attempts = models.PositiveIntegerField(default=0)
+    last_answer = models.CharField(max_length=1, blank=True, default="")
+    completed_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("user", "exercise")
+        indexes = [
+            models.Index(fields=["user", "lesson"]),
+            models.Index(fields=["user", "exercise"]),
+        ]
+
+    def mark_attempt(self, selected: str, correct: bool):
+        self.attempts = (self.attempts or 0) + 1
+        self.last_answer = (selected or "").upper()
+
+        if correct and not self.is_completed:
+            self.is_completed = True
+            self.completed_at = timezone.now()

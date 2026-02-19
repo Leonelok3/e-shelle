@@ -93,8 +93,3 @@ def has_access(request):
         return True
     return has_session_access(request)
 
-def has_active_access(user):
-    return True
-
-def has_session_access(request):
-    return True

@@ -34,10 +34,26 @@ ALLOWED_HOSTS = [
     "localhost",
 ]
 
+# ✅ OPTIM: permettre d'ajouter des hosts via .env sans casser la liste existante
+# Ex: DJANGO_ALLOWED_HOSTS="api.immigration97.com,staging.immigration97.com"
+_extra_hosts = os.environ.get("DJANGO_ALLOWED_HOSTS", "").strip()
+if _extra_hosts:
+    for h in [x.strip() for x in _extra_hosts.split(",") if x.strip()]:
+        if h not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(h)
+
 CSRF_TRUSTED_ORIGINS = [
     "https://immigration97.com",
     "https://www.immigration97.com",
 ]
+
+# ✅ OPTIM: idem pour CSRF via .env si besoin
+# Ex: DJANGO_CSRF_TRUSTED_ORIGINS="https://staging.immigration97.com"
+_extra_csrf = os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").strip()
+if _extra_csrf:
+    for o in [x.strip() for x in _extra_csrf.split(",") if x.strip()]:
+        if o not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(o)
 
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
@@ -50,6 +66,10 @@ SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
+
+# ✅ IMPORTANT derrière Nginx/Proxy : permet à Django de reconnaître HTTPS via X-Forwarded-Proto
+# Ne casse rien même si ce header n'est pas présent.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 DEFAULT_DOMAIN = "immigration97.com"
 DEFAULT_PROTOCOL = "https"
@@ -112,6 +132,7 @@ INSTALLED_APPS = [
     "italian_courses",
     "job_agent",
     "corsheaders",
+    "mediafiles",
 ]
 
 # ======================================================
@@ -198,6 +219,8 @@ USE_TZ = True
 LANGUAGES = [
     ("fr", _("Français")),
     ("en", _("English")),
+    ("de", _("Deutsch")),
+    ("it", _("Italiano")),
 ]
 
 LOCALE_PATHS = [BASE_DIR / "locale"]
@@ -209,6 +232,8 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+PROTECTED_MEDIA_URL = "/protected-media/"
+PROTECTED_MEDIA_ROOT = BASE_DIR / "media" / "protected-media"
 
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
@@ -221,9 +246,29 @@ STORAGES = {
     },
 }
 
-
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+PROTECTED_MEDIA_URL = "/protected-media/"
+
+
+# ✅ CRITIQUE (anti-perte en prod) :
+# - Par défaut, on garde TON comportement actuel (BASE_DIR / "media") => zéro casse
+# - En production, tu définis DJANGO_MEDIA_ROOT=/var/lib/immigration97/media (persistant sur VPS)
+MEDIA_ROOT = Path(os.environ.get("DJANGO_MEDIA_ROOT", str(BASE_DIR / "media")))
+
+# ✅ Préparation "premium" pour médias protégés (audios premium/abonnement)
+# Ne casse rien tant que tu ne l'utilises pas dans les URLs/Nginx.
+PROTECTED_MEDIA_URL = "/protected-media/"
+PROTECTED_MEDIA_ROOT = Path(
+    os.environ.get("DJANGO_PROTECTED_MEDIA_ROOT", "/var/lib/immigration97/protected-media")
+)
+
+# ✅ Durcissement des fichiers uploadés (permissions Linux)
+# 0o640 = propriétaire rw, groupe r, autres rien.
+FILE_UPLOAD_PERMISSIONS = 0o640
+
+# ✅ Limites raisonnables (évite abus) — à ajuster si besoin (PDF, audio longs, etc.)
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get("DJANGO_DATA_UPLOAD_MAX_MEMORY_SIZE", str(25 * 1024 * 1024)))  # 25MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get("DJANGO_FILE_UPLOAD_MAX_MEMORY_SIZE", str(10 * 1024 * 1024)))  # 10MB
 
 # ======================================================
 # EMAIL – HOSTINGER
@@ -345,6 +390,8 @@ else:
 
 SESSION_COOKIE_HTTPONLY = True
 
+# ✅ Petit durcissement CSRF (ne casse pas)
+CSRF_COOKIE_HTTPONLY = True
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^chrome-extension://.*$",
