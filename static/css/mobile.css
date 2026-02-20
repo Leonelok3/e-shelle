@@ -1,15 +1,16 @@
 /* =====================================================
-   IMMIGRATION97 — RESPONSIVE GLOBAL (LOCKED)
-   Mobile-first • Token-based • SAFE
+   IMMIGRATION97 — MOBILE SYSTEM (STABLE VERSION)
+   Safe • No freeze • No overlay bug • No overflow
 ===================================================== */
 
 @media (max-width: 768px) {
 
-  /* =====================
+  /* =====================================================
      GLOBAL SAFE
-  ===================== */
-  html, body {
-    width: 100%;
+  ===================================================== */
+
+  html,
+  body {
     overflow-x: hidden;
   }
 
@@ -17,194 +18,136 @@
     font-size: var(--text-sm);
   }
 
-  /* ✅ ton layout utilise app-container */
-  .app-container,
-  .container {
-    width: 100%;
-    max-width: 100%;
-    margin-inline: auto;
+  .app-container {
     padding-inline: var(--space-md);
-    box-sizing: border-box;
   }
-
-  .app-main { overflow-x: hidden; }
-
-  /* =====================
-     TYPOGRAPHY (SAFE)
-  ===================== */
-  h1 { line-height: 1.2; }
-  h2 { line-height: 1.25; }
 
   /* =====================================================
-     ✅ NAVBAR MOBILE (FIX)
-     - cache la nav en ligne
-     - affiche un panneau dropdown quand .is-open est présent
-     - garde le desktop intact (car dans @media)
+     TYPOGRAPHY
   ===================================================== */
 
-  .c-navbar {
-    position: sticky;
-    top: 0;
-    z-index: var(--z-header, 9999);
+  h1 {
+    line-height: 1.25;
+    word-break: break-word;
   }
 
-  .c-navbar__brand img {
-    height: 44px;
-    width: auto;
+  p,
+  li {
+    word-break: break-word;
   }
 
-  /* burger visible mobile */
-  .c-navbar__toggle {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    z-index: calc(var(--z-header, 9999) + 2);
-  }
+  /* =====================================================
+     TABLE FIX (ANTI-DEBORDEMENT)
+  ===================================================== */
 
-  /* menu fermé par défaut */
-  .c-navbar__nav {
-    display: none;
-    position: absolute;
-    top: calc(100% + 10px);
-    left: var(--space-md);
-    right: var(--space-md);
-
-    flex-direction: column;
-    gap: var(--space-sm);
-
-    padding: var(--space-md);
-    border-radius: var(--radius-lg);
-
-    background: rgba(2, 6, 23, 0.98);
-    border: 1px solid var(--border-subtle);
-    box-shadow: var(--shadow-lg);
-
-    max-height: calc(100vh - 96px);
-    overflow: auto;
+  table {
+    width: 100%;
+    display: block;
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* menu ouvert (ton JS met déjà .is-open) */
-  .c-navbar__nav.is-open {
-    display: flex;
-    z-index: calc(var(--z-header, 9999) + 1);
+  th,
+  td {
+    white-space: nowrap;
   }
 
-  /* liens en bloc (tap-friendly) */
-  .c-navbar__nav .c-nav-link {
-    width: 100%;
-    padding: 12px 10px;
-    border-radius: 12px;
-  }
+  /* =====================================================
+     MEDIA SAFE
+  ===================================================== */
 
-  .c-navbar__nav .c-nav-link:hover {
-    background: rgba(255,255,255,0.05);
-  }
-
-  /* boutons dans le menu en full width */
-  .c-navbar__nav .c-btn,
-  .c-navbar__nav a.c-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  /* =====================
-     BUTTONS & FORMS (safe)
-  ===================== */
-  input,
-  select,
-  textarea {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    font-size: 16px; /* évite zoom iOS */
-  }
-
-  /* =====================
-     SECTIONS
-  ===================== */
-  .section {
-    padding: var(--space-lg) 0;
-  }
-
-  /* =====================
-     MEDIA
-  ===================== */
   img,
   video,
   iframe {
     max-width: 100%;
     height: auto;
-    border-radius: var(--radius-md);
   }
 
   /* =====================================================
-     ✅ TABLE RESPONSIVE (anti débordement)
+     NAVBAR MOBILE SAFE
   ===================================================== */
-  .table-responsive,
-  .table-wrap,
-  .table-container,
-  .datatable,
-  .dataTables_wrapper,
-  .dataTables_scrollBody,
-  .c-table,
-  .c-table-wrap {
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+
+  .c-navbar {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header, 1000);
   }
 
-  .app-container table,
-  .container table,
-  main table {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    border-collapse: collapse;
+  .c-navbar__brand img {
+    height: 42px;
   }
 
-  .app-container table th,
-  .app-container table td,
-  .container table th,
-  .container table td,
-  main table th,
-  main table td {
-    white-space: nowrap;
+  /* NAV hidden by default */
+  .c-navbar__nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+
+    background: var(--bg-surface);
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+
+    border-bottom: 1px solid var(--border-subtle);
+
+    display: none;
   }
 
-  /* =====================
+  /* NAV open */
+  .c-navbar__nav.is-open {
+    display: flex;
+  }
+
+  /* Burger visible */
+  .c-navbar__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+  }
+
+  /* Prevent page freeze */
+  body.nav-open {
+    overflow: hidden;
+  }
+
+  /* =====================================================
+     SECTIONS
+  ===================================================== */
+
+  .section {
+    padding: var(--space-lg) 0;
+  }
+
+  /* =====================================================
+     GRID SAFE
+  ===================================================== */
+
+  .c-grid--2,
+  .c-grid--3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* =====================================================
      FOOTER
-  ===================== */
-  .c-footer__container {
-    grid-template-columns: 1fr;
-    text-align: center;
-    gap: var(--space-lg);
-    padding: var(--space-lg) var(--space-md);
-  }
+  ===================================================== */
 
   .c-footer__main {
     grid-template-columns: 1fr;
     gap: var(--space-lg);
-    padding: var(--space-lg) var(--space-md);
+    padding: var(--space-xl) var(--space-md);
   }
 
   .c-footer__bottom {
-    font-size: var(--text-xs);
-    padding: var(--space-sm);
-  }
-
-  .c-footer__geo-list {
     flex-direction: column;
+    text-align: center;
     gap: var(--space-sm);
-    align-items: center;
   }
 
   .c-footer__legal {
-    justify-content: center;
     flex-wrap: wrap;
-    gap: var(--space-sm);
+    justify-content: center;
   }
+
 }
