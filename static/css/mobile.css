@@ -17,7 +17,7 @@
     font-size: var(--text-sm);
   }
 
-  /* ✅ Ton layout utilise app-container */
+  /* ✅ ton layout utilise app-container */
   .app-container,
   .container {
     width: 100%;
@@ -27,9 +27,7 @@
     box-sizing: border-box;
   }
 
-  .app-main {
-    overflow-x: hidden;
-  }
+  .app-main { overflow-x: hidden; }
 
   /* =====================
      TYPOGRAPHY (SAFE)
@@ -37,11 +35,13 @@
   h1 { line-height: 1.2; }
   h2 { line-height: 1.25; }
 
-  /* =====================
-     ✅ NAVBAR MOBILE 2026 (PANEL)
-     - Ne casse pas desktop (uniquement mobile)
-     - Rend le menu cliquable et lisible
-  ===================== */
+  /* =====================================================
+     ✅ NAVBAR MOBILE (FIX)
+     - cache la nav en ligne
+     - affiche un panneau dropdown quand .is-open est présent
+     - garde le desktop intact (car dans @media)
+  ===================================================== */
+
   .c-navbar {
     position: sticky;
     top: 0;
@@ -53,32 +53,23 @@
     width: auto;
   }
 
-  /* Toggle visible mobile (au cas où) */
+  /* burger visible mobile */
   .c-navbar__toggle {
-    display: inline-flex;
+    display: inline-flex !important;
     align-items: center;
     justify-content: center;
     font-size: 26px;
-    position: relative;
-    z-index: calc(var(--z-header, 9999) + 3);
-    background: transparent;
-    border: 0;
-    color: var(--text-main);
-    cursor: pointer;
-    border-radius: 10px;
-    padding: 10px 12px;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
+    z-index: calc(var(--z-header, 9999) + 2);
   }
 
-  /* Nav devient un panneau déroulant */
+  /* menu fermé par défaut */
   .c-navbar__nav {
+    display: none;
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 10px);
     left: var(--space-md);
     right: var(--space-md);
 
-    display: none;               /* fermé par défaut */
     flex-direction: column;
     gap: var(--space-sm);
 
@@ -89,48 +80,37 @@
     border: 1px solid var(--border-subtle);
     box-shadow: var(--shadow-lg);
 
-    z-index: calc(var(--z-header, 9999) + 2);
+    max-height: calc(100vh - 96px);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
+  /* menu ouvert (ton JS met déjà .is-open) */
   .c-navbar__nav.is-open {
     display: flex;
+    z-index: calc(var(--z-header, 9999) + 1);
   }
 
-  /* Liens plus “tap-friendly” */
+  /* liens en bloc (tap-friendly) */
   .c-navbar__nav .c-nav-link {
     width: 100%;
     padding: 12px 10px;
     border-radius: 12px;
-    color: var(--text-soft);
   }
 
   .c-navbar__nav .c-nav-link:hover {
-    background: var(--bg-glass-hover);
-    color: var(--text-main);
+    background: rgba(255,255,255,0.05);
   }
 
-  /* Boutons dans le menu */
+  /* boutons dans le menu en full width */
   .c-navbar__nav .c-btn,
   .c-navbar__nav a.c-btn {
     width: 100%;
     justify-content: center;
   }
 
-  /* Overlay (créé par JS) */
-  .c-nav-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    backdrop-filter: blur(2px);
-    z-index: calc(var(--z-header, 9999) + 1);
-  }
-
-  .c-nav-overlay.is-hidden {
-    display: none;
-  }
-
   /* =====================
-     BUTTONS & FORMS (SAFE)
+     BUTTONS & FORMS (safe)
   ===================== */
   input,
   select,
@@ -138,7 +118,7 @@
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    font-size: 16px; /* iOS anti-zoom */
+    font-size: 16px; /* évite zoom iOS */
   }
 
   /* =====================
@@ -159,15 +139,17 @@
     border-radius: var(--radius-md);
   }
 
-  /* =====================
-     ✅ TABLE RESPONSIVE
-  ===================== */
+  /* =====================================================
+     ✅ TABLE RESPONSIVE (anti débordement)
+  ===================================================== */
   .table-responsive,
   .table-wrap,
   .table-container,
   .datatable,
   .dataTables_wrapper,
-  .dataTables_scrollBody {
+  .dataTables_scrollBody,
+  .c-table,
+  .c-table-wrap {
     max-width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
