@@ -1,8 +1,6 @@
 /* =====================================================
    IMMIGRATION97 — RESPONSIVE GLOBAL (LOCKED)
    Mobile-first • Token-based • SAFE
-   IMPORTANT: La navbar est gérée UNIQUEMENT par:
-   static/css/components/navbar-premium-2026.css
 ===================================================== */
 
 @media (max-width: 768px) {
@@ -19,7 +17,7 @@
     font-size: var(--text-sm);
   }
 
-  /* ✅ CRITIQUE: ton layout utilise app-container */
+  /* ✅ Ton layout utilise app-container */
   .app-container,
   .container {
     width: 100%;
@@ -40,7 +38,9 @@
   h2 { line-height: 1.25; }
 
   /* =====================
-     NAVBAR MICRO AJUSTEMENTS (SAFE)
+     ✅ NAVBAR MOBILE 2026 (PANEL)
+     - Ne casse pas desktop (uniquement mobile)
+     - Rend le menu cliquable et lisible
   ===================== */
   .c-navbar {
     position: sticky;
@@ -53,34 +53,92 @@
     width: auto;
   }
 
-  /* =====================
-     BUTTONS & FORMS (MOBILE FRIENDLY)
-  ===================== */
-  .c-btn,
-  a.c-btn,
-  button.c-btn {
-    min-height: 44px;
-    padding: 0 18px;
+  /* Toggle visible mobile (au cas où) */
+  .c-navbar__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    position: relative;
+    z-index: calc(var(--z-header, 9999) + 3);
+    background: transparent;
+    border: 0;
+    color: var(--text-main);
+    cursor: pointer;
+    border-radius: 10px;
+    padding: 10px 12px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Nav devient un panneau déroulant */
+  .c-navbar__nav {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: var(--space-md);
+    right: var(--space-md);
+
+    display: none;               /* fermé par défaut */
+    flex-direction: column;
+    gap: var(--space-sm);
+
+    padding: var(--space-md);
+    border-radius: var(--radius-lg);
+
+    background: rgba(2, 6, 23, 0.98);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-lg);
+
+    z-index: calc(var(--z-header, 9999) + 2);
+  }
+
+  .c-navbar__nav.is-open {
+    display: flex;
+  }
+
+  /* Liens plus “tap-friendly” */
+  .c-navbar__nav .c-nav-link {
+    width: 100%;
+    padding: 12px 10px;
+    border-radius: 12px;
+    color: var(--text-soft);
+  }
+
+  .c-navbar__nav .c-nav-link:hover {
+    background: var(--bg-glass-hover);
+    color: var(--text-main);
+  }
+
+  /* Boutons dans le menu */
+  .c-navbar__nav .c-btn,
+  .c-navbar__nav a.c-btn {
     width: 100%;
     justify-content: center;
   }
 
-  .home-hero__actions,
-  .actions,
-  .btn-row,
-  .button-row {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-sm);
+  /* Overlay (créé par JS) */
+  .c-nav-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(2px);
+    z-index: calc(var(--z-header, 9999) + 1);
   }
 
+  .c-nav-overlay.is-hidden {
+    display: none;
+  }
+
+  /* =====================
+     BUTTONS & FORMS (SAFE)
+  ===================== */
   input,
   select,
   textarea {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    font-size: 16px; /* ✅ empêche zoom auto iOS */
+    font-size: 16px; /* iOS anti-zoom */
   }
 
   /* =====================
@@ -101,32 +159,24 @@
     border-radius: var(--radius-md);
   }
 
-  /* =====================================================
-     ✅ TABLE RESPONSIVE (LE VRAI FIX)
-     - empêche le tableau de casser la page
-     - permet un scroll horizontal fluide sur mobile
-     - fonctionne même si le tableau n’est pas wrapped
-  ===================================================== */
-
-  /* 1) Tous les wrappers courants (bootstrap-like, custom, datatables) */
+  /* =====================
+     ✅ TABLE RESPONSIVE
+  ===================== */
   .table-responsive,
   .table-wrap,
   .table-container,
   .datatable,
   .dataTables_wrapper,
-  .dataTables_scrollBody,
-  .c-table,
-  .c-table-wrap {
+  .dataTables_scrollBody {
     max-width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* 2) Si le tableau est direct dans le contenu (sans wrapper) */
   .app-container table,
   .container table,
   main table {
-    display: block;            /* permet overflow */
+    display: block;
     width: 100%;
     max-width: 100%;
     overflow-x: auto;
@@ -134,20 +184,14 @@
     border-collapse: collapse;
   }
 
-  /* 3) Evite que les colonnes “explosent” */
   .app-container table th,
   .app-container table td,
   .container table th,
   .container table td,
   main table th,
   main table td {
-    white-space: nowrap;       /* clé pour empêcher le wrapping bizarre */
+    white-space: nowrap;
   }
-
-  /* 4) Bonus: si tu veux autoriser le retour à la ligne sur mobile
-        (utile quand les cellules sont des phrases) :
-        -> commente white-space:nowrap ci-dessus et active ça :
-        th, td { white-space: normal; } */
 
   /* =====================
      FOOTER
@@ -182,9 +226,3 @@
     gap: var(--space-sm);
   }
 }
-
-/* =====================================================
-   IMPORTANT:
-   ✅ On n'ajoute PAS de hacks navbar (pointer-events)
-   la navbar premium gère déjà open/close, overlay, interactions
-===================================================== */
