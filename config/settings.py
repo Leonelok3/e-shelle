@@ -6,8 +6,10 @@ Production Ready – Secure – Optimized
 
 from pathlib import Path
 import os
+import sys
 from dotenv import load_dotenv
 from django.utils.translation import gettext_lazy as _
+
 
 # ======================================================
 # BASE
@@ -16,16 +18,21 @@ from django.utils.translation import gettext_lazy as _
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
+
+def env_bool(name: str, default: bool = False) -> bool:
+    return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
+
+
 # ======================================================
 # SECURITY
 # ======================================================
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
-
 if not SECRET_KEY:
     raise ValueError("DJANGO_SECRET_KEY manquant dans .env")
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
+DEBUG = env_bool("DJANGO_DEBUG", False)
+TESTING = "test" in sys.argv
 
 ALLOWED_HOSTS = [
     "immigration97.com",
@@ -34,7 +41,7 @@ ALLOWED_HOSTS = [
     "localhost",
 ]
 
-# ✅ OPTIM: permettre d'ajouter des hosts via .env sans casser la liste existante
+# Permet d'ajouter des hosts via .env
 # Ex: DJANGO_ALLOWED_HOSTS="api.immigration97.com,staging.immigration97.com"
 _extra_hosts = os.environ.get("DJANGO_ALLOWED_HOSTS", "").strip()
 if _extra_hosts:
@@ -47,7 +54,6 @@ CSRF_TRUSTED_ORIGINS = [
     "https://www.immigration97.com",
 ]
 
-# ✅ OPTIM: idem pour CSRF via .env si besoin
 # Ex: DJANGO_CSRF_TRUSTED_ORIGINS="https://staging.immigration97.com"
 _extra_csrf = os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").strip()
 if _extra_csrf:
@@ -55,33 +61,35 @@ if _extra_csrf:
         if o not in CSRF_TRUSTED_ORIGINS:
             CSRF_TRUSTED_ORIGINS.append(o)
 
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
+# Valeurs pilotées par .env (avec fallback safe)
+SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000" if not DEBUG else "0"))
+SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", not DEBUG)
+SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", not DEBUG)
+CSRF_COOKIE_SECURE = env_bool("CSRF_COOKIE_SECURE", not DEBUG)
+
 SESSION_COOKIE_HTTPONLY = True
-SECURE_BROWSER_XSS_FILTER = True
+CSRF_COOKIE_HTTPONLY = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 
-SECURE_SSL_REDIRECT = not DEBUG
-SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+# Derrière Nginx/Proxy HTTPS
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 
-# ✅ IMPORTANT derrière Nginx/Proxy : permet à Django de reconnaître HTTPS via X-Forwarded-Proto
-# Ne casse rien même si ce header n'est pas présent.
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# Option legacy Django (inutile en Django récent, mais non bloquante)
+SECURE_BROWSER_XSS_FILTER = True
 
 DEFAULT_DOMAIN = "immigration97.com"
 DEFAULT_PROTOCOL = "https"
-
 SITE_ID = 1
+
 
 # ======================================================
 # APPLICATIONS
 # ======================================================
 
 INSTALLED_APPS = [
-
     # Django core
     "django.contrib.admin",
     "django.contrib.auth",
@@ -105,8 +113,9 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "csp",
+    "corsheaders",
 
-    # === TES APPS INTERNES ===
+    # Apps internes
     "photos",
     "billing",
     "cv_generator",
@@ -131,9 +140,9 @@ INSTALLED_APPS = [
     "legal",
     "italian_courses",
     "job_agent",
-    "corsheaders",
     "mediafiles",
 ]
+
 
 # ======================================================
 # MIDDLEWARE
@@ -141,7 +150,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
-
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -160,8 +168,9 @@ ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
+
 # ======================================================
-# TEMPLATES  ✅ OBLIGATOIRE POUR ADMIN
+# TEMPLATES
 # ======================================================
 
 TEMPLATES = [
@@ -172,7 +181,7 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
-                "django.template.context_processors.request",  # obligatoire admin
+                "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.media",
@@ -183,6 +192,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 # ======================================================
 # DATABASE
@@ -207,6 +217,7 @@ else:
         }
     }
 
+
 # ======================================================
 # INTERNATIONALISATION
 # ======================================================
@@ -225,6 +236,7 @@ LANGUAGES = [
 
 LOCALE_PATHS = [BASE_DIR / "locale"]
 
+
 # ======================================================
 # STATIC & MEDIA
 # ======================================================
@@ -232,43 +244,30 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-PROTECTED_MEDIA_URL = "/protected-media/"
-PROTECTED_MEDIA_ROOT = BASE_DIR / "media" / "protected-media"
 
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {
         "BACKEND": (
-            "whitenoise.storage.CompressedManifestStaticFilesStorage"
-            if not DEBUG
-            else "django.contrib.staticfiles.storage.StaticFilesStorage"
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG or TESTING
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
         ),
     },
 }
 
 MEDIA_URL = "/media/"
-PROTECTED_MEDIA_URL = "/protected-media/"
-
-
-# ✅ CRITIQUE (anti-perte en prod) :
-# - Par défaut, on garde TON comportement actuel (BASE_DIR / "media") => zéro casse
-# - En production, tu définis DJANGO_MEDIA_ROOT=/var/lib/immigration97/media (persistant sur VPS)
 MEDIA_ROOT = Path(os.environ.get("DJANGO_MEDIA_ROOT", str(BASE_DIR / "media")))
 
-# ✅ Préparation "premium" pour médias protégés (audios premium/abonnement)
-# Ne casse rien tant que tu ne l'utilises pas dans les URLs/Nginx.
 PROTECTED_MEDIA_URL = "/protected-media/"
 PROTECTED_MEDIA_ROOT = Path(
-    os.environ.get("DJANGO_PROTECTED_MEDIA_ROOT", "/var/lib/immigration97/protected-media")
+    os.environ.get("DJANGO_PROTECTED_MEDIA_ROOT", str(BASE_DIR / "media" / "protected-media"))
 )
 
-# ✅ Durcissement des fichiers uploadés (permissions Linux)
-# 0o640 = propriétaire rw, groupe r, autres rien.
 FILE_UPLOAD_PERMISSIONS = 0o640
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get("DJANGO_DATA_UPLOAD_MAX_MEMORY_SIZE", str(25 * 1024 * 1024)))
+FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get("DJANGO_FILE_UPLOAD_MAX_MEMORY_SIZE", str(10 * 1024 * 1024)))
 
-# ✅ Limites raisonnables (évite abus) — à ajuster si besoin (PDF, audio longs, etc.)
-DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get("DJANGO_DATA_UPLOAD_MAX_MEMORY_SIZE", str(25 * 1024 * 1024)))  # 25MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get("DJANGO_FILE_UPLOAD_MAX_MEMORY_SIZE", str(10 * 1024 * 1024)))  # 10MB
 
 # ======================================================
 # EMAIL – HOSTINGER
@@ -279,31 +278,20 @@ EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.hostinger.com")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-
-DEFAULT_FROM_EMAIL = os.environ.get(
-    "DEFAULT_FROM_EMAIL",
-    "Immigration97 <contact@immigration97.com>"
-)
-
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Immigration97 <contact@immigration97.com>")
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 EMAIL_TIMEOUT = 10
 
+
 # ======================================================
 # AUTH
 # ======================================================
 
-# AUTH
 LOGIN_URL = "authentification:login"
-
-# ✅ Après connexion -> Mon espace (dashboard)
-LOGIN_REDIRECT_URL = "/profiles/"   # ou ton URL exacte dashboard
-
-# ✅ Après logout -> Accueil
+LOGIN_REDIRECT_URL = "/profiles/"
 LOGOUT_REDIRECT_URL = "home"
-
 
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",
@@ -315,21 +303,24 @@ AXES_FAILURE_LIMIT = 5
 AXES_LOCK_OUT_AT_FAILURE = True
 AXES_COOLOFF_TIME = 1
 
+
 # ======================================================
 # CSP
 # ======================================================
-# Nouvelle configuration django-csp 4.0+
+
 CONTENT_SECURITY_POLICY = {
-    'DIRECTIVES': {
-        'default-src': ("'self'",),
-        'connect-src': ("'self'",),
-        'font-src': ("'self'", 'https://fonts.gstatic.com', 'data:'),
-        'frame-src': ("'self'",),
-        'img-src': ("'self'", 'data:', 'https://res.cloudinary.com'),
-        'script-src': ("'self'", 'https://cdnjs.cloudflare.com', "'unsafe-inline'"),
-        'style-src': ("'self'", 'https://fonts.googleapis.com', "'unsafe-inline'"),
+    "DIRECTIVES": {
+        "default-src": ("'self'",),
+        "connect-src": ("'self'",),
+        "font-src": ("'self'", "https://fonts.gstatic.com", "data:"),
+        "frame-src": ("'self'",),
+        "img-src": ("'self'", "data:", "https://res.cloudinary.com"),
+        "script-src": ("'self'", "https://cdnjs.cloudflare.com", "'unsafe-inline'"),
+        "style-src": ("'self'", "https://fonts.googleapis.com", "'unsafe-inline'"),
     }
 }
+
+
 # ======================================================
 # LOGGING
 # ======================================================
@@ -356,13 +347,18 @@ LOGGING = {
     },
 }
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ======================================================
+# CORS / COOKIES
+# ======================================================
+
 CORS_ALLOWED_ORIGINS = [
     "https://fr.indeed.com",
     "https://www.indeed.com",
     "https://immigration97.com",
     "https://www.immigration97.com",
 ]
+
 if DEBUG:
     CORS_ALLOWED_ORIGINS += [
         "http://127.0.0.1:8000",
@@ -370,70 +366,35 @@ if DEBUG:
     ]
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGIN_REGEXES = [r"^chrome-extension://.*$"]
 
-
-# ======================================================
-# Cookies cross-site (sinon Indeed -> API n'envoie pas la session)
-# ======================================================
+# SameSite seulement
 if DEBUG:
-    # ✅ Localhost (HTTP) -> cookies acceptés
     SESSION_COOKIE_SAMESITE = "Lax"
     CSRF_COOKIE_SAMESITE = "Lax"
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
 else:
-    # ✅ Production (HTTPS) -> cross-site OK
     SESSION_COOKIE_SAMESITE = "None"
     CSRF_COOKIE_SAMESITE = "None"
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-
-SESSION_COOKIE_HTTPONLY = True
-
-# ✅ Petit durcissement CSRF (ne casse pas)
-CSRF_COOKIE_HTTPONLY = True
-
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^chrome-extension://.*$",
-]
 
 
-
-# ...existing code...
+# ======================================================
+# DRF / OPENAPI
+# ======================================================
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    # ...existing code...
 }
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Immigration97 API",
     "DESCRIPTION": "API documentation",
     "VERSION": "1.0.0",
+    "DISABLE_ERRORS_AND_WARNINGS": True,
 }
 
-# ...existing code...
 
+# ======================================================
+# DIVERS
+# ======================================================
 
-# ...existing code...
-import os
-
-DEBUG = os.getenv("DJANGO_DEBUG", "False").strip().lower() in ("1", "true", "yes")
-
-SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000" if not DEBUG else "0"))
-SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "True" if not DEBUG else "False").strip().lower() in ("1", "true", "yes")
-SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "True" if not DEBUG else "False").strip().lower() in ("1", "true", "yes")
-CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "True" if not DEBUG else "False").strip().lower() in ("1", "true", "yes")
-
-REST_FRAMEWORK = {
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    # ...existing code...
-}
-
-SPECTACULAR_SETTINGS = {
-    "TITLE": "Immigration97 API",
-    "VERSION": "1.0.0",
-    "DESCRIPTION": "API documentation",
-    "DISABLE_ERRORS_AND_WARNINGS": True,  # supprime W002 drf_spectacular
-}
-# ...existing code...
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

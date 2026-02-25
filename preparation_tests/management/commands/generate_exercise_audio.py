@@ -1,64 +1,94 @@
-from django.core.management.base import BaseCommand
-from django.conf import settings
-from pathlib import Path
-import subprocess
-import uuid
+from __future__ import annotations
 
-from preparation_tests.models import CourseExercise, Asset
+from django.core.management.base import BaseCommand
+from django.db.models import Q
+
+from ai_engine.services.tts_service import generate_audio
+from preparation_tests.models import Asset, CourseExercise
+
+
+def _build_asset(rel_audio_path: str, language: str, title: str = "") -> Asset:
+    """
+    Création Asset robuste selon les champs réellement présents.
+    """
+    field_names = {f.name for f in Asset._meta.concrete_fields}
+    kwargs = {}
+
+    if "type" in field_names:
+        kwargs["type"] = "audio"
+    if "locale" in field_names:
+        kwargs["locale"] = language
+    if "title" in field_names and title:
+        kwargs["title"] = title
+
+    asset = Asset.objects.create(**kwargs)
+
+    # Affectation du chemin fichier selon le modèle
+    if "file" in field_names:
+        setattr(asset, "file", rel_audio_path)
+        asset.save(update_fields=["file"])
+    elif "path" in field_names:
+        setattr(asset, "path", rel_audio_path)
+        asset.save(update_fields=["path"])
+    else:
+        # Pas de champ fichier connu
+        asset.save()
+
+    return asset
 
 
 class Command(BaseCommand):
-    help = "Génère les audios TTS pour les exercices sans audio"
+    help = "Génère audio pour les exercices CO et lie chaque audio à CourseExercise.audio"
+
+    def add_arguments(self, parser):
+        parser.add_argument("--language", type=str, default="fr")
+        parser.add_argument("--limit", type=int, default=0)
+        parser.add_argument("--all", action="store_true", help="Traiter tous les exercices, même ceux ayant déjà un audio")
 
     def handle(self, *args, **options):
-        exercises = CourseExercise.objects.filter(audio__isnull=True)
+        language = (options["language"] or "fr").strip().lower()
+        limit = int(options["limit"] or 0)
+        process_all = bool(options["all"])
 
-        if not exercises.exists():
-            self.stdout.write(self.style.SUCCESS("✅ Aucun exercice à traiter"))
-            return
+        qs = CourseExercise.objects.select_related("lesson", "audio").all()
+        if not process_all:
+            qs = qs.filter(Q(audio__isnull=True))
 
-        audio_dir = Path(settings.MEDIA_ROOT) / "audio"
-        audio_dir.mkdir(parents=True, exist_ok=True)
+        if limit > 0:
+            qs = qs[:limit]
 
-        model_path = Path(settings.BASE_DIR) / "tts_engine/voices/fr_FR-upmc-medium.onnx"
+        total = 0
+        ok = 0
+        skipped = 0
+        failed = 0
 
-        for ex in exercises:
-            text = ex.question_text.strip()
-            if not text:
-                continue
+        for ex in qs:
+            total += 1
+            try:
+                source_text = (getattr(ex, "instruction", None) or "").strip()
+                if not source_text:
+                    source_text = (getattr(ex, "question_text", None) or "").strip()
 
-            filename = f"exercise_{ex.id}_{uuid.uuid4().hex}.wav"
-            output_path = audio_dir / filename
+                if not source_text:
+                    skipped += 1
+                    self.stdout.write(self.style.WARNING(f"[skip] ex#{ex.id}: empty text"))
+                    continue
 
-            cmd = [
-                "piper",
-                "--model", str(model_path),
-                "--output_file", str(output_path),
-                "--sentence-silence", "0.6",
-                "--length-scale", "1.05",
-                "--noise-scale", "0.6",
-                "--noise-w-scale", "0.8",
-            ]
+                rel_audio = generate_audio(source_text, language=language)
 
-            process = subprocess.Popen(
-                cmd,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                text=True,
-            )
+                title = f"Exercice {ex.id} audio"
+                asset = _build_asset(rel_audio, language=language, title=title)
 
-            process.communicate(text)
+                ex.audio = asset
+                ex.save(update_fields=["audio"])
 
-            asset = Asset.objects.create(
-                kind="audio",
-                file=f"audio/{filename}",
-                lang="fr",
-            )
+                ok += 1
+                self.stdout.write(self.style.SUCCESS(f"[ok] ex#{ex.id} -> {rel_audio}"))
 
-            ex.audio = asset
-            ex.save()
+            except Exception as e:
+                failed += 1
+                self.stderr.write(self.style.ERROR(f"[fail] ex#{ex.id}: {e}"))
 
-            self.stdout.write(
-                self.style.SUCCESS(f"🎧 Audio généré pour exercice #{ex.id}")
-            )
+        self.stdout.write(
+            self.style.SUCCESS(f"Done total={total} ok={ok} skipped={skipped} failed={failed}")
+        )

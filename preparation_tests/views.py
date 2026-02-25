@@ -177,8 +177,7 @@ def exam_detail(request, exam_code):
         code__iexact=exam_code
     )
 
-    # prefetch sections for template
-    sections = exam.sections.all().order_by("order").select_related()
+    sections = exam.sections.all()
 
     return render(
         request,
@@ -199,12 +198,11 @@ def course_section(request, exam_code, section):
 
     exam = get_object_or_404(Exam, code__iexact=exam_code)
 
-    # Perf: filter via exams__code to avoid extra join object when possible
     lessons = CourseLesson.objects.filter(
-        exams__code__iexact=exam.code,
+        exams=exam,
         section=section,
         is_published=True
-    ).order_by("level", "order").prefetch_related("exams")
+    ).order_by("level", "order")
 
     cefr = get_cefr_progress(
         user=request.user,
@@ -275,11 +273,6 @@ def take_section(request, attempt_id):
         session__user=request.user,
     )
 
-    # Prefetch related question objects to avoid N+1 in templates
-    attempt = Attempt.objects.select_related("section", "session").prefetch_related(
-        "answers__question", "section__questions__choices"
-    ).get(id=attempt.id)
-
     question = _next_unanswered_question(attempt)
 
     if not question:
@@ -341,18 +334,13 @@ def submit_answer(request, attempt_id, question_id):
 
 @login_required
 def session_result(request, session_id):
-    session = get_object_or_404(
+    session = get_object_or_400(
         Session,
         id=session_id,
         user=request.user
     )
 
-    # Prefetch attempts, sections and answers for reporting to avoid N+1
-    attempts = (
-        session.attempts.select_related("section")
-        .prefetch_related("answers", "answers__question")
-        .all()
-    )
+    attempts = session.attempts.all()
 
     # =====================================================
     # 📊 Score global
@@ -1058,18 +1046,17 @@ def ce_hub(request):
 
         progress_pct = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
 
-        levels_data.append({
-            "level": level,
-            "completed": completed_lessons,
-            "total": total_lessons,
-            "progress_pct": progress_pct,
-        })
+        levels_data.append(
+            {
+                "level": level,
+                "completed": completed_lessons,
+                "total": total_lessons,
+                "progress_pct": progress_pct,
+            }
+        )
 
-    return render(
-        request,
-        "preparation_tests/ce_hub.html",
-        {"levels": levels_data},
-    )
+    return render(request, "preparation_tests/ce_hub.html", {"levels": levels_data})
+
 
 @login_required
 def ce_by_level(request, level):
@@ -1099,40 +1086,6 @@ def ce_by_level(request, level):
             "level": level,
             "lessons": lessons,
             "cefr": cefr,
-        },
-    )
-
-
-@login_required
-def lesson_session(request, exam_code, section, lesson_id):
-    """Affiche une leçon et ses exercices.
-
-    - `exam_code` et `section` sont utilisés pour sécurité/SEO mais la clé
-      principale est `lesson_id`.
-    """
-    lesson = (
-        CourseLesson.objects.select_related()
-        .prefetch_related("exercises", "exams")
-        .filter(id=lesson_id, is_published=True)
-        .first()
-    )
-
-    if not lesson:
-        raise Http404("Leçon introuvable")
-
-    # Vérification basique que la leçon appartient bien à l'examen/section
-    if section and lesson.section != section:
-        # ne pas divulguer trop d'information, on renvoie 404
-        raise Http404("Leçon introuvable")
-
-    exercises = lesson.exercises.filter(is_active=True).order_by("order")
-
-    return render(
-        request,
-        "preparation_tests/lesson_session.html",
-        {
-            "lesson": lesson,
-            "exercises": exercises,
         },
     )
 
@@ -1608,3 +1561,33 @@ def exercise_progress(request):
         "exercise_completed": prog.is_completed,
         "attempts": prog.attempts,
     })
+
+
+# ...existing code...
+
+# =====================================================
+# 📖 LESSON SESSION (VUE MANQUANTE)
+# =====================================================
+
+@login_required
+def lesson_session(request, exam_code, section, lesson_id):
+    """
+    Affiche une leçon avec ses exercices.
+    """
+    from .models import CourseLesson, CourseExercise, Exam
+
+    lesson = get_object_or_404(CourseLesson, id=lesson_id)
+
+    exercises = CourseExercise.objects.filter(
+        lesson=lesson,
+        is_active=True,
+    ).order_by("order")
+
+    context = {
+        "lesson": lesson,
+        "exercises": exercises,
+        "exam_code": exam_code,
+        "section": section,
+    }
+
+    return render(request, "preparation_tests/lesson_session.html", context)
