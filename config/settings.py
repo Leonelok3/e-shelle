@@ -396,3 +396,44 @@ CSRF_COOKIE_HTTPONLY = True
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^chrome-extension://.*$",
 ]
+
+
+
+# ...existing code...
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # ...existing code...
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Immigration97 API",
+    "DESCRIPTION": "API documentation",
+    "VERSION": "1.0.0",
+}
+
+# ...existing code...
+
+
+# ...existing code...
+import os
+
+DEBUG = os.getenv("DJANGO_DEBUG", "False").strip().lower() in ("1", "true", "yes")
+
+SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000" if not DEBUG else "0"))
+SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "True" if not DEBUG else "False").strip().lower() in ("1", "true", "yes")
+SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "True" if not DEBUG else "False").strip().lower() in ("1", "true", "yes")
+CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "True" if not DEBUG else "False").strip().lower() in ("1", "true", "yes")
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # ...existing code...
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Immigration97 API",
+    "VERSION": "1.0.0",
+    "DESCRIPTION": "API documentation",
+    "DISABLE_ERRORS_AND_WARNINGS": True,  # supprime W002 drf_spectacular
+}
+# ...existing code...

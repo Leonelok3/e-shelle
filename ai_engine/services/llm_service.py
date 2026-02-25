@@ -1,5 +1,7 @@
 import json
 import os
+import urllib.error
+import urllib.request
 
 
 def _mock_response(user_prompt: str) -> str:
@@ -56,7 +58,102 @@ def _mock_response(user_prompt: str) -> str:
     )
 
 
+def _http_post_json(url: str, headers: dict, payload: dict, timeout: int = 60) -> dict:
+    req = urllib.request.Request(
+        url=url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={**headers, "Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="ignore")
+        raise RuntimeError(f"LLM HTTP {e.code}: {body}") from e
+    except urllib.error.URLError as e:
+        raise RuntimeError(f"LLM network error: {e}") from e
+
+
+def _call_openai(system_prompt: str, user_prompt: str) -> str:
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is missing.")
+
+    base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+    model = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+    timeout = int(os.getenv("LLM_TIMEOUT_SECONDS", "60"))
+
+    payload = {
+        "model": model,
+        "temperature": float(os.getenv("OPENAI_TEMPERATURE", "0.2")),
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+    }
+
+    data = _http_post_json(
+        url=f"{base_url}/chat/completions",
+        headers={"Authorization": f"Bearer {api_key}"},
+        payload=payload,
+        timeout=timeout,
+    )
+
+    try:
+        return data["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        raise RuntimeError(f"Unexpected OpenAI response format: {data}") from e
+
+
+def _call_azure_openai(system_prompt: str, user_prompt: str) -> str:
+    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "").strip().rstrip("/")
+    api_key = os.getenv("AZURE_OPENAI_API_KEY", "").strip()
+    deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT", "").strip()
+    api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-06-01")
+    timeout = int(os.getenv("LLM_TIMEOUT_SECONDS", "60"))
+
+    if not endpoint or not api_key or not deployment:
+        raise RuntimeError(
+            "AZURE_OPENAI_ENDPOINT / AZURE_OPENAI_API_KEY / AZURE_OPENAI_DEPLOYMENT are required."
+        )
+
+    url = (
+        f"{endpoint}/openai/deployments/{deployment}/chat/completions"
+        f"?api-version={api_version}"
+    )
+
+    payload = {
+        "temperature": float(os.getenv("OPENAI_TEMPERATURE", "0.2")),
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+    }
+
+    data = _http_post_json(
+        url=url,
+        headers={"api-key": api_key},
+        payload=payload,
+        timeout=timeout,
+    )
+
+    try:
+        return data["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        raise RuntimeError(f"Unexpected Azure OpenAI response format: {data}") from e
+
+
 def call_llm(system_prompt: str, user_prompt: str) -> str:
-    if os.getenv("LLM_MOCK_MODE", "1").strip() == "1":
+    # Priorité dev local
+    if os.getenv("LLM_MOCK_MODE", "0").strip() == "1":
         return _mock_response(user_prompt)
-    raise RuntimeError("LLM backend not configured yet.")
+
+    provider = os.getenv("LLM_PROVIDER", "OPENAI").strip().upper()
+
+    if provider == "OPENAI":
+        return _call_openai(system_prompt, user_prompt)
+    if provider == "AZURE_OPENAI":
+        return _call_azure_openai(system_prompt, user_prompt)
+
+    raise RuntimeError("Unsupported LLM_PROVIDER. Use OPENAI or AZURE_OPENAI.")
