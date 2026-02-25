@@ -28,6 +28,9 @@ class GenerateApiTests(SimpleTestCase):
         )
         self.assertEqual(response.status_code, 400)
 
-    def test_generate_api_method_not_allowed(self):
+    def test_generate_api_get_help(self):
         response = self.client.get("/api/ai/generate/")
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["ok"])
+        self.assertIn("Use POST", data["message"])
