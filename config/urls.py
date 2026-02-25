@@ -97,6 +97,8 @@ urlpatterns = [
     path("about/", about_page, name="about"),
     path("services/", services_page, name="services"),
     path("protected-media/", include("mediafiles.urls")),
+    path("api/ai/", include("ai_engine.urls")),
+
     
     # Legacy URL aliases for backward compatibility
     path("prep-langues/", RedirectView.as_view(url="/prep/", permanent=False), name="prep_langues"),
