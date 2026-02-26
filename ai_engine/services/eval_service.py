@@ -186,12 +186,11 @@ def evaluate_eo(
     try:
         raw = call_llm(system_prompt=_EO_EVAL_SYSTEM, user_prompt=user_prompt)
         return _extract_json(raw)
-    except (JSONDecodeError, ValueError, KeyError) as e:
-        logger.error("EO evaluation parsing failed: %s", e)
-        # Retour dégradé en cas d'erreur de parsing
+    except Exception as e:
+        logger.error("EO evaluation failed: %s", e)
         return {
             "score": 50,
-            "feedback": "Évaluation non disponible (erreur de traitement).",
+            "feedback": "Évaluation non disponible. Réessaie dans quelques instants.",
             "points_covered": [],
             "suggestions": [],
             "criteria": {},
@@ -263,11 +262,11 @@ def evaluate_ee(
     try:
         raw = call_llm(system_prompt=_EE_EVAL_SYSTEM, user_prompt=user_prompt)
         return _extract_json(raw)
-    except (JSONDecodeError, ValueError, KeyError) as e:
-        logger.error("EE evaluation parsing failed: %s", e)
+    except Exception as e:
+        logger.error("EE evaluation failed: %s", e)
         return {
             "score": 50,
-            "feedback": "Évaluation non disponible (erreur de traitement).",
+            "feedback": "Évaluation non disponible. Réessaie dans quelques instants.",
             "errors": [],
             "corrected_version": text,
             "criteria": {},

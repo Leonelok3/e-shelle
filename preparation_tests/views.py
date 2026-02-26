@@ -1094,6 +1094,10 @@ def submit_eo(request):
 
         try:
             transcript = transcribe_audio(tmp_path)
+        except Exception as _transcribe_err:
+            import logging as _log
+            _log.getLogger(__name__).error("submit_eo transcription error: %s", _transcribe_err)
+            transcript = ""
         finally:
             try:
                 os.unlink(tmp_path)
