@@ -1,1 +1,1 @@
-﻿from .service.openai_service import OpenAIService  # noqa: F401
+﻿from .services.openai_service import OpenAIService  # noqa: F401

@@ -1,4 +1,7 @@
-from .openai_service import ask_openai
+import logging
+from .openai_service import OpenAIService
+
+logger = logging.getLogger(__name__)
 
 CANADA_EXPERIENCE_PROMPT = """
 Tu es un recruteur canadien expert ATS.
@@ -19,12 +22,23 @@ Description brute :
 Retourne uniquement le texte final, sans titre.
 """
 
-def optimize_experience_for_canada(experience):
-    prompt = CANADA_EXPERIENCE_PROMPT.format(
-        title=experience.title,
-        company=experience.company,
-        description=experience.description_raw
-    )
 
-    response = ask_openai(prompt)
-    return response.strip()
+def optimize_experience_for_canada(experience):
+    raw = (experience.description_raw or experience.description or "").strip()
+    title = (experience.title or "").strip()
+    company = (experience.company or "").strip()
+
+    if not raw:
+        return raw
+
+    try:
+        service = OpenAIService()
+        result = service.enhance_experience_description(
+            raw=raw,
+            job_title=title,
+            industry=company,
+        )
+        return result.strip()
+    except Exception as e:
+        logger.warning("optimize_experience_for_canada failed: %s", e)
+        return raw

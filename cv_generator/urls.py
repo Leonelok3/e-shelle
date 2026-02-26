@@ -45,6 +45,8 @@ urlpatterns = [
         views.generate_experience_tasks,
         name="generate_experience_tasks",
     ),
-    path("cv/list/", views.cv_list, name="cv_list"),
     path("cv/<int:cv_id>/edit/", views.edit_cv, name="edit_cv"),
+    path("cv/<int:cv_id>/update-summary/", views.update_summary, name="update_summary"),
+    path("cv/<int:cv_id>/complete/", views.complete_cv, name="complete_cv"),
+    path("cv/<int:cv_id>/generate-summary/", views.generate_summary, name="generate_summary"),
 ]

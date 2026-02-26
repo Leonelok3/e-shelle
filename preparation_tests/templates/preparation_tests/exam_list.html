@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load static %}
+
+{# ==================================================
+   SCOPE STRICT APP
+================================================== #}
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{# ==================================================
+   SEO — TITLE & META
+================================================== #}
+{% block title %}
+Tous les examens de langue | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Catalogue complet des examens linguistiques disponibles sur Immigration97 :
+TEF, TCF, DELF, DALF et plus. Prépare-toi avec nos cours CECR
+et examens blancs chronométrés.
+{% endblock %}
+
+{# ==================================================
+   CSS APP — VERSIONNÉ
+================================================== #}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260226">
+{% endblock %}
+
+{% block content %}
+
+<!-- ==================================================
+HERO — LISTE DES EXAMENS
+================================================== -->
+<section class="pt-hero">
+  <div class="container pt-fade-up">
+
+    <span class="pt-badge">
+      📋 Catalogue des examens
+    </span>
+
+    <h1 class="pt-title">
+      Tous les examens
+      <span class="pt-gradient-primary">disponibles</span>
+    </h1>
+
+    <p class="pt-lead">
+      Choisis ton examen et commence ta préparation
+      avec une méthode <strong>officielle et structurée</strong>.
+      Cours CECR, exercices progressifs et examens blancs.
+    </p>
+
+  </div>
+</section>
+
+<!-- ==================================================
+LISTE DES EXAMENS
+================================================== -->
+<section class="pt-section">
+  <div class="container">
+
+    {% regroup exams by language as exams_by_lang %}
+
+    {% for lang_group in exams_by_lang %}
+
+    <header class="pt-section-header">
+      <h2>
+        {% if lang_group.grouper == "fr" %}🇫🇷 Examens de français
+        {% elif lang_group.grouper == "en" %}🇬🇧 English exams
+        {% elif lang_group.grouper == "de" %}🇩🇪 Deutsche Prüfungen
+        {% else %}{{ lang_group.grouper|upper }}{% endif %}
+      </h2>
+    </header>
+
+    <div class="pt-modules-grid">
+
+      {% for exam in lang_group.list %}
+      <article class="pt-card pt-card--exam">
+
+        <h3 class="pt-lesson-title">
+          {{ exam.name }}
+        </h3>
+
+        {% if exam.description %}
+        <p class="pt-card-meta">
+          {{ exam.description|truncatewords:20 }}
+        </p>
+        {% endif %}
+
+        <p class="pt-card-meta">
+          {{ exam.sections.count }} compétence{{ exam.sections.count|pluralize }}
+        </p>
+
+        <div class="pt-cta-group">
+          <a
+            href="{% url 'preparation_tests:exam_detail' exam.code %}"
+            class="pt-btn-primary"
+          >
+            Voir l'examen
+          </a>
+
+          {% if exam.code == "tef" %}
+            <a href="{% url 'preparation_tests:tef_hub' %}" class="pt-btn-secondary">
+              🎯 Préparer
+            </a>
+          {% elif exam.code == "tcf" %}
+            <a href="{% url 'preparation_tests:tcf_hub' %}" class="pt-btn-secondary">
+              🎯 Préparer
+            </a>
+          {% elif exam.code == "delf" or exam.code == "dalf" %}
+            <a href="{% url 'preparation_tests:delf_hub' %}" class="pt-btn-secondary">
+              🎯 Préparer
+            </a>
+          {% endif %}
+        </div>
+
+      </article>
+      {% endfor %}
+
+    </div>
+
+    {% empty %}
+    <div class="pt-empty">
+      Aucun examen disponible pour l'instant.
+    </div>
+    {% endfor %}
+
+  </div>
+</section>
+
+<!-- ==================================================
+CTA — DASHBOARD
+================================================== -->
+<section class="pt-section pt-section--cta">
+  <div class="container text-center">
+    <div class="pt-cta-group">
+      <a
+        href="{% url 'preparation_tests:dashboard_global' %}"
+        class="pt-btn-secondary"
+      >
+        📊 Voir ma progression
+      </a>
+      <a
+        href="{% url 'preparation_tests:home' %}"
+        class="pt-btn-ghost"
+      >
+        ← Accueil
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

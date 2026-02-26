@@ -1,64 +1,7 @@
 import re
 from datetime import date
-from cv_generator.models import Experience, Education, Skill, Language
+from cv_generator.models import Experience
 
-
-import re
-from cv_generator.models import Experience, Education
-
-
-def map_cv_text_to_models(cv, text):
-    """
-    Mapping SIMPLE et PRÉVISIBLE du CV importé.
-    Objectif : structure claire, pas perfection.
-    """
-
-    lines = [l.strip() for l in text.splitlines() if l.strip()]
-
-    # ============================
-    # EXPERIENCES (SIMPLE)
-    # ============================
-    current_exp = None
-    buffer = []
-
-    for line in lines:
-        # Détection ligne poste / entreprise
-        if re.search(r"(?:—|-| at )", line, re.IGNORECASE):
-            if current_exp:
-                current_exp.description_raw = "\n".join(buffer)
-                current_exp.save()
-                buffer = []
-
-            parts = re.split(r"(?:—|-| at )", line, maxsplit=1)
-            title = parts[0].strip()
-            company = parts[1].strip() if len(parts) > 1 else ""
-
-            current_exp = Experience.objects.create(
-                cv=cv,
-                title=title[:200],
-                company=company[:200],
-            )
-
-        else:
-            if current_exp:
-                buffer.append(line)
-
-    if current_exp:
-        current_exp.description_raw = "\n".join(buffer)
-        current_exp.save()
-
-    # ============================
-    # EDUCATION (BASIQUE)
-    # ============================
-    for line in lines:
-        if "université" in line.lower() or "baccala" in line.lower():
-            Education.objects.create(
-                cv=cv,
-                diploma=line[:200],
-                institution="",
-            )
-
-   
 
 def extract_summary(text):
     lines = text.split("\n")
@@ -115,10 +58,6 @@ def extract_languages(text):
     if "french" in text.lower() or "français" in text.lower():
         langs.append({"name": "Français", "level": "Native"})
     return langs
-
-
-from datetime import date
-from cv_generator.models import Experience
 
 
 def map_cv_text_to_models(cv, text: str):

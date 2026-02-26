@@ -308,13 +308,12 @@ class CourseExercise(models.Model):
     @property
     def audio_url(self) -> str:
         """
-        URL audio recommandée (premium-ready).
-        Pour l'instant: si audio existe, on renvoie la secure_url.
-        Plus tard: on mettra une logique premium (abonnement).
+        URL audio publique — servie via /media/ par Django (dev) ou Nginx (prod).
+        La protection premium est gérée au niveau du template (row.can_audio).
         """
         if not self.audio or self.audio.kind != "audio":
             return ""
-        return self.audio.secure_url
+        return self.audio.public_url
 
     @property
     def audio_public_url(self) -> str:

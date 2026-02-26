@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import re
 import uuid
 from pathlib import Path
@@ -6,6 +7,8 @@ from threading import Lock
 from typing import Any, Optional
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 # Coqui models (optionnel)
 TTS_MODELS = {
@@ -153,6 +156,7 @@ def generate_audio(text: str, language: str, output_dir: Optional[str] = None) -
 
         except Exception as e:
             last_error = e
+            logger.warning("TTS backend '%s' failed for lang='%s': %s", backend, lang, e)
             continue
 
     raise RuntimeError(f"All TTS backends failed for lang='{lang}'. Last error: {last_error}")

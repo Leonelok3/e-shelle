@@ -893,8 +893,17 @@ def export_pdf(request, cv_id):
 
     html_string = render_to_string(template_name, context=context, request=request)
 
-    # CSS PDF dédié (ne pas charger cv_generator.css ici)
-    css_file = finders.find("css/cv_pdf_canada_ats.css")
+    # CSS PDF dédié — sélection dynamique selon le template choisi
+    _style = (cv.template.style if cv.template else "") or "canada_ats"
+    _css_map = {
+        "europe": "css/cv_pdf_europe.css",
+        "modern": "css/cv_pdf_modern.css",
+        "professional": "css/cv_pdf_professional.css",
+        "pro": "css/cv_pdf_professional.css",
+    }
+    _css_key = next((k for k in _css_map if k in _style.lower()), None)
+    _css_static = _css_map.get(_css_key, "css/cv_pdf_canada_ats.css")
+    css_file = finders.find(_css_static)
 
     # WeasyPrint
     try:

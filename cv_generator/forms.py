@@ -305,15 +305,10 @@ class CVUploadForm(forms.ModelForm):
         }
 
 
-from django import forms
-from .models import CV
-
 class CVForm(forms.ModelForm):
     class Meta:
         model = CV
         exclude = ("user",)
-        # Mets ici les champs QUI EXISTENT réellement dans ton modèle CV
-        fields = fields = "__all__"
         widgets = {
             "summary": forms.Textarea(attrs={"rows": 5}),
         }

@@ -1,10 +1,13 @@
 import json
+import logging
 import re
 from json import JSONDecodeError
 
 from ai_engine.prompts.eo_prompt import EO_SYSTEM_PROMPT
 from ai_engine.services.llm_service import call_llm
 from ai_engine.validators.eo_validator import validate_eo_json
+
+logger = logging.getLogger(__name__)
 
 
 def _extract_json_text(raw: str) -> str:
@@ -33,7 +36,7 @@ def generate_eo_content(language: str, level: str, max_retries: int = 2) -> dict
         raise ValueError("level is required.")
 
     last_error = None
-    for _ in range(max_retries + 1):
+    for attempt in range(max_retries + 1):
         raw = call_llm(
             system_prompt=EO_SYSTEM_PROMPT,
             user_prompt=(
@@ -50,5 +53,6 @@ def generate_eo_content(language: str, level: str, max_retries: int = 2) -> dict
             return data
         except (JSONDecodeError, ValueError) as e:
             last_error = e
+            logger.warning("EO agent attempt %s/%s failed: %s", attempt + 1, max_retries + 1, e)
 
-    raise RuntimeError(f"Failed to generate valid EO content: {last_error}")
+    raise RuntimeError(f"Failed to generate valid EO content after {max_retries + 1} attempts: {last_error}")

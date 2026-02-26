@@ -37,25 +37,6 @@ urlpatterns = [
     path("fr/ce/<str:level>/", views.ce_by_level, name="ce_by_level"),
 
     # =====================================================
-    # 📘 SECTIONS DE COURS PAR EXAMEN (TEF/TCF/DELF)
-    # ⚠️ DOIT RESTER APRÈS LES ROUTES CO/CE
-    # =====================================================
-    path(
-        "<str:exam_code>/<str:section>/",
-        views.course_section,
-        name="course_section",
-    ),
-
-    # =====================================================
-    # 📖 LEÇON + EXERCICES
-    # =====================================================
-    path(
-        "<str:exam_code>/<str:section>/lesson/<int:lesson_id>/",
-        views.lesson_session,
-        name="lesson_session",
-    ),
-
-    # =====================================================
     # 📝 EXAMEN BLANC (MOCK)
     # =====================================================
     path(
@@ -160,5 +141,26 @@ urlpatterns = [
         "api/exercise-progress/",
         views.exercise_progress,
         name="exercise_progress",
+    ),
+    # Alias sans préfixe api/ pour compatibilité JS (fetch /prep/exercise-progress/)
+    path(
+        "exercise-progress/",
+        views.exercise_progress,
+    ),
+
+    # =====================================================
+    # 📘 SECTIONS DE COURS PAR EXAMEN — ROUTES GÉNÉRIQUES
+    # ⚠️ OBLIGATOIREMENT EN DERNIER : <str:...> capture tout.
+    # Toute route fixe placée après serait inaccessible.
+    # =====================================================
+    path(
+        "<str:exam_code>/<str:section>/lesson/<int:lesson_id>/",
+        views.lesson_session,
+        name="lesson_session",
+    ),
+    path(
+        "<str:exam_code>/<str:section>/",
+        views.course_section,
+        name="course_section",
     ),
 ]

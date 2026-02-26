@@ -2,7 +2,7 @@
 {% load static %}
 
 {# ==================================================
-   SCOPE STRICT APP
+   SCOPE STRICT APP — OBLIGATOIRE
 ================================================== #}
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
@@ -11,17 +11,17 @@
    SEO — TITLE & META
 ================================================== #}
 {% block title %}
-{{ section|upper }} – Niveau {{ level }} | Immigration97
+Compréhension Écrite {{ level }} – Leçons & Exercices CECR | Immigration97
 {% endblock %}
 
 {% block meta_description %}
-Leçons {{ section|upper }} – niveau {{ level }} selon le CECR.
-Cours structurés, exercices progressifs et entraînement guidé
-pour réussir les examens linguistiques officiels.
+Préparation Compréhension Écrite (CE) – niveau {{ level }}.
+Leçons CECR, textes variés et exercices progressifs
+pour les examens linguistiques officiels.
 {% endblock %}
 
 {# ==================================================
-   CSS APP — VERSIONNÉ
+   CSS APP — VERSIONNÉ (ANTI CACHE)
 ================================================== #}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260226">
@@ -30,30 +30,26 @@ pour réussir les examens linguistiques officiels.
 {% block content %}
 
 <!-- ==================================================
-HERO — SECTION {{ section|upper }} / NIVEAU {{ level }}
+HERO — COMPRÉHENSION ÉCRITE / NIVEAU {{ level }}
 ================================================== -->
 <section class="pt-hero">
   <div class="container pt-fade-up">
 
     <span class="pt-badge">
-      {% if section == "co" %}🎧 Compréhension orale
-      {% elif section == "ce" %}📖 Compréhension écrite
-      {% elif section == "ee" %}✍️ Expression écrite
-      {% elif section == "eo" %}🗣 Expression orale
-      {% endif %}
+      📖 Compréhension écrite
     </span>
 
     <h1 class="pt-title">
       Niveau {{ level }}<br>
-      Leçons & exercices
+      Leçons & entraînement
       <span class="pt-gradient-primary">CECR</span>
     </h1>
 
     <p class="pt-lead">
-      Suis les <strong>leçons du niveau {{ level }}</strong>
-      pour renforcer ta compétence en
-      <strong>{{ section|upper }}</strong>
-      et progresser efficacement selon le CECR.
+      Accède aux <strong>textes et exercices</strong> du niveau
+      <strong>{{ level }}</strong> pour renforcer ta
+      compréhension écrite et progresser efficacement
+      vers les examens officiels.
     </p>
 
     {% if cefr %}
@@ -64,7 +60,7 @@ HERO — SECTION {{ section|upper }} / NIVEAU {{ level }}
 </section>
 
 <!-- ==================================================
-NAVIGATION PRÉPARATION
+NAVIGATION PRÉPARATION (CO / CE / EE / EO)
 ================================================== -->
 {% include "preparation_tests/partials/_prep_nav.html" %}
 
@@ -86,43 +82,37 @@ LEÇONS DISPONIBLES
         <div class="pt-modules-grid">
 
           {% for lesson in lessons %}
-          <article class="pt-card pt-card--lesson">
+            <article class="pt-card pt-card--lesson">
 
-            <div class="pt-lesson-header">
               <h3 class="pt-lesson-title">
                 {{ lesson.title }}
               </h3>
 
-              <span class="pt-level-badge">
-                Niveau {{ lesson.level }}
-              </span>
-            </div>
+              <p class="pt-card-meta">
+                Leçon CECR – niveau {{ level }}
+              </p>
 
-            <p class="pt-card-meta">
-              Leçon CECR – {{ section|upper }}
-            </p>
+              <div class="pt-cta-group">
+                <a
+                  href="{% url 'preparation_tests:lesson_session' 'CECR' 'ce' lesson.id %}"
+                  class="pt-btn-primary"
+                >
+                  ▶ Commencer la leçon
+                </a>
+              </div>
 
-            <div class="pt-cta-group">
-              <a
-                href="{% url 'preparation_tests:lesson_session' lesson.exams.first.code|lower section lesson.id %}"
-                class="pt-btn-primary"
-              >
-                ▶ Commencer la leçon
-              </a>
-            </div>
-
-          </article>
+            </article>
           {% empty %}
             <div class="pt-empty">
-              Aucune leçon publiée pour ce niveau.
+              Aucune leçon disponible pour ce niveau.
             </div>
           {% endfor %}
 
         </div>
 
         <div class="pt-back-link">
-          <a href="{% url 'preparation_tests:co_hub' %}" class="pt-btn-secondary">
-            ← Retour aux niveaux
+          <a href="{% url 'preparation_tests:ce_hub' %}" class="pt-btn-secondary">
+            ← Retour au hub Compréhension Écrite
           </a>
         </div>
 
@@ -132,14 +122,22 @@ LEÇONS DISPONIBLES
       <aside class="pt-side">
 
         <div class="pt-card pt-card--side">
-          <h3>💡 Conseils de progression</h3>
+
+          <h3>Pourquoi ces leçons ?</h3>
 
           <ul class="pt-side-list">
-            <li>Travaille régulièrement chaque niveau</li>
-            <li>Réécoute les audios plusieurs fois</li>
-            <li>Vise au moins <strong>70 %</strong> de réussite</li>
-            <li>Passe un test blanc pour valider ton niveau</li>
+            <li>Lire rapidement et efficacement</li>
+            <li>Repérer les informations clés</li>
+            <li>Comprendre le vocabulaire en contexte</li>
+            <li>Progresser selon le CECR</li>
           </ul>
+
+          <p class="pt-small">
+            💡 Termine les leçons pour débloquer
+            les examens blancs et le feedback
+            du <strong>Coach IA</strong>.
+          </p>
+
         </div>
 
       </aside>

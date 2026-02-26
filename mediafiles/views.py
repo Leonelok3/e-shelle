@@ -20,11 +20,17 @@ def _safe_abs_path(rel_path: str) -> Path:
     if ".." in requested.parts:
         raise PermissionError("Invalid path.")
 
-    abs_path = (Path(settings.PROTECTED_MEDIA_ROOT) / requested).resolve()
-    root_path = Path(settings.PROTECTED_MEDIA_ROOT).resolve()
+    protected_root = Path(settings.PROTECTED_MEDIA_ROOT).resolve()
+    media_root = Path(settings.MEDIA_ROOT).resolve()
 
-    # Garantit que le fichier reste dans PROTECTED_MEDIA_ROOT
-    if not str(abs_path).startswith(str(root_path)):
+    # 1. Chercher d'abord dans PROTECTED_MEDIA_ROOT
+    abs_path = (protected_root / requested).resolve()
+    if str(abs_path).startswith(str(protected_root)) and abs_path.exists():
+        return abs_path
+
+    # 2. Fallback : chercher dans MEDIA_ROOT (fichiers uploadés via admin Asset)
+    abs_path = (media_root / requested).resolve()
+    if not str(abs_path).startswith(str(media_root)):
         raise PermissionError("Invalid path.")
 
     return abs_path
@@ -82,9 +88,20 @@ def protected_media(request, path: str):
     # PROD -> Nginx sert le fichier
     # =========================
     if not settings.DEBUG:
+        media_root = Path(settings.MEDIA_ROOT).resolve()
+        protected_root = Path(settings.PROTECTED_MEDIA_ROOT).resolve()
+
+        # Déterminer le bon préfixe interne nginx selon l'emplacement réel du fichier
+        if str(abs_path).startswith(str(protected_root)):
+            rel = abs_path.relative_to(protected_root)
+            internal_path = f"/_protected_media/{rel.as_posix()}"
+        else:
+            rel = abs_path.relative_to(media_root)
+            internal_path = f"/_media/{rel.as_posix()}"
+
         response = HttpResponse()
         response["Content-Type"] = ""  # Nginx déterminera
-        response["X-Accel-Redirect"] = f"/_protected_media/{Path(path).as_posix()}"
+        response["X-Accel-Redirect"] = internal_path
         response["Cache-Control"] = "private, max-age=86400"
         return response
 

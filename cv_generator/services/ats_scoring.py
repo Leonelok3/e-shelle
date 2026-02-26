@@ -33,13 +33,13 @@ def calculate_ats_score(cv, language="fr"):
         feedback.append("Ajoutez au moins 5 compétences")
 
     # LANGUAGES
-    if cv.languages.exists():
+    if cv.langues.exists():
         score += 10
     else:
         feedback.append("Ajoutez vos langues")
 
     # EDUCATION
-    if cv.educations.exists():
+    if cv.formations.exists():
         score += 15
     else:
         feedback.append("Ajoutez une formation")
