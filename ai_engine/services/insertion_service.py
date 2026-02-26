@@ -115,6 +115,179 @@ def _normalize_questions(co_data: Dict[str, Any]) -> List[Dict[str, Any]]:
     return normalized
 
 
+def insert_ce_content(
+    exam_id: int,
+    level: str,
+    language: str,
+    ce_data: Dict[str, Any],
+    audio_path: Optional[str] = None,
+) -> Any:
+    """Insère une leçon CE (Compréhension Écrite) avec ses exercices QCM."""
+    from preparation_tests.models import CourseExercise, CourseLesson, Exam
+
+    exam = Exam.objects.get(id=exam_id)
+
+    title = ce_data.get("title", f"CE {level} - Lecture")
+    content_html = ce_data.get("reading_text", ce_data.get("content_html", ""))
+
+    base_slug = slugify(f"{level}-ce-{title[:30]}")
+    slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
+
+    order = CourseLesson.objects.filter(section="ce", level=level.upper()).count() + 1
+
+    lesson = CourseLesson.objects.create(
+        exam=exam,
+        section="ce",
+        level=level.upper(),
+        title=title,
+        slug=slug,
+        locale=language,
+        content_html=content_html,
+        order=order,
+        is_published=True,
+    )
+    lesson.exams.add(exam)
+
+    for q in _normalize_questions(ce_data):
+        CourseExercise.objects.create(
+            lesson=lesson,
+            title=q["title"],
+            instruction=q["instruction"],
+            question_text=q["question_text"],
+            audio=None,
+            image=None,
+            option_a=q["option_a"],
+            option_b=q["option_b"],
+            option_c=q["option_c"],
+            option_d=q["option_d"],
+            correct_option=q["correct_option"],
+            summary=q["summary"],
+            order=q["order"],
+            is_active=True,
+        )
+
+    return lesson
+
+
+def insert_ee_content(
+    exam_id: int,
+    level: str,
+    language: str,
+    ee_data: Dict[str, Any],
+    audio_path: Optional[str] = None,
+) -> Any:
+    """Insère une leçon EE (Expression Écrite) — 1 exercice de production écrite."""
+    from preparation_tests.models import CourseExercise, CourseLesson, Exam
+
+    exam = Exam.objects.get(id=exam_id)
+
+    topic = ee_data.get("topic", f"EE {level}")
+    instructions = ee_data.get("instructions", "")
+    min_words = ee_data.get("min_words", 100)
+    sample_answer = ee_data.get("sample_answer", "")
+
+    base_slug = slugify(f"{level}-ee-{topic[:30]}")
+    slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
+
+    order = CourseLesson.objects.filter(section="ee", level=level.upper()).count() + 1
+    content_html = f"<p><strong>Sujet :</strong> {topic}</p><p>{instructions}</p>"
+
+    lesson = CourseLesson.objects.create(
+        exam=exam,
+        section="ee",
+        level=level.upper(),
+        title=topic,
+        slug=slug,
+        locale=language,
+        content_html=content_html,
+        order=order,
+        is_published=True,
+    )
+    lesson.exams.add(exam)
+
+    CourseExercise.objects.create(
+        lesson=lesson,
+        title=topic,
+        instruction=instructions,
+        question_text=f"Rédigez un texte d'au moins {min_words} mots sur : {topic}",
+        audio=None,
+        image=None,
+        option_a="",
+        option_b="",
+        option_c="",
+        option_d="",
+        correct_option="A",
+        summary=sample_answer,
+        order=1,
+        is_active=True,
+    )
+
+    return lesson
+
+
+def insert_eo_content(
+    exam_id: int,
+    level: str,
+    language: str,
+    eo_data: Dict[str, Any],
+    audio_path: Optional[str] = None,
+) -> Any:
+    """Insère une leçon EO (Expression Orale) — 1 exercice de production orale."""
+    from preparation_tests.models import Asset, CourseExercise, CourseLesson, Exam
+
+    exam = Exam.objects.get(id=exam_id)
+
+    topic = eo_data.get("topic", f"EO {level}")
+    instructions = eo_data.get("instructions", "")
+    expected_points = eo_data.get("expected_points", [])
+
+    base_slug = slugify(f"{level}-eo-{topic[:30]}")
+    slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
+
+    order = CourseLesson.objects.filter(section="eo", level=level.upper()).count() + 1
+    points_html = "".join(f"<li>{p}</li>" for p in expected_points)
+    content_html = (
+        f"<p><strong>Sujet :</strong> {topic}</p>"
+        f"<p>{instructions}</p>"
+        f"<ul>{points_html}</ul>"
+    )
+
+    lesson = CourseLesson.objects.create(
+        exam=exam,
+        section="eo",
+        level=level.upper(),
+        title=topic,
+        slug=slug,
+        locale=language,
+        content_html=content_html,
+        order=order,
+        is_published=True,
+    )
+    lesson.exams.add(exam)
+
+    audio_asset = _create_audio_asset(audio_path, language) if audio_path else None
+
+    pts = expected_points
+    CourseExercise.objects.create(
+        lesson=lesson,
+        title=topic,
+        instruction=instructions,
+        question_text=topic,
+        audio=audio_asset,
+        image=None,
+        option_a=pts[0] if len(pts) > 0 else "",
+        option_b=pts[1] if len(pts) > 1 else "",
+        option_c=pts[2] if len(pts) > 2 else "",
+        option_d=pts[3] if len(pts) > 3 else "",
+        correct_option="A",
+        summary="\n".join(expected_points),
+        order=1,
+        is_active=True,
+    )
+
+    return lesson
+
+
 def insert_co_content(
     exam_id: int,
     level: str,
