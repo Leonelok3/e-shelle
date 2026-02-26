@@ -66,9 +66,17 @@ audio, questions corrigées et entraînement progressif CECR avec Immigration97.
     {% include "preparation_tests/partials/_cefr_bar.html" %}
 
     <p class="pt-lead">
-      Entraînement guidé avec <strong>audio</strong>,
-      <strong>questions interactives</strong> et
-      <strong>correction immédiate</strong>.
+      {% if section == 'eo' %}
+        Entraînement à la <strong>prise de parole</strong> guidé avec
+        <strong>retour IA personnalisé</strong> et correction immédiate.
+      {% elif section == 'ee' %}
+        Entraînement à la <strong>production écrite</strong> avec
+        <strong>correction IA</strong>, analyse des erreurs et version améliorée.
+      {% else %}
+        Entraînement guidé avec <strong>audio</strong>,
+        <strong>questions interactives</strong> et
+        <strong>correction immédiate</strong>.
+      {% endif %}
     </p>
 
   </div>
@@ -108,7 +116,12 @@ audio, questions corrigées et entraînement progressif CECR avec Immigration97.
 <section class="pt-section pt-section--exercises">
   <div class="container">
 
-    <h2 class="pt-section-title text-center">🎧 Exercices d’application</h2>
+    <h2 class="pt-section-title text-center">
+      {% if section == ‘eo’ %}🎤 Sujets d’expression orale
+      {% elif section == ‘ee’ %}✍️ Sujets d’expression écrite
+      {% else %}🎧 Exercices d’application
+      {% endif %}
+    </h2>
 
     <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
 
@@ -116,6 +129,102 @@ audio, questions corrigées et entraînement progressif CECR avec Immigration97.
 
       {% for row in exercises %}
       {% with exercise=row.obj %}
+
+      {# ============================================================ #}
+      {# 🎤 EO — Expression Orale : sujet + enregistreur audio        #}
+      {# ============================================================ #}
+      {% if section == ‘eo’ %}
+
+      <article class="pt-card pt-card--exercise pt-eo-card"
+               data-exercise-id="{{ exercise.id }}">
+
+        <header class="pt-exercise-header">
+          <h3>Sujet {{ forloop.counter }}</h3>
+        </header>
+
+        <div class="pt-exercise-question">{{ exercise.question_text }}</div>
+
+        {% if exercise.instruction %}
+          <div class="pt-exercise-instruction pt-eo-instructions">
+            <strong>📋 Consignes :</strong>
+            <p>{{ exercise.instruction }}</p>
+          </div>
+        {% endif %}
+
+        {% if exercise.summary %}
+          <div class="pt-eo-expected">
+            <strong>🎯 Points à aborder :</strong>
+            <p class="pt-eo-points-hint">{{ exercise.summary }}</p>
+          </div>
+        {% endif %}
+
+        <div class="pt-recorder" data-exercise-id="{{ exercise.id }}">
+          <div class="pt-recorder-controls">
+            <button class="pt-record-btn" type="button">
+              🎤 Commencer l’enregistrement
+            </button>
+            <span class="pt-record-timer"></span>
+          </div>
+          <audio class="pt-playback" controls style="display:none; width:100%; margin-top:12px;"></audio>
+        </div>
+
+        <div class="pt-cta-group" style="margin-top:14px;">
+          <button class="pt-submit-eo pt-btn-primary" type="button" disabled>
+            📤 Soumettre pour évaluation IA
+          </button>
+        </div>
+
+        <div class="pt-eo-result" style="display:none;"></div>
+
+      </article>
+
+      {# ============================================================ #}
+      {# ✍️ EE — Expression Écrite : sujet + zone de rédaction        #}
+      {# ============================================================ #}
+      {% elif section == ‘ee’ %}
+
+      <article class="pt-card pt-card--exercise pt-ee-card"
+               data-exercise-id="{{ exercise.id }}">
+
+        <header class="pt-exercise-header">
+          <h3>Sujet {{ forloop.counter }}</h3>
+        </header>
+
+        <div class="pt-exercise-question">{{ exercise.question_text }}</div>
+
+        {% if exercise.instruction %}
+          <div class="pt-exercise-instruction pt-ee-instructions">
+            <strong>📋 Consignes :</strong>
+            <p>{{ exercise.instruction }}</p>
+          </div>
+        {% endif %}
+
+        <div class="pt-ee-editor">
+          <textarea
+            class="pt-ee-textarea"
+            rows="8"
+            placeholder="Rédigez votre réponse ici..."
+          ></textarea>
+          <div class="pt-word-counter">
+            <span class="pt-word-count">0</span> mot(s)
+          </div>
+        </div>
+
+        <div class="pt-cta-group" style="margin-top:14px;">
+          <button class="pt-submit-ee pt-btn-primary" type="button">
+            ✅ Soumettre pour correction IA
+          </button>
+        </div>
+
+        <div class="pt-ee-result" style="display:none;"></div>
+
+      </article>
+
+      {# ============================================================ #}
+      {# 🎧 CO / CE — QCM : audio + questions à choix multiple        #}
+      {# ============================================================ #}
+      {% else %}
+
       <article class="pt-card pt-card--exercise">
 
         <header class="pt-exercise-header">
@@ -136,7 +245,7 @@ audio, questions corrigées et entraînement progressif CECR avec Immigration97.
             </div>
           {% else %}
             <div class="pt-audio-box pt-audio-box--missing">
-              🔒 Audio Premium : <a href="{% url 'billing:pricing' %}">débloquer</a>
+              🔒 Audio Premium : <a href="{% url ‘billing:pricing’ %}">débloquer</a>
               <span style="display:block; opacity:.85; margin-top:4px;">
                 Astuce : valide l’exercice précédent ou passe Premium.
               </span>
@@ -193,6 +302,9 @@ audio, questions corrigées et entraînement progressif CECR avec Immigration97.
         </form>
 
       </article>
+
+      {% endif %}{# end section branch #}
+
       {% endwith %}
       {% empty %}
         <p class="pt-empty text-center">Aucun exercice disponible pour cette leçon.</p>

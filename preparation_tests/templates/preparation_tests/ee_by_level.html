@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{% block title %}
+Expression Écrite {{ level }} – Leçons & Entraînement CECR | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Préparation Expression Écrite (EE) – niveau {{ level }}.
+Sujets de production écrite CECR, correction IA et version améliorée
+pour les examens linguistiques officiels.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260226">
+{% endblock %}
+
+{% block content %}
+
+<!-- ==================================================
+HERO — EXPRESSION ÉCRITE / NIVEAU {{ level }}
+================================================== -->
+<section class="pt-hero">
+  <div class="container pt-fade-up">
+
+    <span class="pt-badge">
+      ✍️ Expression écrite
+    </span>
+
+    <h1 class="pt-title">
+      Niveau {{ level }}<br>
+      Leçons & entraînement
+      <span class="pt-gradient-primary">CECR</span>
+    </h1>
+
+    <p class="pt-lead">
+      Accède aux <strong>sujets de production écrite</strong> du niveau
+      <strong>{{ level }}</strong>. Rédige directement en ligne
+      et reçois une <strong>correction IA complète</strong> :
+      erreurs identifiées, score et version corrigée intégrale.
+    </p>
+
+    {% if cefr %}
+      {% include "preparation_tests/partials/_cefr_bar.html" %}
+    {% endif %}
+
+  </div>
+</section>
+
+{% include "preparation_tests/partials/_prep_nav.html" %}
+
+<!-- ==================================================
+LEÇONS DISPONIBLES
+================================================== -->
+<section class="pt-section">
+  <div class="container">
+
+    <div class="pt-grid-layout">
+
+      <div class="pt-main">
+
+        <h2 class="pt-section-title">
+          ✍️ Leçons disponibles
+        </h2>
+
+        <div class="pt-modules-grid">
+
+          {% for lesson in lessons %}
+            <article class="pt-card pt-card--lesson">
+
+              <h3 class="pt-lesson-title">{{ lesson.title }}</h3>
+
+              <p class="pt-card-meta">
+                Leçon CECR – niveau {{ level }}
+              </p>
+
+              <div class="pt-cta-group">
+                <a
+                  href="{% url 'preparation_tests:lesson_session' 'CECR' 'ee' lesson.id %}"
+                  class="pt-btn-primary"
+                >
+                  ▶ Commencer la leçon
+                </a>
+              </div>
+
+            </article>
+          {% empty %}
+            <div class="pt-empty">
+              Aucune leçon disponible pour ce niveau.
+            </div>
+          {% endfor %}
+
+        </div>
+
+        <div class="pt-back-link">
+          <a href="{% url 'preparation_tests:ee_hub' %}" class="pt-btn-secondary">
+            ← Retour au hub Expression Écrite
+          </a>
+        </div>
+
+      </div>
+
+      <aside class="pt-side">
+        <div class="pt-card pt-card--side">
+
+          <h3>✍️ Conseils EE</h3>
+
+          <ul class="pt-side-list">
+            <li>Respecter le format demandé (courriel, lettre, texte)</li>
+            <li>Structurer en paragraphes distincts</li>
+            <li>Utiliser un vocabulaire précis et varié</li>
+            <li>Vérifier la grammaire et la ponctuation</li>
+          </ul>
+
+          <p class="pt-small">
+            💡 L'IA corrige ta grammaire, évalue ton vocabulaire
+            et te fournit une version améliorée intégrale.
+            Vise un score de <strong>70+</strong> pour valider le sujet.
+          </p>
+
+        </div>
+      </aside>
+
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/preparation_tests.js' %}?v=20260226-ee" defer></script>
+{% endblock %}

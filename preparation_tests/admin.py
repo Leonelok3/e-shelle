@@ -7,6 +7,7 @@ from .models import (
     Question, Choice, Explanation,
     Session, Attempt, Answer,
     CourseLesson, CourseExercise,
+    EOSubmission, EESubmission,
 )
 
 # =====================================================
@@ -191,3 +192,25 @@ class CourseExerciseAdmin(admin.ModelAdmin):
         return bool(obj.audio)
     has_audio.boolean = True
     has_audio.short_description = "Audio"
+
+
+# =====================================================
+# SOUMISSIONS EO / EE
+# =====================================================
+
+@admin.register(EOSubmission)
+class EOSubmissionAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "exercise", "score", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("user__username", "transcript")
+    readonly_fields = ("transcript", "feedback_json", "created_at")
+    ordering = ("-created_at",)
+
+
+@admin.register(EESubmission)
+class EESubmissionAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "exercise", "word_count", "score", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("user__username", "text")
+    readonly_fields = ("feedback_json", "created_at")
+    ordering = ("-created_at",)

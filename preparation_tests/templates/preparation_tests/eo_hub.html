@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{% block title %}
+Expression Orale – Parcours CECR A1 à C2 | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Parcours complet d'Expression Orale (EO) selon le CECR.
+Entraîne ta prise de parole du niveau A1 au C2 avec des sujets réalistes,
+enregistrement audio et correction par l'IA Immigration97.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260226">
+{% endblock %}
+
+{% block content %}
+
+<!-- ==================================================
+HERO — PARCOURS EXPRESSION ORALE
+================================================== -->
+<section class="pt-hero">
+  <div class="container pt-fade-up">
+
+    <span class="pt-badge">
+      🎤 Expression orale
+    </span>
+
+    <h1 class="pt-title">
+      Parcours CECR<br>
+      de <span class="pt-gradient-primary">A1</span> à
+      <span class="pt-gradient-primary">C2</span>
+    </h1>
+
+    <p class="pt-lead">
+      Entraîne-toi à <strong>parler avec confiance</strong>
+      selon le <strong>Cadre Européen Commun de Référence</strong>.
+      Sujets réalistes, enregistrement audio dans le navigateur
+      et <strong>correction IA personnalisée</strong>
+      pour réussir les examens officiels.
+    </p>
+
+    {% include "preparation_tests/partials/_cefr_bar.html" %}
+
+  </div>
+</section>
+
+<!-- ==================================================
+NIVEAUX CECR
+================================================== -->
+<section class="pt-section">
+  <div class="container">
+
+    <header class="pt-section-header">
+      <h2>🎤 Niveaux disponibles</h2>
+      <p>
+        Chaque niveau te propose des sujets de prise de parole adaptés.
+        Enregistre ta réponse directement dans le navigateur et reçois
+        un retour instantané du Coach IA.
+      </p>
+    </header>
+
+    <div class="pt-level-grid">
+
+      {% for l in levels %}
+      <article class="pt-card pt-card--level">
+
+        <span class="pt-level-badge pt-level-{{ l.level|lower }}">
+          {{ l.level }}
+        </span>
+
+        <h3 class="pt-level-title">
+          Niveau {{ l.level }}
+        </h3>
+
+        <p class="pt-card-meta">
+          {{ l.completed }} / {{ l.total }} leçons complétées
+        </p>
+
+        <div class="pt-progress">
+          <div class="pt-progress-bar">
+            <div class="pt-progress-fill" style="width: {{ l.progress_pct }}%;"></div>
+          </div>
+          <span class="pt-progress-text">{{ l.progress_pct }} %</span>
+        </div>
+
+        <div class="pt-cta-group">
+          <a href="{% url 'preparation_tests:eo_by_level' l.level %}" class="pt-btn-primary">
+            ▶ Accéder au niveau {{ l.level }}
+          </a>
+        </div>
+
+      </article>
+      {% empty %}
+      <div class="pt-empty">
+        Aucun niveau disponible pour l'instant.
+        Les leçons d'Expression Orale seront bientôt disponibles.
+      </div>
+      {% endfor %}
+
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

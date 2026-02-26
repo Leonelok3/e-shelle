@@ -37,6 +37,24 @@ urlpatterns = [
     path("fr/ce/<str:level>/", views.ce_by_level, name="ce_by_level"),
 
     # =====================================================
+    # 🎤 HUB EO (Expression Orale) - CECR
+    # =====================================================
+    path("fr/eo/", views.eo_hub, name="eo_hub"),
+    path("fr/eo/<str:level>/", views.eo_by_level, name="eo_by_level"),
+
+    # =====================================================
+    # ✍️ HUB EE (Expression Écrite) - CECR
+    # =====================================================
+    path("fr/ee/", views.ee_hub, name="ee_hub"),
+    path("fr/ee/<str:level>/", views.ee_by_level, name="ee_by_level"),
+
+    # =====================================================
+    # 🔄 API SOUMISSIONS EO / EE
+    # =====================================================
+    path("api/submit-eo/", views.submit_eo, name="submit_eo"),
+    path("api/submit-ee/", views.submit_ee, name="submit_ee"),
+
+    # =====================================================
     # 📝 EXAMEN BLANC (MOCK)
     # =====================================================
     path(

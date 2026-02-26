@@ -41,6 +41,8 @@ from .models import (
     UserSkillProgress,
     UserLessonProgress,
     UserExerciseProgress,
+    EOSubmission,
+    EESubmission,
 )
 
 # =========================================================
@@ -932,4 +934,341 @@ def exercise_progress(request):
         "is_completed": is_completed,
         "exercise_completed": prog.is_completed,
         "attempts": prog.attempts,
+    })
+
+
+# =========================================================
+# 🎤 HUB EO / EE PAR NIVEAU
+# =========================================================
+@login_required
+def eo_hub(request):
+    user = request.user
+
+    levels = (
+        CourseLesson.objects.filter(section="eo", is_published=True)
+        .values_list("level", flat=True)
+        .distinct()
+        .order_by("level")
+    )
+
+    levels_data = []
+    for level in levels:
+        total_lessons = CourseLesson.objects.filter(
+            section="eo", level=level, is_published=True
+        ).count()
+        completed_lessons = UserLessonProgress.objects.filter(
+            user=user, lesson__section="eo", lesson__level=level, is_completed=True
+        ).count()
+        progress_pct = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
+        levels_data.append({
+            "level": level,
+            "completed": completed_lessons,
+            "total": total_lessons,
+            "progress_pct": progress_pct,
+        })
+
+    return render(request, "preparation_tests/eo_hub.html", {"levels": levels_data})
+
+
+@login_required
+def eo_by_level(request, level):
+    level = level.upper()
+    user = request.user
+
+    lessons = CourseLesson.objects.filter(
+        section="eo", level=level, is_published=True
+    ).order_by("order")
+
+    try:
+        cefr = get_cefr_progress(user=user, exam_code="CECR", skill="eo")
+    except Exception:
+        cefr = None
+
+    return render(
+        request,
+        "preparation_tests/eo_by_level.html",
+        {
+            "section": "eo",
+            "level": level,
+            "lessons": lessons,
+            "cefr": cefr,
+        },
+    )
+
+
+@login_required
+def ee_hub(request):
+    user = request.user
+
+    levels = (
+        CourseLesson.objects.filter(section="ee", is_published=True)
+        .values_list("level", flat=True)
+        .distinct()
+        .order_by("level")
+    )
+
+    levels_data = []
+    for level in levels:
+        total_lessons = CourseLesson.objects.filter(
+            section="ee", level=level, is_published=True
+        ).count()
+        completed_lessons = UserLessonProgress.objects.filter(
+            user=user, lesson__section="ee", lesson__level=level, is_completed=True
+        ).count()
+        progress_pct = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
+        levels_data.append({
+            "level": level,
+            "completed": completed_lessons,
+            "total": total_lessons,
+            "progress_pct": progress_pct,
+        })
+
+    return render(request, "preparation_tests/ee_hub.html", {"levels": levels_data})
+
+
+@login_required
+def ee_by_level(request, level):
+    level = level.upper()
+    user = request.user
+
+    lessons = CourseLesson.objects.filter(
+        section="ee", level=level, is_published=True
+    ).order_by("order")
+
+    try:
+        cefr = get_cefr_progress(user=user, exam_code="CECR", skill="ee")
+    except Exception:
+        cefr = None
+
+    return render(
+        request,
+        "preparation_tests/ee_by_level.html",
+        {
+            "section": "ee",
+            "level": level,
+            "lessons": lessons,
+            "cefr": cefr,
+        },
+    )
+
+
+# =========================================================
+# 🎤 API SOUMISSION EO
+# =========================================================
+@login_required
+@require_POST
+def submit_eo(request):
+    """
+    Reçoit: multipart/form-data avec exercise_id + audio (Blob)
+    Transcrit (Whisper) → évalue (GPT) → sauvegarde EOSubmission → met à jour progression.
+    """
+    from ai_engine.services.eval_service import transcribe_audio, evaluate_eo
+    import tempfile, os
+
+    exercise_id = request.POST.get("exercise_id")
+    audio_file = request.FILES.get("audio")
+
+    if not exercise_id:
+        return JsonResponse({"ok": False, "error": "missing_exercise_id"}, status=400)
+
+    exercise = CourseExercise.objects.select_related("lesson").filter(id=exercise_id).first()
+    if not exercise:
+        return JsonResponse({"ok": False, "error": "exercise_not_found"}, status=404)
+
+    lesson = exercise.lesson
+    user = request.user
+
+    # Sauvegarder le fichier audio temporairement pour Whisper
+    transcript = ""
+    if audio_file:
+        suffix = ".webm"
+        if audio_file.content_type and "ogg" in audio_file.content_type:
+            suffix = ".ogg"
+        elif audio_file.content_type and "mp4" in audio_file.content_type:
+            suffix = ".mp4"
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            for chunk in audio_file.chunks():
+                tmp.write(chunk)
+            tmp_path = tmp.name
+
+        try:
+            transcript = transcribe_audio(tmp_path)
+        finally:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+    if not transcript:
+        return JsonResponse({"ok": False, "error": "transcription_failed"}, status=422)
+
+    # Évaluation IA
+    import json as _json
+    expected_points = []
+    if exercise.summary:
+        try:
+            pts = _json.loads(exercise.summary)
+            if isinstance(pts, list):
+                expected_points = pts
+        except (ValueError, TypeError):
+            expected_points = [exercise.summary]
+
+    result = evaluate_eo(
+        transcript=transcript,
+        topic=exercise.question_text,
+        instructions=exercise.instruction,
+        level=lesson.level,
+        expected_points=expected_points,
+    )
+
+    score = float(result.get("score", 0))
+
+    # Sauvegarder soumission (sans garder le fichier audio en DB pour économiser l'espace)
+    EOSubmission.objects.create(
+        user=user,
+        exercise=exercise,
+        transcript=transcript,
+        score=score,
+        feedback_json=result,
+    )
+
+    # Mettre à jour la progression (score >= 60 = exercice réussi)
+    is_correct = score >= 60
+    prog, _ = UserExerciseProgress.objects.get_or_create(
+        user=user,
+        exercise=exercise,
+        defaults={"lesson": lesson},
+    )
+    if prog.lesson_id != lesson.id:
+        prog.lesson = lesson
+    prog.mark_attempt(selected="EO", correct=is_correct)
+    prog.save()
+
+    total = lesson.exercises.filter(is_active=True).count()
+    completed = UserExerciseProgress.objects.filter(
+        user=user, lesson=lesson, is_completed=True
+    ).count()
+    percent = int(round((completed / total) * 100)) if total else 0
+    lesson_done = total > 0 and completed >= total
+
+    ulp, _ = UserLessonProgress.objects.get_or_create(
+        user=user, lesson=lesson,
+        defaults={"percent": 0, "is_completed": False, "completed_exercises": 0, "total_exercises": total},
+    )
+    ulp.total_exercises = total
+    ulp.completed_exercises = completed
+    ulp.percent = percent
+    ulp.is_completed = lesson_done
+    ulp.save()
+
+    return JsonResponse({
+        "ok": True,
+        "score": score,
+        "transcript": transcript,
+        "feedback": result.get("feedback", ""),
+        "points_covered": result.get("points_covered", []),
+        "suggestions": result.get("suggestions", []),
+        "criteria": result.get("criteria", {}),
+        "is_correct": is_correct,
+        "completed_exercises": completed,
+        "total_exercises": total,
+        "percent": percent,
+        "is_completed": lesson_done,
+    })
+
+
+# =========================================================
+# ✍️ API SOUMISSION EE
+# =========================================================
+@login_required
+@require_POST
+def submit_ee(request):
+    """
+    Reçoit: JSON avec exercise_id + text
+    Évalue (GPT) → sauvegarde EESubmission → met à jour progression.
+    """
+    from ai_engine.services.eval_service import evaluate_ee
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"ok": False, "error": "invalid_json"}, status=400)
+
+    exercise_id = payload.get("exercise_id")
+    text = (payload.get("text") or "").strip()
+
+    if not exercise_id:
+        return JsonResponse({"ok": False, "error": "missing_exercise_id"}, status=400)
+    if not text:
+        return JsonResponse({"ok": False, "error": "empty_text"}, status=400)
+
+    exercise = CourseExercise.objects.select_related("lesson").filter(id=exercise_id).first()
+    if not exercise:
+        return JsonResponse({"ok": False, "error": "exercise_not_found"}, status=404)
+
+    lesson = exercise.lesson
+    user = request.user
+
+    word_count = len(text.split())
+
+    result = evaluate_ee(
+        text=text,
+        topic=exercise.question_text,
+        instructions=exercise.instruction,
+        level=lesson.level,
+    )
+
+    score = float(result.get("score", 0))
+
+    EESubmission.objects.create(
+        user=user,
+        exercise=exercise,
+        text=text,
+        word_count=word_count,
+        score=score,
+        feedback_json=result,
+    )
+
+    is_correct = score >= 60
+    prog, _ = UserExerciseProgress.objects.get_or_create(
+        user=user,
+        exercise=exercise,
+        defaults={"lesson": lesson},
+    )
+    if prog.lesson_id != lesson.id:
+        prog.lesson = lesson
+    prog.mark_attempt(selected="EE", correct=is_correct)
+    prog.save()
+
+    total = lesson.exercises.filter(is_active=True).count()
+    completed = UserExerciseProgress.objects.filter(
+        user=user, lesson=lesson, is_completed=True
+    ).count()
+    percent = int(round((completed / total) * 100)) if total else 0
+    lesson_done = total > 0 and completed >= total
+
+    ulp, _ = UserLessonProgress.objects.get_or_create(
+        user=user, lesson=lesson,
+        defaults={"percent": 0, "is_completed": False, "completed_exercises": 0, "total_exercises": total},
+    )
+    ulp.total_exercises = total
+    ulp.completed_exercises = completed
+    ulp.percent = percent
+    ulp.is_completed = lesson_done
+    ulp.save()
+
+    return JsonResponse({
+        "ok": True,
+        "score": score,
+        "feedback": result.get("feedback", ""),
+        "errors": result.get("errors", []),
+        "corrected_version": result.get("corrected_version", ""),
+        "criteria": result.get("criteria", {}),
+        "word_count": word_count,
+        "is_correct": is_correct,
+        "completed_exercises": completed,
+        "total_exercises": total,
+        "percent": percent,
+        "is_completed": lesson_done,
     })

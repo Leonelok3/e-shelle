@@ -489,3 +489,47 @@ class UserExerciseProgress(models.Model):
         if correct and not self.is_completed:
             self.is_completed = True
             self.completed_at = timezone.now()
+
+
+# =====================================================
+# 🎤 SOUMISSIONS EO / EE
+# =====================================================
+
+class EOSubmission(models.Model):
+    """
+    Enregistrement audio soumis par un étudiant pour un exercice EO.
+    L'IA transcrit (Whisper) puis évalue la prise de parole.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="eo_submissions")
+    exercise = models.ForeignKey("preparation_tests.CourseExercise", on_delete=models.CASCADE, related_name="eo_submissions")
+    audio_file = models.FileField(upload_to="eo_submissions/", blank=True)
+    transcript = models.TextField(blank=True)
+    score = models.FloatField(null=True, blank=True)  # 0–100
+    feedback_json = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"EO #{self.pk} — {self.user} — {self.score}/100"
+
+
+class EESubmission(models.Model):
+    """
+    Texte rédigé par un étudiant pour un exercice EE.
+    L'IA corrige la production écrite et la note.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ee_submissions")
+    exercise = models.ForeignKey("preparation_tests.CourseExercise", on_delete=models.CASCADE, related_name="ee_submissions")
+    text = models.TextField()
+    word_count = models.PositiveIntegerField(default=0)
+    score = models.FloatField(null=True, blank=True)  # 0–100
+    feedback_json = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"EE #{self.pk} — {self.user} — {self.score}/100"
