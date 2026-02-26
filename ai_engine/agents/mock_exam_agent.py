@@ -44,18 +44,48 @@ def _extract_json(raw: str) -> str:
     return text[start:end + 1].strip()
 
 
+def _normalize_choices(raw_choices) -> list:
+    """Normalise les choices en liste de dicts {text, is_correct}."""
+    if isinstance(raw_choices, dict):
+        # Format {"A": "...", "B": "...", "correct": "B"}
+        result = []
+        correct_key = None
+        items = {}
+        for k, v in raw_choices.items():
+            if k.lower() in ("correct", "correct_answer", "answer"):
+                correct_key = str(v).upper().strip()
+            elif k.upper() in ("A", "B", "C", "D"):
+                items[k.upper()] = str(v)
+        for key in ("A", "B", "C", "D"):
+            if key in items:
+                result.append({"text": items[key], "is_correct": key == correct_key})
+        return result
+
+    if isinstance(raw_choices, list):
+        # Déjà une liste de dicts {text, is_correct}
+        if raw_choices and isinstance(raw_choices[0], dict):
+            return raw_choices
+        # Liste de strings → pas de is_correct, on met False partout (LLM oubli)
+        return [{"text": str(c), "is_correct": False} for c in raw_choices]
+
+    return []
+
+
 def _validate_questions(questions: list, section: str) -> list:
     validated = []
     for i, q in enumerate(questions):
         if not isinstance(q, dict):
             continue
-        stem = q.get("stem", "").strip()
+        # Accepte "stem", "question", "text" comme libellé de question
+        stem = (
+            q.get("stem") or q.get("question") or q.get("text") or ""
+        ).strip()
         if not stem:
             continue
-        choices = q.get("choices", [])
-        if not isinstance(choices, list) or len(choices) < 2:
+        choices = _normalize_choices(q.get("choices", []))
+        if len(choices) < 2:
             continue
-        difficulty = q.get("difficulty", "medium").lower()
+        difficulty = str(q.get("difficulty", "medium")).lower()
         if difficulty not in ("easy", "medium", "hard"):
             difficulty = "medium"
         validated.append({
@@ -63,7 +93,7 @@ def _validate_questions(questions: list, section: str) -> list:
             "difficulty": difficulty,
             "passage": q.get("passage", ""),
             "choices": choices,
-            "explanation": q.get("explanation", ""),
+            "explanation": q.get("explanation", q.get("explanation_text", "")),
         })
     return validated
 
