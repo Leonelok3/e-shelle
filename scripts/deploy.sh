@@ -38,7 +38,7 @@ $MANAGE migrate --no-input
 # 4. Collecter les fichiers statiques
 echo ""
 echo "[4/5] collectstatic..."
-$MANAGE collectstatic --no-input --clear --quiet
+$MANAGE collectstatic --no-input --clear -v 0
 
 # 5. Redémarrer gunicorn
 echo ""
