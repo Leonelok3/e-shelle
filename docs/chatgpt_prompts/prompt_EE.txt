@@ -1,0 +1,79 @@
+========================================================
+PROMPT CHATGPT — GÉNÉRATION LEÇONS EE (Expression Écrite)
+========================================================
+
+Colle ce texte directement dans ChatGPT.
+Change uniquement le NIVEAU et le NOMBRE de leçons.
+
+--------------------------------------------------------
+NIVEAU : A1  (changer : A1 / A2 / B1 / B2 / C1 / C2)
+NOMBRE : 50  (ou moins pour tester)
+--------------------------------------------------------
+
+PROMPT À COLLER DANS CHATGPT :
+────────────────────────────────────────────────────────
+
+Tu es un expert en didactique du français langue étrangère, spécialisé dans la préparation aux examens officiels (TEF Canada, TCF, DELF/DALF).
+
+Génère exactement 50 sujets d'expression écrite de niveau A1 pour des candidats à l'immigration au Canada.
+
+Chaque sujet doit :
+- Être réaliste et ancré dans la vie quotidienne au Canada / en contexte d'immigration
+- Être adapté au niveau A1 (rédaction simple : courriel, message, carte, formulaire)
+- Avoir un minimum de mots adapté au niveau (A1 : 40-60 mots)
+- Fournir une réponse modèle courte mais correcte
+
+Retourne UNIQUEMENT un JSON valide, sans texte en dehors du JSON.
+
+Format exact :
+{
+  "skill": "ee",
+  "exam_id": 32,
+  "level": "A1",
+  "language": "fr",
+  "lessons": [
+    {
+      "topic": "Écrivez un message pour vous présenter à votre nouveau voisin",
+      "instructions": "Rédigez un court message (40 à 60 mots). Présentez-vous, dites d'où vous venez et proposez de vous retrouver pour faire connaissance.",
+      "min_words": 40,
+      "sample_answer": "Bonjour,\n\nJe m'appelle Maria. Je suis votre nouvelle voisine au troisième étage. Je viens du Brésil. Je suis arrivée à Montréal il y a deux semaines.\n\nJe serais ravie de faire votre connaissance. Êtes-vous disponible pour un café ce weekend ?\n\nCordialement,\nMaria"
+    },
+    {
+      "topic": "Remplissez un formulaire d'inscription à une école de langue",
+      "instructions": "Rédigez les informations demandées dans ce formulaire : nom, prénom, pays d'origine, niveau de français actuel, objectif d'apprentissage (40-60 mots).",
+      "min_words": 40,
+      "sample_answer": "Nom : Dupont\nPrénom : Jean\nPays d'origine : Haïti\nNiveau actuel : débutant (A1)\nObjectif : Je veux apprendre le français pour trouver un emploi au Québec. Je voudrais atteindre le niveau B2 dans un an pour passer le TEF Canada."
+    }
+  ]
+}
+
+Génère exactement 50 sujets variés de niveau A1. Assure-toi que :
+1. Chaque "topic" est une consigne claire (max 15 mots)
+2. Chaque "instructions" précise le format, la longueur et le contenu attendu
+3. "min_words" est entre 40 et 60 pour A1
+4. "sample_answer" est une réponse modèle correcte et naturelle
+5. Les types d'écrits varient : message, courriel, formulaire, note, carte, SMS, annonce
+
+────────────────────────────────────────────────────────
+
+EXAM_IDs PAR NIVEAU (à changer dans le JSON) :
+  A1 → exam_id: 32
+  A2 → exam_id: 33
+  B1 → exam_id: 34
+  B2 → exam_id: 35
+  C1 → exam_id: 36
+  C2 → exam_id: 37
+
+NIVEAUX, min_words ET TYPES DE TEXTES :
+  A1 → min_words: 40-60   → message, SMS, formulaire simple, carte
+  A2 → min_words: 60-80   → courriel simple, description, annonce
+  B1 → min_words: 80-120  → lettre formelle, article court, compte-rendu
+  B2 → min_words: 150-200 → essai, lettre argumentée, rapport
+  C1 → min_words: 200-250 → article, synthèse, lettre officielle complexe
+  C2 → min_words: 250-300 → essai académique, analyse critique, rapport détaillé
+
+INSTRUCTIONS POUR SAUVEGARDER :
+1. Copie le JSON complet retourné par ChatGPT
+2. Colle-le dans un fichier : ee_A1.json (ou ee_A2.json, etc.)
+3. Envoie-le sur le VPS
+4. Lance : python manage.py import_json_lessons --file /chemin/ee_A1.json
