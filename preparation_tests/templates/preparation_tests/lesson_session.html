@@ -72,6 +72,10 @@ audio, questions corrigées et entraînement progressif CECR avec Immigration97.
       {% elif section == "ee" %}
         Entraînement à la <strong>production écrite</strong> avec
         <strong>correction IA</strong>, analyse des erreurs et version améliorée.
+      {% elif section == "ce" %}
+        Entraînement à la <strong>lecture et compréhension de textes</strong>
+        niveau {{ lesson.level }}. Lis attentivement le document ci-dessous
+        et réponds aux <strong>questions de compréhension</strong> avec correction immédiate.
       {% else %}
         Entraînement guidé avec <strong>audio</strong>,
         <strong>questions interactives</strong> et
@@ -93,6 +97,11 @@ audio, questions corrigées et entraînement progressif CECR avec Immigration97.
     <div class="pt-grid-layout">
 
       <div class="pt-main">
+        {% if section == "ce" %}
+          <p class="pt-card-meta" style="margin-bottom:8px;">
+            📄 <strong>Texte de compréhension</strong> — lisez attentivement avant de répondre aux questions.
+          </p>
+        {% endif %}
         <article class="pt-card pt-card--lesson-content">
           {{ lesson.content_html|safe }}
         </article>
@@ -100,12 +109,27 @@ audio, questions corrigées et entraînement progressif CECR avec Immigration97.
 
       <aside class="pt-side">
         <div class="pt-card pt-card--side">
-          <h3>🎯 Objectif pédagogique</h3>
-          <ul class="pt-side-list">
-            <li>Comprendre les consignes</li>
-            <li>Identifier les informations clés</li>
-            <li>Répondre efficacement sous contrainte de temps</li>
-          </ul>
+          {% if section == "ce" %}
+            <h3>📖 Conseils CE</h3>
+            <ul class="pt-side-list">
+              <li>Lis le texte une 1ère fois rapidement pour l'idée générale</li>
+              <li>Lis les questions avant de relire en détail</li>
+              <li>Repère les mots-clés dans le texte</li>
+              <li>Élimine les réponses clairement fausses</li>
+            </ul>
+            <p class="pt-small">
+              💡 Pour le TEF/TCF, tu as environ
+              <strong>1 min 30</strong> par question de CE.
+              Entraîne-toi à lire vite et efficacement.
+            </p>
+          {% else %}
+            <h3>🎯 Objectif pédagogique</h3>
+            <ul class="pt-side-list">
+              <li>Comprendre les consignes</li>
+              <li>Identifier les informations clés</li>
+              <li>Répondre efficacement sous contrainte de temps</li>
+            </ul>
+          {% endif %}
         </div>
       </aside>
 
@@ -119,6 +143,7 @@ audio, questions corrigées et entraînement progressif CECR avec Immigration97.
     <h2 class="pt-section-title text-center">
       {% if section == "eo" %}🎤 Sujets d’expression orale
       {% elif section == "ee" %}✍️ Sujets d’expression écrite
+      {% elif section == "ce" %}📖 Questions de compréhension
       {% else %}🎧 Exercices d’application
       {% endif %}
     </h2>
@@ -221,7 +246,70 @@ audio, questions corrigées et entraînement progressif CECR avec Immigration97.
       </article>
 
       {# ============================================================ #}
-      {# 🎧 CO / CE — QCM : audio + questions à choix multiple        #}
+      {# 📖 CE — Compréhension Écrite : QCM sans audio               #}
+      {# ============================================================ #}
+      {% elif section == "ce" %}
+
+      <article class="pt-card pt-card--exercise pt-ce-card"
+               data-exercise-id="{{ exercise.id }}">
+
+        <header class="pt-exercise-header">
+          <h3>Question {{ forloop.counter }}</h3>
+          {% if exercise.instruction %}
+            <p class="pt-exercise-instruction">{{ exercise.instruction }}</p>
+          {% endif %}
+        </header>
+
+        <p class="pt-exercise-question">{{ exercise.question_text }}</p>
+
+        <form
+          class="pt-exercise-form"
+          data-correct="{{ exercise.correct_option|upper }}"
+          data-exercise-id="{{ exercise.id }}"
+          novalidate
+        >
+
+          {% if exercise.option_a %}
+          <label class="pt-option">
+            <input type="radio" name="q{{ exercise.id }}" value="A">
+            <span>A.</span> {{ exercise.option_a }}
+          </label>
+          {% endif %}
+
+          {% if exercise.option_b %}
+          <label class="pt-option">
+            <input type="radio" name="q{{ exercise.id }}" value="B">
+            <span>B.</span> {{ exercise.option_b }}
+          </label>
+          {% endif %}
+
+          {% if exercise.option_c %}
+          <label class="pt-option">
+            <input type="radio" name="q{{ exercise.id }}" value="C">
+            <span>C.</span> {{ exercise.option_c }}
+          </label>
+          {% endif %}
+
+          {% if exercise.option_d %}
+          <label class="pt-option">
+            <input type="radio" name="q{{ exercise.id }}" value="D">
+            <span>D.</span> {{ exercise.option_d }}
+          </label>
+          {% endif %}
+
+          <div class="pt-cta-group">
+            <button type="button" class="pt-btn-primary pt-check-answer">
+              Vérifier la réponse
+            </button>
+          </div>
+
+          <p class="pt-feedback" hidden></p>
+        </form>
+
+      </article>
+
+      {# ============================================================ #}
+      {# 🎧 CO — Compréhension Orale : audio + QCM                   #}
       {# ============================================================ #}
       {% else %}
 
