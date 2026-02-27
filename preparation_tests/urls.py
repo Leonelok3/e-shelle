@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, views_level_mock
 
 app_name = "preparation_tests"
 
@@ -164,6 +164,20 @@ urlpatterns = [
     path(
         "exercise-progress/",
         views.exercise_progress,
+    ),
+
+    # =====================================================
+    # 🧪 EXAMENS BLANCS PAR NIVEAU CECR
+    # =====================================================
+    path(
+        "fr/examen-blanc/",
+        views_level_mock.level_mock_hub,
+        name="level_mock_hub",
+    ),
+    path(
+        "fr/examen-blanc/<str:level>/",
+        views_level_mock.level_mock_exam,
+        name="level_mock_exam",
     ),
 
     # =====================================================

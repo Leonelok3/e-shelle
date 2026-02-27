@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{% block title %}
+Examen blanc par niveau CECR – A1 à C2 | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Passe un examen blanc calibré à ton niveau CECR (A1 à C2).
+Compréhension orale, compréhension écrite, expression orale et écrite.
+Résultats instantanés avec Immigration97.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260227">
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="pt-hero">
+  <div class="container pt-fade-up">
+
+    <span class="pt-badge pt-badge--exam">
+      🧪 Examen blanc par niveau
+    </span>
+
+    <h1 class="pt-title">
+      Teste ton niveau<br>
+      <span class="pt-gradient-primary">A1</span> →
+      <span class="pt-gradient-primary">C2</span>
+    </h1>
+
+    <p class="pt-lead">
+      Choisis ton niveau CECR et passe un <strong>examen blanc complet</strong> :
+      compréhension orale, compréhension écrite, expression orale et écrite.
+      CO + CE sont <strong>auto-corrigés</strong> instantanément.
+    </p>
+
+  </div>
+</section>
+
+<!-- NIVEAUX -->
+<section class="pt-section">
+  <div class="container">
+
+    <header class="pt-section-header">
+      <h2>📋 Choisir un niveau</h2>
+      <p>
+        Chaque examen blanc est composé de leçons aléatoires adaptées à ton niveau.
+        <strong>CO + CE</strong> sont notés automatiquement —
+        <strong>EO + EE</strong> sont des sujets de pratique libre.
+      </p>
+    </header>
+
+    <div class="pt-level-grid">
+
+      {% for l in levels %}
+      <article class="pt-card pt-card--level">
+
+        <span class="pt-level-badge pt-level-{{ l.level|lower }}">
+          {{ l.level }}
+        </span>
+
+        <h3 class="pt-level-title">Niveau {{ l.level }}</h3>
+
+        <div class="pt-skill-counts">
+          <span class="pt-skill-tag {% if l.co_count == 0 %}is-empty{% endif %}">
+            🎧 CO : {{ l.co_count }} leçon{{ l.co_count|pluralize }}
+          </span>
+          <span class="pt-skill-tag {% if l.ce_count == 0 %}is-empty{% endif %}">
+            📖 CE : {{ l.ce_count }} leçon{{ l.ce_count|pluralize }}
+          </span>
+          <span class="pt-skill-tag {% if l.eo_count == 0 %}is-empty{% endif %}">
+            🎤 EO : {{ l.eo_count }} leçon{{ l.eo_count|pluralize }}
+          </span>
+          <span class="pt-skill-tag {% if l.ee_count == 0 %}is-empty{% endif %}">
+            ✍️ EE : {{ l.ee_count }} leçon{{ l.ee_count|pluralize }}
+          </span>
+        </div>
+
+        <div class="pt-cta-group">
+          {% if l.has_mcq %}
+          <a
+            href="{% url 'preparation_tests:level_mock_exam' l.level %}"
+            class="pt-btn-primary"
+          >
+            ▶ Commencer le niveau {{ l.level }}
+          </a>
+          {% else %}
+          <span class="pt-btn-ghost" style="cursor:default; opacity:.6;">
+            Contenu bientôt disponible
+          </span>
+          {% endif %}
+        </div>
+
+      </article>
+      {% endfor %}
+
+    </div>
+
+  </div>
+</section>
+
+<!-- INFO BOX -->
+<section class="pt-section">
+  <div class="container">
+    <article class="pt-card" style="max-width:700px; margin:0 auto; text-align:center;">
+      <h3>ℹ️ Comment ça marche ?</h3>
+      <div class="pt-info-grid" style="margin-top:1rem;">
+        <div>
+          <span class="pt-info-label">🎧 CO</span>
+          <span class="pt-info-value">Questions QCM — score automatique</span>
+        </div>
+        <div>
+          <span class="pt-info-label">📖 CE</span>
+          <span class="pt-info-value">Questions QCM — score automatique</span>
+        </div>
+        <div>
+          <span class="pt-info-label">🎤 EO</span>
+          <span class="pt-info-value">Sujet de prise de parole — pratique libre</span>
+        </div>
+        <div>
+          <span class="pt-info-label">✍️ EE</span>
+          <span class="pt-info-value">Sujet de rédaction — pratique libre</span>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+{% endblock %}

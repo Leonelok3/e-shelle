@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{% block title %}
+Examen blanc Niveau {{ level }} | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Examen blanc niveau {{ level }} : compréhension orale, compréhension écrite,
+expression orale et écrite. Résultats instantanés avec Immigration97.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260227">
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="pt-hero pt-hero--exam">
+  <div class="container pt-fade-up">
+
+    <span class="pt-badge pt-badge--exam">
+      🧪 Examen blanc
+    </span>
+
+    <h1 class="pt-title">
+      Niveau <span class="pt-gradient-primary">{{ level }}</span>
+    </h1>
+
+    <p class="pt-lead">
+      Réponds aux questions CO et CE, puis découvre les sujets EO et EE
+      pour compléter ta pratique. Clique sur <strong>Terminer</strong>
+      quand tu as répondu à tout.
+    </p>
+
+  </div>
+</section>
+
+<!-- FORMULAIRE EXAMEN -->
+<section class="pt-section pt-section--exam">
+  <div class="container">
+
+    <form method="post" id="level-mock-form">
+      {% csrf_token %}
+
+      {# ── IDs cachés pour reconstruction POST ──────────────── #}
+      {% for ex in co_exercises %}
+        <input type="hidden" name="co_exercise_ids" value="{{ ex.id }}">
+      {% endfor %}
+      {% for ex in ce_exercises %}
+        <input type="hidden" name="ce_exercise_ids" value="{{ ex.id }}">
+      {% endfor %}
+      {% for item in eo_items %}
+        <input type="hidden" name="eo_lesson_ids" value="{{ item.lesson.id }}">
+        <input type="hidden" name="eo_exercise_ids" value="{{ item.exercise.id }}">
+      {% endfor %}
+      {% if ee_lesson %}
+        <input type="hidden" name="ee_lesson_id" value="{{ ee_lesson.id }}">
+      {% endif %}
+      {% if ee_exercise %}
+        <input type="hidden" name="ee_exercise_id" value="{{ ee_exercise.id }}">
+      {% endif %}
+
+      {# ════════════════════════════════════════════════════════
+         SECTION CO — Compréhension Orale
+      ════════════════════════════════════════════════════════ #}
+      <article class="pt-card pt-card--section">
+        <header class="pt-section-header" style="margin-bottom:1.5rem;">
+          <h2>🎧 Compréhension Orale</h2>
+          {% if co_lesson %}
+            <p class="pt-card-meta">{{ co_lesson.title }}</p>
+          {% else %}
+            <p class="pt-empty">Aucune leçon CO disponible pour ce niveau.</p>
+          {% endif %}
+        </header>
+
+        {% if co_exercises %}
+          {% for ex in co_exercises %}
+          <div class="pt-card pt-card--question" style="margin-bottom:1rem;">
+
+            <header class="pt-question-header">
+              <span class="pt-question-index">CO — Question {{ forloop.counter }}</span>
+              <span class="pt-badge" style="font-size:.75rem;">🎧 Audio</span>
+            </header>
+
+            {% if ex.audio_url %}
+            <div class="pt-audio-wrap" style="margin:.75rem 0;">
+              <audio controls src="{{ ex.audio_url }}" preload="none"
+                     style="width:100%; border-radius:8px;">
+                Votre navigateur ne supporte pas l'audio.
+              </audio>
+            </div>
+            {% endif %}
+
+            <p class="pt-question-text">{{ ex.question_text }}</p>
+
+            <div class="pt-choices">
+              {% if ex.option_a %}
+              <label class="pt-choice">
+                <input type="radio" name="co_{{ ex.id }}" value="A" required>
+                <span>{{ ex.option_a }}</span>
+              </label>
+              {% endif %}
+              {% if ex.option_b %}
+              <label class="pt-choice">
+                <input type="radio" name="co_{{ ex.id }}" value="B">
+                <span>{{ ex.option_b }}</span>
+              </label>
+              {% endif %}
+              {% if ex.option_c %}
+              <label class="pt-choice">
+                <input type="radio" name="co_{{ ex.id }}" value="C">
+                <span>{{ ex.option_c }}</span>
+              </label>
+              {% endif %}
+              {% if ex.option_d %}
+              <label class="pt-choice">
+                <input type="radio" name="co_{{ ex.id }}" value="D">
+                <span>{{ ex.option_d }}</span>
+              </label>
+              {% endif %}
+            </div>
+
+          </div>
+          {% endfor %}
+        {% elif co_lesson %}
+          <p class="pt-empty">Pas d'exercices disponibles pour cette leçon.</p>
+        {% endif %}
+      </article>
+
+      {# ════════════════════════════════════════════════════════
+         SECTION CE — Compréhension Écrite
+      ════════════════════════════════════════════════════════ #}
+      <article class="pt-card pt-card--section">
+        <header class="pt-section-header" style="margin-bottom:1.5rem;">
+          <h2>📖 Compréhension Écrite</h2>
+          {% if ce_lesson %}
+            <p class="pt-card-meta">{{ ce_lesson.title }}</p>
+          {% else %}
+            <p class="pt-empty">Aucune leçon CE disponible pour ce niveau.</p>
+          {% endif %}
+        </header>
+
+        {% if ce_lesson and ce_lesson.content_html %}
+        <div class="pt-passage" style="
+          background:var(--pt-bg-card,#f8f9fa);
+          border-left:4px solid var(--pt-green-main,#2ecc71);
+          padding:1rem 1.25rem;
+          border-radius:6px;
+          margin-bottom:1.5rem;
+          font-size:.95rem;
+          line-height:1.7;
+        ">
+          {{ ce_lesson.content_html|safe }}
+        </div>
+        {% endif %}
+
+        {% if ce_exercises %}
+          {% for ex in ce_exercises %}
+          <div class="pt-card pt-card--question" style="margin-bottom:1rem;">
+
+            <header class="pt-question-header">
+              <span class="pt-question-index">CE — Question {{ forloop.counter }}</span>
+            </header>
+
+            <p class="pt-question-text">{{ ex.question_text }}</p>
+
+            <div class="pt-choices">
+              {% if ex.option_a %}
+              <label class="pt-choice">
+                <input type="radio" name="ce_{{ ex.id }}" value="A" required>
+                <span>{{ ex.option_a }}</span>
+              </label>
+              {% endif %}
+              {% if ex.option_b %}
+              <label class="pt-choice">
+                <input type="radio" name="ce_{{ ex.id }}" value="B">
+                <span>{{ ex.option_b }}</span>
+              </label>
+              {% endif %}
+              {% if ex.option_c %}
+              <label class="pt-choice">
+                <input type="radio" name="ce_{{ ex.id }}" value="C">
+                <span>{{ ex.option_c }}</span>
+              </label>
+              {% endif %}
+              {% if ex.option_d %}
+              <label class="pt-choice">
+                <input type="radio" name="ce_{{ ex.id }}" value="D">
+                <span>{{ ex.option_d }}</span>
+              </label>
+              {% endif %}
+            </div>
+
+          </div>
+          {% endfor %}
+        {% elif ce_lesson %}
+          <p class="pt-empty">Pas d'exercices disponibles pour cette leçon.</p>
+        {% endif %}
+      </article>
+
+      {# ════════════════════════════════════════════════════════
+         SECTION EO — Expression Orale (pratique libre)
+      ════════════════════════════════════════════════════════ #}
+      <article class="pt-card pt-card--section">
+        <header class="pt-section-header" style="margin-bottom:1.5rem;">
+          <h2>🎤 Expression Orale <span style="font-size:.8em; font-weight:400; opacity:.7;">(pratique libre)</span></h2>
+          <p class="pt-card-meta">
+            Prépare ta réponse orale sur ces sujets. Parle 1 à 3 minutes.
+            Les résultats EO ne sont pas notés automatiquement dans cette version.
+          </p>
+        </header>
+
+        {% if eo_items %}
+          {% for item in eo_items %}
+          <div class="pt-card pt-card--eo-topic" style="
+            border-left: 4px solid #a855f7;
+            margin-bottom:1rem;
+            padding:1rem 1.25rem;
+          ">
+            <p class="pt-question-index" style="margin-bottom:.5rem;">
+              🎤 Sujet {{ forloop.counter }}
+            </p>
+            <p class="pt-question-text" style="font-weight:600;">
+              {{ item.exercise.title }}
+            </p>
+            {% if item.exercise.instruction %}
+            <p style="font-size:.9rem; opacity:.8; margin-top:.4rem;">
+              {{ item.exercise.instruction }}
+            </p>
+            {% endif %}
+            {% if item.exercise.question_text %}
+            <p style="font-size:.9rem; margin-top:.5rem; color:var(--pt-green-main,#2ecc71);">
+              📝 {{ item.exercise.question_text }}
+            </p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="pt-empty">Aucun sujet EO disponible pour ce niveau.</p>
+        {% endif %}
+      </article>
+
+      {# ════════════════════════════════════════════════════════
+         SECTION EE — Expression Écrite (pratique libre)
+      ════════════════════════════════════════════════════════ #}
+      <article class="pt-card pt-card--section">
+        <header class="pt-section-header" style="margin-bottom:1.5rem;">
+          <h2>✍️ Expression Écrite <span style="font-size:.8em; font-weight:400; opacity:.7;">(pratique libre)</span></h2>
+          <p class="pt-card-meta">
+            Rédige ta réponse sur papier ou dans un éditeur.
+            Les résultats EE ne sont pas notés automatiquement dans cette version.
+          </p>
+        </header>
+
+        {% if ee_exercise %}
+        <div class="pt-card pt-card--ee-prompt" style="
+          border-left: 4px solid #f59e0b;
+          margin-bottom:1rem;
+          padding:1rem 1.25rem;
+        ">
+          <p class="pt-question-index" style="margin-bottom:.5rem;">✍️ Sujet de rédaction</p>
+          <p class="pt-question-text" style="font-weight:600;">{{ ee_exercise.title }}</p>
+          {% if ee_exercise.instruction %}
+          <p style="font-size:.9rem; opacity:.8; margin-top:.4rem;">
+            {{ ee_exercise.instruction }}
+          </p>
+          {% endif %}
+          {% if ee_exercise.question_text %}
+          <p style="font-size:.9rem; margin-top:.5rem; color:#f59e0b;">
+            📝 {{ ee_exercise.question_text }}
+          </p>
+          {% endif %}
+        </div>
+        {% else %}
+          <p class="pt-empty">Aucun sujet EE disponible pour ce niveau.</p>
+        {% endif %}
+      </article>
+
+      {# ── CTA ─────────────────────────────────────────────── #}
+      <div class="pt-cta-group center" style="margin-top:2rem;">
+        <button type="submit" class="pt-btn-primary pt-btn-lg">
+          ✅ Terminer et voir mes résultats
+        </button>
+        <a
+          href="{% url 'preparation_tests:level_mock_hub' %}"
+          class="pt-btn-ghost"
+        >
+          ← Changer de niveau
+        </a>
+      </div>
+
+    </form>
+
+  </div>
+</section>
+
+{% endblock %}

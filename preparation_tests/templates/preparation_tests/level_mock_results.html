@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{% block title %}
+Résultats Examen blanc Niveau {{ level }} | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Résultats de ton examen blanc niveau {{ level }} :
+score CO, CE et estimation CECR personnalisée par Immigration97.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260227">
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="pt-hero pt-hero--result">
+  <div class="container pt-fade-up">
+
+    <span class="pt-badge pt-badge--result">
+      🧪 Résultats — Examen blanc
+    </span>
+
+    <h1 class="pt-title">
+      Niveau <span class="pt-gradient-primary">{{ level }}</span>
+    </h1>
+
+    <p class="pt-lead">
+      {% if score_global is not None %}
+        Score global CO + CE :
+        <strong>{{ score_global }}%</strong> —
+        Niveau CECR estimé : <strong>{{ cefr_estimate }}</strong>
+      {% else %}
+        Examen enregistré — CO et CE non disponibles pour ce niveau.
+      {% endif %}
+    </p>
+
+  </div>
+</section>
+
+<!-- SCORE GLOBAL -->
+{% if score_global is not None %}
+<section class="pt-section">
+  <div class="container">
+    <article class="pt-card pt-card--score" style="text-align:center;">
+
+      <div class="pt-score-circle">
+        <span>{{ score_global }}%</span>
+      </div>
+
+      <div class="pt-score-summary">
+        <p class="pt-score-eval">
+          {% if score_global >= 80 %}
+            🚀 Excellent niveau — prêt pour l'examen officiel !
+          {% elif score_global >= 60 %}
+            💪 Bon niveau — quelques points à consolider
+          {% elif score_global >= 40 %}
+            📚 Niveau intermédiaire — poursuis l'entraînement
+          {% else %}
+            🧱 Bases à renforcer — retour aux fondamentaux conseillé
+          {% endif %}
+        </p>
+        <div class="pt-pill-row">
+          <span class="pt-pill">Niveau {{ level }}</span>
+          <span class="pt-pill">CECR estimé : {{ cefr_estimate }}</span>
+          <span class="pt-pill">Examen blanc</span>
+        </div>
+      </div>
+
+    </article>
+  </div>
+</section>
+{% endif %}
+
+<!-- DÉTAIL CO + CE -->
+<section class="pt-section">
+  <div class="container">
+    <div class="pt-info-grid" style="grid-template-columns: 1fr 1fr; gap:1.5rem;">
+
+      {# ── Score CO ── #}
+      <article class="pt-card" style="text-align:center;">
+        <h3>🎧 Compréhension Orale</h3>
+        {% if score_co is not None %}
+          <div class="pt-score-circle" style="width:80px; height:80px; margin:1rem auto; font-size:1.1rem;">
+            <span>{{ score_co }}%</span>
+          </div>
+          <p class="pt-card-meta">
+            {{ co_correct }} / {{ co_total }} correcte{{ co_total|pluralize }}
+          </p>
+          <div class="pt-progress" style="margin:.75rem 0;">
+            <div class="pt-progress-bar">
+              <div class="pt-progress-fill" style="width:{{ score_co }}%;"></div>
+            </div>
+          </div>
+
+          {% if co_results %}
+          <details style="margin-top:1rem; text-align:left;">
+            <summary style="cursor:pointer; font-weight:600; font-size:.9rem;">
+              📋 Détail des réponses CO
+            </summary>
+            <div style="margin-top:.75rem;">
+              {% for r in co_results %}
+              <div style="
+                padding:.5rem .75rem;
+                border-radius:6px;
+                margin-bottom:.4rem;
+                background: {% if r.is_correct %}rgba(46,204,113,.1){% else %}rgba(231,76,60,.08){% endif %};
+                border-left: 3px solid {% if r.is_correct %}#2ecc71{% else %}#e74c3c{% endif %};
+                font-size:.85rem;
+              ">
+                <strong>Q{{ forloop.counter }}</strong> —
+                Tu as répondu : <strong>{{ r.submitted|default:"—" }}</strong>
+                {% if not r.is_correct %}
+                  | Correct : <strong>{{ r.exercise.correct_option }}</strong>
+                {% else %}
+                  ✅
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </details>
+          {% endif %}
+
+        {% else %}
+          <p class="pt-empty">Pas de CO disponible pour ce niveau.</p>
+        {% endif %}
+      </article>
+
+      {# ── Score CE ── #}
+      <article class="pt-card" style="text-align:center;">
+        <h3>📖 Compréhension Écrite</h3>
+        {% if score_ce is not None %}
+          <div class="pt-score-circle" style="width:80px; height:80px; margin:1rem auto; font-size:1.1rem;">
+            <span>{{ score_ce }}%</span>
+          </div>
+          <p class="pt-card-meta">
+            {{ ce_correct }} / {{ ce_total }} correcte{{ ce_total|pluralize }}
+          </p>
+          <div class="pt-progress" style="margin:.75rem 0;">
+            <div class="pt-progress-bar">
+              <div class="pt-progress-fill" style="width:{{ score_ce }}%;"></div>
+            </div>
+          </div>
+
+          {% if ce_results %}
+          <details style="margin-top:1rem; text-align:left;">
+            <summary style="cursor:pointer; font-weight:600; font-size:.9rem;">
+              📋 Détail des réponses CE
+            </summary>
+            <div style="margin-top:.75rem;">
+              {% for r in ce_results %}
+              <div style="
+                padding:.5rem .75rem;
+                border-radius:6px;
+                margin-bottom:.4rem;
+                background: {% if r.is_correct %}rgba(46,204,113,.1){% else %}rgba(231,76,60,.08){% endif %};
+                border-left: 3px solid {% if r.is_correct %}#2ecc71{% else %}#e74c3c{% endif %};
+                font-size:.85rem;
+              ">
+                <strong>Q{{ forloop.counter }}</strong> —
+                Tu as répondu : <strong>{{ r.submitted|default:"—" }}</strong>
+                {% if not r.is_correct %}
+                  | Correct : <strong>{{ r.exercise.correct_option }}</strong>
+                {% else %}
+                  ✅
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </details>
+          {% endif %}
+
+        {% else %}
+          <p class="pt-empty">Pas de CE disponible pour ce niveau.</p>
+        {% endif %}
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- EO + EE : récap des sujets -->
+<section class="pt-section">
+  <div class="container">
+
+    {% if eo_items %}
+    <article class="pt-card" style="margin-bottom:1.5rem;">
+      <h3>🎤 Expression Orale — Sujets pratiqués</h3>
+      {% for item in eo_items %}
+      <div style="
+        border-left:4px solid #a855f7;
+        padding:.75rem 1rem;
+        margin:.75rem 0;
+        border-radius:0 6px 6px 0;
+        background:rgba(168,85,247,.06);
+      ">
+        <strong>{{ item.exercise.title }}</strong>
+        {% if item.exercise.instruction %}
+          <p style="font-size:.85rem; opacity:.75; margin-top:.25rem;">{{ item.exercise.instruction }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <div class="pt-cta-group" style="margin-top:1rem;">
+        <a href="{% url 'preparation_tests:eo_by_level' level %}" class="pt-btn-secondary">
+          🎤 S'entraîner en EO {{ level }} →
+        </a>
+      </div>
+    </article>
+    {% endif %}
+
+    {% if ee_exercise %}
+    <article class="pt-card">
+      <h3>✍️ Expression Écrite — Sujet pratiqué</h3>
+      <div style="
+        border-left:4px solid #f59e0b;
+        padding:.75rem 1rem;
+        margin:.75rem 0;
+        border-radius:0 6px 6px 0;
+        background:rgba(245,158,11,.06);
+      ">
+        <strong>{{ ee_exercise.title }}</strong>
+        {% if ee_exercise.instruction %}
+          <p style="font-size:.85rem; opacity:.75; margin-top:.25rem;">{{ ee_exercise.instruction }}</p>
+        {% endif %}
+      </div>
+      <div class="pt-cta-group" style="margin-top:1rem;">
+        <a href="{% url 'preparation_tests:ee_by_level' level %}" class="pt-btn-secondary">
+          ✍️ S'entraîner en EE {{ level }} →
+        </a>
+      </div>
+    </article>
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- ACTIONS -->
+<section class="pt-section pt-section--cta">
+  <div class="container text-center">
+    <div class="pt-cta-group">
+
+      <a
+        href="{% url 'preparation_tests:level_mock_exam' level %}"
+        class="pt-btn-primary"
+      >
+        🔄 Recommencer le niveau {{ level }}
+      </a>
+
+      {% if next_level %}
+      <a
+        href="{% url 'preparation_tests:level_mock_exam' next_level %}"
+        class="pt-btn-secondary"
+      >
+        ⬆️ Passer au niveau {{ next_level }}
+      </a>
+      {% endif %}
+
+      <a
+        href="{% url 'preparation_tests:level_mock_hub' %}"
+        class="pt-btn-ghost"
+      >
+        📋 Tous les niveaux
+      </a>
+
+      <a
+        href="{% url 'preparation_tests:dashboard_global' %}"
+        class="pt-btn-ghost"
+      >
+        📊 Mon tableau de bord
+      </a>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}
