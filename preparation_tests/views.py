@@ -72,6 +72,22 @@ from core.constants import LEVEL_ORDER
 # =========================================================
 # 🔧 OUTILS INTERNES
 # =========================================================
+def _ulp_count(user, **filters) -> int:
+    """Compte les UserLessonProgress en ignorant les erreurs DB (ex: migration manquante)."""
+    try:
+        return UserLessonProgress.objects.filter(user=user, **filters).count()
+    except Exception:
+        return 0
+
+
+def _ulp_first(user, lesson):
+    """Retourne le UserLessonProgress ou None, sans planter si la table est absente."""
+    try:
+        return UserLessonProgress.objects.filter(user=user, lesson=lesson).first()
+    except Exception:
+        return None
+
+
 def _next_unanswered_question(attempt: Attempt):
     answered = set(attempt.answers.values_list("question_id", flat=True))
     return (
@@ -226,7 +242,7 @@ def lesson_session(request, exam_code, section, lesson_id):
     ).order_by("order")
 
     # Progression utilisateur sur cette leçon
-    ulp = UserLessonProgress.objects.filter(user=user, lesson=lesson).first()
+    ulp = _ulp_first(user, lesson)
     progress_completed = ulp.completed_exercises if ulp else 0
     progress_total = raw_exercises.count()
     progress_percent = ulp.percent if ulp else 0
@@ -757,9 +773,9 @@ def co_hub(request):
         total_lessons = CourseLesson.objects.filter(
             section="co", level=level, is_published=True
         ).count()
-        completed_lessons = UserLessonProgress.objects.filter(
-            user=user, lesson__section="co", lesson__level=level, is_completed=True
-        ).count()
+        completed_lessons = _ulp_count(
+            user, lesson__section="co", lesson__level=level, is_completed=True
+        )
 
         progress_pct = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
 
@@ -815,9 +831,9 @@ def ce_hub(request):
         total_lessons = CourseLesson.objects.filter(
             section="ce", level=level, is_published=True
         ).count()
-        completed_lessons = UserLessonProgress.objects.filter(
-            user=user, lesson__section="ce", lesson__level=level, is_completed=True
-        ).count()
+        completed_lessons = _ulp_count(
+            user, lesson__section="ce", lesson__level=level, is_completed=True
+        )
 
         progress_pct = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
 
@@ -956,9 +972,9 @@ def eo_hub(request):
         total_lessons = CourseLesson.objects.filter(
             section="eo", level=level, is_published=True
         ).count()
-        completed_lessons = UserLessonProgress.objects.filter(
-            user=user, lesson__section="eo", lesson__level=level, is_completed=True
-        ).count()
+        completed_lessons = _ulp_count(
+            user, lesson__section="eo", lesson__level=level, is_completed=True
+        )
         progress_pct = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
         levels_data.append({
             "level": level,
@@ -1012,9 +1028,9 @@ def ee_hub(request):
         total_lessons = CourseLesson.objects.filter(
             section="ee", level=level, is_published=True
         ).count()
-        completed_lessons = UserLessonProgress.objects.filter(
-            user=user, lesson__section="ee", lesson__level=level, is_completed=True
-        ).count()
+        completed_lessons = _ulp_count(
+            user, lesson__section="ee", lesson__level=level, is_completed=True
+        )
         progress_pct = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
         levels_data.append({
             "level": level,
