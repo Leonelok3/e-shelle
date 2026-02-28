@@ -14,13 +14,15 @@ Aucun nouveau modèle, aucune migration.
 """
 from __future__ import annotations
 
+import json
 import random
 
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import render
+from django.utils.timezone import localtime
 
-from .models import CourseLesson, CourseExercise
+from .models import CourseLesson, CourseExercise, MockExamResult
 
 # Niveaux CECR valides
 VALID_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
@@ -189,6 +191,21 @@ def level_mock_exam(request, level: str):
         cefr_estimate = _estimate_cefr(score_global) if score_global is not None else "—"
         next_level = NEXT_LEVEL.get(level)
 
+        # ── Sauvegarde du résultat ────────────────────────────
+        if request.user.is_authenticated:
+            MockExamResult.objects.create(
+                user=request.user,
+                level=level,
+                score_co=score_co,
+                score_ce=score_ce,
+                score_global=score_global,
+                co_correct=co_correct,
+                co_total=len(co_exercises),
+                ce_correct=ce_correct,
+                ce_total=len(ce_exercises),
+                cefr_estimate=cefr_estimate,
+            )
+
         # EO/EE depuis les IDs cachés
         eo_lesson_ids = request.POST.getlist("eo_lesson_ids")
         eo_exercise_ids = request.POST.getlist("eo_exercise_ids")
@@ -240,4 +257,35 @@ def level_mock_exam(request, level: str):
     return render(request, "preparation_tests/level_mock_exam.html", {
         "level": level,
         **data,
+    })
+
+
+# ============================================================
+# VUE 3 — HISTORIQUE + COURBE DE PROGRESSION
+# ============================================================
+@login_required
+def mock_exam_history(request):
+    """
+    Historique complet des examens blancs de l'utilisateur
+    + données Chart.js pour courbe multi-niveaux.
+    """
+    results = MockExamResult.objects.filter(user=request.user)
+
+    # Données Chart.js — une série par niveau, ordonnée par date
+    chart_datasets = {}
+    for lv in VALID_LEVELS:
+        qs = results.filter(level=lv, score_global__isnull=False).order_by("taken_at")
+        if qs.exists():
+            chart_datasets[lv] = [
+                {
+                    "x": localtime(r.taken_at).strftime("%d/%m"),
+                    "y": r.score_global,
+                }
+                for r in qs
+            ]
+
+    return render(request, "preparation_tests/mock_exam_history.html", {
+        "results": results,
+        "chart_datasets_json": json.dumps(chart_datasets),
+        "total_count": results.count(),
     })

@@ -175,6 +175,11 @@ urlpatterns = [
         name="level_mock_hub",
     ),
     path(
+        "fr/examen-blanc/historique/",
+        views_level_mock.mock_exam_history,
+        name="mock_exam_history",
+    ),
+    path(
         "fr/examen-blanc/<str:level>/",
         views_level_mock.level_mock_exam,
         name="level_mock_exam",

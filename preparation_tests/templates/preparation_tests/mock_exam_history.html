@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{% block title %}
+Mon historique — Examens blancs CECR | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Consulte l'historique de tes examens blancs par niveau CECR (A1→C2)
+et visualise ta progression sur Immigration97.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260228">
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="pt-hero">
+  <div class="container pt-fade-up">
+
+    <span class="pt-badge pt-badge--exam">
+      📊 Progression
+    </span>
+
+    <h1 class="pt-title">
+      Mon historique
+      <span class="pt-gradient-primary">examens blancs</span>
+    </h1>
+
+    <p class="pt-lead">
+      {% if total_count %}
+        <strong>{{ total_count }}</strong> examen{{ total_count|pluralize }} blanc{{ total_count|pluralize }}
+        passé{{ total_count|pluralize }}.
+        Le graphe ci-dessous montre l'évolution de ton score global par niveau CECR.
+      {% else %}
+        Tu n'as pas encore passé d'examen blanc.
+      {% endif %}
+    </p>
+
+    <div class="pt-cta-group" style="margin-top:1.2rem;">
+      <a href="{% url "preparation_tests:level_mock_hub" %}" class="pt-btn-primary">
+        🧪 Nouvel examen blanc
+      </a>
+      <a href="{% url "preparation_tests:dashboard_global" %}" class="pt-btn-ghost">
+        📊 Tableau de bord
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- GRAPHE PROGRESSION -->
+{% if total_count %}
+<section class="pt-section">
+  <div class="container">
+    <article class="pt-card">
+
+      <h2 style="margin-bottom:1.25rem;">📈 Courbe de progression</h2>
+
+      {{ chart_datasets_json|json_script:"chart-data" }}
+
+      <div style="position:relative; height:300px;">
+        <canvas id="mockProgressChart"></canvas>
+      </div>
+
+      <p class="pt-small" style="margin-top:.75rem; opacity:.6;">
+        Axe Y : score global CO + CE (0–100%). Une ligne par niveau CECR.
+      </p>
+
+    </article>
+  </div>
+</section>
+{% endif %}
+
+<!-- TABLEAU HISTORIQUE -->
+<section class="pt-section">
+  <div class="container">
+    <article class="pt-card">
+
+      <h2 style="margin-bottom:1.25rem;">📋 Détail des passages</h2>
+
+      {% if results %}
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:.88rem;">
+          <thead>
+            <tr style="border-bottom:2px solid rgba(255,255,255,.1); text-align:left;">
+              <th style="padding:.6rem .75rem;">Date</th>
+              <th style="padding:.6rem .75rem; text-align:center;">Niveau</th>
+              <th style="padding:.6rem .75rem; text-align:center;">CO</th>
+              <th style="padding:.6rem .75rem; text-align:center;">CE</th>
+              <th style="padding:.6rem .75rem; text-align:center;">Score global</th>
+              <th style="padding:.6rem .75rem; text-align:center;">CECR estimé</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in results %}
+            <tr style="border-bottom:1px solid rgba(255,255,255,.06);">
+
+              <td style="padding:.55rem .75rem; opacity:.7;">
+                {{ r.taken_at|date:"d/m/Y H:i" }}
+              </td>
+
+              <td style="padding:.55rem .75rem; text-align:center;">
+                <span class="pt-level-badge pt-level-{{ r.level|lower }}">
+                  {{ r.level }}
+                </span>
+              </td>
+
+              <td style="padding:.55rem .75rem; text-align:center;">
+                {% if r.score_co is not None %}
+                  {{ r.co_correct }}/{{ r.co_total }}
+                  <span style="opacity:.6;">({{ r.score_co }}%)</span>
+                {% else %}—{% endif %}
+              </td>
+
+              <td style="padding:.55rem .75rem; text-align:center;">
+                {% if r.score_ce is not None %}
+                  {{ r.ce_correct }}/{{ r.ce_total }}
+                  <span style="opacity:.6;">({{ r.score_ce }}%)</span>
+                {% else %}—{% endif %}
+              </td>
+
+              <td style="padding:.55rem .75rem; text-align:center; font-weight:700; font-size:1rem;">
+                {% if r.score_global is not None %}
+                  <span style="color:
+                    {% if r.score_global >= 80 %}#2ecc71
+                    {% elif r.score_global >= 60 %}#f59e0b
+                    {% else %}#e74c3c{% endif %};">
+                    {{ r.score_global }}%
+                  </span>
+                {% else %}—{% endif %}
+              </td>
+
+              <td style="padding:.55rem .75rem; text-align:center; opacity:.75;">
+                {{ r.cefr_estimate|default:"—" }}
+              </td>
+
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% else %}
+      <div style="text-align:center; padding:2rem 0;">
+        <p style="opacity:.7; margin-bottom:1.25rem;">
+          Aucun examen blanc enregistré pour l'instant.
+        </p>
+        <a href="{% url "preparation_tests:level_mock_hub" %}" class="pt-btn-primary">
+          ▶ Commencer un examen blanc
+        </a>
+      </div>
+      {% endif %}
+
+    </article>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var canvas = document.getElementById("mockProgressChart");
+  if (!canvas) return;
+
+  var raw = JSON.parse(document.getElementById("chart-data").textContent);
+
+  var COLORS = {
+    A1: "#3b82f6",
+    A2: "#06b6d4",
+    B1: "#10b981",
+    B2: "#f59e0b",
+    C1: "#f97316",
+    C2: "#ef4444",
+  };
+
+  var datasets = Object.keys(raw).map(function (level) {
+    var color = COLORS[level] || "#6b7280";
+    return {
+      label: "Niveau " + level,
+      data: raw[level],
+      borderColor: color,
+      backgroundColor: color + "22",
+      tension: 0.35,
+      fill: false,
+      pointRadius: 5,
+      pointHoverRadius: 8,
+    };
+  });
+
+  new Chart(canvas.getContext("2d"), {
+    type: "line",
+    data: { datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      parsing: false,
+      scales: {
+        x: {
+          type: "category",
+          ticks: { color: "#9ca3af", font: { size: 12 } },
+          grid: { color: "rgba(255,255,255,.06)" },
+        },
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            callback: function (v) { return v + "%"; },
+            color: "#9ca3af",
+          },
+          grid: { color: "rgba(255,255,255,.06)" },
+        },
+      },
+      plugins: {
+        legend: {
+          labels: { color: "#e5e7eb", font: { size: 13 } },
+        },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              return ctx.dataset.label + " : " + ctx.parsed.y + "%";
+            },
+          },
+        },
+      },
+    },
+  });
+});
+</script>
+{% endblock %}

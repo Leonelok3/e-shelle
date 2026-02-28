@@ -533,3 +533,44 @@ class EESubmission(models.Model):
 
     def __str__(self):
         return f"EE #{self.pk} — {self.user} — {self.score}/100"
+
+
+
+# =====================================================
+# 🧪 HISTORIQUE EXAMENS BLANCS PAR NIVEAU CECR
+# =====================================================
+
+class MockExamResult(models.Model):
+    """
+    Enregistre le résultat d'un examen blanc par niveau CECR.
+    Un enregistrement par passage (POST de level_mock_exam).
+    """
+    LEVEL_CHOICES = [
+        ("A1", "A1"), ("A2", "A2"),
+        ("B1", "B1"), ("B2", "B2"),
+        ("C1", "C1"), ("C2", "C2"),
+    ]
+
+    user          = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="mock_exam_results",
+    )
+    level         = models.CharField(max_length=2, choices=LEVEL_CHOICES, db_index=True)
+    score_co      = models.PositiveIntegerField(null=True, blank=True)
+    score_ce      = models.PositiveIntegerField(null=True, blank=True)
+    score_global  = models.PositiveIntegerField(null=True, blank=True)
+    co_correct    = models.PositiveIntegerField(default=0)
+    co_total      = models.PositiveIntegerField(default=0)
+    ce_correct    = models.PositiveIntegerField(default=0)
+    ce_total      = models.PositiveIntegerField(default=0)
+    cefr_estimate = models.CharField(max_length=10, blank=True)
+    taken_at      = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-taken_at"]
+        verbose_name = "Résultat examen blanc"
+        verbose_name_plural = "Résultats examens blancs"
+
+    def __str__(self):
+        return f"{self.user} — {self.level} — {self.score_global}% ({self.taken_at:%Y-%m-%d})"
