@@ -209,54 +209,112 @@ score CO, CE et estimation CECR personnalisée par Immigration97.
   </div>
 </section>
 
-<!-- EO + EE : récap des sujets -->
+<!-- EO + EE : évaluation IA -->
 <section class="pt-section">
   <div class="container">
 
+    {# ── EO : enregistrement + évaluation IA ── #}
     {% if eo_items %}
     <article class="pt-card" style="margin-bottom:1.5rem;">
-      <h3>🎤 Expression Orale — Sujets pratiqués</h3>
+      <h3 style="margin-bottom:1.25rem;">🎤 Expression Orale — Correction IA</h3>
+      <p class="pt-card-meta" style="margin-bottom:1.25rem;">
+        Enregistre ta réponse orale sur chaque sujet. L'IA évalue ta pertinence,
+        ta structure, ton vocabulaire et ta grammaire (0–100).
+      </p>
+
       {% for item in eo_items %}
-      <div style="
-        border-left:4px solid #a855f7;
-        padding:.75rem 1rem;
-        margin:.75rem 0;
-        border-radius:0 6px 6px 0;
-        background:rgba(168,85,247,.06);
-      ">
-        <strong>{{ item.exercise.title }}</strong>
+      <div class="exam-eo-card" data-exercise-id="{{ item.exercise.id }}"
+           style="border-left:4px solid #a855f7; padding:1rem 1.25rem; margin-bottom:1rem;
+                  border-radius:0 8px 8px 0; background:rgba(168,85,247,.06);">
+
+        <p style="font-weight:600; margin-bottom:.35rem;">
+          🎤 Sujet {{ forloop.counter }} — {{ item.exercise.title }}
+        </p>
         {% if item.exercise.instruction %}
-          <p style="font-size:.85rem; opacity:.75; margin-top:.25rem;">{{ item.exercise.instruction }}</p>
+        <p style="font-size:.88rem; opacity:.75; margin-bottom:.4rem;">
+          {{ item.exercise.instruction }}
+        </p>
         {% endif %}
+        {% if item.exercise.question_text %}
+        <p style="font-size:.9rem; color:#a855f7; margin-bottom:.75rem;">
+          📝 {{ item.exercise.question_text }}
+        </p>
+        {% endif %}
+
+        <div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; margin-bottom:.5rem;">
+          <button class="exam-record-btn pt-btn-primary" style="font-size:.85rem; padding:.45rem .9rem;">
+            🎤 Commencer l'enregistrement
+          </button>
+          <span class="exam-record-timer" style="font-variant-numeric:tabular-nums; font-weight:600; opacity:.7;"></span>
+        </div>
+
+        <audio class="exam-playback" controls style="display:none; width:100%; margin:.5rem 0; border-radius:6px;"></audio>
+
+        <div style="display:flex; gap:.75rem; flex-wrap:wrap;">
+          <button class="exam-submit-eo pt-btn-secondary" style="display:none; font-size:.85rem; padding:.45rem .9rem;">
+            📤 Évaluer par IA
+          </button>
+        </div>
+
+        <div class="exam-eo-loading" style="display:none; margin-top:.5rem; opacity:.7; font-size:.88rem;">
+          ⏳ Transcription + évaluation en cours…
+        </div>
+        <div class="exam-eo-result" style="display:none;"></div>
+
       </div>
       {% endfor %}
-      <div class="pt-cta-group" style="margin-top:1rem;">
-        <a href="{% url "preparation_tests:eo_by_level" level %}" class="pt-btn-secondary">
-          🎤 S'entraîner en EO {{ level }} →
-        </a>
-      </div>
     </article>
     {% endif %}
 
+    {# ── EE : textarea + correction IA ── #}
     {% if ee_exercise %}
     <article class="pt-card">
-      <h3>✍️ Expression Écrite — Sujet pratiqué</h3>
-      <div style="
-        border-left:4px solid #f59e0b;
-        padding:.75rem 1rem;
-        margin:.75rem 0;
-        border-radius:0 6px 6px 0;
-        background:rgba(245,158,11,.06);
-      ">
-        <strong>{{ ee_exercise.title }}</strong>
+      <h3 style="margin-bottom:1.25rem;">✍️ Expression Écrite — Correction IA</h3>
+      <p class="pt-card-meta" style="margin-bottom:1.25rem;">
+        Rédige ta réponse dans la zone ci-dessous. L'IA corrige ton texte
+        et fournit une version améliorée (score 0–100).
+      </p>
+
+      <div class="exam-ee-card" data-exercise-id="{{ ee_exercise.id }}"
+           style="border-left:4px solid #f59e0b; padding:1rem 1.25rem;
+                  border-radius:0 8px 8px 0; background:rgba(245,158,11,.06);">
+
+        <p style="font-weight:600; margin-bottom:.35rem;">
+          ✍️ {{ ee_exercise.title }}
+        </p>
         {% if ee_exercise.instruction %}
-          <p style="font-size:.85rem; opacity:.75; margin-top:.25rem;">{{ ee_exercise.instruction }}</p>
+        <p style="font-size:.88rem; opacity:.75; margin-bottom:.4rem;">
+          {{ ee_exercise.instruction }}
+        </p>
         {% endif %}
-      </div>
-      <div class="pt-cta-group" style="margin-top:1rem;">
-        <a href="{% url "preparation_tests:ee_by_level" level %}" class="pt-btn-secondary">
-          ✍️ S'entraîner en EE {{ level }} →
-        </a>
+        {% if ee_exercise.question_text %}
+        <p style="font-size:.9rem; color:#f59e0b; margin-bottom:.75rem;">
+          📝 {{ ee_exercise.question_text }}
+        </p>
+        {% endif %}
+
+        <textarea class="exam-ee-textarea" rows="8"
+          placeholder="Rédigez votre réponse ici…"
+          style="width:100%; padding:.75rem 1rem; border-radius:6px;
+                 border:1px solid rgba(255,255,255,.15); background:rgba(0,0,0,.2);
+                 color:inherit; font-size:.92rem; line-height:1.6; resize:vertical;
+                 box-sizing:border-box;"></textarea>
+
+        <div style="display:flex; align-items:center; justify-content:space-between;
+                    flex-wrap:wrap; gap:.5rem; margin-top:.5rem;">
+          <span style="font-size:.82rem; opacity:.65;">
+            <span class="exam-word-count">0</span> mot(s)
+          </span>
+          <button class="exam-submit-ee pt-btn-secondary" style="font-size:.85rem; padding:.45rem .9rem;">
+            ✅ Corriger par IA
+          </button>
+        </div>
+
+        <div class="exam-ee-loading" style="display:none; margin-top:.5rem; opacity:.7; font-size:.88rem;">
+          ⏳ Correction en cours…
+        </div>
+        <div class="exam-ee-result" style="display:none;"></div>
+
       </div>
     </article>
     {% endif %}
@@ -310,4 +368,253 @@ score CO, CE et estimation CECR personnalisée par Immigration97.
   </div>
 </section>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  "use strict";
+
+  /* ── Helpers ───────────────────────────────────────────── */
+  function getCsrf() {
+    var m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+
+  function scoreColor(s) {
+    return s >= 70 ? "#2ecc71" : s >= 50 ? "#f59e0b" : "#e74c3c";
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function renderEoResult(div, data) {
+    if (!data.ok) {
+      div.innerHTML = "<p style=\"color:#e74c3c;\">Erreur : " + escHtml(data.error || "inconnue") + "</p>";
+      return;
+    }
+    var color = scoreColor(data.score);
+    var html = "<div style=\"border-left:4px solid " + color + "; padding:.75rem 1rem;"
+      + " border-radius:0 6px 6px 0; background:rgba(0,0,0,.08); margin-top:.75rem;\">";
+    html += "<p style=\"margin-bottom:.4rem;\"><strong style=\"color:" + color
+      + "; font-size:1.15rem;\">" + Math.round(data.score) + "/100</strong>"
+      + " &mdash; " + escHtml(data.feedback) + "</p>";
+
+    if (data.criteria) {
+      html += "<div style=\"display:flex; flex-wrap:wrap; gap:.4rem; margin:.4rem 0;\">";
+      Object.keys(data.criteria).forEach(function (k) {
+        html += "<span style=\"background:rgba(255,255,255,.08); border-radius:4px;"
+          + " padding:.2rem .5rem; font-size:.78rem;\">"
+          + escHtml(k) + " : <strong>" + data.criteria[k] + "</strong></span>";
+      });
+      html += "</div>";
+    }
+
+    if (data.transcript) {
+      html += "<details style=\"margin-top:.5rem;\">"
+        + "<summary style=\"cursor:pointer; font-size:.85rem; opacity:.75;\">📝 Transcription</summary>"
+        + "<p style=\"font-size:.84rem; margin-top:.4rem; opacity:.8; line-height:1.6;\">"
+        + escHtml(data.transcript) + "</p></details>";
+    }
+
+    if (data.points_covered && data.points_covered.length) {
+      html += "<p style=\"margin-top:.5rem; font-size:.85rem;\"><strong>Points couverts :</strong> "
+        + data.points_covered.map(escHtml).join(", ") + "</p>";
+    }
+
+    if (data.suggestions && data.suggestions.length) {
+      html += "<ul style=\"margin-top:.4rem; font-size:.85rem; padding-left:1.2rem;\">"
+        + data.suggestions.map(function (s) {
+            return "<li>💡 " + escHtml(s) + "</li>";
+          }).join("") + "</ul>";
+    }
+
+    html += "</div>";
+    div.innerHTML = html;
+  }
+
+  function renderEeResult(div, data) {
+    if (!data.ok) {
+      div.innerHTML = "<p style=\"color:#e74c3c;\">Erreur : " + escHtml(data.error || "inconnue") + "</p>";
+      return;
+    }
+    var color = scoreColor(data.score);
+    var html = "<div style=\"border-left:4px solid " + color + "; padding:.75rem 1rem;"
+      + " border-radius:0 6px 6px 0; background:rgba(0,0,0,.08); margin-top:.75rem;\">";
+    html += "<p style=\"margin-bottom:.4rem;\"><strong style=\"color:" + color
+      + "; font-size:1.15rem;\">" + Math.round(data.score) + "/100</strong>"
+      + " &mdash; " + escHtml(data.feedback) + "</p>";
+
+    if (data.criteria) {
+      html += "<div style=\"display:flex; flex-wrap:wrap; gap:.4rem; margin:.4rem 0;\">";
+      Object.keys(data.criteria).forEach(function (k) {
+        html += "<span style=\"background:rgba(255,255,255,.08); border-radius:4px;"
+          + " padding:.2rem .5rem; font-size:.78rem;\">"
+          + escHtml(k) + " : <strong>" + data.criteria[k] + "</strong></span>";
+      });
+      html += "</div>";
+    }
+
+    if (data.word_count) {
+      html += "<p style=\"font-size:.82rem; opacity:.6; margin-top:.25rem;\">"
+        + data.word_count + " mots</p>";
+    }
+
+    if (data.errors && data.errors.length) {
+      html += "<p style=\"margin-top:.6rem; font-size:.85rem; font-weight:600;\">Corrections :</p>"
+        + "<ul style=\"font-size:.85rem; padding-left:1.2rem; margin-top:.25rem;\">";
+      data.errors.forEach(function (e) {
+        html += "<li><del style=\"color:#e74c3c;\">" + escHtml(e.original) + "</del>"
+          + " &rarr; <span style=\"color:#2ecc71;\">" + escHtml(e.correction) + "</span>"
+          + " <em style=\"opacity:.55; font-size:.82rem;\">(" + escHtml(e.rule) + ")</em></li>";
+      });
+      html += "</ul>";
+    }
+
+    if (data.corrected_version) {
+      html += "<details style=\"margin-top:.6rem;\">"
+        + "<summary style=\"cursor:pointer; font-size:.85rem; opacity:.75;\">✅ Version corrigée complète</summary>"
+        + "<pre style=\"font-size:.82rem; white-space:pre-wrap; margin-top:.4rem;"
+        + " background:rgba(0,0,0,.15); padding:.75rem; border-radius:6px; line-height:1.6;\">"
+        + escHtml(data.corrected_version) + "</pre></details>";
+    }
+
+    html += "</div>";
+    div.innerHTML = html;
+  }
+
+  /* ── EO : MediaRecorder par sujet ─────────────────────── */
+  document.querySelectorAll(".exam-eo-card").forEach(function (card) {
+    var exId      = card.dataset.exerciseId;
+    var recordBtn = card.querySelector(".exam-record-btn");
+    var timerEl   = card.querySelector(".exam-record-timer");
+    var playback  = card.querySelector(".exam-playback");
+    var submitBtn = card.querySelector(".exam-submit-eo");
+    var loading   = card.querySelector(".exam-eo-loading");
+    var resultDiv = card.querySelector(".exam-eo-result");
+
+    var mediaRecorder, audioChunks = [], audioBlob, startTime, timerInterval;
+
+    recordBtn.addEventListener("click", function () {
+      if (!mediaRecorder || mediaRecorder.state === "inactive") {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+          var mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+            ? "audio/webm;codecs=opus" : "audio/webm";
+          audioChunks = [];
+          mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+
+          mediaRecorder.ondataavailable = function (e) {
+            if (e.data && e.data.size > 0) audioChunks.push(e.data);
+          };
+          mediaRecorder.onstop = function () {
+            stream.getTracks().forEach(function (t) { t.stop(); });
+            audioBlob = new Blob(audioChunks, { type: mimeType });
+            playback.src = URL.createObjectURL(audioBlob);
+            playback.style.display = "";
+            submitBtn.style.display = "";
+          };
+
+          mediaRecorder.start();
+          startTime = Date.now();
+          timerInterval = setInterval(function () {
+            var s = Math.floor((Date.now() - startTime) / 1000);
+            timerEl.textContent = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+          }, 1000);
+
+          recordBtn.textContent = "⏹️ Arrêter l'enregistrement";
+          recordBtn.style.background = "#c0392b";
+        }).catch(function (err) {
+          alert("Microphone inaccessible : " + err.message);
+        });
+
+      } else if (mediaRecorder.state === "recording") {
+        clearInterval(timerInterval);
+        mediaRecorder.stop();
+        recordBtn.textContent = "🎤 Recommencer";
+        recordBtn.style.background = "";
+      }
+    });
+
+    submitBtn.addEventListener("click", function () {
+      if (!audioBlob) return;
+      submitBtn.disabled = true;
+      loading.style.display = "";
+      resultDiv.style.display = "none";
+
+      var fd = new FormData();
+      fd.append("exercise_id", exId);
+      fd.append("audio", audioBlob, "recording.webm");
+
+      fetch("/prep/api/submit-eo/", {
+        method: "POST",
+        headers: { "X-CSRFToken": getCsrf() },
+        body: fd,
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          loading.style.display = "none";
+          renderEoResult(resultDiv, data);
+          resultDiv.style.display = "";
+        })
+        .catch(function () {
+          loading.style.display = "none";
+          resultDiv.innerHTML = "<p style=\"color:#e74c3c;\">Erreur réseau. Réessaie.</p>";
+          resultDiv.style.display = "";
+          submitBtn.disabled = false;
+        });
+    });
+  });
+
+  /* ── EE : textarea + correction ───────────────────────── */
+  document.querySelectorAll(".exam-ee-card").forEach(function (card) {
+    var exId      = card.dataset.exerciseId;
+    var textarea  = card.querySelector(".exam-ee-textarea");
+    var counter   = card.querySelector(".exam-word-count");
+    var submitBtn = card.querySelector(".exam-submit-ee");
+    var loading   = card.querySelector(".exam-ee-loading");
+    var resultDiv = card.querySelector(".exam-ee-result");
+
+    textarea.addEventListener("input", function () {
+      counter.textContent = textarea.value.trim().split(/\s+/).filter(Boolean).length;
+    });
+
+    submitBtn.addEventListener("click", function () {
+      var text = textarea.value.trim();
+      if (!text) return;
+      submitBtn.disabled = true;
+      loading.style.display = "";
+      resultDiv.style.display = "none";
+
+      fetch("/prep/api/submit-ee/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrf(),
+        },
+        body: JSON.stringify({ exercise_id: parseInt(exId, 10), text: text }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          loading.style.display = "none";
+          textarea.readOnly = true;
+          textarea.style.opacity = ".6";
+          submitBtn.style.display = "none";
+          renderEeResult(resultDiv, data);
+          resultDiv.style.display = "";
+        })
+        .catch(function () {
+          loading.style.display = "none";
+          resultDiv.innerHTML = "<p style=\"color:#e74c3c;\">Erreur réseau. Réessaie.</p>";
+          resultDiv.style.display = "";
+          submitBtn.disabled = false;
+        });
+    });
+  });
+
+})();
+</script>
 {% endblock %}
