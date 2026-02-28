@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views, views_level_mock
+from . import views, views_level_mock, views_mock_exam_format
 
 app_name = "preparation_tests"
 
@@ -164,6 +164,20 @@ urlpatterns = [
     path(
         "exercise-progress/",
         views.exercise_progress,
+    ),
+
+    # =====================================================
+    # 🏆 EXAMENS BLANCS FORMAT OFFICIEL (TEF/TCF/DELF/DALF)
+    # =====================================================
+    path(
+        "fr/<str:exam_code>/examen/",
+        views_mock_exam_format.exam_format_hub,
+        name="exam_format_hub",
+    ),
+    path(
+        "fr/<str:exam_code>/examen/<str:level>/",
+        views_mock_exam_format.exam_format_exam,
+        name="exam_format_exam",
     ),
 
     # =====================================================

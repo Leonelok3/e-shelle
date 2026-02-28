@@ -1,0 +1,874 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{% block title %}
+Résultats {{ cfg.name }} {{ level }} | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Résultats de ton examen blanc {{ cfg.name }} niveau {{ level }} :
+score officiel, analyse CECR et correction IA EO/EE.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260301">
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="pt-hero pt-hero--result">
+  <div class="container pt-fade-up">
+
+    <span class="pt-badge pt-badge--result">
+      {{ cfg.badge }} · Niveau {{ level }}
+    </span>
+
+    <h1 class="pt-title">
+      Résultats <span class="pt-gradient-primary">{{ cfg.name }}</span>
+    </h1>
+
+    <p class="pt-lead">
+      Niveau estimé (CO + CE) :
+      <strong class="pt-gradient-primary">{{ scores.cefr_global }}</strong>
+      &nbsp;—&nbsp;
+      Score global :
+      {% if scores.unit == "pts" %}
+        <strong>{{ scores.global }}/{{ scores.global_max }} {{ scores.unit }}</strong>
+        ({{ scores.global_pct }}%)
+      {% else %}
+        <strong>{{ scores.global }}/{{ scores.global_max }}</strong>
+        (CO+CE, {{ scores.global_pct }}%)
+      {% endif %}
+    </p>
+
+  </div>
+</section>
+
+<!-- SCORE PRINCIPAL -->
+<section class="pt-section">
+  <div class="container">
+
+    {# ── Panneau DELF/DALF admissibilité ── #}
+    {% if scores.passed is not None %}
+    <div style="
+      margin-bottom:1.25rem;
+      padding:.9rem 1.25rem;
+      border-radius:8px;
+      font-weight:600;
+      font-size:.95rem;
+      {% if scores.passed %}
+        background:rgba(46,204,113,.12); border:1px solid #2ecc71; color:#2ecc71;
+      {% else %}
+        background:rgba(231,76,60,.12); border:1px solid #e74c3c; color:#e74c3c;
+      {% endif %}
+    ">
+      {% if scores.passed %}
+        ✅ Critères CO+CE atteints (≥5/25 chacun &amp; ≥25/50 au total) —
+        Il reste EE + EO (évaluation IA ci-dessous) pour confirmer la réussite globale.
+      {% else %}
+        ❌ Critères CO+CE non atteints — reprends l'entraînement avant de passer l'examen officiel.
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <article class="pt-card pt-card--score" style="text-align:center;">
+
+      <div class="pt-score-circle">
+        <span>{{ scores.global_pct }}%</span>
+      </div>
+
+      <div class="pt-score-summary">
+        <p class="pt-score-eval">
+          {% if scores.global_pct >= 80 %}
+            🚀 Excellent — prêt pour l'examen officiel !
+          {% elif scores.global_pct >= 65 %}
+            💪 Bon niveau — quelques points à consolider
+          {% elif scores.global_pct >= 45 %}
+            📚 Niveau intermédiaire — poursuis l'entraînement
+          {% else %}
+            🧱 Bases à renforcer — retour aux fondamentaux conseillé
+          {% endif %}
+        </p>
+
+        <div class="pt-pill-row">
+          <span class="pt-pill">{{ cfg.name }} · {{ level }}</span>
+          <span class="pt-pill">CECR estimé : {{ scores.cefr_global }}</span>
+          {% if scores.unit == "pts" %}
+            <span class="pt-pill">{{ scores.global }}/{{ scores.global_max }} pts</span>
+          {% else %}
+            <span class="pt-pill">CO+CE : {{ scores.global }}/50</span>
+          {% endif %}
+        </div>
+      </div>
+
+    </article>
+
+  </div>
+</section>
+
+<!-- SCORES CO + CE -->
+<section class="pt-section">
+  <div class="container">
+    <div class="pt-info-grid" style="grid-template-columns:1fr 1fr; gap:1.5rem;">
+
+      {# ── CO ── #}
+      <article class="pt-card" style="text-align:center;">
+        <h3>🎧 Compréhension Orale</h3>
+
+        {% if co_total %}
+          <div class="pt-score-circle" style="width:80px; height:80px; margin:1rem auto; font-size:1.1rem;">
+            <span>{{ scores.co_pct }}%</span>
+          </div>
+
+          <p class="pt-card-meta">
+            {{ co_correct }}/{{ co_total }} correcte{{ co_total|pluralize }}
+          </p>
+
+          {% if scores.unit == "pts" %}
+          <p style="font-size:.9rem; margin:.25rem 0; font-weight:600;">
+            {{ scores.co_score }}/{{ scores.co_max }} pts
+            &nbsp;—&nbsp;
+            <span style="color:#3b82f6;">{{ scores.cefr_co }}</span>
+          </p>
+          {% else %}
+          <p style="font-size:.9rem; margin:.25rem 0; font-weight:600;">
+            {{ scores.co_score }}/{{ scores.co_max }}
+            &nbsp;—&nbsp;
+            {% if scores.co_score >= 5 %}
+            <span style="color:#2ecc71;">✅ ≥ 5/25</span>
+            {% else %}
+            <span style="color:#e74c3c;">❌ &lt; 5/25</span>
+            {% endif %}
+          </p>
+          {% endif %}
+
+          <div class="pt-progress" style="margin:.75rem 0;">
+            <div class="pt-progress-bar">
+              <div class="pt-progress-fill" style="width:{{ scores.co_pct }}%;"></div>
+            </div>
+          </div>
+
+          {% if co_results %}
+          <details style="margin-top:1rem; text-align:left;">
+            <summary style="cursor:pointer; font-weight:600; font-size:.9rem;">
+              📋 Détail des réponses CO
+            </summary>
+            <div style="margin-top:.75rem;">
+              {% for r in co_results %}
+              <div style="
+                padding:.5rem .75rem;
+                border-radius:6px;
+                margin-bottom:.4rem;
+                background: {% if r.is_correct %}rgba(46,204,113,.1){% else %}rgba(231,76,60,.08){% endif %};
+                border-left: 3px solid {% if r.is_correct %}#2ecc71{% else %}#e74c3c{% endif %};
+                font-size:.85rem;
+              "
+              {% if not r.is_correct %}
+              data-revision-section="co"
+              data-revision-id="{{ r.exercise.id }}"
+              data-revision-question="{{ r.exercise.question_text|escapejs }}"
+              data-revision-a="{{ r.exercise.option_a|escapejs }}"
+              data-revision-b="{{ r.exercise.option_b|escapejs }}"
+              data-revision-c="{{ r.exercise.option_c|escapejs }}"
+              data-revision-d="{{ r.exercise.option_d|escapejs }}"
+              data-revision-correct="{{ r.exercise.correct_option }}"
+              {% endif %}
+              >
+                <strong>Q{{ forloop.counter }}</strong> — {{ r.exercise.question_text }}
+                <br>
+                {% if r.is_correct %}
+                  ✅ <strong>{{ r.answer }}</strong> — Bonne réponse
+                {% else %}
+                  ❌ Ta réponse : <strong>{{ r.answer|default:"(aucune)" }}</strong>
+                  &nbsp;|&nbsp;
+                  Correcte : <strong>{{ r.exercise.correct_option }}</strong> —
+                  {% if r.exercise.correct_option == "A" %}{{ r.exercise.option_a }}
+                  {% elif r.exercise.correct_option == "B" %}{{ r.exercise.option_b }}
+                  {% elif r.exercise.correct_option == "C" %}{{ r.exercise.option_c }}
+                  {% elif r.exercise.correct_option == "D" %}{{ r.exercise.option_d }}
+                  {% endif %}
+                {% endif %}
+                {% if r.exercise.summary and not r.is_correct %}
+                <div style="margin-top:.35rem; padding:.3rem .5rem; background:rgba(0,0,0,.06);
+                            border-radius:4px; font-style:italic; color:#999; font-size:.82rem;">
+                  💡 {{ r.exercise.summary }}
+                </div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </details>
+          {% endif %}
+
+        {% else %}
+          <p class="pt-empty">Pas de CO soumis.</p>
+        {% endif %}
+      </article>
+
+      {# ── CE ── #}
+      <article class="pt-card" style="text-align:center;">
+        <h3>📖 Compréhension Écrite</h3>
+
+        {% if ce_total %}
+          <div class="pt-score-circle" style="width:80px; height:80px; margin:1rem auto; font-size:1.1rem;">
+            <span>{{ scores.ce_pct }}%</span>
+          </div>
+
+          <p class="pt-card-meta">
+            {{ ce_correct }}/{{ ce_total }} correcte{{ ce_total|pluralize }}
+          </p>
+
+          {% if scores.unit == "pts" %}
+          <p style="font-size:.9rem; margin:.25rem 0; font-weight:600;">
+            {{ scores.ce_score }}/{{ scores.ce_max }} pts
+            &nbsp;—&nbsp;
+            <span style="color:#3b82f6;">{{ scores.cefr_ce }}</span>
+          </p>
+          {% else %}
+          <p style="font-size:.9rem; margin:.25rem 0; font-weight:600;">
+            {{ scores.ce_score }}/{{ scores.ce_max }}
+            &nbsp;—&nbsp;
+            {% if scores.ce_score >= 5 %}
+            <span style="color:#2ecc71;">✅ ≥ 5/25</span>
+            {% else %}
+            <span style="color:#e74c3c;">❌ &lt; 5/25</span>
+            {% endif %}
+          </p>
+          {% endif %}
+
+          <div class="pt-progress" style="margin:.75rem 0;">
+            <div class="pt-progress-bar">
+              <div class="pt-progress-fill" style="width:{{ scores.ce_pct }}%;"></div>
+            </div>
+          </div>
+
+          {% if ce_results %}
+          <details style="margin-top:1rem; text-align:left;">
+            <summary style="cursor:pointer; font-weight:600; font-size:.9rem;">
+              📋 Détail des réponses CE
+            </summary>
+            <div style="margin-top:.75rem;">
+              {% for r in ce_results %}
+              <div style="
+                padding:.5rem .75rem;
+                border-radius:6px;
+                margin-bottom:.4rem;
+                background: {% if r.is_correct %}rgba(46,204,113,.1){% else %}rgba(231,76,60,.08){% endif %};
+                border-left: 3px solid {% if r.is_correct %}#2ecc71{% else %}#e74c3c{% endif %};
+                font-size:.85rem;
+              "
+              {% if not r.is_correct %}
+              data-revision-section="ce"
+              data-revision-id="{{ r.exercise.id }}"
+              data-revision-question="{{ r.exercise.question_text|escapejs }}"
+              data-revision-a="{{ r.exercise.option_a|escapejs }}"
+              data-revision-b="{{ r.exercise.option_b|escapejs }}"
+              data-revision-c="{{ r.exercise.option_c|escapejs }}"
+              data-revision-d="{{ r.exercise.option_d|escapejs }}"
+              data-revision-correct="{{ r.exercise.correct_option }}"
+              {% endif %}
+              >
+                <strong>Q{{ forloop.counter }}</strong> — {{ r.exercise.question_text }}
+                <br>
+                {% if r.is_correct %}
+                  ✅ <strong>{{ r.answer }}</strong> — Bonne réponse
+                {% else %}
+                  ❌ Ta réponse : <strong>{{ r.answer|default:"(aucune)" }}</strong>
+                  &nbsp;|&nbsp;
+                  Correcte : <strong>{{ r.exercise.correct_option }}</strong> —
+                  {% if r.exercise.correct_option == "A" %}{{ r.exercise.option_a }}
+                  {% elif r.exercise.correct_option == "B" %}{{ r.exercise.option_b }}
+                  {% elif r.exercise.correct_option == "C" %}{{ r.exercise.option_c }}
+                  {% elif r.exercise.correct_option == "D" %}{{ r.exercise.option_d }}
+                  {% endif %}
+                {% endif %}
+                {% if r.exercise.summary and not r.is_correct %}
+                <div style="margin-top:.35rem; padding:.3rem .5rem; background:rgba(0,0,0,.06);
+                            border-radius:4px; font-style:italic; color:#999; font-size:.82rem;">
+                  💡 {{ r.exercise.summary }}
+                </div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </details>
+          {% endif %}
+
+        {% else %}
+          <p class="pt-empty">Pas de CE soumis.</p>
+        {% endif %}
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- EO + EE : évaluation IA -->
+<section class="pt-section">
+  <div class="container">
+
+    {# ── EO ── #}
+    {% if eo_items %}
+    <article class="pt-card" style="margin-bottom:1.5rem;">
+      <h3 style="margin-bottom:1.25rem;">🎤 Expression Orale — Correction IA</h3>
+      <p class="pt-card-meta" style="margin-bottom:1.25rem;">
+        Enregistre ta réponse orale sur chaque sujet.
+        L'IA évalue ta pertinence, ta structure, ton vocabulaire et ta grammaire (0–100).
+      </p>
+
+      {% for item in eo_items %}
+      <div class="exam-eo-card" data-exercise-id="{{ item.exercise.id }}"
+           style="border-left:4px solid #a855f7; padding:1rem 1.25rem; margin-bottom:1rem;
+                  border-radius:0 8px 8px 0; background:rgba(168,85,247,.06);">
+
+        <p style="font-weight:600; margin-bottom:.35rem;">
+          🎤 Sujet {{ forloop.counter }} — {{ item.exercise.title }}
+        </p>
+        {% if item.exercise.instruction %}
+        <p style="font-size:.88rem; opacity:.75; margin-bottom:.4rem;">
+          {{ item.exercise.instruction }}
+        </p>
+        {% endif %}
+        {% if item.exercise.question_text %}
+        <p style="font-size:.9rem; color:#a855f7; margin-bottom:.75rem;">
+          📝 {{ item.exercise.question_text }}
+        </p>
+        {% endif %}
+
+        <div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; margin-bottom:.5rem;">
+          <button class="exam-record-btn pt-btn-primary" style="font-size:.85rem; padding:.45rem .9rem;">
+            🎤 Commencer l'enregistrement
+          </button>
+          <span class="exam-record-timer"
+                style="font-variant-numeric:tabular-nums; font-weight:600; opacity:.7;"></span>
+        </div>
+
+        <audio class="exam-playback" controls
+               style="display:none; width:100%; margin:.5rem 0; border-radius:6px;"></audio>
+
+        <div style="display:flex; gap:.75rem; flex-wrap:wrap;">
+          <button class="exam-submit-eo pt-btn-secondary"
+                  style="display:none; font-size:.85rem; padding:.45rem .9rem;">
+            📤 Évaluer par IA
+          </button>
+        </div>
+
+        <div class="exam-eo-loading"
+             style="display:none; margin-top:.5rem; opacity:.7; font-size:.88rem;">
+          ⏳ Transcription + évaluation en cours…
+        </div>
+        <div class="exam-eo-result" style="display:none;"></div>
+
+      </div>
+      {% endfor %}
+    </article>
+    {% endif %}
+
+    {# ── EE ── #}
+    {% if ee_items %}
+    <article class="pt-card">
+      <h3 style="margin-bottom:1.25rem;">✍️ Expression Écrite — Correction IA</h3>
+      <p class="pt-card-meta" style="margin-bottom:1.25rem;">
+        Rédige ta réponse dans la zone ci-dessous.
+        L'IA corrige ton texte et fournit une version améliorée (score 0–100).
+      </p>
+
+      {% for item in ee_items %}
+      <div class="exam-ee-card" data-exercise-id="{{ item.exercise.id }}"
+           style="border-left:4px solid #f59e0b; padding:1rem 1.25rem;
+                  border-radius:0 8px 8px 0; background:rgba(245,158,11,.06);
+                  margin-bottom:1rem;">
+
+        <p style="font-weight:600; margin-bottom:.35rem;">
+          ✍️ Sujet {{ forloop.counter }} — {{ item.exercise.title }}
+        </p>
+        {% if item.exercise.instruction %}
+        <p style="font-size:.88rem; opacity:.75; margin-bottom:.4rem;">
+          {{ item.exercise.instruction }}
+        </p>
+        {% endif %}
+        {% if item.exercise.question_text %}
+        <p style="font-size:.9rem; color:#f59e0b; margin-bottom:.75rem;">
+          📝 {{ item.exercise.question_text }}
+        </p>
+        {% endif %}
+
+        <textarea class="exam-ee-textarea" rows="8"
+          placeholder="Rédigez votre réponse ici…"
+          style="width:100%; padding:.75rem 1rem; border-radius:6px;
+                 border:1px solid rgba(255,255,255,.15); background:rgba(0,0,0,.2);
+                 color:inherit; font-size:.92rem; line-height:1.6; resize:vertical;
+                 box-sizing:border-box;"></textarea>
+
+        <div style="display:flex; align-items:center; justify-content:space-between;
+                    flex-wrap:wrap; gap:.5rem; margin-top:.5rem;">
+          <span style="font-size:.82rem; opacity:.65;">
+            <span class="exam-word-count">0</span> mot(s)
+          </span>
+          <button class="exam-submit-ee pt-btn-secondary"
+                  style="font-size:.85rem; padding:.45rem .9rem;">
+            ✅ Corriger par IA
+          </button>
+        </div>
+
+        <div class="exam-ee-loading"
+             style="display:none; margin-top:.5rem; opacity:.7; font-size:.88rem;">
+          ⏳ Correction en cours…
+        </div>
+        <div class="exam-ee-result" style="display:none;"></div>
+
+      </div>
+      {% endfor %}
+    </article>
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- RÉVISION CIBLÉE (affiché par JS si des erreurs existent) -->
+<section id="revision-panel" style="display:none;" class="pt-section">
+  <div class="container">
+    <article class="pt-card">
+      <h3 style="margin-bottom:.75rem;">🔁 Révision ciblée</h3>
+      <p class="pt-card-meta" style="margin-bottom:1.25rem;" id="revision-subtitle"></p>
+      <div id="revision-questions"></div>
+      <div id="revision-score" style="display:none; margin-top:1.5rem; text-align:center;
+                                       font-size:1.1rem; padding:.75rem; border-radius:8px;
+                                       background:rgba(255,255,255,.05);"></div>
+      <div class="pt-cta-group" style="margin-top:1.25rem;">
+        <button id="btn-revision-submit" class="pt-btn-primary">
+          ✅ Valider mes réponses
+        </button>
+        <button id="btn-revision-retry" style="display:none;" class="pt-btn-secondary">
+          🔄 Recommencer la révision
+        </button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ACTIONS -->
+<section class="pt-section pt-section--cta">
+  <div class="container text-center">
+    <div class="pt-cta-group">
+
+      <button id="btn-revision" class="pt-btn-primary" style="display:none;">
+        🔁 Réviser mes erreurs
+      </button>
+
+      <a
+        href="{% url "preparation_tests:exam_format_exam" exam_code level %}"
+        class="pt-btn-primary"
+      >
+        🔄 Recommencer {{ level }}
+      </a>
+
+      <a
+        href="{% url "preparation_tests:exam_format_hub" exam_code %}"
+        class="pt-btn-secondary"
+      >
+        📋 Choisir un autre niveau
+      </a>
+
+      <a
+        href="{% url "preparation_tests:dashboard_global" %}"
+        class="pt-btn-ghost"
+      >
+        📊 Mon tableau de bord
+      </a>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  "use strict";
+
+  /* ── Helpers ─────────────────────────────────────────────── */
+  function getCsrf() {
+    var m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+
+  function scoreColor(s) {
+    return s >= 70 ? "#2ecc71" : s >= 50 ? "#f59e0b" : "#e74c3c";
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  /* ── Rendu résultat EO ────────────────────────────────────── */
+  function renderEoResult(div, data) {
+    if (!data.ok) {
+      div.innerHTML = "<p style=\"color:#e74c3c;\">Erreur : " + escHtml(data.error || "inconnue") + "</p>";
+      return;
+    }
+    var color = scoreColor(data.score);
+    var html = "<div style=\"border-left:4px solid " + color + "; padding:.75rem 1rem;"
+      + " border-radius:0 6px 6px 0; background:rgba(0,0,0,.08); margin-top:.75rem;\">";
+    html += "<p style=\"margin-bottom:.4rem;\"><strong style=\"color:" + color
+      + "; font-size:1.15rem;\">" + Math.round(data.score) + "/100</strong>"
+      + " &mdash; " + escHtml(data.feedback) + "</p>";
+
+    if (data.criteria) {
+      html += "<div style=\"display:flex; flex-wrap:wrap; gap:.4rem; margin:.4rem 0;\">";
+      Object.keys(data.criteria).forEach(function (k) {
+        html += "<span style=\"background:rgba(255,255,255,.08); border-radius:4px;"
+          + " padding:.2rem .5rem; font-size:.78rem;\">"
+          + escHtml(k) + " : <strong>" + data.criteria[k] + "</strong></span>";
+      });
+      html += "</div>";
+    }
+
+    if (data.transcript) {
+      html += "<details style=\"margin-top:.5rem;\">"
+        + "<summary style=\"cursor:pointer; font-size:.85rem; opacity:.75;\">📝 Transcription</summary>"
+        + "<p style=\"font-size:.84rem; margin-top:.4rem; opacity:.8; line-height:1.6;\">"
+        + escHtml(data.transcript) + "</p></details>";
+    }
+
+    if (data.suggestions && data.suggestions.length) {
+      html += "<ul style=\"margin-top:.4rem; font-size:.85rem; padding-left:1.2rem;\">"
+        + data.suggestions.map(function (s) {
+            return "<li>💡 " + escHtml(s) + "</li>";
+          }).join("") + "</ul>";
+    }
+
+    html += "</div>";
+    div.innerHTML = html;
+    div.style.display = "";
+  }
+
+  /* ── Rendu résultat EE ────────────────────────────────────── */
+  function renderEeResult(div, data) {
+    if (!data.ok) {
+      div.innerHTML = "<p style=\"color:#e74c3c;\">Erreur : " + escHtml(data.error || "inconnue") + "</p>";
+      return;
+    }
+    var color = scoreColor(data.score);
+    var html = "<div style=\"border-left:4px solid " + color + "; padding:.75rem 1rem;"
+      + " border-radius:0 6px 6px 0; background:rgba(0,0,0,.08); margin-top:.75rem;\">";
+    html += "<p style=\"margin-bottom:.4rem;\"><strong style=\"color:" + color
+      + "; font-size:1.15rem;\">" + Math.round(data.score) + "/100</strong>"
+      + " &mdash; " + escHtml(data.feedback) + "</p>";
+
+    if (data.criteria) {
+      html += "<div style=\"display:flex; flex-wrap:wrap; gap:.4rem; margin:.4rem 0;\">";
+      Object.keys(data.criteria).forEach(function (k) {
+        html += "<span style=\"background:rgba(255,255,255,.08); border-radius:4px;"
+          + " padding:.2rem .5rem; font-size:.78rem;\">"
+          + escHtml(k) + " : <strong>" + data.criteria[k] + "</strong></span>";
+      });
+      html += "</div>";
+    }
+
+    if (data.word_count) {
+      html += "<p style=\"font-size:.82rem; opacity:.6; margin-top:.25rem;\">"
+        + data.word_count + " mots</p>";
+    }
+
+    if (data.errors && data.errors.length) {
+      html += "<p style=\"margin-top:.6rem; font-size:.85rem; font-weight:600;\">Corrections :</p>"
+        + "<ul style=\"font-size:.85rem; padding-left:1.2rem; margin-top:.25rem;\">";
+      data.errors.forEach(function (e) {
+        html += "<li><del style=\"color:#e74c3c;\">" + escHtml(e.original) + "</del>"
+          + " &rarr; <span style=\"color:#2ecc71;\">" + escHtml(e.correction) + "</span>"
+          + " <em style=\"opacity:.55; font-size:.82rem;\">(" + escHtml(e.rule) + ")</em></li>";
+      });
+      html += "</ul>";
+    }
+
+    if (data.corrected_version) {
+      html += "<details style=\"margin-top:.6rem;\">"
+        + "<summary style=\"cursor:pointer; font-size:.85rem; opacity:.75;\">✅ Version corrigée complète</summary>"
+        + "<pre style=\"font-size:.82rem; white-space:pre-wrap; margin-top:.4rem;"
+        + " background:rgba(0,0,0,.15); padding:.75rem; border-radius:6px; line-height:1.6;\">"
+        + escHtml(data.corrected_version) + "</pre></details>";
+    }
+
+    html += "</div>";
+    div.innerHTML = html;
+    div.style.display = "";
+  }
+
+  /* ── EO : MediaRecorder ───────────────────────────────────── */
+  document.querySelectorAll(".exam-eo-card").forEach(function (card) {
+    var exId      = card.dataset.exerciseId;
+    var recordBtn = card.querySelector(".exam-record-btn");
+    var timerEl   = card.querySelector(".exam-record-timer");
+    var playback  = card.querySelector(".exam-playback");
+    var submitBtn = card.querySelector(".exam-submit-eo");
+    var loading   = card.querySelector(".exam-eo-loading");
+    var resultDiv = card.querySelector(".exam-eo-result");
+
+    var mediaRecorder, audioChunks = [], audioBlob, startTime, timerInterval;
+
+    recordBtn.addEventListener("click", function () {
+      if (!mediaRecorder || mediaRecorder.state === "inactive") {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+          var mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+            ? "audio/webm;codecs=opus" : "audio/webm";
+          audioChunks = [];
+          mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+
+          mediaRecorder.ondataavailable = function (e) {
+            if (e.data && e.data.size > 0) audioChunks.push(e.data);
+          };
+          mediaRecorder.onstop = function () {
+            stream.getTracks().forEach(function (t) { t.stop(); });
+            audioBlob = new Blob(audioChunks, { type: mimeType });
+            playback.src = URL.createObjectURL(audioBlob);
+            playback.style.display = "";
+            submitBtn.style.display = "";
+          };
+
+          mediaRecorder.start();
+          startTime = Date.now();
+          timerInterval = setInterval(function () {
+            var s = Math.floor((Date.now() - startTime) / 1000);
+            timerEl.textContent = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+          }, 1000);
+
+          recordBtn.textContent = "⏹️ Arrêter l'enregistrement";
+          recordBtn.style.background = "#c0392b";
+        }).catch(function (err) {
+          alert("Microphone inaccessible : " + err.message);
+        });
+
+      } else if (mediaRecorder.state === "recording") {
+        clearInterval(timerInterval);
+        mediaRecorder.stop();
+        recordBtn.textContent = "🎤 Recommencer";
+        recordBtn.style.background = "";
+      }
+    });
+
+    submitBtn.addEventListener("click", function () {
+      if (!audioBlob) return;
+      submitBtn.disabled = true;
+      loading.style.display = "";
+      resultDiv.style.display = "none";
+
+      var fd = new FormData();
+      fd.append("exercise_id", exId);
+      fd.append("audio", audioBlob, "recording.webm");
+
+      fetch("/prep/api/submit-eo/", {
+        method: "POST",
+        headers: { "X-CSRFToken": getCsrf() },
+        body: fd,
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          loading.style.display = "none";
+          renderEoResult(resultDiv, data);
+        })
+        .catch(function () {
+          loading.style.display = "none";
+          resultDiv.innerHTML = "<p style=\"color:#e74c3c;\">Erreur réseau. Réessaie.</p>";
+          resultDiv.style.display = "";
+          submitBtn.disabled = false;
+        });
+    });
+  });
+
+  /* ── EE : textarea + correction ──────────────────────────── */
+  document.querySelectorAll(".exam-ee-card").forEach(function (card) {
+    var exId      = card.dataset.exerciseId;
+    var textarea  = card.querySelector(".exam-ee-textarea");
+    var counter   = card.querySelector(".exam-word-count");
+    var submitBtn = card.querySelector(".exam-submit-ee");
+    var loading   = card.querySelector(".exam-ee-loading");
+    var resultDiv = card.querySelector(".exam-ee-result");
+
+    textarea.addEventListener("input", function () {
+      counter.textContent = textarea.value.trim().split(/\s+/).filter(Boolean).length;
+    });
+
+    submitBtn.addEventListener("click", function () {
+      var text = textarea.value.trim();
+      if (!text) return;
+      submitBtn.disabled = true;
+      loading.style.display = "";
+      resultDiv.style.display = "none";
+
+      fetch("/prep/api/submit-ee/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrf(),
+        },
+        body: JSON.stringify({ exercise_id: parseInt(exId, 10), text: text }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          loading.style.display = "none";
+          textarea.readOnly = true;
+          textarea.style.opacity = ".6";
+          submitBtn.style.display = "none";
+          renderEeResult(resultDiv, data);
+        })
+        .catch(function () {
+          loading.style.display = "none";
+          resultDiv.innerHTML = "<p style=\"color:#e74c3c;\">Erreur réseau. Réessaie.</p>";
+          resultDiv.style.display = "";
+          submitBtn.disabled = false;
+        });
+    });
+  });
+
+})();
+</script>
+
+<script>
+/* ── RÉVISION CIBLÉE ──────────────────────────────────────── */
+(function () {
+  "use strict";
+
+  var wrongs = [];
+  document.querySelectorAll("[data-revision-id]").forEach(function (el) {
+    var opts = [];
+    ["A", "B", "C", "D"].forEach(function (letter) {
+      var val = el.dataset["revision" + letter];
+      if (val && val.trim()) opts.push({ letter: letter, text: val });
+    });
+    if (opts.length >= 2) {
+      wrongs.push({
+        id:       el.dataset.revisionId,
+        section:  el.dataset.revisionSection,
+        question: el.dataset.revisionQuestion,
+        options:  opts,
+        correct:  el.dataset.revisionCorrect,
+      });
+    }
+  });
+
+  var btnRevision = document.getElementById("btn-revision");
+  var panel       = document.getElementById("revision-panel");
+  var subtitle    = document.getElementById("revision-subtitle");
+  var questionsEl = document.getElementById("revision-questions");
+  var scoreEl     = document.getElementById("revision-score");
+  var btnSubmit   = document.getElementById("btn-revision-submit");
+  var btnRetry    = document.getElementById("btn-revision-retry");
+
+  if (!wrongs.length || !btnRevision) return;
+
+  btnRevision.style.display = "";
+  btnRevision.textContent = "🔁 Réviser mes " + wrongs.length
+    + " erreur" + (wrongs.length > 1 ? "s" : "");
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function shuffleArray(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function buildRevision(list) {
+    subtitle.textContent = list.length + " question"
+      + (list.length > 1 ? "s" : "") + " à retravailler";
+    scoreEl.style.display   = "none";
+    btnSubmit.style.display = "";
+    btnRetry.style.display  = "none";
+    questionsEl.innerHTML   = "";
+
+    list.forEach(function (q, idx) {
+      var tag = q.section === "co" ? "🎧 CO" : "📖 CE";
+      var html = "<div style=\"margin-bottom:1.25rem; padding:.85rem 1rem;"
+        + " border-radius:6px; background:rgba(255,255,255,.04);"
+        + " border:1px solid rgba(255,255,255,.1);\""
+        + " data-qid=\"" + escHtml(q.id) + "\""
+        + " data-correct=\"" + escHtml(q.correct) + "\">";
+
+      html += "<p style=\"font-weight:600; margin-bottom:.6rem; font-size:.9rem;\">"
+        + "<span style=\"opacity:.6; font-size:.8rem;\">" + tag + " &mdash; Q" + (idx + 1) + "</span><br>"
+        + escHtml(q.question) + "</p>";
+
+      html += "<div style=\"display:flex; flex-direction:column; gap:.4rem;\">";
+      shuffleArray(q.options).forEach(function (opt) {
+        html += "<label class=\"rev-opt\" style=\"display:flex; align-items:center;"
+          + " gap:.6rem; cursor:pointer; padding:.4rem .6rem; border-radius:5px;"
+          + " transition:background .15s; border:1px solid transparent;\">"
+          + "<input type=\"radio\" name=\"rev_" + escHtml(q.id)
+          + "\" value=\"" + escHtml(opt.letter)
+          + "\" style=\"accent-color:#3b82f6; flex-shrink:0;\">"
+          + "<span style=\"font-size:.88rem;\">" + escHtml(opt.text) + "</span>"
+          + "</label>";
+      });
+      html += "</div></div>";
+      questionsEl.innerHTML += html;
+    });
+  }
+
+  btnRevision.addEventListener("click", function () {
+    panel.style.display = "";
+    buildRevision(wrongs);
+    setTimeout(function () {
+      panel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  });
+
+  btnSubmit.addEventListener("click", function () {
+    var corrected = 0;
+    questionsEl.querySelectorAll("[data-qid]").forEach(function (qDiv) {
+      var correct = qDiv.dataset.correct;
+      var chosen  = qDiv.querySelector("input[type=radio]:checked");
+
+      qDiv.querySelectorAll(".rev-opt").forEach(function (label) {
+        var inp    = label.querySelector("input");
+        var letter = inp.value;
+        inp.disabled = true;
+        label.style.cursor = "default";
+        if (letter === correct) {
+          label.style.background  = "rgba(46,204,113,.18)";
+          label.style.borderColor = "#2ecc71";
+          label.style.paddingLeft = ".9rem";
+        } else if (chosen && chosen.value === letter) {
+          label.style.background  = "rgba(231,76,60,.15)";
+          label.style.borderColor = "#e74c3c";
+          label.style.paddingLeft = ".9rem";
+        }
+      });
+      if (chosen && chosen.value === correct) corrected++;
+    });
+
+    var pct   = Math.round(corrected / wrongs.length * 100);
+    var color = pct >= 70 ? "#2ecc71" : pct >= 50 ? "#f59e0b" : "#e74c3c";
+    scoreEl.innerHTML = "<strong style=\"color:" + color + "; font-size:1.35rem;\">"
+      + corrected + "/" + wrongs.length + "</strong>"
+      + " erreur" + (wrongs.length > 1 ? "s" : "") + " corrigée"
+      + (corrected > 1 ? "s" : "") + " (" + pct + "%)"
+      + (pct === 100 ? " &nbsp;🎉 Parfait !" : "");
+    scoreEl.style.display   = "";
+    btnSubmit.style.display = "none";
+    btnRetry.style.display  = "";
+  });
+
+  btnRetry.addEventListener("click", function () {
+    buildRevision(wrongs);
+  });
+
+})();
+</script>
+{% endblock %}
