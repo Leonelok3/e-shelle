@@ -300,3 +300,87 @@ expression orale et écrite. Résultats instantanés avec Immigration97.
 </section>
 
 {% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  "use strict";
+
+  // Compter les questions CO et CE rendues (4 radio par question)
+  const coInputs = document.querySelectorAll('input[type="radio"][name^="co_"]');
+  const ceInputs = document.querySelectorAll('input[type="radio"][name^="ce_"]');
+  const coQ = coInputs.length ? [...new Set([...coInputs].map(i => i.name))].length : 0;
+  const ceQ = ceInputs.length ? [...new Set([...ceInputs].map(i => i.name))].length : 0;
+
+  // Durée TEF/TCF : 40s par question CO, 90s par question CE + 60s buffer
+  const totalSeconds = (coQ * 40) + (ceQ * 90) + 60;
+  if (totalSeconds <= 60) return;
+
+  let remaining = totalSeconds;
+  const halfTime = Math.floor(totalSeconds / 2);
+  let alerted = false;
+
+  // Barre timer sticky
+  const bar = document.createElement("div");
+  bar.style.cssText = [
+    "position:fixed", "top:0", "left:0", "right:0", "z-index:9999",
+    "display:flex", "align-items:center", "justify-content:center", "gap:10px",
+    "padding:7px 16px", "font-size:.88rem", "font-weight:600",
+    "background:#1a1a2e", "color:#fff",
+    "box-shadow:0 2px 8px rgba(0,0,0,.35)",
+    "transition:background .5s"
+  ].join(";");
+
+  const display = document.createElement("span");
+  display.style.cssText = "font-size:1rem; font-variant-numeric:tabular-nums; letter-spacing:.06em;";
+
+  const hint = document.createElement("span");
+  hint.style.cssText = "font-size:.76rem; opacity:.65;";
+  hint.textContent = `CO×${coQ} (40s/q) · CE×${ceQ} (90s/q)`;
+
+  bar.innerHTML = "<span>⏱ Temps restant :</span>";
+  bar.append(display, hint);
+  document.body.prepend(bar);
+  document.body.style.paddingTop = "42px";
+
+  function fmt(s) {
+    const m = Math.floor(s / 60);
+    return m + ":" + String(s % 60).padStart(2, "0");
+  }
+
+  function tick() {
+    display.textContent = " " + fmt(remaining) + " ";
+
+    if (remaining === halfTime && !alerted) {
+      alerted = true;
+      bar.style.background = "#d35400";
+      hint.textContent = "⚡ Mi-temps — accélère !";
+    }
+    if (remaining <= Math.floor(totalSeconds * 0.2)) {
+      bar.style.background = "#c0392b";
+      hint.textContent = "🔴 Dépêche-toi !";
+    }
+
+    if (remaining <= 0) {
+      clearInterval(loop);
+      display.textContent = " 0:00 ";
+      hint.textContent = "⚠️ Temps écoulé — soumission dans 3s…";
+      bar.style.background = "#7b0000";
+      setTimeout(function () {
+        const form = document.getElementById("level-mock-form");
+        if (form) form.requestSubmit();
+      }, 3000);
+      return;
+    }
+    remaining--;
+  }
+
+  tick();
+  const loop = setInterval(tick, 1000);
+
+  document.getElementById("level-mock-form").addEventListener("submit", function () {
+    clearInterval(loop);
+  });
+})();
+</script>
+{% endblock %}
