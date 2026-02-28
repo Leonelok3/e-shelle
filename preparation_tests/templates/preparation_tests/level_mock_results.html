@@ -114,12 +114,24 @@ score CO, CE et estimation CECR personnalisée par Immigration97.
                 border-left: 3px solid {% if r.is_correct %}#2ecc71{% else %}#e74c3c{% endif %};
                 font-size:.85rem;
               ">
-                <strong>Q{{ forloop.counter }}</strong> —
-                Tu as répondu : <strong>{{ r.submitted|default:"—" }}</strong>
-                {% if not r.is_correct %}
-                  | Correct : <strong>{{ r.exercise.correct_option }}</strong>
+                <strong>Q{{ forloop.counter }}</strong> — {{ r.exercise.question_text }}
+                <br>
+                {% if r.is_correct %}
+                  ✅ <strong>{{ r.submitted }}</strong> — Bonne réponse
                 {% else %}
-                  ✅
+                  ❌ Ta réponse : <strong>{{ r.submitted|default:"(aucune)" }}</strong>
+                  &nbsp;|&nbsp;
+                  Correcte : <strong>{{ r.exercise.correct_option }}</strong> —
+                  {% if r.exercise.correct_option == "A" %}{{ r.exercise.option_a }}
+                  {% elif r.exercise.correct_option == "B" %}{{ r.exercise.option_b }}
+                  {% elif r.exercise.correct_option == "C" %}{{ r.exercise.option_c }}
+                  {% elif r.exercise.correct_option == "D" %}{{ r.exercise.option_d }}
+                  {% endif %}
+                {% endif %}
+                {% if r.exercise.summary and not r.is_correct %}
+                  <div style="margin-top:.35rem; padding:.3rem .5rem; background:rgba(0,0,0,.04); border-radius:4px; font-style:italic; color:#555;">
+                    💡 {{ r.exercise.summary }}
+                  </div>
                 {% endif %}
               </div>
               {% endfor %}
@@ -163,12 +175,24 @@ score CO, CE et estimation CECR personnalisée par Immigration97.
                 border-left: 3px solid {% if r.is_correct %}#2ecc71{% else %}#e74c3c{% endif %};
                 font-size:.85rem;
               ">
-                <strong>Q{{ forloop.counter }}</strong> —
-                Tu as répondu : <strong>{{ r.submitted|default:"—" }}</strong>
-                {% if not r.is_correct %}
-                  | Correct : <strong>{{ r.exercise.correct_option }}</strong>
+                <strong>Q{{ forloop.counter }}</strong> — {{ r.exercise.question_text }}
+                <br>
+                {% if r.is_correct %}
+                  ✅ <strong>{{ r.submitted }}</strong> — Bonne réponse
                 {% else %}
-                  ✅
+                  ❌ Ta réponse : <strong>{{ r.submitted|default:"(aucune)" }}</strong>
+                  &nbsp;|&nbsp;
+                  Correcte : <strong>{{ r.exercise.correct_option }}</strong> —
+                  {% if r.exercise.correct_option == "A" %}{{ r.exercise.option_a }}
+                  {% elif r.exercise.correct_option == "B" %}{{ r.exercise.option_b }}
+                  {% elif r.exercise.correct_option == "C" %}{{ r.exercise.option_c }}
+                  {% elif r.exercise.correct_option == "D" %}{{ r.exercise.option_d }}
+                  {% endif %}
+                {% endif %}
+                {% if r.exercise.summary and not r.is_correct %}
+                  <div style="margin-top:.35rem; padding:.3rem .5rem; background:rgba(0,0,0,.04); border-radius:4px; font-style:italic; color:#555;">
+                    💡 {{ r.exercise.summary }}
+                  </div>
                 {% endif %}
               </div>
               {% endfor %}
