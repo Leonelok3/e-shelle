@@ -113,7 +113,18 @@ score CO, CE et estimation CECR personnalisée par Immigration97.
                 background: {% if r.is_correct %}rgba(46,204,113,.1){% else %}rgba(231,76,60,.08){% endif %};
                 border-left: 3px solid {% if r.is_correct %}#2ecc71{% else %}#e74c3c{% endif %};
                 font-size:.85rem;
-              ">
+              "
+              {% if not r.is_correct %}
+              data-revision-section="co"
+              data-revision-id="{{ r.exercise.id }}"
+              data-revision-question="{{ r.exercise.question_text|escapejs }}"
+              data-revision-a="{{ r.exercise.option_a|escapejs }}"
+              data-revision-b="{{ r.exercise.option_b|escapejs }}"
+              data-revision-c="{{ r.exercise.option_c|escapejs }}"
+              data-revision-d="{{ r.exercise.option_d|escapejs }}"
+              data-revision-correct="{{ r.exercise.correct_option }}"
+              {% endif %}
+              >
                 <strong>Q{{ forloop.counter }}</strong> — {{ r.exercise.question_text }}
                 <br>
                 {% if r.is_correct %}
@@ -174,7 +185,18 @@ score CO, CE et estimation CECR personnalisée par Immigration97.
                 background: {% if r.is_correct %}rgba(46,204,113,.1){% else %}rgba(231,76,60,.08){% endif %};
                 border-left: 3px solid {% if r.is_correct %}#2ecc71{% else %}#e74c3c{% endif %};
                 font-size:.85rem;
-              ">
+              "
+              {% if not r.is_correct %}
+              data-revision-section="ce"
+              data-revision-id="{{ r.exercise.id }}"
+              data-revision-question="{{ r.exercise.question_text|escapejs }}"
+              data-revision-a="{{ r.exercise.option_a|escapejs }}"
+              data-revision-b="{{ r.exercise.option_b|escapejs }}"
+              data-revision-c="{{ r.exercise.option_c|escapejs }}"
+              data-revision-d="{{ r.exercise.option_d|escapejs }}"
+              data-revision-correct="{{ r.exercise.correct_option }}"
+              {% endif %}
+              >
                 <strong>Q{{ forloop.counter }}</strong> — {{ r.exercise.question_text }}
                 <br>
                 {% if r.is_correct %}
@@ -322,10 +344,43 @@ score CO, CE et estimation CECR personnalisée par Immigration97.
   </div>
 </section>
 
+<!-- RÉVISION CIBLÉE (panneau caché, affiché par JS si des erreurs existent) -->
+<section id="revision-panel" style="display:none;" class="pt-section">
+  <div class="container">
+    <article class="pt-card">
+
+      <h3 style="margin-bottom:.75rem;">🔁 Révision ciblée</h3>
+      <p class="pt-card-meta" style="margin-bottom:1.25rem;" id="revision-subtitle"></p>
+
+      <div id="revision-questions"></div>
+
+      <div id="revision-score"
+           style="display:none; margin-top:1.5rem; text-align:center;
+                  font-size:1.1rem; padding:.75rem; border-radius:8px;
+                  background:rgba(255,255,255,.05);"></div>
+
+      <div class="pt-cta-group" style="margin-top:1.25rem;">
+        <button id="btn-revision-submit" class="pt-btn-primary">
+          ✅ Valider mes réponses
+        </button>
+        <button id="btn-revision-retry" style="display:none;" class="pt-btn-secondary">
+          🔄 Recommencer la révision
+        </button>
+      </div>
+
+    </article>
+  </div>
+</section>
+
 <!-- ACTIONS -->
 <section class="pt-section pt-section--cta">
   <div class="container text-center">
     <div class="pt-cta-group">
+
+      {# Bouton révision — visible uniquement si des erreurs existent (géré par JS) #}
+      <button id="btn-revision" class="pt-btn-primary" style="display:none;">
+        🔁 Réviser mes erreurs
+      </button>
 
       <a
         href="{% url "preparation_tests:level_mock_exam" level %}"
@@ -613,6 +668,156 @@ score CO, CE et estimation CECR personnalisée par Immigration97.
           submitBtn.disabled = false;
         });
     });
+  });
+
+})();
+</script>
+
+<script>
+/* ── RÉVISION CIBLÉE ─────────────────────────────────────── */
+(function () {
+  "use strict";
+
+  /* Collecter les questions ratées via data-* attributes */
+  var wrongs = [];
+  document.querySelectorAll("[data-revision-id]").forEach(function (el) {
+    var opts = [];
+    ["A", "B", "C", "D"].forEach(function (letter) {
+      var val = el.dataset["revision" + letter];
+      if (val && val.trim()) opts.push({ letter: letter, text: val });
+    });
+    if (opts.length >= 2) {
+      wrongs.push({
+        id:       el.dataset.revisionId,
+        section:  el.dataset.revisionSection,
+        question: el.dataset.revisionQuestion,
+        options:  opts,
+        correct:  el.dataset.revisionCorrect,
+      });
+    }
+  });
+
+  var btnRevision = document.getElementById("btn-revision");
+  var panel       = document.getElementById("revision-panel");
+  var subtitle    = document.getElementById("revision-subtitle");
+  var questionsEl = document.getElementById("revision-questions");
+  var scoreEl     = document.getElementById("revision-score");
+  var btnSubmit   = document.getElementById("btn-revision-submit");
+  var btnRetry    = document.getElementById("btn-revision-retry");
+
+  if (!wrongs.length || !btnRevision) return;
+
+  /* Afficher le bouton */
+  btnRevision.style.display = "";
+  btnRevision.textContent = "🔁 Réviser mes " + wrongs.length
+    + " erreur" + (wrongs.length > 1 ? "s" : "");
+
+  /* ── Helpers ── */
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function shuffleArray(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  /* ── Construire le mini-examen ── */
+  function buildRevision(list) {
+    subtitle.textContent = list.length + " question"
+      + (list.length > 1 ? "s" : "") + " à retravailler (CO + CE mélangées)";
+    scoreEl.style.display  = "none";
+    btnSubmit.style.display = "";
+    btnRetry.style.display  = "none";
+    questionsEl.innerHTML   = "";
+
+    list.forEach(function (q, idx) {
+      var tag = q.section === "co" ? "🎧 CO" : "📖 CE";
+      var html = "<div style=\"margin-bottom:1.25rem; padding:.85rem 1rem;"
+        + " border-radius:6px; background:rgba(255,255,255,.04);"
+        + " border:1px solid rgba(255,255,255,.1);\""
+        + " data-qid=\"" + escHtml(q.id) + "\""
+        + " data-correct=\"" + escHtml(q.correct) + "\">";
+
+      html += "<p style=\"font-weight:600; margin-bottom:.6rem; font-size:.9rem;\">"
+        + "<span style=\"opacity:.6; font-size:.8rem;\">" + tag + " &mdash; Q" + (idx + 1) + "</span><br>"
+        + escHtml(q.question) + "</p>";
+
+      html += "<div style=\"display:flex; flex-direction:column; gap:.4rem;\">";
+      shuffleArray(q.options).forEach(function (opt) {
+        html += "<label class=\"rev-opt\" style=\"display:flex; align-items:center;"
+          + " gap:.6rem; cursor:pointer; padding:.4rem .6rem; border-radius:5px;"
+          + " transition:background .15s; border:1px solid transparent;\">"
+          + "<input type=\"radio\" name=\"rev_" + escHtml(q.id)
+          + "\" value=\"" + escHtml(opt.letter)
+          + "\" style=\"accent-color:#3b82f6; flex-shrink:0;\">"
+          + "<span style=\"font-size:.88rem;\">" + escHtml(opt.text) + "</span>"
+          + "</label>";
+      });
+      html += "</div></div>";
+
+      questionsEl.innerHTML += html;
+    });
+  }
+
+  /* ── Ouvrir la révision ── */
+  btnRevision.addEventListener("click", function () {
+    panel.style.display = "";
+    buildRevision(wrongs);
+    setTimeout(function () {
+      panel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  });
+
+  /* ── Valider les réponses ── */
+  btnSubmit.addEventListener("click", function () {
+    var corrected = 0;
+    questionsEl.querySelectorAll("[data-qid]").forEach(function (qDiv) {
+      var correct = qDiv.dataset.correct;
+      var chosen  = qDiv.querySelector("input[type=radio]:checked");
+
+      qDiv.querySelectorAll(".rev-opt").forEach(function (label) {
+        var inp    = label.querySelector("input");
+        var letter = inp.value;
+        inp.disabled = true;
+        label.style.cursor = "default";
+
+        if (letter === correct) {
+          label.style.background   = "rgba(46,204,113,.18)";
+          label.style.borderColor  = "#2ecc71";
+          label.style.paddingLeft  = ".9rem";
+        } else if (chosen && chosen.value === letter) {
+          label.style.background   = "rgba(231,76,60,.15)";
+          label.style.borderColor  = "#e74c3c";
+          label.style.paddingLeft  = ".9rem";
+        }
+      });
+
+      if (chosen && chosen.value === correct) corrected++;
+    });
+
+    var pct   = Math.round(corrected / wrongs.length * 100);
+    var color = pct >= 70 ? "#2ecc71" : pct >= 50 ? "#f59e0b" : "#e74c3c";
+    scoreEl.innerHTML = "<strong style=\"color:" + color + "; font-size:1.35rem;\">"
+      + corrected + "/" + wrongs.length + "</strong>"
+      + " erreur" + (wrongs.length > 1 ? "s" : "") + " corrigée"
+      + (corrected > 1 ? "s" : "") + " (" + pct + "%)"
+      + (pct === 100 ? " &nbsp;🎉 Parfait !" : "");
+    scoreEl.style.display = "";
+    btnSubmit.style.display = "none";
+    btnRetry.style.display  = "";
+  });
+
+  /* ── Recommencer ── */
+  btnRetry.addEventListener("click", function () {
+    buildRevision(wrongs);
   });
 
 })();
