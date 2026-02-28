@@ -22,7 +22,7 @@ urlpatterns = [
     path("fr/tef/", views.tef_hub, name="tef_hub"),
     path("fr/tcf/", views.tcf_hub, name="tcf_hub"),
     path("fr/delf/", views.delf_hub, name="delf_hub"),
-    path("fr/dalf/", views.delf_hub, name="dalf_hub"),
+    path("fr/dalf/", views.dalf_hub, name="dalf_hub"),
 
     # =====================================================
     # 🎧 HUB CO (Compréhension Orale) - CECR

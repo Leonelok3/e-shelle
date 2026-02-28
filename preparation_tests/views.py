@@ -172,6 +172,11 @@ def delf_hub(request):
     return render(request, "preparation_tests/fr_delf_hub.html")
 
 
+@login_required
+def dalf_hub(request):
+    return render(request, "preparation_tests/fr_dalf_hub.html")
+
+
 # =========================================================
 # 📚 EXAMENS
 # =========================================================
