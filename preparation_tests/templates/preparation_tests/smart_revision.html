@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{% block title %}
+Pack révision personnalisé — {{ weak_exam }} {{ weak_level }} | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Entraîne-toi sur ton point faible identifié automatiquement :
+{{ weak_section }} {{ weak_level }} {{ weak_exam }} (moy. {{ avg_score }}%).
+15 questions ciblées pour progresser rapidement.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260301">
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="pt-hero">
+  <div class="container pt-fade-up">
+
+    <span class="pt-badge pt-badge--exam">
+      🎯 Révision intelligente
+    </span>
+
+    <h1 class="pt-title">
+      Ton pack <span class="pt-gradient-primary">personnalisé</span>
+    </h1>
+
+    {% if no_data %}
+    <p class="pt-lead">
+      Tu n'as pas encore passé d'examen blanc officiel.
+      Passe au moins un examen pour obtenir ton pack de révision ciblé.
+    </p>
+    <div class="pt-cta-group" style="margin-top:1.2rem;">
+      <a href="{% url "preparation_tests:exam_format_hub" "tef" %}" class="pt-btn-primary">
+        🧪 Passer un examen TEF
+      </a>
+      <a href="{% url "preparation_tests:exam_format_hub" "tcf" %}" class="pt-btn-secondary">
+        🧪 Passer un examen TCF
+      </a>
+    </div>
+
+    {% elif submitted %}
+    <p class="pt-lead">
+      Pack terminé ! Voici tes résultats sur le point faible
+      <strong>{{ weak_section }} {{ weak_level }} {{ weak_exam }}</strong>.
+    </p>
+
+    {% else %}
+    <p class="pt-lead">
+      Basé sur <strong>{{ total_analyzed }} examen{{ total_analyzed|pluralize }}</strong> analysé{{ total_analyzed|pluralize }},
+      ton point faible est :
+      <span style="color:#ef4444; font-weight:700;">
+        {{ weak_section }} {{ weak_level }} {{ weak_exam }}
+      </span>
+      (moy. <strong>{{ avg_score }}%</strong>).
+    </p>
+
+    <div class="pt-badges" role="list" style="margin-top:.75rem;">
+      <span class="pt-badge pt-badge--soft" role="listitem">🎯 {{ exercises|length }} questions ciblées</span>
+      <span class="pt-badge pt-badge--soft" role="listitem">{{ weak_section }} · {{ weak_level }}</span>
+      <span class="pt-badge pt-badge--soft" role="listitem">{{ weak_exam }}</span>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- CONTENU PRINCIPAL -->
+<section class="pt-section">
+  <div class="container">
+
+    {% if no_data %}
+    <!-- Rien à afficher, CTA dans le hero -->
+
+    {% elif submitted %}
+    <!-- ── RÉSULTATS DU PACK ── -->
+    <article class="pt-card" style="text-align:center; margin-bottom:1.5rem;">
+      <div class="pt-score-circle">
+        <span>{{ pct }}%</span>
+      </div>
+      <p class="pt-score-eval" style="margin:.75rem 0 .25rem;">
+        {% if pct >= 80 %}
+          🚀 Excellent progrès — continue ainsi !
+        {% elif pct >= 60 %}
+          💪 Bon travail — encore quelques efforts sur ce point
+        {% else %}
+          📚 Continue l'entraînement — tu vas t'améliorer !
+        {% endif %}
+      </p>
+      <p class="pt-card-meta">
+        {{ correct }}/{{ total }} correcte{{ total|pluralize }}
+        &nbsp;·&nbsp; {{ weak_section }} {{ weak_level }} {{ weak_exam }}
+      </p>
+    </article>
+
+    <!-- Détail des corrections -->
+    <article class="pt-card">
+      <h3 style="margin-bottom:1rem;">📋 Corrections détaillées</h3>
+      {% for r in results_list %}
+      <div style="
+        padding:.65rem .9rem;
+        border-radius:6px;
+        margin-bottom:.5rem;
+        background: {% if r.is_correct %}rgba(46,204,113,.08){% else %}rgba(231,76,60,.07){% endif %};
+        border-left: 3px solid {% if r.is_correct %}#2ecc71{% else %}#e74c3c{% endif %};
+        font-size:.87rem;
+      ">
+        <strong>Q{{ forloop.counter }}</strong> — {{ r.exercise.question_text }}
+        <br>
+        {% if r.is_correct %}
+          ✅ <strong>{{ r.answer }}</strong> — Bonne réponse
+        {% else %}
+          ❌ Ta réponse : <strong>{{ r.answer|default:"(aucune)" }}</strong>
+          &nbsp;|&nbsp;
+          Correcte : <strong>{{ r.exercise.correct_option }}</strong> —
+          {% if r.exercise.correct_option == "A" %}{{ r.exercise.option_a }}
+          {% elif r.exercise.correct_option == "B" %}{{ r.exercise.option_b }}
+          {% elif r.exercise.correct_option == "C" %}{{ r.exercise.option_c }}
+          {% elif r.exercise.correct_option == "D" %}{{ r.exercise.option_d }}
+          {% endif %}
+          {% if r.exercise.summary %}
+          <div style="margin-top:.3rem; font-style:italic; color:#9ca3af; font-size:.82rem;">
+            💡 {{ r.exercise.summary }}
+          </div>
+          {% endif %}
+        {% endif %}
+      </div>
+      {% endfor %}
+    </article>
+
+    <!-- CTA après résultats -->
+    <div class="pt-cta-group" style="margin-top:1.25rem;">
+      <a href="{% url "preparation_tests:smart_revision" %}" class="pt-btn-primary">
+        🔄 Nouveau pack personnalisé
+      </a>
+      <a href="{% url "preparation_tests:exam_format_history" %}" class="pt-btn-secondary">
+        📈 Mon historique officiel
+      </a>
+      <a href="{% url "preparation_tests:dashboard_global" %}" class="pt-btn-ghost">
+        📊 Tableau de bord
+      </a>
+    </div>
+
+    {% else %}
+    <!-- ── FORMULAIRE DU PACK ── -->
+
+    <!-- Explication point faible -->
+    <div style="
+      background:rgba(239,68,68,.08);
+      border:1px solid rgba(239,68,68,.3);
+      border-radius:8px;
+      padding:.9rem 1.25rem;
+      margin-bottom:1.5rem;
+      font-size:.92rem;
+    ">
+      🔎 <strong>Point faible détecté :</strong>
+      {{ weak_section }} · {{ weak_level }} · {{ weak_exam }}
+      — Moyenne : <strong style="color:#ef4444;">{{ avg_score }}%</strong> sur tes {{ total_analyzed }} dernier{{ total_analyzed|pluralize }} examen{{ total_analyzed|pluralize }}.
+      <span style="opacity:.7; font-size:.85rem;">
+        Entraîne-toi sur ces {{ exercises|length }} questions ciblées pour progresser.
+      </span>
+    </div>
+
+    <form method="post" id="smart-revision-form">
+      {% csrf_token %}
+      {% for ex in exercises %}
+        <input type="hidden" name="exercise_ids" value="{{ ex.id }}">
+      {% endfor %}
+
+      {% for ex in exercises %}
+      <article class="pt-card pt-card--question" style="margin-bottom:1rem;">
+        <header class="pt-question-header">
+          <span class="pt-question-index">
+            {% if weak_section == "CO" %}🎧{% else %}📖{% endif %}
+            Q{{ forloop.counter }} / {{ exercises|length }}
+          </span>
+        </header>
+
+        {% if ex.audio_url and weak_section == "CO" %}
+        <div style="margin:.65rem 0;">
+          <audio controls src="{{ ex.audio_url }}" preload="none"
+                 style="width:100%; border-radius:6px;">
+            Votre navigateur ne supporte pas l'audio.
+          </audio>
+        </div>
+        {% endif %}
+
+        <p class="pt-question-text">{{ ex.question_text }}</p>
+
+        <div class="pt-choices">
+          {% if ex.option_a %}
+          <label class="pt-choice">
+            <input type="radio" name="q_{{ ex.id }}" value="A" required>
+            <span>{{ ex.option_a }}</span>
+          </label>
+          {% endif %}
+          {% if ex.option_b %}
+          <label class="pt-choice">
+            <input type="radio" name="q_{{ ex.id }}" value="B">
+            <span>{{ ex.option_b }}</span>
+          </label>
+          {% endif %}
+          {% if ex.option_c %}
+          <label class="pt-choice">
+            <input type="radio" name="q_{{ ex.id }}" value="C">
+            <span>{{ ex.option_c }}</span>
+          </label>
+          {% endif %}
+          {% if ex.option_d %}
+          <label class="pt-choice">
+            <input type="radio" name="q_{{ ex.id }}" value="D">
+            <span>{{ ex.option_d }}</span>
+          </label>
+          {% endif %}
+        </div>
+      </article>
+      {% empty %}
+      <div class="pt-card">
+        <p class="pt-empty">
+          Aucun exercice disponible pour ce niveau. Reviens bientôt — le contenu est en cours de mise à jour.
+        </p>
+      </div>
+      {% endfor %}
+
+      {% if exercises %}
+      <div class="pt-cta-group center" style="margin-top:1.5rem;">
+        <button type="submit" class="pt-btn-primary pt-btn-lg">
+          ✅ Valider mon entraînement
+        </button>
+        <a href="{% url "preparation_tests:exam_format_history" %}" class="pt-btn-ghost">
+          ← Retour à l'historique
+        </a>
+      </div>
+      {% endif %}
+
+    </form>
+
+    {% endif %}
+
+  </div>
+</section>
+
+{% endblock %}

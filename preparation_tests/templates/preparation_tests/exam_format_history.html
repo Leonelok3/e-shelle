@@ -44,16 +44,43 @@ et visualise ta progression avec ton score officiel.
     </p>
 
     <div class="pt-cta-group" style="margin-top:1.2rem;">
-      <a href="{% url "preparation_tests:exam_format_hub" "tef" %}" class="pt-btn-primary">
+      <a href="{% url "preparation_tests:smart_revision" %}" class="pt-btn-primary">
+        🎯 Mon pack révision personnalisé
+      </a>
+      <a href="{% url "preparation_tests:exam_format_hub" "tef" %}" class="pt-btn-secondary">
         🧪 Nouvel examen TEF
       </a>
-      <a href="{% url "preparation_tests:exam_format_hub" "tcf" %}" class="pt-btn-secondary">
+      <a href="{% url "preparation_tests:exam_format_hub" "tcf" %}" class="pt-btn-ghost">
         🧪 Nouvel examen TCF
       </a>
       <a href="{% url "preparation_tests:dashboard_global" %}" class="pt-btn-ghost">
         📊 Tableau de bord
       </a>
     </div>
+
+    {% if user.is_authenticated %}
+    <div id="notif-optin" style="display:none; margin-top:.75rem;">
+      <button id="btn-notif" class="pt-btn-ghost" style="font-size:.85rem;">
+        🔔 Activer les rappels quotidiens
+      </button>
+    </div>
+    <script>
+    if ('Notification' in window && Notification.permission === 'default') {
+      document.getElementById('notif-optin').style.display = '';
+      document.getElementById('btn-notif').addEventListener('click', function() {
+        Notification.requestPermission().then(function(p) {
+          document.getElementById('notif-optin').style.display = 'none';
+          if (p === 'granted') {
+            new Notification('Immigration97', {
+              body: 'Rappels activés ! Bonne préparation.',
+              icon: '/static/img/LOGOIMM97.png'
+            });
+          }
+        });
+      });
+    }
+    </script>
+    {% endif %}
 
   </div>
 </section>

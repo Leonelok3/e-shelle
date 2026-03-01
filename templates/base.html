@@ -402,7 +402,23 @@ document.addEventListener("DOMContentLoaded", function () {
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function () {});
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function (reg) {
+
+      /* ── Tracker dernière visite sur /prep/ ── */
+      if (location.pathname.startsWith('/prep/')) {
+        localStorage.setItem('imm97_last_practice', Date.now());
+      }
+
+      /* ── Rappel si >23h d'inactivité et permission accordée ── */
+      if ('Notification' in window && Notification.permission === 'granted') {
+        var last = parseInt(localStorage.getItem('imm97_last_practice') || '0', 10);
+        if (last && Date.now() - last > 23 * 3600 * 1000) {
+          var sw = reg.active || reg.installing || reg.waiting;
+          if (sw) sw.postMessage({ type: 'SHOW_REMINDER' });
+        }
+      }
+
+    }).catch(function () {});
   });
 }
 </script>

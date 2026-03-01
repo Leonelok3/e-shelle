@@ -307,6 +307,52 @@ score officiel, analyse CECR et correction IA EO/EE.
   </div>
 </section>
 
+<!-- CARTE DE PARTAGE -->
+<section class="pt-section">
+  <div class="container">
+    <article class="pt-card" style="text-align:center;">
+      <h3 style="margin-bottom:1rem;">📤 Partager mon résultat</h3>
+
+      <div id="share-card" style="
+        max-width:460px; margin:1rem auto;
+        background:linear-gradient(135deg,#0f172a 0%,#1a2744 100%);
+        border:2px solid #22c55e; border-radius:16px;
+        padding:2rem 1.5rem; color:#fff; text-align:center;
+      ">
+        <p style="font-size:.7rem; letter-spacing:.12em; opacity:.5; margin-bottom:.75rem; text-transform:uppercase;">
+          Immigration97 · Simulation Officielle
+        </p>
+        <div style="font-size:3rem; font-weight:800; color:#22c55e; line-height:1;">
+          {{ scores.cefr_global }}
+        </div>
+        <p style="font-size:.95rem; opacity:.85; margin:.5rem 0;">
+          {{ cfg.name }} · Niveau {{ level }}
+        </p>
+        <div style="font-size:1.6rem; font-weight:700; color:#fff; margin:.5rem 0;">
+          {{ scores.global_pct }}%
+          {% if scores.unit == "pts" %}
+            <span style="font-size:.9rem; opacity:.7; font-weight:400;">
+              · {{ scores.global }}/{{ scores.global_max }} pts
+            </span>
+          {% endif %}
+        </div>
+        <p style="font-size:.68rem; opacity:.4; margin-top:1.25rem; letter-spacing:.04em;">
+          immigration97.com · Prépare ton immigration au Canada 🇨🇦
+        </p>
+      </div>
+
+      <div style="display:flex; justify-content:center; gap:.75rem; flex-wrap:wrap; margin-top:.75rem;">
+        <button id="btn-share-result" class="pt-btn-primary" style="font-size:.88rem;">
+          📤 Partager
+        </button>
+        <button id="btn-download-card" class="pt-btn-secondary" style="font-size:.88rem;">
+          💾 Télécharger la carte
+        </button>
+      </div>
+    </article>
+  </div>
+</section>
+
 <!-- EO + EE : évaluation IA -->
 <section class="pt-section">
   <div class="container">
@@ -495,6 +541,58 @@ score officiel, analyse CECR et correction IA EO/EE.
 {% endblock %}
 
 {% block extra_js %}
+<script>
+/* ── Partage résultat + téléchargement carte ─────────────── */
+(function () {
+  "use strict";
+  var shareBtn = document.getElementById("btn-share-result");
+  var dlBtn    = document.getElementById("btn-download-card");
+  if (!shareBtn) return;
+
+  var shareText = "J'ai obtenu {{ scores.cefr_global }} au {{ cfg.name }} simulé"
+    + " ({{ scores.global_pct }}%) ! Prépare-toi aussi sur immigration97.com \uD83C\uDDE8\uD83C\uDDE6";
+
+  shareBtn.addEventListener("click", function () {
+    if (navigator.share) {
+      navigator.share({
+        title: "Mon résultat {{ cfg.name }}",
+        text: shareText,
+      }).catch(function () {});
+    } else {
+      navigator.clipboard.writeText(shareText).then(function () {
+        shareBtn.textContent = "✅ Copié !";
+        setTimeout(function () { shareBtn.textContent = "📤 Partager"; }, 2500);
+      }).catch(function () {
+        prompt("Copie ce texte :", shareText);
+      });
+    }
+  });
+
+  dlBtn.addEventListener("click", function () {
+    var origText = dlBtn.textContent;
+    dlBtn.textContent = "⏳ Génération…";
+    dlBtn.disabled = true;
+    var s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
+    s.onload = function () {
+      html2canvas(document.getElementById("share-card"), {
+        scale: 2.5,
+        backgroundColor: "#0f172a",
+        useCORS: true,
+      }).then(function (canvas) {
+        var a = document.createElement("a");
+        a.download = "resultat-{{ cfg.name|lower }}-{{ level }}.png";
+        a.href = canvas.toDataURL("image/png");
+        a.click();
+        dlBtn.textContent = origText;
+        dlBtn.disabled = false;
+      });
+    };
+    document.head.appendChild(s);
+  });
+})();
+</script>
+
 <script>
 (function () {
   "use strict";

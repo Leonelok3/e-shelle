@@ -175,6 +175,11 @@ urlpatterns = [
         name="exam_format_history",
     ),
     path(
+        "fr/revision-intelligente/",
+        views_mock_exam_format.smart_revision,
+        name="smart_revision",
+    ),
+    path(
         "fr/<str:exam_code>/examen/",
         views_mock_exam_format.exam_format_hub,
         name="exam_format_hub",

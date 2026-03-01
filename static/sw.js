@@ -37,6 +37,26 @@ self.addEventListener('activate', function (event) {
   self.clients.claim();
 });
 
+/* ── Notifications : click + déclenchement depuis page ─ */
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close();
+  var url = (event.notification.data && event.notification.data.url) || '/prep/fr/';
+  event.waitUntil(clients.openWindow(url));
+});
+
+self.addEventListener('message', function (event) {
+  if (event.data && event.data.type === 'SHOW_REMINDER') {
+    self.registration.showNotification('Immigration97 — Entraîne-toi !', {
+      body: 'Tu n\'as pas pratiqué depuis plus de 23h. Un exercice rapide ?',
+      icon: '/static/img/LOGOIMM97.png',
+      badge: '/static/img/LOGOIMM97.png',
+      tag: 'daily-reminder',
+      renotify: false,
+      data: { url: '/prep/fr/' },
+    });
+  }
+});
+
 /* ── Fetch : Network-First ──────────────────────────── */
 self.addEventListener('fetch', function (event) {
   /* Ne traiter que les GET */

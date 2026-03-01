@@ -375,7 +375,7 @@ def exam_format_exam(request, exam_code: str, level: str):
         )
 
         # ── Sauvegarder le résultat en base ──────────────────────
-        ExamFormatResult.objects.create(
+        saved_result = ExamFormatResult.objects.create(
             user=request.user,
             exam_code=exam_code,
             level=level,
@@ -427,6 +427,7 @@ def exam_format_exam(request, exam_code: str, level: str):
             "scores": scores,
             "eo_items": eo_items,
             "ee_items": ee_items,
+            "result_id": saved_result.id,
         })
 
     # ── GET : préparer l'examen ───────────────────────────────────────────────
@@ -492,4 +493,83 @@ def exam_format_history(request):
         "results": results,
         "chart_datasets_json": json.dumps(chart_datasets),
         "total_count": results.count(),
+    })
+
+
+# ─── PACK RÉVISION INTELLIGENT ────────────────────────────────────────────────
+
+@login_required
+def smart_revision(request):
+    """Analyse les 20 derniers ExamFormatResult → cible le point le plus faible
+    → génère un pack de 15 exercices ciblés."""
+    from collections import defaultdict
+
+    last_results = list(
+        ExamFormatResult.objects.filter(user=request.user).order_by("-taken_at")[:20]
+    )
+
+    if not last_results:
+        return render(request, "preparation_tests/smart_revision.html", {"no_data": True})
+
+    # ── Calcul des moyennes CO + CE par (exam_code, level) ──
+    smap: dict = defaultdict(lambda: {"co": [], "ce": []})
+    for r in last_results:
+        smap[(r.exam_code, r.level)]["co"].append(r.co_pct)
+        smap[(r.exam_code, r.level)]["ce"].append(r.ce_pct)
+
+    weakest_key = None
+    weakest_score = 101.0
+    weakest_section = "co"
+    for key, vals in smap.items():
+        avg_co = sum(vals["co"]) / len(vals["co"])
+        avg_ce = sum(vals["ce"]) / len(vals["ce"])
+        if avg_co < weakest_score:
+            weakest_score, weakest_key, weakest_section = avg_co, key, "co"
+        if avg_ce < weakest_score:
+            weakest_score, weakest_key, weakest_section = avg_ce, key, "ce"
+
+    if weakest_key is None:
+        return render(request, "preparation_tests/smart_revision.html", {"no_data": True})
+
+    weak_exam_code, weak_level = weakest_key
+    weak_exam_name = EXAM_CONFIGS.get(weak_exam_code, {}).get("name", weak_exam_code)
+    exercises = _pick_exercises(weakest_section, weak_level, 15)
+
+    # ── POST : correction du pack soumis ──
+    if request.method == "POST":
+        ids = request.POST.getlist("exercise_ids")
+        ex_objs = {
+            str(e.id): e
+            for e in CourseExercise.objects.filter(id__in=ids).select_related("lesson")
+        }
+        exs_ordered = [ex_objs[i] for i in ids if i in ex_objs]
+        correct = 0
+        rev = []
+        for ex in exs_ordered:
+            ans = request.POST.get(f"q_{ex.id}", "").upper()
+            is_ok = ans == ex.correct_option.upper()
+            if is_ok:
+                correct += 1
+            rev.append({"exercise": ex, "answer": ans, "is_correct": is_ok})
+
+        return render(request, "preparation_tests/smart_revision.html", {
+            "submitted": True,
+            "results_list": rev,
+            "correct": correct,
+            "total": len(rev),
+            "pct": round(correct / max(len(rev), 1) * 100),
+            "weak_exam": weak_exam_name,
+            "weak_level": weak_level,
+            "weak_section": weakest_section.upper(),
+            "avg_score": round(weakest_score),
+        })
+
+    # ── GET : afficher le pack ──
+    return render(request, "preparation_tests/smart_revision.html", {
+        "exercises": exercises,
+        "weak_exam": weak_exam_name,
+        "weak_level": weak_level,
+        "weak_section": weakest_section.upper(),
+        "avg_score": round(weakest_score),
+        "total_analyzed": len(last_results),
     })
