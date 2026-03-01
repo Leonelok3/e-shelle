@@ -25,6 +25,7 @@ class GermanExam(models.Model):
         ("TESTDAF", "TestDaF"),
         ("DSH", "DSH"),
         ("GENERAL", "Général / Visa"),
+        ("INTEGRATION", "Test d'intégration"),
     ]
 
     title = models.CharField(max_length=255)
@@ -266,6 +267,7 @@ class GermanUserProfile(models.Model):
         self.level = self.compute_level()
         self.badges = self.compute_badges()
         self.save()
+        return gained_xp
 
     def compute_level(self) -> int:
         xp = self.xp

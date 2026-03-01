@@ -8,9 +8,10 @@ from openai import OpenAI, OpenAIError
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-
+from django.contrib import messages
 
 from .models import (
+    GERMAN_LEVEL_CHOICES,
     GermanExam,
     GermanLesson,
     GermanExercise,
@@ -337,9 +338,8 @@ def take_practice_test(request, exam_id):
             session_id=session.id
         )
 
-    # -------------------------
     # GET → afficher le test
-    # -------------------------
+
     context = {
         "exam": exam,
         "exercises": exercises,
@@ -367,7 +367,7 @@ def german_test_result(request, session_id):
     )
     exam = session.exam
 
-    answers = session.answers.select_related("exercise")
+    answers = session.answers.select_related("exercise__lesson")
     total = answers.count()
     correct_answers = answers.filter(is_correct=True).count()
     incorrect_answers = total - correct_answers
@@ -397,10 +397,10 @@ def german_test_result(request, session_id):
 
     # Stats par compétence
     skill_stats = {}
-    label_map = dict(getattr(GermanExercise, "SKILL_CHOICES", []))
+    label_map = dict(GermanLesson.SKILL_CHOICES)
 
     for ans in answers:
-        skill = ans.exercise.skill
+        skill = ans.exercise.lesson.skill
         stat = skill_stats.setdefault(skill, {"total": 0, "correct": 0})
         stat["total"] += 1
         if ans.is_correct:
@@ -484,7 +484,7 @@ def german_skill_analysis(request, session_id):
     )
     answers = (
         session.answers
-        .select_related("exercise")
+        .select_related("exercise__lesson")
     )
 
     if not answers.exists():
@@ -496,10 +496,10 @@ def german_skill_analysis(request, session_id):
         return redirect("germanprep:progress_dashboard")
 
     skill_stats = {}
-    label_map = dict(getattr(GermanExercise, "SKILL_CHOICES", []))
+    label_map = dict(GermanLesson.SKILL_CHOICES)
 
     for ans in answers:
-        skill = ans.exercise.skill
+        skill = ans.exercise.lesson.skill
         data = skill_stats.setdefault(skill, {"total": 0, "correct": 0})
         data["total"] += 1
         if ans.is_correct:
@@ -719,8 +719,8 @@ def _compute_german_level_stats(user):
 
     stats = {}
 
-    # On boucle sur les niveaux définis dans GermanExam.LEVEL_CHOICES
-    for level_code, level_label in getattr(GermanExam, "LEVEL_CHOICES", []):
+    # On boucle sur les niveaux CECRL A1–C2
+    for level_code, level_label in GERMAN_LEVEL_CHOICES:
         sub = qs.filter(exam__level=level_code)
         if not sub.exists():
             continue
@@ -910,67 +910,6 @@ def german_exam_hub(request):
     return render(request, "german/german_exam_hub.html", context)
 
 
-@login_required
-def german_exam_learning_path(request, exam_slug):
-    """
-    Page 'Cours & exercices' pour un examen d’allemand donné.
-    Affiche toutes les leçons (GermanLesson) + exercices associés,
-    idéal pour suivre un parcours structuré par skills.
-    """
-    from .models import GermanExam, GermanLesson
-
-    exam = get_object_or_404(GermanExam, slug=exam_slug, is_active=True)
-
-    lessons = (
-        GermanLesson.objects
-        .filter(exam=exam)
-        .prefetch_related("exercises", "resources")
-        .order_by("skill", "order", "title")
-    )
-
-    context = {
-        "exam": exam,
-        "lessons": lessons,
-    }
-    return render(request, "german/exam_learning_path.html", context)
-
-
-@login_required
-def german_exam_hub(request):
-    """
-    Hub marketing exam d’allemand :
-    - Goethe / telc / TestDaF / DSH / Intégration
-    - liens rapides vers les examens et simulations
-    """
-    from .models import GermanExam, GermanTestSession
-
-    profile = _get_or_create_profile(request.user)
-
-    total_sessions = GermanTestSession.objects.filter(user=request.user).count()
-    last_sessions = (
-        GermanTestSession.objects
-        .filter(user=request.user)
-        .select_related("exam")
-        .order_by("-started_at")[:5]
-    )
-
-    goethe_exams = GermanExam.objects.filter(is_active=True, exam_type="GOETHE")
-    telc_exams = GermanExam.objects.filter(is_active=True, exam_type="TELC")
-    testdaf_exams = GermanExam.objects.filter(is_active=True, exam_type="TESTDAF")
-    dsh_exams = GermanExam.objects.filter(is_active=True, exam_type="DSH")
-    integration_exams = GermanExam.objects.filter(is_active=True, exam_type="INTEGRATION")
-
-    context = {
-        "profile": profile,
-        "total_sessions": total_sessions,
-        "last_sessions": last_sessions,
-        "goethe_exams": goethe_exams,
-        "telc_exams": telc_exams,
-        "testdaf_exams": testdaf_exams,
-        "dsh_exams": dsh_exams,
-        "integration_exams": integration_exams,
-    }
-    return render(request, "german/german_exam_hub.html", context)
 @login_required
 def german_exam_learning_path(request, exam_slug):
     """
