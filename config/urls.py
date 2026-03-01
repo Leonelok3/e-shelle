@@ -1,10 +1,23 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.http import FileResponse
 from django.shortcuts import render
 from django.urls import path, include
 from django.views.generic import RedirectView
-from django.shortcuts import render
+from django.contrib.staticfiles import finders
+
+
+def _serve_sw(request):
+    """Sert sw.js depuis /sw.js (scope root pour le Service Worker)."""
+    path = finders.find('sw.js')
+    if not path:
+        from django.http import Http404
+        raise Http404
+    resp = FileResponse(open(path, 'rb'), content_type='application/javascript')
+    resp['Service-Worker-Allowed'] = '/'
+    resp['Cache-Control'] = 'no-cache'
+    return resp
 
 def about_page(request):
     return render(request, "about.html")
@@ -34,6 +47,7 @@ sitemaps = {"actualite": NewsItemSitemap}
 
 
 urlpatterns = [
+    path("sw.js", _serve_sw, name="service_worker"),
     path("admin/", admin.site.urls),
     path("", home, name="home"),
 

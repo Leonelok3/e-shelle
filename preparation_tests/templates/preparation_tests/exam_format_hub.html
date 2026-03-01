@@ -48,6 +48,24 @@ Sélectionne ton niveau CECR et commence la simulation.
 <!-- SÉLECTION DU NIVEAU -->
 <section class="pt-section">
   <div class="container">
+
+    {% if not has_premium and not has_temp_access %}
+    <div style="
+      background:rgba(245,158,11,.1);
+      border:1px solid #f59e0b;
+      border-radius:8px;
+      padding:.9rem 1.25rem;
+      margin-bottom:1.25rem;
+      font-size:.92rem;
+    ">
+      🔒 Les examens blancs format officiel sont réservés aux abonnés Premium.
+      <a href="{% url 'billing:access' %}"
+         style="color:#f59e0b; font-weight:600; margin-left:.5rem;">
+        → Activer mon accès Premium
+      </a>
+    </div>
+    {% endif %}
+
     <div class="pt-grid-layout">
 
       <!-- MAIN -->
@@ -69,6 +87,7 @@ Sélectionne ton niveau CECR et commence la simulation.
               </div>
 
               {% if ld.can_start %}
+                {% if has_premium or has_temp_access %}
                 <a
                   href="{% url "preparation_tests:exam_format_exam" exam_code ld.level %}"
                   class="pt-btn-primary"
@@ -77,6 +96,16 @@ Sélectionne ton niveau CECR et commence la simulation.
                 >
                   ▶ Démarrer {{ ld.level }}
                 </a>
+                {% else %}
+                <a
+                  href="{% url 'billing:access' %}?next={% url 'preparation_tests:exam_format_exam' exam_code ld.level %}"
+                  class="pt-btn-primary"
+                  style="font-size:.85rem; margin-top:.5rem;"
+                  aria-label="Accès Premium requis pour {{ cfg.name }} niveau {{ ld.level }}"
+                >
+                  🔒 Premium — {{ ld.level }}
+                </a>
+                {% endif %}
               {% else %}
                 <span
                   class="pt-btn-ghost"

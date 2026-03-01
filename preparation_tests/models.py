@@ -574,3 +574,58 @@ class MockExamResult(models.Model):
 
     def __str__(self):
         return f"{self.user} — {self.level} — {self.score_global}% ({self.taken_at:%Y-%m-%d})"
+
+
+# =====================================================
+# 🏆 RÉSULTATS EXAMENS BLANCS FORMAT OFFICIEL
+# TEF / TCF / DELF / DALF
+# =====================================================
+
+class ExamFormatResult(models.Model):
+    """
+    Enregistre le résultat d'un examen blanc format officiel.
+    Un enregistrement par passage POST de exam_format_exam.
+    """
+    EXAM_CHOICES = [
+        ("tef", "TEF Canada"),
+        ("tcf", "TCF Canada"),
+        ("delf", "DELF"),
+        ("dalf", "DALF"),
+    ]
+    LEVEL_CHOICES = [
+        ("A1", "A1"), ("A2", "A2"),
+        ("B1", "B1"), ("B2", "B2"),
+        ("C1", "C1"), ("C2", "C2"),
+    ]
+
+    user         = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="exam_format_results",
+    )
+    exam_code    = models.CharField(max_length=6, choices=EXAM_CHOICES, db_index=True)
+    level        = models.CharField(max_length=2, choices=LEVEL_CHOICES, db_index=True)
+    co_correct   = models.PositiveIntegerField(default=0)
+    co_total     = models.PositiveIntegerField(default=0)
+    ce_correct   = models.PositiveIntegerField(default=0)
+    ce_total     = models.PositiveIntegerField(default=0)
+    co_pct       = models.PositiveIntegerField(default=0)
+    ce_pct       = models.PositiveIntegerField(default=0)
+    global_pct   = models.PositiveIntegerField(default=0)
+    co_score     = models.PositiveIntegerField(default=0)   # brut (0-450 TEF, 0-25 DELF…)
+    ce_score     = models.PositiveIntegerField(default=0)
+    global_score = models.PositiveIntegerField(default=0)   # co_score + ce_score
+    score_max    = models.PositiveIntegerField(default=50)  # 450, 699, 50 selon exam
+    cefr_co      = models.CharField(max_length=10, blank=True)
+    cefr_ce      = models.CharField(max_length=10, blank=True)
+    cefr_global  = models.CharField(max_length=10, blank=True)
+    passed       = models.BooleanField(null=True, blank=True)  # None=TEF/TCF, T/F=DELF/DALF
+    taken_at     = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-taken_at"]
+        verbose_name = "Résultat examen officiel"
+        verbose_name_plural = "Résultats examens officiels"
+
+    def __str__(self):
+        return f"{self.user} — {self.get_exam_code_display()} {self.level} — {self.global_pct}% ({self.taken_at:%Y-%m-%d})"

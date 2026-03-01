@@ -18,6 +18,7 @@ URLs :
 """
 from __future__ import annotations
 
+import json
 import random
 from collections import defaultdict
 
@@ -25,7 +26,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import render
 
-from .models import CourseLesson, CourseExercise
+from billing.decorators import subscription_required
+
+from .models import CourseLesson, CourseExercise, ExamFormatResult
 
 # ─── CONFIGURATION OFFICIELLE PAR EXAMEN ──────────────────────────────────────
 
@@ -118,6 +121,52 @@ def _pick_exercises(section: str, level: str, count: int) -> list:
     )
     random.shuffle(all_exs)
     return all_exs[:count]
+
+
+_LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C1", "C2"]
+
+
+def _pick_tcf_exercises(section: str, level: str, count: int) -> list:
+    """TCF adaptatif simulé : mix 30% niveau-1 + 40% niveau-cible + 30% niveau+1.
+
+    Simule la progression adaptative du TCF réel (questions s'ajustent selon le niveau).
+    Fallback sur le niveau courant si les niveaux adjacents n'ont pas assez d'exercices.
+    """
+    try:
+        idx = _LEVEL_ORDER.index(level)
+    except ValueError:
+        idx = 2  # défaut B1
+
+    lower_lv = _LEVEL_ORDER[idx - 1] if idx > 0 else level
+    upper_lv = _LEVEL_ORDER[idx + 1] if idx < len(_LEVEL_ORDER) - 1 else level
+
+    n_lower = round(count * 0.30)
+    n_upper = round(count * 0.30)
+    n_current = count - n_lower - n_upper
+
+    def _fetch(lv: str, n: int) -> list:
+        exs = list(
+            CourseExercise.objects.filter(
+                lesson__section=section,
+                lesson__level=lv,
+                lesson__is_published=True,
+                is_active=True,
+            ).select_related("lesson")
+        )
+        random.shuffle(exs)
+        return exs[:n]
+
+    lower_exs = _fetch(lower_lv, n_lower) if lower_lv != level else []
+    upper_exs = _fetch(upper_lv, n_upper) if upper_lv != level else []
+
+    # Overpick au niveau courant pour combler les manques
+    current_exs = _fetch(level, count)
+    picked_ids = {ex.id for ex in lower_exs + upper_exs}
+    current_fill = [ex for ex in current_exs if ex.id not in picked_ids]
+
+    result = lower_exs + upper_exs + current_fill[:n_current + (n_lower - len(lower_exs)) + (n_upper - len(upper_exs))]
+    random.shuffle(result)
+    return result[:count]
 
 
 def _group_by_lesson(exercises: list) -> list:
@@ -262,7 +311,7 @@ def exam_format_hub(request, exam_code: str):
     })
 
 
-@login_required
+@subscription_required
 def exam_format_exam(request, exam_code: str, level: str):
     """Examen blanc format officiel : GET → formulaire, POST → résultats."""
     if exam_code not in EXAM_CONFIGS:
@@ -325,6 +374,28 @@ def exam_format_exam(request, exam_code: str, level: str):
             ce_correct, len(ce_exercises),
         )
 
+        # ── Sauvegarder le résultat en base ──────────────────────
+        ExamFormatResult.objects.create(
+            user=request.user,
+            exam_code=exam_code,
+            level=level,
+            co_correct=co_correct,
+            co_total=len(co_exercises),
+            ce_correct=ce_correct,
+            ce_total=len(ce_exercises),
+            co_pct=scores["co_pct"],
+            ce_pct=scores["ce_pct"],
+            global_pct=scores["global_pct"],
+            co_score=scores["co_score"],
+            ce_score=scores["ce_score"],
+            global_score=scores["global"],
+            score_max=scores["global_max"],
+            cefr_co=scores["cefr_co"],
+            cefr_ce=scores["cefr_ce"],
+            cefr_global=scores["cefr_global"],
+            passed=scores["passed"],
+        )
+
         # EO / EE (pour affichage résultats + correction IA)
         eo_ids = request.POST.getlist("eo_exercise_ids")
         ee_ids = request.POST.getlist("ee_exercise_ids")
@@ -359,8 +430,12 @@ def exam_format_exam(request, exam_code: str, level: str):
         })
 
     # ── GET : préparer l'examen ───────────────────────────────────────────────
-    co_exercises = _pick_exercises("co", level, cfg["co_count"])
-    ce_exercises = _pick_exercises("ce", level, cfg["ce_count"])
+    if exam_code == "tcf":
+        co_exercises = _pick_tcf_exercises("co", level, cfg["co_count"])
+        ce_exercises = _pick_tcf_exercises("ce", level, cfg["ce_count"])
+    else:
+        co_exercises = _pick_exercises("co", level, cfg["co_count"])
+        ce_exercises = _pick_exercises("ce", level, cfg["ce_count"])
     co_groups = _group_by_lesson(co_exercises)
     ce_groups = _group_by_lesson(ce_exercises)
     eo_items = _pick_eo_items(level, cfg.get("eo_count", 1))
@@ -382,4 +457,39 @@ def exam_format_exam(request, exam_code: str, level: str):
         "ee_items": ee_items,
         "total_min": total_min,
         "timer_sec": timer_sec,
+        "is_tcf_adaptive": exam_code == "tcf",
+    })
+
+
+# ─── HISTORIQUE ───────────────────────────────────────────────────────────────
+
+@login_required
+def exam_format_history(request):
+    """Historique de tous les examens blancs format officiel de l'utilisateur."""
+    results = ExamFormatResult.objects.filter(user=request.user)
+
+    # Construction des datasets Chart.js — 1 série par exam_code
+    _COLORS = {
+        "tef":  "#3b82f6",
+        "tcf":  "#22c55e",
+        "delf": "#f59e0b",
+        "dalf": "#a855f7",
+    }
+    chart_datasets: dict = {}
+    for r in results:
+        label = r.get_exam_code_display()
+        if label not in chart_datasets:
+            chart_datasets[label] = {
+                "color": _COLORS.get(r.exam_code, "#888"),
+                "data": [],
+            }
+        chart_datasets[label]["data"].append({
+            "x": r.taken_at.strftime("%d/%m"),
+            "y": r.global_pct,
+        })
+
+    return render(request, "preparation_tests/exam_format_history.html", {
+        "results": results,
+        "chart_datasets_json": json.dumps(chart_datasets),
+        "total_count": results.count(),
     })

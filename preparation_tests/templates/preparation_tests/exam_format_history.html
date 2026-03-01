@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+{% block app_scope %}preparation-tests{% endblock %}
+
+{% block title %}
+Mon historique — Examens blancs officiels TEF/TCF/DELF/DALF | Immigration97
+{% endblock %}
+
+{% block meta_description %}
+Consulte l'historique de tes examens blancs format officiel (TEF, TCF, DELF, DALF)
+et visualise ta progression avec ton score officiel.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260301">
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="pt-hero">
+  <div class="container pt-fade-up">
+
+    <span class="pt-badge pt-badge--exam">
+      📈 Historique officiel
+    </span>
+
+    <h1 class="pt-title">
+      Mes résultats
+      <span class="pt-gradient-primary">TEF · TCF · DELF · DALF</span>
+    </h1>
+
+    <p class="pt-lead">
+      {% if total_count %}
+        <strong>{{ total_count }}</strong> examen{{ total_count|pluralize }} officiel{{ total_count|pluralize }}
+        passé{{ total_count|pluralize }}.
+        Visualise ta progression et identifie les examens à améliorer.
+      {% else %}
+        Tu n'as pas encore passé d'examen blanc format officiel.
+        Lance-toi — chaque résultat est sauvegardé ici.
+      {% endif %}
+    </p>
+
+    <div class="pt-cta-group" style="margin-top:1.2rem;">
+      <a href="{% url "preparation_tests:exam_format_hub" "tef" %}" class="pt-btn-primary">
+        🧪 Nouvel examen TEF
+      </a>
+      <a href="{% url "preparation_tests:exam_format_hub" "tcf" %}" class="pt-btn-secondary">
+        🧪 Nouvel examen TCF
+      </a>
+      <a href="{% url "preparation_tests:dashboard_global" %}" class="pt-btn-ghost">
+        📊 Tableau de bord
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- GRAPHE PROGRESSION -->
+{% if total_count %}
+<section class="pt-section">
+  <div class="container">
+    <article class="pt-card">
+
+      <h2 style="margin-bottom:1.25rem;">📈 Courbe de progression</h2>
+
+      {{ chart_datasets_json|json_script:"exam-chart-data" }}
+
+      <div style="position:relative; height:300px;">
+        <canvas id="examFormatChart"></canvas>
+      </div>
+
+      <p style="margin-top:.75rem; font-size:.82rem; opacity:.6;">
+        Axe Y : score global CO + CE (%). Une ligne colorée par examen (TEF=bleu · TCF=vert · DELF=orange · DALF=violet).
+      </p>
+
+    </article>
+  </div>
+</section>
+{% endif %}
+
+<!-- TABLEAU HISTORIQUE -->
+<section class="pt-section">
+  <div class="container">
+    <article class="pt-card">
+
+      <h2 style="margin-bottom:1.25rem;">📋 Détail des passages</h2>
+
+      {% if results %}
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:.88rem;">
+          <thead>
+            <tr style="border-bottom:2px solid rgba(255,255,255,.1); text-align:left;">
+              <th style="padding:.6rem .75rem;">Date</th>
+              <th style="padding:.6rem .75rem; text-align:center;">Examen</th>
+              <th style="padding:.6rem .75rem; text-align:center;">Niv.</th>
+              <th style="padding:.6rem .75rem; text-align:center;">CO</th>
+              <th style="padding:.6rem .75rem; text-align:center;">CE</th>
+              <th style="padding:.6rem .75rem; text-align:center;">Score</th>
+              <th style="padding:.6rem .75rem; text-align:center;">CECR</th>
+              <th style="padding:.6rem .75rem; text-align:center;">Admis</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in results %}
+            <tr style="border-bottom:1px solid rgba(255,255,255,.06);">
+
+              <td style="padding:.55rem .75rem; opacity:.7; white-space:nowrap;">
+                {{ r.taken_at|date:"d/m/Y H:i" }}
+              </td>
+
+              <td style="padding:.55rem .75rem; text-align:center; font-weight:600;">
+                <span style="
+                  {% if r.exam_code == 'tef' %}color:#3b82f6
+                  {% elif r.exam_code == 'tcf' %}color:#22c55e
+                  {% elif r.exam_code == 'delf' %}color:#f59e0b
+                  {% else %}color:#a855f7{% endif %};
+                ">
+                  {{ r.get_exam_code_display }}
+                </span>
+              </td>
+
+              <td style="padding:.55rem .75rem; text-align:center;">
+                <span class="pt-level-badge pt-level-{{ r.level|lower }}">{{ r.level }}</span>
+              </td>
+
+              <td style="padding:.55rem .75rem; text-align:center;">
+                {{ r.co_correct }}/{{ r.co_total }}
+                <span style="opacity:.6; font-size:.82rem;">({{ r.co_pct }}%)</span>
+              </td>
+
+              <td style="padding:.55rem .75rem; text-align:center;">
+                {{ r.ce_correct }}/{{ r.ce_total }}
+                <span style="opacity:.6; font-size:.82rem;">({{ r.ce_pct }}%)</span>
+              </td>
+
+              <td style="padding:.55rem .75rem; text-align:center; font-weight:700;">
+                {% if r.score_max <= 50 %}
+                  {# DELF/DALF : score /25+/25 = /50 #}
+                  <span style="color:
+                    {% if r.global_pct >= 75 %}#2ecc71
+                    {% elif r.global_pct >= 50 %}#f59e0b
+                    {% else %}#e74c3c{% endif %};">
+                    {{ r.global_score }}/{{ r.score_max }}
+                  </span>
+                {% else %}
+                  {# TEF/TCF : score brut 0-450 ou 0-699 #}
+                  <span style="color:
+                    {% if r.global_pct >= 75 %}#2ecc71
+                    {% elif r.global_pct >= 50 %}#f59e0b
+                    {% else %}#e74c3c{% endif %};">
+                    {{ r.global_score }}/{{ r.score_max }}
+                  </span>
+                {% endif %}
+                <span style="font-size:.78rem; opacity:.6; display:block;">({{ r.global_pct }}%)</span>
+              </td>
+
+              <td style="padding:.55rem .75rem; text-align:center; opacity:.85;">
+                <strong>{{ r.cefr_global|default:"—" }}</strong>
+              </td>
+
+              <td style="padding:.55rem .75rem; text-align:center;">
+                {% if r.passed is None %}
+                  <span style="opacity:.5;">—</span>
+                {% elif r.passed %}
+                  <span style="color:#2ecc71; font-size:1.1rem;">✅</span>
+                {% else %}
+                  <span style="color:#e74c3c; font-size:1.1rem;">❌</span>
+                {% endif %}
+              </td>
+
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% else %}
+      <div style="text-align:center; padding:2rem 0;">
+        <p style="opacity:.7; margin-bottom:1.25rem;">
+          Aucun résultat officiel enregistré pour l'instant.
+        </p>
+        <div class="pt-cta-group">
+          <a href="{% url "preparation_tests:exam_format_hub" "tef" %}" class="pt-btn-primary">
+            ▶ Commencer TEF
+          </a>
+          <a href="{% url "preparation_tests:exam_format_hub" "tcf" %}" class="pt-btn-secondary">
+            ▶ Commencer TCF
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+    </article>
+
+    <!-- Lien vers historique CECR générique -->
+    <div class="pt-cta-group" style="margin-top:1rem;">
+      <a href="{% url "preparation_tests:mock_exam_history" %}" class="pt-btn-ghost">
+        📋 Voir aussi l'historique CECR générique
+      </a>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var canvas = document.getElementById("examFormatChart");
+  if (!canvas) return;
+
+  var raw = JSON.parse(document.getElementById("exam-chart-data").textContent);
+
+  var datasets = Object.keys(raw).map(function (examName) {
+    var entry = raw[examName];
+    return {
+      label: examName,
+      data: entry.data,
+      borderColor: entry.color,
+      backgroundColor: entry.color + "22",
+      tension: 0.35,
+      fill: false,
+      pointRadius: 5,
+      pointHoverRadius: 8,
+    };
+  });
+
+  new Chart(canvas.getContext("2d"), {
+    type: "line",
+    data: { datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      parsing: false,
+      scales: {
+        x: {
+          type: "category",
+          ticks: { color: "#9ca3af", font: { size: 12 } },
+          grid: { color: "rgba(255,255,255,.06)" },
+        },
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            callback: function (v) { return v + "%"; },
+            color: "#9ca3af",
+          },
+          grid: { color: "rgba(255,255,255,.06)" },
+        },
+      },
+      plugins: {
+        legend: {
+          labels: { color: "#e5e7eb", font: { size: 13 } },
+        },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              return ctx.dataset.label + " : " + ctx.parsed.y + "%";
+            },
+          },
+        },
+      },
+    },
+  });
+});
+</script>
+{% endblock %}

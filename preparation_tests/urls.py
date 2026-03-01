@@ -170,6 +170,11 @@ urlpatterns = [
     # 🏆 EXAMENS BLANCS FORMAT OFFICIEL (TEF/TCF/DELF/DALF)
     # =====================================================
     path(
+        "fr/examen-officiel/historique/",
+        views_mock_exam_format.exam_format_history,
+        name="exam_format_history",
+    ),
+    path(
         "fr/<str:exam_code>/examen/",
         views_mock_exam_format.exam_format_hub,
         name="exam_format_hub",
