@@ -66,6 +66,12 @@ class GermanLesson(models.Model):
         help_text="Contenu de la leçon (texte, explications, exemples). "
                   "Tu peux mettre du HTML simple ou du Markdown."
     )
+    audio_url = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        help_text="Chemin relatif MEDIA vers le fichier audio (généré par TTS pour HÖREN).",
+    )
 
     class Meta:
         ordering = ["exam", "order"]
