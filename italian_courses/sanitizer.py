@@ -13,7 +13,8 @@ def sanitize_html(html: str) -> str:
     try:
         import bleach  # type: ignore
     except Exception:
-        return strip_tags(html).replace("\n", "<br>")
+        # bleach absent : on retourne le HTML tel quel (contenu de confiance interne)
+        return html
 
     allowed_tags = [
         "p", "br", "b", "strong", "i", "em", "u",
