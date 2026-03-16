@@ -112,6 +112,7 @@ urlpatterns = [
     path("services/", services_page, name="services"),
     path("protected-media/", include("mediafiles.urls")),
     path("api/ai/", include("ai_engine.urls")),
+    path("ressources/", include(("resources.urls", "resources"), namespace="resources")),
 
     
     # Legacy URL aliases for backward compatibility

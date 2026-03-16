@@ -141,6 +141,7 @@ INSTALLED_APPS = [
     "italian_courses",
     "job_agent",
     "mediafiles",
+    "resources",
 ]
 
 
