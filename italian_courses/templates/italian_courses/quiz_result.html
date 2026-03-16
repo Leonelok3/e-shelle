@@ -1,22 +1,140 @@
-{% extends "italian_courses/base.html" %}
-{% block title %}Résultat — {{ lesson.title }}{% endblock %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Résultat Quiz — {{ lesson.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .it-result-wrap { max-width: 760px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+
+  .it-result-bc {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .82rem; color: #64748b;
+    margin: 2rem 0 1.5rem;
+  }
+  .it-result-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  /* Score card */
+  .it-score-card {
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #fff;
+  }
+  .it-score-card.great  { background: linear-gradient(135deg, #16a34a, #15803d); }
+  .it-score-card.good   { background: linear-gradient(135deg, #F59E0B, #d97706); }
+  .it-score-card.retry  { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+  .it-score-emoji { font-size: 3rem; margin-bottom: .5rem; }
+  .it-score-num   { font-size: 2.5rem; font-weight: 800; margin-bottom: .25rem; }
+  .it-score-label { font-size: 1rem; opacity: .9; }
+  .it-score-msg   { font-size: .88rem; opacity: .75; margin-top: .5rem; }
+
+  /* Résultats détaillés */
+  .it-result-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: .9rem;
+    border-left: 4px solid #e2e8f0;
+  }
+  .it-result-card.correct { border-left-color: #16a34a; }
+  .it-result-card.wrong   { border-left-color: #dc2626; }
+
+  .it-result-q { font-size: .95rem; font-weight: 600; color: #102B4E; margin-bottom: .75rem; }
+  .it-result-answer { font-size: .85rem; color: #475569; margin: .3rem 0; }
+  .it-result-answer strong { color: #1e293b; }
+  .it-result-verdict {
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-size: .78rem; font-weight: 700;
+    padding: .2rem .65rem; border-radius: 999px; margin-top: .5rem;
+  }
+  .it-result-verdict.ok  { background: #dcfce7; color: #16a34a; }
+  .it-result-verdict.err { background: #fee2e2; color: #dc2626; }
+
+  /* Actions */
+  .it-result-actions {
+    display: flex; gap: .75rem; flex-wrap: wrap;
+    margin-top: 1.75rem;
+  }
+  .it-btn-primary {
+    background: #102B4E; color: #fff;
+    border-radius: 10px; padding: .75rem 1.5rem;
+    font-weight: 700; font-size: .88rem;
+    text-decoration: none; transition: background .2s;
+  }
+  .it-btn-primary:hover { background: #1a3d6b; color: #fff; }
+  .it-btn-secondary {
+    background: #f1f5f9; color: #475569;
+    border-radius: 10px; padding: .75rem 1.5rem;
+    font-weight: 600; font-size: .88rem;
+    text-decoration: none; border: 1.5px solid #e2e8f0;
+    transition: background .2s;
+  }
+  .it-btn-secondary:hover { background: #e2e8f0; }
+</style>
+{% endblock %}
+
 {% block content %}
-  <div class="card">
-    <h2 style="margin-top:0;">Résultat du quiz</h2>
-    <p class="muted">Score : <b>{{ score }}</b> / <b>{{ total }}</b></p>
+<div class="it-result-wrap">
 
-    {% for r in results %}
-      <div class="card" style="background:#fafafa;">
-        <h3 style="margin-top:0;">{{ r.q.prompt }}</h3>
-        <p><b>Ta réponse :</b> {{ r.selected.text if r.selected else "Aucune" }}</p>
-        <p><b>Bonne réponse :</b> {{ r.correct.text if r.correct else "-" }}</p>
-        <p>{% if r.is_ok %}✅ Correct{% else %}❌ Incorrect{% endif %}</p>
-      </div>
-    {% endfor %}
-
-    <div class="row">
-      <a class="btn primary" href="{{ lesson.get_absolute_url }}">Retour à la leçon</a>
-      <a class="btn" href="{% url 'italian_courses:quiz_take' slug=lesson.slug %}">Refaire le quiz</a>
-    </div>
+  <div class="it-result-bc">
+    <a href="{% url 'italian_courses:category_list' %}">🇮🇹 Cours Italien</a>
+    <span>›</span>
+    <a href="{% url 'italian_courses:lesson_detail' category_slug=lesson.category.slug lesson_slug=lesson.slug %}">{{ lesson.title }}</a>
+    <span>›</span>
+    <span>Résultat</span>
   </div>
+
+  <!-- Score -->
+  {% with pct=score|floatformat:0 %}
+  <div class="it-score-card {% if score >= total|add:'-1' %}great{% elif score >= 3 %}good{% else %}retry{% endif %}">
+    <div class="it-score-emoji">
+      {% if score == total %}🏆{% elif score >= 3 %}🎯{% else %}💪{% endif %}
+    </div>
+    <div class="it-score-num">{{ score }} / {{ total }}</div>
+    <div class="it-score-label">
+      {% if score == total %}Score parfait !
+      {% elif score >= 3 %}Bon résultat
+      {% else %}Continuez à pratiquer
+      {% endif %}
+    </div>
+    <div class="it-score-msg">{{ quiz.title }}</div>
+  </div>
+  {% endwith %}
+
+  <!-- Détail réponses -->
+  {% for r in results %}
+  <div class="it-result-card {% if r.is_ok %}correct{% else %}wrong{% endif %}">
+    <p class="it-result-q">{{ r.q.prompt }}</p>
+    <p class="it-result-answer">
+      <strong>Votre réponse :</strong>
+      {% if r.selected %}{{ r.selected.text }}{% else %}<em>Aucune réponse</em>{% endif %}
+    </p>
+    {% if not r.is_ok %}
+    <p class="it-result-answer">
+      <strong>Bonne réponse :</strong>
+      {% if r.correct %}{{ r.correct.text }}{% else %}—{% endif %}
+    </p>
+    {% endif %}
+    <span class="it-result-verdict {% if r.is_ok %}ok{% else %}err{% endif %}">
+      {% if r.is_ok %}✅ Correct{% else %}❌ Incorrect{% endif %}
+    </span>
+  </div>
+  {% endfor %}
+
+  <!-- Actions -->
+  <div class="it-result-actions">
+    <a class="it-btn-primary"
+       href="{% url 'italian_courses:lesson_detail' category_slug=lesson.category.slug lesson_slug=lesson.slug %}">
+      ← Retour à la leçon
+    </a>
+    <a class="it-btn-secondary"
+       href="{% url 'italian_courses:quiz_take' quiz_id=quiz.id %}">
+      🔄 Refaire le quiz
+    </a>
+  </div>
+
+</div>
 {% endblock %}
