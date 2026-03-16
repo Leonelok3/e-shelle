@@ -43,11 +43,11 @@ class Command(BaseCommand):
                 defaults={
                     "category": cat_map[cat_slug],
                     "title": l["title"],
-                    "excerpt": l.get("excerpt", ""),
-                    "level": l.get("level", "A0"),
-                    "order_index": int(l.get("order_index", 1)),
+                    "order": int(l.get("order_index", l.get("order", 1))),
                     "content_html": cleaned,
+                    "transcript": l.get("excerpt", ""),
                     "is_published": bool(l.get("is_published", False)),
+                    "estimated_minutes": int(l.get("estimated_minutes", 10)),
                 },
             )
             if is_created:
@@ -65,7 +65,7 @@ class Command(BaseCommand):
                 # Reset questions/choices for idempotent import
                 quiz.questions.all().delete()
                 for qi, qd in enumerate(quiz_data.get("questions", []), start=1):
-                    q = Question.objects.create(quiz=quiz, prompt=qd["prompt"], order_index=qd.get("order_index", qi))
+                    q = Question.objects.create(quiz=quiz, prompt=qd["prompt"], order=qd.get("order_index", qd.get("order", qi)), explanation=qd.get("explanation", ""))
                     for cd in qd.get("choices", []):
                         Choice.objects.create(question=q, text=cd["text"], is_correct=bool(cd.get("is_correct", False)))
 
