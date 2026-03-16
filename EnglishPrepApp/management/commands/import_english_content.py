@@ -101,14 +101,14 @@ class Command(BaseCommand):
                     EnglishQuestion.objects.create(
                         test=test,
                         skill=skill,
-                        question_text=qd.get("question_text", qd.get("prompt", "")),
-                        option_a=qd.get("option_a", ""),
-                        option_b=qd.get("option_b", ""),
-                        option_c=qd.get("option_c", ""),
-                        option_d=qd.get("option_d", ""),
+                        question_text=qd.get("question_text", qd.get("prompt", ""))[:500],
+                        option_a=qd.get("option_a", "")[:250],
+                        option_b=qd.get("option_b", "")[:250],
+                        option_c=qd.get("option_c", "")[:250],
+                        option_d=qd.get("option_d", "")[:250],
                         correct_option=correct,
                         explanation=qd.get("explanation", ""),
-                        audio_url=qd.get("audio_url", ""),
+                        audio_url=qd.get("audio_url", "")[:200],
                     )
                     q_created += 1
 
