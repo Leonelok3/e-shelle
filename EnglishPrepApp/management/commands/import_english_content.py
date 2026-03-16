@@ -73,12 +73,12 @@ class Command(BaseCommand):
                     raise ValueError("'name' is required for each test.")
 
                 test, created = EnglishTest.objects.update_or_create(
-                    name=name,
+                    name=name[:200],
                     defaults={
                         "exam_type":        exam_type,
                         "level":            level,
                         "duration_minutes": int(td.get("duration_minutes", 20)),
-                        "description":      td.get("description", ""),
+                        "description":      td.get("description", "")[:250],
                         "is_active":        bool(td.get("is_active", True)),
                     }
                 )
@@ -139,12 +139,12 @@ class Command(BaseCommand):
 
                 lesson, _ = EnglishLesson.objects.update_or_create(
                     test=test,
-                    title=ld.get("title", ""),
+                    title=ld.get("title", "")[:200],
                     defaults={
                         "skill":             skill,
-                        "goal":              ld.get("goal", ""),
+                        "goal":              ld.get("goal", "")[:115],
                         "level":             level,
-                        "short_description": ld.get("short_description", ""),
+                        "short_description": ld.get("short_description", "")[:115],
                         "content":           ld.get("content", ""),
                         "video_url":         ld.get("video_url", ""),
                         "order":             int(ld.get("order", 1)),
