@@ -1,71 +1,371 @@
-{% extends "italian_courses/base.html" %}
+{% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ lesson.title }} — Cours Italien{% endblock %}
+{% block meta_description %}{{ lesson.transcript|truncatechars:160 }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Layout ── */
+  .it-lesson-wrap {
+    max-width: 860px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+  }
+
+  /* ── Breadcrumb ── */
+  .it-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .82rem;
+    color: #64748b;
+    margin-bottom: 1.75rem;
+  }
+  .it-breadcrumb a {
+    color: #F59E0B;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .it-breadcrumb a:hover { text-decoration: underline; }
+
+  /* ── Header leçon ── */
+  .it-lesson-header {
+    background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%);
+    border-radius: 16px;
+    padding: 2rem 2rem 1.75rem;
+    color: #fff;
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .it-lesson-header::before {
+    content: '🇮🇹';
+    position: absolute;
+    right: 1.5rem;
+    top: 1.25rem;
+    font-size: 3rem;
+    opacity: .15;
+  }
+  .it-lesson-badge {
+    display: inline-block;
+    background: rgba(245,158,11,.2);
+    border: 1px solid rgba(245,158,11,.4);
+    color: #F59E0B;
+    font-size: .73rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .25rem .75rem;
+    border-radius: 999px;
+    margin-bottom: .75rem;
+  }
+  .it-lesson-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    line-height: 1.25;
+    margin: 0;
+  }
+
+  /* ── Audio ── */
+  .it-audio-block {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+  }
+  .it-audio-label {
+    font-size: .78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #94a3b8;
+    margin-bottom: .6rem;
+  }
+  .it-audio-block audio { width: 100%; border-radius: 8px; }
+
+  /* ── Contenu leçon ── */
+  .it-content {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04);
+  }
+
+  /* Styles pour le HTML généré par ChatGPT */
+  .it-content h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #102B4E;
+    margin: 1.5rem 0 .75rem;
+    padding-bottom: .4rem;
+    border-bottom: 2px solid #F59E0B;
+  }
+  .it-content h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #102B4E;
+    margin: 1.4rem 0 .6rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .it-content h3::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 1em;
+    background: #F59E0B;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .it-content h4 {
+    font-size: .95rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 1.2rem 0 .5rem;
+  }
+  .it-content p {
+    color: #334155;
+    line-height: 1.7;
+    margin: .75rem 0;
+    font-size: .95rem;
+  }
+  .it-content ul, .it-content ol {
+    padding-left: 1.4rem;
+    margin: .75rem 0;
+  }
+  .it-content li {
+    color: #334155;
+    line-height: 1.65;
+    margin: .35rem 0;
+    font-size: .93rem;
+  }
+  .it-content strong { color: #102B4E; }
+  .it-content em { color: #475569; }
+
+  /* Tableaux */
+  .it-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.25rem 0;
+    font-size: .88rem;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px #e2e8f0;
+  }
+  .it-content thead tr {
+    background: #102B4E;
+    color: #fff;
+  }
+  .it-content th {
+    padding: .7rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .it-content td {
+    padding: .65rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+  }
+  .it-content tbody tr:last-child td { border-bottom: none; }
+  .it-content tbody tr:nth-child(even) { background: #f8fafc; }
+  .it-content tbody tr:hover { background: #eff6ff; }
+
+  /* Blockquote */
+  .it-content blockquote {
+    border-left: 4px solid #F59E0B;
+    background: #fffbeb;
+    margin: 1rem 0;
+    padding: .9rem 1.25rem;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    color: #78350f;
+  }
+
+  /* ── Transcript ── */
+  .it-transcript {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+  }
+  .it-transcript h4 {
+    margin: 0 0 .6rem;
+    font-size: .88rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #64748b;
+  }
+  .it-transcript p {
+    margin: 0;
+    color: #475569;
+    font-size: .9rem;
+    line-height: 1.6;
+  }
+
+  /* ── Quiz ── */
+  .it-quiz-block {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 1px solid #fde68a;
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.75rem;
+  }
+  .it-quiz-block h4 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .it-quiz-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: #F59E0B;
+    color: #fff;
+    font-weight: 700;
+    font-size: .88rem;
+    padding: .7rem 1.4rem;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background .2s;
+    margin: .3rem .3rem .3rem 0;
+  }
+  .it-quiz-btn:hover { background: #d97706; color: #fff; }
+
+  /* ── Actions ── */
+  .it-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-top: 1rem;
+    border-top: 1px solid #f1f5f9;
+  }
+  .it-btn-complete {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: #102B4E;
+    color: #fff;
+    font-weight: 700;
+    font-size: .88rem;
+    padding: .75rem 1.5rem;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background .2s;
+  }
+  .it-btn-complete:hover { background: #1a3d6b; color: #fff; }
+  .it-badge-done {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    background: #dcfce7;
+    color: #16a34a;
+    font-weight: 700;
+    font-size: .82rem;
+    padding: .45rem 1rem;
+    border-radius: 999px;
+    border: 1px solid #bbf7d0;
+  }
+  .it-login-hint {
+    font-size: .85rem;
+    color: #64748b;
+  }
+  .it-login-hint a { color: #F59E0B; font-weight: 600; text-decoration: none; }
+
+  @media(max-width:600px) {
+    .it-lesson-wrap { padding: 0 1rem 3rem; }
+    .it-content { padding: 1.25rem 1.25rem; }
+    .it-lesson-title { font-size: 1.25rem; }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-  <div class="card">
-    <p class="muted" style="margin:0;">
-      <a href="{% url 'italian_courses:lesson_list' category_slug=category.slug %}">← Retour à la liste</a>
-    </p>
+<div class="it-lesson-wrap">
 
-    <h2 style="margin:10px 0 0 0;">{{ lesson.title }}</h2>
-
-    {# ✅ AUDIO #}
-    {% if lesson.audio_file %}
-      <div style="margin-top:16px;">
-        <p class="muted" style="margin:0 0 6px 0;">Audio</p>
-        <audio controls style="width:100%;">
-          <source src="{{ lesson.audio_file.url }}" type="audio/mpeg">
-          Ton navigateur ne supporte pas l’audio.
-        </audio>
-      </div>
-    {% endif %}
-
-    {# ✅ CONTENU #}
-    {% if lesson.content_html %}
-      <div style="margin-top:18px;">
-        {{ lesson.content_html|safe }}
-      </div>
-    {% endif %}
-
-    {# ✅ TRANSCRIPT #}
-    {% if lesson.transcript %}
-      <div class="card" style="margin-top:18px;">
-        <h3 style="margin-top:0;">Transcript (italien)</h3>
-        <pre style="white-space:pre-wrap; margin:0;">{{ lesson.transcript }}</pre>
-      </div>
-    {% endif %}
-
-    {# ✅ QUIZ #}
-    {% if quizzes %}
-      <div class="card" style="margin-top:18px;">
-        <h3 style="margin-top:0;">Quiz</h3>
-        <ul style="margin:0; padding-left:18px;">
-          {% for quiz in quizzes %}
-            <li style="margin:6px 0;">
-              <a class="btn primary" href="{% url 'italian_courses:quiz_take' quiz_id=quiz.id %}">
-                Faire le quiz : {{ quiz.title }}
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-
-    {# ✅ PROGRESSION #}
-    <div style="margin-top:18px;">
-      {% if user.is_authenticated %}
-        <a class="btn primary"
-           href="{% url 'italian_courses:lesson_complete' category_slug=category.slug slug=lesson.slug %}">
-          Marquer terminé
-        </a>
-
-        {% if progress and progress.completed %}
-          <span class="badge ok" style="margin-left:10px;">Terminé ✅</span>
-        {% endif %}
-      {% else %}
-        <p class="muted">Connecte-toi pour enregistrer ta progression.</p>
-      {% endif %}
-    </div>
+  <!-- Breadcrumb -->
+  <div class="it-breadcrumb">
+    <a href="{% url 'italian_courses:category_list' %}">🇮🇹 Cours Italien</a>
+    <span>›</span>
+    <a href="{% url 'italian_courses:lesson_list' category_slug=category.slug %}">{{ category.name }}</a>
+    <span>›</span>
+    <span>{{ lesson.title }}</span>
   </div>
+
+  <!-- Header -->
+  <div class="it-lesson-header">
+    <div class="it-lesson-badge">{{ category.name }}</div>
+    <h1 class="it-lesson-title">{{ lesson.title }}</h1>
+  </div>
+
+  <!-- Audio -->
+  {% if lesson.audio_file %}
+  <div class="it-audio-block">
+    <div class="it-audio-label">🔊 Audio</div>
+    <audio controls>
+      <source src="{{ lesson.audio_file.url }}" type="audio/mpeg">
+    </audio>
+  </div>
+  {% endif %}
+
+  <!-- Contenu -->
+  {% if lesson.content_html %}
+  <div class="it-content">
+    {{ lesson.content_html|safe }}
+  </div>
+  {% endif %}
+
+  <!-- Transcript -->
+  {% if lesson.transcript %}
+  <div class="it-transcript">
+    <h4>📝 Description</h4>
+    <p>{{ lesson.transcript }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Quiz -->
+  {% if quizzes %}
+  <div class="it-quiz-block">
+    <h4>🎯 Quiz de la leçon</h4>
+    {% for quiz in quizzes %}
+      <a class="it-quiz-btn" href="{% url 'italian_courses:quiz_take' quiz_id=quiz.id %}">
+        ▶ {{ quiz.title }}
+      </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Actions -->
+  <div class="it-actions">
+    {% if user.is_authenticated %}
+      <a class="it-btn-complete"
+         href="{% url 'italian_courses:lesson_complete' category_slug=category.slug slug=lesson.slug %}">
+        ✓ Marquer comme terminée
+      </a>
+      {% if progress and progress.completed %}
+        <span class="it-badge-done">✅ Leçon terminée</span>
+      {% endif %}
+    {% else %}
+      <p class="it-login-hint">
+        <a href="{% url 'authentification:login' %}">Connectez-vous</a> pour enregistrer votre progression.
+      </p>
+    {% endif %}
+  </div>
+
+</div>
 {% endblock %}
