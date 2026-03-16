@@ -1,20 +1,199 @@
+{% extends "base.html" %}
+{% load static %}
 
+{% block title %}Cours d'Italien A1→C2 — Immigration97{% endblock %}
+{% block meta_description %}Apprenez l'italien de A1 à C2 avec nos cours structurés : grammaire, vocabulaire, compréhension et expression. Idéal pour le Nulla Osta et la vie en Italie.{% endblock %}
 
-{% extends "italian_courses/base.html" %}
-{% block title %}Catégories — Cours Italien{% endblock %}
+{% block extra_css %}
+<style>
+  .it-hub { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+
+  /* Hero */
+  .it-hub-hero {
+    background: linear-gradient(135deg, #0b1e36 0%, #102B4E 60%, #1a3d6b 100%);
+    border-radius: 20px;
+    padding: 2.5rem 2.5rem 2rem;
+    color: #fff;
+    margin: 2rem 0 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .it-hub-hero::after {
+    content: '🇮🇹';
+    position: absolute;
+    right: 2rem; top: 50%;
+    transform: translateY(-50%);
+    font-size: 5rem;
+    opacity: .1;
+  }
+  .it-hub-hero h1 { font-size: 2rem; font-weight: 800; margin: 0 0 .5rem; letter-spacing: -.02em; }
+  .it-hub-hero p  { font-size: 1rem; opacity: .75; margin: 0; }
+  .it-hub-stats {
+    display: flex; gap: 1.5rem; margin-top: 1.5rem; flex-wrap: wrap;
+  }
+  .it-hub-stat {
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 10px;
+    padding: .6rem 1.1rem;
+    font-size: .82rem;
+    font-weight: 600;
+  }
+  .it-hub-stat span { color: #F59E0B; font-size: 1.1rem; }
+
+  /* Grid niveaux */
+  .it-levels-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+  @media(max-width:860px){ .it-levels-grid{ grid-template-columns: repeat(2,1fr); } }
+  @media(max-width:540px){ .it-levels-grid{ grid-template-columns: 1fr; } }
+
+  .it-level-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex; flex-direction: column; gap: .75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+    transition: transform .2s, box-shadow .2s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .it-level-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(16,43,78,.15);
+    border-color: #cbd5e1;
+  }
+  .it-level-top { display: flex; align-items: center; gap: .75rem; }
+  .it-level-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; flex-shrink: 0;
+  }
+  .it-level-icon.a1 { background: #dbeafe; }
+  .it-level-icon.a2 { background: #dcfce7; }
+  .it-level-icon.b1 { background: #fef9c3; }
+  .it-level-icon.b2 { background: #ffedd5; }
+  .it-level-icon.c1 { background: #fce7f3; }
+  .it-level-icon.c2 { background: #ede9fe; }
+
+  .it-level-name { font-size: 1.05rem; font-weight: 700; color: #102B4E; }
+  .it-level-sub  { font-size: .78rem; color: #64748b; font-weight: 500; }
+
+  .it-level-desc { font-size: .83rem; color: #475569; line-height: 1.55; }
+
+  .it-level-meta { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .it-level-chip {
+    font-size: .72rem; font-weight: 600;
+    padding: .2rem .65rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+  }
+  .it-level-btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: #102B4E; color: #fff;
+    font-size: .82rem; font-weight: 700;
+    padding: .6rem 1.2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background .2s;
+    margin-top: auto;
+    align-self: flex-start;
+  }
+  .it-level-btn:hover { background: #1a3d6b; color: #fff; }
+
+  .it-empty {
+    text-align: center; padding: 3rem;
+    background: #fff; border-radius: 16px;
+    border: 1px solid #e2e8f0; color: #94a3b8;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-  <div class="card">
-    <h2>Catégories de cours</h2>
-    <p class="muted">Choisis une catégorie (ex: Italien Nulla Osta, Logistique, Usine, Entretien).</p>
+<div class="it-hub">
+
+  <!-- Hero -->
+  <div class="it-hub-hero">
+    <h1>🇮🇹 Cours d'Italien</h1>
+    <p>De débutant à expert — grammaire, vocabulaire, compréhension et expression</p>
+    <div class="it-hub-stats">
+      <div class="it-hub-stat"><span>{{ categories|length }}</span> niveaux</div>
+      <div class="it-hub-stat"><span>150</span> leçons</div>
+      <div class="it-hub-stat"><span>750</span> exercices</div>
+      <div class="it-hub-stat"><span>A1 → C2</span> CECR</div>
+    </div>
   </div>
 
-  {% for c in categories %}
-    <div class="card">
-      <h3 style="margin:0 0 6px 0;">{{ c.name }}</h3>
-      <p class="muted" style="margin:0 0 10px 0;">/italien/cours/{{ c.slug }}/</p>
-      <a class="btn primary" href="{% url 'italian_courses:lesson_list' category_slug=c.slug %}">Voir les leçons</a>
+  <!-- Grille des niveaux -->
+  {% if categories %}
+  <div class="it-levels-grid">
+    {% for c in categories %}
+    {% with slug=c.slug %}
+    <div class="it-level-card">
+      <div class="it-level-top">
+        <div class="it-level-icon
+          {% if 'a1' in slug %}a1
+          {% elif 'a2' in slug %}a2
+          {% elif 'b1' in slug %}b1
+          {% elif 'b2' in slug %}b2
+          {% elif 'c1' in slug %}c1
+          {% elif 'c2' in slug %}c2
+          {% else %}a1{% endif %}">
+          {% if 'a1' in slug %}🌱
+          {% elif 'a2' in slug %}📗
+          {% elif 'b1' in slug %}📘
+          {% elif 'b2' in slug %}🎓
+          {% elif 'c1' in slug %}🔥
+          {% elif 'c2' in slug %}🏆
+          {% else %}📚{% endif %}
+        </div>
+        <div>
+          <div class="it-level-name">{{ c.name }}</div>
+          <div class="it-level-sub">
+            {% if 'a1' in slug %}Débutant
+            {% elif 'a2' in slug %}Élémentaire
+            {% elif 'b1' in slug %}Intermédiaire
+            {% elif 'b2' in slug %}Intermédiaire supérieur
+            {% elif 'c1' in slug %}Avancé
+            {% elif 'c2' in slug %}Maîtrise
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <p class="it-level-desc">
+        {% if 'a1' in slug %}Alphabet, salutations, présentations, articles et verbes de base.
+        {% elif 'a2' in slug %}Passé, futur, pronoms, verbes modaux et situations quotidiennes.
+        {% elif 'b1' in slug %}Conditionnel, subjonctif, expression d'opinions et culture italienne.
+        {% elif 'b2' in slug %}Subjonctif avancé, style soutenu, textes authentiques et argumentation.
+        {% elif 'c1' in slug %}Syntaxe complexe, rhétorique, littérature et langue professionnelle.
+        {% elif 'c2' in slug %}Maîtrise totale, analyse stylistique et textes académiques.
+        {% endif %}
+      </p>
+
+      <div class="it-level-meta">
+        <span class="it-level-chip">25 leçons</span>
+        <span class="it-level-chip">125 exercices</span>
+      </div>
+
+      <a class="it-level-btn" href="{% url 'italian_courses:lesson_list' category_slug=c.slug %}">
+        Commencer →
+      </a>
     </div>
-  {% empty %}
-    <div class="card">Aucune catégorie pour le moment.</div>
-  {% endfor %}
+    {% endwith %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="it-empty">
+    <p style="font-size:2rem;margin:0 0 .5rem">📂</p>
+    <p>Aucun cours disponible pour le moment.</p>
+  </div>
+  {% endif %}
+
+</div>
 {% endblock %}

@@ -1,49 +1,223 @@
-{% extends "italian_courses/base.html" %}
-{% load italian_courses_extras %}
+{% extends "base.html" %}
+{% load static italian_courses_extras %}
 
 {% block title %}{{ category.name }} — Cours Italien{% endblock %}
 
-{% block content %}
-  <div class="card">
-    <h2 style="margin-top:0;">{{ category.name }}</h2>
+{% block extra_css %}
+<style>
+  .it-list-wrap { max-width: 860px; margin: 0 auto; padding: 0 1.25rem 4rem; }
 
-    <form method="get" class="row" style="margin-top:12px;">
-      <input type="text" name="q" placeholder="Rechercher..." value="{{ request.GET.q }}">
-      <button class="btn primary" type="submit">Filtrer</button>
-      <a class="btn" href="{% url 'italian_courses:category_list' %}">← Catégories</a>
-    </form>
+  /* Breadcrumb */
+  .it-bc {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .82rem; color: #64748b;
+    margin: 2rem 0 1.5rem;
+  }
+  .it-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+  .it-bc a:hover { text-decoration: underline; }
+
+  /* Header */
+  .it-list-header {
+    background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%);
+    border-radius: 16px;
+    padding: 1.75rem 2rem;
+    color: #fff;
+    margin-bottom: 1.75rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .it-list-header h1 { font-size: 1.5rem; font-weight: 800; margin: 0; letter-spacing: -.02em; }
+  .it-list-header-meta { display: flex; gap: .75rem; flex-wrap: wrap; }
+  .it-list-chip {
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 999px;
+    padding: .3rem .85rem;
+    font-size: .78rem; font-weight: 600;
+  }
+
+  /* Recherche */
+  .it-search-bar {
+    display: flex; gap: .6rem; margin-bottom: 1.5rem;
+  }
+  .it-search-bar input {
+    flex: 1;
+    padding: .7rem 1rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: .9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .it-search-bar input:focus { border-color: #F59E0B; }
+  .it-search-bar button {
+    background: #102B4E; color: #fff;
+    border: none; border-radius: 10px;
+    padding: .7rem 1.2rem;
+    font-weight: 600; font-size: .85rem;
+    cursor: pointer; font-family: inherit;
+  }
+
+  /* Progress bar globale */
+  .it-progress-bar-wrap { margin-bottom: 1.75rem; }
+  .it-progress-label { font-size: .82rem; color: #64748b; margin-bottom: .4rem; font-weight: 500; }
+  .it-progress-track {
+    background: #e2e8f0; border-radius: 999px; height: 8px; overflow: hidden;
+  }
+  .it-progress-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, #F59E0B, #f97316);
+    transition: width .5s ease;
+  }
+
+  /* Cards leçons */
+  .it-lesson-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: .9rem;
+    display: flex; align-items: center; gap: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    transition: box-shadow .2s, border-color .2s;
+  }
+  .it-lesson-card:hover { box-shadow: 0 4px 20px rgba(16,43,78,.1); border-color: #cbd5e1; }
+  .it-lesson-card.is-done { border-left: 4px solid #16a34a; }
+
+  .it-lesson-num {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: #f1f5f9;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .78rem; font-weight: 700; color: #64748b;
+    flex-shrink: 0;
+  }
+  .it-lesson-card.is-done .it-lesson-num { background: #dcfce7; color: #16a34a; }
+
+  .it-lesson-body { flex: 1; min-width: 0; }
+  .it-lesson-title-link {
+    font-size: .97rem; font-weight: 700; color: #102B4E;
+    text-decoration: none; display: block; margin-bottom: .25rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .it-lesson-title-link:hover { color: #F59E0B; }
+  .it-lesson-meta { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+  .it-lesson-time { font-size: .78rem; color: #94a3b8; }
+  .it-lesson-done-badge {
+    font-size: .72rem; font-weight: 700;
+    background: #dcfce7; color: #16a34a;
+    padding: .15rem .6rem; border-radius: 999px;
+    border: 1px solid #bbf7d0;
+  }
+
+  .it-lesson-open {
+    background: #102B4E; color: #fff;
+    border: none; border-radius: 8px;
+    padding: .5rem 1rem;
+    font-size: .8rem; font-weight: 600;
+    text-decoration: none; white-space: nowrap;
+    transition: background .2s;
+    flex-shrink: 0;
+  }
+  .it-lesson-open:hover { background: #1a3d6b; color: #fff; }
+
+  .it-empty-state {
+    text-align: center; padding: 3rem 1rem;
+    background: #fff; border-radius: 14px;
+    border: 1px solid #e2e8f0; color: #94a3b8;
+  }
+
+  @media(max-width:560px){
+    .it-lesson-card { flex-wrap: wrap; gap: .75rem; }
+    .it-list-header { flex-direction: column; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="it-list-wrap">
+
+  <!-- Breadcrumb -->
+  <div class="it-bc">
+    <a href="{% url 'italian_courses:category_list' %}">🇮🇹 Cours Italien</a>
+    <span>›</span>
+    <span>{{ category.name }}</span>
   </div>
 
+  <!-- Header -->
+  <div class="it-list-header">
+    <h1>{{ category.name }}</h1>
+    <div class="it-list-header-meta">
+      <span class="it-list-chip">{{ lessons|length }} leçon{{ lessons|length|pluralize }}</span>
+      <span class="it-list-chip">⏱ ~{{ lessons|length }}h de contenu</span>
+    </div>
+  </div>
+
+  <!-- Barre de progression globale -->
+  {% if user.is_authenticated and lessons %}
+  {% with total=lessons|length %}
+  <div class="it-progress-bar-wrap">
+    <div class="it-progress-label" id="progressLabel">Chargement progression…</div>
+    <div class="it-progress-track">
+      <div class="it-progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+  {% endwith %}
+  {% endif %}
+
+  <!-- Recherche -->
+  <form method="get" class="it-search-bar">
+    <input type="text" name="q" placeholder="Rechercher une leçon…" value="{{ request.GET.q }}">
+    <button type="submit">🔍 Filtrer</button>
+  </form>
+
+  <!-- Liste des leçons -->
   {% for lesson in lessons %}
-    {% with prog=progress_by_lesson_id|get_item:lesson.id %}
-      <div class="card">
-        <div class="row">
-          <span class="badge">Leçon {{ lesson.order }}</span>
-
-          {% if prog and prog.completed %}
-            <span class="badge ok">Terminée ✅</span>
-          {% endif %}
-        </div>
-
-        <h3 style="margin:10px 0 8px 0;">
-          <a href="{% url 'italian_courses:lesson_detail' category_slug=category.slug lesson_slug=lesson.slug %}">
-            {{ lesson.title }}
-          </a>
-        </h3>
-
+  {% with prog=progress_by_lesson_id|get_item:lesson.id %}
+  <div class="it-lesson-card {% if prog and prog.completed %}is-done{% endif %}">
+    <div class="it-lesson-num">
+      {% if prog and prog.completed %}✓{% else %}{{ lesson.order }}{% endif %}
+    </div>
+    <div class="it-lesson-body">
+      <a class="it-lesson-title-link"
+         href="{% url 'italian_courses:lesson_detail' category_slug=category.slug lesson_slug=lesson.slug %}">
+        {{ lesson.title }}
+      </a>
+      <div class="it-lesson-meta">
         {% if lesson.estimated_minutes %}
-          <p class="muted">⏱ {{ lesson.estimated_minutes }} min</p>
+        <span class="it-lesson-time">⏱ {{ lesson.estimated_minutes }} min</span>
         {% endif %}
-
-        <div class="row">
-          <a class="btn primary"
-             href="{% url 'italian_courses:lesson_detail' category_slug=category.slug lesson_slug=lesson.slug %}">
-            Ouvrir
-          </a>
-        </div>
+        {% if prog and prog.completed %}
+        <span class="it-lesson-done-badge">✅ Terminée</span>
+        {% endif %}
       </div>
-    {% endwith %}
+    </div>
+    <a class="it-lesson-open"
+       href="{% url 'italian_courses:lesson_detail' category_slug=category.slug lesson_slug=lesson.slug %}">
+      Ouvrir →
+    </a>
+  </div>
+  {% endwith %}
   {% empty %}
-    <div class="card">Aucune leçon disponible pour le moment.</div>
+  <div class="it-empty-state">
+    <p style="font-size:2rem;margin:0 0 .5rem">📭</p>
+    <p>Aucune leçon trouvée.</p>
+  </div>
   {% endfor %}
+
+</div>
+
+{% if user.is_authenticated %}
+<script>
+(function(){
+  const cards  = document.querySelectorAll('.it-lesson-card');
+  const done   = document.querySelectorAll('.it-lesson-card.is-done').length;
+  const total  = cards.length;
+  const pct    = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent =
+    'Progression : ' + done + ' / ' + total + ' leçon' + (total > 1 ? 's' : '') + ' terminée' + (done > 1 ? 's' : '') + ' (' + pct + '%)';
+})();
+</script>
+{% endif %}
 {% endblock %}
