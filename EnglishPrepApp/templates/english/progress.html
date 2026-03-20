@@ -1,67 +1,74 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Progression de votre score – Immigration97{% endblock %}
+{% block title %}Progression de vos scores – Immigration97{% endblock %}
 
 {% block meta %}
-<meta name="description" content="Suivez la progression de vos scores aux tests d’anglais sur Immigration97 grâce à une courbe claire et détaillée.">
+<meta name="description" content="Suivez la progression de vos scores aux tests d'anglais sur Immigration97.">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-page-header { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 16px; padding: 1.75rem 2rem; color: #fff; margin-bottom: 2rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+  .ep-page-header h1 { font-size: 1.35rem; font-weight: 800; margin: 0 0 .2rem; }
+  .ep-page-header p { font-size: .8rem; opacity: .75; margin: 0; }
+  .ep-btn-new { background: #F59E0B; color: #102B4E; border-radius: 8px; padding: .55rem 1.1rem; font-size: .82rem; font-weight: 700; text-decoration: none; transition: background .2s; white-space: nowrap; }
+  .ep-btn-new:hover { background: #d97706; color: #fff; }
+
+  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.75rem; }
+  .ep-quick-link { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: .5rem 1rem; font-size: .82rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s, box-shadow .2s; display: flex; align-items: center; gap: .4rem; }
+  .ep-quick-link:hover { border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+
+  .ep-chart-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.75rem; }
+  .ep-chart-card canvas { max-height: 320px; width: 100% !important; }
+  .ep-chart-footer { margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .75rem; }
+  .ep-chart-footer p { font-size: .78rem; color: #94a3b8; margin: 0; }
+</style>
 {% endblock %}
 
 {% block content %}
-<main class="relative min-h-screen overflow-hidden bg-slate-950 text-slate-50">
+<div class="ep-wrap">
 
-  <!-- Background -->
-  <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-    <div class="absolute -top-40 -left-32 h-72 w-72 rounded-full bg-gradient-to-br from-blue-500/25 via-emerald-400/10 to-transparent blur-3xl opacity-60"></div>
-    <div class="absolute top-1/3 -right-32 h-80 w-80 rounded-full bg-gradient-to-br from-purple-600/25 via-pink-500/10 to-transparent blur-3xl opacity-60"></div>
-    <div class="absolute bottom-0 left-1/2 h-72 w-[420px] -translate-x-1/2 translate-y-1/3 rounded-full bg-gradient-to-t from-amber-500/20 via-emerald-500/10 to-transparent blur-3xl opacity-60"></div>
+  <nav class="ep-bc">
+    <a href="{% url 'englishprep:dashboard' %}">Anglais</a>
+    <span>›</span>
+    <a href="{% url 'englishprep:profile' %}">Profil</a>
+    <span>›</span>
+    <span>Progression</span>
+  </nav>
+
+  <div class="ep-page-header">
+    <div>
+      <p style="font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;opacity:.6;margin-bottom:.2rem;">Profil · Anglais · Progression</p>
+      <h1>Évolution de vos scores</h1>
+      <p>Courbe de progression sur tous vos tests d'anglais</p>
+    </div>
+    <a href="{% url 'englishprep:exam_list' %}" class="ep-btn-new">🚀 Nouveau test</a>
   </div>
 
-  <div class="relative z-10">
-
-    <!-- Header -->
-    <header class="border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-xl">
-      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
-        <div>
-          <p class="text-[0.65rem] uppercase tracking-[0.18em] text-slate-400">
-            Profil • Anglais • Progression
-          </p>
-          <h1 class="text-xl font-light text-slate-100">
-            Évolution de vos scores
-          </h1>
-        </div>
-        <div class="flex gap-2 text-[0.7rem]">
-          <a href="{% url 'englishprep:profile' %}" class="btn-secondary">👤 Profil</a>
-          <a href="{% url 'englishprep:dashboard' %}" class="btn-secondary">← Tableau de bord</a>
-        </div>
-      </div>
-    </header>
-
-    <!-- Graph -->
-    <section class="py-16">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6">
-        <div class="rounded-2xl border border-slate-800/70 bg-slate-900/70 p-6 shadow-xl backdrop-blur-xl">
-
-          <div
-            id="score-chart-container"
-            data-labels='{{ scores_dates|json_script:"labels-data" }}'
-            data-values='{{ scores_values|json_script:"values-data" }}'
-          >
-            <canvas id="scoreProgressChart" class="h-72 w-full"></canvas>
-          </div>
-
-          <div class="mt-6 flex justify-between text-xs text-slate-400">
-            <p>Scores en pourcentage (%)</p>
-            <a href="{% url 'englishprep:exam_list' %}" class="btn-primary">🚀 Nouveau test</a>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
+  <div class="ep-quick">
+    <a href="{% url 'englishprep:profile' %}" class="ep-quick-link">👤 Profil</a>
+    <a href="{% url 'englishprep:dashboard' %}" class="ep-quick-link">🏠 Dashboard</a>
+    <a href="{% url 'englishprep:test_history' %}" class="ep-quick-link">📊 Historique</a>
   </div>
-</main>
 
-<!-- JS externe -->
+  <div class="ep-chart-card">
+    <div id="score-chart-container"
+         data-labels='{{ scores_dates|json_script:"labels-data" }}'
+         data-values='{{ scores_values|json_script:"values-data" }}'>
+      <canvas id="scoreProgressChart"></canvas>
+    </div>
+    <div class="ep-chart-footer">
+      <p>Scores en pourcentage (%)</p>
+      <a href="{% url 'englishprep:exam_list' %}" class="ep-btn-new">🚀 Lancer un test</a>
+    </div>
+  </div>
+
+</div>
+
 <script src="{% static 'js/score_progress_chart.js' %}"></script>
 {% endblock %}

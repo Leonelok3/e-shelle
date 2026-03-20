@@ -3,91 +3,87 @@
 
 {% block title %}Entraînement personnalisé – Immigration97{% endblock %}
 
-{% block content %}
-<main class="relative min-h-screen overflow-hidden bg-slate-950 text-slate-50">
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
 
-  <!-- 🌈 BACKGROUND PREMIUM -->
-  <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-    <div class="absolute -top-40 left-1/4 h-72 w-72 rounded-full bg-gradient-to-br from-emerald-500/18 via-blue-500/10 to-transparent blur-3xl"></div>
-    <div class="absolute top-1/3 -right-32 h-80 w-80 rounded-full bg-gradient-to-br from-purple-600/18 via-blue-500/12 to-transparent blur-3xl"></div>
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.5rem 2rem; color: #fff; margin-bottom: 2rem; text-align: center; position: relative; overflow: hidden; }
+  .ep-hero::before { content: "💪"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 800; margin: 0 0 .65rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .9rem; opacity: .8; margin: 0; max-width: 560px; margin: 0 auto; }
+
+  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.75rem; }
+  .ep-quick-link { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: .5rem 1rem; font-size: .82rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s, box-shadow .2s; display: flex; align-items: center; gap: .4rem; }
+  .ep-quick-link:hover { border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+
+  .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.1rem; }
+  .ep-exercise-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.35rem; display: flex; flex-direction: column; gap: .75rem; transition: box-shadow .2s, border-color .2s; }
+  .ep-exercise-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); border-color: #F59E0B; }
+
+  .ep-q-num { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #F59E0B; }
+  .ep-q-text { font-size: .95rem; font-weight: 600; color: #102B4E; line-height: 1.5; }
+  .ep-options { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .35rem; }
+  .ep-options li { font-size: .83rem; color: #475569; padding: .4rem .65rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 7px; }
+
+  .ep-btn-answer { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; background: #102B4E; color: #fff; border-radius: 8px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 700; text-decoration: none; transition: background .2s; margin-top: auto; }
+  .ep-btn-answer:hover { background: #1a3d6b; color: #fff; }
+
+  .ep-empty { text-align: center; padding: 4rem 1rem; color: #94a3b8; background: #f8fafc; border-radius: 14px; border: 1px solid #e2e8f0; }
+
+  @media (max-width: 600px) {
+    .ep-hero::before { display: none; }
+    .ep-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ep-wrap">
+
+  <nav class="ep-bc">
+    <a href="{% url 'englishprep:dashboard' %}">Anglais</a>
+    <span>›</span>
+    <span>Entraînement personnalisé</span>
+  </nav>
+
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Training Mode</p>
+    <h1><span>Entraînement</span> personnalisé</h1>
+    <p>Travaille précisément les compétences à améliorer. Réponds aux questions, progresse étape par étape et gagne de l'XP.</p>
   </div>
 
-  <section class="mx-auto max-w-7xl px-4 sm:px-6 py-10 lg:py-14">
+  <div class="ep-quick">
+    <a href="{% url 'englishprep:dashboard' %}" class="ep-quick-link">🏠 Dashboard</a>
+    <a href="{% url 'englishprep:exam_hub' %}" class="ep-quick-link">🌐 Hub examens</a>
+    <a href="{% url 'englishprep:exam_list' %}" class="ep-quick-link">📚 Tous les tests</a>
+  </div>
 
-    <!-- 🔥 HERO -->
-    <header class="text-center mb-10 max-w-3xl mx-auto">
-      <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-        IMMIGRATION97 • TRAINING MODE
-      </p>
+  {% if exercises %}
+  <div class="ep-grid">
+    {% for exercise in exercises %}
+    <article class="ep-exercise-card">
+      <p class="ep-q-num">Question {{ forloop.counter }}</p>
+      <p class="ep-q-text">{{ exercise.question_text }}</p>
+      <ul class="ep-options">
+        <li>A. {{ exercise.option_a }}</li>
+        <li>B. {{ exercise.option_b }}</li>
+        <li>C. {{ exercise.option_c }}</li>
+        <li>D. {{ exercise.option_d }}</li>
+      </ul>
+      <a href="{% url 'englishprep:submit_training' exercise.id %}" class="ep-btn-answer">➡️ Répondre maintenant</a>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="ep-empty">
+    <p style="font-size:2rem;margin-bottom:.75rem;">📭</p>
+    <p>Aucun exercice disponible pour le moment.<br>Reviens plus tard ou choisis un autre mode d'entraînement.</p>
+  </div>
+  {% endif %}
 
-      <h1 class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-light tracking-tight">
-        <span class="bg-gradient-to-r from-emerald-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
-          Entraînement personnalisé
-        </span>
-      </h1>
-
-      <p class="mt-3 text-sm sm:text-base font-light text-slate-300 leading-relaxed">
-        Travaille précisément les compétences à améliorer.  
-        Réponds aux questions, progresse étape par étape et gagne automatiquement de l’XP.
-      </p>
-    </header>
-
-    <!-- 🧠 LISTE D’EXERCICES -->
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {% for exercise in exercises %}
-        <article
-          class="group relative rounded-2xl border border-slate-800/70
-                 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-slate-800/60
-                 p-5 backdrop-blur-xl shadow-xl shadow-black/40
-                 transition-all duration-300 hover:border-emerald-400/40 hover:shadow-emerald-500/10">
-
-          <!-- Effet flottant -->
-          <div class="absolute -top-10 -right-10 h-28 w-28 rounded-full
-                      bg-gradient-to-br from-emerald-500/20 to-transparent
-                      blur-2xl opacity-40 transition-all duration-300
-                      group-hover:opacity-70"></div>
-
-          <div class="relative">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">
-              Question {{ forloop.counter }}
-            </p>
-
-            <h2 class="text-sm sm:text-base font-medium text-slate-50 leading-relaxed mb-4">
-              {{ exercise.question_text }}
-            </h2>
-
-            <ul class="space-y-1.5 mb-5 text-xs sm:text-sm font-light text-slate-300">
-              <li>• {{ exercise.option_a }}</li>
-              <li>• {{ exercise.option_b }}</li>
-              <li>• {{ exercise.option_c }}</li>
-              <li>• {{ exercise.option_d }}</li>
-            </ul>
-
-            <a href="{% url 'englishprep:submit_training' exercise.id %}"
-               class="inline-flex items-center justify-center rounded-full
-                      bg-gradient-to-r from-emerald-400 to-emerald-500
-                      px-5 py-2 text-xs sm:text-sm font-semibold text-slate-950
-                      shadow-lg shadow-emerald-500/40
-                      transition-transform hover:scale-[1.04]
-                      focus-visible:outline-none focus-visible:ring-2
-                      focus-visible:ring-emerald-400/80">
-              ➡️ Répondre maintenant
-            </a>
-          </div>
-        </article>
-      {% endfor %}
-    </div>
-
-    <!-- MESSAGE SI AUCUN EXERCICE -->
-    {% if exercises|length == 0 %}
-      <div class="mt-12 text-center">
-        <p class="text-slate-400 text-sm">
-          Aucun exercice disponible pour le moment.  
-          Reviens plus tard ou choisis un autre mode d’entraînement.
-        </p>
-      </div>
-    {% endif %}
-
-  </section>
-</main>
+</div>
 {% endblock %}

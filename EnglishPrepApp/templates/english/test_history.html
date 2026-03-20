@@ -1,146 +1,166 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Historique des tests d'anglais – Immigration97{% endblock %}
 
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 1000px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+  .ep-bc a:hover { text-decoration: underline; }
+
+  .ep-hero {
+    background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%);
+    border-radius: 20px; padding: 2.5rem 2rem; color: #fff;
+    margin-bottom: 2rem; position: relative; overflow: hidden;
+  }
+  .ep-hero::before { content: "📊"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; margin: 0 0 .65rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .9rem; opacity: .8; margin: 0 0 1.25rem; max-width: 500px; }
+  .ep-hero-btns { display: flex; flex-wrap: wrap; gap: .75rem; }
+  .ep-btn-primary { background: #F59E0B; color: #102B4E; border-radius: 10px; padding: .6rem 1.3rem; font-weight: 700; font-size: .88rem; text-decoration: none; transition: background .2s; }
+  .ep-btn-primary:hover { background: #d97706; color: #fff; }
+  .ep-btn-outline { background: rgba(255,255,255,.12); color: #fff; border: 1.5px solid rgba(255,255,255,.3); border-radius: 10px; padding: .6rem 1.3rem; font-weight: 600; font-size: .88rem; text-decoration: none; transition: background .2s; }
+  .ep-btn-outline:hover { background: rgba(255,255,255,.22); }
+
+  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.75rem; }
+  .ep-quick-link { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: .5rem 1rem; font-size: .82rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s, box-shadow .2s; display: flex; align-items: center; gap: .4rem; }
+  .ep-quick-link:hover { border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+
+  .ep-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem; }
+
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; }
+  .ep-card-title { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1rem; }
+
+  .ep-stats-mini { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .ep-stat-mini { padding: .75rem; background: #f8fafc; border-radius: 10px; }
+  .ep-stat-mini span { display: block; font-size: .7rem; color: #94a3b8; margin-bottom: .2rem; }
+  .ep-stat-mini strong { font-size: 1.5rem; font-weight: 800; color: #102B4E; }
+  .ep-stat-mini strong.green { color: #15803d; }
+  .ep-stat-mini strong.blue { color: #1d4ed8; }
+
+  .ep-badge-pill { display: inline-flex; align-items: center; gap: .3rem; background: #FEF3C7; color: #92400e; border-radius: 20px; padding: .25rem .75rem; font-size: .72rem; font-weight: 600; border: 1px solid rgba(245,158,11,.2); }
+
+  .ep-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .ep-table th { background: #f8fafc; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: #64748b; padding: .65rem 1rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
+  .ep-table td { padding: .75rem 1rem; border-bottom: 1px solid #f1f5f9; color: #334155; }
+  .ep-table tr:last-child td { border-bottom: none; }
+  .ep-table tr:hover td { background: #f8fafc; }
+  .ep-score-g { background: #F0FDF4; color: #15803d; border-radius: 20px; padding: .2rem .7rem; font-weight: 700; font-size: .78rem; }
+  .ep-score-m { background: #FEF3C7; color: #92400e; border-radius: 20px; padding: .2rem .7rem; font-weight: 700; font-size: .78rem; }
+  .ep-score-r { background: #FEF2F2; color: #b91c1c; border-radius: 20px; padding: .2rem .7rem; font-weight: 700; font-size: .78rem; }
+  .ep-link { color: #F59E0B; font-weight: 600; font-size: .8rem; text-decoration: none; }
+  .ep-link:hover { text-decoration: underline; }
+  .ep-empty { text-align: center; padding: 2.5rem 1rem; color: #94a3b8; font-size: .88rem; }
+
+  @media (max-width: 600px) {
+    .ep-hero::before { display: none; }
+    .ep-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<main class="relative min-h-screen overflow-hidden bg-slate-950 text-slate-50">
+<div class="ep-wrap">
 
-  <!-- 🌈 BACKGROUND -->
-  <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-    <div class="absolute -top-40 -left-32 h-72 w-72 rounded-full bg-gradient-to-br from-blue-500/25 via-emerald-400/10 to-transparent blur-3xl opacity-60"></div>
-    <div class="absolute top-1/3 -right-32 h-80 w-80 rounded-full bg-gradient-to-br from-purple-600/25 via-pink-500/10 to-transparent blur-3xl opacity-60"></div>
+  <nav class="ep-bc">
+    <a href="{% url 'englishprep:dashboard' %}">Anglais</a>
+    <span>›</span>
+    <span>Historique</span>
+  </nav>
+
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Préparation anglais</p>
+    <h1>Ton <span>historique</span> de tests</h1>
+    <p>Suis ta progression, compare tes scores et ajuste ton entraînement.</p>
+    <div class="ep-hero-btns">
+      <a href="{% url 'englishprep:exam_list' %}" class="ep-btn-primary">🚀 Nouveau test</a>
+      <a href="{% url 'englishprep:dashboard' %}" class="ep-btn-outline">🏠 Tableau de bord</a>
+    </div>
   </div>
 
-  <div class="relative z-10 mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
+  <div class="ep-quick">
+    <a href="{% url 'englishprep:dashboard' %}" class="ep-quick-link">🏠 Dashboard</a>
+    <a href="{% url 'englishprep:exam_hub' %}" class="ep-quick-link">🌐 Hub examens</a>
+    <a href="{% url 'englishprep:profile' %}" class="ep-quick-link">👤 Mon profil</a>
+    <a href="{% url 'englishprep:ai_coach' %}" class="ep-quick-link">🤖 Coach IA</a>
+  </div>
 
-    <!-- HEADER -->
-    <header class="mb-10 border-b border-slate-800/70 pb-6">
-      <p class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-slate-400">
-        Historique • Tests d’anglais
-      </p>
-      <h1 class="mt-3 bg-gradient-to-r from-blue-400 via-emerald-300 to-purple-400 bg-clip-text text-3xl font-light tracking-tight text-transparent sm:text-4xl">
-        Ton historique de tests d’anglais
-      </h1>
-      <p class="mt-3 max-w-2xl text-sm text-slate-300">
-        Suis ta progression, compare tes scores et ajuste ton entraînement
-        pour l’immigration, les études ou ta carrière internationale.
-      </p>
+  <div class="ep-grid">
 
-      <div class="mt-5 flex flex-wrap gap-3">
-        <a href="{% url 'englishprep:test_list' %}"
-           class="rounded-3xl bg-gradient-to-r from-blue-400 to-emerald-400 px-5 py-2.5 text-sm font-semibold text-slate-950">
-          🚀 Lancer un nouveau test
-        </a>
-        <a href="{% url 'englishprep:dashboard' %}"
-           class="rounded-3xl border border-slate-700 bg-slate-900/70 px-5 py-2.5 text-sm text-slate-200">
-          🏠 Tableau de bord
-        </a>
-      </div>
-    </header>
-
-    <!-- GRID -->
-    <section class="grid gap-6 lg:grid-cols-2">
-
-      <!-- PROFIL -->
-      <article class="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-6 shadow-xl">
-        <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
-          Résumé de ton profil
-        </h2>
-        <p class="mt-2 text-sm text-slate-300">
-          Ton profil évolue automatiquement à chaque test.
-        </p>
-
-        <div class="mt-5 grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p class="text-xs text-slate-400">XP total</p>
-            <p class="text-xl font-semibold text-emerald-300">{{ profile.xp|default:0 }}</p>
-          </div>
-          <div>
-            <p class="text-xs text-slate-400">Niveau</p>
-            <p class="text-xl font-semibold text-blue-300">{{ profile.level|default:"–" }}</p>
-          </div>
-          <div>
-            <p class="text-xs text-slate-400">Tests passés</p>
-            <p class="text-lg font-semibold">{{ profile.total_tests|default:0 }}</p>
-          </div>
-          <div>
-            <p class="text-xs text-slate-400">Meilleur score</p>
-            <p class="text-lg font-semibold text-emerald-400">
-              {{ profile.best_score|default:0 }} %
-            </p>
-          </div>
+    <!-- Profil résumé -->
+    <div class="ep-card">
+      <p class="ep-card-title">Résumé de ton profil</p>
+      <div class="ep-stats-mini">
+        <div class="ep-stat-mini">
+          <span>XP total</span>
+          <strong class="green">{{ profile.xp|default:0 }}</strong>
         </div>
+        <div class="ep-stat-mini">
+          <span>Niveau</span>
+          <strong class="blue">{{ profile.level|default:"–" }}</strong>
+        </div>
+        <div class="ep-stat-mini">
+          <span>Tests passés</span>
+          <strong>{{ profile.total_tests|default:0 }}</strong>
+        </div>
+        <div class="ep-stat-mini">
+          <span>Meilleur score</span>
+          <strong class="green">{{ profile.best_score|default:0 }}%</strong>
+        </div>
+      </div>
+      {% if profile.badges %}
+      <p style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:.5rem;">Badges</p>
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem;">
+        {% for badge in profile.badges %}
+        <span class="ep-badge-pill">🏅 {{ badge }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
 
-        {% if profile.badges %}
-          <div class="mt-6 border-t border-slate-800 pt-4">
-            <p class="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              Badges obtenus
-            </p>
-            <div class="flex flex-wrap gap-2">
-              {% for badge in profile.badges %}
-                <span class="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
-                  🏅 {{ badge }}
-                </span>
-              {% endfor %}
-            </div>
-          </div>
-        {% endif %}
-      </article>
-
-      <!-- SESSIONS -->
-      <article class="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-6 shadow-xl">
-        <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
-          Dernières sessions
-        </h2>
-        <p class="mt-2 text-sm text-slate-300">
-          Accède au détail de chaque test passé.
-        </p>
-
-        {% if sessions %}
-          <div class="mt-4 overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="border-b border-slate-800 text-left text-xs uppercase tracking-wider text-slate-400">
-                  <th class="py-2">Test</th>
-                  <th>Date</th>
-                  <th>Score</th>
-                  <th class="text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-800">
-                {% for s in sessions %}
-                  <tr class="hover:bg-slate-900/60">
-                    <td class="py-3">{{ s.test.name }}</td>
-                    <td>{{ s.started_at|date:"d/m/Y H:i" }}</td>
-                    <td>
-                      {% if s.score is not None %}
-                        <span class="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-300">
-                          {{ s.score|floatformat:0 }} %
-                        </span>
-                      {% else %}
-                        <span class="text-slate-500">–</span>
-                      {% endif %}
-                    </td>
-                    <td class="text-right">
-                      <a href="{% url 'englishprep:test_result' s.id %}"
-                         class="text-sm font-medium text-blue-300 hover:text-blue-200">
-                        📄 Résultat
-                      </a>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <p class="mt-4 text-sm text-slate-400">
-            Aucun test passé pour le moment.
-          </p>
-        {% endif %}
-      </article>
-
-    </section>
+    <!-- Sessions -->
+    <div class="ep-card">
+      <p class="ep-card-title">Dernières sessions</p>
+      {% if sessions %}
+      <div style="overflow-x:auto;">
+        <table class="ep-table">
+          <thead>
+            <tr>
+              <th>Test</th>
+              <th>Date</th>
+              <th>Score</th>
+              <th style="text-align:right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in sessions %}
+            <tr>
+              <td style="font-weight:600;color:#102B4E;">{{ s.test.name }}</td>
+              <td style="color:#64748b;">{{ s.started_at|date:"d/m/Y H:i" }}</td>
+              <td>
+                {% if s.score is not None %}
+                  {% if s.score >= 80 %}<span class="ep-score-g">{{ s.score|floatformat:0 }}%</span>
+                  {% elif s.score >= 50 %}<span class="ep-score-m">{{ s.score|floatformat:0 }}%</span>
+                  {% else %}<span class="ep-score-r">{{ s.score|floatformat:0 }}%</span>{% endif %}
+                {% else %}<span style="color:#94a3b8;">–</span>{% endif %}
+              </td>
+              <td style="text-align:right;">
+                <a href="{% url 'englishprep:test_result' s.id %}" class="ep-link">📄 Résultat</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="ep-empty">Aucun test passé pour le moment.<br>Lance ton premier test !</div>
+      {% endif %}
+    </div>
 
   </div>
-</main>
+</div>
 {% endblock %}

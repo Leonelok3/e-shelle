@@ -1,132 +1,127 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}
-Analyse de tes compétences en anglais – Immigration97
-{% endblock %}
+{% block title %}Analyse de tes compétences – {{ session.test.name }} • Immigration97{% endblock %}
 
 {% block meta %}
 <meta name="description" content="Analyse détaillée de tes compétences en anglais après ton test sur Immigration97.">
 {% endblock %}
 
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 1000px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
+  .ep-hero::before { content: "🧠"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.3rem, 3.5vw, 1.85rem); font-weight: 800; margin: 0 0 .5rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0 0 1rem; }
+  .ep-meta-pills { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .ep-meta-pill { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 20px; padding: .3rem .9rem; font-size: .75rem; font-weight: 600; color: #fff; }
+
+  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.75rem; }
+  .ep-quick-link { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: .5rem 1rem; font-size: .82rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s, box-shadow .2s; display: flex; align-items: center; gap: .4rem; }
+  .ep-quick-link:hover { border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+
+  .ep-layout { display: grid; grid-template-columns: 260px 1fr; gap: 1.25rem; align-items: start; }
+
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+  .ep-card:last-child { margin-bottom: 0; }
+  .ep-card-title { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: .75rem; }
+
+  .ep-skill-mini { padding: .9rem; background: #f8fafc; border-radius: 10px; margin-bottom: .75rem; }
+  .ep-skill-mini h3 { font-size: .9rem; font-weight: 700; color: #102B4E; margin: 0 0 .2rem; }
+  .ep-skill-mini p { font-size: .75rem; color: #64748b; margin: 0 0 .5rem; }
+  .ep-skill-mini .ep-pct { font-size: 1.75rem; font-weight: 800; }
+  .blue { color: #1d4ed8; }
+  .green { color: #15803d; }
+
+  .ep-cta-card { background: linear-gradient(135deg, #102B4E, #1a3d6b); border-radius: 14px; padding: 1.25rem; color: #fff; }
+  .ep-cta-card h3 { font-size: .9rem; font-weight: 700; margin: 0 0 1rem; }
+  .ep-btn-primary { display: block; text-align: center; background: #F59E0B; color: #102B4E; border-radius: 8px; padding: .6rem 1rem; font-size: .82rem; font-weight: 700; text-decoration: none; transition: background .2s; margin-bottom: .5rem; }
+  .ep-btn-primary:hover { background: #d97706; color: #fff; }
+  .ep-btn-outline { display: block; text-align: center; background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.25); border-radius: 8px; padding: .6rem 1rem; font-size: .82rem; font-weight: 600; text-decoration: none; transition: background .2s; }
+  .ep-btn-outline:hover { background: rgba(255,255,255,.2); }
+
+  .ep-skill-row { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .75rem 1rem; margin-bottom: .6rem; }
+  .ep-skill-row:last-child { margin-bottom: 0; }
+  .ep-skill-row span { font-size: .88rem; font-weight: 600; color: #334155; }
+  .ep-skill-pct { font-size: .95rem; font-weight: 800; color: #102B4E; }
+
+  @media (max-width: 700px) {
+    .ep-layout { grid-template-columns: 1fr; }
+    .ep-hero::before { display: none; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<main class="relative min-h-screen overflow-hidden bg-slate-950 text-slate-50">
+<div class="ep-wrap">
 
-  <!-- 🌈 BACKGROUND -->
-  <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-    <div class="absolute -top-40 -left-32 h-72 w-72 rounded-full bg-gradient-to-br from-blue-500/25 via-emerald-400/10 to-transparent blur-3xl opacity-60"></div>
-    <div class="absolute top-1/3 -right-32 h-80 w-80 rounded-full bg-gradient-to-br from-emerald-500/20 via-blue-500/15 to-transparent blur-3xl opacity-60"></div>
-    <div class="absolute bottom-0 left-1/2 h-72 w-[420px] -translate-x-1/2 translate-y-1/3 rounded-full bg-gradient-to-t from-amber-500/20 via-emerald-500/10 to-transparent blur-3xl opacity-60"></div>
+  <nav class="ep-bc">
+    <a href="{% url 'englishprep:dashboard' %}">Anglais</a>
+    <span>›</span>
+    <a href="{% url 'englishprep:test_result' session.test.id %}">Résultat</a>
+    <span>›</span>
+    <span>Analyse</span>
+  </nav>
+
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Analyse des compétences</p>
+    <h1>Analyse de tes <span>compétences</span></h1>
+    <p>{{ session.test.name }}</p>
+    <div class="ep-meta-pills">
+      <span class="ep-meta-pill">Score global : {{ session.score|default:"0.0" }}%</span>
+      <span class="ep-meta-pill">{{ session.test.get_exam_type_display }} · Niveau {{ session.test.level }}</span>
+      <span class="ep-meta-pill">{{ session.started_at|date:"d/m/Y à H:i" }}</span>
+    </div>
   </div>
 
-  <div class="relative z-10 mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-16">
+  <div class="ep-quick">
+    <a href="{% url 'englishprep:dashboard' %}" class="ep-quick-link">🏠 Dashboard</a>
+    <a href="{% url 'englishprep:exam_hub' %}" class="ep-quick-link">🌐 Hub examens</a>
+    <a href="{% url 'englishprep:exam_list' %}" class="ep-quick-link">📚 Tous les tests</a>
+    <a href="{% url 'englishprep:test_history' %}" class="ep-quick-link">📊 Historique</a>
+  </div>
 
-    <!-- NAV -->
-    <nav class="mb-8 flex flex-wrap gap-2 text-[0.7rem]">
-      <a href="{% url 'englishprep:dashboard' %}" class="rounded-3xl border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 text-slate-200 hover:bg-slate-800/80">🏠 Tableau de bord</a>
-      <a href="{% url 'englishprep:exam_hub' %}" class="rounded-3xl border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 text-slate-200 hover:bg-slate-800/80">🌐 Hub examens</a>
-      <a href="{% url 'englishprep:exam_list' %}" class="rounded-3xl border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 text-slate-200 hover:bg-slate-800/80">📚 Tous les tests</a>
-      <a href="{% url 'englishprep:test_history' %}" class="rounded-3xl border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 text-slate-200 hover:bg-slate-800/80">📋 Historique</a>
-    </nav>
+  <div class="ep-layout">
 
-    <!-- HERO -->
-    <section class="mb-10 border-b border-slate-800/60 pb-8">
-      <p class="text-[0.7rem] uppercase tracking-[0.2em] text-slate-400">
-        Immigration97 • Analyse des compétences
-      </p>
-
-      <h1 class="mt-3 bg-gradient-to-r from-emerald-300 via-blue-300 to-sky-400 bg-clip-text text-3xl font-light text-transparent sm:text-4xl">
-        Analyse de tes compétences
-        <span class="block text-slate-50/90">{{ session.test.name }}</span>
-      </h1>
-
-      <p class="mt-4 max-w-2xl text-sm text-slate-300">
-        Décomposition détaillée de ton test par compétence pour identifier précisément
-        les points forts et les axes d’amélioration.
-      </p>
-
-      <div class="mt-4 flex flex-wrap gap-2 text-[0.75rem]">
-        <span class="rounded-full bg-slate-800/80 px-3 py-1 text-slate-200">
-          Score global : <strong class="text-emerald-300">{{ session.score|default:"0.0" }}%</strong>
-        </span>
-        <span class="rounded-full bg-slate-800/80 px-3 py-1 text-slate-200">
-          {{ session.test.get_exam_type_display }} • Niveau {{ session.test.level }}
-        </span>
-        <span class="rounded-full bg-slate-800/80 px-3 py-1 text-slate-200">
-          {{ session.started_at|date:"d/m/Y à H:i" }}
-        </span>
+    <!-- Colonne gauche -->
+    <div>
+      {% with reading=skill_stats.READING grammar=skill_stats.USE_OF_ENGLISH %}
+      <div class="ep-skill-mini">
+        <h3>Reading comprehension</h3>
+        <p>Compréhension de textes et repérage d'informations.</p>
+        <span class="ep-pct blue">{{ reading.pct|default:"0"|floatformat:0 }}%</span>
       </div>
-    </section>
-
-    <!-- GRID -->
-    <section class="grid gap-6 lg:grid-cols-3">
-
-      <!-- LEFT -->
-      <div class="space-y-5 lg:col-span-1">
-
-        {% with reading=skill_stats.READING grammar=skill_stats.USE_OF_ENGLISH %}
-
-        <article class="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5">
-          <h2 class="text-sm font-semibold text-slate-100">Reading comprehension</h2>
-          <p class="mt-1 text-xs text-slate-400">
-            Compréhension de textes et repérage d’informations.
-          </p>
-          <p class="mt-3 text-2xl font-semibold text-blue-300">
-            {{ reading.pct|default:"0"|floatformat:0 }}%
-          </p>
-        </article>
-
-        <article class="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5">
-          <h2 class="text-sm font-semibold text-slate-100">Grammaire & vocabulaire</h2>
-          <p class="mt-1 text-xs text-slate-400">
-            Structures, temps verbaux et vocabulaire.
-          </p>
-          <p class="mt-3 text-2xl font-semibold text-emerald-300">
-            {{ grammar.pct|default:"0"|floatformat:0 }}%
-          </p>
-        </article>
-
-        {% endwith %}
-
-        <article class="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-5">
-          <h2 class="text-sm font-semibold text-emerald-200">
-            Prochaine étape
-          </h2>
-          <div class="mt-4 flex flex-col gap-2 text-sm">
-            <a href="{% url 'englishprep:exam_list' %}"
-               class="rounded-3xl bg-gradient-to-r from-emerald-400 to-blue-500 px-4 py-2 text-center font-semibold text-slate-950">
-              🚀 Nouvel examen
-            </a>
-            <a href="{% url 'englishprep:test_result' session.test.id %}"
-               class="rounded-3xl border border-slate-700 bg-slate-900/70 px-4 py-2 text-center text-slate-200">
-              📊 Résultat du test
-            </a>
-          </div>
-        </article>
-
+      <div class="ep-skill-mini">
+        <h3>Grammaire & vocabulaire</h3>
+        <p>Structures, temps verbaux et vocabulaire.</p>
+        <span class="ep-pct green">{{ grammar.pct|default:"0"|floatformat:0 }}%</span>
       </div>
+      {% endwith %}
 
-      <!-- RIGHT -->
-      <div class="lg:col-span-2">
-        <article class="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-6">
-          <h2 class="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
-            Répartition par compétence
-          </h2>
-
-          <div class="space-y-4 text-sm">
-            {% for key, data in skill_stats.items %}
-              <div class="flex items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/60 px-4 py-3">
-                <span class="text-slate-200">{{ key }}</span>
-                <span class="font-semibold text-emerald-300">
-                  {{ data.pct|default:"0"|floatformat:0 }}%
-                </span>
-              </div>
-            {% endfor %}
-          </div>
-        </article>
+      <div class="ep-cta-card">
+        <h3>⚡ Prochaine étape</h3>
+        <a href="{% url 'englishprep:exam_list' %}" class="ep-btn-primary">🚀 Nouvel examen</a>
+        <a href="{% url 'englishprep:test_result' session.test.id %}" class="ep-btn-outline">📊 Résultat du test</a>
       </div>
+    </div>
 
-    </section>
+    <!-- Colonne droite -->
+    <div class="ep-card">
+      <p class="ep-card-title">Répartition par compétence</p>
+      {% for key, data in skill_stats.items %}
+      <div class="ep-skill-row">
+        <span>{{ key }}</span>
+        <span class="ep-skill-pct">{{ data.pct|default:"0"|floatformat:0 }}%</span>
+      </div>
+      {% endfor %}
+    </div>
 
   </div>
-</main>
+</div>
 {% endblock %}
