@@ -70,9 +70,15 @@
   .ep-lesson-card.open .ep-lesson-body { display: block; }
   .ep-lesson-content {
     font-size: .85rem; color: #334155; line-height: 1.7;
-    padding: .9rem 0; white-space: pre-wrap;
+    padding: .9rem 0;
   }
   .ep-lesson-content p { margin: 0 0 .6rem; }
+  .ep-lesson-content h1,.ep-lesson-content h2,.ep-lesson-content h3 { color: #102B4E; margin: .75rem 0 .35rem; }
+  .ep-lesson-content ul,.ep-lesson-content ol { padding-left: 1.25rem; margin: .4rem 0 .75rem; }
+  .ep-lesson-content table { width: 100%; border-collapse: collapse; font-size: .82rem; margin: .75rem 0; }
+  .ep-lesson-content th,.ep-lesson-content td { border: 1px solid #e2e8f0; padding: .4rem .65rem; text-align: left; }
+  .ep-lesson-content th { background: #f1f5f9; font-weight: 700; color: #102B4E; }
+  .ep-lesson-content strong { color: #102B4E; }
   .ep-lesson-video {
     display: inline-flex; align-items: center; gap: .35rem; margin-bottom: .75rem;
     font-size: .78rem; color: #F59E0B; text-decoration: none; font-weight: 600;
@@ -99,7 +105,9 @@
   .ep-exercise-link { color: #F59E0B; text-decoration: none; font-weight: 600; font-size: .75rem; }
   .ep-exercise-link:hover { text-decoration: underline; }
   .ep-exercise-desc { font-size: .78rem; color: #475569; line-height: 1.5; }
-  .ep-exercise-content { font-size: .78rem; color: #334155; line-height: 1.6; margin-top: .35rem; white-space: pre-wrap; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: .6rem .75rem; }
+  .ep-exercise-content { font-size: .78rem; color: #334155; line-height: 1.6; margin-top: .35rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: .6rem .75rem; }
+  .ep-exercise-content p { margin: 0 0 .4rem; }
+  .ep-exercise-content ul,.ep-exercise-content ol { padding-left: 1.1rem; margin: .3rem 0; }
 
   /* Empty state */
   .ep-empty {
@@ -177,7 +185,7 @@
             </a>
             {% endif %}
             {% if lesson.content %}
-            <div class="ep-lesson-content">{{ lesson.content }}</div>
+            <div class="ep-lesson-content">{{ lesson.content|safe }}</div>
             {% endif %}
             {% with exs=lesson.exercises.all %}
             {% if exs %}
@@ -198,10 +206,10 @@
                   {% endif %}
                 </div>
                 {% if ex.description %}
-                <div class="ep-exercise-desc">{{ ex.description }}</div>
+                <div class="ep-exercise-desc">{{ ex.description|safe }}</div>
                 {% endif %}
                 {% if ex.content %}
-                <div class="ep-exercise-content">{{ ex.content }}</div>
+                <div class="ep-exercise-content">{{ ex.content|safe }}</div>
                 {% endif %}
               </div>
               {% endfor %}
