@@ -98,23 +98,26 @@ Conditions réelles d'examen avec timing officiel.
               🎧 {{ lesson.title }}
             </p>
 
+            {# Audio unique pour toute la leçon — affiché une seule fois avant les questions #}
+            {% with lesson_audio=exercises.0.audio_url %}
+            {% if lesson_audio %}
+            <div class="pt-audio-wrap" style="margin:.75rem 0 1.25rem;">
+              <p style="font-size:.78rem; opacity:.55; margin-bottom:.4rem;">
+                🎧 Écoutez l'audio puis répondez aux {{ exercises|length }} question{{ exercises|length|pluralize }}
+              </p>
+              <audio controls src="{{ lesson_audio }}" preload="none"
+                     style="width:100%; border-radius:8px;">
+                Votre navigateur ne supporte pas l'audio.
+              </audio>
+            </div>
+            {% endif %}
+            {% endwith %}
+
             {% for ex in exercises %}
             <div class="pt-card pt-card--question" style="margin-bottom:1rem;">
               <header class="pt-question-header">
                 <span class="pt-question-index">CO — Q{{ forloop.parentloop.counter }}.{{ forloop.counter }}</span>
-                {% if ex.audio_url %}
-                <span class="pt-badge" style="font-size:.72rem;">🔊 Audio</span>
-                {% endif %}
               </header>
-
-              {% if ex.audio_url %}
-              <div class="pt-audio-wrap" style="margin:.75rem 0;">
-                <audio controls src="{{ ex.audio_url }}" preload="none"
-                       style="width:100%; border-radius:8px;">
-                  Votre navigateur ne supporte pas l'audio.
-                </audio>
-              </div>
-              {% endif %}
 
               <p class="pt-question-text">{{ ex.question_text }}</p>
 

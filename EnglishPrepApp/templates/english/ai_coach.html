@@ -1,127 +1,318 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}
-Coach IA – Préparation anglais Immigration97
-{% endblock %}
+{% block title %}Coach IA – Préparation anglais Immigration97{% endblock %}
 
 {% block meta %}
-<meta name="description" content="Coach IA d'anglais connecté à ton niveau, ton historique de tests et tes objectifs (immigration, études, travail). Prépare l’IELTS, le TOEFL et le TOEIC avec un accompagnement intelligent.">
+<meta name="description" content="Coach IA d'anglais connecté à ton niveau, ton historique de tests et tes objectifs (immigration, études, travail). Prépare l'IELTS, le TOEFL et le TOEIC avec un accompagnement intelligent.">
 <meta name="keywords" content="coach IA anglais, IELTS, TOEFL, TOEIC, test anglais, Immigration97">
 <meta property="og:title" content="Coach IA – Préparation anglais Immigration97">
 <meta property="og:description" content="Un coach d'anglais intelligent, connecté à ton profil, pour progresser efficacement.">
 <meta property="og:type" content="website">
 {% endblock %}
 
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+
+  /* Breadcrumb */
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+  .ep-bc a:hover { text-decoration: underline; }
+
+  /* Hero */
+  .ep-hero {
+    background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%);
+    border-radius: 20px; padding: 2.5rem 2rem; color: #fff;
+    margin-bottom: 2rem; position: relative; overflow: hidden;
+  }
+  .ep-hero::before {
+    content: "🤖"; font-size: 8rem; position: absolute; right: 2rem; top: 50%;
+    transform: translateY(-50%); opacity: .08; pointer-events: none;
+  }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; margin: 0 0 .65rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .9rem; opacity: .8; margin: 0; max-width: 560px; }
+
+  /* Error */
+  .ep-error {
+    background: #FEF2F2; border: 1px solid #FECACA; border-radius: 12px;
+    padding: .9rem 1.25rem; color: #991b1b; font-size: .88rem; margin-bottom: 1.5rem;
+  }
+
+  /* Layout grid */
+  .ep-coach-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  /* Profile sidebar */
+  .ep-profile-aside {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;
+  }
+  .ep-profile-aside__head {
+    background: linear-gradient(135deg, #102B4E, #1a3d6b);
+    padding: 1.25rem 1.5rem; color: #fff;
+  }
+  .ep-profile-aside__head h3 { font-size: .88rem; font-weight: 700; margin: 0 0 .25rem; }
+  .ep-profile-aside__head p { font-size: .75rem; opacity: .75; margin: 0; }
+  .ep-profile-aside__body { padding: 1.25rem 1.5rem; }
+  .ep-profile-stat { display: flex; justify-content: space-between; align-items: center; padding: .5rem 0; border-bottom: 1px solid #f1f5f9; }
+  .ep-profile-stat:last-child { border-bottom: none; }
+  .ep-profile-stat span { font-size: .8rem; color: #64748b; }
+  .ep-profile-stat strong { font-size: .95rem; font-weight: 800; color: #102B4E; }
+  .ep-level-badge {
+    display: inline-block; background: #FEF3C7; color: #92400e;
+    border-radius: 20px; padding: .2rem .75rem; font-size: .75rem; font-weight: 700;
+  }
+
+  /* Recent sessions in sidebar */
+  .ep-aside-section-title {
+    font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    color: #94a3b8; margin: 1rem 0 .5rem;
+  }
+  .ep-session-mini { font-size: .78rem; color: #475569; padding: .35rem 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; }
+  .ep-session-mini:last-child { border-bottom: none; }
+  .ep-session-score-g { color: #15803d; font-weight: 700; }
+  .ep-session-score-m { color: #d97706; font-weight: 700; }
+  .ep-session-score-r { color: #dc2626; font-weight: 700; }
+
+  /* Coach main area */
+  .ep-coach-main { display: flex; flex-direction: column; gap: 1.25rem; }
+
+  /* Chat form */
+  .ep-chat-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
+    padding: 1.75rem; box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  }
+  .ep-chat-card h2 { font-size: 1rem; font-weight: 700; color: #102B4E; margin: 0 0 1rem; }
+
+  .ep-form-label { font-size: .83rem; font-weight: 600; color: #334155; display: block; margin-bottom: .5rem; }
+  .ep-textarea {
+    width: 100%; box-sizing: border-box;
+    border: 1.5px solid #e2e8f0; border-radius: 12px;
+    padding: .9rem 1.1rem; font-size: .9rem; color: #1e293b;
+    background: #f8fafc; resize: vertical; min-height: 110px;
+    font-family: inherit; transition: border-color .2s;
+    outline: none;
+  }
+  .ep-textarea:focus { border-color: #F59E0B; background: #fff; }
+  .ep-textarea::placeholder { color: #94a3b8; }
+
+  .ep-btn-coach {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: #102B4E; color: #fff;
+    border: none; border-radius: 10px; padding: .75rem 1.6rem;
+    font-size: .88rem; font-weight: 700; cursor: pointer;
+    transition: background .2s; margin-top: .75rem;
+  }
+  .ep-btn-coach:hover { background: #1a3d6b; }
+
+  /* AI Answer */
+  .ep-ai-answer {
+    background: #F0FDF4; border: 1.5px solid #86EFAC;
+    border-radius: 14px; padding: 1.25rem 1.5rem; margin-top: 1.25rem;
+  }
+  .ep-ai-answer__label {
+    font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+    color: #15803d; margin-bottom: .75rem; display: flex; align-items: center; gap: .4rem;
+  }
+  .ep-ai-answer__text {
+    font-size: .9rem; line-height: 1.7; color: #1e293b;
+  }
+
+  /* Quick presets */
+  .ep-presets-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem 1.5rem;
+  }
+  .ep-presets-card h3 { font-size: .82rem; font-weight: 700; color: #102B4E; margin: 0 0 .75rem; text-transform: uppercase; letter-spacing: .06em; }
+  .ep-presets-list { display: flex; flex-direction: column; gap: .4rem; }
+  .ep-preset-btn {
+    text-align: left; background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 8px; padding: .55rem .9rem;
+    font-size: .82rem; color: #334155; cursor: pointer;
+    transition: border-color .2s, background .2s; font-family: inherit;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .ep-preset-btn:hover { border-color: #F59E0B; background: #FFFBEB; color: #102B4E; }
+
+  /* Quick nav */
+  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.5rem; }
+  .ep-quick-link {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+    padding: .5rem 1rem; font-size: .82rem; font-weight: 600; color: #102B4E;
+    text-decoration: none; transition: border-color .2s, box-shadow .2s;
+    display: flex; align-items: center; gap: .4rem;
+  }
+  .ep-quick-link:hover { border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+
+  @media (max-width: 768px) {
+    .ep-hero::before { display: none; }
+    .ep-coach-layout { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<main class="min-h-screen bg-slate-950 text-slate-50">
+<div class="ep-wrap">
 
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+  <!-- Breadcrumb -->
+  <nav class="ep-bc" aria-label="Fil d'Ariane">
+    <a href="{% url 'englishprep:dashboard' %}">Anglais</a>
+    <span>›</span>
+    <span>Coach IA</span>
+  </nav>
 
-    <!-- NAVIGATION -->
-    <nav class="mb-6 border-b border-slate-800 pb-4">
-      <div class="flex flex-wrap justify-end gap-2 text-[11px]">
-        <a href="{% url 'englishprep:dashboard' %}" class="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-slate-200 hover:bg-slate-800 transition">
-          🏠 Tableau de bord
-        </a>
-        <a href="{% url 'englishprep:exam_hub' %}" class="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-slate-200 hover:bg-slate-800 transition">
-          🌐 Hub IELTS / TOEFL / TOEIC
-        </a>
-        <a href="{% url 'englishprep:exam_list' %}" class="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-slate-200 hover:bg-slate-800 transition">
-          📚 Tous les tests
-        </a>
-        <a href="{% url 'englishprep:test_history' %}" class="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-slate-200 hover:bg-slate-800 transition">
-          📋 Historique
-        </a>
-      </div>
-    </nav>
-
-    <!-- HERO -->
-    <section class="mb-10 max-w-3xl">
-      <span class="inline-block rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-emerald-300">
-        Coach IA Anglais
-      </span>
-
-      <h1 class="mt-4 text-3xl md:text-4xl font-light tracking-tight">
-        <span class="bg-gradient-to-r from-slate-50 via-blue-100 to-emerald-200 bg-clip-text text-transparent">
-          Ton coach IA pour réussir les tests d’anglais
-        </span>
-      </h1>
-
-      <p class="mt-3 text-sm md:text-base text-slate-300">
-        Pose tes questions sur l’IELTS, le TOEFL ou le TOEIC.  
-        Le coach analyse ton niveau, tes scores et ton objectif pour te guider efficacement.
-      </p>
-    </section>
-
-    {% if error %}
-      <div class="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-        {{ error }}
-      </div>
-    {% endif %}
-
-    <!-- GRID -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-      <!-- PROFIL -->
-      <aside class="lg:col-span-4 space-y-4">
-        {% include "english/profile_summary_block.html" ignore missing %}
-      </aside>
-
-      <!-- COACH -->
-      <section class="lg:col-span-8 space-y-6">
-
-        <article class="rounded-3xl border border-slate-700 bg-slate-900 p-6">
-          <form method="post" class="space-y-4">
-            {% csrf_token %}
-
-            <label class="block text-sm font-medium text-slate-200">
-              Pose ta question au coach IA
-            </label>
-
-            <textarea
-              name="question"
-              rows="4"
-              data-preset="{{ preset|default:''|escapejs }}"
-              class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500/70"
-              placeholder="Ex : Comment améliorer mon listening IELTS en 30 jours ?"
-            ></textarea>
-
-            <button type="submit"
-              class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-blue-500 px-6 py-3 text-sm font-bold text-slate-950 hover:opacity-90 transition">
-              🤖 Lancer le coach IA
-            </button>
-          </form>
-
-          {% if ai_answer %}
-          <div class="mt-8 rounded-2xl border border-emerald-500/40 bg-emerald-500/5 p-5 text-sm">
-            <p class="mb-3 text-[11px] font-bold uppercase tracking-widest text-emerald-300">
-              Réponse du coach IA
-            </p>
-            <div class="prose prose-invert max-w-none">
-              {{ ai_answer|linebreaksbr }}
-            </div>
-          </div>
-          {% endif %}
-        </article>
-
-        <!-- EXEMPLES -->
-        <article class="rounded-2xl border border-slate-800 bg-slate-900 p-5 text-xs text-slate-300">
-          <p class="mb-2 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-            Exemples de questions
-          </p>
-          <ul class="space-y-1">
-            <li>• Plan de révision IELTS B2 en 4 semaines</li>
-            <li>• Différence entre present perfect et past simple</li>
-            <li>• Exercices de vocabulaire TOEIC niveau intermédiaire</li>
-          </ul>
-        </article>
-
-      </section>
-    </section>
+  <!-- Hero -->
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Préparation anglais</p>
+    <h1>Ton <span>Coach IA</span> pour réussir<br>IELTS, TOEFL & TOEIC</h1>
+    <p>Pose tes questions, obtiens un plan personnalisé. Le coach analyse ton niveau et ton historique pour te guider efficacement.</p>
   </div>
 
-  <!-- JS externe -->
-  <script src="{% static 'js/pages/ai_coach.js' %}"></script>
-</main>
+  <!-- Quick nav -->
+  <div class="ep-quick">
+    <a href="{% url 'englishprep:dashboard' %}" class="ep-quick-link">🏠 Tableau de bord</a>
+    <a href="{% url 'englishprep:exam_hub' %}" class="ep-quick-link">🌐 Hub examens</a>
+    <a href="{% url 'englishprep:exam_list' %}" class="ep-quick-link">📚 Tous les tests</a>
+    <a href="{% url 'englishprep:test_history' %}" class="ep-quick-link">📊 Historique</a>
+  </div>
+
+  {% if error %}
+  <div class="ep-error">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <!-- Layout -->
+  <div class="ep-coach-layout">
+
+    <!-- Sidebar profil -->
+    <aside>
+      <div class="ep-profile-aside">
+        <div class="ep-profile-aside__head">
+          <h3>👤 Mon profil</h3>
+          <p>Niveau et progression</p>
+        </div>
+        <div class="ep-profile-aside__body">
+          {% if profile %}
+          <div class="ep-profile-stat">
+            <span>Niveau actuel</span>
+            <span class="ep-level-badge">{{ profile.level }}</span>
+          </div>
+          <div class="ep-profile-stat">
+            <span>XP total</span>
+            <strong>{{ profile.xp }}</strong>
+          </div>
+          <div class="ep-profile-stat">
+            <span>Tests passés</span>
+            <strong>{{ profile.total_tests }}</strong>
+          </div>
+          <div class="ep-profile-stat">
+            <span>Meilleur score</span>
+            <strong>{{ profile.best_score|floatformat:0 }}%</strong>
+          </div>
+
+          {% if last_session %}
+          <p class="ep-aside-section-title">Dernière session</p>
+          <div class="ep-session-mini">
+            <span>{{ last_session.test.name|truncatechars:22 }}</span>
+            {% if last_session.score is not None %}
+              {% if last_session.score >= 80 %}
+                <span class="ep-session-score-g">{{ last_session.score|floatformat:0 }}%</span>
+              {% elif last_session.score >= 50 %}
+                <span class="ep-session-score-m">{{ last_session.score|floatformat:0 }}%</span>
+              {% else %}
+                <span class="ep-session-score-r">{{ last_session.score|floatformat:0 }}%</span>
+              {% endif %}
+            {% else %}
+              <span style="color:#94a3b8;">—</span>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          {% else %}
+          <p style="font-size:.85rem;color:#64748b;margin:0;">Connecte-toi pour voir ton profil complet.</p>
+          {% endif %}
+
+          <div style="margin-top:1rem;">
+            <a href="{% url 'englishprep:profile' %}" class="ep-quick-link" style="font-size:.8rem;">Voir mon profil complet →</a>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Zone coach -->
+    <div class="ep-coach-main">
+
+      <!-- Formulaire -->
+      <div class="ep-chat-card">
+        <h2>🤖 Pose ta question au coach IA</h2>
+
+        <form method="post">
+          {% csrf_token %}
+          <label class="ep-form-label" for="coach-question">Ta question</label>
+          <textarea
+            id="coach-question"
+            name="question"
+            class="ep-textarea"
+            data-preset="{{ preset|default:''|escapejs }}"
+            placeholder="Ex : Comment améliorer mon listening IELTS en 30 jours ?"
+          ></textarea>
+          <button type="submit" class="ep-btn-coach">🤖 Lancer le coach IA</button>
+        </form>
+
+        {% if ai_answer %}
+        <div class="ep-ai-answer">
+          <div class="ep-ai-answer__label">✅ Réponse du coach IA</div>
+          <div class="ep-ai-answer__text">{{ ai_answer|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Exemples de questions -->
+      <div class="ep-presets-card">
+        <h3>💡 Exemples de questions</h3>
+        <div class="ep-presets-list">
+          <button class="ep-preset-btn" type="button" onclick="setPreset(this)">
+            📅 Plan de révision IELTS B2 en 4 semaines
+          </button>
+          <button class="ep-preset-btn" type="button" onclick="setPreset(this)">
+            📝 Différence entre present perfect et past simple
+          </button>
+          <button class="ep-preset-btn" type="button" onclick="setPreset(this)">
+            🎯 Exercices de vocabulaire TOEIC niveau intermédiaire
+          </button>
+          <button class="ep-preset-btn" type="button" onclick="setPreset(this)">
+            🎧 Stratégies pour améliorer mon score listening TOEFL
+          </button>
+          <button class="ep-preset-btn" type="button" onclick="setPreset(this)">
+            ✍️ Comment rédiger un essay IELTS Writing Task 2 ?
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+function setPreset(btn) {
+  const text = btn.textContent.trim().replace(/^[^\w]+/, '');
+  const textarea = document.getElementById('coach-question');
+  if (textarea) {
+    textarea.value = text;
+    textarea.focus();
+  }
+}
+// Si preset passé depuis la vue
+document.addEventListener('DOMContentLoaded', function() {
+  const textarea = document.getElementById('coach-question');
+  if (textarea && textarea.dataset.preset) {
+    textarea.value = textarea.dataset.preset;
+  }
+});
+</script>
 {% endblock %}

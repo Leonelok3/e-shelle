@@ -1,162 +1,244 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Passer un test d'anglais – {{ test.name }}{% endblock %}
+{% block title %}{{ test.name }} – Passer le test{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  /* Test header */
+  .ep-test-header {
+    background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%);
+    border-radius: 16px; padding: 1.75rem 2rem; color: #fff; margin-bottom: 1.5rem;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  .ep-test-header h1 { font-size: 1.2rem; font-weight: 800; margin: 0 0 .25rem; }
+  .ep-test-header p  { font-size: .83rem; opacity: .75; margin: 0; }
+  .ep-timer-box {
+    background: rgba(255,255,255,.12); border: 1.5px solid rgba(255,255,255,.25);
+    border-radius: 12px; padding: .65rem 1.25rem; text-align: center; min-width: 110px;
+  }
+  .ep-timer-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .1em; opacity: .7; }
+  .ep-timer-val { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .ep-timer-val.urgent { color: #FCA5A5; }
+
+  /* Meta bar */
+  .ep-meta-bar {
+    display: flex; flex-wrap: wrap; gap: 1rem;
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: .9rem 1.25rem; margin-bottom: 1.75rem; font-size: .82rem;
+  }
+  .ep-meta-item span { display: block; color: #94a3b8; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
+  .ep-meta-item strong { color: #102B4E; font-weight: 700; }
+
+  /* Question card */
+  .ep-q-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+    padding: 1.5rem 1.75rem; margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .ep-q-num {
+    font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    color: #F59E0B; margin-bottom: .35rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ep-q-skill {
+    background: #F1F5F9; color: #475569;
+    border-radius: 20px; padding: .15rem .65rem; font-size: .68rem;
+  }
+  .ep-q-text {
+    font-size: .98rem; font-weight: 600; color: #102B4E;
+    line-height: 1.55; margin: 0 0 1.1rem;
+  }
+  .ep-choices { display: flex; flex-direction: column; gap: .5rem; }
+  .ep-choice-label {
+    display: flex; align-items: center; gap: .8rem;
+    padding: .75rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 10px;
+    cursor: pointer; transition: border-color .15s, background .15s; font-size: .9rem; color: #334155;
+  }
+  .ep-choice-label:hover { border-color: #F59E0B; background: #FFFBEB; }
+  .ep-choice-label input[type=radio] { accent-color: #F59E0B; width: 17px; height: 17px; flex-shrink: 0; }
+  .ep-choice-letter {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #F1F5F9; color: #475569;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 800; flex-shrink: 0;
+  }
+
+  /* Submit row */
+  .ep-submit-row {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+    padding: 1.25rem 1.5rem; margin-top: .5rem;
+  }
+  .ep-btn-submit {
+    background: #F59E0B; color: #102B4E; border: none;
+    border-radius: 10px; padding: .85rem 2rem;
+    font-size: .95rem; font-weight: 800; cursor: pointer;
+    font-family: inherit; transition: background .2s;
+  }
+  .ep-btn-submit:hover { background: #d97706; color: #fff; }
+  .ep-submit-note { font-size: .8rem; color: #64748b; flex: 1; }
+
+  /* Tips sidebar (hidden on small) */
+  .ep-layout { display: grid; gap: 1.5rem; }
+  @media (min-width: 800px) {
+    .ep-layout { grid-template-columns: 1fr 260px; }
+    .ep-tips { align-self: start; position: sticky; top: 80px; }
+  }
+  .ep-tips {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem;
+  }
+  .ep-tips h3 { font-size: .92rem; font-weight: 800; color: #102B4E; margin: 0 0 .9rem; }
+  .ep-tips ul { margin: 0; padding: 0 0 0 1.1rem; }
+  .ep-tips li { font-size: .83rem; color: #475569; margin-bottom: .5rem; line-height: 1.5; }
+</style>
+{% endblock %}
 
 {% block content %}
-<main class="relative min-h-screen overflow-hidden bg-slate-950 text-slate-50">
+<div class="ep-wrap">
 
-  <!-- 🌈 BACKGROUND -->
-  <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-    <div class="absolute -top-40 -left-32 h-72 w-72 rounded-full bg-gradient-to-br from-blue-500/25 via-emerald-400/10 to-transparent blur-3xl opacity-60"></div>
-    <div class="absolute top-1/3 -right-32 h-80 w-80 rounded-full bg-gradient-to-br from-purple-600/25 via-pink-500/10 to-transparent blur-3xl opacity-60"></div>
-    <div class="absolute bottom-0 left-1/2 h-72 w-[420px] -translate-x-1/2 translate-y-1/3 rounded-full bg-gradient-to-t from-amber-500/20 via-emerald-500/10 to-transparent blur-3xl opacity-60"></div>
+  <div class="ep-bc">
+    <a href="{% url 'englishprep:dashboard' %}">🏠 Accueil anglais</a>
+    <span>›</span>
+    <a href="{% url 'englishprep:exam_list' %}">Tests</a>
+    <span>›</span>
+    <span>{{ test.name }}</span>
   </div>
 
-  <div class="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col px-4 pb-10 pt-6 sm:px-6 lg:pb-16 lg:pt-10">
+  <!-- Header + timer -->
+  <div class="ep-test-header">
+    <div>
+      <h1>{{ test.name }}</h1>
+      <p>{{ test.get_exam_type_display }} · Niveau {{ test.level }} · {{ questions|length }} questions</p>
+    </div>
+    <div class="ep-timer-box">
+      <div class="ep-timer-label">Temps restant</div>
+      <div class="ep-timer-val" id="exam-timer" data-duration="{{ duration_minutes }}">--:--</div>
+    </div>
+  </div>
 
-    <!-- HEADER -->
-    <header class="mb-6 border-b border-slate-800/70 pb-4">
-      <p class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-slate-400">
-        Immigration97 • Préparation anglais
-      </p>
-      <h1 class="mt-3 bg-gradient-to-r from-blue-400 via-emerald-300 to-purple-400 bg-clip-text text-2xl font-light tracking-tight text-transparent sm:text-3xl lg:text-4xl">
-        Passer le test <span class="text-slate-50/95">{{ test.name }}</span>
-      </h1>
-      <p class="mt-3 max-w-2xl text-sm text-slate-300">
-        Réponds une seule fois comme à l’examen. À la fin, tu obtiens ton score,
-        ta correction détaillée et ton XP est ajouté à ton profil.
-      </p>
-    </header>
+  <!-- Meta -->
+  <div class="ep-meta-bar">
+    <div class="ep-meta-item">
+      <span>Type</span><strong>{{ test.get_exam_type_display }}</strong>
+    </div>
+    <div class="ep-meta-item">
+      <span>Niveau</span><strong>{{ test.level }}</strong>
+    </div>
+    <div class="ep-meta-item">
+      <span>Durée</span><strong>{{ duration_minutes }} min</strong>
+    </div>
+    <div class="ep-meta-item">
+      <span>Questions</span><strong>{{ questions|length }}</strong>
+    </div>
+  </div>
 
-    <!-- META -->
-    <section class="mb-6 rounded-2xl border border-slate-800/80 bg-slate-900/80 px-4 py-3 text-xs text-slate-200">
-      <div class="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p class="text-[0.65rem] uppercase text-slate-400">Type</p>
-          <p class="font-semibold">{{ test.get_exam_type_display }}</p>
+  <form id="exam-form" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="duration_seconds" id="duration_seconds" value="0">
+
+    <div class="ep-layout">
+
+      <!-- Questions -->
+      <div>
+        {% for question in questions %}
+        <div class="ep-q-card">
+          <div class="ep-q-num">
+            <span>Question {{ forloop.counter }} / {{ questions|length }}</span>
+            <span class="ep-q-skill">
+              {% if question.skill == "READING" %}📖 Reading
+              {% elif question.skill == "LISTENING" %}🎧 Listening
+              {% else %}✏️ Grammaire{% endif %}
+            </span>
+          </div>
+          <p class="ep-q-text">{{ question.question_text }}</p>
+          <div class="ep-choices">
+            {% if question.option_a %}
+            <label class="ep-choice-label">
+              <input type="radio" name="question_{{ question.id }}" value="A" required>
+              <span class="ep-choice-letter">A</span>
+              <span>{{ question.option_a }}</span>
+            </label>
+            {% endif %}
+            {% if question.option_b %}
+            <label class="ep-choice-label">
+              <input type="radio" name="question_{{ question.id }}" value="B">
+              <span class="ep-choice-letter">B</span>
+              <span>{{ question.option_b }}</span>
+            </label>
+            {% endif %}
+            {% if question.option_c %}
+            <label class="ep-choice-label">
+              <input type="radio" name="question_{{ question.id }}" value="C">
+              <span class="ep-choice-letter">C</span>
+              <span>{{ question.option_c }}</span>
+            </label>
+            {% endif %}
+            {% if question.option_d %}
+            <label class="ep-choice-label">
+              <input type="radio" name="question_{{ question.id }}" value="D">
+              <span class="ep-choice-letter">D</span>
+              <span>{{ question.option_d }}</span>
+            </label>
+            {% endif %}
+          </div>
         </div>
-        <div>
-          <p class="text-[0.65rem] uppercase text-slate-400">Niveau</p>
-          <p class="font-semibold">{{ test.get_level_display }}</p>
-        </div>
-        <div>
-          <p class="text-[0.65rem] uppercase text-slate-400">Durée</p>
-          <p class="font-semibold">{{ duration_minutes }} min</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-[0.65rem] uppercase text-slate-400">Temps restant</span>
-          <span class="rounded-full border border-amber-400/60 bg-amber-500/10 px-3 py-1 font-semibold text-amber-200">
-            ⏱ <span id="exam-timer" data-duration="{{ duration_minutes }}">--:--</span>
-          </span>
+        {% endfor %}
+
+        <!-- Submit -->
+        <div class="ep-submit-row">
+          <button type="submit" class="ep-btn-submit">✅ Valider mes réponses</button>
+          <p class="ep-submit-note">Une fois validé, tu verras ton score et ta correction complète.</p>
         </div>
       </div>
-    </section>
 
-    <!-- CONTENT -->
-    <section class="grid flex-1 gap-6 lg:grid-cols-[2.2fr_1fr]">
-
-      <!-- QUESTIONS -->
-      <article class="rounded-2xl border border-slate-800/80 bg-slate-900/90 p-5 shadow-2xl">
-        <form id="exam-form" method="post" class="space-y-5">
-          {% csrf_token %}
-
-          <!-- ✅ CHAMP CACHÉ POUR LE TEMPS RÉEL -->
-          <input type="hidden" name="duration_seconds" id="duration_seconds" value="0">
-
-          {% for question in questions %}
-            <div class="rounded-2xl border border-slate-800/80 bg-slate-950/70 p-4">
-              <div class="mb-2 flex justify-between">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                  Question {{ forloop.counter }} / {{ questions|length }}
-                </p>
-                <span class="rounded-full bg-slate-900 px-3 py-1 text-xs text-slate-200">
-                  {% if question.skill == "READING" %}📖 Reading
-                  {% elif question.skill == "USE_OF_ENGLISH" %}✏️ Grammaire
-                  {% else %}🌍 Général{% endif %}
-                </span>
-              </div>
-
-              <p class="mb-3 text-sm text-slate-100">
-                {{ question.text }}
-              </p>
-
-              <div class="space-y-2">
-                {% for choice in question.choices.all %}
-                  <label class="flex cursor-pointer gap-3 rounded-xl border border-slate-800/80 bg-slate-950/80 px-3 py-2 hover:border-blue-400/70">
-                    <input
-                      type="radio"
-                      name="question_{{ question.id }}"
-                      value="{{ choice.id }}"
-                      required
-                      class="mt-1"
-                    >
-                    <span class="font-semibold text-blue-300">
-                      {% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% else %}D{% endif %}
-                    </span>
-                    <span>{{ choice.text }}</span>
-                  </label>
-                {% endfor %}
-              </div>
-            </div>
-          {% endfor %}
-
-          <div class="flex flex-wrap items-center justify-between gap-4 border-t border-slate-800/70 pt-4">
-            <button type="submit"
-              class="rounded-3xl bg-gradient-to-r from-blue-400 to-emerald-400 px-6 py-2.5 font-semibold text-slate-950">
-              ✅ Valider mes réponses
-            </button>
-            <p class="text-xs text-slate-400">
-              Une fois validé, tu verras ton score et ta correction détaillée.
-            </p>
-          </div>
-        </form>
-      </article>
-
-      <!-- CONSEILS -->
-      <aside class="rounded-2xl border border-slate-800/80 bg-slate-900/85 p-5 text-sm">
-        <h3 class="mb-2 text-base text-slate-50">Conditions examen</h3>
-        <ul class="space-y-2 text-slate-300">
+      <!-- Tips -->
+      <aside class="ep-tips">
+        <h3>💡 Conseils examen</h3>
+        <ul>
           <li>⏱ {{ duration_minutes }} minutes sans interruption</li>
-          <li>📵 Pas d’internet</li>
-          <li>🧘 Reste concentré</li>
-          <li>✅ Réponds spontanément</li>
+          <li>📵 Évite les distractions</li>
+          <li>🧘 Reste calme et concentré</li>
+          <li>✅ Réponds d'instinct, puis révise</li>
+          <li>🔍 Relis la question si hésitation</li>
         </ul>
       </aside>
 
-    </section>
-  </div>
-</main>
+    </div>
+  </form>
 
-<!-- ⏱ TIMER + ENREGISTREMENT DU TEMPS RÉEL -->
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const el = document.getElementById("exam-timer");
+  const timerEl = document.getElementById("exam-timer");
   const form = document.getElementById("exam-form");
   const durationField = document.getElementById("duration_seconds");
-
-  if (!el || !form || !durationField) return;
+  if (!timerEl || !form || !durationField) return;
 
   const startTime = Date.now();
-  let remaining = parseInt(el.dataset.duration || 20, 10) * 60;
+  let remaining = parseInt(timerEl.dataset.duration || 20, 10) * 60;
 
   function tick() {
     const m = String(Math.floor(remaining / 60)).padStart(2, "0");
     const s = String(remaining % 60).padStart(2, "0");
-    el.textContent = `${m}:${s}`;
-
+    timerEl.textContent = `${m}:${s}`;
+    if (remaining <= 60) timerEl.classList.add("urgent");
     if (remaining <= 0) {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      durationField.value = elapsed;
-      form.submit();
-      return;
+      durationField.value = Math.floor((Date.now() - startTime) / 1000);
+      form.submit(); return;
     }
     remaining--;
     setTimeout(tick, 1000);
   }
 
   form.addEventListener("submit", () => {
-    const elapsed = Math.floor((Date.now() - startTime) / 1000);
-    durationField.value = elapsed;
+    durationField.value = Math.floor((Date.now() - startTime) / 1000);
   });
 
   tick();

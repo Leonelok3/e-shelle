@@ -1,156 +1,313 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}
-Tableau de bord anglais – Immigration97
-{% endblock %}
+{% block title %}Préparation Anglais – Immigration97{% endblock %}
 
-{% block meta %}
-<meta name="description"
-      content="Tableau de bord de préparation aux tests d’anglais sur Immigration97 : IELTS, TOEFL, TOEIC, suivi de score, XP et progression personnalisée.">
+{% block extra_css %}
+<style>
+  /* ── Design system EnglishPrep ── */
+  .ep-wrap       { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+
+  /* Hero */
+  .ep-hero {
+    background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%);
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    color: #fff;
+    margin: 2rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .ep-hero::before {
+    content: "🇬🇧";
+    font-size: 8rem;
+    position: absolute;
+    right: 2rem; top: 50%;
+    transform: translateY(-50%);
+    opacity: .08;
+    pointer-events: none;
+  }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 800; margin: 0 0 .75rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p  { font-size: .9rem; opacity: .8; margin: 0 0 1.5rem; max-width: 560px; }
+  .ep-hero-btns { display: flex; flex-wrap: wrap; gap: .75rem; }
+  .ep-btn-primary {
+    background: #F59E0B; color: #102B4E;
+    border-radius: 10px; padding: .65rem 1.4rem;
+    font-weight: 700; font-size: .88rem;
+    text-decoration: none; transition: background .2s;
+  }
+  .ep-btn-primary:hover { background: #d97706; color: #fff; }
+  .ep-btn-outline {
+    background: rgba(255,255,255,.12); color: #fff;
+    border: 1.5px solid rgba(255,255,255,.3);
+    border-radius: 10px; padding: .65rem 1.4rem;
+    font-weight: 600; font-size: .88rem;
+    text-decoration: none; transition: background .2s;
+  }
+  .ep-btn-outline:hover { background: rgba(255,255,255,.22); }
+
+  /* Profile bar */
+  .ep-profile-bar {
+    display: flex; flex-wrap: wrap; gap: 1rem;
+    background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 14px; padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    align-items: center;
+  }
+  .ep-stat { text-align: center; flex: 1; min-width: 80px; }
+  .ep-stat span { display: block; font-size: .72rem; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+  .ep-stat strong { font-size: 1.4rem; font-weight: 800; color: #102B4E; }
+  .ep-stat .ep-badge-list { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .35rem; }
+  .ep-badge-pill {
+    background: #FEF3C7; color: #92400e;
+    border-radius: 20px; padding: .2rem .65rem;
+    font-size: .7rem; font-weight: 600;
+  }
+
+  /* Section */
+  .ep-section-head { margin: 2.5rem 0 1.25rem; }
+  .ep-section-head h2 { font-size: 1.2rem; font-weight: 800; color: #102B4E; margin: 0 0 .25rem; }
+  .ep-section-head p  { font-size: .85rem; color: #64748b; margin: 0; }
+
+  /* Test grid */
+  .ep-test-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.1rem; }
+
+  .ep-test-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.25rem;
+    display: flex; flex-direction: column;
+    transition: box-shadow .2s, border-color .2s;
+  }
+  .ep-test-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); border-color: #F59E0B; }
+  .ep-test-tags { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .75rem; }
+  .ep-tag {
+    border-radius: 20px; padding: .18rem .6rem;
+    font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  }
+  .ep-tag-general  { background: #EFF6FF; color: #1d4ed8; }
+  .ep-tag-ielts    { background: #F0FDF4; color: #15803d; }
+  .ep-tag-toefl    { background: #FFF7ED; color: #c2410c; }
+  .ep-tag-toeic    { background: #FDF4FF; color: #7e22ce; }
+  .ep-tag-level    { background: #F1F5F9; color: #475569; }
+  .ep-test-name { font-size: .98rem; font-weight: 700; color: #102B4E; margin: 0 0 .4rem; }
+  .ep-test-desc { font-size: .82rem; color: #64748b; margin: 0 0 .75rem; flex: 1; }
+  .ep-test-meta { font-size: .75rem; color: #94a3b8; margin-bottom: .9rem; }
+  .ep-test-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .ep-btn-sm-primary {
+    background: #102B4E; color: #fff;
+    border-radius: 8px; padding: .5rem 1rem;
+    font-size: .8rem; font-weight: 600;
+    text-decoration: none; transition: background .2s;
+  }
+  .ep-btn-sm-primary:hover { background: #1a3d6b; color: #fff; }
+  .ep-btn-sm-outline {
+    background: #f8fafc; color: #475569;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px; padding: .5rem 1rem;
+    font-size: .8rem; font-weight: 600;
+    text-decoration: none; transition: background .2s;
+  }
+  .ep-btn-sm-outline:hover { background: #e2e8f0; }
+
+  /* Skill stats */
+  .ep-skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .ep-skill-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.1rem;
+  }
+  .ep-skill-name { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #64748b; margin-bottom: .5rem; }
+  .ep-skill-pct { font-size: 2rem; font-weight: 800; color: #102B4E; }
+  .ep-skill-bar { height: 6px; background: #f1f5f9; border-radius: 4px; margin-top: .5rem; }
+  .ep-skill-fill { height: 100%; background: #F59E0B; border-radius: 4px; }
+
+  /* Recent sessions */
+  .ep-sessions-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .ep-sessions-table th {
+    background: #f8fafc; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em;
+    color: #64748b; padding: .65rem 1rem; text-align: left; border-bottom: 1px solid #e2e8f0;
+  }
+  .ep-sessions-table td { padding: .75rem 1rem; border-bottom: 1px solid #f1f5f9; }
+  .ep-sessions-table tr:last-child td { border-bottom: none; }
+  .ep-score-pill {
+    border-radius: 20px; padding: .2rem .7rem; font-weight: 700; font-size: .78rem;
+  }
+  .ep-score-great  { background: #F0FDF4; color: #15803d; }
+  .ep-score-good   { background: #FEF3C7; color: #92400e; }
+  .ep-score-retry  { background: #FEF2F2; color: #b91c1c; }
+
+  /* Empty */
+  .ep-empty { text-align: center; padding: 3rem 1rem; color: #94a3b8; font-size: .9rem; background: #f8fafc; border-radius: 14px; }
+
+  /* Nav breadcrumb */
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 0; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+  .ep-bc a:hover { text-decoration: underline; }
+
+  /* Quick links */
+  .ep-quick { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.5rem 0 2.5rem; }
+  .ep-quick-link {
+    background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 10px; padding: .65rem 1.2rem;
+    font-size: .85rem; font-weight: 600; color: #102B4E;
+    text-decoration: none; transition: border-color .2s, box-shadow .2s;
+    display: flex; align-items: center; gap: .4rem;
+  }
+  .ep-quick-link:hover { border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+
+  @media (max-width: 600px) {
+    .ep-hero::before { display: none; }
+    .ep-profile-bar { gap: .75rem; }
+    .ep-test-grid { grid-template-columns: 1fr; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<main class="page-englishprep">
+<div class="ep-wrap">
 
-  <!-- HERO -->
-  <section class="eng-hero container">
-    <p class="eng-hero-kicker">
-      Immigration97 • Préparation anglais
-    </p>
-
-    <h1 class="eng-hero-title">
-      Prépare ton <span>test d’anglais</span><br>
-      intelligemment
-    </h1>
-
-    <p class="eng-hero-subtitle">
-      Entraîne-toi avec des tests réalistes (IELTS, TOEFL, TOEIC),
-      suis ton score, gagne de l’XP et améliore tes compétences
-      avec des corrections détaillées et un coach intelligent.
-    </p>
-
-    <div class="eng-links">
-      <a href="{% url 'englishprep:exam_list' %}" class="btn-primary">
-        🚀 Commencer un test
-      </a>
-      <a href="{% url 'englishprep:test_history' %}" class="btn-outline">
-        📊 Voir mes résultats
-      </a>
-      <a href="{% url 'englishprep:ai_coach' %}" class="eng-link">
-        🤖 Coach IA
-      </a>
+  <!-- Hero -->
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Préparation anglais</p>
+    <h1>Prépare ton <span>test d'anglais</span><br>intelligemment</h1>
+    <p>Entraîne-toi avec des tests réalistes (IELTS, TOEFL, TOEIC), suis ton score, gagne de l'XP et améliore tes compétences avec un coach IA.</p>
+    <div class="ep-hero-btns">
+      <a href="{% url 'englishprep:exam_list' %}" class="ep-btn-primary">🚀 Commencer un test</a>
+      <a href="{% url 'englishprep:exam_hub' %}" class="ep-btn-outline">🌐 Hub IELTS / TOEFL / TOEIC</a>
+      <a href="{% url 'englishprep:ai_coach' %}" class="ep-btn-outline">🤖 Coach IA</a>
     </div>
-  </section>
-
-  <!-- SECTION EXAMENS -->
-  <section class="eng-section">
-    <div class="container">
-      <h2 class="eng-section-title">
-        Examens disponibles
-      </h2>
-      <p class="eng-section-desc">
-        Choisis un examen officiel et entraîne-toi dans des conditions
-        proches du réel.
-      </p>
-
-      {% if tests %}
-        <div class="exam-grid">
-          {% for test in tests %}
-            <article class="exam-card">
-
-              <div class="exam-tags">
-                <span class="exam-tag">
-                  {{ test.get_exam_type_display }}
-                </span>
-                <span class="exam-tag">
-                  Niveau {{ test.level }}
-                </span>
-              </div>
-
-              <h3 class="exam-title">
-                {{ test.name }}
-              </h3>
-
-              <p class="exam-description">
-                {{ test.description|default:"Entraînement ciblé avec score et correction détaillée." }}
-              </p>
-
-              <p class="exam-meta">
-                ⏱ {{ test.duration_minutes }} minutes
-              </p>
-
-              <div class="eng-links">
-                <a href="{% url 'englishprep:take_test' test.id %}"
-                   class="btn-primary">
-                  Commencer
-                </a>
-
-                <a href="{% url 'englishprep:exam_learning_path' test.id %}"
-                   class="btn-outline">
-                  Cours & exercices
-                </a>
-              </div>
-
-            </article>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="empty-state">
-          Aucun test disponible pour le moment.
-        </p>
-      {% endif %}
-    </div>
-  </section>
-
-  <!-- SECTION PROFIL -->
-  {% if profile %}
-  <section class="eng-section">
-    <div class="container">
-      <h2 class="eng-section-title">
-        Ton profil anglais
-      </h2>
-      <p class="eng-section-desc">
-        Ton niveau évolue automatiquement après chaque test.
-      </p>
-
-      <div class="profile-box">
-        <div class="profile-stat">
-          <span>XP total</span>
-          <strong>{{ profile.xp }}</strong>
-        </div>
-
-        <div class="profile-stat">
-          <span>Niveau</span>
-          <strong>Lvl {{ profile.level }}</strong>
-        </div>
-
-        <div class="profile-stat">
-          <span>Tests passés</span>
-          <strong>{{ profile.total_tests }}</strong>
-        </div>
-
-        <div class="profile-stat">
-          <span>Meilleur score</span>
-          <strong>{{ profile.best_score }}%</strong>
-        </div>
-
-        {% if profile.badges %}
-          <div class="eng-links">
-            {% for badge in profile.badges %}
-              <span class="badge">🏅 {{ badge }}</span>
-            {% endfor %}
-          </div>
-        {% endif %}
-      </div>
-    </div>
-  </section>
-  {% endif %}
-
-  <!-- FOOTER INFO -->
-  <div class="eng-footer-info container">
-    Préparation IELTS • TOEFL • TOEIC • Immigration & études internationales
   </div>
 
-</main>
+  <!-- Profile bar -->
+  {% if profile %}
+  <div class="ep-profile-bar">
+    <div class="ep-stat">
+      <span>Niveau</span>
+      <strong>{{ profile.level }}</strong>
+    </div>
+    <div class="ep-stat">
+      <span>XP total</span>
+      <strong>{{ profile.xp }}</strong>
+    </div>
+    <div class="ep-stat">
+      <span>Tests passés</span>
+      <strong>{{ profile.total_tests }}</strong>
+    </div>
+    <div class="ep-stat">
+      <span>Meilleur score</span>
+      <strong>{{ profile.best_score|floatformat:0 }}%</strong>
+    </div>
+    {% if profile.badges %}
+    <div style="flex:2;min-width:160px;">
+      <span style="font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:.4rem;">Badges</span>
+      <div class="ep-badge-list">
+        {% for badge in profile.badges %}<span class="ep-badge-pill">🏅 {{ badge }}</span>{% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    <div>
+      <a href="{% url 'englishprep:profile' %}" class="ep-btn-sm-outline">Voir mon profil →</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Quick nav -->
+  <div class="ep-quick">
+    <a href="{% url 'englishprep:exam_hub' %}" class="ep-quick-link">🌐 Hub examens</a>
+    <a href="{% url 'englishprep:test_history' %}" class="ep-quick-link">📊 Mon historique</a>
+    <a href="{% url 'englishprep:profile' %}" class="ep-quick-link">👤 Mon profil</a>
+    <a href="{% url 'englishprep:ai_coach' %}" class="ep-quick-link">🤖 Coach IA</a>
+  </div>
+
+  <!-- Skill stats -->
+  {% if skill_stats %}
+  <div class="ep-section-head">
+    <h2>Mes compétences</h2>
+    <p>Basé sur toutes tes réponses enregistrées</p>
+  </div>
+  <div class="ep-skill-grid">
+    {% for skill_code, data in skill_stats.items %}
+    <div class="ep-skill-card">
+      <div class="ep-skill-name">{{ data.label }}</div>
+      <div class="ep-skill-pct">{{ data.pct }}%</div>
+      <div class="ep-skill-bar"><div class="ep-skill-fill" style="width:{{ data.pct }}%"></div></div>
+      <p style="font-size:.75rem;color:#94a3b8;margin:.4rem 0 0;">{{ data.correct }} / {{ data.total }} correctes</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Tests disponibles -->
+  <div class="ep-section-head">
+    <h2>Examens disponibles</h2>
+    <p>Choisis un examen et entraîne-toi dans des conditions proches du réel</p>
+  </div>
+
+  {% if tests %}
+  <div class="ep-test-grid">
+    {% for test in tests %}
+    <article class="ep-test-card">
+      <div class="ep-test-tags">
+        {% if test.exam_type == "IELTS" %}<span class="ep-tag ep-tag-ielts">IELTS</span>
+        {% elif test.exam_type == "TOEFL" %}<span class="ep-tag ep-tag-toefl">TOEFL</span>
+        {% elif test.exam_type == "TOEIC" %}<span class="ep-tag ep-tag-toeic">TOEIC</span>
+        {% else %}<span class="ep-tag ep-tag-general">Général</span>{% endif %}
+        <span class="ep-tag ep-tag-level">{{ test.level }}</span>
+      </div>
+      <h3 class="ep-test-name">{{ test.name }}</h3>
+      <p class="ep-test-desc">{{ test.description|default:"Entraînement ciblé avec score et correction détaillée." }}</p>
+      <p class="ep-test-meta">⏱ {{ test.duration_minutes }} minutes</p>
+      <div class="ep-test-actions">
+        <a href="{% url 'englishprep:take_test' test.id %}" class="ep-btn-sm-primary">Commencer</a>
+        <a href="{% url 'englishprep:exam_learning_path' test.id %}" class="ep-btn-sm-outline">📚 Cours</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="ep-empty">Aucun test disponible pour le moment.</div>
+  {% endif %}
+
+  <!-- Dernières sessions -->
+  {% if last_sessions %}
+  <div class="ep-section-head" style="margin-top:2.5rem;">
+    <h2>Dernières sessions</h2>
+  </div>
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;">
+    <table class="ep-sessions-table">
+      <thead>
+        <tr>
+          <th>Test</th>
+          <th>Niveau</th>
+          <th>Score</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in last_sessions %}
+        <tr>
+          <td style="font-weight:600;color:#102B4E;">{{ s.test.name }}</td>
+          <td>{{ s.test.level }}</td>
+          <td>
+            {% if s.score is not None %}
+              {% if s.score >= 80 %}<span class="ep-score-pill ep-score-great">{{ s.score|floatformat:0 }}%</span>
+              {% elif s.score >= 50 %}<span class="ep-score-pill ep-score-good">{{ s.score|floatformat:0 }}%</span>
+              {% else %}<span class="ep-score-pill ep-score-retry">{{ s.score|floatformat:0 }}%</span>{% endif %}
+            {% else %}<span style="color:#94a3b8;">—</span>{% endif %}
+          </td>
+          <td style="color:#64748b;">{{ s.started_at|date:"d/m/Y" }}</td>
+          <td>
+            <a href="{% url 'englishprep:test_result' s.test.id %}" style="font-size:.8rem;color:#F59E0B;font-weight:600;text-decoration:none;">Voir →</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+</div>
 {% endblock %}

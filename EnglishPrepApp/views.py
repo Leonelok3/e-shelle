@@ -257,10 +257,17 @@ def dashboard(request):
         else:
             data["pct"] = 0
 
+    tests = (
+        EnglishTest.objects
+        .filter(is_active=True)
+        .order_by("exam_type", "level", "name")
+    )
+
     context = {
         "profile": profile,
         "last_sessions": last_sessions,
         "skill_stats": skill_stats,
+        "tests": tests,
     }
     return render(request, "english/dashboard.html", context)
 
@@ -657,7 +664,7 @@ def ai_coach_page(request):
         "last_session": last_session,
         "preset": preset,
     }
-    return render(request, "EnglishPrepApp/ai_coach.html", context)
+    return render(request, "english/ai_coach.html", context)
 
 
 @csrf_exempt

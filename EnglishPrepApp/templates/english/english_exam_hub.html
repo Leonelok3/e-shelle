@@ -1,99 +1,260 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}
-Hub IELTS, TOEFL & TOEIC – Immigration97
+{% block title %}Hub IELTS, TOEFL & TOEIC – Immigration97{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero {
+    background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%);
+    border-radius: 20px; padding: 2.5rem 2rem; color: #fff; margin-bottom: 2rem;
+    position: relative; overflow: hidden;
+  }
+  .ep-hero::before {
+    content: "🌍"; font-size: 8rem; position: absolute; right: 2rem; top: 50%;
+    transform: translateY(-50%); opacity: .07; pointer-events: none;
+  }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 800; margin: 0 0 .75rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p  { font-size: .9rem; opacity: .8; margin: 0 0 1.5rem; max-width: 560px; }
+  .ep-hero-btns { display: flex; flex-wrap: wrap; gap: .75rem; }
+  .ep-btn-outline {
+    background: rgba(255,255,255,.12); color: #fff;
+    border: 1.5px solid rgba(255,255,255,.3);
+    border-radius: 10px; padding: .6rem 1.3rem;
+    font-weight: 600; font-size: .88rem; text-decoration: none; transition: background .2s;
+  }
+  .ep-btn-outline:hover { background: rgba(255,255,255,.22); }
+  .ep-btn-orange {
+    background: #F59E0B; color: #102B4E; border-radius: 10px; padding: .6rem 1.3rem;
+    font-weight: 700; font-size: .88rem; text-decoration: none; transition: background .2s;
+  }
+  .ep-btn-orange:hover { background: #d97706; color: #fff; }
+
+  /* Profile mini */
+  .ep-profile-mini {
+    display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 1rem 1.5rem; margin-bottom: 2rem;
+  }
+  .ep-pm-stat { text-align: center; }
+  .ep-pm-stat span { display: block; font-size: .7rem; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }
+  .ep-pm-stat strong { font-size: 1.3rem; font-weight: 800; color: #102B4E; }
+  .ep-pm-sep { width: 1px; height: 36px; background: #e2e8f0; }
+
+  /* Exam type sections */
+  .ep-section-head { margin: 2.5rem 0 1.25rem; }
+  .ep-section-head h2 { font-size: 1.15rem; font-weight: 800; color: #102B4E; margin: 0 0 .25rem; }
+  .ep-section-head p { font-size: .85rem; color: #64748b; margin: 0; }
+
+  /* Exam info card (big) */
+  .ep-exam-info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
+  .ep-exam-info-card {
+    border-radius: 16px; padding: 1.75rem;
+    border: 1px solid #e2e8f0; background: #fff;
+    display: flex; flex-direction: column; gap: .6rem;
+    transition: box-shadow .2s;
+  }
+  .ep-exam-info-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+  .ep-eic-badge {
+    display: inline-block; border-radius: 8px; padding: .3rem .8rem;
+    font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: .25rem;
+  }
+  .ep-eic-badge.ielts  { background: #F0FDF4; color: #15803d; }
+  .ep-eic-badge.toefl  { background: #FFF7ED; color: #c2410c; }
+  .ep-eic-badge.toeic  { background: #FDF4FF; color: #7e22ce; }
+  .ep-eic-badge.general { background: #EFF6FF; color: #1d4ed8; }
+  .ep-eic-title { font-size: 1.1rem; font-weight: 800; color: #102B4E; }
+  .ep-eic-desc  { font-size: .84rem; color: #64748b; line-height: 1.5; flex: 1; }
+  .ep-eic-meta  { font-size: .78rem; color: #94a3b8; }
+  .ep-eic-btn {
+    display: inline-block; margin-top: .5rem;
+    background: #102B4E; color: #fff;
+    border-radius: 8px; padding: .55rem 1.1rem;
+    font-size: .82rem; font-weight: 700; text-decoration: none;
+    transition: background .2s; align-self: flex-start;
+  }
+  .ep-eic-btn:hover { background: #1a3d6b; color: #fff; }
+
+  /* Test mini cards */
+  .ep-test-mini-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .75rem; margin-bottom: 1.5rem; }
+  .ep-test-mini {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem 1.1rem;
+    display: flex; flex-direction: column; gap: .4rem; transition: border-color .2s;
+  }
+  .ep-test-mini:hover { border-color: #F59E0B; background: #fff; }
+  .ep-test-mini-name { font-size: .9rem; font-weight: 700; color: #102B4E; }
+  .ep-test-mini-meta { font-size: .75rem; color: #94a3b8; }
+  .ep-test-mini-link { font-size: .8rem; color: #F59E0B; font-weight: 600; text-decoration: none; }
+  .ep-test-mini-link:hover { text-decoration: underline; }
+
+  @media (max-width: 600px) { .ep-hero::before { display: none; } }
+</style>
 {% endblock %}
 
 {% block content %}
-<main class="page page-dark page-englishprep">
+<div class="ep-wrap">
 
-  <!-- HERO -->
-  <section class="hub-hero container">
+  <div class="ep-bc">
+    <a href="{% url 'englishprep:dashboard' %}">🏠 Accueil anglais</a>
+    <span>›</span>
+    <span>Hub examens</span>
+  </div>
 
-    <p class="eng-hero-kicker">
-      Immigration97 • Préparation d’anglais
-    </p>
-
-    <h1 class="hub-title">
-      Hub <span>IELTS, TOEFL & TOEIC</span>
-    </h1>
-
-    <p class="hub-subtitle">
-      Choisis l’examen d’anglais le plus adapté à ton projet
-      d’immigration, d’études ou de carrière internationale.
-    </p>
-
-    <div class="hub-links">
-      <a href="{% url 'englishprep:test_list' %}" class="eng-link">
-        🚀 Voir les tests disponibles
-      </a>
-      <a href="{% url 'englishprep:test_history' %}" class="eng-link">
-        📊 Mon historique
-      </a>
+  <!-- Hero -->
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Préparation anglais</p>
+    <h1>Hub <span>IELTS, TOEFL & TOEIC</span></h1>
+    <p>Choisis l'examen d'anglais adapté à ton projet d'immigration, d'études ou de carrière internationale.</p>
+    <div class="ep-hero-btns">
+      <a href="{% url 'englishprep:exam_list' %}" class="ep-btn-orange">🚀 Voir tous les tests</a>
+      <a href="{% url 'englishprep:test_history' %}" class="ep-btn-outline">📊 Mon historique</a>
+      <a href="{% url 'englishprep:dashboard' %}" class="ep-btn-outline">🏠 Tableau de bord</a>
     </div>
+  </div>
 
-  </section>
-
-  <!-- EXAMS -->
-  <section class="eng-section container">
-
-    <h2 class="eng-section-title">
-      Quel examen est fait pour toi ?
-    </h2>
-
-    <div class="exam-grid">
-
-      <!-- IELTS -->
-      <article class="card">
-        <span class="badge">IELTS</span>
-        <h3 class="card-title">IELTS (Academic & General)</h3>
-        <p class="card-desc">
-          Requis pour l’immigration Canada, UK, Australie
-          et de nombreuses universités.
-        </p>
-        <p class="card-meta">🎯 Score sur 9 • 4 compétences</p>
-        <a href="{% url 'englishprep:test_list' %}" class="btn-primary">
-          Commencer IELTS
-        </a>
-      </article>
-
-      <!-- TOEFL -->
-      <article class="card">
-        <span class="badge badge-score">TOEFL iBT</span>
-        <h3 class="card-title">TOEFL iBT</h3>
-        <p class="card-desc">
-          Test académique orienté universités
-          américaines et internationales.
-        </p>
-        <p class="card-meta">🎯 Score sur 120 • En ligne</p>
-        <a href="{% url 'englishprep:test_list' %}" class="btn-primary">
-          Commencer TOEFL
-        </a>
-      </article>
-
-      <!-- TOEIC -->
-      <article class="card">
-        <span class="badge badge-muted">TOEIC</span>
-        <h3 class="card-title">TOEIC</h3>
-        <p class="card-desc">
-          Anglais professionnel, très demandé
-          par les entreprises et écoles.
-        </p>
-        <p class="card-meta">🎯 Score sur 990 • QCM rapides</p>
-        <a href="{% url 'englishprep:test_list' %}" class="btn-primary">
-          Commencer TOEIC
-        </a>
-      </article>
-
+  <!-- Profile mini -->
+  {% if profile %}
+  <div class="ep-profile-mini">
+    <div class="ep-pm-stat">
+      <span>Tests passés</span>
+      <strong>{{ total_sessions }}</strong>
     </div>
-  </section>
+    <div class="ep-pm-sep"></div>
+    <div class="ep-pm-stat">
+      <span>Niveau</span>
+      <strong>{{ profile.level }}</strong>
+    </div>
+    <div class="ep-pm-sep"></div>
+    <div class="ep-pm-stat">
+      <span>XP</span>
+      <strong>{{ profile.xp }}</strong>
+    </div>
+    <div class="ep-pm-sep"></div>
+    <div class="ep-pm-stat">
+      <span>Meilleur score</span>
+      <strong>{{ profile.best_score|floatformat:0 }}%</strong>
+    </div>
+  </div>
+  {% endif %}
 
-  <!-- FOOTER INFO -->
-  <p class="eng-footer-info">
-    Immigration97 est une plateforme d’entraînement.
-    Elle ne remplace pas les organismes officiels IELTS, TOEFL ou TOEIC.
+  <!-- Quel examen pour toi ? -->
+  <div class="ep-section-head">
+    <h2>Quel examen est fait pour toi ?</h2>
+    <p>Chaque certification a ses spécificités — comprends les différences avant de choisir.</p>
+  </div>
+  <div class="ep-exam-info-grid">
+    <div class="ep-exam-info-card">
+      <span class="ep-eic-badge ielts">IELTS</span>
+      <div class="ep-eic-title">IELTS Academic & General</div>
+      <div class="ep-eic-desc">Requis pour l'immigration au Canada, au Royaume-Uni, en Australie et dans de nombreuses universités internationales.</div>
+      <div class="ep-eic-meta">🎯 Score sur 9 · 4 compétences · Listening / Reading / Writing / Speaking</div>
+      {% if ielts_exams %}
+      <a href="{% url 'englishprep:exam_list' %}" class="ep-eic-btn">Commencer IELTS →</a>
+      {% endif %}
+    </div>
+    <div class="ep-exam-info-card">
+      <span class="ep-eic-badge toefl">TOEFL iBT</span>
+      <div class="ep-eic-title">TOEFL iBT</div>
+      <div class="ep-eic-desc">Test académique orienté universités américaines et internationales. Reconnu dans plus de 160 pays.</div>
+      <div class="ep-eic-meta">🎯 Score sur 120 · Entièrement en ligne · 4 sections</div>
+      {% if toefl_exams %}
+      <a href="{% url 'englishprep:exam_list' %}" class="ep-eic-btn">Commencer TOEFL →</a>
+      {% endif %}
+    </div>
+    <div class="ep-exam-info-card">
+      <span class="ep-eic-badge toeic">TOEIC</span>
+      <div class="ep-eic-title">TOEIC</div>
+      <div class="ep-eic-desc">Anglais professionnel, très demandé par les entreprises et les grandes écoles. Idéal pour booster ton CV.</div>
+      <div class="ep-eic-meta">🎯 Score sur 990 · QCM rapides · Listening & Reading</div>
+      {% if toeic_exams %}
+      <a href="{% url 'englishprep:exam_list' %}" class="ep-eic-btn">Commencer TOEIC →</a>
+      {% endif %}
+    </div>
+    <div class="ep-exam-info-card">
+      <span class="ep-eic-badge general">Général</span>
+      <div class="ep-eic-title">Tests généraux A1 → C2</div>
+      <div class="ep-eic-desc">Évalue ton niveau général d'anglais selon le cadre européen CECR. Idéal pour débuter ou faire le point.</div>
+      <div class="ep-eic-meta">🎯 Niveaux A1 à C2 · Grammaire, vocabulaire, reading</div>
+      {% if general_exams %}
+      <a href="{% url 'englishprep:exam_list' %}" class="ep-eic-btn">Commencer →</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- IELTS tests -->
+  {% if ielts_exams %}
+  <div class="ep-section-head">
+    <h2>🟢 Tests IELTS disponibles</h2>
+  </div>
+  <div class="ep-test-mini-grid">
+    {% for test in ielts_exams %}
+    <div class="ep-test-mini">
+      <div class="ep-test-mini-name">{{ test.name }}</div>
+      <div class="ep-test-mini-meta">Niveau {{ test.level }} · ⏱ {{ test.duration_minutes }} min</div>
+      <a href="{% url 'englishprep:take_test' test.id %}" class="ep-test-mini-link">Commencer →</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- TOEFL tests -->
+  {% if toefl_exams %}
+  <div class="ep-section-head">
+    <h2>🟠 Tests TOEFL disponibles</h2>
+  </div>
+  <div class="ep-test-mini-grid">
+    {% for test in toefl_exams %}
+    <div class="ep-test-mini">
+      <div class="ep-test-mini-name">{{ test.name }}</div>
+      <div class="ep-test-mini-meta">Niveau {{ test.level }} · ⏱ {{ test.duration_minutes }} min</div>
+      <a href="{% url 'englishprep:take_test' test.id %}" class="ep-test-mini-link">Commencer →</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- TOEIC tests -->
+  {% if toeic_exams %}
+  <div class="ep-section-head">
+    <h2>🟣 Tests TOEIC disponibles</h2>
+  </div>
+  <div class="ep-test-mini-grid">
+    {% for test in toeic_exams %}
+    <div class="ep-test-mini">
+      <div class="ep-test-mini-name">{{ test.name }}</div>
+      <div class="ep-test-mini-meta">Niveau {{ test.level }} · ⏱ {{ test.duration_minutes }} min</div>
+      <a href="{% url 'englishprep:take_test' test.id %}" class="ep-test-mini-link">Commencer →</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- General tests -->
+  {% if general_exams %}
+  <div class="ep-section-head">
+    <h2>🔵 Tests généraux disponibles</h2>
+  </div>
+  <div class="ep-test-mini-grid">
+    {% for test in general_exams %}
+    <div class="ep-test-mini">
+      <div class="ep-test-mini-name">{{ test.name }}</div>
+      <div class="ep-test-mini-meta">Niveau {{ test.level }} · ⏱ {{ test.duration_minutes }} min</div>
+      <a href="{% url 'englishprep:take_test' test.id %}" class="ep-test-mini-link">Commencer →</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <p style="font-size:.78rem;color:#94a3b8;margin-top:2rem;text-align:center;">
+    Immigration97 est une plateforme d'entraînement. Elle ne remplace pas les organismes officiels IELTS, TOEFL ou TOEIC.
   </p>
 
-</main>
+</div>
 {% endblock %}

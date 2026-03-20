@@ -1,109 +1,107 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Examens d'anglais disponibles – Immigration97{% endblock %}
+{% block title %}Tests d'anglais disponibles – Immigration97{% endblock %}
 
-{% block meta %}
-<meta name="description"
-      content="Choisis ton test d’anglais (IELTS, TOEFL, TOEIC ou général) et entraîne-toi en conditions réelles avec Immigration97." />
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-page-header {
+    background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%);
+    border-radius: 16px; padding: 2rem 2rem; color: #fff; margin-bottom: 2rem;
+  }
+  .ep-page-header h1 { font-size: clamp(1.35rem, 3vw, 2rem); font-weight: 800; margin: 0 0 .4rem; }
+  .ep-page-header p  { font-size: .88rem; opacity: .8; margin: 0; }
+
+  .ep-filter-bar { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.5rem; }
+  .ep-filter-link {
+    border-radius: 20px; padding: .35rem .9rem; font-size: .8rem; font-weight: 600;
+    text-decoration: none; transition: all .2s;
+    border: 1.5px solid #e2e8f0; color: #475569; background: #fff;
+  }
+  .ep-filter-link:hover, .ep-filter-link.active { background: #102B4E; color: #fff; border-color: #102B4E; }
+
+  .ep-test-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.1rem; }
+  .ep-test-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.35rem;
+    display: flex; flex-direction: column; transition: box-shadow .2s, border-color .2s;
+  }
+  .ep-test-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); border-color: #F59E0B; }
+
+  .ep-test-tags { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .75rem; }
+  .ep-tag { border-radius: 20px; padding: .2rem .65rem; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  .ep-tag-general { background: #EFF6FF; color: #1d4ed8; }
+  .ep-tag-ielts   { background: #F0FDF4; color: #15803d; }
+  .ep-tag-toefl   { background: #FFF7ED; color: #c2410c; }
+  .ep-tag-toeic   { background: #FDF4FF; color: #7e22ce; }
+  .ep-tag-level   { background: #F1F5F9; color: #475569; }
+
+  .ep-test-name { font-size: 1rem; font-weight: 700; color: #102B4E; margin: 0 0 .4rem; }
+  .ep-test-desc { font-size: .83rem; color: #64748b; margin: 0 0 .75rem; flex: 1; line-height: 1.5; }
+  .ep-test-meta { font-size: .75rem; color: #94a3b8; margin-bottom: 1rem; }
+  .ep-test-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+  .ep-btn-sm-primary {
+    background: #102B4E; color: #fff;
+    border-radius: 8px; padding: .5rem 1rem;
+    font-size: .82rem; font-weight: 600; text-decoration: none; transition: background .2s;
+  }
+  .ep-btn-sm-primary:hover { background: #1a3d6b; color: #fff; }
+  .ep-btn-sm-outline {
+    background: #f8fafc; color: #475569; border: 1px solid #e2e8f0;
+    border-radius: 8px; padding: .5rem 1rem;
+    font-size: .82rem; font-weight: 600; text-decoration: none; transition: background .2s;
+  }
+  .ep-btn-sm-outline:hover { background: #e2e8f0; }
+
+  .ep-empty { text-align: center; padding: 3rem 1rem; color: #94a3b8; font-size: .9rem; background: #f8fafc; border-radius: 14px; }
+
+  @media (max-width: 600px) { .ep-test-grid { grid-template-columns: 1fr; } }
+</style>
 {% endblock %}
 
 {% block content %}
-<main class="relative min-h-screen overflow-hidden bg-slate-950 text-slate-50">
+<div class="ep-wrap">
 
-  <!-- 🌈 BACKGROUND -->
-  <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-    <div class="absolute -top-40 -left-32 h-72 w-72 rounded-full bg-gradient-to-br from-blue-500/25 via-emerald-400/10 to-transparent blur-3xl opacity-60"></div>
-    <div class="absolute top-1/3 -right-32 h-80 w-80 rounded-full bg-gradient-to-br from-purple-600/25 via-pink-500/10 to-transparent blur-3xl opacity-60"></div>
+  <div class="ep-bc">
+    <a href="{% url 'englishprep:dashboard' %}">🏠 Accueil anglais</a>
+    <span>›</span>
+    <span>Tous les tests</span>
   </div>
 
-  <div class="relative z-10 mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
+  <div class="ep-page-header">
+    <h1>📚 Tests d'anglais disponibles</h1>
+    <p>Entraîne-toi avec des QCM réalistes, des corrections détaillées et un suivi précis de tes scores.</p>
+  </div>
 
-    <!-- HEADER -->
-    <header class="mb-10 border-b border-slate-800/70 pb-6">
-      <p class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-slate-400">
-        Préparation d’anglais • Immigration97
-      </p>
-
-      <h1 class="mt-3 bg-gradient-to-r from-blue-400 via-emerald-300 to-purple-400 bg-clip-text text-3xl font-light tracking-tight text-transparent sm:text-4xl">
-        Examens d’anglais disponibles
-      </h1>
-
-      <p class="mt-3 max-w-2xl text-sm text-slate-300">
-        Choisis un examen et entraîne-toi avec des QCM réalistes,
-        des corrections détaillées et un suivi précis de ton score.
-      </p>
-
-      <div class="mt-5 flex flex-wrap gap-3">
-        <a href="{% url 'englishprep:exam_hub' %}"
-           class="rounded-3xl bg-gradient-to-r from-blue-400 to-emerald-400 px-5 py-2.5 text-sm font-semibold text-slate-950">
-          🌐 Hub IELTS / TOEFL / TOEIC
-        </a>
-        <a href="{% url 'englishprep:dashboard' %}"
-           class="rounded-3xl border border-slate-700 bg-slate-900/70 px-5 py-2.5 text-sm text-slate-200">
-          🏠 Tableau de bord
-        </a>
+  {% if tests %}
+  <div class="ep-test-grid">
+    {% for test in tests %}
+    <article class="ep-test-card">
+      <div class="ep-test-tags">
+        {% if test.exam_type == "IELTS" %}<span class="ep-tag ep-tag-ielts">IELTS</span>
+        {% elif test.exam_type == "TOEFL" %}<span class="ep-tag ep-tag-toefl">TOEFL</span>
+        {% elif test.exam_type == "TOEIC" %}<span class="ep-tag ep-tag-toeic">TOEIC</span>
+        {% else %}<span class="ep-tag ep-tag-general">Général</span>{% endif %}
+        <span class="ep-tag ep-tag-level">{{ test.level }}</span>
       </div>
-    </header>
-
-    <!-- LISTE DES EXAMENS -->
-    <section>
-
-      {% if tests %}
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-
-          {% for test in tests %}
-            <article class="flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-900/80 p-6 shadow-xl transition hover:border-blue-400/50 hover:bg-slate-900">
-
-              <!-- TAGS -->
-              <div class="mb-3 flex flex-wrap gap-2 text-xs">
-                <span class="rounded-full bg-blue-500/15 px-3 py-1 font-semibold text-blue-300">
-                  {{ test.get_exam_type_display }}
-                </span>
-                <span class="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                  Niveau {{ test.level }}
-                </span>
-              </div>
-
-              <!-- TITLE -->
-              <h2 class="text-lg font-semibold text-slate-100">
-                {{ test.name }}
-              </h2>
-
-              <!-- DESCRIPTION -->
-              <p class="mt-2 text-sm text-slate-300">
-                {{ test.description|default:"Entraînement ciblé en conditions réelles." }}
-              </p>
-
-              <!-- META -->
-              <p class="mt-3 text-xs text-slate-400">
-                ⏱ {{ test.duration_minutes }} minutes
-              </p>
-
-              <!-- ACTIONS -->
-              <div class="mt-5 flex flex-wrap gap-3">
-                <a href="{% url 'englishprep:take_test' test.id %}"
-                   class="rounded-3xl bg-gradient-to-r from-blue-400 to-blue-500 px-4 py-2 text-sm font-semibold text-slate-950">
-                  🚀 Commencer le test
-                </a>
-
-                <a href="{% url 'englishprep:exam_learning_path' test.id %}"
-                   class="rounded-3xl border border-slate-700 bg-slate-950/70 px-4 py-2 text-sm text-slate-200">
-                  📚 Cours & exercices
-                </a>
-              </div>
-
-            </article>
-          {% endfor %}
-
-        </div>
-      {% else %}
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-8 text-center text-sm text-slate-300">
-          Aucun test disponible pour le moment.
-        </div>
-      {% endif %}
-
-    </section>
-
+      <h2 class="ep-test-name">{{ test.name }}</h2>
+      <p class="ep-test-desc">{{ test.description|default:"Entraînement ciblé avec score et correction détaillée." }}</p>
+      <p class="ep-test-meta">⏱ {{ test.duration_minutes }} min &nbsp;·&nbsp; {{ test.questions.count }} questions</p>
+      <div class="ep-test-actions">
+        <a href="{% url 'englishprep:take_test' test.id %}" class="ep-btn-sm-primary">🚀 Commencer</a>
+        <a href="{% url 'englishprep:exam_learning_path' test.id %}" class="ep-btn-sm-outline">📚 Cours</a>
+      </div>
+    </article>
+    {% endfor %}
   </div>
-</main>
+  {% else %}
+  <div class="ep-empty">Aucun test disponible pour le moment.</div>
+  {% endif %}
+
+</div>
 {% endblock %}
