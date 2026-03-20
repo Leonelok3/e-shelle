@@ -978,7 +978,7 @@ def german_ai_coach_page(request):
         "last_session": last_session,
         "preset": preset,
     }
-    return render(request, "german/ai_coach.html", context)
+    return render(request, "german/german/ai_coach.html", context)
 
 @csrf_exempt
 @login_required
