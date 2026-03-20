@@ -37,41 +37,69 @@
 
   /* Lesson cards */
   .ep-lessons-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: .9rem;
+    display: flex; flex-direction: column; gap: .75rem;
     background: #fff; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;
     padding: 1rem;
   }
   .ep-lesson-card {
-    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.1rem;
-    display: flex; flex-direction: column; gap: .5rem; transition: border-color .2s, background .2s;
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    overflow: hidden; transition: border-color .2s;
   }
-  .ep-lesson-card:hover { border-color: #F59E0B; background: #fff; }
-  .ep-lesson-title { font-size: .9rem; font-weight: 700; color: #102B4E; }
-  .ep-lesson-desc  { font-size: .8rem; color: #64748b; line-height: 1.45; flex: 1; }
+  .ep-lesson-card.open { border-color: #F59E0B; background: #fff; }
+  .ep-lesson-card-head {
+    display: flex; align-items: center; gap: .75rem;
+    padding: 1rem 1.1rem; cursor: pointer; user-select: none;
+  }
+  .ep-lesson-card-head:hover .ep-lesson-title { color: #d97706; }
+  .ep-lesson-num {
+    width: 28px; height: 28px; border-radius: 50%; background: #102B4E; color: #fff;
+    font-size: .72rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .ep-lesson-card.open .ep-lesson-num { background: #F59E0B; color: #102B4E; }
+  .ep-lesson-head-body { flex: 1; min-width: 0; }
+  .ep-lesson-title { font-size: .9rem; font-weight: 700; color: #102B4E; transition: color .2s; }
+  .ep-lesson-desc  { font-size: .78rem; color: #64748b; line-height: 1.4; margin-top: .15rem; }
+  .ep-lesson-toggle {
+    font-size: .75rem; font-weight: 700; color: #F59E0B; white-space: nowrap;
+    background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px;
+    padding: .3rem .7rem; flex-shrink: 0;
+  }
+
+  /* Lesson body (expanded) */
+  .ep-lesson-body { display: none; padding: 0 1.1rem 1.1rem; border-top: 1px solid #e2e8f0; }
+  .ep-lesson-card.open .ep-lesson-body { display: block; }
+  .ep-lesson-content {
+    font-size: .85rem; color: #334155; line-height: 1.7;
+    padding: .9rem 0; white-space: pre-wrap;
+  }
+  .ep-lesson-content p { margin: 0 0 .6rem; }
   .ep-lesson-video {
-    display: inline-flex; align-items: center; gap: .35rem;
+    display: inline-flex; align-items: center; gap: .35rem; margin-bottom: .75rem;
     font-size: .78rem; color: #F59E0B; text-decoration: none; font-weight: 600;
+    background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: .35rem .75rem;
   }
   .ep-lesson-video:hover { text-decoration: underline; }
 
   /* Exercises */
   .ep-exercises { margin-top: .5rem; }
-  .ep-exercises-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin-bottom: .4rem; }
+  .ep-exercises-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin-bottom: .5rem; }
   .ep-exercise-item {
-    display: flex; align-items: flex-start; gap: .5rem;
-    padding: .4rem 0; border-bottom: 1px solid #f1f5f9; font-size: .8rem;
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+    padding: .75rem .9rem; margin-bottom: .5rem;
   }
-  .ep-exercise-item:last-child { border-bottom: none; }
+  .ep-exercise-item:last-child { margin-bottom: 0; }
+  .ep-exercise-head { display: flex; align-items: center; gap: .5rem; margin-bottom: .25rem; }
   .ep-exercise-diff {
-    border-radius: 4px; padding: .1rem .4rem; font-size: .65rem; font-weight: 700;
-    flex-shrink: 0; margin-top: .1rem;
+    border-radius: 4px; padding: .1rem .4rem; font-size: .65rem; font-weight: 700; flex-shrink: 0;
   }
   .ep-diff-easy   { background: #F0FDF4; color: #15803d; }
   .ep-diff-medium { background: #FEF3C7; color: #92400e; }
   .ep-diff-hard   { background: #FEF2F2; color: #b91c1c; }
-  .ep-exercise-name { color: #334155; flex: 1; }
-  .ep-exercise-link { color: #F59E0B; text-decoration: none; font-weight: 600; font-size: .72rem; }
+  .ep-exercise-name { font-size: .82rem; font-weight: 700; color: #102B4E; flex: 1; }
+  .ep-exercise-link { color: #F59E0B; text-decoration: none; font-weight: 600; font-size: .75rem; }
   .ep-exercise-link:hover { text-decoration: underline; }
+  .ep-exercise-desc { font-size: .78rem; color: #475569; line-height: 1.5; }
+  .ep-exercise-content { font-size: .78rem; color: #334155; line-height: 1.6; margin-top: .35rem; white-space: pre-wrap; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: .6rem .75rem; }
 
   /* Empty state */
   .ep-empty {
@@ -131,37 +159,56 @@
       </div>
       <div class="ep-lessons-grid">
         {% for lesson in group.list %}
-        <div class="ep-lesson-card">
-          <div class="ep-lesson-title">{{ lesson.title }}</div>
-          {% if lesson.short_description %}
-          <div class="ep-lesson-desc">{{ lesson.short_description }}</div>
-          {% endif %}
-          {% if lesson.video_url %}
-          <a href="{{ lesson.video_url }}" target="_blank" rel="noopener" class="ep-lesson-video">
-            🎬 Ressource principale
-          </a>
-          {% endif %}
-          {% with exs=lesson.exercises.all %}
-          {% if exs %}
-          <div class="ep-exercises">
-            <div class="ep-exercises-title">Exercices</div>
-            {% for ex in exs %}
-            <div class="ep-exercise-item">
-              <span class="ep-exercise-diff
-                {% if ex.difficulty == 'EASY' %}ep-diff-easy
-                {% elif ex.difficulty == 'HARD' %}ep-diff-hard
-                {% else %}ep-diff-medium{% endif %}">
-                {% if ex.difficulty == 'EASY' %}Facile{% elif ex.difficulty == 'HARD' %}Avancé{% else %}Moyen{% endif %}
-              </span>
-              <span class="ep-exercise-name">{{ ex.title }}</span>
-              {% if ex.external_url %}
-              <a href="{{ ex.external_url }}" target="_blank" rel="noopener" class="ep-exercise-link">→</a>
+        <div class="ep-lesson-card" id="lesson-{{ lesson.id }}">
+          <div class="ep-lesson-card-head" onclick="toggleLesson({{ lesson.id }})">
+            <div class="ep-lesson-num">{{ forloop.counter }}</div>
+            <div class="ep-lesson-head-body">
+              <div class="ep-lesson-title">{{ lesson.title }}</div>
+              {% if lesson.short_description %}
+              <div class="ep-lesson-desc">{{ lesson.short_description }}</div>
               {% endif %}
             </div>
-            {% endfor %}
+            <span class="ep-lesson-toggle">Voir →</span>
           </div>
-          {% endif %}
-          {% endwith %}
+          <div class="ep-lesson-body">
+            {% if lesson.video_url %}
+            <a href="{{ lesson.video_url }}" target="_blank" rel="noopener" class="ep-lesson-video">
+              🎬 Ressource principale
+            </a>
+            {% endif %}
+            {% if lesson.content %}
+            <div class="ep-lesson-content">{{ lesson.content }}</div>
+            {% endif %}
+            {% with exs=lesson.exercises.all %}
+            {% if exs %}
+            <div class="ep-exercises">
+              <div class="ep-exercises-title">Exercices</div>
+              {% for ex in exs %}
+              <div class="ep-exercise-item">
+                <div class="ep-exercise-head">
+                  <span class="ep-exercise-diff
+                    {% if ex.difficulty == 'EASY' %}ep-diff-easy
+                    {% elif ex.difficulty == 'HARD' %}ep-diff-hard
+                    {% else %}ep-diff-medium{% endif %}">
+                    {% if ex.difficulty == 'EASY' %}Facile{% elif ex.difficulty == 'HARD' %}Avancé{% else %}Moyen{% endif %}
+                  </span>
+                  <span class="ep-exercise-name">{{ ex.title }}</span>
+                  {% if ex.external_url %}
+                  <a href="{{ ex.external_url }}" target="_blank" rel="noopener" class="ep-exercise-link">🔗 Ouvrir</a>
+                  {% endif %}
+                </div>
+                {% if ex.description %}
+                <div class="ep-exercise-desc">{{ ex.description }}</div>
+                {% endif %}
+                {% if ex.content %}
+                <div class="ep-exercise-content">{{ ex.content }}</div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+          </div>
         </div>
         {% endfor %}
       </div>
@@ -181,4 +228,13 @@
   {% endif %}
 
 </div>
+
+<script>
+function toggleLesson(id) {
+  const card = document.getElementById('lesson-' + id);
+  const toggle = card.querySelector('.ep-lesson-toggle');
+  const isOpen = card.classList.toggle('open');
+  toggle.textContent = isOpen ? 'Fermer ↑' : 'Voir →';
+}
+</script>
 {% endblock %}
