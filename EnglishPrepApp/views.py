@@ -623,8 +623,12 @@ def exam_learning_path(request, test_id):
     Regroupe les leçons par compétence (CO / CE / EO / EE / Grammaire).
     """
     test = get_object_or_404(EnglishTest, pk=test_id)
+    # Show all lessons for the same level + exam_type (not just this specific test)
+    same_level_tests = EnglishTest.objects.filter(
+        level=test.level, exam_type=test.exam_type
+    )
     lessons = (
-        EnglishLesson.objects.filter(test=test)
+        EnglishLesson.objects.filter(test__in=same_level_tests)
         .prefetch_related("exercises")
         .order_by("skill", "order", "title")
     )
