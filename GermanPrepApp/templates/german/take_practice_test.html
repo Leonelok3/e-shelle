@@ -1,74 +1,110 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Simulation d’examen {{ exam.title }} – Immigration97{% endblock %}
+{% block title %}Simulation {{ exam.title }} – Immigration97{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 820px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-test-header { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 16px; padding: 1.5rem 2rem; color: #fff; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+  .ep-test-header-left h1 { font-size: 1.15rem; font-weight: 800; margin: 0 0 .2rem; }
+  .ep-test-header-left p { font-size: .8rem; opacity: .7; margin: 0; }
+  .ep-progress-box { background: rgba(255,255,255,.12); border: 1.5px solid rgba(255,255,255,.25); border-radius: 12px; padding: .6rem 1.1rem; text-align: center; min-width: 100px; }
+  .ep-progress-label { font-size: .62rem; text-transform: uppercase; letter-spacing: .1em; opacity: .7; }
+  .ep-progress-val { font-size: 1.15rem; font-weight: 800; }
+
+  .ep-badge-pill { display: inline-flex; align-items: center; gap: .35rem; background: #EFF6FF; color: #1d4ed8; border: 1px solid rgba(59,130,246,.2); border-radius: 20px; padding: .3rem .9rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 1rem; }
+
+  .ep-q-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,.04); margin-bottom: 1rem; }
+  .ep-q-num { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin-bottom: .4rem; }
+  .ep-q-text { font-size: 1rem; font-weight: 600; color: #102B4E; line-height: 1.6; margin: 0 0 1rem; }
+  .ep-options { display: flex; flex-direction: column; gap: .45rem; }
+  .ep-option { display: flex; align-items: center; gap: .85rem; padding: .75rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 11px; cursor: pointer; transition: border-color .15s, background .15s; font-size: .9rem; color: #334155; }
+  .ep-option:hover { border-color: #F59E0B; background: #FFFBEB; }
+  .ep-option input { flex-shrink: 0; accent-color: #F59E0B; width: 17px; height: 17px; }
+
+  .ep-form-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem 1.75rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+  .ep-form-actions p { font-size: .78rem; color: #94a3b8; margin: 0; }
+  .ep-btn-submit { display: inline-flex; align-items: center; gap: .5rem; background: #102B4E; color: #fff; border: none; border-radius: 10px; padding: .8rem 1.75rem; font-size: .9rem; font-weight: 700; cursor: pointer; transition: background .2s; }
+  .ep-btn-submit:hover { background: #1a3d6b; }
+  .ep-btn-cancel { display: inline-flex; align-items: center; gap: .4rem; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; border-radius: 10px; padding: .75rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; transition: border-color .2s; }
+  .ep-btn-cancel:hover { border-color: #F59E0B; }
+
+  .ep-empty { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 3rem 2rem; text-align: center; }
+  .ep-empty h2 { font-size: 1.1rem; font-weight: 700; color: #102B4E; margin-bottom: .75rem; }
+  .ep-empty p { font-size: .9rem; color: #64748b; }
+  .ep-btn-primary { display: inline-flex; align-items: center; gap: .4rem; background: #102B4E; color: #fff; border-radius: 10px; padding: .7rem 1.4rem; font-size: .88rem; font-weight: 700; text-decoration: none; transition: background .2s; margin-top: 1rem; }
+  .ep-btn-primary:hover { background: #1a3d6b; }
+
+  @media (max-width: 600px) {
+    .ep-test-header { flex-direction: column; }
+    .ep-q-card { padding: 1.1rem; }
+    .ep-form-actions { flex-direction: column; align-items: stretch; }
+    .ep-btn-submit { justify-content: center; }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<main class="page page--german-test">
-  <section class="section">
-    <div class="container-narrow">
+<div class="ep-wrap">
 
-      <p class="hero-kicker">Simulation d’examen • Allemand</p>
-      <h1 class="hero-title">
-        {{ exam.title }} – Niveau {{ exam.level }}
-      </h1>
-      <p class="hero-subtitle">
-        Réponds aux questions ci-dessous comme dans un vrai test. À la fin, tu obtiendras un score
-        et ton profil sera mis à jour.
-      </p>
+  <nav class="ep-bc">
+    <a href="{% url 'germanprep:home' %}">Allemand</a>
+    <span>›</span>
+    <a href="{% url 'germanprep:exam_detail' exam.slug %}">{{ exam.title }}</a>
+    <span>›</span>
+    <span>Simulation</span>
+  </nav>
 
-      {% if exercises %}
-        <form method="post">
-          {% csrf_token %}
-          <ol class="question-list">
-            {% for ex in exercises %}
-              <li class="question-item">
-                <p class="question-text">{{ ex.question_text }}</p>
-                <div class="question-options">
-                  <label class="option-line">
-                    <input type="radio" name="exercise_{{ ex.id }}" value="A">
-                    A. {{ ex.option_a }}
-                  </label>
-                  <label class="option-line">
-                    <input type="radio" name="exercise_{{ ex.id }}" value="B">
-                    B. {{ ex.option_b }}
-                  </label>
-                  {% if ex.option_c %}
-                    <label class="option-line">
-                      <input type="radio" name="exercise_{{ ex.id }}" value="C">
-                      C. {{ ex.option_c }}
-                    </label>
-                  {% endif %}
-                  {% if ex.option_d %}
-                    <label class="option-line">
-                      <input type="radio" name="exercise_{{ ex.id }}" value="D">
-                      D. {{ ex.option_d }}
-                    </label>
-                  {% endif %}
-                </div>
-              </li>
-            {% endfor %}
-          </ol>
-
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">
-              Valider mes réponses et voir mon score
-            </button>
-            <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-ghost">
-              Annuler et revenir au cours
-            </a>
-          </div>
-        </form>
-      {% else %}
-        <p class="section-empty">
-          Aucun exercice n’est encore configuré pour cet examen.
-        </p>
-        <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-primary">
-          Revenir à l’espace de cours
-        </a>
-      {% endif %}
-
+  <div class="ep-test-header">
+    <div class="ep-test-header-left">
+      <h1>{{ exam.title }} – Niveau {{ exam.level }}</h1>
+      <p>Réponds à toutes les questions. Ton score sera calculé et ton profil mis à jour.</p>
     </div>
-  </section>
-</main>
+    {% if exercises %}
+    <div class="ep-progress-box">
+      <div class="ep-progress-label">Questions</div>
+      <div class="ep-progress-val">{{ exercises|length }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <span class="ep-badge-pill">⚡ Simulation type examen – Allemand</span>
+
+  {% if exercises %}
+  <form method="post">
+    {% csrf_token %}
+    {% for ex in exercises %}
+    <div class="ep-q-card">
+      <p class="ep-q-num">Question {{ forloop.counter }}</p>
+      <p class="ep-q-text">{{ ex.question_text }}</p>
+      <div class="ep-options">
+        <label class="ep-option"><input type="radio" name="exercise_{{ ex.id }}" value="A"> A. {{ ex.option_a }}</label>
+        <label class="ep-option"><input type="radio" name="exercise_{{ ex.id }}" value="B"> B. {{ ex.option_b }}</label>
+        {% if ex.option_c %}<label class="ep-option"><input type="radio" name="exercise_{{ ex.id }}" value="C"> C. {{ ex.option_c }}</label>{% endif %}
+        {% if ex.option_d %}<label class="ep-option"><input type="radio" name="exercise_{{ ex.id }}" value="D"> D. {{ ex.option_d }}</label>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+    <div class="ep-form-actions">
+      <p>Valide toutes tes réponses pour obtenir ton score.</p>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+        <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-cancel">← Annuler</a>
+        <button type="submit" class="ep-btn-submit">✅ Valider et voir mon score</button>
+      </div>
+    </div>
+  </form>
+  {% else %}
+  <div class="ep-empty">
+    <p style="font-size:2.5rem;margin-bottom:.75rem;">📭</p>
+    <h2>Aucun exercice configuré pour cet examen</h2>
+    <p>Les questions de simulation seront bientôt ajoutées.</p>
+    <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-primary">← Revenir à l'espace de cours</a>
+  </div>
+  {% endif %}
+
+</div>
 {% endblock %}

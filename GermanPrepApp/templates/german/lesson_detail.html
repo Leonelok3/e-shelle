@@ -1,103 +1,133 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ lesson.title }} - Cours allemand {{ exam.level }} - Immigration97{% endblock %}
+{% block title %}{{ lesson.title }} – Cours allemand {{ exam.level }} – Immigration97{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/germanprep.css' %}">
+<style>
+  .ep-wrap { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
+  .ep-hero::before { content: "📖"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; margin: 0 0 .35rem; }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0 0 1.25rem; }
+  .ep-skill-tag { display: inline-block; background: rgba(245,158,11,.25); color: #FDE68A; border-radius: 20px; padding: .2rem .75rem; font-size: .72rem; font-weight: 700; margin-bottom: 1.25rem; }
+  .ep-btn-outline { display: inline-flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.12); color: #fff; border: 1.5px solid rgba(255,255,255,.3); border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; transition: background .2s; }
+  .ep-btn-outline:hover { background: rgba(255,255,255,.22); }
+
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.5rem; margin-bottom: 1.25rem; }
+  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1rem; }
+  .ep-card-sub { font-size: .82rem; color: #64748b; margin: -.5rem 0 1rem; }
+
+  .lesson-content { font-size: .92rem; color: #334155; line-height: 1.75; }
+  .lesson-content h2, .lesson-content h3 { color: #102B4E; font-weight: 700; margin-top: 1.25rem; }
+  .lesson-content p { margin-bottom: .75rem; }
+  .lesson-content ul, .lesson-content ol { padding-left: 1.5rem; margin-bottom: .75rem; }
+  .lesson-content li { margin-bottom: .3rem; }
+  .lesson-content strong { color: #102B4E; }
+  .lesson-content em { color: #475569; }
+  .lesson-content table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: .88rem; }
+  .lesson-content th { background: #102B4E; color: #fff; padding: .5rem .75rem; text-align: left; }
+  .lesson-content td { border: 1px solid #e2e8f0; padding: .45rem .75rem; }
+  .lesson-content tr:nth-child(even) td { background: #f8fafc; }
+
+  .ep-resource-list { display: flex; flex-direction: column; gap: .65rem; }
+  .ep-resource-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .85rem 1rem; }
+  .ep-resource-item h3 { font-size: .88rem; font-weight: 700; color: #102B4E; margin: 0 0 .25rem; display: flex; align-items: center; gap: .5rem; }
+  .ep-resource-badge { background: #EFF6FF; color: #1d4ed8; border-radius: 20px; padding: .1rem .55rem; font-size: .65rem; font-weight: 700; }
+  .ep-resource-item p { font-size: .78rem; color: #64748b; margin: 0 0 .5rem; }
+  .ep-btn-resource { display: inline-flex; align-items: center; gap: .35rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: .4rem .85rem; font-size: .78rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s; }
+  .ep-btn-resource:hover { border-color: #F59E0B; }
+
+  .ep-q-list { display: flex; flex-direction: column; gap: .75rem; }
+  .ep-q-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; }
+  .ep-q-text { font-size: .9rem; font-weight: 600; color: #102B4E; margin: 0 0 .6rem; }
+  .ep-options { display: flex; flex-direction: column; gap: .3rem; font-size: .85rem; color: #475569; padding-left: .5rem; }
+  .ep-options li { list-style: none; padding: .2rem 0; }
+  .ep-q-expl { font-size: .8rem; color: #475569; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: .5rem .75rem; margin-top: .6rem; }
+
+  .ep-empty { font-size: .85rem; color: #94a3b8; font-style: italic; }
+
+  @media (max-width: 600px) { .ep-hero::before { display: none; } }
+</style>
 {% endblock %}
 
 {% block content %}
-<main class="page page--german-lesson">
-  <section class="section">
-    <div class="container-narrow">
+<div class="ep-wrap">
 
-      <p class="hero-kicker">
-        Preparation • Allemand • {{ exam.title }} • Niveau {{ exam.level }}
-      </p>
-      <h1 class="hero-title">
-        {{ lesson.title }}
-      </h1>
-      <p class="hero-subtitle">
-        Competence principale : {{ lesson.get_skill_display }}
-      </p>
+  <nav class="ep-bc">
+    <a href="{% url 'germanprep:home' %}">Allemand</a>
+    <span>›</span>
+    <a href="{% url 'germanprep:exam_detail' exam.slug %}">{{ exam.title }}</a>
+    <span>›</span>
+    <span>{{ lesson.title|truncatechars:40 }}</span>
+  </nav>
 
-      <div class="lesson-nav" style="margin: 12px 0 24px;">
-        <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="c-btn c-btn--outline">
-          &larr; Retour a l'espace de cours
-        </a>
-      </div>
-
-      <section class="section">
-        <h2 class="section-title">Cours</h2>
-        <div class="lesson-content prose">
-          {{ lesson.content|safe }}
-        </div>
-      </section>
-
-      <section class="section">
-        <h2 class="section-title">Ressources pour cette lecon</h2>
-        {% if resources %}
-          <ul class="resource-list">
-            {% for r in resources %}
-              <li class="resource-item">
-                <h3 class="resource-title">
-                  {{ r.title }}
-                  <span class="badge">
-                    {% if r.resource_type == "PDF" %}PDF{% elif r.resource_type == "VIDEO" %}Video{% elif r.resource_type == "LINK" %}Lien{% else %}Ressource{% endif %}
-                  </span>
-                </h3>
-                {% if r.description %}
-                  <p class="resource-desc">{{ r.description }}</p>
-                {% endif %}
-                <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" class="c-btn c-btn--soft">
-                  Ouvrir la ressource
-                </a>
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p class="section-empty">
-            Aucune ressource n'a encore ete ajoutee pour cette lecon.
-          </p>
-        {% endif %}
-      </section>
-
-      <section class="section">
-        <h2 class="section-title">Exercices lies a cette lecon</h2>
-
-        {% if exercises %}
-          <p class="section-subtitle">
-            Utilise ces questions comme entrainement libre. Pour une simulation notee,
-            utilise le bouton "Simulation type examen" dans l'espace de cours.
-          </p>
-
-          <ol class="question-list">
-            {% for ex in exercises %}
-              <li class="question-item">
-                <p class="question-text">{{ ex.question_text }}</p>
-                <ul class="list-clean">
-                  <li>A. {{ ex.option_a }}</li>
-                  <li>B. {{ ex.option_b }}</li>
-                  {% if ex.option_c %}<li>C. {{ ex.option_c }}</li>{% endif %}
-                  {% if ex.option_d %}<li>D. {{ ex.option_d }}</li>{% endif %}
-                </ul>
-                {% if ex.explanation %}
-                  <p class="small">
-                    <strong>Correction / explication :</strong> {{ ex.explanation }}
-                  </p>
-                {% endif %}
-              </li>
-            {% endfor %}
-          </ol>
-        {% else %}
-          <p class="section-empty">
-            Aucun exercice n'a encore ete ajoute pour cette lecon.
-          </p>
-        {% endif %}
-      </section>
-
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">{{ exam.title }} · Niveau {{ exam.level }}</p>
+    <h1>{{ lesson.title }}</h1>
+    <span class="ep-skill-tag">📌 {{ lesson.get_skill_display }}</span>
+    <div>
+      <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-outline">← Retour à l'espace de cours</a>
     </div>
-  </section>
-</main>
+  </div>
+
+  <!-- Contenu du cours -->
+  <div class="ep-card">
+    <p class="ep-card-title">Cours</p>
+    <div class="lesson-content">
+      {{ lesson.content|safe }}
+    </div>
+  </div>
+
+  <!-- Ressources -->
+  <div class="ep-card">
+    <p class="ep-card-title">Ressources pour cette leçon</p>
+    {% if resources %}
+    <div class="ep-resource-list">
+      {% for r in resources %}
+      <div class="ep-resource-item">
+        <h3>{{ r.title }}
+          <span class="ep-resource-badge">{% if r.resource_type == "PDF" %}PDF{% elif r.resource_type == "VIDEO" %}Vidéo{% elif r.resource_type == "LINK" %}Lien{% else %}Ressource{% endif %}</span>
+        </h3>
+        {% if r.description %}<p>{{ r.description }}</p>{% endif %}
+        <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" class="ep-btn-resource">🔗 Ouvrir la ressource</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ep-empty">Aucune ressource n'a encore été ajoutée pour cette leçon.</p>
+    {% endif %}
+  </div>
+
+  <!-- Exercices -->
+  <div class="ep-card">
+    <p class="ep-card-title">Exercices liés à cette leçon</p>
+    <p class="ep-card-sub">Utilise ces questions comme entraînement libre. Pour une simulation notée, utilise le bouton « Simulation type examen » dans l'espace de cours.</p>
+    {% if exercises %}
+    <div class="ep-q-list">
+      {% for ex in exercises %}
+      <div class="ep-q-item">
+        <p class="ep-q-text">{{ forloop.counter }}. {{ ex.question_text }}</p>
+        <ul class="ep-options">
+          <li>A. {{ ex.option_a }}</li>
+          <li>B. {{ ex.option_b }}</li>
+          {% if ex.option_c %}<li>C. {{ ex.option_c }}</li>{% endif %}
+          {% if ex.option_d %}<li>D. {{ ex.option_d }}</li>{% endif %}
+        </ul>
+        {% if ex.explanation %}
+        <div class="ep-q-expl">💡 <strong>Correction :</strong> {{ ex.explanation }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ep-empty">Aucun exercice n'a encore été ajouté pour cette leçon.</p>
+    {% endif %}
+  </div>
+
+</div>
 {% endblock %}

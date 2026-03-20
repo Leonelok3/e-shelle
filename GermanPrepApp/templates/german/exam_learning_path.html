@@ -1,95 +1,89 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}
-Parcours {{ exam.title }} – Cours & exercices – Immigration97
-{% endblock %}
+{% block title %}Parcours {{ exam.title }} – Cours & exercices – Immigration97{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/germanprep.css' %}">
+<style>
+  .ep-wrap { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
+  .ep-hero::before { content: "📚"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.3rem, 4vw, 1.9rem); font-weight: 800; margin: 0 0 .4rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0 0 1.25rem; }
+  .ep-hero-cta { display: flex; flex-wrap: wrap; gap: .6rem; }
+  .ep-btn-outline { display: inline-flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.12); color: #fff; border: 1.5px solid rgba(255,255,255,.3); border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; transition: background .2s; }
+  .ep-btn-outline:hover { background: rgba(255,255,255,.22); }
+  .ep-btn-amber { display: inline-flex; align-items: center; gap: .4rem; background: #F59E0B; color: #102B4E; border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 700; text-decoration: none; transition: background .2s; }
+  .ep-btn-amber:hover { background: #d97706; color: #fff; }
+
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1rem; }
+
+  .ep-lesson-list { display: flex; flex-direction: column; gap: .75rem; }
+  .ep-lesson-item { display: flex; align-items: center; gap: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem 1.1rem; transition: border-color .2s; }
+  .ep-lesson-item:hover { border-color: #F59E0B; }
+  .ep-lesson-num { width: 32px; height: 32px; background: #102B4E; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .78rem; font-weight: 700; flex-shrink: 0; }
+  .ep-lesson-body { flex: 1; min-width: 0; }
+  .ep-lesson-body h3 { font-size: .92rem; font-weight: 700; color: #102B4E; margin: 0 0 .2rem; }
+  .ep-lesson-body p { font-size: .78rem; color: #64748b; margin: 0; }
+  .ep-skill-pill { display: inline-block; background: #EFF6FF; color: #1d4ed8; border-radius: 20px; padding: .15rem .6rem; font-size: .68rem; font-weight: 700; margin-left: .5rem; }
+  .ep-btn-open { background: #102B4E; color: #fff; border-radius: 8px; padding: .45rem .9rem; font-size: .8rem; font-weight: 700; text-decoration: none; white-space: nowrap; flex-shrink: 0; transition: background .2s; }
+  .ep-btn-open:hover { background: #1a3d6b; }
+  .ep-empty { font-size: .88rem; color: #94a3b8; padding: 2rem; text-align: center; }
+
+  @media (max-width: 600px) {
+    .ep-hero::before { display: none; }
+    .ep-lesson-item { flex-direction: column; align-items: flex-start; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<main class="page page-dark page-germanprep page--german-exam-learning">
+<div class="ep-wrap">
 
-  <section class="section">
-    <div class="container-narrow">
+  <nav class="ep-bc">
+    <a href="{% url 'germanprep:home' %}">Allemand</a>
+    <span>›</span>
+    <a href="{% url 'germanprep:exam_hub' %}">Examens</a>
+    <span>›</span>
+    <span>{{ exam.title }}</span>
+  </nav>
 
-      <p class="hero-kicker">
-        Préparation • Allemand • Parcours d’examen
-      </p>
-
-      <h1 class="hero-title">
-        {{ exam.title }} <span>({{ exam.level }})</span>
-      </h1>
-
-      <p class="hero-subtitle">
-        Suis un parcours structuré composé de leçons, exercices et ressources
-        pour réussir efficacement cet examen officiel.
-      </p>
-
-      <div class="hero-cta-row">
-        <a href="{% url 'germanprep:exam_hub' %}" class="btn btn-ghost">
-          ← Revenir au hub des examens
-        </a>
-        <a href="{% url 'germanprep:take_practice_test' exam.id %}"
-           class="btn btn-primary">
-          Lancer une simulation type examen
-        </a>
-      </div>
-
-      <!-- LEÇONS -->
-      <section class="section section--lessons">
-
-        <h2 class="section-title">
-          Leçons & modules de préparation
-        </h2>
-
-        {% if lessons %}
-          <ul class="lesson-list">
-            {% for lesson in lessons %}
-              <li class="lesson-item">
-
-                <div class="lesson-main">
-                  <h3 class="lesson-title">
-                    {{ lesson.title }}
-                    <span class="badge badge-soft">
-                      {{ lesson.get_skill_display }}
-                    </span>
-                  </h3>
-
-                  {% if lesson.intro %}
-                    <p class="lesson-intro">
-                      {{ lesson.intro }}
-                    </p>
-                  {% endif %}
-
-                  <p class="lesson-meta">
-                    Exercices : {{ lesson.exercises.count }}
-                    • Ressources : {{ lesson.resources.count }}
-                  </p>
-                </div>
-
-                <div class="lesson-actions">
-                  <a href="{% url 'germanprep:lesson_detail' exam.slug lesson.id %}"
-                     class="btn btn-secondary btn-soft">
-                    Ouvrir la leçon
-                  </a>
-                </div>
-
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p class="section-empty">
-            Aucune leçon n’est encore configurée pour cet examen.
-          </p>
-        {% endif %}
-
-      </section>
-
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Parcours d'examen</p>
+    <h1>{{ exam.title }} <span>({{ exam.level }})</span></h1>
+    <p>Suis un parcours structuré composé de leçons, exercices et ressources pour réussir cet examen officiel.</p>
+    <div class="ep-hero-cta">
+      <a href="{% url 'germanprep:exam_hub' %}" class="ep-btn-outline">← Hub examens</a>
+      <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-amber">⚡ Lancer une simulation</a>
     </div>
-  </section>
+  </div>
 
-</main>
+  <div class="ep-card">
+    <p class="ep-card-title">Leçons & modules de préparation</p>
+    {% if lessons %}
+    <div class="ep-lesson-list">
+      {% for lesson in lessons %}
+      <div class="ep-lesson-item">
+        <div class="ep-lesson-num">{{ forloop.counter }}</div>
+        <div class="ep-lesson-body">
+          <h3>{{ lesson.title }}<span class="ep-skill-pill">{{ lesson.get_skill_display }}</span></h3>
+          {% if lesson.intro %}<p>{{ lesson.intro }}</p>{% endif %}
+          <p style="margin-top:.2rem;">{{ lesson.exercises.count }} exercice{{ lesson.exercises.count|pluralize:"s" }} · {{ lesson.resources.count }} ressource{{ lesson.resources.count|pluralize:"s" }}</p>
+        </div>
+        <a href="{% url 'germanprep:lesson_detail' exam.slug lesson.id %}" class="ep-btn-open">Ouvrir →</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ep-empty">Aucune leçon n'est encore configurée pour cet examen.</p>
+    {% endif %}
+  </div>
+
+</div>
 {% endblock %}

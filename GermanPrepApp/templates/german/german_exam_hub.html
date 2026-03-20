@@ -1,143 +1,209 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}
-Examens d’allemand – Goethe, telc, TestDaF, DSH – Immigration97
+{% block title %}Examens d'allemand – Goethe, telc, TestDaF, DSH – Immigration97{% endblock %}
+
+{% block meta %}
+<meta name="description" content="Prépare les principaux examens officiels d'allemand : Goethe, telc, TestDaF, DSH — avec des parcours structurés et des simulations sur Immigration97.">
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/germanprep.css' %}">
+<style>
+  .ep-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
+  .ep-hero::before { content: "🎓"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; margin: 0 0 .5rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0 0 1.25rem; max-width: 560px; }
+  .ep-stats-row { display: flex; flex-wrap: wrap; gap: 1.25rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,.15); }
+  .ep-stat { font-size: .78rem; opacity: .8; }
+  .ep-stat strong { color: #F59E0B; }
+
+  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.75rem; }
+  .ep-quick-link { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: .5rem 1rem; font-size: .82rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s, box-shadow .2s; display: flex; align-items: center; gap: .4rem; }
+  .ep-quick-link:hover { border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+
+  .ep-section-title { font-size: 1rem; font-weight: 800; color: #102B4E; margin: 0 0 1rem; }
+  .ep-hub-section { margin-bottom: 2.5rem; }
+  .ep-hub-label { display: inline-flex; align-items: center; gap: .5rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; border-radius: 20px; padding: .3rem 1rem; margin-bottom: 1rem; }
+  .ep-hub-goethe { background: #F0FDF4; color: #15803d; }
+  .ep-hub-telc { background: #EFF6FF; color: #1d4ed8; }
+  .ep-hub-testdaf { background: #FFF7ED; color: #c2410c; }
+  .ep-hub-dsh { background: #FDF4FF; color: #7e22ce; }
+
+  .ep-exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: .85rem; }
+  .ep-exam-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.1rem; display: flex; flex-direction: column; transition: box-shadow .2s, border-color .2s; }
+  .ep-exam-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); border-color: #F59E0B; }
+  .ep-exam-tag { display: inline-block; border-radius: 20px; padding: .18rem .65rem; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .6rem; }
+  .ep-tag-goethe { background: #F0FDF4; color: #15803d; }
+  .ep-tag-telc { background: #EFF6FF; color: #1d4ed8; }
+  .ep-tag-testdaf { background: #FFF7ED; color: #c2410c; }
+  .ep-tag-dsh { background: #FDF4FF; color: #7e22ce; }
+  .ep-tag-level { background: #F1F5F9; color: #475569; }
+  .ep-exam-name { font-size: .95rem; font-weight: 700; color: #102B4E; margin: 0 0 .3rem; }
+  .ep-exam-desc { font-size: .82rem; color: #64748b; flex: 1; line-height: 1.5; margin: 0 0 .85rem; }
+  .ep-exam-actions { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: auto; }
+  .ep-btn-sm-primary { background: #102B4E; color: #fff; border-radius: 8px; padding: .45rem .9rem; font-size: .8rem; font-weight: 700; text-decoration: none; transition: background .2s; }
+  .ep-btn-sm-primary:hover { background: #1a3d6b; }
+  .ep-btn-sm-ghost { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; padding: .45rem .9rem; font-size: .8rem; font-weight: 600; text-decoration: none; transition: border-color .2s; }
+  .ep-btn-sm-ghost:hover { border-color: #F59E0B; color: #102B4E; }
+
+  .ep-sessions-list { display: flex; flex-direction: column; gap: .5rem; }
+  .ep-session-row { display: flex; align-items: center; gap: .75rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .65rem .9rem; }
+  .ep-session-row .info { flex: 1; min-width: 0; }
+  .ep-session-row .info strong { display: block; font-size: .85rem; font-weight: 700; color: #102B4E; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ep-session-row .info span { font-size: .72rem; color: #64748b; }
+  .ep-score-g { background: #F0FDF4; color: #15803d; border-radius: 20px; padding: .18rem .65rem; font-weight: 700; font-size: .78rem; flex-shrink: 0; }
+  .ep-score-m { background: #FEF3C7; color: #92400e; border-radius: 20px; padding: .18rem .65rem; font-weight: 700; font-size: .78rem; flex-shrink: 0; }
+  .ep-score-r { background: #FEF2F2; color: #b91c1c; border-radius: 20px; padding: .18rem .65rem; font-weight: 700; font-size: .78rem; flex-shrink: 0; }
+
+  .ep-empty { font-size: .85rem; color: #94a3b8; font-style: italic; padding: .5rem 0; }
+  .ep-footer-info { margin-top: 3rem; padding: 1rem 1.25rem; background: #f8fafc; border-radius: 10px; font-size: .75rem; color: #94a3b8; }
+
+  @media (max-width: 600px) {
+    .ep-hero::before { display: none; }
+    .ep-exam-grid { grid-template-columns: 1fr; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<main class="page page-dark page-germanprep">
+<div class="ep-wrap">
 
-  <!-- HERO -->
-  <section class="hub-hero">
-    <div class="container-narrow">
+  <nav class="ep-bc">
+    <a href="{% url 'germanprep:home' %}">Allemand</a>
+    <span>›</span>
+    <span>Hub des examens</span>
+  </nav>
 
-      <p class="eng-hero-kicker">
-        Préparation • Allemand • Examens officiels
-      </p>
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Préparation allemand</p>
+    <h1>Choisis ton <span>examen d'allemand</span></h1>
+    <p>Goethe, telc, TestDaF, DSH — parcours structurés, exercices ciblés et simulations chronométrées.</p>
+    <div class="ep-stats-row">
+      <span class="ep-stat">XP : <strong>{{ profile.xp }}</strong></span>
+      <span class="ep-stat">Niveau : <strong>{{ profile.level }}</strong></span>
+      <span class="ep-stat">Tests : <strong>{{ profile.total_tests }}</strong></span>
+      <span class="ep-stat">Meilleur score : <strong>{{ profile.best_score|default:0|floatformat:1 }} %</strong></span>
+    </div>
+  </div>
 
-      <h1 class="hub-title">
-        Choisis ton <span>examen d’allemand</span>
-      </h1>
+  <div class="ep-quick">
+    <a href="{% url 'germanprep:home' %}" class="ep-quick-link">🏠 Accueil allemand</a>
+    <a href="{% url 'germanprep:german_profile' %}" class="ep-quick-link">👤 Mon profil</a>
+    <a href="{% url 'germanprep:placement_test' %}" class="ep-quick-link">🎯 Test de niveau</a>
+  </div>
 
-      <p class="hub-subtitle">
-        Prépare les principaux tests officiels d’allemand : Goethe, telc, TestDaF, DSH,
-        tests d’intégration — avec des parcours structurés, des exercices ciblés
-        et des simulations chronométrées.
-      </p>
-
-      <div class="profile-box">
-        <div class="profile-stat">
-          <span>XP total</span>
-          <strong>{{ profile.xp }}</strong>
+  <!-- Dernières simulations -->
+  {% if last_sessions %}
+  <div class="ep-hub-section">
+    <h2 class="ep-section-title">Tes dernières simulations</h2>
+    <div class="ep-sessions-list">
+      {% for s in last_sessions %}
+      <div class="ep-session-row">
+        <div class="info">
+          <strong>{{ s.exam.title }}</strong>
+          <span>{{ s.started_at|date:"d/m/Y H:i" }} · Niveau {{ s.exam.level }}</span>
         </div>
-        <div class="profile-stat">
-          <span>Niveau interne</span>
-          <strong>{{ profile.level }}</strong>
-        </div>
-        <div class="profile-stat">
-          <span>Tests passés</span>
-          <strong>{{ profile.total_tests }}</strong>
-        </div>
-        <div class="profile-stat">
-          <span>Meilleur score</span>
-          <strong>{{ profile.best_score|default:0|floatformat:1 }} %</strong>
-        </div>
+        {% if s.score is not None %}
+          {% if s.score >= 80 %}<span class="ep-score-g">{{ s.score|default:"0.0" }} %</span>
+          {% elif s.score >= 50 %}<span class="ep-score-m">{{ s.score|default:"0.0" }} %</span>
+          {% else %}<span class="ep-score-r">{{ s.score|default:"0.0" }} %</span>{% endif %}
+        {% endif %}
       </div>
-
+      {% endfor %}
     </div>
-  </section>
-
-  <!-- DERNIÈRES SESSIONS -->
-  <section class="eng-section">
-    <div class="container-narrow">
-
-      <h2 class="eng-section-title">Tes dernières simulations</h2>
-
-      {% if last_sessions %}
-        <div class="exam-grid">
-          {% for s in last_sessions %}
-            <article class="card">
-              <h3 class="card-title">
-                {{ s.exam.title }} ({{ s.exam.level }})
-              </h3>
-              <p class="card-meta">
-                Passé le {{ s.started_at|date:"d/m/Y H:i" }}
-              </p>
-              <p class="card-desc">
-                Score : {{ s.score|default:"0.0" }} %
-              </p>
-            </article>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="empty-state">
-          Tu n’as pas encore lancé de simulation d’allemand.
-          Choisis un examen ci-dessous pour commencer.
-        </p>
-      {% endif %}
-
-    </div>
-  </section>
+  </div>
+  {% endif %}
 
   <!-- GOETHE -->
-  <section class="eng-section">
-    <div class="container-narrow">
-      <h2 class="eng-section-title">Goethe-Institut</h2>
-
-      {% if goethe_exams %}
-        <div class="exam-grid">
-          {% for exam in goethe_exams %}
-            <article class="card">
-              <span class="badge">GOETHE</span>
-
-              <h3 class="card-title">{{ exam.title }}</h3>
-
-              <p class="card-meta">
-                Niveau {{ exam.level }} • Goethe-Institut
-              </p>
-
-              <p class="card-desc">
-                {{ exam.short_description }}
-              </p>
-
-              <div class="exam-actions">
-                <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn-outline">
-                  Voir le programme
-                </a>
-                <a href="{% url 'germanprep:exam_learning_path' exam.slug %}" class="btn-outline">
-                  Cours & exercices
-                </a>
-                <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn-primary">
-                  Simulation rapide
-                </a>
-              </div>
-            </article>
-          {% endfor %}
+  <div class="ep-hub-section">
+    <span class="ep-hub-label ep-hub-goethe">🇩🇪 Goethe-Institut</span>
+    {% if goethe_exams %}
+    <div class="ep-exam-grid">
+      {% for exam in goethe_exams %}
+      <article class="ep-exam-card">
+        <span class="ep-exam-tag ep-tag-goethe">Goethe</span>
+        <h3 class="ep-exam-name">{{ exam.title }}</h3>
+        <p class="ep-exam-desc">{{ exam.short_description }}</p>
+        <div class="ep-exam-actions">
+          <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-sm-primary">Voir le programme</a>
+          <a href="{% url 'germanprep:exam_learning_path' exam.slug %}" class="ep-btn-sm-ghost">📚 Cours</a>
+          <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-sm-ghost">⚡ Simulation</a>
         </div>
-      {% else %}
-        <p class="empty-state">Aucun examen Goethe configuré pour l’instant.</p>
-      {% endif %}
+      </article>
+      {% endfor %}
     </div>
-  </section>
+    {% else %}
+    <p class="ep-empty">Aucun examen Goethe configuré pour l'instant.</p>
+    {% endif %}
+  </div>
 
-  <!-- TELC / TESTDAF / DSH / INTEGRATION -->
-  {% for block, exams in
-    "telc,Telc"|split:",",
-    "testdaf,TestDaF"|split:",",
-    "dsh,DSH"|split:",",
-    "integration,Intégration & Visa"|split:","
-  %}
-  {% endfor %}
+  <!-- TELC -->
+  {% if telc_exams %}
+  <div class="ep-hub-section">
+    <span class="ep-hub-label ep-hub-telc">📋 telc</span>
+    <div class="ep-exam-grid">
+      {% for exam in telc_exams %}
+      <article class="ep-exam-card">
+        <span class="ep-exam-tag ep-tag-telc">telc</span>
+        <h3 class="ep-exam-name">{{ exam.title }}</h3>
+        <p class="ep-exam-desc">{{ exam.short_description }}</p>
+        <div class="ep-exam-actions">
+          <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-sm-primary">Voir le programme</a>
+          <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-sm-ghost">⚡ Simulation</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 
-  <p class="eng-footer-info">
-    Immigration97 est une plateforme d’entraînement.
-    Elle ne remplace pas les organismes officiels Goethe, telc, TestDaF ou DSH.
-  </p>
+  <!-- TESTDAF -->
+  {% if testdaf_exams %}
+  <div class="ep-hub-section">
+    <span class="ep-hub-label ep-hub-testdaf">🏛️ TestDaF</span>
+    <div class="ep-exam-grid">
+      {% for exam in testdaf_exams %}
+      <article class="ep-exam-card">
+        <span class="ep-exam-tag ep-tag-testdaf">TestDaF</span>
+        <h3 class="ep-exam-name">{{ exam.title }}</h3>
+        <p class="ep-exam-desc">{{ exam.short_description }}</p>
+        <div class="ep-exam-actions">
+          <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-sm-primary">Voir le programme</a>
+          <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-sm-ghost">⚡ Simulation</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 
-</main>
+  <!-- DSH -->
+  {% if dsh_exams %}
+  <div class="ep-hub-section">
+    <span class="ep-hub-label ep-hub-dsh">🎓 DSH</span>
+    <div class="ep-exam-grid">
+      {% for exam in dsh_exams %}
+      <article class="ep-exam-card">
+        <span class="ep-exam-tag ep-tag-dsh">DSH</span>
+        <h3 class="ep-exam-name">{{ exam.title }}</h3>
+        <p class="ep-exam-desc">{{ exam.short_description }}</p>
+        <div class="ep-exam-actions">
+          <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-sm-primary">Voir le programme</a>
+          <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-sm-ghost">⚡ Simulation</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <p class="ep-footer-info">ℹ️ Immigration97 est une plateforme d'entraînement. Elle ne remplace pas les organismes officiels Goethe, telc, TestDaF ou DSH.</p>
+
+</div>
 {% endblock %}

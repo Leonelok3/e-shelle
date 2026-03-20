@@ -1,166 +1,199 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Niveau {{ level_code }} – Hub de préparation allemand – Immigration97{% endblock %}
+{% block title %}Niveau {{ level_code }} – Préparation allemand – Immigration97{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 1000px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
+  .ep-hero::before { content: "📖"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; margin: 0 0 .4rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0 0 1.25rem; }
+  .ep-hero-cta { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.25rem; }
+  .ep-btn-outline { display: inline-flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.12); color: #fff; border: 1.5px solid rgba(255,255,255,.3); border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; transition: background .2s; }
+  .ep-btn-outline:hover { background: rgba(255,255,255,.22); }
+  .ep-hero-stats { display: flex; flex-wrap: wrap; gap: 1.25rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,.15); font-size: .78rem; opacity: .8; }
+  .ep-hero-stats strong { color: #F59E0B; }
+
+  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.75rem; }
+  .ep-quick-link { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: .5rem 1rem; font-size: .82rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s, box-shadow .2s; display: flex; align-items: center; gap: .4rem; }
+  .ep-quick-link:hover { border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1rem; }
+
+  .ep-exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px,1fr)); gap: .85rem; }
+  .ep-exam-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; transition: border-color .2s; }
+  .ep-exam-card:hover { border-color: #F59E0B; }
+  .ep-exam-name { font-size: .92rem; font-weight: 700; color: #102B4E; margin: 0 0 .25rem; }
+  .ep-exam-meta { font-size: .75rem; color: #64748b; margin: 0 0 .5rem; }
+  .ep-exam-desc { font-size: .82rem; color: #64748b; flex: 1; line-height: 1.5; margin: 0 0 .75rem; }
+  .ep-exam-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .ep-btn-sm-primary { background: #102B4E; color: #fff; border-radius: 8px; padding: .4rem .85rem; font-size: .78rem; font-weight: 700; text-decoration: none; transition: background .2s; }
+  .ep-btn-sm-primary:hover { background: #1a3d6b; }
+  .ep-btn-sm-ghost { background: #fff; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; padding: .4rem .85rem; font-size: .78rem; font-weight: 600; text-decoration: none; transition: border-color .2s; }
+  .ep-btn-sm-ghost:hover { border-color: #F59E0B; }
+
+  .ep-lesson-list { display: flex; flex-direction: column; gap: .65rem; }
+  .ep-lesson-item { display: flex; align-items: center; gap: .85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .75rem 1rem; transition: border-color .2s; }
+  .ep-lesson-item:hover { border-color: #F59E0B; }
+  .ep-lesson-body { flex: 1; min-width: 0; }
+  .ep-lesson-body strong { display: block; font-size: .88rem; font-weight: 700; color: #102B4E; }
+  .ep-lesson-body span { font-size: .75rem; color: #64748b; }
+  .ep-skill-pill { display: inline-block; background: #EFF6FF; color: #1d4ed8; border-radius: 20px; padding: .15rem .6rem; font-size: .68rem; font-weight: 700; margin-left: .5rem; }
+  .ep-btn-open { background: #102B4E; color: #fff; border-radius: 8px; padding: .4rem .85rem; font-size: .78rem; font-weight: 700; text-decoration: none; white-space: nowrap; flex-shrink: 0; transition: background .2s; }
+  .ep-btn-open:hover { background: #1a3d6b; }
+
+  .ep-resource-list { display: flex; flex-direction: column; gap: .65rem; }
+  .ep-resource-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .85rem 1rem; }
+  .ep-resource-item h3 { font-size: .88rem; font-weight: 700; color: #102B4E; margin: 0 0 .25rem; display: flex; align-items: center; gap: .5rem; }
+  .ep-resource-badge { background: #EFF6FF; color: #1d4ed8; border-radius: 20px; padding: .1rem .55rem; font-size: .65rem; font-weight: 700; }
+  .ep-resource-item p { font-size: .78rem; color: #64748b; margin: 0 0 .5rem; }
+  .ep-btn-resource { display: inline-flex; align-items: center; gap: .35rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: .4rem .85rem; font-size: .78rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s; }
+  .ep-btn-resource:hover { border-color: #F59E0B; }
+
+  .ep-sessions-list { display: flex; flex-direction: column; gap: .5rem; }
+  .ep-session-row { display: flex; align-items: center; gap: .75rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .65rem .9rem; }
+  .ep-session-row .info { flex: 1; min-width: 0; }
+  .ep-session-row .info strong { display: block; font-size: .85rem; font-weight: 700; color: #102B4E; }
+  .ep-session-row .info span { font-size: .72rem; color: #64748b; }
+  .ep-score-g { background: #F0FDF4; color: #15803d; border-radius: 20px; padding: .18rem .65rem; font-weight: 700; font-size: .78rem; flex-shrink: 0; }
+  .ep-score-m { background: #FEF3C7; color: #92400e; border-radius: 20px; padding: .18rem .65rem; font-weight: 700; font-size: .78rem; flex-shrink: 0; }
+  .ep-score-r { background: #FEF2F2; color: #b91c1c; border-radius: 20px; padding: .18rem .65rem; font-weight: 700; font-size: .78rem; flex-shrink: 0; }
+
+  .ep-empty { font-size: .85rem; color: #94a3b8; font-style: italic; padding: .5rem 0; }
+
+  @media (max-width: 600px) {
+    .ep-hero::before { display: none; }
+    .ep-exam-grid { grid-template-columns: 1fr; }
+    .ep-lesson-item { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<main class="page page--german-level">
-  <section class="section">
-    <div class="container-narrow">
+<div class="ep-wrap">
 
-      <p class="hero-kicker">Préparation • Allemand • Niveau {{ level_code }}</p>
-      <h1 class="hero-title">
-        Niveau {{ level_code }} – {{ level_label }}
-      </h1>
-      <p class="hero-subtitle">
-        {{ level_description }}
-      </p>
+  <nav class="ep-bc">
+    <a href="{% url 'germanprep:home' %}">Allemand</a>
+    <span>›</span>
+    <span>Niveau {{ level_code }}</span>
+  </nav>
 
-      <div class="hero-cta-row" style="margin-bottom: 24px;">
-        <a href="{% url 'germanprep:placement_test' %}" class="btn btn-secondary">
-          🎯 Vérifier si ce niveau me correspond
-        </a>
-        <a href="{% url 'germanprep:home' %}#levels" class="btn btn-ghost">
-          ← Revenir au choix des niveaux
-        </a>
-      </div>
-
-      <div class="profile-summary">
-        <p>XP total : {{ profile.xp }} • Niveau interne : {{ profile.level }}</p>
-        <p>Tests passés : {{ profile.total_tests }} • Meilleur score : {{ profile.best_score|default:0 }} %</p>
-        {% if profile.placement_level %}
-          <p>Niveau conseillé actuellement : <strong>{{ profile.placement_level }}</strong>
-             (test ≈ {{ profile.placement_score|default:0|floatformat:1 }} %)</p>
-        {% endif %}
-      </div>
-
-      <section class="section">
-        <h2 class="section-title">Examens disponibles pour le niveau {{ level_code }}</h2>
-        {% if exams %}
-          <div class="exam-cards-row">
-            {% for exam in exams %}
-              <article class="exam-card">
-                <h3 class="exam-title">{{ exam.title }}</h3>
-                <p class="exam-type">
-                  {{ exam.get_exam_type_display }} • Niveau {{ exam.level }}
-                </p>
-                <p class="exam-desc">
-                  {{ exam.short_description }}
-                </p>
-                <div class="exam-actions">
-                  <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="btn btn-secondary">
-                    Voir le programme complet
-                  </a>
-                  <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-ghost">
-                    Simulation type examen
-                  </a>
-                </div>
-              </article>
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="section-empty">
-            Aucun examen spécifique n’est encore configuré pour ce niveau.
-          </p>
-        {% endif %}
-      </section>
-
-      <section class="section">
-        <h2 class="section-title">Cours & leçons clés du niveau {{ level_code }}</h2>
-        {% if lessons %}
-          <ul class="lesson-list">
-            {% for lesson in lessons %}
-              <li class="lesson-item">
-                <div class="lesson-main">
-                  <h3 class="lesson-title">
-                    {{ lesson.title }}
-                    <span class="badge badge-soft">{{ lesson.get_skill_display }}</span>
-                  </h3>
-                  <p class="lesson-meta">
-                    Examen : {{ lesson.exam.title }}
-                  </p>
-                  {% if lesson.intro %}
-                    <p class="lesson-intro">{{ lesson.intro }}</p>
-                  {% endif %}
-                </div>
-                <div class="lesson-actions">
-                  <a href="{% url 'germanprep:lesson_detail' lesson.exam.slug lesson.id %}"
-                     class="btn btn-secondary btn-soft">
-                    Ouvrir la leçon
-                  </a>
-                </div>
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p class="section-empty">
-            Les leçons de ce niveau ne sont pas encore configurées.
-          </p>
-        {% endif %}
-      </section>
-
-      <section class="section">
-        <h2 class="section-title">Ressources complètes (PDF, vidéos, fiches)</h2>
-        {% if resources %}
-          <ul class="resource-list">
-            {% for r in resources %}
-              <li class="resource-item">
-                <h3 class="resource-title">
-                  {{ r.title }}
-                  <span class="badge">
-                    {% if r.resource_type == "PDF" %}PDF{% elif r.resource_type == "VIDEO" %}Vidéo{% elif r.resource_type == "LINK" %}Lien{% else %}Ressource{% endif %}
-                  </span>
-                </h3>
-                {% if r.description %}
-                  <p class="resource-desc">{{ r.description }}</p>
-                {% endif %}
-                <p class="resource-meta">
-                  Examen associé : {{ r.exam.title }}
-                </p>
-                <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer"
-                   class="btn btn-ghost btn-soft">
-                  Ouvrir la ressource
-                </a>
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p class="section-empty">
-            Aucune ressource n’a encore été ajoutée pour ce niveau.
-          </p>
-        {% endif %}
-      </section>
-
-      <section class="section">
-        <h2 class="section-title">Tes dernières simulations sur ce niveau</h2>
-        {% if sessions %}
-          <ul class="session-list">
-            {% for s in sessions %}
-              <li class="session-item">
-                <div class="session-main">
-                  <p class="session-title">
-                    {{ s.exam.title }}
-                  </p>
-                  <p class="session-meta">
-                    Passé le {{ s.started_at|date:"d/m/Y H:i" }}
-                  </p>
-                </div>
-                <div class="session-score">
-                  <span class="session-score-value">
-                    {{ s.score|default:"0.0" }} %
-                  </span>
-                </div>
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p class="section-empty">
-            Tu n’as pas encore fait de test pour ce niveau.
-          </p>
-        {% endif %}
-      </section>
-
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Allemand · Niveau {{ level_code }}</p>
+    <h1>Niveau <span>{{ level_code }}</span> – {{ level_label }}</h1>
+    <p>{{ level_description }}</p>
+    <div class="ep-hero-cta">
+      <a href="{% url 'germanprep:placement_test' %}" class="ep-btn-outline">🎯 Vérifier mon niveau</a>
+      <a href="{% url 'germanprep:home' %}#levels" class="ep-btn-outline">← Tous les niveaux</a>
     </div>
-  </section>
-</main>
+    <div class="ep-hero-stats">
+      <span>XP : <strong>{{ profile.xp }}</strong></span>
+      <span>Niveau interne : <strong>{{ profile.level }}</strong></span>
+      <span>Tests : <strong>{{ profile.total_tests }}</strong></span>
+      <span>Meilleur score : <strong>{{ profile.best_score|default:0 }} %</strong></span>
+      {% if profile.placement_level %}<span>Niveau conseillé : <strong>{{ profile.placement_level }}</strong></span>{% endif %}
+    </div>
+  </div>
+
+  <div class="ep-quick">
+    <a href="{% url 'germanprep:home' %}" class="ep-quick-link">🏠 Accueil</a>
+    <a href="{% url 'germanprep:exam_hub' %}" class="ep-quick-link">🌐 Hub examens</a>
+    <a href="{% url 'germanprep:german_profile' %}" class="ep-quick-link">👤 Mon profil</a>
+  </div>
+
+  <!-- Examens -->
+  <div class="ep-card">
+    <p class="ep-card-title">Examens disponibles pour le niveau {{ level_code }}</p>
+    {% if exams %}
+    <div class="ep-exam-grid">
+      {% for exam in exams %}
+      <article class="ep-exam-card">
+        <h3 class="ep-exam-name">{{ exam.title }}</h3>
+        <p class="ep-exam-meta">{{ exam.get_exam_type_display }} · Niveau {{ exam.level }}</p>
+        <p class="ep-exam-desc">{{ exam.short_description }}</p>
+        <div class="ep-exam-actions">
+          <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-sm-primary">Programme</a>
+          <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-sm-ghost">⚡ Simulation</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ep-empty">Aucun examen spécifique n'est encore configuré pour ce niveau.</p>
+    {% endif %}
+  </div>
+
+  <!-- Leçons -->
+  <div class="ep-card">
+    <p class="ep-card-title">Cours & leçons clés du niveau {{ level_code }}</p>
+    {% if lessons %}
+    <div class="ep-lesson-list">
+      {% for lesson in lessons %}
+      <div class="ep-lesson-item">
+        <div class="ep-lesson-body">
+          <strong>{{ lesson.title }}<span class="ep-skill-pill">{{ lesson.get_skill_display }}</span></strong>
+          <span>{{ lesson.exam.title }}</span>
+          {% if lesson.intro %}<span> · {{ lesson.intro|truncatechars:80 }}</span>{% endif %}
+        </div>
+        <a href="{% url 'germanprep:lesson_detail' lesson.exam.slug lesson.id %}" class="ep-btn-open">Ouvrir →</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ep-empty">Les leçons de ce niveau ne sont pas encore configurées.</p>
+    {% endif %}
+  </div>
+
+  <!-- Ressources -->
+  <div class="ep-card">
+    <p class="ep-card-title">Ressources complètes (PDF, vidéos, fiches)</p>
+    {% if resources %}
+    <div class="ep-resource-list">
+      {% for r in resources %}
+      <div class="ep-resource-item">
+        <h3>{{ r.title }}
+          <span class="ep-resource-badge">{% if r.resource_type == "PDF" %}PDF{% elif r.resource_type == "VIDEO" %}Vidéo{% elif r.resource_type == "LINK" %}Lien{% else %}Ressource{% endif %}</span>
+        </h3>
+        {% if r.description %}<p>{{ r.description }}</p>{% endif %}
+        <p style="font-size:.72rem;color:#94a3b8;margin-bottom:.5rem;">Examen : {{ r.exam.title }}</p>
+        <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" class="ep-btn-resource">🔗 Ouvrir la ressource</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ep-empty">Aucune ressource n'a encore été ajoutée pour ce niveau.</p>
+    {% endif %}
+  </div>
+
+  <!-- Sessions -->
+  {% if sessions %}
+  <div class="ep-card">
+    <p class="ep-card-title">Tes dernières simulations sur ce niveau</p>
+    <div class="ep-sessions-list">
+      {% for s in sessions %}
+      <div class="ep-session-row">
+        <div class="info">
+          <strong>{{ s.exam.title }}</strong>
+          <span>{{ s.started_at|date:"d/m/Y H:i" }}</span>
+        </div>
+        {% if s.score is not None %}
+          {% if s.score >= 80 %}<span class="ep-score-g">{{ s.score|default:"0.0" }} %</span>
+          {% elif s.score >= 50 %}<span class="ep-score-m">{{ s.score|default:"0.0" }} %</span>
+          {% else %}<span class="ep-score-r">{{ s.score|default:"0.0" }} %</span>{% endif %}
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
 {% endblock %}

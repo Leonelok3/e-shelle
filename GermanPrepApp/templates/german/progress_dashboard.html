@@ -3,76 +3,155 @@
 
 {% block title %}Progression & Coach en allemand – Immigration97{% endblock %}
 
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 1000px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
+  .ep-hero::before { content: "📊"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; margin: 0 0 .4rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0; }
+
+  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.75rem; }
+  .ep-quick-link { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: .5rem 1rem; font-size: .82rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s, box-shadow .2s; display: flex; align-items: center; gap: .4rem; }
+  .ep-quick-link:hover { border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+
+  .ep-layout { display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; align-items: start; }
+
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+  .ep-card:last-child { margin-bottom: 0; }
+  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: .9rem; }
+
+  .ep-profile-stat { display: flex; justify-content: space-between; padding: .45rem 0; border-bottom: 1px solid #f1f5f9; font-size: .85rem; color: #475569; }
+  .ep-profile-stat:last-child { border-bottom: none; }
+  .ep-profile-stat strong { color: #102B4E; font-weight: 700; }
+
+  .ep-placement-info { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .75rem 1rem; margin-top: .75rem; }
+  .ep-placement-info p { font-size: .82rem; color: #475569; margin: 0; }
+  .ep-placement-info a { color: #F59E0B; font-weight: 600; text-decoration: none; }
+  .ep-placement-level { font-size: 1.5rem; font-weight: 800; color: #102B4E; }
+
+  .ep-coach-card { background: linear-gradient(135deg, #059669, #0d9488); border-radius: 14px; padding: 1.25rem; color: #fff; }
+  .ep-coach-card .label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .75; margin-bottom: .5rem; }
+  .ep-coach-summary { font-size: .88rem; opacity: .9; line-height: 1.55; margin-bottom: .85rem; }
+  .ep-coach-plan { padding-left: 1.25rem; font-size: .84rem; opacity: .9; line-height: 1.7; margin: 0; }
+  .ep-coach-plan li { margin-bottom: .3rem; }
+
+  .ep-level-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+  .ep-level-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: .9rem; }
+  .ep-level-card h3 { font-size: .88rem; font-weight: 800; color: #102B4E; margin: 0 0 .4rem; }
+  .ep-level-card p { font-size: .78rem; color: #64748b; margin: 0 0 .3rem; }
+  .ep-mini-bar { height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-top: .4rem; }
+  .ep-mini-fill { height: 100%; background: linear-gradient(90deg, #F59E0B, #f97316); border-radius: 3px; }
+  .ep-btn-level { display: inline-block; margin-top: .6rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: .35rem .75rem; font-size: .75rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s; }
+  .ep-btn-level:hover { border-color: #F59E0B; }
+
+  .ep-footer-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+  .ep-btn-primary { display: inline-flex; align-items: center; gap: .4rem; background: #102B4E; color: #fff; border-radius: 10px; padding: .7rem 1.4rem; font-size: .88rem; font-weight: 700; text-decoration: none; transition: background .2s; }
+  .ep-btn-primary:hover { background: #1a3d6b; }
+  .ep-btn-secondary { display: inline-flex; align-items: center; gap: .4rem; background: #fff; color: #102B4E; border: 1.5px solid #102B4E; border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; transition: background .2s; }
+  .ep-btn-secondary:hover { background: #f8fafc; }
+
+  .ep-empty { font-size: .85rem; color: #94a3b8; font-style: italic; padding: .5rem 0; }
+
+  @media (max-width: 800px) {
+    .ep-layout { grid-template-columns: 1fr; }
+    .ep-hero::before { display: none; }
+    .ep-level-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<main class="page page--german-progress">
-  <section class="section">
-    <div class="container-narrow">
+<div class="ep-wrap">
 
-      <h1 class="hero-title">Ta progression en allemand</h1>
-      <p class="hero-subtitle">
-        Suis tes scores, ton XP, ton niveau recommandé et profite d’un plan d’action personnalisé
-        généré par ton coach.
-      </p>
+  <nav class="ep-bc">
+    <a href="{% url 'germanprep:home' %}">Allemand</a>
+    <span>›</span>
+    <span>Progression & Coach</span>
+  </nav>
 
-      <div class="profile-summary">
-        <p>XP total : {{ profile.xp }} • Niveau interne : {{ profile.level }}</p>
-        <p>Tests passés : {{ profile.total_tests }} • Meilleur score : {{ profile.best_score|default:0 }} %</p>
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Allemand · Progression</p>
+    <h1>Ta <span>progression</span> en allemand</h1>
+    <p>Suis tes scores, ton XP, ton niveau conseillé et profite d'un plan d'action personnalisé par ton coach.</p>
+  </div>
+
+  <div class="ep-quick">
+    <a href="{% url 'germanprep:home' %}" class="ep-quick-link">🏠 Accueil</a>
+    <a href="{% url 'germanprep:german_profile' %}" class="ep-quick-link">👤 Mon profil</a>
+    <a href="{% url 'germanprep:exam_hub' %}" class="ep-quick-link">🌐 Hub examens</a>
+    <a href="{% url 'germanprep:placement_test' %}" class="ep-quick-link">🎯 Test de niveau</a>
+  </div>
+
+  <div class="ep-layout">
+
+    <!-- Gauche -->
+    <div>
+      <div class="ep-card">
+        <p class="ep-card-title">Mon profil</p>
+        <div class="ep-profile-stat"><span>XP total</span><strong>{{ profile.xp }}</strong></div>
+        <div class="ep-profile-stat"><span>Niveau interne</span><strong>{{ profile.level }}</strong></div>
+        <div class="ep-profile-stat"><span>Tests passés</span><strong>{{ profile.total_tests }}</strong></div>
+        <div class="ep-profile-stat"><span>Meilleur score</span><strong>{{ profile.best_score|default:0 }} %</strong></div>
+
         {% if profile.placement_level %}
-          <p>Niveau conseillé par le test de niveau : <strong>{{ profile.placement_level }}</strong>
-             (≈ {{ profile.placement_score|default:0|floatformat:1 }} %)</p>
+        <div class="ep-placement-info" style="margin-top:.75rem;">
+          <p style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:.25rem;">Niveau conseillé</p>
+          <p class="ep-placement-level">{{ profile.placement_level }}</p>
+          <p>Test de niveau ≈ {{ profile.placement_score|default:0|floatformat:1 }} %</p>
+        </div>
         {% else %}
-          <p>Tu n’as pas encore fait le test de niveau.
-            <a href="{% url 'germanprep:placement_test' %}">Le faire maintenant →</a>
-          </p>
+        <div class="ep-placement-info" style="margin-top:.75rem;">
+          <p>Tu n'as pas encore fait le test de niveau. <a href="{% url 'germanprep:placement_test' %}">Le faire →</a></p>
+        </div>
         {% endif %}
       </div>
 
-      <h2 class="section-title">Scores par niveau</h2>
-      {% if stats_by_level %}
-        <div class="level-stats-grid">
+      <div class="ep-coach-card">
+        <div class="label">💡 Conseils du coach</div>
+        <p class="ep-coach-summary">{{ coach_summary }}</p>
+        {% if coach_plan %}
+        <ol class="ep-coach-plan">
+          {% for step in coach_plan %}<li>{{ step }}</li>{% endfor %}
+        </ol>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Droite -->
+    <div>
+      <div class="ep-card">
+        <p class="ep-card-title">Scores par niveau</p>
+        {% if stats_by_level %}
+        <div class="ep-level-grid">
           {% for lvl, stat in stats_by_level.items %}
-            <article class="level-stat-card">
-              <h3>Niveau {{ lvl }}</h3>
-              <p>Nombre de tests : {{ stat.total }}</p>
-              <p>Score moyen : {{ stat.avg }} %</p>
-              <p>Meilleur score : {{ stat.best }} %</p>
-              <a href="{% url 'germanprep:home' %}#levels" class="btn btn-ghost btn-soft">
-                Lancer un nouveau test {{ lvl }}
-              </a>
-            </article>
+          <div class="ep-level-card">
+            <h3>Niveau {{ lvl }}</h3>
+            <p>Tests : <strong>{{ stat.total }}</strong></p>
+            <p>Moy. : <strong style="color:#15803d;">{{ stat.avg }} %</strong></p>
+            <p>Meilleur : <strong style="color:#1d4ed8;">{{ stat.best }} %</strong></p>
+            <div class="ep-mini-bar"><div class="ep-mini-fill" style="width:{{ stat.avg }}%;"></div></div>
+            <a href="{% url 'germanprep:level_detail' lvl %}" class="ep-btn-level">Espace {{ lvl }} →</a>
+          </div>
           {% endfor %}
         </div>
-      {% else %}
-        <p class="section-empty">
-          Aucun test pour l’instant. Commence par choisir un examen sur la page d’accueil allemand
-          ou par faire le test de niveau.
-        </p>
-      {% endif %}
-
-      <h2 class="section-title">Conseils du coach</h2>
-      <p class="section-subtitle">
-        Analyse automatique basée sur ton test de niveau et tes résultats aux examens.
-      </p>
-
-      <div class="coach-box">
-        <p class="coach-summary">{{ coach_summary }}</p>
-        <ol class="coach-plan">
-          {% for step in coach_plan %}
-            <li>{{ step }}</li>
-          {% endfor %}
-        </ol>
+        {% else %}
+        <p class="ep-empty">Aucun test pour l'instant. Commence par choisir un examen ou faire le test de niveau.</p>
+        {% endif %}
       </div>
-
-      <div class="section-footer-cta">
-        <a href="{% url 'germanprep:home' %}" class="btn btn-primary">
-          Revenir aux examens d’allemand
-        </a>
-        <a href="{% url 'germanprep:placement_test' %}" class="btn btn-ghost">
-          Refaire le test de niveau
-        </a>
-      </div>
-
     </div>
-  </section>
-</main>
+
+  </div>
+
+  <div class="ep-footer-actions">
+    <a href="{% url 'germanprep:home' %}" class="ep-btn-primary">🚀 Examens d'allemand</a>
+    <a href="{% url 'germanprep:placement_test' %}" class="ep-btn-secondary">🔁 Refaire le test de niveau</a>
+  </div>
+
+</div>
 {% endblock %}

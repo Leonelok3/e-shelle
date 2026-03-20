@@ -3,111 +3,125 @@
 
 {% block title %}Résultat – {{ exam.title }} – Immigration97{% endblock %}
 
-{% block content %}
-<main class="page page--german-test-result">
-  <section class="section">
-    <div class="container-narrow">
-
-      <p class="hero-kicker">Préparation • Allemand • Résultat</p>
-      <h1 class="hero-title">{{ exam.title }} ({{ exam.level }})</h1>
-      <p class="hero-subtitle">
-        Session du {{ session.started_at|date:"d/m/Y H:i" }}
-      </p>
-
-      <div class="result-grid">
-        <div class="result-card">
-          <p class="result-label">Score global</p>
-          <p class="result-value">{{ score|floatformat:1 }} %</p>
-          <p class="result-detail">
-            {{ correct_answers }} bonnes réponses sur {{ total }} questions.
-          </p>
-
-          {% if xp_gain %}
-            <p class="result-xp">+ {{ xp_gain }} XP gagnés 🟢</p>
-          {% endif %}
-        </div>
-
-        <div class="result-card">
-          <p class="result-label">Répartition des compétences</p>
-          {% if skill_stats %}
-            <ul class="skill-list">
-              {% for code, data in skill_stats.items %}
-                <li class="skill-item">
-                  <span class="skill-name">{{ data.label }}</span>
-                  <span class="skill-pct">{{ data.pct }} %</span>
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="section-empty">Pas encore de stats détaillées.</p>
-          {% endif %}
-        </div>
-      </div>
-
-      <div class="hero-cta-row" style="margin-top: 24px;">
-        <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="btn btn-primary">
-          🔁 Refaire une simulation
-        </a>
-        <a href="{% url 'germanprep:review_incorrect' session.id %}" class="btn btn-secondary">
-          Revoir uniquement mes erreurs
-        </a>
-        <a href="{% url 'germanprep:skill_analysis' session.id %}" class="btn btn-ghost">
-          Analyse détaillée des compétences
-        </a>
-      </div>
-
-      <section class="section">
-        <h2 class="section-title">Détail des questions</h2>
-        <ul class="question-list">
-          {% for ans in answers %}
-            <li class="question-item {% if ans.is_correct %}question-item--correct{% else %}question-item--wrong{% endif %}">
-              <p class="question-text">
-                {{ ans.exercise.prompt|default:ans.exercise.question_text }}
-              </p>
-              <p class="question-meta">
-                Ta réponse : <strong>{{ ans.selected_option }}</strong> •
-                Bonne réponse : <strong>{{ ans.exercise.correct_option }}</strong>
-              </p>
-              {% if ans.exercise.explanation %}
-                <p class="question-expl">
-                  💡 {{ ans.exercise.explanation }}
-                </p>
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      </section>
-
-    </div>
-  </section>
-</main>
-
+{% block extra_css %}
 <style>
-.result-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-  gap:16px;
-  margin-top:20px;
-}
-.result-card{
-  padding:18px 20px;
-  border-radius:18px;
-  background:rgba(15,23,42,0.9);
-  border:1px solid rgba(148,163,184,0.4);
-}
-.result-label{font-size:.9rem;color:#94a3b8;margin-bottom:6px;}
-.result-value{font-size:2.2rem;font-weight:800;color:#e5feaf;}
-.result-detail{color:#cbd5f5;font-size:.95rem;}
-.result-xp{margin-top:8px;color:#4ade80;font-weight:600;}
-.skill-list{list-style:none;margin:0;padding:0;}
-.skill-item{display:flex;justify-content:space-between;margin:4px 0;}
-.question-list{list-style:none;margin:0;padding:0;margin-top:12px;}
-.question-item{padding:12px 14px;border-radius:14px;margin-bottom:10px;
-  background:rgba(15,23,42,0.9);border:1px solid rgba(148,163,184,0.35);}
-.question-item--correct{border-color:rgba(34,197,94,0.7);}
-.question-item--wrong{border-color:rgba(248,113,113,0.8);}
-.question-text{font-weight:600;margin-bottom:4px;}
-.question-meta{font-size:.9rem;color:#cbd5f5;}
-.question-expl{font-size:.9rem;color:#e5e7eb;margin-top:4px;}
+  .ep-wrap { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
+  .ep-hero::before { content: "🏆"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 800; margin: 0 0 .25rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .85rem; opacity: .75; margin: 0; }
+
+  .ep-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .ep-result-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; }
+  .ep-result-card .label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: .5rem; }
+  .ep-score-big { font-size: 3rem; font-weight: 800; margin: 0 0 .25rem; }
+  .ep-score-big.great { color: #15803d; }
+  .ep-score-big.mid { color: #d97706; }
+  .ep-score-big.low { color: #b91c1c; }
+  .ep-result-detail { font-size: .85rem; color: #64748b; margin: 0 0 .5rem; }
+  .ep-xp-gain { display: inline-flex; align-items: center; gap: .35rem; background: #F0FDF4; color: #15803d; border-radius: 20px; padding: .25rem .75rem; font-size: .82rem; font-weight: 700; }
+
+  .ep-skill-list { display: flex; flex-direction: column; gap: .4rem; margin-top: .25rem; }
+  .ep-skill-row { display: flex; justify-content: space-between; align-items: center; padding: .35rem 0; border-bottom: 1px solid #f1f5f9; font-size: .85rem; color: #475569; }
+  .ep-skill-row:last-child { border-bottom: none; }
+  .ep-skill-row strong { color: #102B4E; font-weight: 700; }
+
+  .ep-cta-row { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 2rem; }
+  .ep-btn-primary { display: inline-flex; align-items: center; gap: .4rem; background: #102B4E; color: #fff; border-radius: 10px; padding: .7rem 1.4rem; font-size: .88rem; font-weight: 700; text-decoration: none; transition: background .2s; }
+  .ep-btn-primary:hover { background: #1a3d6b; }
+  .ep-btn-secondary { display: inline-flex; align-items: center; gap: .4rem; background: #fff; color: #102B4E; border: 1.5px solid #102B4E; border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; transition: background .2s; }
+  .ep-btn-secondary:hover { background: #f8fafc; }
+  .ep-btn-ghost { display: inline-flex; align-items: center; gap: .4rem; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; transition: border-color .2s; }
+  .ep-btn-ghost:hover { border-color: #F59E0B; }
+
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; }
+  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1rem; }
+
+  .ep-q-list { display: flex; flex-direction: column; gap: .65rem; }
+  .ep-q-item { border-left: 4px solid #e2e8f0; border-radius: 0 10px 10px 0; padding: .75rem 1rem; background: #f8fafc; }
+  .ep-q-item.correct { border-left-color: #22c55e; background: #F0FDF4; }
+  .ep-q-item.wrong { border-left-color: #ef4444; background: #FEF2F2; }
+  .ep-q-text { font-size: .9rem; font-weight: 600; color: #102B4E; margin: 0 0 .4rem; }
+  .ep-q-meta { font-size: .8rem; color: #64748b; margin: 0 0 .3rem; display: flex; flex-wrap: wrap; gap: .5rem; }
+  .ep-q-expl { font-size: .8rem; color: #475569; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 6px; padding: .35rem .65rem; margin-top: .35rem; }
+
+  @media (max-width: 640px) {
+    .ep-hero::before { display: none; }
+    .ep-result-grid { grid-template-columns: 1fr; }
+  }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="ep-wrap">
+
+  <nav class="ep-bc">
+    <a href="{% url 'germanprep:home' %}">Allemand</a>
+    <span>›</span>
+    <a href="{% url 'germanprep:exam_detail' exam.slug %}">{{ exam.title }}</a>
+    <span>›</span>
+    <span>Résultat</span>
+  </nav>
+
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Allemand · Résultat</p>
+    <h1>{{ exam.title }} <span>({{ exam.level }})</span></h1>
+    <p>Session du {{ session.started_at|date:"d/m/Y H:i" }}</p>
+  </div>
+
+  <div class="ep-result-grid">
+    <div class="ep-result-card">
+      <div class="label">Score global</div>
+      <p class="ep-score-big {% if score >= 80 %}great{% elif score >= 50 %}mid{% else %}low{% endif %}">{{ score|floatformat:1 }} %</p>
+      <p class="ep-result-detail">{{ correct_answers }} bonnes réponses sur {{ total }} questions.</p>
+      {% if xp_gain %}<span class="ep-xp-gain">🟢 +{{ xp_gain }} XP gagnés</span>{% endif %}
+    </div>
+    <div class="ep-result-card">
+      <div class="label">Répartition des compétences</div>
+      {% if skill_stats %}
+      <div class="ep-skill-list">
+        {% for code, data in skill_stats.items %}
+        <div class="ep-skill-row"><span>{{ data.label }}</span><strong>{{ data.pct }} %</strong></div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p style="font-size:.85rem;color:#94a3b8;">Pas encore de stats détaillées.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="ep-cta-row">
+    <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-primary">🔁 Refaire une simulation</a>
+    <a href="{% url 'germanprep:review_incorrect' session.id %}" class="ep-btn-secondary">🔍 Voir mes erreurs</a>
+    <a href="{% url 'germanprep:skill_analysis' session.id %}" class="ep-btn-ghost">🧠 Analyse des compétences</a>
+  </div>
+
+  <div class="ep-card">
+    <p class="ep-card-title">Détail des questions</p>
+    <div class="ep-q-list">
+      {% for ans in answers %}
+      <div class="ep-q-item {% if ans.is_correct %}correct{% else %}wrong{% endif %}">
+        <p class="ep-q-text">{{ ans.exercise.prompt|default:ans.exercise.question_text }}</p>
+        <div class="ep-q-meta">
+          {% if ans.is_correct %}
+          <span style="color:#15803d;font-weight:700;">✅ Bonne réponse : {{ ans.exercise.correct_option }}</span>
+          {% else %}
+          <span style="color:#b91c1c;font-weight:700;">❌ Ta réponse : {{ ans.selected_option }}</span>
+          <span style="color:#15803d;font-weight:700;">✅ Bonne réponse : {{ ans.exercise.correct_option }}</span>
+          {% endif %}
+        </div>
+        {% if ans.exercise.explanation %}
+        <div class="ep-q-expl">💡 {{ ans.exercise.explanation }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
 {% endblock %}

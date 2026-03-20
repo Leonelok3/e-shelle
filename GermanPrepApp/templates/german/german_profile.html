@@ -1,140 +1,189 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}
-Profil allemand – Progression & objectifs – Immigration97
+{% block title %}Profil allemand – Progression & objectifs – Immigration97{% endblock %}
+
+{% block meta %}
+<meta name="description" content="Profil allemand sur Immigration97 : XP, niveaux, badges, historique de tests et recommandations personnalisées (Goethe, telc, TestDaF, DSH).">
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/germanprep.css' %}">
+<style>
+  .ep-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.5rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
+  .ep-hero::before { content: "🇩🇪"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; margin: 0 0 .4rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0; max-width: 560px; }
+
+  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.75rem; }
+  .ep-quick-link { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: .5rem 1rem; font-size: .82rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s, box-shadow .2s; display: flex; align-items: center; gap: .4rem; }
+  .ep-quick-link:hover { border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+
+  .ep-layout { display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; align-items: start; }
+
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+  .ep-card:last-child { margin-bottom: 0; }
+  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: .9rem; }
+
+  .ep-level-xp { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem; }
+  .ep-level-xp div span { display: block; font-size: .7rem; color: #94a3b8; margin-bottom: .1rem; }
+  .ep-level-xp div strong { font-size: 2rem; font-weight: 800; }
+  .ep-level-xp .lvl { color: #1d4ed8; }
+  .ep-level-xp .xp { color: #15803d; }
+  .ep-xp-bar { height: 8px; background: #f1f5f9; border-radius: 5px; overflow: hidden; margin-bottom: .35rem; }
+  .ep-xp-fill { height: 100%; background: linear-gradient(90deg, #F59E0B, #f97316); border-radius: 5px; }
+  .ep-xp-meta { font-size: .72rem; color: #64748b; display: flex; justify-content: space-between; }
+
+  .ep-badge-pill { display: inline-flex; align-items: center; gap: .3rem; background: #FEF3C7; color: #92400e; border-radius: 20px; padding: .25rem .75rem; font-size: .72rem; font-weight: 600; }
+
+  .ep-cta-card { background: linear-gradient(135deg, #059669, #0d9488); border-radius: 14px; padding: 1.25rem; color: #fff; }
+  .ep-cta-card .label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .75; margin-bottom: .35rem; }
+  .ep-cta-card p { font-size: .85rem; opacity: .9; margin-bottom: .85rem; line-height: 1.55; }
+  .ep-btn-coach { display: flex; align-items: center; justify-content: center; gap: .4rem; background: #fff; color: #059669; border-radius: 8px; padding: .65rem 1rem; font-size: .83rem; font-weight: 700; text-decoration: none; transition: background .2s; }
+  .ep-btn-coach:hover { background: #f0fdf4; }
+
+  .ep-level-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .75rem; }
+  .ep-level-mini { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .9rem; }
+  .ep-level-mini h4 { font-size: .85rem; font-weight: 700; color: #102B4E; margin: 0 0 .35rem; display: flex; justify-content: space-between; }
+  .ep-level-mini .count { background: #f1f5f9; color: #64748b; border-radius: 20px; padding: .1rem .55rem; font-size: .65rem; font-weight: 600; }
+  .ep-level-mini p { font-size: .78rem; color: #64748b; margin: 0 0 .4rem; }
+  .ep-mini-bar { height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+  .ep-mini-fill { height: 100%; background: linear-gradient(90deg, #F59E0B, #f97316); border-radius: 3px; }
+
+  .ep-sessions-list { display: flex; flex-direction: column; gap: .6rem; }
+  .ep-session-item { display: flex; align-items: center; gap: .9rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .75rem 1rem; }
+  .ep-session-num { width: 28px; height: 28px; background: #102B4E; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; flex-shrink: 0; }
+  .ep-session-info { flex: 1; min-width: 0; }
+  .ep-session-info strong { display: block; font-size: .85rem; font-weight: 700; color: #102B4E; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ep-session-info span { font-size: .72rem; color: #64748b; }
+  .ep-score-g { background: #F0FDF4; color: #15803d; border-radius: 20px; padding: .2rem .7rem; font-weight: 700; font-size: .78rem; }
+  .ep-score-m { background: #FEF3C7; color: #92400e; border-radius: 20px; padding: .2rem .7rem; font-weight: 700; font-size: .78rem; }
+  .ep-score-r { background: #FEF2F2; color: #b91c1c; border-radius: 20px; padding: .2rem .7rem; font-weight: 700; font-size: .78rem; }
+
+  .ep-section-actions { display: flex; justify-content: flex-end; margin-bottom: .75rem; }
+  .ep-hub-link { font-size: .78rem; color: #F59E0B; font-weight: 600; text-decoration: none; border: 1px solid rgba(245,158,11,.3); border-radius: 20px; padding: .3rem .85rem; transition: background .2s; }
+  .ep-hub-link:hover { background: #FFFBEB; }
+
+  @media (max-width: 800px) {
+    .ep-layout { grid-template-columns: 1fr; }
+    .ep-hero::before { display: none; }
+    .ep-level-grid { grid-template-columns: 1fr; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<main class="page page-dark page-germanprep page--german-profile">
+<div class="ep-wrap">
 
-  <section class="section">
-    <div class="container-narrow">
+  <nav class="ep-bc">
+    <a href="{% url 'germanprep:home' %}">Allemand</a>
+    <span>›</span>
+    <span>Profil & progression</span>
+  </nav>
 
-      <p class="hero-kicker">Préparation • Allemand • Profil</p>
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Profil allemand</p>
+    <h1>Ton profil d'<span>allemand</span></h1>
+    <p>XP, niveaux, badges, historique de tests par niveau (A1→C2) et recommandation personnalisée.</p>
+  </div>
 
-      <h1 class="hero-title">
-        Ton profil d’allemand sur Immigration97
-      </h1>
+  <div class="ep-quick">
+    <a href="{% url 'germanprep:home' %}" class="ep-quick-link">🏠 Accueil allemand</a>
+    <a href="{% url 'germanprep:exam_hub' %}" class="ep-quick-link">🌐 Hub examens</a>
+    <a href="{% url 'germanprep:progress_dashboard' %}" class="ep-quick-link">📊 Progression</a>
+  </div>
 
-      <p class="hero-subtitle">
-        Suis ton XP, ton niveau et tes performances, et laisse le coach IA
-        construire un plan sur mesure pour réussir tes examens officiels
-        (Goethe, telc, TestDaF, DSH).
-      </p>
+  <div class="ep-layout">
 
-      <!-- PROFIL GLOBAL -->
-      <div class="profile-header-card">
-        <div class="profile-main-info">
-          <p>Niveau interne : <strong>{{ profile.level }}</strong></p>
-          <p>XP total : <strong>{{ profile.xp }}</strong></p>
-          <p>Tests passés : <strong>{{ profile.total_tests }}</strong></p>
-          <p>Meilleur score : <strong>{{ profile.best_score|default:0|floatformat:1 }} %</strong></p>
+    <!-- Colonne gauche -->
+    <div>
+      <div class="ep-card">
+        <p class="ep-card-title">Niveau & XP</p>
+        <div class="ep-level-xp">
+          <div><span>Niveau actuel</span><strong class="lvl">{{ profile.level }}</strong></div>
+          <div style="text-align:right;"><span>XP total</span><strong class="xp">{{ profile.xp }}</strong></div>
         </div>
-
-        <div class="profile-progress">
-          <p>Progression vers le niveau {{ next_level }}</p>
-          <div class="progress-bar">
-            <div class="progress-bar-fill"
-                 style="width: {{ level_progress_pct }}%;">
-            </div>
-          </div>
-          <p class="progress-caption">
-            {{ level_progress_pct }} % ({{ current_min_xp }} → {{ next_level_xp }} XP)
-          </p>
+        <div class="ep-xp-bar"><div class="ep-xp-fill" style="width:{{ level_progress_pct }}%;"></div></div>
+        <div class="ep-xp-meta">
+          <span>Vers niveau {{ next_level }}</span>
+          <span>{{ level_progress_pct }}%</span>
         </div>
+        <p style="font-size:.7rem;color:#94a3b8;margin-top:.3rem;">Entre {{ current_min_xp }} et {{ next_level_xp }} XP</p>
       </div>
 
-      {% if profile.badges %}
-      <section class="section">
-        <h2 class="section-title">Badges débloqués</h2>
-        <ul class="badge-list">
-          {% for b in profile.badges %}
-            <li class="badge-item">{{ b }}</li>
-          {% endfor %}
-        </ul>
-      </section>
-      {% endif %}
-
-      <section class="section">
-        <h2 class="section-title">Résumé par niveau (A1 → C2)</h2>
-
-        {% if level_stats %}
-        <div class="stats-grid">
-          {% for _, data in level_stats.items %}
-            <article class="stat-card">
-              <h3>{{ data.label }}</h3>
-              <p>Tests : <strong>{{ data.count }}</strong></p>
-              <p>Score moyen : <strong>{{ data.avg }} %</strong></p>
-              <p>Meilleur score : <strong>{{ data.best }} %</strong></p>
-            </article>
-          {% endfor %}
+      <div class="ep-card">
+        <p class="ep-card-title">Badges obtenus</p>
+        {% if profile.badges %}
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;">
+          {% for b in profile.badges %}<span class="ep-badge-pill">🏅 {{ b }}</span>{% endfor %}
         </div>
         {% else %}
-          <p class="section-empty">
-            Aucun test d’allemand enregistré pour l’instant.
-          </p>
+        <p style="font-size:.85rem;color:#94a3b8;">Aucun badge débloqué. Enchaîne les tests pour commencer 💪</p>
         {% endif %}
-      </section>
+      </div>
 
-      <section class="section">
-        <h2 class="section-title">Prochaine étape recommandée</h2>
-        <p class="next-step">{{ next_step }}</p>
-      </section>
-
-      <section class="section">
-        <h2 class="section-title">Coach IA allemand</h2>
-        <p class="section-subtitle">
-          Copie ce message pour démarrer une discussion avec ton coach IA.
-        </p>
-
-        <textarea class="coach-preset"
-                  rows="8"
-                  readonly
-                  onclick="this.select();">{{ coach_preset }}</textarea>
-
-        <div class="section-footer-cta">
-          <a href="{% url 'germanprep:progress_dashboard' %}"
-             class="btn btn-secondary">
-            Ouvrir mon tableau de bord
-          </a>
-        </div>
-      </section>
-
-      <section class="section">
-        <h2 class="section-title">Derniers tests d’allemand</h2>
-
-        {% if sessions %}
-        <ul class="session-list">
-          {% for s in sessions %}
-            <li class="session-item">
-              <div class="session-main">
-                <p class="session-title">
-                  {{ s.exam.title }} ({{ s.exam.level }})
-                </p>
-                <p class="session-meta">
-                  {{ s.started_at|date:"d/m/Y H:i" }}
-                </p>
-              </div>
-              <div class="session-score">
-                {{ s.score|default:"0.0" }} %
-              </div>
-            </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-          <p class="section-empty">
-            Aucun test enregistré pour l’instant.
-          </p>
-        {% endif %}
-      </section>
-
+      <div class="ep-cta-card">
+        <div class="label">Prochaine étape recommandée</div>
+        <p>{{ next_step }}</p>
+        <a href="{% url 'germanprep:progress_dashboard' %}" class="ep-btn-coach">📊 Voir mon tableau de bord</a>
+      </div>
     </div>
-  </section>
 
-</main>
+    <!-- Colonne droite -->
+    <div>
+      <div class="ep-card">
+        <div class="ep-section-actions">
+          <a href="{% url 'germanprep:exam_hub' %}" class="ep-hub-link">🌐 Hub d'examens →</a>
+        </div>
+        <p class="ep-card-title">Résumé par niveau</p>
+        {% if level_stats %}
+        <div class="ep-level-grid">
+          {% for _, data in level_stats.items %}
+          <div class="ep-level-mini">
+            <h4>{{ data.label }} <span class="count">{{ data.count }} test{{ data.count|pluralize:"s" }}</span></h4>
+            <p>Moy. <strong style="color:#15803d;">{{ data.avg }}%</strong> &nbsp;·&nbsp; Meilleur <strong style="color:#1d4ed8;">{{ data.best }}%</strong></p>
+            <div class="ep-mini-bar"><div class="ep-mini-fill" style="width:{{ data.avg }}%;"></div></div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="font-size:.88rem;color:#94a3b8;">Aucun test enregistré. Passe un premier test pour construire ton profil.</p>
+        {% endif %}
+      </div>
+
+      <div class="ep-card">
+        <div class="ep-section-actions">
+          <a href="{% url 'germanprep:progress_dashboard' %}" class="ep-hub-link">📊 Voir la progression →</a>
+        </div>
+        <p class="ep-card-title">Derniers tests passés</p>
+        {% if sessions %}
+        <div class="ep-sessions-list">
+          {% for s in sessions %}
+          <div class="ep-session-item">
+            <div class="ep-session-num">{{ forloop.counter }}</div>
+            <div class="ep-session-info">
+              <strong>{{ s.exam.title }}</strong>
+              <span>{{ s.started_at|date:"d/m/Y H:i" }} · Niveau {{ s.exam.level }}</span>
+            </div>
+            {% if s.score is not None %}
+              {% if s.score >= 80 %}<span class="ep-score-g">{{ s.score|floatformat:0 }}%</span>
+              {% elif s.score >= 50 %}<span class="ep-score-m">{{ s.score|floatformat:0 }}%</span>
+              {% else %}<span class="ep-score-r">{{ s.score|floatformat:0 }}%</span>{% endif %}
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="font-size:.88rem;color:#94a3b8;">Aucun test pour le moment. Lance un premier test pour activer cette section.</p>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
 {% endblock %}
