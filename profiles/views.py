@@ -67,6 +67,7 @@ class ProfileListView(ListView):
                 .values_list("profile_id", flat=True)
             )
         context["fav_ids"] = fav_ids
+        context["total_profiles"] = Profile.objects.filter(is_public=True).count()
         return context
 
 
@@ -469,4 +470,75 @@ def my_analytics(request):
         "invites_declined": invites_declined,
         "invites_pending": invites_pending,
         "completion": completion,
+    })
+
+
+# ======================================================
+# MESSAGERIE INTERNE
+# ======================================================
+@login_required
+def conversation_list(request):
+    from recruiters.models import InterviewInvite, Message
+    from django.db.models import OuterRef, Subquery, Count, Q as DQ
+
+    # Toutes les conversations acceptées où l'utilisateur est recruteur ou candidat
+    invites = (
+        InterviewInvite.objects
+        .filter(status="accepted")
+        .filter(DQ(recruiter=request.user) | DQ(candidate_user=request.user))
+        .select_related("recruiter__recruiter_profile", "candidate_user__profile")
+        .prefetch_related("messages")
+        .order_by("-responded_at")
+    )
+
+    # Compter les messages non lus pour chaque conversation
+    conversations = []
+    for inv in invites:
+        unread = inv.messages.filter(is_read=False).exclude(sender=request.user).count()
+        last_msg = inv.messages.last()
+        other = inv.candidate_user if inv.recruiter == request.user else inv.recruiter
+        conversations.append({
+            "invite": inv,
+            "other": other,
+            "unread": unread,
+            "last_msg": last_msg,
+        })
+
+    return render(request, "profiles/conversation_list.html", {
+        "conversations": conversations,
+    })
+
+
+@login_required
+def conversation_thread(request, invite_id):
+    from recruiters.models import InterviewInvite, Message
+    from django.db.models import Q as DQ
+
+    invite = get_object_or_404(
+        InterviewInvite,
+        id=invite_id,
+        status="accepted",
+    )
+
+    # Seuls les deux participants peuvent accéder
+    if request.user not in (invite.recruiter, invite.candidate_user):
+        messages.error(request, "Accès refusé.")
+        return redirect("profiles:conversation_list")
+
+    # Marquer les messages reçus comme lus
+    invite.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+
+    if request.method == "POST":
+        body = request.POST.get("body", "").strip()
+        if body:
+            Message.objects.create(invite=invite, sender=request.user, body=body)
+        return redirect("profiles:conversation_thread", invite_id=invite_id)
+
+    thread_messages = invite.messages.select_related("sender").all()
+    other = invite.candidate_user if invite.recruiter == request.user else invite.recruiter
+
+    return render(request, "profiles/conversation_thread.html", {
+        "invite": invite,
+        "thread_messages": thread_messages,
+        "other": other,
     })

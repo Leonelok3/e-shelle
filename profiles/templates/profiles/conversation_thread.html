@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Conversation avec {{ other.get_full_name|default:other.username }} – Immigration97{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 820px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  /* Header */
+  .ep-thread-header { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+  .ep-avatar { width: 46px; height: 46px; border-radius: 50%; background: #e2e8f0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; color: #102B4E; overflow: hidden; }
+  .ep-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .ep-thread-name { font-size: .95rem; font-weight: 700; color: #102B4E; }
+  .ep-thread-sub { font-size: .78rem; color: #64748b; }
+  .ep-thread-link { margin-left: auto; font-size: .78rem; color: #F59E0B; font-weight: 600; text-decoration: none; }
+  .ep-thread-link:hover { text-decoration: underline; }
+
+  /* Messages */
+  .ep-messages { display: flex; flex-direction: column; gap: .75rem; margin-bottom: 1.5rem; min-height: 200px; }
+  .ep-msg { max-width: 80%; display: flex; flex-direction: column; gap: .2rem; }
+  .ep-msg.mine { align-self: flex-end; align-items: flex-end; }
+  .ep-msg.theirs { align-self: flex-start; align-items: flex-start; }
+  .ep-msg-bubble { border-radius: 16px; padding: .75rem 1rem; font-size: .88rem; line-height: 1.55; }
+  .ep-msg.mine .ep-msg-bubble { background: #102B4E; color: #fff; border-bottom-right-radius: 4px; }
+  .ep-msg.theirs .ep-msg-bubble { background: #f1f5f9; color: #1e293b; border-bottom-left-radius: 4px; }
+  .ep-msg-time { font-size: .68rem; color: #94a3b8; }
+
+  .ep-no-messages { text-align: center; padding: 2rem 1rem; color: #94a3b8; font-size: .85rem; border: 1.5px dashed #e2e8f0; border-radius: 12px; margin-bottom: 1.5rem; }
+
+  /* Reply form */
+  .ep-reply-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; }
+  .ep-reply-title { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: .75rem; }
+  .ep-reply-form { display: flex; gap: .75rem; align-items: flex-end; }
+  .ep-textarea { flex: 1; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: .65rem .9rem; font-size: .88rem; color: #1e293b; font-family: inherit; min-height: 60px; max-height: 180px; resize: vertical; outline: none; transition: border-color .2s; box-sizing: border-box; }
+  .ep-textarea:focus { border-color: #F59E0B; }
+  .ep-btn-send { background: #F59E0B; color: #102B4E; border: none; border-radius: 10px; padding: .7rem 1.25rem; font-size: .88rem; font-weight: 800; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .ep-btn-send:hover { background: #d97706; color: #fff; }
+
+  /* Invite context */
+  .ep-invite-ctx { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; padding: .85rem 1.1rem; font-size: .8rem; color: #92400e; margin-bottom: 1.25rem; }
+  .ep-invite-ctx strong { color: #78350f; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ep-wrap">
+
+  <nav class="ep-bc">
+    <a href="{% url 'profiles:my_space' %}">Mon espace</a>
+    <span>›</span>
+    <a href="{% url 'profiles:conversation_list' %}">Conversations</a>
+    <span>›</span>
+    <span>{{ other.get_full_name|default:other.username }}</span>
+  </nav>
+
+  <!-- Header -->
+  <div class="ep-thread-header">
+    <div class="ep-avatar">
+      {% if other.profile.avatar %}<img src="{{ other.profile.avatar.url }}" alt="">
+      {% else %}{{ other.get_full_name|default:other.username|first|upper }}{% endif %}
+    </div>
+    <div>
+      <div class="ep-thread-name">{{ other.get_full_name|default:other.username }}</div>
+      <div class="ep-thread-sub">
+        {% if other.profile.headline %}{{ other.profile.headline }}{% elif other.profile.category %}{{ other.profile.category.name }}{% endif %}
+      </div>
+    </div>
+    <a href="{% url 'profiles:detail' other.profile.pk %}" class="ep-thread-link">Voir le profil →</a>
+  </div>
+
+  <!-- Contexte invitation originale -->
+  <div class="ep-invite-ctx">
+    <strong>Invitation d'origine :</strong> {{ invite.message|truncatechars:200 }}
+    <span style="color:#b45309;"> — {{ invite.responded_at|date:"d/m/Y" }}</span>
+  </div>
+
+  <!-- Messages -->
+  {% if thread_messages %}
+  <div class="ep-messages">
+    {% for msg in thread_messages %}
+    <div class="ep-msg {% if msg.sender == request.user %}mine{% else %}theirs{% endif %}">
+      <div class="ep-msg-bubble">{{ msg.body|linebreaksbr }}</div>
+      <div class="ep-msg-time">{{ msg.created_at|date:"d/m/Y à H:i" }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="ep-no-messages">
+    Aucun message encore. Soyez le premier à écrire !
+  </div>
+  {% endif %}
+
+  <!-- Reply -->
+  <div class="ep-reply-card">
+    <p class="ep-reply-title">Répondre</p>
+    <form method="post" class="ep-reply-form">
+      {% csrf_token %}
+      <textarea name="body" class="ep-textarea" placeholder="Votre message…" required></textarea>
+      <button type="submit" class="ep-btn-send">Envoyer →</button>
+    </form>
+  </div>
+
+</div>
+
+<script>
+// Auto-scroll to bottom of messages
+document.addEventListener('DOMContentLoaded', function() {
+  const msgs = document.querySelector('.ep-messages');
+  if (msgs) msgs.scrollTop = msgs.scrollHeight;
+});
+</script>
+{% endblock %}

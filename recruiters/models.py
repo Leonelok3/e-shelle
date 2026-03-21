@@ -64,3 +64,23 @@ class InterviewInvite(models.Model):
 
     def __str__(self):
         return f"Invite {self.recruiter.username} -> {self.candidate_user.username} ({self.status})"
+
+
+class Message(models.Model):
+    """Message interne entre recruteur et candidat (uniquement invitations acceptées)."""
+    invite = models.ForeignKey(
+        InterviewInvite,
+        on_delete=models.CASCADE,
+        related_name="messages",
+        limit_choices_to={"status": "accepted"},
+    )
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages_marketplace")
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"Msg {self.sender.username} → invite#{self.invite_id} ({self.created_at:%d/%m %H:%M})"

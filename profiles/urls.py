@@ -23,4 +23,6 @@ urlpatterns = [
     path("favorites/", views.favorites_list, name="favorites_list"),
     path("favorite/<int:pk>/toggle/", views.toggle_favorite, name="toggle_favorite"),
     path("me/analytics/", views.my_analytics, name="my_analytics"),
+    path("me/messages/", views.conversation_list, name="conversation_list"),
+    path("me/messages/<int:invite_id>/", views.conversation_thread, name="conversation_thread"),
 ]
