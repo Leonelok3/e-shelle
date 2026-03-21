@@ -1,13 +1,31 @@
-{% if page == "detail" %}
+{% load static %}{% load actualite_extras %}{% if page == "detail" %}
 <script type="application/ld+json">
 {
-  "@context":"https://schema.org",
-  "@type":"Article",
-  "headline":"{{ article.title|escapejs }}",
-  "description":"{{ article.summary|truncatechars:160|escapejs }}",
-  "datePublished":"{{ article.publish_date|date:'c' }}",
-  "mainEntityOfPage":"{{ request.build_absolute_uri }}",
-  "publisher":{"@type":"Organization","name":"Immigration97"}
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "{{ article.title|escapejs }}",
+  "description": "{{ article.summary|truncatechars:160|escapejs }}",
+  "datePublished": "{{ article.publish_date|date:'c' }}",
+  "dateModified": "{{ article.updated_at|date:'c' }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "mainEntityOfPage": "{{ request.build_absolute_uri }}",
+  {% if article.image_url %}"image": "{{ article.image_url }}",{% endif %}
+  "author": {
+    "@type": "Organization",
+    "name": "Immigration97",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Immigration97",
+    "url": "{{ request.scheme }}://{{ request.get_host }}",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ request.scheme }}://{{ request.get_host }}{% static 'img/LOGOIMM97.png' %}"
+    }
+  },
+  "keywords": "immigration, {{ article.country_target|country_label }}, {{ article.get_category_display }}",
+  "inLanguage": "fr-FR"
 }
 </script>
 {% endif %}
@@ -15,12 +33,38 @@
 {% if page == "country" %}
 <script type="application/ld+json">
 {
-  "@context":"https://schema.org",
-  "@type":"WebPage",
-  "name":"{{ seo_title|escapejs }}",
-  "description":"{{ seo_description|escapejs }}",
-  "url":"{{ request.build_absolute_uri }}",
-  "publisher":{"@type":"Organization","name":"Immigration97"}
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "{{ seo_title|escapejs }}",
+  "description": "{{ seo_description|escapejs }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Immigration97",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
+  },
+  "inLanguage": "fr-FR"
 }
 </script>
+
+{% if faq %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for q, a in faq %}
+    {
+      "@type": "Question",
+      "name": "{{ q|escapejs }}",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "{{ a|escapejs }}"
+      }
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif %}
 {% endif %}

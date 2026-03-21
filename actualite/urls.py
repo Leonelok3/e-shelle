@@ -5,6 +5,7 @@ from .views import (
     news_by_country,
     newsletter_subscribe,
 )
+from .feeds import ActualiteRssFeed, ActualiteAtomFeed
 
 app_name = "actualite"
 
@@ -12,10 +13,10 @@ urlpatterns = [
     # Liste générale
     path("", news_list, name="list"),
 
-    # ✅ Pages pays (URL courte SEO GEO) -> /actualite/usa/
+    # Pages pays (URL courte SEO GEO) -> /actualite/usa/
     path("<slug:country_slug>/", news_by_country, name="by_country_short"),
 
-    # ✅ Pages pays (URL legacy) -> /actualite/pays/usa/
+    # Pages pays (URL legacy) -> /actualite/pays/usa/
     path("pays/<slug:country_slug>/", news_by_country, name="by_country"),
 
     # Détail article -> /actualite/article/mon-article/
@@ -23,4 +24,9 @@ urlpatterns = [
 
     # Newsletter
     path("newsletter/subscribe/", newsletter_subscribe, name="newsletter_subscribe"),
+
+    # ✅ Flux RSS & Atom (Google News + lecteurs)
+    path("feed/rss/", ActualiteRssFeed(), name="rss_feed"),
+    path("feed/atom/", ActualiteAtomFeed(), name="atom_feed"),
+    path("feed/", ActualiteRssFeed(), name="feed"),
 ]
