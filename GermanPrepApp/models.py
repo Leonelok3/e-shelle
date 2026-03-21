@@ -304,3 +304,34 @@ class GermanUserProfile(models.Model):
         if self.total_tests >= 20:
             badges.append("Prüfungsprofi")
         return badges
+
+
+# ────────────────────────────────────────────
+# EO / EE SUBMISSIONS (allemand)
+# ────────────────────────────────────────────
+
+class GermanEOSubmission(models.Model):
+    """Enregistrement vocal EO allemand — transcrit par Whisper, évalué par GPT."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="german_eo_submissions")
+    lesson = models.ForeignKey(GermanLesson, on_delete=models.CASCADE, related_name="eo_submissions")
+    transcript = models.TextField(blank=True)
+    score = models.FloatField(null=True, blank=True)
+    feedback_json = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"EO {self.user} – {self.lesson} ({self.score}%)"
+
+
+class GermanEESubmission(models.Model):
+    """Production écrite EE allemand — évaluée par GPT."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="german_ee_submissions")
+    lesson = models.ForeignKey(GermanLesson, on_delete=models.CASCADE, related_name="ee_submissions")
+    text = models.TextField()
+    word_count = models.PositiveIntegerField(default=0)
+    score = models.FloatField(null=True, blank=True)
+    feedback_json = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"EE {self.user} – {self.lesson} ({self.score}%)"

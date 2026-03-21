@@ -39,4 +39,8 @@ urlpatterns = [
     # 🔹 COACH IA ALLEMAND
     path("coach/", views.german_ai_coach_page, name="ai_coach"),
     path("coach/api/", views.german_ai_coach_api, name="ai_coach_api"),
+
+    # EO / EE – soumissions IA
+    path("api/submit-eo/", views.german_submit_eo, name="submit_eo"),
+    path("api/submit-ee/", views.german_submit_ee, name="submit_ee"),
 ]

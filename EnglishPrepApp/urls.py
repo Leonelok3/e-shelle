@@ -58,4 +58,8 @@ urlpatterns = [
     # Coach IA (page + API JSON)
     path("coach-ia/", views.ai_coach_page, name="ai_coach"),
     path("coach-ia/api/", views.ai_coach_api, name="ai_coach_api"),
+
+    # EO / EE – soumissions IA
+    path("api/submit-eo/", views.english_submit_eo, name="submit_eo"),
+    path("api/submit-ee/", views.english_submit_ee, name="submit_ee"),
 ]

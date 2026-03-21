@@ -120,6 +120,30 @@
   .ep-btn-primary:hover { background: #1a3d6b; color: #fff; }
   .ep-btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 10px; padding: .7rem 1.4rem; font-weight: 600; font-size: .88rem; text-decoration: none; }
 
+  /* EO / EE blocks */
+  .ep-eo-block, .ep-ee-block { background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 12px; padding: 1rem 1.1rem; margin-top: .85rem; }
+  .ep-eo-title, .ep-ee-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #15803d; margin-bottom: .4rem; }
+  .ep-eo-block p, .ep-ee-block p { font-size: .83rem; color: #334155; margin: 0 0 .75rem; }
+  .ep-recorder-controls { display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem; }
+  .ep-record-btn { background: #102B4E; color: #fff; border: none; border-radius: 8px; padding: .55rem 1.1rem; font-size: .82rem; font-weight: 700; cursor: pointer; transition: background .2s; }
+  .ep-record-btn:hover { background: #1a3d6b; }
+  .ep-record-btn.recording { background: #dc2626; }
+  .ep-btn-submit { background: #F59E0B; color: #102B4E; border: none; border-radius: 8px; padding: .55rem 1.2rem; font-size: .82rem; font-weight: 700; cursor: pointer; transition: background .2s; margin-top: .5rem; }
+  .ep-btn-submit:hover:not(:disabled) { background: #d97706; }
+  .ep-btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+  .ep-ee-textarea { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: .75rem; font-size: .85rem; font-family: inherit; resize: vertical; outline: none; transition: border-color .2s; box-sizing: border-box; }
+  .ep-ee-textarea:focus { border-color: #F59E0B; }
+  .ep-word-counter { font-size: .75rem; color: #94a3b8; text-align: right; margin: .2rem 0 .4rem; }
+  .ep-eo-result, .ep-ee-result { margin-top: .75rem; }
+  .ep-result-score { display: inline-block; border-radius: 20px; padding: .3rem .9rem; font-weight: 800; font-size: .95rem; margin-bottom: .5rem; }
+  .ep-score-green { background: #F0FDF4; color: #15803d; }
+  .ep-score-orange { background: #FEF3C7; color: #92400e; }
+  .ep-score-red { background: #FEF2F2; color: #b91c1c; }
+  .ep-result-feedback { font-size: .83rem; color: #334155; line-height: 1.6; margin-bottom: .5rem; }
+  .ep-result-section { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #94a3b8; margin: .5rem 0 .25rem; }
+  .ep-result-list { font-size: .82rem; color: #334155; padding-left: 1.1rem; margin: 0 0 .4rem; }
+  .ep-corrected { font-size: .82rem; color: #334155; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: .65rem .85rem; white-space: pre-wrap; }
+
   @media (max-width: 600px) { .ep-lessons-grid { grid-template-columns: 1fr; } }
 </style>
 {% endblock %}
@@ -187,6 +211,7 @@
             {% if lesson.content %}
             <div class="ep-lesson-content">{{ lesson.content|safe }}</div>
             {% endif %}
+
             {% with exs=lesson.exercises.all %}
             {% if exs %}
             <div class="ep-exercises">
@@ -216,6 +241,34 @@
             </div>
             {% endif %}
             {% endwith %}
+
+            {# ── EO : enregistrement vocal ── #}
+            {% if lesson.skill == 'SPEAKING' %}
+            <div class="ep-eo-block" data-lesson-id="{{ lesson.id }}">
+              <div class="ep-eo-title">🎤 Expression orale — Enregistre ta réponse</div>
+              <p class="ep-eo-subject">{{ lesson.goal|default:lesson.short_description }}</p>
+              <div class="ep-recorder-controls">
+                <button class="ep-record-btn" type="button">🎤 Commencer</button>
+                <span class="ep-record-timer" style="display:none;font-size:.8rem;color:#64748b;margin-left:.5rem;"></span>
+              </div>
+              <audio class="ep-playback" controls style="display:none;margin:.5rem 0;width:100%;"></audio>
+              <button class="ep-submit-eo ep-btn-submit" type="button" disabled>📤 Soumettre pour évaluation IA</button>
+              <div class="ep-eo-result" style="display:none;"></div>
+            </div>
+            {% endif %}
+
+            {# ── EE : production écrite ── #}
+            {% if lesson.skill == 'WRITING' %}
+            <div class="ep-ee-block" data-lesson-id="{{ lesson.id }}">
+              <div class="ep-ee-title">✍️ Expression écrite — Rédige ta réponse</div>
+              <p class="ep-ee-subject">{{ lesson.goal|default:lesson.short_description }}</p>
+              <textarea class="ep-ee-textarea" rows="8" placeholder="Rédigez votre réponse en anglais ici…"></textarea>
+              <div class="ep-word-counter"><span class="ep-word-count">0</span> mot(s)</div>
+              <button class="ep-submit-ee ep-btn-submit" type="button">✅ Soumettre pour correction IA</button>
+              <div class="ep-ee-result" style="display:none;"></div>
+            </div>
+            {% endif %}
+
           </div>
         </div>
         {% endfor %}
@@ -238,11 +291,122 @@
 </div>
 
 <script>
+const CSRF = '{{ csrf_token }}';
+
 function toggleLesson(id) {
   const card = document.getElementById('lesson-' + id);
   const toggle = card.querySelector('.ep-lesson-toggle');
   const isOpen = card.classList.toggle('open');
   toggle.textContent = isOpen ? 'Fermer ↑' : 'Voir →';
 }
+
+// ── EO : MediaRecorder ──
+document.querySelectorAll('.ep-eo-block').forEach(block => {
+  const lessonId = block.dataset.lessonId;
+  const btn = block.querySelector('.ep-record-btn');
+  const timerEl = block.querySelector('.ep-record-timer');
+  const playback = block.querySelector('.ep-playback');
+  const submitBtn = block.querySelector('.ep-submit-eo');
+  const resultDiv = block.querySelector('.ep-eo-result');
+  let mediaRecorder = null, audioChunks = [], audioBlob = null, timerInterval, seconds = 0;
+
+  btn.addEventListener('click', async () => {
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+      mediaRecorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        audioBlob = new Blob(audioChunks, { type: mimeType });
+        playback.src = URL.createObjectURL(audioBlob);
+        playback.style.display = 'block';
+        submitBtn.disabled = false;
+        stream.getTracks().forEach(t => t.stop());
+      };
+      mediaRecorder.start();
+      seconds = 0; timerEl.style.display = 'inline';
+      timerInterval = setInterval(() => { seconds++; timerEl.textContent = `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`; }, 1000);
+      btn.textContent = '⏹ Arrêter'; btn.classList.add('recording');
+    } else {
+      mediaRecorder.stop(); clearInterval(timerInterval);
+      btn.textContent = '🎤 Recommencer'; btn.classList.remove('recording');
+    }
+  });
+
+  submitBtn.addEventListener('click', async () => {
+    if (!audioBlob) return;
+    submitBtn.disabled = true; submitBtn.textContent = 'Envoi…';
+    const fd = new FormData();
+    fd.append('exercise_id', lessonId);
+    fd.append('audio', audioBlob, 'recording.webm');
+    try {
+      const res = await fetch("{% url 'englishprep:submit_eo' %}", { method: 'POST', headers: { 'X-CSRFToken': CSRF }, body: fd });
+      const data = await res.json();
+      if (data.ok) {
+        const scoreClass = data.score >= 70 ? 'ep-score-green' : data.score >= 50 ? 'ep-score-orange' : 'ep-score-red';
+        resultDiv.innerHTML = `
+          <span class="ep-result-score ${scoreClass}">${data.score}/100</span>
+          <div class="ep-result-feedback">${data.feedback}</div>
+          ${data.transcript ? `<div class="ep-result-section">Transcription</div><div class="ep-result-feedback" style="font-style:italic">"${data.transcript}"</div>` : ''}
+          ${data.points_covered?.length ? `<div class="ep-result-section">Points couverts</div><ul class="ep-result-list">${data.points_covered.map(p=>`<li>✅ ${p}</li>`).join('')}</ul>` : ''}
+          ${data.suggestions?.length ? `<div class="ep-result-section">Suggestions</div><ul class="ep-result-list">${data.suggestions.map(s=>`<li>💡 ${s}</li>`).join('')}</ul>` : ''}`;
+        resultDiv.style.display = 'block';
+        submitBtn.textContent = '✅ Soumis';
+      } else {
+        resultDiv.innerHTML = `<div class="ep-result-feedback" style="color:#dc2626;">Erreur : ${data.error || 'inconnue'}</div>`;
+        resultDiv.style.display = 'block';
+        submitBtn.disabled = false; submitBtn.textContent = '📤 Réessayer';
+      }
+    } catch(e) {
+      submitBtn.disabled = false; submitBtn.textContent = '📤 Réessayer';
+    }
+  });
+});
+
+// ── EE : Textarea ──
+document.querySelectorAll('.ep-ee-block').forEach(block => {
+  const lessonId = block.dataset.lessonId;
+  const textarea = block.querySelector('.ep-ee-textarea');
+  const wordCount = block.querySelector('.ep-word-count');
+  const submitBtn = block.querySelector('.ep-submit-ee');
+  const resultDiv = block.querySelector('.ep-ee-result');
+
+  textarea.addEventListener('input', () => {
+    wordCount.textContent = textarea.value.trim() ? textarea.value.trim().split(/\s+/).length : 0;
+  });
+
+  submitBtn.addEventListener('click', async () => {
+    const text = textarea.value.trim();
+    if (!text) return;
+    submitBtn.disabled = true; submitBtn.textContent = 'Envoi…';
+    try {
+      const res = await fetch("{% url 'englishprep:submit_ee' %}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+        body: JSON.stringify({ exercise_id: parseInt(lessonId), text })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        const scoreClass = data.score >= 70 ? 'ep-score-green' : data.score >= 50 ? 'ep-score-orange' : 'ep-score-red';
+        resultDiv.innerHTML = `
+          <span class="ep-result-score ${scoreClass}">${data.score}/100</span>
+          <div class="ep-result-feedback">${data.feedback}</div>
+          <div class="ep-result-section">${data.word_count} mot(s) rédigés</div>
+          ${data.errors?.length ? `<div class="ep-result-section">Corrections</div><ul class="ep-result-list">${data.errors.map(e=>`<li>🔍 <em>${e.original}</em> → <strong>${e.correction}</strong> <span style="color:#94a3b8">(${e.rule})</span></li>`).join('')}</ul>` : ''}
+          ${data.corrected_version ? `<div class="ep-result-section">Version corrigée</div><div class="ep-corrected">${data.corrected_version}</div>` : ''}`;
+        resultDiv.style.display = 'block';
+        textarea.readOnly = true;
+        submitBtn.textContent = '✅ Soumis';
+      } else {
+        resultDiv.innerHTML = `<div class="ep-result-feedback" style="color:#dc2626;">Erreur : ${data.error || 'inconnue'}</div>`;
+        resultDiv.style.display = 'block';
+        submitBtn.disabled = false; submitBtn.textContent = '✅ Réessayer';
+      }
+    } catch(e) {
+      submitBtn.disabled = false; submitBtn.textContent = '✅ Réessayer';
+    }
+  });
+});
 </script>
 {% endblock %}

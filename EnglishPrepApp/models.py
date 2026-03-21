@@ -325,3 +325,34 @@ class EnglishExercise(models.Model):
 
     def __str__(self):
         return f"{self.title} – {self.get_difficulty_display()}"
+
+
+# ────────────────────────────────────────────
+# EO / EE SUBMISSIONS (anglais)
+# ────────────────────────────────────────────
+
+class EnglishEOSubmission(models.Model):
+    """Enregistrement vocal EO anglais — transcrit par Whisper, évalué par GPT."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="english_eo_submissions")
+    lesson = models.ForeignKey(EnglishLesson, on_delete=models.CASCADE, related_name="eo_submissions")
+    transcript = models.TextField(blank=True)
+    score = models.FloatField(null=True, blank=True)
+    feedback_json = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"EO {self.user} – {self.lesson} ({self.score}%)"
+
+
+class EnglishEESubmission(models.Model):
+    """Production écrite EE anglais — évaluée par GPT."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="english_ee_submissions")
+    lesson = models.ForeignKey(EnglishLesson, on_delete=models.CASCADE, related_name="ee_submissions")
+    text = models.TextField()
+    word_count = models.PositiveIntegerField(default=0)
+    score = models.FloatField(null=True, blank=True)
+    feedback_json = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"EE {self.user} – {self.lesson} ({self.score}%)"

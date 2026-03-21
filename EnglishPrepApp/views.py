@@ -13,6 +13,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Max, Avg   # 👈 AJOUT ICI
 
 
+import os, tempfile, logging
+_log = logging.getLogger(__name__)
+
 from .models import (
     EnglishTest,
     EnglishQuestion,
@@ -20,6 +23,8 @@ from .models import (
     UserAnswer,
     EnglishUserProfile,
     EnglishLesson,
+    EnglishEOSubmission,
+    EnglishEESubmission,
     LEVEL_THRESHOLDS,
 )
 
@@ -772,3 +777,144 @@ def ai_coach_api(request):
         )
 
     return JsonResponse({"reply": reply_text})
+
+
+# ============================================================
+# EO – Expression Orale (enregistrement + Whisper + GPT)
+# ============================================================
+@csrf_exempt
+@login_required
+def english_submit_eo(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "method_not_allowed"}, status=405)
+
+    exercise_id = request.POST.get("exercise_id", "").strip()
+    audio_file = request.FILES.get("audio")
+
+    if not exercise_id:
+        return JsonResponse({"ok": False, "error": "missing_exercise_id"}, status=400)
+    if not audio_file:
+        return JsonResponse({"ok": False, "error": "missing_audio"}, status=400)
+
+    try:
+        lesson = get_object_or_404(EnglishLesson, pk=int(exercise_id))
+    except (ValueError, TypeError):
+        return JsonResponse({"ok": False, "error": "invalid_exercise_id"}, status=400)
+
+    # Détecter le type MIME pour choisir l'extension
+    content_type = audio_file.content_type or ""
+    if "ogg" in content_type:
+        suffix = ".ogg"
+    elif "mp4" in content_type:
+        suffix = ".mp4"
+    else:
+        suffix = ".webm"
+
+    tmp = None
+    try:
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
+            for chunk in audio_file.chunks():
+                f.write(chunk)
+            tmp = f.name
+
+        from ai_engine.services.eval_service import transcribe_audio, evaluate_eo
+        transcript = transcribe_audio(tmp, language="en")
+    except Exception as e:
+        _log.error("english_submit_eo transcription error: %s", e)
+        return JsonResponse({"ok": False, "error": "transcription_failed", "detail": str(e)}, status=500)
+    finally:
+        if tmp and os.path.exists(tmp):
+            os.unlink(tmp)
+
+    try:
+        from ai_engine.services.eval_service import evaluate_eo
+        level = lesson.level or lesson.test.level
+        result = evaluate_eo(
+            transcript=transcript,
+            topic=lesson.title,
+            instructions=lesson.goal or lesson.short_description or "",
+            level=level,
+            expected_points=[],
+        )
+    except Exception as e:
+        _log.error("english_submit_eo evaluation error: %s", e)
+        result = {"score": 50, "feedback": "Évaluation indisponible.", "points_covered": [], "suggestions": [], "criteria": {}}
+
+    score = result.get("score", 0)
+    EnglishEOSubmission.objects.create(
+        user=request.user,
+        lesson=lesson,
+        transcript=transcript,
+        score=score,
+        feedback_json=result,
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "score": score,
+        "transcript": transcript,
+        "feedback": result.get("feedback", ""),
+        "points_covered": result.get("points_covered", []),
+        "suggestions": result.get("suggestions", []),
+        "criteria": result.get("criteria", {}),
+    })
+
+
+# ============================================================
+# EE – Expression Écrite (textarea + GPT)
+# ============================================================
+@csrf_exempt
+@login_required
+def english_submit_ee(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "method_not_allowed"}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except Exception:
+        return JsonResponse({"ok": False, "error": "invalid_json"}, status=400)
+
+    lesson_id = body.get("exercise_id")
+    text = (body.get("text") or "").strip()
+
+    if not lesson_id:
+        return JsonResponse({"ok": False, "error": "missing_exercise_id"}, status=400)
+    if not text:
+        return JsonResponse({"ok": False, "error": "empty_text"}, status=400)
+
+    lesson = get_object_or_404(EnglishLesson, pk=lesson_id)
+
+    try:
+        from ai_engine.services.eval_service import evaluate_ee
+        level = lesson.level or lesson.test.level
+        result = evaluate_ee(
+            text=text,
+            topic=lesson.title,
+            instructions=lesson.goal or lesson.short_description or "",
+            level=level,
+        )
+    except Exception as e:
+        _log.error("english_submit_ee evaluation error: %s", e)
+        result = {"score": 50, "feedback": "Évaluation indisponible.", "errors": [], "corrected_version": text, "criteria": {}}
+
+    score = result.get("score", 0)
+    word_count = len(text.split())
+
+    EnglishEESubmission.objects.create(
+        user=request.user,
+        lesson=lesson,
+        text=text,
+        word_count=word_count,
+        score=score,
+        feedback_json=result,
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "score": score,
+        "word_count": word_count,
+        "feedback": result.get("feedback", ""),
+        "errors": result.get("errors", []),
+        "corrected_version": result.get("corrected_version", ""),
+        "criteria": result.get("criteria", {}),
+    })

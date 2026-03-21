@@ -91,10 +91,11 @@ def _extract_json(raw: str) -> dict:
 # TRANSCRIPTION WHISPER
 # ──────────────────────────────────────────────
 
-def transcribe_audio(audio_path: str) -> str:
+def transcribe_audio(audio_path: str, language: str = "fr") -> str:
     """
     Transcrit un fichier audio en texte via Whisper (OpenAI).
     Retourne une transcription mock si LLM_MOCK_MODE=1.
+    language: code ISO 639-1 (fr, en, de, it…)
     """
     if _MOCK_MODE:
         logger.info("[MOCK] transcribe_audio → mock transcript")
@@ -110,7 +111,7 @@ def transcribe_audio(audio_path: str) -> str:
             result = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=f,
-                language="fr",
+                language=language,
             )
         return result.text or ""
     except Exception as e:
