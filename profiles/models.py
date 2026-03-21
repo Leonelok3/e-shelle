@@ -177,6 +177,30 @@ class PortfolioItem(models.Model):
         return self.title
 
 
+class ProfileView(models.Model):
+    """Suivi des visites de profil (analytics candidat)."""
+    profile = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name="views"
+    )
+    viewer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="profile_views_made"
+    )
+    viewed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Vue de profil"
+        verbose_name_plural = "Vues de profil"
+        ordering = ["-viewed_at"]
+
+    def __str__(self):
+        return f"Vue profil {self.profile_id} par {self.viewer_id}"
+
+
 class RecruiterFavorite(models.Model):
     recruiter = models.ForeignKey(
         settings.AUTH_USER_MODEL,

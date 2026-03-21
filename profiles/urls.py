@@ -22,5 +22,5 @@ urlpatterns = [
     path("invite/<int:invite_id>/decline/", views.invite_decline, name="invite_decline"),
     path("favorites/", views.favorites_list, name="favorites_list"),
     path("favorite/<int:pk>/toggle/", views.toggle_favorite, name="toggle_favorite"),
-
+    path("me/analytics/", views.my_analytics, name="my_analytics"),
 ]

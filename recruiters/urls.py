@@ -8,4 +8,5 @@ urlpatterns = [
     path("profil/", views.profile_edit, name="profile_edit"),
     path("entreprise/<int:pk>/", views.public_profile, name="public_profile"),
     path("invitations/", views.my_invites, name="my_invites"),
+    path("analytics/", views.analytics, name="analytics"),
 ]

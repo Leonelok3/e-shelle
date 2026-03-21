@@ -2,6 +2,8 @@ import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
 
 from .models import RecruiterProfile, InterviewInvite, InterviewInviteStatus
 from profiles.models import Profile, RecruiterFavorite
@@ -116,4 +118,49 @@ def my_invites(request):
         "rec": rec,
         "invites": invites,
         "status_filter": status_filter,
+    })
+
+
+# ─────────────────────────────────────────
+# ANALYTICS RECRUTEUR
+# ─────────────────────────────────────────
+@login_required
+def analytics(request):
+    rec = _get_or_create_recruiter(request.user)
+    invites_qs = InterviewInvite.objects.filter(recruiter=request.user)
+
+    total = invites_qs.count()
+    accepted = invites_qs.filter(status="accepted").count()
+    declined = invites_qs.filter(status="declined").count()
+    pending = invites_qs.filter(status="sent").count()
+    rate = round(accepted / total * 100, 1) if total else 0
+
+    # Par mois (6 derniers mois)
+    monthly = list(
+        invites_qs
+        .annotate(month=TruncMonth("created_at"))
+        .values("month")
+        .annotate(count=Count("id"))
+        .order_by("month")[:6]
+    )
+    monthly_labels = [m["month"].strftime("%b %Y") if m["month"] else "" for m in monthly]
+    monthly_data = [m["count"] for m in monthly]
+
+    # Par statut (donut)
+    by_status = {
+        "sent": pending,
+        "accepted": accepted,
+        "declined": declined,
+    }
+
+    return render(request, "recruiters/analytics.html", {
+        "rec": rec,
+        "total": total,
+        "accepted": accepted,
+        "declined": declined,
+        "pending": pending,
+        "rate": rate,
+        "monthly_labels": monthly_labels,
+        "monthly_data": monthly_data,
+        "by_status": by_status,
     })

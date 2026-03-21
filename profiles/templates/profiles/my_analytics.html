@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mes statistiques – Immigration97{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 860px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2rem; color: #fff; margin-bottom: 2rem; }
+  .ep-hero h1 { font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 800; margin: 0 0 .3rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0; }
+
+  .ep-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .ep-kpi { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem 1rem; text-align: center; }
+  .ep-kpi-val { font-size: 2rem; font-weight: 800; color: #102B4E; display: block; }
+  .ep-kpi-val.amber { color: #F59E0B; }
+  .ep-kpi-val.green { color: #059669; }
+  .ep-kpi-val.blue { color: #1d4ed8; }
+  .ep-kpi-label { font-size: .75rem; color: #64748b; font-weight: 600; margin-top: .25rem; }
+
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.5rem; margin-bottom: 1.25rem; }
+  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1.25rem; }
+
+  .ep-progress-wrap { display: flex; align-items: center; gap: .75rem; margin-bottom: .5rem; }
+  .ep-progress-bar-bg { flex: 1; height: 10px; background: #f1f5f9; border-radius: 99px; overflow: hidden; }
+  .ep-progress-bar { height: 100%; background: linear-gradient(90deg, #F59E0B, #f97316); border-radius: 99px; transition: width .6s; }
+  .ep-progress-label { font-size: .8rem; font-weight: 700; color: #102B4E; min-width: 40px; text-align: right; }
+
+  .ep-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; }
+  @media (max-width: 640px) { .ep-charts { grid-template-columns: 1fr; } }
+
+  .ep-tip { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; padding: 1rem 1.25rem; font-size: .85rem; color: #92400e; margin-bottom: 1.25rem; }
+  .ep-tip strong { color: #78350f; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ep-wrap">
+
+  <nav class="ep-bc">
+    <a href="{% url 'profiles:my_space' %}">Mon espace</a>
+    <span>›</span>
+    <span>Statistiques</span>
+  </nav>
+
+  <div class="ep-hero">
+    <h1>Mes <span>statistiques</span></h1>
+    <p>Suivez la visibilité de votre profil et les invitations reçues.</p>
+  </div>
+
+  <!-- Complétion du profil -->
+  <div class="ep-card">
+    <p class="ep-card-title">Complétude du profil</p>
+    <div class="ep-progress-wrap">
+      <div class="ep-progress-bar-bg">
+        <div class="ep-progress-bar" style="width: {{ completion }}%"></div>
+      </div>
+      <span class="ep-progress-label">{{ completion }}%</span>
+    </div>
+    {% if completion < 80 %}
+    <div class="ep-tip">
+      <strong>Conseil :</strong> Un profil complet est 3× plus vu par les recruteurs.
+      <a href="{% if profile %}/profiles/{{ profile.pk }}/edit/{% else %}/profiles/me/{% endif %}" style="color:#F59E0B;font-weight:700;text-decoration:none;">Compléter mon profil →</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- KPIs -->
+  <div class="ep-kpi-grid">
+    <div class="ep-kpi">
+      <span class="ep-kpi-val blue">{{ total_views }}</span>
+      <div class="ep-kpi-label">Vues du profil</div>
+    </div>
+    <div class="ep-kpi">
+      <span class="ep-kpi-val">{{ invites_received }}</span>
+      <div class="ep-kpi-label">Invitations reçues</div>
+    </div>
+    <div class="ep-kpi">
+      <span class="ep-kpi-val green">{{ invites_accepted }}</span>
+      <div class="ep-kpi-label">Acceptées</div>
+    </div>
+    <div class="ep-kpi">
+      <span class="ep-kpi-val amber">{{ invites_pending }}</span>
+      <div class="ep-kpi-label">En attente</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="ep-charts">
+    <div class="ep-card">
+      <p class="ep-card-title">Vues du profil par mois</p>
+      <canvas id="chartViews" height="180"></canvas>
+    </div>
+    <div class="ep-card">
+      <p class="ep-card-title">Statut des invitations</p>
+      <canvas id="chartInvites" height="180"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const viewLabels = {{ monthly_views_labels|safe }};
+const viewData = {{ monthly_views_data|safe }};
+
+new Chart(document.getElementById('chartViews'), {
+  type: 'line',
+  data: {
+    labels: viewLabels.length ? viewLabels : ['Pas encore de données'],
+    datasets: [{
+      label: 'Vues',
+      data: viewData.length ? viewData : [0],
+      borderColor: '#102B4E',
+      backgroundColor: 'rgba(16,43,78,0.08)',
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: '#F59E0B',
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+  }
+});
+
+new Chart(document.getElementById('chartInvites'), {
+  type: 'doughnut',
+  data: {
+    labels: ['En attente', 'Acceptées', 'Refusées'],
+    datasets: [{
+      data: [{{ invites_pending }}, {{ invites_accepted }}, {{ invites_declined }}],
+      backgroundColor: ['#93c5fd', '#6ee7b7', '#fca5a5'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    plugins: { legend: { position: 'bottom' } },
+    cutout: '65%',
+  }
+});
+</script>
+{% endblock %}

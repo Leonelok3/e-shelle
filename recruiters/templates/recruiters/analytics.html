@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Analytics – Recruteur – Immigration97{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 960px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2rem 2rem; color: #fff; margin-bottom: 2rem; }
+  .ep-hero h1 { font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 800; margin: 0 0 .3rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0; }
+
+  .ep-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .ep-kpi { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem 1rem; text-align: center; }
+  .ep-kpi-val { font-size: 2rem; font-weight: 800; color: #102B4E; display: block; }
+  .ep-kpi-val.amber { color: #F59E0B; }
+  .ep-kpi-val.green { color: #059669; }
+  .ep-kpi-val.red { color: #dc2626; }
+  .ep-kpi-label { font-size: .75rem; color: #64748b; font-weight: 600; margin-top: .25rem; }
+
+  .ep-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; }
+  .ep-chart-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.5rem; }
+  .ep-chart-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1.25rem; }
+
+  @media (max-width: 640px) { .ep-charts { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ep-wrap">
+
+  <nav class="ep-bc">
+    <a href="{% url 'recruiters:dashboard' %}">Espace Recruteur</a>
+    <span>›</span>
+    <span>Analytics</span>
+  </nav>
+
+  <div class="ep-hero">
+    <h1>Mes <span>statistiques</span></h1>
+    <p>Suivez la performance de vos invitations et votre activité de recrutement.</p>
+  </div>
+
+  <!-- KPIs -->
+  <div class="ep-kpi-grid">
+    <div class="ep-kpi">
+      <span class="ep-kpi-val">{{ total }}</span>
+      <div class="ep-kpi-label">Invitations envoyées</div>
+    </div>
+    <div class="ep-kpi">
+      <span class="ep-kpi-val green">{{ accepted }}</span>
+      <div class="ep-kpi-label">Acceptées</div>
+    </div>
+    <div class="ep-kpi">
+      <span class="ep-kpi-val red">{{ declined }}</span>
+      <div class="ep-kpi-label">Refusées</div>
+    </div>
+    <div class="ep-kpi">
+      <span class="ep-kpi-val amber">{{ pending }}</span>
+      <div class="ep-kpi-label">En attente</div>
+    </div>
+    <div class="ep-kpi">
+      <span class="ep-kpi-val">{{ rate }}%</span>
+      <div class="ep-kpi-label">Taux d'acceptation</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="ep-charts">
+    <div class="ep-chart-card">
+      <p class="ep-chart-title">Invitations par mois</p>
+      <canvas id="chartMonthly" height="180"></canvas>
+    </div>
+    <div class="ep-chart-card">
+      <p class="ep-chart-title">Répartition par statut</p>
+      <canvas id="chartStatus" height="180"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const monthlyLabels = {{ monthly_labels|safe }};
+const monthlyData = {{ monthly_data|safe }};
+
+new Chart(document.getElementById('chartMonthly'), {
+  type: 'bar',
+  data: {
+    labels: monthlyLabels.length ? monthlyLabels : ['Pas encore de données'],
+    datasets: [{
+      label: 'Invitations',
+      data: monthlyData.length ? monthlyData : [0],
+      backgroundColor: '#F59E0B',
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+  }
+});
+
+new Chart(document.getElementById('chartStatus'), {
+  type: 'doughnut',
+  data: {
+    labels: ['En attente', 'Acceptées', 'Refusées'],
+    datasets: [{
+      data: [{{ by_status.sent }}, {{ by_status.accepted }}, {{ by_status.declined }}],
+      backgroundColor: ['#93c5fd', '#6ee7b7', '#fca5a5'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    plugins: { legend: { position: 'bottom' } },
+    cutout: '65%',
+  }
+});
+</script>
+{% endblock %}
