@@ -19,6 +19,13 @@ def _serve_sw(request):
     resp['Cache-Control'] = 'no-cache'
     return resp
 
+
+def _serve_ads_txt(request):
+    """Sert ads.txt depuis /ads.txt pour Google AdSense."""
+    from django.http import HttpResponse
+    content = "google.com, pub-8153544065381730, DIRECT, f08c47fec0942fa0\n"
+    return HttpResponse(content, content_type='text/plain')
+
 def about_page(request):
     return render(request, "about.html")
 
@@ -48,6 +55,7 @@ sitemaps = {"actualite": NewsItemSitemap}
 
 urlpatterns = [
     path("sw.js", _serve_sw, name="service_worker"),
+    path("ads.txt", _serve_ads_txt, name="ads_txt"),
     path("admin/", admin.site.urls),
     path("", home, name="home"),
 
