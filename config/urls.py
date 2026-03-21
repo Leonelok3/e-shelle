@@ -104,6 +104,7 @@ urlpatterns = [
     path("langue/german/", include(("GermanPrepApp.urls", "germanprep"), namespace="germanprep")),
 
     path("profiles/", include("profiles.urls")),
+    path("recruteur/", include(("recruiters.urls", "recruiters"), namespace="recruiters")),
 
     path("italien/", include("italian_courses.urls")),
 

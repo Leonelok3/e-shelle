@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tableau de bord Recruteur – Immigration97{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
+  .ep-hero::before { content: "🏢"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; margin: 0 0 .4rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0 0 1.25rem; }
+  .ep-hero-cta { display: flex; flex-wrap: wrap; gap: .6rem; }
+  .ep-btn-amber { display: inline-flex; align-items: center; gap: .4rem; background: #F59E0B; color: #102B4E; border-radius: 10px; padding: .65rem 1.4rem; font-size: .88rem; font-weight: 700; text-decoration: none; transition: background .2s; }
+  .ep-btn-amber:hover { background: #d97706; color: #fff; }
+  .ep-btn-outline { display: inline-flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.12); color: #fff; border: 1.5px solid rgba(255,255,255,.3); border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; transition: background .2s; }
+  .ep-btn-outline:hover { background: rgba(255,255,255,.22); }
+
+  /* Alert profil incomplet */
+  .ep-alert { background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: 12px; padding: .85rem 1.1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: .75rem; font-size: .85rem; color: #92400e; }
+  .ep-alert a { color: #d97706; font-weight: 700; text-decoration: none; }
+  .ep-alert a:hover { text-decoration: underline; }
+
+  /* Stats */
+  .ep-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  .ep-stat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem 1rem; text-align: center; }
+  .ep-stat-num { font-size: 2rem; font-weight: 800; color: #102B4E; line-height: 1; }
+  .ep-stat-label { font-size: .75rem; color: #64748b; margin-top: .3rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+  .ep-stat-card.sent .ep-stat-num { color: #3b82f6; }
+  .ep-stat-card.accepted .ep-stat-num { color: #15803d; }
+  .ep-stat-card.declined .ep-stat-num { color: #dc2626; }
+
+  /* Layout 2 colonnes */
+  .ep-layout { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start; }
+
+  /* Cards */
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .ep-card:last-child { margin-bottom: 0; }
+  .ep-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin: 0; }
+  .ep-card-link { font-size: .78rem; color: #F59E0B; text-decoration: none; font-weight: 600; }
+  .ep-card-link:hover { text-decoration: underline; }
+
+  /* Invite rows */
+  .ep-invite-row { display: flex; align-items: center; gap: .85rem; padding: .65rem 0; border-bottom: 1px solid #f1f5f9; }
+  .ep-invite-row:last-child { border-bottom: none; }
+  .ep-invite-avatar { width: 36px; height: 36px; border-radius: 50%; background: #e2e8f0; object-fit: cover; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: .88rem; color: #94a3b8; overflow: hidden; }
+  .ep-invite-info { flex: 1; min-width: 0; }
+  .ep-invite-name { font-size: .85rem; font-weight: 700; color: #102B4E; }
+  .ep-invite-date { font-size: .72rem; color: #94a3b8; }
+  .ep-invite-subj { font-size: .75rem; color: #64748b; }
+  .ep-status-pill { border-radius: 20px; padding: .18rem .65rem; font-size: .7rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+  .ep-status-sent { background: #EFF6FF; color: #1d4ed8; }
+  .ep-status-accepted { background: #F0FDF4; color: #15803d; }
+  .ep-status-declined { background: #FEF2F2; color: #b91c1c; }
+
+  /* Candidate suggestion cards */
+  .ep-cand-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+  .ep-cand-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: .9rem; transition: border-color .2s; }
+  .ep-cand-card:hover { border-color: #F59E0B; }
+  .ep-cand-top { display: flex; align-items: center; gap: .6rem; margin-bottom: .4rem; }
+  .ep-cand-avatar { width: 38px; height: 38px; border-radius: 50%; background: #e2e8f0; object-fit: cover; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: .9rem; color: #94a3b8; overflow: hidden; }
+  .ep-cand-name { font-size: .85rem; font-weight: 700; color: #102B4E; }
+  .ep-cand-cat { font-size: .72rem; color: #64748b; }
+  .ep-cand-loc { font-size: .72rem; color: #94a3b8; }
+  .ep-btn-view { display: inline-block; background: #102B4E; color: #fff; border-radius: 8px; padding: .35rem .75rem; font-size: .75rem; font-weight: 700; text-decoration: none; transition: background .2s; margin-top: .5rem; }
+  .ep-btn-view:hover { background: #1a3d6b; }
+
+  /* Profil entreprise sidebar */
+  .ep-company-card { background: linear-gradient(135deg, #102B4E, #1a3d6b); border-radius: 14px; padding: 1.25rem; color: #fff; margin-bottom: 1.25rem; text-align: center; }
+  .ep-company-logo { width: 72px; height: 72px; border-radius: 12px; background: rgba(255,255,255,.15); object-fit: cover; margin: 0 auto .75rem; display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; }
+  .ep-company-logo img { width: 100%; height: 100%; object-fit: cover; }
+  .ep-company-name { font-size: 1rem; font-weight: 800; margin: 0 0 .2rem; }
+  .ep-company-sector { font-size: .75rem; opacity: .7; margin: 0 0 .75rem; }
+  .ep-company-verified { display: inline-flex; align-items: center; gap: .3rem; background: rgba(245,158,11,.25); color: #FDE68A; border-radius: 20px; padding: .2rem .75rem; font-size: .72rem; font-weight: 700; margin-bottom: .75rem; }
+  .ep-company-stat-row { display: flex; justify-content: space-around; border-top: 1px solid rgba(255,255,255,.15); padding-top: .75rem; margin-top: .5rem; }
+  .ep-company-stat { text-align: center; }
+  .ep-company-stat strong { display: block; font-size: 1.1rem; font-weight: 800; color: #F59E0B; }
+  .ep-company-stat span { font-size: .68rem; opacity: .7; }
+  .ep-btn-edit { display: block; margin-top: .85rem; background: rgba(255,255,255,.15); color: #fff; border: 1.5px solid rgba(255,255,255,.3); border-radius: 8px; padding: .5rem 1rem; font-size: .8rem; font-weight: 600; text-decoration: none; text-align: center; transition: background .2s; }
+  .ep-btn-edit:hover { background: rgba(255,255,255,.25); }
+
+  /* Quick links */
+  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.75rem; }
+  .ep-quick-link { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: .5rem 1rem; font-size: .82rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s, box-shadow .2s; display: flex; align-items: center; gap: .4rem; }
+  .ep-quick-link:hover { border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+
+  .ep-empty { font-size: .83rem; color: #94a3b8; font-style: italic; padding: .5rem 0; }
+
+  @media (max-width: 900px) {
+    .ep-stats { grid-template-columns: repeat(2, 1fr); }
+    .ep-layout { grid-template-columns: 1fr; }
+    .ep-hero::before { display: none; }
+  }
+  @media (max-width: 500px) {
+    .ep-cand-grid { grid-template-columns: 1fr; }
+    .ep-stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ep-wrap">
+
+  <nav class="ep-bc">
+    <a href="/">Accueil</a>
+    <span>›</span>
+    <span>Espace Recruteur</span>
+  </nav>
+
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Espace Recruteur</p>
+    <h1>Bienvenue, <span>{{ rec.company_name|default:request.user.username }}</span></h1>
+    <p>Gérez vos invitations, consultez les profils Premium et pilotez votre activité de recrutement.</p>
+    <div class="ep-hero-cta">
+      <a href="/profiles/" class="ep-btn-amber">🔍 Chercher des candidats</a>
+      <a href="{% url 'recruiters:my_invites' %}" class="ep-btn-outline">📋 Toutes mes invitations</a>
+      <a href="{% url 'recruiters:public_profile' rec.pk %}" class="ep-btn-outline">🏢 Ma page entreprise</a>
+    </div>
+  </div>
+
+  {% if not profile_complete %}
+  <div class="ep-alert">
+    ⚠️ Votre profil entreprise est incomplet.
+    <a href="{% url 'recruiters:profile_edit' %}">Compléter maintenant →</a>
+  </div>
+  {% endif %}
+
+  <div class="ep-quick">
+    <a href="/profiles/" class="ep-quick-link">🔍 Profils candidats</a>
+    <a href="/profiles/favorites/" class="ep-quick-link">⭐ Mes favoris</a>
+    <a href="{% url 'recruiters:my_invites' %}" class="ep-quick-link">📩 Invitations</a>
+    <a href="{% url 'recruiters:profile_edit' %}" class="ep-quick-link">✏️ Mon profil</a>
+  </div>
+
+  <!-- Stats -->
+  <div class="ep-stats">
+    <div class="ep-stat-card">
+      <div class="ep-stat-num">{{ stats.total }}</div>
+      <div class="ep-stat-label">Total invitations</div>
+    </div>
+    <div class="ep-stat-card sent">
+      <div class="ep-stat-num">{{ stats.sent }}</div>
+      <div class="ep-stat-label">En attente</div>
+    </div>
+    <div class="ep-stat-card accepted">
+      <div class="ep-stat-num">{{ stats.accepted }}</div>
+      <div class="ep-stat-label">Acceptées</div>
+    </div>
+    <div class="ep-stat-card declined">
+      <div class="ep-stat-num">{{ stats.declined }}</div>
+      <div class="ep-stat-label">Refusées</div>
+    </div>
+  </div>
+
+  <div class="ep-layout">
+
+    <!-- Gauche -->
+    <div>
+
+      <!-- Invitations récentes -->
+      <div class="ep-card">
+        <div class="ep-card-header">
+          <p class="ep-card-title">Invitations récentes</p>
+          <a href="{% url 'recruiters:my_invites' %}" class="ep-card-link">Voir tout →</a>
+        </div>
+        {% if recent_invites %}
+          {% for inv in recent_invites %}
+          <div class="ep-invite-row">
+            <div class="ep-invite-avatar">
+              {% if inv.candidate_user.profile.avatar %}
+                <img src="{{ inv.candidate_user.profile.avatar.url }}" alt="">
+              {% else %}
+                👤
+              {% endif %}
+            </div>
+            <div class="ep-invite-info">
+              <div class="ep-invite-name">
+                {% if inv.candidate_user.profile.headline %}
+                  {{ inv.candidate_user.get_full_name|default:inv.candidate_user.username }}
+                {% else %}
+                  {{ inv.candidate_user.username }}
+                {% endif %}
+              </div>
+              <div class="ep-invite-subj">{{ inv.subject }}</div>
+              <div class="ep-invite-date">{{ inv.created_at|date:"d/m/Y" }}</div>
+            </div>
+            <span class="ep-status-pill
+              {% if inv.status == 'accepted' %}ep-status-accepted
+              {% elif inv.status == 'declined' %}ep-status-declined
+              {% else %}ep-status-sent{% endif %}">
+              {% if inv.status == 'accepted' %}✅ Acceptée
+              {% elif inv.status == 'declined' %}❌ Refusée
+              {% else %}⏳ En attente{% endif %}
+            </span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="ep-empty">Aucune invitation envoyée pour le moment. <a href="/profiles/" style="color:#F59E0B;">Parcourir les profils →</a></p>
+        {% endif %}
+      </div>
+
+      <!-- Profils suggérés -->
+      <div class="ep-card">
+        <div class="ep-card-header">
+          <p class="ep-card-title">Nouveaux profils Premium</p>
+          <a href="/profiles/" class="ep-card-link">Voir tous →</a>
+        </div>
+        {% if suggestions %}
+        <div class="ep-cand-grid">
+          {% for p in suggestions %}
+          <div class="ep-cand-card">
+            <div class="ep-cand-top">
+              <div class="ep-cand-avatar">
+                {% if p.avatar %}<img src="{{ p.avatar.url }}" alt="">{% else %}👤{% endif %}
+              </div>
+              <div>
+                <div class="ep-cand-name">{{ p.user.get_full_name|default:p.user.username }}</div>
+                <div class="ep-cand-cat">{{ p.category.name|default:"—" }}</div>
+              </div>
+            </div>
+            <div class="ep-cand-loc">📍 {{ p.location|default:"Localisation non précisée" }}</div>
+            <a href="{{ p.get_absolute_url }}" class="ep-btn-view">Voir le profil →</a>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+          <p class="ep-empty">Aucun nouveau profil disponible.</p>
+        {% endif %}
+      </div>
+
+      <!-- Favoris -->
+      {% if favorites %}
+      <div class="ep-card">
+        <div class="ep-card-header">
+          <p class="ep-card-title">Mes favoris</p>
+          <a href="/profiles/favorites/" class="ep-card-link">Voir tout →</a>
+        </div>
+        <div class="ep-cand-grid">
+          {% for fav in favorites %}
+          <div class="ep-cand-card">
+            <div class="ep-cand-top">
+              <div class="ep-cand-avatar">
+                {% if fav.profile.avatar %}<img src="{{ fav.profile.avatar.url }}" alt="">{% else %}⭐{% endif %}
+              </div>
+              <div>
+                <div class="ep-cand-name">{{ fav.profile.user.get_full_name|default:fav.profile.user.username }}</div>
+                <div class="ep-cand-cat">{{ fav.profile.category.name|default:"—" }}</div>
+              </div>
+            </div>
+            <div class="ep-cand-loc">📍 {{ fav.profile.location|default:"—" }}</div>
+            <a href="{{ fav.profile.get_absolute_url }}" class="ep-btn-view">Voir le profil →</a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Droite : profil entreprise -->
+    <div>
+      <div class="ep-company-card">
+        <div class="ep-company-logo">
+          {% if rec.logo %}<img src="{{ rec.logo.url }}" alt="">{% else %}🏢{% endif %}
+        </div>
+        <div class="ep-company-name">{{ rec.company_name|default:"Votre entreprise" }}</div>
+        <div class="ep-company-sector">
+          {% if rec.sector %}{{ rec.get_sector_display }}{% endif %}
+          {% if rec.city %} · {{ rec.city }}{% endif %}
+          {% if rec.country %} · {{ rec.country }}{% endif %}
+        </div>
+        {% if rec.is_verified %}
+        <div class="ep-company-verified">✅ Entreprise vérifiée</div>
+        {% endif %}
+        <div class="ep-company-stat-row">
+          <div class="ep-company-stat"><strong>{{ stats.total }}</strong><span>Invitations</span></div>
+          <div class="ep-company-stat"><strong>{{ stats.accepted }}</strong><span>Acceptées</span></div>
+          <div class="ep-company-stat"><strong>{{ favorites|length }}</strong><span>Favoris</span></div>
+        </div>
+        <a href="{% url 'recruiters:profile_edit' %}" class="ep-btn-edit">✏️ Modifier le profil</a>
+        <a href="{% url 'recruiters:public_profile' rec.pk %}" class="ep-btn-edit" style="margin-top:.4rem;">🌐 Voir ma page publique</a>
+      </div>
+
+      {% if rec.website or rec.linkedin_url %}
+      <div class="ep-card">
+        <p class="ep-card-title">Liens</p>
+        {% if rec.website %}
+        <a href="{{ rec.website }}" target="_blank" rel="noopener" style="display:block;font-size:.83rem;color:#F59E0B;margin-bottom:.4rem;text-decoration:none;">🌐 {{ rec.website|truncatechars:35 }}</a>
+        {% endif %}
+        {% if rec.linkedin_url %}
+        <a href="{{ rec.linkedin_url }}" target="_blank" rel="noopener" style="display:block;font-size:.83rem;color:#1d4ed8;text-decoration:none;">💼 LinkedIn</a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

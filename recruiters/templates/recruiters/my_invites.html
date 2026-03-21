@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mes invitations – Recruteur – Immigration97{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2rem 2rem; color: #fff; margin-bottom: 2rem; }
+  .ep-hero h1 { font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 800; margin: 0 0 .3rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0; }
+
+  .ep-filters { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.5rem; }
+  .ep-filter-btn { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 20px; padding: .35rem .9rem; font-size: .8rem; font-weight: 600; color: #475569; text-decoration: none; transition: border-color .2s; }
+  .ep-filter-btn:hover, .ep-filter-btn.active { border-color: #F59E0B; color: #102B4E; background: #FFFBEB; }
+
+  .ep-invite-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.1rem 1.25rem; margin-bottom: .85rem; display: flex; align-items: flex-start; gap: 1rem; transition: border-color .2s; }
+  .ep-invite-card:hover { border-color: #F59E0B; }
+  .ep-avatar { width: 46px; height: 46px; border-radius: 50%; background: #e2e8f0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; overflow: hidden; }
+  .ep-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .ep-invite-body { flex: 1; min-width: 0; }
+  .ep-invite-name { font-size: .92rem; font-weight: 700; color: #102B4E; margin: 0 0 .2rem; }
+  .ep-invite-subject { font-size: .82rem; color: #475569; margin: 0 0 .2rem; }
+  .ep-invite-msg { font-size: .78rem; color: #64748b; margin: 0 0 .4rem; line-height: 1.5; }
+  .ep-invite-date { font-size: .72rem; color: #94a3b8; }
+  .ep-status-pill { border-radius: 20px; padding: .22rem .75rem; font-size: .72rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; margin-top: .2rem; }
+  .ep-status-sent { background: #EFF6FF; color: #1d4ed8; }
+  .ep-status-accepted { background: #F0FDF4; color: #15803d; }
+  .ep-status-declined { background: #FEF2F2; color: #b91c1c; }
+  .ep-view-btn { display: inline-block; background: #f1f5f9; color: #475569; border-radius: 8px; padding: .35rem .75rem; font-size: .75rem; font-weight: 600; text-decoration: none; transition: background .2s; margin-top: .4rem; }
+  .ep-view-btn:hover { background: #e2e8f0; }
+  .ep-empty { text-align: center; padding: 3rem 1rem; color: #94a3b8; font-size: .88rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ep-wrap">
+
+  <nav class="ep-bc">
+    <a href="{% url 'recruiters:dashboard' %}">Espace Recruteur</a>
+    <span>›</span>
+    <span>Mes invitations</span>
+  </nav>
+
+  <div class="ep-hero">
+    <h1>Mes <span>invitations</span></h1>
+    <p>Suivez l'état de toutes vos invitations envoyées aux candidats.</p>
+  </div>
+
+  <div class="ep-filters">
+    <a href="{% url 'recruiters:my_invites' %}" class="ep-filter-btn {% if not status_filter %}active{% endif %}">Toutes</a>
+    <a href="{% url 'recruiters:my_invites' %}?status=sent" class="ep-filter-btn {% if status_filter == 'sent' %}active{% endif %}">⏳ En attente</a>
+    <a href="{% url 'recruiters:my_invites' %}?status=accepted" class="ep-filter-btn {% if status_filter == 'accepted' %}active{% endif %}">✅ Acceptées</a>
+    <a href="{% url 'recruiters:my_invites' %}?status=declined" class="ep-filter-btn {% if status_filter == 'declined' %}active{% endif %}">❌ Refusées</a>
+  </div>
+
+  {% if invites %}
+    {% for inv in invites %}
+    <div class="ep-invite-card">
+      <div class="ep-avatar">
+        {% if inv.candidate_user.profile.avatar %}<img src="{{ inv.candidate_user.profile.avatar.url }}" alt="">{% else %}👤{% endif %}
+      </div>
+      <div class="ep-invite-body">
+        <div class="ep-invite-name">{{ inv.candidate_user.get_full_name|default:inv.candidate_user.username }}</div>
+        <div class="ep-invite-subject">{{ inv.subject }}</div>
+        <div class="ep-invite-msg">{{ inv.message|truncatechars:120 }}</div>
+        <div class="ep-invite-date">
+          Envoyée le {{ inv.created_at|date:"d/m/Y à H:i" }}
+          {% if inv.responded_at %} · Répondue le {{ inv.responded_at|date:"d/m/Y" }}{% endif %}
+        </div>
+        <a href="/profiles/{{ inv.candidate_user.profile.pk }}/" class="ep-view-btn">Voir le profil →</a>
+      </div>
+      <span class="ep-status-pill
+        {% if inv.status == 'accepted' %}ep-status-accepted
+        {% elif inv.status == 'declined' %}ep-status-declined
+        {% else %}ep-status-sent{% endif %}">
+        {% if inv.status == 'accepted' %}✅ Acceptée
+        {% elif inv.status == 'declined' %}❌ Refusée
+        {% else %}⏳ En attente{% endif %}
+      </span>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="ep-empty">
+      Aucune invitation{% if status_filter %} dans cette catégorie{% endif %}.<br>
+      <a href="/profiles/" style="color:#F59E0B;font-weight:600;text-decoration:none;">→ Chercher des candidats</a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

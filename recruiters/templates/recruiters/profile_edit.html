@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Profil entreprise – Recruteur – Immigration97{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 780px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2rem 2rem; color: #fff; margin-bottom: 2rem; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 800; margin: 0 0 .3rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0; }
+
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.5rem; margin-bottom: 1.25rem; }
+  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1.25rem; }
+
+  .ep-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .ep-form-group { display: flex; flex-direction: column; gap: .4rem; }
+  .ep-form-group.full { grid-column: 1 / -1; }
+  .ep-form-group label { font-size: .8rem; font-weight: 600; color: #475569; }
+  .ep-input, .ep-textarea, .ep-select {
+    border: 1.5px solid #e2e8f0; border-radius: 10px; padding: .65rem .9rem;
+    font-size: .88rem; color: #1e293b; background: #fff; font-family: inherit;
+    outline: none; transition: border-color .2s; width: 100%; box-sizing: border-box;
+  }
+  .ep-input:focus, .ep-textarea:focus, .ep-select:focus { border-color: #F59E0B; }
+  .ep-textarea { min-height: 110px; resize: vertical; }
+  .ep-select { cursor: pointer; }
+
+  .ep-logo-preview { width: 80px; height: 80px; border-radius: 12px; background: #f1f5f9; border: 2px dashed #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; margin-bottom: .75rem; }
+  .ep-logo-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+  .ep-btn-save { background: #F59E0B; color: #102B4E; border: none; border-radius: 10px; padding: .85rem 2rem; font-size: .95rem; font-weight: 800; cursor: pointer; transition: background .2s; }
+  .ep-btn-save:hover { background: #d97706; color: #fff; }
+  .ep-btn-cancel { display: inline-flex; align-items: center; gap: .4rem; background: #f1f5f9; color: #475569; border-radius: 10px; padding: .8rem 1.5rem; font-size: .9rem; font-weight: 600; text-decoration: none; transition: background .2s; }
+  .ep-btn-cancel:hover { background: #e2e8f0; }
+
+  @media (max-width: 600px) { .ep-form-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ep-wrap">
+
+  <nav class="ep-bc">
+    <a href="{% url 'recruiters:dashboard' %}">Espace Recruteur</a>
+    <span>›</span>
+    <span>Profil entreprise</span>
+  </nav>
+
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">Immigration97 · Recruteur</p>
+    <h1>Votre <span>profil entreprise</span></h1>
+    <p>Complétez votre profil pour être visible des candidats et inspirer confiance.</p>
+  </div>
+
+  {% if messages %}
+  {% for msg in messages %}
+  <div style="background:#F0FDF4;border:1px solid #bbf7d0;border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;font-size:.88rem;color:#15803d;">
+    ✅ {{ msg }}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Logo -->
+    <div class="ep-card">
+      <p class="ep-card-title">Logo de l'entreprise</p>
+      <div class="ep-logo-preview">
+        {% if rec.logo %}<img src="{{ rec.logo.url }}" alt="Logo">{% else %}🏢{% endif %}
+      </div>
+      <input type="file" name="logo" accept="image/*" class="ep-input" style="padding:.4rem;">
+      <p style="font-size:.75rem;color:#94a3b8;margin-top:.4rem;">PNG ou JPG recommandé, carré, min 200×200px</p>
+    </div>
+
+    <!-- Informations entreprise -->
+    <div class="ep-card">
+      <p class="ep-card-title">Informations entreprise</p>
+      <div class="ep-form-grid">
+        <div class="ep-form-group full">
+          <label for="company_name">Nom de l'entreprise *</label>
+          <input type="text" id="company_name" name="company_name" class="ep-input" value="{{ rec.company_name }}" placeholder="Ex : BTP Afrique International" required>
+        </div>
+        <div class="ep-form-group">
+          <label for="sector">Secteur d'activité</label>
+          <select id="sector" name="sector" class="ep-select">
+            <option value="">-- Choisir --</option>
+            {% for val, label in rec.SECTOR_CHOICES %}
+            <option value="{{ val }}" {% if rec.sector == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="ep-form-group">
+          <label for="city">Ville</label>
+          <input type="text" id="city" name="city" class="ep-input" value="{{ rec.city }}" placeholder="Ex : Montréal, Paris, Yaoundé">
+        </div>
+        <div class="ep-form-group">
+          <label for="country">Pays</label>
+          <input type="text" id="country" name="country" class="ep-input" value="{{ rec.country }}" placeholder="Ex : Canada">
+        </div>
+        <div class="ep-form-group">
+          <label for="phone">Téléphone</label>
+          <input type="text" id="phone" name="phone" class="ep-input" value="{{ rec.phone }}" placeholder="+1 514 000 0000">
+        </div>
+        <div class="ep-form-group full">
+          <label for="description">Présentation de l'entreprise</label>
+          <textarea id="description" name="description" class="ep-textarea" placeholder="Décrivez votre entreprise, vos activités, vos besoins en recrutement international…">{{ rec.description }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Liens -->
+    <div class="ep-card">
+      <p class="ep-card-title">Liens web</p>
+      <div class="ep-form-grid">
+        <div class="ep-form-group">
+          <label for="website">Site web</label>
+          <input type="url" id="website" name="website" class="ep-input" value="{{ rec.website }}" placeholder="https://votre-site.com">
+        </div>
+        <div class="ep-form-group">
+          <label for="linkedin_url">Page LinkedIn</label>
+          <input type="url" id="linkedin_url" name="linkedin_url" class="ep-input" value="{{ rec.linkedin_url }}" placeholder="https://linkedin.com/company/...">
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;">
+      <button type="submit" class="ep-btn-save">💾 Enregistrer le profil</button>
+      <a href="{% url 'recruiters:dashboard' %}" class="ep-btn-cancel">← Annuler</a>
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}
