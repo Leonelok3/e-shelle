@@ -28,29 +28,45 @@ class ProfileListView(ListView):
     paginate_by = 12
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().filter(is_public=True)
 
-        # ✅ uniquement profils publiés
-        queryset = queryset.filter(is_public=True)
-
-        category = self.request.GET.get("category")
-        query = self.request.GET.get("q")
+        category = self.request.GET.get("category", "")
+        query = self.request.GET.get("q", "")
+        level = self.request.GET.get("level", "")
+        sort = self.request.GET.get("sort", "-created_at")
 
         if category:
             queryset = queryset.filter(category__slug=category)
+
+        if level:
+            queryset = queryset.filter(level=level)
 
         if query:
             queryset = queryset.filter(
                 Q(headline__icontains=query) |
                 Q(bio__icontains=query) |
-                Q(location__icontains=query)
+                Q(location__icontains=query) |
+                Q(user__first_name__icontains=query) |
+                Q(user__last_name__icontains=query)
             )
 
-        return queryset
+        allowed_sorts = ["-created_at", "created_at", "level", "location"]
+        if sort in allowed_sorts:
+            queryset = queryset.order_by(sort)
+
+        return queryset.select_related("user", "category").prefetch_related("portfolio_items", "skills")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["categories"] = Category.objects.all()
+        context["level_choices"] = [("A1","A1"),("A2","A2"),("B1","B1"),("B2","B2"),("C1","C1"),("C2","C2")]
+        fav_ids = set()
+        if self.request.user.is_authenticated:
+            fav_ids = set(
+                RecruiterFavorite.objects.filter(recruiter=self.request.user)
+                .values_list("profile_id", flat=True)
+            )
+        context["fav_ids"] = fav_ids
         return context
 
 
@@ -96,6 +112,14 @@ class ProfileDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["contact_form"] = ContactCandidateForm()
+        if self.request.user.is_authenticated:
+            context["is_favorited"] = RecruiterFavorite.objects.filter(
+                recruiter=self.request.user, profile=self.object
+            ).exists()
+            context["has_access"] = has_active_access(self.request.user)
+        else:
+            context["is_favorited"] = False
+            context["has_access"] = False
         return context
 
     def post(self, request, *args, **kwargs):

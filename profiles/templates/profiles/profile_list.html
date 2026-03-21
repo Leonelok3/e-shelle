@@ -2,250 +2,291 @@
 {% load static %}
 
 {% block title %}Talents Premium Afrique → Canada & Europe | Immigration97{% endblock %}
-{% block meta_description %}
-Découvrez des profils professionnels Premium (CV + portfolio) disponibles pour le Canada et l’Europe.
-Recruteurs : filtrez par métier et localisation. Candidats : activez Premium pour être visible.
-{% endblock %}
-
-{% block body_class %}profiles{% endblock %}
-{% block app_scope %}profiles{% endblock %}
+{% block meta_description %}Découvrez des profils professionnels Premium disponibles pour le Canada et l'Europe. Recruteurs : filtrez par métier, niveau et localisation.{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/profiles.css' %}">
+<style>
+  /* ── Layout ── */
+  .ep-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+
+  /* ── Hero ── */
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.5rem 2rem; color: #fff; margin: 1.5rem 0 2rem; display: flex; gap: 2rem; align-items: center; flex-wrap: wrap; }
+  .ep-hero-body { flex: 1; min-width: 240px; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.4rem,4vw,2rem); font-weight: 800; margin: 0 0 .4rem; }
+  .ep-hero h1 span { color: #F59E0B; }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0 0 1.25rem; }
+  .ep-hero-btns { display: flex; flex-wrap: wrap; gap: .6rem; }
+  .ep-btn-amber { display: inline-flex; align-items: center; gap: .4rem; background: #F59E0B; color: #102B4E; border-radius: 10px; padding: .65rem 1.4rem; font-size: .88rem; font-weight: 700; text-decoration: none; }
+  .ep-btn-amber:hover { background: #d97706; color:#fff; }
+  .ep-btn-outline { display: inline-flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.12); color: #fff; border: 1.5px solid rgba(255,255,255,.3); border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; }
+  .ep-btn-outline:hover { background: rgba(255,255,255,.22); }
+  .ep-hero-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .ep-chip { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 20px; padding: .25rem .7rem; font-size: .75rem; color: #fff; font-weight: 600; }
+
+  /* ── Filters ── */
+  .ep-filters { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.75rem; }
+  .ep-filters-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: .75rem; align-items: end; }
+  .ep-filter-group { display: flex; flex-direction: column; gap: .3rem; }
+  .ep-filter-group label { font-size: .75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }
+  .ep-input { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: .6rem .85rem; font-size: .88rem; color: #1e293b; font-family: inherit; outline: none; transition: border-color .2s; width: 100%; box-sizing: border-box; background: #fff; }
+  .ep-input:focus { border-color: #F59E0B; }
+  .ep-btn-filter { background: #F59E0B; color: #102B4E; border: none; border-radius: 10px; padding: .65rem 1.25rem; font-size: .88rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .ep-btn-filter:hover { background: #d97706; color: #fff; }
+  .ep-btn-reset { display: inline-block; background: #f1f5f9; color: #475569; border-radius: 10px; padding: .65rem 1rem; font-size: .85rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+
+  /* ── Results header ── */
+  .ep-results-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: .5rem; }
+  .ep-results-title { font-size: 1rem; font-weight: 700; color: #102B4E; }
+  .ep-results-count { font-size: .82rem; color: #64748b; }
+
+  /* ── Cards grid ── */
+  .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+
+  /* ── Talent card ── */
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.35rem; display: flex; flex-direction: column; gap: .9rem; transition: border-color .2s, box-shadow .2s; }
+  .ep-card:hover { border-color: #F59E0B; box-shadow: 0 4px 16px rgba(245,158,11,.1); }
+
+  .ep-card-top { display: flex; align-items: flex-start; gap: .85rem; }
+  .ep-avatar { width: 52px; height: 52px; border-radius: 50%; background: #e2e8f0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; overflow: hidden; font-weight: 700; color: #102B4E; }
+  .ep-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .ep-card-id { flex: 1; min-width: 0; }
+  .ep-card-name { font-size: .95rem; font-weight: 700; color: #102B4E; margin: 0 0 .15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ep-card-meta { font-size: .78rem; color: #64748b; }
+
+  .ep-card-badges { display: flex; flex-wrap: wrap; gap: .35rem; }
+  .ep-badge { border-radius: 20px; padding: .18rem .65rem; font-size: .7rem; font-weight: 700; }
+  .ep-badge-premium { background: #FFFBEB; color: #92400e; border: 1px solid #FDE68A; }
+  .ep-badge-level { background: #EFF6FF; color: #1d4ed8; border: 1px solid #bfdbfe; }
+
+  .ep-card-headline { font-size: .88rem; color: #334155; font-weight: 600; line-height: 1.4; }
+  .ep-card-bio { font-size: .78rem; color: #64748b; line-height: 1.55; }
+
+  .ep-card-skills { display: flex; flex-wrap: wrap; gap: .3rem; }
+  .ep-skill-chip { background: #f1f5f9; color: #475569; border-radius: 6px; padding: .15rem .5rem; font-size: .7rem; font-weight: 600; }
+
+  .ep-card-stats { display: flex; gap: 1rem; padding: .7rem 0; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
+  .ep-stat { text-align: center; flex: 1; }
+  .ep-stat-val { font-size: .9rem; font-weight: 800; color: #102B4E; }
+  .ep-stat-key { font-size: .65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; }
+
+  .ep-card-actions { display: flex; gap: .5rem; align-items: center; }
+  .ep-card-btn-main { flex: 1; background: #102B4E; color: #fff; border-radius: 9px; padding: .55rem .85rem; font-size: .82rem; font-weight: 700; text-decoration: none; text-align: center; transition: background .2s; }
+  .ep-card-btn-main:hover { background: #1a3d6b; }
+  .ep-card-btn-sec { background: #f1f5f9; color: #475569; border-radius: 9px; padding: .55rem .85rem; font-size: .82rem; font-weight: 600; text-decoration: none; transition: background .2s; }
+  .ep-card-btn-sec:hover { background: #e2e8f0; }
+  .ep-fav-form { margin: 0; }
+  .ep-fav-btn { background: #f1f5f9; border: none; border-radius: 9px; padding: .55rem .7rem; font-size: .95rem; cursor: pointer; line-height: 1; transition: background .2s; }
+  .ep-fav-btn:hover, .ep-fav-btn.active { background: #FFFBEB; }
+
+  /* ── Empty ── */
+  .ep-empty { text-align: center; padding: 3.5rem 1rem; color: #94a3b8; font-size: .9rem; }
+  .ep-empty h3 { font-size: 1.1rem; font-weight: 700; color: #475569; margin-bottom: .5rem; }
+
+  /* ── Pagination ── */
+  .ep-pagination { display: flex; justify-content: center; gap: .5rem; margin-top: 2rem; }
+  .ep-page { display: inline-flex; align-items: center; padding: .5rem 1rem; border-radius: 9px; background: #fff; border: 1.5px solid #e2e8f0; font-size: .85rem; font-weight: 600; color: #475569; text-decoration: none; transition: border-color .2s; }
+  .ep-page:hover { border-color: #F59E0B; color: #102B4E; }
+  .ep-page-current { border-color: #F59E0B; color: #102B4E; background: #FFFBEB; }
+  .ep-page-disabled { color: #cbd5e1; cursor: default; }
+
+  @media (max-width: 760px) {
+    .ep-filters-row { grid-template-columns: 1fr 1fr; }
+    .ep-hero { flex-direction: column; }
+  }
+  @media (max-width: 500px) {
+    .ep-filters-row { grid-template-columns: 1fr; }
+    .ep-grid { grid-template-columns: 1fr; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
+<div class="ep-wrap">
 
-<!-- HERO -->
-<section class="p-market-hero">
-  <div class="p-market-hero__inner">
-    <div class="p-market-hero__left">
-      <div class="p-kicker">Talents Premium • Afrique • Canada • Europe</div>
-      <h1 class="p-market-hero__title">Profils Premium prêts pour l’international</h1>
-      <p class="p-market-hero__lead">
-        Recruteurs : trouvez des profils qualifiés (CV + portfolio). Candidats : activez Premium pour rendre votre profil visible
-        et recevoir des invitations à entretien.
-      </p>
-
-      <div class="p-market-hero__actions">
+  <!-- HERO -->
+  <div class="ep-hero">
+    <div class="ep-hero-body">
+      <p class="ep-hero-kicker">Talents Premium · Afrique · Canada · Europe</p>
+      <h1>Profils Premium <span>prêts pour l'international</span></h1>
+      <p>Recruteurs : filtrez par métier, niveau de langue et localisation. Candidats : activez Premium pour être visible.</p>
+      <div class="ep-hero-btns">
         {% if user.is_authenticated %}
-          <a class="p-btn p-btn--primary" href="{% url 'profiles:my_space' %}">Mon espace</a>
-
-          {% if user.profile %}
-            <a class="p-btn p-btn--outline" href="{% url 'profiles:edit' user.profile.pk %}">Compléter mon profil</a>
-          {% else %}
-            <a class="p-btn p-btn--outline" href="{% url 'profiles:my_space' %}">Créer mon profil</a>
-          {% endif %}
+          <a href="{% url 'profiles:my_space' %}" class="ep-btn-amber">Mon espace</a>
+          <a href="{% url 'recruiters:dashboard' %}" class="ep-btn-outline">🏢 Espace recruteur</a>
         {% else %}
-          <a class="p-btn p-btn--primary" href="{% url 'authentification:login' %}">Se connecter</a>
-          <a class="p-btn p-btn--outline" href="{% url 'billing:access' %}">Accès Premium</a>
+          <a href="{% url 'authentification:login' %}" class="ep-btn-amber">Se connecter</a>
+          <a href="{% url 'billing:access' %}" class="ep-btn-outline">Accès Premium</a>
+        {% endif %}
+      </div>
+    </div>
+    <div>
+      <div class="ep-hero-chips">
+        <span class="ep-chip">BTP</span>
+        <span class="ep-chip">Santé</span>
+        <span class="ep-chip">IT</span>
+        <span class="ep-chip">Comptabilité</span>
+        <span class="ep-chip">Hôtellerie</span>
+        <span class="ep-chip">Agriculture</span>
+        <span class="ep-chip">Industrie</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="ep-filters">
+    <form method="get" action="{% url 'profiles:list' %}">
+      <div class="ep-filters-row">
+        <div class="ep-filter-group">
+          <label for="q">Recherche</label>
+          <input id="q" class="ep-input" type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Nom, métier, ville, mots-clés…">
+        </div>
+        <div class="ep-filter-group">
+          <label for="category">Métier</label>
+          <select id="category" class="ep-input" name="category">
+            <option value="">Tous</option>
+            {% for c in categories %}
+              <option value="{{ c.slug }}" {% if request.GET.category == c.slug %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="ep-filter-group">
+          <label for="level">Niveau langue</label>
+          <select id="level" class="ep-input" name="level">
+            <option value="">Tous niveaux</option>
+            {% for val, label in level_choices %}
+              <option value="{{ val }}" {% if request.GET.level == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="ep-filter-group">
+          <label for="sort">Trier par</label>
+          <select id="sort" class="ep-input" name="sort">
+            <option value="-created_at" {% if request.GET.sort == '-created_at' or not request.GET.sort %}selected{% endif %}>Plus récents</option>
+            <option value="location" {% if request.GET.sort == 'location' %}selected{% endif %}>Ville A→Z</option>
+            <option value="level" {% if request.GET.sort == 'level' %}selected{% endif %}>Niveau langue</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:.4rem;align-items:flex-end;">
+          <button class="ep-btn-filter" type="submit">Filtrer</button>
+          <a class="ep-btn-reset" href="{% url 'profiles:list' %}">✕</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- RESULTS HEADER -->
+  <div class="ep-results-head">
+    <div class="ep-results-title">Talents Premium</div>
+    <div class="ep-results-count">
+      {% if page_obj %}{{ page_obj.paginator.count }} profil{{ page_obj.paginator.count|pluralize }}{% endif %}
+    </div>
+  </div>
+
+  <!-- CARDS -->
+  {% if profiles %}
+  <div class="ep-grid">
+    {% for p in profiles %}
+    <article class="ep-card">
+
+      <!-- Top -->
+      <div class="ep-card-top">
+        <div class="ep-avatar">
+          {% if p.avatar %}<img src="{{ p.avatar.url }}" alt="">
+          {% else %}{{ p.user.get_full_name|default:p.user.username|first|upper }}{% endif %}
+        </div>
+        <div class="ep-card-id">
+          <div class="ep-card-name">{{ p.user.get_full_name|default:p.user.username }}</div>
+          <div class="ep-card-meta">
+            {% if p.category %}{{ p.category.name }}{% endif %}
+            {% if p.location %} · 📍 {{ p.location }}{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Badges -->
+      <div class="ep-card-badges">
+        <span class="ep-badge ep-badge-premium">⭐ Premium</span>
+        <span class="ep-badge ep-badge-level">{{ p.level }}</span>
+      </div>
+
+      <!-- Headline -->
+      {% if p.headline %}
+      <div class="ep-card-headline">{{ p.headline }}</div>
+      {% endif %}
+
+      <!-- Bio -->
+      {% if p.bio %}
+      <div class="ep-card-bio">{{ p.bio|truncatechars:140 }}</div>
+      {% endif %}
+
+      <!-- Skills -->
+      {% if p.skills.all %}
+      <div class="ep-card-skills">
+        {% for s in p.skills.all|slice:":5" %}
+          <span class="ep-skill-chip">{{ s.name }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Stats -->
+      <div class="ep-card-stats">
+        <div class="ep-stat">
+          <div class="ep-stat-val">{{ p.portfolio_items.count }}</div>
+          <div class="ep-stat-key">Portfolio</div>
+        </div>
+        <div class="ep-stat">
+          <div class="ep-stat-val">🌍</div>
+          <div class="ep-stat-key">International</div>
+        </div>
+        <div class="ep-stat">
+          <div class="ep-stat-val">{{ p.level }}</div>
+          <div class="ep-stat-key">Langue</div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="ep-card-actions">
+        <a href="{% url 'profiles:detail' p.pk %}" class="ep-card-btn-main">Voir le profil</a>
+        <a href="{% url 'profiles:detail' p.pk %}#invite" class="ep-card-btn-sec">Inviter</a>
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'profiles:toggle_favorite' p.pk %}" class="ep-fav-form">
+          {% csrf_token %}
+          <button type="submit" class="ep-fav-btn {% if p.id in fav_ids %}active{% endif %}" title="Favori">
+            {% if p.id in fav_ids %}⭐{% else %}☆{% endif %}
+          </button>
+        </form>
         {% endif %}
       </div>
 
-      <div class="p-market-hero__bullets">
-        <div class="p-bullet">✅ Profils Premium vérifiables</div>
-        <div class="p-bullet">📎 CV + Portfolio (preuves)</div>
-        <div class="p-bullet">🌍 Mobilité internationale</div>
-      </div>
-    </div>
-
-    <div class="p-market-hero__right">
-      <div class="p-market-cta">
-        <h2 class="p-market-cta__title">Vous recrutez ?</h2>
-        <p class="p-market-cta__text">
-          Filtrez par métier, ville et mots-clés. Sélectionnez des profils Premium prêts pour l’entretien.
-        </p>
-        <div class="p-market-cta__chips">
-          <span class="p-chip">BTP</span>
-          <span class="p-chip">Santé</span>
-          <span class="p-chip">IT</span>
-          <span class="p-chip">Comptabilité</span>
-          <span class="p-chip">Hôtellerie</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FILTERS -->
-<section class="p-filters">
-  <form class="p-filters__form" method="get" action="{% url 'profiles:list' %}">
-    <div class="p-filters__row">
-      <div class="p-filters__field">
-        <label class="p-label" for="q">Recherche</label>
-        <input
-          id="q"
-          class="p-input"
-          type="text"
-          name="q"
-          value="{{ request.GET.q|default:'' }}"
-          placeholder="Métier, ville, mots-clés…"
-        >
-      </div>
-
-      <div class="p-filters__field">
-        <label class="p-label" for="category">Métier</label>
-        <select id="category" class="p-input" name="category">
-          <option value="">Tous les métiers</option>
-          {% for c in categories %}
-            <option value="{{ c.slug }}" {% if request.GET.category == c.slug %}selected{% endif %}>
-              {{ c.name }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="p-filters__actions">
-        <button class="p-btn p-btn--primary" type="submit">Filtrer</button>
-        <a class="p-btn p-btn--outline" href="{% url 'profiles:list' %}">Réinitialiser</a>
-      </div>
-    </div>
-
-    <div class="p-filters__hint">
-      Conseil recruteur : utilisez des mots-clés précis (ex: “SAP”, “Menuiserie”, “Aide-soignant”, “Soudeur”, “BTP”, “Comptabilité”).
-    </div>
-  </form>
-</section>
-
-<!-- RESULTS -->
-<section class="p-results">
-  <div class="p-results__head">
-    <h2 class="p-results__title">Talents Premium</h2>
-    <div class="p-results__meta">
-      {% if page_obj %}
-        <span>{{ page_obj.paginator.count }} profil{{ page_obj.paginator.count|pluralize }}</span>
-      {% endif %}
-    </div>
+    </article>
+    {% endfor %}
   </div>
 
-  {% if profiles %}
-    <div class="p-cards">
-      {% for p in profiles %}
-        <article class="p-card p-card--talent">
+  <!-- PAGINATION -->
+  {% if is_paginated %}
+  <nav class="ep-pagination">
+    {% if page_obj.has_previous %}
+      <a class="ep-page" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.level %}&level={{ request.GET.level }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">← Précédent</a>
+    {% else %}
+      <span class="ep-page ep-page-disabled">← Précédent</span>
+    {% endif %}
+    <span class="ep-page ep-page-current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a class="ep-page" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.level %}&level={{ request.GET.level }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Suivant →</a>
+    {% else %}
+      <span class="ep-page ep-page-disabled">Suivant →</span>
+    {% endif %}
+  </nav>
+  {% endif %}
 
-          <div class="p-card__top">
-            <div class="p-avatar">
-              {% if p.avatar %}
-                <img src="{{ p.avatar.url }}" alt="Photo de {{ p.user.username }}">
-              {% else %}
-                <div class="p-avatar__fallback">👤</div>
-              {% endif %}
-            </div>
-
-            <div class="p-card__id">
-              <div class="p-card__name">
-                {{ p.user.get_full_name|default:p.user.username }}
-              </div>
-              <div class="p-card__sub">
-                {{ p.category.name|default:"Métier non défini" }} • {{ p.location|default:"Localisation non précisée" }}
-              </div>
-            </div>
-
-            <div class="p-card__badges">
-              <span class="p-badge p-badge--success">Premium</span>
-              <span class="p-badge p-badge--info">Langue {{ p.level }}</span>
-            </div>
-          </div>
-
-          <div class="p-card__body">
-            <div class="p-card__headline">
-              {{ p.headline|default:"Titre du profil à compléter" }}
-            </div>
-            <div class="p-card__bio">
-              {{ p.bio|default:"Bio à compléter."|truncatechars:160 }}
-            </div>
-
-            <div class="p-card__stats">
-              <div class="p-stat">
-                <div class="p-stat__k">Portfolio</div>
-                <div class="p-stat__v">{{ p.portfolio_items.count }} fichier{{ p.portfolio_items.count|pluralize }}</div>
-              </div>
-              <div class="p-stat">
-                <div class="p-stat__k">Disponibilité</div>
-                <div class="p-stat__v">International</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="p-card__actions">
-
-  <a class="p-btn p-btn--primary" href="{% url 'profiles:detail' p.pk %}">
-    Voir le profil
-  </a>
-
-  <a class="p-btn p-btn--outline" href="{% url 'profiles:detail' p.pk %}#invite">
-    Inviter
-  </a>
-
-  {% if user.is_authenticated %}
-    <form method="post" action="{% url 'profiles:toggle_favorite' p.pk %}" class="p-favForm">
-      {% csrf_token %}
-      <button class="p-btn p-btn--outline p-btn--icon {% if p.id in fav_ids %}is-fav{% endif %}"
-        type="submit"
-        aria-label="Ajouter aux favoris">
-  ⭐
-</button>
-    </form>
+  {% else %}
+  <div class="ep-empty">
+    <h3>Aucun profil trouvé</h3>
+    <p>Essayez une autre recherche ou réinitialisez les filtres.</p>
+    <a href="{% url 'profiles:list' %}" style="display:inline-block;margin-top:.75rem;color:#F59E0B;font-weight:700;text-decoration:none;">→ Réinitialiser</a>
+  </div>
   {% endif %}
 
 </div>
-
-
-        </article>
-      {% endfor %}
-    </div>
-
-    <!-- PAGINATION -->
-    {% if is_paginated %}
-      <nav class="p-pagination" aria-label="Pagination">
-        {% if page_obj.has_previous %}
-          <a class="p-page" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">← Précédent</a>
-        {% else %}
-          <span class="p-page p-page--disabled">← Précédent</span>
-        {% endif %}
-
-        <span class="p-page p-page--current">
-          Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
-        </span>
-
-        {% if page_obj.has_next %}
-          <a class="p-page" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">Suivant →</a>
-        {% else %}
-          <span class="p-page p-page--disabled">Suivant →</span>
-        {% endif %}
-      </nav>
-    {% endif %}
-
-  {% else %}
-    <div class="p-empty">
-      <h3>Aucun profil trouvé</h3>
-      <p>Essayez une autre recherche (métier, ville) ou réinitialisez les filtres.</p>
-      <a class="p-btn p-btn--outline" href="{% url 'profiles:list' %}">Réinitialiser</a>
-    </div>
-  {% endif %}
-</section>
-
-<!-- SEO GEO -->
-<section class="p-seo">
-  <div class="p-seo__card">
-    <h2>Recruter des talents d’Afrique pour le Canada et l’Europe</h2>
-    <p>
-      Immigration97 aide à connecter des <strong>profils Premium</strong> (CV + portfolio) aux recruteurs internationaux.
-      Notre objectif : rendre la sélection plus simple, plus fiable et plus rapide, en mettant en avant les preuves de compétences.
-    </p>
-
-    <h3>Talents disponibles : Cameroun, Sénégal, Côte d’Ivoire, RDC…</h3>
-    <p>
-      Que vous recrutiez dans le <strong>BTP</strong>, la <strong>santé</strong>, l’<strong>informatique</strong>,
-      l’<strong>hôtellerie</strong> ou la <strong>comptabilité</strong>, filtrez les profils Premium par métier, localisation et mots-clés.
-    </p>
-
-    <h3>Candidats : comment être visible par les recruteurs ?</h3>
-    <p>
-      Complétez votre profil, ajoutez un portfolio (CV, réalisations, recommandations), puis activez l’accès Premium
-      pour apparaître dans la liste des talents et recevoir des invitations à entretien.
-    </p>
-  </div>
-</section>
-
 {% endblock %}

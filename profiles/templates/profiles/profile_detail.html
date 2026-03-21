@@ -2,221 +2,232 @@
 {% load static %}
 
 {% block title %}
-  {% if profile and profile.user %}
-    {{ profile.user.get_full_name|default:profile.user.username }} — Profil candidat | Immigration97
-  {% else %}
-    Profil candidat | Immigration97
-  {% endif %}
+  {{ profile.user.get_full_name|default:profile.user.username }} — Profil candidat | Immigration97
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 960px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+
+  .ep-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; align-items: start; }
+
+  /* Hero candidat */
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2rem; color: #fff; margin-bottom: 1.25rem; display: flex; gap: 1.5rem; align-items: center; }
+  .ep-hero-avatar { width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,.2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; color: #fff; overflow: hidden; }
+  .ep-hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .ep-hero-body { flex: 1; min-width: 0; }
+  .ep-hero-name { font-size: clamp(1.2rem,3vw,1.6rem); font-weight: 800; margin: 0 0 .25rem; }
+  .ep-hero-headline { font-size: .9rem; opacity: .85; margin: 0 0 .5rem; }
+  .ep-hero-meta { display: flex; flex-wrap: wrap; gap: .6rem; font-size: .8rem; opacity: .75; }
+  .ep-hero-meta span { display: flex; align-items: center; gap: .25rem; }
+  .ep-badges { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .7rem; }
+  .ep-badge { border-radius: 20px; padding: .2rem .7rem; font-size: .72rem; font-weight: 700; }
+  .ep-badge-premium { background: rgba(245,158,11,.25); color: #FDE68A; }
+  .ep-badge-level { background: rgba(255,255,255,.15); color: #fff; }
+  .ep-badge-public { background: rgba(16,185,129,.25); color: #6ee7b7; }
+
+  /* Cards */
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.5rem; margin-bottom: 1.25rem; }
+  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1rem; }
+  .ep-bio { font-size: .9rem; color: #334155; line-height: 1.75; }
+  .ep-muted { color: #94a3b8; font-size: .88rem; font-style: italic; }
+
+  /* Skills */
+  .ep-skills { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .ep-skill { background: #f1f5f9; color: #475569; border-radius: 7px; padding: .3rem .75rem; font-size: .8rem; font-weight: 600; }
+
+  /* Portfolio items */
+  .ep-portfolio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .75rem; }
+  .ep-portfolio-item { display: flex; align-items: center; gap: .6rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .75rem; text-decoration: none; color: #102B4E; transition: border-color .2s; }
+  .ep-portfolio-item:hover { border-color: #F59E0B; }
+  .ep-portfolio-icon { font-size: 1.3rem; flex-shrink: 0; }
+  .ep-portfolio-label { font-size: .8rem; font-weight: 600; line-height: 1.3; }
+  .ep-portfolio-sub { font-size: .72rem; color: #64748b; }
+
+  /* LinkedIn */
+  .ep-link-btn { display: inline-flex; align-items: center; gap: .4rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: .45rem .9rem; font-size: .82rem; font-weight: 600; color: #102B4E; text-decoration: none; }
+  .ep-link-btn:hover { border-color: #F59E0B; }
+
+  /* Sticky sidebar */
+  .ep-sidebar { position: sticky; top: 1.5rem; }
+  .ep-side-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; }
+  .ep-side-title { font-size: .9rem; font-weight: 800; color: #102B4E; margin-bottom: .25rem; }
+  .ep-side-sub { font-size: .78rem; color: #64748b; margin-bottom: 1.1rem; }
+
+  /* Invite form in sidebar */
+  .ep-invite-form { display: flex; flex-direction: column; gap: .6rem; }
+  .ep-textarea { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: .65rem .9rem; font-size: .85rem; color: #1e293b; font-family: inherit; min-height: 90px; resize: vertical; width: 100%; box-sizing: border-box; outline: none; }
+  .ep-textarea:focus { border-color: #F59E0B; }
+  .ep-btn-invite { background: #F59E0B; color: #102B4E; border: none; border-radius: 10px; padding: .75rem 1rem; font-size: .9rem; font-weight: 800; cursor: pointer; width: 100%; }
+  .ep-btn-invite:hover { background: #d97706; color: #fff; }
+  .ep-btn-fav { display: block; background: #f1f5f9; color: #475569; border: none; border-radius: 10px; padding: .65rem 1rem; font-size: .85rem; font-weight: 600; cursor: pointer; width: 100%; text-align: center; }
+  .ep-btn-fav:hover { background: #e2e8f0; }
+  .ep-side-tip { font-size: .74rem; color: #94a3b8; line-height: 1.5; margin-top: .75rem; padding-top: .75rem; border-top: 1px solid #f1f5f9; }
+
+  .ep-msg-success { background: #F0FDF4; border: 1px solid #bbf7d0; border-radius: 10px; padding: .75rem 1rem; font-size: .85rem; color: #15803d; margin-bottom: 1rem; }
+  .ep-msg-error { background: #FEF2F2; border: 1px solid #fecaca; border-radius: 10px; padding: .75rem 1rem; font-size: .85rem; color: #b91c1c; margin-bottom: 1rem; }
+
+  @media (max-width: 700px) {
+    .ep-layout { grid-template-columns: 1fr; }
+    .ep-sidebar { position: static; }
+    .ep-hero { flex-direction: column; align-items: flex-start; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<body class="profiles">
-  <main class="app-main profiles">
-    <div class="profiles-shell">
+<div class="ep-wrap">
 
-      {# URLs safe (évite NoReverseMatch) #}
-      {% url 'profiles:profile_list' as profiles_list_url %}
-      {% url 'profiles:toggle_favorite' profile.pk as fav_url %}
-      {% url 'profiles:recruiter_invite_create' profile.pk as invite_url %}
+  <nav class="ep-bc">
+    <a href="{% url 'profiles:list' %}">Talents Premium</a>
+    <span>›</span>
+    <span>{{ profile.user.get_full_name|default:profile.user.username }}</span>
+  </nav>
 
-      <div class="profiles-topbar">
-        <nav class="profiles-breadcrumbs" aria-label="Fil d’ariane">
-          <a class="crumb" href="{% if profiles_list_url %}{{ profiles_list_url }}{% else %}/profiles/{% endif %}">Profils</a>
-          <span class="crumb-sep">/</span>
-          <span class="crumb-current">Détail</span>
-        </nav>
+  {% if messages %}
+    {% for msg in messages %}
+      <div class="{% if 'error' in msg.tags %}ep-msg-error{% else %}ep-msg-success{% endif %}">{{ msg }}</div>
+    {% endfor %}
+  {% endif %}
 
-        <div class="profiles-top-actions">
-          <a class="btn btn-ghost" href="{% if profiles_list_url %}{{ profiles_list_url }}{% else %}/profiles/{% endif %}">Retour</a>
-        </div>
+  <!-- HERO -->
+  <div class="ep-hero">
+    <div class="ep-hero-avatar">
+      {% if profile.avatar %}<img src="{{ profile.avatar.url }}" alt="">
+      {% else %}{{ profile.user.get_full_name|default:profile.user.username|first|upper }}{% endif %}
+    </div>
+    <div class="ep-hero-body">
+      <div class="ep-hero-name">{{ profile.user.get_full_name|default:profile.user.username }}</div>
+      <div class="ep-hero-headline">{{ profile.headline|default:"Profil professionnel international" }}</div>
+      <div class="ep-hero-meta">
+        {% if profile.category %}<span>🏷️ {{ profile.category.name }}</span>{% endif %}
+        {% if profile.location %}<span>📍 {{ profile.location }}</span>{% endif %}
+      </div>
+      <div class="ep-badges">
+        <span class="ep-badge ep-badge-premium">⭐ Premium</span>
+        <span class="ep-badge ep-badge-level">Niveau {{ profile.level }}</span>
+        {% if profile.is_public %}<span class="ep-badge ep-badge-public">✅ Profil publié</span>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="ep-layout">
+    <!-- Main content -->
+    <div>
+
+      <!-- À propos -->
+      <div class="ep-card">
+        <p class="ep-card-title">À propos</p>
+        {% if profile.bio %}
+          <div class="ep-bio">{{ profile.bio|linebreaksbr }}</div>
+        {% else %}
+          <p class="ep-muted">Le candidat n'a pas encore ajouté de présentation.</p>
+        {% endif %}
       </div>
 
-      <div class="profiles-grid">
-
-        {# ===== Left: contenu principal ===== #}
-        <section class="profile-main" aria-label="Profil candidat">
-          <header class="profile-hero">
-            <div class="profile-identity">
-              <div class="avatar-wrap">
-                {% if profile.avatar %}
-                  <img class="avatar" src="{{ profile.avatar.url }}" alt="Photo de {{ profile.user.get_full_name|default:profile.user.username }}">
-                {% else %}
-                  <div class="avatar avatar-fallback" aria-hidden="true">
-                    <span>{{ profile.user.get_full_name|default:profile.user.username|first|upper }}</span>
-                  </div>
-                {% endif %}
-              </div>
-
-              <div class="identity-text">
-                <h1 class="profile-name">{{ profile.user.get_full_name|default:profile.user.username }}</h1>
-
-                <p class="profile-headline">
-                  {% if profile.headline %}{{ profile.headline }}
-                  {% elif profile.title %}{{ profile.title }}
-                  {% else %}Profil professionnel premium{% endif %}
-                </p>
-
-                <ul class="profile-meta">
-                  {% if profile.location %}<li><span class="meta-dot">•</span> {{ profile.location }}</li>{% endif %}
-                  {% if profile.years_experience %}<li><span class="meta-dot">•</span> {{ profile.years_experience }} ans d’expérience</li>{% endif %}
-                  {% if profile.availability %}<li><span class="meta-dot">•</span> Disponible : {{ profile.availability }}</li>{% endif %}
-                </ul>
-              </div>
+      <!-- Compétences -->
+      <div class="ep-card">
+        <p class="ep-card-title">Compétences</p>
+        {% with skills=profile.skills.all %}
+          {% if skills %}
+            <div class="ep-skills">
+              {% for s in skills %}
+                <span class="ep-skill">{{ s.name }}</span>
+              {% endfor %}
             </div>
+          {% else %}
+            <p class="ep-muted">Aucune compétence renseignée.</p>
+          {% endif %}
+        {% endwith %}
+      </div>
 
-            <div class="proof-strip" aria-label="Points clés">
-              <div class="proof">
-                <div class="proof-k">Profil</div>
-                <div class="proof-v">{% if profile.is_public %}Publié{% else %}Non publié{% endif %}</div>
-              </div>
-              <div class="proof">
-                <div class="proof-k">Compétences</div>
-                <div class="proof-v">{% if profile.skills %}{{ profile.skills|length }}+{% else %}—{% endif %}</div>
-              </div>
-              <div class="proof">
-                <div class="proof-k">Portfolio</div>
-                <div class="proof-v">{% if profile.portfolio_url or profile.website_url %}Oui{% else %}—{% endif %}</div>
-              </div>
-            </div>
-          </header>
-
-          <div class="card card-section">
-            <div class="card-head">
-              <h2 class="card-title">À propos</h2>
-            </div>
-            <div class="card-body">
-              {% if profile.bio %}
-                <p class="bio">{{ profile.bio|linebreaksbr }}</p>
-              {% else %}
-                <p class="muted">Le candidat n’a pas encore ajouté de présentation.</p>
-              {% endif %}
-            </div>
-          </div>
-
-          <div class="card card-section">
-            <div class="card-head">
-              <h2 class="card-title">Compétences</h2>
-              <p class="card-subtitle">Ce que le candidat maîtrise (vue rapide).</p>
-            </div>
-            <div class="card-body">
-              {% if profile.skills %}
-                <div class="chips">
-                  {% for s in profile.skills %}
-                    <span class="chip">{{ s }}</span>
-                  {% endfor %}
+      <!-- Portfolio -->
+      <div class="ep-card">
+        <p class="ep-card-title">Portfolio & preuves</p>
+        {% with items=profile.portfolio_items.all %}
+          {% if items %}
+            <div class="ep-portfolio-grid">
+              {% for item in items %}
+              <a href="{{ item.file.url }}" target="_blank" rel="noopener" class="ep-portfolio-item">
+                <span class="ep-portfolio-icon">
+                  {% if item.item_type == 'cv' %}📄{% elif item.item_type == 'image' %}🖼️{% else %}📎{% endif %}
+                </span>
+                <div>
+                  <div class="ep-portfolio-label">{{ item.title }}</div>
+                  <div class="ep-portfolio-sub">{{ item.get_item_type_display }}</div>
                 </div>
-              {% else %}
-                <p class="muted">Aucune compétence renseignée.</p>
-              {% endif %}
-            </div>
-          </div>
-
-          <div class="card card-section card-portfolio">
-            <div class="card-head">
-              <h2 class="card-title">Portfolio & preuves</h2>
-              <p class="card-subtitle">Liens et réalisations vérifiables (priorité recruteur).</p>
-            </div>
-            <div class="card-body">
-              <div class="portfolio-grid">
-                {% if profile.portfolio_url %}
-                  <a class="portfolio-item" href="{{ profile.portfolio_url }}" target="_blank" rel="noopener">
-                    <div class="p-ic" aria-hidden="true">↗</div>
-                    <div class="p-txt">
-                      <div class="p-title">Portfolio</div>
-                      <div class="p-desc">Voir les réalisations</div>
-                    </div>
-                  </a>
-                {% endif %}
-
-                {% if profile.website_url %}
-                  <a class="portfolio-item" href="{{ profile.website_url }}" target="_blank" rel="noopener">
-                    <div class="p-ic" aria-hidden="true">↗</div>
-                    <div class="p-txt">
-                      <div class="p-title">Site / Vitrine</div>
-                      <div class="p-desc">Découvrir le profil en ligne</div>
-                    </div>
-                  </a>
-                {% endif %}
-
-                {% if profile.linkedin_url %}
-                  <a class="portfolio-item" href="{{ profile.linkedin_url }}" target="_blank" rel="noopener">
-                    <div class="p-ic" aria-hidden="true">in</div>
-                    <div class="p-txt">
-                      <div class="p-title">LinkedIn</div>
-                      <div class="p-desc">Expériences & recommandations</div>
-                    </div>
-                  </a>
-                {% endif %}
-
-                {% if profile.github_url %}
-                  <a class="portfolio-item" href="{{ profile.github_url }}" target="_blank" rel="noopener">
-                    <div class="p-ic" aria-hidden="true">⌂</div>
-                    <div class="p-txt">
-                      <div class="p-title">GitHub</div>
-                      <div class="p-desc">Code & contributions</div>
-                    </div>
-                  </a>
-                {% endif %}
-
-                {% if not profile.portfolio_url and not profile.website_url and not profile.linkedin_url and not profile.github_url %}
-                  <div class="portfolio-empty">
-                    <p class="muted">Aucun lien de portfolio n’a été ajouté.</p>
-                  </div>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-
-        </section>
-
-        {# ===== Right: sticky CTA ===== #}
-        <aside class="profile-side" aria-label="Actions recruteur">
-          <div class="sticky-card">
-
-            <div class="side-head">
-              <div class="side-title">Actions recruteur</div>
-              <div class="side-subtitle">Clair, pro, non agressif.</div>
-            </div>
-
-            {# CTA principal (safe) #}
-            {% if invite_url %}
-              <a class="btn btn-primary btn-block" href="{{ invite_url }}">
-                Inviter à un entretien
               </a>
-            {% else %}
-              <div class="hint muted">Action “inviter” non configurée (URL manquante).</div>
-            {% endif %}
-
-            <div class="side-divider"></div>
-
-            {# Favori (UN SEUL endroit) #}
-            {% if fav_url %}
-              <form method="post" action="{{ fav_url }}" class="fav-form">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-secondary btn-block">
-                  <span aria-hidden="true">{% if is_favorited %}★{% else %}☆{% endif %}</span>
-                  {% if is_favorited %}Retirer des favoris{% else %}Ajouter aux favoris{% endif %}
-                </button>
-              </form>
-            {% else %}
-              <div class="hint muted">Favoris non configurés (URL manquante).</div>
-            {% endif %}
-
-            <div class="side-footer">
-              <div class="trust">
-                <div class="trust-dot" aria-hidden="true"></div>
-                <div class="trust-text">
-                  Astuce : propose un créneau précis + une phrase sur le poste pour maximiser la réponse.
-                </div>
-              </div>
+              {% endfor %}
             </div>
+          {% else %}
+            <p class="ep-muted">Aucun document de portfolio ajouté.</p>
+          {% endif %}
+        {% endwith %}
 
-          </div>
-        </aside>
-
+        {% if profile.linkedin_url %}
+        <div style="margin-top:1rem;">
+          <a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener" class="ep-link-btn">💼 LinkedIn</a>
+        </div>
+        {% endif %}
       </div>
 
     </div>
-  </main>
-</body>
+
+    <!-- Sidebar -->
+    <aside class="ep-sidebar" id="invite">
+
+      {% if request.user.is_authenticated and request.user != profile.user %}
+
+        <!-- Invite form -->
+        <div class="ep-side-card">
+          <div class="ep-side-title">Inviter à un entretien</div>
+          <div class="ep-side-sub">Envoyez une invitation directe au candidat.</div>
+
+          {% if not has_access %}
+            <div class="ep-msg-error">Accès Premium requis pour envoyer une invitation.</div>
+            <a href="{% url 'billing:access' %}" class="ep-btn-invite" style="text-decoration:none;display:block;text-align:center;">Activer Premium →</a>
+          {% else %}
+            <form method="post" action="{% url 'profiles:detail' profile.pk %}" class="ep-invite-form">
+              {% csrf_token %}
+              <textarea name="message" class="ep-textarea" placeholder="Bonjour, je recrute pour un poste de… Nous serions ravis de discuter avec vous." required></textarea>
+              <button type="submit" class="ep-btn-invite">📨 Envoyer l'invitation</button>
+            </form>
+          {% endif %}
+          <p class="ep-side-tip">Conseil : mentionnez le poste, la ville et vos coordonnées pour maximiser la réponse.</p>
+        </div>
+
+        <!-- Favori -->
+        <div class="ep-side-card">
+          <form method="post" action="{% url 'profiles:toggle_favorite' profile.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="ep-btn-fav">
+              {% if is_favorited %}⭐ Retirer des favoris{% else %}☆ Ajouter aux favoris{% endif %}
+            </button>
+          </form>
+        </div>
+
+      {% elif request.user == profile.user %}
+        <!-- Propriétaire -->
+        <div class="ep-side-card">
+          <div class="ep-side-title">Mon profil</div>
+          <div class="ep-side-sub">Vous consultez votre propre profil.</div>
+          <a href="{% url 'profiles:edit' profile.pk %}" style="display:block;text-align:center;background:#f1f5f9;color:#475569;border-radius:10px;padding:.7rem;font-size:.85rem;font-weight:600;text-decoration:none;margin-bottom:.5rem;">✏️ Modifier mon profil</a>
+          <a href="{% url 'profiles:my_analytics' %}" style="display:block;text-align:center;background:#f1f5f9;color:#475569;border-radius:10px;padding:.7rem;font-size:.85rem;font-weight:600;text-decoration:none;">📊 Mes statistiques</a>
+        </div>
+
+      {% else %}
+        <!-- Non connecté -->
+        <div class="ep-side-card">
+          <div class="ep-side-title">Vous recrutez ?</div>
+          <div class="ep-side-sub">Connectez-vous pour envoyer une invitation.</div>
+          <a href="{% url 'authentification:login' %}" class="ep-btn-invite" style="text-decoration:none;display:block;text-align:center;">Se connecter</a>
+        </div>
+      {% endif %}
+
+    </aside>
+  </div>
+
+</div>
 {% endblock %}
