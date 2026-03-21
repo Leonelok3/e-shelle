@@ -101,6 +101,17 @@ body.actualite .c-btn--outline:hover{background:#102B4E!important;color:#fff!imp
 body.actualite .a-hero .c-btn--outline{border-color:rgba(255,255,255,.4)!important;color:#fff!important}
 @media(max-width:768px){body.actualite .a-hero{grid-template-columns:1fr;padding:2rem 1.25rem 2.5rem;gap:1.5rem}body.actualite .a-hero__stats{flex-direction:row;flex-wrap:wrap}body.actualite .a-stat{flex:1;min-width:120px}body.actualite .a-layout{grid-template-columns:1fr;padding:1rem .85rem 3rem}body.actualite .a-sidebar{position:static}body.actualite .a-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){body.actualite .a-grid,body.actualite .a-grid--featured{grid-template-columns:1fr}body.actualite .a-hero__actions{flex-direction:column}}
+body.actualite .a-news__link{display:flex;flex-direction:column;flex:1;text-decoration:none;color:inherit;min-width:0}
+body.actualite .a-news__placeholder{min-height:150px}
+body.actualite .a-news__share{display:flex;align-items:center;gap:.35rem;padding:.5rem .9rem;border-top:1px solid #f1f5f9;background:#f8fafc;transition:background .18s}
+body.actualite .a-news:hover .a-news__share{background:#f0f6ff}
+body.actualite .a-shr__label{font-size:.62rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-right:.1rem}
+body.actualite .a-shr{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;border:none;cursor:pointer;text-decoration:none;transition:background .15s,transform .12s;flex-shrink:0;background:#f1f5f9;color:#64748b}
+body.actualite .a-shr:hover{transform:translateY(-1px)}
+body.actualite .a-shr--wa{background:#dcfce7;color:#16a34a}body.actualite .a-shr--wa:hover{background:#bbf7d0}
+body.actualite .a-shr--fb{background:#dbeafe;color:#1d4ed8}body.actualite .a-shr--fb:hover{background:#bfdbfe}
+body.actualite .a-shr--ln{background:#e0e7ff;color:#4338ca}body.actualite .a-shr--ln:hover{background:#c7d2fe}
+body.actualite .a-shr--copy{background:#f1f5f9;color:#64748b}body.actualite .a-shr--copy:hover{background:#e2e8f0}
 </style>
 {% endblock %}
 
@@ -227,5 +238,21 @@ body.actualite .a-hero .c-btn--outline{border-color:rgba(255,255,255,.4)!importa
 
     </div>
   </section>
+
+  <script>
+  document.querySelectorAll('.a-shr--copy[data-url]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault(); e.stopPropagation();
+      var url = this.dataset.url;
+      var self = this;
+      navigator.clipboard.writeText(url).then(function() {
+        var orig = self.innerHTML;
+        self.innerHTML = '<svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M20 6L9 17l-5-5" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        self.style.background = '#dcfce7'; self.style.color = '#16a34a';
+        setTimeout(function() { self.innerHTML = orig; self.style.background = ''; self.style.color = ''; }, 1800);
+      }).catch(function() {});
+    });
+  });
+  </script>
 
 {% endblock %}

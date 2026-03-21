@@ -1,41 +1,71 @@
 {% load actualite_extras %}
 
-<a class="a-news {% if featured %}a-news--featured{% endif %}" href="{% url 'actualite:detail' item.slug %}">
-  <div class="a-news__media">
-    {% if item.image_url %}
-      <img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy">
-    {% else %}
-      <div class="a-news__placeholder">IMM97</div>
-    {% endif %}
-  </div>
-
-  <div class="a-news__body">
-
-    <div class="a-news__badges">
-      <span class="a-badge a-badge--country">{{ item.country_target|country_label }}</span>
-      <span class="a-badge a-badge--cat">{{ item.get_category_display }}</span>
-
-      {# ⭐ Badges éditoriaux #}
-      {% if item.is_urgent %}
-        <span class="a-pill a-pill--urgent">Urgent</span>
-      {% endif %}
-      {% if item.is_important %}
-        <span class="a-pill a-pill--important">Important</span>
+<article class="a-news {% if featured %}a-news--featured{% endif %}">
+  <a class="a-news__link" href="{% url 'actualite:detail' item.slug %}">
+    <div class="a-news__media">
+      {% if item.image_url %}
+        <img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy">
+      {% else %}
+        <div class="a-news__placeholder">IMM97</div>
       {% endif %}
     </div>
 
-    <h3 class="a-news__title">{{ item.title }}</h3>
-    <p class="a-news__summary">{{ item.summary|truncatechars:140 }}</p>
-
-    <div class="a-news__meta">
-      <span>{{ item.publish_date|date:"d M Y" }}</span>
-      <span>•</span>
-      <span>{{ item.reading_time_minutes }} min</span>
-      {% if item.views_count %}
+    <div class="a-news__body">
+      <div class="a-news__badges">
+        <span class="a-badge a-badge--country">{{ item.country_target|country_label }}</span>
+        <span class="a-badge a-badge--cat">{{ item.get_category_display }}</span>
+        {% if item.is_urgent %}<span class="a-pill a-pill--urgent">Urgent</span>{% endif %}
+        {% if item.is_important %}<span class="a-pill a-pill--important">Important</span>{% endif %}
+      </div>
+      <h3 class="a-news__title">{{ item.title }}</h3>
+      <p class="a-news__summary">{{ item.summary|truncatechars:140 }}</p>
+      <div class="a-news__meta">
+        <span>{{ item.publish_date|date:"d M Y" }}</span>
         <span>•</span>
-        <span>{{ item.views_count }} vues</span>
-      {% endif %}
+        <span>{{ item.reading_time_minutes }} min</span>
+        {% if item.views_count %}<span>•</span><span>{{ item.views_count }} vues</span>{% endif %}
+      </div>
     </div>
+  </a>
 
+  <!-- Boutons de partage social -->
+  <div class="a-news__share">
+    <span class="a-shr__label">Partager</span>
+
+    <a class="a-shr a-shr--wa"
+       href="https://wa.me/?text={% filter urlencode %}{{ item.title }} — {{ request.scheme }}://{{ request.get_host }}{% url 'actualite:detail' item.slug %}{% endfilter %}"
+       target="_blank" rel="noopener" aria-label="Partager sur WhatsApp" title="WhatsApp">
+      <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+        <path d="M12 2.3c-5.35 0-9.7 4.1-9.7 9.16 0 1.62.45 3.18 1.3 4.54L2 22l6.25-1.63c1.25.65 2.66.99 4.1.99 5.35 0 9.7-4.1 9.7-9.16C21.7 6.4 17.35 2.3 12 2.3Z" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M9.2 8.2c.2-.5.4-.5.7-.5h.6c.2 0 .5.1.6.4l.9 2.1c.1.3.1.6-.1.8l-.5.6c-.1.2-.2.4 0 .6.4.8 1.5 2.1 3.2 2.8.3.1.5.1.6-.1l.8-.9c.2-.2.4-.3.7-.2l2.3.8c.3.1.5.4.4.7-.1.7-.4 1.4-1 1.9-.7.6-1.6.8-2.5.6-1.2-.2-2.5-.8-3.8-1.7-1.3-.9-2.5-2.2-3.3-3.6-.6-1.1-.9-2.2-.7-3.1.2-.8.8-1.5 1.5-1.9Z" fill="currentColor"/>
+      </svg>
+    </a>
+
+    <a class="a-shr a-shr--fb"
+       href="https://www.facebook.com/sharer/sharer.php?u={% filter urlencode %}{{ request.scheme }}://{{ request.get_host }}{% url 'actualite:detail' item.slug %}{% endfilter %}"
+       target="_blank" rel="noopener" aria-label="Partager sur Facebook" title="Facebook">
+      <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+
+    <a class="a-shr a-shr--ln"
+       href="https://www.linkedin.com/sharing/share-offsite/?url={% filter urlencode %}{{ request.scheme }}://{{ request.get_host }}{% url 'actualite:detail' item.slug %}{% endfilter %}"
+       target="_blank" rel="noopener" aria-label="Partager sur LinkedIn" title="LinkedIn">
+      <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4V9h4v1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="2" y="9" width="4" height="12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="4" cy="4" r="2" stroke="currentColor" stroke-width="1.8"/>
+      </svg>
+    </a>
+
+    <button class="a-shr a-shr--copy"
+            data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'actualite:detail' item.slug %}"
+            aria-label="Copier le lien" title="Copier le lien">
+      <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+        <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
   </div>
-</a>
+</article>
