@@ -14,120 +14,415 @@ Créez un profil professionnel premium avec CV, portfolio et informations clés.
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/profiles.css' %}">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;600;700&family=Bebas+Neue&display=swap');
+
+:root {
+  --pf-navy: #050A18;
+  --pf-navy-2: #0A1628;
+  --pf-navy-3: #0F2040;
+  --pf-gold: #D4A843;
+  --pf-gold-light: #F0C060;
+  --pf-gold-dim: rgba(212,168,67,0.15);
+  --pf-gold-border: rgba(212,168,67,0.25);
+  --pf-glass: rgba(15,32,64,0.70);
+  --pf-text: #E8EAF0;
+  --pf-muted: rgba(232,234,240,0.55);
+}
+
+body.profiles { background: var(--pf-navy) !important; color: var(--pf-text) !important; }
+
+/* ---- HERO ---- */
+.pf-hero {
+  background: linear-gradient(135deg, #050A18 0%, #0A1628 60%, #0F2040 100%);
+  border-bottom: 1px solid var(--pf-gold-border);
+  padding: 2.5rem 2rem 3rem;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+.pf-hero::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(212,168,67,0.12) 0%, transparent 65%);
+  pointer-events: none;
+}
+.pf-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #D4A843, #F0C060, #D4A843, transparent);
+}
+.pf-hero__inner { position: relative; z-index: 1; max-width: 800px; }
+.pf-hero h1 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.6rem;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+.pf-hero p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--pf-muted);
+  line-height: 1.7;
+  margin: 0 0 1.5rem;
+  max-width: 60ch;
+}
+.pf-hero__actions { display: flex; flex-wrap: wrap; gap: 0.65rem; }
+
+/* ---- LAYOUT ---- */
+.pf-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 1.75rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+  align-items: start;
+}
+@media (max-width: 900px) { .pf-layout { grid-template-columns: 1fr; } }
+
+/* ---- CARD ---- */
+.pf-card {
+  background: var(--pf-glass);
+  border: 1px solid var(--pf-gold-border);
+  border-radius: 18px;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+}
+.pf-card__head {
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid rgba(212,168,67,0.14);
+}
+.pf-card__head h2 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pf-gold);
+  margin: 0;
+}
+.pf-card__body { padding: 1.75rem 1.5rem; }
+
+/* ---- FORM ---- */
+.pf-form { display: flex; flex-direction: column; gap: 1.5rem; }
+.pf-field { display: flex; flex-direction: column; gap: 0.45rem; }
+.pf-field label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pf-gold);
+}
+.pf-field input[type="text"],
+.pf-field input[type="url"],
+.pf-field input[type="file"],
+.pf-field textarea,
+.pf-field select,
+body.profiles .p-form input[type="text"],
+body.profiles .p-form input[type="url"],
+body.profiles .p-form textarea,
+body.profiles .p-form select {
+  width: 100%;
+  background: rgba(5,10,24,0.65);
+  border: 1px solid var(--pf-gold-border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--pf-text);
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  box-sizing: border-box;
+}
+body.profiles .p-form input::placeholder,
+body.profiles .p-form textarea::placeholder { color: rgba(232,234,240,0.3); }
+body.profiles .p-form input:focus,
+body.profiles .p-form textarea:focus,
+body.profiles .p-form select:focus {
+  border-color: var(--pf-gold);
+  box-shadow: 0 0 0 3px rgba(212,168,67,0.12);
+}
+body.profiles .p-form select option { background: #0A1628; color: var(--pf-text); }
+body.profiles .p-form textarea { min-height: 130px; resize: vertical; }
+
+/* Override profiles.css labels and wrappers */
+body.profiles .p-form > div > label,
+body.profiles .p-form > div > label strong {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--pf-gold) !important;
+  display: block;
+  margin-bottom: 0.45rem;
+}
+body.profiles .p-form > div { margin-bottom: 1.5rem; }
+
+.p-help {
+  font-size: 0.78rem;
+  color: var(--pf-muted);
+  margin-top: 0.35rem;
+  line-height: 1.5;
+}
+
+/* Checkbox */
+body.profiles .p-form input[type="checkbox"] {
+  width: 18px; height: 18px;
+  accent-color: var(--pf-gold);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* Buttons */
+.p-btn, body.profiles .p-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.75rem 1.4rem;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.p-btn--primary, body.profiles .p-btn--primary {
+  background: linear-gradient(135deg, #D4A843, #F0C060);
+  color: #050A18 !important;
+  box-shadow: 0 4px 16px rgba(212,168,67,0.30);
+}
+.p-btn--primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(212,168,67,0.45); }
+.p-btn--outline, body.profiles .p-btn--outline {
+  background: transparent;
+  color: rgba(232,234,240,0.8) !important;
+  border: 1.5px solid var(--pf-gold-border);
+}
+.p-btn--outline:hover { border-color: var(--pf-gold); color: var(--pf-gold-light) !important; }
+
+.space-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 1rem; }
+
+/* ---- SIDEBAR CHECKLIST ---- */
+.pf-checklist { display: flex; flex-direction: column; gap: 1.25rem; }
+.pf-check-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: var(--pf-gold-dim);
+  border: 1px solid rgba(212,168,67,0.18);
+  border-radius: 12px;
+}
+.pf-check-icon {
+  width: 32px; height: 32px;
+  background: rgba(212,168,67,0.15);
+  border: 1px solid rgba(212,168,67,0.30);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+.pf-check-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pf-text);
+}
+.pf-check-hint {
+  font-size: 0.75rem;
+  color: var(--pf-muted);
+  margin-top: 0.15rem;
+}
+
+/* ---- CHIPS ---- */
+.p-chiprow { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
+.p-chip {
+  display: inline-flex; align-items: center;
+  padding: 0.3rem 0.8rem;
+  background: rgba(212,168,67,0.1);
+  border: 1px solid rgba(212,168,67,0.28);
+  border-radius: 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--pf-gold-light);
+  letter-spacing: 0.04em;
+}
+
+/* ---- ERRORS ---- */
+body.profiles .errorlist {
+  list-style: none;
+  padding: 0; margin: 0.35rem 0 0;
+}
+body.profiles .errorlist li {
+  font-size: 0.78rem;
+  color: #fca5a5;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 6px;
+  padding: 0.3rem 0.7rem;
+}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<section class="p-card">
-  <h1 class="space-title">
-    {% if object %}Modifier mon profil{% else %}Créer mon profil{% endif %}
-  </h1>
-  <p class="space-sub">
-    Remplissez l’essentiel (métier, titre, localisation, bio) puis ajoutez votre portfolio.
-    Votre profil devient visible aux recruteurs uniquement si votre accès Premium est actif.
-  </p>
-
-  <div class="space-actions">
-    <a class="p-btn p-btn--outline" href="{% url 'profiles:my_space' %}">Retour à mon espace</a>
-    <a class="p-btn p-btn--outline" href="{% url 'billing:access' %}">Activer Premium</a>
+<!-- HERO -->
+<div class="pf-hero">
+  <div class="pf-hero__inner">
+    <h1>{% if object %}Modifier mon profil{% else %}Créer mon profil{% endif %}</h1>
+    <p>
+      Remplissez l'essentiel — métier, titre, localisation, bio — puis ajoutez votre portfolio.<br>
+      Votre profil devient visible aux recruteurs uniquement si votre accès Premium est actif.
+    </p>
+    <div class="pf-hero__actions">
+      <a class="p-btn p-btn--outline" href="{% url 'profiles:my_space' %}">← Retour à mon espace</a>
+      <a class="p-btn p-btn--primary" href="{% url 'billing:access' %}">Activer Premium →</a>
+    </div>
   </div>
-</section>
+</div>
 
-<section class="p-detail">
-  <div class="p-card">
-    <h2 class="p-section-title">Informations professionnelles</h2>
+<!-- LAYOUT -->
+<div class="pf-layout">
 
-    <form method="post" enctype="multipart/form-data" class="p-form">
-      {% csrf_token %}
-      {{ form.non_field_errors }}
+  <!-- FORM -->
+  <div class="pf-card">
+    <div class="pf-card__head"><h2>Informations professionnelles</h2></div>
+    <div class="pf-card__body">
 
-      <div>
-        <label for="{{ form.category.id_for_label }}"><strong>Métier / Catégorie</strong></label>
-        {{ form.category }}
-        {{ form.category.errors }}
-      </div>
+      <form method="post" enctype="multipart/form-data" class="p-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
 
-      <div>
-        <label for="{{ form.headline.id_for_label }}"><strong>Titre du profil</strong></label>
-        {{ form.headline }}
-        {{ form.headline.errors }}
-        <p class="p-help">Ex: “Comptable SAP • 5 ans d’expérience” ou “Menuisier • Pose & finition”.</p>
-      </div>
-
-      <div>
-        <label for="{{ form.location.id_for_label }}"><strong>Ville / Localisation</strong></label>
-        {{ form.location }}
-        {{ form.location.errors }}
-        <p class="p-help">Ex: Dakar, Abidjan, Montréal, Paris — ou “Remote”.</p>
-      </div>
-
-      <div>
-        <label for="{{ form.bio.id_for_label }}"><strong>À propos</strong></label>
-        {{ form.bio }}
-        {{ form.bio.errors }}
-        <p class="p-help">
-          Conseillé : 5–8 lignes. Missions, compétences, outils, secteurs, disponibilité.
-          (Afrique • Canada • Europe)
-        </p>
-      </div>
-
-      <div>
-        <label for="{{ form.linkedin_url.id_for_label }}"><strong>Lien LinkedIn</strong></label>
-        {{ form.linkedin_url }}
-        {{ form.linkedin_url.errors }}
-      </div>
-
-      <div>
-        <label for="{{ form.avatar.id_for_label }}"><strong>Photo (optionnel)</strong></label>
-        {{ form.avatar }}
-        {{ form.avatar.errors }}
-        <p class="p-help">Une photo claire augmente la confiance.</p>
-      </div>
-
-      <div>
-        <label for="{{ form.is_public.id_for_label }}"><strong>Publier mon profil</strong></label>
         <div>
-          {{ form.is_public }}
-          <span class="p-help">
-            Cochez pour demander la publication. Visible uniquement si Premium actif.
-          </span>
+          <label for="{{ form.category.id_for_label }}"><strong>Métier / Catégorie</strong></label>
+          {{ form.category }}
+          {{ form.category.errors }}
         </div>
-        {{ form.is_public.errors }}
-      </div>
 
-      <div class="space-actions">
-        <button type="submit" class="p-btn p-btn--primary">
-          {% if object %}Enregistrer{% else %}Créer mon profil{% endif %}
-        </button>
+        <div>
+          <label for="{{ form.headline.id_for_label }}"><strong>Titre du profil</strong></label>
+          {{ form.headline }}
+          {{ form.headline.errors }}
+          <p class="p-help">Ex: "Comptable SAP • 5 ans d'expérience" ou "Menuisier • Pose &amp; finition".</p>
+        </div>
+
+        <div>
+          <label for="{{ form.location.id_for_label }}"><strong>Ville / Localisation</strong></label>
+          {{ form.location }}
+          {{ form.location.errors }}
+          <p class="p-help">Ex: Dakar, Abidjan, Montréal, Paris — ou "Remote".</p>
+        </div>
+
+        <div>
+          <label for="{{ form.bio.id_for_label }}"><strong>À propos</strong></label>
+          {{ form.bio }}
+          {{ form.bio.errors }}
+          <p class="p-help">Recommandé : 5–8 lignes. Missions, compétences, outils, secteurs, disponibilité.</p>
+        </div>
+
+        <div>
+          <label for="{{ form.linkedin_url.id_for_label }}"><strong>Lien LinkedIn</strong></label>
+          {{ form.linkedin_url }}
+          {{ form.linkedin_url.errors }}
+        </div>
+
+        <div>
+          <label for="{{ form.avatar.id_for_label }}"><strong>Photo de profil (optionnel)</strong></label>
+          {{ form.avatar }}
+          {{ form.avatar.errors }}
+          <p class="p-help">Une photo claire augmente la confiance des recruteurs.</p>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:0.75rem;padding:1rem;background:rgba(212,168,67,0.06);border:1px solid rgba(212,168,67,0.18);border-radius:10px;">
+          {{ form.is_public }}
+          <div>
+            <label for="{{ form.is_public.id_for_label }}" style="font-size:0.88rem;font-weight:600;color:var(--pf-text);text-transform:none;letter-spacing:0;cursor:pointer;">
+              <strong>Publier mon profil</strong>
+            </label>
+            <p class="p-help" style="margin:0;">Visible uniquement si accès Premium actif.</p>
+          </div>
+          {{ form.is_public.errors }}
+        </div>
+
+        <div class="space-actions">
+          <button type="submit" class="p-btn p-btn--primary">
+            {% if object %}Enregistrer les modifications →{% else %}Créer mon profil →{% endif %}
+          </button>
+          {% if object %}
+            <a class="p-btn p-btn--outline" href="{% url 'profiles:detail' object.pk %}">Voir mon profil</a>
+          {% endif %}
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div>
+    <div class="pf-card" style="margin-bottom:1.25rem;">
+      <div class="pf-card__head"><h2>Checklist "profil qui recrute"</h2></div>
+      <div class="pf-card__body" style="padding:1.25rem 1.5rem;">
+        <div class="pf-checklist">
+          <div class="pf-check-item">
+            <div class="pf-check-icon">💼</div>
+            <div><div class="pf-check-label">Titre clair</div><div class="pf-check-hint">Court et percutant</div></div>
+          </div>
+          <div class="pf-check-item">
+            <div class="pf-check-icon">📝</div>
+            <div><div class="pf-check-label">Bio concrète</div><div class="pf-check-hint">5–8 lignes orientées résultats</div></div>
+          </div>
+          <div class="pf-check-item">
+            <div class="pf-check-icon">🗺️</div>
+            <div><div class="pf-check-label">Localisation</div><div class="pf-check-hint">Ville ou pays cible</div></div>
+          </div>
+          <div class="pf-check-item">
+            <div class="pf-check-icon">📎</div>
+            <div><div class="pf-check-label">Portfolio</div><div class="pf-check-hint">CV, lettres, preuves</div></div>
+          </div>
+          <div class="pf-check-item">
+            <div class="pf-check-icon">⚡</div>
+            <div><div class="pf-check-label">Disponibilité</div><div class="pf-check-hint">Mentionnée dans la bio</div></div>
+          </div>
+        </div>
 
         {% if object %}
-          <a class="p-btn p-btn--outline" href="{% url 'profiles:detail' object.pk %}">Voir mon profil</a>
+          <div class="space-actions" style="margin-top:1.25rem;">
+            <a class="p-btn p-btn--primary" href="{% url 'profiles:add_portfolio' object.pk %}"
+               style="width:100%;justify-content:center;">
+              + Ajouter au portfolio
+            </a>
+          </div>
         {% endif %}
       </div>
-    </form>
-  </div>
-
-  <aside class="p-card">
-    <h2 class="p-section-title">Checklist “profil qui recrute”</h2>
-    <p class="p-card__text">Pour augmenter vos chances d’entretien :</p>
-    <div class="p-chiprow">
-      <span class="p-chip">Titre clair</span>
-      <span class="p-chip">Bio concrète</span>
-      <span class="p-chip">Portfolio</span>
-      <span class="p-chip">Localisation</span>
-      <span class="p-chip">Disponibilité</span>
     </div>
-    <p class="p-help">
-      Ensuite : ajoutez votre CV et vos preuves (photos, lettres) dans votre portfolio.
-    </p>
-    {% if object %}
-      <div class="space-actions">
-        <a class="p-btn p-btn--primary" href="{% url 'profiles:add_portfolio' object.pk %}">
-          Ajouter au portfolio
+
+    <!-- TIP -->
+    <div class="pf-card">
+      <div class="pf-card__head"><h2>Astuce Premium</h2></div>
+      <div class="pf-card__body" style="padding:1.25rem 1.5rem;">
+        <p style="font-size:0.82rem;color:var(--pf-muted);line-height:1.65;margin:0 0 1rem;">
+          Les profils Premium apparaissent en <strong style="color:var(--pf-gold);">tête de liste</strong> et sont envoyés directement aux recruteurs partenaires au Canada et en Europe.
+        </p>
+        <a class="p-btn p-btn--primary" href="{% url 'billing:access' %}" style="width:100%;justify-content:center;">
+          Activer Premium →
         </a>
       </div>
-    {% endif %}
-  </aside>
-</section>
+    </div>
+
+  </div>
+
+</div>
 
 {% endblock %}

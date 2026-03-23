@@ -1,59 +1,140 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Postuler vite — {{ lead.title }} | Job Agent{% endblock %}
+{% block body_class %}job-agent{% endblock %}
+{% block app_scope %}job-agent{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'job_agent/job_agent.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'job_agent/job_agent.js' %}" defer></script>
+{% endblock %}
+
 {% block content %}
+<div class="app-main job-agent">
+  <div class="ja-container">
 
-<div class="container">
-  <h1>Postuler vite</h1>
-  <p><strong>{{ lead.title }}</strong> — {{ lead.company }} ({{ lead.location }})</p>
+    <div class="ja-pagehead">
+      <div class="ja-pagehead__title">
+        <h1>Postuler vite</h1>
+        <p>
+          <span class="ja-muted">{{ lead.title }}</span>
+          <span class="ja-muted-2"> — {{ lead.company }} • {{ lead.location }}</span>
+        </p>
+      </div>
+      <div class="ja-pagehead__actions">
+        <a class="c-btn" href="{% url 'job_agent:lead_detail' lead.id %}">← Retour offre</a>
+        <a class="c-btn" href="{% url 'job_agent:lead_list' %}">Offres</a>
+      </div>
+    </div>
 
-  <hr>
+    <div class="ja-layout">
+      {% include "job_agent/_menu.html" with active="leads" %}
 
-  <h3>Infos candidat</h3>
-  <p><b>Nom:</b> {{ draft.full_name }}</p>
-  <p><b>Email:</b> {{ draft.email }}</p>
-  <p><b>Téléphone:</b> {{ draft.phone }}</p>
-  <p><b>LinkedIn:</b> {{ draft.linkedin }}</p>
-  <p><b>Portfolio:</b> {{ draft.portfolio }}</p>
+      <div class="ja-content">
 
-  <hr>
+        <!-- CANDIDAT -->
+        <section class="ja-card" style="margin-bottom:1.5rem;">
+          <div class="ja-card__head"><h2>Informations candidat</h2></div>
+          <div class="ja-card__body">
+            <div class="ja-formgrid">
+              <div class="ja-col-6">
+                <div class="ja-field"><label>Nom complet</label>
+                  <p style="margin:4px 0 0;font-size:.9rem;color:var(--ja-text);">{{ draft.full_name|default:"—" }}</p></div>
+              </div>
+              <div class="ja-col-6">
+                <div class="ja-field"><label>Email</label>
+                  <p style="margin:4px 0 0;font-size:.9rem;color:var(--ja-text);">{{ draft.email|default:"—" }}</p></div>
+              </div>
+              <div class="ja-col-6">
+                <div class="ja-field"><label>Téléphone</label>
+                  <p style="margin:4px 0 0;font-size:.9rem;color:var(--ja-text);">{{ draft.phone|default:"—" }}</p></div>
+              </div>
+              <div class="ja-col-6">
+                <div class="ja-field"><label>LinkedIn</label>
+                  <p style="margin:4px 0 0;font-size:.9rem;color:var(--ja-text);">{{ draft.linkedin|default:"—" }}</p></div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-  <h3>Email prêt à envoyer</h3>
-  <p><b>Objet:</b></p>
-  <textarea rows="2" style="width:100%">{{ draft.email_subject }}</textarea>
+        <!-- EMAIL -->
+        <section class="ja-card" style="margin-bottom:1.5rem;">
+          <div class="ja-card__head">
+            <h2>Email prêt à envoyer</h2>
+            <div class="ja-pagehead__actions">
+              <button class="c-btn" type="button" data-copy data-copy-target="#wiz-subject" data-copy-toast="Objet copié ✅">Copier objet</button>
+              <button class="c-btn c-btn--primary" type="button" data-copy data-copy-target="#wiz-email" data-copy-toast="Email copié ✅">Copier email</button>
+            </div>
+          </div>
+          <div class="ja-card__body">
+            <div class="ja-block" style="margin-bottom:1rem;">
+              <div class="ja-block__head"><h3>Objet</h3></div>
+              <pre id="wiz-subject">{{ draft.email_subject }}</pre>
+            </div>
+            <div class="ja-block">
+              <div class="ja-block__head"><h3>Message</h3></div>
+              <pre id="wiz-email">{{ draft.email_body }}</pre>
+            </div>
+          </div>
+        </section>
 
-  <p><b>Message:</b></p>
-  <textarea rows="10" style="width:100%">{{ draft.email_body }}</textarea>
+        <!-- LETTRE -->
+        <section class="ja-card" style="margin-bottom:1.5rem;">
+          <div class="ja-card__head">
+            <h2>Lettre de motivation</h2>
+            <button class="c-btn c-btn--primary" type="button" data-copy data-copy-target="#wiz-letter" data-copy-toast="Lettre copiée ✅">Copier</button>
+          </div>
+          <div class="ja-card__body">
+            <div class="ja-block">
+              <pre id="wiz-letter">{{ draft.letter }}</pre>
+            </div>
+          </div>
+        </section>
 
-  <hr>
+        {% if draft.answers %}
+        <section class="ja-card" style="margin-bottom:1.5rem;">
+          <div class="ja-card__head">
+            <h2>Réponses rapides</h2>
+            <button class="c-btn" type="button" data-copy data-copy-target="#wiz-answers" data-copy-toast="Réponses copiées ✅">Copier</button>
+          </div>
+          <div class="ja-card__body">
+            <div class="ja-block">
+              <pre id="wiz-answers">{% for k,v in draft.answers.items %}{{ k }} :
+{{ v }}
 
-  <h3>Lettre de motivation</h3>
-  <textarea rows="14" style="width:100%">{{ draft.letter }}</textarea>
+{% endfor %}</pre>
+            </div>
+          </div>
+        </section>
+        {% endif %}
 
-  <hr>
+        <!-- ACTION -->
+        <section class="ja-card">
+          <div class="ja-card__body">
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="mark_applied">
+              <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+                <button type="submit" class="c-btn c-btn--primary">
+                  ✅ J'ai postulé — Marquer comme postulée
+                </button>
+                <a class="c-btn" href="{% url 'job_agent:lead_detail' lead.id %}">Retour au détail</a>
+              </div>
+            </form>
+          </div>
+        </section>
 
-  <h3>Réponses rapides (formulaires)</h3>
-  {% if draft.answers %}
-    <ul>
-      {% for k,v in draft.answers.items %}
-        <li><b>{{ k }}</b> : {{ v }}</li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>Aucune réponse générée.</p>
-  {% endif %}
+        <div class="ja-toast" role="status" aria-live="polite" aria-atomic="true">
+          <span class="ja-toast__msg">Copié ✅</span>
+          <button class="ja-toast__btn" type="button" data-toast-dismiss>OK</button>
+        </div>
 
-  <hr>
-
-  <form method="post">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="mark_applied">
-    <button type="submit" class="btn btn-primary">
-      J’ai postulé (marquer comme postulée)
-    </button>
-  </form>
-
-  <p style="margin-top:12px;">
-    <a href="{% url 'job_agent:lead_detail' lead.id %}">← Retour offre</a>
-  </p>
+      </div>
+    </div>
+  </div>
 </div>
-
 {% endblock %}
