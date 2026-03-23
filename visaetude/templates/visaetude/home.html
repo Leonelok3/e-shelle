@@ -3,169 +3,712 @@
 
 {% block body_class %}visa-etude{% endblock %}
 
-{% block title %}
-Profil Étudiant – Diagnostic Visa Études & Orientation Personnalisée | Immigration97
-{% endblock %}
+{% block title %}Visa Études — Études à l'étranger pour Africains | Immigration97{% endblock %}
 
 {% block meta_description %}
-Complète ton profil étudiant pour obtenir un diagnostic personnalisé Visa Études.
-Analyse du niveau académique, budget, pays compatibles, bourses et stratégie visa étudiant.
+Complète ton profil étudiant pour recevoir un diagnostic personnalisé Visa Études.
+Pays compatibles, universités accessibles, bourses et stratégie visa.
 {% endblock %}
 
 {% block extra_css %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/visa_etude.css' %}">
+<style>
+/* ============================================================
+   VISA ÉTUDES — African Premium Futurism
+============================================================ */
+:root {
+  --ve-navy-deep:   #050A18;
+  --ve-navy-mid:    #0A1628;
+  --ve-gold:        #D4A843;
+  --ve-gold-light:  #F0C060;
+  --ve-amber:       #F59E0B;
+  --ve-glass:       rgba(255,255,255,0.04);
+  --ve-glass-border:rgba(212,168,67,0.22);
+  --ve-text:        #FFFFFF;
+  --ve-text-muted:  rgba(255,255,255,0.6);
+  --ve-radius:      16px;
+  --ve-transition:  all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+body.visa-etude .app-main {
+  background: linear-gradient(160deg, var(--ve-navy-deep) 0%, var(--ve-navy-mid) 60%, #0A1F3A 100%);
+  min-height: 100vh;
+  color: var(--ve-text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+/* ── HERO ── */
+.ve2-hero {
+  position: relative;
+  padding: 5rem 1.5rem 4rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 4rem;
+  align-items: center;
+  overflow: hidden;
+}
+.ve2-hero::before {
+  content: '';
+  position: absolute;
+  top: -120px; right: -120px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(212,168,67,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.ve2-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -60px; left: -60px;
+  width: 350px; height: 350px;
+  background: radial-gradient(circle, rgba(245,158,11,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+.ve2-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(212,168,67,0.1);
+  border: 1px solid rgba(212,168,67,0.35);
+  border-radius: 50px;
+  padding: 0.4rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ve-gold);
+  margin-bottom: 1.5rem;
+}
+.ve2-hero__title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(2.6rem, 4.5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ve-text);
+  margin-bottom: 1.25rem;
+}
+.ve2-hero__title .gold { color: var(--ve-gold); font-style: italic; }
+.ve2-hero__sub {
+  font-size: 1rem;
+  color: var(--ve-text-muted);
+  line-height: 1.75;
+  margin-bottom: 2rem;
+}
+.ve2-hero__btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* ── Boutons ── */
+.ve2-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.8rem 1.6rem;
+  border-radius: 50px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--ve-transition);
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+.ve2-btn--gold {
+  background: linear-gradient(135deg, var(--ve-gold) 0%, var(--ve-amber) 100%);
+  color: #050A18;
+  font-weight: 700;
+}
+.ve2-btn--gold:hover { filter: brightness(1.1); transform: translateY(-2px); }
+.ve2-btn--ghost {
+  background: var(--ve-glass);
+  border: 1px solid var(--ve-glass-border);
+  color: rgba(255,255,255,0.85);
+}
+.ve2-btn--ghost:hover {
+  background: rgba(212,168,67,0.1);
+  border-color: rgba(212,168,67,0.5);
+  color: var(--ve-gold);
+}
+
+/* ── Stats card hero droit ── */
+.ve2-stats-card {
+  background: var(--ve-glass);
+  border: 1px solid var(--ve-glass-border);
+  border-radius: 24px;
+  padding: 2rem;
+  backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
+}
+.ve2-stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ve-gold), var(--ve-amber), transparent);
+}
+.ve2-stats-card__title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ve-gold);
+  margin-bottom: 1.5rem;
+}
+.ve2-stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.ve2-stat {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  transition: var(--ve-transition);
+}
+.ve2-stat:hover { border-color: rgba(212,168,67,0.3); background: rgba(212,168,67,0.05); }
+.ve2-stat__icon { font-size: 1.5rem; flex-shrink: 0; }
+.ve2-stat__num {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: 1.5rem;
+  color: var(--ve-gold-light);
+  line-height: 1;
+}
+.ve2-stat__label { font-size: 0.75rem; color: var(--ve-text-muted); margin-top: 0.1rem; }
+
+/* ── Destinations pays ── */
+.ve2-destinations {
+  max-width: 1200px;
+  margin: 0 auto 4rem;
+  padding: 0 1.5rem;
+}
+.ve2-section-header {
+  margin-bottom: 2.5rem;
+}
+.ve2-section-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ve-gold);
+  margin-bottom: 0.75rem;
+}
+.ve2-section-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700;
+  color: var(--ve-text);
+}
+.ve2-dest-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+.ve2-dest-card {
+  background: var(--ve-glass);
+  border: 1px solid var(--ve-glass-border);
+  border-radius: var(--ve-radius);
+  padding: 1.5rem;
+  transition: var(--ve-transition);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.ve2-dest-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(212,168,67,0.06) 0%, transparent 100%);
+  opacity: 0;
+  transition: var(--ve-transition);
+}
+.ve2-dest-card:hover { border-color: rgba(212,168,67,0.5); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+.ve2-dest-card:hover::before { opacity: 1; }
+.ve2-dest-flag { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+.ve2-dest-country { font-size: 1rem; font-weight: 700; color: var(--ve-text); margin-bottom: 0.35rem; }
+.ve2-dest-info { font-size: 0.78rem; color: var(--ve-text-muted); margin-bottom: 0.75rem; line-height: 1.5; }
+.ve2-dest-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.ve2-dest-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 50px;
+  background: rgba(212,168,67,0.1);
+  border: 1px solid rgba(212,168,67,0.2);
+  color: var(--ve-gold);
+}
+
+/* ── Formulaire section ── */
+.ve2-form-section {
+  max-width: 1200px;
+  margin: 0 auto 4rem;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2rem;
+  align-items: start;
+}
+.ve2-form-card {
+  background: var(--ve-glass);
+  border: 1px solid var(--ve-glass-border);
+  border-radius: 24px;
+  padding: 2.5rem;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+.ve2-form-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ve-gold), var(--ve-amber), transparent);
+}
+.ve2-form-card__kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ve-gold);
+  margin-bottom: 0.5rem;
+}
+.ve2-form-card__title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--ve-text);
+  margin-bottom: 0.6rem;
+}
+.ve2-form-card__sub {
+  font-size: 0.85rem;
+  color: var(--ve-text-muted);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+/* Override form inputs pour le thème dark */
+.ve2-form-card .ve-form-group { margin-bottom: 1.25rem; }
+.ve2-form-card .ve-form-group label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.ve2-form-card select,
+.ve2-form-card input[type="text"],
+.ve2-form-card input[type="number"],
+.ve2-form-card textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(212,168,67,0.2) !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 0.88rem !important;
+  font-family: 'DM Sans', sans-serif !important;
+  transition: var(--ve-transition);
+  -webkit-appearance: none;
+}
+.ve2-form-card select:focus,
+.ve2-form-card input:focus,
+.ve2-form-card textarea:focus {
+  outline: none !important;
+  border-color: rgba(212,168,67,0.6) !important;
+  background: rgba(212,168,67,0.06) !important;
+  box-shadow: 0 0 0 3px rgba(212,168,67,0.1) !important;
+}
+.ve2-form-card select option { background: #0A1628; color: #fff; }
+.ve2-form-card .ve-cta-group { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
+.ve2-form-card .ve-btn-primary {
+  background: linear-gradient(135deg, var(--ve-gold) 0%, var(--ve-amber) 100%);
+  color: #050A18;
+  font-weight: 700;
+  border: none;
+  border-radius: 50px;
+  padding: 0.85rem 1.75rem;
+  font-size: 0.88rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: var(--ve-transition);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.ve2-form-card .ve-btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.ve2-form-card .ve-btn-secondary {
+  background: var(--ve-glass);
+  border: 1px solid var(--ve-glass-border);
+  color: rgba(255,255,255,0.85);
+  border-radius: 50px;
+  padding: 0.85rem 1.4rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: var(--ve-transition);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.ve2-form-card .ve-btn-secondary:hover { border-color: rgba(212,168,67,0.5); color: var(--ve-gold); }
+
+/* ── Sidebar conseils ── */
+.ve2-sidebar { display: flex; flex-direction: column; gap: 1.25rem; }
+.ve2-tip-card {
+  background: var(--ve-glass);
+  border: 1px solid var(--ve-glass-border);
+  border-radius: var(--ve-radius);
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+}
+.ve2-tip-card__kicker {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ve-gold);
+  margin-bottom: 0.6rem;
+}
+.ve2-tip-card__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ve-text);
+  margin-bottom: 0.75rem;
+}
+.ve2-tip-card ul { padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+.ve2-tip-card li {
+  font-size: 0.82rem;
+  color: var(--ve-text-muted);
+  padding-left: 1.2rem;
+  position: relative;
+  line-height: 1.5;
+}
+.ve2-tip-card li::before { content: '✦'; position: absolute; left: 0; color: var(--ve-gold); font-size: 0.6rem; top: 0.2rem; }
+.ve2-tip-card li strong { color: rgba(255,255,255,0.9); }
+.ve2-tip-card__note {
+  font-size: 0.78rem;
+  color: var(--ve-text-muted);
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(212,168,67,0.06);
+  border-radius: 8px;
+  border-left: 2px solid var(--ve-gold);
+  line-height: 1.55;
+}
+
+/* ── CTA final ── */
+.ve2-cta {
+  max-width: 1200px;
+  margin: 0 auto 5rem;
+  padding: 0 1.5rem;
+}
+.ve2-cta__inner {
+  background: linear-gradient(135deg, rgba(212,168,67,0.12) 0%, rgba(245,158,11,0.06) 50%, rgba(10,22,40,0.8) 100%);
+  border: 1px solid rgba(212,168,67,0.3);
+  border-radius: 24px;
+  padding: 3.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.ve2-cta__inner::before {
+  content: '';
+  position: absolute;
+  top: -100px; right: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(212,168,67,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.ve2-cta__title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 700;
+  color: var(--ve-text);
+  margin-bottom: 1rem;
+}
+.ve2-cta__title .gold { color: var(--ve-gold); font-style: italic; }
+.ve2-cta__sub {
+  font-size: 0.95rem;
+  color: var(--ve-text-muted);
+  margin-bottom: 2rem;
+  max-width: 540px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.7;
+}
+.ve2-cta__btns { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.75rem; }
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .ve2-hero { grid-template-columns: 1fr; gap: 2.5rem; }
+  .ve2-dest-grid { grid-template-columns: repeat(2, 1fr); }
+  .ve2-form-section { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .ve2-hero { padding: 3rem 1rem 2.5rem; }
+  .ve2-dest-grid { grid-template-columns: 1fr; }
+  .ve2-form-card { padding: 1.5rem; }
+  .ve2-cta__inner { padding: 2rem 1.25rem; }
+}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<!-- ==================================================
-HERO — PROFIL ÉTUDIANT
-================================================== -->
-<section class="ve-dashboard-hero fade-in-up">
-  <div class="container">
+<!-- ============================================================
+     HERO
+============================================================ -->
+<section class="ve2-hero">
+  <div>
+    <div class="ve2-badge">🎓 Visa Études · Immigration97</div>
 
-    <span class="ve-badge">📋 Étape 1 · Fondations</span>
-
-    <h1>
-      Profil Étudiant<br>
-      <span class="ve-gradient">Diagnostic & Orientation Visa Études</span>
+    <h1 class="ve2-hero__title">
+      Étudiez à l'étranger,<br>
+      <span class="gold">vivez votre ambition.</span>
     </h1>
 
-    <p class="ve-lead">
-      Complète ton <strong>profil étudiant</strong> pour recevoir une
-      <strong>analyse personnalisée</strong> :
-      pays compatibles, universités accessibles,
-      <strong>visa étudiant</strong>, <strong>bourses</strong>
-      et plan d’action réaliste.
+    <p class="ve2-hero__sub">
+      Immigration97 accompagne les étudiants africains dans leur projet d'études internationales :
+      <strong style="color:rgba(255,255,255,0.9)">universités accessibles</strong>,
+      <strong style="color:rgba(255,255,255,0.9)">bourses d'études</strong>,
+      <strong style="color:rgba(255,255,255,0.9)">visa étudiant</strong> et
+      stratégie personnalisée. Du Cameroun, du Sénégal ou de Côte d'Ivoire — vers le monde.
     </p>
 
+    <div class="ve2-hero__btns">
+      <a href="#profil-form" class="ve2-btn ve2-btn--gold">📋 Compléter mon profil étudiant</a>
+      <a href="{% url 'visaetude:countries_list' %}" class="ve2-btn ve2-btn--ghost">🌍 Voir les pays</a>
+      <a href="{% url 'visaetude:coach_ai' %}" class="ve2-btn ve2-btn--ghost">🤖 Coach IA</a>
+    </div>
+  </div>
+
+  <!-- Stats card -->
+  <div class="ve2-stats-card">
+    <div class="ve2-stats-card__title">Pourquoi partir étudier ?</div>
+    <div class="ve2-stat-row">
+      <div class="ve2-stat">
+        <span class="ve2-stat__icon">🎓</span>
+        <div>
+          <div class="ve2-stat__num">15+</div>
+          <div class="ve2-stat__label">Pays de destination disponibles</div>
+        </div>
+      </div>
+      <div class="ve2-stat">
+        <span class="ve2-stat__icon">💰</span>
+        <div>
+          <div class="ve2-stat__num">200+</div>
+          <div class="ve2-stat__label">Bourses répertoriées</div>
+        </div>
+      </div>
+      <div class="ve2-stat">
+        <span class="ve2-stat__icon">📈</span>
+        <div>
+          <div class="ve2-stat__num">3×</div>
+          <div class="ve2-stat__label">Plus de revenus avec un diplôme étranger</div>
+        </div>
+      </div>
+      <div class="ve2-stat">
+        <span class="ve2-stat__icon">⭐</span>
+        <div>
+          <div class="ve2-stat__num">94%</div>
+          <div class="ve2-stat__label">Taux de satisfaction étudiants</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- ==================================================
-FORMULAIRE PROFIL
-================================================== -->
-<section class="ve-dashboard-modules">
-  <div class="container ve-modules-grid">
+<!-- ============================================================
+     DESTINATIONS ÉTUDES
+============================================================ -->
+<section class="ve2-destinations">
+  <div class="ve2-section-header">
+    <div class="ve2-section-kicker">Destinations · Top 6</div>
+    <h2 class="ve2-section-title">Où voulez-vous étudier ?</h2>
+  </div>
+  <div class="ve2-dest-grid">
+    <div class="ve2-dest-card">
+      <span class="ve2-dest-flag">🇨🇦</span>
+      <div class="ve2-dest-country">Canada</div>
+      <div class="ve2-dest-info">Universités ouvertes aux étudiants africains, permis d'étude rapide, travail autorisé 20h/sem.</div>
+      <div class="ve2-dest-tags">
+        <span class="ve2-dest-tag">Bourses disponibles</span>
+        <span class="ve2-dest-tag">Travail permis</span>
+      </div>
+    </div>
+    <div class="ve2-dest-card">
+      <span class="ve2-dest-flag">🇫🇷</span>
+      <div class="ve2-dest-country">France</div>
+      <div class="ve2-dest-info">Frais universitaires réduits, Campus France, bourse Eiffel. Idéal pour les profils francophones.</div>
+      <div class="ve2-dest-tags">
+        <span class="ve2-dest-tag">Bourse Eiffel</span>
+        <span class="ve2-dest-tag">Francophone</span>
+      </div>
+    </div>
+    <div class="ve2-dest-card">
+      <span class="ve2-dest-flag">🇩🇪</span>
+      <div class="ve2-dest-country">Allemagne</div>
+      <div class="ve2-dest-info">Universités gratuites ou quasi-gratuites, bourse DAAD, visa étudiant accessible avec niveau B2.</div>
+      <div class="ve2-dest-tags">
+        <span class="ve2-dest-tag">Bourse DAAD</span>
+        <span class="ve2-dest-tag">Gratuit</span>
+      </div>
+    </div>
+    <div class="ve2-dest-card">
+      <span class="ve2-dest-flag">🇬🇧</span>
+      <div class="ve2-dest-country">Royaume-Uni</div>
+      <div class="ve2-dest-info">Bourse Chevening, universités de rang mondial, visa étudiant flexible. Diplôme reconnu partout.</div>
+      <div class="ve2-dest-tags">
+        <span class="ve2-dest-tag">Chevening</span>
+        <span class="ve2-dest-tag">World Class</span>
+      </div>
+    </div>
+    <div class="ve2-dest-card">
+      <span class="ve2-dest-flag">🇧🇪</span>
+      <div class="ve2-dest-country">Belgique</div>
+      <div class="ve2-dest-info">Frais réduits, universités francophones de qualité, porte d'entrée vers toute l'Europe Schengen.</div>
+      <div class="ve2-dest-tags">
+        <span class="ve2-dest-tag">Francophone</span>
+        <span class="ve2-dest-tag">Schengen</span>
+      </div>
+    </div>
+    <div class="ve2-dest-card">
+      <span class="ve2-dest-flag">🇲🇦</span>
+      <div class="ve2-dest-country">Maroc</div>
+      <div class="ve2-dest-info">Tremplin vers l'Europe, universités privées de qualité, coût de vie abordable, aucune barrière linguistique.</div>
+      <div class="ve2-dest-tags">
+        <span class="ve2-dest-tag">Accessible</span>
+        <span class="ve2-dest-tag">Tremplin</span>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <article class="ve-module-card" data-step="01">
+<!-- ============================================================
+     FORMULAIRE PROFIL + SIDEBAR
+============================================================ -->
+<section class="ve2-form-section" id="profil-form">
 
-      <h2>Informations académiques & projet</h2>
+  <!-- Formulaire -->
+  <div class="ve2-form-card">
+    <div class="ve2-form-card__kicker">Étape 1 · Fondations</div>
+    <h2 class="ve2-form-card__title">Mon profil étudiant</h2>
+    <p class="ve2-form-card__sub">
+      Complète ces informations pour recevoir une analyse personnalisée : pays compatibles,
+      universités accessibles et stratégie visa étudiant sur mesure.
+    </p>
 
-      <p class="small">
-        Ces informations permettent au Coach IA Immigration97
-        d’évaluer la faisabilité de ton projet d’études à l’étranger.
-      </p>
+    <form method="post" action="{% url 'visaetude:student_profile' %}" novalidate>
+      {% csrf_token %}
 
-      <!-- ✅ Formulaire corrigé -->
-      <form method="post" action="{% url 'visaetude:student_profile' %}" novalidate>
-        {% csrf_token %}
-
-        <div class="ve-form-group">
-          <label>Pays d’origine</label>
-          {{ form.country_of_origin }}
-        </div>
-
-        <div class="ve-form-group">
-          <label>Niveau d’études actuel</label>
-          {{ form.education_level }}
-        </div>
-
-        <div class="ve-form-group">
-          <label>Domaine d’études / spécialité</label>
-          {{ form.field_of_study }}
-        </div>
-
-        <div class="ve-form-group">
-          <label>Objectif académique</label>
-          {{ form.study_goal }}
-        </div>
-
-        <div class="ve-form-group">
-          <label>Année de départ souhaitée</label>
-          {{ form.target_year }}
-        </div>
-
-        <div class="ve-form-group">
-          <label>Budget estimatif (par an)</label>
-          {{ form.budget_range }}
-        </div>
-
-        <div class="ve-form-group">
-          <label>Niveau de langue principal</label>
-          {{ form.language_level }}
-        </div>
-
-        <div class="ve-cta-group">
-          <button type="submit" class="ve-btn-primary">
-            💾 Enregistrer mon profil étudiant
-          </button>
-
-          <a href="{% url 'visaetude:countries_list' %}" class="ve-btn-secondary">
-            🌍 Voir les pays compatibles
-          </a>
-        </div>
-
-      </form>
-
-    </article>
-
-    <!-- ==================================================
-    SIDEBAR CONSEILS
-    ================================================== -->
-    <aside class="ve-module-card">
-
-      <span class="ve-step">Conseil expert</span>
-      <h3>Pourquoi ce profil est important ?</h3>
-
-      <ul>
-        <li>Éviter les pays non accessibles à ton niveau</li>
-        <li>Identifier les <strong>bourses d’études</strong> possibles</li>
-        <li>Adapter le <strong>dossier visa étudiant</strong></li>
-        <li>Recevoir des recommandations personnalisées</li>
-      </ul>
-
-      <p class="small">
-        💡 Plus ton profil est précis, plus le Coach IA
-        pourra te proposer une stratégie fiable.
-      </p>
-
-      <div class="ve-cta-group">
-        <a href="{% url 'visaetude:coach_ai' %}" class="ve-btn-secondary">
-          🤖 Parler au Coach IA
-        </a>
+      <div class="ve-form-group">
+        <label>Pays d'origine</label>
+        {{ form.country_of_origin }}
+      </div>
+      <div class="ve-form-group">
+        <label>Niveau d'études actuel</label>
+        {{ form.education_level }}
+      </div>
+      <div class="ve-form-group">
+        <label>Domaine d'études / spécialité</label>
+        {{ form.field_of_study }}
+      </div>
+      <div class="ve-form-group">
+        <label>Objectif académique</label>
+        {{ form.study_goal }}
+      </div>
+      <div class="ve-form-group">
+        <label>Année de départ souhaitée</label>
+        {{ form.target_year }}
+      </div>
+      <div class="ve-form-group">
+        <label>Budget estimatif (par an)</label>
+        {{ form.budget_range }}
+      </div>
+      <div class="ve-form-group">
+        <label>Niveau de langue principal</label>
+        {{ form.language_level }}
       </div>
 
-    </aside>
-
+      <div class="ve-cta-group">
+        <button type="submit" class="ve-btn-primary">💾 Enregistrer mon profil</button>
+        <a href="{% url 'visaetude:countries_list' %}" class="ve-btn-secondary">🌍 Pays compatibles</a>
+      </div>
+    </form>
   </div>
-</section>
 
-<!-- ==================================================
-CTA FINAL
-================================================== -->
-<section class="ve-cta-final">
-  <div class="container text-center">
-
-    <h2>🎓 Passe à l’étape suivante de ton projet</h2>
-
-    <p>
-      Une fois ton profil complété, Immigration97
-      t’accompagne vers les <strong>meilleurs pays</strong>,
-      <strong>universités adaptées</strong> et
-      une stratégie <strong>visa étudiant réussie</strong>.
-    </p>
-
-    <div class="ve-cta-group center">
-      <a href="{% url 'visaetude:roadmap' %}" class="ve-btn-primary">
-        Accéder à mon parcours Visa Études
-      </a>
-      <a href="{% url 'billing:access' %}" class="ve-btn-premium">
-        Activer l’accompagnement Premium
-      </a>
+  <!-- Sidebar -->
+  <div class="ve2-sidebar">
+    <div class="ve2-tip-card">
+      <div class="ve2-tip-card__kicker">Conseil expert</div>
+      <div class="ve2-tip-card__title">Pourquoi compléter ce profil ?</div>
+      <ul>
+        <li>Éviter les pays <strong>non accessibles</strong> à ton niveau actuel</li>
+        <li>Identifier les <strong>bourses d'études</strong> disponibles pour toi</li>
+        <li>Adapter le dossier <strong>visa étudiant</strong> à ta situation</li>
+        <li>Recevoir des recommandations <strong>personnalisées</strong></li>
+        <li>Préparer ton <strong>plan d'action réaliste</strong> avec délais</li>
+      </ul>
+      <div class="ve2-tip-card__note">
+        💡 Plus ton profil est précis, plus le Coach IA peut te proposer une stratégie fiable et adaptée à ton pays d'origine.
+      </div>
     </div>
 
+    <div class="ve2-tip-card">
+      <div class="ve2-tip-card__kicker">Coach IA · Disponible 24h/24</div>
+      <div class="ve2-tip-card__title">Une question sur ton visa ?</div>
+      <ul>
+        <li>Conditions d'admission par université</li>
+        <li>Documents requis pour le <strong>visa étudiant</strong></li>
+        <li>Délais de traitement par pays</li>
+        <li>Stratégie pour <strong>maximiser tes chances</strong></li>
+      </ul>
+      <div style="margin-top:1.25rem;">
+        <a href="{% url 'visaetude:coach_ai' %}" class="ve2-btn ve2-btn--gold" style="width:100%;justify-content:center;">
+          🤖 Parler au Coach IA →
+        </a>
+      </div>
+    </div>
+
+    <div class="ve2-tip-card">
+      <div class="ve2-tip-card__kicker">Bourses · Top 3</div>
+      <div class="ve2-tip-card__title">Financements disponibles</div>
+      <ul>
+        <li><strong>Bourse Eiffel</strong> — France, excellence</li>
+        <li><strong>Bourse DAAD</strong> — Allemagne, toutes disciplines</li>
+        <li><strong>Bourse Chevening</strong> — Royaume-Uni, leaders</li>
+      </ul>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============================================================
+     CTA FINAL
+============================================================ -->
+<section class="ve2-cta">
+  <div class="ve2-cta__inner">
+    <h2 class="ve2-cta__title">Passez à l'étape suivante<br><span class="gold">de votre projet.</span></h2>
+    <p class="ve2-cta__sub">
+      Une fois votre profil complété, Immigration97 vous accompagne vers les meilleurs pays,
+      universités adaptées et une stratégie visa étudiant réussie.
+    </p>
+    <div class="ve2-cta__btns">
+      <a href="{% url 'visaetude:roadmap' %}" class="ve2-btn ve2-btn--gold">🗺️ Accéder à mon parcours Visa Études</a>
+      <a href="{% url 'billing:access' %}" class="ve2-btn ve2-btn--ghost">⭐ Activer l'accompagnement Premium</a>
+    </div>
   </div>
 </section>
 
