@@ -1,41 +1,105 @@
 {% extends "base.html" %}
-{% block title %}Offres publiques{% endblock %}
+{% load static %}
+
+{% block title %}Offres publiques — Job Agent{% endblock %}
+{% block body_class %}job-agent{% endblock %}
+{% block app_scope %}job-agent{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'job_agent/job_agent.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'job_agent/job_agent.js' %}" defer></script>
+{% endblock %}
 
 {% block content %}
-<h1>Offres publiques</h1>
-{% include "job_agent/_menu.html" %}
+<div class="app-main job-agent">
+  <div class="ja-container">
 
-<div class="c-card" style="padding:14px;">
-  {% if offers %}
-    <table style="width:100%; border-collapse:collapse;">
-      <thead>
-        <tr>
-          <th style="text-align:left; padding:8px;">Offre</th>
-          <th style="text-align:left; padding:8px;">Entreprise</th>
-          <th style="text-align:left; padding:8px;">Lieu</th>
-          <th style="text-align:left; padding:8px;">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for o in offers %}
-          <tr>
-            <td style="padding:8px;">
-              <strong>{{ o.title }}</strong><br>
-              <small><a href="{{ o.url }}" target="_blank" rel="noopener">Ouvrir</a></small>
-            </td>
-            <td style="padding:8px;">{{ o.company|default:"—" }}</td>
-            <td style="padding:8px;">{{ o.location|default:"—" }}</td>
-            <td style="padding:8px;">
-              <a class="c-btn c-btn--primary" href="{% url 'job_agent:import_public_offer' o.id %}">
-                Importer
-              </a>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>Aucune offre publique disponible.</p>
-  {% endif %}
+    <div class="ja-pagehead">
+      <div class="ja-pagehead__title">
+        <h1>Job Agent</h1>
+        <p>Offres publiques — Importez une offre pour générer votre pack candidature.</p>
+      </div>
+      <div class="ja-pagehead__actions">
+        <a class="c-btn" href="{% url 'job_agent:dashboard' %}" aria-label="Dashboard">Dashboard</a>
+        <a class="c-btn c-btn--primary" href="{% url 'job_agent:lead_add' %}" aria-label="Ajouter une offre">+ Ajouter</a>
+      </div>
+    </div>
+
+    <div class="ja-layout">
+      {% include "job_agent/_menu.html" with active="public" %}
+
+      <div class="ja-content">
+
+        <section class="ja-card" aria-label="Offres publiques disponibles">
+          <div class="ja-card__head">
+            <h2>Offres disponibles</h2>
+            <span class="ja-muted-2">Cliquez "Importer" pour ajouter à votre pipeline.</span>
+          </div>
+
+          <div class="ja-card__body">
+            {% if offers %}
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;">
+                  <thead>
+                    <tr style="border-bottom:1px solid rgba(212,168,67,0.18);">
+                      <th style="text-align:left;padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(212,168,67,0.7);font-weight:700;">Offre</th>
+                      <th style="text-align:left;padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(212,168,67,0.7);font-weight:700;">Entreprise</th>
+                      <th style="text-align:left;padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(212,168,67,0.7);font-weight:700;">Lieu</th>
+                      <th style="text-align:right;padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(212,168,67,0.7);font-weight:700;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for o in offers %}
+                      <tr style="border-bottom:1px solid rgba(212,168,67,0.07);transition:background .15s;" onmouseover="this.style.background='rgba(212,168,67,0.04)'" onmouseout="this.style.background=''">
+                        <td style="padding:12px;">
+                          <strong style="display:block;font-size:14px;color:rgba(232,234,240,0.92);line-height:1.3;">{{ o.title }}</strong>
+                          <a href="{{ o.url }}" target="_blank" rel="noopener"
+                             style="font-size:12px;color:rgba(212,168,67,0.7);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-top:4px;">
+                            ↗ Voir l'offre
+                          </a>
+                        </td>
+                        <td style="padding:12px;font-size:13px;color:rgba(232,234,240,0.65);">{{ o.company|default:"—" }}</td>
+                        <td style="padding:12px;font-size:13px;color:rgba(232,234,240,0.65);">{{ o.location|default:"—" }}</td>
+                        <td style="padding:12px;text-align:right;">
+                          <a class="c-btn c-btn--primary" href="{% url 'job_agent:import_public_offer' o.id %}"
+                             style="font-size:12px;padding:.5rem 1rem;">
+                            Importer →
+                          </a>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+
+            {% else %}
+              <div class="ja-empty" role="note">
+                <div class="ja-empty__inner">
+                  <div class="ja-empty__icon" aria-hidden="true">
+                    <span class="ja-empty__glyph">✦</span>
+                  </div>
+                  <div>
+                    <h3 class="ja-empty__title">Aucune offre publique disponible</h3>
+                    <p class="ja-empty__text">
+                      Ajoutez vos propres offres ou revenez plus tard pour découvrir les nouvelles opportunités.
+                    </p>
+                    <div class="ja-empty__actions">
+                      <a class="c-btn c-btn--primary" href="{% url 'job_agent:lead_add' %}">Ajouter une offre</a>
+                      <a class="c-btn" href="{% url 'job_agent:dashboard' %}">Dashboard</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+  </div>
 </div>
 {% endblock %}
