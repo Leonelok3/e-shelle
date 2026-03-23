@@ -1,196 +1,440 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Choisissez votre modèle de CV optimisé | Immigration97{% endblock %}
-
-{% block meta_description %}Choisissez un modèle de CV optimisé (Canada, Europe, Moderne, Professionnel) avant de remplir l'éditeur guidé. Compatible ATS et immigration.{% endblock %}
+{% block title %}Choisissez votre modèle de CV | Immigration97{% endblock %}
+{% block meta_description %}Choisissez un modèle de CV optimisé (Canada ATS, Europe, Moderne, Professionnel). Compatible ATS et immigration internationale.{% endblock %}
 
 {% block body_class %}cv-generator{% endblock %}
 {% block app_scope %}cv-generator{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/cv_generator.css' %}">
+<style>
+/* ============================================================
+   TEMPLATE SELECTION — African Premium Futurism
+============================================================ */
+body.cv-generator .app-main {
+  background: linear-gradient(160deg, #050A18 0%, #0A1628 60%, #0A1F3A 100%);
+  min-height: 100vh;
+  color: #fff;
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+.cvts-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 5rem;
+}
+/* Header */
+.cvts-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 3rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.cvts-header__left {}
+.cvts-kicker {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: #D4A843; margin-bottom: 0.5rem;
+}
+.cvts-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700; color: #fff; margin-bottom: 0.5rem;
+}
+.cvts-sub { font-size: 0.9rem; color: rgba(255,255,255,0.6); line-height: 1.6; }
+.cvts-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(212,168,67,0.22);
+  border-radius: 50px;
+  padding: 0.65rem 1.2rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  transition: all 0.3s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 0.5rem;
+}
+.cvts-link:hover { background: rgba(212,168,67,0.1); border-color: rgba(212,168,67,0.5); color: #D4A843; }
+
+/* Debug banner */
+.cvts-debug {
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+.cvts-debug__title { font-size: 1rem; font-weight: 700; color: #F0C060; margin-bottom: 0.75rem; }
+.cvts-debug__text { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-bottom: 1rem; }
+.cvts-debug code {
+  background: rgba(255,255,255,0.08);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: #F0C060;
+}
+.cvts-debug a { color: #D4A843; }
+.cvts-debug ol, .cvts-debug ul { padding-left: 1.5rem; margin: 0.5rem 0; }
+.cvts-debug li { font-size: 0.82rem; color: rgba(255,255,255,0.7); margin-bottom: 0.3rem; }
+
+/* Section label */
+.cvts-section-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  margin-top: 2rem;
+}
+.cvts-section-label__text {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: rgba(255,255,255,0.5);
+}
+.cvts-section-label__line {
+  flex: 1; height: 1px;
+  background: rgba(255,255,255,0.08);
+}
+.cvts-section-label__badge {
+  font-size: 0.68rem; font-weight: 700;
+  padding: 0.2rem 0.6rem; border-radius: 50px;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.cvts-section-label__badge--free {
+  background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.25); color: #4ade80;
+}
+.cvts-section-label__badge--premium {
+  background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #F59E0B;
+}
+
+/* Grid */
+.cvts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Card */
+.cvts-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(212,168,67,0.22);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+}
+.cvts-card:hover {
+  border-color: rgba(212,168,67,0.5);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+}
+.cvts-card--premium {
+  border-color: rgba(245,158,11,0.3);
+}
+.cvts-card__premium-ribbon {
+  position: absolute;
+  top: 12px; right: 12px;
+  background: linear-gradient(135deg, #D4A843, #F59E0B);
+  color: #050A18;
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  z-index: 2;
+}
+
+/* Template preview CSS */
+.cvts-preview {
+  height: 180px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  position: relative;
+  overflow: hidden;
+}
+.cvts-preview--canada { background: #FFFFFF; }
+.cvts-preview--europe { background: linear-gradient(135deg, #F9F6EF 0%, #EDE8DC 100%); }
+.cvts-preview--modern { background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%); }
+.cvts-preview--pro    { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); }
+
+/* Mini header dans l'aperçu */
+.cvts-prev-header {
+  display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;
+}
+.cvts-prev-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.55rem; font-weight: 700; flex-shrink: 0;
+}
+.cvts-prev-avatar--canada { background: #1D4ED8; color: #fff; }
+.cvts-prev-avatar--europe { background: #B8902A; color: #fff; }
+.cvts-prev-avatar--modern { background: #D4A843; color: #050A18; }
+.cvts-prev-avatar--pro    { background: #3B82F6; color: #fff; }
+
+.cvts-prev-name-block { flex: 1; }
+.cvts-prev-name {
+  height: 5px; border-radius: 3px; margin-bottom: 3px;
+}
+.cvts-prev-name--canada { background: #111; width: 60%; }
+.cvts-prev-name--europe { background: #333; width: 65%; }
+.cvts-prev-name--modern { background: #fff; width: 60%; opacity: 0.9; }
+.cvts-prev-name--pro    { background: #fff; width: 55%; opacity: 0.9; }
+
+.cvts-prev-line {
+  height: 4px; border-radius: 3px;
+}
+.cvts-prev-line--dark  { background: rgba(0,0,0,0.12); }
+.cvts-prev-line--light { background: rgba(255,255,255,0.15); }
+.cvts-prev-line--accent-canada { background: #1D4ED8; }
+.cvts-prev-line--accent-europe { background: #B8902A; }
+.cvts-prev-line--accent-modern { background: #D4A843; }
+.cvts-prev-line--accent-pro    { background: #3B82F6; }
+.cvts-prev-line--w90 { width: 90%; }
+.cvts-prev-line--w75 { width: 75%; }
+.cvts-prev-line--w55 { width: 55%; }
+.cvts-prev-line--w40 { width: 40%; }
+
+/* Card body */
+.cvts-card__body { padding: 1.25rem; flex: 1; }
+.cvts-card__name { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+.cvts-card__target {
+  font-size: 0.68rem; font-weight: 600; color: #D4A843;
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.6rem;
+}
+.cvts-card__desc { font-size: 0.78rem; color: rgba(255,255,255,0.6); line-height: 1.55; }
+.cvts-card__tags {
+  display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.75rem;
+}
+.cvts-tag {
+  font-size: 0.62rem; font-weight: 600;
+  padding: 0.15rem 0.5rem; border-radius: 50px;
+  background: rgba(212,168,67,0.1);
+  border: 1px solid rgba(212,168,67,0.2);
+  color: #D4A843;
+}
+
+/* CTA button */
+.cvts-card__action { padding: 0 1.25rem 1.25rem; }
+.cvts-choose-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.75rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+.cvts-choose-btn--free {
+  background: linear-gradient(135deg, #D4A843 0%, #F59E0B 100%);
+  color: #050A18;
+}
+.cvts-choose-btn--free:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.cvts-choose-btn--premium {
+  background: rgba(245,158,11,0.12);
+  border: 1px solid rgba(245,158,11,0.35);
+  color: #F0C060;
+}
+.cvts-choose-btn--premium:hover { background: rgba(245,158,11,0.2); }
+
+/* Empty state */
+.cvts-empty {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.88rem;
+  margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) { .cvts-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px)  { .cvts-grid { grid-template-columns: 1fr; } }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="cv-page-wrap">
+<div class="cvts-wrap">
 
-  <!-- HEADER -->
-  <header class="cv-page-header">
-    <div>
-      <div class="cv-page-brand">Immigration97 · CV Generator</div>
-      <div class="cv-badge-row">
-        <span class="cv-badge cv-badge--accent">Étape 1 — Choisir un modèle</span>
-        <span class="cv-badge">Compatible ATS · Canada / Europe / USA</span>
-      </div>
+  <!-- Header -->
+  <header class="cvts-header">
+    <div class="cvts-header__left">
+      <div class="cvts-kicker">📄 CV Generator · Étape 1</div>
+      <h1 class="cvts-title">Choisissez votre modèle de CV</h1>
+      <p class="cvts-sub">Sélectionnez un design adapté à votre pays cible et à votre objectif professionnel.</p>
     </div>
-
-    <a href="{% url 'cv_generator:cv_list' %}" class="cv-pill-link">
-      📂 Voir mes CV existants
-    </a>
+    <a href="{% url 'cv_generator:cv_list' %}" class="cvts-link">📂 Mes CV existants</a>
   </header>
 
-  <h1 class="cv-title">Choisissez le modèle de CV qui vous met le mieux en valeur</h1>
-
-  <p class="cv-lead">
-    Sélectionnez un design adapté à votre pays cible et à votre objectif professionnel.
-  </p>
-
+  <!-- Debug si aucun template en base -->
   {% if total_templates == 0 %}
-    <div class="cv-debug-banner">
-      <div class="cv-debug-title">
-        <span class="cv-debug-icon">⚠️</span>
-        <span>Aucun modèle de CV disponible</span>
-      </div>
-
-      <p class="cv-debug-text">
-        Les templates de CV n'ont pas encore été créés dans la base de données.
-        Vous devez d'abord créer des templates avant de pouvoir générer des CV.
-      </p>
-
-      <div class="cv-debug-steps">
-        <p class="cv-debug-highlight">🔧 Pour corriger ce problème en 2 minutes :</p>
-
-        <p class="cv-debug-subtitle">OPTION 1 : Via l'admin Django (Recommandé)</p>
-        <ol class="cv-debug-ol">
-          <li>Allez sur <a href="/admin" class="cv-debug-link" target="_blank">/admin</a></li>
-          <li>Connectez-vous avec votre compte superuser</li>
-          <li>Cliquez sur "<strong>Templates de CV</strong>"</li>
-          <li>Cliquez sur "<strong>Ajouter Template de CV</strong>"</li>
-          <li>Remplissez les champs :
-            <ul class="cv-debug-ul">
-              <li><strong>Nom</strong> : "Canada ATS Optimisé"</li>
-              <li><strong>Description</strong> : "Template optimisé pour les systèmes ATS canadiens"</li>
-              <li><strong>Template file</strong> : "cv_canada_ats.html"</li>
-              <li>✅ <strong>Actif</strong> : Coché</li>
-              <li>❌ <strong>Premium</strong> : Non coché</li>
-              <li><strong>Order</strong> : 1</li>
-            </ul>
-          </li>
-          <li>Cliquez sur "Enregistrer"</li>
-          <li>Répétez pour créer d'autres templates</li>
-        </ol>
-
-        <div class="cv-section-divider"></div>
-
-        <p class="cv-debug-subtitle">OPTION 2 : Via le terminal (Automatique)</p>
-        <ol class="cv-debug-ol">
-          <li>Créez le dossier : <code>mkdir -p cv_generator/management/commands</code></li>
-          <li>Créez les fichiers <code>__init__.py</code></li>
-          <li>Créez le script <code>create_default_templates.py</code></li>
-          <li>Exécutez : <code>python manage.py create_default_templates</code></li>
-        </ol>
-      </div>
-    </div>
+  <div class="cvts-debug">
+    <div class="cvts-debug__title">⚠️ Aucun modèle de CV dans la base de données</div>
+    <p class="cvts-debug__text">Les templates doivent être créés via l'admin ou la commande de gestion.</p>
+    <p><strong style="color:#F0C060;">Option 1 — Via l'admin Django :</strong></p>
+    <ol>
+      <li>Allez sur <a href="/admin">/admin</a> → <strong>Templates de CV</strong> → Ajouter</li>
+      <li>Nom : "Canada ATS Optimisé" · Template file : <code>cv_canada_ats.html</code> · Actif ✅</li>
+      <li>Répétez pour Europe, Moderne, Professionnel</li>
+    </ol>
+    <p style="margin-top:0.75rem;"><strong style="color:#F0C060;">Option 2 — Terminal :</strong></p>
+    <p style="font-size:0.82rem;color:rgba(255,255,255,0.6);"><code>python manage.py create_default_templates</code></p>
+  </div>
   {% endif %}
 
+  <!-- ── Templates GRATUITS ── -->
   {% if templates_free %}
-    <section class="cv-section">
-      <h2 class="cv-h2 cv-h2--free">
-        <span class="cv-h2-emoji">🆓</span>
-        <span>Modèles Gratuits</span>
-      </h2>
+  <div class="cvts-section-label">
+    <div class="cvts-section-label__text">Modèles disponibles</div>
+    <div class="cvts-section-label__line"></div>
+    <div class="cvts-section-label__badge cvts-section-label__badge--free">🆓 Gratuit</div>
+  </div>
+  <div class="cvts-grid">
+    {% for t in templates_free %}
+    <div class="cvts-card">
+      <!-- Aperçu visuel selon le nom du template -->
+      <div class="cvts-preview
+        {% if 'canada' in t.name|lower or 'ats' in t.name|lower %}cvts-preview--canada
+        {% elif 'europe' in t.name|lower %}cvts-preview--europe
+        {% elif 'modern' in t.name|lower %}cvts-preview--modern
+        {% else %}cvts-preview--pro{% endif %}">
 
-      <div class="cv-grid">
-        {% for t in templates_free %}
-          <article class="cv-card">
-            <div class="cv-thumb">
-              {% if t.thumbnail %}
-                <img src="{{ t.thumbnail.url }}" alt="Aperçu {{ t.name }}">
-              {% else %}
-                <div class="cv-thumb-placeholder cv-thumb-placeholder--free">
-                  <span class="cv-thumb-icon">📄</span>
-                  <span class="cv-thumb-name">{{ t.name }}</span>
-                </div>
-              {% endif %}
-            </div>
+        <div class="cvts-prev-header">
+          <div class="cvts-prev-avatar
+            {% if 'canada' in t.name|lower or 'ats' in t.name|lower %}cvts-prev-avatar--canada
+            {% elif 'europe' in t.name|lower %}cvts-prev-avatar--europe
+            {% elif 'modern' in t.name|lower %}cvts-prev-avatar--modern
+            {% else %}cvts-prev-avatar--pro{% endif %}">AD</div>
+          <div class="cvts-prev-name-block">
+            <div class="cvts-prev-name
+              {% if 'canada' in t.name|lower or 'ats' in t.name|lower %}cvts-prev-name--canada
+              {% elif 'europe' in t.name|lower %}cvts-prev-name--europe
+              {% elif 'modern' in t.name|lower %}cvts-prev-name--modern
+              {% else %}cvts-prev-name--pro{% endif %}"></div>
+          </div>
+        </div>
 
-            <div class="cv-card-body">
-              <h3 class="cv-card-title">{{ t.name }}</h3>
+        <div class="cvts-prev-line
+          {% if 'canada' in t.name|lower or 'ats' in t.name|lower %}cvts-prev-line--accent-canada
+          {% elif 'europe' in t.name|lower %}cvts-prev-line--accent-europe
+          {% elif 'modern' in t.name|lower %}cvts-prev-line--accent-modern
+          {% else %}cvts-prev-line--accent-pro{% endif %} cvts-prev-line--w90"></div>
 
-              <span class="cv-card-tag">
-                {% if "canada" in t.name|lower or "ats" in t.name|lower %}
-                  🇨🇦 Canada / USA (ATS)
-                {% elif "europe" in t.name|lower %}
-                  🇪🇺 Europe / UE
-                {% elif "modern" in t.name|lower %}
-                  ✨ Moderne
-                {% elif "professional" in t.name|lower %}
-                  💼 Professionnel
-                {% else %}
-                  🌍 Usage universel
-                {% endif %}
-              </span>
-
-              <p class="cv-card-desc">
-                {{ t.description|default:"Modèle de CV optimisé pour l'immigration et l'emploi." }}
-              </p>
-            </div>
-
-            <div class="cv-card-actions">
-              <a href="{% url 'cv_generator:choose_template' t.id %}" class="cv-btn">
-                ✓ Choisir ce modèle
-              </a>
-            </div>
-          </article>
-        {% endfor %}
+        {% if 'modern' in t.name|lower or 'pro' in t.name|lower or 'professional' in t.name|lower %}
+          <div class="cvts-prev-line cvts-prev-line--light cvts-prev-line--w75"></div>
+          <div class="cvts-prev-line cvts-prev-line--light cvts-prev-line--w55"></div>
+          <div class="cvts-prev-line cvts-prev-line--light cvts-prev-line--w40"></div>
+        {% else %}
+          <div class="cvts-prev-line cvts-prev-line--dark cvts-prev-line--w75"></div>
+          <div class="cvts-prev-line cvts-prev-line--dark cvts-prev-line--w55"></div>
+          <div class="cvts-prev-line cvts-prev-line--dark cvts-prev-line--w40"></div>
+        {% endif %}
       </div>
-    </section>
-  {% endif %}
 
-  {% if templates_premium %}
-    <div class="cv-section-divider"></div>
-
-    <section class="cv-section">
-      <h2 class="cv-h2 cv-h2--premium">
-        <span class="cv-h2-emoji">⭐</span>
-        <span>Modèles Premium</span>
-      </h2>
-
-      <div class="cv-grid">
-        {% for t in templates_premium %}
-          <article class="cv-card cv-card--premium">
-            <div class="cv-premium-badge">⭐ PREMIUM</div>
-
-            <div class="cv-thumb">
-              {% if t.thumbnail %}
-                <img src="{{ t.thumbnail.url }}" alt="Aperçu {{ t.name }}">
-              {% else %}
-                <div class="cv-thumb-placeholder cv-thumb-placeholder--premium">
-                  <span class="cv-thumb-icon">📄</span>
-                  <span class="cv-thumb-name">{{ t.name }}</span>
-                </div>
-              {% endif %}
-            </div>
-
-            <div class="cv-card-body">
-              <h3 class="cv-card-title">{{ t.name }}</h3>
-              <span class="cv-card-tag cv-card-tag--premium">⭐ Premium</span>
-              <p class="cv-card-desc">
-                {{ t.description|default:"Modèle de CV premium pour se démarquer." }}
-              </p>
-            </div>
-
-            <div class="cv-card-actions">
-              <a href="{% url 'cv_generator:choose_template' t.id %}" class="cv-btn cv-btn--premium">
-                ⭐ Choisir Premium
-              </a>
-            </div>
-          </article>
-        {% endfor %}
+      <div class="cvts-card__body">
+        <div class="cvts-card__name">
+          {% if 'canada' in t.name|lower or 'ats' in t.name|lower %}🇨🇦
+          {% elif 'europe' in t.name|lower %}🇪🇺
+          {% elif 'modern' in t.name|lower %}✨
+          {% else %}💼{% endif %}
+          {{ t.name }}
+        </div>
+        <div class="cvts-card__target">
+          {% if 'canada' in t.name|lower or 'ats' in t.name|lower %}Canada · USA · ATS
+          {% elif 'europe' in t.name|lower %}France · Italie · Allemagne
+          {% elif 'modern' in t.name|lower %}Tech · Startups · International
+          {% else %}Cadres · Santé · Finance{% endif %}
+        </div>
+        <p class="cvts-card__desc">{{ t.description|default:"Modèle de CV optimisé pour l'immigration et l'emploi international." }}</p>
+        <div class="cvts-card__tags">
+          <span class="cvts-tag">Gratuit</span>
+          {% if 'canada' in t.name|lower or 'ats' in t.name|lower %}<span class="cvts-tag">ATS</span>{% endif %}
+          {% if 'europe' in t.name|lower %}<span class="cvts-tag">Europass</span>{% endif %}
+        </div>
       </div>
-    </section>
-  {% endif %}
 
-  {% if total_templates == 0 %}
-    <div class="cv-empty cv-empty--note">
-      <p class="cv-empty-text">
-        Une fois les templates créés, rechargez cette page pour les voir apparaître. 🔄
-      </p>
-      <a href="{% url 'cv_generator:template_selection' %}" class="cv-btn">
-        ↻ Recharger la page
-      </a>
+      <div class="cvts-card__action">
+        <a href="{% url 'cv_generator:choose_template' t.id %}" class="cvts-choose-btn cvts-choose-btn--free">
+          ✓ Choisir ce modèle
+        </a>
+      </div>
     </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ── Templates PREMIUM ── -->
+  {% if templates_premium %}
+  <div class="cvts-section-label" style="margin-top:2.5rem;">
+    <div class="cvts-section-label__text">Modèles Premium</div>
+    <div class="cvts-section-label__line"></div>
+    <div class="cvts-section-label__badge cvts-section-label__badge--premium">⭐ Premium</div>
+  </div>
+  <div class="cvts-grid">
+    {% for t in templates_premium %}
+    <div class="cvts-card cvts-card--premium">
+      <div class="cvts-card__premium-ribbon">⭐ Premium</div>
+      <div class="cvts-preview
+        {% if 'modern' in t.name|lower %}cvts-preview--modern
+        {% else %}cvts-preview--pro{% endif %}">
+        <div class="cvts-prev-header">
+          <div class="cvts-prev-avatar
+            {% if 'modern' in t.name|lower %}cvts-prev-avatar--modern
+            {% else %}cvts-prev-avatar--pro{% endif %}">AD</div>
+          <div class="cvts-prev-name-block">
+            <div class="cvts-prev-name
+              {% if 'modern' in t.name|lower %}cvts-prev-name--modern
+              {% else %}cvts-prev-name--pro{% endif %}"></div>
+          </div>
+        </div>
+        <div class="cvts-prev-line
+          {% if 'modern' in t.name|lower %}cvts-prev-line--accent-modern
+          {% else %}cvts-prev-line--accent-pro{% endif %} cvts-prev-line--w90"></div>
+        <div class="cvts-prev-line cvts-prev-line--light cvts-prev-line--w75"></div>
+        <div class="cvts-prev-line cvts-prev-line--light cvts-prev-line--w55"></div>
+        <div class="cvts-prev-line cvts-prev-line--light cvts-prev-line--w40"></div>
+      </div>
+      <div class="cvts-card__body">
+        <div class="cvts-card__name">
+          {% if 'modern' in t.name|lower %}✨{% else %}💼{% endif %}
+          {{ t.name }}
+        </div>
+        <div class="cvts-card__target">Premium · {{ t.name }}</div>
+        <p class="cvts-card__desc">{{ t.description|default:"Modèle de CV premium pour se démarquer auprès des recruteurs internationaux." }}</p>
+        <div class="cvts-card__tags">
+          <span class="cvts-tag" style="color:#F59E0B;border-color:rgba(245,158,11,0.3);">⭐ Premium</span>
+        </div>
+      </div>
+      <div class="cvts-card__action">
+        <a href="{% url 'cv_generator:choose_template' t.id %}" class="cvts-choose-btn cvts-choose-btn--premium">
+          ⭐ Choisir ce modèle
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Empty reload -->
+  {% if total_templates == 0 %}
+  <div class="cvts-empty">
+    <p>Une fois les templates créés, rechargez cette page pour les voir apparaître. 🔄</p>
+    <a href="{% url 'cv_generator:template_selection' %}" class="cvts-link" style="margin-top:1rem;">↻ Recharger</a>
+  </div>
   {% endif %}
 
 </div>

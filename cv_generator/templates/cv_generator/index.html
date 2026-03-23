@@ -4,114 +4,652 @@
 {% block body_class %}cv-generator{% endblock %}
 {% block app_scope %}cv-generator{% endblock %}
 
-{% block title %}Générateur de CV intelligent (Canada, Europe, USA) | Immigration97{% endblock %}
-
-{% block meta_description %}Créez un CV professionnel optimisé ATS pour le Canada, l’Europe et les États-Unis. Rédaction assistée par IA, modèles conformes immigration et export PDF.{% endblock %}
+{% block title %}CV Professionnel IA — Canada, Europe, USA | Immigration97{% endblock %}
+{% block meta_description %}Créez un CV professionnel optimisé ATS pour le Canada, l'Europe et les États-Unis. Rédaction assistée par IA, 4 modèles conformes immigration, export PDF.{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/cv_generator.css' %}">
+<style>
+/* ============================================================
+   CV GENERATOR INDEX — African Premium Futurism
+============================================================ */
+:root {
+  --cv-navy-deep:   #050A18;
+  --cv-navy-mid:    #0A1628;
+  --cv-gold:        #D4A843;
+  --cv-gold-light:  #F0C060;
+  --cv-amber:       #F59E0B;
+  --cv-glass:       rgba(255,255,255,0.04);
+  --cv-glass-border:rgba(212,168,67,0.22);
+  --cv-text:        #FFFFFF;
+  --cv-text-muted:  rgba(255,255,255,0.6);
+  --cv-radius:      16px;
+  --cv-transition:  all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+body.cv-generator .app-main {
+  background: linear-gradient(160deg, var(--cv-navy-deep) 0%, var(--cv-navy-mid) 60%, #0A1F3A 100%);
+  min-height: 100vh;
+  color: var(--cv-text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+/* ── HERO ── */
+.cvi-hero {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 5rem 1.5rem 4rem;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 4rem;
+  align-items: center;
+  overflow: hidden;
+}
+.cvi-hero::before {
+  content: '';
+  position: absolute;
+  top: -150px; right: -100px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(212,168,67,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cvi-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(212,168,67,0.1);
+  border: 1px solid rgba(212,168,67,0.35);
+  border-radius: 50px;
+  padding: 0.4rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cv-gold);
+  margin-bottom: 1.5rem;
+}
+.cvi-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(2.6rem, 4.5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--cv-text);
+  margin-bottom: 1.25rem;
+}
+.cvi-title .gold { color: var(--cv-gold); font-style: italic; }
+.cvi-lead {
+  font-size: 1rem;
+  color: var(--cv-text-muted);
+  line-height: 1.75;
+  margin-bottom: 1.75rem;
+}
+.cvi-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+.cvi-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.85);
+}
+.cvi-check::before { content: '✦'; color: var(--cv-gold); font-size: 0.6rem; flex-shrink: 0; }
+.cvi-btns { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+/* ── Boutons ── */
+.cvi-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.8rem 1.6rem;
+  border-radius: 50px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--cv-transition);
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+.cvi-btn--gold {
+  background: linear-gradient(135deg, var(--cv-gold) 0%, var(--cv-amber) 100%);
+  color: #050A18;
+  font-weight: 700;
+}
+.cvi-btn--gold:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,168,67,0.3); }
+.cvi-btn--ghost {
+  background: var(--cv-glass);
+  border: 1px solid var(--cv-glass-border);
+  color: rgba(255,255,255,0.85);
+}
+.cvi-btn--ghost:hover { background: rgba(212,168,67,0.1); border-color: rgba(212,168,67,0.5); color: var(--cv-gold); }
+
+/* ── CV Preview mockup ── */
+.cvi-mockup {
+  position: relative;
+}
+.cvi-mockup-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,168,67,0.3);
+  transform: rotate(-1deg);
+  position: relative;
+}
+.cvi-mockup-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--cv-gold), transparent, var(--cv-amber));
+  z-index: -1;
+  opacity: 0.4;
+}
+.cvi-mockup-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+  margin-bottom: 1rem;
+}
+.cvi-mockup-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--cv-gold), var(--cv-amber));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #050A18;
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.cvi-mockup-name { font-size: 1rem; font-weight: 700; color: #111; }
+.cvi-mockup-job { font-size: 0.75rem; color: #666; }
+.cvi-mockup-line {
+  height: 8px;
+  border-radius: 4px;
+  background: #f0f0f0;
+  margin-bottom: 0.5rem;
+}
+.cvi-mockup-line--gold { background: linear-gradient(90deg, var(--cv-gold), var(--cv-amber)); width: 60%; }
+.cvi-mockup-line--w80 { width: 80%; }
+.cvi-mockup-line--w60 { width: 60%; }
+.cvi-mockup-line--w90 { width: 90%; }
+.cvi-mockup-badge {
+  position: absolute;
+  top: -12px; right: -12px;
+  background: linear-gradient(135deg, var(--cv-gold), var(--cv-amber));
+  color: #050A18;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.3rem 0.7rem;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── Features ── */
+.cvi-features {
+  max-width: 1200px;
+  margin: 0 auto 4rem;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+.cvi-feature {
+  background: var(--cv-glass);
+  border: 1px solid var(--cv-glass-border);
+  border-radius: var(--cv-radius);
+  padding: 1.75rem;
+  transition: var(--cv-transition);
+  position: relative;
+  overflow: hidden;
+}
+.cvi-feature::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cv-gold), transparent);
+}
+.cvi-feature:hover { border-color: rgba(212,168,67,0.45); transform: translateY(-3px); }
+.cvi-feature__icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
+.cvi-feature__title { font-size: 1rem; font-weight: 700; color: var(--cv-text); margin-bottom: 0.5rem; }
+.cvi-feature__desc { font-size: 0.82rem; color: var(--cv-text-muted); line-height: 1.65; }
+
+/* ── 4 Templates preview ── */
+.cvi-templates {
+  max-width: 1200px;
+  margin: 0 auto 4rem;
+  padding: 0 1.5rem;
+}
+.cvi-section-header { text-align: center; margin-bottom: 3rem; }
+.cvi-section-kicker {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.14em; color: var(--cv-gold); margin-bottom: 0.75rem;
+}
+.cvi-section-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700; color: var(--cv-text);
+}
+.cvi-tmpl-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+.cvi-tmpl-card {
+  background: var(--cv-glass);
+  border: 1px solid var(--cv-glass-border);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: var(--cv-transition);
+  text-decoration: none;
+  color: var(--cv-text);
+  display: flex;
+  flex-direction: column;
+}
+.cvi-tmpl-card:hover {
+  border-color: rgba(212,168,67,0.5);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+}
+/* Aperçu visuel CSS de chaque template */
+.cvi-tmpl-preview {
+  height: 160px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 0.4rem;
+  overflow: hidden;
+}
+.cvi-tmpl-preview--canada {
+  background: #FFFFFF;
+}
+.cvi-tmpl-preview--europe {
+  background: linear-gradient(135deg, #F8F5EE 0%, #EDE8DC 100%);
+}
+.cvi-tmpl-preview--modern {
+  background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%);
+}
+.cvi-tmpl-preview--pro {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+}
+.cvi-tmpl-bar {
+  height: 6px; border-radius: 3px;
+  background: #E5E5E5;
+}
+.cvi-tmpl-bar--accent-canada { background: #1D4ED8; width: 55%; }
+.cvi-tmpl-bar--accent-europe { background: #B8902A; width: 70%; }
+.cvi-tmpl-bar--accent-modern { background: var(--cv-gold); width: 65%; }
+.cvi-tmpl-bar--accent-pro { background: #3B82F6; width: 60%; }
+.cvi-tmpl-bar--w80 { width: 80%; }
+.cvi-tmpl-bar--w60 { width: 60%; }
+.cvi-tmpl-bar--w40 { width: 40%; }
+.cvi-tmpl-bar--dark { background: rgba(0,0,0,0.15); }
+.cvi-tmpl-bar--light { background: rgba(255,255,255,0.15); }
+.cvi-tmpl-preview__name {
+  position: absolute;
+  bottom: 0.75rem; right: 0.75rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+.cvi-tmpl-preview--canada .cvi-tmpl-preview__name { background: #1D4ED8; color: #fff; }
+.cvi-tmpl-preview--europe .cvi-tmpl-preview__name { background: #B8902A; color: #fff; }
+.cvi-tmpl-preview--modern .cvi-tmpl-preview__name { background: var(--cv-gold); color: #050A18; }
+.cvi-tmpl-preview--pro .cvi-tmpl-preview__name { background: #3B82F6; color: #fff; }
+
+.cvi-tmpl-body { padding: 1.25rem; flex: 1; }
+.cvi-tmpl-name { font-size: 0.95rem; font-weight: 700; color: var(--cv-text); margin-bottom: 0.3rem; }
+.cvi-tmpl-target {
+  font-size: 0.7rem; font-weight: 600; color: var(--cv-gold);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.6rem;
+}
+.cvi-tmpl-desc { font-size: 0.78rem; color: var(--cv-text-muted); line-height: 1.55; }
+.cvi-tmpl-footer {
+  padding: 0 1.25rem 1.25rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.cvi-tmpl-pill {
+  font-size: 0.65rem; font-weight: 600;
+  padding: 0.2rem 0.55rem; border-radius: 50px;
+  background: rgba(212,168,67,0.1);
+  border: 1px solid rgba(212,168,67,0.2);
+  color: var(--cv-gold);
+}
+.cvi-tmpl-pill--free {
+  background: rgba(34,197,94,0.1);
+  border-color: rgba(34,197,94,0.25);
+  color: #4ade80;
+}
+.cvi-tmpl-pill--premium {
+  background: rgba(245,158,11,0.15);
+  border-color: rgba(245,158,11,0.35);
+  color: var(--cv-amber);
+}
+
+/* ── Steps ── */
+.cvi-steps {
+  max-width: 1200px;
+  margin: 0 auto 4rem;
+  padding: 0 1.5rem;
+}
+.cvi-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  position: relative;
+}
+.cvi-steps-grid::before {
+  content: '';
+  position: absolute;
+  top: 2rem; left: 15%; right: 15%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cv-gold), transparent);
+  opacity: 0.25;
+}
+.cvi-step {
+  background: var(--cv-glass);
+  border: 1px solid var(--cv-glass-border);
+  border-radius: var(--cv-radius);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: var(--cv-transition);
+}
+.cvi-step:hover { border-color: rgba(212,168,67,0.4); transform: translateY(-3px); }
+.cvi-step__num {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: 3.5rem;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--cv-gold);
+  margin-bottom: 0.75rem;
+}
+.cvi-step__title { font-size: 0.95rem; font-weight: 700; color: var(--cv-text); margin-bottom: 0.4rem; }
+.cvi-step__desc { font-size: 0.8rem; color: var(--cv-text-muted); line-height: 1.6; }
+
+/* ── CTA ── */
+.cvi-cta {
+  max-width: 1200px;
+  margin: 0 auto 5rem;
+  padding: 0 1.5rem;
+}
+.cvi-cta__inner {
+  background: linear-gradient(135deg, rgba(212,168,67,0.12) 0%, rgba(245,158,11,0.06) 50%, rgba(10,22,40,0.8) 100%);
+  border: 1px solid rgba(212,168,67,0.3);
+  border-radius: 24px;
+  padding: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.cvi-cta__inner::before {
+  content: '';
+  position: absolute;
+  top: -100px; right: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(212,168,67,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cvi-cta__text h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 700; color: var(--cv-text); margin-bottom: 0.5rem;
+}
+.cvi-cta__text p { font-size: 0.9rem; color: var(--cv-text-muted); line-height: 1.6; }
+.cvi-cta__btns { display: flex; gap: 0.75rem; flex-shrink: 0; }
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .cvi-hero { grid-template-columns: 1fr; gap: 3rem; }
+  .cvi-tmpl-grid { grid-template-columns: repeat(2, 1fr); }
+  .cvi-features { grid-template-columns: repeat(2, 1fr); }
+  .cvi-cta__inner { flex-direction: column; text-align: center; }
+  .cvi-cta__btns { justify-content: center; }
+}
+@media (max-width: 640px) {
+  .cvi-hero { padding: 3rem 1rem 2.5rem; }
+  .cvi-tmpl-grid { grid-template-columns: 1fr; }
+  .cvi-features { grid-template-columns: 1fr; }
+  .cvi-steps-grid { grid-template-columns: 1fr; }
+  .cvi-steps-grid::before { display: none; }
+  .cvi-cta__inner { padding: 2rem 1.25rem; }
+}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<!-- HERO -->
-<section class="cv-hero">
-  <div class="cv-hero-inner">
-
-    <h1 class="cv-hero-title">
-      Générez un <span>CV optimisé par IA</span><br>
-      compatible ATS & immigration
+<!-- ============================================================
+     HERO
+============================================================ -->
+<section class="cvi-hero">
+  <div>
+    <div class="cvi-badge">📄 CV Generator · IA · Immigration97</div>
+    <h1 class="cvi-title">
+      Un CV qui ouvre<br>
+      <span class="gold">les portes du monde.</span>
     </h1>
-
-    <p class="cv-hero-lead">
-      Immigration97 vous aide à créer un CV professionnel conforme aux standards
-      <strong>Canada, Europe et États-Unis</strong>, avec une structure lisible par les recruteurs
-      et les systèmes ATS.
+    <p class="cvi-lead">
+      Créez un CV professionnel optimisé ATS pour le Canada, l'Europe et les États-Unis.
+      Rédaction assistée par IA, 4 modèles conformes aux standards internationaux, export PDF en un clic.
     </p>
-
-    <div class="cv-hero-actions">
-      <a href="{% url 'cv_generator:template_selection' %}" class="btn-primary">
-        Commencer gratuitement
-      </a>
-
-      {% if not user.is_authenticated %}
-        {% url 'cv_generator:cv_list' as next_url %}
-        <a href="{% url 'authentification:login' %}?next={{ next_url|urlencode }}"
-           class="btn-secondary">
-          Se connecter
-        </a>
+    <div class="cvi-checks">
+      <div class="cvi-check">Compatible ATS — Canada · Europe · USA</div>
+      <div class="cvi-check">Rédaction intelligente par IA (expériences, bio, compétences)</div>
+      <div class="cvi-check">4 modèles : Canada ATS · Europe · Moderne · Professionnel</div>
+      <div class="cvi-check">Export PDF prêt à envoyer aux recruteurs</div>
+      <div class="cvi-check">Score ATS intégré pour maximiser les chances</div>
+    </div>
+    <div class="cvi-btns">
+      <a href="{% url 'cv_generator:template_selection' %}" class="cvi-btn cvi-btn--gold">✨ Créer mon CV maintenant</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'cv_generator:cv_list' %}" class="cvi-btn cvi-btn--ghost">📂 Mes CV</a>
+      {% else %}
+        <a href="{% url 'billing:access' %}" class="cvi-btn cvi-btn--ghost">⭐ Accès Premium</a>
       {% endif %}
     </div>
+  </div>
 
-    <ul class="cv-hero-checks">
-      <li>Compatible ATS (Canada / Europe / USA)</li>
-      <li>Rédaction intelligente par IA</li>
-      <li>Export PDF professionnel</li>
-    </ul>
+  <!-- Mockup CV -->
+  <div class="cvi-mockup">
+    <div class="cvi-mockup-card">
+      <div class="cvi-mockup-badge">✓ ATS Optimisé</div>
+      <div class="cvi-mockup-header">
+        <div class="cvi-mockup-avatar">AD</div>
+        <div>
+          <div class="cvi-mockup-name">Amara Diallo</div>
+          <div class="cvi-mockup-job">Technicien en BTP · Dakar → Canada</div>
+        </div>
+      </div>
+      <div class="cvi-mockup-line cvi-mockup-line--gold"></div>
+      <div class="cvi-mockup-line cvi-mockup-line--w80"></div>
+      <div class="cvi-mockup-line cvi-mockup-line--w60"></div>
+      <div style="height:0.75rem;"></div>
+      <div class="cvi-mockup-line cvi-mockup-line--w90"></div>
+      <div class="cvi-mockup-line cvi-mockup-line--w80"></div>
+      <div class="cvi-mockup-line cvi-mockup-line--w60"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FEATURES
+============================================================ -->
+<div class="cvi-features">
+  <div class="cvi-feature">
+    <span class="cvi-feature__icon">🤖</span>
+    <div class="cvi-feature__title">Rédaction assistée par IA</div>
+    <p class="cvi-feature__desc">L'IA transforme vos expériences en phrases professionnelles, orientées résultats et adaptées aux recruteurs internationaux.</p>
+  </div>
+  <div class="cvi-feature">
+    <span class="cvi-feature__icon">📊</span>
+    <div class="cvi-feature__title">Analyse & Score ATS</div>
+    <p class="cvi-feature__desc">Chaque CV respecte les règles de lisibilité ATS : titres clairs, sections standardisées et mots-clés optimisés.</p>
+  </div>
+  <div class="cvi-feature">
+    <span class="cvi-feature__icon">🌍</span>
+    <div class="cvi-feature__title">Standards Canada · Europe · USA</div>
+    <p class="cvi-feature__desc">Modèles sans photo pour l'Amérique du Nord, formats européens classiques ou modernes selon votre destination.</p>
+  </div>
+</div>
+
+<!-- ============================================================
+     4 TEMPLATES
+============================================================ -->
+<section class="cvi-templates">
+  <div class="cvi-section-header">
+    <div class="cvi-section-kicker">4 modèles disponibles</div>
+    <h2 class="cvi-section-title">Choisissez votre template</h2>
+  </div>
+  <div class="cvi-tmpl-grid">
+
+    <!-- Canada ATS -->
+    <a href="{% url 'cv_generator:template_selection' %}" class="cvi-tmpl-card">
+      <div class="cvi-tmpl-preview cvi-tmpl-preview--canada">
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--accent-canada"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--dark cvi-tmpl-bar--w80"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--dark cvi-tmpl-bar--w60"></div>
+        <div style="height:0.5rem;"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--dark cvi-tmpl-bar--w80"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--dark cvi-tmpl-bar--w40"></div>
+        <div class="cvi-tmpl-preview__name">Canada ATS</div>
+      </div>
+      <div class="cvi-tmpl-body">
+        <div class="cvi-tmpl-name">🇨🇦 Canada ATS Optimisé</div>
+        <div class="cvi-tmpl-target">Canada · USA · Entrée Express</div>
+        <p class="cvi-tmpl-desc">Sans photo, structure ATS maximisée, lisible par tous les systèmes de recrutement canadiens et américains.</p>
+      </div>
+      <div class="cvi-tmpl-footer">
+        <span class="cvi-tmpl-pill cvi-tmpl-pill--free">Gratuit</span>
+        <span class="cvi-tmpl-pill">ATS</span>
+      </div>
+    </a>
+
+    <!-- Europe -->
+    <a href="{% url 'cv_generator:template_selection' %}" class="cvi-tmpl-card">
+      <div class="cvi-tmpl-preview cvi-tmpl-preview--europe">
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--accent-europe"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--dark cvi-tmpl-bar--w80"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--dark cvi-tmpl-bar--w60"></div>
+        <div style="height:0.5rem;"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--dark cvi-tmpl-bar--w80"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--dark cvi-tmpl-bar--w40"></div>
+        <div class="cvi-tmpl-preview__name">Europe</div>
+      </div>
+      <div class="cvi-tmpl-body">
+        <div class="cvi-tmpl-name">🇪🇺 Europe Classique</div>
+        <div class="cvi-tmpl-target">France · Italie · Allemagne · Belgique</div>
+        <p class="cvi-tmpl-desc">Format Europass-compatible avec photo optionnelle, adapté aux recruteurs européens et aux dossiers visa travail.</p>
+      </div>
+      <div class="cvi-tmpl-footer">
+        <span class="cvi-tmpl-pill cvi-tmpl-pill--free">Gratuit</span>
+        <span class="cvi-tmpl-pill">Europass</span>
+      </div>
+    </a>
+
+    <!-- Modern -->
+    <a href="{% url 'cv_generator:template_selection' %}" class="cvi-tmpl-card">
+      <div class="cvi-tmpl-preview cvi-tmpl-preview--modern">
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--accent-modern"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--light cvi-tmpl-bar--w80"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--light cvi-tmpl-bar--w60"></div>
+        <div style="height:0.5rem;"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--light cvi-tmpl-bar--w80"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--light cvi-tmpl-bar--w40"></div>
+        <div class="cvi-tmpl-preview__name">Moderne</div>
+      </div>
+      <div class="cvi-tmpl-body">
+        <div class="cvi-tmpl-name">✨ Design Moderne</div>
+        <div class="cvi-tmpl-target">Tech · Startups · International</div>
+        <p class="cvi-tmpl-desc">Design contemporain avec mise en page deux colonnes, idéal pour les profils créatifs, tech et startups internationales.</p>
+      </div>
+      <div class="cvi-tmpl-footer">
+        <span class="cvi-tmpl-pill cvi-tmpl-pill--premium">⭐ Premium</span>
+        <span class="cvi-tmpl-pill">Design</span>
+      </div>
+    </a>
+
+    <!-- Professional -->
+    <a href="{% url 'cv_generator:template_selection' %}" class="cvi-tmpl-card">
+      <div class="cvi-tmpl-preview cvi-tmpl-preview--pro">
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--accent-pro"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--light cvi-tmpl-bar--w80"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--light cvi-tmpl-bar--w60"></div>
+        <div style="height:0.5rem;"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--light cvi-tmpl-bar--w80"></div>
+        <div class="cvi-tmpl-bar cvi-tmpl-bar--light cvi-tmpl-bar--w40"></div>
+        <div class="cvi-tmpl-preview__name">Pro</div>
+      </div>
+      <div class="cvi-tmpl-body">
+        <div class="cvi-tmpl-name">💼 Professionnel</div>
+        <div class="cvi-tmpl-target">Cadres · Santé · Finance · Ingénierie</div>
+        <p class="cvi-tmpl-desc">Template sobre et autoritaire pour les profils cadres, santé, finance et ingénierie. Maximise la crédibilité.</p>
+      </div>
+      <div class="cvi-tmpl-footer">
+        <span class="cvi-tmpl-pill cvi-tmpl-pill--premium">⭐ Premium</span>
+        <span class="cvi-tmpl-pill">Cadres</span>
+      </div>
+    </a>
 
   </div>
 </section>
 
-<!-- BÉNÉFICES -->
-<section class="cv-benefits">
-  <div class="cv-benefits-grid">
-
-    <article class="cv-benefit">
-      <h2>Rédaction assistée par IA</h2>
-      <p>
-        L’IA transforme vos expériences en phrases professionnelles,
-        orientées résultats et adaptées aux recruteurs internationaux.
-      </p>
-    </article>
-
-    <article class="cv-benefit">
-      <h2>Analyse & structure ATS</h2>
-      <p>
-        Chaque CV respecte les règles de lisibilité ATS : titres clairs,
-        sections standardisées et mots-clés pertinents.
-      </p>
-    </article>
-
-    <article class="cv-benefit">
-      <h2>Normes Canada · Europe · USA</h2>
-      <p>
-        Modèles sans photo pour l’Amérique du Nord,
-        formats européens classiques ou modernes selon votre objectif.
-      </p>
-    </article>
-
+<!-- ============================================================
+     3 ÉTAPES
+============================================================ -->
+<section class="cvi-steps">
+  <div class="cvi-section-header">
+    <div class="cvi-section-kicker">Processus · 3 étapes</div>
+    <h2 class="cvi-section-title">Comment ça marche ?</h2>
+  </div>
+  <div class="cvi-steps-grid">
+    <div class="cvi-step">
+      <div class="cvi-step__num">01</div>
+      <div class="cvi-step__title">Choisissez un modèle</div>
+      <p class="cvi-step__desc">Canada ATS, Europe, Moderne ou Professionnel — selon votre pays cible et votre secteur d'activité.</p>
+    </div>
+    <div class="cvi-step">
+      <div class="cvi-step__num">02</div>
+      <div class="cvi-step__title">Renseignez vos informations</div>
+      <p class="cvi-step__desc">L'IA reformule vos expériences, optimise vos compétences et adapte le contenu aux exigences du marché cible.</p>
+    </div>
+    <div class="cvi-step">
+      <div class="cvi-step__num">03</div>
+      <div class="cvi-step__title">Exportez & envoyez</div>
+      <p class="cvi-step__desc">Téléchargez votre CV en PDF professionnel, prêt à être envoyé directement aux recruteurs ou ambassades.</p>
+    </div>
   </div>
 </section>
 
-<!-- COMMENT ÇA MARCHE -->
-<section class="cv-how">
-  <h2>Comment fonctionne le générateur de CV Immigration97 ?</h2>
-  <ol>
-    <li>Choisissez un modèle (Canada, Europe, Moderne, Professionnel).</li>
-    <li>Renseignez vos informations et expériences (assistées par IA).</li>
-    <li>Exportez votre CV PDF prêt à être envoyé.</li>
-  </ol>
-
-  <a href="{% url 'cv_generator:template_selection' %}" class="link-arrow">
-    Choisir un modèle et commencer
-  </a>
-</section>
-
-<!-- CTA FINAL -->
-<section class="cv-final-cta">
-  <h2>Prêt à envoyer un CV crédible aux recruteurs ?</h2>
-  <p>
-    Créez votre CV optimisé pour l’immigration et l’emploi international,
-    puis adaptez-le à chaque opportunité.
-  </p>
-
-  <div class="cv-final-actions">
-    <a href="{% url 'cv_generator:template_selection' %}" class="btn-primary">
-      Créer mon CV maintenant
-    </a>
-    <a href="{% url 'billing:access' %}" class="btn-secondary">
-      Voir les accès complets Immigration97
-    </a>
+<!-- ============================================================
+     CTA FINAL
+============================================================ -->
+<section class="cvi-cta">
+  <div class="cvi-cta__inner">
+    <div class="cvi-cta__text">
+      <h2>Prêt à envoyer un CV crédible aux recruteurs ?</h2>
+      <p>Créez votre CV optimisé pour l'immigration et l'emploi international, puis adaptez-le à chaque opportunité.</p>
+    </div>
+    <div class="cvi-cta__btns">
+      <a href="{% url 'cv_generator:template_selection' %}" class="cvi-btn cvi-btn--gold">Créer mon CV →</a>
+      <a href="{% url 'billing:access' %}" class="cvi-btn cvi-btn--ghost">Accès Premium</a>
+    </div>
   </div>
 </section>
 
