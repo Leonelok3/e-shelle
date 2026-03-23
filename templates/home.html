@@ -954,14 +954,18 @@
 
         <ul class="nav-links" role="list">
           <li><a href="{% url 'profiles:my_space' %}">Travailleurs</a></li>
-          <li><a href="#visaetude">Étudiants</a></li>
+          <li><a href="/visa-etudes/">Étudiants</a></li>
           <li><a href="/prep/">Tests de langue</a></li>
-          <li><a href="#CV">CV Professionnel</a></li>
+          <li><a href="/cv-generator/">CV Professionnel</a></li>
           <li><a href="{% url 'actualite:list' %}">Blog</a></li>
           <li><a href="#footer">Contact</a></li>
-          <li>
-            <a href="{% url 'billing:access' %}" class="nav-cta">Déposer une candidature</a>
-          </li>
+          {% if user.is_authenticated %}
+            <li><a href="{% url 'profiles:my_space' %}" class="nav-link-espace">Mon espace</a></li>
+            <li><a href="{% url 'authentification:logout' %}" class="nav-cta nav-cta--ghost">Se déconnecter</a></li>
+          {% else %}
+            <li><a href="{% url 'authentification:login' %}" class="nav-link-espace">Se connecter</a></li>
+            <li><a href="{% url 'billing:access' %}" class="nav-cta">Déposer ma candidature</a></li>
+          {% endif %}
         </ul>
 
         <button class="hamburger" id="hamburger"
@@ -981,9 +985,9 @@
   <div id="mobile-menu" role="dialog" aria-label="Menu mobile" aria-modal="true">
     <nav class="mobile-links" aria-label="Liens principaux mobile">
       <a href="{% url 'profiles:my_space' %}" onclick="closeMobileMenu()">Travailleurs</a>
-      <a href="#" onclick="closeMobileMenu()">Étudiants</a>
+      <a href="/visa-etudes/" onclick="closeMobileMenu()">Étudiants</a>
       <a href="/prep/" onclick="closeMobileMenu()">Tests de langue</a>
-      <a href="#services" onclick="closeMobileMenu()">Services</a>
+      <a href="/cv-generator/" onclick="closeMobileMenu()">CV Professionnel</a>
       <a href="{% url 'actualite:list' %}" onclick="closeMobileMenu()">Blog</a>
       <a href="#footer" onclick="closeMobileMenu()">Contact</a>
     </nav>
@@ -1102,7 +1106,7 @@
     <div class="container">
       <div class="hero-stats" role="list" aria-label="Statistiques clés de la plateforme">
         <div class="stat-item" role="listitem">
-          <span class="stat-number" data-target="3200" aria-label="3 200 candidats placés">0</span>
+          <span class="stat-number" data-target="200" aria-label=" 200 candidats placés">0</span>
           <span class="stat-label">Candidats placés</span>
         </div>
         <div class="stat-item" role="listitem">
