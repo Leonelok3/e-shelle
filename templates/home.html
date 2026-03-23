@@ -1,694 +1,1928 @@
-{% extends "base.html" %}
 {% load static %}
-{% load actualite_extras %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Immigration97 — La plateforme africaine de référence pour le placement international. Emploi qualifié, études à l'étranger, visa et accompagnement complet." />
+  <meta name="theme-color" content="#050A18" />
+  <title>Immigration97 — Placement International pour Africains</title>
 
-{% block body_class %}home{% endblock %}
-{% block app_scope %}home{% endblock %}
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=DM+Sans:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
 
-{% block title %}Immigration97 | Visa Travail, Études & Résidence Permanente pour l'Afrique{% endblock %}
+  <style>
+    /* ============================================================
+       CSS CUSTOM PROPERTIES — DESIGN TOKENS
+    ============================================================ */
+    :root {
+      --navy-deep:   #050A18;
+      --navy-mid:    #0A1628;
+      --navy-light:  #0F2040;
+      --gold:        #D4A843;
+      --gold-light:  #F0C060;
+      --gold-dark:   #B8902A;
+      --amber:       #F59E0B;
+      --glass-bg:    rgba(255,255,255,0.04);
+      --glass-border:rgba(212,168,67,0.25);
+      --text-primary:  #FFFFFF;
+      --text-secondary:rgba(255,255,255,0.65);
+      --text-muted:    rgba(255,255,255,0.4);
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body:    'DM Sans', system-ui, sans-serif;
+      --font-number:  'Bebas Neue', Impact, sans-serif;
+      --radius-sm:  8px;
+      --radius-md:  16px;
+      --radius-lg:  24px;
+      --radius-xl:  40px;
+      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      --shadow-gold:0 0 30px rgba(212,168,67,0.2);
+      --shadow-card:0 8px 40px rgba(0,0,0,0.4);
+    }
 
-{% block meta_description %}
-Plateforme d'immigration légale pour Africains : visa travail Italie, Canada, Europe, visa études, visa tourisme Schengen, résidence permanente, tests TEF/IELTS. Assistance complète depuis le Cameroun, Sénégal, Côte d'Ivoire.
-{% endblock %}
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;font-size:16px;}
+    body{
+      font-family:var(--font-body);
+      background:var(--navy-deep);
+      color:var(--text-primary);
+      overflow-x:hidden;
+      line-height:1.6;
+      -webkit-font-smoothing:antialiased;
+    }
+    a{text-decoration:none;color:inherit;}
+    ul{list-style:none;}
+    img{max-width:100%;display:block;}
+    button{cursor:pointer;border:none;background:none;font-family:inherit;}
 
-{% block extra_head %}
-{{ block.super }}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "Immigration97",
-  "url": "https://www.immigration97.com",
-  "logo": "https://www.immigration97.com{% static 'images/logo.png' %}",
-  "description": "Plateforme d'immigration légale pour Africains : visa travail, études, tourisme, résidence permanente",
-  "areaServed": ["CM", "SN", "CI", "BF", "ML", "CD", "GA", "TG"],
-  "serviceType": ["Assistance visa", "Préparation tests de langue", "CV professionnels"]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "url": "https://www.immigration97.com",
-  "name": "Immigration97",
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": "https://www.immigration97.com/search?q={search_term_string}",
-    "query-input": "required name=search_term_string"
-  }
-}
-</script>
-<style>
-  /* ── Marketplace section (inline, dark theme compatible) ── */
-  body.home .home-marketplace {
-    padding: 0 1.5rem 5rem;
-  }
-  body.home .home-marketplace__inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    background: linear-gradient(135deg, rgba(245,158,11,.12) 0%, rgba(16,43,78,.8) 100%);
-    border: 1px solid rgba(245,158,11,.3);
-    border-radius: 24px;
-    padding: 3rem 2.5rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-  }
-  body.home .home-marketplace__inner::before {
-    content: '';
-    position: absolute;
-    top: -60px; right: -60px;
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(245,158,11,.15) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  body.home .home-marketplace__kicker {
-    font-size: .72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .15em;
-    color: #F59E0B;
-    margin-bottom: .75rem;
-  }
-  body.home .home-marketplace__title {
-    font-size: clamp(1.5rem,3vw,2.2rem);
-    font-weight: 900;
-    color: #fff;
-    line-height: 1.2;
-    margin-bottom: 1rem;
-  }
-  body.home .home-marketplace__title span { color: #F59E0B; }
-  body.home .home-marketplace__text {
-    font-size: .95rem;
-    color: rgba(255,255,255,.8);
-    line-height: 1.7;
-    margin-bottom: 1.5rem;
-  }
-  body.home .home-marketplace__btns {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .75rem;
-  }
-  body.home .mp-btn-amber {
-    display: inline-flex;
-    align-items: center;
-    gap: .4rem;
-    background: #F59E0B;
-    color: #102B4E;
-    border-radius: 50px;
-    padding: .8rem 1.6rem;
-    font-size: .9rem;
-    font-weight: 800;
-    text-decoration: none;
-    transition: background .2s;
-  }
-  body.home .mp-btn-amber:hover { background: #d97706; color: #fff; }
-  body.home .mp-btn-ghost {
-    display: inline-flex;
-    align-items: center;
-    gap: .4rem;
-    background: rgba(255,255,255,.08);
-    color: #fff;
-    border: 1.5px solid rgba(255,255,255,.2);
-    border-radius: 50px;
-    padding: .8rem 1.4rem;
-    font-size: .88rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background .2s;
-  }
-  body.home .mp-btn-ghost:hover { background: rgba(255,255,255,.15); }
+    /* ============================================================
+       NOISE TEXTURE OVERLAY
+    ============================================================ */
+    body::before{
+      content:'';
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+      opacity:0.03;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size:256px 256px;
+    }
 
-  body.home .home-marketplace__steps {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    position: relative;
-    z-index: 1;
-  }
-  body.home .mp-step {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    background: rgba(255,255,255,.05);
-    border: 1px solid rgba(255,255,255,.08);
-    border-radius: 14px;
-    padding: 1.1rem 1.25rem;
-    transition: border-color .2s;
-  }
-  body.home .mp-step:hover { border-color: rgba(245,158,11,.4); }
-  body.home .mp-step__num {
-    width: 36px;
-    height: 36px;
-    background: #F59E0B;
-    color: #102B4E;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: .9rem;
-    flex-shrink: 0;
-  }
-  body.home .mp-step__title {
-    font-size: .9rem;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: .2rem;
-  }
-  body.home .mp-step__desc {
-    font-size: .78rem;
-    color: rgba(255,255,255,.65);
-    line-height: 1.5;
-  }
+    /* ============================================================
+       KEYFRAME ANIMATIONS
+    ============================================================ */
+    @keyframes floatParticle{
+      0%,100%{transform:translateY(0) translateX(0) scale(1);opacity:0.6;}
+      33%{transform:translateY(-30px) translateX(15px) scale(1.2);opacity:1;}
+      66%{transform:translateY(-15px) translateX(-10px) scale(0.8);opacity:0.4;}
+    }
+    @keyframes heroFloat{
+      0%,100%{transform:translateY(0) rotate(0deg);}
+      50%{transform:translateY(-20px) rotate(2deg);}
+    }
+    @keyframes marqueeScroll{
+      from{transform:translateX(0);}
+      to{transform:translateX(-50%);}
+    }
+    @keyframes gradientShift{
+      0%{background-position:0% 50%;}
+      50%{background-position:100% 50%;}
+      100%{background-position:0% 50%;}
+    }
+    @keyframes pulse{
+      0%,100%{box-shadow:0 0 0 0 rgba(212,168,67,0.4);}
+      50%{box-shadow:0 0 0 15px rgba(212,168,67,0);}
+    }
+    @keyframes badgePulse{
+      0%,100%{box-shadow:0 0 0 0 rgba(212,168,67,0.5),0 0 20px rgba(212,168,67,0.2);}
+      50%{box-shadow:0 0 0 8px rgba(212,168,67,0),0 0 40px rgba(212,168,67,0.4);}
+    }
+    @keyframes ctaGradient{
+      0%{background-position:0% 50%;}
+      50%{background-position:100% 50%;}
+      100%{background-position:0% 50%;}
+    }
+    @keyframes whatsappPulse{
+      0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.5);}
+      50%{box-shadow:0 0 0 12px rgba(37,211,102,0);}
+    }
+    @keyframes hexSpin{
+      from{transform:rotate(0deg);}
+      to{transform:rotate(360deg);}
+    }
 
-  @media (max-width: 860px) {
-    body.home .home-marketplace__inner { grid-template-columns: 1fr; gap: 2rem; }
-    body.home .home-marketplace { padding: 0 1.2rem 4rem; }
-  }
-</style>
-{% endblock %}
+    /* ============================================================
+       SCROLL REVEAL
+    ============================================================ */
+    .reveal{
+      opacity:0;
+      transform:translateY(40px);
+      transition:opacity 0.7s ease,transform 0.7s ease;
+    }
+    .reveal.visible{opacity:1;transform:translateY(0);}
+    .reveal-delay-1{transition-delay:0.1s;}
+    .reveal-delay-2{transition-delay:0.2s;}
+    .reveal-delay-3{transition-delay:0.3s;}
+    .reveal-delay-4{transition-delay:0.4s;}
+    .reveal-delay-5{transition-delay:0.5s;}
 
-{% block extra_css %}
-{{ block.super }}
-<link rel="stylesheet" href="{% static 'css/home.css' %}">
-{% endblock %}
+    /* ============================================================
+       SHARED COMPONENTS
+    ============================================================ */
+    .section-label{
+      display:inline-block;
+      font-family:var(--font-body);
+      font-size:0.75rem;
+      font-weight:600;
+      letter-spacing:0.2em;
+      text-transform:uppercase;
+      color:var(--gold);
+      background:rgba(212,168,67,0.1);
+      border:1px solid rgba(212,168,67,0.3);
+      border-radius:100px;
+      padding:6px 16px;
+      margin-bottom:16px;
+    }
+    .section-title{
+      font-family:var(--font-display);
+      font-size:clamp(2rem,4vw,3.5rem);
+      font-weight:700;
+      color:var(--text-primary);
+      line-height:1.1;
+      margin-bottom:1rem;
+    }
+    .section-title span{color:var(--gold);font-style:italic;}
+    .section-subtitle{
+      font-family:var(--font-body);
+      font-size:1.1rem;
+      color:var(--text-secondary);
+      max-width:600px;
+      line-height:1.7;
+    }
+    .section-header{text-align:center;margin-bottom:4rem;}
+    .section-header .section-subtitle{margin:0 auto;}
 
-{% block content %}
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-family:var(--font-body);
+      font-weight:600;
+      font-size:0.95rem;
+      padding:14px 28px;
+      border-radius:100px;
+      transition:var(--transition);
+      cursor:pointer;
+      position:relative;
+      overflow:hidden;
+      white-space:nowrap;
+    }
+    .btn-gold{
+      background:linear-gradient(135deg,var(--gold) 0%,var(--amber) 50%,var(--gold-dark) 100%);
+      color:var(--navy-deep);
+      box-shadow:0 4px 20px rgba(212,168,67,0.35);
+    }
+    .btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(212,168,67,0.5);}
+    .btn-ghost{
+      background:transparent;
+      color:var(--text-primary);
+      border:1.5px solid rgba(255,255,255,0.35);
+    }
+    .btn-ghost:hover{
+      border-color:var(--gold);
+      color:var(--gold);
+      background:rgba(212,168,67,0.08);
+    }
 
-<!-- ════════════════════════ HERO ════════════════════════ -->
-<section class="home-hero">
-  <div class="container">
+    .glass-card{
+      background:var(--glass-bg);
+      backdrop-filter:blur(16px);
+      -webkit-backdrop-filter:blur(16px);
+      border:1px solid var(--glass-border);
+      border-radius:var(--radius-lg);
+      padding:2rem;
+    }
+    .container{max-width:1280px;margin:0 auto;padding:0 24px;}
+    section{position:relative;z-index:1;}
 
-    <div class="home-hero__badge">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-      </svg>
-      <span>Plateforme Certifiée Immigration Légale</span>
+    /* Hexagonal background shapes */
+    .hex-bg{
+      position:absolute;
+      pointer-events:none;
+      clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+      opacity:0.04;
+      background:var(--gold);
+    }
+    .diagonal-accent{
+      position:absolute;
+      width:2px;
+      height:200px;
+      background:linear-gradient(180deg,transparent,var(--gold),transparent);
+      transform:rotate(-45deg);
+      opacity:0.3;
+      pointer-events:none;
+    }
+
+    /* ============================================================
+       NAVBAR
+    ============================================================ */
+    #navbar{
+      position:fixed;
+      top:0;left:0;right:0;
+      z-index:1000;
+      padding:20px 0;
+      transition:var(--transition);
+    }
+    #navbar.scrolled{
+      background:rgba(5,10,24,0.92);
+      backdrop-filter:blur(20px);
+      -webkit-backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--glass-border);
+      padding:14px 0;
+    }
+    .nav-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:32px;
+    }
+    .nav-logo{
+      font-family:var(--font-display);
+      font-size:1.6rem;
+      font-weight:700;
+      letter-spacing:-0.02em;
+      flex-shrink:0;
+    }
+    .nav-logo .gold{color:var(--gold);}
+    .nav-links{display:flex;align-items:center;gap:32px;}
+    .nav-links a{
+      font-size:0.9rem;
+      font-weight:500;
+      color:var(--text-secondary);
+      transition:color 0.2s;
+      position:relative;
+    }
+    .nav-links a::after{
+      content:'';
+      position:absolute;
+      bottom:-4px;left:0;right:0;
+      height:1px;
+      background:var(--gold);
+      transform:scaleX(0);
+      transition:transform 0.25s;
+    }
+    .nav-links a:hover{color:var(--text-primary);}
+    .nav-links a:hover::after{transform:scaleX(1);}
+    .nav-cta{
+      background:linear-gradient(135deg,var(--gold),var(--amber)) !important;
+      color:var(--navy-deep) !important;
+      font-weight:700 !important;
+      padding:10px 22px !important;
+      border-radius:100px !important;
+      font-size:0.85rem !important;
+      transition:var(--transition) !important;
+    }
+    .nav-cta:hover{box-shadow:0 6px 20px rgba(212,168,67,0.45) !important;transform:translateY(-1px);}
+    .nav-cta::after{display:none !important;}
+
+    .hamburger{
+      display:none;
+      flex-direction:column;
+      gap:5px;
+      padding:6px;
+      z-index:1100;
+    }
+    .hamburger span{
+      display:block;width:24px;height:2px;
+      background:var(--text-primary);
+      border-radius:2px;
+      transition:var(--transition);
+    }
+    .hamburger.active span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+    .hamburger.active span:nth-child(2){opacity:0;transform:scaleX(0);}
+    .hamburger.active span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+    #mobile-menu{
+      display:none;
+      position:fixed;inset:0;
+      z-index:1050;
+      background:rgba(5,10,24,0.98);
+      backdrop-filter:blur(20px);
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:32px;
+    }
+    #mobile-menu.open{display:flex;}
+    .mobile-links{display:flex;flex-direction:column;align-items:center;gap:24px;}
+    .mobile-links a{
+      font-family:var(--font-display);
+      font-size:2rem;
+      font-weight:600;
+      color:var(--text-secondary);
+      transition:color 0.2s;
+    }
+    .mobile-links a:hover{color:var(--gold);}
+
+    /* ============================================================
+       HERO
+    ============================================================ */
+    #hero{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(135deg,var(--navy-deep) 0%,var(--navy-mid) 50%,#0D1E3A 100%);
+      padding-top:90px;
+    }
+    #hero::before{
+      content:'';position:absolute;
+      top:-20%;right:-10%;
+      width:700px;height:700px;
+      background:radial-gradient(circle,rgba(212,168,67,0.08) 0%,transparent 70%);
+      pointer-events:none;
+    }
+    #hero::after{
+      content:'';position:absolute;
+      bottom:-10%;left:-5%;
+      width:500px;height:500px;
+      background:radial-gradient(circle,rgba(15,32,64,0.9) 0%,transparent 70%);
+      pointer-events:none;
+    }
+    #particles-container{
+      position:absolute;inset:0;
+      pointer-events:none;overflow:hidden;
+    }
+    .particle{
+      position:absolute;width:4px;height:4px;
+      border-radius:50%;background:var(--gold);
+      animation:floatParticle linear infinite;
+    }
+    .hero-hex-1{width:300px;height:300px;top:10%;left:5%;animation:hexSpin 40s linear infinite;}
+    .hero-hex-2{width:200px;height:200px;bottom:20%;right:8%;animation:hexSpin 30s linear infinite reverse;}
+
+    .hero-inner{
+      position:relative;z-index:2;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:60px;
+      align-items:center;
+    }
+    .hero-badge{
+      display:inline-flex;align-items:center;gap:8px;
+      background:rgba(212,168,67,0.1);
+      border:1px solid rgba(212,168,67,0.4);
+      border-radius:100px;
+      padding:8px 20px;
+      font-size:0.8rem;font-weight:600;
+      color:var(--gold-light);
+      letter-spacing:0.05em;
+      margin-bottom:2rem;
+      animation:badgePulse 3s ease-in-out infinite;
+    }
+    .hero-badge .dot{
+      width:6px;height:6px;border-radius:50%;
+      background:var(--gold);flex-shrink:0;
+    }
+    .hero-h1{
+      font-family:var(--font-display);
+      font-size:clamp(2.8rem,6vw,5.5rem);
+      font-weight:700;line-height:1.05;
+      color:var(--text-primary);
+      margin-bottom:1.5rem;
+    }
+    .hero-h1 em{color:var(--gold);font-style:italic;}
+    .hero-subtitle{
+      font-size:1.1rem;color:var(--text-secondary);
+      line-height:1.75;max-width:520px;margin-bottom:2.5rem;
+    }
+    .hero-ctas{
+      display:flex;flex-wrap:wrap;gap:16px;
+      align-items:center;margin-bottom:3rem;
+    }
+    .btn-magnetic{position:relative;display:inline-block;}
+
+    /* Floating mockup card */
+    .hero-right{display:flex;justify-content:center;align-items:center;}
+    .mockup-card{
+      width:320px;
+      background:linear-gradient(135deg,rgba(15,32,64,0.9) 0%,rgba(10,22,40,0.95) 100%);
+      border:1px solid var(--glass-border);
+      border-radius:var(--radius-lg);
+      padding:2rem;
+      box-shadow:0 30px 80px rgba(0,0,0,0.5),var(--shadow-gold);
+      animation:heroFloat 6s ease-in-out infinite;
+      position:relative;overflow:hidden;
+    }
+    .mockup-card::before{
+      content:'';position:absolute;
+      top:-50%;right:-50%;width:100%;height:100%;
+      background:radial-gradient(circle,rgba(212,168,67,0.06) 0%,transparent 70%);
+    }
+    .mockup-avatar{
+      width:64px;height:64px;border-radius:50%;
+      background:linear-gradient(135deg,var(--gold),var(--amber));
+      display:flex;align-items:center;justify-content:center;
+      font-family:var(--font-body);font-size:1.3rem;font-weight:700;
+      color:var(--navy-deep);
+      margin:0 auto 1rem;
+      border:3px solid rgba(212,168,67,0.4);
+    }
+    .mockup-badge{
+      display:inline-block;
+      background:rgba(34,197,94,0.15);
+      border:1px solid rgba(34,197,94,0.4);
+      color:#4ade80;
+      font-size:0.7rem;font-weight:600;
+      padding:4px 12px;border-radius:100px;
+      margin-bottom:0.5rem;
+    }
+    .mockup-name{font-family:var(--font-body);font-weight:700;font-size:1.1rem;text-align:center;}
+    .mockup-job{font-size:0.85rem;color:var(--text-secondary);text-align:center;margin-bottom:1rem;}
+    .mockup-route{
+      display:flex;align-items:center;justify-content:center;gap:12px;
+      font-size:1.2rem;
+      background:rgba(212,168,67,0.08);
+      border:1px solid rgba(212,168,67,0.15);
+      border-radius:var(--radius-sm);
+      padding:8px 16px;margin-bottom:1.5rem;
+    }
+    .mockup-route .arrow{color:var(--gold);font-size:1rem;}
+    .mockup-stats{
+      display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+      border-top:1px solid rgba(255,255,255,0.06);padding-top:1rem;
+    }
+    .mockup-stat{text-align:center;}
+    .mockup-stat-val{font-family:var(--font-number);font-size:1.2rem;color:var(--gold);}
+    .mockup-stat-label{font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;}
+
+    /* Flags marquee */
+    .flags-marquee{
+      overflow:hidden;padding:16px 0;
+      border-top:1px solid rgba(255,255,255,0.06);
+      position:relative;z-index:2;margin-top:2rem;
+    }
+    .flags-marquee-track{
+      display:flex;align-items:center;gap:40px;
+      width:max-content;
+      animation:marqueeScroll 20s linear infinite;
+    }
+    .flag-item{
+      display:flex;align-items:center;gap:10px;
+      font-size:0.9rem;color:var(--text-secondary);font-weight:500;white-space:nowrap;
+    }
+    .flag-item .emoji{font-size:1.4rem;}
+    .flag-sep{color:var(--gold);opacity:0.4;font-size:0.6rem;}
+
+    /* Stats bar */
+    .hero-stats{
+      display:grid;grid-template-columns:repeat(4,1fr);
+      gap:1px;
+      background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:var(--radius-md);overflow:hidden;
+      position:relative;z-index:2;margin-top:1rem;
+    }
+    .stat-item{
+      padding:20px 16px;text-align:center;
+      background:rgba(5,10,24,0.7);
+      backdrop-filter:blur(10px);
+    }
+    .stat-item:not(:last-child){border-right:1px solid rgba(255,255,255,0.06);}
+    .stat-number{
+      font-family:var(--font-number);font-size:2.2rem;
+      color:var(--gold);line-height:1;display:block;
+    }
+    .stat-label{
+      font-size:0.75rem;color:var(--text-muted);font-weight:500;
+      text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;
+    }
+
+    /* ============================================================
+       TRUST MARQUEE
+    ============================================================ */
+    #trust-marquee{
+      background:var(--navy-light);
+      border-top:1px solid rgba(212,168,67,0.12);
+      border-bottom:1px solid rgba(212,168,67,0.12);
+      padding:18px 0;overflow:hidden;
+      position:relative;z-index:1;
+    }
+    .trust-track{
+      display:flex;align-items:center;gap:50px;
+      width:max-content;
+      animation:marqueeScroll 30s linear infinite;
+    }
+    .trust-item{
+      font-family:'Courier New',monospace;
+      font-size:0.8rem;font-weight:700;
+      letter-spacing:0.18em;text-transform:uppercase;
+      color:var(--gold);white-space:nowrap;
+    }
+    .trust-dot{
+      width:5px;height:5px;border-radius:50%;
+      background:var(--gold);opacity:0.5;flex-shrink:0;
+    }
+
+    /* ============================================================
+       HOW IT WORKS
+    ============================================================ */
+    #how-it-works{padding:100px 0;background:var(--navy-deep);position:relative;}
+    .steps-grid{
+      display:grid;grid-template-columns:repeat(3,1fr);
+      gap:2px;position:relative;
+    }
+    .steps-grid::before{
+      content:'';position:absolute;
+      top:80px;left:16.66%;right:16.66%;height:2px;
+      background:repeating-linear-gradient(
+        90deg,var(--gold) 0px,var(--gold) 8px,
+        transparent 8px,transparent 18px
+      );
+      opacity:0.4;
+    }
+    .step-card{text-align:center;padding:2.5rem 2rem;position:relative;}
+    .step-number{
+      font-family:var(--font-number);font-size:6rem;line-height:1;
+      color:transparent;-webkit-text-stroke:2px rgba(212,168,67,0.3);
+      display:block;margin-bottom:1rem;
+      transition:-webkit-text-stroke 0.3s;
+    }
+    .step-card:hover .step-number{-webkit-text-stroke-color:rgba(212,168,67,0.7);}
+    .step-icon-wrap{
+      width:72px;height:72px;border-radius:50%;
+      background:linear-gradient(135deg,rgba(212,168,67,0.15),rgba(212,168,67,0.05));
+      border:1.5px solid rgba(212,168,67,0.3);
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.8rem;margin:0 auto 1.5rem;
+      transition:var(--transition);
+    }
+    .step-card:hover .step-icon-wrap{
+      background:linear-gradient(135deg,rgba(212,168,67,0.25),rgba(212,168,67,0.1));
+      border-color:var(--gold);
+      box-shadow:var(--shadow-gold);
+      transform:scale(1.1);
+    }
+    .step-title{font-family:var(--font-body);font-weight:700;font-size:1.2rem;color:var(--text-primary);margin-bottom:1rem;}
+    .step-desc{font-size:0.95rem;color:var(--text-secondary);line-height:1.7;}
+
+    /* ============================================================
+       DESTINATIONS
+    ============================================================ */
+    #destinations{
+      padding:100px 0;
+      background:linear-gradient(180deg,var(--navy-deep) 0%,var(--navy-mid) 100%);
+    }
+    .destinations-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+    .dest-card{
+      background:var(--glass-bg);
+      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      border:1px solid var(--glass-border);
+      border-radius:var(--radius-lg);padding:2rem;
+      cursor:pointer;
+      transition:border-color 0.3s,box-shadow 0.3s,transform 0.1s;
+      transform-style:preserve-3d;will-change:transform;
+    }
+    .dest-card:hover{
+      border-color:rgba(212,168,67,0.5);
+      box-shadow:0 20px 60px rgba(0,0,0,0.4),0 0 40px rgba(212,168,67,0.15);
+    }
+    .dest-flag{font-size:3rem;margin-bottom:1rem;display:block;}
+    .dest-country{font-weight:700;font-size:1.25rem;margin-bottom:8px;}
+    .dest-offers-badge{
+      display:inline-block;
+      background:rgba(212,168,67,0.12);
+      border:1px solid rgba(212,168,67,0.3);
+      color:var(--gold-light);
+      font-size:0.75rem;font-weight:600;
+      padding:4px 12px;border-radius:100px;margin-bottom:1.2rem;
+    }
+    .dest-sectors{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.5rem;}
+    .dest-sector-tag{
+      font-size:0.7rem;color:var(--text-muted);
+      background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:4px;padding:3px 8px;font-weight:500;
+    }
+    .dest-progress{margin-bottom:1.5rem;}
+    .dest-progress-label{
+      font-size:0.7rem;color:var(--text-muted);
+      margin-bottom:6px;display:flex;justify-content:space-between;
+    }
+    .dest-progress-bar-wrap{
+      height:4px;background:rgba(255,255,255,0.08);
+      border-radius:100px;overflow:hidden;
+    }
+    .dest-progress-bar{
+      height:100%;
+      background:linear-gradient(90deg,var(--gold-dark),var(--gold-light));
+      border-radius:100px;width:0%;
+      transition:width 1.2s cubic-bezier(0.4,0,0.2,1);
+    }
+    .dest-link{
+      font-size:0.85rem;font-weight:600;color:var(--gold);
+      display:inline-flex;align-items:center;gap:6px;transition:gap 0.2s;
+    }
+    .dest-link:hover{gap:10px;}
+
+    /* ============================================================
+       SERVICES
+    ============================================================ */
+    #services{
+      padding:100px 0;background:var(--navy-mid);
+      position:relative;overflow:hidden;
+    }
+    #services .diagonal-accent{top:10%;right:5%;}
+    .services-split{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;}
+    .services-col{
+      background:var(--glass-bg);backdrop-filter:blur(16px);
+      border:1px solid var(--glass-border);
+      border-radius:var(--radius-lg);padding:2.5rem;
+    }
+    .services-col-title{
+      font-family:var(--font-body);font-weight:700;font-size:1.1rem;
+      color:var(--gold);margin-bottom:2rem;
+      display:flex;align-items:center;gap:10px;
+    }
+    .service-item{
+      display:flex;align-items:flex-start;gap:14px;
+      padding:14px 0;
+      border-bottom:1px solid rgba(255,255,255,0.05);
+      transition:padding-left 0.2s;
+    }
+    .service-item:last-of-type{border-bottom:none;}
+    .service-item:hover{padding-left:6px;}
+    .service-icon{font-size:1.3rem;flex-shrink:0;margin-top:2px;}
+    .service-text{font-size:0.95rem;color:var(--text-secondary);line-height:1.5;}
+    .services-col .btn{margin-top:2rem;}
+
+    /* ============================================================
+       TESTIMONIALS
+    ============================================================ */
+    #testimonials{padding:100px 0;background:var(--navy-deep);overflow:hidden;}
+    .testimonials-slider-wrap{position:relative;}
+    .testimonials-track{display:flex;transition:transform 0.6s cubic-bezier(0.4,0,0.2,1);}
+    .testimonial-card{flex:0 0 100%;padding:0 12px;}
+    .testimonial-inner{
+      background:var(--glass-bg);backdrop-filter:blur(16px);
+      border:1px solid var(--glass-border);
+      border-radius:var(--radius-lg);padding:3rem;
+      max-width:800px;margin:0 auto;text-align:center;
+    }
+    .testimonial-avatar{
+      width:72px;height:72px;border-radius:50%;
+      background:linear-gradient(135deg,var(--gold),var(--amber));
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;font-size:1.2rem;color:var(--navy-deep);
+      margin:0 auto 1.5rem;
+      border:3px solid rgba(212,168,67,0.3);
+    }
+    .testimonial-stars{color:var(--gold);font-size:1.1rem;letter-spacing:2px;margin-bottom:1.5rem;}
+    .testimonial-quote{
+      font-family:var(--font-display);font-size:1.4rem;font-style:italic;
+      color:var(--text-primary);line-height:1.6;margin-bottom:2rem;
+    }
+    .testimonial-name{font-weight:700;font-size:1rem;color:var(--gold);}
+    .testimonial-origin{font-size:0.85rem;color:var(--text-secondary);margin:4px 0;}
+    .testimonial-role{font-size:0.8rem;color:var(--text-muted);}
+    .slider-controls{
+      display:flex;align-items:center;justify-content:center;
+      gap:24px;margin-top:3rem;
+    }
+    .slider-btn{
+      width:48px;height:48px;border-radius:50%;
+      border:1.5px solid var(--glass-border);
+      background:var(--glass-bg);color:var(--text-secondary);
+      font-size:1.1rem;
+      display:flex;align-items:center;justify-content:center;
+      transition:var(--transition);cursor:pointer;
+    }
+    .slider-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(212,168,67,0.08);}
+    .slider-dots{display:flex;gap:8px;}
+    .slider-dot{
+      width:8px;height:8px;border-radius:100px;
+      background:rgba(255,255,255,0.2);cursor:pointer;transition:var(--transition);
+    }
+    .slider-dot.active{background:var(--gold);width:24px;}
+
+    /* ============================================================
+       GUIDES / EBOOKS
+    ============================================================ */
+    #guides{
+      padding:100px 0;
+      background:linear-gradient(180deg,var(--navy-mid) 0%,var(--navy-deep) 100%);
+    }
+    .guides-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;}
+    .guide-card{
+      background:var(--glass-bg);backdrop-filter:blur(16px);
+      border:1px solid var(--glass-border);
+      border-radius:var(--radius-lg);overflow:hidden;
+      transition:var(--transition);
+    }
+    .guide-card:hover{
+      transform:translateY(-8px);
+      box-shadow:0 20px 60px rgba(0,0,0,0.4),var(--shadow-gold);
+      border-color:rgba(212,168,67,0.4);
+    }
+    .guide-header{
+      height:120px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:3rem;position:relative;overflow:hidden;
+    }
+    .guide-header::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,0.3) 100%);
+    }
+    .guide-header-1{background:linear-gradient(135deg,#1a4a1a,#2d7a2d);}
+    .guide-header-2{background:linear-gradient(135deg,#1a1a4a,#2d2d9a);}
+    .guide-header-3{background:linear-gradient(135deg,#4a1a1a,#9a2d2d);}
+    .guide-header-4{background:linear-gradient(135deg,#3a2a0a,#8a6a1a);}
+    .guide-body{padding:1.5rem;}
+    .guide-badge{
+      display:inline-block;
+      background:rgba(212,168,67,0.12);
+      border:1px solid rgba(212,168,67,0.3);
+      color:var(--gold-light);
+      font-size:0.7rem;font-weight:700;
+      padding:3px 10px;border-radius:100px;margin-bottom:1rem;
+    }
+    .guide-title{font-weight:700;font-size:1rem;color:var(--text-primary);margin-bottom:0.75rem;line-height:1.35;}
+    .guide-desc{font-size:0.8rem;color:var(--text-secondary);line-height:1.6;margin-bottom:1.5rem;}
+    .guide-cta{
+      font-size:0.85rem;font-weight:600;color:var(--gold);
+      display:inline-flex;align-items:center;gap:6px;transition:gap 0.2s;
+    }
+    .guide-cta:hover{gap:10px;}
+
+    /* ============================================================
+       FINAL CTA
+    ============================================================ */
+    #final-cta{
+      padding:120px 0;
+      background:linear-gradient(135deg,#1a0f00 0%,var(--navy-deep) 30%,#0a1628 60%,#1a0800 100%);
+      background-size:300% 300%;
+      animation:ctaGradient 12s ease infinite;
+      position:relative;overflow:hidden;text-align:center;
+    }
+    #final-cta::before{
+      content:'';position:absolute;inset:0;
+      background:radial-gradient(ellipse at center,rgba(212,168,67,0.08) 0%,transparent 70%);
+      pointer-events:none;
+    }
+    .africa-silhouette{width:80px;height:80px;margin:0 auto 2rem;opacity:0.15;}
+    .africa-silhouette svg{width:100%;height:100%;fill:var(--gold);}
+    .final-cta-headline{
+      font-family:var(--font-display);
+      font-size:clamp(2.5rem,5vw,4.5rem);
+      font-weight:700;color:var(--text-primary);
+      margin-bottom:1rem;position:relative;z-index:1;
+    }
+    .final-cta-sub{
+      font-size:1.1rem;color:var(--text-secondary);
+      margin-bottom:3rem;position:relative;z-index:1;
+    }
+    .cta-form{
+      display:flex;gap:12px;
+      max-width:900px;margin:0 auto 1.5rem;
+      flex-wrap:wrap;justify-content:center;
+      position:relative;z-index:1;
+    }
+    .cta-form input,
+    .cta-form select{
+      flex:1;min-width:160px;
+      background:rgba(255,255,255,0.07);
+      border:1px solid rgba(255,255,255,0.15);
+      border-radius:var(--radius-md);
+      padding:14px 18px;
+      color:var(--text-primary);
+      font-family:var(--font-body);font-size:0.9rem;
+      outline:none;transition:border-color 0.2s;
+    }
+    .cta-form input::placeholder{color:var(--text-muted);}
+    .cta-form input:focus,
+    .cta-form select:focus{border-color:var(--gold);}
+    .cta-form select option{background:var(--navy-mid);color:var(--text-primary);}
+    .cta-form .btn-submit{
+      background:var(--navy-deep);color:var(--gold);
+      border:1.5px solid var(--gold);
+      padding:14px 28px;border-radius:var(--radius-md);
+      font-weight:700;font-size:0.95rem;
+      cursor:pointer;font-family:var(--font-body);
+      white-space:nowrap;transition:var(--transition);
+    }
+    .cta-form .btn-submit:hover{
+      background:var(--gold);color:var(--navy-deep);
+      box-shadow:0 8px 25px rgba(212,168,67,0.4);
+    }
+    .cta-note{font-size:0.85rem;color:var(--text-muted);position:relative;z-index:1;}
+    .cta-note span{color:rgba(212,168,67,0.7);}
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    #footer{
+      background:#030810;
+      border-top:1px solid rgba(212,168,67,0.1);
+      padding-top:80px;
+    }
+    .footer-top{
+      display:flex;align-items:center;justify-content:space-between;
+      padding-bottom:60px;
+      border-bottom:1px solid rgba(255,255,255,0.05);
+      flex-wrap:wrap;gap:24px;
+    }
+    .footer-logo{font-family:var(--font-display);font-size:2rem;font-weight:700;margin-bottom:8px;}
+    .footer-logo span{color:var(--gold);}
+    .footer-tagline{font-size:0.85rem;color:var(--text-muted);max-width:280px;line-height:1.6;}
+    .footer-socials{display:flex;gap:12px;}
+    .social-icon{
+      width:44px;height:44px;border-radius:50%;
+      background:var(--glass-bg);border:1px solid var(--glass-border);
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.1rem;color:var(--text-secondary);transition:var(--transition);
+    }
+    .social-icon:hover{
+      border-color:var(--gold);color:var(--gold);
+      background:rgba(212,168,67,0.08);transform:translateY(-2px);
+    }
+    .footer-grid{
+      display:grid;grid-template-columns:2fr 1fr 1fr 1fr;
+      gap:48px;padding:60px 0;
+      border-bottom:1px solid rgba(255,255,255,0.05);
+    }
+    .footer-col-title{
+      font-weight:700;font-size:0.9rem;color:var(--gold);
+      text-transform:uppercase;letter-spacing:0.12em;margin-bottom:1.5rem;
+    }
+    .footer-col p{font-size:0.85rem;color:var(--text-muted);line-height:1.7;margin-bottom:1rem;}
+    .footer-col ul{display:flex;flex-direction:column;gap:10px;}
+    .footer-col ul li a{
+      font-size:0.85rem;color:var(--text-muted);transition:color 0.2s;
+      display:inline-flex;align-items:center;gap:6px;
+    }
+    .footer-col ul li a:hover{color:var(--gold);}
+    .footer-contact-item{
+      display:flex;align-items:center;gap:10px;
+      font-size:0.85rem;color:var(--text-muted);
+      margin-bottom:10px;transition:color 0.2s;
+    }
+    .footer-contact-item:hover{color:var(--gold);}
+    .footer-contact-item a{color:inherit;}
+    .footer-bottom{
+      padding:24px 0;
+      display:flex;align-items:center;justify-content:space-between;
+      flex-wrap:wrap;gap:16px;
+    }
+    .footer-copy{font-size:0.8rem;color:var(--text-muted);}
+    .footer-legal{display:flex;gap:20px;font-size:0.8rem;color:var(--text-muted);}
+    .footer-legal a:hover{color:var(--gold);}
+    .footer-made{font-size:0.8rem;color:var(--text-muted);}
+
+    /* WhatsApp floating */
+    #whatsapp-float{
+      position:fixed;bottom:32px;right:32px;z-index:999;
+      width:56px;height:56px;border-radius:50%;
+      background:#25D366;
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.6rem;
+      box-shadow:0 4px 20px rgba(37,211,102,0.4);
+      animation:whatsappPulse 2.5s ease-in-out infinite;
+      transition:transform 0.2s;
+    }
+    #whatsapp-float:hover{transform:scale(1.1);}
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media(max-width:1024px){
+      .destinations-grid{grid-template-columns:repeat(2,1fr);}
+      .guides-grid{grid-template-columns:repeat(2,1fr);}
+      .footer-grid{grid-template-columns:1fr 1fr;gap:32px;}
+      .hero-inner{gap:40px;}
+    }
+    @media(max-width:900px){
+      .nav-links{display:none;}
+      .hamburger{display:flex;}
+      .hero-inner{grid-template-columns:1fr;text-align:center;}
+      .hero-ctas{justify-content:center;}
+      .hero-subtitle{margin:0 auto 2.5rem;}
+      .hero-right{display:none;}
+      .hero-stats{grid-template-columns:repeat(2,1fr);}
+      .services-split{grid-template-columns:1fr;}
+      .steps-grid::before{display:none;}
+      .steps-grid{grid-template-columns:1fr;gap:24px;}
+    }
+    @media(max-width:640px){
+      .destinations-grid{grid-template-columns:1fr;}
+      .guides-grid{grid-template-columns:1fr 1fr;}
+      .footer-grid{grid-template-columns:1fr;gap:24px;}
+      .footer-top{flex-direction:column;align-items:flex-start;}
+      .footer-bottom{flex-direction:column;align-items:flex-start;}
+      .testimonial-inner{padding:2rem 1.5rem;}
+      .testimonial-quote{font-size:1.1rem;}
+      .cta-form{flex-direction:column;}
+      .cta-form input,.cta-form select{min-width:100%;}
+      #whatsapp-float{bottom:20px;right:20px;width:48px;height:48px;font-size:1.3rem;}
+    }
+    @media(max-width:480px){
+      .hero-h1{font-size:2.4rem;}
+      .guides-grid{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ============================================================
+       SECTION 1 — NAVBAR
+  ============================================================ -->
+  <nav id="navbar" role="navigation" aria-label="Navigation principale">
+    <div class="container">
+      <div class="nav-inner">
+
+        <a href="/" class="nav-logo" aria-label="Immigration97 — Retour à l'accueil">
+          Immigration<span class="gold">97</span>
+        </a>
+
+        <ul class="nav-links" role="list">
+          <li><a href="{% url 'profiles:my_space' %}">Travailleurs</a></li>
+          <li><a href="#">Étudiants</a></li>
+          <li><a href="#destinations">Destinations</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="{% url 'actualite:list' %}">Blog</a></li>
+          <li><a href="#footer">Contact</a></li>
+          <li>
+            <a href="{% url 'billing:access' %}" class="nav-cta">Déposer ma candidature</a>
+          </li>
+        </ul>
+
+        <button class="hamburger" id="hamburger"
+          aria-label="Ouvrir le menu de navigation"
+          aria-expanded="false"
+          aria-controls="mobile-menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile menu overlay -->
+  <div id="mobile-menu" role="dialog" aria-label="Menu mobile" aria-modal="true">
+    <nav class="mobile-links" aria-label="Liens principaux mobile">
+      <a href="{% url 'profiles:my_space' %}" onclick="closeMobileMenu()">Travailleurs</a>
+      <a href="#" onclick="closeMobileMenu()">Étudiants</a>
+      <a href="#destinations" onclick="closeMobileMenu()">Destinations</a>
+      <a href="#services" onclick="closeMobileMenu()">Services</a>
+      <a href="{% url 'actualite:list' %}" onclick="closeMobileMenu()">Blog</a>
+      <a href="#footer" onclick="closeMobileMenu()">Contact</a>
+    </nav>
+    <a href="{% url 'billing:access' %}" class="btn btn-gold" style="margin-top:1rem;">
+      Déposer ma candidature
+    </a>
+  </div>
+
+  <!-- ============================================================
+       SECTION 2 — HERO
+  ============================================================ -->
+  <section id="hero" aria-label="Présentation principale">
+    <div id="particles-container" aria-hidden="true"></div>
+    <div class="hex-bg hero-hex-1" aria-hidden="true"></div>
+    <div class="hex-bg hero-hex-2" aria-hidden="true"></div>
+
+    <div class="container">
+      <div class="hero-inner">
+
+        <!-- Left: main content -->
+        <div class="hero-left">
+          <div class="hero-badge" aria-label="Agence certifiée depuis 2019, plus de 15 pays">
+            <span class="dot" aria-hidden="true"></span>
+            ✦ Agence certifiée · Depuis 2019 · +15 pays
+          </div>
+
+          <h1 class="hero-h1">
+            Votre avenir professionnel<br>
+            commence <em>ici.</em>
+          </h1>
+
+          <p class="hero-subtitle">
+            La plateforme africaine de référence pour le placement international — emploi qualifié, études à l'étranger, visa et accompagnement complet.
+          </p>
+
+          <div class="hero-ctas">
+            <div class="btn-magnetic">
+              <a href="{% url 'profiles:my_space' %}" class="btn btn-gold"
+                aria-label="Je cherche un emploi à l'étranger — accéder à mon espace">
+                Je cherche un emploi à l'étranger
+              </a>
+            </div>
+            <a href="{% url 'recruiters:dashboard' %}" class="btn btn-ghost"
+              aria-label="Je suis employeur — accéder au tableau de bord recruteur">
+              Je suis employeur
+            </a>
+          </div>
+        </div>
+
+        <!-- Right: floating mockup card -->
+        <div class="hero-right" aria-hidden="true">
+          <div class="mockup-card">
+            <div style="text-align:center;">
+              <div class="mockup-avatar">AD</div>
+              <div class="mockup-badge">Candidat Vérifié ✓</div>
+              <div class="mockup-name">Amara Diallo</div>
+              <div class="mockup-job">Technicien en bâtiment</div>
+              <div class="mockup-route">
+                <span>🇸🇳</span>
+                <span class="arrow">→</span>
+                <span>🇨🇦</span>
+              </div>
+              <div class="mockup-stats">
+                <div class="mockup-stat">
+                  <div class="mockup-stat-val">B2</div>
+                  <div class="mockup-stat-label">Niveau FR</div>
+                </div>
+                <div class="mockup-stat">
+                  <div class="mockup-stat-val">5</div>
+                  <div class="mockup-stat-label">Ans exp.</div>
+                </div>
+                <div class="mockup-stat">
+                  <div class="mockup-stat-val">✓</div>
+                  <div class="mockup-stat-label">Visé</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
-    <h1 class="home-hero__title">
-      Ton projet d'<span class="highlight">immigration légale</span><br>
-      depuis l'Afrique vers l'Europe et le Canada
-    </h1>
+    <!-- Flags marquee strip -->
+    <div class="flags-marquee" aria-hidden="true">
+      <div class="flags-marquee-track">
+        <div class="flag-item"><span class="emoji">🇨🇦</span> Canada</div>
+        <span class="flag-sep" aria-hidden="true">●</span>
+        <div class="flag-item"><span class="emoji">🇮🇹</span> Italie</div>
+        <span class="flag-sep" aria-hidden="true">●</span>
+        <div class="flag-item"><span class="emoji">🇩🇪</span> Allemagne</div>
+        <span class="flag-sep" aria-hidden="true">●</span>
+        <div class="flag-item"><span class="emoji">🇪🇸</span> Espagne</div>
+        <span class="flag-sep" aria-hidden="true">●</span>
+        <div class="flag-item"><span class="emoji">🇯🇵</span> Japon</div>
+        <span class="flag-sep" aria-hidden="true">●</span>
+        <div class="flag-item"><span class="emoji">🇬🇧</span> Royaume-Uni</div>
+        <span class="flag-sep" aria-hidden="true">●</span>
+        <!-- repeat for seamless loop -->
+        <div class="flag-item"><span class="emoji">🇨🇦</span> Canada</div>
+        <span class="flag-sep" aria-hidden="true">●</span>
+        <div class="flag-item"><span class="emoji">🇮🇹</span> Italie</div>
+        <span class="flag-sep" aria-hidden="true">●</span>
+        <div class="flag-item"><span class="emoji">🇩🇪</span> Allemagne</div>
+        <span class="flag-sep" aria-hidden="true">●</span>
+        <div class="flag-item"><span class="emoji">🇪🇸</span> Espagne</div>
+        <span class="flag-sep" aria-hidden="true">●</span>
+        <div class="flag-item"><span class="emoji">🇯🇵</span> Japon</div>
+        <span class="flag-sep" aria-hidden="true">●</span>
+        <div class="flag-item"><span class="emoji">🇬🇧</span> Royaume-Uni</div>
+        <span class="flag-sep" aria-hidden="true">●</span>
+      </div>
+    </div>
 
-    <p class="home-hero__lead">
-      <strong>Immigration97</strong> accompagne les Africains dans leurs démarches officielles :
-      <strong>visa travail</strong> (Italie, Allemagne, Canada),
-      <strong>visa études</strong> (bourses, admissions),
-      <strong>visa tourisme Schengen</strong>,
-      <strong>résidence permanente</strong> et
-      <strong>tests de langue</strong> (TEF Canada, IELTS, TestDaF).
+    <!-- Stats bar -->
+    <div class="container">
+      <div class="hero-stats" role="list" aria-label="Statistiques clés de la plateforme">
+        <div class="stat-item" role="listitem">
+          <span class="stat-number" data-target="3200" aria-label="3 200 candidats placés">0</span>
+          <span class="stat-label">Candidats placés</span>
+        </div>
+        <div class="stat-item" role="listitem">
+          <span class="stat-number" data-target="47" aria-label="47 employeurs partenaires">0</span>
+          <span class="stat-label">Employeurs partenaires</span>
+        </div>
+        <div class="stat-item" role="listitem">
+          <span class="stat-number" data-target="15" aria-label="15 pays couverts">0</span>
+          <span class="stat-label">Pays couverts</span>
+        </div>
+        <div class="stat-item" role="listitem">
+          <span class="stat-number" data-target="94" aria-label="94 pourcent de satisfaction">0</span>
+          <span class="stat-label">% Satisfaction</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 3 — TRUST MARQUEE
+  ============================================================ -->
+  <div id="trust-marquee" role="region" aria-label="Programmes d'immigration couverts">
+    <div class="trust-track" aria-hidden="true">
+      <span class="trust-item">DECRETO FLUSSI ITALIA</span><span class="trust-dot"></span>
+      <span class="trust-item">SKILLED WORKER UK</span><span class="trust-dot"></span>
+      <span class="trust-item">ENTRÉE EXPRESS CANADA</span><span class="trust-dot"></span>
+      <span class="trust-item">GOETHE-ZERTIFIKAT</span><span class="trust-dot"></span>
+      <span class="trust-item">TCF CANADA</span><span class="trust-dot"></span>
+      <span class="trust-item">BLUE CARD EU</span><span class="trust-dot"></span>
+      <span class="trust-item">DV LOTTERY</span><span class="trust-dot"></span>
+      <span class="trust-item">KAFALA REFORM</span><span class="trust-dot"></span>
+      <span class="trust-item">ETA JAPAN</span><span class="trust-dot"></span>
+      <!-- repeat ×2 -->
+      <span class="trust-item">DECRETO FLUSSI ITALIA</span><span class="trust-dot"></span>
+      <span class="trust-item">SKILLED WORKER UK</span><span class="trust-dot"></span>
+      <span class="trust-item">ENTRÉE EXPRESS CANADA</span><span class="trust-dot"></span>
+      <span class="trust-item">GOETHE-ZERTIFIKAT</span><span class="trust-dot"></span>
+      <span class="trust-item">TCF CANADA</span><span class="trust-dot"></span>
+      <span class="trust-item">BLUE CARD EU</span><span class="trust-dot"></span>
+      <span class="trust-item">DV LOTTERY</span><span class="trust-dot"></span>
+      <span class="trust-item">KAFALA REFORM</span><span class="trust-dot"></span>
+      <span class="trust-item">ETA JAPAN</span><span class="trust-dot"></span>
+      <!-- repeat ×3 -->
+      <span class="trust-item">DECRETO FLUSSI ITALIA</span><span class="trust-dot"></span>
+      <span class="trust-item">SKILLED WORKER UK</span><span class="trust-dot"></span>
+      <span class="trust-item">ENTRÉE EXPRESS CANADA</span><span class="trust-dot"></span>
+      <span class="trust-item">GOETHE-ZERTIFIKAT</span><span class="trust-dot"></span>
+      <span class="trust-item">TCF CANADA</span><span class="trust-dot"></span>
+      <span class="trust-item">BLUE CARD EU</span><span class="trust-dot"></span>
+      <span class="trust-item">DV LOTTERY</span><span class="trust-dot"></span>
+      <span class="trust-item">KAFALA REFORM</span><span class="trust-dot"></span>
+      <span class="trust-item">ETA JAPAN</span><span class="trust-dot"></span>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SECTION 4 — HOW IT WORKS
+  ============================================================ -->
+  <section id="how-it-works" aria-labelledby="hiw-title">
+    <div class="hex-bg" style="width:400px;height:400px;top:50%;left:50%;transform:translate(-50%,-50%);" aria-hidden="true"></div>
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label reveal">Notre processus</span>
+        <h2 class="section-title reveal reveal-delay-1" id="hiw-title">
+          Comment <span>ça marche</span>
+        </h2>
+        <p class="section-subtitle reveal reveal-delay-2">
+          Un accompagnement complet en 3 étapes — de votre profil jusqu'à votre installation.
+        </p>
+      </div>
+
+      <div class="steps-grid">
+
+        <article class="step-card glass-card reveal reveal-delay-1" aria-label="Étape 1 sur 3 : Créez votre profil">
+          <span class="step-number" aria-hidden="true">01</span>
+          <div class="step-icon-wrap" aria-hidden="true">📝</div>
+          <h3 class="step-title">Créez votre profil</h3>
+          <p class="step-desc">
+            Remplissez votre dossier en 10 minutes. Notre équipe vérifie vos documents et certifie votre profil pour vous démarquer auprès des employeurs.
+          </p>
+        </article>
+
+        <article class="step-card glass-card reveal reveal-delay-2" aria-label="Étape 2 sur 3 : Nous matchons votre profil">
+          <span class="step-number" aria-hidden="true">02</span>
+          <div class="step-icon-wrap" aria-hidden="true">🎯</div>
+          <h3 class="step-title">Nous matchons votre profil</h3>
+          <p class="step-desc">
+            Algorithme + expertise humaine. On vous propose les offres qui correspondent à votre qualification et vos objectifs de vie à l'étranger.
+          </p>
+        </article>
+
+        <article class="step-card glass-card reveal reveal-delay-3" aria-label="Étape 3 sur 3 : Vous partez travailler">
+          <span class="step-number" aria-hidden="true">03</span>
+          <div class="step-icon-wrap" aria-hidden="true">✈️</div>
+          <h3 class="step-title">Vous partez travailler</h3>
+          <p class="step-desc">
+            Visa, logement, intégration accompagnés. On reste à vos côtés jusqu'à votre installation complète dans votre nouveau pays.
+          </p>
+        </article>
+
+      </div>
+
+      <div style="text-align:center;margin-top:3rem;" class="reveal reveal-delay-4">
+        <a href="{% url 'wizard' %}" class="btn btn-gold" aria-label="Tester mon éligibilité au placement international">
+          Tester mon éligibilité →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 5 — DESTINATIONS
+  ============================================================ -->
+  <section id="destinations" aria-labelledby="dest-title">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label reveal">Nos marchés</span>
+        <h2 class="section-title reveal reveal-delay-1" id="dest-title">
+          Choisissez votre <span>destination</span>
+        </h2>
+        <p class="section-subtitle reveal reveal-delay-2">
+          6 pays, des centaines d'offres actives dans les secteurs les plus porteurs pour les travailleurs africains.
+        </p>
+      </div>
+
+      <div class="destinations-grid">
+
+        <article class="dest-card reveal reveal-delay-1" data-tilt aria-label="Canada — 34 offres actives">
+          <span class="dest-flag" aria-hidden="true">🇨🇦</span>
+          <div class="dest-country">Canada</div>
+          <span class="dest-offers-badge">34 offres actives</span>
+          <div class="dest-sectors">
+            <span class="dest-sector-tag">Santé</span>
+            <span class="dest-sector-tag">IT</span>
+            <span class="dest-sector-tag">BTP</span>
+            <span class="dest-sector-tag">Agriculture</span>
+          </div>
+          <div class="dest-progress">
+            <div class="dest-progress-label"><span>Popularité</span><span>92%</span></div>
+            <div class="dest-progress-bar-wrap">
+              <div class="dest-progress-bar" data-width="92"></div>
+            </div>
+          </div>
+          <a href="{% url 'job_agent:public_offers' %}" class="dest-link" aria-label="Voir les offres au Canada">Voir les offres →</a>
+        </article>
+
+        <article class="dest-card reveal reveal-delay-2" data-tilt aria-label="Italie — 28 offres actives">
+          <span class="dest-flag" aria-hidden="true">🇮🇹</span>
+          <div class="dest-country">Italie</div>
+          <span class="dest-offers-badge">28 offres actives</span>
+          <div class="dest-sectors">
+            <span class="dest-sector-tag">Agriculture</span>
+            <span class="dest-sector-tag">Hôtellerie</span>
+            <span class="dest-sector-tag">BTP</span>
+          </div>
+          <div class="dest-progress">
+            <div class="dest-progress-label"><span>Popularité</span><span>85%</span></div>
+            <div class="dest-progress-bar-wrap">
+              <div class="dest-progress-bar" data-width="85"></div>
+            </div>
+          </div>
+          <a href="{% url 'job_agent:public_offers' %}" class="dest-link" aria-label="Voir les offres en Italie">Voir les offres →</a>
+        </article>
+
+        <article class="dest-card reveal reveal-delay-3" data-tilt aria-label="Allemagne — 19 offres actives">
+          <span class="dest-flag" aria-hidden="true">🇩🇪</span>
+          <div class="dest-country">Allemagne</div>
+          <span class="dest-offers-badge">19 offres actives</span>
+          <div class="dest-sectors">
+            <span class="dest-sector-tag">Ingénierie</span>
+            <span class="dest-sector-tag">Santé</span>
+            <span class="dest-sector-tag">Logistique</span>
+          </div>
+          <div class="dest-progress">
+            <div class="dest-progress-label"><span>Popularité</span><span>70%</span></div>
+            <div class="dest-progress-bar-wrap">
+              <div class="dest-progress-bar" data-width="70"></div>
+            </div>
+          </div>
+          <a href="{% url 'job_agent:public_offers' %}" class="dest-link" aria-label="Voir les offres en Allemagne">Voir les offres →</a>
+        </article>
+
+        <article class="dest-card reveal reveal-delay-1" data-tilt aria-label="Espagne — 15 offres actives">
+          <span class="dest-flag" aria-hidden="true">🇪🇸</span>
+          <div class="dest-country">Espagne</div>
+          <span class="dest-offers-badge">15 offres actives</span>
+          <div class="dest-sectors">
+            <span class="dest-sector-tag">Agriculture</span>
+            <span class="dest-sector-tag">Tourisme</span>
+            <span class="dest-sector-tag">Restauration</span>
+          </div>
+          <div class="dest-progress">
+            <div class="dest-progress-label"><span>Popularité</span><span>62%</span></div>
+            <div class="dest-progress-bar-wrap">
+              <div class="dest-progress-bar" data-width="62"></div>
+            </div>
+          </div>
+          <a href="{% url 'job_agent:public_offers' %}" class="dest-link" aria-label="Voir les offres en Espagne">Voir les offres →</a>
+        </article>
+
+        <article class="dest-card reveal reveal-delay-2" data-tilt aria-label="Japon — 11 offres actives">
+          <span class="dest-flag" aria-hidden="true">🇯🇵</span>
+          <div class="dest-country">Japon</div>
+          <span class="dest-offers-badge">11 offres actives</span>
+          <div class="dest-sectors">
+            <span class="dest-sector-tag">Industrie</span>
+            <span class="dest-sector-tag">IT</span>
+            <span class="dest-sector-tag">Restauration</span>
+          </div>
+          <div class="dest-progress">
+            <div class="dest-progress-label"><span>Popularité</span><span>48%</span></div>
+            <div class="dest-progress-bar-wrap">
+              <div class="dest-progress-bar" data-width="48"></div>
+            </div>
+          </div>
+          <a href="{% url 'job_agent:public_offers' %}" class="dest-link" aria-label="Voir les offres au Japon">Voir les offres →</a>
+        </article>
+
+        <article class="dest-card reveal reveal-delay-3" data-tilt aria-label="Royaume-Uni — 22 offres actives">
+          <span class="dest-flag" aria-hidden="true">🇬🇧</span>
+          <div class="dest-country">Royaume-Uni</div>
+          <span class="dest-offers-badge">22 offres actives</span>
+          <div class="dest-sectors">
+            <span class="dest-sector-tag">Santé</span>
+            <span class="dest-sector-tag">Finance</span>
+            <span class="dest-sector-tag">Logistique</span>
+          </div>
+          <div class="dest-progress">
+            <div class="dest-progress-label"><span>Popularité</span><span>78%</span></div>
+            <div class="dest-progress-bar-wrap">
+              <div class="dest-progress-bar" data-width="78"></div>
+            </div>
+          </div>
+          <a href="{% url 'job_agent:public_offers' %}" class="dest-link" aria-label="Voir les offres au Royaume-Uni">Voir les offres →</a>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 6 — SERVICES
+  ============================================================ -->
+  <section id="services" aria-labelledby="services-title">
+    <div class="diagonal-accent" aria-hidden="true"></div>
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label reveal">Ce que nous offrons</span>
+        <h2 class="section-title reveal reveal-delay-1" id="services-title">
+          Nos <span>services</span>
+        </h2>
+        <p class="section-subtitle reveal reveal-delay-2">
+          Un accompagnement 360° pour candidats et employeurs, de l'Afrique vers le monde.
+        </p>
+      </div>
+
+      <div class="services-split">
+
+        <div class="services-col reveal reveal-delay-1">
+          <div class="services-col-title">
+            <span>👤</span> Pour les candidats
+          </div>
+
+          <div class="service-item">
+            <span class="service-icon" aria-hidden="true">🎯</span>
+            <span class="service-text">Placement emploi international dans les meilleurs secteurs</span>
+          </div>
+          <div class="service-item">
+            <span class="service-icon" aria-hidden="true">📚</span>
+            <span class="service-text">Préparation aux tests de langue (TCF, Goethe, IELTS, TEF)</span>
+          </div>
+          <div class="service-item">
+            <span class="service-icon" aria-hidden="true">📄</span>
+            <span class="service-text">Accompagnement visa &amp; dossier de documents complet</span>
+          </div>
+          <div class="service-item">
+            <span class="service-icon" aria-hidden="true">🏠</span>
+            <span class="service-text">Aide à l'installation et recherche de logement</span>
+          </div>
+          <div class="service-item">
+            <span class="service-icon" aria-hidden="true">💼</span>
+            <span class="service-text">CV professionnel, lettres de motivation, coaching entretien</span>
+          </div>
+          <div class="service-item">
+            <span class="service-icon" aria-hidden="true">📸</span>
+            <span class="service-text">Photo visa biométrique conforme aux normes internationales</span>
+          </div>
+
+          <a href="{% url 'profiles:my_space' %}" class="btn btn-gold" aria-label="Créer mon profil candidat sur Immigration97">
+            Créer mon profil →
+          </a>
+        </div>
+
+        <div class="services-col reveal reveal-delay-2">
+          <div class="services-col-title">
+            <span>🏢</span> Pour les employeurs
+          </div>
+
+          <div class="service-item">
+            <span class="service-icon" aria-hidden="true">🔍</span>
+            <span class="service-text">Recrutement de main-d'œuvre africaine qualifiée et motivée</span>
+          </div>
+          <div class="service-item">
+            <span class="service-icon" aria-hidden="true">✅</span>
+            <span class="service-text">Profils pré-vérifiés, certifiés et prêts à l'emploi</span>
+          </div>
+          <div class="service-item">
+            <span class="service-icon" aria-hidden="true">📋</span>
+            <span class="service-text">Gestion administrative complète (Decreto Flussi, Skilled Worker…)</span>
+          </div>
+          <div class="service-item">
+            <span class="service-icon" aria-hidden="true">🤝</span>
+            <span class="service-text">Partenariats long terme avec suivi et garantie satisfaction</span>
+          </div>
+          <div class="service-item">
+            <span class="service-icon" aria-hidden="true">🌍</span>
+            <span class="service-text">Présence multi-pays : Cameroun, Sénégal, Côte d'Ivoire, RDC</span>
+          </div>
+
+          <a href="{% url 'recruiters:dashboard' %}" class="btn btn-ghost" aria-label="Accéder à l'espace recruteur Immigration97">
+            Espace recruteur →
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 7 — TESTIMONIALS
+  ============================================================ -->
+  <section id="testimonials" aria-labelledby="testimonials-title">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label reveal">Témoignages</span>
+        <h2 class="section-title reveal reveal-delay-1" id="testimonials-title">
+          Ce qu'ils <span>disent de nous</span>
+        </h2>
+        <p class="section-subtitle reveal reveal-delay-2">
+          Des centaines de familles africaines ont déjà changé de vie grâce à Immigration97.
+        </p>
+      </div>
+
+      <div class="testimonials-slider-wrap reveal">
+        <div class="testimonials-track" id="testimonialsTrack" role="list" aria-live="polite">
+
+          <div class="testimonial-card" role="listitem" aria-label="Témoignage d'Amara D., Sénégal vers Italie">
+            <div class="testimonial-inner">
+              <div class="testimonial-avatar" aria-hidden="true">AD</div>
+              <div class="testimonial-stars" aria-label="Note : 5 étoiles sur 5">★★★★★</div>
+              <blockquote class="testimonial-quote">
+                "Grâce à Immigration97, j'ai obtenu mon visa travail pour l'Italie en moins de 3 mois. L'équipe a géré tous mes documents. Je recommande à 100%."
+              </blockquote>
+              <div class="testimonial-name">Amara D.</div>
+              <div class="testimonial-origin">Dakar, Sénégal → Rome, Italie</div>
+              <div class="testimonial-role">Ouvrier agricole</div>
+            </div>
+          </div>
+
+          <div class="testimonial-card" role="listitem" aria-label="Témoignage de Fatou M., Cameroun vers Canada">
+            <div class="testimonial-inner">
+              <div class="testimonial-avatar" aria-hidden="true" style="background:linear-gradient(135deg,#e056c0,#a83285);">FM</div>
+              <div class="testimonial-stars" aria-label="Note : 5 étoiles sur 5">★★★★★</div>
+              <blockquote class="testimonial-quote">
+                "J'avais peur de ne pas avoir le niveau de langue requis. La préparation TCF sur la plateforme m'a permis d'atteindre B2 en 8 semaines. Maintenant je suis infirmière au Canada !"
+              </blockquote>
+              <div class="testimonial-name">Fatou M.</div>
+              <div class="testimonial-origin">Douala, Cameroun → Montréal, Canada</div>
+              <div class="testimonial-role">Infirmière diplômée</div>
+            </div>
+          </div>
+
+          <div class="testimonial-card" role="listitem" aria-label="Témoignage de Kwame A., Côte d'Ivoire vers Allemagne">
+            <div class="testimonial-inner">
+              <div class="testimonial-avatar" aria-hidden="true" style="background:linear-gradient(135deg,#20b56e,#0a7a42);">KA</div>
+              <div class="testimonial-stars" aria-label="Note : 5 étoiles sur 5">★★★★★</div>
+              <blockquote class="testimonial-quote">
+                "Le coaching CV et entretien a tout changé. Mon dossier a été retenu du premier coup pour la carte bleue européenne en Allemagne."
+              </blockquote>
+              <div class="testimonial-name">Kwame A.</div>
+              <div class="testimonial-origin">Abidjan, Côte d'Ivoire → Berlin, Allemagne</div>
+              <div class="testimonial-role">Technicien en électronique</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="slider-controls">
+          <button class="slider-btn" id="sliderPrev" aria-label="Témoignage précédent">&#8592;</button>
+          <div class="slider-dots" role="tablist" aria-label="Navigation par témoignage">
+            <button class="slider-dot active" role="tab" aria-selected="true" aria-label="Témoignage 1 sur 3" data-index="0"></button>
+            <button class="slider-dot" role="tab" aria-selected="false" aria-label="Témoignage 2 sur 3" data-index="1"></button>
+            <button class="slider-dot" role="tab" aria-selected="false" aria-label="Témoignage 3 sur 3" data-index="2"></button>
+          </div>
+          <button class="slider-btn" id="sliderNext" aria-label="Témoignage suivant">&#8594;</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 8 — EBOOKS & GUIDES
+  ============================================================ -->
+  <section id="guides" aria-labelledby="guides-title">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label reveal">Ressources gratuites</span>
+        <h2 class="section-title reveal reveal-delay-1" id="guides-title">
+          Préparez votre <span>départ</span>
+        </h2>
+        <p class="section-subtitle reveal reveal-delay-2">
+          Nos guides pratiques pour maximiser vos chances d'obtenir un visa et un emploi à l'étranger.
+        </p>
+      </div>
+
+      <div class="guides-grid">
+
+        <article class="guide-card reveal reveal-delay-1" aria-label="Guide Decreto Flussi 2025 — Gratuit">
+          <div class="guide-header guide-header-1" aria-hidden="true">📋</div>
+          <div class="guide-body">
+            <span class="guide-badge">Gratuit</span>
+            <h3 class="guide-title">Guide Decreto Flussi 2025</h3>
+            <p class="guide-desc">Tout sur le décret flux Italie : quota, secteurs, documents requis, procédure pas à pas.</p>
+            <a href="#" class="guide-cta" aria-label="Télécharger le guide Decreto Flussi 2025">Télécharger →</a>
+          </div>
+        </article>
+
+        <article class="guide-card reveal reveal-delay-2" aria-label="Guide Visa Skilled Worker UK — Gratuit">
+          <div class="guide-header guide-header-2" aria-hidden="true">🇬🇧</div>
+          <div class="guide-body">
+            <span class="guide-badge">Gratuit</span>
+            <h3 class="guide-title">Visa Skilled Worker UK</h3>
+            <p class="guide-desc">Conditions, salaire minimum, liste des métiers éligibles, dossier complet step by step.</p>
+            <a href="#" class="guide-cta" aria-label="Télécharger le guide Visa Skilled Worker UK">Télécharger →</a>
+          </div>
+        </article>
+
+        <article class="guide-card reveal reveal-delay-3" aria-label="Guide Travailler au Japon — 2 500 XAF">
+          <div class="guide-header guide-header-3" aria-hidden="true">🇯🇵</div>
+          <div class="guide-body">
+            <span class="guide-badge" style="background:rgba(212,168,67,0.2);color:var(--gold-light);">2 500 XAF</span>
+            <h3 class="guide-title">Travailler au Japon</h3>
+            <p class="guide-desc">Visa Specified Skilled Worker, secteurs porteurs, bases du japonais pour débuter.</p>
+            <a href="#" class="guide-cta" aria-label="Obtenir le guide Travailler au Japon">Obtenir →</a>
+          </div>
+        </article>
+
+        <article class="guide-card reveal reveal-delay-4" aria-label="Guide TCF Canada Préparation complète — Gratuit">
+          <div class="guide-header guide-header-4" aria-hidden="true">🎯</div>
+          <div class="guide-body">
+            <span class="guide-badge">Gratuit</span>
+            <h3 class="guide-title">TCF Canada — Préparation complète</h3>
+            <p class="guide-desc">Stratégies éprouvées, exercices pratiques et scores cibles par niveau CECR.</p>
+            <a href="#" class="guide-cta" aria-label="Télécharger le guide TCF Canada">Télécharger →</a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 9 — FINAL CTA
+  ============================================================ -->
+  <section id="final-cta" aria-labelledby="cta-headline">
+
+    <div class="africa-silhouette" aria-hidden="true">
+      <svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+        <path d="M100 5 C95 5,60 15,45 30 C30 45,25 60,20 75 C15 90,10 105,12 120 C14 135,20 140,18 155 C16 165,10 172,15 185 C20 198,35 205,50 210 C65 215,75 218,90 220 C105 222,115 218,125 212 C140 204,148 195,155 182 C162 168,165 158,162 145 C158 130,150 125,155 110 C162 92,178 82,175 65 C172 48,158 38,148 28 C138 18,115 5,100 5 Z"/>
+      </svg>
+    </div>
+
+    <h2 class="final-cta-headline reveal" id="cta-headline">
+      Prêt à changer de vie ?
+    </h2>
+    <p class="final-cta-sub reveal reveal-delay-1">
+      Rejoignez <strong>3 200+ Africains</strong> qui ont franchi le pas.
     </p>
 
-    <div class="home-actions">
-      <a href="/visa-travail/offres/" class="btn btn--primary btn--lg">💼 Offres d'emploi à l'international</a>
-      <a href="{% url 'actualite:list' %}" class="btn btn--outline btn--lg">⚡ Actualités immigration</a>
-      <a href="{% url 'wizard' %}" class="btn btn--outline btn--lg">🎯 Vérifier mon éligibilité</a>
-    </div>
+    <form class="cta-form reveal reveal-delay-2" action="#" method="POST" aria-label="Formulaire de démarrage rapide">
+      {% csrf_token %}
+      <input type="text" name="prenom" placeholder="Prénom" aria-label="Votre prénom" required />
+      <input type="email" name="email" placeholder="Email" aria-label="Votre adresse email" required />
+      <select name="pays_depart" aria-label="Sélectionnez votre pays de départ">
+        <option value="" disabled selected>Pays de départ</option>
+        <option value="cm">Cameroun</option>
+        <option value="sn">Sénégal</option>
+        <option value="ci">Côte d'Ivoire</option>
+        <option value="cd">RDC</option>
+        <option value="other">Autre</option>
+      </select>
+      <select name="destination" aria-label="Sélectionnez votre destination souhaitée">
+        <option value="" disabled selected>Destination</option>
+        <option value="ca">Canada</option>
+        <option value="it">Italie</option>
+        <option value="de">Allemagne</option>
+        <option value="es">Espagne</option>
+        <option value="jp">Japon</option>
+        <option value="uk">Royaume-Uni</option>
+      </select>
+      <button type="submit" class="btn-submit" aria-label="Commencer mon inscription gratuitement">
+        Je commence maintenant →
+      </button>
+    </form>
 
-    <div class="home-hero__trust">
-      <div class="trust-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        <span>Paiement sécurisé</span>
-      </div>
-      <div class="trust-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="20 6 9 17 4 12"/>
-        </svg>
-        <span>Accès immédiat</span>
-      </div>
-      <div class="trust-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/>
-          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-        </svg>
-        <span>Accessible depuis toute l'Afrique</span>
-      </div>
-      <div class="trust-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-        <span>12 000+ utilisateurs</span>
-      </div>
-    </div>
+    <p class="cta-note reveal reveal-delay-3">
+      <span>✓</span> Gratuit &nbsp;·&nbsp;
+      <span>✓</span> Sans engagement &nbsp;·&nbsp;
+      <span>✓</span> Réponse sous 24h
+    </p>
+  </section>
 
-  </div>
-</section>
+  <!-- ============================================================
+       SECTION 10 — FOOTER
+  ============================================================ -->
+  <footer id="footer" aria-label="Pied de page Immigration97">
+    <div class="container">
 
-<!-- ════════════════════════ STATS ════════════════════════ -->
-<section class="home-stats">
-  <div class="container">
-    <div class="stats-grid">
-      <div class="stat-item">
-        <div class="stat-item__value">12 000+</div>
-        <div class="stat-item__label">Utilisateurs actifs</div>
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">Immigration<span>97</span></div>
+          <p class="footer-tagline">La plateforme de placement international pour travailleurs et étudiants africains.</p>
+        </div>
+        <nav class="footer-socials" aria-label="Réseaux sociaux Immigration97">
+          <a href="https://wa.me/237000000000" class="social-icon" aria-label="Contacter sur WhatsApp" target="_blank" rel="noopener noreferrer">💬</a>
+          <a href="#" class="social-icon" aria-label="Page Facebook Immigration97" target="_blank" rel="noopener noreferrer">📘</a>
+          <a href="#" class="social-icon" aria-label="Instagram Immigration97" target="_blank" rel="noopener noreferrer">📷</a>
+          <a href="#" class="social-icon" aria-label="LinkedIn Immigration97" target="_blank" rel="noopener noreferrer">💼</a>
+          <a href="#" class="social-icon" aria-label="Chaîne YouTube Immigration97" target="_blank" rel="noopener noreferrer">▶️</a>
+        </nav>
       </div>
-      <div class="stat-item">
-        <div class="stat-item__value">8 pays</div>
-        <div class="stat-item__label">Afrique francophone</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-item__value">15 destinations</div>
-        <div class="stat-item__label">Europe, Canada, USA</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-item__value">98%</div>
-        <div class="stat-item__label">Satisfaction clients</div>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- ════════════════════════ ACTUALITÉS SPOTLIGHT ════════════════════════ -->
-<section class="home-news-spotlight">
-  <div class="container">
-    <div class="news-spotlight__card">
-      <div class="news-spotlight__left">
+      <div class="footer-grid">
 
-        <div class="news-spotlight__badge">
-          <span class="ns-dot"></span>
-          ALERTES & ACTUALITÉS VÉRIFIÉES
+        <div class="footer-col">
+          <div class="footer-col-title">Immigration97</div>
+          <p>Agence certifiée de placement international, accompagnant les travailleurs et étudiants africains vers de nouvelles opportunités depuis 2019.</p>
+          <p>📍 Yaoundé, Cameroun — Bastos</p>
         </div>
 
-        <h2 class="news-spotlight__title">
-          Actualités Immigration <span class="ns-accent">en temps réel</span>
-        </h2>
-
-        <p class="news-spotlight__text">
-          Décisions officielles, ouvertures (DV Lottery), lois, opportunités visa travail/études.
-          Zéro rumeur : uniquement des sources fiables + résumé clair.
-        </p>
-
-        <div class="news-spotlight__actions">
-          <a class="btn btn--primary btn--lg" href="{% url 'actualite:list' %}">📰 Voir les actualités</a>
-          <a class="btn btn--outline btn--lg" href="{% url 'actualite:by_country' 'usa' %}">🇺🇸 USA</a>
-          <a class="btn btn--outline btn--lg" href="{% url 'actualite:by_country' 'canada' %}">🇨🇦 Canada</a>
-          <a class="btn btn--outline btn--lg" href="{% url 'actualite:by_country' 'italie' %}">🇮🇹 Italie</a>
+        <div class="footer-col">
+          <div class="footer-col-title">Services</div>
+          <ul>
+            <li><a href="#">Visa Travail</a></li>
+            <li><a href="#">Visa Études</a></li>
+            <li><a href="#">Tests de Langue</a></li>
+            <li><a href="#">CV Professionnel</a></li>
+            <li><a href="#">Lettre de Motivation</a></li>
+          </ul>
         </div>
 
-        <div class="news-spotlight__meta">
-          <span class="ns-pill">✅ Info vérifiée</span>
-          <span class="ns-pill">⭐ Articles importants</span>
-          <span class="ns-pill">📊 Top semaine</span>
+        <div class="footer-col">
+          <div class="footer-col-title">Destinations</div>
+          <ul>
+            <li><a href="{% url 'actualite:by_country' 'canada' %}">🇨🇦 Canada</a></li>
+            <li><a href="#">🇮🇹 Italie</a></li>
+            <li><a href="#">🇩🇪 Allemagne</a></li>
+            <li><a href="#">🇪🇸 Espagne</a></li>
+            <li><a href="#">🇯🇵 Japon</a></li>
+            <li><a href="#">🇬🇧 Royaume-Uni</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-col-title">Contact</div>
+          <a href="https://wa.me/237000000000" class="footer-contact-item" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp : plus 237 000 000 000">
+            <span>💬</span> +237 000 000 000
+          </a>
+          <a href="mailto:contact@immigration97.com" class="footer-contact-item" aria-label="Email : contact arobase immigration97.com">
+            <span>✉️</span> contact@immigration97.com
+          </a>
+          <a href="#" class="footer-contact-item" target="_blank" rel="noopener noreferrer" aria-label="Instagram : arobase immigration97">
+            <span>📷</span> @immigration97
+          </a>
         </div>
 
       </div>
 
-      <div class="news-spotlight__right">
-        <div class="news-spotlight__mini">
-          <div class="news-spotlight__miniTitle">📊 Top articles de la semaine</div>
-
-          {% if top_week %}
-            <div class="ns-toplist">
-              {% for item in top_week %}
-                <a class="ns-topitem" href="{% url 'actualite:detail' item.slug %}">
-                  <div class="ns-topitem__title">
-                    {% if item.is_featured %}<span class="ns-star">⭐</span>{% endif %}
-                    {{ item.title|truncatechars:56 }}
-                  </div>
-                  <div class="ns-topitem__meta">
-                    <span>{{ item.country_target|country_label }}</span>
-                    <span class="ns-dotsep">•</span>
-                    <span>{{ item.views_count }} vues</span>
-                    <span class="ns-dotsep">•</span>
-                    <span>{{ item.reading_time_minutes }} min</span>
-                  </div>
-                </a>
-              {% endfor %}
-            </div>
-            <a class="ns-topmore" href="{% url 'actualite:list' %}">Voir toutes les actualités →</a>
-          {% else %}
-            <div class="news-spotlight__miniHint">
-              Aucun article cette semaine — publie 2–3 articles et le top se remplira automatiquement.
-            </div>
-            <a class="ns-topmore" href="{% url 'actualite:list' %}">Aller aux actualités →</a>
-          {% endif %}
-        </div>
+      <div class="footer-bottom">
+        <p class="footer-copy">© 2026 Immigration97. Tous droits réservés.</p>
+        <nav class="footer-legal" aria-label="Liens légaux">
+          <a href="#">Mentions légales</a>
+          <a href="#">Politique de confidentialité</a>
+        </nav>
+        <p class="footer-made">Site conçu et développé au Cameroun 🇨🇲</p>
       </div>
 
     </div>
-  </div>
-</section>
+  </footer>
 
-<!-- ════════════════════════ SERVICES ════════════════════════ -->
-<section class="home-services">
-  <div class="container">
+  <!-- WhatsApp floating button -->
+  <a href="https://wa.me/237000000000"
+    id="whatsapp-float"
+    aria-label="Nous contacter sur WhatsApp"
+    target="_blank"
+    rel="noopener noreferrer">
+    💬
+  </a>
 
-    <header class="section-header">
-      <h2>Tout ton projet d'immigration sur une seule plateforme</h2>
-      <p>
-        Des outils professionnels pour comprendre, préparer et réussir
-        ton projet d'immigration légale depuis le <strong>Cameroun</strong>, le <strong>Sénégal</strong>,
-        la <strong>Côte d'Ivoire</strong> et toute l'Afrique francophone.
-      </p>
-    </header>
+  <!-- ============================================================
+       JAVASCRIPT — Vanilla, no external dependencies
+  ============================================================ -->
+  <script>
+    /* ============================================================
+       1. NAVBAR SCROLL — add .scrolled at 50px
+    ============================================================ */
+    (function () {
+      var navbar = document.getElementById('navbar');
+      function onScroll() {
+        navbar.classList.toggle('scrolled', window.scrollY > 50);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
 
-    <div class="services-grid">
+    /* ============================================================
+       2. MOBILE MENU — hamburger toggle
+    ============================================================ */
+    var hamburger = document.getElementById('hamburger');
+    var mobileMenu = document.getElementById('mobile-menu');
 
-      <!-- Visa Travail -->
-      <article class="service-card service-card--featured">
-        <div class="service-card__icon">💼</div>
-        <h3>Visa Travail</h3>
-        <p>
-          Programmes officiels : <strong>visa travail Italie</strong> (décret flux),
-          <strong>Allemagne</strong> (carte bleue européenne),
-          <strong>Canada</strong> (Entrée Express). Procédures légales et accompagnement complet.
-        </p>
-        <div class="service-card__tags">
-          <span class="tag">Italie</span>
-          <span class="tag">Allemagne</span>
-          <span class="tag">Canada</span>
-        </div>
-        <a href="/visa-travail/" class="service-card__link">Découvrir les offres</a>
-      </article>
+    function closeMobileMenu() {
+      hamburger.classList.remove('active');
+      mobileMenu.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
 
-      <!-- Actualités -->
-      <article class="service-card service-card--actualite">
-        <div class="service-card__icon">📰</div>
-        <h3>Actualités Immigration</h3>
-        <p>
-          <strong>Source officielle</strong>, résumé clair et actions immédiates.
-          USA, Canada, Italie, Europe — le meilleur point d'entrée pour ne rien rater.
-        </p>
-        <div class="service-card__tags">
-          <span class="tag">Sources officielles</span>
-          <span class="tag">Alertes</span>
-          <span class="tag">Opportunités</span>
-        </div>
-        <a href="{% url 'actualite:list' %}" class="service-card__link">Voir toutes les actualités</a>
-      </article>
+    hamburger.addEventListener('click', function () {
+      var isOpen = mobileMenu.classList.contains('open');
+      if (isOpen) {
+        closeMobileMenu();
+      } else {
+        hamburger.classList.add('active');
+        mobileMenu.classList.add('open');
+        hamburger.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+      }
+    });
 
-      <!-- Visa Études -->
-      <article class="service-card">
-        <div class="service-card__icon">🎓</div>
-        <h3>Visa Études</h3>
-        <p>
-          Universités accessibles, <strong>admissions sans Campus France</strong>,
-          <strong>bourses d'études</strong> et accompagnement personnalisé selon ton profil académique.
-        </p>
-        <div class="service-card__tags">
-          <span class="tag">Bourses</span>
-          <span class="tag">Admissions</span>
-        </div>
-        <a href="/visa-etudes/" class="service-card__link">Préparer mon dossier</a>
-      </article>
+    mobileMenu.addEventListener('click', function (e) {
+      if (e.target === mobileMenu) closeMobileMenu();
+    });
 
-      <!-- Visa Tourisme -->
-      <article class="service-card">
-        <div class="service-card__icon">🧳</div>
-        <h3>Visa Tourisme Schengen</h3>
-        <p>
-          Préparation complète du <strong>visa Schengen</strong> :
-          documents obligatoires, itinéraires crédibles, réservations et conseils anti-refus.
-        </p>
-        <div class="service-card__tags">
-          <span class="tag">Schengen</span>
-          <span class="tag">France</span>
-        </div>
-        <a href="{% url 'visa_tourisme:home' %}" class="service-card__link">Préparer mon dossier</a>
-      </article>
+    /* ============================================================
+       3. PARTICLE GENERATION — 30 animated gold dots
+    ============================================================ */
+    (function () {
+      var container = document.getElementById('particles-container');
+      var durations = [8, 10, 12, 14, 16, 18, 20];
+      var sizes = [2, 3, 4, 5, 6];
 
-      <!-- Résidence Permanente -->
-      <article class="service-card">
-        <div class="service-card__icon">🏠</div>
-        <h3>Résidence Permanente</h3>
-        <p>
-          Programmes de <strong>résidence permanente Canada</strong> (RP),
-          critères par pays, stratégies d'installation durable et accompagnement famille complète.
-        </p>
-        <div class="service-card__tags">
-          <span class="tag">Canada</span>
-          <span class="tag">Europe</span>
-        </div>
-        <a href="/residence-permanente/" class="service-card__link">Calculer mon score</a>
-      </article>
+      for (var i = 0; i < 30; i++) {
+        var p = document.createElement('div');
+        p.className = 'particle';
+        var size = sizes[Math.floor(Math.random() * sizes.length)];
+        p.style.cssText =
+          'width:' + size + 'px;' +
+          'height:' + size + 'px;' +
+          'left:' + (Math.random() * 100) + '%;' +
+          'top:' + (Math.random() * 100) + '%;' +
+          'animation-duration:' + durations[Math.floor(Math.random() * durations.length)] + 's;' +
+          'animation-delay:-' + Math.floor(Math.random() * 10) + 's;' +
+          'opacity:' + (0.3 + Math.random() * 0.7);
+        container.appendChild(p);
+      }
+    })();
 
-      <!-- Tests de Langue -->
-      <article class="service-card">
-        <div class="service-card__icon">🧪</div>
-        <h3>Tests de Langue</h3>
-        <p>
-          Préparation <strong>TEF Canada</strong>, <strong>IELTS</strong>,
-          <strong>TestDaF</strong> avec cours structurés, exercices corrigés et simulations d'examen.
-        </p>
-        <div class="service-card__tags">
-          <span class="tag">TEF</span>
-          <span class="tag">IELTS</span>
-          <span class="tag">Allemand</span>
-        </div>
-        <a href="/prep/" class="service-card__link">Commencer ma préparation</a>
-      </article>
+    /* ============================================================
+       4. COUNTER ANIMATION — eased count-up on IntersectionObserver
+    ============================================================ */
+    (function () {
+      var counters = document.querySelectorAll('[data-target]');
+      var started = new Set();
 
-      <!-- CV Professionnels -->
-      <article class="service-card">
-        <div class="service-card__icon">📄</div>
-        <h3>CV Professionnels</h3>
-        <p>
-          <strong>CV internationaux</strong> conformes aux standards européens, canadiens et ATS.
-          Optimisés pour les recruteurs étrangers.
-        </p>
-        <a href="/cv-generator/" class="service-card__link">Créer mon CV</a>
-      </article>
+      function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
 
-      <!-- Lettre de Motivation -->
-      <article class="service-card">
-        <div class="service-card__icon">✉️</div>
-        <h3>Lettre de Motivation</h3>
-        <p>Lettres professionnelles adaptées au visa, au pays de destination et à ton projet personnel.</p>
-        <a href="/motivation/" class="service-card__link">Rédiger ma lettre</a>
-      </article>
+      function animateCounter(el) {
+        var target = parseInt(el.getAttribute('data-target'), 10);
+        var isPlus = target === 3200;
+        var isPercent = target === 94;
+        var duration = 2000;
+        var start = null;
 
-      <!-- Cours d'italien -->
-      <article class="service-card">
-        <div class="service-card__icon">🇮🇹</div>
-        <h3>Cours d'italien (Nulla Osta)</h3>
-        <p>
-          Apprends l'essentiel en français + italien : se présenter, comprendre les consignes,
-          réussir l'entretien et s'adapter au travail en Italie.
-        </p>
-        <a href="{% url 'italian_courses:category_list' %}" class="service-card__link">Commencer les cours</a>
-      </article>
+        function step(ts) {
+          if (!start) start = ts;
+          var progress = Math.min((ts - start) / duration, 1);
+          var val = Math.floor(easeOut(progress) * target);
+          el.textContent = val.toLocaleString('fr-FR') + (progress === 1 ? (isPlus ? '+' : isPercent ? '%' : '') : '');
+          if (progress < 1) requestAnimationFrame(step);
+          else el.textContent = target.toLocaleString('fr-FR') + (isPlus ? '+' : isPercent ? '%' : '');
+        }
+        requestAnimationFrame(step);
+      }
 
-      <!-- Photo Visa -->
-      <article class="service-card">
-        <div class="service-card__icon">📸</div>
-        <h3>Photo conforme Visa</h3>
-        <p>
-          Prise et adaptation aux <strong>normes biométriques</strong> officielles
-          conformes aux exigences consulaires.
-        </p>
-        <a href="/visa-photo/" class="service-card__link">Faire ma photo visa</a>
-      </article>
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting && !started.has(e.target)) {
+            started.add(e.target);
+            animateCounter(e.target);
+          }
+        });
+      }, { threshold: 0.5 });
 
-      <!-- Traduction -->
-      <article class="service-card">
-        <div class="service-card__icon">🌐</div>
-        <h3>Traduction & Documents</h3>
-        <p>
-          <strong>Traduction assermentée</strong>, équivalence de diplômes et
-          compression PDF conformes aux exigences consulaires.
-        </p>
-        <a href="/documents/" class="service-card__link">Traduire mes documents</a>
-      </article>
+      counters.forEach(function (el) { obs.observe(el); });
+    })();
 
-      <!-- Job Agent -->
-      <article class="service-card service-card--featured">
-        <div class="service-card__icon">⚡</div>
-        <h3>Job Agent (Candidatures rapides)</h3>
-        <p>
-          Trouve des offres correspondant à ton profil, postule en quelques clics
-          et laisse l'agent suivre tes candidatures.
-        </p>
-        <div class="service-card__tags">
-          <span class="tag">Offres</span>
-          <span class="tag">Candidatures</span>
-        </div>
-        <div class="service-card__actions" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem;">
-          <a href="{% url 'job_agent:dashboard' %}" class="btn btn--primary">Dashboard</a>
-          <a href="{% url 'job_agent:public_offers' %}" class="btn btn--outline">Offres publiques</a>
-        </div>
-      </article>
+    /* ============================================================
+       5. SCROLL REVEAL — fade-up on .reveal elements
+    ============================================================ */
+    (function () {
+      var reveals = document.querySelectorAll('.reveal');
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            obs.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+      reveals.forEach(function (el) { obs.observe(el); });
+    })();
 
-    </div>
-  </div>
-</section>
+    /* ============================================================
+       6. TESTIMONIALS SLIDER — auto-play 4s, prev/next, dots
+    ============================================================ */
+    (function () {
+      var track = document.getElementById('testimonialsTrack');
+      if (!track) return;
+      var cards = track.querySelectorAll('.testimonial-card');
+      var dots  = document.querySelectorAll('.slider-dot');
+      var prev  = document.getElementById('sliderPrev');
+      var next  = document.getElementById('sliderNext');
+      var total = cards.length;
+      var cur = 0;
+      var paused = false;
 
-<!-- ════════════════════════ MARKETPLACE TALENTS ════════════════════════ -->
-<section class="home-marketplace">
-  <div class="home-marketplace__inner">
+      function goTo(i) {
+        cur = ((i % total) + total) % total;
+        track.style.transform = 'translateX(-' + (cur * 100) + '%)';
+        dots.forEach(function (d, idx) {
+          d.classList.toggle('active', idx === cur);
+          d.setAttribute('aria-selected', String(idx === cur));
+        });
+      }
 
-    <div style="position:relative;z-index:1;">
-      <p class="home-marketplace__kicker">Nouveau · Marketplace Emploi</p>
-      <h2 class="home-marketplace__title">
-        Recruteurs : trouvez les<br><span>meilleurs talents africains</span>
-      </h2>
-      <p class="home-marketplace__text">
-        Des profils Premium vérifiés (CV + portfolio + niveau de langue certifié) prêts
-        pour travailler au Canada, en Europe et en Afrique. Invitez directement les candidats
-        qui correspondent à vos besoins — réponse garantie sous 48h.
-      </p>
-      <div class="home-marketplace__btns">
-        <a href="{% url 'profiles:list' %}" class="mp-btn-amber">🔍 Voir les profils Premium</a>
-        {% if user.is_authenticated %}
-          <a href="{% url 'recruiters:dashboard' %}" class="mp-btn-ghost">🏢 Espace recruteur</a>
-        {% else %}
-          <a href="{% url 'profiles:my_space' %}" class="mp-btn-ghost">💼 Créer mon profil</a>
-        {% endif %}
-      </div>
-    </div>
+      prev && prev.addEventListener('click', function () { goTo(cur - 1); });
+      next && next.addEventListener('click', function () { goTo(cur + 1); });
+      dots.forEach(function (d) {
+        d.addEventListener('click', function () { goTo(parseInt(d.getAttribute('data-index'), 10)); });
+      });
 
-    <div class="home-marketplace__steps">
-      <div class="mp-step">
-        <div class="mp-step__num">1</div>
-        <div>
-          <div class="mp-step__title">Filtrez par métier & niveau langue</div>
-          <div class="mp-step__desc">BTP, Santé, IT, Hôtellerie, Agriculture… + niveau A1→C2 et ville.</div>
-        </div>
-      </div>
-      <div class="mp-step">
-        <div class="mp-step__num">2</div>
-        <div>
-          <div class="mp-step__title">Invitez à un entretien</div>
-          <div class="mp-step__desc">Le candidat reçoit un email et répond depuis son espace.</div>
-        </div>
-      </div>
-      <div class="mp-step">
-        <div class="mp-step__num">3</div>
-        <div>
-          <div class="mp-step__title">Échangez en messagerie privée</div>
-          <div class="mp-step__desc">Une fois l'invitation acceptée, une conversation privée s'ouvre.</div>
-        </div>
-      </div>
-    </div>
+      var wrap = track.closest('.testimonials-slider-wrap');
+      if (wrap) {
+        wrap.addEventListener('mouseenter', function () { paused = true; });
+        wrap.addEventListener('mouseleave', function () { paused = false; });
+      }
 
-  </div>
-</section>
+      setInterval(function () { if (!paused) goTo(cur + 1); }, 4000);
+    })();
 
-<!-- ════════════════════════ POURQUOI NOUS ════════════════════════ -->
-<section class="home-why">
-  <div class="container">
+    /* ============================================================
+       7. 3D DESTINATION CARDS — mousemove rotateX/Y tilt
+    ============================================================ */
+    (function () {
+      document.querySelectorAll('.dest-card[data-tilt]').forEach(function (card) {
+        card.addEventListener('mousemove', function (e) {
+          var r = card.getBoundingClientRect();
+          var dx = (e.clientX - r.left - r.width  / 2) / (r.width  / 2);
+          var dy = (e.clientY - r.top  - r.height / 2) / (r.height / 2);
+          card.style.transform = 'perspective(1000px) rotateX(' + (-dy * 8) + 'deg) rotateY(' + (dx * 8) + 'deg) scale3d(1.02,1.02,1.02)';
+        });
+        card.addEventListener('mouseleave', function () {
+          card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1,1,1)';
+        });
+      });
+    })();
 
-    <header class="section-header section-header--centered">
-      <h2>Pourquoi choisir Immigration97 ?</h2>
-      <p>Une plateforme pensée pour l'Afrique, ses réalités et ses ambitions</p>
-    </header>
+    /* ============================================================
+       8. MAGNETIC CTA — button follows cursor within 80px
+    ============================================================ */
+    (function () {
+      document.querySelectorAll('.btn-magnetic').forEach(function (wrap) {
+        var btn = wrap.querySelector('.btn');
+        if (!btn) return;
+        wrap.addEventListener('mousemove', function (e) {
+          var r = wrap.getBoundingClientRect();
+          var dx = e.clientX - (r.left + r.width  / 2);
+          var dy = e.clientY - (r.top  + r.height / 2);
+          var dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 80) {
+            var f = (80 - dist) / 80 * 0.3;
+            btn.style.transform = 'translate(' + (dx * f) + 'px,' + (dy * f) + 'px)';
+          }
+        });
+        wrap.addEventListener('mouseleave', function () {
+          btn.style.transform = '';
+        });
+      });
+    })();
 
-    <div class="why-grid">
-      <div class="why-item">
-        <div class="why-item__icon">🎯</div>
-        <h3>Information fiable et vérifiée</h3>
-        <p>Sources officielles uniquement : ambassades, consulats, IRCC Canada, ministère italien, OFII France. Aucune désinformation.</p>
-      </div>
-      <div class="why-item">
-        <div class="why-item__icon">🌍</div>
-        <h3>Conçu pour l'Afrique francophone</h3>
-        <p>Nous comprenons les réalités africaines. Nos outils sont adaptés au <strong>Cameroun, Sénégal, Côte d'Ivoire, RDC, Mali, Burkina Faso</strong>.</p>
-      </div>
-      <div class="why-item">
-        <div class="why-item__icon">🔐</div>
-        <h3>Sécurisé et transparent</h3>
-        <p>Paiement sécurisé, données protégées, aucun engagement caché. Tu payes uniquement pour les services que tu utilises.</p>
-      </div>
-      <div class="why-item">
-        <div class="why-item__icon">⚡</div>
-        <h3>Résultats immédiats</h3>
-        <p>Analyse de profil en quelques minutes, accès instantané aux ressources, téléchargement immédiat (CV, lettres, certificats).</p>
-      </div>
-      <div class="why-item">
-        <div class="why-item__icon">🎓</div>
-        <h3>Contenu pédagogique complet</h3>
-        <p>Guides détaillés, exercices TEF/IELTS/TestDaF, exemples concrets. Nous t'expliquons chaque étape du processus d'immigration.</p>
-      </div>
-      <div class="why-item">
-        <div class="why-item__icon">💬</div>
-        <h3>Support réactif</h3>
-        <p>Équipe disponible par email, WhatsApp ou chat. Délai de réponse : moins de 24h.</p>
-      </div>
-    </div>
+    /* ============================================================
+       9. PROGRESS BARS — animate width on scroll reveal
+    ============================================================ */
+    (function () {
+      var bars = document.querySelectorAll('.dest-progress-bar[data-width]');
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            var bar = e.target;
+            setTimeout(function () {
+              bar.style.width = bar.getAttribute('data-width') + '%';
+            }, 200);
+            obs.unobserve(bar);
+          }
+        });
+      }, { threshold: 0.3 });
+      bars.forEach(function (b) { obs.observe(b); });
+    })();
+  </script>
 
-  </div>
-</section>
-
-<!-- ════════════════════════ SEO + FAQ ════════════════════════ -->
-<section class="home-seo">
-  <div class="container">
-    <div class="seo-content">
-
-      <h2>Immigration légale depuis l'Afrique : tout ce qu'il faut savoir</h2>
-
-      <p>L'<strong>immigration légale</strong> est un processus complexe mais accessible pour les Africains qui souhaitent travailler, étudier ou s'installer durablement à l'étranger. Il existe de nombreuses <strong>voies légales</strong> vers l'Europe, le Canada et d'autres destinations.</p>
-
-      <h3>Visa travail : les programmes officiels pour l'Afrique</h3>
-      <p>Le <strong>visa travail Italie</strong> (décret flux) permet aux ressortissants africains de travailler légalement dans des secteurs en tension (agriculture, hôtellerie, construction, santé). L'<strong>Allemagne</strong> propose la carte bleue européenne pour les profils qualifiés. Le <strong>Canada</strong> offre Entrée Express, permis de travail temporaire et Programme des travailleurs qualifiés du Québec.</p>
-
-      <h3>Tests de langue : TEF Canada, IELTS, TestDaF</h3>
-      <p>Les tests de langue sont obligatoires pour la plupart des programmes d'immigration. Le <strong>TEF Canada</strong> évalue le français, l'<strong>IELTS</strong> mesure l'anglais, le <strong>TestDaF</strong> est requis pour l'Allemagne. Immigration97 propose des cours structurés A1→C2 avec exercices corrigés par IA.</p>
-
-      <h3>Marketplace talents : recrutement international depuis l'Afrique</h3>
-      <p>Immigration97 connecte des <strong>profils Premium</strong> (CV + portfolio + niveau de langue certifié) aux recruteurs au Canada et en Europe. Secteurs : BTP, Santé, IT, Hôtellerie, Agriculture, Comptabilité. Filtrez par métier, niveau de langue et localisation.</p>
-
-    </div>
-
-    <div class="faq-section">
-      <h2>Questions fréquentes sur l'immigration légale</h2>
-
-      <details class="faq-item">
-        <summary>Quels pays recrutent des travailleurs africains ?</summary>
-        <p>L'<strong>Italie</strong> (décret flux), l'<strong>Allemagne</strong> (carte bleue européenne, secteur médical), le <strong>Canada</strong> (Entrée Express, permis de travail), le <strong>Portugal</strong> (secteur agricole) recrutent activement des travailleurs étrangers.</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>Combien coûte un visa de travail pour l'Europe ?</summary>
-        <p>Environ 116€ pour un visa long séjour France, 75€ pour l'Italie, 75€ pour l'Allemagne. Budget total estimé (avec traductions, assurances, billets) : 800 à 1 500€ selon la destination.</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>Peut-on immigrer au Canada sans diplôme ?</summary>
-        <p>Oui, certains programmes canadiens acceptent les profils sans diplôme universitaire — notamment les <strong>métiers spécialisés</strong> (plombiers, électriciens, soudeurs) via le Programme des candidats des provinces. L'expérience et les compétences linguistiques sont alors déterminantes.</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>Comment obtenir une bourse d'études pour l'étranger ?</summary>
-        <p>Les principales bourses pour Africains : <strong>bourses DAAD</strong> (Allemagne), <strong>bourses Eiffel</strong> (France), <strong>bourses Chevening</strong> (Royaume-Uni), bourses des universités canadiennes. Immigration97 te guide dans la recherche et la candidature.</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>Quelle est la différence entre visa tourisme et visa long séjour ?</summary>
-        <p>Le <strong>visa tourisme Schengen</strong> est limité à 90 jours dans 27 pays européens. Le <strong>visa long séjour</strong> (type D) est délivré pour plus de 90 jours et permet de travailler ou étudier dans le pays de destination.</p>
-      </details>
-
-    </div>
-  </div>
-</section>
-
-<!-- ════════════════════════ FINAL CTA ════════════════════════ -->
-<section class="home-cta">
-  <div class="container">
-    <div class="cta-box">
-      <h2>Prêt à démarrer ton projet d'immigration ?</h2>
-      <p>
-        Rejoins les <strong>12 000+ Africains</strong> qui utilisent Immigration97 pour préparer leur avenir à l'étranger.
-        Accès immédiat à tous les outils et ressources.
-      </p>
-      <a href="{% url 'billing:access' %}" class="btn btn--primary btn--lg">
-        Accéder à la plateforme maintenant
-      </a>
-      <p class="cta-box__note">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
-        Paiement sécurisé · Accès instantané · Support 24/7
-      </p>
-    </div>
-  </div>
-</section>
-
-{% endblock %}
+</body>
+</html>
