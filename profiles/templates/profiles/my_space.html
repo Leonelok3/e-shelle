@@ -9,159 +9,727 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/profiles.css' %}">
+<style>
+/* ============================================================
+   MY SPACE — African Premium Futurism
+   Cohérent avec home.html (navy deep + gold)
+============================================================ */
+:root {
+  --ms-navy-deep:   #050A18;
+  --ms-navy-mid:    #0A1628;
+  --ms-navy-light:  #0F2040;
+  --ms-gold:        #D4A843;
+  --ms-gold-light:  #F0C060;
+  --ms-amber:       #F59E0B;
+  --ms-glass:       rgba(255,255,255,0.04);
+  --ms-glass-border:rgba(212,168,67,0.22);
+  --ms-text:        #FFFFFF;
+  --ms-text-muted:  rgba(255,255,255,0.6);
+  --ms-radius:      16px;
+  --ms-transition:  all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ── Page background ── */
+body.profiles .app-main {
+  background: linear-gradient(160deg, var(--ms-navy-deep) 0%, var(--ms-navy-mid) 60%, #0A1F3A 100%);
+  min-height: 100vh;
+  color: var(--ms-text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+/* ── Hero Header ── */
+.ms-hero {
+  position: relative;
+  padding: 4rem 1.5rem 3rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+.ms-hero::before {
+  content: '';
+  position: absolute;
+  top: -100px; right: -100px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(212,168,67,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.ms-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(212,168,67,0.12);
+  border: 1px solid rgba(212,168,67,0.35);
+  border-radius: 50px;
+  padding: 0.4rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ms-gold);
+  margin-bottom: 1.5rem;
+}
+.ms-hero__badge span { color: rgba(212,168,67,0.5); }
+.ms-hero__grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 3rem;
+  align-items: start;
+}
+.ms-hero__title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(2.4rem, 4vw, 3.6rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+  color: var(--ms-text);
+}
+.ms-hero__title .gold { color: var(--ms-gold); font-style: italic; }
+.ms-hero__sub {
+  font-size: 1rem;
+  color: var(--ms-text-muted);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+  max-width: 520px;
+}
+
+/* ── Action buttons strip ── */
+.ms-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 2.5rem;
+}
+.ms-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--ms-transition);
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+.ms-btn--ghost {
+  background: var(--ms-glass);
+  border: 1px solid var(--ms-glass-border);
+  color: rgba(255,255,255,0.85);
+}
+.ms-btn--ghost:hover {
+  background: rgba(212,168,67,0.1);
+  border-color: rgba(212,168,67,0.5);
+  color: var(--ms-gold);
+}
+.ms-btn--gold {
+  background: linear-gradient(135deg, var(--ms-gold) 0%, var(--ms-amber) 100%);
+  color: #050A18;
+  font-weight: 700;
+}
+.ms-btn--gold:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+/* ── Progress Card ── */
+.ms-progress-card {
+  background: var(--ms-glass);
+  border: 1px solid var(--ms-glass-border);
+  border-radius: var(--ms-radius);
+  padding: 1.75rem;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+.ms-progress-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ms-gold), var(--ms-amber), transparent);
+}
+.ms-progress-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.ms-progress-card__title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ms-gold);
+}
+.ms-progress-card__pct {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: 2rem;
+  color: var(--ms-gold-light);
+  line-height: 1;
+}
+.ms-progress-track {
+  height: 6px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+.ms-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ms-gold), var(--ms-amber));
+  border-radius: 99px;
+  transition: width 0.8s ease;
+}
+.ms-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.ms-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--ms-text-muted);
+}
+.ms-check__dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  flex-shrink: 0;
+}
+.ms-check.is-ok .ms-check__dot { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+.ms-check.is-ok { color: rgba(255,255,255,0.85); }
+
+/* ── Quick Actions ── */
+.ms-quick {
+  max-width: 1200px;
+  margin: 0 auto 3rem;
+  padding: 0 1.5rem;
+}
+.ms-quick__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ms-gold);
+  margin-bottom: 1.25rem;
+}
+.ms-quick__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+.ms-qa {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--ms-glass);
+  border: 1px solid var(--ms-glass-border);
+  border-radius: var(--ms-radius);
+  padding: 1.25rem 1.4rem;
+  text-decoration: none;
+  color: var(--ms-text);
+  transition: var(--ms-transition);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+}
+.ms-qa:hover {
+  background: rgba(212,168,67,0.08);
+  border-color: rgba(212,168,67,0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+.ms-qa--cta {
+  background: linear-gradient(135deg, rgba(212,168,67,0.15) 0%, rgba(245,158,11,0.08) 100%);
+  border-color: rgba(212,168,67,0.4);
+}
+.ms-qa__icon { font-size: 1.6rem; flex-shrink: 0; }
+.ms-qa__label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+.ms-qa__hint { font-size: 0.75rem; color: var(--ms-text-muted); }
+
+/* ── Main grid (2 cols) ── */
+.ms-grid {
+  max-width: 1200px;
+  margin: 0 auto 3rem;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* ── Cards ── */
+.ms-card {
+  background: var(--ms-glass);
+  border: 1px solid var(--ms-glass-border);
+  border-radius: var(--ms-radius);
+  padding: 1.75rem;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+.ms-card--full { grid-column: 1 / -1; }
+.ms-card__accent {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ms-gold), transparent);
+}
+.ms-card__kicker {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ms-gold);
+  margin-bottom: 0.6rem;
+}
+.ms-card__title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ms-text);
+  margin-bottom: 0.75rem;
+}
+.ms-card__text {
+  font-size: 0.88rem;
+  color: var(--ms-text-muted);
+  line-height: 1.65;
+  margin-bottom: 1.25rem;
+}
+.ms-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 50px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.ms-card__status--active {
+  background: rgba(34,197,94,0.12);
+  border: 1px solid rgba(34,197,94,0.3);
+  color: #4ade80;
+}
+.ms-card__status--locked {
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.3);
+  color: var(--ms-amber);
+}
+.ms-card__status--off {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--ms-text-muted);
+}
+.ms-card__btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+/* ── CV List ── */
+.ms-cv-list { list-style: none; margin: 0; padding: 0; }
+.ms-cv-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.85rem;
+  color: var(--ms-text-muted);
+}
+.ms-cv-list li:last-child { border-bottom: none; }
+.ms-cv-list__dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ms-gold);
+  flex-shrink: 0;
+}
+.ms-cv-list__name { color: var(--ms-text); font-weight: 500; }
+
+/* ── Steps "Comment ça marche" ── */
+.ms-steps {
+  max-width: 1200px;
+  margin: 0 auto 3rem;
+  padding: 0 1.5rem;
+}
+.ms-steps__header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+.ms-steps__kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ms-gold);
+  margin-bottom: 0.75rem;
+}
+.ms-steps__title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 700;
+  color: var(--ms-text);
+}
+.ms-steps__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  position: relative;
+}
+.ms-steps__grid::before {
+  content: '';
+  position: absolute;
+  top: 2.5rem; left: 15%; right: 15%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ms-gold), transparent);
+  opacity: 0.3;
+}
+.ms-step {
+  background: var(--ms-glass);
+  border: 1px solid var(--ms-glass-border);
+  border-radius: var(--ms-radius);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  position: relative;
+  transition: var(--ms-transition);
+}
+.ms-step:hover {
+  background: rgba(212,168,67,0.06);
+  border-color: rgba(212,168,67,0.4);
+  transform: translateY(-4px);
+}
+.ms-step__num {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: 3.5rem;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--ms-gold);
+  margin-bottom: 1rem;
+  display: block;
+}
+.ms-step__icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+.ms-step__label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ms-text);
+  margin-bottom: 0.5rem;
+}
+.ms-step__desc {
+  font-size: 0.82rem;
+  color: var(--ms-text-muted);
+  line-height: 1.6;
+}
+
+/* ── CTA banner ── */
+.ms-cta-banner {
+  max-width: 1200px;
+  margin: 0 auto 4rem;
+  padding: 0 1.5rem;
+}
+.ms-cta-banner__inner {
+  background: linear-gradient(135deg, rgba(212,168,67,0.12) 0%, rgba(245,158,11,0.06) 50%, rgba(10,22,40,0.8) 100%);
+  border: 1px solid rgba(212,168,67,0.3);
+  border-radius: 24px;
+  padding: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.ms-cta-banner__inner::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(212,168,67,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+.ms-cta-banner__text h3 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-weight: 700;
+  color: var(--ms-text);
+  margin-bottom: 0.5rem;
+}
+.ms-cta-banner__text p {
+  font-size: 0.9rem;
+  color: var(--ms-text-muted);
+}
+.ms-cta-banner__btns {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .ms-hero__grid { grid-template-columns: 1fr; }
+  .ms-quick__grid { grid-template-columns: 1fr 1fr; }
+  .ms-grid { grid-template-columns: 1fr; }
+  .ms-grid .ms-card--full { grid-column: auto; }
+  .ms-steps__grid { grid-template-columns: 1fr; }
+  .ms-steps__grid::before { display: none; }
+  .ms-cta-banner__inner { flex-direction: column; text-align: center; }
+}
+@media (max-width: 540px) {
+  .ms-hero { padding: 2.5rem 1rem 2rem; }
+  .ms-quick__grid { grid-template-columns: 1fr; }
+  .ms-actions { gap: 0.4rem; }
+  .ms-btn { font-size: 0.75rem; padding: 0.5rem 0.9rem; }
+}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<section class="space-head">
-  <div class="space-head__left">
-    <h1 class="space-title">Mon espace</h1>
-    <p class="space-sub">
-      Complétez votre profil, ajoutez votre portfolio, et publiez votre profil Premium pour être visible par des recruteurs internationaux.
-    </p>
+<!-- ============================================================
+     HERO — titre + actions + progression
+============================================================ -->
+<section class="ms-hero">
+  <div class="ms-hero__badge">
+    <span>✦</span> Espace personnel · Immigration97
+  </div>
 
-    <!-- ✅ Progress -->
-    <div class="p-progress">
-      <div class="p-progress__top">
-        <div class="p-progress__title">Progression du profil</div>
-        <div class="p-progress__meta">{{ profile_done }}/{{ profile_total }} • {{ profile_progress }}%</div>
+  <div class="ms-hero__grid">
+
+    <!-- Gauche : titre + actions -->
+    <div>
+      <h1 class="ms-hero__title">
+        Votre profil professionnel<br>
+        <span class="gold">visible dans le monde entier.</span>
+      </h1>
+      <p class="ms-hero__sub">
+        Complétez votre dossier, publiez votre profil Premium et laissez les recruteurs
+        du Canada, d'Italie, d'Allemagne et du Royaume-Uni venir à vous.
+      </p>
+
+      <div class="ms-actions">
+        <a class="ms-btn ms-btn--ghost" href="{% url 'profiles:edit' profile.pk %}">✍️ Modifier mon profil</a>
+        <a class="ms-btn ms-btn--ghost" href="{% url 'profiles:upload_avatar' %}">📸 Changer ma photo</a>
+        <a class="ms-btn ms-btn--ghost" href="{% url 'profiles:my_invitations' %}">📩 Mes invitations</a>
+        <a class="ms-btn ms-btn--ghost" href="{% url 'profiles:recruiter_invites' %}">📤 Invitations envoyées</a>
+        <a class="ms-btn ms-btn--ghost" href="{% url 'profiles:my_analytics' %}">📊 Mes statistiques</a>
+        <a class="ms-btn ms-btn--ghost" href="{% url 'profiles:conversation_list' %}">💬 Mes messages</a>
+      </div>
+    </div>
+
+    <!-- Droite : progression -->
+    <div class="ms-progress-card">
+      <div class="ms-progress-card__header">
+        <div class="ms-progress-card__title">Progression du profil</div>
+        <div class="ms-progress-card__pct">{{ profile_progress }}%</div>
       </div>
 
-      <div class="p-progress__bar" role="progressbar"
+      <div class="ms-progress-track" role="progressbar"
            aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ profile_progress }}">
-        <div class="p-progress__fill" style="width: {{ profile_progress }}%;"></div>
+        <div class="ms-progress-fill" style="width: {{ profile_progress }}%;"></div>
       </div>
 
-      <div class="p-progress__checks">
+      <div class="ms-checks">
         {% for label, ok in profile_checks.items %}
-          <div class="p-check {% if ok %}is-ok{% endif %}">
-            <span class="p-check__dot"></span>
-            <span class="p-check__label">{{ label }}</span>
+          <div class="ms-check {% if ok %}is-ok{% endif %}">
+            <span class="ms-check__dot"></span>
+            <span>{{ label }}</span>
           </div>
         {% endfor %}
       </div>
     </div>
 
   </div>
-
-  <div class="space-actions">
-    <a class="p-btn p-btn--outline" href="{% url 'profiles:edit' profile.pk %}">Modifier mon profil</a>
-    <a class="p-btn p-btn--outline" href="{% url 'profiles:upload_avatar' %}">Changer ma photo</a>
-    <a class="p-btn p-btn--outline" href="{% url 'profiles:my_invitations' %}">Mes invitations</a>
-    <a class="p-btn p-btn--outline" href="{% url 'profiles:recruiter_invites' %}">Invitations envoyées</a>
-    <a class="p-btn p-btn--outline" href="{% url 'profiles:my_analytics' %}">📊 Mes statistiques</a>
-    <a class="p-btn p-btn--outline" href="{% url 'profiles:conversation_list' %}">💬 Mes messages</a>
-  </div>
 </section>
 
-<!-- ✅ Quick Actions (3 boutons très clairs) -->
-<section class="p-quick">
-  <div class="p-quick__card">
-    <div class="p-quick__title">Quick actions</div>
-    <div class="p-quick__grid">
-      <a class="p-qa" href="{% url 'profiles:edit' profile.pk %}">
-        <div class="p-qa__icon">✍️</div>
-        <div class="p-qa__text">
-          <div class="p-qa__label">Compléter mon profil</div>
-          <div class="p-qa__hint">Titre, bio, localisation, LinkedIn</div>
-        </div>
-      </a>
-
-      <a class="p-qa" href="{% url 'profiles:add_portfolio' profile.pk %}">
-        <div class="p-qa__icon">📎</div>
-        <div class="p-qa__text">
-          <div class="p-qa__label">Ajouter au portfolio</div>
-          <div class="p-qa__hint">CV, preuves, recommandations</div>
-        </div>
-      </a>
-
-      {% if has_premium %}
-        <form method="post" action="{% url 'profiles:toggle_public' %}">
-          {% csrf_token %}
-          <button class="p-qa p-qa--cta" type="submit">
-            <div class="p-qa__icon">🚀</div>
-            <div class="p-qa__text">
-              <div class="p-qa__label">
-                {% if profile.is_public %}Dépublier mon profil{% else %}Publier mon profil{% endif %}
-              </div>
-              <div class="p-qa__hint">Visible par les recruteurs</div>
-            </div>
-          </button>
-        </form>
-      {% else %}
-        <a class="p-qa p-qa--cta" href="{% url 'billing:access' %}">
-          <div class="p-qa__icon">🔓</div>
-          <div class="p-qa__text">
-            <div class="p-qa__label">Activer Premium</div>
-            <div class="p-qa__hint">Débloque la visibilité recruteur</div>
-          </div>
-        </a>
-      {% endif %}
+<!-- ============================================================
+     ÉTAPES — Comment construire votre profil
+============================================================ -->
+<section class="ms-steps">
+  <div class="ms-steps__header">
+    <div class="ms-steps__kicker">Guide · 3 étapes</div>
+    <h2 class="ms-steps__title">Comment être visible par les recruteurs ?</h2>
+  </div>
+  <div class="ms-steps__grid">
+    <div class="ms-step">
+      <span class="ms-step__num">01</span>
+      <span class="ms-step__icon">✍️</span>
+      <div class="ms-step__label">Complétez votre profil</div>
+      <div class="ms-step__desc">Titre professionnel, secteur, expériences, niveau de langue et localisation. Un profil complet reçoit 5× plus d'invitations.</div>
+    </div>
+    <div class="ms-step">
+      <span class="ms-step__num">02</span>
+      <span class="ms-step__icon">📎</span>
+      <div class="ms-step__label">Ajoutez votre portfolio</div>
+      <div class="ms-step__desc">CV international, certifications, lettres de recommandation. Montrez vos compétences avec des preuves concrètes.</div>
+    </div>
+    <div class="ms-step">
+      <span class="ms-step__num">03</span>
+      <span class="ms-step__icon">🚀</span>
+      <div class="ms-step__label">Publiez et soyez recruté</div>
+      <div class="ms-step__desc">Activez Premium, publiez votre profil et recevez des invitations d'entretien directement dans votre messagerie.</div>
     </div>
   </div>
 </section>
 
-<section class="space-grid">
+<!-- ============================================================
+     QUICK ACTIONS
+============================================================ -->
+<section class="ms-quick">
+  <div class="ms-quick__label">Actions rapides</div>
+  <div class="ms-quick__grid">
 
-  <div class="p-card">
-    <h2 class="p-section-title">Statut Premium</h2>
+    <a class="ms-qa" href="{% url 'profiles:edit' profile.pk %}">
+      <div class="ms-qa__icon">✍️</div>
+      <div>
+        <div class="ms-qa__label">Compléter mon profil</div>
+        <div class="ms-qa__hint">Titre, bio, localisation, LinkedIn</div>
+      </div>
+    </a>
+
+    <a class="ms-qa" href="{% url 'profiles:add_portfolio' profile.pk %}">
+      <div class="ms-qa__icon">📎</div>
+      <div>
+        <div class="ms-qa__label">Ajouter au portfolio</div>
+        <div class="ms-qa__hint">CV, certifications, recommandations</div>
+      </div>
+    </a>
+
     {% if has_premium %}
-      <p class="p-card__text">✅ Accès Premium actif — votre profil peut être publié.</p>
+      <form method="post" action="{% url 'profiles:toggle_public' %}" style="display:contents;">
+        {% csrf_token %}
+        <button class="ms-qa ms-qa--cta" type="submit">
+          <div class="ms-qa__icon">🚀</div>
+          <div>
+            <div class="ms-qa__label">
+              {% if profile.is_public %}Dépublier mon profil{% else %}Publier mon profil{% endif %}
+            </div>
+            <div class="ms-qa__hint">Visible par les recruteurs</div>
+          </div>
+        </button>
+      </form>
     {% else %}
-      <p class="p-card__text">🔒 Accès Premium requis pour rendre votre profil visible aux recruteurs.</p>
-      <div class="space-actions">
-        <a class="p-btn p-btn--primary" href="{% url 'billing:access' %}">Activer Premium</a>
+      <a class="ms-qa ms-qa--cta" href="{% url 'billing:access' %}">
+        <div class="ms-qa__icon">🔓</div>
+        <div>
+          <div class="ms-qa__label">Activer Premium</div>
+          <div class="ms-qa__hint">Débloque la visibilité recruteur</div>
+        </div>
+      </a>
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- ============================================================
+     CARDS — Statut Premium + Visibilité + CV
+============================================================ -->
+<div class="ms-grid">
+
+  <!-- Statut Premium -->
+  <div class="ms-card">
+    <div class="ms-card__accent"></div>
+    <div class="ms-card__kicker">Abonnement</div>
+    <h2 class="ms-card__title">Statut Premium</h2>
+    {% if has_premium %}
+      <span class="ms-card__status ms-card__status--active">✅ Premium actif</span>
+      <p class="ms-card__text" style="margin-top:1rem;">
+        Votre abonnement est actif. Vous pouvez publier votre profil et recevoir des invitations d'entretien.
+      </p>
+    {% else %}
+      <span class="ms-card__status ms-card__status--locked">🔒 Premium requis</span>
+      <p class="ms-card__text" style="margin-top:1rem;">
+        Activez Premium pour rendre votre profil visible aux recruteurs au Canada, en Europe et en Afrique.
+      </p>
+      <div class="ms-card__btns">
+        <a class="ms-btn ms-btn--gold" href="{% url 'billing:access' %}">Activer Premium →</a>
       </div>
     {% endif %}
   </div>
 
-  <div class="p-card">
-    <h2 class="p-section-title">Visibilité</h2>
-
+  <!-- Visibilité -->
+  <div class="ms-card">
+    <div class="ms-card__accent"></div>
+    <div class="ms-card__kicker">Recruteurs</div>
+    <h2 class="ms-card__title">Visibilité du profil</h2>
     {% if has_premium %}
       {% if profile.is_public %}
-        <p class="p-card__text">✅ Profil publié — visible par les recruteurs.</p>
+        <span class="ms-card__status ms-card__status--active">✅ Profil publié</span>
+        <p class="ms-card__text" style="margin-top:1rem;">Votre profil est visible par les recruteurs internationaux.</p>
       {% else %}
-        <p class="p-card__text">Votre profil est prêt, mais non publié.</p>
-        <p class="p-help">Publiez pour apparaître dans la liste des profils Premium.</p>
+        <span class="ms-card__status ms-card__status--off">⏸ Non publié</span>
+        <p class="ms-card__text" style="margin-top:1rem;">Votre profil est prêt. Publiez-le pour apparaître dans la liste des talents.</p>
       {% endif %}
-
       <form method="post" action="{% url 'profiles:toggle_public' %}">
         {% csrf_token %}
-        <div class="space-actions">
+        <div class="ms-card__btns">
           {% if profile.is_public %}
-            <button class="p-btn p-btn--outline" type="submit">Dépublier</button>
+            <button class="ms-btn ms-btn--ghost" type="submit">Dépublier</button>
           {% else %}
-            <button class="p-btn p-btn--primary" type="submit">Publier mon profil</button>
+            <button class="ms-btn ms-btn--gold" type="submit">Publier mon profil →</button>
           {% endif %}
-          <a class="p-btn p-btn--outline" href="{% url 'profiles:detail' profile.pk %}">Voir mon profil</a>
+          <a class="ms-btn ms-btn--ghost" href="{% url 'profiles:detail' profile.pk %}">Voir mon profil</a>
         </div>
       </form>
-
     {% else %}
-      <p class="p-card__text">🔒 Accès Premium requis pour publier votre profil.</p>
-      <p class="p-help">Premium active la visibilité auprès des recruteurs (Canada • Europe • Afrique).</p>
-      <div class="space-actions">
-        <a class="p-btn p-btn--primary" href="{% url 'billing:access' %}">Activer Premium</a>
-        <a class="p-btn p-btn--outline" href="{% url 'profiles:edit' profile.pk %}">Compléter mon profil</a>
+      <span class="ms-card__status ms-card__status--locked">🔒 Premium requis</span>
+      <p class="ms-card__text" style="margin-top:1rem;">Premium active la visibilité auprès des recruteurs (Canada · Europe · Afrique).</p>
+      <div class="ms-card__btns">
+        <a class="ms-btn ms-btn--gold" href="{% url 'billing:access' %}">Activer Premium →</a>
+        <a class="ms-btn ms-btn--ghost" href="{% url 'profiles:edit' profile.pk %}">Compléter mon profil</a>
       </div>
     {% endif %}
   </div>
 
-</section>
+  <!-- CV récents -->
+  <div class="ms-card ms-card--full">
+    <div class="ms-card__accent"></div>
+    <div class="ms-card__kicker">Documents</div>
+    <h2 class="ms-card__title">Mes 5 derniers CV</h2>
+    {% if recent_cvs %}
+      <ul class="ms-cv-list">
+        {% for cv in recent_cvs %}
+          <li>
+            <span class="ms-cv-list__dot"></span>
+            <span class="ms-cv-list__name">{{ cv.titre|default:"CV sans titre" }}</span>
+            <span style="margin-left:auto;font-size:0.75rem;">{{ cv.created_at|date:"d/m/Y" }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="ms-card__text">Aucun CV généré pour le moment.</p>
+    {% endif %}
+    <div class="ms-card__btns">
+      <a class="ms-btn ms-btn--ghost" href="/cv-generator/">➕ Créer un CV international</a>
+    </div>
+  </div>
 
-<section class="p-card">
-  <h2 class="p-section-title">Mes 5 derniers CV</h2>
-  {% if recent_cvs %}
-    <ul>
-      {% for cv in recent_cvs %}
-        <li>{{ cv.created_at|date:"d/m/Y" }} — {{ cv.titre|default:"CV" }}</li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p class="p-card__text">Aucun CV récent trouvé.</p>
-    <p class="p-help">Vous pouvez générer un CV IA depuis le module CV IA.</p>
-  {% endif %}
+</div>
+
+<!-- ============================================================
+     CTA BANNER — Boost profil
+============================================================ -->
+{% if not has_premium %}
+<section class="ms-cta-banner">
+  <div class="ms-cta-banner__inner">
+    <div class="ms-cta-banner__text">
+      <h3>Prêt à être recruté à l'international ?</h3>
+      <p>3 200+ candidats africains ont déjà décroché un emploi grâce à Immigration97. Votre tour.</p>
+    </div>
+    <div class="ms-cta-banner__btns">
+      <a class="ms-btn ms-btn--gold" href="{% url 'billing:access' %}">Activer Premium →</a>
+      <a class="ms-btn ms-btn--ghost" href="{% url 'profiles:edit' profile.pk %}">Compléter mon profil</a>
+    </div>
+  </div>
 </section>
+{% endif %}
 
 {% endblock %}
