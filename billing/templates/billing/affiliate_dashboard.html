@@ -2,53 +2,117 @@
 {% load static %}
 
 {% block title %}Mon Parrainage | Immigration97{% endblock %}
+{% block body_class %}billing{% endblock %}
+{% block app_scope %}billing{% endblock %}
+
+{% block extra_css %}
+{% include "billing/_billing_critical.html" %}
+<style>
+.aff-container{max-width:980px;margin:0 auto;padding:2rem 1rem;}
+.aff-hero{text-align:center;padding:2.5rem 1rem 2rem;}
+.aff-hero h1{font-family:'Cormorant Garamond',Georgia,serif;font-size:2.6rem;color:#F0C060;margin:0 0 .5rem;}
+.aff-hero p{color:rgba(232,234,240,0.6);font-size:1rem;}
+.aff-link-card{background:rgba(10,22,40,0.85);border:1px solid rgba(212,168,67,0.25);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;backdrop-filter:blur(16px);}
+.aff-link-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(212,168,67,0.7);font-weight:700;margin-bottom:.5rem;}
+.aff-link-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;}
+.aff-link-row input{flex:1;min-width:0;background:rgba(5,10,24,0.7);border:1px solid rgba(212,168,67,0.25);color:rgba(232,234,240,0.9);border-radius:10px;padding:.75rem 1rem;font-size:.9rem;}
+.aff-link-hint{margin-top:.5rem;font-size:12px;color:rgba(212,168,67,0.5);}
+.aff-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem;}
+.aff-stat{background:linear-gradient(135deg,rgba(212,168,67,0.10),rgba(5,10,24,0.85));border:1px solid rgba(212,168,67,0.22);border-left:3px solid #D4A843;border-radius:14px;padding:1.25rem 1.5rem;}
+.aff-stat__label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(212,168,67,0.6);margin-bottom:.4rem;}
+.aff-stat__val{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:#F0C060;letter-spacing:.04em;line-height:1;}
+.aff-stat__currency{font-size:1rem;color:#D4A843;margin-left:4px;}
+.aff-table-card{background:rgba(10,22,40,0.80);border:1px solid rgba(212,168,67,0.18);border-radius:16px;overflow:hidden;backdrop-filter:blur(16px);}
+.aff-table-head{padding:1.25rem 1.5rem;border-bottom:1px solid rgba(212,168,67,0.14);}
+.aff-table-head h2{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#D4A843;font-weight:700;margin:0;}
+.aff-table{width:100%;border-collapse:collapse;}
+.aff-table thead tr{border-bottom:1px solid rgba(212,168,67,0.18);}
+.aff-table th{padding:10px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:rgba(212,168,67,0.7);font-weight:700;}
+.aff-table th:last-child{text-align:right;}
+.aff-table tbody tr{border-bottom:1px solid rgba(212,168,67,0.07);transition:background .15s;}
+.aff-table tbody tr:hover{background:rgba(212,168,67,0.04);}
+.aff-table td{padding:12px 16px;font-size:13px;color:rgba(232,234,240,0.75);}
+.aff-table td:last-child{text-align:right;}
+.aff-badge{display:inline-block;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;letter-spacing:.05em;}
+.aff-badge--pending{background:rgba(212,168,67,0.10);border:1px solid rgba(212,168,67,0.30);color:#F0C060;}
+.aff-badge--paid{background:rgba(50,200,100,0.10);border:1px solid rgba(50,200,100,0.30);color:rgba(100,220,140,0.9);}
+.aff-empty{padding:2rem;text-align:center;color:rgba(232,234,240,0.4);}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 980px; margin: 30px auto;">
-  <h1>Parrainage (Affiliate)</h1>
-  <p>Commission: <strong>{{ profile.rate|floatformat:2 }}</strong> (ex: 0.50 = 50%)</p>
+<div class="aff-container">
 
-  <div style="background:#111827; color:#fff; padding:16px; border-radius:12px; margin:16px 0;">
-    <div style="opacity:.9;">Votre lien de parrainage :</div>
-    <input value="{{ referral_link }}" readonly style="width:100%; padding:10px; margin-top:10px; border-radius:10px;">
-    <small style="opacity:.8;">Partage ce lien. Quand quelqu’un s’inscrit/active, tu touches 50%.</small>
+  <div class="aff-hero">
+    <h1>Programme de Parrainage</h1>
+    <p>Gagnez des commissions en recommandant Immigration97 à votre réseau.</p>
   </div>
 
-  <div style="display:flex; gap:12px; margin: 18px 0;">
-    <div style="flex:1; padding:14px; border:1px solid #e5e7eb; border-radius:12px;">
-      <div style="opacity:.8;">En attente</div>
-      <div style="font-size:22px;"><strong>{{ total_pending }}</strong> USD</div>
+  <!-- Lien de parrainage -->
+  <div class="aff-link-card">
+    <div class="aff-link-label">Votre lien de parrainage</div>
+    <div class="aff-link-row">
+      <input value="{{ referral_link }}" readonly id="aff-link-input">
+      <button type="button" class="btn-primary" style="padding:.7rem 1.25rem;border-radius:10px;font-weight:700;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;border:none;cursor:pointer;"
+        onclick="navigator.clipboard.writeText('{{ referral_link }}');this.textContent='Copié ✅';setTimeout(()=>this.textContent='Copier',2000)">
+        Copier
+      </button>
     </div>
-    <div style="flex:1; padding:14px; border:1px solid #e5e7eb; border-radius:12px;">
-      <div style="opacity:.8;">Payé</div>
-      <div style="font-size:22px;"><strong>{{ total_paid }}</strong> USD</div>
+    <div class="aff-link-hint">Commission : <strong style="color:#F0C060;">{{ profile.rate|floatformat:0 }}%</strong> sur chaque activation via votre lien.</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="aff-stats">
+    <div class="aff-stat">
+      <div class="aff-stat__label">En attente</div>
+      <div>
+        <span class="aff-stat__val">{{ total_pending|floatformat:2 }}</span>
+        <span class="aff-stat__currency">USD</span>
+      </div>
+    </div>
+    <div class="aff-stat">
+      <div class="aff-stat__label">Total payé</div>
+      <div>
+        <span class="aff-stat__val">{{ total_paid|floatformat:2 }}</span>
+        <span class="aff-stat__currency">USD</span>
+      </div>
     </div>
   </div>
 
-  <h2>Dernières commissions</h2>
-  <table style="width:100%; border-collapse: collapse;">
-    <thead>
-      <tr style="text-align:left; border-bottom:1px solid #e5e7eb;">
-        <th style="padding:10px;">Date</th>
-        <th style="padding:10px;">Filleul</th>
-        <th style="padding:10px;">Plan</th>
-        <th style="padding:10px;">Montant</th>
-        <th style="padding:10px;">Statut</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for c in commissions %}
-      <tr style="border-bottom:1px solid #f1f5f9;">
-        <td style="padding:10px;">{{ c.created_at|date:"d/m/Y H:i" }}</td>
-        <td style="padding:10px;">{{ c.transaction.user.username }}</td>
-        <td style="padding:10px;">{% if c.transaction.plan %}{{ c.transaction.plan.name }}{% else %}-{% endif %}</td>
-        <td style="padding:10px;"><strong>{{ c.amount }}</strong> {{ c.currency }}</td>
-        <td style="padding:10px;">{{ c.status }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5" style="padding:14px;">Aucune commission pour le moment.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <!-- Table commissions -->
+  <div class="aff-table-card">
+    <div class="aff-table-head"><h2>Dernières Commissions</h2></div>
+    <table class="aff-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Filleul</th>
+          <th>Plan</th>
+          <th>Montant</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in commissions %}
+        <tr>
+          <td>{{ c.created_at|date:"d/m/Y H:i" }}</td>
+          <td style="color:rgba(232,234,240,0.9);">{{ c.transaction.user.username }}</td>
+          <td>{% if c.transaction.plan %}{{ c.transaction.plan.name }}{% else %}—{% endif %}</td>
+          <td style="color:#F0C060;font-weight:700;">{{ c.amount }} {{ c.currency }}</td>
+          <td>
+            {% if c.status == 'paid' %}
+              <span class="aff-badge aff-badge--paid">Payé</span>
+            {% else %}
+              <span class="aff-badge aff-badge--pending">{{ c.status }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="aff-empty">Aucune commission pour le moment.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
 </div>
 {% endblock %}

@@ -1,11 +1,74 @@
-<h1>Reçu {{ receipt.receipt_number }}</h1>
-<p><b>Client :</b> {{ receipt.client_full_name }}</p>
-<p><b>Service :</b> {{ receipt.service_name }}</p>
-<p><b>Montant :</b> {{ receipt.amount }} {{ receipt.currency }}</p>
-<p><b>Status :</b> {{ receipt.get_status_display }}</p>
+{% extends "base.html" %}
+{% load static %}
 
-<p>
-  <a href="{% url 'billing:receipt_pdf' receipt.id %}" target="_blank">
-    Télécharger / Voir le PDF
-  </a>
-</p>
+{% block title %}Reçu {{ receipt.receipt_number }} | Immigration97{% endblock %}
+{% block body_class %}billing{% endblock %}
+{% block app_scope %}billing{% endblock %}
+
+{% block extra_css %}
+{% include "billing/_billing_critical.html" %}
+<style>
+.receipt-container{max-width:700px;margin:2rem auto;padding:0 1rem;}
+.receipt-card{background:rgba(10,22,40,0.85);border:1px solid rgba(212,168,67,0.22);border-radius:18px;padding:2.5rem;backdrop-filter:blur(16px);}
+.receipt-header{border-bottom:1px solid rgba(212,168,67,0.15);padding-bottom:1.5rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;}
+.receipt-logo{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.6rem;color:#F0C060;font-weight:700;}
+.receipt-number{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(212,168,67,0.6);}
+.receipt-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.8rem;color:#F0C060;margin:0 0 1.5rem;}
+.receipt-row{display:flex;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid rgba(212,168,67,0.07);}
+.receipt-row:last-of-type{border-bottom:none;}
+.receipt-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:rgba(212,168,67,0.65);}
+.receipt-value{color:rgba(232,234,240,0.9);font-weight:600;}
+.receipt-amount{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:#F0C060;letter-spacing:.04em;margin:1.5rem 0 .5rem;}
+.receipt-currency{color:#D4A843;font-size:1.2rem;}
+.receipt-actions{margin-top:2rem;display:flex;gap:.75rem;flex-wrap:wrap;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="receipt-container">
+  <div class="receipt-card">
+
+    <div class="receipt-header">
+      <div class="receipt-logo">Immigration97</div>
+      <div class="receipt-number">Reçu #{{ receipt.receipt_number }}</div>
+    </div>
+
+    <h1 class="receipt-title">Reçu de Paiement</h1>
+
+    <div>
+      <div class="receipt-row">
+        <span class="receipt-label">Client</span>
+        <span class="receipt-value">{{ receipt.client_full_name }}</span>
+      </div>
+      <div class="receipt-row">
+        <span class="receipt-label">Service</span>
+        <span class="receipt-value">{{ receipt.service_name }}</span>
+      </div>
+      <div class="receipt-row">
+        <span class="receipt-label">Statut</span>
+        <span class="receipt-value">{{ receipt.get_status_display }}</span>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin:1.5rem 0;padding:1.25rem;background:rgba(212,168,67,0.06);border:1px solid rgba(212,168,67,0.18);border-radius:12px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(212,168,67,0.6);">Montant payé</div>
+      <div>
+        <span class="receipt-amount">{{ receipt.amount }}</span>
+        <span class="receipt-currency">{{ receipt.currency }}</span>
+      </div>
+    </div>
+
+    <div class="receipt-actions">
+      <a href="{% url 'billing:receipt_pdf' receipt.id %}" target="_blank" class="btn-primary"
+         style="display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;border-radius:10px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;">
+        Télécharger PDF
+      </a>
+      <a href="{% url 'billing:wallet' %}" class="btn-secondary"
+         style="display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;border-radius:10px;text-decoration:none;font-weight:600;background:rgba(212,168,67,0.07);border:1px solid rgba(212,168,67,0.28);color:rgba(232,234,240,0.85);">
+        Mon compte
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
