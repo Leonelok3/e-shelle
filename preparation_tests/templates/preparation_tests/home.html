@@ -1,186 +1,609 @@
 {% extends "base.html" %}
 {% load static %}
 
-{# ==================================================
-   SCOPE STRICT APP — OBLIGATOIRE
-================================================== #}
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
 
-{# ==================================================
-   SEO — TITLE & META
-================================================== #}
-{% block title %}
-Préparation Tests de Langue Immigration (TEF, TCF, IELTS) | Immigration97
-{% endblock %}
+{% block title %}Tests de Langue — TEF, IELTS, Goethe, Italien | Immigration97{% endblock %}
 
 {% block meta_description %}
-Prépare efficacement les tests de langue exigés pour l’immigration,
-les études et le travail à l’international : TEF, TCF, IELTS, TOEFL,
-allemand. Entraînements ciblés, préparation progressive et suivi intelligent.
+Prépare efficacement les tests de langue pour l'immigration, les études et le travail : TEF, TCF, IELTS, TOEFL, Goethe, Telc, Italien. Préparation progressive A1→C2, correction IA et examens blancs.
 {% endblock %}
 
-{# ==================================================
-   CSS APP — VERSIONNÉ (ANTI CACHE)
-================================================== #}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260226">
+<style>
+/* ============================================================
+   TESTS DE LANGUE — African Premium Futurism
+============================================================ */
+:root {
+  --pt-navy-deep:   #050A18;
+  --pt-navy-mid:    #0A1628;
+  --pt-gold:        #D4A843;
+  --pt-gold-light:  #F0C060;
+  --pt-amber:       #F59E0B;
+  --pt-glass:       rgba(255,255,255,0.04);
+  --pt-glass-border:rgba(212,168,67,0.22);
+  --pt-text:        #FFFFFF;
+  --pt-text-muted:  rgba(255,255,255,0.6);
+  --pt-radius:      16px;
+  --pt-transition:  all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+body.preparation-tests .app-main {
+  background: linear-gradient(160deg, var(--pt-navy-deep) 0%, var(--pt-navy-mid) 60%, #0A1F3A 100%);
+  min-height: 100vh;
+  color: var(--pt-text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+/* ── HERO ── */
+.pt2-hero {
+  position: relative;
+  padding: 5rem 1.5rem 4rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+.pt2-hero::before {
+  content: '';
+  position: absolute;
+  top: -150px; right: -100px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(212,168,67,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.pt2-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(212,168,67,0.1);
+  border: 1px solid rgba(212,168,67,0.35);
+  border-radius: 50px;
+  padding: 0.4rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pt-gold);
+  margin-bottom: 1.5rem;
+}
+.pt2-hero__inner {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 4rem;
+  align-items: center;
+}
+.pt2-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(2.6rem, 4.5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--pt-text);
+  margin-bottom: 1.25rem;
+}
+.pt2-title .gold { color: var(--pt-gold); font-style: italic; }
+.pt2-lead {
+  font-size: 1rem;
+  color: var(--pt-text-muted);
+  line-height: 1.75;
+  margin-bottom: 1.75rem;
+  max-width: 520px;
+}
+.pt2-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+.pt2-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.8);
+}
+.pt2-check::before {
+  content: '✦';
+  color: var(--pt-gold);
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+.pt2-hero__btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* ── Boutons ── */
+.pt2-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.8rem 1.6rem;
+  border-radius: 50px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--pt-transition);
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+.pt2-btn--gold {
+  background: linear-gradient(135deg, var(--pt-gold) 0%, var(--pt-amber) 100%);
+  color: #050A18;
+  font-weight: 700;
+}
+.pt2-btn--gold:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,168,67,0.3); }
+.pt2-btn--ghost {
+  background: var(--pt-glass);
+  border: 1px solid var(--pt-glass-border);
+  color: rgba(255,255,255,0.85);
+}
+.pt2-btn--ghost:hover { background: rgba(212,168,67,0.1); border-color: rgba(212,168,67,0.5); color: var(--pt-gold); }
+
+/* ── Stat card hero droite ── */
+.pt2-stat-card {
+  background: var(--pt-glass);
+  border: 1px solid var(--pt-glass-border);
+  border-radius: 24px;
+  padding: 2rem;
+  backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
+}
+.pt2-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--pt-gold), var(--pt-amber), transparent);
+}
+.pt2-stat-card__title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--pt-gold);
+  margin-bottom: 1.5rem;
+}
+.pt2-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.pt2-stat {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  transition: var(--pt-transition);
+}
+.pt2-stat:hover { border-color: rgba(212,168,67,0.3); }
+.pt2-stat__num {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: 2rem;
+  color: var(--pt-gold-light);
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+.pt2-stat__label { font-size: 0.72rem; color: var(--pt-text-muted); line-height: 1.4; }
+
+/* ── Section langues ── */
+.pt2-section {
+  max-width: 1200px;
+  margin: 0 auto 4rem;
+  padding: 0 1.5rem;
+}
+.pt2-section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.pt2-section-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--pt-gold);
+  margin-bottom: 0.75rem;
+}
+.pt2-section-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700;
+  color: var(--pt-text);
+  margin-bottom: 0.75rem;
+}
+.pt2-section-sub {
+  font-size: 0.9rem;
+  color: var(--pt-text-muted);
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+/* ── 4 cartes langues ── */
+.pt2-lang-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+.pt2-lang-card {
+  background: var(--pt-glass);
+  border: 1px solid var(--pt-glass-border);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: var(--pt-transition);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--pt-text);
+}
+.pt2-lang-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 20px 20px 0 0;
+  transition: var(--pt-transition);
+}
+.pt2-lang-card--fr::before { background: linear-gradient(90deg, #0055A4, #FFFFFF, #EF4135); }
+.pt2-lang-card--en::before { background: linear-gradient(90deg, #012169, #C8102E, #FFFFFF); }
+.pt2-lang-card--de::before { background: linear-gradient(90deg, #000000, #DD0000, #FFCE00); }
+.pt2-lang-card--it::before { background: linear-gradient(90deg, #009246, #FFFFFF, #CE2B37); }
+
+.pt2-lang-card:hover {
+  background: rgba(212,168,67,0.07);
+  border-color: rgba(212,168,67,0.45);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+}
+.pt2-lang-card__flag { font-size: 3rem; margin-bottom: 1rem; display: block; }
+.pt2-lang-card__name {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--pt-text);
+  margin-bottom: 0.35rem;
+}
+.pt2-lang-card__exams {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--pt-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+}
+.pt2-lang-card__desc {
+  font-size: 0.82rem;
+  color: var(--pt-text-muted);
+  line-height: 1.6;
+  flex: 1;
+  margin-bottom: 1.5rem;
+}
+.pt2-lang-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1.5rem;
+}
+.pt2-lang-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 50px;
+  background: rgba(212,168,67,0.1);
+  border: 1px solid rgba(212,168,67,0.2);
+  color: var(--pt-gold);
+}
+.pt2-lang-card__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1.2rem;
+  border-radius: 50px;
+  background: linear-gradient(135deg, var(--pt-gold) 0%, var(--pt-amber) 100%);
+  color: #050A18;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: var(--pt-transition);
+  margin-top: auto;
+}
+.pt2-lang-card:hover .pt2-lang-card__cta { filter: brightness(1.1); }
+
+/* ── Niveaux CECR ── */
+.pt2-levels {
+  max-width: 1200px;
+  margin: 0 auto 4rem;
+  padding: 0 1.5rem;
+}
+.pt2-level-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
+}
+.pt2-level-pill {
+  background: var(--pt-glass);
+  border: 1px solid var(--pt-glass-border);
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  transition: var(--pt-transition);
+}
+.pt2-level-pill:hover { border-color: rgba(212,168,67,0.5); background: rgba(212,168,67,0.07); }
+.pt2-level-pill__level {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: 1.8rem;
+  color: var(--pt-gold);
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+.pt2-level-pill__label { font-size: 0.68rem; color: var(--pt-text-muted); }
+
+/* ── CTA Banner ── */
+.pt2-cta {
+  max-width: 1200px;
+  margin: 0 auto 5rem;
+  padding: 0 1.5rem;
+}
+.pt2-cta__inner {
+  background: linear-gradient(135deg, rgba(212,168,67,0.12) 0%, rgba(245,158,11,0.06) 50%, rgba(10,22,40,0.8) 100%);
+  border: 1px solid rgba(212,168,67,0.3);
+  border-radius: 24px;
+  padding: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.pt2-cta__inner::before {
+  content: '';
+  position: absolute;
+  top: -100px; right: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(212,168,67,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.pt2-cta__text h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+  font-weight: 700;
+  color: var(--pt-text);
+  margin-bottom: 0.5rem;
+}
+.pt2-cta__text p { font-size: 0.9rem; color: var(--pt-text-muted); line-height: 1.6; }
+.pt2-cta__btns { display: flex; gap: 0.75rem; flex-shrink: 0; }
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .pt2-hero__inner { grid-template-columns: 1fr; gap: 2.5rem; }
+  .pt2-lang-grid { grid-template-columns: repeat(2, 1fr); }
+  .pt2-level-grid { grid-template-columns: repeat(3, 1fr); }
+  .pt2-cta__inner { flex-direction: column; text-align: center; }
+  .pt2-cta__btns { justify-content: center; }
+}
+@media (max-width: 640px) {
+  .pt2-hero { padding: 3rem 1rem 2.5rem; }
+  .pt2-lang-grid { grid-template-columns: 1fr; }
+  .pt2-level-grid { grid-template-columns: repeat(2, 1fr); }
+  .pt2-cta__inner { padding: 2rem 1.25rem; }
+}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<!-- ==================================================
-HERO — PREPARATION TESTS DE LANGUE
-================================================== -->
-<section class="pt-hero">
-  <div class="container pt-fade-up">
+<!-- ============================================================
+     HERO
+============================================================ -->
+<section class="pt2-hero">
+  <div class="pt2-badge">🗣️ Tests de langue officiels · Immigration97</div>
 
-    <span class="pt-badge">
-      Tests de langue officiels · Immigration97
-    </span>
-
-    <h1 class="pt-title">
-      Réussis ton
-      <span class="pt-gradient-primary">test de langue</span><br>
-      avec une préparation
-      <span class="pt-gradient-secondary">orientée immigration</span>
-    </h1>
-
-    <p class="pt-lead">
-      Un score insuffisant peut bloquer un projet
-      d’immigration, d’études ou de travail.
-      Immigration97 te propose une préparation
-      <strong>structurée</strong> et
-      <strong>alignée sur les exigences officielles</strong>.
-    </p>
-
-    <ul class="pt-checklist">
-      <li>✔ TEF & TCF Canada / France</li>
-      <li>✔ IELTS & TOEFL (études & travail)</li>
-      <li>✔ Tests d’allemand (Goethe, Telc)</li>
-      <li>✔ Préparation par niveau CECR</li>
-      <li>✔ Suivi progressif et intelligent</li>
-    </ul>
-
-    <div class="pt-cta-group">
-      <a href="{% url "preparation_tests:french_exams" %}" class="pt-btn-primary">
-        🚀 Commencer un test
-      </a>
-      <a href="{% url "billing:access" %}" class="pt-btn-secondary">
-        Accès Premium
-      </a>
-    </div>
-
-  </div>
-</section>
-
-<!-- ==================================================
-MODULES DE PREPARATION
-================================================== -->
-<section id="tests" class="pt-section">
-  <div class="container">
-
-    <header class="pt-section-header">
-      <h2>
-        Choisis ton
-        <span class="pt-gradient-primary">test de langue</span>
-      </h2>
-      <p>
-        Préparations progressives et ciblées
-        selon les exigences d’immigration,
-        d’études et de travail à l’international.
+  <div class="pt2-hero__inner">
+    <div>
+      <h1 class="pt2-title">
+        Réussis ton test de langue,<br>
+        <span class="gold">ouvre les portes du monde.</span>
+      </h1>
+      <p class="pt2-lead">
+        Un score insuffisant peut bloquer votre visa, votre admission ou votre emploi à l'étranger.
+        Immigration97 vous propose une préparation structurée, alignée sur les exigences officielles,
+        pour 4 langues et tous les niveaux A1→C2.
       </p>
-    </header>
-
-    <div class="pt-grid-3">
-
-      <!-- FRANÇAIS -->
-      <article class="pt-card">
-        <h3>🇫🇷 Tests de Français</h3>
-        <p class="pt-card-meta">
-          TEF, TCF, DELF & DALF pour immigration,
-          résidence permanente, naturalisation et études.
-        </p>
-
-        <ul class="pt-checklist">
-          <li>Niveaux CECR A1 → C2</li>
-          <li>Examens blancs</li>
-          <li>Objectifs Canada / France</li>
-        </ul>
-
-        <div class="pt-cta-group">
-          <a href="{% url "preparation_tests:french_exams" %}" class="pt-btn-primary">
-            Accéder
-          </a>
-        </div>
-      </article>
-
-      <!-- ANGLAIS -->
-      <article class="pt-card">
-        <h3>🇬🇧 Tests d’Anglais</h3>
-        <p class="pt-card-meta">
-          IELTS & TOEFL pour études internationales,
-          travail qualifié et mobilité professionnelle.
-        </p>
-
-        <ul class="pt-checklist">
-          <li>Questions type examen</li>
-          <li>Préparation ciblée</li>
-          <li>Estimation du score</li>
-        </ul>
-
-        <div class="pt-cta-group">
-          <a href="/langue/english/" class="pt-btn-primary">
-            Accéder
-          </a>
-        </div>
-      </article>
-
-      <!-- ALLEMAND -->
-      <article class="pt-card">
-        <h3>🇩🇪 Tests d’Allemand</h3>
-        <p class="pt-card-meta">
-          Goethe, Telc et certifications reconnues
-          pour études et travail en Europe.
-        </p>
-
-        <ul class="pt-checklist">
-          <li>Niveaux A1 → C1</li>
-          <li>Exercices guidés</li>
-          <li>Correction intelligente</li>
-        </ul>
-
-        <div class="pt-cta-group">
-          <a href="/langue/german/" class="pt-btn-primary">
-            Accéder
-          </a>
-        </div>
-      </article>
-
-    </div>
-  </div>
-</section>
-
-<!-- ==================================================
-CTA FINAL
-================================================== -->
-<section class="pt-section pt-section--center">
-  <div class="container">
-
-    <div class="pt-card pt-card--highlight text-center">
-      <h2>Prêt à améliorer ton score ?</h2>
-      <p class="pt-card-meta">
-        Débloque toutes les préparations linguistiques
-        Immigration97 et avance sereinement.
-      </p>
-
-      <div class="pt-cta-group center">
-        <a href="{% url "billing:access" %}" class="pt-btn-primary">
-          Activer mon accès
-        </a>
+      <div class="pt2-checks">
+        <div class="pt2-check">Français — TEF, TCF Canada / France, DELF, DALF</div>
+        <div class="pt2-check">Anglais — IELTS & TOEFL (études, travail, immigration)</div>
+        <div class="pt2-check">Allemand — Goethe-Zertifikat, Telc, TestDaF</div>
+        <div class="pt2-check">Italien — CILS, CELI, PLIDA (Decreto Flussi, travail)</div>
+        <div class="pt2-check">Préparation par niveau CECR · Correction IA · Examens blancs</div>
+      </div>
+      <div class="pt2-hero__btns">
+        <a href="{% url 'preparation_tests:french_exams' %}" class="pt2-btn pt2-btn--gold">🚀 Commencer maintenant</a>
+        <a href="{% url 'billing:access' %}" class="pt2-btn pt2-btn--ghost">⭐ Accès Premium</a>
       </div>
     </div>
 
+    <!-- Stats card -->
+    <div class="pt2-stat-card">
+      <div class="pt2-stat-card__title">Plateforme de préparation</div>
+      <div class="pt2-stat-grid">
+        <div class="pt2-stat">
+          <div class="pt2-stat__num">4</div>
+          <div class="pt2-stat__label">Langues disponibles</div>
+        </div>
+        <div class="pt2-stat">
+          <div class="pt2-stat__num">6</div>
+          <div class="pt2-stat__label">Niveaux A1→C2</div>
+        </div>
+        <div class="pt2-stat">
+          <div class="pt2-stat__num">1K+</div>
+          <div class="pt2-stat__label">Leçons & exercices</div>
+        </div>
+        <div class="pt2-stat">
+          <div class="pt2-stat__num">94%</div>
+          <div class="pt2-stat__label">Taux de réussite</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     4 CARTES LANGUES
+============================================================ -->
+<section class="pt2-section" id="tests">
+  <div class="pt2-section-header">
+    <div class="pt2-section-kicker">Langues disponibles</div>
+    <h2 class="pt2-section-title">Choisissez votre langue</h2>
+    <p class="pt2-section-sub">
+      Préparations progressives et ciblées selon les exigences d'immigration,
+      d'études et de travail à l'international.
+    </p>
+  </div>
+
+  <div class="pt2-lang-grid">
+
+    <!-- FRANÇAIS -->
+    <div class="pt2-lang-card pt2-lang-card--fr">
+      <span class="pt2-lang-card__flag">🇫🇷</span>
+      <div class="pt2-lang-card__name">Français</div>
+      <div class="pt2-lang-card__exams">TEF · TCF · DELF · DALF</div>
+      <p class="pt2-lang-card__desc">
+        Préparation complète pour l'immigration au Canada, la résidence permanente en France
+        et la naturalisation. Exercices CO, CE, EO, EE avec correction IA.
+      </p>
+      <div class="pt2-lang-card__tags">
+        <span class="pt2-lang-tag">Canada</span>
+        <span class="pt2-lang-tag">France</span>
+        <span class="pt2-lang-tag">A1→C2</span>
+        <span class="pt2-lang-tag">Examens blancs</span>
+      </div>
+      <a href="{% url 'preparation_tests:french_exams' %}" class="pt2-lang-card__cta">
+        Accéder →
+      </a>
+    </div>
+
+    <!-- ANGLAIS -->
+    <div class="pt2-lang-card pt2-lang-card--en">
+      <span class="pt2-lang-card__flag">🇬🇧</span>
+      <div class="pt2-lang-card__name">Anglais</div>
+      <div class="pt2-lang-card__exams">IELTS · TOEFL · Skilled Worker</div>
+      <p class="pt2-lang-card__desc">
+        IELTS et TOEFL pour études internationales, visa Skilled Worker UK,
+        immigration Canada et mobilité professionnelle en Afrique et à l'étranger.
+      </p>
+      <div class="pt2-lang-card__tags">
+        <span class="pt2-lang-tag">UK</span>
+        <span class="pt2-lang-tag">Canada</span>
+        <span class="pt2-lang-tag">A1→C2</span>
+        <span class="pt2-lang-tag">Score estimé</span>
+      </div>
+      <a href="/langue/english/" class="pt2-lang-card__cta">
+        Accéder →
+      </a>
+    </div>
+
+    <!-- ALLEMAND -->
+    <div class="pt2-lang-card pt2-lang-card--de">
+      <span class="pt2-lang-card__flag">🇩🇪</span>
+      <div class="pt2-lang-card__name">Allemand</div>
+      <div class="pt2-lang-card__exams">Goethe · Telc · TestDaF · DSH</div>
+      <p class="pt2-lang-card__desc">
+        Certifications reconnues pour les études et le travail en Allemagne.
+        Carte bleue européenne, universités allemandes et visa travail qualifié.
+      </p>
+      <div class="pt2-lang-card__tags">
+        <span class="pt2-lang-tag">Allemagne</span>
+        <span class="pt2-lang-tag">Carte Bleue UE</span>
+        <span class="pt2-lang-tag">A1→C1</span>
+        <span class="pt2-lang-tag">Correction IA</span>
+      </div>
+      <a href="/langue/german/" class="pt2-lang-card__cta">
+        Accéder →
+      </a>
+    </div>
+
+    <!-- ITALIEN -->
+    <div class="pt2-lang-card pt2-lang-card--it">
+      <span class="pt2-lang-card__flag">🇮🇹</span>
+      <div class="pt2-lang-card__name">Italien</div>
+      <div class="pt2-lang-card__exams">CILS · CELI · PLIDA · Nulla Osta</div>
+      <p class="pt2-lang-card__desc">
+        Préparation ciblée pour le Decreto Flussi, le visa travail Italie et
+        les certifications italiennes. Leçons en contexte professionnel (BTP, agriculture, santé).
+      </p>
+      <div class="pt2-lang-card__tags">
+        <span class="pt2-lang-tag">Italie</span>
+        <span class="pt2-lang-tag">Decreto Flussi</span>
+        <span class="pt2-lang-tag">A1→B2</span>
+        <span class="pt2-lang-tag">Travail</span>
+      </div>
+      <a href="{% url 'italian_courses:category_list' %}" class="pt2-lang-card__cta">
+        Accéder →
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     NIVEAUX CECR
+============================================================ -->
+<section class="pt2-levels">
+  <div class="pt2-section-header">
+    <div class="pt2-section-kicker">Structure</div>
+    <h2 class="pt2-section-title">Tous les niveaux CECR</h2>
+    <p class="pt2-section-sub">Progressez à votre rythme, du débutant absolu au niveau expert.</p>
+  </div>
+  <div class="pt2-level-grid">
+    <div class="pt2-level-pill">
+      <div class="pt2-level-pill__level">A1</div>
+      <div class="pt2-level-pill__label">Débutant</div>
+    </div>
+    <div class="pt2-level-pill">
+      <div class="pt2-level-pill__level">A2</div>
+      <div class="pt2-level-pill__label">Élémentaire</div>
+    </div>
+    <div class="pt2-level-pill">
+      <div class="pt2-level-pill__level">B1</div>
+      <div class="pt2-level-pill__label">Intermédiaire</div>
+    </div>
+    <div class="pt2-level-pill">
+      <div class="pt2-level-pill__level">B2</div>
+      <div class="pt2-level-pill__label">Avancé</div>
+    </div>
+    <div class="pt2-level-pill">
+      <div class="pt2-level-pill__level">C1</div>
+      <div class="pt2-level-pill__label">Autonome</div>
+    </div>
+    <div class="pt2-level-pill">
+      <div class="pt2-level-pill__level">C2</div>
+      <div class="pt2-level-pill__label">Maîtrise</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CTA FINAL
+============================================================ -->
+<section class="pt2-cta">
+  <div class="pt2-cta__inner">
+    <div class="pt2-cta__text">
+      <h2>Prêt à améliorer votre score ?</h2>
+      <p>Débloquez toutes les préparations linguistiques Immigration97 et avancez sereinement vers votre visa, vos études ou votre emploi.</p>
+    </div>
+    <div class="pt2-cta__btns">
+      <a href="{% url 'billing:access' %}" class="pt2-btn pt2-btn--gold">Activer mon accès Premium →</a>
+      <a href="{% url 'preparation_tests:french_exams' %}" class="pt2-btn pt2-btn--ghost">Commencer gratuitement</a>
+    </div>
   </div>
 </section>
 
