@@ -1,48 +1,58 @@
-<nav class="ja-menu" aria-label="Navigation Job Agent">
-  <div class="ja-menu__head">
-    <p class="ja-appname"><strong>Job Agent</strong></p>
-    <p class="ja-apphint">Postuler vite, suivre proprement.</p>
+<nav class="ja-menu" style="background:linear-gradient(180deg,rgba(15,32,64,0.85),rgba(5,10,24,0.95));border:1px solid rgba(212,168,67,0.22);border-radius:18px;overflow:hidden;backdrop-filter:blur(16px);" aria-label="Navigation Job Agent">
+
+  <div class="ja-menu__head" style="padding:18px 16px 14px;border-bottom:1px solid rgba(212,168,67,0.14);">
+    <p class="ja-appname" style="margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#D4A843;">Job Agent</p>
+    <p class="ja-apphint" style="margin:0;font-size:12px;color:rgba(232,234,240,0.5);line-height:1.4;">Postuler vite, suivre proprement.</p>
   </div>
 
-  <div class="ja-menu__nav">
+  <div class="ja-menu__nav" style="padding:10px;display:grid;gap:6px;">
 
-    <a class="ja-menu__link"
+    <a class="ja-menu__link {% if active == 'dashboard' %}ja-menu__link--active{% endif %}"
        href="{% url 'job_agent:dashboard' %}"
        {% if active == "dashboard" %}aria-current="page"{% endif %}
-       aria-label="Aller au dashboard">
-      <span>Dashboard</span>
-      <span class="ja-menu__meta">Vue d’ensemble</span>
+       style="display:grid;gap:2px;padding:12px;border-radius:12px;border:1px solid transparent;text-decoration:none;transition:all .18s;{% if active == 'dashboard' %}background:rgba(212,168,67,0.12);border-color:rgba(212,168,67,0.35);{% endif %}">
+      <span style="font-size:13.5px;font-weight:600;color:{% if active == 'dashboard' %}#F0C060{% else %}rgba(232,234,240,0.85){% endif %};">Dashboard</span>
+      <span style="font-size:11px;color:rgba(232,234,240,0.4);">Vue d'ensemble</span>
     </a>
 
-    <a class="ja-menu__link"
+    <a class="ja-menu__link {% if active == 'leads' %}ja-menu__link--active{% endif %}"
        href="{% url 'job_agent:lead_list' %}"
        {% if active == "leads" %}aria-current="page"{% endif %}
-       aria-label="Voir la liste des offres">
-      <span>Offres</span>
-      <span class="ja-menu__meta">Liste</span>
+       style="display:grid;gap:2px;padding:12px;border-radius:12px;border:1px solid transparent;text-decoration:none;transition:all .18s;{% if active == 'leads' %}background:rgba(212,168,67,0.12);border-color:rgba(212,168,67,0.35);{% endif %}">
+      <span style="font-size:13.5px;font-weight:600;color:{% if active == 'leads' %}#F0C060{% else %}rgba(232,234,240,0.85){% endif %};">Offres</span>
+      <span style="font-size:11px;color:rgba(232,234,240,0.4);">Liste</span>
     </a>
 
     {% if menu_pack_lead_id %}
-      <a class="ja-menu__link"
+      <a class="ja-menu__link {% if active == 'pack' %}ja-menu__link--active{% endif %}"
          href="{% url 'job_agent:pack_detail' menu_pack_lead_id %}"
          {% if active == "pack" %}aria-current="page"{% endif %}
-         aria-label="Ouvrir le pack de candidature">
-        <span>Pack</span>
-        <span class="ja-menu__meta">Email / Lettre</span>
+         style="display:grid;gap:2px;padding:12px;border-radius:12px;border:1px solid transparent;text-decoration:none;transition:all .18s;{% if active == 'pack' %}background:rgba(212,168,67,0.12);border-color:rgba(212,168,67,0.35);{% endif %}">
+        <span style="font-size:13.5px;font-weight:600;color:{% if active == 'pack' %}#F0C060{% else %}rgba(232,234,240,0.85){% endif %};">Pack</span>
+        <span style="font-size:11px;color:rgba(232,234,240,0.4);">Email / Lettre</span>
       </a>
     {% else %}
-      <span class="ja-menu__link is-disabled" aria-disabled="true">
-        <span>Pack</span>
-        <span class="ja-menu__meta">Choisis une offre</span>
+      <span class="ja-menu__link is-disabled" aria-disabled="true"
+            style="display:grid;gap:2px;padding:12px;border-radius:12px;border:1px solid transparent;opacity:.4;cursor:not-allowed;">
+        <span style="font-size:13.5px;font-weight:600;color:rgba(232,234,240,0.5);">Pack</span>
+        <span style="font-size:11px;color:rgba(232,234,240,0.3);">Choisis une offre</span>
       </span>
     {% endif %}
 
-    <a class="ja-menu__link"
+    <a class="ja-menu__link {% if active == 'kanban' %}ja-menu__link--active{% endif %}"
        href="{% url 'job_agent:kanban' %}"
        {% if active == "kanban" %}aria-current="page"{% endif %}
-       aria-label="Ouvrir le kanban de suivi">
-      <span>Kanban</span>
-      <span class="ja-menu__meta">Suivi rapide</span>
+       style="display:grid;gap:2px;padding:12px;border-radius:12px;border:1px solid transparent;text-decoration:none;transition:all .18s;{% if active == 'kanban' %}background:rgba(212,168,67,0.12);border-color:rgba(212,168,67,0.35);{% endif %}">
+      <span style="font-size:13.5px;font-weight:600;color:{% if active == 'kanban' %}#F0C060{% else %}rgba(232,234,240,0.85){% endif %};">Kanban</span>
+      <span style="font-size:11px;color:rgba(232,234,240,0.4);">Suivi rapide</span>
+    </a>
+
+    <a class="ja-menu__link {% if active == 'public' %}ja-menu__link--active{% endif %}"
+       href="{% url 'job_agent:public_offers' %}"
+       {% if active == "public" %}aria-current="page"{% endif %}
+       style="display:grid;gap:2px;padding:12px;border-radius:12px;border:1px solid transparent;text-decoration:none;transition:all .18s;{% if active == 'public' %}background:rgba(212,168,67,0.12);border-color:rgba(212,168,67,0.35);{% endif %}">
+      <span style="font-size:13.5px;font-weight:600;color:{% if active == 'public' %}#F0C060{% else %}rgba(212,168,67,0.8){% endif %};">Offres publiques</span>
+      <span style="font-size:11px;color:rgba(232,234,240,0.4);">Nouvelles opportunités</span>
     </a>
 
   </div>
