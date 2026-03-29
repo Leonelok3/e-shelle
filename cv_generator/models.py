@@ -129,6 +129,11 @@ class CV(models.Model):
             models.Index(fields=["is_completed", "is_published"]),
         ]
 
+    def get_completion_percentage(self) -> int:
+        steps = [self.step1_completed, self.step2_completed, self.step3_completed]
+        completed = sum(1 for s in steps if s)
+        return int((completed / 3) * 100)
+
     def __str__(self) -> str:
         full = f"{self.prenom} {self.nom}".strip()
         return f"CV de {full or self.user}"
