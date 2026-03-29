@@ -27,6 +27,8 @@ urlpatterns = [
     path("politique-remboursement/", views.politique_remboursement, name="politique_remboursement"),
     path("conditions-utilisation/", views.conditions_utilisation, name="conditions_utilisation"),
 
+    path("payment/success/", views.payment_success, name="payment_success"),
+
     # NotchPay
     path("notchpay/callback/", views.notchpay_callback, name="notchpay_callback"),
     path("notchpay/webhook/", views.notchpay_webhook, name="notchpay_webhook"),

@@ -415,6 +415,60 @@ def get_context_data(self, **kwargs):
 
 
 # ======================================================
+# DASHBOARD RECRUTEUR
+# ======================================================
+@login_required
+def recruiter_dashboard(request):
+    from recruiters.models import InterviewInvite
+    from django.db.models import Q as DQ
+
+    has_premium = has_recruiter_access(request.user)
+
+    recent_invites = (
+        InterviewInvite.objects
+        .filter(recruiter=request.user)
+        .select_related("candidate_user")
+        .order_by("-created_at")[:5]
+    )
+    favorites = (
+        RecruiterFavorite.objects
+        .filter(recruiter=request.user)
+        .select_related("profile", "profile__user")
+        .order_by("-created_at")[:5]
+    )
+    invites_accepted = (
+        InterviewInvite.objects
+        .filter(status="accepted")
+        .filter(DQ(recruiter=request.user) | DQ(candidate_user=request.user))
+        .select_related("recruiter", "candidate_user")
+        .prefetch_related("messages")
+        .order_by("-responded_at")[:5]
+    )
+    conversations = []
+    for inv in invites_accepted:
+        unread = inv.messages.filter(is_read=False).exclude(sender=request.user).count()
+        last_msg = inv.messages.last()
+        other = inv.candidate_user if inv.recruiter == request.user else inv.recruiter
+        conversations.append({"invite": inv, "other": other, "unread": unread, "last_msg": last_msg})
+
+    total_invites = InterviewInvite.objects.filter(recruiter=request.user).count()
+    accepted_invites = InterviewInvite.objects.filter(recruiter=request.user, status="accepted").count()
+    total_favorites = RecruiterFavorite.objects.filter(recruiter=request.user).count()
+    total_profiles = Profile.objects.filter(is_public=True).count()
+
+    return render(request, "profiles/recruiter_dashboard.html", {
+        "has_premium": has_premium,
+        "recent_invites": recent_invites,
+        "favorites": favorites,
+        "conversations": conversations,
+        "total_invites": total_invites,
+        "accepted_invites": accepted_invites,
+        "total_favorites": total_favorites,
+        "total_profiles": total_profiles,
+    })
+
+
+# ======================================================
 # ANALYTICS CANDIDAT
 # ======================================================
 @login_required

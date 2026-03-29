@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}billing{% endblock %}
+{% block title %}Abonnement Activé ✅ | Immigration97{% endblock %}
+
+{% block extra_css %}
+{% include "billing/_billing_critical.html" %}
+<style>
+.success-wrap {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+}
+.success-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(212,168,67,0.3);
+  border-radius: 24px;
+  padding: 3rem 2.5rem;
+  max-width: 560px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.success-card::before {
+  content: '';
+  position: absolute;
+  top: -80px; left: 50%;
+  transform: translateX(-50%);
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(212,168,67,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+.success-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1.5rem;
+  animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes pop {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.success-title {
+  color: #F0C060;
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 0.75rem;
+}
+.success-subtitle {
+  color: rgba(255,255,255,0.7);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin: 0 0 2rem;
+}
+.success-plan-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, rgba(212,168,67,0.15), rgba(240,192,96,0.1));
+  border: 1px solid rgba(212,168,67,0.4);
+  border-radius: 12px;
+  padding: 1rem 2rem;
+  margin-bottom: 2rem;
+}
+.success-plan-name {
+  color: #F0C060;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: block;
+}
+.success-plan-expire {
+  color: rgba(255,255,255,0.55);
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+  display: block;
+}
+.success-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem;
+  text-align: left;
+}
+.success-features li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.8);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.success-features li::before {
+  content: '✓';
+  color: #D4A843;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.success-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.btn-success-primary {
+  display: block;
+  background: linear-gradient(135deg, #D4A843, #F0C060);
+  color: #050A18;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.9rem 2rem;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.btn-success-primary:hover { opacity: 0.88; }
+.btn-success-secondary {
+  display: block;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.8);
+  font-size: 0.95rem;
+  padding: 0.75rem 2rem;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.btn-success-secondary:hover { background: rgba(255,255,255,0.1); }
+.success-email-note {
+  color: rgba(255,255,255,0.4);
+  font-size: 0.82rem;
+  margin-top: 1.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-wrap">
+  <div class="success-card">
+
+    <span class="success-icon">🎉</span>
+
+    <h1 class="success-title">Abonnement activé !</h1>
+
+    <p class="success-subtitle">
+      Félicitations <strong style="color:#fff;">{{ request.user.first_name|default:request.user.username }}</strong> !
+      Tu as maintenant accès à tous les outils premium d'Immigration97.
+    </p>
+
+    {% if subscription %}
+    <div class="success-plan-badge">
+      <span class="success-plan-name">{{ subscription.plan.name }}</span>
+      <span class="success-plan-expire">Valide jusqu'au {{ subscription.expires_at|date:"d/m/Y" }}</span>
+    </div>
+    {% endif %}
+
+    <ul class="success-features">
+      <li>CV illimités avec export PDF professionnel</li>
+      <li>Tests de langue TCF, TEF, DELF, DALF</li>
+      <li>Profil visible par les recruteurs internationaux</li>
+      <li>Bibliothèque de ressources (PDF, Excel, guides)</li>
+      <li>Coach IA pour ta candidature d'immigration</li>
+      {% if subscription and subscription.plan.duration_days >= 365 %}
+      <li>Accompagnement personnalisé inclus</li>
+      {% endif %}
+    </ul>
+
+    <div class="success-actions">
+      <a href="{% url 'profiles:my_space' %}" class="btn-success-primary">
+        Accéder à mon espace →
+      </a>
+      <a href="{% url 'visaetude:countries_list' %}" class="btn-success-secondary">
+        Explorer les pays d'études
+      </a>
+      <a href="{% url 'billing:wallet' %}" class="btn-success-secondary">
+        Voir mon abonnement
+      </a>
+    </div>
+
+    <p class="success-email-note">
+      Un email de confirmation a été envoyé à {{ request.user.email }}
+    </p>
+
+  </div>
+</div>
+{% endblock %}

@@ -227,9 +227,12 @@ def redeem(request):
             # ✅ Commission si le user a été parrainé
             create_commission_for_transaction(tx)
 
-            messages.success(
+            from .emails import send_welcome_subscription
+        send_welcome_subscription(request.user, cc.plan, sub)
+
+        messages.success(
                 request,
-                f"✅ Code validé ! Accès activé jusqu’au {sub.expires_at.strftime('%d/%m/%Y %H:%M')}."
+                f"✅ Code validé ! Accès activé jusqu’au {sub.expires_at.strftime(‘%d/%m/%Y %H:%M’)}."
             )
         else:
             grant_session_access(request, minutes=60)
@@ -400,12 +403,10 @@ def notchpay_callback(request):
 
         create_commission_for_transaction(tx)
 
-        messages.success(
-            request,
-            f"✅ Paiement confirmé ! Abonnement {tx.plan.name} actif jusqu'au "
-            f"{sub.expires_at.strftime('%d/%m/%Y')}."
-        )
-        return redirect("billing:wallet")
+        from .emails import send_welcome_subscription
+        send_welcome_subscription(request.user, tx.plan, sub)
+
+        return redirect(reverse("billing:payment_success") + f"?sub={sub.id}")
 
     # Paiement échoué ou en attente
     tx.status = "FAILED"
@@ -551,6 +552,21 @@ def contract_protection(request):
     Page bilingue (FR/EN) : Contrat de protection Immigration97.
     """
     return render(request, "billing/contract_protection.html")
+
+
+@login_required
+def payment_success(request):
+    """Page de confirmation post-paiement."""
+    sub_id = request.GET.get("sub")
+    subscription = None
+    if sub_id:
+        subscription = (
+            Subscription.objects
+            .filter(id=sub_id, user=request.user)
+            .select_related("plan")
+            .first()
+        )
+    return render(request, "billing/payment_success.html", {"subscription": subscription})
 
 
 def politique_remboursement(request):

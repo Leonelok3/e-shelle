@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Espace Recruteur | Immigration97{% endblock %}
+{% block body_class %}recruiter-dash{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── RECRUITER DASHBOARD — Navy/Gold ── */
+body.recruiter-dash .app-main {
+  background: linear-gradient(160deg, #050A18 0%, #0A1628 60%, #0A1F3A 100%);
+  min-height: 100vh;
+  color: #fff;
+}
+.rd-container { max-width: 1200px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+/* HERO */
+.rd-hero {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(212,168,67,0.2);
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.rd-hero-title { color: #F0C060; font-size: 1.8rem; font-weight: 800; margin: 0 0 0.5rem; }
+.rd-hero-sub { color: rgba(255,255,255,0.6); font-size: 0.95rem; margin: 0; }
+.rd-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(212,168,67,0.12);
+  border: 1px solid rgba(212,168,67,0.35);
+  border-radius: 50px;
+  padding: 0.35rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #D4A843;
+  margin-bottom: 0.75rem;
+  display: block;
+  width: fit-content;
+}
+
+/* STATS */
+.rd-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.rd-stat-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+.rd-stat-card:hover { border-color: rgba(212,168,67,0.3); }
+.rd-stat-num { font-size: 2.2rem; font-weight: 800; color: #F0C060; display: block; }
+.rd-stat-label { color: rgba(255,255,255,0.55); font-size: 0.85rem; margin-top: 0.25rem; }
+
+/* GRID */
+.rd-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+@media (max-width: 768px) { .rd-grid { grid-template-columns: 1fr; } }
+
+.rd-section {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+.rd-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #F0C060;
+  margin: 0 0 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* INVITE ITEMS */
+.rd-invite-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  gap: 1rem;
+}
+.rd-invite-item:last-child { border-bottom: none; }
+.rd-invite-name { color: #fff; font-size: 0.9rem; font-weight: 600; }
+.rd-invite-sub { color: rgba(255,255,255,0.45); font-size: 0.78rem; margin-top: 2px; }
+.rd-status {
+  padding: 0.2rem 0.7rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.rd-status--sent { background: rgba(245,158,11,0.15); color: #F59E0B; }
+.rd-status--accepted { background: rgba(34,197,94,0.15); color: #22c55e; }
+.rd-status--declined { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+/* FAVORITES */
+.rd-fav-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  text-decoration: none;
+}
+.rd-fav-item:last-child { border-bottom: none; }
+.rd-fav-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(212,168,67,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #D4A843;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.rd-fav-name { color: #fff; font-size: 0.9rem; font-weight: 600; }
+.rd-fav-meta { color: rgba(255,255,255,0.45); font-size: 0.78rem; }
+
+/* PAYWALL */
+.rd-paywall {
+  background: rgba(212,168,67,0.05);
+  border: 1px solid rgba(212,168,67,0.25);
+  border-radius: 16px;
+  padding: 2.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.rd-paywall h2 { color: #F0C060; font-size: 1.4rem; margin: 0 0 0.75rem; }
+.rd-paywall p { color: rgba(255,255,255,0.65); margin: 0 0 1.5rem; }
+.rd-btn-gold {
+  display: inline-block;
+  background: linear-gradient(135deg, #D4A843, #F0C060);
+  color: #050A18;
+  font-weight: 700;
+  padding: 0.85rem 2rem;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: opacity 0.2s;
+}
+.rd-btn-gold:hover { opacity: 0.88; }
+.rd-btn-outline {
+  display: inline-block;
+  border: 1px solid rgba(212,168,67,0.4);
+  color: #D4A843;
+  font-weight: 600;
+  padding: 0.85rem 2rem;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 0.95rem;
+  margin-left: 1rem;
+  transition: background 0.2s;
+}
+.rd-btn-outline:hover { background: rgba(212,168,67,0.08); }
+
+/* SEARCH BAR */
+.rd-search-bar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.rd-search-input {
+  flex: 1;
+  min-width: 200px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  color: #fff;
+  font-size: 0.95rem;
+}
+.rd-search-input::placeholder { color: rgba(255,255,255,0.35); }
+.rd-search-btn {
+  background: linear-gradient(135deg, #D4A843, #F0C060);
+  color: #050A18;
+  font-weight: 700;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.empty-state { color: rgba(255,255,255,0.35); font-size: 0.9rem; text-align: center; padding: 1.5rem 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rd-container">
+
+  <!-- HERO -->
+  <div class="rd-hero">
+    <div>
+      <span class="rd-badge">🏢 Espace Recruteur</span>
+      <h1 class="rd-hero-title">Bonjour, {{ request.user.first_name|default:request.user.username }} 👋</h1>
+      <p class="rd-hero-sub">
+        Trouvez les meilleurs talents africains pour vos postes internationaux.
+      </p>
+    </div>
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+      <a href="{% url 'profiles:list' %}" class="rd-btn-gold">
+        🔍 Chercher des candidats
+      </a>
+      {% if not has_premium %}
+      <a href="{% url 'billing:pricing' %}?role=recruiter" class="rd-btn-outline">
+        Débloquer Premium
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- PAYWALL si pas abonné -->
+  {% if not has_premium %}
+  <div class="rd-paywall">
+    <div style="font-size:2.5rem;margin-bottom:1rem;">🔒</div>
+    <h2>Abonnement Recruteur requis</h2>
+    <p>
+      Vous pouvez parcourir les profils gratuitement.<br>
+      Pour <strong style="color:#F0C060;">envoyer des invitations</strong> aux candidats qui vous intéressent,
+      souscrivez à l'abonnement Recruteur.
+    </p>
+    <a href="{% url 'billing:pricing' %}?role=recruiter" class="rd-btn-gold">
+      Souscrire — 65 000 XAF/an
+    </a>
+    <a href="{% url 'profiles:list' %}" class="rd-btn-outline">
+      Parcourir les profils →
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- STATS -->
+  <div class="rd-stats">
+    <div class="rd-stat-card">
+      <span class="rd-stat-num">{{ total_invites }}</span>
+      <div class="rd-stat-label">Invitations envoyées</div>
+    </div>
+    <div class="rd-stat-card">
+      <span class="rd-stat-num">{{ accepted_invites }}</span>
+      <div class="rd-stat-label">Acceptées</div>
+    </div>
+    <div class="rd-stat-card">
+      <span class="rd-stat-num">{{ total_favorites }}</span>
+      <div class="rd-stat-label">Favoris sauvegardés</div>
+    </div>
+    <div class="rd-stat-card">
+      <span class="rd-stat-num">{{ total_profiles }}</span>
+      <div class="rd-stat-label">Candidats disponibles</div>
+    </div>
+  </div>
+
+  <!-- RECHERCHE RAPIDE -->
+  <div class="rd-section" style="margin-bottom:1.5rem;">
+    <h2 class="rd-section-title">🔍 Recherche rapide</h2>
+    <form method="GET" action="{% url 'profiles:list' %}" class="rd-search-bar">
+      <input type="text" name="q" placeholder="Métier, compétence, ville..." class="rd-search-input"
+             value="{{ request.GET.q|default:'' }}">
+      <select name="level" class="rd-search-input" style="flex:0 0 auto;width:auto;">
+        <option value="">Tous niveaux</option>
+        <option value="A1">A1</option>
+        <option value="A2">A2</option>
+        <option value="B1">B1</option>
+        <option value="B2">B2</option>
+        <option value="C1">C1</option>
+        <option value="C2">C2</option>
+      </select>
+      <button type="submit" class="rd-search-btn">Rechercher</button>
+    </form>
+  </div>
+
+  <!-- INVITATIONS + FAVORIS -->
+  <div class="rd-grid">
+
+    <!-- DERNIÈRES INVITATIONS -->
+    <div class="rd-section">
+      <h2 class="rd-section-title">📨 Mes invitations</h2>
+      {% if recent_invites %}
+        {% for invite in recent_invites %}
+        <div class="rd-invite-item">
+          <div>
+            <div class="rd-invite-name">
+              {{ invite.candidate_user.get_full_name|default:invite.candidate_user.username }}
+            </div>
+            <div class="rd-invite-sub">{{ invite.created_at|date:"d/m/Y" }}</div>
+          </div>
+          <span class="rd-status rd-status--{{ invite.status }}">
+            {% if invite.status == "sent" %}En attente
+            {% elif invite.status == "accepted" %}Acceptée
+            {% elif invite.status == "declined" %}Refusée
+            {% else %}{{ invite.status }}
+            {% endif %}
+          </span>
+        </div>
+        {% endfor %}
+        <div style="margin-top:1rem;text-align:center;">
+          <a href="{% url 'profiles:recruiter_invites' %}" style="color:#D4A843;font-size:0.85rem;">
+            Voir toutes les invitations →
+          </a>
+        </div>
+      {% else %}
+        <p class="empty-state">Aucune invitation envoyée pour le moment.</p>
+        <div style="text-align:center;margin-top:0.5rem;">
+          <a href="{% url 'profiles:list' %}" class="rd-btn-gold" style="font-size:0.85rem;padding:0.6rem 1.25rem;">
+            Trouver des candidats →
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- FAVORIS -->
+    <div class="rd-section">
+      <h2 class="rd-section-title">⭐ Profils favoris</h2>
+      {% if favorites %}
+        {% for fav in favorites %}
+        <a href="{% url 'profiles:detail' fav.profile.pk %}" class="rd-fav-item">
+          {% if fav.profile.avatar %}
+            <img src="{{ fav.profile.avatar.url }}" alt="" class="rd-fav-avatar">
+          {% else %}
+            <div class="rd-fav-avatar">
+              {{ fav.profile.user.first_name|first|upper|default:"?" }}
+            </div>
+          {% endif %}
+          <div>
+            <div class="rd-fav-name">
+              {{ fav.profile.user.get_full_name|default:fav.profile.user.username }}
+            </div>
+            <div class="rd-fav-meta">
+              {{ fav.profile.headline|truncatechars:45|default:"Candidat" }}
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+        <div style="margin-top:1rem;text-align:center;">
+          <a href="{% url 'profiles:favorites_list' %}" style="color:#D4A843;font-size:0.85rem;">
+            Voir tous mes favoris →
+          </a>
+        </div>
+      {% else %}
+        <p class="empty-state">Aucun favori pour le moment.</p>
+        <div style="text-align:center;margin-top:0.5rem;">
+          <a href="{% url 'profiles:list' %}" class="rd-btn-gold" style="font-size:0.85rem;padding:0.6rem 1.25rem;">
+            Parcourir les profils →
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- MESSAGES -->
+  {% if has_premium %}
+  <div class="rd-section" style="margin-bottom:1.5rem;">
+    <h2 class="rd-section-title">💬 Messagerie</h2>
+    {% if conversations %}
+      {% for conv in conversations %}
+      <div class="rd-invite-item">
+        <div>
+          <div class="rd-invite-name">{{ conv.other.get_full_name|default:conv.other.username }}</div>
+          <div class="rd-invite-sub">
+            {% if conv.last_msg %}{{ conv.last_msg.body|truncatechars:60 }}{% else %}Aucun message{% endif %}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          {% if conv.unread > 0 %}
+          <span style="background:#D4A843;color:#050A18;border-radius:50px;padding:0.15rem 0.6rem;font-size:0.75rem;font-weight:700;">
+            {{ conv.unread }}
+          </span>
+          {% endif %}
+          <a href="{% url 'profiles:conversation_thread' conv.invite.id %}"
+             style="color:#D4A843;font-size:0.85rem;white-space:nowrap;">
+            Ouvrir →
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="empty-state">Aucune conversation active. Envoyez une invitation pour démarrer.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
