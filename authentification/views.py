@@ -67,37 +67,32 @@ def send_activation_email(request, user):
 
 def register(request):
     """
-    Inscription + email d’activation.
+    Inscription + choix du rôle (candidat / recruteur) + email d’activation.
     """
+    role_prefill = request.GET.get("role", "candidate")
+
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
         email = request.POST.get("email", "").strip().lower()
         password = request.POST.get("password", "")
         confirm_password = request.POST.get("confirm_password", "")
+        role = request.POST.get("role", "candidate")
+        if role not in ("candidate", "recruiter"):
+            role = "candidate"
+
+        prefill = {"username": username, "email": email, "role": role}
 
         if password != confirm_password:
             messages.error(request, "❌ Les mots de passe ne correspondent pas.")
-            return render(
-                request,
-                "authentification/register.html",
-                {"prefill": {"username": username, "email": email}},
-            )
+            return render(request, "authentification/register.html", {"prefill": prefill})
 
         if User.objects.filter(username=username).exists():
             messages.error(request, "❌ Ce nom d’utilisateur est déjà utilisé.")
-            return render(
-                request,
-                "authentification/register.html",
-                {"prefill": {"username": username, "email": email}},
-            )
+            return render(request, "authentification/register.html", {"prefill": prefill})
 
         if User.objects.filter(email=email).exists():
             messages.error(request, "❌ Cet email est déjà utilisé.")
-            return render(
-                request,
-                "authentification/register.html",
-                {"prefill": {"username": username, "email": email}},
-            )
+            return render(request, "authentification/register.html", {"prefill": prefill})
 
         try:
             user = User.objects.create_user(
@@ -106,18 +101,24 @@ def register(request):
             user.is_active = False
             user.save()
 
+            # Sauvegarder le rôle dans UserProfile (créé automatiquement via signal)
+            try:
+                profile = user.userprofile
+                profile.role = role
+                profile.save(update_fields=["role"])
+            except Exception:
+                pass
+
             send_activation_email(request, user)
-            messages.success(
-                request, "📩 Un email de confirmation vous a été envoyé."
-            )
+            messages.success(request, "📩 Un email de confirmation vous a été envoyé.")
             return redirect("authentification:email_sent")
 
         except IntegrityError:
-            messages.error(
-                request, "❌ Ce nom d’utilisateur ou cet email existe déjà."
-            )
+            messages.error(request, "❌ Ce nom d’utilisateur ou cet email existe déjà.")
 
-    return render(request, "authentification/register.html")
+    return render(request, "authentification/register.html", {
+        "prefill": {"role": role_prefill},
+    })
 
 
 def activate_account(request, uidb64, token):

@@ -43,3 +43,36 @@ def subscription_required(view_func=None, *, allow_session_access=True):
     if view_func is None:
         return decorator
     return decorator(view_func)
+
+
+def recruiter_subscription_required(view_func=None):
+    """
+    Protège les vues réservées aux recruteurs abonnés.
+    - non connecté → login
+    - rôle ≠ recruteur → accès refusé
+    - pas d'abonnement recruteur actif → redirect billing:pricing
+    """
+    def decorator(func):
+        @wraps(func)
+        def _wrapped(request, *args, **kwargs):
+            from billing.services import has_recruiter_access
+
+            if not request.user.is_authenticated:
+                login_url = reverse("authentification:login")
+                return redirect(f"{login_url}?next={request.get_full_path()}")
+
+            if not has_recruiter_access(request.user):
+                messages.error(
+                    request,
+                    "🔒 Cette fonctionnalité est réservée aux recruteurs abonnés. "
+                    "Souscrivez au plan Recruteur pour envoyer des invitations."
+                )
+                return redirect(f"{reverse('billing:pricing')}?next={request.get_full_path()}")
+
+            return func(request, *args, **kwargs)
+
+        return _wrapped
+
+    if view_func is None:
+        return decorator
+    return decorator(view_func)

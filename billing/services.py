@@ -6,10 +6,31 @@ from .models import Subscription, SubscriptionPlan, CreditCode, Transaction
 
 
 def has_active_access(user) -> bool:
+    """Accès actif (tout type de plan)."""
     if not user or not user.is_authenticated:
         return False
     now = timezone.now()
     return Subscription.objects.filter(user=user, expires_at__gt=now, is_active=True).exists()
+
+
+def has_candidate_access(user) -> bool:
+    """Accès actif sur un plan candidat (premium-mensuel ou premium-plus)."""
+    if not user or not user.is_authenticated:
+        return False
+    now = timezone.now()
+    return Subscription.objects.filter(
+        user=user, expires_at__gt=now, is_active=True, plan__plan_type="candidate"
+    ).exists()
+
+
+def has_recruiter_access(user) -> bool:
+    """Accès actif sur un plan recruteur."""
+    if not user or not user.is_authenticated:
+        return False
+    now = timezone.now()
+    return Subscription.objects.filter(
+        user=user, expires_at__gt=now, is_active=True, plan__plan_type="recruiter"
+    ).exists()
 
 def activate_pass(user, plan: SubscriptionPlan, source: str, code_used: CreditCode | None = None):
     """

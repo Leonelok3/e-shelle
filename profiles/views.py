@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.urls import reverse
 
-from billing.services import has_active_access, has_session_access
+from billing.services import has_active_access, has_session_access, has_candidate_access, has_recruiter_access
 from cv_generator.models import CV
 
 from .models import Profile, Category
@@ -132,10 +132,10 @@ class ProfileDetailView(DetailView):
             messages.error(request, "Connectez-vous pour envoyer une invitation.")
             return redirect("authentification:login")
 
-        # ✅ Option: Premium requis côté recruteur (recommandé)
-        if not has_active_access(request.user):
-            messages.error(request, "Accès Premium requis pour envoyer une invitation.")
-            return redirect("billing:access")
+        # Abonnement recruteur requis pour envoyer une invitation
+        if not has_recruiter_access(request.user):
+            messages.error(request, "🔒 Abonnement Recruteur requis pour envoyer des invitations.")
+            return redirect(f"{reverse('billing:pricing')}?role=recruiter")
 
         if form.is_valid():
             invite = InterviewInvite.objects.create(
@@ -218,10 +218,10 @@ def add_portfolio_item(request, pk):
 def my_space(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
 
-    has_premium = has_active_access(request.user)
+    has_premium = has_candidate_access(request.user)
     has_temp_access = has_session_access(request)
 
-    # ✅ Si pas premium, on force le profil en non-public
+    # Si plus de premium candidat, on retire la visibilité
     if not has_premium and profile.is_public:
         profile.is_public = False
         profile.save(update_fields=["is_public"])
@@ -272,10 +272,10 @@ def upload_avatar(request):
 def toggle_public(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
 
-    has_premium = has_active_access(request.user)
+    has_premium = has_candidate_access(request.user)
     if not has_premium:
-        messages.error(request, "🔒 Accès Premium requis pour publier votre profil.")
-        return redirect("profiles:my_space")
+        messages.error(request, "🔒 Un abonnement Premium Candidat est requis pour publier votre profil.")
+        return redirect("billing:pricing")
 
     profile.is_public = not profile.is_public
     profile.save(update_fields=["is_public"])

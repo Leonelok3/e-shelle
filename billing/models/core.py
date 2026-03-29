@@ -23,6 +23,11 @@ User = get_user_model()
 
 
 class SubscriptionPlan(models.Model):
+
+    class PlanType(models.TextChoices):
+        CANDIDATE = "candidate", "Candidat"
+        RECRUITER = "recruiter", "Recruteur"
+
     name = models.CharField(max_length=120)
     slug = models.SlugField(max_length=140, unique=True)
     description = models.TextField(blank=True, default="")
@@ -31,9 +36,14 @@ class SubscriptionPlan(models.Model):
     price_xaf = models.DecimalField(max_digits=12, decimal_places=0, default=0)
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
-
-    # optionnel (utilisé dans tes templates)
     is_popular = models.BooleanField(default=False)
+    plan_type = models.CharField(
+        max_length=20,
+        choices=PlanType.choices,
+        default=PlanType.CANDIDATE,
+        verbose_name="Type de plan",
+    )
+    features = models.JSONField(default=list, blank=True)
 
     class Meta:
         ordering = ("order", "duration_days")

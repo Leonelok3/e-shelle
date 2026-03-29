@@ -300,6 +300,36 @@
   }
   .auth-footer-links a:hover { color: #fff; text-decoration: underline; }
 
+  /* Role selector */
+  .role-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .75rem;
+    margin-bottom: 1.5rem;
+  }
+  .role-option { display: none; }
+  .role-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
+    padding: 1rem;
+    background: rgba(5,10,24,0.6);
+    border: 2px solid var(--gold-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    text-align: center;
+  }
+  .role-label:hover { border-color: var(--gold); }
+  .role-option:checked + .role-label {
+    border-color: var(--gold);
+    background: rgba(212,168,67,0.10);
+  }
+  .role-label__icon { font-size: 1.8rem; }
+  .role-label__title { font-size: .9rem; font-weight: 700; color: var(--text); }
+  .role-label__desc { font-size: .75rem; color: var(--muted); line-height: 1.4; }
+
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;600;700&display=swap');
 </style>
 {% endblock %}
@@ -331,6 +361,28 @@
 
       <form method="post" novalidate>
         {% csrf_token %}
+
+        <!-- Choix du type de compte -->
+        <div class="form-group">
+          <label>Type de compte</label>
+          <div class="role-selector">
+            <input type="radio" name="role" id="role-candidate" value="candidate" class="role-option"
+              {% if prefill.role != 'recruiter' %}checked{% endif %}>
+            <label class="role-label" for="role-candidate">
+              <span class="role-label__icon">🎓</span>
+              <span class="role-label__title">Candidat</span>
+              <span class="role-label__desc">Je cherche à immigrer, à passer des tests ou à créer mon CV</span>
+            </label>
+
+            <input type="radio" name="role" id="role-recruiter" value="recruiter" class="role-option"
+              {% if prefill.role == 'recruiter' %}checked{% endif %}>
+            <label class="role-label" for="role-recruiter">
+              <span class="role-label__icon">🏢</span>
+              <span class="role-label__title">Recruteur</span>
+              <span class="role-label__desc">Je représente une entreprise et je cherche des talents africains</span>
+            </label>
+          </div>
+        </div>
 
         <div class="form-group">
           <label for="username">Nom d'utilisateur</label>

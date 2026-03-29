@@ -54,11 +54,19 @@ def rate_limit_redeem(request, limit=5, window_seconds=60):
 # =============================================================================
 
 def pricing(request):
-    plans = SubscriptionPlan.objects.filter(is_active=True).order_by("order", "duration_days")
+    candidate_plans = SubscriptionPlan.objects.filter(
+        is_active=True, plan_type="candidate"
+    ).order_by("order", "duration_days")
+    recruiter_plans = SubscriptionPlan.objects.filter(
+        is_active=True, plan_type="recruiter"
+    ).order_by("order")
+
     has_active_sub = request.user.is_authenticated and has_active_access(request.user)
 
     return render(request, "billing/pricing.html", {
-        "plans": plans,
+        "candidate_plans": candidate_plans,
+        "recruiter_plans": recruiter_plans,
+        "plans": candidate_plans,  # compat anciens templates
         "has_active_sub": has_active_sub,
         "next": request.GET.get("next", ""),
     })
