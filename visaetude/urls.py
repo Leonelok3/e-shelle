@@ -14,6 +14,4 @@ urlpatterns = [
     path("coach/", views.coach_ai, name="coach_ai"),
     path("coach-api/", views.coach_ai_api, name="coach_ai_api"),
     path("resource/<int:resource_id>/", views.resource_view, name="resource_view"),
-    path("student-profile/", views.student_profile, name="student_profile"),
-
 ]

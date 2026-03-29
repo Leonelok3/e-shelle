@@ -9,7 +9,7 @@
 
 {% block meta_description %}
 Guide complet pour étudier en {{ country }} : admission universitaire,
-visa étudiant, bourses d’études, universités et démarches officielles.
+visa étudiant, bourses d'études, universités et démarches officielles.
 Accompagnement Immigration97.
 {% endblock %}
 
@@ -35,14 +35,14 @@ HERO — PAYS
     <p class="ve-lead">
       Découvre toutes les étapes pour <strong>étudier légalement en {{ country }}</strong> :
       admission universitaire, <strong>visa étudiant</strong>,
-      <strong>bourses d’études</strong> et ressources officielles.
+      <strong>bourses d'études</strong> et ressources officielles.
     </p>
 
   </div>
 </section>
 
 <!-- ==================================================
-GUIDE STRUCTURÉ
+GUIDE STRUCTURÉ — GRATUIT
 ================================================== -->
 <section class="ve-dashboard-modules">
   <div class="container ve-modules-grid">
@@ -51,16 +51,16 @@ GUIDE STRUCTURÉ
       <h2>Admission universitaire en {{ country }}</h2>
       <p>{{ guide }}</p>
       <ul>
-        <li>Conditions d’admission et prérequis</li>
+        <li>Conditions d'admission et prérequis</li>
         <li>Calendrier académique et délais</li>
-        <li>Langue d’enseignement</li>
+        <li>Langue d'enseignement</li>
       </ul>
     </article>
 
     <article class="ve-module-card" data-step="2">
       <h2>Visa étudiant pour {{ country }}</h2>
       <ol>
-        <li>Lettre d’acceptation officielle</li>
+        <li>Lettre d'acceptation officielle</li>
         <li>Preuves financières et dossier</li>
         <li>Dépôt de la demande de visa</li>
         <li>Rendez-vous et suivi</li>
@@ -71,14 +71,14 @@ GUIDE STRUCTURÉ
     </article>
 
     <article class="ve-module-card" data-step="3">
-      <h2>Bourses d’études disponibles</h2>
+      <h2>Bourses d'études disponibles</h2>
       <ul>
         <li>Bourses gouvernementales</li>
         <li>Bourses universitaires</li>
         <li>Programmes internationaux</li>
       </ul>
       <p>
-        Le Coach IA peut t’aider à optimiser CV et lettres.
+        Le Coach IA peut t'aider à optimiser CV et lettres.
       </p>
     </article>
 
@@ -86,53 +86,22 @@ GUIDE STRUCTURÉ
 </section>
 
 <!-- ==================================================
-RESSOURCES
+CONTENU PREMIUM — UNIVERSITÉS, CONSEILS, BOURSES, RESSOURCES
 ================================================== -->
-<section class="ve-dashboard-modules">
-  <div class="container ve-modules-grid">
+{% if has_premium %}
 
-    <article class="ve-module-card" data-step="🎥">
-      <h2>Ressources vidéo & tutoriels</h2>
-
-      {% if resources %}
-        <ul>
-          {% for r in resources %}
-            <li>
-              <strong>{{ r.title }}</strong><br>
-              <span class="small">{{ r.get_category_display }} · {{ r.get_resource_type_display }}</span>
-              <br>
-              <a href="{{ r.url }}" target="_blank" rel="noopener">
-                Ouvrir la ressource →
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p class="small">
-          Aucune ressource n’est encore disponible pour {{ country }}.
-        </p>
-      {% endif %}
-    </article>
-
-  </div>
-</section>
-
-<!-- ==================================================
-UNIVERSITÉS
-================================================== -->
 <section class="ve-dashboard-modules">
   <div class="container ve-modules-grid">
 
     <article class="ve-module-card" data-step="🎓">
       <h2>Universités en {{ country }}</h2>
-
       {% if universities %}
         <ul>
           {% for university in universities %}
             <li>
               <strong>{{ university.name }}</strong><br>
-              <a href="{{ university.admission_link }}" target="_blank">
-                Commencer la demande d’admission →
+              <a href="{{ university.admission_link }}" target="_blank" rel="noopener">
+                Commencer la demande d'admission →
               </a>
             </li>
           {% endfor %}
@@ -141,15 +110,6 @@ UNIVERSITÉS
         <p class="small">Aucune université listée pour le moment.</p>
       {% endif %}
     </article>
-
-  </div>
-</section>
-
-<!-- ==================================================
-CONSEILS & BOURSES
-================================================== -->
-<section class="ve-dashboard-modules">
-  <div class="container ve-modules-grid">
 
     <article class="ve-module-card">
       <h2>Conseils pratiques pour {{ country }}</h2>
@@ -163,13 +123,13 @@ CONSEILS & BOURSES
     </article>
 
     <article class="ve-module-card">
-      <h2>Bourses d’études</h2>
+      <h2>Bourses d'études</h2>
       <ul>
         {% for scholarship in scholarships %}
           <li>
             <strong>{{ scholarship.scholarship_name }}</strong><br>
             {{ scholarship.description }}<br>
-            <a href="{{ scholarship.application_link }}" target="_blank">
+            <a href="{{ scholarship.application_link }}" target="_blank" rel="noopener">
               Postuler →
             </a>
           </li>
@@ -179,8 +139,61 @@ CONSEILS & BOURSES
       </ul>
     </article>
 
+    <article class="ve-module-card" data-step="🎥">
+      <h2>Ressources & documents officiels</h2>
+      {% if resources %}
+        <ul>
+          {% for r in resources %}
+            <li>
+              <strong>{{ r.title }}</strong><br>
+              <span class="small">{{ r.get_category_display }} · {{ r.get_resource_type_display }}</span><br>
+              <a href="{{ r.url }}" target="_blank" rel="noopener">
+                Ouvrir la ressource →
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="small">Aucune ressource disponible pour {{ country }}.</p>
+      {% endif %}
+    </article>
+
   </div>
 </section>
+
+{% else %}
+
+<!-- PAYWALL SECTION -->
+<section class="ve-dashboard-modules">
+  <div class="container">
+    <div class="ve-paywall-block">
+      <div class="ve-paywall-icon">🔒</div>
+      <h2>Contenu Premium requis</h2>
+      <p>
+        Accède aux <strong>universités partenaires</strong>, aux <strong>bourses d'études</strong>,
+        aux <strong>conseils pratiques</strong> et aux <strong>ressources officielles</strong>
+        pour {{ country }} avec l'abonnement Premium.
+      </p>
+      <ul class="ve-paywall-features">
+        <li>✅ Liste complète des universités avec liens d'admission</li>
+        <li>✅ Bourses d'études disponibles avec dossiers de candidature</li>
+        <li>✅ Conseils pratiques et retours d'expérience</li>
+        <li>✅ Documents & ressources officiels téléchargeables</li>
+        <li>✅ Coach IA pour personnaliser ta candidature</li>
+      </ul>
+      <div class="ve-cta-group center">
+        <a href="{% url 'billing:pricing' %}?next={{ request.path }}" class="ve-btn-primary">
+          Débloquer — 6 500 XAF/mois
+        </a>
+        <a href="{% url 'billing:pricing' %}" class="ve-btn-secondary">
+          Voir tous les plans
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endif %}
 
 <!-- ==================================================
 CTA FINAL
@@ -188,10 +201,10 @@ CTA FINAL
 <section class="ve-cta-final">
   <div class="container text-center">
 
-    <h2>Besoin d’un accompagnement personnalisé ?</h2>
+    <h2>Besoin d'un accompagnement personnalisé ?</h2>
     <p>
-      Utilise le Coach IA ou active l’accompagnement Premium
-      pour maximiser tes chances d’étudier en {{ country }}.
+      Utilise le Coach IA ou active l'accompagnement Premium
+      pour maximiser tes chances d'étudier en {{ country }}.
     </p>
 
     <div class="ve-cta-group center">
