@@ -228,15 +228,16 @@ def redeem(request):
             create_commission_for_transaction(tx)
 
             from .emails import send_welcome_subscription
-        send_welcome_subscription(request.user, cc.plan, sub)
+            send_welcome_subscription(request.user, cc.plan, sub)
 
-        messages.success(
+            expire_str = sub.expires_at.strftime("%d/%m/%Y %H:%M")
+            messages.success(
                 request,
-                f"✅ Code validé ! Accès activé jusqu’au {sub.expires_at.strftime(‘%d/%m/%Y %H:%M’)}."
+                "Code valide ! Acces active jusqu’au " + expire_str + "."
             )
         else:
             grant_session_access(request, minutes=60)
-            messages.success(request, "✅ Code validé ! Accès temporaire activé (1h).")
+            messages.success(request, "Code valide ! Acces temporaire active (1h).")
 
         return _redirect_next_or(reverse("billing:access"), request)
 
