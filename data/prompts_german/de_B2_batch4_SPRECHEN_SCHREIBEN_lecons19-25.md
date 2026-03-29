@@ -171,3 +171,4 @@ Sujet : "Sollte der Integrationskurs in Deutschland für alle Einwanderer verpfl
 ---
 
 Génère maintenant le JSON des 7 leçons. Commence par `[` et termine par `]`.
+

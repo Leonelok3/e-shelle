@@ -101,9 +101,10 @@ CV professionnel Canada, créer CV immigration, générateur CV ATS, CV Europass
   </a>
 
   <!-- ================= FORMULAIRE PRINCIPAL ================= -->
-  <form method="post" 
+  <form method="post"
         action="{% url 'cv_generator:create_cv' cv.id %}"
         class="cv-step-form"
+        enctype="multipart/form-data"
         aria-label="Formulaire de création de CV - Étape 1"
         novalidate>
     
@@ -297,6 +298,32 @@ CV professionnel Canada, créer CV immigration, générateur CV ATS, CV Europass
         {% endif %}
       </div>
     </fieldset>
+
+    <!-- ================= SECTION: PHOTO (CV EUROPE / MODERN) ================= -->
+    {% if form.photo %}
+    <fieldset class="cv-form-section">
+      <legend class="cv-section-title">Photo de profil <span class="cv-muted">(optionnel — CV Europe / Modern uniquement)</span></legend>
+
+      <div class="form-group">
+        <label for="{{ form.photo.id_for_label }}">
+          Photo professionnelle
+        </label>
+        {% if cv.photo %}
+          <div class="cv-photo-preview" style="margin-bottom:8px;">
+            <img src="{{ cv.photo.url }}" alt="Photo actuelle" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #C9A84C;">
+            <small class="cv-muted" style="display:block;margin-top:4px;">Photo actuelle — choisissez une nouvelle pour la remplacer</small>
+          </div>
+        {% endif %}
+        {{ form.photo }}
+        <small class="cv-muted">
+          Format JPG ou PNG recommandé. Utilisée uniquement dans les templates CV Europe et CV Modern.
+        </small>
+        {% if form.photo.errors %}
+          <span class="error-message" role="alert">{{ form.photo.errors.0 }}</span>
+        {% endif %}
+      </div>
+    </fieldset>
+    {% endif %}
 
     <!-- ================= NAVIGATION WIZARD ================= -->
     <nav class="cv-step-actions" aria-label="Navigation du formulaire">

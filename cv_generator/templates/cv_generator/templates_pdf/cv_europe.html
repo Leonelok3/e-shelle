@@ -1,55 +1,68 @@
 <article class="cv-doc cv-europe">
 
+  <!-- ═══════════ HEADER ═══════════ -->
   <header class="cv-eu-header">
-    <div class="cv-eu-head-left">
-      <h1 class="cv-eu-name">{{ cv.prenom|default:"" }} {{ cv.nom|default:"" }}</h1>
+
+    {% if cv.photo %}
+    <div class="cv-eu-photo-wrap">
+      <img class="cv-eu-photo" src="{{ cv.photo.url }}" alt="Photo de {{ cv.prenom }} {{ cv.nom }}">
+    </div>
+    {% endif %}
+
+    <div class="cv-eu-head-info">
+      <h1 class="cv-eu-name">{{ cv.prenom|default:"" }} {{ cv.nom|default:""|upper }}</h1>
       {% if cv.titre_poste %}<p class="cv-eu-title">{{ cv.titre_poste }}</p>{% endif %}
+
+      <div class="cv-eu-contact-row">
+        {% if cv.email %}<span class="cv-eu-contact-item">✉ {{ cv.email }}</span>{% endif %}
+        {% if cv.telephone %}<span class="cv-eu-contact-item">✆ {{ cv.telephone }}</span>{% endif %}
+        {% if cv.ville or cv.province %}
+          <span class="cv-eu-contact-item">⚲ {{ cv.ville|default:"" }}{% if cv.province %}, {{ cv.province }}{% endif %}</span>
+        {% endif %}
+        {% if cv.linkedin %}<span class="cv-eu-contact-item">in {{ cv.linkedin }}</span>{% endif %}
+      </div>
     </div>
 
-    <div class="cv-eu-head-right">
-      {% if cv.email %}<div class="cv-eu-contact-line">{{ cv.email }}</div>{% endif %}
-      {% if cv.telephone %}<div class="cv-eu-contact-line">{{ cv.telephone }}</div>{% endif %}
-      {% if cv.ville or cv.province %}
-        <div class="cv-eu-contact-line">{{ cv.ville|default:"" }}{% if cv.province %}, {{ cv.province }}{% endif %}</div>
-      {% endif %}
-      {% if cv.linkedin %}<div class="cv-eu-contact-line">{{ cv.linkedin }}</div>{% endif %}
-    </div>
   </header>
 
-  <div class="cv-eu-rule"></div>
+  <div class="cv-eu-divider"></div>
 
-  <div class="cv-eu-grid">
+  <!-- ═══════════ BODY (2 colonnes) ═══════════ -->
+  <div class="cv-eu-body">
 
-    <aside class="cv-eu-aside">
+    <!-- SIDEBAR -->
+    <aside class="cv-eu-sidebar">
 
       {% with prof=cv.resume_professionnel|default:cv.summary %}
         {% if prof %}
-          <section class="cv-eu-block">
-            <h2 class="cv-eu-h2">Profil</h2>
+          <section class="cv-eu-section">
+            <h2 class="cv-eu-section-title">Profil</h2>
             <p class="cv-eu-text">{{ prof }}</p>
           </section>
         {% endif %}
       {% endwith %}
 
       {% if competences %}
-        <section class="cv-eu-block">
-          <h2 class="cv-eu-h2">Compétences</h2>
-          <ul class="cv-eu-tags">
+        <section class="cv-eu-section">
+          <h2 class="cv-eu-section-title">Compétences</h2>
+          <ul class="cv-eu-skills">
             {% for c in competences %}
-              {% if c.nom %}<li class="cv-eu-tag">{{ c.nom }}</li>{% endif %}
+              {% if c.nom %}<li class="cv-eu-skill-tag">{{ c.nom }}</li>{% endif %}
             {% endfor %}
           </ul>
         </section>
       {% endif %}
 
       {% if langues %}
-        <section class="cv-eu-block">
-          <h2 class="cv-eu-h2">Langues</h2>
-          <ul class="cv-eu-list">
+        <section class="cv-eu-section">
+          <h2 class="cv-eu-section-title">Langues</h2>
+          <ul class="cv-eu-lang-list">
             {% for l in langues %}
-              <li>
-                <strong>{{ l.name|default:l.langue|default:"" }}</strong>
-                {% if l.level or l.niveau %}<span class="cv-eu-muted"> — {{ l.level|default:l.niveau }}</span>{% endif %}
+              <li class="cv-eu-lang-item">
+                <span class="cv-eu-lang-name">{{ l.name|default:l.langue|default:"" }}</span>
+                {% if l.level or l.niveau %}
+                  <span class="cv-eu-lang-level">{{ l.level|default:l.niveau }}</span>
+                {% endif %}
               </li>
             {% endfor %}
           </ul>
@@ -58,26 +71,29 @@
 
     </aside>
 
+    <!-- MAIN -->
     <main class="cv-eu-main">
 
       {% if experiences %}
-        <section class="cv-eu-block">
-          <h2 class="cv-eu-h2">Expériences</h2>
+        <section class="cv-eu-section">
+          <h2 class="cv-eu-section-title">Expériences professionnelles</h2>
 
           {% for exp in experiences %}
-            <article class="cv-eu-item">
-              <div class="cv-eu-item-top">
+            <div class="cv-eu-item">
+              <div class="cv-eu-item-header">
                 <div class="cv-eu-item-left">
                   <div class="cv-eu-role">{{ exp.title|default:exp.poste|default:"Poste" }}</div>
                   <div class="cv-eu-company">
                     {{ exp.company|default:exp.entreprise|default:"" }}
-                    {% if exp.location or exp.ville %}<span class="cv-eu-muted"> • {{ exp.location|default:exp.ville }}</span>{% endif %}
+                    {% if exp.location or exp.ville %}
+                      <span class="cv-eu-location"> · {{ exp.location|default:exp.ville }}</span>
+                    {% endif %}
                   </div>
                 </div>
-                <div class="cv-eu-item-right">
-                  <div class="cv-eu-date">
-                    {% if exp.start_date %}{{ exp.start_date|date:"m/Y" }}{% endif %} – {% if exp.end_date %}{{ exp.end_date|date:"m/Y" }}{% else %}Présent{% endif %}
-                  </div>
+                <div class="cv-eu-date-badge">
+                  {% if exp.start_date %}{{ exp.start_date|date:"m/Y" }}{% endif %}
+                  –
+                  {% if exp.end_date %}{{ exp.end_date|date:"m/Y" }}{% else %}Présent{% endif %}
                 </div>
               </div>
 
@@ -86,36 +102,36 @@
                   <div class="cv-eu-desc">{{ txt|linebreaks }}</div>
                 {% endif %}
               {% endwith %}
-            </article>
+            </div>
           {% endfor %}
         </section>
       {% endif %}
 
       {% if formations %}
-        <section class="cv-eu-block">
-          <h2 class="cv-eu-h2">Formation</h2>
+        <section class="cv-eu-section">
+          <h2 class="cv-eu-section-title">Formation</h2>
 
           {% for edu in formations %}
-            <article class="cv-eu-item cv-eu-item-compact">
-              <div class="cv-eu-item-top">
+            <div class="cv-eu-item cv-eu-item-edu">
+              <div class="cv-eu-item-header">
                 <div class="cv-eu-item-left">
                   <div class="cv-eu-role">{{ edu.diplome|default:edu.diploma|default:"Diplôme" }}</div>
                   <div class="cv-eu-company">{{ edu.etablissement|default:edu.institution|default:"" }}</div>
                 </div>
-                <div class="cv-eu-item-right">
-                  <div class="cv-eu-date">
-                    {% if edu.start_date %}{{ edu.start_date|date:"Y" }}{% endif %}
-                    {% if edu.start_date and edu.end_date %} – {{ edu.end_date|date:"Y" }}{% endif %}
-                    {% if edu.start_date and not edu.end_date %} – Présent{% endif %}
-                    {% if not edu.start_date and edu.annee_obtention %}{{ edu.annee_obtention }}{% endif %}
-                  </div>
+                <div class="cv-eu-date-badge">
+                  {% if edu.start_date %}{{ edu.start_date|date:"Y" }}{% endif %}
+                  {% if edu.start_date and edu.end_date %} – {{ edu.end_date|date:"Y" }}{% endif %}
+                  {% if edu.start_date and not edu.end_date %} – Présent{% endif %}
+                  {% if not edu.start_date and edu.annee_obtention %}{{ edu.annee_obtention }}{% endif %}
                 </div>
               </div>
-            </article>
+            </div>
           {% endfor %}
         </section>
       {% endif %}
 
     </main>
+
   </div>
+
 </article>

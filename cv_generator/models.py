@@ -81,6 +81,13 @@ class CV(models.Model):
     ville = models.CharField(max_length=100, blank=True, default="", verbose_name="Ville")
     province = models.CharField(max_length=100, blank=True, default="", verbose_name="Province")
     linkedin = models.URLField(blank=True, default="", verbose_name="LinkedIn")
+    photo = models.ImageField(
+        upload_to="cv/photos/",
+        blank=True,
+        null=True,
+        verbose_name="Photo de profil",
+        help_text="Photo optionnelle pour le CV Europe/Modern",
+    )
 
     # Résumé
     resume_professionnel = models.TextField(

@@ -32,6 +32,7 @@ class Step1Form(forms.ModelForm):
             "nom", "prenom", "email", "telephone",
             "ville", "province", "linkedin",
             "titre_poste", "profession", "pays_cible", "language",
+            "photo",
         ]
         labels = {
             "nom": "Nom",
@@ -45,6 +46,7 @@ class Step1Form(forms.ModelForm):
             "profession": "Profession/Secteur",
             "pays_cible": "Pays ciblé",
             "language": "Langue du CV",
+            "photo": "Photo de profil (optionnel — CV Europe/Modern)",
         }
         widgets = {
             "nom": forms.TextInput(attrs={"class": "form-control", "placeholder": "Dupont"}),
@@ -58,6 +60,7 @@ class Step1Form(forms.ModelForm):
             "profession": forms.TextInput(attrs={"class": "form-control", "placeholder": "Informatique / IT"}),
             "pays_cible": forms.TextInput(attrs={"class": "form-control", "placeholder": "Canada"}),
             "language": forms.Select(attrs={"class": "form-control"}, choices=LANGUAGE_CHOICES),
+            "photo": forms.FileInput(attrs={"class": "form-control", "accept": "image/*"}),
         }
 
     def save(self, commit=True):

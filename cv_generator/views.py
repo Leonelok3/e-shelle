@@ -306,7 +306,7 @@ def create_cv(request, cv_id):
     # ==================== STEP 1 ====================
     if current_step == 1:
         if request.method == "POST":
-            form = Step1Form(request.POST, instance=cv)
+            form = Step1Form(request.POST, request.FILES, instance=cv)
             if form.is_valid():
                 form.save()
 
@@ -1204,20 +1204,6 @@ def delete_language(request, cv_id, lang_id):
 
 
 
-from django.shortcuts import get_object_or_404, render
-from .models import CV
-
-def edit_cv(request, cv_id):
-    cv = get_object_or_404(CV, id=cv_id, user=request.user)
-    return render(request, "cv_generator/edit_cv.html", {"cv": cv})
-
-
-
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
-
-from .models import CV
 from .forms import CVForm
 
 @login_required
@@ -1225,7 +1211,7 @@ def edit_cv(request, cv_id):
     cv = get_object_or_404(CV, id=cv_id, user=request.user)
 
     if request.method == "POST":
-        form = CVForm(request.POST, instance=cv)
+        form = CVForm(request.POST, request.FILES, instance=cv)
         if form.is_valid():
             form.save()
             messages.success(request, "CV mis à jour avec succès.")
