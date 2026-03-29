@@ -296,20 +296,24 @@ def wallet_dashboard(request):
 def buy_plan(request, plan_slug):
     plan = get_object_or_404(SubscriptionPlan, slug=plan_slug, is_active=True)
 
+    from django.conf import settings
+    notchpay_available = bool(getattr(settings, "NOTCHPAY_PUBLIC_KEY", ""))
+
     tx = Transaction.objects.create(
         user=request.user,
         plan=plan,
-        amount=plan.price_usd,
-        currency="USD",
+        amount=plan.price_xaf,
+        currency="XAF",
         type="CREDIT",
         status="PENDING",
         description=f"Achat {plan.name}",
-        payment_method="OTHER",
+        payment_method="NOTCHPAY",
     )
 
     return render(request, "billing/buy_plan.html", {
         "plan": plan,
         "transaction": tx,
+        "notchpay_available": notchpay_available,
         "cinetpay_available": False,
         "stripe_available": False,
         "next": request.GET.get("next", ""),
@@ -318,30 +322,162 @@ def buy_plan(request, plan_slug):
 
 @login_required
 def initiate_payment(request, transaction_id):
+    from django.conf import settings
+    from .notchpay_service import initialize_payment, make_reference
+
     tx = get_object_or_404(Transaction, id=transaction_id, user=request.user)
 
     if tx.status != "PENDING":
         messages.error(request, "Cette transaction a déjà été traitée.")
         return redirect("billing:wallet")
 
-    if request.method == "POST":
-        payment_method = request.POST.get("payment_method") or "OTHER"
-        tx.payment_method = payment_method
-        tx.save(update_fields=["payment_method"])
+    if request.method != "POST":
+        return redirect("billing:buy_plan", plan_slug=tx.plan.slug)
 
-        # ⚠️ Ici tu feras le redirect vers CinetPay/Stripe.
-        # Quand tu recevras la confirmation (webhook), tu feras:
-        # tx.status = "COMPLETED"; tx.save(); create_commission_for_transaction(tx)
-
-        messages.info(
-            request,
-            f"Paiement {payment_method} sélectionné. "
-            "L'intégration des paiements sera activée prochainement. "
-            "Utilisez un code prépayé pour le moment."
-        )
+    notchpay_available = bool(getattr(settings, "NOTCHPAY_PUBLIC_KEY", ""))
+    if not notchpay_available:
+        messages.warning(request, "Paiement en ligne bientôt disponible. Utilise un code prépayé.")
         return redirect("billing:redeem")
 
+    reference = make_reference()
+    tx.metadata = {**(tx.metadata or {}), "notchpay_ref": reference}
+    tx.save(update_fields=["metadata"])
+
+    callback_url = request.build_absolute_uri(
+        reverse("billing:notchpay_callback") + f"?tx={tx.id}&ref={reference}"
+    )
+
+    result = initialize_payment(
+        amount_xaf=int(tx.amount),
+        email=request.user.email,
+        reference=reference,
+        description=f"Immigration97 — {tx.plan.name}",
+        callback_url=callback_url,
+        name=request.user.get_full_name() or request.user.username,
+    )
+
+    if result["success"]:
+        return redirect(result["authorization_url"])
+
+    messages.error(request, f"Erreur paiement : {result['error']}")
     return redirect("billing:buy_plan", plan_slug=tx.plan.slug)
+
+
+# =============================================================================
+# NOTCHPAY — CALLBACK (retour après paiement)
+# =============================================================================
+
+@login_required
+def notchpay_callback(request):
+    """NotchPay redirige l'utilisateur ici après paiement (succès ou échec)."""
+    from .notchpay_service import verify_payment
+
+    tx_id = request.GET.get("tx")
+    reference = request.GET.get("ref")
+    trxref = request.GET.get("trxref") or reference  # NotchPay peut envoyer trxref
+
+    if not tx_id or not trxref:
+        messages.error(request, "Paramètres de paiement manquants.")
+        return redirect("billing:pricing")
+
+    tx = get_object_or_404(Transaction, id=tx_id, user=request.user)
+
+    if tx.status == "COMPLETED":
+        messages.success(request, "✅ Ton abonnement est déjà actif !")
+        return redirect("billing:wallet")
+
+    result = verify_payment(trxref)
+
+    if result["success"] and result["status"] == "complete":
+        tx.status = "COMPLETED"
+        tx.payment_method = "NOTCHPAY"
+        tx.metadata = {**(tx.metadata or {}), "notchpay_verified": True, "notchpay_ref": trxref}
+        tx.save(update_fields=["status", "payment_method", "metadata"])
+
+        sub, _ = Subscription.activate_or_extend(user=request.user, plan=tx.plan)
+        tx.related_subscription = sub
+        tx.save(update_fields=["related_subscription"])
+
+        create_commission_for_transaction(tx)
+
+        messages.success(
+            request,
+            f"✅ Paiement confirmé ! Abonnement {tx.plan.name} actif jusqu'au "
+            f"{sub.expires_at.strftime('%d/%m/%Y')}."
+        )
+        return redirect("billing:wallet")
+
+    # Paiement échoué ou en attente
+    tx.status = "FAILED"
+    tx.metadata = {**(tx.metadata or {}), "notchpay_status": result.get("status"), "notchpay_ref": trxref}
+    tx.save(update_fields=["status", "metadata"])
+
+    messages.error(request, "❌ Paiement non confirmé. Réessaie ou utilise un code.")
+    return redirect("billing:buy_plan", plan_slug=tx.plan.slug)
+
+
+# =============================================================================
+# NOTCHPAY — WEBHOOK (notification serveur-à-serveur)
+# =============================================================================
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+import json as _json
+
+@csrf_exempt
+def notchpay_webhook(request):
+    """
+    NotchPay POST ce endpoint dès qu'un paiement change de statut.
+    Configurer dans NotchPay dashboard → Webhooks → https://immigration97.com/billing/notchpay/webhook/
+    """
+    if request.method != "POST":
+        return HttpResponse(status=405)
+
+    from .notchpay_service import verify_webhook_signature, verify_payment
+
+    payload_bytes = request.body
+    signature = request.headers.get("X-Notch-Signature", "")
+
+    if not verify_webhook_signature(payload_bytes, signature):
+        return HttpResponse("Signature invalide", status=403)
+
+    try:
+        data = _json.loads(payload_bytes)
+    except _json.JSONDecodeError:
+        return HttpResponse("JSON invalide", status=400)
+
+    event = data.get("event", "")
+    txn = data.get("transaction", {})
+    reference = txn.get("reference", "")
+
+    if not reference:
+        return HttpResponse("OK", status=200)
+
+    # Cherche la transaction Django via metadata notchpay_ref
+    tx = (
+        Transaction.objects
+        .filter(metadata__notchpay_ref=reference)
+        .select_related("plan", "user")
+        .first()
+    )
+
+    if not tx:
+        return HttpResponse("OK", status=200)  # pas notre transaction
+
+    if event == "payment.complete" and txn.get("status", "").lower() == "complete":
+        if tx.status != "COMPLETED":
+            tx.status = "COMPLETED"
+            tx.payment_method = "NOTCHPAY"
+            tx.metadata = {**(tx.metadata or {}), "webhook_event": event}
+            tx.save(update_fields=["status", "payment_method", "metadata"])
+
+            sub, _ = Subscription.activate_or_extend(user=tx.user, plan=tx.plan)
+            tx.related_subscription = sub
+            tx.save(update_fields=["related_subscription"])
+
+            create_commission_for_transaction(tx)
+
+    return HttpResponse("OK", status=200)
 
 
 # =============================================================================

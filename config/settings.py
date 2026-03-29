@@ -288,6 +288,12 @@ EMAIL_TIMEOUT = 10
 
 
 # ======================================================
+# PAYMENTS — NOTCHPAY
+# ======================================================
+NOTCHPAY_PUBLIC_KEY = os.environ.get("NOTCHPAY_PUBLIC_KEY", "")
+NOTCHPAY_HASH_KEY = os.environ.get("NOTCHPAY_HASH_KEY", "")
+
+# ======================================================
 # AUTH
 # ======================================================
 
