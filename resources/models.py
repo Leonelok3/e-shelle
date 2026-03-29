@@ -31,6 +31,11 @@ class Resource(models.Model):
         ("maroc",        "Maroc"),
     ]
 
+    cover_image  = models.ImageField("Image de couverture", upload_to="resources/covers/", blank=True, null=True)
+    price_xaf    = models.PositiveIntegerField("Prix (XAF)", default=0, help_text="0 = gratuit")
+    price_eur    = models.DecimalField("Prix (EUR)", max_digits=6, decimal_places=2, default=0)
+    is_free      = models.BooleanField("Gratuit", default=False)
+    preview_url  = models.URLField("Aperçu (lien externe)", blank=True, default="")
     title        = models.CharField("Titre", max_length=255)
     description  = models.TextField("Description courte")
     category     = models.CharField("Catégorie", max_length=50, choices=CATEGORY_CHOICES)
