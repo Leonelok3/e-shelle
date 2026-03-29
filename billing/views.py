@@ -417,6 +417,14 @@ def contract_protection(request):
     return render(request, "billing/contract_protection.html")
 
 
+def politique_remboursement(request):
+    return render(request, "billing/politique_remboursement.html")
+
+
+def conditions_utilisation(request):
+    return render(request, "billing/conditions_utilisation.html")
+
+
 
 from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
