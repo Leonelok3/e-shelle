@@ -2,87 +2,324 @@
 {% load static %}
 
 {% block title %}Ajouter un document — Portfolio | Immigration97{% endblock %}
-{% block meta_description %}
-Ajoutez un CV PDF, une photo de réalisation ou une recommandation. Un portfolio solide augmente la confiance des recruteurs (Canada, Europe, Afrique).
-{% endblock %}
+{% block meta_description %}Ajoutez un CV PDF, une photo de réalisation ou une recommandation. Un portfolio solide augmente la confiance des recruteurs.{% endblock %}
 
 {% block body_class %}profiles{% endblock %}
 {% block app_scope %}profiles{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/profiles.css' %}">
+<style>
+:root {
+  --navy: #050A18;
+  --navy-2: #0A1628;
+  --navy-3: #0F2040;
+  --gold: #D4A843;
+  --gold-light: #F0C060;
+  --gold-dim: rgba(212,168,67,0.12);
+  --gold-border: rgba(212,168,67,0.28);
+  --glass: rgba(10,22,40,0.82);
+  --text: rgba(232,234,240,0.88);
+  --muted: rgba(232,234,240,0.50);
+}
+
+.portfolio-page {
+  min-height: 80vh;
+  background: var(--navy);
+  padding: 3rem 24px 5rem;
+}
+
+.portfolio-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 2rem;
+  align-items: start;
+}
+@media (max-width: 700px) {
+  .portfolio-wrap { grid-template-columns: 1fr; }
+}
+
+/* HERO */
+.portfolio-hero {
+  max-width: 860px;
+  margin: 0 auto 2.5rem;
+}
+.portfolio-hero__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gold);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  opacity: .85;
+  transition: opacity .2s;
+}
+.portfolio-hero__back:hover { opacity: 1; }
+.portfolio-hero__back svg { stroke: var(--gold); }
+.portfolio-hero__title {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, #D4A843, #F0C060);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: .5rem;
+}
+.portfolio-hero__sub {
+  color: var(--muted);
+  font-size: .9rem;
+  line-height: 1.6;
+  max-width: 560px;
+}
+
+/* CARD */
+.portfolio-card {
+  background: var(--glass);
+  border: 1px solid var(--gold-border);
+  border-radius: 18px;
+  padding: 2rem;
+  backdrop-filter: blur(14px);
+}
+
+.portfolio-card__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1.5rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid rgba(212,168,67,0.15);
+}
+
+/* FORM */
+.pf-group {
+  margin-bottom: 1.4rem;
+}
+.pf-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: .45rem;
+}
+.pf-group input[type="text"],
+.pf-group input[type="file"],
+.pf-group select,
+.pf-group textarea {
+  width: 100%;
+  background: rgba(5,10,24,0.65);
+  border: 1px solid var(--gold-border);
+  border-radius: 10px;
+  padding: .8rem 1rem;
+  font-size: .9rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.pf-group input[type="file"] {
+  padding: .6rem 1rem;
+  cursor: pointer;
+}
+.pf-group input:focus,
+.pf-group select:focus,
+.pf-group textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(212,168,67,0.10);
+}
+.pf-group select option { background: #0A1628; }
+.pf-group textarea { min-height: 80px; resize: vertical; }
+.pf-help {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: .35rem;
+  line-height: 1.5;
+}
+.pf-error {
+  font-size: 12px;
+  color: #fca5a5;
+  margin-top: .3rem;
+}
+
+/* ACTIONS */
+.pf-actions {
+  display: flex;
+  gap: .75rem;
+  margin-top: 1.75rem;
+  flex-wrap: wrap;
+}
+.pf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 22px;
+  border-radius: 10px;
+  font-size: .9rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all .2s;
+  border: none;
+}
+.pf-btn--primary {
+  background: linear-gradient(135deg, #D4A843, #F0C060);
+  color: var(--navy);
+  box-shadow: 0 4px 16px rgba(212,168,67,0.25);
+}
+.pf-btn--primary:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(212,168,67,0.38); }
+.pf-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--gold-border);
+  color: rgba(212,168,67,0.80);
+}
+.pf-btn--ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ASIDE — tips */
+.portfolio-tips__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: .75rem 0;
+  border-bottom: 1px solid rgba(212,168,67,0.10);
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.portfolio-tips__item:last-child { border-bottom: none; }
+.portfolio-tips__icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.portfolio-tips__item strong { color: rgba(232,234,240,0.80); }
+
+.portfolio-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin: 1rem 0 .75rem;
+}
+.portfolio-chip {
+  background: var(--gold-dim);
+  border: 1px solid var(--gold-border);
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+</style>
 {% endblock %}
 
 {% block content %}
+<div class="portfolio-page">
 
-<section class="p-card">
-  <h1 class="space-title">Ajouter un document au portfolio</h1>
-  <p class="space-sub">
-    Le portfolio est ce qui transforme un profil “bon” en profil “recrutable”.
-    Ajoutez votre CV (PDF), vos réalisations (images), ou une recommandation.
-  </p>
-
-  <div class="space-actions">
-    <a class="p-btn p-btn--outline" href="{% url 'profiles:detail' profile.pk %}">Retour au profil</a>
-    <a class="p-btn p-btn--outline" href="{% url 'profiles:my_space' %}">Mon espace</a>
-  </div>
-</section>
-
-<section class="p-detail">
-  <div class="p-card">
-    <h2 class="p-section-title">Téléverser un fichier</h2>
-
-    <form method="post" enctype="multipart/form-data" class="p-form">
-      {% csrf_token %}
-      {{ form.non_field_errors }}
-
-      <div>
-        <label for="{{ form.title.id_for_label }}"><strong>Titre</strong></label>
-        {{ form.title }}
-        {{ form.title.errors }}
-        <p class="p-help">Ex: “CV 2026”, “Chantier cuisine”, “Lettre de recommandation”.</p>
-      </div>
-
-      <div>
-        <label for="{{ form.item_type.id_for_label }}"><strong>Type</strong></label>
-        {{ form.item_type }}
-        {{ form.item_type.errors }}
-      </div>
-
-      <div>
-        <label for="{{ form.file.id_for_label }}"><strong>Fichier</strong></label>
-        {{ form.file }}
-        {{ form.file.errors }}
-        <p class="p-help">Conseil : CV en PDF, images nettes, fichiers légers.</p>
-      </div>
-
-      <div>
-        <label for="{{ form.description.id_for_label }}"><strong>Description (optionnel)</strong></label>
-        {{ form.description }}
-        {{ form.description.errors }}
-        <p class="p-help">1–2 phrases : contexte, rôle, résultats, outils.</p>
-      </div>
-
-      <div class="space-actions">
-        <button type="submit" class="p-btn p-btn--primary">Ajouter au portfolio</button>
-        <a class="p-btn p-btn--outline" href="{% url 'profiles:detail' profile.pk %}">Annuler</a>
-      </div>
-    </form>
-  </div>
-
-  <aside class="p-card">
-    <h2 class="p-section-title">Ce que les recruteurs aiment voir</h2>
-    <div class="p-chiprow">
-      <span class="p-chip">CV PDF</span>
-      <span class="p-chip">Preuves (photos)</span>
-      <span class="p-chip">Recommandations</span>
-      <span class="p-chip">Résultats</span>
-    </div>
-    <p class="p-help">
-      Un bon portfolio accélère la décision et augmente les invitations à entretien.
-      (Canada • Europe • Afrique)
+  <!-- HERO -->
+  <div class="portfolio-hero">
+    <a href="{% url 'profiles:my_space' %}" class="portfolio-hero__back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Mon espace
+    </a>
+    <h1 class="portfolio-hero__title">Ajouter un document au portfolio</h1>
+    <p class="portfolio-hero__sub">
+      Le portfolio transforme un profil "bon" en profil "recrutable". Ajoutez votre CV (PDF), vos réalisations (images) ou une lettre de recommandation.
     </p>
-  </aside>
-</section>
+  </div>
 
+  <div class="portfolio-wrap">
+
+    <!-- FORMULAIRE -->
+    <div class="portfolio-card">
+      <div class="portfolio-card__title">Téléverser un fichier</div>
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="pf-error" style="margin-bottom:1rem;">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="pf-group">
+          <label for="{{ form.title.id_for_label }}">Titre</label>
+          {{ form.title }}
+          {% if form.title.errors %}<div class="pf-error">{{ form.title.errors|striptags }}</div>{% endif %}
+          <p class="pf-help">Ex : "CV 2026", "Chantier cuisine", "Lettre de recommandation"</p>
+        </div>
+
+        <div class="pf-group">
+          <label for="{{ form.item_type.id_for_label }}">Type de document</label>
+          {{ form.item_type }}
+          {% if form.item_type.errors %}<div class="pf-error">{{ form.item_type.errors|striptags }}</div>{% endif %}
+        </div>
+
+        <div class="pf-group">
+          <label for="{{ form.file.id_for_label }}">Fichier</label>
+          {{ form.file }}
+          {% if form.file.errors %}<div class="pf-error">{{ form.file.errors|striptags }}</div>{% endif %}
+          <p class="pf-help">CV en PDF, images nettes, fichiers légers (max 5 Mo recommandé)</p>
+        </div>
+
+        <div class="pf-group">
+          <label for="{{ form.description.id_for_label }}">Description <span style="font-weight:400;text-transform:none;font-size:11px;color:var(--muted)">(optionnel)</span></label>
+          {{ form.description }}
+          {% if form.description.errors %}<div class="pf-error">{{ form.description.errors|striptags }}</div>{% endif %}
+          <p class="pf-help">1–2 phrases : contexte, rôle, résultats, outils utilisés.</p>
+        </div>
+
+        <div class="pf-actions">
+          <button type="submit" class="pf-btn pf-btn--primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Ajouter au portfolio
+          </button>
+          <a class="pf-btn pf-btn--ghost" href="{% url 'profiles:detail' profile.pk %}">Annuler</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- ASIDE TIPS -->
+    <aside class="portfolio-card">
+      <div class="portfolio-card__title">Ce que les recruteurs aiment voir</div>
+
+      <div class="portfolio-chips">
+        <span class="portfolio-chip">CV PDF</span>
+        <span class="portfolio-chip">Photos réalisations</span>
+        <span class="portfolio-chip">Recommandations</span>
+        <span class="portfolio-chip">Résultats chiffrés</span>
+      </div>
+
+      <div>
+        <div class="portfolio-tips__item">
+          <span class="portfolio-tips__icon">📄</span>
+          <div><strong>CV au format PDF</strong> — Optez pour un CV adapté au pays cible (IRCC pour le Canada, Europass pour l'UE).</div>
+        </div>
+        <div class="portfolio-tips__item">
+          <span class="portfolio-tips__icon">📸</span>
+          <div><strong>Photos de réalisations</strong> — Montrez vos projets concrets : chantiers, produits, événements.</div>
+        </div>
+        <div class="portfolio-tips__item">
+          <span class="portfolio-tips__icon">✉️</span>
+          <div><strong>Lettres de recommandation</strong> — Un avis d'un ancien employeur augmente fortement la confiance.</div>
+        </div>
+        <div class="portfolio-tips__item">
+          <span class="portfolio-tips__icon">🌍</span>
+          <div><strong>Langues & certifications</strong> — Score TEF/TCF, diplômes reconnus, formations suivies.</div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
 {% endblock %}
