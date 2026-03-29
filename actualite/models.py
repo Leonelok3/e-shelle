@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 from django.utils import timezone
+from django.urls import reverse
 
 
 class Tag(models.Model):
@@ -99,6 +100,9 @@ class NewsItem(models.Model):
                 i += 1
             self.slug = slug
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("actualite:detail", kwargs={"slug": self.slug})
 
     @property
     def image_url(self) -> str:
