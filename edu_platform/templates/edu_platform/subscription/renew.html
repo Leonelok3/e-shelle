@@ -1,0 +1,53 @@
+{% extends "edu_platform/base.html" %}
+{% block title %}Renouveler mon abonnement — EduCam Pro{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-5">
+    <div style="font-size:3rem">🔄</div>
+    <h2 class="fw-bold text-dark-green mt-3">Renouveler votre accès</h2>
+    <p class="text-muted">Choisissez votre nouveau forfait pour continuer sans interruption.</p>
+  </div>
+
+  <div class="row g-4 justify-content-center align-items-stretch">
+    {% for plan in plans %}
+    <div class="col-md-5">
+      <div class="plan-card {% if plan.plan_type == 'annual' %}plan-card-featured{% endif %} h-100">
+        {% if plan.plan_type == 'annual' %}
+        <div class="plan-badge-featured">⭐ Meilleure offre</div>
+        {% endif %}
+        <div class="plan-card-header">
+          <h3 class="plan-name">{{ plan.name }}</h3>
+          <div class="plan-price-block mt-3">
+            <span class="plan-price-amount">{{ plan.price_formatted }}</span>
+            <span class="plan-price-period">/ {{ plan.duration_label }}</span>
+          </div>
+        </div>
+        <div class="plan-card-body">
+          <ul class="plan-feature-list">
+            {% for f in plan.features %}
+            <li><i class="bi bi-check2-circle {% if plan.plan_type == 'annual' %}text-gold{% else %}text-success{% endif %} me-2"></i>{{ f }}</li>
+            {% empty %}
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Accès complet à tous les sujets</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Corrections officielles</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Vidéos de cours</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="plan-card-footer">
+          <a href="{% url 'edu:payment' plan.pk %}" class="btn {% if plan.plan_type == 'annual' %}btn-gold{% else %}btn-outline-green{% endif %} w-100 btn-lg">
+            Choisir ce forfait
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <p class="text-center text-muted small mt-4">
+    <i class="bi bi-shield-check me-1 text-success"></i>
+    Paiement sécurisé · Orange Money & MTN MoMo · Code envoyé instantanément
+  </p>
+</div>
+{% endblock %}

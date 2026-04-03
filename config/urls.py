@@ -122,6 +122,7 @@ urlpatterns = [
     path("protected-media/", include("mediafiles.urls")),
     path("api/ai/", include("ai_engine.urls")),
     path("ressources/", include(("resources.urls", "resources"), namespace="resources")),
+    path("edu/", include("edu_platform.urls", namespace="edu")),
 
     
     # Legacy URL aliases for backward compatibility

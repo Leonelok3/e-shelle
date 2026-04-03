@@ -1,0 +1,93 @@
+{% extends "edu_platform/base.html" %}
+{% block title %}Accès activé ! — EduCam Pro{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-7 text-center">
+
+      <!-- ── SUCCÈS ANIMATION ───────────────────────────────────────── -->
+      <div class="success-checkmark mb-4">✅</div>
+      <h2 class="fw-bold text-dark-green">Paiement confirmé !</h2>
+      <p class="text-muted mt-2">Votre code d'accès EduCam Pro est prêt.</p>
+
+      <!-- ── CODE D'ACCÈS ────────────────────────────────────────────── -->
+      {% if access_code %}
+      <div class="access-code-display mt-4 mb-3">
+        <p class="text-muted small mb-2 fw-semibold text-uppercase tracking-wide">Votre code d'accès</p>
+        <div class="code-box" id="codeBox">{{ access_code.code }}</div>
+        <button class="btn btn-sm btn-outline-green mt-3" onclick="copyCode()">
+          <i class="bi bi-clipboard me-1"></i> Copier le code
+        </button>
+        <div id="copyFeedback" class="text-success small mt-2" style="display:none">
+          ✅ Code copié !
+        </div>
+      </div>
+
+      <div class="code-instructions p-4 text-start mt-3 mb-4">
+        <h6 class="fw-bold mb-3">📋 Instructions d'activation :</h6>
+        <ol class="mb-0 small text-muted">
+          <li class="mb-2">Copiez votre code ci-dessus</li>
+          <li class="mb-2">Cliquez sur "Activer mon accès" ci-dessous</li>
+          <li class="mb-2">Collez le code dans le champ prévu</li>
+          <li>Votre accès sera lié à <strong>cet appareil</strong> uniquement</li>
+        </ol>
+      </div>
+
+      <p class="text-muted small">
+        <i class="bi bi-envelope me-1"></i> Ce code a été envoyé à votre adresse email
+        {% if request.user.email %}<strong>{{ request.user.email }}</strong>{% endif %}
+        et par SMS.
+      </p>
+
+      <div class="d-flex gap-3 justify-content-center mt-4">
+        <a href="{% url 'edu:activate_code' %}" class="btn btn-gold btn-lg px-4">
+          <i class="bi bi-unlock me-2"></i> Activer mon accès
+        </a>
+        <a href="{% url 'edu:dashboard' %}" class="btn btn-outline-green btn-lg">
+          Mon tableau de bord
+        </a>
+      </div>
+
+      <!-- Compte à rebours avant redirection -->
+      <p class="text-muted small mt-4">
+        Redirection automatique dans <span id="countdown" class="fw-bold">30</span>s
+      </p>
+
+      {% else %}
+      <div class="alert alert-warning mt-4">
+        Votre code est en cours de génération. Vérifiez votre SMS et email dans quelques instants.
+      </div>
+      <a href="{% url 'edu:dashboard' %}" class="btn btn-gold mt-3">Mon tableau de bord</a>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyCode() {
+  const code = document.getElementById('codeBox').textContent.trim();
+  navigator.clipboard.writeText(code).then(() => {
+    document.getElementById('copyFeedback').style.display = 'block';
+    setTimeout(() => document.getElementById('copyFeedback').style.display = 'none', 3000);
+  });
+}
+
+// Compte à rebours avant redirect vers activation
+let seconds = 30;
+const countdown = document.getElementById('countdown');
+if (countdown) {
+  const timer = setInterval(() => {
+    seconds--;
+    countdown.textContent = seconds;
+    if (seconds <= 0) {
+      clearInterval(timer);
+      window.location.href = "{% url 'edu:activate_code' %}";
+    }
+  }, 1000);
+}
+</script>
+{% endblock %}

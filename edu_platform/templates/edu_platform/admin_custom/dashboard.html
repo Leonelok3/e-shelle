@@ -1,0 +1,134 @@
+{% extends "edu_platform/base.html" %}
+{% block title %}Admin Dashboard — EduCam Pro{% endblock %}
+{% block body_class %}admin-page{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+
+  <!-- ── HEADER ─────────────────────────────────────────────────── -->
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+      <h2 class="fw-bold mb-0"><i class="bi bi-shield-check me-2 text-gold"></i>EduCam Admin</h2>
+      <p class="text-muted mb-0">Tableau de bord de la plateforme</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'edu:admin_content' %}" class="btn btn-gold btn-sm">
+        <i class="bi bi-plus me-1"></i> Ajouter contenu
+      </a>
+      <a href="{% url 'edu:export_subscribers' %}" class="btn btn-outline-green btn-sm">
+        <i class="bi bi-download me-1"></i> Export CSV
+      </a>
+    </div>
+  </div>
+
+  <!-- ── STATS ──────────────────────────────────────────────────── -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="admin-stat-card">
+        <i class="bi bi-people stat-icon"></i>
+        <div class="stat-value">{{ stats.total_users }}</div>
+        <div class="stat-label">Étudiants inscrits</div>
+        <div class="stat-sub text-success small">+{{ stats.new_users_30d }} ce mois</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="admin-stat-card">
+        <i class="bi bi-patch-check stat-icon text-success"></i>
+        <div class="stat-value">{{ stats.active_subscriptions }}</div>
+        <div class="stat-label">Abonnements actifs</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="admin-stat-card">
+        <i class="bi bi-cash-stack stat-icon text-gold"></i>
+        <div class="stat-value">{{ stats.total_revenue|floatformat:0 }}</div>
+        <div class="stat-label">Revenus totaux (FCFA)</div>
+        <div class="stat-sub text-success small">{{ stats.revenue_30d|floatformat:0 }} ce mois</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="admin-stat-card">
+        <i class="bi bi-hourglass-split stat-icon text-warning"></i>
+        <div class="stat-value">{{ stats.pending_transactions }}</div>
+        <div class="stat-label">Transactions en attente</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NAVIGATION RAPIDE ─────────────────────────────────────── -->
+  <div class="row g-3 mb-4">
+    {% for name, url, icon, label in admin_nav %}
+    {% empty %}
+    <div class="col-6 col-md-2">
+      <a href="{% url 'edu:admin_users' %}" class="admin-nav-card text-center p-3">
+        <i class="bi bi-people fs-3 d-block text-dark-green mb-2"></i>
+        <span class="small fw-semibold">Utilisateurs</span>
+      </a>
+    </div>
+    <div class="col-6 col-md-2">
+      <a href="{% url 'edu:admin_codes' %}" class="admin-nav-card text-center p-3">
+        <i class="bi bi-key fs-3 d-block text-gold mb-2"></i>
+        <span class="small fw-semibold">Codes d'accès</span>
+      </a>
+    </div>
+    <div class="col-6 col-md-2">
+      <a href="{% url 'edu:admin_content' %}" class="admin-nav-card text-center p-3">
+        <i class="bi bi-folder fs-3 d-block text-primary mb-2"></i>
+        <span class="small fw-semibold">Contenu</span>
+      </a>
+    </div>
+    <div class="col-6 col-md-2">
+      <a href="{% url 'edu:admin_transactions' %}" class="admin-nav-card text-center p-3">
+        <i class="bi bi-cash fs-3 d-block text-success mb-2"></i>
+        <span class="small fw-semibold">Transactions</span>
+      </a>
+    </div>
+    <div class="col-6 col-md-2">
+      <a href="{% url 'edu:admin_devices' %}" class="admin-nav-card text-center p-3">
+        <i class="bi bi-phone fs-3 d-block text-secondary mb-2"></i>
+        <span class="small fw-semibold">Appareils</span>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- ── TRANSACTIONS RÉCENTES ─────────────────────────────────── -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
+      <h5 class="mb-0 fw-bold">Derniers paiements confirmés</h5>
+      <a href="{% url 'edu:admin_transactions' %}" class="btn btn-sm btn-outline-secondary">Voir tout</a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Utilisateur</th><th>Plan</th><th>Opérateur</th>
+              <th>Montant</th><th>Confirmé le</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tx in recent_transactions %}
+            <tr>
+              <td>{{ tx.user.get_full_name|default:tx.user.username }}</td>
+              <td>{{ tx.plan.name }}</td>
+              <td>
+                {% if tx.provider == 'orange_money' %}
+                <span class="badge-provider orange-provider">Orange Money</span>
+                {% else %}
+                <span class="badge-provider mtn-provider">MTN MoMo</span>
+                {% endif %}
+              </td>
+              <td class="fw-semibold">{{ tx.amount_formatted }}</td>
+              <td class="text-muted small">{{ tx.confirmed_at|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-4">Aucune transaction confirmée.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

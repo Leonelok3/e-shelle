@@ -1,0 +1,104 @@
+{% extends "edu_platform/base.html" %}
+{% block title %}Paiement en attente — EduCam Pro{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+
+      <!-- ── ANIMATION D'ATTENTE ──────────────────────────────────── -->
+      <div class="pending-animation mb-4">
+        <div class="pending-ring"></div>
+        <div class="pending-icon">📱</div>
+      </div>
+
+      <h2 class="fw-bold text-dark-green">Confirmation en cours…</h2>
+      <p class="text-muted mt-2 mb-4">
+        Veuillez valider le paiement sur votre téléphone
+        <strong>({{ transaction.phone_number }})</strong>.<br>
+        Vous recevrez votre code d'accès dès confirmation.
+      </p>
+
+      <!-- ── DÉTAILS TRANSACTION ────────────────────────────────── -->
+      <div class="tx-details-card p-4 mb-4">
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Montant</span>
+          <strong>{{ transaction.amount_formatted }}</strong>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Opérateur</span>
+          <strong>{{ transaction.get_provider_display }}</strong>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Plan</span>
+          <strong>{{ transaction.plan.name }}</strong>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-muted">Référence</span>
+          <small class="text-muted font-monospace">{{ transaction.transaction_id|truncatechars:16 }}</small>
+        </div>
+      </div>
+
+      <!-- ── STATUT DYNAMIQUE ──────────────────────────────────────── -->
+      <div id="statusMsg" class="alert alert-info">
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        En attente de confirmation de votre opérateur…
+      </div>
+
+      <p class="text-muted small mt-3">
+        Le paiement expire dans <strong id="countdown">10:00</strong>
+      </p>
+
+      <a href="{% url 'edu:plans' %}" class="btn btn-outline-secondary btn-sm mt-2">
+        Annuler et revenir aux forfaits
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const pollUrl = "{{ poll_url }}";
+const successBase = "/edu/payment/success/{{ transaction.transaction_id }}/";
+let pollInterval;
+let countdownSeconds = 600;
+
+function updateCountdown() {
+  const m = Math.floor(countdownSeconds / 60).toString().padStart(2, '0');
+  const s = (countdownSeconds % 60).toString().padStart(2, '0');
+  document.getElementById('countdown').textContent = m + ':' + s;
+  if (countdownSeconds <= 0) {
+    clearInterval(pollInterval);
+    document.getElementById('statusMsg').className = 'alert alert-warning';
+    document.getElementById('statusMsg').innerHTML = '⏱ Le délai de paiement a expiré. <a href="/edu/plans/">Réessayer</a>';
+  }
+  countdownSeconds--;
+}
+
+function pollStatus() {
+  fetch(pollUrl, {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.confirmed && data.success_url) {
+      clearInterval(pollInterval);
+      document.getElementById('statusMsg').className = 'alert alert-success';
+      document.getElementById('statusMsg').innerHTML = '✅ Paiement confirmé ! Redirection…';
+      setTimeout(() => window.location.href = data.success_url, 1500);
+    } else if (data.status === 'failed') {
+      clearInterval(pollInterval);
+      document.getElementById('statusMsg').className = 'alert alert-danger';
+      document.getElementById('statusMsg').innerHTML = '❌ Paiement échoué. <a href="/edu/plans/">Réessayer</a>';
+    }
+  })
+  .catch(() => {});
+}
+
+// Polling toutes les 5 secondes
+pollInterval = setInterval(pollStatus, 5000);
+setInterval(updateCountdown, 1000);
+pollStatus(); // Premier appel immédiat
+</script>
+{% endblock %}

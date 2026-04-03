@@ -1,0 +1,139 @@
+{% extends "edu_platform/base.html" %}
+{% block title %}Gestion Contenu — EduCam Pro Admin{% endblock %}
+{% block body_class %}admin-page{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+
+  <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    <a href="{% url 'edu:admin_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <h2 class="fw-bold mb-0"><i class="bi bi-folder me-2 text-primary"></i>Gestion du contenu</h2>
+  </div>
+
+  <!-- ── TABS ──────────────────────────────────────────────────── -->
+  <ul class="nav nav-tabs mb-4" id="contentTabs">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabSubjects">Matières ({{ subjects|length }})</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabAddSubject">+ Matière</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabAddDoc">+ Document PDF</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabAddVideo">+ Vidéo</button></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- ── LISTE MATIÈRES ──────────────────────────────────────── -->
+    <div class="tab-pane fade show active" id="tabSubjects">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-light">
+            <tr><th>Matière</th><th>Niveau</th><th>Année</th><th>Docs</th><th>Vidéos</th><th>Statut</th></tr>
+          </thead>
+          <tbody>
+            {% for s in subjects %}
+            <tr>
+              <td class="fw-semibold">{{ s.get_subject_type_display }}</td>
+              <td><span class="badge-level">{{ s.get_level_display }}</span></td>
+              <td>{{ s.year|default:"—" }}</td>
+              <td>{{ s.doc_count }}</td>
+              <td>{{ s.video_count }}</td>
+              <td>
+                {% if s.is_published %}
+                <span class="badge bg-success">Publié</span>
+                {% else %}
+                <span class="badge bg-secondary">Brouillon</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-3">Aucune matière.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── AJOUTER MATIÈRE ─────────────────────────────────────── -->
+    <div class="tab-pane fade" id="tabAddSubject">
+      <div class="row justify-content-center">
+        <div class="col-lg-7">
+          <div class="card border-0 shadow-sm p-4">
+            <h5 class="fw-bold mb-4">Ajouter une matière</h5>
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="add_subject" />
+              {% for field in subject_form %}
+              <div class="mb-3">
+                <label class="form-label fw-medium">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
+              </div>
+              {% endfor %}
+              <button type="submit" class="btn btn-gold">
+                <i class="bi bi-plus-circle me-2"></i>Ajouter la matière
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AJOUTER DOCUMENT ───────────────────────────────────── -->
+    <div class="tab-pane fade" id="tabAddDoc">
+      <div class="row justify-content-center">
+        <div class="col-lg-7">
+          <div class="card border-0 shadow-sm p-4">
+            <h5 class="fw-bold mb-4">Uploader un document PDF</h5>
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="add_document" />
+              {% for field in doc_form %}
+              <div class="mb-3">
+                <label class="form-label fw-medium">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
+              </div>
+              {% endfor %}
+              <div class="alert alert-info-edu p-2 small mb-3">
+                <i class="bi bi-shield-check me-1"></i>
+                Les fichiers PDF sont stockés de manière sécurisée et servis sans URL directe.
+              </div>
+              <button type="submit" class="btn btn-gold">
+                <i class="bi bi-cloud-upload me-2"></i>Uploader le document
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AJOUTER VIDÉO ─────────────────────────────────────── -->
+    <div class="tab-pane fade" id="tabAddVideo">
+      <div class="row justify-content-center">
+        <div class="col-lg-7">
+          <div class="card border-0 shadow-sm p-4">
+            <h5 class="fw-bold mb-4">Ajouter une vidéo</h5>
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="add_video" />
+              {% for field in video_form %}
+              <div class="mb-3">
+                <label class="form-label fw-medium">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
+              </div>
+              {% endfor %}
+              <button type="submit" class="btn btn-gold">
+                <i class="bi bi-plus-circle me-2"></i>Ajouter la vidéo
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

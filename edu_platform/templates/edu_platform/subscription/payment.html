@@ -1,0 +1,153 @@
+{% extends "edu_platform/base.html" %}
+{% load static %}
+
+{% block title %}Paiement — {{ plan.name }} — EduCam Pro{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <!-- ── PROGRESSION ────────────────────────────────────────────── -->
+      <div class="payment-steps mb-5">
+        <div class="step active"><span>1</span> Forfait</div>
+        <div class="step-divider"></div>
+        <div class="step active"><span>2</span> Paiement</div>
+        <div class="step-divider"></div>
+        <div class="step"><span>3</span> Code reçu</div>
+      </div>
+
+      <div class="row g-4">
+        <!-- ── FORMULAIRE ─────────────────────────────────────────── -->
+        <div class="col-md-7">
+          <div class="payment-form-card p-4">
+            <h3 class="fw-bold mb-4">
+              <i class="bi bi-phone me-2 text-gold"></i> Payer avec Mobile Money
+            </h3>
+
+            <form method="post" novalidate>
+              {% csrf_token %}
+              {{ form.plan_id }}
+
+              <!-- Sélection opérateur -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold mb-3">Choisissez votre opérateur</label>
+                <div class="provider-selector d-flex gap-3">
+                  <label class="provider-option {% if form.provider.value == 'orange_money' %}selected{% endif %}">
+                    <input type="radio" name="provider" value="orange_money"
+                           {% if form.provider.value != 'mtn_momo' %}checked{% endif %}
+                           class="d-none provider-radio" />
+                    <div class="provider-card">
+                      <div class="provider-logo orange-logo">🟠</div>
+                      <div class="provider-name fw-bold">Orange Money</div>
+                      <div class="provider-hint small text-muted">Numéros 069, 065...</div>
+                    </div>
+                  </label>
+                  <label class="provider-option">
+                    <input type="radio" name="provider" value="mtn_momo"
+                           class="d-none provider-radio" />
+                    <div class="provider-card">
+                      <div class="provider-logo mtn-logo">🟡</div>
+                      <div class="provider-name fw-bold">MTN MoMo</div>
+                      <div class="provider-hint small text-muted">Numéros 067, 068...</div>
+                    </div>
+                  </label>
+                </div>
+                {% if form.provider.errors %}
+                <div class="text-danger small mt-1">{{ form.provider.errors.0 }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Numéro de téléphone -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold">
+                  <i class="bi bi-phone me-1"></i> Numéro Mobile Money
+                </label>
+                {{ form.phone_number }}
+                <div class="form-text">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Ce numéro sera débité. Assurez-vous d'avoir un solde suffisant.
+                </div>
+                {% if form.phone_number.errors %}
+                <div class="text-danger small mt-1">{{ form.phone_number.errors.0 }}</div>
+                {% endif %}
+              </div>
+
+              <button type="submit" class="btn btn-gold w-100 btn-lg mt-2" id="payBtn">
+                <i class="bi bi-shield-lock me-2"></i>
+                Payer {{ plan.price_formatted }} en toute sécurité
+              </button>
+
+              <p class="text-center text-muted small mt-3">
+                <i class="bi bi-shield-check me-1 text-success"></i>
+                Paiement sécurisé · Code envoyé en 2 minutes
+              </p>
+            </form>
+          </div>
+        </div>
+
+        <!-- ── RÉCAPITULATIF ──────────────────────────────────────────── -->
+        <div class="col-md-5">
+          <div class="payment-summary-card p-4">
+            <h5 class="fw-bold mb-3">Récapitulatif</h5>
+            <div class="summary-plan-name">
+              <i class="bi bi-box me-2 text-gold"></i>{{ plan.name }}
+            </div>
+            <div class="summary-duration mt-2">
+              <i class="bi bi-calendar3 me-2 text-muted"></i>
+              {{ plan.duration_label }}
+            </div>
+            <hr />
+            <div class="summary-features mt-3">
+              <ul class="list-unstyled small">
+                {% for f in plan.features %}
+                <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i>{{ f }}</li>
+                {% empty %}
+                <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i>Tous les sujets d'examens</li>
+                <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i>Corrections officielles</li>
+                <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i>Vidéos de cours</li>
+                {% endfor %}
+              </ul>
+            </div>
+            <hr />
+            <div class="summary-total d-flex justify-content-between align-items-center">
+              <span class="fw-bold">Total</span>
+              <span class="summary-price text-gold fw-bold fs-5">{{ plan.price_formatted }}</span>
+            </div>
+            <div class="alert-security mt-3 p-2 rounded small">
+              <i class="bi bi-shield-lock me-1 text-success"></i>
+              Un code unique vous sera envoyé après confirmation.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sélection visuelle des providers
+document.querySelectorAll('.provider-radio').forEach(radio => {
+  radio.addEventListener('change', function() {
+    document.querySelectorAll('.provider-option').forEach(opt => opt.classList.remove('selected'));
+    this.closest('.provider-option').classList.add('selected');
+  });
+});
+document.querySelectorAll('.provider-option').forEach(opt => {
+  opt.addEventListener('click', function() {
+    this.querySelector('input').checked = true;
+    document.querySelectorAll('.provider-option').forEach(o => o.classList.remove('selected'));
+    this.classList.add('selected');
+  });
+});
+
+// Anti double-submit
+document.querySelector('form').addEventListener('submit', function() {
+  const btn = document.getElementById('payBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Traitement en cours...';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends "edu_platform/base.html" %}
+{% load static %}
+
+{% block title %}Forfaits — EduCam Pro{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- ── HEADER ────────────────────────────────────────────────────── -->
+  <div class="text-center mb-5">
+    <h1 class="edu-page-title">Choisissez votre forfait</h1>
+    <p class="text-muted fs-5">Accès illimité · Code personnel · Un seul appareil sécurisé</p>
+
+    <!-- Toggle annuel/trimestriel -->
+    <div class="plan-toggle mt-4">
+      <span class="toggle-label {% if not annual_plan %}active{% endif %}">Trimestriel</span>
+      <label class="toggle-switch mx-3">
+        <input type="checkbox" id="planToggle" />
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="toggle-label">
+        Annuel
+        <span class="badge bg-gold text-dark ms-2">-40%</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- ── CARTES DE PLANS ───────────────────────────────────────────── -->
+  <div class="row g-4 justify-content-center align-items-stretch">
+
+    {% if quarterly_plan %}
+    <div class="col-md-5 plan-quarterly">
+      <div class="plan-card h-100">
+        <div class="plan-card-header">
+          <h3 class="plan-name">{{ quarterly_plan.name }}</h3>
+          <div class="plan-price-block mt-3">
+            <span class="plan-price-amount">{{ quarterly_plan.price_formatted }}</span>
+            <span class="plan-price-period">/ 3 mois</span>
+          </div>
+        </div>
+        <div class="plan-card-body">
+          <ul class="plan-feature-list">
+            {% for f in quarterly_plan.features %}
+            <li><i class="bi bi-check2-circle text-success me-2"></i>{{ f }}</li>
+            {% empty %}
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Accès à tous les sujets d'examens</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Corrections officielles PDF</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Vidéos de cours</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Tous niveaux (BEPC, Proba, BAC)</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>1 seul appareil</li>
+            {% endfor %}
+          </ul>
+          <div class="plan-payment-icons mt-4">
+            <span class="pay-icon orange-money">Orange Money</span>
+            <span class="pay-icon mtn-money">MTN MoMo</span>
+          </div>
+        </div>
+        <div class="plan-card-footer">
+          {% if request.user.is_authenticated %}
+          <a href="{% url 'edu:payment' quarterly_plan.pk %}" class="btn btn-outline-green w-100 btn-lg">
+            Choisir le trimestriel
+          </a>
+          {% else %}
+          <a href="{% url 'edu:register' %}" class="btn btn-outline-green w-100 btn-lg">
+            Commencer
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if annual_plan %}
+    <div class="col-md-5 plan-annual">
+      <div class="plan-card plan-card-featured h-100">
+        {% if annual_plan.badge_label %}
+        <div class="plan-badge-featured">⭐ {{ annual_plan.badge_label }}</div>
+        {% else %}
+        <div class="plan-badge-featured">⭐ Meilleure offre</div>
+        {% endif %}
+        <div class="plan-card-header">
+          <h3 class="plan-name">{{ annual_plan.name }}</h3>
+          <div class="plan-price-block mt-3">
+            <span class="plan-price-amount">{{ annual_plan.price_formatted }}</span>
+            <span class="plan-price-period">/ 12 mois</span>
+          </div>
+          <div class="plan-savings-badge mt-2">
+            Économisez {{ quarterly_plan.price_xaf|floatformat:0 }} FCFA/an
+          </div>
+        </div>
+        <div class="plan-card-body">
+          <ul class="plan-feature-list">
+            {% for f in annual_plan.features %}
+            <li><i class="bi bi-check2-circle text-gold me-2"></i>{{ f }}</li>
+            {% empty %}
+            <li><i class="bi bi-check2-circle text-gold me-2"></i>Tout du plan trimestriel</li>
+            <li><i class="bi bi-check2-circle text-gold me-2"></i>Accès prioritaire nouveaux sujets</li>
+            <li><i class="bi bi-check2-circle text-gold me-2"></i>Téléchargements illimités (si activé)</li>
+            <li><i class="bi bi-check2-circle text-gold me-2"></i>Support prioritaire</li>
+            <li><i class="bi bi-check2-circle text-gold me-2"></i>1 seul appareil</li>
+            {% endfor %}
+          </ul>
+          <div class="plan-payment-icons mt-4">
+            <span class="pay-icon orange-money">Orange Money</span>
+            <span class="pay-icon mtn-money">MTN MoMo</span>
+          </div>
+        </div>
+        <div class="plan-card-footer">
+          {% if request.user.is_authenticated %}
+          <a href="{% url 'edu:payment' annual_plan.pk %}" class="btn btn-gold w-100 btn-lg">
+            <i class="bi bi-lightning me-2"></i> Choisir l'annuel
+          </a>
+          {% else %}
+          <a href="{% url 'edu:register' %}" class="btn btn-gold w-100 btn-lg">
+            <i class="bi bi-lightning me-2"></i> Commencer maintenant
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── FAQ RAPIDE ────────────────────────────────────────────────── -->
+  <div class="row justify-content-center mt-6">
+    <div class="col-md-8">
+      <h3 class="text-center mb-4 fw-bold">Questions fréquentes</h3>
+      <div class="accordion" id="planFAQ">
+        <div class="accordion-item border-0 mb-2">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed bg-light" data-bs-toggle="collapse" data-bs-target="#faq1">
+              Comment reçois-je mon code d'accès ?
+            </button>
+          </h2>
+          <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#planFAQ">
+            <div class="accordion-body text-muted">
+              Après confirmation de votre paiement Mobile Money, votre code est envoyé automatiquement
+              par <strong>SMS</strong> et <strong>email</strong> en moins de 2 minutes.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item border-0 mb-2">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed bg-light" data-bs-toggle="collapse" data-bs-target="#faq2">
+              Puis-je utiliser le code sur plusieurs appareils ?
+            </button>
+          </h2>
+          <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#planFAQ">
+            <div class="accordion-body text-muted">
+              Non. Pour des raisons de sécurité et d'équité, chaque code est lié à <strong>un seul appareil</strong>.
+              Si vous changez d'appareil, contactez notre support.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item border-0 mb-2">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed bg-light" data-bs-toggle="collapse" data-bs-target="#faq3">
+              Quelles matières sont disponibles ?
+            </button>
+          </h2>
+          <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#planFAQ">
+            <div class="accordion-body text-muted">
+              Mathématiques, Français, Physique-Chimie, SVT, Histoire-Géo, Anglais, Philosophie, Économie
+              pour les niveaux BEPC, Probatoire et Baccalauréat.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

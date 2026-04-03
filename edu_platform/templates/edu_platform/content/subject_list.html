@@ -1,0 +1,93 @@
+{% extends "edu_platform/base.html" %}
+{% block title %}Matières — EduCam Pro{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+
+    <!-- ── FILTRES SIDEBAR ─────────────────────────────────────────── -->
+    <div class="col-lg-3 mb-4">
+      <div class="filter-card p-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-funnel me-2"></i>Filtres</h5>
+        <form method="get">
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Niveau</label>
+            <select name="level" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">Tous les niveaux</option>
+              {% for val, label in level_choices %}
+              <option value="{{ val }}" {% if level_filter == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Matière</label>
+            <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">Toutes les matières</option>
+              {% for val, label in type_choices %}
+              <option value="{{ val }}" {% if type_filter == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% if level_filter or type_filter %}
+          <a href="{% url 'edu:subject_list' %}" class="btn btn-sm btn-outline-secondary w-100">
+            <i class="bi bi-x me-1"></i> Réinitialiser
+          </a>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+
+    <!-- ── LISTE DES MATIÈRES ──────────────────────────────────────── -->
+    <div class="col-lg-9">
+      <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <h2 class="h4 fw-bold mb-0">
+          Matières
+          {% if level_filter %}<span class="badge-level ms-2">{{ level_filter|upper }}</span>{% endif %}
+        </h2>
+        <span class="text-muted small">{{ subjects|length }} matière{% if subjects|length > 1 %}s{% endif %}</span>
+      </div>
+
+      <div class="row g-3">
+        {% for subject in subjects %}
+        <div class="col-6 col-md-4">
+          <a href="{% url 'edu:subject_detail' subject.slug %}" class="subject-card-link">
+            <div class="subject-card h-100 p-4">
+              <div class="subject-big-icon mb-3">
+                {% if subject.subject_type == 'math' %}📐
+                {% elif subject.subject_type == 'french' %}📝
+                {% elif subject.subject_type == 'physics' %}⚗️
+                {% elif subject.subject_type == 'biology' %}🌿
+                {% elif subject.subject_type == 'history' %}🌍
+                {% elif subject.subject_type == 'english' %}🇬🇧
+                {% elif subject.subject_type == 'philosophy' %}🤔
+                {% elif subject.subject_type == 'economics' %}📊
+                {% elif subject.subject_type == 'computer' %}💻
+                {% else %}📚{% endif %}
+              </div>
+              <h6 class="fw-bold mb-1">{{ subject.get_subject_type_display }}</h6>
+              {% if subject.year %}<div class="text-muted small mb-1">Annales {{ subject.year }}</div>{% endif %}
+              <span class="badge-level">{{ subject.get_level_display }}</span>
+              {% if subject.is_premium %}
+              <span class="badge-premium ms-1">Premium</span>
+              {% else %}
+              <span class="badge-free ms-1">Gratuit</span>
+              {% endif %}
+              <div class="subject-meta mt-2 text-muted" style="font-size:.75rem">
+                <i class="bi bi-file-earmark me-1"></i>{{ subject.document_count }}
+                <i class="bi bi-camera-video ms-2 me-1"></i>{{ subject.video_count }}
+              </div>
+            </div>
+          </a>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+          <div style="font-size:3rem">📚</div>
+          <p class="text-muted mt-3">Aucune matière trouvée pour ces critères.</p>
+          <a href="{% url 'edu:subject_list' %}" class="btn btn-outline-green">Voir toutes les matières</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

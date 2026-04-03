@@ -1,0 +1,83 @@
+{% extends "edu_platform/base.html" %}
+{% load static %}
+{% block title %}{{ video.title }} — EduCam Pro{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'edu_platform/css/edu_main.css' %}" />
+<style>
+  .video-container { background: #000; border-radius: 12px; overflow: hidden; }
+  .video-container iframe, .video-container video { width: 100%; aspect-ratio: 16/9; border: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- ── PLAYER ────────────────────────────────────────────────── -->
+    <div class="col-lg-8">
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+          <li class="breadcrumb-item"><a href="{% url 'edu:subject_list' %}">Matières</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'edu:subject_detail' video.subject.slug %}">{{ video.subject.get_subject_type_display }}</a></li>
+          <li class="breadcrumb-item active">{{ video.title }}</li>
+        </ol>
+      </nav>
+
+      <div class="video-container mb-3">
+        {% if video.video_file and video_token %}
+        <video controls controlsList="nodownload" oncontextmenu="return false">
+          <source src="/edu/videos/{{ video.pk }}/file/?token={{ video_token }}" type="video/mp4" />
+          Votre navigateur ne supporte pas la lecture vidéo.
+        </video>
+        {% elif video.video_url %}
+        {% with embed_url=video.video_url %}
+        <iframe
+          src="{{ embed_url }}"
+          allowfullscreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        ></iframe>
+        {% endwith %}
+        {% else %}
+        <div class="d-flex align-items-center justify-content-center bg-dark text-white" style="aspect-ratio:16/9;border-radius:12px;">
+          <p class="text-muted">Vidéo non disponible</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <h2 class="h4 fw-bold">{{ video.title }}</h2>
+      <div class="d-flex gap-3 text-muted small mb-3 flex-wrap">
+        <span><i class="bi bi-clock me-1"></i>{{ video.duration_minutes }} min</span>
+        <span><i class="bi bi-eye me-1"></i>{{ video.view_count }} vues</span>
+        <span><i class="bi bi-book me-1"></i>{{ video.subject.get_subject_type_display }}</span>
+        <span class="badge-level">{{ video.subject.get_level_display }}</span>
+      </div>
+      {% if video.description %}
+      <p class="text-muted">{{ video.description }}</p>
+      {% endif %}
+    </div>
+
+    <!-- ── VIDÉOS LIÉES ──────────────────────────────────────────── -->
+    <div class="col-lg-4">
+      <h5 class="fw-bold mb-3">Autres vidéos</h5>
+      <div class="d-flex flex-column gap-3">
+        {% for v in related_videos %}
+        <a href="{% url 'edu:video_player' v.pk %}" class="video-mini-card">
+          <div class="video-mini-thumb">
+            {% if v.thumbnail %}<img src="{{ v.thumbnail.url }}" alt="{{ v.title }}" />
+            {% else %}<div class="video-thumb-placeholder">▶</div>{% endif %}
+          </div>
+          <div class="video-mini-info">
+            <div class="video-mini-title fw-semibold small">{{ v.title }}</div>
+            <div class="text-muted" style="font-size:.75rem">{{ v.duration_minutes }} min</div>
+          </div>
+        </a>
+        {% empty %}
+        <p class="text-muted small">Pas d'autres vidéos.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

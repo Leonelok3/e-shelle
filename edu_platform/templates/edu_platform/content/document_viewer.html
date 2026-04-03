@@ -1,0 +1,55 @@
+{% extends "edu_platform/base.html" %}
+{% load static %}
+{% block title %}{{ doc.title }} — EduCam Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+  #pdfViewer { width: 100%; height: 75vh; border: none; }
+  .viewer-watermark {
+    position: fixed; bottom: 20px; right: 20px;
+    color: rgba(10,61,43,0.15); font-size: 0.75rem;
+    transform: rotate(-20deg); pointer-events: none;
+    z-index: 999; font-weight: bold;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- ── HEADER ─────────────────────────────────────────────────── -->
+  <div class="doc-viewer-header d-flex align-items-center gap-3 mb-3 px-2 flex-wrap">
+    <a href="{% url 'edu:subject_detail' doc.subject.slug %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Retour
+    </a>
+    <div class="flex-grow-1">
+      <h5 class="mb-0 fw-bold">{{ doc.title }}</h5>
+      <small class="text-muted">{{ doc.get_doc_type_display }} · {{ doc.subject }}</small>
+    </div>
+    {% if doc.is_downloadable %}
+    <a href="{% url 'edu:document_serve' doc.pk %}?token={{ token }}"
+       class="btn btn-sm btn-outline-green" download>
+      <i class="bi bi-download me-1"></i> Télécharger
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- ── VISIONNEUSE PDF (pdf.js) ─────────────────────────────── -->
+  <div class="doc-viewer-wrapper position-relative">
+    <iframe
+      id="pdfViewer"
+      src="/edu/documents/{{ doc.pk }}/serve/?token={{ token }}"
+      title="{{ doc.title }}"
+    ></iframe>
+    <!-- Watermark dynamique -->
+    <div class="viewer-watermark">{{ watermark_text }}</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Désactiver le clic droit sur la visionneuse
+document.getElementById('pdfViewer').addEventListener('contextmenu', e => e.preventDefault());
+</script>
+{% endblock %}

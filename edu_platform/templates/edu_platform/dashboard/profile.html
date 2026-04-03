@@ -1,0 +1,141 @@
+{% extends "edu_platform/base.html" %}
+{% load static %}
+
+{% block title %}Mon Profil — EduCam Pro{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- ── INFOS COMPTE ───────────────────────────────────────────── -->
+    <div class="col-lg-5">
+      <div class="profile-card p-4">
+        <div class="profile-avatar mb-3">
+          {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+        </div>
+        <h4 class="fw-bold text-center mb-1">
+          {{ request.user.get_full_name|default:request.user.username }}
+        </h4>
+        <p class="text-muted text-center mb-3">{{ request.user.email }}</p>
+
+        <div class="profile-info-list">
+          <div class="profile-info-row">
+            <span class="pi-label"><i class="bi bi-envelope me-2"></i>Email</span>
+            <span class="pi-value">{{ request.user.email }}</span>
+          </div>
+          {% if edu_profile %}
+          <div class="profile-info-row">
+            <span class="pi-label"><i class="bi bi-phone me-2"></i>Téléphone</span>
+            <span class="pi-value">{{ edu_profile.phone_number }}</span>
+          </div>
+          <div class="profile-info-row">
+            <span class="pi-label"><i class="bi bi-geo me-2"></i>Pays</span>
+            <span class="pi-value">{{ edu_profile.country }}</span>
+          </div>
+          <div class="profile-info-row">
+            <span class="pi-label"><i class="bi bi-calendar me-2"></i>Inscrit le</span>
+            <span class="pi-value">{{ edu_profile.created_at|date:"d/m/Y" }}</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="d-grid mt-4">
+          <a href="{% url 'edu:subscription_status' %}" class="btn btn-gold">
+            <i class="bi bi-credit-card me-2"></i>Voir mon abonnement
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── APPAREILS ENREGISTRÉS ──────────────────────────────────── -->
+    <div class="col-lg-7">
+      <div class="devices-card p-4">
+        <h5 class="fw-bold mb-4">
+          <i class="bi bi-phone me-2 text-gold"></i>
+          Appareils enregistrés
+        </h5>
+
+        {% if devices %}
+        <div class="d-flex flex-column gap-3">
+          {% for device in devices %}
+          <div class="device-row p-3 d-flex align-items-center gap-3">
+            <div class="device-icon">
+              {% if 'iPhone' in device.device_label or 'iPad' in device.device_label %}📱
+              {% elif 'Android' in device.device_label %}📱
+              {% elif 'Windows' in device.device_label %}💻
+              {% elif 'Mac' in device.device_label %}💻
+              {% else %}📟{% endif %}
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-semibold">{{ device.device_label|default:"Appareil inconnu" }}</div>
+              <div class="text-muted small">
+                Plan : {{ device.access_code.plan.name }}
+                · {{ device.connection_count }} connexion{{ device.connection_count|pluralize }}
+              </div>
+              <div class="text-muted" style="font-size:.75rem">
+                Dernière activité : {{ device.last_seen|date:"d/m/Y à H:i" }}
+              </div>
+            </div>
+            {% if device.is_primary %}
+            <span class="badge bg-success">Actif</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+          <div style="font-size:3rem">📱</div>
+          <p class="text-muted mt-2">
+            Aucun appareil enregistré.<br>
+            <a href="{% url 'edu:activate_code' %}" class="text-gold">Activez votre code d'accès</a>
+            pour lier votre appareil.
+          </p>
+        </div>
+        {% endif %}
+
+        <div class="alert alert-info-edu p-3 mt-4 small">
+          <i class="bi bi-shield-lock me-2"></i>
+          <strong>Sécurité :</strong> Chaque code d'accès est lié à un seul appareil.
+          Si vous changez d'appareil, contactez
+          <a href="mailto:support@e-shelle.com" class="fw-semibold">support@e-shelle.com</a>.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+.profile-card, .devices-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(10,61,43,.08);
+  border: 1px solid #e8e8e0;
+}
+.profile-avatar {
+  width: 80px; height: 80px;
+  background: linear-gradient(135deg, #0A3D2B, #1a6645);
+  color: #F4A100;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; font-weight: 900;
+  font-family: 'Playfair Display', serif;
+  margin: 0 auto;
+}
+.profile-info-list { display: flex; flex-direction: column; gap: .75rem; }
+.profile-info-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: .6rem 0;
+  border-bottom: 1px solid #f0f0ea;
+}
+.pi-label { color: #666; font-size: .9rem; }
+.pi-value { font-weight: 600; font-size: .9rem; color: #0A3D2B; }
+.device-row {
+  background: #FAFAF5;
+  border-radius: 10px;
+  border: 1px solid #e8e8e0;
+}
+.device-icon { font-size: 1.8rem; }
+</style>
+{% endblock %}

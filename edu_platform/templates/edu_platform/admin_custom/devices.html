@@ -1,0 +1,90 @@
+{% extends "edu_platform/base.html" %}
+{% block title %}Appareils — EduCam Admin{% endblock %}
+{% block body_class %}admin-page{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+
+  <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    <a href="{% url 'edu:admin_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <h2 class="fw-bold mb-0"><i class="bi bi-phone me-2 text-secondary"></i>Appareils enregistrés</h2>
+    <span class="badge bg-secondary ms-2">{{ devices|length }}</span>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Utilisateur</th>
+              <th>Appareil</th>
+              <th>Plan (code)</th>
+              <th>Fingerprint</th>
+              <th>IP</th>
+              <th>Connexions</th>
+              <th>Dernière activité</th>
+              <th>Principal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for device in devices %}
+            <tr>
+              <td class="small fw-semibold">
+                {{ device.user.get_full_name|default:device.user.username }}
+              </td>
+              <td class="small">
+                <span class="device-type-icon">
+                  {% if 'iPhone' in device.device_label or 'iPad' in device.device_label %}📱
+                  {% elif 'Android' in device.device_label %}📱
+                  {% elif 'Windows' in device.device_label or 'Mac' in device.device_label or 'Linux' in device.device_label %}💻
+                  {% else %}📟{% endif %}
+                </span>
+                {{ device.device_label|default:"Inconnu" }}
+              </td>
+              <td class="small">
+                {{ device.access_code.plan.name }}<br>
+                <code class="text-muted" style="font-size:.65rem">{{ device.access_code.code }}</code>
+              </td>
+              <td>
+                <code class="text-muted" style="font-size:.65rem">
+                  {{ device.device_fingerprint|truncatechars:16 }}…
+                </code>
+              </td>
+              <td class="small text-muted font-monospace">{{ device.ip_address|default:"—" }}</td>
+              <td class="text-center">
+                <span class="badge bg-light text-dark border">{{ device.connection_count }}</span>
+              </td>
+              <td class="small text-muted">{{ device.last_seen|date:"d/m/Y H:i" }}</td>
+              <td class="text-center">
+                {% if device.is_primary %}
+                <span class="badge bg-success">✓</span>
+                {% else %}
+                <span class="badge bg-light text-muted">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-5">
+                Aucun appareil enregistré.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-info-edu p-3 mt-4 small">
+    <i class="bi bi-shield-lock me-2"></i>
+    <strong>Sécurité :</strong> Un appareil est lié à un seul code d'accès.
+    Si un utilisateur a changé d'appareil, vous pouvez révoquer son code depuis la page
+    <a href="{% url 'edu:admin_codes' %}" class="fw-semibold">Codes d'accès</a>
+    et lui en générer un nouveau manuellement.
+  </div>
+</div>
+{% endblock %}

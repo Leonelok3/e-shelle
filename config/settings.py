@@ -90,6 +90,7 @@ SITE_ID = 1
 # ======================================================
 
 INSTALLED_APPS = [
+    "edu_platform.apps.EduPlatformConfig",
     # Django core
     "django.contrib.admin",
     "django.contrib.auth",
@@ -151,6 +152,7 @@ INSTALLED_APPS = [
 # ======================================================
 
 MIDDLEWARE = [
+    "edu_platform.middleware.device_lock_middleware.DeviceLockMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -406,3 +408,18 @@ SPECTACULAR_SETTINGS = {
 # ======================================================
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+# ── EduCam Pro ────────────────────────────────────────────────
+import os as _os
+EDU_PLATFORM = {
+    'SITE_NAME': 'EduCam Pro',
+    'ORANGE_MONEY_API_KEY': _os.getenv('ORANGE_MONEY_API_KEY', ''),
+    'ORANGE_MONEY_SECRET': _os.getenv('ORANGE_MONEY_SECRET', ''),
+    'MTN_MOMO_SUBSCRIPTION_KEY': _os.getenv('MTN_MOMO_SUBSCRIPTION_KEY', ''),
+    'MTN_MOMO_API_USER': _os.getenv('MTN_MOMO_API_USER', ''),
+    'MTN_MOMO_API_KEY': _os.getenv('MTN_MOMO_API_KEY', ''),
+    'MTN_MOMO_ENVIRONMENT': _os.getenv('MTN_MOMO_ENVIRONMENT', 'sandbox'),
+    'WEBHOOK_HMAC_SECRET': _os.getenv('EDU_WEBHOOK_HMAC_SECRET', 'changeme'),
+    'MAX_DEVICES_PER_CODE': 1,
+    'ACCESS_TOKEN_EXPIRY_MINUTES': 15,
+}
+SITE_URL = _os.getenv('SITE_URL', 'https://immigration97.com')

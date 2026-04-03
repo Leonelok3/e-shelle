@@ -1,0 +1,152 @@
+{% extends "edu_platform/base.html" %}
+{% load static %}
+
+{% block title %}Mon Espace — EduCam Pro{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- ── HEADER DASHBOARD ────────────────────────────────────────── -->
+  <div class="dash-header d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h2 class="dash-welcome mb-1">
+        Bonjour, {{ request.user.first_name|default:request.user.username }} 👋
+      </h2>
+      <p class="text-muted mb-0">Continuez votre progression académique</p>
+    </div>
+    <!-- Badge abonnement -->
+    {% if active_code %}
+    <div class="subscription-badge">
+      <span class="badge-sub-icon">✅</span>
+      <div>
+        <div class="badge-sub-plan">{{ active_code.plan.name }}</div>
+        <div class="badge-sub-expiry">
+          {% if days_left is not None %}
+            {% if days_left <= 7 %}
+            <span class="text-warning fw-bold">⚠️ {{ days_left }} jours restants</span>
+            {% else %}
+            <span class="text-success">{{ days_left }} jours restants</span>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <a href="{% url 'edu:plans' %}" class="btn btn-gold">
+      <i class="bi bi-lightning me-1"></i> Activer l'accès
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- ── STATISTIQUES RAPIDES ──────────────────────────────────────── -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="dash-stat-card">
+        <i class="bi bi-book stat-icon"></i>
+        <div class="stat-value">{{ subjects|length }}</div>
+        <div class="stat-label">Matières disponibles</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="dash-stat-card">
+        <i class="bi bi-camera-video stat-icon"></i>
+        <div class="stat-value">{{ recent_videos|length }}</div>
+        <div class="stat-label">Vidéos récentes</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="dash-stat-card">
+        <i class="bi bi-file-earmark-pdf stat-icon"></i>
+        <div class="stat-value">100+</div>
+        <div class="stat-label">Sujets d'examens</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="dash-stat-card">
+        <i class="bi bi-patch-check stat-icon text-gold"></i>
+        <div class="stat-value">3</div>
+        <div class="stat-label">Niveaux couverts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MATIÈRES RÉCENTES ─────────────────────────────────────────── -->
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <h4 class="section-subtitle mb-3">
+        <i class="bi bi-grid me-2"></i> Matières disponibles
+        <a href="{% url 'edu:subject_list' %}" class="btn btn-sm btn-outline-green ms-3">Voir tout</a>
+      </h4>
+      <div class="row g-3">
+        {% for subject in subjects %}
+        <div class="col-6 col-md-4">
+          <a href="{% url 'edu:subject_detail' subject.slug %}" class="subject-card-link">
+            <div class="subject-card p-3 h-100">
+              <div class="subject-icon mb-2">
+                {% if subject.subject_type == 'math' %}📐
+                {% elif subject.subject_type == 'french' %}📝
+                {% elif subject.subject_type == 'physics' %}⚗️
+                {% elif subject.subject_type == 'biology' %}🌿
+                {% elif subject.subject_type == 'history' %}🌍
+                {% elif subject.subject_type == 'english' %}🇬🇧
+                {% elif subject.subject_type == 'philosophy' %}🤔
+                {% elif subject.subject_type == 'economics' %}📊
+                {% else %}📚{% endif %}
+              </div>
+              <div class="subject-name fw-semibold small">{{ subject.get_subject_type_display }}</div>
+              <div class="subject-level">
+                <span class="badge-level">{{ subject.get_level_display }}</span>
+                {% if subject.year %}<span class="subject-year text-muted ms-1">{{ subject.year }}</span>{% endif %}
+              </div>
+              <div class="subject-stats mt-2 text-muted" style="font-size:.75rem">
+                <i class="bi bi-file-earmark me-1"></i>{{ subject.document_count }}
+                <i class="bi bi-camera-video ms-2 me-1"></i>{{ subject.video_count }}
+              </div>
+            </div>
+          </a>
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <div class="empty-state text-center py-5">
+            <div style="font-size:3rem">📚</div>
+            <p class="text-muted mt-2">Aucun contenu disponible pour le moment.</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── VIDÉOS RÉCENTES ──────────────────────────────────────────── -->
+    <div class="col-lg-4">
+      <h4 class="section-subtitle mb-3">
+        <i class="bi bi-play-circle me-2"></i> Vidéos récentes
+      </h4>
+      <div class="d-flex flex-column gap-3">
+        {% for video in recent_videos %}
+        <a href="{% url 'edu:video_player' video.pk %}" class="video-mini-card">
+          <div class="video-mini-thumb">
+            {% if video.thumbnail %}
+            <img src="{{ video.thumbnail.url }}" alt="{{ video.title }}" />
+            {% else %}
+            <div class="video-thumb-placeholder">▶</div>
+            {% endif %}
+          </div>
+          <div class="video-mini-info">
+            <div class="video-mini-title fw-semibold small">{{ video.title }}</div>
+            <div class="text-muted" style="font-size:.75rem">
+              {{ video.subject.get_subject_type_display }} · {{ video.duration_minutes }} min
+            </div>
+          </div>
+          {% if video.is_preview %}
+          <span class="badge-free">Gratuit</span>
+          {% endif %}
+        </a>
+        {% empty %}
+        <p class="text-muted small">Aucune vidéo disponible.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

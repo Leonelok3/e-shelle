@@ -1,0 +1,227 @@
+{% extends "edu_platform/base.html" %}
+{% load static %}
+
+{% block title %}EduCam Pro — Excellence Académique au Cameroun{% endblock %}
+{% block body_class %}landing-page{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO ────────────────────────────────────────────────────────── -->
+<section class="edu-hero">
+  <div class="container">
+    <div class="row align-items-center min-vh-80 py-5">
+      <div class="col-lg-6 pe-lg-5">
+        <span class="hero-badge mb-3 d-inline-block">🇨🇲 Plateforme #1 au Cameroun</span>
+        <h1 class="edu-hero-title">
+          L'excellence académique,<br>
+          <span class="text-gold">à portée de main.</span>
+        </h1>
+        <p class="edu-hero-subtitle mt-3">
+          Accédez à des centaines de sujets d'examens officiels, corrections détaillées
+          et vidéos de cours — pour le BEPC, le Probatoire et le Baccalauréat.
+        </p>
+        <div class="hero-stats d-flex gap-4 my-4 flex-wrap">
+          <div class="stat-item text-center">
+            <span class="stat-number">500+</span>
+            <span class="stat-label">Sujets</span>
+          </div>
+          <div class="stat-item text-center">
+            <span class="stat-number">{{ subjects_count }}+</span>
+            <span class="stat-label">Matières</span>
+          </div>
+          <div class="stat-item text-center">
+            <span class="stat-number">3</span>
+            <span class="stat-label">Niveaux</span>
+          </div>
+        </div>
+        <div class="hero-ctas d-flex gap-3 flex-wrap">
+          <a href="{% url 'edu:plans' %}" class="btn btn-gold btn-lg px-4">
+            Voir les forfaits <i class="bi bi-arrow-right ms-2"></i>
+          </a>
+          <a href="{% url 'edu:register' %}" class="btn btn-outline-light btn-lg px-4">
+            Créer un compte
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-6 mt-5 mt-lg-0 text-center">
+        <div class="hero-illustration">
+          <div class="hero-card-stack">
+            <div class="hero-card card-1">
+              <div class="hc-icon">📄</div>
+              <div class="hc-text">
+                <strong>Bac Série C 2023</strong>
+                <span>Mathématiques + Correction</span>
+              </div>
+            </div>
+            <div class="hero-card card-2">
+              <div class="hc-icon">🎬</div>
+              <div class="hc-text">
+                <strong>Trigonométrie — Probatoire</strong>
+                <span>Vidéo 42 min</span>
+              </div>
+            </div>
+            <div class="hero-card card-3">
+              <div class="hc-icon">✅</div>
+              <div class="hc-text">
+                <strong>Abonnement actif</strong>
+                <span>Plan Annuel · 247 jours restants</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── NIVEAUX ────────────────────────────────────────────────────── -->
+<section class="edu-levels py-6 bg-light-green">
+  <div class="container">
+    <h2 class="section-title text-center mb-5">Pour tous les niveaux</h2>
+    <div class="row g-4 justify-content-center">
+      {% for level in levels %}
+      <div class="col-6 col-md-4">
+        <div class="level-card text-center p-4 h-100">
+          <div class="level-icon mb-3">
+            {% if level == 'BEPC' %}🏫
+            {% elif level == 'Probatoire' %}📐
+            {% else %}🎓{% endif %}
+          </div>
+          <h4 class="fw-bold">{{ level }}</h4>
+          <p class="text-muted small">Sujets officiels, corrections et cours vidéo</p>
+          <a href="{% url 'edu:subject_list' %}?level={{ level|lower }}" class="btn btn-outline-green btn-sm mt-2">
+            Voir les matières
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── COMMENT ÇA MARCHE ────────────────────────────────────────────── -->
+<section class="how-it-works py-6">
+  <div class="container">
+    <h2 class="section-title text-center mb-2">Comment ça marche ?</h2>
+    <p class="text-center text-muted mb-5">En 3 étapes simples, accédez à tout le contenu.</p>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="step-card text-center p-4">
+          <div class="step-number">1</div>
+          <div class="step-icon">📱</div>
+          <h5 class="mt-3 fw-bold">Choisissez votre forfait</h5>
+          <p class="text-muted small">Forfait trimestriel ou annuel selon vos besoins. Paiement 100% mobile.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="step-card text-center p-4">
+          <div class="step-number">2</div>
+          <div class="step-icon">💳</div>
+          <h5 class="mt-3 fw-bold">Payez avec Orange Money ou MTN MoMo</h5>
+          <p class="text-muted small">Confirmation en temps réel. Votre code d'accès vous est envoyé par SMS et email.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="step-card text-center p-4">
+          <div class="step-number">3</div>
+          <div class="step-icon">📚</div>
+          <h5 class="mt-3 fw-bold">Accédez à tout le contenu</h5>
+          <p class="text-muted small">Activez votre code et accédez immédiatement à tous les sujets, corrections et vidéos.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PLANS APERÇU ───────────────────────────────────────────────── -->
+<section class="plans-preview py-6 bg-dark-green text-white">
+  <div class="container">
+    <h2 class="section-title text-center text-white mb-2">Nos forfaits</h2>
+    <p class="text-center text-white-50 mb-5">Accès illimité · Un seul appareil · Code d'accès sécurisé</p>
+    <div class="row g-4 justify-content-center">
+      {% for plan in plans %}
+      <div class="col-md-5">
+        <div class="plan-card-preview {% if plan.plan_type == 'annual' %}plan-featured{% endif %}">
+          {% if plan.badge_label %}
+          <div class="plan-badge">{{ plan.badge_label }}</div>
+          {% endif %}
+          <div class="plan-header">
+            <h3>{{ plan.name }}</h3>
+            <div class="plan-price">
+              <span class="price-amount">{{ plan.price_formatted }}</span>
+              <span class="price-period">/ {{ plan.duration_label }}</span>
+            </div>
+          </div>
+          <ul class="plan-features-list">
+            {% for feature in plan.features %}
+            <li><i class="bi bi-check2-circle text-gold"></i> {{ feature }}</li>
+            {% empty %}
+            <li><i class="bi bi-check2-circle text-gold"></i> Accès à tous les sujets</li>
+            <li><i class="bi bi-check2-circle text-gold"></i> Corrections officielles</li>
+            <li><i class="bi bi-check2-circle text-gold"></i> Vidéos de cours</li>
+            {% endfor %}
+          </ul>
+          <a href="{% url 'edu:payment' plan.pk %}" class="btn {% if plan.plan_type == 'annual' %}btn-gold{% else %}btn-outline-gold{% endif %} w-100 mt-3">
+            Choisir ce forfait
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="text-center text-white-50 mt-4 small">
+      <i class="bi bi-shield-lock me-1"></i>
+      Paiement sécurisé · Code personnel · Accès instantané
+    </p>
+  </div>
+</section>
+
+<!-- ── TÉMOIGNAGES ────────────────────────────────────────────────── -->
+<section class="testimonials py-6">
+  <div class="container">
+    <h2 class="section-title text-center mb-5">Ils ont réussi avec EduCam Pro</h2>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="testimonial-card p-4">
+          <div class="stars mb-2">⭐⭐⭐⭐⭐</div>
+          <p class="fst-italic">"Les corrections vidéo m'ont sauvé en Maths. J'ai eu 16/20 au Bac !"</p>
+          <div class="testimonial-author mt-3">
+            <strong>Marie K.</strong> <span class="text-muted">— Bac Série C, Yaoundé</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="testimonial-card p-4">
+          <div class="stars mb-2">⭐⭐⭐⭐⭐</div>
+          <p class="fst-italic">"J'ai téléchargé tous les sujets depuis 2010. Incroyable base de données !"</p>
+          <div class="testimonial-author mt-3">
+            <strong>Jean-Paul M.</strong> <span class="text-muted">— BEPC, Douala</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="testimonial-card p-4">
+          <div class="stars mb-2">⭐⭐⭐⭐⭐</div>
+          <p class="fst-italic">"Le paiement MTN MoMo était ultra rapide, code reçu en 2 minutes !"</p>
+          <div class="testimonial-author mt-3">
+            <strong>Awa B.</strong> <span class="text-muted">— Probatoire, Bafoussam</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA FINAL ─────────────────────────────────────────────────── -->
+<section class="cta-section py-6 bg-gold">
+  <div class="container text-center">
+    <h2 class="fw-bold text-dark-green mb-3">Prêt(e) à exceller ?</h2>
+    <p class="text-dark-green mb-4 fs-5">
+      Rejoignez des milliers d'étudiants camerounais qui réussissent avec EduCam Pro.
+    </p>
+    <a href="{% url 'edu:register' %}" class="btn btn-dark-green btn-lg px-5">
+      Commencer maintenant <i class="bi bi-rocket-takeoff ms-2"></i>
+    </a>
+  </div>
+</section>
+
+{% endblock %}

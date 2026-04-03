@@ -1,0 +1,141 @@
+{% extends "edu_platform/base.html" %}
+{% block title %}{{ subject }} — EduCam Pro{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- ── BREADCRUMB ──────────────────────────────────────────────── -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'edu:subject_list' %}">Matières</a></li>
+      <li class="breadcrumb-item active">{{ subject.get_subject_type_display }}</li>
+    </ol>
+  </nav>
+
+  <!-- ── HEADER MATIÈRE ─────────────────────────────────────────── -->
+  <div class="subject-detail-header p-4 mb-4">
+    <div class="d-flex align-items-start gap-4 flex-wrap">
+      <div class="subject-detail-icon">
+        {% if subject.subject_type == 'math' %}📐
+        {% elif subject.subject_type == 'french' %}📝
+        {% elif subject.subject_type == 'physics' %}⚗️
+        {% elif subject.subject_type == 'biology' %}🌿
+        {% elif subject.subject_type == 'history' %}🌍
+        {% elif subject.subject_type == 'english' %}🇬🇧
+        {% elif subject.subject_type == 'philosophy' %}🤔
+        {% elif subject.subject_type == 'economics' %}📊
+        {% else %}📚{% endif %}
+      </div>
+      <div class="flex-grow-1">
+        <h1 class="h3 fw-bold mb-1">{{ subject.get_subject_type_display }}</h1>
+        <div class="d-flex gap-2 flex-wrap mb-2">
+          <span class="badge-level">{{ subject.get_level_display }}</span>
+          {% if subject.year %}<span class="badge bg-light text-dark">{{ subject.year }}</span>{% endif %}
+          {% if subject.is_premium %}
+          <span class="badge-premium">Premium</span>
+          {% else %}
+          <span class="badge-free">Gratuit</span>
+          {% endif %}
+        </div>
+        {% if subject.description %}
+        <p class="text-muted mb-0">{{ subject.description }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if not user_has_access and subject.is_premium %}
+  <!-- ── BANNIÈRE ABONNEMENT REQUIS ───────────────────────────── -->
+  <div class="premium-banner p-4 mb-4 text-center">
+    <div style="font-size:2.5rem">🔒</div>
+    <h4 class="fw-bold mt-3">Contenu réservé aux abonnés</h4>
+    <p class="text-muted">Accédez à tous les sujets, corrections et vidéos en choisissant un forfait.</p>
+    <a href="{% url 'edu:plans' %}" class="btn btn-gold px-4 mt-2">
+      <i class="bi bi-lightning me-2"></i> Voir les forfaits
+    </a>
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <!-- ── DOCUMENTS ────────────────────────────────────────────── -->
+    <div class="col-lg-7">
+      <h4 class="section-subtitle mb-3">
+        <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>
+        Documents ({{ documents|length }})
+      </h4>
+      {% if documents %}
+      <div class="d-flex flex-column gap-3">
+        {% for doc in documents %}
+        <div class="doc-card p-3 d-flex align-items-center gap-3">
+          <div class="doc-icon">
+            {% if doc.doc_type == 'subject' %}📄
+            {% elif doc.doc_type == 'correction' %}✅
+            {% else %}💡{% endif %}
+          </div>
+          <div class="flex-grow-1">
+            <div class="fw-semibold">{{ doc.title }}</div>
+            <div class="text-muted small">
+              {{ doc.get_doc_type_display }}
+              {% if doc.file_size_kb > 0 %} · {{ doc.file_size_kb }} Ko{% endif %}
+            </div>
+          </div>
+          {% if user_has_access or not subject.is_premium %}
+          <a href="{% url 'edu:document_view' doc.pk %}" class="btn btn-sm btn-outline-green">
+            <i class="bi bi-eye me-1"></i> Voir
+          </a>
+          {% else %}
+          <span class="btn btn-sm btn-outline-secondary disabled">
+            <i class="bi bi-lock me-1"></i> Premium
+          </span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-4 text-muted">
+        <i class="bi bi-inbox" style="font-size:2rem"></i>
+        <p class="mt-2">Aucun document disponible.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ── VIDÉOS ────────────────────────────────────────────────── -->
+    <div class="col-lg-5">
+      <h4 class="section-subtitle mb-3">
+        <i class="bi bi-camera-video me-2 text-primary"></i>
+        Vidéos ({{ videos|length }})
+      </h4>
+      {% if videos %}
+      <div class="d-flex flex-column gap-3">
+        {% for video in videos %}
+        <div class="video-card-row d-flex gap-3 align-items-center p-3">
+          <div class="video-thumb-sm">
+            {% if video.thumbnail %}
+            <img src="{{ video.thumbnail.url }}" alt="{{ video.title }}" />
+            {% else %}
+            <div class="video-thumb-ph">▶</div>
+            {% endif %}
+            {% if video.is_preview %}<span class="badge-free-sm">Gratuit</span>{% endif %}
+          </div>
+          <div class="flex-grow-1">
+            <div class="fw-semibold small">{{ video.title }}</div>
+            <div class="text-muted" style="font-size:.75rem">{{ video.duration_minutes }} min · {{ video.view_count }} vues</div>
+          </div>
+          {% if user_has_access or video.is_preview or not subject.is_premium %}
+          <a href="{% url 'edu:video_player' video.pk %}" class="btn btn-sm btn-primary">▶</a>
+          {% else %}
+          <span class="btn btn-sm btn-secondary disabled">🔒</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-4 text-muted">
+        <i class="bi bi-camera-video" style="font-size:2rem"></i>
+        <p class="mt-2">Aucune vidéo disponible.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
