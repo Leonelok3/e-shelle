@@ -9,11 +9,14 @@ from xhtml2pdf import pisa
 
 from actualite.models import NewsItem
 from eligibility.models import Session as EligSession
+from billing.services import has_active_access
+
+from .models import ConsultationRequest
+from .forms import ConsultationForm
 
 
 def user_is_subscriber(user):
-    # TODO: brancher billing
-    return True
+    return has_active_access(user)
 
 
 @login_required
@@ -100,3 +103,28 @@ def home(request):
         )
 
     return render(request, "home.html", {"top_week": top_week})
+
+
+# ======================================================
+# CONSULTATION / ACCOMPAGNEMENT
+# ======================================================
+
+def consultation_request(request):
+    """Page publique : demande de consultation / accompagnement personnalisé."""
+    if request.method == "POST":
+        form = ConsultationForm(request.POST, user=request.user if request.user.is_authenticated else None)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            if request.user.is_authenticated:
+                obj.user = request.user
+            obj.save()
+            return redirect("consultation_success")
+    else:
+        form = ConsultationForm(user=request.user if request.user.is_authenticated else None)
+
+    return render(request, "consultation/request.html", {"form": form})
+
+
+def consultation_success(request):
+    """Page de confirmation après soumission d'une demande."""
+    return render(request, "consultation/success.html")

@@ -71,6 +71,40 @@
   {% block extra_css %}{% endblock %}
 
   <style>
+    /* ── Lien Consultation navbar (distinct, pulsant) ── */
+    .c-nav-consult {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(212,168,67,0.12);
+      border: 1px solid rgba(212,168,67,0.35);
+      border-radius: 999px;
+      padding: 6px 15px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #F0C060 !important;
+      letter-spacing: 0.02em;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+    .c-nav-consult:hover {
+      background: rgba(212,168,67,0.22);
+      box-shadow: 0 0 16px rgba(212,168,67,0.25);
+      color: #F0C060 !important;
+    }
+    .c-nav-consult__dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #D4A843;
+      flex-shrink: 0;
+      animation: navConsultPulse 2s ease-in-out infinite;
+    }
+    @keyframes navConsultPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(212,168,67,0.5); }
+      50%      { box-shadow: 0 0 0 5px rgba(212,168,67,0); }
+    }
+
     /* (Ton style footer premium inchangé) */
     .c-footer { background: linear-gradient(135deg, #0a0e1a 0%, #161c2e 100%); color: #e8eaed; border-top: 1px solid rgba(255,255,255,0.05); }
     .c-footer__main { max-width: 1280px; margin: 0 auto; padding: 4rem 2rem 2rem; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr; gap: 3rem; width: 100%; box-sizing: border-box; }
@@ -220,6 +254,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <a href="{% url 'actualite:list' %}" class="c-nav-link">Blog</a>
       <a href="{% url 'job_agent:public_offers' %}" class="c-nav-link">Job Agent</a>
       <a href="{% url 'resources:library' %}" class="c-nav-link">Ressources</a>
+      <a href="{% url 'consultation_request' %}" class="c-nav-consult" aria-label="Demander une consultation">
+        <span class="c-nav-consult__dot" aria-hidden="true"></span>
+        Consultation
+      </a>
 
       {% if user.is_authenticated %}
         <a href="/profiles/" class="c-btn c-btn--outline">Mon espace</a>

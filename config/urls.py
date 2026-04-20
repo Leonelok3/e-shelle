@@ -38,6 +38,8 @@ from core.views import (
     wizard_pdf,
     wizard_steps_page,
     dashboard_page,
+    consultation_request,
+    consultation_success,
 )
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
@@ -117,6 +119,8 @@ urlpatterns = [
     path("italien/", include("italian_courses.urls")),
 
     path("jobs/", include(("job_agent.urls", "job_agent"), namespace="job_agent")),
+    path("consultation/", consultation_request, name="consultation_request"),
+    path("consultation/merci/", consultation_success, name="consultation_success"),
     path("about/", about_page, name="about"),
     path("services/", services_page, name="services"),
     path("protected-media/", include("mediafiles.urls")),

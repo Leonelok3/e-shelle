@@ -292,6 +292,35 @@
     .nav-cta:hover{box-shadow:0 6px 20px rgba(212,168,67,0.45) !important;transform:translateY(-1px);}
     .nav-cta::after{display:none !important;}
 
+    /* ── Lien Consultation (distinct) ── */
+    .nav-consult{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      background:rgba(212,168,67,0.12);
+      border:1px solid rgba(212,168,67,0.35);
+      border-radius:100px;
+      padding:7px 16px;
+      font-size:0.82rem !important;
+      font-weight:700 !important;
+      color:var(--gold-light) !important;
+      letter-spacing:0.02em;
+      transition:var(--transition) !important;
+      white-space:nowrap;
+    }
+    .nav-consult:hover{
+      background:rgba(212,168,67,0.22) !important;
+      box-shadow:0 0 16px rgba(212,168,67,0.25);
+      transform:translateY(-1px);
+      color:var(--gold-light) !important;
+    }
+    .nav-consult::after{display:none !important;}
+    .nav-consult__dot{
+      width:7px;height:7px;border-radius:50%;
+      background:var(--gold);flex-shrink:0;
+      animation:pulse 2s ease-in-out infinite;
+    }
+
     .hamburger{
       display:none;
       flex-direction:column;
@@ -924,6 +953,8 @@
       #recruteurs .container > div { grid-template-columns: 1fr !important; gap: 2rem !important; }
       /* Section tarifs */
       #tarifs > .container > div:first-of-type { grid-template-columns: 1fr !important; }
+      /* Section consultation */
+      #consultation-cta .container > div { grid-template-columns: 1fr !important; gap: 2.5rem !important; }
     }
     @media(max-width:640px){
       .container{padding:0 16px;}
@@ -998,6 +1029,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <li><a href="/cv-generator/">CV Professionnel</a></li>
           <li><a href="{% url 'actualite:list' %}">Blog</a></li>
           <li><a href="{% url 'job_agent:public_offers' %}">Job Agent</a></li>
+          <li>
+            <a href="{% url 'consultation_request' %}" class="nav-consult" aria-label="Demander une consultation privée">
+              <span class="nav-consult__dot" aria-hidden="true"></span>
+              Consultation
+            </a>
+          </li>
           {% if user.is_authenticated %}
             <li><a href="{% url 'profiles:my_space' %}" class="nav-link-espace">Mon espace</a></li>
             <li><a href="{% url 'authentification:logout' %}" class="nav-cta nav-cta--ghost">Se déconnecter</a></li>
@@ -1030,6 +1067,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <a href="/cv-generator/" onclick="closeMobileMenu()">CV Professionnel</a>
       <a href="{% url 'actualite:list' %}" onclick="closeMobileMenu()">Blog</a>
       <a href="{% url 'job_agent:public_offers' %}" onclick="closeMobileMenu()">Job Agent</a>
+      <a href="{% url 'consultation_request' %}" onclick="closeMobileMenu()" style="color:var(--gold-light)!important;">🎯 Consultation</a>
     </nav>
     <a href="{% url 'billing:access' %}" class="btn btn-gold" style="margin-top:1rem;">
       Déposer ma candidature
@@ -1744,6 +1782,80 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           Activation instantanée &nbsp;·&nbsp;
           <a href="{% url 'billing:politique_remboursement' %}" style="color:#D4A843;">Garantie remboursement</a>
         </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 9b — CONSULTATION / ACCOMPAGNEMENT
+  ============================================================ -->
+  <section id="consultation-cta" style="padding:5rem 0;background:linear-gradient(135deg,rgba(212,168,67,0.05) 0%,transparent 60%);">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;">
+
+        <!-- Left: texte -->
+        <div class="reveal">
+          <span class="section-label">Accompagnement Privé</span>
+          <h2 class="section-title" style="margin-top:.75rem;">
+            Vous avez besoin d'un<br><span>expert à vos côtés ?</span>
+          </h2>
+          <p style="font-size:1rem;color:var(--text-secondary);line-height:1.8;margin-bottom:2rem;max-width:480px;">
+            Visa, études, emploi à l'étranger, test de langue, création de CV, mise en relation recruteur — un conseiller dédié analyse votre dossier et vous guide pas à pas.
+          </p>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:.85rem;margin-bottom:2.5rem;">
+            <li style="display:flex;align-items:center;gap:.75rem;font-size:.95rem;color:var(--text-secondary);">
+              <span style="width:28px;height:28px;border-radius:50%;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;">✓</span>
+              Réponse personnalisée sous 24h
+            </li>
+            <li style="display:flex;align-items:center;gap:.75rem;font-size:.95rem;color:var(--text-secondary);">
+              <span style="width:28px;height:28px;border-radius:50%;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;">✓</span>
+              Experts en immigration africaine vers +15 pays
+            </li>
+            <li style="display:flex;align-items:center;gap:.75rem;font-size:.95rem;color:var(--text-secondary);">
+              <span style="width:28px;height:28px;border-radius:50%;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;">✓</span>
+              Tarifs adaptés, consultation sans engagement
+            </li>
+          </ul>
+          <a href="{% url 'consultation_request' %}" class="btn btn-gold" style="font-size:1rem;">
+            Demander ma consultation →
+          </a>
+        </div>
+
+        <!-- Right: cards services -->
+        <div class="reveal reveal-delay-2" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          {% for icon,label in consult_services %}
+          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
+            <div style="font-size:2rem;margin-bottom:.5rem;">{{ icon }}</div>
+            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">{{ label }}</div>
+          </div>
+          {% empty %}
+          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
+            <div style="font-size:2rem;margin-bottom:.5rem;">🎓</div>
+            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">Visa Études</div>
+          </div>
+          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
+            <div style="font-size:2rem;margin-bottom:.5rem;">💼</div>
+            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">Visa Travail</div>
+          </div>
+          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
+            <div style="font-size:2rem;margin-bottom:.5rem;">🗣️</div>
+            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">Tests Langue</div>
+          </div>
+          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
+            <div style="font-size:2rem;margin-bottom:.5rem;">📄</div>
+            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">CV Premium</div>
+          </div>
+          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
+            <div style="font-size:2rem;margin-bottom:.5rem;">👤</div>
+            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">Profil Recruteur</div>
+          </div>
+          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
+            <div style="font-size:2rem;margin-bottom:.5rem;">🏠</div>
+            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">Résidence Perm.</div>
+          </div>
+          {% endfor %}
+        </div>
+
       </div>
     </div>
   </section>

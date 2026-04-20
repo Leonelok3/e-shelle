@@ -132,11 +132,6 @@ class ProfileDetailView(DetailView):
             messages.error(request, "Connectez-vous pour envoyer une invitation.")
             return redirect("authentification:login")
 
-        # Abonnement recruteur requis pour envoyer une invitation
-        if not has_recruiter_access(request.user):
-            messages.error(request, "🔒 Abonnement Recruteur requis pour envoyer des invitations.")
-            return redirect(f"{reverse('billing:pricing')}?role=recruiter")
-
         if form.is_valid():
             invite = InterviewInvite.objects.create(
                 recruiter=request.user,
