@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Demande de Consultation | Immigration97{% endblock %}
+{% block meta_description %}Demandez un accompagnement personnalisé : visa, études, travail, test de langue, CV, mise en relation recruteur. Un expert vous contacte sous 24h.{% endblock %}
+
+{% block body_class %}consultation{% endblock %}
+{% block app_scope %}consultation{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Variables ── */
+:root {
+  --c-navy:      #050A18;
+  --c-navy-mid:  #0A1628;
+  --c-navy-card: rgba(255,255,255,0.04);
+  --c-gold:      #D4A843;
+  --c-gold-lt:   #F0C060;
+  --c-amber:     #F59E0B;
+  --c-green:     #10b981;
+  --c-border:    rgba(212,168,67,0.22);
+  --c-text:      #fff;
+  --c-muted:     rgba(255,255,255,0.6);
+}
+
+body.consultation .app-main {
+  background: linear-gradient(160deg, var(--c-navy) 0%, var(--c-navy-mid) 60%, #0A1F3A 100%);
+  min-height: 100vh;
+  color: var(--c-text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+/* ── Hero ── */
+.consult-hero {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem 2rem;
+  text-align: center;
+}
+.consult-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  background: rgba(212,168,67,.12);
+  border: 1px solid rgba(212,168,67,.25);
+  border-radius: 999px;
+  padding: .35rem 1rem;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--c-gold-lt);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+.consult-hero h1 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+.consult-hero h1 span { color: var(--c-gold-lt); }
+.consult-hero__sub {
+  font-size: 1.05rem;
+  color: var(--c-muted);
+  max-width: 620px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.7;
+}
+
+/* ── Trust indicators ── */
+.consult-trust {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-bottom: 3rem;
+}
+.consult-trust__item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .88rem;
+  color: var(--c-muted);
+}
+.consult-trust__item span:first-child { font-size: 1.2rem; }
+
+/* ── Layout ── */
+.consult-layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.5rem 5rem;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2.5rem;
+  align-items: start;
+}
+@media (max-width: 800px) {
+  .consult-layout { grid-template-columns: 1fr; }
+}
+
+/* ── Card ── */
+.consult-card {
+  background: var(--c-navy-card);
+  border: 1px solid var(--c-border);
+  border-radius: 20px;
+  padding: 2rem 2.5rem;
+  backdrop-filter: blur(12px);
+}
+.consult-card__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  color: var(--c-gold-lt);
+}
+
+/* ── Form ── */
+.consult-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+@media (max-width: 600px) { .consult-row { grid-template-columns: 1fr; } }
+
+.consult-field { margin-bottom: 1.1rem; }
+.consult-label {
+  display: block;
+  font-size: .85rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.75);
+  margin-bottom: .4rem;
+}
+.consult-input,
+.consult-select,
+.consult-textarea {
+  width: 100%;
+  padding: .7rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  font-size: .92rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
+}
+.consult-input::placeholder,
+.consult-textarea::placeholder { color: rgba(255,255,255,.35); }
+.consult-input:focus,
+.consult-select:focus,
+.consult-textarea:focus {
+  border-color: var(--c-gold);
+  box-shadow: 0 0 0 3px rgba(212,168,67,.15);
+}
+.consult-select option { background: #0a1628; color: #fff; }
+.consult-textarea { resize: vertical; min-height: 120px; }
+
+.consult-btn {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, var(--c-gold) 0%, var(--c-amber) 100%);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+  margin-top: 1rem;
+  font-family: inherit;
+}
+.consult-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212,168,67,.35);
+}
+
+.consult-disclaimer {
+  font-size: .78rem;
+  color: var(--c-muted);
+  text-align: center;
+  margin-top: .75rem;
+  line-height: 1.5;
+}
+
+/* ── Sidebar ── */
+.consult-sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.consult-why {
+  background: rgba(16,185,129,.07);
+  border: 1px solid rgba(16,185,129,.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+.consult-why__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--c-green);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.consult-why__list {
+  list-style: none;
+  padding: 0; margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+}
+.consult-why__item {
+  display: flex;
+  align-items: flex-start;
+  gap: .55rem;
+  font-size: .9rem;
+  color: rgba(255,255,255,.8);
+  line-height: 1.5;
+}
+.consult-why__item::before {
+  content: '✓';
+  color: var(--c-green);
+  font-weight: 700;
+  margin-top: .05rem;
+  flex-shrink: 0;
+}
+
+.consult-services {
+  background: var(--c-navy-card);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+.consult-services__title {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--c-gold-lt);
+  margin-bottom: 1rem;
+}
+.consult-service-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: rgba(212,168,67,.1);
+  border: 1px solid rgba(212,168,67,.18);
+  border-radius: 8px;
+  padding: .35rem .75rem;
+  font-size: .8rem;
+  color: rgba(255,255,255,.8);
+  margin: .25rem .25rem .25rem 0;
+}
+
+.consult-contact {
+  background: linear-gradient(135deg, rgba(37,211,102,.1), rgba(37,211,102,.05));
+  border: 1px solid rgba(37,211,102,.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+}
+.consult-contact__title { font-size: .95rem; font-weight: 700; margin-bottom: .5rem; }
+.consult-contact__text { font-size: .85rem; color: var(--c-muted); margin-bottom: 1rem; line-height: 1.5; }
+.consult-wa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  background: #25D366;
+  color: #fff;
+  padding: .65rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: .88rem;
+  text-decoration: none;
+  transition: background .2s;
+}
+.consult-wa-btn:hover { background: #1ebe5d; color: #fff; }
+
+/* ── Error display ── */
+.consult-errors {
+  background: rgba(239,68,68,.1);
+  border: 1px solid rgba(239,68,68,.3);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  font-size: .88rem;
+  color: #fca5a5;
+}
+.consult-errors ul { margin: .4rem 0 0 1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="consult-hero">
+  <div class="consult-hero__badge">
+    <span>🎯</span> Accompagnement Personnalisé
+  </div>
+  <h1>Demandez une <span>Consultation Privée</span></h1>
+  <p class="consult-hero__sub">
+    Un expert Immigration97 analyse votre dossier et vous contacte sous <strong>24h</strong> pour un accompagnement sur-mesure — visa, langue, emploi, CV ou mise en relation internationale.
+  </p>
+  <div class="consult-trust">
+    <div class="consult-trust__item"><span>⚡</span> Réponse sous 24h</div>
+    <div class="consult-trust__item"><span>🔒</span> Confidentialité garantie</div>
+    <div class="consult-trust__item"><span>🌍</span> +15 pays couverts</div>
+    <div class="consult-trust__item"><span>✅</span> Experts certifiés</div>
+  </div>
+</section>
+
+<!-- Layout -->
+<div class="consult-layout">
+
+  <!-- FORMULAIRE -->
+  <div class="consult-card">
+    <div class="consult-card__title">
+      <span>📋</span> Votre demande de consultation
+    </div>
+
+    {% if form.errors %}
+    <div class="consult-errors">
+      <strong>Veuillez corriger les erreurs suivantes :</strong>
+      <ul>
+        {% for field in form %}
+          {% for error in field.errors %}
+            <li><strong>{{ field.label }} :</strong> {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="consult-row">
+        <div class="consult-field">
+          <label class="consult-label" for="{{ form.full_name.id_for_label }}">{{ form.full_name.label }}</label>
+          {{ form.full_name }}
+        </div>
+        <div class="consult-field">
+          <label class="consult-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+          {{ form.email }}
+        </div>
+      </div>
+
+      <div class="consult-row">
+        <div class="consult-field">
+          <label class="consult-label" for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
+          {{ form.phone }}
+        </div>
+        <div class="consult-field">
+          <label class="consult-label" for="{{ form.country.id_for_label }}">{{ form.country.label }}</label>
+          {{ form.country }}
+        </div>
+      </div>
+
+      <div class="consult-row">
+        <div class="consult-field">
+          <label class="consult-label" for="{{ form.consultation_type.id_for_label }}">{{ form.consultation_type.label }}</label>
+          {{ form.consultation_type }}
+        </div>
+        <div class="consult-field">
+          <label class="consult-label" for="{{ form.destination_country.id_for_label }}">{{ form.destination_country.label }}</label>
+          {{ form.destination_country }}
+        </div>
+      </div>
+
+      <div class="consult-field">
+        <label class="consult-label" for="{{ form.message.id_for_label }}">{{ form.message.label }}</label>
+        {{ form.message }}
+      </div>
+
+      <div class="consult-row">
+        <div class="consult-field">
+          <label class="consult-label" for="{{ form.budget.id_for_label }}">{{ form.budget.label }}</label>
+          {{ form.budget }}
+        </div>
+        <div class="consult-field">
+          <label class="consult-label" for="{{ form.preferred_date.id_for_label }}">{{ form.preferred_date.label }}</label>
+          {{ form.preferred_date }}
+        </div>
+      </div>
+
+      <button type="submit" class="consult-btn">
+        Envoyer ma demande &rarr;
+      </button>
+      <p class="consult-disclaimer">
+        En soumettant ce formulaire, vous acceptez d'être contacté(e) par l'équipe Immigration97.<br>
+        Vos données ne seront pas partagées avec des tiers.
+      </p>
+    </form>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="consult-sidebar">
+
+    <div class="consult-why">
+      <div class="consult-why__title"><span>✨</span> Pourquoi nous choisir ?</div>
+      <ul class="consult-why__list">
+        <li class="consult-why__item">Experts en immigration africaine vers le Canada, l'Europe et au-delà</li>
+        <li class="consult-why__item">Accompagnement de A à Z : dossier, tests de langue, CV, entretiens</li>
+        <li class="consult-why__item">Mise en relation directe avec des recruteurs internationaux</li>
+        <li class="consult-why__item">Suivi personnalisé jusqu'à l'obtention du visa</li>
+        <li class="consult-why__item">Tarifs adaptés aux candidats africains</li>
+      </ul>
+    </div>
+
+    <div class="consult-services">
+      <div class="consult-services__title">Services disponibles</div>
+      <span class="consult-service-chip">🎓 Visa Etudes</span>
+      <span class="consult-service-chip">💼 Visa Travail</span>
+      <span class="consult-service-chip">🏠 Résidence Permanente</span>
+      <span class="consult-service-chip">🗣️ TCF / TEF / DELF</span>
+      <span class="consult-service-chip">🇩🇪 Allemand</span>
+      <span class="consult-service-chip">📄 CV Premium</span>
+      <span class="consult-service-chip">👤 Profil Recruteur</span>
+      <span class="consult-service-chip">🔍 Recherche Emploi</span>
+    </div>
+
+    <div class="consult-contact">
+      <div class="consult-contact__title">Besoin urgent ?</div>
+      <p class="consult-contact__text">
+        Contactez-nous directement sur WhatsApp pour une réponse immédiate.
+      </p>
+      <a href="https://wa.me/237690000000?text=Bonjour+Immigration97,+je+souhaite+une+consultation." class="consult-wa-btn" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        WhatsApp
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
