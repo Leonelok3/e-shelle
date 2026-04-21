@@ -49,7 +49,23 @@ from actualite.sitemaps import NewsItemSitemap
 
 
 def home(request):
-    return render(request, "home.html")
+    from billing.models import SubscriptionPlan
+    from actualite.models import NewsItem
+    from django.utils import timezone
+    from datetime import timedelta
+    now = timezone.now()
+    week_ago = now - timedelta(days=7)
+    top_week = (NewsItem.objects.filter(is_published=True, publish_date__gte=week_ago, publish_date__lte=now)
+                .order_by("-views_count", "-publish_date")[:6])
+    if not top_week.exists():
+        top_week = NewsItem.objects.filter(is_published=True).order_by("-is_featured", "-views_count", "-publish_date")[:6]
+    candidate_plans = list(SubscriptionPlan.objects.filter(is_active=True, plan_type="candidate").order_by("order", "price_xaf"))
+    recruiter_plans = list(SubscriptionPlan.objects.filter(is_active=True, plan_type="recruiter").order_by("order"))
+    return render(request, "home.html", {
+        "top_week": top_week,
+        "candidate_plans": candidate_plans,
+        "recruiter_plans": recruiter_plans,
+    })
 
 
 sitemaps = {"actualite": NewsItemSitemap}

@@ -241,7 +241,19 @@ def redeem(request):
 
         return _redirect_next_or(reverse("billing:access"), request)
 
-    return render(request, "billing/redeem.html", {"next": request.GET.get("next", "")})
+    active_sub = None
+    if request.user.is_authenticated:
+        active_sub = (
+            Subscription.objects
+            .filter(user=request.user, expires_at__gt=timezone.now())
+            .select_related("plan")
+            .order_by("-expires_at")
+            .first()
+        )
+    return render(request, "billing/redeem.html", {
+        "next": request.GET.get("next", ""),
+        "active_sub": active_sub,
+    })
 
 
 # =============================================================================

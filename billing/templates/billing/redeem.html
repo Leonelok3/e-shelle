@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Activation de Licence Premium | Immigration97{% endblock %}
+{% block title %}Activer mon Code Premium | Immigration97{% endblock %}
 
 {% block meta_description %}
-Activez votre code d'accès Immigration97. Débloquez instantanément vos outils IA d'immigration : CV, tests de langue, simulation visa Canada et Europe.
+Activez votre code d'accès Immigration97 en 30 secondes. Débloquez vos outils IA : CV premium, tests de langue, préparation visa Canada, Europe, Australie. Paiement via WhatsApp, MoMo, PayPal, Bitcoin.
 {% endblock %}
 
 {% block body_class %}billing{% endblock %}
@@ -12,143 +12,496 @@ Activez votre code d'accès Immigration97. Débloquez instantanément vos outils
 
 {% block extra_css %}
 {% include "billing/_billing_critical.html" %}
+<style>
+/* ── REDEEM EXTENDED STYLES ── */
+.rdm-wrap { max-width: 700px; margin: 0 auto; padding: 0 20px 4rem; }
+
+/* WhatsApp top banner */
+.rdm-wa-banner {
+  background: linear-gradient(135deg, #075e54, #128c7e);
+  border-radius: 16px;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 auto 2rem;
+  max-width: 700px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.rdm-wa-banner__icon { font-size: 2rem; flex-shrink: 0; }
+.rdm-wa-banner__text { flex: 1; }
+.rdm-wa-banner__title { color: #fff; font-weight: 700; font-size: 1rem; margin: 0 0 2px; }
+.rdm-wa-banner__sub { color: rgba(255,255,255,0.80); font-size: 0.85rem; margin: 0; }
+.rdm-wa-banner__btn {
+  background: #fff;
+  color: #075e54;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 50px;
+  padding: 10px 18px;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: transform .15s;
+}
+.rdm-wa-banner__btn:hover { transform: scale(1.04); color: #075e54; }
+
+/* Steps row */
+.rdm-steps {
+  display: flex;
+  gap: 0;
+  margin: 0 auto 2.5rem;
+  max-width: 700px;
+  background: rgba(10,22,40,0.70);
+  border: 1px solid rgba(212,168,67,0.20);
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 0 20px;
+}
+.rdm-step {
+  flex: 1;
+  text-align: center;
+  padding: 18px 8px;
+  position: relative;
+}
+.rdm-step:not(:last-child)::after {
+  content: '→';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(212,168,67,0.40);
+  font-size: 1rem;
+}
+.rdm-step__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(212,168,67,0.15);
+  border: 1px solid rgba(212,168,67,0.40);
+  border-radius: 50%;
+  color: #D4A843;
+  font-weight: 800;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+}
+.rdm-step__label {
+  color: rgba(232,234,240,0.65);
+  font-size: 0.72rem;
+  line-height: 1.3;
+  display: block;
+}
+
+/* Active subscription banner */
+.rdm-active-sub {
+  background: linear-gradient(135deg, rgba(22,163,74,0.15), rgba(16,185,129,0.10));
+  border: 1px solid rgba(22,163,74,0.40);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin: 0 auto 2rem;
+  max-width: 700px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.rdm-active-sub__icon { font-size: 2rem; flex-shrink: 0; margin-top: 2px; }
+.rdm-active-sub__title { color: #4ade80; font-weight: 700; font-size: 1rem; margin: 0 0 4px; }
+.rdm-active-sub__info { color: rgba(232,234,240,0.75); font-size: 0.88rem; margin: 0; line-height: 1.5; }
+.rdm-active-sub__extend { color: rgba(232,234,240,0.50); font-size: 0.80rem; margin: 6px 0 0; font-style: italic; }
+
+/* Main form card */
+.rdm-card {
+  background: rgba(10,22,40,0.90);
+  border: 1px solid rgba(212,168,67,0.30);
+  border-radius: 20px;
+  padding: 36px 32px;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.40);
+}
+.rdm-card__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(212,168,67,0.10);
+  border: 1px solid rgba(212,168,67,0.30);
+  color: #D4A843;
+  border-radius: 50px;
+  padding: 5px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-bottom: 1.25rem;
+}
+.rdm-card__title {
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, #D4A843, #F0C060);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0 0 0.5rem;
+  line-height: 1.2;
+}
+.rdm-card__subtitle {
+  color: rgba(232,234,240,0.60);
+  font-size: 0.92rem;
+  margin: 0 0 2rem;
+  line-height: 1.6;
+}
+
+/* Code input */
+.rdm-input-group { position: relative; margin-bottom: 1.25rem; }
+.rdm-input-label {
+  display: block;
+  color: rgba(232,234,240,0.75);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  letter-spacing: .03em;
+}
+.rdm-input-wrap { position: relative; }
+.rdm-input-wrap svg {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  stroke: rgba(212,168,67,0.60);
+  pointer-events: none;
+}
+.rdm-input {
+  width: 100%;
+  background: rgba(5,10,24,0.80);
+  border: 2px solid rgba(212,168,67,0.25);
+  border-radius: 14px;
+  color: #F0C060;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 16px 16px 16px 50px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
+  font-family: 'Courier New', monospace;
+}
+.rdm-input::placeholder { color: rgba(212,168,67,0.25); font-weight: 400; letter-spacing: .05em; font-family: inherit; }
+.rdm-input:focus {
+  border-color: rgba(212,168,67,0.70);
+  box-shadow: 0 0 0 3px rgba(212,168,67,0.12);
+}
+.rdm-input-hint {
+  color: rgba(232,234,240,0.40);
+  font-size: 0.78rem;
+  margin: 6px 0 0;
+}
+
+/* Submit button */
+.rdm-submit {
+  width: 100%;
+  background: linear-gradient(135deg, #D4A843, #E8B84B);
+  color: #0a0f1e;
+  font-weight: 800;
+  font-size: 1.05rem;
+  border: none;
+  border-radius: 14px;
+  padding: 16px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform .15s, box-shadow .2s;
+  box-shadow: 0 4px 20px rgba(212,168,67,0.35);
+}
+.rdm-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(212,168,67,0.50);
+}
+.rdm-submit:active { transform: translateY(0); }
+
+/* Alerts */
+.rdm-alerts { margin-bottom: 1.5rem; }
+.rdm-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  font-size: 0.90rem;
+}
+.rdm-alert--success { background: rgba(22,163,74,0.15); border: 1px solid rgba(22,163,74,0.40); color: #4ade80; }
+.rdm-alert--error   { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.35); color: #f87171; }
+.rdm-alert--info    { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.35); color: #93c5fd; }
+
+/* Unlocks grid */
+.rdm-unlocks {
+  background: rgba(10,22,40,0.60);
+  border: 1px solid rgba(212,168,67,0.15);
+  border-radius: 18px;
+  padding: 28px 24px;
+  margin-bottom: 2rem;
+}
+.rdm-unlocks__title {
+  font-weight: 700;
+  color: #D4A843;
+  font-size: 1rem;
+  margin: 0 0 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rdm-unlocks-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.rdm-unlock-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(212,168,67,0.06);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.rdm-unlock-item__icon { font-size: 1.3rem; flex-shrink: 0; }
+.rdm-unlock-item__text { font-size: 0.83rem; color: rgba(232,234,240,0.80); line-height: 1.4; font-weight: 500; }
+
+/* Security row */
+.rdm-security {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(232,234,240,0.40);
+  font-size: 0.78rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+.rdm-security svg { stroke: rgba(212,168,67,0.40); }
+
+@media (max-width: 580px) {
+  .rdm-steps { flex-wrap: wrap; gap: 4px; }
+  .rdm-step:not(:last-child)::after { display: none; }
+  .rdm-step { flex: 0 0 48%; }
+  .rdm-unlocks-grid { grid-template-columns: 1fr; }
+  .rdm-card { padding: 24px 18px; }
+  .rdm-wa-banner { flex-wrap: wrap; gap: 10px; }
+  .rdm-wa-banner__btn { width: 100%; text-align: center; }
+}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<!-- ================= HERO ================= -->
-<div class="billing-redeem-hero">
-  <div class="billing-redeem-hero__icon">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="m12 2 10 5-10 5-10-5z"/>
-      <path d="m2 17 10 5 10-5"/>
-      <path d="m2 12 10 5 10-5"/>
-    </svg>
+<!-- ── WhatsApp Banner ── -->
+<div class="rdm-wrap" style="padding-top: 2.5rem;">
+  <a href="https://wa.me/237693649944?text=Bonjour%2C%20je%20voudrais%20obtenir%20un%20code%20d%27acc%C3%A8s%20Premium%20Immigration97%20%F0%9F%92%AA"
+     target="_blank" rel="noopener"
+     class="rdm-wa-banner" style="display:flex; text-decoration:none;">
+    <span class="rdm-wa-banner__icon">💬</span>
+    <div class="rdm-wa-banner__text">
+      <p class="rdm-wa-banner__title">Pas encore de code ? Obtiens-le en 5 minutes</p>
+      <p class="rdm-wa-banner__sub">Contacte-nous sur WhatsApp → Paye selon ta méthode → Reçois ton code instantanément</p>
+    </div>
+    <span class="rdm-wa-banner__btn">WhatsApp →</span>
+  </a>
+
+  <!-- ── How it works (4 steps) ── -->
+  <div class="rdm-steps">
+    <div class="rdm-step">
+      <div class="rdm-step__num">1</div>
+      <span class="rdm-step__label">Contact WhatsApp</span>
+    </div>
+    <div class="rdm-step">
+      <div class="rdm-step__num">2</div>
+      <span class="rdm-step__label">Choisis ton plan</span>
+    </div>
+    <div class="rdm-step">
+      <div class="rdm-step__num">3</div>
+      <span class="rdm-step__label">Paie (MoMo, PayPal, BTC…)</span>
+    </div>
+    <div class="rdm-step">
+      <div class="rdm-step__num">4</div>
+      <span class="rdm-step__label">Active ton code ici ✓</span>
+    </div>
   </div>
 
-  <h1 class="billing-redeem-hero__title">
-    Activer votre Pass Premium
-  </h1>
-
-  <p class="billing-redeem-hero__subtitle">
-    Saisissez le code d'activation reçu par SMS ou Email pour débloquer instantanément
-    l'accès complet aux outils d'immigration IA.
-  </p>
-</div>
-
-<!-- ================= MESSAGES ================= -->
-{% if messages %}
-<div class="billing-redeem-messages" aria-live="polite" aria-atomic="true">
-  {% for message in messages %}
-    {% if 'success' in message.tags %}
-      {% with alert_type='success' %}
-      <div class="billing-redeem-alert billing-redeem-alert--{{ alert_type }}">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-          <polyline points="22 4 12 14.01 9 11.01"/>
-        </svg>
-        <span>{{ message }}</span>
-      </div>
-      {% endwith %}
-
-    {% elif 'error' in message.tags or 'danger' in message.tags %}
-      {% with alert_type='error' %}
-      <div class="billing-redeem-alert billing-redeem-alert--{{ alert_type }}">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="15" y1="9" x2="9" y2="15"/>
-          <line x1="9" y1="9" x2="15" y2="15"/>
-        </svg>
-        <span>{{ message }}</span>
-      </div>
-      {% endwith %}
-
-    {% else %}
-      {% with alert_type='info' %}
-      <div class="billing-redeem-alert billing-redeem-alert--{{ alert_type }}">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 16v-4M12 8h.01"/>
-        </svg>
-        <span>{{ message }}</span>
-      </div>
-      {% endwith %}
-    {% endif %}
-  {% endfor %}
-</div>
-{% endif %}
-
-<!-- ================= CARD ================= -->
-<div class="billing-redeem-card">
-
-  <div class="billing-redeem-card__header">
-    <div class="billing-redeem-card__icon">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
-      </svg>
-    </div>
+  <!-- ── Active subscription notice ── -->
+  {% if active_sub %}
+  <div class="rdm-active-sub">
+    <span class="rdm-active-sub__icon">✅</span>
     <div>
-      <h2 class="billing-redeem-card__title">Code d'Activation</h2>
-      <p class="billing-redeem-card__desc">Entrez votre clé unique ci-dessous</p>
+      <p class="rdm-active-sub__title">Accès Premium actif — {{ active_sub.plan.name }}</p>
+      <p class="rdm-active-sub__info">
+        Votre abonnement est valide jusqu'au
+        <strong style="color:#4ade80;">{{ active_sub.expires_at|date:"d/m/Y à H\hi" }}</strong>.
+      </p>
+      <p class="rdm-active-sub__extend">Vous pouvez utiliser un nouveau code ci-dessous pour prolonger votre accès.</p>
     </div>
   </div>
+  {% endif %}
 
-  <!-- ================= FORM ================= -->
-  <form method="post" class="billing-redeem-form">
-    {% csrf_token %}
-    <input type="hidden" name="next" value="{{ next }}">
+  <!-- ── Flash messages ── -->
+  {% if messages %}
+  <div class="rdm-alerts">
+    {% for message in messages %}
+      {% if 'success' in message.tags %}
+        <div class="rdm-alert rdm-alert--success">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>{{ message }}</span>
+        </div>
+      {% elif 'error' in message.tags or 'danger' in message.tags %}
+        <div class="rdm-alert rdm-alert--error">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          <span>{{ message }}</span>
+        </div>
+      {% else %}
+        <div class="rdm-alert rdm-alert--info">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>{{ message }}</span>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
 
-    <div class="billing-redeem-form__group">
-      <label for="id_code" class="billing-redeem-form__label">
-        Clé d'activation unique
-      </label>
+  <!-- ── Activation form ── -->
+  <div class="rdm-card">
+    <span class="rdm-card__eyebrow">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Activation sécurisée
+    </span>
 
-      <div class="billing-redeem-form__input-wrapper">
-        <svg class="billing-redeem-form__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        <input
-          type="text"
-          id="id_code"
-          name="code"
-          placeholder="I97-XXXX-XXXX"
-          required
-          class="billing-redeem-form__input"
-          autocomplete="off"
-          spellcheck="false"
-        >
+    <h1 class="rdm-card__title">Activez votre accès Premium</h1>
+    <p class="rdm-card__subtitle">
+      Saisissez le code reçu après votre paiement. L'activation est instantanée.
+    </p>
+
+    <form method="post" id="rdm-form">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+
+      <div class="rdm-input-group">
+        <label for="id_code" class="rdm-input-label">Votre code d'activation unique</label>
+        <div class="rdm-input-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <input
+            type="text"
+            id="id_code"
+            name="code"
+            placeholder="I97-XXXX-XXXX-XXXX"
+            required
+            class="rdm-input"
+            autocomplete="off"
+            spellcheck="false"
+            inputmode="text"
+          >
+        </div>
+        <small class="rdm-input-hint">Format : <strong style="color:#D4A843;">I97-XXXX-XXXX-XXXX</strong> — insensible à la casse</small>
       </div>
 
-      <small class="billing-redeem-form__hint">
-        Format attendu : <strong>I97-XXXX-XXXX</strong>
-      </small>
+      <button type="submit" class="rdm-submit" id="rdm-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
+        </svg>
+        <span id="rdm-btn-text">Débloquer mon accès Premium</span>
+      </button>
+    </form>
+
+    <div class="rdm-security">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Chiffrement SSL 256 bits · Code à usage unique · Conforme RGPD
     </div>
-
-    <button type="submit" class="billing-redeem-form__submit">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
-      </svg>
-      <span>Débloquer mon accès Premium</span>
-    </button>
-  </form>
-
-</div>
-
-<!-- ================= SECURITY ================= -->
-<div class="billing-redeem-security">
-  <div class="billing-redeem-security__icon">
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-    </svg>
   </div>
-  <div>
-    <h3 class="billing-redeem-security__title">Sécurité & Confidentialité</h3>
-    <p class="billing-redeem-security__desc">
-      Chaque code est unique et à usage unique. Chiffrement SSL 256 bits. Conformité RGPD.
+
+  <!-- ── What you unlock ── -->
+  <div class="rdm-unlocks">
+    <p class="rdm-unlocks__title">
+      <span>🎁</span> Ce que vous débloquez avec votre code
     </p>
+    <div class="rdm-unlocks-grid">
+      <div class="rdm-unlock-item">
+        <span class="rdm-unlock-item__icon">📄</span>
+        <span class="rdm-unlock-item__text">CV Premium optimisé ATS pour Canada & Europe</span>
+      </div>
+      <div class="rdm-unlock-item">
+        <span class="rdm-unlock-item__icon">🎯</span>
+        <span class="rdm-unlock-item__text">Tests de langue illimités (TEF, TCF, IELTS, DELF)</span>
+      </div>
+      <div class="rdm-unlock-item">
+        <span class="rdm-unlock-item__icon">✈️</span>
+        <span class="rdm-unlock-item__text">Simulation visa complet (Canada, France, Allemagne, Australie)</span>
+      </div>
+      <div class="rdm-unlock-item">
+        <span class="rdm-unlock-item__icon">📝</span>
+        <span class="rdm-unlock-item__text">Lettres de motivation IA personnalisées</span>
+      </div>
+      <div class="rdm-unlock-item">
+        <span class="rdm-unlock-item__icon">🌍</span>
+        <span class="rdm-unlock-item__text">Profil candidat visible par les recruteurs internationaux</span>
+      </div>
+      <div class="rdm-unlock-item">
+        <span class="rdm-unlock-item__icon">🤝</span>
+        <span class="rdm-unlock-item__text">Mise en relation avec des employeurs au Canada, France, Allemagne</span>
+      </div>
+    </div>
   </div>
+
+  <!-- ── No code yet? Secondary CTA ── -->
+  <div style="text-align:center; padding: 1.5rem 0 2rem;">
+    <p style="color:rgba(232,234,240,0.50); font-size:0.88rem; margin-bottom:1rem;">
+      Vous n'avez pas encore de code ? Choisissez votre plan et contactez-nous.
+    </p>
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <a href="{% url 'billing:pricing' %}"
+         style="background:rgba(212,168,67,0.12); border:1px solid rgba(212,168,67,0.35); color:#D4A843;
+                border-radius:50px; padding:10px 22px; font-size:0.88rem; font-weight:600;
+                text-decoration:none; transition:background .2s;"
+         onmouseover="this.style.background='rgba(212,168,67,0.22)'"
+         onmouseout="this.style.background='rgba(212,168,67,0.12)'">
+        Voir les tarifs →
+      </a>
+      <a href="https://wa.me/237693649944?text=Bonjour%2C%20je%20veux%20souscrire%20%C3%A0%20Immigration97.%20Pouvez-vous%20m%27indiquer%20les%20options%20de%20paiement%20%3F"
+         target="_blank" rel="noopener"
+         style="background: linear-gradient(135deg,#075e54,#128c7e); color:#fff;
+                border-radius:50px; padding:10px 22px; font-size:0.88rem; font-weight:600;
+                text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+        💬 Commander via WhatsApp
+      </a>
+    </div>
+  </div>
+
 </div>
 
+<script>
+  const inp = document.getElementById('id_code');
+  const btn = document.getElementById('rdm-btn');
+  const btnText = document.getElementById('rdm-btn-text');
+
+  // Auto uppercase + format
+  inp.addEventListener('input', function() {
+    const cursor = this.selectionStart;
+    this.value = this.value.toUpperCase();
+    this.setSelectionRange(cursor, cursor);
+  });
+
+  // Paste normalization
+  inp.addEventListener('paste', function(e) {
+    setTimeout(() => { this.value = this.value.toUpperCase().replace(/\s/g,''); }, 0);
+  });
+
+  // Submit state
+  document.getElementById('rdm-form').addEventListener('submit', function() {
+    btn.disabled = true;
+    btnText.textContent = 'Activation en cours…';
+    btn.style.opacity = '0.75';
+  });
+</script>
 {% endblock %}

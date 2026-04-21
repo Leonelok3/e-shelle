@@ -292,6 +292,29 @@
     .nav-cta:hover{box-shadow:0 6px 20px rgba(212,168,67,0.45) !important;transform:translateY(-1px);}
     .nav-cta::after{display:none !important;}
 
+    /* ════ TARIFS — PLAN CARDS ════ */
+    .tarifs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem;max-width:1080px;margin:0 auto 2.5rem;}
+    .plan-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:2rem;position:relative;transition:transform .25s,box-shadow .25s;}
+    .plan-card:hover{transform:translateY(-5px);box-shadow:0 20px 48px rgba(212,168,67,0.14);}
+    .plan-card--popular{background:linear-gradient(135deg,rgba(212,168,67,0.1),rgba(240,192,96,0.04));border:2px solid rgba(212,168,67,0.5);}
+    .plan-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.7rem;font-weight:800;padding:.3rem 1.1rem;border-radius:50px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;}
+    .plan-name{color:rgba(255,255,255,0.5);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.75rem;}
+    .plan-name--popular{color:#F0C060;}
+    .plan-price{font-size:2.3rem;font-weight:800;color:#F0C060;line-height:1;}
+    .plan-unit{font-size:.9rem;color:rgba(255,255,255,0.4);}
+    .plan-eur{color:rgba(255,255,255,0.4);font-size:.82rem;margin:.2rem 0 1.25rem;}
+    .plan-features{list-style:none;padding:0;margin:0 0 1.75rem;display:flex;flex-direction:column;gap:.3rem;}
+    .plan-features li{color:rgba(255,255,255,0.72);font-size:.88rem;display:flex;align-items:center;gap:.5rem;}
+    .plan-check{color:#10b981;font-weight:700;flex-shrink:0;}
+    .plan-btn{display:block;text-align:center;font-weight:700;padding:.8rem;border-radius:10px;text-decoration:none;font-size:.9rem;transition:opacity .2s,transform .2s;}
+    .plan-btn:hover{opacity:.85;transform:translateY(-1px);}
+    .plan-btn--gold{background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;}
+    .plan-btn--outline{border:1px solid rgba(212,168,67,0.4);color:#D4A843;}
+    .plan-btn--ghost{border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.75);}
+    .plan-empty{grid-column:1/-1;text-align:center;padding:2rem;color:rgba(255,255,255,0.5);}
+    .tarifs-hiw{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;text-align:center;}
+    @media(max-width:640px){.tarifs-hiw{grid-template-columns:1fr 1fr;}}
+
     /* ── Lien Consultation (distinct) ── */
     .nav-consult{
       display:inline-flex;
@@ -955,6 +978,10 @@
       #tarifs > .container > div:first-of-type { grid-template-columns: 1fr !important; }
       /* Section consultation */
       #consultation-cta .container > div { grid-template-columns: 1fr !important; gap: 2.5rem !important; }
+      /* Tarifs how-it-works */
+      .tarifs-hiw-grid { grid-template-columns: 1fr 1fr !important; gap: 1rem !important; }
+      /* Tarifs plan grid */
+      .tarifs-grid { grid-template-columns: 1fr !important; }
     }
     @media(max-width:640px){
       .container{padding:0 16px;}
@@ -1288,8 +1315,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <div style="text-align:center;margin-top:3rem;" class="reveal reveal-delay-4">
-        <a href="{% url 'wizard' %}" class="btn btn-gold" aria-label="Tester mon éligibilité au placement international">
-          Tester mon éligibilité →
+        <a href="/consultation/" class="btn btn-gold" aria-label="Demander un accompagnement personnalisé">
+          Parler à un expert →
         </a>
       </div>
     </div>
@@ -1719,68 +1746,97 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           Un prix juste,<br><span>un accès complet</span>
         </h2>
         <p class="section-subtitle reveal reveal-delay-2">
-          Pas d'abonnement caché, pas de surprise. Choisis le plan qui correspond à ton projet.
+          Pas d'abonnement caché. Choisis ton plan, contacte-nous sur WhatsApp, reçois ton code et active ton accès.
         </p>
       </div>
 
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;max-width:1000px;margin:0 auto;" class="reveal reveal-delay-2">
+      <!-- Plans dynamiques -->
+      <div class="tarifs-grid reveal reveal-delay-2">
 
-        <!-- Plan 1 -->
-        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:2rem;position:relative;">
-          <div style="color:rgba(255,255,255,0.5);font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem;">Candidat</div>
-          <div style="font-size:2.5rem;font-weight:800;color:#F0C060;line-height:1;">6 500 <span style="font-size:1rem;color:rgba(255,255,255,0.5);">XAF/mois</span></div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.85rem;margin:0.25rem 0 1.5rem;">≈ 10€/mois</div>
-          <ul style="list-style:none;padding:0;margin:0 0 2rem;">
-            <li style="padding:0.4rem 0;color:rgba(255,255,255,0.7);font-size:0.9rem;">✓ CV illimités</li>
-            <li style="padding:0.4rem 0;color:rgba(255,255,255,0.7);font-size:0.9rem;">✓ Tests TCF/TEF/DELF</li>
-            <li style="padding:0.4rem 0;color:rgba(255,255,255,0.7);font-size:0.9rem;">✓ Profil visible recruteurs</li>
-            <li style="padding:0.4rem 0;color:rgba(255,255,255,0.7);font-size:0.9rem;">✓ Bibliothèque ressources</li>
+        {% for plan in candidate_plans %}
+        <div class="plan-card {% if plan.is_popular %}plan-card--popular{% endif %}">
+          {% if plan.is_popular %}
+          <div class="plan-badge">⭐ Le plus choisi</div>
+          {% endif %}
+          <div class="plan-name {% if plan.is_popular %}plan-name--popular{% endif %}">{{ plan.name }}</div>
+          <div class="plan-price">
+            {{ plan.price_xaf|floatformat:0 }}
+            <span class="plan-unit">XAF/{% if plan.duration_days <= 31 %}mois{% else %}an{% endif %}</span>
+          </div>
+          <div class="plan-eur">≈ {{ plan.price_usd }}€/{% if plan.duration_days <= 31 %}mois{% else %}an{% endif %}</div>
+          <ul class="plan-features">
+            {% for f in plan.features %}
+            <li><span class="plan-check">✓</span> {{ f }}</li>
+            {% endfor %}
           </ul>
-          <a href="{% url 'billing:pricing' %}" style="display:block;text-align:center;border:1px solid rgba(212,168,67,0.4);color:#D4A843;font-weight:600;padding:0.75rem;border-radius:10px;text-decoration:none;font-size:0.9rem;">
-            Commencer →
+          <a href="https://wa.me/237693649944?text=Bonjour+Immigration97%2C+je+souhaite+activer+le+plan+%22{{ plan.name|urlencode }}%22+%28{{ plan.price_xaf|floatformat:0 }}+FCFA%29.+Pouvez-vous+m%27envoyer+les+instructions+de+paiement+%3F"
+             target="_blank" rel="noopener"
+             class="plan-btn {% if plan.is_popular %}plan-btn--gold{% else %}plan-btn--outline{% endif %}">
+            Obtenir ce plan →
           </a>
         </div>
+        {% empty %}
+        <div class="plan-empty">Plans bientôt disponibles.</div>
+        {% endfor %}
 
-        <!-- Plan 2 — POPULAIRE -->
-        <div style="background:linear-gradient(135deg,rgba(212,168,67,0.1),rgba(240,192,96,0.05));border:2px solid rgba(212,168,67,0.5);border-radius:20px;padding:2rem;position:relative;">
-          <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:0.72rem;font-weight:700;padding:0.25rem 1rem;border-radius:50px;text-transform:uppercase;letter-spacing:0.08em;white-space:nowrap;">⭐ Plus populaire</div>
-          <div style="color:#F0C060;font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem;">Accompagnement</div>
-          <div style="font-size:2.5rem;font-weight:800;color:#F0C060;line-height:1;">130 000 <span style="font-size:1rem;color:rgba(255,255,255,0.5);">XAF/an</span></div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.85rem;margin:0.25rem 0 1.5rem;">≈ 200€/an</div>
-          <ul style="list-style:none;padding:0;margin:0 0 2rem;">
-            <li style="padding:0.4rem 0;color:rgba(255,255,255,0.7);font-size:0.9rem;">✓ Tout du plan Candidat</li>
-            <li style="padding:0.4rem 0;color:rgba(255,255,255,0.7);font-size:0.9rem;">✓ Suivi personnalisé complet</li>
-            <li style="padding:0.4rem 0;color:rgba(255,255,255,0.7);font-size:0.9rem;">✓ Coach dédié immigration</li>
-            <li style="padding:0.4rem 0;color:rgba(255,255,255,0.7);font-size:0.9rem;">✓ Dossier visa accompagné</li>
+        {% for plan in recruiter_plans %}
+        <div class="plan-card plan-card--recruiter">
+          <div class="plan-name">{{ plan.name }}</div>
+          <div class="plan-price">
+            {{ plan.price_xaf|floatformat:0 }}
+            <span class="plan-unit">XAF/an</span>
+          </div>
+          <div class="plan-eur">≈ {{ plan.price_usd }}€/an</div>
+          <ul class="plan-features">
+            {% for f in plan.features %}
+            <li><span class="plan-check">✓</span> {{ f }}</li>
+            {% endfor %}
           </ul>
-          <a href="{% url 'billing:pricing' %}" style="display:block;text-align:center;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-weight:700;padding:0.75rem;border-radius:10px;text-decoration:none;font-size:0.9rem;">
-            Je m'abonne →
-          </a>
-        </div>
-
-        <!-- Plan 3 -->
-        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:2rem;">
-          <div style="color:rgba(255,255,255,0.5);font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem;">Recruteur</div>
-          <div style="font-size:2.5rem;font-weight:800;color:#F0C060;line-height:1;">65 000 <span style="font-size:1rem;color:rgba(255,255,255,0.5);">XAF/an</span></div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.85rem;margin:0.25rem 0 1.5rem;">≈ 100€/an</div>
-          <ul style="list-style:none;padding:0;margin:0 0 2rem;">
-            <li style="padding:0.4rem 0;color:rgba(255,255,255,0.7);font-size:0.9rem;">✓ Accès base candidats</li>
-            <li style="padding:0.4rem 0;color:rgba(255,255,255,0.7);font-size:0.9rem;">✓ Invitations illimitées</li>
-            <li style="padding:0.4rem 0;color:rgba(255,255,255,0.7);font-size:0.9rem;">✓ Messagerie intégrée</li>
-            <li style="padding:0.4rem 0;color:rgba(255,255,255,0.7);font-size:0.9rem;">✓ Dashboard recruteur</li>
-          </ul>
-          <a href="{% url 'billing:pricing' %}?role=recruiter" style="display:block;text-align:center;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);font-weight:600;padding:0.75rem;border-radius:10px;text-decoration:none;font-size:0.9rem;">
+          <a href="https://wa.me/237693649944?text=Bonjour+Immigration97%2C+je+suis+recruteur+et+je+souhaite+activer+le+plan+%22{{ plan.name|urlencode }}%22+%28{{ plan.price_xaf|floatformat:0 }}+FCFA%29."
+             target="_blank" rel="noopener"
+             class="plan-btn plan-btn--ghost">
             Accès recruteur →
           </a>
         </div>
+        {% endfor %}
 
       </div>
 
-      <div style="text-align:center;margin-top:2rem;" class="reveal reveal-delay-4">
-        <p style="color:rgba(255,255,255,0.4);font-size:0.85rem;">
-          💳 Paiement via MTN MoMo, Orange Money ou carte bancaire &nbsp;·&nbsp;
-          Activation instantanée &nbsp;·&nbsp;
-          <a href="{% url 'billing:politique_remboursement' %}" style="color:#D4A843;">Garantie remboursement</a>
+      <!-- Comment ça marche -->
+      <div style="background:rgba(255,255,255,0.025);border:1px solid rgba(212,168,67,0.15);border-radius:16px;padding:2rem 2.5rem;max-width:860px;margin:0 auto 2rem;" class="reveal reveal-delay-3">
+        <div style="text-align:center;margin-bottom:1.5rem;">
+          <span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:#D4A843;">Comment activer mon plan ?</span>
+        </div>
+        <div class="tarifs-hiw">
+          <div>
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(212,168,67,0.15);border:1px solid rgba(212,168,67,0.3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 0.6rem;">💬</div>
+            <div style="font-size:0.8rem;font-weight:700;color:#F0C060;margin-bottom:0.25rem;">1. WhatsApp</div>
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Contacte-nous et choisis ton plan</div>
+          </div>
+          <div>
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(212,168,67,0.15);border:1px solid rgba(212,168,67,0.3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 0.6rem;">💳</div>
+            <div style="font-size:0.8rem;font-weight:700;color:#F0C060;margin-bottom:0.25rem;">2. Paiement</div>
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">MoMo, PayPal, MoneyGram, Bitcoin…</div>
+          </div>
+          <div>
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(212,168,67,0.15);border:1px solid rgba(212,168,67,0.3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 0.6rem;">🔑</div>
+            <div style="font-size:0.8rem;font-weight:700;color:#F0C060;margin-bottom:0.25rem;">3. Ton code</div>
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Reçois ton code unique par message</div>
+          </div>
+          <div>
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 0.6rem;">✅</div>
+            <div style="font-size:0.8rem;font-weight:700;color:#10b981;margin-bottom:0.25rem;">4. Activé !</div>
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Accès immédiat + date d'expiration</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;" class="reveal reveal-delay-4">
+        <a href="/billing/redeem/" style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:#10b981;font-weight:700;padding:0.75rem 1.75rem;border-radius:10px;text-decoration:none;font-size:0.9rem;margin-bottom:0.75rem;">
+          🔑 Activer mon code
+        </a>
+        <p style="color:rgba(255,255,255,0.35);font-size:0.8rem;margin:0;">
+          Tu as déjà un code ? Active-le directement sans passer par le paiement.
         </p>
       </div>
     </div>
