@@ -1,0 +1,50 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Importer des contacts{% endblock %}
+
+{% block content %}
+<div style="max-width:700px">
+  <h1>📥 Importer des contacts recruteurs</h1>
+
+  <div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:16px;margin-bottom:24px">
+    <strong>📋 Format du fichier CSV</strong><br><br>
+    Colonnes <strong>requises</strong> (case insensitive) :
+    <code>email</code>, <code>company_name</code><br><br>
+    Colonnes <strong>optionnelles</strong> :
+    <code>contact_name</code>, <code>job_title</code>, <code>phone</code>,
+    <code>website</code>, <code>sector</code>, <code>country</code>, <code>city</code>,
+    <code>tags</code>, <code>notes</code>, <code>source</code><br><br>
+    Valeurs <code>sector</code> : agriculture, construction, tech, sante, logistique,
+    hotellerie, education, finance, industrie, commerce, services, autre<br>
+    Valeurs <code>country</code> : CA, FR, DE, BE, CH, AU, GB, US, MA, SN, CI, OTHER
+  </div>
+
+  <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:14px;margin-bottom:24px">
+    <strong>📌 Excel (.xlsx)</strong> : première ligne = en-têtes, même format que CSV.
+    L'encodage est ignoré pour les fichiers Excel.
+  </div>
+
+  <form method="post" enctype="multipart/form-data" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:24px">
+    {% csrf_token %}
+    {% for field in form %}
+      <div style="margin-bottom:16px">
+        <label style="display:block;font-weight:600;margin-bottom:4px">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<small style="color:#6b7280;display:block;margin-top:4px">{{ field.help_text }}</small>{% endif %}
+        {% for error in field.errors %}<p style="color:#dc2626;margin:4px 0">{{ error }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+    <div style="margin-top:20px;display:flex;gap:12px">
+      <input type="submit" value="📥 Importer"
+             style="background:#2563eb;color:#fff;border:none;padding:10px 22px;border-radius:6px;cursor:pointer;font-weight:600">
+      <a href="../" style="background:#6b7280;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none">Annuler</a>
+    </div>
+  </form>
+
+  <div style="margin-top:24px;background:#f1f5f9;border-radius:8px;padding:16px">
+    <strong>📥 Télécharger un fichier exemple CSV</strong><br>
+    <a href="data:text/csv;charset=utf-8-sig,email%2Ccompany_name%2Ccontact_name%2Cjob_title%2Cphone%2Cwebsite%2Csector%2Ccountry%2Ccity%0Arh%40ferme-abc.ca%2CFerme+ABC+Canada%2CJean+Tremblay%2CDirecteur+RH%2C%2B1+514+000+0000%2Chttps%3A%2F%2Fferme-abc.ca%2Cagriculture%2CCA%2CMontreal"
+       download="exemple_recruteurs.csv"
+       style="color:#2563eb">⬇️ exemple_recruteurs.csv</a>
+  </div>
+</div>
+{% endblock %}

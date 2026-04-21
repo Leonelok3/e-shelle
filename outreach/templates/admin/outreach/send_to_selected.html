@@ -1,0 +1,95 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Envoyer un email{% endblock %}
+
+{% block content %}
+<h1>📧 Envoyer un email à {{ recruiters.count }} contact(s)</h1>
+
+{% if not templates %}
+  <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:16px;margin-bottom:20px">
+    ⚠️ Aucun template email actif. <a href="{% url 'admin:outreach_outreachtemplate_add' %}">Créer un template →</a>
+  </div>
+{% endif %}
+
+<!-- Aperçu des destinataires -->
+<details style="margin-bottom:20px">
+  <summary style="cursor:pointer;font-weight:600;padding:8px 0">
+    👥 Destinataires ({{ recruiters.count }})
+  </summary>
+  <table style="width:100%;border-collapse:collapse;margin-top:8px">
+    <thead>
+      <tr style="background:#f1f5f9">
+        <th style="padding:8px;text-align:left;border-bottom:1px solid #e2e8f0">Entreprise</th>
+        <th style="padding:8px;text-align:left;border-bottom:1px solid #e2e8f0">Email</th>
+        <th style="padding:8px;text-align:left;border-bottom:1px solid #e2e8f0">Secteur</th>
+        <th style="padding:8px;text-align:left;border-bottom:1px solid #e2e8f0">Pays</th>
+        <th style="padding:8px;text-align:left;border-bottom:1px solid #e2e8f0">Statut</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in recruiters %}
+        <tr style="border-bottom:1px solid #f1f5f9">
+          <td style="padding:7px 8px">{{ r.company_name }}</td>
+          <td style="padding:7px 8px"><a href="mailto:{{ r.email }}">{{ r.email }}</a></td>
+          <td style="padding:7px 8px">{{ r.get_sector_display }}</td>
+          <td style="padding:7px 8px">{{ r.country }}</td>
+          <td style="padding:7px 8px">{{ r.get_status_display }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</details>
+
+<form method="post" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:24px;max-width:700px">
+  {% csrf_token %}
+  <input type="hidden" name="ids" value="{{ ids }}">
+
+  <!-- Choix du template -->
+  <div style="margin-bottom:20px">
+    <label style="display:block;font-weight:600;margin-bottom:8px">Template email *</label>
+    {% if templates %}
+      {% for tmpl in templates %}
+        <label style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e2e8f0;border-radius:6px;margin-bottom:8px;cursor:pointer">
+          <input type="radio" name="template_id" value="{{ tmpl.id }}" required>
+          <div>
+            <strong>{{ tmpl.name }}</strong>
+            <span style="background:#e0f2fe;color:#0369a1;border-radius:4px;padding:1px 6px;font-size:11px;margin-left:6px">{{ tmpl.get_language_display }}</span><br>
+            <small style="color:#6b7280">Objet : {{ tmpl.subject }}</small>
+          </div>
+          <a href="{% url 'admin:outreach_template_preview' tmpl.id %}" target="_blank"
+             style="margin-left:auto;color:#2563eb;font-size:12px;white-space:nowrap">👁 Aperçu</a>
+        </label>
+      {% endfor %}
+    {% else %}
+      <p style="color:#dc2626">Aucun template actif disponible.</p>
+    {% endif %}
+  </div>
+
+  <!-- Créer une campagne ? -->
+  <div style="margin-bottom:20px;padding:14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px">
+    <label style="display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer">
+      <input type="checkbox" name="create_campaign" value="1" id="create_camp">
+      Créer une campagne pour tracer cet envoi (optionnel)
+    </label>
+    <div id="camp_name_box" style="display:none;margin-top:10px">
+      <label style="display:block;font-size:13px;margin-bottom:4px">Nom de la campagne</label>
+      <input type="text" name="campaign_name" placeholder="Ex: Recruteurs Agriculture Canada - Avril 2026"
+             style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px">
+    </div>
+  </div>
+
+  <div style="display:flex;gap:12px">
+    <button type="submit" {% if not templates %}disabled{% endif %}
+            style="background:#16a34a;color:#fff;border:none;padding:11px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:15px">
+      🚀 Envoyer {{ recruiters.count }} email(s)
+    </button>
+    <a href="{% url 'admin:outreach_recruitercontact_changelist' %}"
+       style="background:#6b7280;color:#fff;padding:11px 20px;border-radius:6px;text-decoration:none">Annuler</a>
+  </div>
+</form>
+
+<script>
+  document.getElementById('create_camp').addEventListener('change', function() {
+    document.getElementById('camp_name_box').style.display = this.checked ? 'block' : 'none';
+  });
+</script>
+{% endblock %}

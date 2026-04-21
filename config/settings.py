@@ -144,6 +144,7 @@ INSTALLED_APPS = [
     "job_agent",
     "mediafiles",
     "resources",
+    "outreach",
 ]
 
 
