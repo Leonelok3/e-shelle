@@ -408,20 +408,27 @@ def send_campaign(campaign, dry_run=False) -> dict:
         campaign.status = "sending"
         campaign.save(update_fields=["total_recipients", "status"])
 
+    import time as _time
     sent = failed = 0
+    daily_limit = getattr(campaign, "daily_limit", 200) or 200
     for recruiter in qs.iterator():
         if dry_run:
             sent += 1
             continue
+        if sent + failed >= daily_limit:
+            break
         ok = send_single_email(recruiter, campaign.template, campaign=campaign)
         if ok:
             sent += 1
             campaign.sent_count += 1
+            # Pause 3 s entre chaque email pour éviter le spam filter
+            _time.sleep(3)
         else:
             failed += 1
 
     if not dry_run:
-        campaign.status = "sent"
+        remaining = total - sent - failed
+        campaign.status = "sent" if remaining == 0 else "paused"
         campaign.sent_at = timezone.now()
         campaign.save(update_fields=["sent_count", "status", "sent_at"])
 
