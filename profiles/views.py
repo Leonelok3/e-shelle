@@ -10,8 +10,8 @@ from django.urls import reverse
 from billing.services import has_active_access, has_session_access, has_candidate_access, has_recruiter_access
 from cv_generator.models import CV
 
-from .models import Profile, Category
-from .forms import ProfileForm, PortfolioItemForm, ContactCandidateForm, AvatarUploadForm
+from .models import Profile, Category, Skill, ProfileSkill, PortfolioItem
+from .forms import ProfileForm, PortfolioItemForm, ContactCandidateForm, AvatarUploadForm, SkillForm
 
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -216,22 +216,40 @@ def my_space(request):
     has_premium = has_candidate_access(request.user)
     has_temp_access = has_session_access(request)
 
-    # Si plus de premium candidat, on retire la visibilité
     if not has_premium and profile.is_public:
         profile.is_public = False
         profile.save(update_fields=["is_public"])
 
-    # ✅ IMPORTANT : ton modèle CV utilise "user" (pas "utilisateur")
     recent_cvs = CV.objects.filter(user=request.user).order_by("-created_at")[:5]
+    profile_skills = ProfileSkill.objects.filter(profile=profile).select_related("skill").order_by("-level", "skill__name")
+    portfolio_items = PortfolioItem.objects.filter(profile=profile).order_by("-id")
+    all_skills = list(Skill.objects.values_list("name", flat=True).order_by("name")[:200])
 
-    test_results = []
+    # Score de complétion
+    checks = {
+        "Photo de profil": bool(profile.avatar),
+        "Titre professionnel": bool(profile.headline),
+        "À propos (bio)": bool(profile.bio),
+        "Localisation": bool(profile.location),
+        "LinkedIn": bool(profile.linkedin_url),
+        "Compétences (≥ 3)": profile_skills.count() >= 3,
+        "Portfolio (≥ 1 document)": portfolio_items.exists(),
+    }
+    done = sum(1 for v in checks.values() if v)
+    profile_progress = int(done / len(checks) * 100)
 
     context = {
         "profile": profile,
         "has_premium": has_premium,
         "has_temp_access": has_temp_access,
         "recent_cvs": recent_cvs,
-        "test_results": test_results,
+        "profile_skills": profile_skills,
+        "portfolio_items": portfolio_items,
+        "all_skills": all_skills,
+        "skill_form": SkillForm(),
+        "profile_checks": checks,
+        "profile_progress": profile_progress,
+        "test_results": [],
     }
     return render(request, "profiles/my_space.html", context)
 
@@ -591,3 +609,53 @@ def conversation_thread(request, invite_id):
         "thread_messages": thread_messages,
         "other": other,
     })
+
+
+# ======================================================
+# COMPÉTENCES — Ajouter / Supprimer
+# ======================================================
+@require_POST
+@login_required
+def add_skill(request, pk):
+    profile = get_object_or_404(Profile, pk=pk, user=request.user)
+    form = SkillForm(request.POST)
+    if form.is_valid():
+        name = form.cleaned_data["skill_name"].strip()
+        level = form.cleaned_data["level"]
+        years = form.cleaned_data.get("years") or 0
+        skill, _ = Skill.objects.get_or_create(
+            name__iexact=name,
+            defaults={"name": name},
+        )
+        ProfileSkill.objects.update_or_create(
+            profile=profile, skill=skill,
+            defaults={"level": level, "years": years},
+        )
+        messages.success(request, f"✅ Compétence « {skill.name} » ajoutée.")
+    else:
+        messages.error(request, "Formulaire invalide — vérifiez les champs.")
+    return redirect("profiles:my_space")
+
+
+@require_POST
+@login_required
+def delete_skill(request, ps_id):
+    ps = get_object_or_404(ProfileSkill, pk=ps_id, profile__user=request.user)
+    name = ps.skill.name
+    ps.delete()
+    messages.success(request, f"Compétence « {name} » supprimée.")
+    return redirect("profiles:my_space")
+
+
+# ======================================================
+# PORTFOLIO — Supprimer un document
+# ======================================================
+@require_POST
+@login_required
+def delete_portfolio_item(request, item_id):
+    item = get_object_or_404(PortfolioItem, pk=item_id, profile__user=request.user)
+    title = item.title
+    item.file.delete(save=False)
+    item.delete()
+    messages.success(request, f"Document « {title} » supprimé.")
+    return redirect("profiles:my_space")

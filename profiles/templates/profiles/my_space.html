@@ -712,6 +712,96 @@ body.profiles .app-main {
     </div>
   </div>
 
+  <!-- ── COMPÉTENCES ── -->
+  <div class="ms-card ms-card--full">
+    <div class="ms-card__accent"></div>
+    <div class="ms-card__kicker">Expertise</div>
+    <h2 class="ms-card__title">Mes compétences</h2>
+
+    {% if profile_skills %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.6rem;margin-bottom:1.5rem;">
+      {% for ps in profile_skills %}
+      <div style="display:flex;align-items:center;gap:0.5rem;background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.25);border-radius:50px;padding:0.35rem 0.85rem;">
+        <span style="font-size:0.85rem;font-weight:600;color:var(--ms-text);">{{ ps.skill.name }}</span>
+        <span style="font-size:0.72rem;color:var(--ms-gold);">
+          {% for i in "12345" %}{% if forloop.counter <= ps.level %}★{% else %}☆{% endif %}{% endfor %}
+        </span>
+        {% if ps.years %}<span style="font-size:0.72rem;color:var(--ms-text-muted);">{{ ps.years }} an{% if ps.years > 1 %}s{% endif %}</span>{% endif %}
+        <form method="post" action="{% url 'profiles:delete_skill' ps.pk %}" style="display:inline;margin:0;">
+          {% csrf_token %}
+          <button type="submit" title="Supprimer" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.3);font-size:0.75rem;padding:0 0 0 2px;line-height:1;" onclick="return confirm('Supprimer cette compétence ?')">✕</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ms-card__text">Aucune compétence ajoutée. Les recruteurs filtrent par compétences — ajoutez-en au moins 3.</p>
+    {% endif %}
+
+    <!-- Formulaire ajout compétence -->
+    <form method="post" action="{% url 'profiles:add_skill' profile.pk %}" style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:flex-end;background:rgba(255,255,255,0.03);border:1px solid rgba(212,168,67,0.15);border-radius:12px;padding:1.25rem;">
+      {% csrf_token %}
+      <datalist id="skill-suggestions">
+        {% for s in all_skills %}<option value="{{ s }}">{% endfor %}
+      </datalist>
+
+      <div style="flex:1;min-width:200px;">
+        <label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ms-gold);margin-bottom:0.4rem;">Compétence</label>
+        <input type="text" name="skill_name" list="skill-suggestions" required maxlength="80"
+               placeholder="Ex: Python, Soudure, Excel…"
+               style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:0.55rem 0.9rem;color:#fff;font-size:0.88rem;outline:none;">
+      </div>
+
+      <div style="min-width:100px;">
+        <label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ms-gold);margin-bottom:0.4rem;">Niveau (1–5)</label>
+        <input type="number" name="level" min="1" max="5" value="3" required
+               style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:0.55rem 0.9rem;color:#fff;font-size:0.88rem;outline:none;">
+      </div>
+
+      <div style="min-width:100px;">
+        <label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ms-gold);margin-bottom:0.4rem;">Années d'exp.</label>
+        <input type="number" name="years" min="0" max="40" value="0"
+               style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:0.55rem 0.9rem;color:#fff;font-size:0.88rem;outline:none;">
+      </div>
+
+      <button type="submit" class="ms-btn ms-btn--gold" style="padding:0.6rem 1.4rem;">➕ Ajouter</button>
+    </form>
+  </div>
+
+  <!-- ── PORTFOLIO ── -->
+  <div class="ms-card ms-card--full">
+    <div class="ms-card__accent"></div>
+    <div class="ms-card__kicker">Documents</div>
+    <h2 class="ms-card__title">Mon portfolio</h2>
+
+    {% if portfolio_items %}
+    <div style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1.5rem;">
+      {% for item in portfolio_items %}
+      <div style="display:flex;align-items:center;gap:1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:0.75rem 1rem;">
+        <span style="font-size:1.4rem;">
+          {% if item.item_type == "cv" %}📄{% elif item.item_type == "image" %}🖼️{% else %}📎{% endif %}
+        </span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:0.88rem;color:var(--ms-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ item.title }}</div>
+          {% if item.description %}<div style="font-size:0.75rem;color:var(--ms-text-muted);">{{ item.description }}</div>{% endif %}
+        </div>
+        <a href="{{ item.file.url }}" target="_blank" class="ms-btn ms-btn--ghost" style="padding:0.35rem 0.8rem;font-size:0.78rem;">⬇️ Voir</a>
+        <form method="post" action="{% url 'profiles:delete_portfolio' item.pk %}" style="margin:0;">
+          {% csrf_token %}
+          <button type="submit" class="ms-btn ms-btn--ghost" style="padding:0.35rem 0.8rem;font-size:0.78rem;color:#f87171;border-color:rgba(248,113,113,0.3);" onclick="return confirm('Supprimer ce document ?')">🗑 Supprimer</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ms-card__text">Aucun document dans votre portfolio. Ajoutez votre CV, des photos de réalisations ou des lettres de recommandation.</p>
+    {% endif %}
+
+    <div class="ms-card__btns">
+      <a class="ms-btn ms-btn--gold" href="{% url 'profiles:add_portfolio' profile.pk %}">➕ Ajouter un document</a>
+    </div>
+  </div>
+
 </div>
 
 <!-- ============================================================

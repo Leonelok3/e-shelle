@@ -12,6 +12,10 @@ urlpatterns = [
     path("<int:pk>/", views.ProfileDetailView.as_view(), name="detail"),
     path("<int:pk>/edit/", views.ProfileUpdateView.as_view(), name="edit"),
     path("<int:pk>/portfolio/add/", views.add_portfolio_item, name="add_portfolio"),
+    path("portfolio/<int:item_id>/delete/", views.delete_portfolio_item, name="delete_portfolio"),
+
+    path("<int:pk>/skills/add/", views.add_skill, name="add_skill"),
+    path("skills/<int:ps_id>/delete/", views.delete_skill, name="delete_skill"),
 
     path("avatar/", views.upload_avatar, name="upload_avatar"),
 
