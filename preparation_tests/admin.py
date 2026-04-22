@@ -8,6 +8,7 @@ from .models import (
     Session, Attempt, Answer,
     CourseLesson, CourseExercise,
     EOSubmission, EESubmission,
+    FeaturedContent,
 )
 
 # =====================================================
@@ -214,3 +215,31 @@ class EESubmissionAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "text")
     readonly_fields = ("feedback_json", "created_at")
     ordering = ("-created_at",)
+
+
+# =====================================================
+# FEATURED CONTENT — Sujets du mois / Corrections
+# =====================================================
+
+@admin.register(FeaturedContent)
+class FeaturedContentAdmin(admin.ModelAdmin):
+    list_display = (
+        "title", "language", "section", "content_type",
+        "is_premium", "is_published", "month", "order",
+    )
+    list_filter = ("language", "section", "content_type", "is_premium", "is_published")
+    search_fields = ("title", "subtitle", "description")
+    list_editable = ("is_premium", "is_published", "order")
+    ordering = ("-month", "order")
+    fieldsets = (
+        ("Identification", {
+            "fields": ("language", "section", "content_type", "month", "order"),
+        }),
+        ("Contenu", {
+            "fields": ("title", "subtitle", "description", "content_html", "pdf_file"),
+        }),
+        ("Visibilité", {
+            "fields": ("is_premium", "is_published"),
+        }),
+    )
+    date_hierarchy = "created_at"

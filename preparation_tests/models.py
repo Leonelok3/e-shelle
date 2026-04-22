@@ -629,3 +629,67 @@ class ExamFormatResult(models.Model):
 
     def __str__(self):
         return f"{self.user} — {self.get_exam_code_display()} {self.level} — {self.global_pct}% ({self.taken_at:%Y-%m-%d})"
+
+
+# =====================================================
+# 🌟 CONTENUS MIS EN AVANT (admin-managed)
+# =====================================================
+
+class FeaturedContent(models.Model):
+    LANG_CHOICES = [
+        ("fr", "Français"),
+        ("de", "Allemand"),
+        ("en", "Anglais"),
+    ]
+    SECTION_CHOICES = [
+        ("co", "Compréhension Orale"),
+        ("ce", "Compréhension Écrite"),
+        ("eo", "Expression Orale"),
+        ("ee", "Expression Écrite"),
+        ("general", "Général"),
+    ]
+    TYPE_CHOICES = [
+        ("monthly", "Sujet du mois"),
+        ("subject", "Sujet officiel"),
+        ("correction", "Correction officielle"),
+        ("tip", "Conseil / Astuce"),
+    ]
+
+    language = models.CharField(max_length=5, choices=LANG_CHOICES, default="fr", db_index=True)
+    section = models.CharField(max_length=10, choices=SECTION_CHOICES, default="general", db_index=True)
+    content_type = models.CharField(max_length=15, choices=TYPE_CHOICES, default="subject", verbose_name="Type")
+
+    title = models.CharField(max_length=200, verbose_name="Titre")
+    subtitle = models.CharField(max_length=300, blank=True, verbose_name="Sous-titre")
+    description = models.TextField(blank=True, verbose_name="Description courte")
+    content_html = models.TextField(blank=True, verbose_name="Contenu HTML (correction, conseils…)")
+    pdf_file = models.FileField(
+        upload_to="featured_content/",
+        blank=True, null=True,
+        verbose_name="Fichier PDF (sujet / correction)",
+    )
+
+    is_premium = models.BooleanField(
+        default=False,
+        verbose_name="Réservé Premium",
+        help_text="Cocher = visible seulement pour les abonnés",
+    )
+    is_published = models.BooleanField(default=True, verbose_name="Publié")
+
+    month = models.DateField(
+        null=True, blank=True,
+        verbose_name="Mois (pour 'Sujet du mois')",
+        help_text="Mettre le 1er du mois concerné, ex: 2026-04-01",
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-month", "order", "-created_at"]
+        verbose_name = "Contenu mis en avant"
+        verbose_name_plural = "Contenus mis en avant"
+
+    def __str__(self):
+        return f"[{self.get_language_display()} – {self.get_section_display()}] {self.get_content_type_display()} – {self.title}"

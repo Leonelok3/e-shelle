@@ -1,133 +1,287 @@
 {% extends "base.html" %}
 {% load static %}
 
-{# ==================================================
-   SCOPE STRICT APP
-================================================== #}
+{% block title %}Compréhension Écrite — Parcours A1→C2 | Immigration97{% endblock %}
+{% block meta_description %}Maîtrise la compréhension écrite du français : textes progressifs, sujets officiels TEF/TCF/DELF, simulations d'examen et correction par IA. Niveaux A1 à C2.{% endblock %}
+
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
 
-{# ==================================================
-   SEO — TITLE & META
-================================================== #}
-{% block title %}
-Compréhension Écrite – Parcours CECR A1 à C2 | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Parcours complet de Compréhension Écrite (CE) selon le CECR.
-Progresse du niveau A1 au C2 avec des textes variés,
-exercices progressifs et suivi intelligent Immigration97.
-{% endblock %}
-
-{# ==================================================
-   CSS APP — VERSIONNÉ
-================================================== #}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260329">
+<style>
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-green:#10b981;--h-glass:rgba(255,255,255,0.04);}
+.sh-hero{padding:3rem 0 2rem;text-align:center;}
+.sh-hero__icon{font-size:3rem;margin-bottom:.75rem;display:block;}
+.sh-hero__badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.35);border-radius:999px;padding:.3rem .9rem;font-size:.75rem;font-weight:700;color:#4ade80;letter-spacing:.07em;text-transform:uppercase;margin-bottom:1rem;}
+.sh-hero h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;color:#fff;margin-bottom:.6rem;line-height:1.15;}
+.sh-hero h1 span{color:var(--h-gold-lt);}
+.sh-hero__sub{color:rgba(255,255,255,.55);font-size:.95rem;max-width:560px;margin:0 auto 1.5rem;line-height:1.7;}
+.sh-stats{display:flex;justify-content:center;flex-wrap:wrap;gap:1.5rem;margin-bottom:2.5rem;}
+.sh-stat{text-align:center;}
+.sh-stat__n{font-size:1.5rem;font-weight:800;color:var(--h-gold-lt);}
+.sh-stat__l{font-size:.7rem;color:rgba(255,255,255,.45);margin-top:.1rem;}
+.sh-section{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;}
+.sh-section-hd{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+.sh-section-hd h2{font-size:1.1rem;font-weight:800;color:#fff;display:flex;align-items:center;gap:.5rem;margin:0;}
+.sh-section-hd__sub{font-size:.82rem;color:rgba(255,255,255,.4);}
+.sh-free-chip{display:inline-flex;align-items:center;gap:.3rem;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:20px;padding:.2rem .7rem;font-size:.7rem;font-weight:700;color:#4ade80;letter-spacing:.06em;text-transform:uppercase;}
+.sh-prem-chip{display:inline-flex;align-items:center;gap:.3rem;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);border-radius:20px;padding:.2rem .7rem;font-size:.7rem;font-weight:700;color:var(--h-gold-lt);letter-spacing:.06em;text-transform:uppercase;}
+.sh-monthly{background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.03));border:1px solid rgba(16,185,129,.3);border-radius:18px;padding:1.75rem 2rem;display:flex;gap:1.5rem;align-items:flex-start;position:relative;overflow:hidden;}
+.sh-monthly__icon{font-size:2.5rem;flex-shrink:0;}
+.sh-monthly__body{flex:1;}
+.sh-monthly__label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#4ade80;margin-bottom:.4rem;}
+.sh-monthly__title{font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:.4rem;}
+.sh-monthly__desc{font-size:.88rem;color:rgba(255,255,255,.6);line-height:1.6;}
+.sh-monthly__actions{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1rem;}
+.sh-monthly__btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:9px;font-size:.83rem;font-weight:700;text-decoration:none;transition:opacity .2s;background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.4);color:#4ade80;}
+.sh-monthly__btn:hover{opacity:.8;color:#4ade80;}
+.sh-monthly__empty{background:rgba(255,255,255,.025);border:1px dashed rgba(255,255,255,.1);border-radius:14px;padding:1.5rem;text-align:center;color:rgba(255,255,255,.3);font-size:.88rem;}
+.sh-subjects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;}
+.sh-subj-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:1.25rem;display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s;}
+.sh-subj-card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.3);}
+.sh-subj-card__type-badge{display:inline-flex;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:.2rem .6rem;border-radius:20px;margin-bottom:.75rem;}
+.sh-subj-card__type-badge--subject{background:rgba(16,185,129,.12);color:#4ade80;border:1px solid rgba(16,185,129,.25);}
+.sh-subj-card__type-badge--correction{background:rgba(212,168,67,.12);color:var(--h-gold-lt);border:1px solid rgba(212,168,67,.25);}
+.sh-subj-card__title{font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.4rem;line-height:1.3;}
+.sh-subj-card__desc{font-size:.8rem;color:rgba(255,255,255,.5);line-height:1.5;flex:1;}
+.sh-subj-card__actions{margin-top:1rem;display:flex;gap:.5rem;}
+.sh-subj-card__btn{display:inline-flex;font-size:.78rem;font-weight:700;padding:.45rem .9rem;border-radius:8px;text-decoration:none;transition:opacity .2s;background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.3);color:var(--h-gold-lt);}
+.sh-subj-card__btn:hover{opacity:.8;color:var(--h-gold-lt);}
+.sh-lock{position:relative;border-radius:14px;overflow:hidden;}
+.sh-lock::after{content:'';position:absolute;inset:0;background:rgba(5,10,24,.65);backdrop-filter:blur(4px);border-radius:14px;z-index:1;}
+.sh-lock__badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;background:rgba(212,168,67,.15);border:1px solid rgba(212,168,67,.4);border-radius:12px;padding:.75rem 1.25rem;text-align:center;white-space:nowrap;}
+.sh-lock__icon{font-size:1.4rem;display:block;margin-bottom:.3rem;}
+.sh-lock__txt{font-size:.78rem;font-weight:700;color:var(--h-gold-lt);}
+.sh-levels-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:1rem;}
+.sh-lvl-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:1.25rem 1rem;text-align:center;display:flex;flex-direction:column;gap:.5rem;transition:transform .2s,box-shadow .2s,border-color .2s;}
+.sh-lvl-card:hover{transform:translateY(-4px);box-shadow:0 14px 36px rgba(0,0,0,.35);border-color:rgba(212,168,67,.3);}
+.sh-lvl-badge{display:inline-block;font-size:1.5rem;font-weight:900;border-radius:10px;padding:.25rem .8rem;margin-bottom:.25rem;}
+.sh-lvl-badge--a1{background:rgba(16,185,129,.18);color:#4ade80;}
+.sh-lvl-badge--a2{background:rgba(34,197,94,.18);color:#86efac;}
+.sh-lvl-badge--b1{background:rgba(234,179,8,.18);color:#fde047;}
+.sh-lvl-badge--b2{background:rgba(245,158,11,.18);color:#fbbf24;}
+.sh-lvl-badge--c1{background:rgba(239,68,68,.18);color:#fca5a5;}
+.sh-lvl-badge--c2{background:rgba(168,85,247,.18);color:#d8b4fe;}
+.sh-lvl-card__n{font-size:.75rem;color:rgba(255,255,255,.45);}
+.sh-lvl-card__pct{font-size:1.1rem;font-weight:800;color:var(--h-gold-lt);}
+.sh-lvl-progress{width:100%;height:5px;background:rgba(255,255,255,.08);border-radius:20px;overflow:hidden;}
+.sh-lvl-progress-fill{height:100%;background:linear-gradient(90deg,var(--h-gold),var(--h-gold-lt));border-radius:20px;}
+.sh-lvl-card__btn{display:block;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.45rem;font-size:.78rem;font-weight:700;color:rgba(255,255,255,.75);text-decoration:none;transition:all .2s;margin-top:.25rem;}
+.sh-lvl-card__btn:hover{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.35);color:#4ade80;}
+.sh-lvl-card__btn--start{background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(16,185,129,.08));border-color:rgba(16,185,129,.35);color:#4ade80;}
+.sh-prem-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;}
+.sh-prem-card{border-radius:18px;padding:1.75rem;display:flex;flex-direction:column;gap:.75rem;}
+.sh-prem-card--sim{background:linear-gradient(135deg,rgba(212,168,67,.12),rgba(240,192,96,.04));border:1px solid rgba(212,168,67,.35);}
+.sh-prem-card--ia{background:linear-gradient(135deg,rgba(168,85,247,.12),rgba(168,85,247,.04));border:1px solid rgba(168,85,247,.3);}
+.sh-prem-card__icon{font-size:2rem;}
+.sh-prem-card__title{font-size:1.05rem;font-weight:800;color:#fff;}
+.sh-prem-card__desc{font-size:.85rem;color:rgba(255,255,255,.55);line-height:1.6;flex:1;}
+.sh-prem-card__features{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.3rem;}
+.sh-prem-card__features li{font-size:.82rem;color:rgba(255,255,255,.6);display:flex;gap:.4rem;}
+.sh-prem-card__features li span:first-child{color:var(--h-green);font-weight:700;flex-shrink:0;}
+.sh-prem-card__cta{display:flex;flex-direction:column;gap:.45rem;margin-top:.25rem;}
+.sh-prem-card__btn{display:block;text-align:center;font-weight:700;font-size:.85rem;padding:.75rem;border-radius:10px;text-decoration:none;transition:opacity .2s,transform .2s;}
+.sh-prem-card__btn:hover{opacity:.85;transform:translateY(-1px);}
+.sh-prem-card__btn--gold{background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;}
+.sh-prem-card__btn--purple{background:linear-gradient(135deg,rgba(168,85,247,.25),rgba(168,85,247,.1));border:1px solid rgba(168,85,247,.4);color:#c4b5fd;}
+.sh-prem-card__btn--wa{background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.3);color:#4ade80;}
+.sh-prem-card__locked{display:flex;align-items:center;gap:.5rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:.6rem .9rem;font-size:.78rem;color:#fca5a5;}
+.sh-wa-banner{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;}
+.sh-wa-inner{background:linear-gradient(135deg,rgba(37,211,102,.1),rgba(37,211,102,.03));border:1px solid rgba(37,211,102,.25);border-radius:18px;padding:2rem 2.5rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;}
+.sh-wa-inner__icon{font-size:3rem;flex-shrink:0;}
+.sh-wa-inner__body{flex:1;}
+.sh-wa-inner__body h3{font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:.4rem;}
+.sh-wa-inner__body p{font-size:.88rem;color:rgba(255,255,255,.55);line-height:1.6;margin:0;}
+.sh-wa-inner__actions{display:flex;flex-direction:column;gap:.5rem;flex-shrink:0;}
+.sh-wa-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.8rem 1.6rem;border-radius:11px;font-weight:700;font-size:.9rem;text-decoration:none;transition:opacity .2s;}
+.sh-wa-btn--primary{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;}
+.sh-wa-btn--outline{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);}
+.sh-wa-btn:hover{opacity:.85;}
+.sh-tips{display:flex;flex-direction:column;gap:.75rem;}
+.sh-tip{display:flex;gap:.75rem;align-items:flex-start;background:rgba(255,255,255,.025);border-left:3px solid var(--h-gold);border-radius:0 10px 10px 0;padding:.9rem 1rem;}
+.sh-tip__icon{font-size:1.2rem;flex-shrink:0;}
+.sh-tip__body{font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.6;}
+.sh-tip__body strong{color:rgba(255,255,255,.85);}
+@media(max-width:640px){.sh-monthly{flex-direction:column;}.sh-wa-inner{flex-direction:column;text-align:center;}.sh-wa-inner__actions{width:100%;}.sh-wa-btn{justify-content:center;}}
+</style>
 {% endblock %}
 
 {% block content %}
+{% include "preparation_tests/partials/_prep_nav.html" %}
 
-<!-- ==================================================
-HERO — PARCOURS COMPRÉHENSION ÉCRITE
-================================================== -->
-<section class="pt-hero">
-  <div class="container pt-fade-up">
-
-    <span class="pt-badge">
-      📖 Compréhension écrite
-    </span>
-
-    <h1 class="pt-title">
-      Parcours CECR<br>
-      de <span class="pt-gradient-primary">A1</span> à
-      <span class="pt-gradient-primary">C2</span>
-    </h1>
-
-    <p class="pt-lead">
-      Progresse étape par étape en
-      <strong>compréhension écrite</strong>
-      selon le <strong>Cadre Européen Commun de Référence</strong>.
-      Textes, exercices progressifs et suivi intelligent
-      pour réussir les examens linguistiques officiels.
-    </p>
-
-    {% include "preparation_tests/partials/_cefr_bar.html" %}
-
+<div class="sh-hero">
+  <span class="sh-hero__icon">📖</span>
+  <div class="sh-hero__badge">Compréhension Écrite · CECR</div>
+  <h1>Compréhension <span>Écrite</span></h1>
+  <p class="sh-hero__sub">Apprends à lire et comprendre le français écrit à tous les niveaux. Textes authentiques, questions progressives et préparation aux épreuves officielles TEF / TCF / DELF.</p>
+  <div class="sh-stats">
+    <div class="sh-stat"><div class="sh-stat__n">{{ levels|length }}</div><div class="sh-stat__l">Niveaux CECR</div></div>
+    <div class="sh-stat"><div class="sh-stat__n">🎓</div><div class="sh-stat__l">Leçons gratuites</div></div>
+    <div class="sh-stat"><div class="sh-stat__n">🤖</div><div class="sh-stat__l">Correction IA Premium</div></div>
+    <div class="sh-stat"><div class="sh-stat__n">🎯</div><div class="sh-stat__l">Simulations officielles</div></div>
   </div>
-</section>
+</div>
 
-<!-- ==================================================
-NIVEAUX CECR
-================================================== -->
-<section class="pt-section">
-  <div class="container">
-
-    <header class="pt-section-header">
-      <h2>
-        📚 Niveaux disponibles
-      </h2>
-      <p>
-        Chaque niveau correspond à des compétences
-        linguistiques précises selon le CECR.
-        Progresse à ton rythme et débloque les niveaux
-        supérieurs en complétant les leçons.
-      </p>
-    </header>
-
-    <div class="pt-level-grid">
-
-      {% for l in levels %}
-      <article class="pt-card pt-card--level">
-
-        <!-- BADGE NIVEAU -->
-        <span class="pt-level-badge pt-level-{{ l.level|lower }}">
-          {{ l.level }}
-        </span>
-
-        <h3 class="pt-level-title">
-          Niveau {{ l.level }}
-        </h3>
-
-        <p class="pt-card-meta">
-          {{ l.completed }} / {{ l.total }} leçons complétées
-        </p>
-
-        <!-- PROGRESSION -->
-        <div class="pt-progress">
-          <div class="pt-progress-bar">
-            <div
-              class="pt-progress-fill"
-              style="width: {{ l.progress_pct }}%;"
-            ></div>
-          </div>
-          <span class="pt-progress-text">
-            {{ l.progress_pct }} %
-          </span>
-        </div>
-
-        <!-- ACTION -->
-        <div class="pt-cta-group">
-          <a
-            href="{% url "preparation_tests:ce_by_level" l.level %}"
-            class="pt-btn-primary"
-          >
-            ▶ Accéder au niveau {{ l.level }}
-          </a>
-        </div>
-
-      </article>
-      {% empty %}
-      <div class="pt-empty">
-        Aucun niveau disponible pour l'instant.
-        Les leçons de Compréhension Écrite seront bientôt disponibles.
+<div class="sh-section">
+  <div class="sh-section-hd">
+    <h2>📅 Sujet du mois <span class="sh-free-chip">✓ Gratuit</span></h2>
+    <span class="sh-section-hd__sub">Mis à jour chaque mois par notre équipe pédagogique</span>
+  </div>
+  {% if monthly_topic %}
+  <div class="sh-monthly">
+    <div class="sh-monthly__icon">📰</div>
+    <div class="sh-monthly__body">
+      <div class="sh-monthly__label">Sujet du mois — Compréhension Écrite</div>
+      <div class="sh-monthly__title">{{ monthly_topic.title }}</div>
+      {% if monthly_topic.subtitle %}<div class="sh-monthly__desc">{{ monthly_topic.subtitle }}</div>{% endif %}
+      {% if monthly_topic.description %}<p style="font-size:.85rem;color:rgba(255,255,255,.5);margin-top:.5rem;line-height:1.6;">{{ monthly_topic.description }}</p>{% endif %}
+      <div class="sh-monthly__actions">
+        {% if monthly_topic.content_html %}<a href="#monthly-content" class="sh-monthly__btn">📖 Lire le sujet</a>{% endif %}
+        {% if monthly_topic.pdf_file %}<a href="{{ monthly_topic.pdf_file.url }}" target="_blank" class="sh-monthly__btn">⬇ Télécharger PDF</a>{% endif %}
       </div>
-      {% endfor %}
-
     </div>
-
   </div>
-</section>
+  {% if monthly_topic.content_html %}
+  <div id="monthly-content" style="margin-top:1.25rem;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.5rem 2rem;font-size:.9rem;color:rgba(255,255,255,.7);line-height:1.8;">{{ monthly_topic.content_html|safe }}</div>
+  {% endif %}
+  {% else %}
+  <div class="sh-monthly__empty">📅 Aucun sujet du mois configuré pour cette compétence.</div>
+  {% endif %}
+</div>
 
+{% if official_subjects %}
+<div class="sh-section">
+  <div class="sh-section-hd">
+    <h2>📋 Sujets officiels & Corrections <span class="sh-prem-chip">⭐ Premium</span></h2>
+    <span class="sh-section-hd__sub">Sujets d'examens réels avec corrigés détaillés</span>
+  </div>
+  <div class="sh-subjects-grid">
+    {% for item in official_subjects %}
+      {% if item.is_premium and not has_access %}
+      <div class="sh-lock">
+        <div class="sh-subj-card" style="filter:blur(2px);pointer-events:none;">
+          <span class="sh-subj-card__type-badge sh-subj-card__type-badge--{{ item.content_type }}">{% if item.content_type == "correction" %}✅ Correction{% else %}📄 Sujet{% endif %}</span>
+          <div class="sh-subj-card__title">{{ item.title }}</div>
+          <div class="sh-subj-card__desc">{{ item.description|truncatewords:20 }}</div>
+        </div>
+        <div class="sh-lock__badge"><span class="sh-lock__icon">🔒</span><span class="sh-lock__txt">Réservé Premium</span></div>
+      </div>
+      {% else %}
+      <div class="sh-subj-card">
+        <span class="sh-subj-card__type-badge sh-subj-card__type-badge--{{ item.content_type }}">{% if item.content_type == "correction" %}✅ Correction{% else %}📄 Sujet{% endif %}</span>
+        <div class="sh-subj-card__title">{{ item.title }}</div>
+        {% if item.subtitle %}<div class="sh-subj-card__desc" style="font-weight:600;color:rgba(255,255,255,.65);">{{ item.subtitle }}</div>{% endif %}
+        {% if item.description %}<div class="sh-subj-card__desc">{{ item.description }}</div>{% endif %}
+        <div class="sh-subj-card__actions">
+          {% if item.pdf_file %}<a href="{{ item.pdf_file.url }}" target="_blank" class="sh-subj-card__btn">⬇ PDF</a>{% endif %}
+          {% if item.content_html %}<a href="#subject-{{ item.pk }}" class="sh-subj-card__btn">📖 Lire</a>{% endif %}
+        </div>
+        {% if item.content_html %}<div id="subject-{{ item.pk }}" style="display:none;margin-top:1rem;font-size:.83rem;color:rgba(255,255,255,.6);line-height:1.7;border-top:1px solid rgba(255,255,255,.08);padding-top:1rem;">{{ item.content_html|safe }}</div>{% endif %}
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="sh-section">
+  <div class="sh-section-hd">
+    <h2>📚 Leçons & Exercices <span class="sh-free-chip">✓ 100% Gratuit</span></h2>
+    <span class="sh-section-hd__sub">Progresse niveau par niveau à ton rythme</span>
+  </div>
+  <div class="sh-levels-grid">
+    {% for l in levels %}
+    <div class="sh-lvl-card">
+      <span class="sh-lvl-badge sh-lvl-badge--{{ l.level|lower }}">{{ l.level }}</span>
+      <div class="sh-lvl-card__n">{{ l.completed }}/{{ l.total }} leçons</div>
+      <div class="sh-lvl-card__pct">{{ l.progress_pct }}%</div>
+      <div class="sh-lvl-progress"><div class="sh-lvl-progress-fill" style="width:{{ l.progress_pct }}%;"></div></div>
+      <a href="{% url 'preparation_tests:ce_by_level' l.level %}" class="sh-lvl-card__btn {% if l.completed == 0 %}sh-lvl-card__btn--start{% endif %}">
+        {% if l.completed == 0 %}▶ Commencer{% elif l.progress_pct == 100 %}✓ Revoir{% else %}→ Continuer{% endif %}
+      </a>
+    </div>
+    {% empty %}
+    <div style="grid-column:1/-1;text-align:center;padding:2rem;color:rgba(255,255,255,.3);">Aucune leçon publiée.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="sh-section">
+  <div class="sh-section-hd">
+    <h2>🎯 Outils Premium <span class="sh-prem-chip">⭐ Accès requis</span></h2>
+    <span class="sh-section-hd__sub">Débloquer via WhatsApp en moins de 30 min</span>
+  </div>
+  <div class="sh-prem-grid">
+    <div class="sh-prem-card sh-prem-card--sim">
+      <div class="sh-prem-card__icon">🎯</div>
+      <div class="sh-prem-card__title">Simulations d'examen</div>
+      <div class="sh-prem-card__desc">Textes officiels niveau CECR dans les conditions réelles — TEF Canada, TCF, DELF, DALF.</div>
+      <ul class="sh-prem-card__features">
+        <li><span>✓</span> Textes authentiques par niveau</li>
+        <li><span>✓</span> Chronomètre et score détaillé</li>
+        <li><span>✓</span> Estimation niveau CECR automatique</li>
+        <li><span>✓</span> Historique de tous tes passages</li>
+      </ul>
+      <div class="sh-prem-card__cta">
+        {% if has_access %}
+        <a href="{% url 'preparation_tests:level_mock_hub' %}" class="sh-prem-card__btn sh-prem-card__btn--gold">🎯 Lancer une simulation →</a>
+        {% else %}
+        <div class="sh-prem-card__locked">🔒 Réservé aux membres Premium</div>
+        <a href="https://wa.me/237693649944?text=Bonjour+Immigration97%2C+je+veux+activer+le+Premium+pour+les+simulations+CE." target="_blank" rel="noopener" class="sh-prem-card__btn sh-prem-card__btn--wa">💬 Débloquer via WhatsApp</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="sh-prem-card sh-prem-card--ia">
+      <div class="sh-prem-card__icon">🤖</div>
+      <div class="sh-prem-card__title">Évaluation & Coach IA</div>
+      <div class="sh-prem-card__desc">Notre IA analyse tes résultats en lecture et propose un plan de révision ciblé avec des textes adaptés.</div>
+      <ul class="sh-prem-card__features">
+        <li><span>✓</span> Rapport IA par type de texte</li>
+        <li><span>✓</span> Suggestions de lecture prioritaires</li>
+        <li><span>✓</span> Rapport PDF téléchargeable</li>
+        <li><span>✓</span> Suivi de progression hebdomadaire</li>
+      </ul>
+      <div class="sh-prem-card__cta">
+        {% if has_access %}
+        <a href="{% url 'preparation_tests:coach_ai_history' %}" class="sh-prem-card__btn sh-prem-card__btn--purple">🤖 Accéder au Coach IA →</a>
+        {% else %}
+        <div class="sh-prem-card__locked">🔒 Réservé aux membres Premium</div>
+        <a href="https://wa.me/237693649944?text=Bonjour+Immigration97%2C+je+veux+activer+le+Premium+pour+le+Coach+IA." target="_blank" rel="noopener" class="sh-prem-card__btn sh-prem-card__btn--wa">💬 Débloquer via WhatsApp</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if tips %}
+<div class="sh-section">
+  <div class="sh-section-hd"><h2>💡 Conseils & Astuces <span class="sh-free-chip">✓ Gratuit</span></h2></div>
+  <div class="sh-tips">{% for tip in tips %}<div class="sh-tip"><div class="sh-tip__icon">💡</div><div class="sh-tip__body"><strong>{{ tip.title }}</strong>{% if tip.description %} — {{ tip.description }}{% endif %}</div></div>{% endfor %}</div>
+</div>
+{% endif %}
+
+{% if not has_access %}
+<div class="sh-wa-banner">
+  <div class="sh-wa-inner">
+    <div class="sh-wa-inner__icon">💬</div>
+    <div class="sh-wa-inner__body">
+      <h3>Débloque l'accès Premium en 30 min</h3>
+      <p>Simulations d'examen · Évaluation IA · Sujets officiels avec corrections · Coach personnalisé<br>Paiement MTN MoMo, Orange Money, PayPal, MoneyGram, carte bancaire.</p>
+    </div>
+    <div class="sh-wa-inner__actions">
+      <a href="https://wa.me/237693649944?text=Bonjour+Immigration97%2C+je+veux+activer+l%27acc%C3%A8s+Premium." target="_blank" rel="noopener" class="sh-wa-btn sh-wa-btn--primary">💬 Commander sur WhatsApp</a>
+      <a href="{% url 'billing:pricing' %}" class="sh-wa-btn sh-wa-btn--outline">Voir les tarifs →</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('[href^="#subject-"]').forEach(function(btn){
+  btn.addEventListener('click',function(e){e.preventDefault();var t=document.querySelector(this.getAttribute('href'));if(!t)return;var h=t.style.display==='none';t.style.display=h?'block':'none';this.textContent=h?'▲ Fermer':'📖 Lire';});
+});
+</script>
 {% endblock %}

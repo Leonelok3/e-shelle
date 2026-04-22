@@ -43,7 +43,9 @@ from .models import (
     UserExerciseProgress,
     EOSubmission,
     EESubmission,
+    FeaturedContent,
 )
+from billing.services import has_active_access
 
 # =========================================================
 # 🧠 SERVICES MÉTIER
@@ -760,38 +762,57 @@ def coach_ai_pdf(request, report_id):
 
 
 # =========================================================
-# ✅ HUB CO / CE PAR NIVEAU
+# 🛠 HELPER — contexte commun des hubs de compétence
 # =========================================================
-@login_required
-def co_hub(request):
-    user = request.user
+def _build_skill_hub_context(user, section: str) -> dict:
+    from django.utils import timezone as tz
+    today = tz.now().date()
 
-    levels = (
-        CourseLesson.objects.filter(section="co", is_published=True)
+    # Niveaux + progression
+    level_keys = (
+        CourseLesson.objects.filter(section=section, is_published=True)
         .values_list("level", flat=True)
         .distinct()
         .order_by("level")
     )
-
     levels_data = []
-    for level in levels:
-        total_lessons = CourseLesson.objects.filter(
-            section="co", level=level, is_published=True
-        ).count()
-        completed_lessons = _ulp_count(
-            user, lesson__section="co", lesson__level=level, is_completed=True
-        )
-
-        progress_pct = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
-
+    for lv in level_keys:
+        total = CourseLesson.objects.filter(section=section, level=lv, is_published=True).count()
+        done = _ulp_count(user, lesson__section=section, lesson__level=lv, is_completed=True)
         levels_data.append({
-            "level": level,
-            "completed": completed_lessons,
-            "total": total_lessons,
-            "progress_pct": progress_pct,
+            "level": lv,
+            "completed": done,
+            "total": total,
+            "progress_pct": int((done / total) * 100) if total else 0,
         })
 
-    return render(request, "preparation_tests/co_hub.html", {"levels": levels_data})
+    # Contenu mis en avant
+    base_qs = FeaturedContent.objects.filter(
+        language="fr", section=section, is_published=True
+    )
+    monthly_topic = base_qs.filter(content_type="monthly").first()
+    official_subjects = base_qs.filter(content_type__in=["subject", "correction"]).order_by("order", "-created_at")
+    tips = base_qs.filter(content_type="tip").order_by("order")
+
+    has_access = has_active_access(user)
+
+    return {
+        "levels": levels_data,
+        "monthly_topic": monthly_topic,
+        "official_subjects": official_subjects,
+        "tips": tips,
+        "has_access": has_access,
+        "section_code": section,
+    }
+
+
+# =========================================================
+# ✅ HUB CO / CE PAR NIVEAU
+# =========================================================
+@login_required
+def co_hub(request):
+    ctx = _build_skill_hub_context(request.user, "co")
+    return render(request, "preparation_tests/co_hub.html", ctx)
 
 
 @login_required
@@ -822,34 +843,8 @@ def co_by_level(request, level):
 
 @login_required
 def ce_hub(request):
-    user = request.user
-
-    levels = (
-        CourseLesson.objects.filter(section="ce", is_published=True)
-        .values_list("level", flat=True)
-        .distinct()
-        .order_by("level")
-    )
-
-    levels_data = []
-    for level in levels:
-        total_lessons = CourseLesson.objects.filter(
-            section="ce", level=level, is_published=True
-        ).count()
-        completed_lessons = _ulp_count(
-            user, lesson__section="ce", lesson__level=level, is_completed=True
-        )
-
-        progress_pct = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
-
-        levels_data.append({
-            "level": level,
-            "completed": completed_lessons,
-            "total": total_lessons,
-            "progress_pct": progress_pct,
-        })
-
-    return render(request, "preparation_tests/ce_hub.html", {"levels": levels_data})
+    ctx = _build_skill_hub_context(request.user, "ce")
+    return render(request, "preparation_tests/ce_hub.html", ctx)
 
 
 @login_required
@@ -963,32 +958,8 @@ def exercise_progress(request):
 # =========================================================
 @login_required
 def eo_hub(request):
-    user = request.user
-
-    levels = (
-        CourseLesson.objects.filter(section="eo", is_published=True)
-        .values_list("level", flat=True)
-        .distinct()
-        .order_by("level")
-    )
-
-    levels_data = []
-    for level in levels:
-        total_lessons = CourseLesson.objects.filter(
-            section="eo", level=level, is_published=True
-        ).count()
-        completed_lessons = _ulp_count(
-            user, lesson__section="eo", lesson__level=level, is_completed=True
-        )
-        progress_pct = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
-        levels_data.append({
-            "level": level,
-            "completed": completed_lessons,
-            "total": total_lessons,
-            "progress_pct": progress_pct,
-        })
-
-    return render(request, "preparation_tests/eo_hub.html", {"levels": levels_data})
+    ctx = _build_skill_hub_context(request.user, "eo")
+    return render(request, "preparation_tests/eo_hub.html", ctx)
 
 
 @login_required
@@ -1019,32 +990,8 @@ def eo_by_level(request, level):
 
 @login_required
 def ee_hub(request):
-    user = request.user
-
-    levels = (
-        CourseLesson.objects.filter(section="ee", is_published=True)
-        .values_list("level", flat=True)
-        .distinct()
-        .order_by("level")
-    )
-
-    levels_data = []
-    for level in levels:
-        total_lessons = CourseLesson.objects.filter(
-            section="ee", level=level, is_published=True
-        ).count()
-        completed_lessons = _ulp_count(
-            user, lesson__section="ee", lesson__level=level, is_completed=True
-        )
-        progress_pct = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
-        levels_data.append({
-            "level": level,
-            "completed": completed_lessons,
-            "total": total_lessons,
-            "progress_pct": progress_pct,
-        })
-
-    return render(request, "preparation_tests/ee_hub.html", {"levels": levels_data})
+    ctx = _build_skill_hub_context(request.user, "ee")
+    return render(request, "preparation_tests/ee_hub.html", ctx)
 
 
 @login_required
