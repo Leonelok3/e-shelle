@@ -36,6 +36,11 @@ COLUMN_ALIASES = {
     "société": "company_name",
     "company": "company_name",
     "nom entreprise": "company_name",
+    "nom d'agence de recrutement": "company_name",
+    "agence de recrutement": "company_name",
+    "nom agence": "company_name",
+    "agence": "company_name",
+    "employeur": "company_name",
     "email / portail rh": "email",
     "email portail rh": "email",
     "portail rh": "email",
@@ -49,9 +54,14 @@ COLUMN_ALIASES = {
     "région": "city",
     "region": "city",
     "localisation": "city",
+    "adresse": "city",
+    "état": "city",
+    "state": "city",
     "site web": "website",
     "site": "website",
     "url": "website",
+    "portail pour soumettre": "website",
+    "portail candidatures": "website",
     "téléphone": "phone",
     "telephone": "phone",
     "tél": "phone",
@@ -68,11 +78,13 @@ COLUMN_ALIASES = {
     "profils recherches": "tags",
     "profils": "tags",
     "postes": "tags",
+    "informations": "notes",
+    "les informations": "notes",
     "notes immigration97": "notes",
     "notes": "notes",
     "remarques": "notes",
     "pays": "country",
-    "type visa": "tags",   # on l'ajoute aux tags
+    "type visa": "tags",
 }
 
 # Mapping secteur libre → code outreach
@@ -242,9 +254,22 @@ def import_contacts_from_excel(file_obj, default_country="BE") -> dict:
         if not email or "@" not in email:
             # Chercher dans toutes les colonnes un email valide
             for v in cells:
-                if "@" in str(v) and "." in str(v):
-                    email = str(v).strip().lower()
+                v_str = str(v).strip()
+                if "@" in v_str and "." in v_str and not v_str.startswith("http"):
+                    email = v_str.lower()
                     break
+        if not email or "@" not in email:
+            # Construire un email depuis le site web (portail/careers)
+            website_val = data.get("website", "").strip()
+            if website_val and "." in website_val:
+                try:
+                    from urllib.parse import urlparse
+                    parsed = urlparse(website_val if "://" in website_val else "https://" + website_val)
+                    domain = parsed.netloc.replace("www.", "")
+                    if domain and "." in domain:
+                        email = f"careers@{domain}"
+                except Exception:
+                    pass
         if not email or "@" not in email:
             skipped += 1
             errors.append(f"Ligne {row_num} : pas d'email valide")
