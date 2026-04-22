@@ -175,7 +175,16 @@ class ProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return self.request.user == self.get_object().user
 
     def get_success_url(self):
-        return reverse("profiles:my_space")
+        return reverse("profiles:edit", kwargs={"pk": self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        profile = self.object
+        context["profile_skills"] = ProfileSkill.objects.filter(profile=profile).select_related("skill").order_by("-level", "skill__name")
+        context["portfolio_items"] = PortfolioItem.objects.filter(profile=profile).order_by("-id")
+        context["all_skills"] = list(Skill.objects.values_list("name", flat=True).order_by("name")[:200])
+        context["skill_form"] = SkillForm()
+        return context
 
 
 # ======================================================

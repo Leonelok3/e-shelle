@@ -1,14 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}
-  {% if object %}Modifier mon profil — Immigration97{% else %}Créer mon profil — Immigration97{% endif %}
-{% endblock %}
-
-{% block meta_description %}
-Créez un profil professionnel premium avec CV, portfolio et informations clés. Soyez visible par des recruteurs au Canada, en Europe et en Afrique.
-{% endblock %}
-
+{% block title %}{% if object %}Modifier mon profil{% else %}Créer mon profil{% endif %} — Immigration97{% endblock %}
+{% block meta_description %}Gérez votre profil professionnel : titre, compétences, portfolio, photos de réalisations.{% endblock %}
 {% block body_class %}profiles{% endblock %}
 {% block app_scope %}profiles{% endblock %}
 
@@ -16,363 +10,306 @@ Créez un profil professionnel premium avec CV, portfolio et informations clés.
 <link rel="stylesheet" href="{% static 'css/profiles.css' %}">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;600;700&family=Bebas+Neue&display=swap');
-
 :root {
-  --pf-navy: #050A18;
-  --pf-navy-2: #0A1628;
-  --pf-navy-3: #0F2040;
-  --pf-gold: #D4A843;
-  --pf-gold-light: #F0C060;
-  --pf-gold-dim: rgba(212,168,67,0.15);
-  --pf-gold-border: rgba(212,168,67,0.25);
-  --pf-glass: rgba(15,32,64,0.70);
-  --pf-text: #E8EAF0;
-  --pf-muted: rgba(232,234,240,0.55);
+  --pf-navy:#050A18; --pf-navy-2:#0A1628; --pf-navy-3:#0F2040;
+  --pf-gold:#D4A843; --pf-gold-light:#F0C060; --pf-gold-dim:rgba(212,168,67,0.12);
+  --pf-gold-border:rgba(212,168,67,0.25); --pf-glass:rgba(15,32,64,0.70);
+  --pf-text:#E8EAF0; --pf-muted:rgba(232,234,240,0.55);
 }
+body.profiles { background:var(--pf-navy) !important; color:var(--pf-text) !important; }
 
-body.profiles { background: var(--pf-navy) !important; color: var(--pf-text) !important; }
+/* HERO */
+.pf-hero { background:linear-gradient(135deg,#050A18 0%,#0A1628 60%,#0F2040 100%); border-bottom:1px solid var(--pf-gold-border); padding:2.5rem 2rem 3rem; position:relative; overflow:hidden; margin-bottom:2rem; }
+.pf-hero::before { content:''; position:absolute; top:-80px; right:-80px; width:400px; height:400px; background:radial-gradient(circle,rgba(212,168,67,0.12) 0%,transparent 65%); pointer-events:none; }
+.pf-hero::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,#D4A843,#F0C060,#D4A843,transparent); }
+.pf-hero__inner { position:relative; z-index:1; max-width:960px; }
+.pf-hero h1 { font-family:'Cormorant Garamond',Georgia,serif; font-size:clamp(1.8rem,3.5vw,2.8rem); font-weight:700; color:#fff; margin:0 0 0.6rem; line-height:1.2; }
+.pf-hero p { font-size:0.9rem; color:var(--pf-muted); margin:0 0 1.5rem; max-width:60ch; line-height:1.7; }
+.pf-hero__actions { display:flex; flex-wrap:wrap; gap:0.65rem; }
 
-/* ---- HERO ---- */
-.pf-hero {
-  background: linear-gradient(135deg, #050A18 0%, #0A1628 60%, #0F2040 100%);
-  border-bottom: 1px solid var(--pf-gold-border);
-  padding: 2.5rem 2rem 3rem;
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 2rem;
-}
-.pf-hero::before {
-  content: '';
-  position: absolute;
-  top: -80px; right: -80px;
-  width: 400px; height: 400px;
-  background: radial-gradient(circle, rgba(212,168,67,0.12) 0%, transparent 65%);
-  pointer-events: none;
-}
-.pf-hero::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, #D4A843, #F0C060, #D4A843, transparent);
-}
-.pf-hero__inner { position: relative; z-index: 1; max-width: 800px; }
-.pf-hero h1 {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
-  font-weight: 700;
-  color: #fff;
-  margin: 0 0 0.6rem;
-  line-height: 1.2;
-  letter-spacing: 0.02em;
-}
-.pf-hero p {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.9rem;
-  color: var(--pf-muted);
-  line-height: 1.7;
-  margin: 0 0 1.5rem;
-  max-width: 60ch;
-}
-.pf-hero__actions { display: flex; flex-wrap: wrap; gap: 0.65rem; }
+/* LAYOUT */
+.pf-layout { display:grid; grid-template-columns:1fr 300px; gap:1.75rem; max-width:1200px; margin:0 auto; padding:0 1.5rem 4rem; align-items:start; }
+@media(max-width:900px){.pf-layout{grid-template-columns:1fr;}}
 
-/* ---- LAYOUT ---- */
-.pf-layout {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 1.75rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem 4rem;
-  align-items: start;
-}
-@media (max-width: 900px) { .pf-layout { grid-template-columns: 1fr; } }
+/* CARD */
+.pf-card { background:var(--pf-glass); border:1px solid var(--pf-gold-border); border-radius:18px; overflow:hidden; backdrop-filter:blur(16px); box-shadow:0 8px 40px rgba(0,0,0,0.4); margin-bottom:1.5rem; }
+.pf-card__head { padding:1.1rem 1.5rem; border-bottom:1px solid rgba(212,168,67,0.14); display:flex; align-items:center; justify-content:space-between; }
+.pf-card__head h2 { font-size:0.75rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--pf-gold); margin:0; }
+.pf-card__body { padding:1.75rem 1.5rem; }
 
-/* ---- CARD ---- */
-.pf-card {
-  background: var(--pf-glass);
-  border: 1px solid var(--pf-gold-border);
-  border-radius: 18px;
-  overflow: hidden;
-  backdrop-filter: blur(16px);
-  box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+/* FORM */
+.p-form > div { margin-bottom:1.5rem; }
+.p-form label { font-size:0.78rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--pf-gold); display:block; margin-bottom:0.45rem; }
+.p-form input[type="text"], .p-form input[type="url"], .p-form input[type="file"],
+.p-form textarea, .p-form select {
+  width:100%; background:rgba(5,10,24,0.65); border:1px solid var(--pf-gold-border);
+  border-radius:10px; padding:0.85rem 1rem; font-size:0.9rem; color:var(--pf-text);
+  outline:none; transition:border-color 0.25s,box-shadow 0.25s; box-sizing:border-box;
 }
-.pf-card__head {
-  padding: 1.1rem 1.5rem;
-  border-bottom: 1px solid rgba(212,168,67,0.14);
-}
-.pf-card__head h2 {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--pf-gold);
-  margin: 0;
-}
-.pf-card__body { padding: 1.75rem 1.5rem; }
+.p-form input:focus, .p-form textarea:focus, .p-form select:focus { border-color:var(--pf-gold); box-shadow:0 0 0 3px rgba(212,168,67,0.12); }
+.p-form textarea { min-height:130px; resize:vertical; }
+.p-form select option { background:#0A1628; color:var(--pf-text); }
+.p-form input::placeholder, .p-form textarea::placeholder { color:rgba(232,234,240,0.3); }
+.p-help { font-size:0.78rem; color:var(--pf-muted); margin-top:0.35rem; line-height:1.5; }
+.p-form input[type="checkbox"] { width:18px; height:18px; accent-color:var(--pf-gold); cursor:pointer; }
+.errorlist { list-style:none; padding:0; margin:0.35rem 0 0; }
+.errorlist li { font-size:0.78rem; color:#fca5a5; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:6px; padding:0.3rem 0.7rem; }
 
-/* ---- FORM ---- */
-.pf-form { display: flex; flex-direction: column; gap: 1.5rem; }
-.pf-field { display: flex; flex-direction: column; gap: 0.45rem; }
-.pf-field label {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--pf-gold);
-}
-.pf-field input[type="text"],
-.pf-field input[type="url"],
-.pf-field input[type="file"],
-.pf-field textarea,
-.pf-field select,
-body.profiles .p-form input[type="text"],
-body.profiles .p-form input[type="url"],
-body.profiles .p-form textarea,
-body.profiles .p-form select {
-  width: 100%;
-  background: rgba(5,10,24,0.65);
-  border: 1px solid var(--pf-gold-border);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.9rem;
-  color: var(--pf-text);
-  outline: none;
-  transition: border-color 0.25s, box-shadow 0.25s;
-  box-sizing: border-box;
-}
-body.profiles .p-form input::placeholder,
-body.profiles .p-form textarea::placeholder { color: rgba(232,234,240,0.3); }
-body.profiles .p-form input:focus,
-body.profiles .p-form textarea:focus,
-body.profiles .p-form select:focus {
-  border-color: var(--pf-gold);
-  box-shadow: 0 0 0 3px rgba(212,168,67,0.12);
-}
-body.profiles .p-form select option { background: #0A1628; color: var(--pf-text); }
-body.profiles .p-form textarea { min-height: 130px; resize: vertical; }
+/* BUTTONS */
+.p-btn { display:inline-flex; align-items:center; gap:0.4rem; padding:0.65rem 1.3rem; border-radius:10px; font-size:0.85rem; font-weight:700; text-decoration:none; cursor:pointer; border:none; transition:transform 0.2s,box-shadow 0.2s; font-family:inherit; }
+.p-btn--primary { background:linear-gradient(135deg,#D4A843,#F0C060); color:#050A18 !important; box-shadow:0 4px 16px rgba(212,168,67,0.30); }
+.p-btn--primary:hover { transform:translateY(-1px); filter:brightness(1.07); }
+.p-btn--outline { background:transparent; color:rgba(232,234,240,0.8) !important; border:1.5px solid var(--pf-gold-border); }
+.p-btn--outline:hover { border-color:var(--pf-gold); color:var(--pf-gold-light) !important; }
+.p-btn--danger { background:rgba(239,68,68,0.1); color:#fca5a5 !important; border:1px solid rgba(239,68,68,0.3); }
+.p-btn--danger:hover { background:rgba(239,68,68,0.2); }
+.space-actions { display:flex; flex-wrap:wrap; gap:0.65rem; margin-top:1rem; }
 
-/* Override profiles.css labels and wrappers */
-body.profiles .p-form > div > label,
-body.profiles .p-form > div > label strong {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-  color: var(--pf-gold) !important;
-  display: block;
-  margin-bottom: 0.45rem;
-}
-body.profiles .p-form > div { margin-bottom: 1.5rem; }
+/* SECTION DIVIDER */
+.pf-section { border-top:1px solid rgba(212,168,67,0.14); padding-top:1.75rem; margin-top:0.25rem; }
+.pf-section__title { font-size:0.75rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--pf-gold); margin:0 0 1.25rem; }
 
-.p-help {
-  font-size: 0.78rem;
-  color: var(--pf-muted);
-  margin-top: 0.35rem;
-  line-height: 1.5;
-}
+/* SKILL CHIPS */
+.pf-skills { display:flex; flex-wrap:wrap; gap:0.55rem; margin-bottom:1.25rem; }
+.pf-skill-chip { display:flex; align-items:center; gap:0.45rem; background:rgba(212,168,67,0.09); border:1px solid rgba(212,168,67,0.28); border-radius:50px; padding:0.3rem 0.75rem; }
+.pf-skill-chip__name { font-size:0.82rem; font-weight:600; color:var(--pf-text); }
+.pf-skill-chip__stars { font-size:0.68rem; color:var(--pf-gold); }
+.pf-skill-chip__years { font-size:0.68rem; color:var(--pf-muted); }
+.pf-skill-chip__del { background:none; border:none; cursor:pointer; color:rgba(255,255,255,0.3); font-size:0.72rem; padding:0; line-height:1; transition:color 0.2s; }
+.pf-skill-chip__del:hover { color:#fca5a5; }
 
-/* Checkbox */
-body.profiles .p-form input[type="checkbox"] {
-  width: 18px; height: 18px;
-  accent-color: var(--pf-gold);
-  cursor: pointer;
-  border-radius: 4px;
-}
+/* SKILL ADD FORM */
+.pf-skill-add { display:flex; flex-wrap:wrap; gap:0.75rem; align-items:flex-end; background:rgba(255,255,255,0.02); border:1px solid rgba(212,168,67,0.14); border-radius:12px; padding:1.1rem; }
+.pf-skill-add__field { display:flex; flex-direction:column; gap:0.35rem; }
+.pf-skill-add__label { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--pf-gold); }
+.pf-skill-add input { background:rgba(5,10,24,0.65); border:1px solid var(--pf-gold-border); border-radius:8px; padding:0.5rem 0.8rem; color:var(--pf-text); font-size:0.85rem; outline:none; }
+.pf-skill-add input:focus { border-color:var(--pf-gold); }
 
-/* Buttons */
-.p-btn, body.profiles .p-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.75rem 1.4rem;
-  border-radius: 10px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.88rem;
-  font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
-  border: none;
-  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
-}
-.p-btn--primary, body.profiles .p-btn--primary {
-  background: linear-gradient(135deg, #D4A843, #F0C060);
-  color: #050A18 !important;
-  box-shadow: 0 4px 16px rgba(212,168,67,0.30);
-}
-.p-btn--primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(212,168,67,0.45); }
-.p-btn--outline, body.profiles .p-btn--outline {
-  background: transparent;
-  color: rgba(232,234,240,0.8) !important;
-  border: 1.5px solid var(--pf-gold-border);
-}
-.p-btn--outline:hover { border-color: var(--pf-gold); color: var(--pf-gold-light) !important; }
+/* PORTFOLIO GRID */
+.pf-portfolio { display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1.25rem; }
+.pf-portfolio-item { display:flex; align-items:center; gap:0.9rem; background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:0.75rem 1rem; }
+.pf-portfolio-item__icon { font-size:1.4rem; flex-shrink:0; }
+.pf-portfolio-item__info { flex:1; min-width:0; }
+.pf-portfolio-item__name { font-weight:600; font-size:0.85rem; color:var(--pf-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pf-portfolio-item__desc { font-size:0.73rem; color:var(--pf-muted); margin-top:0.1rem; }
+.pf-portfolio-item__type { font-size:0.68rem; background:rgba(212,168,67,0.12); border:1px solid rgba(212,168,67,0.2); border-radius:20px; padding:0.15rem 0.55rem; color:var(--pf-gold); margin-left:auto; white-space:nowrap; }
+.pf-portfolio-item__actions { display:flex; gap:0.4rem; flex-shrink:0; }
 
-.space-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 1rem; }
+/* PHOTO GRID */
+.pf-photo-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:0.75rem; margin-bottom:1.25rem; }
+.pf-photo-thumb { position:relative; border-radius:10px; overflow:hidden; aspect-ratio:1; background:rgba(255,255,255,0.04); border:1px solid rgba(212,168,67,0.18); }
+.pf-photo-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.pf-photo-thumb__del { position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.7); border:none; border-radius:50%; width:22px; height:22px; cursor:pointer; color:#fca5a5; font-size:0.7rem; display:flex; align-items:center; justify-content:center; }
 
-/* ---- SIDEBAR CHECKLIST ---- */
-.pf-checklist { display: flex; flex-direction: column; gap: 1.25rem; }
-.pf-check-item {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  padding: 0.85rem 1rem;
-  background: var(--pf-gold-dim);
-  border: 1px solid rgba(212,168,67,0.18);
-  border-radius: 12px;
-}
-.pf-check-icon {
-  width: 32px; height: 32px;
-  background: rgba(212,168,67,0.15);
-  border: 1px solid rgba(212,168,67,0.30);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.95rem;
-  flex-shrink: 0;
-}
-.pf-check-label {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--pf-text);
-}
-.pf-check-hint {
-  font-size: 0.75rem;
-  color: var(--pf-muted);
-  margin-top: 0.15rem;
-}
-
-/* ---- CHIPS ---- */
-.p-chiprow { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
-.p-chip {
-  display: inline-flex; align-items: center;
-  padding: 0.3rem 0.8rem;
-  background: rgba(212,168,67,0.1);
-  border: 1px solid rgba(212,168,67,0.28);
-  border-radius: 20px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--pf-gold-light);
-  letter-spacing: 0.04em;
-}
-
-/* ---- ERRORS ---- */
-body.profiles .errorlist {
-  list-style: none;
-  padding: 0; margin: 0.35rem 0 0;
-}
-body.profiles .errorlist li {
-  font-size: 0.78rem;
-  color: #fca5a5;
-  background: rgba(239,68,68,0.08);
-  border: 1px solid rgba(239,68,68,0.25);
-  border-radius: 6px;
-  padding: 0.3rem 0.7rem;
-}
+/* SIDEBAR */
+.pf-checklist { display:flex; flex-direction:column; gap:1.1rem; }
+.pf-check-item { display:flex; align-items:center; gap:0.85rem; padding:0.8rem 1rem; background:var(--pf-gold-dim); border:1px solid rgba(212,168,67,0.18); border-radius:12px; }
+.pf-check-icon { width:30px; height:30px; background:rgba(212,168,67,0.15); border:1px solid rgba(212,168,67,0.30); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
+.pf-check-label { font-size:0.83rem; font-weight:600; color:var(--pf-text); }
+.pf-check-hint { font-size:0.72rem; color:var(--pf-muted); margin-top:0.1rem; }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- HERO -->
 <div class="pf-hero">
   <div class="pf-hero__inner">
     <h1>{% if object %}Modifier mon profil{% else %}Créer mon profil{% endif %}</h1>
-    <p>
-      Remplissez l'essentiel — métier, titre, localisation, bio — puis ajoutez votre portfolio.<br>
-      Votre profil devient visible aux recruteurs uniquement si votre accès Premium est actif.
-    </p>
+    <p>Complétez chaque section — informations, compétences, portfolio et photos — pour maximiser vos chances d'être recruté.</p>
     <div class="pf-hero__actions">
-      <a class="p-btn p-btn--outline" href="{% url 'profiles:my_space' %}">← Retour à mon espace</a>
+      <a class="p-btn p-btn--outline" href="{% url 'profiles:my_space' %}">← Mon espace</a>
+      {% if object %}<a class="p-btn p-btn--outline" href="{% url 'profiles:detail' object.pk %}">👁 Voir mon profil</a>{% endif %}
       <a class="p-btn p-btn--primary" href="{% url 'billing:access' %}">Activer Premium →</a>
     </div>
   </div>
 </div>
 
-<!-- LAYOUT -->
 <div class="pf-layout">
 
-  <!-- FORM -->
-  <div class="pf-card">
-    <div class="pf-card__head"><h2>Informations professionnelles</h2></div>
-    <div class="pf-card__body">
+  <!-- COLONNE PRINCIPALE -->
+  <div>
 
-      <form method="post" enctype="multipart/form-data" class="p-form">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
+    <!-- ① INFORMATIONS DE BASE -->
+    <div class="pf-card">
+      <div class="pf-card__head"><h2>① Informations professionnelles</h2></div>
+      <div class="pf-card__body">
+        <form method="post" enctype="multipart/form-data" class="p-form">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
 
-        <div>
-          <label for="{{ form.category.id_for_label }}"><strong>Métier / Catégorie</strong></label>
-          {{ form.category }}
-          {{ form.category.errors }}
-        </div>
-
-        <div>
-          <label for="{{ form.headline.id_for_label }}"><strong>Titre du profil</strong></label>
-          {{ form.headline }}
-          {{ form.headline.errors }}
-          <p class="p-help">Ex: "Comptable SAP • 5 ans d'expérience" ou "Menuisier • Pose &amp; finition".</p>
-        </div>
-
-        <div>
-          <label for="{{ form.location.id_for_label }}"><strong>Ville / Localisation</strong></label>
-          {{ form.location }}
-          {{ form.location.errors }}
-          <p class="p-help">Ex: Dakar, Abidjan, Montréal, Paris — ou "Remote".</p>
-        </div>
-
-        <div>
-          <label for="{{ form.bio.id_for_label }}"><strong>À propos</strong></label>
-          {{ form.bio }}
-          {{ form.bio.errors }}
-          <p class="p-help">Recommandé : 5–8 lignes. Missions, compétences, outils, secteurs, disponibilité.</p>
-        </div>
-
-        <div>
-          <label for="{{ form.linkedin_url.id_for_label }}"><strong>Lien LinkedIn</strong></label>
-          {{ form.linkedin_url }}
-          {{ form.linkedin_url.errors }}
-        </div>
-
-        <div>
-          <label for="{{ form.avatar.id_for_label }}"><strong>Photo de profil (optionnel)</strong></label>
-          {{ form.avatar }}
-          {{ form.avatar.errors }}
-          <p class="p-help">Une photo claire augmente la confiance des recruteurs.</p>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:0.75rem;padding:1rem;background:rgba(212,168,67,0.06);border:1px solid rgba(212,168,67,0.18);border-radius:10px;">
-          {{ form.is_public }}
           <div>
-            <label for="{{ form.is_public.id_for_label }}" style="font-size:0.88rem;font-weight:600;color:var(--pf-text);text-transform:none;letter-spacing:0;cursor:pointer;">
-              <strong>Publier mon profil</strong>
-            </label>
-            <p class="p-help" style="margin:0;">Visible uniquement si accès Premium actif.</p>
+            <label for="{{ form.category.id_for_label }}">Métier / Catégorie</label>
+            {{ form.category }}{{ form.category.errors }}
           </div>
-          {{ form.is_public.errors }}
-        </div>
-
-        <div class="space-actions">
-          <button type="submit" class="p-btn p-btn--primary">
-            {% if object %}Enregistrer les modifications →{% else %}Créer mon profil →{% endif %}
-          </button>
-          {% if object %}
-            <a class="p-btn p-btn--outline" href="{% url 'profiles:detail' object.pk %}">Voir mon profil</a>
-          {% endif %}
-        </div>
-      </form>
-
+          <div>
+            <label for="{{ form.headline.id_for_label }}">Titre du profil</label>
+            {{ form.headline }}{{ form.headline.errors }}
+            <p class="p-help">Ex: "Comptable SAP • 5 ans d'expérience" ou "Menuisier • Pose &amp; finition".</p>
+          </div>
+          <div>
+            <label for="{{ form.location.id_for_label }}">Ville / Localisation</label>
+            {{ form.location }}{{ form.location.errors }}
+            <p class="p-help">Ex: Dakar, Abidjan, Montréal, Paris — ou "Remote".</p>
+          </div>
+          <div>
+            <label for="{{ form.bio.id_for_label }}">À propos</label>
+            {{ form.bio }}{{ form.bio.errors }}
+            <p class="p-help">5–8 lignes. Missions, compétences, outils, secteurs, disponibilité.</p>
+          </div>
+          <div>
+            <label for="{{ form.linkedin_url.id_for_label }}">Lien LinkedIn</label>
+            {{ form.linkedin_url }}{{ form.linkedin_url.errors }}
+          </div>
+          <div>
+            <label for="{{ form.avatar.id_for_label }}">Photo de profil</label>
+            {{ form.avatar }}{{ form.avatar.errors }}
+            <p class="p-help">JPG ou PNG, max 2 Mo. Une photo claire augmente la confiance des recruteurs.</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.75rem;padding:1rem;background:rgba(212,168,67,0.06);border:1px solid rgba(212,168,67,0.18);border-radius:10px;">
+            {{ form.is_public }}
+            <div>
+              <label for="{{ form.is_public.id_for_label }}" style="font-size:0.88rem;font-weight:600;color:var(--pf-text);text-transform:none;letter-spacing:0;cursor:pointer;">Publier mon profil</label>
+              <p class="p-help" style="margin:0;">Visible uniquement si accès Premium actif.</p>
+            </div>
+          </div>
+          <div class="space-actions">
+            <button type="submit" class="p-btn p-btn--primary">
+              {% if object %}Enregistrer les modifications →{% else %}Créer mon profil →{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
+
+    {% if object %}
+
+    <!-- ② COMPÉTENCES -->
+    <div class="pf-card">
+      <div class="pf-card__head">
+        <h2>② Compétences</h2>
+        <span style="font-size:0.72rem;color:var(--pf-muted);">{{ profile_skills|length }} ajoutée{% if profile_skills|length != 1 %}s{% endif %}</span>
+      </div>
+      <div class="pf-card__body">
+
+        {% if profile_skills %}
+        <div class="pf-skills">
+          {% for ps in profile_skills %}
+          <div class="pf-skill-chip">
+            <span class="pf-skill-chip__name">{{ ps.skill.name }}</span>
+            <span class="pf-skill-chip__stars">
+              {% for i in "12345" %}{% if forloop.counter <= ps.level %}★{% else %}☆{% endif %}{% endfor %}
+            </span>
+            {% if ps.years %}<span class="pf-skill-chip__years">{{ ps.years }}an{% if ps.years > 1 %}s{% endif %}</span>{% endif %}
+            <form method="post" action="{% url 'profiles:delete_skill' ps.pk %}" style="margin:0;display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="pf-skill-chip__del" title="Supprimer" onclick="return confirm('Supprimer « {{ ps.skill.name }} » ?')">✕</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="font-size:0.85rem;color:var(--pf-muted);margin:0 0 1.25rem;">Aucune compétence. Ajoutez-en au moins 3 — les recruteurs filtrent par compétences.</p>
+        {% endif %}
+
+        <datalist id="skill-suggestions">
+          {% for s in all_skills %}<option value="{{ s }}">{% endfor %}
+        </datalist>
+
+        <form method="post" action="{% url 'profiles:add_skill' object.pk %}" class="pf-skill-add">
+          {% csrf_token %}
+          <div class="pf-skill-add__field" style="flex:1;min-width:170px;">
+            <span class="pf-skill-add__label">Compétence</span>
+            <input type="text" name="skill_name" list="skill-suggestions" required maxlength="80"
+                   placeholder="Ex: Python, Soudure, Comptabilité…">
+          </div>
+          <div class="pf-skill-add__field" style="width:90px;">
+            <span class="pf-skill-add__label">Niveau 1–5</span>
+            <input type="number" name="level" min="1" max="5" value="3" required style="width:100%;">
+          </div>
+          <div class="pf-skill-add__field" style="width:100px;">
+            <span class="pf-skill-add__label">Années exp.</span>
+            <input type="number" name="years" min="0" max="40" value="0" style="width:100%;">
+          </div>
+          <button type="submit" class="p-btn p-btn--primary" style="padding:0.55rem 1.1rem;">➕ Ajouter</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ③ PHOTOS DE RÉALISATIONS -->
+    {% with photos=portfolio_items|dictsort:"item_type" %}
+    <div class="pf-card">
+      <div class="pf-card__head">
+        <h2>③ Photos de réalisations</h2>
+        <span style="font-size:0.72rem;color:var(--pf-muted);">Images uniquement</span>
+      </div>
+      <div class="pf-card__body">
+        {% with image_items=portfolio_items %}
+        {% if image_items %}
+        <div class="pf-photo-grid">
+          {% for item in image_items %}{% if item.item_type == "image" %}
+          <div class="pf-photo-thumb">
+            <img src="{{ item.file.url }}" alt="{{ item.title }}" loading="lazy">
+            <form method="post" action="{% url 'profiles:delete_portfolio' item.pk %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="pf-photo-thumb__del" title="Supprimer" onclick="return confirm('Supprimer cette photo ?')">✕</button>
+            </form>
+          </div>
+          {% endif %}{% endfor %}
+        </div>
+        {% else %}
+        <p style="font-size:0.85rem;color:var(--pf-muted);margin:0 0 1.25rem;">Aucune photo. Ajoutez des photos de vos chantiers, projets, installations…</p>
+        {% endif %}
+        {% endwith %}
+
+        <a class="p-btn p-btn--primary" href="{% url 'profiles:add_portfolio' object.pk %}?type=image">📸 Ajouter une photo de réalisation</a>
+      </div>
+    </div>
+    {% endwith %}
+
+    <!-- ④ PORTFOLIO (CV, lettres, documents) -->
+    <div class="pf-card">
+      <div class="pf-card__head">
+        <h2>④ Portfolio (CV, lettres, certifications)</h2>
+        <span style="font-size:0.72rem;color:var(--pf-muted);">{{ portfolio_items|length }} document{% if portfolio_items|length != 1 %}s{% endif %}</span>
+      </div>
+      <div class="pf-card__body">
+        {% if portfolio_items %}
+        <div class="pf-portfolio">
+          {% for item in portfolio_items %}
+          <div class="pf-portfolio-item">
+            <div class="pf-portfolio-item__icon">
+              {% if item.item_type == "cv" %}📄{% elif item.item_type == "image" %}🖼️{% else %}📎{% endif %}
+            </div>
+            <div class="pf-portfolio-item__info">
+              <div class="pf-portfolio-item__name">{{ item.title }}</div>
+              {% if item.description %}<div class="pf-portfolio-item__desc">{{ item.description }}</div>{% endif %}
+            </div>
+            <span class="pf-portfolio-item__type">{{ item.get_item_type_display }}</span>
+            <div class="pf-portfolio-item__actions">
+              <a href="{{ item.file.url }}" target="_blank" class="p-btn p-btn--outline" style="padding:0.3rem 0.7rem;font-size:0.75rem;">⬇️</a>
+              <form method="post" action="{% url 'profiles:delete_portfolio' item.pk %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="p-btn p-btn--danger" style="padding:0.3rem 0.7rem;font-size:0.75rem;" onclick="return confirm('Supprimer « {{ item.title }} » ?')">🗑</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="font-size:0.85rem;color:var(--pf-muted);margin:0 0 1.25rem;">Aucun document. CV PDF, lettres de recommandation, certifications…</p>
+        {% endif %}
+        <a class="p-btn p-btn--primary" href="{% url 'profiles:add_portfolio' object.pk %}">➕ Ajouter un document</a>
+      </div>
+    </div>
+
+    {% endif %}{# end if object #}
+
+  </div><!-- fin colonne principale -->
 
   <!-- SIDEBAR -->
   <div>
-    <div class="pf-card" style="margin-bottom:1.25rem;">
-      <div class="pf-card__head"><h2>Checklist "profil qui recrute"</h2></div>
+    <div class="pf-card" style="position:sticky;top:1.5rem;">
+      <div class="pf-card__head"><h2>Checklist profil complet</h2></div>
       <div class="pf-card__body" style="padding:1.25rem 1.5rem;">
         <div class="pf-checklist">
           <div class="pf-check-item">
@@ -388,41 +325,32 @@ body.profiles .errorlist li {
             <div><div class="pf-check-label">Localisation</div><div class="pf-check-hint">Ville ou pays cible</div></div>
           </div>
           <div class="pf-check-item">
+            <div class="pf-check-icon">⭐</div>
+            <div><div class="pf-check-label">Compétences (≥3)</div><div class="pf-check-hint">Avec niveau et années</div></div>
+          </div>
+          <div class="pf-check-item">
+            <div class="pf-check-icon">📸</div>
+            <div><div class="pf-check-label">Photos de travaux</div><div class="pf-check-hint">Montrez vos réalisations</div></div>
+          </div>
+          <div class="pf-check-item">
             <div class="pf-check-icon">📎</div>
-            <div><div class="pf-check-label">Portfolio</div><div class="pf-check-hint">CV, lettres, preuves</div></div>
+            <div><div class="pf-check-label">CV + documents</div><div class="pf-check-hint">PDF, lettres, certifs</div></div>
           </div>
           <div class="pf-check-item">
             <div class="pf-check-icon">⚡</div>
-            <div><div class="pf-check-label">Disponibilité</div><div class="pf-check-hint">Mentionnée dans la bio</div></div>
+            <div><div class="pf-check-label">Disponibilité dans la bio</div><div class="pf-check-hint">Immédiat / 3 mois…</div></div>
           </div>
         </div>
 
-        {% if object %}
-          <div class="space-actions" style="margin-top:1.25rem;">
-            <a class="p-btn p-btn--primary" href="{% url 'profiles:add_portfolio' object.pk %}"
-               style="width:100%;justify-content:center;">
-              + Ajouter au portfolio
-            </a>
-          </div>
-        {% endif %}
+        <div style="margin-top:1.5rem;">
+          <p style="font-size:0.8rem;color:var(--pf-muted);margin:0 0 1rem;line-height:1.6;">
+            Les profils Premium apparaissent en <strong style="color:var(--pf-gold);">tête de liste</strong> et sont envoyés aux recruteurs partenaires au Canada et en Europe.
+          </p>
+          <a class="p-btn p-btn--primary" href="{% url 'billing:access' %}" style="width:100%;justify-content:center;">Activer Premium →</a>
+        </div>
       </div>
     </div>
-
-    <!-- TIP -->
-    <div class="pf-card">
-      <div class="pf-card__head"><h2>Astuce Premium</h2></div>
-      <div class="pf-card__body" style="padding:1.25rem 1.5rem;">
-        <p style="font-size:0.82rem;color:var(--pf-muted);line-height:1.65;margin:0 0 1rem;">
-          Les profils Premium apparaissent en <strong style="color:var(--pf-gold);">tête de liste</strong> et sont envoyés directement aux recruteurs partenaires au Canada et en Europe.
-        </p>
-        <a class="p-btn p-btn--primary" href="{% url 'billing:access' %}" style="width:100%;justify-content:center;">
-          Activer Premium →
-        </a>
-      </div>
-    </div>
-
   </div>
 
 </div>
-
 {% endblock %}
