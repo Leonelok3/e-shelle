@@ -117,7 +117,7 @@ class ProfileDetailView(DetailView):
             context["is_favorited"] = RecruiterFavorite.objects.filter(
                 recruiter=self.request.user, profile=self.object
             ).exists()
-            context["has_access"] = has_active_access(self.request.user)
+            context["has_access"] = True  # invitations gratuites pour tout recruteur connecté
         else:
             context["is_favorited"] = False
             context["has_access"] = False
