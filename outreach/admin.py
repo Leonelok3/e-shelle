@@ -18,9 +18,19 @@ class ImportContactsForm(forms.Form):
     file = forms.FileField(
         label="Fichier CSV ou Excel (.csv / .xlsx)",
         help_text=(
-            "Colonnes requises : email, company_name — "
-            "Optionnelles : contact_name, job_title, phone, website, sector, country, city, tags, notes"
+            "Colonnes reconnues automatiquement : Entreprise, Email/Portail RH, Secteur, "
+            "Région/Ville, Site Web, Téléphone, Notes… "
+            "Les titres et sous-titres en haut du fichier sont ignorés automatiquement."
         ),
+    )
+    default_country = forms.ChoiceField(
+        label="Pays par défaut (si pas de colonne Pays dans le fichier)",
+        choices=[
+            ("BE", "🇧🇪 Belgique"), ("CA", "🇨🇦 Canada"), ("FR", "🇫🇷 France"),
+            ("DE", "🇩🇪 Allemagne"), ("CH", "🇨🇭 Suisse"), ("AU", "🇦🇺 Australie"),
+            ("GB", "🇬🇧 Royaume-Uni"), ("US", "🇺🇸 États-Unis"),
+        ],
+        initial="BE",
     )
     encoding = forms.ChoiceField(
         label="Encodage (CSV seulement)",
@@ -139,9 +149,10 @@ class RecruiterContactAdmin(admin.ModelAdmin):
             if form.is_valid():
                 file_obj = form.cleaned_data["file"]
                 encoding = form.cleaned_data.get("encoding") or "utf-8-sig"
+                default_country = form.cleaned_data.get("default_country") or "BE"
                 name = file_obj.name.lower()
                 if name.endswith(".xlsx") or name.endswith(".xls"):
-                    result = import_contacts_from_excel(file_obj)
+                    result = import_contacts_from_excel(file_obj, default_country=default_country)
                 else:
                     result = import_contacts_from_csv(file_obj, encoding=encoding)
                 level = messages.SUCCESS if not result["errors"] else messages.WARNING
