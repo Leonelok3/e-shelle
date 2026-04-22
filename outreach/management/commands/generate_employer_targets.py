@@ -151,7 +151,7 @@ def analyze_candidates(only_sector=None, only_country=None) -> dict:
     # ── 1. Profils publiés + catégorie + compétences ────────────────────────
     profiles_qs = Profile.objects.filter(is_public=True).select_related(
         "category", "user"
-    ).prefetch_related("profile_skills__skill")
+    ).prefetch_related("profileskill_set__skill")
 
     for p in profiles_qs:
         sector = _normalize_sector(p.category.name) if p.category else "autre"
@@ -182,7 +182,7 @@ def analyze_candidates(only_sector=None, only_country=None) -> dict:
             if cp.preferred_contract:
                 groups[key]["contracts"].append(cp.preferred_contract)
 
-        for ps in p.profile_skills.all():
+        for ps in p.profileskill_set.all():
             groups[key]["skills"][ps.skill.name] += 1
 
     # ── 2. JobSearch (titres + keywords + localisations) ───────────────────
