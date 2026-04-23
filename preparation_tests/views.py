@@ -190,6 +190,11 @@ def exam_list(request):
 
 @login_required
 def exam_detail(request, exam_code):
+    code = exam_code.lower()
+    if code == "tef":
+        return redirect("preparation_tests:tef_hub")
+    if code == "tcf":
+        return redirect("preparation_tests:tcf_hub")
     exam = get_object_or_404(Exam, code__iexact=exam_code)
     sections = exam.sections.all()
     return render(
