@@ -1,245 +1,188 @@
 {% extends "base.html" %}
 {% load static %}
 
-{# ==================================================
-   SCOPE STRICT APP
-================================================== #}
+{% block title %}Hub TCF — Préparation par compétences | Immigration97{% endblock %}
+{% block meta_description %}Prépare le TCF par compétences : cours CECR A1→C2, exercices progressifs, examens blancs chronométrés. CO, CE, EO, EE.{% endblock %}
+
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
 
-{# ==================================================
-   SEO — TITLE & META
-================================================== #}
-{% block title %}
-Hub TCF – Préparation officielle par compétences | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Préparation complète au TCF (Test de Connaissance du Français) :
-cours CECR, exercices progressifs, examens blancs chronométrés
-et suivi intelligent avec Immigration97.
-{% endblock %}
-
-{# ==================================================
-   CSS APP — VERSIONNÉ
-================================================== #}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260329">
+<style>
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);}
+
+.th-breadcrumb{max-width:1080px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(255,255,255,.35);}
+.th-breadcrumb a{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+.th-breadcrumb a:hover{color:var(--h-gold-lt);}
+.th-breadcrumb__sep{color:rgba(255,255,255,.18);}
+.th-breadcrumb__current{color:rgba(255,255,255,.7);font-weight:600;}
+
+.th-hero{max-width:1080px;margin:0 auto;padding:2rem 1.25rem 2.5rem;}
+.th-hero__eyebrow{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(16,185,129,.9);background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:20px;padding:.3rem .85rem;margin-bottom:1rem;}
+.th-hero h1{font-size:2.2rem;font-weight:900;color:#fff;margin:0 0 .6rem;line-height:1.2;}
+.th-hero h1 span{color:var(--h-gold-lt);}
+.th-hero__lead{font-size:.92rem;color:rgba(255,255,255,.5);max-width:560px;line-height:1.7;margin:0 0 1.25rem;}
+.th-hero__badges{display:flex;gap:.5rem;flex-wrap:wrap;}
+.th-hero__badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;font-weight:600;color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:.25rem .7rem;}
+
+.th-section{max-width:1080px;margin:0 auto 2rem;padding:0 1.25rem;}
+.th-section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem;}
+.th-section-hd h2{font-size:1rem;font-weight:800;color:#fff;margin:0;}
+.th-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;}
+
+.th-skill-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;transition:transform .2s,box-shadow .2s;}
+.th-skill-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.35);}
+.th-skill-card--co{border-top:2px solid rgba(59,130,246,.5);}
+.th-skill-card--ce{border-top:2px solid rgba(16,185,129,.5);}
+.th-skill-card--ee{border-top:2px solid rgba(168,85,247,.5);}
+.th-skill-card--eo{border-top:2px solid rgba(245,158,11,.5);}
+
+.th-skill-card__header{display:flex;align-items:center;gap:.75rem;}
+.th-skill-card__icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+.th-skill-card--co .th-skill-card__icon{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);}
+.th-skill-card--ce .th-skill-card__icon{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);}
+.th-skill-card--ee .th-skill-card__icon{background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.3);}
+.th-skill-card--eo .th-skill-card__icon{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);}
+
+.th-skill-card__title{font-size:.97rem;font-weight:800;color:#fff;margin:0 0 .1rem;}
+.th-skill-card__sub{font-size:.75rem;color:rgba(255,255,255,.35);}
+.th-skill-card__desc{font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.55;margin:0;}
+
+.th-skill-card__actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:auto;}
+.th-btn-lessons{display:inline-flex;align-items:center;gap:.35rem;font-size:.8rem;font-weight:700;padding:.5rem .9rem;border-radius:8px;text-decoration:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.65);transition:all .18s;flex:1;justify-content:center;}
+.th-btn-lessons:hover{background:rgba(255,255,255,.08);color:#fff;}
+.th-btn-exam{display:inline-flex;align-items:center;gap:.35rem;font-size:.8rem;font-weight:700;padding:.5rem .9rem;border-radius:8px;text-decoration:none;transition:all .18s;flex:1;justify-content:center;}
+.th-skill-card--co .th-btn-exam{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);color:#93c5fd;}
+.th-skill-card--co .th-btn-exam:hover{background:rgba(59,130,246,.22);}
+.th-skill-card--ce .th-btn-exam{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#4ade80;}
+.th-skill-card--ce .th-btn-exam:hover{background:rgba(16,185,129,.22);}
+.th-skill-card--ee .th-btn-exam{background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.3);color:#d8b4fe;}
+.th-skill-card--ee .th-btn-exam:hover{background:rgba(168,85,247,.22);}
+.th-skill-card--eo .th-btn-exam{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:#fbbf24;}
+.th-skill-card--eo .th-btn-exam:hover{background:rgba(245,158,11,.22);}
+
+.th-full-exam{max-width:1080px;margin:0 auto 2rem;padding:0 1.25rem;}
+.th-full-exam__inner{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(212,168,67,.06));border:1px solid rgba(16,185,129,.25);border-radius:20px;padding:1.75rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;}
+.th-full-exam__body h2{font-size:1.05rem;font-weight:800;color:#fff;margin:0 0 .35rem;}
+.th-full-exam__body p{font-size:.85rem;color:rgba(255,255,255,.45);margin:0;line-height:1.5;}
+.th-full-exam__actions{display:flex;gap:.65rem;flex-wrap:wrap;flex-shrink:0;}
+.th-btn-full{display:inline-flex;align-items:center;gap:.4rem;font-size:.87rem;font-weight:700;padding:.65rem 1.35rem;border-radius:10px;text-decoration:none;background:rgba(16,185,129,.15);border:1.5px solid rgba(16,185,129,.4);color:#4ade80;transition:all .18s;}
+.th-btn-full:hover{background:rgba(16,185,129,.25);}
+.th-btn-cecr{display:inline-flex;align-items:center;gap:.4rem;font-size:.87rem;font-weight:700;padding:.65rem 1.35rem;border-radius:10px;text-decoration:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);transition:all .18s;}
+.th-btn-cecr:hover{background:rgba(255,255,255,.08);color:#fff;}
+
+.th-bottom{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;display:flex;gap:1rem;flex-wrap:wrap;}
+.th-btn-dash{display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700;padding:.55rem 1.1rem;border-radius:9px;text-decoration:none;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.25);color:var(--h-gold-lt);transition:all .18s;}
+.th-btn-dash:hover{background:rgba(212,168,67,.18);}
+
+@media(max-width:640px){.th-hero h1{font-size:1.7rem;}.th-full-exam__inner{flex-direction:column;}.th-grid{grid-template-columns:1fr;}}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<!-- ==================================================
-HERO — TCF
-================================================== -->
-<section class="pt-hero">
-  <div class="container pt-fade-up">
+<div class="th-breadcrumb">
+  <a href="{% url 'preparation_tests:french_exams' %}">Tests de langue</a>
+  <span class="th-breadcrumb__sep">›</span>
+  <span class="th-breadcrumb__current">TCF</span>
+</div>
 
-    <span class="pt-badge">
-      🇫🇷 TCF · Test de Connaissance du Français
-    </span>
-
-    <h1 class="pt-title">
-      Prépare ton <span class="pt-gradient-primary">TCF</span><br>
-      par compétences
-    </h1>
-
-    <p class="pt-lead">
-      Avance étape par étape avec une méthode
-      <strong>officielle et structurée</strong> :
-      cours CECR, entraînements ciblés et
-      <strong>examens blancs chronométrés</strong>
-      pour chaque compétence.
-    </p>
-
-    <div class="pt-badges" role="list" aria-label="Avantages">
-      <span class="pt-badge pt-badge--soft" role="listitem">🧭 CECR A1 → C2</span>
-      <span class="pt-badge pt-badge--soft" role="listitem">⏱ Conditions réelles d'examen</span>
-      <span class="pt-badge pt-badge--soft" role="listitem">📊 Analyse Coach IA</span>
-    </div>
-
+<div class="th-hero">
+  <div class="th-hero__eyebrow">🇫🇷 TCF · Test de Connaissance du Français</div>
+  <h1>Prépare ton <span>TCF</span> par compétences</h1>
+  <p class="th-hero__lead">Avance étape par étape avec une méthode officielle et structurée : cours CECR, entraînements ciblés et examens blancs chronométrés pour chaque compétence.</p>
+  <div class="th-hero__badges">
+    <span class="th-hero__badge">🧭 CECR A1 → C2</span>
+    <span class="th-hero__badge">⏱ Conditions réelles d'examen</span>
+    <span class="th-hero__badge">📊 Analyse Coach IA</span>
   </div>
-</section>
+</div>
 
-<!-- ==================================================
-COMPÉTENCES TCF
-================================================== -->
-<section class="pt-section">
-  <div class="container">
+<div class="th-section">
+  <div class="th-section-hd">
+    <h2>Choisis ta compétence TCF</h2>
+  </div>
+  <div class="th-grid">
 
-    <div class="pt-grid-layout">
-
-      <!-- ================= MAIN ================= -->
-      <div class="pt-main">
-
-        <article class="pt-card">
-          <h2>Choisis ta compétence TCF</h2>
-
-          <div class="pt-modules-grid">
-
-            <!-- CO -->
-            <article class="pt-card pt-card--module">
-              <h3>🎧 Compréhension orale (CO)</h3>
-              <p class="pt-card-meta">
-                Audios progressifs et QCM CECR du niveau A1 au C2.
-              </p>
-
-              <div class="pt-cta-group">
-                <a
-                  href="{% url "preparation_tests:co_hub" %}"
-                  class="pt-btn-secondary"
-                  aria-label="Accéder aux cours et exercices Compréhension orale"
-                >
-                  📘 Cours + exercices
-                </a>
-
-                <a
-                  href="{% url "preparation_tests:start_session_with_section" "tcf" "co" %}"
-                  class="pt-btn-primary"
-                  aria-label="Démarrer un examen blanc Compréhension orale"
-                >
-                  ⏱ Examen blanc
-                </a>
-              </div>
-            </article>
-
-            <!-- CE -->
-            <article class="pt-card pt-card--module">
-              <h3>📖 Compréhension écrite (CE)</h3>
-              <p class="pt-card-meta">
-                Lecture rapide, repérage d'informations et pièges lexicaux.
-              </p>
-
-              <div class="pt-cta-group">
-                <a
-                  href="{% url "preparation_tests:ce_hub" %}"
-                  class="pt-btn-secondary"
-                  aria-label="Accéder aux cours et exercices Compréhension écrite"
-                >
-                  📘 Cours + exercices
-                </a>
-
-                <a
-                  href="{% url "preparation_tests:start_session_with_section" "tcf" "ce" %}"
-                  class="pt-btn-primary"
-                  aria-label="Démarrer un examen blanc Compréhension écrite"
-                >
-                  ⏱ Examen blanc
-                </a>
-              </div>
-            </article>
-
-            <!-- EE -->
-            <article class="pt-card pt-card--module">
-              <h3>✍️ Expression écrite (EE)</h3>
-              <p class="pt-card-meta">
-                Méthodologie, structuration et productions corrigées.
-              </p>
-
-              <div class="pt-cta-group">
-                <a
-                  href="{% url "preparation_tests:ee_hub" %}"
-                  class="pt-btn-secondary"
-                  aria-label="Accéder aux cours et exercices Expression écrite"
-                >
-                  📘 Cours + exercices
-                </a>
-
-                <a
-                  href="{% url "preparation_tests:start_session_with_section" "tcf" "ee" %}"
-                  class="pt-btn-primary"
-                  aria-label="Démarrer un examen blanc Expression écrite"
-                >
-                  ⏱ Examen blanc
-                </a>
-              </div>
-            </article>
-
-            <!-- EO -->
-            <article class="pt-card pt-card--module">
-              <h3>🗣 Expression orale (EO)</h3>
-              <p class="pt-card-meta">
-                Simulations guidées, argumentation et interaction structurée.
-              </p>
-
-              <div class="pt-cta-group">
-                <a
-                  href="{% url "preparation_tests:eo_hub" %}"
-                  class="pt-btn-secondary"
-                  aria-label="Accéder aux cours et exercices Expression orale"
-                >
-                  📘 Cours + exercices
-                </a>
-
-                <a
-                  href="{% url "preparation_tests:start_session_with_section" "tcf" "eo" %}"
-                  class="pt-btn-primary"
-                  aria-label="Démarrer un examen blanc Expression orale"
-                >
-                  ⏱ Examen blanc
-                </a>
-              </div>
-            </article>
-
-          </div>
-        </article>
-
-        <!-- EXAMEN BLANC FORMAT TCF OFFICIEL -->
-        <article class="pt-card pt-card--actions" style="margin-top:1rem;">
-          <h2>🧪 Examen blanc format TCF officiel</h2>
-          <p class="pt-card-meta">
-            Simule l'examen TCF Canada : 29 CO + 29 CE avec timing officiel (70 min).
-            Score calculé de 0 à 699 selon le barème France Éducation International.
-          </p>
-          <div class="pt-cta-group">
-            <a href="{% url "preparation_tests:exam_format_hub" "tcf" %}" class="pt-btn-primary">
-              {% if not has_premium and not has_temp_access %}🔒{% endif %} ▶ Examen blanc TCF officiel
-            </a>
-            <a href="{% url "preparation_tests:level_mock_hub" %}" class="pt-btn-ghost">
-              📋 Examen blanc par niveau CECR
-            </a>
-          </div>
-        </article>
-
-        <!-- DASHBOARD -->
-        <div class="pt-back-link">
-          <a
-            href="{% url "preparation_tests:dashboard_global" %}"
-            class="pt-btn-secondary"
-            aria-label="Voir ma progression globale"
-          >
-            📊 Voir ma progression globale
-          </a>
+    <div class="th-skill-card th-skill-card--co">
+      <div class="th-skill-card__header">
+        <div class="th-skill-card__icon">🎧</div>
+        <div>
+          <div class="th-skill-card__title">Compréhension Orale</div>
+          <div class="th-skill-card__sub">CO · 150 leçons · A1 → C2</div>
         </div>
-
       </div>
+      <p class="th-skill-card__desc">Audios progressifs et QCM CECR. Entraîne ton écoute avec des dialogues, monologues et documents sonores réels.</p>
+      <div class="th-skill-card__actions">
+        <a href="{% url 'preparation_tests:co_hub' %}" class="th-btn-lessons">📘 Cours + exercices</a>
+        <a href="{% url 'preparation_tests:start_session_with_section' 'tcf' 'co' %}" class="th-btn-exam">⏱ Examen blanc</a>
+      </div>
+    </div>
 
-      <!-- ================= SIDEBAR ================= -->
-      <aside class="pt-side">
-
-        <div class="pt-card pt-card--side">
-          <h3>Pourquoi le TCF ?</h3>
-          <ul class="pt-side-list">
-            <li>Immigration Canada (Citoyenneté)</li>
-            <li>Études et équivalences</li>
-            <li>Test officiel reconnu</li>
-            <li>Résultat rapide en niveau CECR</li>
-          </ul>
+    <div class="th-skill-card th-skill-card--ce">
+      <div class="th-skill-card__header">
+        <div class="th-skill-card__icon">📖</div>
+        <div>
+          <div class="th-skill-card__title">Compréhension Écrite</div>
+          <div class="th-skill-card__sub">CE · 300+ leçons · A1 → C2</div>
         </div>
+      </div>
+      <p class="th-skill-card__desc">Lecture rapide, repérage d'informations et pièges lexicaux. Textes authentiques progressifs avec QCM corrigés.</p>
+      <div class="th-skill-card__actions">
+        <a href="{% url 'preparation_tests:ce_hub' %}" class="th-btn-lessons">📘 Cours + exercices</a>
+        <a href="{% url 'preparation_tests:start_session_with_section' 'tcf' 'ce' %}" class="th-btn-exam">⏱ Examen blanc</a>
+      </div>
+    </div>
 
-        <div class="pt-card pt-card--side" style="margin-top: 1rem;">
-          <h3>TCF vs TEF</h3>
-          <p class="pt-card-meta">
-            Le TCF est adaptatif : les questions s'ajustent à ton niveau.
-            Même compétences (CO, CE, EE, EO) — même contenu pédagogique.
-          </p>
+    <div class="th-skill-card th-skill-card--ee">
+      <div class="th-skill-card__header">
+        <div class="th-skill-card__icon">✍️</div>
+        <div>
+          <div class="th-skill-card__title">Expression Écrite</div>
+          <div class="th-skill-card__sub">EE · 300+ leçons · A1 → C2</div>
         </div>
+      </div>
+      <p class="th-skill-card__desc">Méthodologie, structuration et productions corrigées par IA. Lettres, courriels, articles et essais argumentatifs.</p>
+      <div class="th-skill-card__actions">
+        <a href="{% url 'preparation_tests:ee_hub' %}" class="th-btn-lessons">📘 Cours + exercices</a>
+        <a href="{% url 'preparation_tests:start_session_with_section' 'tcf' 'ee' %}" class="th-btn-exam">⏱ Examen blanc</a>
+      </div>
+    </div>
 
-      </aside>
-
+    <div class="th-skill-card th-skill-card--eo">
+      <div class="th-skill-card__header">
+        <div class="th-skill-card__icon">🎤</div>
+        <div>
+          <div class="th-skill-card__title">Expression Orale</div>
+          <div class="th-skill-card__sub">EO · 300 leçons · A1 → C2</div>
+        </div>
+      </div>
+      <p class="th-skill-card__desc">Simulations guidées, argumentation et interaction structurée. Enregistre ta réponse et reçois un retour IA détaillé.</p>
+      <div class="th-skill-card__actions">
+        <a href="{% url 'preparation_tests:eo_hub' %}" class="th-btn-lessons">📘 Cours + exercices</a>
+        <a href="{% url 'preparation_tests:start_session_with_section' 'tcf' 'eo' %}" class="th-btn-exam">⏱ Examen blanc</a>
+      </div>
     </div>
 
   </div>
-</section>
+</div>
+
+<div class="th-full-exam">
+  <div class="th-full-exam__inner">
+    <div class="th-full-exam__body">
+      <h2>🧪 Examen blanc format TCF officiel</h2>
+      <p>Simule le TCF Canada : 29 CO + 29 CE avec timing officiel (70 min). Score calculé de 0 à 699 selon le barème France Éducation International.</p>
+    </div>
+    <div class="th-full-exam__actions">
+      <a href="{% url 'preparation_tests:exam_format_hub' 'tcf' %}" class="th-btn-full">▶ Examen blanc complet</a>
+      <a href="{% url 'preparation_tests:level_mock_hub' %}" class="th-btn-cecr">📋 Par niveau CECR</a>
+    </div>
+  </div>
+</div>
+
+<div class="th-bottom">
+  <a href="{% url 'preparation_tests:dashboard_global' %}" class="th-btn-dash">📊 Ma progression globale</a>
+</div>
 
 {% endblock %}
