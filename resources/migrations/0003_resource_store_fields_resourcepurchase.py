@@ -1,6 +1,22 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
+from django.utils.text import slugify
+
+
+def populate_slugs(apps, schema_editor):
+    Resource = apps.get_model("resources", "Resource")
+    seen = {}
+    for resource in Resource.objects.all():
+        base = slugify(resource.title) or f"resource-{resource.pk}"
+        slug = base
+        n = 1
+        while slug in seen:
+            slug = f"{base}-{n}"
+            n += 1
+        seen[slug] = True
+        resource.slug = slug
+        resource.save(update_fields=["slug"])
 
 
 class Migration(migrations.Migration):
@@ -11,12 +27,21 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Nouveaux champs Resource
+        # 1) Ajouter slug SANS contrainte unique (nullable temporairement)
         migrations.AddField(
+            model_name="resource",
+            name="slug",
+            field=models.SlugField(blank=True, max_length=255, default="", verbose_name="Slug"),
+        ),
+        # 2) Peupler les slugs depuis les titres existants
+        migrations.RunPython(populate_slugs, migrations.RunPython.noop),
+        # 3) Appliquer la contrainte unique maintenant que les slugs sont remplis
+        migrations.AlterField(
             model_name="resource",
             name="slug",
             field=models.SlugField(blank=True, max_length=255, unique=True, verbose_name="Slug"),
         ),
+        # Autres nouveaux champs Resource
         migrations.AddField(
             model_name="resource",
             name="long_description",
