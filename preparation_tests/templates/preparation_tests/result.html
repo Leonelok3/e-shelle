@@ -1,225 +1,195 @@
 {% extends "base.html" %}
 {% load static %}
 
-{# ==================================================
-   SCOPE STRICT APP
-================================================== #}
+{% block title %}Résultat {{ session.exam.code|upper }} | Immigration97{% endblock %}
+{% block meta_description %}Résultat {{ session.exam.code|upper }} : score global, analyse CECR et recommandations personnalisées Immigration97.{% endblock %}
+
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
 
-{# ==================================================
-   SEO — TITLE & META
-================================================== #}
-{% block title %}
-Résultat {{ session.exam.code|upper }} | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Résultat détaillé {{ session.exam.code|upper }} :
-score global, analyse CECR, feedback intelligent
-et recommandations personnalisées Immigration97.
-{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260329">
+<style>
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);}
+
+/* BREADCRUMB */
+.rs-breadcrumb{max-width:1080px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(255,255,255,.35);}
+.rs-breadcrumb a{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+.rs-breadcrumb a:hover{color:var(--h-gold-lt);}
+.rs-breadcrumb__sep{color:rgba(255,255,255,.18);}
+
+/* HERO */
+.rs-hero{max-width:1080px;margin:0 auto;padding:2rem 1.25rem;}
+.rs-hero__top{display:flex;align-items:center;gap:2rem;flex-wrap:wrap;}
+.rs-score-ring{width:110px;height:110px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;}
+.rs-score-ring--good{background:radial-gradient(circle,rgba(16,185,129,.15),transparent);border:3px solid rgba(16,185,129,.5);}
+.rs-score-ring--mid{background:radial-gradient(circle,rgba(245,158,11,.15),transparent);border:3px solid rgba(245,158,11,.5);}
+.rs-score-ring--low{background:radial-gradient(circle,rgba(239,68,68,.12),transparent);border:3px solid rgba(239,68,68,.4);}
+.rs-score-ring__pct{font-size:1.9rem;font-weight:900;color:#fff;line-height:1;}
+.rs-score-ring__label{font-size:.65rem;color:rgba(255,255,255,.45);margin-top:.2rem;}
+.rs-hero__body{}
+.rs-hero__eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.4rem;}
+.rs-hero__exam{font-size:1.7rem;font-weight:900;color:#fff;margin:0 0 .3rem;}
+.rs-hero__mode{display:inline-flex;align-items:center;gap:.3rem;font-size:.78rem;font-weight:600;padding:.25rem .7rem;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);margin-bottom:.6rem;}
+.rs-hero__score-line{font-size:.9rem;color:rgba(255,255,255,.55);margin:0 0 .4rem;}
+.rs-hero__score-line strong{color:#fff;}
+.rs-hero__eval{font-size:.88rem;font-weight:600;}
+.rs-hero__eval--good{color:#4ade80;}
+.rs-hero__eval--mid{color:#fbbf24;}
+.rs-hero__eval--low{color:#fca5a5;}
+.rs-hero__date{font-size:.75rem;color:rgba(255,255,255,.3);margin-top:.3rem;}
+
+/* SECTIONS */
+.rs-section{max-width:1080px;margin:0 auto 2rem;padding:0 1.25rem;}
+.rs-section-hd{font-size:1rem;font-weight:800;color:#fff;margin:0 0 1rem;display:flex;align-items:center;gap:.4rem;}
+
+/* CECR GRID */
+.rs-cefr-grid{display:flex;gap:.5rem;flex-wrap:wrap;}
+.rs-cefr-pill{display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.6rem 1rem;border-radius:12px;min-width:60px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);}
+.rs-cefr-pill--current{background:rgba(212,168,67,.12);border-color:rgba(212,168,67,.4);}
+.rs-cefr-pill--unlocked{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25);}
+.rs-cefr-pill--locked{opacity:.4;}
+.rs-cefr-pill__level{font-size:.95rem;font-weight:800;color:#fff;}
+.rs-cefr-pill--current .rs-cefr-pill__level{color:var(--h-gold-lt);}
+.rs-cefr-pill__tag{font-size:.62rem;font-weight:700;color:rgba(255,255,255,.35);}
+.rs-cefr-pill--current .rs-cefr-pill__tag{color:var(--h-gold-lt);}
+
+/* COMPETENCE TABLE */
+.rs-table-wrap{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:16px;overflow:hidden;}
+.rs-table{width:100%;border-collapse:collapse;font-size:.85rem;}
+.rs-table thead tr{background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.08);}
+.rs-table th{padding:.75rem 1rem;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.35);}
+.rs-table tbody tr{border-bottom:1px solid rgba(255,255,255,.05);transition:background .15s;}
+.rs-table tbody tr:last-child{border-bottom:none;}
+.rs-table tbody tr:hover{background:rgba(255,255,255,.03);}
+.rs-table td{padding:.85rem 1rem;color:rgba(255,255,255,.75);}
+.rs-table td:first-child{font-weight:700;color:#fff;}
+.rs-score-pill{display:inline-flex;align-items:center;padding:.2rem .65rem;border-radius:20px;font-size:.78rem;font-weight:700;}
+.rs-score-pill--good{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#4ade80;}
+.rs-score-pill--mid{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#fbbf24;}
+.rs-score-pill--low{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#fca5a5;}
+
+/* ACTIONS */
+.rs-actions{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;display:flex;gap:.75rem;flex-wrap:wrap;}
+.rs-btn-primary{display:inline-flex;align-items:center;gap:.4rem;font-size:.87rem;font-weight:700;padding:.65rem 1.35rem;border-radius:10px;text-decoration:none;background:rgba(212,168,67,.15);border:1.5px solid rgba(212,168,67,.4);color:var(--h-gold-lt);transition:all .18s;}
+.rs-btn-primary:hover{background:rgba(212,168,67,.25);}
+.rs-btn-outline{display:inline-flex;align-items:center;gap:.4rem;font-size:.87rem;font-weight:700;padding:.65rem 1.35rem;border-radius:10px;text-decoration:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.65);transition:all .18s;}
+.rs-btn-outline:hover{background:rgba(255,255,255,.08);color:#fff;}
+
+@media(max-width:640px){.rs-hero__top{flex-direction:column;gap:1rem;}.rs-cefr-grid{gap:.4rem;}.rs-table th:nth-child(3),.rs-table td:nth-child(3){display:none;}}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<!-- ==================================================
-HERO — RÉSULTAT
-================================================== -->
-<section class="pt-hero pt-hero--result">
-  <div class="container pt-fade-up">
+<!-- BREADCRUMB -->
+<div class="rs-breadcrumb">
+  <a href="{% url 'preparation_tests:french_exams' %}">Tests de langue</a>
+  <span class="rs-breadcrumb__sep">›</span>
+  <a href="{% url 'preparation_tests:session_review' %}">Historique</a>
+  <span class="rs-breadcrumb__sep">›</span>
+  <span>Résultat #{{ session.id }}</span>
+</div>
 
-    <span class="pt-badge pt-badge--result">
-      📊 Résultat
-      {% if session.mode == "mock" %}— Examen blanc
-      {% elif session.mode == "retry_errors" %}— Correction ciblée
-      {% else %}— Entraînement{% endif %}
-    </span>
+<!-- HERO SCORE -->
+<div class="rs-hero">
+  <div class="rs-hero__top">
 
-    <h1 class="pt-title">
-      {{ session.exam.code|upper }}
-    </h1>
+    <div class="rs-score-ring {% if global_pct >= 80 %}rs-score-ring--good{% elif global_pct >= 60 %}rs-score-ring--mid{% else %}rs-score-ring--low{% endif %}">
+      <div class="rs-score-ring__pct">{{ global_pct }}%</div>
+      <div class="rs-score-ring__label">score</div>
+    </div>
 
-    {% include "preparation_tests/partials/_cefr_bar.html" %}
-
-    <p class="pt-lead">
-      Session du {{ session.started_at|date:"d/m/Y" }}
-      à {{ session.started_at|time:"H:i" }}
-    </p>
-
-  </div>
-</section>
-
-<!-- ==================================================
-SCORE GLOBAL
-================================================== -->
-<section class="pt-section">
-  <div class="container">
-
-    <article class="pt-card pt-card--score">
-
-      <div class="pt-score-circle">
-        <span>{{ global_pct }}%</span>
+    <div class="rs-hero__body">
+      <div class="rs-hero__eyebrow">📊 Résultat &nbsp;·&nbsp; Session #{{ session.id }}</div>
+      <div class="rs-hero__exam">{{ session.exam.code|upper }}</div>
+      <div class="rs-hero__mode">
+        {% if session.mode == "mock" %}⏱ Examen blanc
+        {% elif session.mode == "retry_errors" %}🔁 Correction ciblée
+        {% else %}🎯 Entraînement{% endif %}
       </div>
-
-      <div class="pt-score-summary">
-        <p class="pt-score-line">
-          <strong>{{ total_correct }}</strong> bonnes réponses
-          sur <strong>{{ total_items }}</strong>
-        </p>
-
-        <p class="pt-score-eval">
-          {% if global_pct >= 80 %}
-            🚀 Excellent niveau — prêt pour l’examen officiel
-          {% elif global_pct >= 60 %}
-            💪 Bon niveau — consolidation recommandée
-          {% else %}
-            🧱 Bases à renforcer — retour aux fondamentaux conseillé
-          {% endif %}
-        </p>
-
-        <div class="pt-pill-row">
-          <span class="pt-pill">
-            Examen : {{ session.exam.name }}
-          </span>
-          <span class="pt-pill">
-            Mode :
-            {% if session.mode == "mock" %}Examen blanc
-            {% elif session.mode == "retry_errors" %}Correction ciblée
-            {% else %}Entraînement{% endif %}
-          </span>
-        </div>
-
+      <p class="rs-hero__score-line">
+        <strong>{{ total_correct }}</strong> bonnes réponses sur <strong>{{ total_items }}</strong>
+      </p>
+      <div class="rs-hero__eval
+        {% if global_pct >= 80 %}rs-hero__eval--good
+        {% elif global_pct >= 60 %}rs-hero__eval--mid
+        {% else %}rs-hero__eval--low{% endif %}">
+        {% if global_pct >= 80 %}🚀 Excellent — prêt pour l'examen officiel
+        {% elif global_pct >= 60 %}💪 Bon niveau — consolidation recommandée
+        {% else %}🧱 Bases à renforcer — retour aux fondamentaux conseillé{% endif %}
       </div>
-
-    </article>
-
-  </div>
-</section>
-
-<!-- ==================================================
-PROGRESSION CECR
-================================================== -->
-<section class="pt-section">
-  <div class="container">
-
-    <article class="pt-card">
-      <h2>📈 Progression CECR</h2>
-
-      <div class="pt-cefr-grid">
-        {% for c in cefr_map %}
-        <div class="pt-cefr-card
-          {% if c.is_current %}is-current{% endif %}
-          {% if c.is_unlocked %}is-unlocked{% else %}is-locked{% endif %}
-        ">
-          <div class="pt-cefr-level">{{ c.level }}</div>
-
-          {% if c.is_current %}
-            <div class="pt-cefr-current">Niveau actuel</div>
-          {% else %}
-            <div class="pt-cefr-goal">
-              Objectif : {{ c.percent_required }}%
-            </div>
-          {% endif %}
-        </div>
-        {% endfor %}
-      </div>
-
-    </article>
-
-  </div>
-</section>
-
-<!-- ==================================================
-DÉTAIL PAR COMPÉTENCE
-================================================== -->
-<section class="pt-section">
-  <div class="container">
-
-    <article class="pt-card">
-      <h2>📊 Détail par compétence</h2>
-
-      <table class="pt-results-table">
-        <thead>
-          <tr>
-            <th>Compétence</th>
-            <th>Score</th>
-            <th>Niveau estimé</th>
-            <th>Questions</th>
-          </tr>
-        </thead>
-        <tbody>
-
-          {% for attempt in attempts %}
-          {% with total=attempt.total_items correct=attempt.raw_score %}
-          {% if total > 0 %}
-            {% widthratio correct total 100 as pct %}
-          {% else %}
-            {% with 0 as pct %}{% endwith %}
-          {% endif %}
-
-          <tr>
-            <td>{{ attempt.section.code|upper }} – {{ attempt.section.name }}</td>
-            <td>
-              <span class="pt-score-pill
-                {% if pct >= 80 %}is-good
-                {% elif pct >= 60 %}is-mid
-                {% else %}is-low{% endif %}">
-                {{ pct }}%
-              </span>
-            </td>
-            <td>
-              {% if pct < 40 %}A1–A2
-              {% elif pct < 60 %}B1
-              {% elif pct < 80 %}B2
-              {% else %}C1–C2{% endif %}
-            </td>
-            <td>{{ correct }} / {{ total }}</td>
-          </tr>
-          {% endwith %}
-          {% endfor %}
-
-        </tbody>
-      </table>
-
-    </article>
-
-  </div>
-</section>
-
-<!-- ==================================================
-ACTIONS UTILISATEUR
-================================================== -->
-<section class="pt-section pt-section--cta">
-  <div class="container text-center">
-
-    <div class="pt-cta-group">
-      <a
-        href="{% url "preparation_tests:session_correction" session.id %}"
-        class="pt-btn-primary"
-      >
-        Voir le corrigé
-      </a>
-
-      <a
-        href="{% url "preparation_tests:retry_session_errors" session.id %}"
-        class="pt-btn-secondary"
-      >
-        Refaire mes erreurs
-      </a>
-
-      <a
-        href="{% url "preparation_tests:session_review" %}"
-        class="pt-btn-ghost"
-      >
-        Historique
-      </a>
+      <div class="rs-hero__date">{{ session.exam.name }} &nbsp;·&nbsp; {{ session.started_at|date:"d/m/Y" }} à {{ session.started_at|time:"H:i" }}</div>
     </div>
 
   </div>
-</section>
+</div>
+
+<!-- CECR PROGRESSION -->
+<div class="rs-section">
+  <div class="rs-section-hd">📈 Progression CECR</div>
+  <div class="rs-cefr-grid">
+    {% for c in cefr_map %}
+    <div class="rs-cefr-pill
+      {% if c.is_current %}rs-cefr-pill--current
+      {% elif c.is_unlocked %}rs-cefr-pill--unlocked
+      {% else %}rs-cefr-pill--locked{% endif %}">
+      <div class="rs-cefr-pill__level">{{ c.level }}</div>
+      <div class="rs-cefr-pill__tag">
+        {% if c.is_current %}Actuel{% elif c.is_unlocked %}✓{% else %}{{ c.percent_required }}%{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- DETAIL PAR COMPETENCE -->
+<div class="rs-section">
+  <div class="rs-section-hd">📊 Détail par compétence</div>
+  <div class="rs-table-wrap">
+    <table class="rs-table">
+      <thead>
+        <tr>
+          <th>Compétence</th>
+          <th>Score</th>
+          <th>Niveau estimé</th>
+          <th>Questions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for attempt in attempts %}
+        {% with total=attempt.total_items correct=attempt.raw_score %}
+        {% if total > 0 %}{% widthratio correct total 100 as pct %}{% else %}{% with 0 as pct %}{% endwith %}{% endif %}
+        <tr>
+          <td>{{ attempt.section.code|upper }} — {{ attempt.section.name }}</td>
+          <td>
+            <span class="rs-score-pill
+              {% if pct >= 80 %}rs-score-pill--good
+              {% elif pct >= 60 %}rs-score-pill--mid
+              {% else %}rs-score-pill--low{% endif %}">
+              {{ pct }}%
+            </span>
+          </td>
+          <td>
+            {% if pct < 40 %}A1–A2
+            {% elif pct < 60 %}B1
+            {% elif pct < 80 %}B2
+            {% else %}C1–C2{% endif %}
+          </td>
+          <td>{{ correct }} / {{ total }}</td>
+        </tr>
+        {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ACTIONS -->
+<div class="rs-actions">
+  <a href="{% url 'preparation_tests:session_correction' session.id %}" class="rs-btn-primary">✅ Voir le corrigé</a>
+  <a href="{% url 'preparation_tests:retry_session_errors' session.id %}" class="rs-btn-outline">🔁 Refaire mes erreurs</a>
+  <a href="{% url 'preparation_tests:session_review' %}" class="rs-btn-outline">📋 Historique</a>
+</div>
 
 {% endblock %}

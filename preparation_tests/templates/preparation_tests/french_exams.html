@@ -1,197 +1,145 @@
 {% extends "base.html" %}
 {% load static %}
 
-{# ==================================================
-   SCOPE STRICT APP
-================================================== #}
+{% block title %}Tests de Français (TEF, TCF, DELF) | Immigration97{% endblock %}
+{% block meta_description %}Prépare les tests officiels de français (TEF, TCF, DELF/DALF) pour l'immigration, les études ou la naturalisation avec Immigration97.{% endblock %}
+
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
 
-{# ==================================================
-   SEO — TITLE & META
-================================================== #}
-{% block title %}
-Tests de Français (TEF, TCF, DELF/DALF) | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Prépare les tests officiels de français (TEF, TCF, DELF/DALF)
-pour l’immigration, les études ou la naturalisation
-avec la plateforme Immigration97.
-{% endblock %}
-
-{# ==================================================
-   CSS APP — VERSIONNÉ
-================================================== #}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260329">
+<style>
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);}
+
+/* HERO */
+.fe-hero{max-width:1080px;margin:0 auto;padding:3rem 1.25rem 2.5rem;text-align:center;}
+.fe-hero__eyebrow{display:inline-flex;align-items:center;gap:.4rem;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--h-gold-lt);background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.25);border-radius:20px;padding:.3rem .85rem;margin-bottom:1.25rem;}
+.fe-hero h1{font-size:2.4rem;font-weight:900;color:#fff;margin:0 0 .75rem;line-height:1.15;}
+.fe-hero h1 span{color:var(--h-gold-lt);}
+.fe-hero__lead{font-size:.98rem;color:rgba(255,255,255,.5);max-width:480px;margin:0 auto;line-height:1.7;}
+
+/* SECTION */
+.fe-section{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;}
+.fe-section-hd{text-align:center;margin-bottom:1.75rem;}
+.fe-section-hd h2{font-size:1.1rem;font-weight:800;color:#fff;margin:0 0 .35rem;}
+.fe-section-hd p{font-size:.82rem;color:rgba(255,255,255,.38);margin:0;}
+
+/* EXAM GRID */
+.fe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem;}
+.fe-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:1.75rem;display:flex;flex-direction:column;gap:1rem;transition:transform .2s,box-shadow .2s,border-color .2s;}
+.fe-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.4);}
+.fe-card--tef{border-top:3px solid rgba(59,130,246,.5);}
+.fe-card--tcf{border-top:3px solid rgba(16,185,129,.5);}
+.fe-card--delf{border-top:3px solid rgba(212,168,67,.5);}
+.fe-card__icon{font-size:2rem;line-height:1;}
+.fe-card__title{font-size:1.1rem;font-weight:800;color:#fff;margin:0;}
+.fe-card__sub{font-size:.8rem;color:rgba(255,255,255,.4);margin-top:.15rem;}
+.fe-card__desc{font-size:.85rem;color:rgba(255,255,255,.55);line-height:1.6;margin:0;}
+.fe-card__features{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.4rem;}
+.fe-card__features li{font-size:.8rem;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:.4rem;}
+.fe-card__cta{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.65rem 1.4rem;border-radius:10px;font-size:.87rem;font-weight:700;text-decoration:none;transition:all .18s;margin-top:auto;}
+.fe-card--tef .fe-card__cta{background:rgba(59,130,246,.15);border:1.5px solid rgba(59,130,246,.4);color:#93c5fd;}
+.fe-card--tef .fe-card__cta:hover{background:rgba(59,130,246,.25);}
+.fe-card--tcf .fe-card__cta{background:rgba(16,185,129,.15);border:1.5px solid rgba(16,185,129,.4);color:#4ade80;}
+.fe-card--tcf .fe-card__cta:hover{background:rgba(16,185,129,.25);}
+.fe-card--delf .fe-card__cta{background:rgba(212,168,67,.15);border:1.5px solid rgba(212,168,67,.4);color:var(--h-gold-lt);}
+.fe-card--delf .fe-card__cta:hover{background:rgba(212,168,67,.25);}
+
+/* TIP BOX */
+.fe-tip{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;}
+.fe-tip__inner{background:rgba(212,168,67,.06);border:1px solid rgba(212,168,67,.2);border-radius:16px;padding:1.25rem 1.5rem;display:flex;gap:1rem;align-items:flex-start;}
+.fe-tip__icon{font-size:1.4rem;flex-shrink:0;margin-top:.1rem;}
+.fe-tip__body h3{font-size:.88rem;font-weight:800;color:var(--h-gold-lt);margin:0 0 .45rem;}
+.fe-tip__body ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.3rem;}
+.fe-tip__body li{font-size:.82rem;color:rgba(255,255,255,.55);padding-left:.85rem;position:relative;}
+.fe-tip__body li::before{content:"›";position:absolute;left:0;color:var(--h-gold-lt);}
+
+@media(max-width:640px){.fe-hero h1{font-size:1.8rem;}.fe-grid{grid-template-columns:1fr;}}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<!-- ==================================================
-HERO — TESTS DE FRANÇAIS
-================================================== -->
-<section class="pt-hero">
-  <div class="container pt-fade-up">
+<!-- HERO -->
+<div class="fe-hero">
+  <div class="fe-hero__eyebrow">🇫🇷 Tests officiels de français</div>
+  <h1>Choisis ton <span>test de français</span></h1>
+  <p class="fe-hero__lead">Sélectionne l'examen le plus adapté à ton objectif : immigration, études ou naturalisation.</p>
+</div>
 
-    <span class="pt-badge">
-      🇫🇷 Tests officiels de français
-    </span>
-
-    <h1 class="pt-title">
-      Choisis ton<br>
-      <span class="pt-gradient-primary">test de français</span>
-    </h1>
-
-    <p class="pt-lead">
-      Sélectionne l’examen le plus adapté à ton objectif :
-      <strong>immigration</strong>,
-      <strong>études</strong> ou
-      <strong>naturalisation</strong>.
-    </p>
-
+<!-- EXAM CARDS -->
+<div class="fe-section">
+  <div class="fe-section-hd">
+    <h2>Tests d'immigration &amp; généraux</h2>
+    <p>Reconnus pour les demandes de résidence permanente, naturalisation et Québec</p>
   </div>
-</section>
+  <div class="fe-grid">
 
-<!-- ==================================================
-TESTS D’IMMIGRATION / GÉNÉRAUX
-================================================== -->
-<section class="pt-section">
-  <div class="container">
-
-    <div class="pt-grid-layout">
-
-      <!-- ================= MAIN ================= -->
-      <div class="pt-main">
-
-        <h2 class="pt-section-title text-center">
-          Tests d’immigration / généraux
-        </h2>
-
-        <div class="pt-modules-grid">
-
-          <!-- TEF -->
-          <article class="pt-card pt-card--module">
-            <h3>TEF – Test d’Évaluation du Français</h3>
-            <p class="pt-card-meta">
-              Immigration Canada, Québec et naturalisation.
-            </p>
-
-            <ul class="pt-feature-list">
-              <li>⏱ Sections chronométrées</li>
-              <li>🎧 Audios et QCM réels</li>
-              <li>📈 Résultats détaillés</li>
-            </ul>
-
-            <div class="pt-cta-group">
-              <a
-                href="{% url "preparation_tests:tef_hub" %}"
-                class="pt-btn-primary"
-              >
-                Commencer le TEF
-              </a>
-            </div>
-          </article>
-
-          <!-- TCF -->
-          <article class="pt-card pt-card--module">
-            <h3>TCF – Test de Connaissance du Français</h3>
-            <p class="pt-card-meta">
-              Immigration Canada, Québec et naturalisation.
-            </p>
-
-            <ul class="pt-feature-list">
-              <li>⏱ Sections chronométrées</li>
-              <li>🎧 Audios et QCM réels</li>
-              <li>📈 Résultats détaillés</li>
-            </ul>
-
-            <div class="pt-cta-group">
-              <a
-                href="{% url "preparation_tests:tcf_hub" %}"
-                class="pt-btn-primary"
-              >
-                Commencer le TCF
-              </a>
-            </div>
-          </article>
-
-        </div>
-
+    <!-- TEF -->
+    <div class="fe-card fe-card--tef">
+      <div class="fe-card__icon">🎧</div>
+      <div>
+        <div class="fe-card__title">TEF — Test d'Évaluation du Français</div>
+        <div class="fe-card__sub">Immigration Canada, Québec &amp; naturalisation</div>
       </div>
+      <p class="fe-card__desc">Le plus utilisé pour l'immigration au Canada. Comprend 4 compétences : CO, CE, EO, EE. Scores convertis en CLB/NCLC.</p>
+      <ul class="fe-card__features">
+        <li>⏱ Sections chronométrées</li>
+        <li>🎧 Audios et QCM progressifs</li>
+        <li>📊 Résultats détaillés + analyse IA</li>
+      </ul>
+      <a href="{% url 'preparation_tests:tef_hub' %}" class="fe-card__cta">Préparer le TEF →</a>
+    </div>
 
-      <!-- ================= SIDEBAR ================= -->
-      <aside class="pt-side">
+    <!-- TCF -->
+    <div class="fe-card fe-card--tcf">
+      <div class="fe-card__icon">📖</div>
+      <div>
+        <div class="fe-card__title">TCF — Test de Connaissance du Français</div>
+        <div class="fe-card__sub">Immigration Canada, Québec &amp; naturalisation</div>
+      </div>
+      <p class="fe-card__desc">Reconnu pour le regroupement familial, l'immigration et la naturalisation française. Même contenu pédagogique que le TEF.</p>
+      <ul class="fe-card__features">
+        <li>⏱ Sections chronométrées</li>
+        <li>🎧 Audios et QCM progressifs</li>
+        <li>📊 Résultats détaillés + analyse IA</li>
+      </ul>
+      <a href="{% url 'preparation_tests:tcf_hub' %}" class="fe-card__cta">Préparer le TCF →</a>
+    </div>
 
-        <div class="pt-card pt-card--side">
-          <h3>💡 Quel test choisir ?</h3>
-          <ul class="pt-side-list">
-            <li><strong>TEF</strong> : immigration Canada / Québec</li>
-            <li><strong>TCF</strong> : immigration & naturalisation</li>
-            <li><strong>DELF / DALF</strong> : diplômes académiques</li>
-          </ul>
-        </div>
-
-      </aside>
-
+    <!-- DELF/DALF -->
+    <div class="fe-card fe-card--delf">
+      <div class="fe-card__icon">🎓</div>
+      <div>
+        <div class="fe-card__title">DELF &amp; DALF</div>
+        <div class="fe-card__sub">Diplômes officiels reconnus à vie — A1 à C2</div>
+      </div>
+      <p class="fe-card__desc">Seuls diplômes de français reconnus à vie par le Ministère français. Requis pour études supérieures, visa et naturalisation.</p>
+      <ul class="fe-card__features">
+        <li>📚 Tous niveaux CECR A1 → C2</li>
+        <li>✍ Expression écrite &amp; orale guidées</li>
+        <li>📥 Ressources officielles incluses</li>
+      </ul>
+      <a href="{% url 'preparation_tests:delf_hub' %}" class="fe-card__cta">Explorer DELF/DALF →</a>
     </div>
 
   </div>
-</section>
+</div>
 
-<!-- ==================================================
-DIPLÔMES OFFICIELS
-================================================== -->
-<section class="pt-section">
-  <div class="container">
-
-    <h2 class="pt-section-title text-center">
-      Diplômes officiels (DELF / DALF)
-    </h2>
-
-    <div class="pt-modules-grid pt-center-grid">
-
-      <article class="pt-card pt-card--module">
-        <h3>DELF & DALF</h3>
-        <p class="pt-card-meta">
-          Diplômes de français reconnus à vie
-          <strong>(A1 à C2)</strong>.
-        </p>
-
-        <ul class="pt-feature-list">
-          <li>📚 Tous niveaux CECR</li>
-          <li>✍ Expression écrite & orale guidées</li>
-          <li>📥 Ressources officielles</li>
-        </ul>
-
-        <div class="pt-cta-group">
-          <a
-            href="{% url "preparation_tests:delf_hub" %}"
-            class="pt-btn-primary"
-          >
-            Explorer DELF / DALF
-          </a>
-        </div>
-      </article>
-
+<!-- TIP BOX -->
+<div class="fe-tip">
+  <div class="fe-tip__inner">
+    <div class="fe-tip__icon">💡</div>
+    <div class="fe-tip__body">
+      <h3>Quel test choisir ?</h3>
+      <ul>
+        <li><strong>TEF</strong> : immigration Canada / Québec — le plus demandé</li>
+        <li><strong>TCF</strong> : immigration Canada, regroupement familial, naturalisation française</li>
+        <li><strong>DELF / DALF</strong> : diplôme à vie pour études, visa, naturalisation</li>
+      </ul>
     </div>
-
   </div>
-</section>
-
-<!-- ==================================================
-CTA RETOUR
-================================================== -->
-<section class="pt-section pt-section--center">
-  <div class="container">
-    <a
-      href="{% url "preparation_tests:home" %}"
-      class="pt-btn-secondary"
-    >
-      ⬅ Retour aux tests de langue
-    </a>
-  </div>
-</section>
+</div>
 
 {% endblock %}
