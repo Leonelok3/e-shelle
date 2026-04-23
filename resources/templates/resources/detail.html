@@ -10,326 +10,359 @@
 
 {% block extra_css %}
 <style>
-:root {
-  --navy:#050A18; --navy-2:#0A1628;
-  --gold:#D4A843; --gold-lt:#F0C060;
-  --gold-dim:rgba(212,168,67,.10); --gold-border:rgba(212,168,67,.25);
-  --glass:rgba(10,22,40,.82);
-  --text:rgba(232,234,240,.88); --muted:rgba(232,234,240,.50);
-  --green:#22c55e; --wa:#25D366;
-}
-body.resources { background:var(--navy); color:var(--text); min-height:100vh;
-  background-image: radial-gradient(ellipse 70% 40% at 50% 0%, rgba(212,168,67,.07) 0%, transparent 60%); }
-
-.rd-wrap { max-width:1080px; margin:0 auto; padding:0 1.25rem 5rem; }
-
-.rd-bc { display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--muted);
-  padding:1.25rem 0 0; flex-wrap:wrap; }
-.rd-bc a { color:rgba(255,255,255,.45); text-decoration:none; transition:color .2s; }
-.rd-bc a:hover { color:var(--gold-lt); }
-.rd-bc__sep { color:rgba(255,255,255,.18); }
-
-.rd-layout { display:grid; grid-template-columns:1fr 340px; gap:2rem; margin-top:2rem; align-items:start; }
-
-/* LEFT */
-.rd-cover {
-  width:100%; aspect-ratio:16/9; border-radius:16px; overflow:hidden;
-  background:linear-gradient(135deg,#0A1628,#0F2040);
-  display:flex; align-items:center; justify-content:center;
-  border:1px solid var(--gold-border); margin-bottom:1.5rem; position:relative;
-}
-.rd-cover img { width:100%; height:100%; object-fit:cover; }
-.rd-cover__icon { font-size:5rem; opacity:.5; }
-.rd-type-badge {
-  position:absolute; top:12px; left:12px;
-  background:rgba(5,10,24,.85); border:1px solid var(--gold-border);
-  color:var(--gold); font-size:11px; font-weight:700; letter-spacing:.08em;
-  text-transform:uppercase; padding:3px 10px; border-radius:6px;
-}
-.rd-free-badge {
-  position:absolute; top:12px; right:12px;
-  background:rgba(34,197,94,.15); border:1px solid rgba(34,197,94,.4);
-  color:#4ade80; font-size:11px; font-weight:800; padding:3px 10px; border-radius:6px;
+:root{
+  --r-navy:#050A18;--r-navy2:#080F20;--r-navy3:#0A1628;
+  --r-gold:#D4A843;--r-gold-lt:#F0C060;--r-gold-dim:rgba(212,168,67,.08);
+  --r-gold-border:rgba(212,168,67,.22);--r-glass:rgba(8,15,32,.75);
+  --r-text:rgba(232,234,240,.9);--r-muted:rgba(232,234,240,.45);
+  --r-green:#22c55e;--r-wa:#25D366;
 }
 
-.rd-cat { font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
-  color:rgba(212,168,67,.65); margin-bottom:.5rem; }
-.rd-title { font-size:clamp(1.5rem,3vw,2.2rem); font-weight:800; color:#fff; line-height:1.25;
-  margin:0 0 .75rem; }
-.rd-short-desc { font-size:.95rem; color:var(--muted); line-height:1.7; margin-bottom:1.5rem; }
+body.resources{background:var(--r-navy);color:var(--r-text);min-height:100vh;overflow-x:hidden;}
 
-.rd-meta-row { display:flex; gap:1.25rem; flex-wrap:wrap; margin-bottom:1.5rem;
-  padding-bottom:1.5rem; border-bottom:1px solid rgba(255,255,255,.07); }
-.rd-meta-item { font-size:.82rem; color:var(--muted); display:flex; align-items:center; gap:.35rem; }
-.rd-meta-item strong { color:var(--gold-lt); font-weight:700; }
+/* ── BG ── */
+.r-canvas{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.r-canvas::before{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(212,168,67,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(212,168,67,.03) 1px,transparent 1px);
+  background-size:60px 60px;animation:gridDrift 30s linear infinite;
+}
+.r-canvas::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(212,168,67,.09) 0%,transparent 65%);
+}
+@keyframes gridDrift{0%{background-position:0 0,0 0}100%{background-position:60px 60px,60px 60px}}
+.r-orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:orbFloat 14s ease-in-out infinite;}
+.r-orb-1{width:500px;height:500px;background:rgba(212,168,67,.06);top:-150px;right:-150px;}
+.r-orb-2{width:350px;height:350px;background:rgba(59,130,246,.04);bottom:5%;left:-100px;animation-delay:-7s;}
+@keyframes orbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-25px)}}
+
+.r-page{position:relative;z-index:1;}
+
+/* ── BREADCRUMB ── */
+.r-bc{
+  max-width:1080px;margin:0 auto;padding:1.5rem 1.5rem 0;
+  display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--r-muted);flex-wrap:wrap;
+  animation:fadeDown .5s ease both;
+}
+.r-bc a{color:rgba(255,255,255,.4);text-decoration:none;transition:color .2s;}
+.r-bc a:hover{color:var(--r-gold-lt);}
+.r-bc__sep{color:rgba(255,255,255,.15);}
+
+/* ── LAYOUT ── */
+.r-layout{max-width:1080px;margin:0 auto;padding:2rem 1.5rem 6rem;display:grid;grid-template-columns:1fr 340px;gap:2.5rem;align-items:start;}
+
+/* ── LEFT ── */
+/* Cover */
+.r-cover{
+  width:100%;aspect-ratio:16/9;border-radius:20px;overflow:hidden;
+  background:linear-gradient(135deg,#080F20,#0D1F38);
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(212,168,67,.18);margin-bottom:2rem;position:relative;
+  animation:fadeUp .6s .1s ease both;
+}
+.r-cover::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(5,10,24,.7));pointer-events:none;}
+.r-cover img{width:100%;height:100%;object-fit:cover;}
+.r-cover__icon{font-size:5rem;opacity:.45;}
+.r-cover__type{
+  position:absolute;top:14px;left:14px;z-index:1;
+  background:rgba(5,10,24,.85);border:1px solid rgba(212,168,67,.3);
+  color:var(--r-gold);font-size:.68rem;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase;padding:4px 10px;border-radius:7px;
+}
+.r-cover__free{
+  position:absolute;top:14px;right:14px;z-index:1;
+  background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);
+  color:#4ade80;font-size:.68rem;font-weight:800;padding:4px 10px;border-radius:7px;
+}
+
+/* Header produit */
+.r-prod-header{animation:fadeUp .6s .15s ease both;}
+.r-prod-cat{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(212,168,67,.6);margin-bottom:.5rem;}
+.r-prod-title{font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:900;color:#fff;line-height:1.2;margin:0 0 .75rem;}
+.r-prod-desc{font-size:.95rem;color:var(--r-muted);line-height:1.75;margin-bottom:1.5rem;}
+
+/* Méta */
+.r-meta{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.75rem;padding-bottom:1.75rem;border-bottom:1px solid rgba(255,255,255,.06);animation:fadeUp .6s .2s ease both;}
+.r-meta-chip{
+  display:inline-flex;align-items:center;gap:.35rem;
+  font-size:.78rem;color:rgba(255,255,255,.55);
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:8px;padding:.3rem .7rem;
+}
+.r-meta-chip strong{color:var(--r-gold-lt);font-weight:700;}
+
+/* Aperçu */
+.r-preview-link{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);
+  color:rgba(147,197,253,.9);border-radius:10px;padding:.6rem 1.1rem;
+  font-size:.82rem;font-weight:600;text-decoration:none;
+  transition:all .2s;margin-bottom:1.75rem;
+  animation:fadeUp .6s .25s ease both;
+}
+.r-preview-link:hover{background:rgba(59,130,246,.15);color:#fff;}
 
 /* What's inside */
-.rd-inside { background:var(--glass); border:1px solid rgba(255,255,255,.08);
-  border-radius:14px; padding:1.5rem; margin-bottom:1.5rem; }
-.rd-inside__title { font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
-  color:rgba(212,168,67,.65); margin-bottom:1rem; }
-.rd-inside__list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.5rem; }
-.rd-inside__list li { font-size:.9rem; color:var(--text); line-height:1.5;
-  padding-left:0; display:flex; align-items:flex-start; gap:.5rem; }
-
-/* Long description */
-.rd-long-desc { font-size:.92rem; color:var(--muted); line-height:1.8; margin-bottom:1.5rem; }
-.rd-long-desc h3 { color:var(--gold-lt); font-size:1rem; margin:.75rem 0 .35rem; }
-.rd-long-desc ul { padding-left:1.25rem; }
-.rd-long-desc li { margin-bottom:.35rem; }
-
-/* Preview */
-.rd-preview-btn {
-  display:inline-flex; align-items:center; gap:.5rem;
-  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12);
-  color:rgba(255,255,255,.7); border-radius:10px; padding:.6rem 1.1rem;
-  font-size:.85rem; font-weight:600; text-decoration:none; transition:all .2s;
-  margin-bottom:1.5rem;
+.r-inside{
+  background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;padding:1.5rem;margin-bottom:1.75rem;
+  animation:fadeUp .6s .3s ease both;
 }
-.rd-preview-btn:hover { background:rgba(255,255,255,.08); color:#fff; }
-
-/* RIGHT — sticky purchase card */
-.rd-buy-card {
-  background:var(--glass); border:1px solid var(--gold-border);
-  border-radius:20px; padding:1.75rem; position:sticky; top:1.5rem;
+.r-inside__head{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(212,168,67,.65);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+.r-inside__list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+.r-inside__item{
+  display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--r-text);line-height:1.45;
+  background:rgba(212,168,67,.04);border:1px solid rgba(212,168,67,.08);
+  border-radius:10px;padding:.6rem .75rem;
 }
-.rd-buy-price { font-size:2.2rem; font-weight:900; color:var(--gold-lt); line-height:1; margin-bottom:.25rem; }
-.rd-buy-price--free { color:var(--green); }
-.rd-buy-price small { font-size:.8rem; font-weight:400; color:var(--muted); display:block; margin-top:.2rem; }
-.rd-buy-divider { border:none; border-top:1px solid rgba(255,255,255,.08); margin:1.25rem 0; }
+.r-inside__item::before{content:'✓';color:var(--r-green);font-weight:800;flex-shrink:0;font-size:.75rem;margin-top:2px;}
 
-.rd-btn-wa {
-  display:flex; align-items:center; justify-content:center; gap:.6rem;
-  width:100%; padding:1rem; border-radius:12px; font-size:1rem; font-weight:800;
-  background:var(--wa); color:#fff; text-decoration:none; transition:all .2s;
-  margin-bottom:.75rem; border:none; cursor:pointer;
-}
-.rd-btn-wa:hover { background:#20b85a; transform:translateY(-1px); box-shadow:0 6px 24px rgba(37,211,102,.3); }
-.rd-btn-dl {
-  display:flex; align-items:center; justify-content:center; gap:.6rem;
-  width:100%; padding:1rem; border-radius:12px; font-size:1rem; font-weight:800;
-  background:linear-gradient(135deg,#D4A843,#F0C060); color:#050A18;
-  text-decoration:none; transition:all .2s; margin-bottom:.75rem; border:none; cursor:pointer;
-}
-.rd-btn-dl:hover { transform:translateY(-1px); box-shadow:0 6px 24px rgba(212,168,67,.4); }
-.rd-btn-login {
-  display:flex; align-items:center; justify-content:center; gap:.5rem;
-  width:100%; padding:.9rem; border-radius:12px; font-size:.9rem; font-weight:700;
-  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12);
-  color:rgba(255,255,255,.7); text-decoration:none; transition:all .2s; margin-bottom:.75rem;
-}
-.rd-btn-login:hover { background:rgba(255,255,255,.09); color:#fff; }
-.rd-btn-premium {
-  display:flex; align-items:center; justify-content:center; gap:.5rem;
-  width:100%; padding:.9rem; border-radius:12px; font-size:.9rem; font-weight:700;
-  background:rgba(212,168,67,.1); border:1px solid rgba(212,168,67,.3);
-  color:var(--gold-lt); text-decoration:none; transition:all .2s; margin-bottom:.75rem;
-}
-.rd-btn-premium:hover { background:rgba(212,168,67,.18); }
+/* Long desc */
+.r-long{font-size:.9rem;color:var(--r-muted);line-height:1.8;animation:fadeUp .6s .35s ease both;}
+.r-long h3{color:var(--r-gold-lt);font-size:.95rem;margin:.9rem 0 .4rem;}
+.r-long ul{padding-left:1.25rem;}
+.r-long li{margin-bottom:.35rem;}
 
-.rd-buy-features { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.5rem; }
-.rd-buy-features li { font-size:.82rem; color:var(--muted); display:flex; align-items:center; gap:.5rem; }
-.rd-buy-features li::before { content:"✓"; color:var(--green); font-weight:700; flex-shrink:0; }
-
-.rd-buy-secure { text-align:center; font-size:.72rem; color:rgba(255,255,255,.25);
-  margin-top:1rem; display:flex; align-items:center; justify-content:center; gap:.4rem; }
-
-/* Related */
-.rd-related { margin-top:3rem; }
-.rd-related__title { font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
-  color:rgba(212,168,67,.65); margin-bottom:1.25rem; }
-.rd-related-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; }
-.rd-rel-card {
-  background:var(--glass); border:1px solid var(--gold-border); border-radius:12px;
-  padding:1rem; text-decoration:none; display:flex; flex-direction:column;
-  transition:transform .2s, box-shadow .2s;
+/* ── BUY CARD ── */
+.r-buy{
+  background:rgba(8,15,32,.9);border:1px solid rgba(212,168,67,.25);
+  border-radius:22px;padding:2rem;position:sticky;top:1.5rem;
+  backdrop-filter:blur(20px);
+  animation:fadeUp .6s .2s ease both;
+  box-shadow:0 25px 60px rgba(0,0,0,.4),inset 0 1px 0 rgba(212,168,67,.1);
 }
-.rd-rel-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(212,168,67,.1); }
-.rd-rel-card__cat { font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
-  color:rgba(212,168,67,.55); margin-bottom:.35rem; }
-.rd-rel-card__title { font-size:.88rem; font-weight:700; color:rgba(232,234,240,.9); line-height:1.4; margin-bottom:.5rem; }
-.rd-rel-card__price { font-size:.82rem; font-weight:700; color:var(--gold-lt); margin-top:auto; }
-.rd-rel-card__price--free { color:var(--green); }
+.r-buy::before{
+  content:'';position:absolute;inset:0;border-radius:22px;
+  background:linear-gradient(135deg,rgba(212,168,67,.06),transparent 60%);
+  pointer-events:none;
+}
 
-@media(max-width:768px) {
-  .rd-layout { grid-template-columns:1fr; }
-  .rd-buy-card { position:static; }
+/* Prix */
+.r-buy__price{font-size:2.4rem;font-weight:900;color:var(--r-gold-lt);line-height:1;margin-bottom:.25rem;position:relative;}
+.r-buy__price--free{color:var(--r-green);}
+.r-buy__price small{font-size:.8rem;font-weight:400;color:var(--r-muted);display:block;margin-top:.2rem;}
+.r-buy__divider{border:none;border-top:1px solid rgba(255,255,255,.07);margin:1.5rem 0;}
+
+/* Boutons */
+.r-buy__btn{
+  display:flex;align-items:center;justify-content:center;gap:.6rem;
+  width:100%;padding:1rem;border-radius:13px;font-size:.97rem;font-weight:800;
+  text-decoration:none;border:none;cursor:pointer;transition:all .25s;
+  margin-bottom:.75rem;font-family:inherit;position:relative;overflow:hidden;
+}
+.r-buy__btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.12) 50%,transparent 60%);
+  transform:translateX(-100%);transition:transform 0s;
+}
+.r-buy__btn:hover::after{transform:translateX(100%);transition:transform .5s ease;}
+
+.r-buy__btn--dl{background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;}
+.r-buy__btn--dl:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(212,168,67,.45);}
+.r-buy__btn--wa{background:linear-gradient(135deg,#128c7e,var(--r-wa));color:#fff;}
+.r-buy__btn--wa:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,211,102,.35);}
+.r-buy__btn--premium{background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);color:var(--r-gold-lt);}
+.r-buy__btn--premium:hover{background:rgba(212,168,67,.18);}
+.r-buy__btn--login{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.65);}
+.r-buy__btn--login:hover{background:rgba(255,255,255,.09);color:#fff;}
+
+.r-buy__hint{text-align:center;font-size:.75rem;color:var(--r-muted);margin:-0.25rem 0 .6rem;}
+
+/* Features liste */
+.r-buy__features{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.5rem;}
+.r-buy__features li{font-size:.8rem;color:var(--r-muted);display:flex;align-items:center;gap:.5rem;}
+.r-buy__features li::before{content:'✓';color:var(--r-green);font-weight:800;flex-shrink:0;}
+.r-buy__secure{
+  display:flex;align-items:center;justify-content:center;gap:.35rem;
+  font-size:.68rem;color:rgba(255,255,255,.2);margin-top:1.25rem;
+}
+
+/* ── RELATED ── */
+.r-related{max-width:1080px;margin:0 auto;padding:0 1.5rem 6rem;}
+.r-related__head{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(212,168,67,.6);margin-bottom:1.25rem;}
+.r-related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;}
+.r-rel-card{
+  background:var(--r-glass);border:1px solid rgba(255,255,255,.07);border-radius:14px;
+  padding:1.1rem;text-decoration:none;display:flex;flex-direction:column;
+  transition:transform .25s,box-shadow .25s,border-color .25s;
+  backdrop-filter:blur(10px);
+}
+.r-rel-card:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.3);border-color:rgba(212,168,67,.25);}
+.r-rel-card__cat{font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(212,168,67,.55);margin-bottom:.35rem;}
+.r-rel-card__title{font-size:.88rem;font-weight:700;color:rgba(232,234,240,.88);line-height:1.4;margin-bottom:.5rem;}
+.r-rel-card__price{font-size:.82rem;font-weight:800;color:var(--r-gold-lt);margin-top:auto;}
+.r-rel-card__price--free{color:var(--r-green);}
+
+@keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:780px){
+  .r-layout{grid-template-columns:1fr;padding:1.25rem 1rem 4rem;}
+  .r-buy{position:static;}
+  .r-inside__list{grid-template-columns:1fr;}
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="rd-wrap">
+<div class="r-canvas"></div>
+<div class="r-orb r-orb-1"></div>
+<div class="r-orb r-orb-2"></div>
 
-  <!-- Breadcrumb -->
-  <nav class="rd-bc">
-    <a href="{% url 'resources:library' %}">Ressources</a>
-    <span class="rd-bc__sep">›</span>
-    <a href="{% url 'resources:library' %}?cat={{ resource.category }}">{{ resource.get_category_label }}</a>
-    <span class="rd-bc__sep">›</span>
-    <span>{{ resource.title|truncatechars:50 }}</span>
-  </nav>
+<div class="r-page">
 
-  <div class="rd-layout">
+<!-- Breadcrumb -->
+<nav class="r-bc">
+  <a href="{% url 'resources:library' %}">Ressources</a>
+  <span class="r-bc__sep">›</span>
+  <a href="{% url 'resources:library' %}?cat={{ resource.category }}">{{ resource.get_category_label }}</a>
+  <span class="r-bc__sep">›</span>
+  <span>{{ resource.title|truncatechars:45 }}</span>
+</nav>
 
-    <!-- COLONNE GAUCHE -->
-    <div>
-      <!-- Couverture -->
-      <div class="rd-cover">
-        {% if resource.cover_image %}
-          <img src="{{ resource.cover_image.url }}" alt="{{ resource.title }}">
-        {% else %}
-          <span class="rd-cover__icon">
-            {% if resource.resource_type == 'pdf' %}📄
-            {% elif resource.resource_type == 'xls' %}📊
-            {% elif resource.resource_type == 'doc' %}📝
-            {% elif resource.resource_type == 'zip' %}📦
-            {% else %}📁{% endif %}
-          </span>
-        {% endif %}
-        <span class="rd-type-badge">{{ resource.resource_type|upper }}</span>
-        {% if resource.is_free %}<span class="rd-free-badge">GRATUIT</span>{% endif %}
-      </div>
+<div class="r-layout">
 
-      <!-- Titre & desc -->
-      <div class="rd-cat">{{ resource.get_category_label }}</div>
-      <h1 class="rd-title">{{ resource.title }}</h1>
-      <p class="rd-short-desc">{{ resource.description }}</p>
-
-      <!-- Méta -->
-      <div class="rd-meta-row">
-        <div class="rd-meta-item">🌍 <strong>{{ resource.get_destination_label }}</strong></div>
-        <div class="rd-meta-item">📁 <strong>{{ resource.resource_type|upper }}</strong></div>
-        {% if resource.get_file_size_display %}
-          <div class="rd-meta-item">⚖️ <strong>{{ resource.get_file_size_display }}</strong></div>
-        {% endif %}
-        {% if resource.downloads %}
-          <div class="rd-meta-item">⬇️ <strong>{{ resource.downloads }} téléchargements</strong></div>
-        {% endif %}
-      </div>
-
-      <!-- Aperçu -->
-      {% if resource.preview_url %}
-      <a href="{{ resource.preview_url }}" target="_blank" rel="noopener" class="rd-preview-btn">
-        👁 Voir un aperçu du fichier
-      </a>
+  <!-- ── GAUCHE ── -->
+  <div>
+    <!-- Cover -->
+    <div class="r-cover">
+      {% if resource.cover_image %}
+        <img src="{{ resource.cover_image.url }}" alt="{{ resource.title }}">
+      {% else %}
+        <span class="r-cover__icon">
+          {% if resource.resource_type == 'pdf' %}📄
+          {% elif resource.resource_type == 'xls' %}📊
+          {% elif resource.resource_type == 'doc' %}📝
+          {% elif resource.resource_type == 'zip' %}📦
+          {% else %}📁{% endif %}
+        </span>
       {% endif %}
-
-      <!-- Ce que contient le fichier -->
-      {% if what_inside %}
-      <div class="rd-inside">
-        <p class="rd-inside__title">Ce que contient ce fichier</p>
-        <ul class="rd-inside__list">
-          {% for item in what_inside %}
-          <li>{{ item }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-      {% endif %}
-
-      <!-- Description longue -->
-      {% if resource.long_description %}
-      <div class="rd-long-desc">{{ resource.long_description|safe }}</div>
-      {% endif %}
+      <span class="r-cover__type">{{ resource.resource_type|upper }}</span>
+      {% if resource.is_free %}<span class="r-cover__free">GRATUIT</span>{% endif %}
     </div>
 
-    <!-- COLONNE DROITE — carte achat -->
-    <div>
-      <div class="rd-buy-card">
+    <!-- Titre -->
+    <div class="r-prod-header">
+      <div class="r-prod-cat">{{ resource.get_category_label }}</div>
+      <h1 class="r-prod-title">{{ resource.title }}</h1>
+      <p class="r-prod-desc">{{ resource.description }}</p>
+    </div>
 
-        <!-- Prix -->
-        <div class="rd-buy-price {% if resource.is_free %}rd-buy-price--free{% endif %}">
-          {% if resource.is_free %}
-            Gratuit
-          {% elif resource.price_xaf %}
-            {{ resource.price_xaf|floatformat:0 }} XAF
-            {% if resource.price_eur %}<small>≈ {{ resource.price_eur }} €</small>{% endif %}
-          {% else %}
-            Premium
-            <small>Inclus dans l'abonnement</small>
-          {% endif %}
-        </div>
+    <!-- Méta chips -->
+    <div class="r-meta">
+      <span class="r-meta-chip">🌍 <strong>{{ resource.get_destination_label }}</strong></span>
+      <span class="r-meta-chip">📁 <strong>{{ resource.resource_type|upper }}</strong></span>
+      {% if resource.get_file_size_display %}<span class="r-meta-chip">⚖️ <strong>{{ resource.get_file_size_display }}</strong></span>{% endif %}
+      {% if resource.downloads %}<span class="r-meta-chip">⬇ <strong>{{ resource.downloads }} téléchargements</strong></span>{% endif %}
+    </div>
 
-        <hr class="rd-buy-divider">
+    <!-- Aperçu -->
+    {% if resource.preview_url %}
+    <a href="{{ resource.preview_url }}" target="_blank" rel="noopener" class="r-preview-link">
+      👁 Aperçu du contenu — voir avant d'acheter
+    </a>
+    {% endif %}
 
-        <!-- CTA selon l'état de l'utilisateur -->
-        {% if can_download %}
-          <a href="{% url 'resources:download' resource.pk %}" class="rd-btn-dl">
-            ⬇ Télécharger maintenant
+    <!-- Ce que contient le fichier -->
+    {% if what_inside %}
+    <div class="r-inside">
+      <div class="r-inside__head">🎁 Ce que contient ce fichier</div>
+      <ul class="r-inside__list">
+        {% for item in what_inside %}<li class="r-inside__item">{{ item }}</li>{% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <!-- Description longue -->
+    {% if resource.long_description %}
+    <div class="r-long">{{ resource.long_description|safe }}</div>
+    {% endif %}
+  </div>
+
+  <!-- ── DROITE — carte achat ── -->
+  <div>
+    <div class="r-buy">
+
+      <!-- Prix -->
+      <div class="r-buy__price {% if resource.is_free %}r-buy__price--free{% endif %}">
+        {% if resource.is_free %}Gratuit
+        {% elif resource.price_xaf %}
+          {{ resource.price_xaf|floatformat:0 }} XAF
+          {% if resource.price_eur %}<small>≈ {{ resource.price_eur }} €</small>{% endif %}
+        {% else %}Premium<small>Inclus dans l'abonnement</small>{% endif %}
+      </div>
+
+      <hr class="r-buy__divider">
+
+      <!-- CTA contextuel -->
+      {% if can_download %}
+        <a href="{% url 'resources:download' resource.pk %}" class="r-buy__btn r-buy__btn--dl">
+          ⬇ Télécharger maintenant
+        </a>
+      {% elif not request.user.is_authenticated %}
+        <a href="{% url 'authentification:login' %}?next={{ request.path }}" class="r-buy__btn r-buy__btn--login">
+          🔐 Se connecter pour accéder
+        </a>
+        {% if resource.price_xaf %}
+          <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" class="r-buy__btn r-buy__btn--wa">
+            💬 Acheter via WhatsApp
           </a>
-        {% elif not request.user.is_authenticated %}
-          <a href="{% url 'authentification:login' %}?next={{ request.path }}" class="rd-btn-login">
-            🔐 Se connecter pour accéder
+          <p class="r-buy__hint">Paye → reçois l'accès en 5 min</p>
+        {% elif not resource.is_free %}
+          <a href="{% url 'billing:pricing' %}" class="r-buy__btn r-buy__btn--premium">
+            🔓 Voir les plans Premium
           </a>
-          {% if resource.is_paid %}
-            <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" class="rd-btn-wa">
-              💬 Acheter via WhatsApp
-            </a>
-          {% elif not resource.is_free %}
-            <a href="{% url 'billing:pricing' %}" class="rd-btn-premium">
-              🔓 Voir les plans Premium
-            </a>
-          {% endif %}
-        {% elif resource.is_paid %}
-          <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" class="rd-btn-wa">
-            💬 Acheter via WhatsApp — {{ resource.price_xaf|floatformat:0 }} XAF
-          </a>
-          <p style="font-size:.78rem;color:var(--muted);text-align:center;margin:.35rem 0 .75rem;">
-            Paye sur WhatsApp → reçois ton accès en 5 min
-          </p>
-          {% if not has_premium %}
-          <a href="{% url 'billing:pricing' %}" class="rd-btn-premium">
+        {% endif %}
+      {% elif resource.price_xaf %}
+        <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" class="r-buy__btn r-buy__btn--wa">
+          💬 Acheter via WhatsApp — {{ resource.price_xaf|floatformat:0 }} XAF
+        </a>
+        <p class="r-buy__hint">Paye → reçois l'accès en 5 min</p>
+        {% if not has_premium %}
+          <a href="{% url 'billing:pricing' %}" class="r-buy__btn r-buy__btn--premium">
             Ou s'abonner (accès illimité)
           </a>
-          {% endif %}
-        {% else %}
-          <a href="{% url 'billing:pricing' %}" class="rd-btn-premium">
-            🔓 Activer un abonnement Premium
-          </a>
         {% endif %}
+      {% else %}
+        <a href="{% url 'billing:pricing' %}" class="r-buy__btn r-buy__btn--premium">
+          🔓 Activer un abonnement Premium
+        </a>
+      {% endif %}
 
-        <hr class="rd-buy-divider">
+      <hr class="r-buy__divider">
 
-        <!-- Ce qu'on obtient -->
-        <ul class="rd-buy-features">
-          <li>Téléchargement immédiat après paiement</li>
-          <li>Fichier {{ resource.resource_type|upper }}
-            {% if resource.get_file_size_display %}· {{ resource.get_file_size_display }}{% endif %}
-          </li>
-          <li>Support WhatsApp disponible</li>
-          {% if resource.is_premium %}
-          <li>Inclus dans l'abonnement Premium</li>
-          {% endif %}
-        </ul>
+      <ul class="r-buy__features">
+        <li>Téléchargement immédiat après paiement</li>
+        <li>Fichier {{ resource.resource_type|upper }}{% if resource.get_file_size_display %} · {{ resource.get_file_size_display }}{% endif %}</li>
+        <li>Support WhatsApp disponible</li>
+        {% if resource.is_premium %}<li>Inclus dans l'abonnement Premium</li>{% endif %}
+        <li>Accès permanent à vie</li>
+      </ul>
 
-        <div class="rd-buy-secure">
-          🔒 Paiement sécurisé · Accès instantané
-        </div>
+      <div class="r-buy__secure">🔒 Paiement sécurisé · Accès instantané</div>
+    </div>
+  </div>
 
+</div>{# /r-layout #}
+
+<!-- Ressources similaires -->
+{% if related %}
+<div class="r-related">
+  <p class="r-related__head">Ressources similaires</p>
+  <div class="r-related-grid">
+    {% for r in related %}
+    <a href="{% url 'resources:detail' r.pk %}" class="r-rel-card">
+      <div class="r-rel-card__cat">{{ r.get_category_label }}</div>
+      <div class="r-rel-card__title">{{ r.title }}</div>
+      <div class="r-rel-card__price {% if r.is_free %}r-rel-card__price--free{% endif %}">
+        {% if r.is_free %}Gratuit{% elif r.price_xaf %}{{ r.price_xaf|floatformat:0 }} XAF{% else %}Premium{% endif %}
       </div>
-    </div>
-
+    </a>
+    {% endfor %}
   </div>
-
-  <!-- Ressources similaires -->
-  {% if related %}
-  <div class="rd-related">
-    <p class="rd-related__title">Ressources similaires</p>
-    <div class="rd-related-grid">
-      {% for r in related %}
-      <a href="{% url 'resources:detail' r.pk %}" class="rd-rel-card">
-        <div class="rd-rel-card__cat">{{ r.get_category_label }}</div>
-        <div class="rd-rel-card__title">{{ r.title }}</div>
-        <div class="rd-rel-card__price {% if r.is_free %}rd-rel-card__price--free{% endif %}">
-          {% if r.is_free %}Gratuit
-          {% elif r.price_xaf %}{{ r.price_xaf|floatformat:0 }} XAF
-          {% else %}Premium{% endif %}
-        </div>
-      </a>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
 </div>
+{% endif %}
+
+</div>{# /r-page #}
 {% endblock %}
