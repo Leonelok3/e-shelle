@@ -9,201 +9,197 @@
 
 {% block extra_css %}
 <style>
-  .ep-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 4rem; }
-  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
-  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);}
 
-  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
-  .ep-hero::before { content: "🎓"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
-  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
-  .ep-hero h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; margin: 0 0 .5rem; }
-  .ep-hero h1 span { color: #F59E0B; }
-  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0 0 1.25rem; max-width: 560px; }
-  .ep-stats-row { display: flex; flex-wrap: wrap; gap: 1.25rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,.15); }
-  .ep-stat { font-size: .78rem; opacity: .8; }
-  .ep-stat strong { color: #F59E0B; }
+.geh-breadcrumb{max-width:1080px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(255,255,255,.35);}
+.geh-breadcrumb a{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+.geh-breadcrumb a:hover{color:var(--h-gold-lt);}
+.geh-breadcrumb__sep{color:rgba(255,255,255,.18);}
 
-  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.75rem; }
-  .ep-quick-link { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: .5rem 1rem; font-size: .82rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s, box-shadow .2s; display: flex; align-items: center; gap: .4rem; }
-  .ep-quick-link:hover { border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+.geh-hero{max-width:1080px;margin:0 auto;padding:2rem 1.25rem 2.5rem;}
+.geh-hero__eyebrow{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--h-gold-lt);background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.25);border-radius:20px;padding:.3rem .85rem;margin-bottom:1rem;}
+.geh-hero h1{font-size:2rem;font-weight:900;color:#fff;margin:0 0 .6rem;line-height:1.2;}
+.geh-hero h1 span{color:var(--h-gold-lt);}
+.geh-hero__lead{font-size:.92rem;color:rgba(255,255,255,.5);max-width:560px;line-height:1.7;margin:0 0 1.25rem;}
+.geh-stats{display:flex;flex-wrap:wrap;gap:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,.08);}
+.geh-stat{font-size:.78rem;color:rgba(255,255,255,.5);}
+.geh-stat strong{color:var(--h-gold-lt);}
 
-  .ep-section-title { font-size: 1rem; font-weight: 800; color: #102B4E; margin: 0 0 1rem; }
-  .ep-hub-section { margin-bottom: 2.5rem; }
-  .ep-hub-label { display: inline-flex; align-items: center; gap: .5rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; border-radius: 20px; padding: .3rem 1rem; margin-bottom: 1rem; }
-  .ep-hub-goethe { background: #F0FDF4; color: #15803d; }
-  .ep-hub-telc { background: #EFF6FF; color: #1d4ed8; }
-  .ep-hub-testdaf { background: #FFF7ED; color: #c2410c; }
-  .ep-hub-dsh { background: #FDF4FF; color: #7e22ce; }
+.geh-quicknav{max-width:1080px;margin:0 auto;padding:0 1.25rem 1.5rem;display:flex;gap:.5rem;flex-wrap:wrap;}
+.geh-quick-link{display:inline-flex;align-items:center;gap:.35rem;font-size:.82rem;font-weight:600;padding:.45rem .9rem;border-radius:8px;text-decoration:none;background:var(--h-glass);border:1px solid rgba(255,255,255,.09);color:rgba(255,255,255,.6);transition:all .18s;}
+.geh-quick-link:hover{background:rgba(255,255,255,.08);color:#fff;}
 
-  .ep-exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: .85rem; }
-  .ep-exam-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.1rem; display: flex; flex-direction: column; transition: box-shadow .2s, border-color .2s; }
-  .ep-exam-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); border-color: #F59E0B; }
-  .ep-exam-tag { display: inline-block; border-radius: 20px; padding: .18rem .65rem; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .6rem; }
-  .ep-tag-goethe { background: #F0FDF4; color: #15803d; }
-  .ep-tag-telc { background: #EFF6FF; color: #1d4ed8; }
-  .ep-tag-testdaf { background: #FFF7ED; color: #c2410c; }
-  .ep-tag-dsh { background: #FDF4FF; color: #7e22ce; }
-  .ep-tag-level { background: #F1F5F9; color: #475569; }
-  .ep-exam-name { font-size: .95rem; font-weight: 700; color: #102B4E; margin: 0 0 .3rem; }
-  .ep-exam-desc { font-size: .82rem; color: #64748b; flex: 1; line-height: 1.5; margin: 0 0 .85rem; }
-  .ep-exam-actions { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: auto; }
-  .ep-btn-sm-primary { background: #102B4E; color: #fff; border-radius: 8px; padding: .45rem .9rem; font-size: .8rem; font-weight: 700; text-decoration: none; transition: background .2s; }
-  .ep-btn-sm-primary:hover { background: #1a3d6b; }
-  .ep-btn-sm-ghost { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; padding: .45rem .9rem; font-size: .8rem; font-weight: 600; text-decoration: none; transition: border-color .2s; }
-  .ep-btn-sm-ghost:hover { border-color: #F59E0B; color: #102B4E; }
+.geh-section{max-width:1080px;margin:0 auto 2.5rem;padding:0 1.25rem;}
+.geh-section-label{display:inline-flex;align-items:center;gap:.5rem;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;border-radius:20px;padding:.3rem 1rem;margin-bottom:1rem;}
+.geh-label-goethe{background:rgba(16,185,129,.12);color:#4ade80;border:1px solid rgba(16,185,129,.25);}
+.geh-label-telc{background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid rgba(59,130,246,.25);}
+.geh-label-testdaf{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.25);}
+.geh-label-dsh{background:rgba(168,85,247,.12);color:#d8b4fe;border:1px solid rgba(168,85,247,.25);}
 
-  .ep-sessions-list { display: flex; flex-direction: column; gap: .5rem; }
-  .ep-session-row { display: flex; align-items: center; gap: .75rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .65rem .9rem; }
-  .ep-session-row .info { flex: 1; min-width: 0; }
-  .ep-session-row .info strong { display: block; font-size: .85rem; font-weight: 700; color: #102B4E; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ep-session-row .info span { font-size: .72rem; color: #64748b; }
-  .ep-score-g { background: #F0FDF4; color: #15803d; border-radius: 20px; padding: .18rem .65rem; font-weight: 700; font-size: .78rem; flex-shrink: 0; }
-  .ep-score-m { background: #FEF3C7; color: #92400e; border-radius: 20px; padding: .18rem .65rem; font-weight: 700; font-size: .78rem; flex-shrink: 0; }
-  .ep-score-r { background: #FEF2F2; color: #b91c1c; border-radius: 20px; padding: .18rem .65rem; font-weight: 700; font-size: .78rem; flex-shrink: 0; }
+.geh-exam-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.85rem;}
+.geh-exam-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:1.25rem;display:flex;flex-direction:column;gap:.65rem;transition:transform .2s,border-color .2s;}
+.geh-exam-card:hover{transform:translateY(-3px);border-color:rgba(212,168,67,.25);}
+.geh-exam-tag{display:inline-block;border-radius:20px;padding:.2rem .65rem;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.geh-tag-goethe{background:rgba(16,185,129,.12);color:#4ade80;border:1px solid rgba(16,185,129,.25);}
+.geh-tag-telc{background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid rgba(59,130,246,.25);}
+.geh-tag-testdaf{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.25);}
+.geh-tag-dsh{background:rgba(168,85,247,.12);color:#d8b4fe;border:1px solid rgba(168,85,247,.25);}
+.geh-exam-name{font-size:.95rem;font-weight:800;color:#fff;margin:0;}
+.geh-exam-desc{font-size:.82rem;color:rgba(255,255,255,.45);flex:1;line-height:1.55;margin:0;}
+.geh-exam-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:auto;}
+.geh-btn-sm-gold{display:inline-flex;align-items:center;gap:.3rem;font-size:.8rem;font-weight:700;padding:.4rem .85rem;border-radius:8px;text-decoration:none;background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.3);color:var(--h-gold-lt);transition:all .18s;}
+.geh-btn-sm-gold:hover{background:rgba(212,168,67,.22);}
+.geh-btn-sm-ghost{display:inline-flex;align-items:center;gap:.3rem;font-size:.8rem;font-weight:600;padding:.4rem .85rem;border-radius:8px;text-decoration:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.55);transition:all .18s;}
+.geh-btn-sm-ghost:hover{background:rgba(255,255,255,.08);color:#fff;}
 
-  .ep-empty { font-size: .85rem; color: #94a3b8; font-style: italic; padding: .5rem 0; }
-  .ep-footer-info { margin-top: 3rem; padding: 1rem 1.25rem; background: #f8fafc; border-radius: 10px; font-size: .75rem; color: #94a3b8; }
+.geh-sessions-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:1.5rem;margin-bottom:2rem;}
+.geh-sessions-card__title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.35);margin-bottom:1rem;}
+.geh-session-row{display:flex;align-items:center;gap:.85rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:.65rem .9rem;margin-bottom:.4rem;}
+.geh-session-row:last-child{margin-bottom:0;}
+.geh-session-info{flex:1;min-width:0;}
+.geh-session-info strong{display:block;font-size:.85rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.geh-session-info span{font-size:.72rem;color:rgba(255,255,255,.35);}
+.geh-score-g{background:rgba(16,185,129,.12);color:#4ade80;border-radius:20px;padding:.18rem .65rem;font-weight:700;font-size:.78rem;flex-shrink:0;}
+.geh-score-m{background:rgba(245,158,11,.12);color:#fbbf24;border-radius:20px;padding:.18rem .65rem;font-weight:700;font-size:.78rem;flex-shrink:0;}
+.geh-score-r{background:rgba(239,68,68,.1);color:#fca5a5;border-radius:20px;padding:.18rem .65rem;font-weight:700;font-size:.78rem;flex-shrink:0;}
 
-  @media (max-width: 600px) {
-    .ep-hero::before { display: none; }
-    .ep-exam-grid { grid-template-columns: 1fr; }
-  }
+.geh-empty{font-size:.83rem;color:rgba(255,255,255,.3);font-style:italic;}
+.geh-footer-note{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;}
+.geh-footer-note p{font-size:.75rem;color:rgba(255,255,255,.25);background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.75rem 1rem;}
+
+@media(max-width:640px){.geh-hero h1{font-size:1.6rem;}.geh-exam-grid{grid-template-columns:1fr;}}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="ep-wrap">
 
-  <nav class="ep-bc">
-    <a href="{% url 'germanprep:home' %}">Allemand</a>
-    <span>›</span>
-    <span>Hub des examens</span>
-  </nav>
-
-  <div class="ep-hero">
-    <p class="ep-hero-kicker">Immigration97 · Préparation allemand</p>
-    <h1>Choisis ton <span>examen d'allemand</span></h1>
-    <p>Goethe, telc, TestDaF, DSH — parcours structurés, exercices ciblés et simulations chronométrées.</p>
-    <div class="ep-stats-row">
-      <span class="ep-stat">XP : <strong>{{ profile.xp }}</strong></span>
-      <span class="ep-stat">Niveau : <strong>{{ profile.level }}</strong></span>
-      <span class="ep-stat">Tests : <strong>{{ profile.total_tests }}</strong></span>
-      <span class="ep-stat">Meilleur score : <strong>{{ profile.best_score|default:0|floatformat:1 }} %</strong></span>
-    </div>
-  </div>
-
-  <div class="ep-quick">
-    <a href="{% url 'germanprep:home' %}" class="ep-quick-link">🏠 Accueil allemand</a>
-    <a href="{% url 'germanprep:profile' %}" class="ep-quick-link">👤 Mon profil</a>
-    <a href="{% url 'germanprep:placement_test' %}" class="ep-quick-link">🎯 Test de niveau</a>
-  </div>
-
-  <!-- Dernières simulations -->
-  {% if last_sessions %}
-  <div class="ep-hub-section">
-    <h2 class="ep-section-title">Tes dernières simulations</h2>
-    <div class="ep-sessions-list">
-      {% for s in last_sessions %}
-      <div class="ep-session-row">
-        <div class="info">
-          <strong>{{ s.exam.title }}</strong>
-          <span>{{ s.started_at|date:"d/m/Y H:i" }} · Niveau {{ s.exam.level }}</span>
-        </div>
-        {% if s.score is not None %}
-          {% if s.score >= 80 %}<span class="ep-score-g">{{ s.score|default:"0.0" }} %</span>
-          {% elif s.score >= 50 %}<span class="ep-score-m">{{ s.score|default:"0.0" }} %</span>
-          {% else %}<span class="ep-score-r">{{ s.score|default:"0.0" }} %</span>{% endif %}
-        {% endif %}
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- GOETHE -->
-  <div class="ep-hub-section">
-    <span class="ep-hub-label ep-hub-goethe">🇩🇪 Goethe-Institut</span>
-    {% if goethe_exams %}
-    <div class="ep-exam-grid">
-      {% for exam in goethe_exams %}
-      <article class="ep-exam-card">
-        <span class="ep-exam-tag ep-tag-goethe">Goethe</span>
-        <h3 class="ep-exam-name">{{ exam.title }}</h3>
-        <p class="ep-exam-desc">{{ exam.short_description }}</p>
-        <div class="ep-exam-actions">
-          <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-sm-primary">Voir le programme</a>
-          <a href="{% url 'germanprep:exam_learning_path' exam.slug %}" class="ep-btn-sm-ghost">📚 Cours</a>
-          <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-sm-ghost">⚡ Simulation</a>
-        </div>
-      </article>
-      {% endfor %}
-    </div>
-    {% else %}
-    <p class="ep-empty">Aucun examen Goethe configuré pour l'instant.</p>
-    {% endif %}
-  </div>
-
-  <!-- TELC -->
-  {% if telc_exams %}
-  <div class="ep-hub-section">
-    <span class="ep-hub-label ep-hub-telc">📋 telc</span>
-    <div class="ep-exam-grid">
-      {% for exam in telc_exams %}
-      <article class="ep-exam-card">
-        <span class="ep-exam-tag ep-tag-telc">telc</span>
-        <h3 class="ep-exam-name">{{ exam.title }}</h3>
-        <p class="ep-exam-desc">{{ exam.short_description }}</p>
-        <div class="ep-exam-actions">
-          <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-sm-primary">Voir le programme</a>
-          <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-sm-ghost">⚡ Simulation</a>
-        </div>
-      </article>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- TESTDAF -->
-  {% if testdaf_exams %}
-  <div class="ep-hub-section">
-    <span class="ep-hub-label ep-hub-testdaf">🏛️ TestDaF</span>
-    <div class="ep-exam-grid">
-      {% for exam in testdaf_exams %}
-      <article class="ep-exam-card">
-        <span class="ep-exam-tag ep-tag-testdaf">TestDaF</span>
-        <h3 class="ep-exam-name">{{ exam.title }}</h3>
-        <p class="ep-exam-desc">{{ exam.short_description }}</p>
-        <div class="ep-exam-actions">
-          <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-sm-primary">Voir le programme</a>
-          <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-sm-ghost">⚡ Simulation</a>
-        </div>
-      </article>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- DSH -->
-  {% if dsh_exams %}
-  <div class="ep-hub-section">
-    <span class="ep-hub-label ep-hub-dsh">🎓 DSH</span>
-    <div class="ep-exam-grid">
-      {% for exam in dsh_exams %}
-      <article class="ep-exam-card">
-        <span class="ep-exam-tag ep-tag-dsh">DSH</span>
-        <h3 class="ep-exam-name">{{ exam.title }}</h3>
-        <p class="ep-exam-desc">{{ exam.short_description }}</p>
-        <div class="ep-exam-actions">
-          <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-sm-primary">Voir le programme</a>
-          <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-sm-ghost">⚡ Simulation</a>
-        </div>
-      </article>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  <p class="ep-footer-info">ℹ️ Immigration97 est une plateforme d'entraînement. Elle ne remplace pas les organismes officiels Goethe, telc, TestDaF ou DSH.</p>
-
+<div class="geh-breadcrumb">
+  <a href="{% url 'germanprep:home' %}">Allemand</a>
+  <span class="geh-breadcrumb__sep">›</span>
+  <span>Hub des examens</span>
 </div>
+
+<div class="geh-hero">
+  <div class="geh-hero__eyebrow">🇩🇪 Examens officiels</div>
+  <h1>Choisis ton <span>examen d'allemand</span></h1>
+  <p class="geh-hero__lead">Goethe, telc, TestDaF, DSH — parcours structurés, exercices ciblés et simulations chronométrées.</p>
+  <div class="geh-stats">
+    <span class="geh-stat">XP : <strong>{{ profile.xp }}</strong></span>
+    <span class="geh-stat">Niveau : <strong>{{ profile.level }}</strong></span>
+    <span class="geh-stat">Tests : <strong>{{ profile.total_tests }}</strong></span>
+    <span class="geh-stat">Meilleur score : <strong>{{ profile.best_score|default:0|floatformat:1 }} %</strong></span>
+  </div>
+</div>
+
+<div class="geh-quicknav">
+  <a href="{% url 'germanprep:home' %}" class="geh-quick-link">🏠 Accueil allemand</a>
+  <a href="{% url 'germanprep:profile' %}" class="geh-quick-link">👤 Mon profil</a>
+  <a href="{% url 'germanprep:placement_test' %}" class="geh-quick-link">🎯 Test de niveau</a>
+</div>
+
+{% if last_sessions %}
+<div class="geh-section">
+  <div class="geh-sessions-card">
+    <div class="geh-sessions-card__title">Tes dernières simulations</div>
+    {% for s in last_sessions %}
+    <div class="geh-session-row">
+      <div class="geh-session-info">
+        <strong>{{ s.exam.title }}</strong>
+        <span>{{ s.started_at|date:"d/m/Y H:i" }} · Niveau {{ s.exam.level }}</span>
+      </div>
+      {% if s.score is not None %}
+        {% if s.score >= 80 %}<span class="geh-score-g">{{ s.score|default:"0.0" }} %</span>
+        {% elif s.score >= 50 %}<span class="geh-score-m">{{ s.score|default:"0.0" }} %</span>
+        {% else %}<span class="geh-score-r">{{ s.score|default:"0.0" }} %</span>{% endif %}
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- GOETHE -->
+<div class="geh-section">
+  <span class="geh-section-label geh-label-goethe">🇩🇪 Goethe-Institut</span>
+  {% if goethe_exams %}
+  <div class="geh-exam-grid">
+    {% for exam in goethe_exams %}
+    <article class="geh-exam-card">
+      <span class="geh-exam-tag geh-tag-goethe">Goethe</span>
+      <div class="geh-exam-name">{{ exam.title }}</div>
+      <p class="geh-exam-desc">{{ exam.short_description }}</p>
+      <div class="geh-exam-actions">
+        <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="geh-btn-sm-gold">Voir le programme</a>
+        <a href="{% url 'germanprep:exam_learning_path' exam.slug %}" class="geh-btn-sm-ghost">📚 Cours</a>
+        <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="geh-btn-sm-ghost">⚡ Simulation</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="geh-empty">Aucun examen Goethe configuré pour l'instant.</p>
+  {% endif %}
+</div>
+
+{% if telc_exams %}
+<div class="geh-section">
+  <span class="geh-section-label geh-label-telc">📋 telc</span>
+  <div class="geh-exam-grid">
+    {% for exam in telc_exams %}
+    <article class="geh-exam-card">
+      <span class="geh-exam-tag geh-tag-telc">telc</span>
+      <div class="geh-exam-name">{{ exam.title }}</div>
+      <p class="geh-exam-desc">{{ exam.short_description }}</p>
+      <div class="geh-exam-actions">
+        <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="geh-btn-sm-gold">Voir le programme</a>
+        <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="geh-btn-sm-ghost">⚡ Simulation</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if testdaf_exams %}
+<div class="geh-section">
+  <span class="geh-section-label geh-label-testdaf">🏛️ TestDaF</span>
+  <div class="geh-exam-grid">
+    {% for exam in testdaf_exams %}
+    <article class="geh-exam-card">
+      <span class="geh-exam-tag geh-tag-testdaf">TestDaF</span>
+      <div class="geh-exam-name">{{ exam.title }}</div>
+      <p class="geh-exam-desc">{{ exam.short_description }}</p>
+      <div class="geh-exam-actions">
+        <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="geh-btn-sm-gold">Voir le programme</a>
+        <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="geh-btn-sm-ghost">⚡ Simulation</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if dsh_exams %}
+<div class="geh-section">
+  <span class="geh-section-label geh-label-dsh">🎓 DSH</span>
+  <div class="geh-exam-grid">
+    {% for exam in dsh_exams %}
+    <article class="geh-exam-card">
+      <span class="geh-exam-tag geh-tag-dsh">DSH</span>
+      <div class="geh-exam-name">{{ exam.title }}</div>
+      <p class="geh-exam-desc">{{ exam.short_description }}</p>
+      <div class="geh-exam-actions">
+        <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="geh-btn-sm-gold">Voir le programme</a>
+        <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="geh-btn-sm-ghost">⚡ Simulation</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="geh-footer-note">
+  <p>ℹ️ Immigration97 est une plateforme d'entraînement. Elle ne remplace pas les organismes officiels Goethe, telc, TestDaF ou DSH.</p>
+</div>
+
 {% endblock %}

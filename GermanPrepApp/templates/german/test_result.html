@@ -5,123 +5,137 @@
 
 {% block extra_css %}
 <style>
-  .ep-wrap { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 4rem; }
-  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
-  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);}
 
-  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
-  .ep-hero::before { content: "🏆"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
-  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
-  .ep-hero h1 { font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 800; margin: 0 0 .25rem; }
-  .ep-hero h1 span { color: #F59E0B; }
-  .ep-hero p { font-size: .85rem; opacity: .75; margin: 0; }
+.gtr-breadcrumb{max-width:1080px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(255,255,255,.35);}
+.gtr-breadcrumb a{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+.gtr-breadcrumb a:hover{color:var(--h-gold-lt);}
+.gtr-breadcrumb__sep{color:rgba(255,255,255,.18);}
 
-  .ep-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
-  .ep-result-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; }
-  .ep-result-card .label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: .5rem; }
-  .ep-score-big { font-size: 3rem; font-weight: 800; margin: 0 0 .25rem; }
-  .ep-score-big.great { color: #15803d; }
-  .ep-score-big.mid { color: #d97706; }
-  .ep-score-big.low { color: #b91c1c; }
-  .ep-result-detail { font-size: .85rem; color: #64748b; margin: 0 0 .5rem; }
-  .ep-xp-gain { display: inline-flex; align-items: center; gap: .35rem; background: #F0FDF4; color: #15803d; border-radius: 20px; padding: .25rem .75rem; font-size: .82rem; font-weight: 700; }
+.gtr-hero{max-width:1080px;margin:0 auto;padding:2rem 1.25rem 2.5rem;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.gtr-hero__eyebrow{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--h-gold-lt);background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.25);border-radius:20px;padding:.3rem .85rem;margin-bottom:1.25rem;}
 
-  .ep-skill-list { display: flex; flex-direction: column; gap: .4rem; margin-top: .25rem; }
-  .ep-skill-row { display: flex; justify-content: space-between; align-items: center; padding: .35rem 0; border-bottom: 1px solid #f1f5f9; font-size: .85rem; color: #475569; }
-  .ep-skill-row:last-child { border-bottom: none; }
-  .ep-skill-row strong { color: #102B4E; font-weight: 700; }
+.gtr-score-ring{width:130px;height:130px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;}
+.gtr-score-ring--good{background:conic-gradient(#10b981 var(--pct),rgba(255,255,255,.07) 0);box-shadow:0 0 0 6px rgba(16,185,129,.12);}
+.gtr-score-ring--mid{background:conic-gradient(#f59e0b var(--pct),rgba(255,255,255,.07) 0);box-shadow:0 0 0 6px rgba(245,158,11,.12);}
+.gtr-score-ring--low{background:conic-gradient(#ef4444 var(--pct),rgba(255,255,255,.07) 0);box-shadow:0 0 0 6px rgba(239,68,68,.12);}
+.gtr-score-ring__inner{width:98px;height:98px;border-radius:50%;background:#0d1117;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.1rem;}
+.gtr-score-ring__pct{font-size:1.6rem;font-weight:900;color:#fff;line-height:1;}
+.gtr-score-ring__sub{font-size:.65rem;color:rgba(255,255,255,.35);font-weight:600;}
 
-  .ep-cta-row { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 2rem; }
-  .ep-btn-primary { display: inline-flex; align-items: center; gap: .4rem; background: #102B4E; color: #fff; border-radius: 10px; padding: .7rem 1.4rem; font-size: .88rem; font-weight: 700; text-decoration: none; transition: background .2s; }
-  .ep-btn-primary:hover { background: #1a3d6b; }
-  .ep-btn-secondary { display: inline-flex; align-items: center; gap: .4rem; background: #fff; color: #102B4E; border: 1.5px solid #102B4E; border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; transition: background .2s; }
-  .ep-btn-secondary:hover { background: #f8fafc; }
-  .ep-btn-ghost { display: inline-flex; align-items: center; gap: .4rem; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; transition: border-color .2s; }
-  .ep-btn-ghost:hover { border-color: #F59E0B; }
+.gtr-hero__title{font-size:1.4rem;font-weight:900;color:#fff;margin:0 0 .2rem;}
+.gtr-hero__level{font-size:.88rem;color:rgba(255,255,255,.4);margin:0 0 .5rem;}
+.gtr-hero__date{font-size:.78rem;color:rgba(255,255,255,.3);}
+.gtr-xp-gain{display:inline-flex;align-items:center;gap:.35rem;background:rgba(16,185,129,.12);color:#4ade80;border-radius:20px;padding:.25rem .75rem;font-size:.82rem;font-weight:700;margin-top:.5rem;}
 
-  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; }
-  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1rem; }
+.gtr-section{max-width:1080px;margin:0 auto 1.5rem;padding:0 1.25rem;}
+.gtr-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+.gtr-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:1.5rem;}
+.gtr-card__title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.35);margin-bottom:1rem;}
 
-  .ep-q-list { display: flex; flex-direction: column; gap: .65rem; }
-  .ep-q-item { border-left: 4px solid #e2e8f0; border-radius: 0 10px 10px 0; padding: .75rem 1rem; background: #f8fafc; }
-  .ep-q-item.correct { border-left-color: #22c55e; background: #F0FDF4; }
-  .ep-q-item.wrong { border-left-color: #ef4444; background: #FEF2F2; }
-  .ep-q-text { font-size: .9rem; font-weight: 600; color: #102B4E; margin: 0 0 .4rem; }
-  .ep-q-meta { font-size: .8rem; color: #64748b; margin: 0 0 .3rem; display: flex; flex-wrap: wrap; gap: .5rem; }
-  .ep-q-expl { font-size: .8rem; color: #475569; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 6px; padding: .35rem .65rem; margin-top: .35rem; }
+.gtr-skill-list{display:flex;flex-direction:column;gap:.4rem;}
+.gtr-skill-row{display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.85rem;color:rgba(255,255,255,.55);}
+.gtr-skill-row:last-child{border-bottom:none;}
+.gtr-skill-row strong{color:#fff;font-weight:700;}
 
-  @media (max-width: 640px) {
-    .ep-hero::before { display: none; }
-    .ep-result-grid { grid-template-columns: 1fr; }
-  }
+.gtr-cta{max-width:1080px;margin:0 auto 1.5rem;padding:0 1.25rem;}
+.gtr-cta__row{display:flex;flex-wrap:wrap;gap:.65rem;}
+.gtr-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.65rem 1.25rem;border-radius:10px;font-size:.87rem;font-weight:700;text-decoration:none;transition:all .18s;}
+.gtr-btn--gold{background:rgba(212,168,67,.15);border:1.5px solid rgba(212,168,67,.4);color:var(--h-gold-lt);}
+.gtr-btn--gold:hover{background:rgba(212,168,67,.25);}
+.gtr-btn--ghost{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);}
+.gtr-btn--ghost:hover{background:rgba(255,255,255,.08);color:#fff;}
+
+.gtr-q-list{display:flex;flex-direction:column;gap:.65rem;}
+.gtr-q-item{border-left:4px solid rgba(255,255,255,.08);border-radius:0 10px 10px 0;padding:.75rem 1rem;background:rgba(255,255,255,.03);}
+.gtr-q-item--correct{border-left-color:#22c55e;background:rgba(16,185,129,.05);}
+.gtr-q-item--wrong{border-left-color:#ef4444;background:rgba(239,68,68,.05);}
+.gtr-q-text{font-size:.9rem;font-weight:600;color:#fff;margin:0 0 .4rem;}
+.gtr-q-meta{font-size:.8rem;color:rgba(255,255,255,.5);margin:0 0 .3rem;display:flex;flex-wrap:wrap;gap:.5rem;}
+.gtr-q-expl{font-size:.8rem;color:rgba(255,255,255,.5);background:rgba(212,168,67,.06);border:1px solid rgba(212,168,67,.15);border-radius:6px;padding:.35rem .65rem;margin-top:.35rem;}
+
+@media(max-width:640px){.gtr-grid{grid-template-columns:1fr;}.gtr-hero{text-align:left;align-items:flex-start;}}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="ep-wrap">
 
-  <nav class="ep-bc">
-    <a href="{% url 'germanprep:home' %}">Allemand</a>
-    <span>›</span>
-    <a href="{% url 'germanprep:exam_detail' exam.slug %}">{{ exam.title }}</a>
-    <span>›</span>
-    <span>Résultat</span>
-  </nav>
+<div class="gtr-breadcrumb">
+  <a href="{% url 'germanprep:home' %}">Allemand</a>
+  <span class="gtr-breadcrumb__sep">›</span>
+  <a href="{% url 'germanprep:exam_detail' exam.slug %}">{{ exam.title }}</a>
+  <span class="gtr-breadcrumb__sep">›</span>
+  <span>Résultat</span>
+</div>
 
-  <div class="ep-hero">
-    <p class="ep-hero-kicker">Immigration97 · Allemand · Résultat</p>
-    <h1>{{ exam.title }} <span>({{ exam.level }})</span></h1>
-    <p>Session du {{ session.started_at|date:"d/m/Y H:i" }}</p>
+<div class="gtr-hero">
+  <div class="gtr-hero__eyebrow">🏆 Résultat de simulation</div>
+
+  <div class="gtr-score-ring {% if score >= 80 %}gtr-score-ring--good{% elif score >= 50 %}gtr-score-ring--mid{% else %}gtr-score-ring--low{% endif %}"
+       style="--pct:{{ score|floatformat:0 }}%;">
+    <div class="gtr-score-ring__inner">
+      <span class="gtr-score-ring__pct">{{ score|floatformat:1 }}%</span>
+      <span class="gtr-score-ring__sub">{{ correct_answers }}/{{ total }}</span>
+    </div>
   </div>
 
-  <div class="ep-result-grid">
-    <div class="ep-result-card">
-      <div class="label">Score global</div>
-      <p class="ep-score-big {% if score >= 80 %}great{% elif score >= 50 %}mid{% else %}low{% endif %}">{{ score|floatformat:1 }} %</p>
-      <p class="ep-result-detail">{{ correct_answers }} bonnes réponses sur {{ total }} questions.</p>
-      {% if xp_gain %}<span class="ep-xp-gain">🟢 +{{ xp_gain }} XP gagnés</span>{% endif %}
+  <h1 class="gtr-hero__title">{{ exam.title }} ({{ exam.level }})</h1>
+  <p class="gtr-hero__date">Session du {{ session.started_at|date:"d/m/Y H:i" }}</p>
+  {% if xp_gain %}<span class="gtr-xp-gain">🟢 +{{ xp_gain }} XP gagnés</span>{% endif %}
+</div>
+
+<div class="gtr-section">
+  <div class="gtr-grid">
+    <div class="gtr-card">
+      <div class="gtr-card__title">Score global</div>
+      <p style="font-size:2.5rem;font-weight:900;margin:0 0 .25rem;{% if score >= 80 %}color:#4ade80;{% elif score >= 50 %}color:#fbbf24;{% else %}color:#fca5a5;{% endif %}">{{ score|floatformat:1 }} %</p>
+      <p style="font-size:.85rem;color:rgba(255,255,255,.45);margin:0;">{{ correct_answers }} bonnes réponses sur {{ total }} questions.</p>
     </div>
-    <div class="ep-result-card">
-      <div class="label">Répartition des compétences</div>
+    <div class="gtr-card">
+      <div class="gtr-card__title">Répartition des compétences</div>
       {% if skill_stats %}
-      <div class="ep-skill-list">
+      <div class="gtr-skill-list">
         {% for code, data in skill_stats.items %}
-        <div class="ep-skill-row"><span>{{ data.label }}</span><strong>{{ data.pct }} %</strong></div>
+        <div class="gtr-skill-row"><span>{{ data.label }}</span><strong>{{ data.pct }} %</strong></div>
         {% endfor %}
       </div>
       {% else %}
-      <p style="font-size:.85rem;color:#94a3b8;">Pas encore de stats détaillées.</p>
+      <p style="font-size:.85rem;color:rgba(255,255,255,.3);">Pas encore de stats détaillées.</p>
       {% endif %}
     </div>
   </div>
+</div>
 
-  <div class="ep-cta-row">
-    <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-primary">🔁 Refaire une simulation</a>
-    <a href="{% url 'germanprep:review_incorrect' session.id %}" class="ep-btn-secondary">🔍 Voir mes erreurs</a>
-    <a href="{% url 'germanprep:skill_analysis' session.id %}" class="ep-btn-ghost">🧠 Analyse des compétences</a>
+<div class="gtr-cta">
+  <div class="gtr-cta__row">
+    <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="gtr-btn gtr-btn--gold">🔁 Refaire une simulation</a>
+    <a href="{% url 'germanprep:review_incorrect' session.id %}" class="gtr-btn gtr-btn--ghost">🔍 Voir mes erreurs</a>
+    <a href="{% url 'germanprep:skill_analysis' session.id %}" class="gtr-btn gtr-btn--ghost">🧠 Analyse des compétences</a>
   </div>
+</div>
 
-  <div class="ep-card">
-    <p class="ep-card-title">Détail des questions</p>
-    <div class="ep-q-list">
+<div class="gtr-section">
+  <div class="gtr-card">
+    <div class="gtr-card__title">Détail des questions</div>
+    <div class="gtr-q-list">
       {% for ans in answers %}
-      <div class="ep-q-item {% if ans.is_correct %}correct{% else %}wrong{% endif %}">
-        <p class="ep-q-text">{{ ans.exercise.prompt|default:ans.exercise.question_text }}</p>
-        <div class="ep-q-meta">
+      <div class="gtr-q-item {% if ans.is_correct %}gtr-q-item--correct{% else %}gtr-q-item--wrong{% endif %}">
+        <p class="gtr-q-text">{{ ans.exercise.prompt|default:ans.exercise.question_text }}</p>
+        <div class="gtr-q-meta">
           {% if ans.is_correct %}
-          <span style="color:#15803d;font-weight:700;">✅ Bonne réponse : {{ ans.exercise.correct_option }}</span>
+          <span style="color:#4ade80;font-weight:700;">✅ Bonne réponse : {{ ans.exercise.correct_option }}</span>
           {% else %}
-          <span style="color:#b91c1c;font-weight:700;">❌ Ta réponse : {{ ans.selected_option }}</span>
-          <span style="color:#15803d;font-weight:700;">✅ Bonne réponse : {{ ans.exercise.correct_option }}</span>
+          <span style="color:#fca5a5;font-weight:700;">❌ Ta réponse : {{ ans.selected_option }}</span>
+          <span style="color:#4ade80;font-weight:700;">✅ Bonne réponse : {{ ans.exercise.correct_option }}</span>
           {% endif %}
         </div>
         {% if ans.exercise.explanation %}
-        <div class="ep-q-expl">💡 {{ ans.exercise.explanation }}</div>
+        <div class="gtr-q-expl">💡 {{ ans.exercise.explanation }}</div>
         {% endif %}
       </div>
       {% endfor %}
     </div>
   </div>
-
 </div>
+
 {% endblock %}

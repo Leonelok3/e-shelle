@@ -5,180 +5,186 @@
 
 {% block extra_css %}
 <style>
-  .ep-wrap { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 4rem; }
-  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
-  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);}
 
-  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
-  .ep-hero::before { content: "📖"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
-  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
-  .ep-hero h1 { font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; margin: 0 0 .35rem; }
-  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0 0 1.25rem; }
-  .ep-skill-tag { display: inline-block; background: rgba(245,158,11,.25); color: #FDE68A; border-radius: 20px; padding: .2rem .75rem; font-size: .72rem; font-weight: 700; margin-bottom: 1.25rem; }
-  .ep-btn-outline { display: inline-flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.12); color: #fff; border: 1.5px solid rgba(255,255,255,.3); border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; transition: background .2s; }
-  .ep-btn-outline:hover { background: rgba(255,255,255,.22); }
+.gls-breadcrumb{max-width:1080px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(255,255,255,.35);}
+.gls-breadcrumb a{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+.gls-breadcrumb a:hover{color:var(--h-gold-lt);}
+.gls-breadcrumb__sep{color:rgba(255,255,255,.18);}
 
-  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.5rem; margin-bottom: 1.25rem; }
-  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1rem; }
-  .ep-card-sub { font-size: .82rem; color: #64748b; margin: -.5rem 0 1rem; }
+.gls-hero{max-width:1080px;margin:0 auto;padding:2rem 1.25rem 2.5rem;}
+.gls-hero__kicker{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.4);margin-bottom:.4rem;}
+.gls-hero h1{font-size:clamp(1.2rem,4vw,1.75rem);font-weight:900;color:#fff;margin:0 0 .5rem;line-height:1.25;}
+.gls-skill-tag{display:inline-flex;align-items:center;gap:.35rem;background:rgba(212,168,67,.1);color:var(--h-gold-lt);border:1px solid rgba(212,168,67,.25);border-radius:20px;padding:.25rem .75rem;font-size:.72rem;font-weight:700;margin-bottom:1.25rem;}
+.gls-btn-ghost{display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:600;padding:.6rem 1.2rem;border-radius:10px;text-decoration:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);transition:all .18s;}
+.gls-btn-ghost:hover{background:rgba(255,255,255,.08);color:#fff;}
 
-  .lesson-content { font-size: .92rem; color: #334155; line-height: 1.75; }
-  .lesson-content h2, .lesson-content h3 { color: #102B4E; font-weight: 700; margin-top: 1.25rem; }
-  .lesson-content p { margin-bottom: .75rem; }
-  .lesson-content ul, .lesson-content ol { padding-left: 1.5rem; margin-bottom: .75rem; }
-  .lesson-content li { margin-bottom: .3rem; }
-  .lesson-content strong { color: #102B4E; }
-  .lesson-content em { color: #475569; }
-  .lesson-content table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: .88rem; }
-  .lesson-content th { background: #102B4E; color: #fff; padding: .5rem .75rem; text-align: left; }
-  .lesson-content td { border: 1px solid #e2e8f0; padding: .45rem .75rem; }
-  .lesson-content tr:nth-child(even) td { background: #f8fafc; }
+.gls-section{max-width:1080px;margin:0 auto 1.5rem;padding:0 1.25rem;}
+.gls-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:1.5rem;}
+.gls-card__title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.35);margin-bottom:.5rem;}
+.gls-card__sub{font-size:.82rem;color:rgba(255,255,255,.35);margin-bottom:1rem;}
 
-  .ep-resource-list { display: flex; flex-direction: column; gap: .65rem; }
-  .ep-resource-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .85rem 1rem; }
-  .ep-resource-item h3 { font-size: .88rem; font-weight: 700; color: #102B4E; margin: 0 0 .25rem; display: flex; align-items: center; gap: .5rem; }
-  .ep-resource-badge { background: #EFF6FF; color: #1d4ed8; border-radius: 20px; padding: .1rem .55rem; font-size: .65rem; font-weight: 700; }
-  .ep-resource-item p { font-size: .78rem; color: #64748b; margin: 0 0 .5rem; }
-  .ep-btn-resource { display: inline-flex; align-items: center; gap: .35rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: .4rem .85rem; font-size: .78rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s; }
-  .ep-btn-resource:hover { border-color: #F59E0B; }
+.lesson-content{font-size:.92rem;color:rgba(255,255,255,.75);line-height:1.75;}
+.lesson-content h2,.lesson-content h3{color:#fff;font-weight:700;margin-top:1.25rem;}
+.lesson-content p{margin-bottom:.75rem;}
+.lesson-content ul,.lesson-content ol{padding-left:1.5rem;margin-bottom:.75rem;}
+.lesson-content li{margin-bottom:.3rem;}
+.lesson-content strong{color:#fff;}
+.lesson-content em{color:rgba(255,255,255,.55);}
+.lesson-content table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;border-collapse:collapse;margin-bottom:1rem;font-size:.88rem;}
+.lesson-content th{background:rgba(212,168,67,.15);color:var(--h-gold-lt);padding:.5rem .75rem;text-align:left;border:1px solid rgba(212,168,67,.2);}
+.lesson-content td{border:1px solid rgba(255,255,255,.08);padding:.45rem .75rem;color:rgba(255,255,255,.65);}
+.lesson-content tr:nth-child(even) td{background:rgba(255,255,255,.03);}
 
-  .ep-q-list { display: flex; flex-direction: column; gap: .75rem; }
-  .ep-q-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; }
-  .ep-q-text { font-size: .9rem; font-weight: 600; color: #102B4E; margin: 0 0 .6rem; }
-  .ep-options { display: flex; flex-direction: column; gap: .3rem; font-size: .85rem; color: #475569; padding-left: .5rem; }
-  .ep-options li { list-style: none; padding: .2rem 0; }
-  .ep-q-expl { font-size: .8rem; color: #475569; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: .5rem .75rem; margin-top: .6rem; }
+.gls-resource-list{display:flex;flex-direction:column;gap:.65rem;}
+.gls-resource-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:.85rem 1rem;}
+.gls-resource-item h3{font-size:.88rem;font-weight:700;color:#fff;margin:0 0 .25rem;display:flex;align-items:center;gap:.5rem;}
+.gls-resource-badge{background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid rgba(59,130,246,.2);border-radius:20px;padding:.1rem .55rem;font-size:.65rem;font-weight:700;}
+.gls-resource-item p{font-size:.78rem;color:rgba(255,255,255,.4);margin:0 0 .5rem;}
+.gls-btn-resource{display:inline-flex;align-items:center;gap:.35rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.4rem .85rem;font-size:.78rem;font-weight:600;color:rgba(255,255,255,.6);text-decoration:none;transition:all .18s;}
+.gls-btn-resource:hover{background:rgba(255,255,255,.08);color:#fff;}
 
-  .ep-empty { font-size: .85rem; color: #94a3b8; font-style: italic; }
+.gls-q-list{display:flex;flex-direction:column;gap:.75rem;}
+.gls-q-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:1rem;}
+.gls-q-text{font-size:.9rem;font-weight:600;color:#fff;margin:0 0 .6rem;}
+.gls-options{display:flex;flex-direction:column;gap:.3rem;font-size:.85rem;color:rgba(255,255,255,.6);padding-left:.5rem;}
+.gls-options li{list-style:none;padding:.2rem 0;}
+.gls-q-expl{font-size:.8rem;color:rgba(255,255,255,.55);background:rgba(212,168,67,.06);border:1px solid rgba(212,168,67,.15);border-radius:8px;padding:.5rem .75rem;margin-top:.6rem;}
 
-  /* EO / EE */
-  .ep-eo-block, .ep-ee-block { background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 12px; padding: 1rem 1.1rem; margin-top: .85rem; }
-  .ep-eo-title, .ep-ee-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #15803d; margin-bottom: .4rem; }
-  .ep-eo-block p, .ep-ee-block p { font-size: .83rem; color: #334155; margin: 0 0 .75rem; }
-  .ep-recorder-controls { display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem; }
-  .ep-record-btn { background: #102B4E; color: #fff; border: none; border-radius: 8px; padding: .55rem 1.1rem; font-size: .82rem; font-weight: 700; cursor: pointer; transition: background .2s; }
-  .ep-record-btn:hover { background: #1a3d6b; }
-  .ep-record-btn.recording { background: #dc2626; }
-  .ep-btn-submit { background: #F59E0B; color: #102B4E; border: none; border-radius: 8px; padding: .55rem 1.2rem; font-size: .82rem; font-weight: 700; cursor: pointer; transition: background .2s; margin-top: .5rem; }
-  .ep-btn-submit:hover:not(:disabled) { background: #d97706; }
-  .ep-btn-submit:disabled { opacity: .5; cursor: not-allowed; }
-  .ep-ee-textarea { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: .75rem; font-size: .85rem; font-family: inherit; resize: vertical; outline: none; transition: border-color .2s; box-sizing: border-box; }
-  .ep-ee-textarea:focus { border-color: #F59E0B; }
-  .ep-word-counter { font-size: .75rem; color: #94a3b8; text-align: right; margin: .2rem 0 .4rem; }
-  .ep-result-score { display: inline-block; border-radius: 20px; padding: .3rem .9rem; font-weight: 800; font-size: .95rem; margin-bottom: .5rem; }
-  .ep-score-green { background: #F0FDF4; color: #15803d; }
-  .ep-score-orange { background: #FEF3C7; color: #92400e; }
-  .ep-score-red { background: #FEF2F2; color: #b91c1c; }
-  .ep-result-feedback { font-size: .83rem; color: #334155; line-height: 1.6; margin-bottom: .5rem; }
-  .ep-result-section { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #94a3b8; margin: .5rem 0 .25rem; }
-  .ep-result-list { font-size: .82rem; color: #334155; padding-left: 1.1rem; margin: 0 0 .4rem; }
-  .ep-corrected { font-size: .82rem; color: #334155; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: .65rem .85rem; white-space: pre-wrap; }
+.gls-empty{font-size:.83rem;color:rgba(255,255,255,.3);font-style:italic;}
 
-  @media (max-width: 600px) {
-    .ep-hero::before { display: none; }
-    .ep-recorder-controls { flex-wrap: wrap; }
-    .lesson-content { word-break: break-word; overflow-wrap: break-word; }
-    .ep-wrap { padding: 0 0.75rem 3rem; }
-  }
+/* EO / EE */
+.ep-eo-block,.ep-ee-block{background:rgba(16,185,129,.06);border:1.5px solid rgba(16,185,129,.2);border-radius:12px;padding:1rem 1.1rem;margin-top:.85rem;}
+.ep-eo-title,.ep-ee-title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#4ade80;margin-bottom:.4rem;}
+.ep-eo-block p,.ep-ee-block p{font-size:.83rem;color:rgba(255,255,255,.6);margin:0 0 .75rem;}
+.ep-recorder-controls{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;}
+.ep-record-btn{background:rgba(212,168,67,.15);color:var(--h-gold-lt);border:1px solid rgba(212,168,67,.3);border-radius:8px;padding:.55rem 1.1rem;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.ep-record-btn:hover{background:rgba(212,168,67,.25);}
+.ep-record-btn.recording{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#fca5a5;}
+.ep-record-timer{font-size:.8rem;color:rgba(255,255,255,.4);margin-left:.5rem;}
+.ep-btn-submit{background:rgba(212,168,67,.15);color:var(--h-gold-lt);border:1px solid rgba(212,168,67,.3);border-radius:8px;padding:.55rem 1.2rem;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;margin-top:.5rem;}
+.ep-btn-submit:hover:not(:disabled){background:rgba(212,168,67,.25);}
+.ep-btn-submit:disabled{opacity:.4;cursor:not-allowed;}
+.ep-ee-textarea{width:100%;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;padding:.75rem;font-size:.85rem;font-family:inherit;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box;color:#fff;}
+.ep-ee-textarea:focus{border-color:rgba(212,168,67,.4);}
+.ep-word-counter{font-size:.75rem;color:rgba(255,255,255,.35);text-align:right;margin:.2rem 0 .4rem;}
+.ep-result-score{display:inline-block;border-radius:20px;padding:.3rem .9rem;font-weight:800;font-size:.95rem;margin-bottom:.5rem;}
+.ep-score-green{background:rgba(16,185,129,.12);color:#4ade80;}
+.ep-score-orange{background:rgba(245,158,11,.12);color:#fbbf24;}
+.ep-score-red{background:rgba(239,68,68,.1);color:#fca5a5;}
+.ep-result-feedback{font-size:.83rem;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:.5rem;}
+.ep-result-section{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.3);margin:.5rem 0 .25rem;}
+.ep-result-list{font-size:.82rem;color:rgba(255,255,255,.65);padding-left:1.1rem;margin:0 0 .4rem;}
+.ep-corrected{font-size:.82rem;color:rgba(255,255,255,.65);background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.65rem .85rem;white-space:pre-wrap;}
+
+@media(max-width:640px){.ep-recorder-controls{flex-wrap:wrap;}.lesson-content{word-break:break-word;overflow-wrap:break-word;}.gls-section{padding:0 .75rem;}}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="ep-wrap">
 
-  <nav class="ep-bc">
-    <a href="{% url 'germanprep:home' %}">Allemand</a>
-    <span>›</span>
-    <a href="{% url 'germanprep:exam_detail' exam.slug %}">{{ exam.title }}</a>
-    <span>›</span>
-    <span>{{ lesson.title|truncatechars:40 }}</span>
-  </nav>
+<div class="gls-breadcrumb">
+  <a href="{% url 'germanprep:home' %}">Allemand</a>
+  <span class="gls-breadcrumb__sep">›</span>
+  <a href="{% url 'germanprep:exam_detail' exam.slug %}">{{ exam.title }}</a>
+  <span class="gls-breadcrumb__sep">›</span>
+  <span>{{ lesson.title|truncatechars:40 }}</span>
+</div>
 
-  <div class="ep-hero">
-    <p class="ep-hero-kicker">{{ exam.title }} · Niveau {{ exam.level }}</p>
-    <h1>{{ lesson.title }}</h1>
-    <span class="ep-skill-tag">📌 {{ lesson.get_skill_display }}</span>
-    <div>
-      <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-outline">← Retour à l'espace de cours</a>
-    </div>
+<div class="gls-hero">
+  <div class="gls-hero__kicker">{{ exam.title }} · Niveau {{ exam.level }}</div>
+  <h1>{{ lesson.title }}</h1>
+  <div class="gls-skill-tag">📌 {{ lesson.get_skill_display }}</div>
+  <div>
+    <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="gls-btn-ghost">← Retour à l'espace de cours</a>
   </div>
+</div>
 
-  <!-- Contenu du cours -->
-  <div class="ep-card">
-    <p class="ep-card-title">Cours</p>
+<!-- Contenu du cours -->
+<div class="gls-section">
+  <div class="gls-card">
+    <div class="gls-card__title">Cours</div>
     <div class="lesson-content">
       {{ lesson.content|safe }}
     </div>
   </div>
+</div>
 
-  <!-- Ressources -->
-  <div class="ep-card">
-    <p class="ep-card-title">Ressources pour cette leçon</p>
+<!-- Ressources -->
+<div class="gls-section">
+  <div class="gls-card">
+    <div class="gls-card__title">Ressources pour cette leçon</div>
     {% if resources %}
-    <div class="ep-resource-list">
+    <div class="gls-resource-list">
       {% for r in resources %}
-      <div class="ep-resource-item">
+      <div class="gls-resource-item">
         <h3>{{ r.title }}
-          <span class="ep-resource-badge">{% if r.resource_type == "PDF" %}PDF{% elif r.resource_type == "VIDEO" %}Vidéo{% elif r.resource_type == "LINK" %}Lien{% else %}Ressource{% endif %}</span>
+          <span class="gls-resource-badge">{% if r.resource_type == "PDF" %}PDF{% elif r.resource_type == "VIDEO" %}Vidéo{% elif r.resource_type == "LINK" %}Lien{% else %}Ressource{% endif %}</span>
         </h3>
         {% if r.description %}<p>{{ r.description }}</p>{% endif %}
-        <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" class="ep-btn-resource">🔗 Ouvrir la ressource</a>
+        <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" class="gls-btn-resource">🔗 Ouvrir la ressource</a>
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <p class="ep-empty">Aucune ressource n'a encore été ajoutée pour cette leçon.</p>
+    <p class="gls-empty">Aucune ressource n'a encore été ajoutée pour cette leçon.</p>
     {% endif %}
   </div>
+</div>
 
-  <!-- Exercices -->
-  <div class="ep-card">
-    <p class="ep-card-title">Exercices liés à cette leçon</p>
-    <p class="ep-card-sub">Utilise ces questions comme entraînement libre. Pour une simulation notée, utilise le bouton « Simulation type examen » dans l'espace de cours.</p>
+<!-- Exercices -->
+<div class="gls-section">
+  <div class="gls-card">
+    <div class="gls-card__title">Exercices liés à cette leçon</div>
+    <div class="gls-card__sub">Utilise ces questions comme entraînement libre. Pour une simulation notée, utilise le bouton « Simulation type examen » dans l'espace de cours.</div>
     {% if exercises %}
-    <div class="ep-q-list">
+    <div class="gls-q-list">
       {% for ex in exercises %}
-      <div class="ep-q-item">
-        <p class="ep-q-text">{{ forloop.counter }}. {{ ex.question_text }}</p>
-        <ul class="ep-options">
+      <div class="gls-q-item">
+        <p class="gls-q-text">{{ forloop.counter }}. {{ ex.question_text }}</p>
+        <ul class="gls-options">
           <li>A. {{ ex.option_a }}</li>
           <li>B. {{ ex.option_b }}</li>
           {% if ex.option_c %}<li>C. {{ ex.option_c }}</li>{% endif %}
           {% if ex.option_d %}<li>D. {{ ex.option_d }}</li>{% endif %}
         </ul>
         {% if ex.explanation %}
-        <div class="ep-q-expl">💡 <strong>Correction :</strong> {{ ex.explanation }}</div>
+        <div class="gls-q-expl">💡 <strong>Correction :</strong> {{ ex.explanation }}</div>
         {% endif %}
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <p class="ep-empty">Aucun exercice n'a encore été ajouté pour cette leçon.</p>
+    <p class="gls-empty">Aucun exercice n'a encore été ajouté pour cette leçon.</p>
     {% endif %}
   </div>
+</div>
 
-  <!-- EO – Sprechen -->
-  {% if lesson.skill == 'SPRECHEN' %}
-  <div class="ep-card">
-    <p class="ep-card-title">🎤 Sprechen — Expression orale</p>
+<!-- EO – Sprechen -->
+{% if lesson.skill == 'SPRECHEN' %}
+<div class="gls-section">
+  <div class="gls-card">
+    <div class="gls-card__title">🎤 Sprechen — Expression orale</div>
     <div class="ep-eo-block" data-lesson-id="{{ lesson.id }}">
       <div class="ep-eo-title">Enregistre ta réponse en allemand</div>
       <p>{{ lesson.intro|default:lesson.title }}</p>
       <div class="ep-recorder-controls">
         <button class="ep-record-btn" type="button">🎤 Commencer</button>
-        <span class="ep-record-timer" style="display:none;font-size:.8rem;color:#64748b;margin-left:.5rem;"></span>
+        <span class="ep-record-timer" style="display:none;"></span>
       </div>
       <audio class="ep-playback" controls style="display:none;margin:.5rem 0;width:100%;"></audio>
       <button class="ep-submit-eo ep-btn-submit" type="button" disabled>📤 Soumettre pour évaluation IA</button>
       <div class="ep-eo-result" style="display:none;"></div>
     </div>
   </div>
-  {% endif %}
+</div>
+{% endif %}
 
-  <!-- EE – Schreiben -->
-  {% if lesson.skill == 'SCHREIBEN' %}
-  <div class="ep-card">
-    <p class="ep-card-title">✍️ Schreiben — Expression écrite</p>
+<!-- EE – Schreiben -->
+{% if lesson.skill == 'SCHREIBEN' %}
+<div class="gls-section">
+  <div class="gls-card">
+    <div class="gls-card__title">✍️ Schreiben — Expression écrite</div>
     <div class="ep-ee-block" data-lesson-id="{{ lesson.id }}">
       <div class="ep-ee-title">Rédige ta réponse en allemand</div>
       <p>{{ lesson.intro|default:lesson.title }}</p>
@@ -188,9 +194,8 @@
       <div class="ep-ee-result" style="display:none;"></div>
     </div>
   </div>
-  {% endif %}
-
 </div>
+{% endif %}
 
 <script>
 const CSRF = '{{ csrf_token }}';
@@ -249,7 +254,7 @@ document.querySelectorAll('.ep-eo-block').forEach(block => {
         resultDiv.style.display = 'block';
         submitBtn.textContent = '✅ Soumis';
       } else {
-        resultDiv.innerHTML = `<div class="ep-result-feedback" style="color:#dc2626;">Fehler: ${data.error || 'unbekannt'}</div>`;
+        resultDiv.innerHTML = `<div class="ep-result-feedback" style="color:#fca5a5;">Fehler: ${data.error || 'unbekannt'}</div>`;
         resultDiv.style.display = 'block';
         submitBtn.disabled = false; submitBtn.textContent = '📤 Réessayer';
       }
@@ -286,13 +291,13 @@ document.querySelectorAll('.ep-ee-block').forEach(block => {
           <span class="ep-result-score ${scoreClass}">${data.score}/100</span>
           <div class="ep-result-feedback">${data.feedback}</div>
           <div class="ep-result-section">${data.word_count} Wörter</div>
-          ${data.errors?.length ? `<div class="ep-result-section">Korrekturen</div><ul class="ep-result-list">${data.errors.map(e=>`<li>🔍 <em>${e.original}</em> → <strong>${e.correction}</strong> <span style="color:#94a3b8">(${e.rule})</span></li>`).join('')}</ul>` : ''}
+          ${data.errors?.length ? `<div class="ep-result-section">Korrekturen</div><ul class="ep-result-list">${data.errors.map(e=>`<li>🔍 <em>${e.original}</em> → <strong>${e.correction}</strong> <span style="opacity:.5">(${e.rule})</span></li>`).join('')}</ul>` : ''}
           ${data.corrected_version ? `<div class="ep-result-section">Korrigierte Version</div><div class="ep-corrected">${data.corrected_version}</div>` : ''}`;
         resultDiv.style.display = 'block';
         textarea.readOnly = true;
         submitBtn.textContent = '✅ Soumis';
       } else {
-        resultDiv.innerHTML = `<div class="ep-result-feedback" style="color:#dc2626;">Fehler: ${data.error || 'unbekannt'}</div>`;
+        resultDiv.innerHTML = `<div class="ep-result-feedback" style="color:#fca5a5;">Fehler: ${data.error || 'unbekannt'}</div>`;
         resultDiv.style.display = 'block';
         submitBtn.disabled = false; submitBtn.textContent = '✅ Réessayer';
       }

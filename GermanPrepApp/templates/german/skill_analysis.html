@@ -5,111 +5,113 @@
 
 {% block extra_css %}
 <style>
-  .ep-wrap { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 4rem; }
-  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
-  .ep-bc a { color: #F59E0B; text-decoration: none; font-weight: 500; }
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);}
 
-  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
-  .ep-hero::before { content: "🧠"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
-  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
-  .ep-hero h1 { font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 800; margin: 0 0 .4rem; }
-  .ep-hero h1 span { color: #F59E0B; }
-  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0; }
+.gsa-breadcrumb{max-width:1080px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(255,255,255,.35);}
+.gsa-breadcrumb a{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+.gsa-breadcrumb a:hover{color:var(--h-gold-lt);}
+.gsa-breadcrumb__sep{color:rgba(255,255,255,.18);}
 
-  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.75rem; }
-  .ep-quick-link { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: .5rem 1rem; font-size: .82rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s, box-shadow .2s; display: flex; align-items: center; gap: .4rem; }
-  .ep-quick-link:hover { border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+.gsa-hero{max-width:1080px;margin:0 auto;padding:2rem 1.25rem 2.5rem;}
+.gsa-hero__eyebrow{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--h-gold-lt);background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.25);border-radius:20px;padding:.3rem .85rem;margin-bottom:1rem;}
+.gsa-hero h1{font-size:1.75rem;font-weight:900;color:#fff;margin:0 0 .5rem;line-height:1.2;}
+.gsa-hero h1 span{color:var(--h-gold-lt);}
+.gsa-hero__meta{font-size:.85rem;color:rgba(255,255,255,.4);margin:0;}
 
-  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; }
-  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1rem; }
+.gsa-quicknav{max-width:1080px;margin:0 auto;padding:0 1.25rem 1.5rem;display:flex;gap:.5rem;flex-wrap:wrap;}
+.gsa-quick-link{display:inline-flex;align-items:center;gap:.35rem;font-size:.82rem;font-weight:600;padding:.45rem .9rem;border-radius:8px;text-decoration:none;background:var(--h-glass);border:1px solid rgba(255,255,255,.09);color:rgba(255,255,255,.6);transition:all .18s;}
+.gsa-quick-link:hover{background:rgba(255,255,255,.08);color:#fff;}
 
-  .ep-skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: .75rem; }
-  .ep-skill-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; }
-  .ep-skill-name { font-size: .85rem; font-weight: 700; color: #102B4E; margin: 0 0 .4rem; }
-  .ep-skill-score { font-size: 2rem; font-weight: 800; margin: 0 0 .35rem; }
-  .ep-skill-score.great { color: #15803d; }
-  .ep-skill-score.mid { color: #d97706; }
-  .ep-skill-score.low { color: #b91c1c; }
-  .ep-skill-detail { font-size: .78rem; color: #64748b; margin: 0 0 .4rem; }
-  .ep-skill-bar { height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
-  .ep-skill-fill { height: 100%; background: linear-gradient(90deg, #F59E0B, #f97316); border-radius: 3px; }
+.gsa-section{max-width:1080px;margin:0 auto 1.5rem;padding:0 1.25rem;}
+.gsa-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:1.5rem;}
+.gsa-card__title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.35);margin-bottom:1rem;}
 
-  .ep-suggestion-list { display: flex; flex-direction: column; gap: .5rem; }
-  .ep-suggestion-item { display: flex; align-items: flex-start; gap: .65rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .7rem .9rem; font-size: .85rem; color: #475569; line-height: 1.55; }
-  .ep-suggestion-item::before { content: "→"; color: #F59E0B; font-weight: 700; flex-shrink: 0; }
+.gsa-skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem;}
+.gsa-skill-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem;}
+.gsa-skill-name{font-size:.85rem;font-weight:700;color:#fff;margin:0 0 .4rem;}
+.gsa-skill-score{font-size:2rem;font-weight:800;margin:0 0 .35rem;}
+.gsa-skill-score--good{color:#4ade80;}
+.gsa-skill-score--mid{color:#fbbf24;}
+.gsa-skill-score--low{color:#fca5a5;}
+.gsa-skill-detail{font-size:.78rem;color:rgba(255,255,255,.4);margin:0 0 .4rem;}
+.gsa-skill-bar{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
+.gsa-skill-fill{height:100%;background:linear-gradient(90deg,var(--h-gold),#f97316);border-radius:3px;}
 
-  .ep-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
-  .ep-btn-primary { display: inline-flex; align-items: center; gap: .4rem; background: #102B4E; color: #fff; border-radius: 10px; padding: .7rem 1.4rem; font-size: .88rem; font-weight: 700; text-decoration: none; transition: background .2s; }
-  .ep-btn-primary:hover { background: #1a3d6b; }
-  .ep-btn-secondary { display: inline-flex; align-items: center; gap: .4rem; background: #fff; color: #102B4E; border: 1.5px solid #102B4E; border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; transition: background .2s; }
-  .ep-btn-secondary:hover { background: #f8fafc; }
+.gsa-suggestion-list{display:flex;flex-direction:column;gap:.5rem;}
+.gsa-suggestion-item{display:flex;align-items:flex-start;gap:.65rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.7rem .9rem;font-size:.85rem;color:rgba(255,255,255,.6);line-height:1.55;}
+.gsa-suggestion-item::before{content:"→";color:var(--h-gold-lt);font-weight:700;flex-shrink:0;}
 
-  .ep-empty { font-size: .85rem; color: #94a3b8; font-style: italic; }
+.gsa-actions{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;display:flex;flex-wrap:wrap;gap:.65rem;}
+.gsa-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.65rem 1.25rem;border-radius:10px;font-size:.87rem;font-weight:700;text-decoration:none;transition:all .18s;}
+.gsa-btn--gold{background:rgba(212,168,67,.15);border:1.5px solid rgba(212,168,67,.4);color:var(--h-gold-lt);}
+.gsa-btn--gold:hover{background:rgba(212,168,67,.25);}
+.gsa-btn--ghost{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);}
+.gsa-btn--ghost:hover{background:rgba(255,255,255,.08);color:#fff;}
+.gsa-empty{font-size:.83rem;color:rgba(255,255,255,.3);font-style:italic;}
 
-  @media (max-width: 600px) {
-    .ep-hero::before { display: none; }
-    .ep-skills-grid { grid-template-columns: 1fr 1fr; }
-  }
+@media(max-width:640px){.gsa-skills-grid{grid-template-columns:1fr 1fr;}}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="ep-wrap">
 
-  <nav class="ep-bc">
-    <a href="{% url 'germanprep:home' %}">Allemand</a>
-    <span>›</span>
-    <a href="{% url 'germanprep:test_result' session.id %}">Résultat</a>
-    <span>›</span>
-    <span>Analyse des compétences</span>
-  </nav>
+<div class="gsa-breadcrumb">
+  <a href="{% url 'germanprep:home' %}">Allemand</a>
+  <span class="gsa-breadcrumb__sep">›</span>
+  <a href="{% url 'germanprep:test_result' session.id %}">Résultat</a>
+  <span class="gsa-breadcrumb__sep">›</span>
+  <span>Analyse des compétences</span>
+</div>
 
-  <div class="ep-hero">
-    <p class="ep-hero-kicker">Immigration97 · Allemand · Analyse</p>
-    <h1>Analyse des <span>compétences</span></h1>
-    <p>{{ exam.title }} · Session du {{ session.started_at|date:"d/m/Y H:i" }} · Score global : {{ global_pct }} %</p>
-  </div>
+<div class="gsa-hero">
+  <div class="gsa-hero__eyebrow">🧠 Analyse des compétences</div>
+  <h1>Analyse des <span>compétences</span></h1>
+  <p class="gsa-hero__meta">{{ exam.title }} · Session du {{ session.started_at|date:"d/m/Y H:i" }} · Score global : {{ global_pct }} %</p>
+</div>
 
-  <div class="ep-quick">
-    <a href="{% url 'germanprep:test_result' session.id %}" class="ep-quick-link">← Résultat complet</a>
-    <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-quick-link">📚 Cours de l'examen</a>
-  </div>
+<div class="gsa-quicknav">
+  <a href="{% url 'germanprep:test_result' session.id %}" class="gsa-quick-link">← Résultat complet</a>
+  <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="gsa-quick-link">📚 Cours de l'examen</a>
+</div>
 
-  <div class="ep-card">
-    <p class="ep-card-title">Compétences évaluées</p>
+<div class="gsa-section">
+  <div class="gsa-card">
+    <div class="gsa-card__title">Compétences évaluées</div>
     {% if skills %}
-    <div class="ep-skills-grid">
+    <div class="gsa-skills-grid">
       {% for s in skills %}
-      <div class="ep-skill-card">
-        <p class="ep-skill-name">{{ s.label }}</p>
-        <p class="ep-skill-score {% if s.pct >= 80 %}great{% elif s.pct >= 50 %}mid{% else %}low{% endif %}">{{ s.pct }} %</p>
-        <p class="ep-skill-detail">{{ s.correct }} / {{ s.total }} questions</p>
-        <div class="ep-skill-bar"><div class="ep-skill-fill" style="width:{{ s.pct }}%;"></div></div>
+      <div class="gsa-skill-card">
+        <p class="gsa-skill-name">{{ s.label }}</p>
+        <p class="gsa-skill-score {% if s.pct >= 80 %}gsa-skill-score--good{% elif s.pct >= 50 %}gsa-skill-score--mid{% else %}gsa-skill-score--low{% endif %}">{{ s.pct }} %</p>
+        <p class="gsa-skill-detail">{{ s.correct }} / {{ s.total }} questions</p>
+        <div class="gsa-skill-bar"><div class="gsa-skill-fill" style="width:{{ s.pct }}%;"></div></div>
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <p class="ep-empty">Pas encore de statistiques disponibles pour cette session.</p>
+    <p class="gsa-empty">Pas encore de statistiques disponibles pour cette session.</p>
     {% endif %}
   </div>
+</div>
 
-  <div class="ep-card">
-    <p class="ep-card-title">Recommandations du coach IA</p>
+<div class="gsa-section">
+  <div class="gsa-card">
+    <div class="gsa-card__title">Recommandations du coach IA</div>
     {% if suggestions %}
-    <div class="ep-suggestion-list">
+    <div class="gsa-suggestion-list">
       {% for s in suggestions %}
-      <div class="ep-suggestion-item">{{ s }}</div>
+      <div class="gsa-suggestion-item">{{ s }}</div>
       {% endfor %}
     </div>
     {% else %}
-    <p class="ep-empty">Aucune recommandation spécifique — fais d'abord une simulation complète.</p>
+    <p class="gsa-empty">Aucune recommandation spécifique — fais d'abord une simulation complète.</p>
     {% endif %}
   </div>
-
-  <div class="ep-actions">
-    <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="ep-btn-primary">📚 Voir les leçons pour progresser</a>
-    <a href="{% url 'germanprep:test_result' session.id %}" class="ep-btn-secondary">← Retour au résultat</a>
-  </div>
-
 </div>
+
+<div class="gsa-actions">
+  <a href="{% url 'germanprep:exam_detail' exam.slug %}" class="gsa-btn gsa-btn--gold">📚 Voir les leçons pour progresser</a>
+  <a href="{% url 'germanprep:test_result' session.id %}" class="gsa-btn gsa-btn--ghost">← Retour au résultat</a>
+</div>
+
 {% endblock %}
