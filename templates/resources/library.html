@@ -1,365 +1,461 @@
+{# resources/templates/resources/library.html #}
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Bibliothèque de Ressources — Immigration97{% endblock %}
-{% block meta_description %}Téléchargez nos guides PDF, tableaux Excel et outils premium pour réussir votre immigration : Canada, Italie, UK, Espagne et plus.{% endblock %}
+{% block title %}Boutique Ressources — Guides & Outils Immigration | Immigration97{% endblock %}
+{% block meta_description %}Boutique Immigration97 : guides PDF, tableaux Excel visa, préparation TCF/TEF, modèles de lettres. Téléchargement immédiat. Paiement WhatsApp.{% endblock %}
+
+{% block body_class %}resources{% endblock %}
+{% block app_scope %}resources{% endblock %}
 
 {% block extra_css %}
 <style>
-  :root {
-    --res-navy:       #102B4E;
-    --res-navy-light: #1a3d6b;
-    --res-navy-dark:  #0b1e36;
-    --res-orange:     #F59E0B;
-    --res-orange-hov: #d97706;
-    --res-gray-50:    #f8fafc;
-    --res-gray-100:   #f1f5f9;
-    --res-gray-200:   #e2e8f0;
-    --res-gray-400:   #94a3b8;
-    --res-gray-600:   #475569;
-    --res-radius:     12px;
-    --res-shadow:     0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
-    --res-shadow-hov: 0 8px 32px rgba(16,43,78,.18), 0 2px 8px rgba(0,0,0,.08);
-    --res-transition: .22s cubic-bezier(.4,0,.2,1);
-  }
+:root{
+  --r-navy:#050A18;--r-navy2:#080F20;--r-navy3:#0A1628;
+  --r-gold:#D4A843;--r-gold-lt:#F0C060;--r-gold-dim:rgba(212,168,67,.08);
+  --r-gold-border:rgba(212,168,67,.22);--r-glass:rgba(8,15,32,.75);
+  --r-text:rgba(232,234,240,.9);--r-muted:rgba(232,234,240,.45);
+  --r-green:#22c55e;--r-wa:#25D366;
+}
 
-  /* ── Hero ── */
-  .res-hero {
-    background: linear-gradient(135deg, var(--res-navy-dark) 0%, var(--res-navy) 60%, var(--res-navy-light) 100%);
-    color: #fff;
-    padding: 3rem 1.5rem 4rem;
-    position: relative;
-    overflow: hidden;
-  }
-  .res-hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
-  }
-  .res-hero__inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
-  }
-  .res-hero__top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  .res-hero__heading { font-size: 1.9rem; font-weight: 800; letter-spacing: -.02em; margin-bottom: .4rem; }
-  .res-hero__sub { font-size: 1rem; opacity: .75; }
-  .res-badge-live {
-    background: rgba(255,255,255,.12);
-    border: 1px solid rgba(255,255,255,.2);
-    border-radius: 999px;
-    padding: .4rem 1rem;
-    font-size: .82rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-    white-space: nowrap;
-  }
-  .res-badge-live__dot {
-    width: 7px; height: 7px;
-    background: var(--res-orange);
-    border-radius: 50%;
-    animation: rPulse 2s infinite;
-  }
-  @keyframes rPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
+/* ── BASE ── */
+body.resources{background:var(--r-navy);color:var(--r-text);min-height:100vh;overflow-x:hidden;}
 
-  /* ── Search ── */
-  .res-search { position: relative; max-width: 520px; }
-  .res-search__icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); opacity: .5; pointer-events: none; }
-  #resSearch {
-    width: 100%;
-    padding: .85rem 1rem .85rem 2.8rem;
-    border: 2px solid rgba(255,255,255,.15);
-    border-radius: var(--res-radius);
-    background: rgba(255,255,255,.1);
-    color: #fff;
-    font-family: inherit;
-    font-size: .95rem;
-    outline: none;
-    transition: border-color var(--res-transition), background var(--res-transition);
-  }
-  #resSearch::placeholder { color: rgba(255,255,255,.45); }
-  #resSearch:focus { border-color: var(--res-orange); background: rgba(255,255,255,.15); }
+/* ── GRID BG ANIMÉ ── */
+.r-canvas{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.r-canvas::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(212,168,67,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(212,168,67,.04) 1px,transparent 1px);
+  background-size:60px 60px;
+  animation:gridDrift 30s linear infinite;
+}
+.r-canvas::after{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%,rgba(212,168,67,.10) 0%,transparent 65%),
+    radial-gradient(ellipse 40% 30% at 80% 60%,rgba(59,130,246,.06) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 30% at 20% 70%,rgba(212,168,67,.05) 0%,transparent 60%);
+}
+@keyframes gridDrift{0%{background-position:0 0,0 0}100%{background-position:60px 60px,60px 60px}}
 
-  /* ── Layout ── */
-  .res-main { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+/* ── ORBS flottants ── */
+.r-orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:orbFloat 12s ease-in-out infinite;}
+.r-orb-1{width:400px;height:400px;background:rgba(212,168,67,.07);top:-100px;right:-100px;animation-delay:0s;}
+.r-orb-2{width:300px;height:300px;background:rgba(59,130,246,.05);bottom:10%;left:-80px;animation-delay:-6s;}
+@keyframes orbFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.05)}}
 
-  /* ── Filters ── */
-  .res-filters {
-    display: flex; align-items: center; flex-wrap: wrap; gap: .5rem;
-    padding: 1.5rem 0 1rem;
-    border-bottom: 1px solid var(--res-gray-200);
-    margin-bottom: 1.75rem;
-  }
-  .res-filter-label { font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--res-gray-400); margin-right: .25rem; }
-  .res-filter-btn {
-    padding: .45rem 1rem;
-    border-radius: 999px;
-    border: 1.5px solid var(--res-gray-200);
-    background: #fff;
-    color: var(--res-gray-600);
-    font-family: inherit;
-    font-size: .83rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all var(--res-transition);
-    white-space: nowrap;
-  }
-  .res-filter-btn:hover { border-color: var(--res-navy); color: var(--res-navy); background: var(--res-gray-50); }
-  .res-filter-btn.is-active { background: var(--res-navy); border-color: var(--res-navy); color: #fff; }
+/* ── CONTENU ── */
+.r-page{position:relative;z-index:1;}
 
-  /* ── Results bar ── */
-  .res-results-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: .5rem; }
-  .res-results-bar p { font-size: .88rem; color: var(--res-gray-600); }
-  .res-results-bar strong { color: var(--res-navy); }
+/* ── HERO ── */
+.r-hero{max-width:820px;margin:0 auto;padding:4rem 1.5rem 3rem;text-align:center;}
+.r-hero__badge{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);
+  color:var(--r-gold-lt);font-size:.72rem;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;padding:.35rem 1rem;border-radius:999px;margin-bottom:1.25rem;
+  animation:fadeDown .6s ease both;
+}
+.r-hero__badge::before{content:'✦';font-size:.6rem;}
+.r-hero h1{
+  font-size:clamp(2rem,5vw,3.5rem);font-weight:900;line-height:1.15;margin:0 0 1rem;
+  animation:fadeDown .7s .1s ease both;
+}
+.r-hero h1 .accent{
+  background:linear-gradient(135deg,#D4A843 0%,#F0C060 50%,#D4A843 100%);
+  background-size:200%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmerText 4s ease-in-out infinite;
+}
+@keyframes shimmerText{0%,100%{background-position:0%}50%{background-position:100%}}
+.r-hero__sub{font-size:.95rem;color:var(--r-muted);line-height:1.75;max-width:580px;margin:0 auto 2rem;animation:fadeDown .7s .2s ease both;}
 
-  /* ── Grid ── */
-  .res-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; }
-  @media(max-width:900px){ .res-grid{ grid-template-columns: repeat(2,1fr); } }
-  @media(max-width:560px){ .res-grid{ grid-template-columns: 1fr; } }
+/* Stats animées */
+.r-stats{display:flex;gap:0;justify-content:center;margin-bottom:2.5rem;animation:fadeDown .7s .3s ease both;}
+.r-stat{
+  text-align:center;padding:.75rem 2rem;
+  border-right:1px solid rgba(255,255,255,.07);
+}
+.r-stat:last-child{border-right:none;}
+.r-stat__num{font-size:1.8rem;font-weight:900;color:var(--r-gold-lt);line-height:1;display:block;}
+.r-stat__label{font-size:.7rem;color:var(--r-muted);letter-spacing:.06em;text-transform:uppercase;margin-top:.2rem;}
 
-  /* ── Card ── */
-  .res-card {
-    background: #fff;
-    border-radius: var(--res-radius);
-    box-shadow: var(--res-shadow);
-    padding: 1.4rem;
-    display: flex; flex-direction: column; gap: .9rem;
-    border: 1px solid var(--res-gray-100);
-    transition: transform var(--res-transition), box-shadow var(--res-transition);
-    opacity: 0;
-    animation: resFadeIn .4s ease forwards;
-  }
-  .res-card:hover { transform: translateY(-4px); box-shadow: var(--res-shadow-hov); border-color: var(--res-gray-200); }
-  @keyframes resFadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+/* Search */
+.r-search-wrap{max-width:520px;margin:0 auto 0;animation:fadeDown .7s .35s ease both;}
+.r-search{
+  position:relative;display:flex;align-items:center;
+  background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);
+  border-radius:14px;transition:border-color .25s,box-shadow .25s;
+}
+.r-search:focus-within{border-color:rgba(212,168,67,.5);box-shadow:0 0 0 3px rgba(212,168,67,.08);}
+.r-search svg{position:absolute;left:1rem;stroke:rgba(255,255,255,.3);flex-shrink:0;}
+.r-search input{
+  width:100%;background:transparent;border:none;outline:none;
+  padding:.85rem 1rem .85rem 2.75rem;font-size:.9rem;color:var(--r-text);font-family:inherit;
+}
+.r-search input::placeholder{color:var(--r-muted);}
 
-  .res-card__header { display: flex; align-items: flex-start; gap: .9rem; }
-  .res-card__icon {
-    width: 46px; height: 46px;
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.3rem; flex-shrink: 0;
-  }
-  .res-card__icon--pdf { background: #fef2f2; }
-  .res-card__icon--xls { background: #f0fdf4; }
-  .res-card__icon--doc { background: #eff6ff; }
-  .res-card__icon--other { background: #f5f3ff; }
-  .res-card__title { font-size: .93rem; font-weight: 700; color: var(--res-navy); line-height: 1.35; flex: 1; }
-  .res-card__desc { font-size: .82rem; color: var(--res-gray-600); line-height: 1.55; }
+/* ── UPSELL BANNER ── */
+.r-upsell{
+  max-width:1100px;margin:2.5rem auto 0;padding:0 1.5rem;
+  animation:fadeUp .6s .4s ease both;
+}
+.r-upsell__inner{
+  background:linear-gradient(135deg,rgba(212,168,67,.09) 0%,rgba(212,168,67,.04) 100%);
+  border:1px solid rgba(212,168,67,.28);border-radius:16px;
+  padding:1.1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+  position:relative;overflow:hidden;
+}
+.r-upsell__inner::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(212,168,67,.04),transparent);
+  animation:scanline 3s ease-in-out infinite;
+}
+@keyframes scanline{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.r-upsell__text{font-size:.88rem;color:var(--r-text);position:relative;}
+.r-upsell__text strong{color:var(--r-gold-lt);}
+.r-upsell__btn{
+  background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;
+  font-weight:800;font-size:.83rem;padding:.65rem 1.4rem;border-radius:10px;
+  text-decoration:none;white-space:nowrap;position:relative;
+  transition:transform .2s,box-shadow .2s;
+}
+.r-upsell__btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(212,168,67,.35);}
 
-  .res-card__badges { display: flex; flex-wrap: wrap; gap: .4rem; }
-  .res-badge { display: inline-flex; align-items: center; gap: .3rem; padding: .22rem .65rem; border-radius: 999px; font-size: .73rem; font-weight: 600; }
-  .res-badge--cat  { background: #eff6ff; color: #1d4ed8; }
-  .res-badge--dest { background: #fff7ed; color: #c2410c; }
-  .res-badge--premium { background: #fefce8; color: #92400e; }
+/* ── TOOLBAR ── */
+.r-toolbar{
+  max-width:1100px;margin:2rem auto 0;padding:0 1.5rem;
+  display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+  animation:fadeUp .6s .45s ease both;
+}
+.r-toolbar__sep{width:1px;height:22px;background:rgba(255,255,255,.1);flex-shrink:0;}
 
-  .res-card__footer { display: flex; align-items: center; justify-content: space-between; padding-top: .75rem; border-top: 1px solid var(--res-gray-100); gap: .5rem; flex-wrap: wrap; }
-  .res-card__size { font-size: .75rem; color: var(--res-gray-400); font-weight: 500; }
-  .res-card__actions { display: flex; gap: .5rem; }
+/* Filtres pill */
+.r-pills{display:flex;gap:.4rem;flex-wrap:wrap;}
+.r-pill{
+  display:inline-flex;align-items:center;gap:.3rem;
+  padding:.4rem .9rem;border-radius:999px;border:1px solid rgba(255,255,255,.1);
+  background:transparent;color:var(--r-muted);font-size:.78rem;font-weight:600;
+  text-decoration:none;cursor:pointer;transition:all .2s;white-space:nowrap;font-family:inherit;
+}
+.r-pill:hover{border-color:rgba(212,168,67,.4);color:rgba(255,255,255,.8);background:rgba(212,168,67,.06);}
+.r-pill.active{
+  background:rgba(212,168,67,.12);border-color:rgba(212,168,67,.45);
+  color:var(--r-gold-lt);
+  box-shadow:0 0 16px rgba(212,168,67,.15);
+}
 
-  .res-btn { padding: .42rem .85rem; border-radius: 8px; font-family: inherit; font-size: .78rem; font-weight: 600; cursor: pointer; border: none; transition: all var(--res-transition); text-decoration: none; display: inline-flex; align-items: center; }
-  .res-btn--dl   { background: var(--res-orange); color: #fff; }
-  .res-btn--dl:hover { background: var(--res-orange-hov); }
-  .res-btn--prev { background: var(--res-gray-100); color: var(--res-gray-600); border: 1.5px solid var(--res-gray-200); }
-  .res-btn--prev:hover { background: var(--res-gray-200); color: #1e293b; }
+.r-select{
+  background:rgba(8,15,32,.8);border:1px solid rgba(255,255,255,.1);
+  color:var(--r-text);border-radius:10px;padding:.45rem .9rem;
+  font-size:.78rem;outline:none;cursor:pointer;font-family:inherit;transition:border-color .2s;
+}
+.r-select:focus{border-color:rgba(212,168,67,.4);}
+.r-count{font-size:.75rem;color:var(--r-muted);margin-left:auto;white-space:nowrap;}
 
-  /* ── Empty state ── */
-  .res-empty { text-align: center; padding: 4rem 1rem; display: none; grid-column: 1/-1; }
-  .res-empty.is-visible { display: block; }
-  .res-empty__icon { font-size: 3rem; margin-bottom: 1rem; }
-  .res-empty h3 { color: var(--res-navy); margin-bottom: .5rem; }
-  .res-empty p { color: var(--res-gray-400); font-size: .9rem; }
+/* ── GRILLE ── */
+.r-grid{
+  max-width:1100px;margin:2rem auto 0;padding:0 1.5rem 6rem;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1.25rem;
+}
 
-  /* ── Toast ── */
-  #resToast {
-    position: fixed; bottom: 2rem; left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--res-navy-dark); color: #fff;
-    padding: .9rem 1.6rem;
-    border-radius: var(--res-radius);
-    font-size: .88rem; font-weight: 500;
-    box-shadow: 0 8px 32px rgba(0,0,0,.25);
-    transition: transform .35s cubic-bezier(.4,0,.2,1);
-    z-index: 999; white-space: nowrap;
-    border-left: 3px solid var(--res-orange);
-  }
-  #resToast.is-show { transform: translateX(-50%) translateY(0); }
+/* ── CARD ── */
+.r-card{
+  background:var(--r-glass);border:1px solid rgba(255,255,255,.07);
+  border-radius:18px;overflow:hidden;display:flex;flex-direction:column;
+  transition:transform .3s cubic-bezier(.22,.68,0,1.2),box-shadow .3s,border-color .3s;
+  animation:cardIn .5s ease both;
+  backdrop-filter:blur(12px);
+}
+.r-card:hover{
+  transform:translateY(-6px) scale(1.01);
+  box-shadow:0 20px 50px rgba(0,0,0,.4),0 0 0 1px rgba(212,168,67,.2);
+  border-color:rgba(212,168,67,.3);
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.r-card:nth-child(1){animation-delay:.05s}
+.r-card:nth-child(2){animation-delay:.10s}
+.r-card:nth-child(3){animation-delay:.15s}
+.r-card:nth-child(4){animation-delay:.20s}
+.r-card:nth-child(5){animation-delay:.25s}
+.r-card:nth-child(6){animation-delay:.30s}
+.r-card:nth-child(n+7){animation-delay:.35s}
+
+/* Cover */
+.r-card__cover{
+  height:155px;background:linear-gradient(135deg,#080F20,#0D1F38);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.r-card__cover::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(212,168,67,.04),transparent 60%);
+  transition:opacity .3s;
+}
+.r-card:hover .r-card__cover::after{opacity:2;}
+.r-card__cover img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
+.r-card:hover .r-card__cover img{transform:scale(1.05);}
+.r-card__icon{font-size:2.8rem;opacity:.5;transition:transform .3s,opacity .3s;}
+.r-card:hover .r-card__icon{transform:scale(1.1);opacity:.7;}
+
+/* Badges */
+.r-badge{
+  position:absolute;font-size:.65rem;font-weight:800;letter-spacing:.07em;
+  text-transform:uppercase;padding:3px 9px;border-radius:6px;
+}
+.r-badge--type{top:10px;left:10px;background:rgba(5,10,24,.85);border:1px solid rgba(212,168,67,.3);color:var(--r-gold);}
+.r-badge--free{top:10px;right:10px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#4ade80;}
+.r-badge--premium{top:10px;right:10px;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;}
+.r-badge--paid{top:10px;right:10px;background:rgba(212,168,67,.15);border:1px solid rgba(212,168,67,.4);color:var(--r-gold-lt);}
+
+/* Shimmer sur hover */
+.r-card__cover .r-shimmer{
+  position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.07) 50%,transparent 60%);
+  transform:translateX(-100%);transition:transform 0s;
+}
+.r-card:hover .r-shimmer{transform:translateX(100%);transition:transform .6s ease;}
+
+/* Body */
+.r-card__body{padding:1.2rem;flex:1;display:flex;flex-direction:column;}
+.r-card__cat{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(212,168,67,.6);margin-bottom:.4rem;}
+.r-card__title{font-size:.97rem;font-weight:700;color:rgba(232,234,240,.92);line-height:1.45;margin:0 0 .5rem;}
+.r-card__title a{color:inherit;text-decoration:none;}
+.r-card__title a:hover{color:var(--r-gold-lt);}
+.r-card__desc{font-size:.8rem;color:var(--r-muted);line-height:1.6;flex:1;margin-bottom:.9rem;}
+
+/* Meta row */
+.r-card__meta{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.9rem;}
+.r-card__dest{font-size:.7rem;color:rgba(212,168,67,.55);display:flex;align-items:center;gap:.25rem;}
+.r-card__size{font-size:.7rem;color:var(--r-muted);background:rgba(255,255,255,.05);border-radius:4px;padding:1px 6px;}
+.r-card__dl{font-size:.7rem;color:var(--r-muted);}
+
+/* Footer */
+.r-card__footer{
+  display:flex;align-items:center;justify-content:space-between;gap:.6rem;
+  padding-top:.85rem;border-top:1px solid rgba(255,255,255,.06);
+}
+.r-card__price{font-size:1.05rem;font-weight:900;color:var(--r-gold-lt);line-height:1;}
+.r-card__price small{font-size:.7rem;font-weight:400;color:var(--r-muted);display:block;margin-top:.15rem;}
+.r-card__price--free{color:var(--r-green);}
+
+/* Boutons card */
+.r-btn{
+  display:inline-flex;align-items:center;gap:.35rem;
+  padding:.5rem 1rem;border-radius:9px;font-size:.78rem;font-weight:700;
+  text-decoration:none;border:none;cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.r-btn--gold{background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;}
+.r-btn--gold:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(212,168,67,.4);}
+.r-btn--ghost{background:rgba(212,168,67,.08);border:1px solid rgba(212,168,67,.3);color:var(--r-gold-lt);}
+.r-btn--ghost:hover{background:rgba(212,168,67,.15);}
+.r-btn--locked{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);cursor:default;}
+.r-btn--wa{background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.3);color:#4ade80;}
+.r-btn--wa:hover{background:rgba(37,211,102,.2);}
+
+/* ── EMPTY ── */
+.r-empty{
+  grid-column:1/-1;text-align:center;padding:5rem 1rem;
+  animation:fadeUp .5s ease both;
+}
+.r-empty__icon{font-size:3.5rem;margin-bottom:1rem;opacity:.4;}
+.r-empty p{color:var(--r-muted);font-size:.9rem;margin-bottom:1rem;}
+.r-empty a{color:var(--r-gold-lt);text-decoration:none;font-weight:600;}
+
+/* ── ANIMATIONS GLOBALES ── */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:640px){
+  .r-hero{padding:2.5rem 1rem 2rem;}
+  .r-stats{gap:0;}
+  .r-stat{padding:.6rem .9rem;}
+  .r-stat__num{font-size:1.4rem;}
+  .r-toolbar{gap:.6rem;}
+  .r-grid{grid-template-columns:1fr;padding:0 1rem 4rem;}
+}
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="r-canvas"></div>
+<div class="r-orb r-orb-1"></div>
+<div class="r-orb r-orb-2"></div>
 
-<!-- Hero -->
-<section class="res-hero">
-  <div class="res-hero__inner">
-    <div class="res-hero__top">
-      <div>
-        <h1 class="res-hero__heading">📚 Bibliothèque de Ressources</h1>
-        <p class="res-hero__sub">Guides, outils et tableaux pour réussir votre projet d'immigration</p>
-      </div>
-      <div class="res-badge-live">
-        <span class="res-badge-live__dot"></span>
-        <span id="resTotalBadge">{{ total }} ressource{{ total|pluralize }} disponible{{ total|pluralize }}</span>
-      </div>
+<div class="r-page">
+
+<!-- ── HERO ── -->
+<div class="r-hero">
+  <div class="r-hero__badge">Boutique Immigration97</div>
+  <h1>Guides & Ressources<br><span class="accent">d'Immigration</span></h1>
+  <p class="r-hero__sub">Ebooks, tableaux Excel, modèles de lettres et guides pratiques pour réussir votre dossier d'immigration. Paiement via WhatsApp — accès instantané.</p>
+
+  <div class="r-stats">
+    <div class="r-stat">
+      <span class="r-stat__num" data-count="{{ total }}">{{ total }}</span>
+      <span class="r-stat__label">Ressources</span>
     </div>
-
-    <div class="res-search">
-      <svg class="res-search__icon" width="18" height="18" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input type="text" id="resSearch" placeholder="Rechercher une ressource, un pays, un visa…" autocomplete="off">
+    <div class="r-stat">
+      <span class="r-stat__num">10+</span>
+      <span class="r-stat__label">Destinations</span>
+    </div>
+    <div class="r-stat">
+      <span class="r-stat__num">PDF · XLS</span>
+      <span class="r-stat__label">Formats</span>
+    </div>
+    <div class="r-stat">
+      <span class="r-stat__num">5 min</span>
+      <span class="r-stat__label">Livraison</span>
     </div>
   </div>
-</section>
 
-<!-- Main -->
-<div class="res-main">
-
-  <!-- Filtres -->
-  <div class="res-filters">
-    <span class="res-filter-label">Filtrer :</span>
-    <button class="res-filter-btn is-active" data-cat="all">Tous</button>
-    {% for key, label in categories %}
-      <button class="res-filter-btn" data-cat="{{ key }}">{{ label }}</button>
-    {% endfor %}
-  </div>
-
-  <!-- Compteur -->
-  <div class="res-results-bar">
-    <p><strong id="resVisibleCount">{{ total }}</strong> ressource{{ total|pluralize }} affichée{{ total|pluralize }}</p>
-  </div>
-
-  <!-- Grille -->
-  <div class="res-grid" id="resGrid">
-
-    <!-- État vide -->
-    <div class="res-empty" id="resEmpty">
-      <div class="res-empty__icon">🔍</div>
-      <h3>Aucun résultat trouvé</h3>
-      <p>Essayez un autre mot-clé ou sélectionnez une autre catégorie.</p>
+  <div class="r-search-wrap">
+    <div class="r-search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="r-search-input" placeholder="Rechercher une ressource, un pays, un visa…" autocomplete="off">
     </div>
+  </div>
+</div>
 
-    <!-- Cards -->
-    {% for r in resources %}
-    {% with type=r.resource_type %}
-    <div class="res-card"
-         data-cat="{{ r.category }}"
-         data-search="{{ r.title|lower }} {{ r.description|lower }} {{ r.get_destination_label|lower }} {{ r.category|lower }}"
-         style="animation-delay:{{ forloop.counter0|floatformat:0 }}{{ '0' }}ms">
+<!-- ── UPSELL ── -->
+{% if not has_premium %}
+<div class="r-upsell">
+  <div class="r-upsell__inner">
+    <div class="r-upsell__text">
+      ✨ <strong>Accès Premium illimité</strong> — Téléchargez toutes les ressources pour seulement <strong>6 500 XAF/mois</strong>. Plus de 50 guides inclus.
+    </div>
+    <a href="{% url 'billing:pricing' %}" class="r-upsell__btn">Voir les plans →</a>
+  </div>
+</div>
+{% endif %}
 
-      <div class="res-card__header">
-        <div class="res-card__icon res-card__icon--{{ type }}">
-          {% if type == 'pdf' %}📄
-          {% elif type == 'xls' %}📊
-          {% elif type == 'doc' %}📝
+<!-- ── TOOLBAR ── -->
+<div class="r-toolbar">
+  <div class="r-pills">
+    <a href="{% url 'resources:library' %}" class="r-pill {% if not selected_filtre and not selected_cat and not selected_dest %}active{% endif %}">Tout</a>
+    <a href="?filtre=free{% if selected_cat %}&cat={{ selected_cat }}{% endif %}{% if selected_dest %}&dest={{ selected_dest }}{% endif %}" class="r-pill {% if selected_filtre == 'free' %}active{% endif %}">🆓 Gratuit</a>
+    <a href="?filtre=paid{% if selected_cat %}&cat={{ selected_cat }}{% endif %}{% if selected_dest %}&dest={{ selected_dest }}{% endif %}" class="r-pill {% if selected_filtre == 'paid' %}active{% endif %}">💛 À acheter</a>
+    <a href="?filtre=premium{% if selected_cat %}&cat={{ selected_cat }}{% endif %}{% if selected_dest %}&dest={{ selected_dest }}{% endif %}" class="r-pill {% if selected_filtre == 'premium' %}active{% endif %}">👑 Premium</a>
+  </div>
+
+  <div class="r-toolbar__sep"></div>
+
+  <form method="get" style="display:flex;gap:.5rem;flex-wrap:wrap;">
+    {% if selected_filtre %}<input type="hidden" name="filtre" value="{{ selected_filtre }}">{% endif %}
+    <select name="cat" class="r-select" onchange="this.form.submit()">
+      <option value="">Catégorie</option>
+      {% for val, label in categories %}
+        <option value="{{ val }}" {% if selected_cat == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="dest" class="r-select" onchange="this.form.submit()">
+      <option value="">Destination</option>
+      {% for val, label in destinations %}
+        <option value="{{ val }}" {% if selected_dest == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  <span class="r-count" id="r-count">{{ resources|length }} ressource{{ resources|length|pluralize }}</span>
+</div>
+
+<!-- ── GRILLE ── -->
+<div class="r-grid" id="r-grid">
+  {% for resource in resources %}
+  <article class="r-card" data-title="{{ resource.title|lower }}" data-cat="{{ resource.get_category_label|lower }}" data-dest="{{ resource.get_destination_label|lower }}">
+
+    <div class="r-card__cover">
+      {% if resource.cover_image %}
+        <img src="{{ resource.cover_image.url }}" alt="{{ resource.title }}">
+      {% else %}
+        <span class="r-card__icon">
+          {% if resource.resource_type == 'pdf' %}📄
+          {% elif resource.resource_type == 'xls' %}📊
+          {% elif resource.resource_type == 'doc' %}📝
+          {% elif resource.resource_type == 'zip' %}📦
           {% else %}📁{% endif %}
-        </div>
-        <div class="res-card__title">{{ r.title }}</div>
-      </div>
-
-      <p class="res-card__desc">{{ r.description }}</p>
-
-      <div class="res-card__badges">
-        <span class="res-badge res-badge--cat">{{ r.get_category_label }}</span>
-        <span class="res-badge res-badge--dest">📍 {{ r.get_destination_label }}</span>
-        {% if r.is_premium %}<span class="res-badge res-badge--premium">⭐ Premium</span>{% endif %}
-      </div>
-
-      <div class="res-card__footer">
-        <span class="res-card__size">
-          {% with size=r.get_file_size_display %}{% if size %}💾 {{ size }}{% endif %}{% endwith %}
         </span>
-        <div class="res-card__actions">
-          <button class="res-btn res-btn--prev" onclick="resPreview('{{ r.title|escapejs }}', '{{ r.get_category_label|escapejs }}', '{{ r.get_destination_label|escapejs }}', '{{ r.description|escapejs }}')">Aperçu</button>
-          {% if r.file %}
-            {% if r.is_premium and not user.is_authenticated %}
-              <button class="res-btn res-btn--dl" onclick="resToast()">⬇ Télécharger</button>
-            {% else %}
-              <a class="res-btn res-btn--dl" href="{% url 'resources:download' r.pk %}">⬇ Télécharger</a>
-            {% endif %}
-          {% else %}
-            <button class="res-btn res-btn--dl" onclick="resToast()">⬇ Télécharger</button>
-          {% endif %}
+      {% endif %}
+      <div class="r-shimmer"></div>
+      <span class="r-badge r-badge--type">{{ resource.resource_type|upper }}</span>
+      {% if resource.is_free %}
+        <span class="r-badge r-badge--free">GRATUIT</span>
+      {% elif resource.pk in purchased_ids or has_premium %}
+        <span class="r-badge r-badge--free">✓ Acquis</span>
+      {% elif resource.price_xaf %}
+        <span class="r-badge r-badge--paid">{{ resource.price_xaf|floatformat:0 }} XAF</span>
+      {% elif resource.is_premium %}
+        <span class="r-badge r-badge--premium">PREMIUM</span>
+      {% endif %}
+    </div>
+
+    <div class="r-card__body">
+      <div class="r-card__cat">{{ resource.get_category_label }}</div>
+      <h2 class="r-card__title">
+        <a href="{% url 'resources:detail' resource.pk %}">{{ resource.title }}</a>
+      </h2>
+      <p class="r-card__desc">{{ resource.description|truncatechars:115 }}</p>
+
+      <div class="r-card__meta">
+        <span class="r-card__dest">🌍 {{ resource.get_destination_label }}</span>
+        {% if resource.get_file_size_display %}<span class="r-card__size">{{ resource.get_file_size_display }}</span>{% endif %}
+        {% if resource.downloads %}<span class="r-card__dl">⬇ {{ resource.downloads }}</span>{% endif %}
+      </div>
+
+      <div class="r-card__footer">
+        <div class="r-card__price {% if resource.is_free %}r-card__price--free{% endif %}">
+          {% if resource.is_free %}Gratuit
+          {% elif resource.price_xaf %}{{ resource.price_xaf|floatformat:0 }} XAF{% if resource.price_eur %}<small>≈ {{ resource.price_eur }} €</small>{% endif %}
+          {% else %}Premium{% endif %}
         </div>
+
+        {% if resource.is_free %}
+          <a href="{% url 'resources:download' resource.pk %}" class="r-btn r-btn--gold">⬇ Télécharger</a>
+        {% elif resource.pk in purchased_ids or has_premium %}
+          <a href="{% url 'resources:download' resource.pk %}" class="r-btn r-btn--gold">⬇ Télécharger</a>
+        {% elif resource.price_xaf %}
+          <a href="{% url 'resources:detail' resource.pk %}" class="r-btn r-btn--ghost">Acheter →</a>
+        {% elif resource.is_premium %}
+          <a href="{% url 'billing:pricing' %}" class="r-btn r-btn--locked">🔒 Premium</a>
+        {% else %}
+          <a href="{% url 'resources:detail' resource.pk %}" class="r-btn r-btn--ghost">Voir →</a>
+        {% endif %}
       </div>
     </div>
-    {% endwith %}
-    {% empty %}
-    <div class="res-empty is-visible">
-      <div class="res-empty__icon">📂</div>
-      <h3>Aucune ressource pour le moment</h3>
-      <p>L'équipe prépare du contenu. Revenez bientôt !</p>
-    </div>
-    {% endfor %}
 
-  </div><!-- /res-grid -->
-</div><!-- /res-main -->
+  </article>
+  {% empty %}
+  <div class="r-empty">
+    <div class="r-empty__icon">📭</div>
+    <p>Aucune ressource pour ces filtres.</p>
+    <a href="{% url 'resources:library' %}">Voir toutes les ressources</a>
+  </div>
+  {% endfor %}
+</div>
 
-<!-- Toast -->
-<div id="resToast">🔒 Connectez-vous pour télécharger cette ressource</div>
+</div>{# /r-page #}
 
-{% endblock %}
-
-{% block extra_js %}
 <script>
-(function () {
-  const search   = document.getElementById('resSearch');
-  const filterBtns = document.querySelectorAll('.res-filter-btn');
-  const cards    = document.querySelectorAll('.res-card');
-  const counter  = document.getElementById('resVisibleCount');
-  const empty    = document.getElementById('resEmpty');
-  const toast    = document.getElementById('resToast');
-  let toastTimer = null;
-  let activeCat  = 'all';
-  let query      = '';
+(function(){
+  const inp = document.getElementById('r-search-input');
+  const grid = document.getElementById('r-grid');
+  const countEl = document.getElementById('r-count');
+  if(!inp) return;
 
-  function filter() {
+  inp.addEventListener('input', function(){
+    const q = this.value.toLowerCase().trim();
     let visible = 0;
-    cards.forEach(card => {
-      const catMatch = activeCat === 'all' || card.dataset.cat === activeCat;
-      const searchMatch = !query || card.dataset.search.includes(query);
-      if (catMatch && searchMatch) {
-        card.style.display = '';
-        visible++;
-      } else {
-        card.style.display = 'none';
-      }
+    grid.querySelectorAll('.r-card').forEach(function(card){
+      const match = !q ||
+        card.dataset.title.includes(q) ||
+        card.dataset.cat.includes(q) ||
+        card.dataset.dest.includes(q);
+      card.style.display = match ? '' : 'none';
+      if(match) visible++;
     });
-    counter.textContent = visible;
-    empty.classList.toggle('is-visible', visible === 0 && cards.length > 0);
-  }
-
-  filterBtns.forEach(btn => btn.addEventListener('click', () => {
-    filterBtns.forEach(b => b.classList.remove('is-active'));
-    btn.classList.add('is-active');
-    activeCat = btn.dataset.cat;
-    filter();
-  }));
-
-  search.addEventListener('input', e => {
-    query = e.target.value.toLowerCase().trim();
-    filter();
+    if(countEl) countEl.textContent = visible + ' ressource' + (visible !== 1 ? 's' : '');
   });
-
-  window.resToast = function () {
-    if (toastTimer) clearTimeout(toastTimer);
-    toast.classList.add('is-show');
-    toastTimer = setTimeout(() => toast.classList.remove('is-show'), 3200);
-  };
-
-  window.resPreview = function (title, cat, dest, desc) {
-    alert('Aperçu — ' + title + '\n\nCatégorie : ' + cat + '\nDestination : ' + dest + '\n\n' + desc);
-  };
 })();
 </script>
 {% endblock %}
