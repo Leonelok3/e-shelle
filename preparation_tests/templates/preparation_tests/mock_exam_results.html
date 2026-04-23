@@ -1,201 +1,174 @@
 {% extends "base.html" %}
 {% load static %}
 
-{# ==================================================
-   SCOPE STRICT APP
-================================================== #}
+{% block title %}Résultats examen blanc — {{ session.exam.name }} | Immigration97{% endblock %}
+{% block meta_description %}Résultats de ton examen blanc {{ session.exam.name }} : score, analyse et recommandations personnalisées Immigration97.{% endblock %}
+
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
 
-{# ==================================================
-   SEO — TITLE & META
-================================================== #}
-{% block title %}
-Résultats examen blanc – {{ session.exam.name }} | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Résultats de ton examen blanc {{ session.exam.name }} :
-score, analyse et recommandations personnalisées Immigration97.
-{% endblock %}
-
-{# ==================================================
-   CSS APP — VERSIONNÉ
-================================================== #}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260329">
+<style>
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);}
+
+.xr-breadcrumb{max-width:1080px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(255,255,255,.35);}
+.xr-breadcrumb a{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+.xr-breadcrumb a:hover{color:var(--h-gold-lt);}
+.xr-breadcrumb__sep{color:rgba(255,255,255,.18);}
+
+.xr-hero{max-width:1080px;margin:0 auto;padding:2rem 1.25rem 2.5rem;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.xr-hero__eyebrow{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--h-gold-lt);background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.25);border-radius:20px;padding:.3rem .85rem;margin-bottom:1.25rem;}
+
+.xr-score-ring{width:130px;height:130px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;}
+.xr-score-ring--good{background:conic-gradient(#10b981 var(--pct),rgba(255,255,255,.07) 0);box-shadow:0 0 0 6px rgba(16,185,129,.12);}
+.xr-score-ring--mid{background:conic-gradient(#f59e0b var(--pct),rgba(255,255,255,.07) 0);box-shadow:0 0 0 6px rgba(245,158,11,.12);}
+.xr-score-ring--low{background:conic-gradient(#ef4444 var(--pct),rgba(255,255,255,.07) 0);box-shadow:0 0 0 6px rgba(239,68,68,.12);}
+.xr-score-ring__inner{width:98px;height:98px;border-radius:50%;background:#0d1117;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.1rem;}
+.xr-score-ring__pct{font-size:1.6rem;font-weight:900;color:#fff;line-height:1;}
+.xr-score-ring__sub{font-size:.65rem;color:rgba(255,255,255,.35);font-weight:600;}
+
+.xr-hero__title{font-size:1.5rem;font-weight:900;color:#fff;margin:0 0 .25rem;}
+.xr-hero__section{font-size:.88rem;color:rgba(255,255,255,.4);margin:0 0 .6rem;}
+.xr-hero__eval{font-size:.9rem;color:rgba(255,255,255,.5);margin:0 0 1rem;}
+.xr-hero__date{font-size:.78rem;color:rgba(255,255,255,.3);}
+
+.xr-section{max-width:1080px;margin:0 auto 1.5rem;padding:0 1.25rem;}
+.xr-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:1.5rem;}
+.xr-card__title{font-size:.97rem;font-weight:800;color:#fff;margin:0 0 1.25rem;}
+
+.xr-table{width:100%;border-collapse:collapse;font-size:.87rem;}
+.xr-table tr{border-bottom:1px solid rgba(255,255,255,.06);}
+.xr-table tr:last-child{border-bottom:none;}
+.xr-table td{padding:.6rem .5rem;color:rgba(255,255,255,.6);}
+.xr-table td:first-child{font-weight:600;color:rgba(255,255,255,.5);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;width:45%;}
+.xr-score-pill{display:inline-flex;align-items:center;padding:.25rem .65rem;border-radius:6px;font-size:.85rem;font-weight:700;}
+.xr-score-pill--good{background:rgba(16,185,129,.12);color:#4ade80;}
+.xr-score-pill--mid{background:rgba(245,158,11,.12);color:#fbbf24;}
+.xr-score-pill--low{background:rgba(239,68,68,.12);color:#f87171;}
+
+.xr-pills{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem;}
+.xr-pill{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;font-weight:600;color:rgba(255,255,255,.5);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:.25rem .7rem;}
+
+.xr-actions{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;}
+.xr-actions__row{display:flex;gap:.65rem;flex-wrap:wrap;}
+.xr-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.15rem;border-radius:9px;font-size:.87rem;font-weight:700;text-decoration:none;transition:all .18s;}
+.xr-btn--gold{background:rgba(212,168,67,.15);border:1.5px solid rgba(212,168,67,.4);color:var(--h-gold-lt);}
+.xr-btn--gold:hover{background:rgba(212,168,67,.25);}
+.xr-btn--ghost{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);}
+.xr-btn--ghost:hover{background:rgba(255,255,255,.08);color:#fff;}
+
+@media(max-width:640px){
+  .xr-hero{text-align:left;align-items:flex-start;}
+}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<!-- ==================================================
-HERO — RÉSULTATS EXAMEN BLANC
-================================================== -->
-<section class="pt-hero pt-hero--result">
-  <div class="container pt-fade-up">
+<div class="xr-breadcrumb">
+  <a href="{% url 'preparation_tests:french_exams' %}">Tests de langue</a>
+  <span class="xr-breadcrumb__sep">›</span>
+  <a href="{% url 'preparation_tests:dashboard_global' %}">Ma progression</a>
+  <span class="xr-breadcrumb__sep">›</span>
+  <span>Résultats examen blanc</span>
+</div>
 
-    <span class="pt-badge pt-badge--result">
-      🧪 Résultats — Examen blanc
-    </span>
+<!-- HERO -->
+<div class="xr-hero">
+  <div class="xr-hero__eyebrow">🧪 Résultats — Examen blanc</div>
 
-    <h1 class="pt-title">
-      {{ session.exam.name }}
-      {% if session.section %}
-        <span class="pt-title-sub">— {{ session.section.code|upper }}</span>
-      {% endif %}
-    </h1>
-
-    {% include "preparation_tests/partials/_cefr_bar.html" %}
-
-    <p class="pt-lead">
-      Session du {{ session.started_at|date:"d/m/Y" }}
-      à {{ session.started_at|time:"H:i" }}
-    </p>
-
-  </div>
-</section>
-
-<!-- ==================================================
-SCORE GLOBAL
-================================================== -->
-<section class="pt-section">
-  <div class="container">
-
-    <article class="pt-card pt-card--score">
-
-      <div class="pt-score-circle">
-        <span>{{ score }}%</span>
-      </div>
-
-      <div class="pt-score-summary">
-        <p class="pt-score-line">
-          <strong>{{ correct }}</strong> bonne{{ correct|pluralize }} réponse{{ correct|pluralize }}
-          sur <strong>{{ total }}</strong>
-        </p>
-
-        <p class="pt-score-eval">
-          {% if score >= 80 %}
-            🚀 Excellent niveau — prêt pour l'examen officiel !
-          {% elif score >= 60 %}
-            💪 Bon niveau — quelques points à consolider
-          {% elif score >= 40 %}
-            📚 Niveau intermédiaire — poursuis l'entraînement
-          {% else %}
-            🧱 Bases à renforcer — retour aux fondamentaux conseillé
-          {% endif %}
-        </p>
-
-        <div class="pt-pill-row">
-          <span class="pt-pill">
-            Examen : {{ session.exam.name }}
-          </span>
-          <span class="pt-pill">
-            Mode : Examen blanc
-          </span>
-          {% if session.section %}
-          <span class="pt-pill">
-            Section : {{ session.section.code|upper }}
-          </span>
-          {% endif %}
-        </div>
-
-      </div>
-
-    </article>
-
-  </div>
-</section>
-
-<!-- ==================================================
-ANALYSE DETAILLÉE
-================================================== -->
-<section class="pt-section">
-  <div class="container">
-
-    <article class="pt-card">
-      <h2>📊 Détail de la session</h2>
-
-      <table class="pt-results-table">
-        <thead>
-          <tr>
-            <th>Métrique</th>
-            <th>Valeur</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Bonnes réponses</td>
-            <td>
-              <span class="pt-score-pill
-                {% if score >= 80 %}is-good
-                {% elif score >= 60 %}is-mid
-                {% else %}is-low{% endif %}">
-                {{ correct }} / {{ total }}
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td>Score global</td>
-            <td>
-              <span class="pt-score-pill
-                {% if score >= 80 %}is-good
-                {% elif score >= 60 %}is-mid
-                {% else %}is-low{% endif %}">
-                {{ score }}%
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td>Niveau CECR estimé</td>
-            <td>
-              {% if score < 40 %}A1–A2
-              {% elif score < 60 %}B1
-              {% elif score < 80 %}B2
-              {% else %}C1–C2{% endif %}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-    </article>
-
-  </div>
-</section>
-
-<!-- ==================================================
-ACTIONS UTILISATEUR
-================================================== -->
-<section class="pt-section pt-section--cta">
-  <div class="container text-center">
-
-    <div class="pt-cta-group">
-
-      <a
-        href="{% url "preparation_tests:session_result" session.id %}"
-        class="pt-btn-primary"
-      >
-        📋 Analyse complète
-      </a>
-
-      {% if session.section %}
-      <a
-        href="{% url "preparation_tests:start_mock_exam" session.exam.code session.section.code %}"
-        class="pt-btn-secondary"
-      >
-        🔄 Recommencer
-      </a>
-      {% endif %}
-
-      <a
-        href="{% url "preparation_tests:dashboard_global" %}"
-        class="pt-btn-ghost"
-      >
-        📊 Mon tableau de bord
-      </a>
-
+  <div class="xr-score-ring {% if score >= 80 %}xr-score-ring--good{% elif score >= 60 %}xr-score-ring--mid{% else %}xr-score-ring--low{% endif %}"
+       style="--pct:{{ score }}%;">
+    <div class="xr-score-ring__inner">
+      <span class="xr-score-ring__pct">{{ score }}%</span>
+      <span class="xr-score-ring__sub">{{ correct }}/{{ total }}</span>
     </div>
-
   </div>
-</section>
+
+  <h1 class="xr-hero__title">{{ session.exam.name }}</h1>
+  {% if session.section %}
+  <p class="xr-hero__section">Section : {{ session.section.code|upper }}</p>
+  {% endif %}
+
+  <p class="xr-hero__eval">
+    {% if score >= 80 %}🚀 Excellent niveau — prêt pour l'examen officiel !
+    {% elif score >= 60 %}💪 Bon niveau — quelques points à consolider
+    {% elif score >= 40 %}📚 Niveau intermédiaire — poursuis l'entraînement
+    {% else %}🧱 Bases à renforcer — retour aux fondamentaux conseillé
+    {% endif %}
+  </p>
+
+  <p class="xr-hero__date">Session du {{ session.started_at|date:"d/m/Y" }} à {{ session.started_at|time:"H:i" }}</p>
+
+  <div class="xr-pills">
+    <span class="xr-pill">Examen : {{ session.exam.name }}</span>
+    <span class="xr-pill">Mode : Examen blanc</span>
+    {% if session.section %}<span class="xr-pill">{{ session.section.code|upper }}</span>{% endif %}
+  </div>
+</div>
+
+<!-- DÉTAIL -->
+<div class="xr-section">
+  <div class="xr-card">
+    <div class="xr-card__title">📊 Détail de la session</div>
+    <table class="xr-table">
+      <tbody>
+        <tr>
+          <td>Bonnes réponses</td>
+          <td>
+            <span class="xr-score-pill {% if score >= 80 %}xr-score-pill--good{% elif score >= 60 %}xr-score-pill--mid{% else %}xr-score-pill--low{% endif %}">
+              {{ correct }} / {{ total }}
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>Score global</td>
+          <td>
+            <span class="xr-score-pill {% if score >= 80 %}xr-score-pill--good{% elif score >= 60 %}xr-score-pill--mid{% else %}xr-score-pill--low{% endif %}">
+              {{ score }}%
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>Niveau CECR estimé</td>
+          <td style="color:rgba(255,255,255,.7);">
+            {% if score < 40 %}A1–A2
+            {% elif score < 60 %}B1
+            {% elif score < 80 %}B2
+            {% else %}C1–C2{% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td>Examen</td>
+          <td style="color:rgba(255,255,255,.7);">{{ session.exam.name }}</td>
+        </tr>
+        {% if session.section %}
+        <tr>
+          <td>Section</td>
+          <td style="color:rgba(255,255,255,.7);">{{ session.section.code|upper }}</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ACTIONS -->
+<div class="xr-actions">
+  <div class="xr-actions__row">
+    <a href="{% url 'preparation_tests:session_result' session.id %}" class="xr-btn xr-btn--gold">
+      📋 Analyse complète
+    </a>
+    {% if session.section %}
+    <a href="{% url 'preparation_tests:start_mock_exam' session.exam.code session.section.code %}" class="xr-btn xr-btn--ghost">
+      🔄 Recommencer
+    </a>
+    {% endif %}
+    <a href="{% url 'preparation_tests:dashboard_global' %}" class="xr-btn xr-btn--ghost">
+      📊 Mon tableau de bord
+    </a>
+  </div>
+</div>
 
 {% endblock %}

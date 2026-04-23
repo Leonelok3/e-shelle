@@ -1,165 +1,189 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}Mon historique — Examens blancs CECR | Immigration97{% endblock %}
+{% block meta_description %}Consulte l'historique de tes examens blancs par niveau CECR (A1→C2) et visualise ta progression sur Immigration97.{% endblock %}
+
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
 
-{% block title %}
-Mon historique — Examens blancs CECR | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Consulte l'historique de tes examens blancs par niveau CECR (A1→C2)
-et visualise ta progression sur Immigration97.
-{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260329">
+<style>
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);}
+
+.mh-breadcrumb{max-width:1080px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(255,255,255,.35);}
+.mh-breadcrumb a{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+.mh-breadcrumb a:hover{color:var(--h-gold-lt);}
+.mh-breadcrumb__sep{color:rgba(255,255,255,.18);}
+
+.mh-hero{max-width:1080px;margin:0 auto;padding:2rem 1.25rem 2.5rem;}
+.mh-hero__eyebrow{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--h-gold-lt);background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.25);border-radius:20px;padding:.3rem .85rem;margin-bottom:1rem;}
+.mh-hero h1{font-size:2rem;font-weight:900;color:#fff;margin:0 0 .6rem;line-height:1.2;}
+.mh-hero h1 span{color:var(--h-gold-lt);}
+.mh-hero__lead{font-size:.9rem;color:rgba(255,255,255,.5);max-width:560px;line-height:1.7;margin:0 0 1.25rem;}
+.mh-hero__nav{display:flex;gap:.65rem;flex-wrap:wrap;}
+.mh-hero__nav a{display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700;padding:.55rem 1.1rem;border-radius:9px;text-decoration:none;transition:all .18s;}
+.mh-btn-primary{background:rgba(212,168,67,.15);border:1.5px solid rgba(212,168,67,.4);color:var(--h-gold-lt);}
+.mh-btn-primary:hover{background:rgba(212,168,67,.25);}
+.mh-btn-ghost{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);}
+.mh-btn-ghost:hover{background:rgba(255,255,255,.08);color:#fff;}
+
+.mh-section{max-width:1080px;margin:0 auto 2rem;padding:0 1.25rem;}
+.mh-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:1.5rem;}
+.mh-card__title{font-size:1rem;font-weight:800;color:#fff;margin:0 0 1.25rem;}
+
+.mh-chart-wrap{position:relative;height:300px;}
+
+.mh-chart-note{font-size:.75rem;color:rgba(255,255,255,.3);margin-top:.75rem;}
+
+.mh-table-wrap{overflow-x:auto;}
+.mh-table{width:100%;border-collapse:collapse;font-size:.85rem;}
+.mh-table thead tr{border-bottom:1.5px solid rgba(255,255,255,.1);}
+.mh-table th{padding:.6rem .85rem;text-align:left;font-size:.75rem;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
+.mh-table th.center{text-align:center;}
+.mh-table tbody tr{border-bottom:1px solid rgba(255,255,255,.05);transition:background .15s;}
+.mh-table tbody tr:hover{background:rgba(255,255,255,.03);}
+.mh-table td{padding:.55rem .85rem;color:rgba(255,255,255,.7);vertical-align:middle;}
+.mh-table td.center{text-align:center;}
+
+.mh-level-badge{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;font-size:.82rem;font-weight:900;color:#fff;}
+.mh-level-badge--a1{background:rgba(16,185,129,.2);border:1.5px solid rgba(16,185,129,.5);}
+.mh-level-badge--a2{background:rgba(34,197,94,.2);border:1.5px solid rgba(34,197,94,.5);}
+.mh-level-badge--b1{background:rgba(234,179,8,.2);border:1.5px solid rgba(234,179,8,.5);}
+.mh-level-badge--b2{background:rgba(245,158,11,.2);border:1.5px solid rgba(245,158,11,.5);}
+.mh-level-badge--c1{background:rgba(239,68,68,.2);border:1.5px solid rgba(239,68,68,.5);}
+.mh-level-badge--c2{background:rgba(168,85,247,.2);border:1.5px solid rgba(168,85,247,.5);}
+
+.mh-score-pill{display:inline-flex;align-items:center;padding:.2rem .6rem;border-radius:6px;font-size:.82rem;font-weight:700;}
+.mh-score-pill--good{background:rgba(16,185,129,.12);color:#4ade80;}
+.mh-score-pill--mid{background:rgba(245,158,11,.12);color:#fbbf24;}
+.mh-score-pill--low{background:rgba(239,68,68,.12);color:#f87171;}
+
+.mh-empty{text-align:center;padding:3rem 1rem;}
+.mh-empty__icon{font-size:2.5rem;margin-bottom:.75rem;}
+.mh-empty__text{font-size:.9rem;color:rgba(255,255,255,.4);margin-bottom:1.25rem;}
+
+.mh-bottom{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;}
+
+@media(max-width:640px){.mh-hero h1{font-size:1.6rem;}}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<!-- HERO -->
-<section class="pt-hero">
-  <div class="container pt-fade-up">
+<div class="mh-breadcrumb">
+  <a href="{% url 'preparation_tests:french_exams' %}">Tests de langue</a>
+  <span class="mh-breadcrumb__sep">›</span>
+  <a href="{% url 'preparation_tests:level_mock_hub' %}">Examen blanc</a>
+  <span class="mh-breadcrumb__sep">›</span>
+  <span>Mon historique</span>
+</div>
 
-    <span class="pt-badge pt-badge--exam">
-      📊 Progression
-    </span>
-
-    <h1 class="pt-title">
-      Mon historique
-      <span class="pt-gradient-primary">examens blancs</span>
-    </h1>
-
-    <p class="pt-lead">
-      {% if total_count %}
-        <strong>{{ total_count }}</strong> examen{{ total_count|pluralize }} blanc{{ total_count|pluralize }}
-        passé{{ total_count|pluralize }}.
-        Le graphe ci-dessous montre l'évolution de ton score global par niveau CECR.
-      {% else %}
-        Tu n'as pas encore passé d'examen blanc.
-      {% endif %}
-    </p>
-
-    <div class="pt-cta-group" style="margin-top:1.2rem;">
-      <a href="{% url "preparation_tests:level_mock_hub" %}" class="pt-btn-primary">
-        🧪 Nouvel examen blanc
-      </a>
-      <a href="{% url "preparation_tests:dashboard_global" %}" class="pt-btn-ghost">
-        📊 Tableau de bord
-      </a>
-    </div>
-
+<div class="mh-hero">
+  <div class="mh-hero__eyebrow">📊 Progression</div>
+  <h1>Mon historique <span>examens blancs</span></h1>
+  <p class="mh-hero__lead">
+    {% if total_count %}
+      <strong>{{ total_count }}</strong> examen{{ total_count|pluralize }} blanc{{ total_count|pluralize }} passé{{ total_count|pluralize }}.
+      Le graphe montre l'évolution de ton score global par niveau CECR.
+    {% else %}
+      Tu n'as pas encore passé d'examen blanc. Lance-toi !
+    {% endif %}
+  </p>
+  <div class="mh-hero__nav">
+    <a href="{% url 'preparation_tests:level_mock_hub' %}" class="mh-hero__nav mh-btn-primary">🧪 Nouvel examen blanc</a>
+    <a href="{% url 'preparation_tests:dashboard_global' %}" class="mh-hero__nav mh-btn-ghost">📊 Tableau de bord</a>
   </div>
-</section>
+</div>
 
-<!-- GRAPHE PROGRESSION -->
+<!-- GRAPHE -->
 {% if total_count %}
-<section class="pt-section">
-  <div class="container">
-    <article class="pt-card">
-
-      <h2 style="margin-bottom:1.25rem;">📈 Courbe de progression</h2>
-
-      {{ chart_datasets_json|json_script:"chart-data" }}
-
-      <div style="position:relative; height:300px;">
-        <canvas id="mockProgressChart"></canvas>
-      </div>
-
-      <p class="pt-small" style="margin-top:.75rem; opacity:.6;">
-        Axe Y : score global CO + CE (0–100%). Une ligne par niveau CECR.
-      </p>
-
-    </article>
+<div class="mh-section">
+  <div class="mh-card">
+    <div class="mh-card__title">📈 Courbe de progression</div>
+    {{ chart_datasets_json|json_script:"chart-data" }}
+    <div class="mh-chart-wrap">
+      <canvas id="mockProgressChart"></canvas>
+    </div>
+    <p class="mh-chart-note">Axe Y : score global CO + CE (0–100 %). Une courbe par niveau CECR.</p>
   </div>
-</section>
+</div>
 {% endif %}
 
-<!-- TABLEAU HISTORIQUE -->
-<section class="pt-section">
-  <div class="container">
-    <article class="pt-card">
+<!-- TABLEAU -->
+<div class="mh-section">
+  <div class="mh-card">
+    <div class="mh-card__title">📋 Détail des passages</div>
 
-      <h2 style="margin-bottom:1.25rem;">📋 Détail des passages</h2>
+    {% if results %}
+    <div class="mh-table-wrap">
+      <table class="mh-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th class="center">Niveau</th>
+            <th class="center">CO</th>
+            <th class="center">CE</th>
+            <th class="center">Score global</th>
+            <th class="center">CECR estimé</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+          <tr>
+            <td style="color:rgba(255,255,255,.45);font-size:.8rem;white-space:nowrap;">
+              {{ r.taken_at|date:"d/m/Y H:i" }}
+            </td>
+            <td class="center">
+              <span class="mh-level-badge mh-level-badge--{{ r.level|lower }}">{{ r.level }}</span>
+            </td>
+            <td class="center" style="font-size:.82rem;">
+              {% if r.score_co is not None %}
+                {{ r.co_correct }}/{{ r.co_total }}
+                <span style="opacity:.5;">({{ r.score_co }}%)</span>
+              {% else %}—{% endif %}
+            </td>
+            <td class="center" style="font-size:.82rem;">
+              {% if r.score_ce is not None %}
+                {{ r.ce_correct }}/{{ r.ce_total }}
+                <span style="opacity:.5;">({{ r.score_ce }}%)</span>
+              {% else %}—{% endif %}
+            </td>
+            <td class="center">
+              {% if r.score_global is not None %}
+              <span class="mh-score-pill {% if r.score_global >= 80 %}mh-score-pill--good{% elif r.score_global >= 60 %}mh-score-pill--mid{% else %}mh-score-pill--low{% endif %}">
+                {{ r.score_global }}%
+              </span>
+              {% else %}—{% endif %}
+            </td>
+            <td class="center" style="font-size:.82rem;color:rgba(255,255,255,.5);">
+              {{ r.cefr_estimate|default:"—" }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
-      {% if results %}
-      <div style="overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse; font-size:.88rem;">
-          <thead>
-            <tr style="border-bottom:2px solid rgba(255,255,255,.1); text-align:left;">
-              <th style="padding:.6rem .75rem;">Date</th>
-              <th style="padding:.6rem .75rem; text-align:center;">Niveau</th>
-              <th style="padding:.6rem .75rem; text-align:center;">CO</th>
-              <th style="padding:.6rem .75rem; text-align:center;">CE</th>
-              <th style="padding:.6rem .75rem; text-align:center;">Score global</th>
-              <th style="padding:.6rem .75rem; text-align:center;">CECR estimé</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for r in results %}
-            <tr style="border-bottom:1px solid rgba(255,255,255,.06);">
+    {% else %}
+    <div class="mh-empty">
+      <div class="mh-empty__icon">📋</div>
+      <p class="mh-empty__text">Aucun examen blanc enregistré pour l'instant.</p>
+      <a href="{% url 'preparation_tests:level_mock_hub' %}" class="mh-hero__nav mh-btn-primary" style="display:inline-flex;padding:.6rem 1.2rem;border-radius:9px;font-size:.87rem;font-weight:700;text-decoration:none;">
+        ▶ Commencer un examen blanc
+      </a>
+    </div>
+    {% endif %}
 
-              <td style="padding:.55rem .75rem; opacity:.7;">
-                {{ r.taken_at|date:"d/m/Y H:i" }}
-              </td>
-
-              <td style="padding:.55rem .75rem; text-align:center;">
-                <span class="pt-level-badge pt-level-{{ r.level|lower }}">
-                  {{ r.level }}
-                </span>
-              </td>
-
-              <td style="padding:.55rem .75rem; text-align:center;">
-                {% if r.score_co is not None %}
-                  {{ r.co_correct }}/{{ r.co_total }}
-                  <span style="opacity:.6;">({{ r.score_co }}%)</span>
-                {% else %}—{% endif %}
-              </td>
-
-              <td style="padding:.55rem .75rem; text-align:center;">
-                {% if r.score_ce is not None %}
-                  {{ r.ce_correct }}/{{ r.ce_total }}
-                  <span style="opacity:.6;">({{ r.score_ce }}%)</span>
-                {% else %}—{% endif %}
-              </td>
-
-              <td style="padding:.55rem .75rem; text-align:center; font-weight:700; font-size:1rem;">
-                {% if r.score_global is not None %}
-                  <span style="color:
-                    {% if r.score_global >= 80 %}#2ecc71
-                    {% elif r.score_global >= 60 %}#f59e0b
-                    {% else %}#e74c3c{% endif %};">
-                    {{ r.score_global }}%
-                  </span>
-                {% else %}—{% endif %}
-              </td>
-
-              <td style="padding:.55rem .75rem; text-align:center; opacity:.75;">
-                {{ r.cefr_estimate|default:"—" }}
-              </td>
-
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-      {% else %}
-      <div style="text-align:center; padding:2rem 0;">
-        <p style="opacity:.7; margin-bottom:1.25rem;">
-          Aucun examen blanc enregistré pour l'instant.
-        </p>
-        <a href="{% url "preparation_tests:level_mock_hub" %}" class="pt-btn-primary">
-          ▶ Commencer un examen blanc
-        </a>
-      </div>
-      {% endif %}
-
-    </article>
   </div>
-</section>
+</div>
+
+<div class="mh-bottom">
+  <a href="{% url 'preparation_tests:level_mock_hub' %}" class="mh-hero__nav mh-btn-ghost" style="display:inline-flex;padding:.55rem 1.1rem;border-radius:9px;font-size:.85rem;font-weight:700;text-decoration:none;">
+    ← Retour aux niveaux
+  </a>
+</div>
 
 {% endblock %}
 

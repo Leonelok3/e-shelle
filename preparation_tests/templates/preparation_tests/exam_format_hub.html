@@ -1,201 +1,182 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}Examen blanc {{ cfg.name }} — Choisir le niveau | Immigration97{% endblock %}
+{% block meta_description %}Examen blanc format officiel {{ cfg.name }} : timing réel, score officiel. Sélectionne ton niveau CECR.{% endblock %}
+
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
 
-{% block title %}
-Examen blanc {{ cfg.name }} — Choisir le niveau | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Examen blanc format officiel {{ cfg.name }} : timing réel, score officiel et correction IA.
-Sélectionne ton niveau CECR et commence la simulation.
-{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260329">
+<style>
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);}
+
+.ef-breadcrumb{max-width:1080px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(255,255,255,.35);}
+.ef-breadcrumb a{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+.ef-breadcrumb a:hover{color:var(--h-gold-lt);}
+.ef-breadcrumb__sep{color:rgba(255,255,255,.18);}
+
+.ef-hero{max-width:1080px;margin:0 auto;padding:2rem 1.25rem 2.5rem;}
+.ef-hero__eyebrow{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--h-gold-lt);background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.25);border-radius:20px;padding:.3rem .85rem;margin-bottom:1rem;}
+.ef-hero h1{font-size:2rem;font-weight:900;color:#fff;margin:0 0 .6rem;line-height:1.2;}
+.ef-hero h1 span{color:var(--h-gold-lt);}
+.ef-hero__lead{font-size:.9rem;color:rgba(255,255,255,.5);max-width:540px;line-height:1.7;margin:0 0 1rem;}
+.ef-hero__badges{display:flex;gap:.5rem;flex-wrap:wrap;}
+.ef-hero__badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;font-weight:600;color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:.25rem .7rem;}
+
+.ef-section{max-width:1080px;margin:0 auto 2rem;padding:0 1.25rem;}
+
+.ef-lock-banner{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.35);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem;font-size:.87rem;color:rgba(255,255,255,.75);}
+.ef-lock-banner a{color:#fbbf24;font-weight:700;text-decoration:none;margin-left:.5rem;}
+.ef-lock-banner a:hover{text-decoration:underline;}
+
+.ef-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;margin-bottom:1.5rem;}
+.ef-level-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:1.35rem 1.5rem;display:flex;flex-direction:column;gap:.85rem;transition:transform .2s,border-color .2s;}
+.ef-level-card:not(.ef-level-card--disabled):hover{transform:translateY(-3px);border-color:rgba(212,168,67,.3);}
+.ef-level-card--disabled{opacity:.5;}
+
+.ef-level-badge{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:11px;font-size:1rem;font-weight:900;color:#fff;flex-shrink:0;}
+.ef-level-badge--a1{background:rgba(16,185,129,.2);border:1.5px solid rgba(16,185,129,.4);}
+.ef-level-badge--a2{background:rgba(34,197,94,.2);border:1.5px solid rgba(34,197,94,.4);}
+.ef-level-badge--b1{background:rgba(234,179,8,.2);border:1.5px solid rgba(234,179,8,.4);}
+.ef-level-badge--b2{background:rgba(245,158,11,.2);border:1.5px solid rgba(245,158,11,.4);}
+.ef-level-badge--c1{background:rgba(239,68,68,.2);border:1.5px solid rgba(239,68,68,.4);}
+.ef-level-badge--c2{background:rgba(168,85,247,.2);border:1.5px solid rgba(168,85,247,.4);}
+
+.ef-level-card__header{display:flex;align-items:center;gap:.75rem;}
+.ef-level-card__name{font-size:1rem;font-weight:800;color:#fff;}
+.ef-level-card__counts{font-size:.78rem;color:rgba(255,255,255,.4);display:flex;gap:.85rem;flex-wrap:wrap;}
+.ef-level-card__counts span{display:flex;align-items:center;gap:.3rem;}
+
+.ef-btn-start{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.65rem;border-radius:10px;font-size:.87rem;font-weight:700;text-decoration:none;background:rgba(212,168,67,.15);border:1.5px solid rgba(212,168,67,.4);color:var(--h-gold-lt);transition:all .18s;}
+.ef-btn-start:hover{background:rgba(212,168,67,.25);}
+.ef-btn-locked{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.65rem;border-radius:10px;font-size:.87rem;font-weight:700;text-decoration:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45);transition:all .18s;}
+.ef-btn-locked:hover{background:rgba(255,255,255,.08);}
+.ef-btn-pending{display:inline-flex;align-items:center;justify-content:center;font-size:.82rem;width:100%;padding:.65rem;border-radius:10px;color:rgba(255,255,255,.3);background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.1);cursor:default;}
+
+.ef-nav{display:flex;gap:.75rem;flex-wrap:wrap;}
+.ef-nav-btn{display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700;padding:.55rem 1.1rem;border-radius:9px;text-decoration:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);transition:all .18s;}
+.ef-nav-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
+
+.ef-info{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;}
+.ef-info-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:1.25rem;}
+.ef-info-card h3{font-size:.85rem;font-weight:800;color:#fff;margin:0 0 .75rem;}
+.ef-info-card ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.35rem;}
+.ef-info-card li{font-size:.78rem;color:rgba(255,255,255,.5);padding-left:.8rem;position:relative;}
+.ef-info-card li::before{content:"›";position:absolute;left:0;color:var(--h-gold-lt);}
+
+@media(max-width:640px){.ef-hero h1{font-size:1.6rem;}.ef-grid{grid-template-columns:1fr;}}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<!-- HERO -->
-<section class="pt-hero">
-  <div class="container pt-fade-up">
+<div class="ef-breadcrumb">
+  <a href="{% url 'preparation_tests:french_exams' %}">Tests de langue</a>
+  <span class="ef-breadcrumb__sep">›</span>
+  <a href="{% if exam_code == 'tef' %}{% url 'preparation_tests:tef_hub' %}{% elif exam_code == 'tcf' %}{% url 'preparation_tests:tcf_hub' %}{% else %}{% url 'preparation_tests:french_exams' %}{% endif %}">{{ exam_code|upper }}</a>
+  <span class="ef-breadcrumb__sep">›</span>
+  <span>Examen blanc</span>
+</div>
 
-    <span class="pt-badge">
-      {{ cfg.badge }}
-    </span>
-
-    <h1 class="pt-title">
-      Examen blanc <span class="pt-gradient-primary">{{ cfg.name }}</span>
-    </h1>
-
-    <p class="pt-lead">
-      Simule les <strong>conditions réelles</strong> de l'examen avec
-      le format officiel, le timing précis et un score calculé selon les barèmes authentiques.
-    </p>
-
-    <div class="pt-badges" role="list" aria-label="Avantages">
-      <span class="pt-badge pt-badge--soft" role="listitem">⏱ Timing officiel</span>
-      <span class="pt-badge pt-badge--soft" role="listitem">📊 Score {{ cfg.name }}</span>
-      <span class="pt-badge pt-badge--soft" role="listitem">🤖 Correction IA (EE/EO)</span>
-    </div>
-
+<div class="ef-hero">
+  <div class="ef-hero__eyebrow">🧪 Examen blanc {{ cfg.name }}</div>
+  <h1>Examen blanc <span>{{ cfg.name }}</span></h1>
+  <p class="ef-hero__lead">Simule les conditions réelles de l'examen avec le format officiel, le timing précis et un score calculé selon les barèmes authentiques.</p>
+  <div class="ef-hero__badges">
+    <span class="ef-hero__badge">⏱ Timing officiel</span>
+    <span class="ef-hero__badge">📊 Score {{ cfg.name }}</span>
+    <span class="ef-hero__badge">🤖 Correction IA (EE/EO)</span>
   </div>
-</section>
+</div>
 
-<!-- SÉLECTION DU NIVEAU -->
-<section class="pt-section">
-  <div class="container">
+<div class="ef-section">
 
-    {% if not has_premium and not has_temp_access %}
-    <div style="
-      background:rgba(245,158,11,.1);
-      border:1px solid #f59e0b;
-      border-radius:8px;
-      padding:.9rem 1.25rem;
-      margin-bottom:1.25rem;
-      font-size:.92rem;
-    ">
-      🔒 Les examens blancs format officiel sont réservés aux abonnés Premium.
-      <a href="{% url 'billing:access' %}"
-         style="color:#f59e0b; font-weight:600; margin-left:.5rem;">
-        → Activer mon accès Premium
-      </a>
-    </div>
-    {% endif %}
+  {% if not has_premium and not has_temp_access %}
+  <div class="ef-lock-banner">
+    🔒 Les examens blancs format officiel sont réservés aux abonnés Premium.
+    <a href="{% url 'billing:access' %}">→ Activer mon accès Premium</a>
+  </div>
+  {% endif %}
 
-    <div class="pt-grid-layout">
-
-      <!-- MAIN -->
-      <div class="pt-main">
-
-        <article class="pt-card">
-          <h2>Choisir le niveau</h2>
-          <p class="pt-card-meta" style="margin-bottom:1.5rem;">
-            {{ cfg.note }}
-          </p>
-
-          <div class="pt-level-grid" style="margin-top:1rem;">
-            {% for ld in levels_data %}
-            <div class="pt-level-card{% if not ld.can_start %}" style="opacity:.55{% endif %}">
-              <span class="pt-level-badge pt-level-{{ ld.level|lower }}">{{ ld.level }}</span>
-
-              <div style="margin:.5rem 0; font-size:.82rem; color:rgba(255,255,255,.6);">
-                🎧 {{ ld.co_exercises }} ex. CO &nbsp;·&nbsp; 📖 {{ ld.ce_exercises }} ex. CE
-              </div>
-
-              {% if ld.can_start %}
-                {% if has_premium or has_temp_access %}
-                <a
-                  href="{% url "preparation_tests:exam_format_exam" exam_code ld.level %}"
-                  class="pt-btn-primary"
-                  style="font-size:.85rem; margin-top:.5rem;"
-                  aria-label="Démarrer l'examen blanc {{ cfg.name }} niveau {{ ld.level }}"
-                >
-                  ▶ Démarrer {{ ld.level }}
-                </a>
-                {% else %}
-                <a
-                  href="{% url 'billing:access' %}?next={% url 'preparation_tests:exam_format_exam' exam_code ld.level %}"
-                  class="pt-btn-primary"
-                  style="font-size:.85rem; margin-top:.5rem;"
-                  aria-label="Accès Premium requis pour {{ cfg.name }} niveau {{ ld.level }}"
-                >
-                  🔒 Premium — {{ ld.level }}
-                </a>
-                {% endif %}
-              {% else %}
-                <span
-                  class="pt-btn-ghost"
-                  style="font-size:.82rem; cursor:not-allowed; opacity:.5; margin-top:.5rem; display:inline-block;"
-                >
-                  ⏳ Contenu en préparation
-                </span>
-              {% endif %}
-            </div>
-            {% empty %}
-            <p class="pt-empty">Aucun niveau configuré pour cet examen.</p>
-            {% endfor %}
+  <div class="ef-grid">
+    {% for ld in levels_data %}
+    <div class="ef-level-card{% if not ld.can_start %} ef-level-card--disabled{% endif %}">
+      <div class="ef-level-card__header">
+        <div class="ef-level-badge ef-level-badge--{{ ld.level|lower }}">{{ ld.level }}</div>
+        <div>
+          <div class="ef-level-card__name">Niveau {{ ld.level }}</div>
+          <div class="ef-level-card__counts">
+            <span>🎧 {{ ld.co_exercises }} CO</span>
+            <span>📖 {{ ld.ce_exercises }} CE</span>
           </div>
-        </article>
-
-        <!-- LIENS RETOUR -->
-        <div class="pt-cta-group" style="margin-top:1rem;">
-          <a href="{% url "preparation_tests:level_mock_hub" %}" class="pt-btn-ghost">
-            📋 Examen blanc par niveau CECR
-          </a>
-          <a href="{% url "preparation_tests:dashboard_global" %}" class="pt-btn-secondary">
-            📊 Ma progression
-          </a>
         </div>
-
       </div>
-
-      <!-- SIDEBAR -->
-      <aside class="pt-side">
-
-        <div class="pt-card pt-card--side">
-          <h3>Format {{ cfg.name }}</h3>
-          <p class="pt-card-meta" style="font-size:.88rem;">{{ cfg.note }}</p>
-        </div>
-
-        {% if exam_code == "tef" %}
-        <div class="pt-card pt-card--side" style="margin-top:1rem;">
-          <h3>Barème TEF (0–450)</h3>
-          <ul class="pt-side-list">
-            <li>A1 : 0 – 180</li>
-            <li>A2 : 181 – 241</li>
-            <li>B1 : 242 – 303</li>
-            <li>B2 : 304 – 365</li>
-            <li>C1 : 366 – 416</li>
-            <li>C2 : 417 – 450</li>
-          </ul>
-        </div>
-
-        {% elif exam_code == "tcf" %}
-        <div class="pt-card pt-card--side" style="margin-top:1rem;">
-          <h3>Barème TCF (0–699)</h3>
-          <ul class="pt-side-list">
-            <li>A1 : 0 – 225</li>
-            <li>A2 : 226 – 299</li>
-            <li>B1 : 300 – 399</li>
-            <li>B2 : 400 – 499</li>
-            <li>C1 : 500 – 588</li>
-            <li>C2 : 589 – 699</li>
-          </ul>
-        </div>
-
-        {% elif exam_code == "delf" or exam_code == "dalf" %}
-        <div class="pt-card pt-card--side" style="margin-top:1rem;">
-          <h3>Barème {{ cfg.name }}</h3>
-          <ul class="pt-side-list">
-            <li>4 épreuves × 25 pts</li>
-            <li>Total : 100 pts</li>
-            <li>Seuil : 50/100 global</li>
-            <li>Min. 5/25 par épreuve</li>
-          </ul>
-          <p class="pt-card-meta" style="font-size:.82rem; margin-top:.5rem;">
-            CO + CE auto-notés. EE + EO évalués par IA.
-          </p>
-        </div>
+      {% if ld.can_start %}
+        {% if has_premium or has_temp_access %}
+        <a href="{% url 'preparation_tests:exam_format_exam' exam_code ld.level %}" class="ef-btn-start">▶ Démarrer {{ ld.level }}</a>
+        {% else %}
+        <a href="{% url 'billing:access' %}?next={% url 'preparation_tests:exam_format_exam' exam_code ld.level %}" class="ef-btn-locked">🔒 Premium — {{ ld.level }}</a>
         {% endif %}
-
-        <div class="pt-card pt-card--side" style="margin-top:1rem;">
-          <h3>Conseils</h3>
-          <ul class="pt-side-list">
-            <li>Prépare-toi dans un endroit calme</li>
-            <li>Respecte le temps imparti</li>
-            <li>Ne consulte pas tes notes</li>
-            <li>Parle à voix haute pour l'EO</li>
-          </ul>
-        </div>
-
-      </aside>
-
+      {% else %}
+      <div class="ef-btn-pending">⏳ Contenu en préparation</div>
+      {% endif %}
     </div>
+    {% empty %}
+    <div style="padding:2rem;text-align:center;color:rgba(255,255,255,.3);">Aucun niveau configuré.</div>
+    {% endfor %}
   </div>
-</section>
+
+  <div class="ef-nav">
+    <a href="{% url 'preparation_tests:level_mock_hub' %}" class="ef-nav-btn">📋 Examen blanc par niveau CECR</a>
+    <a href="{% url 'preparation_tests:dashboard_global' %}" class="ef-nav-btn">📊 Ma progression</a>
+  </div>
+</div>
+
+<div class="ef-info">
+  <div class="ef-info-card">
+    <h3>Format {{ cfg.name }}</h3>
+    <ul>
+      {% if exam_code == "tef" %}
+      <li>CO : questions audio QCM</li>
+      <li>CE : textes + QCM</li>
+      <li>EO : prise de parole guidée</li>
+      <li>EE : rédaction corrigée IA</li>
+      {% elif exam_code == "tcf" %}
+      <li>29 CO + 29 CE — 70 min</li>
+      <li>EO et EE optionnels</li>
+      <li>Score 0–699</li>
+      {% else %}
+      <li>4 épreuves × 25 pts</li>
+      <li>Total : 100 pts</li>
+      <li>Seuil : 50/100</li>
+      {% endif %}
+    </ul>
+  </div>
+  <div class="ef-info-card">
+    <h3>Barème {{ cfg.name }}</h3>
+    <ul>
+      {% if exam_code == "tef" %}
+      <li>A1 : 0–180</li><li>A2 : 181–241</li><li>B1 : 242–303</li>
+      <li>B2 : 304–365</li><li>C1 : 366–416</li><li>C2 : 417–450</li>
+      {% elif exam_code == "tcf" %}
+      <li>A1 : 0–225</li><li>A2 : 226–299</li><li>B1 : 300–399</li>
+      <li>B2 : 400–499</li><li>C1 : 500–588</li><li>C2 : 589–699</li>
+      {% else %}
+      <li>Min. 5/25 par épreuve</li><li>Global : 50/100 pour valider</li>
+      {% endif %}
+    </ul>
+  </div>
+  <div class="ef-info-card">
+    <h3>Conseils</h3>
+    <ul>
+      <li>Endroit calme, casque recommandé</li>
+      <li>Respecte le temps imparti</li>
+      <li>Ne consulte pas tes notes</li>
+      <li>Parle clairement pour l'EO</li>
+    </ul>
+  </div>
+</div>
 
 {% endblock %}

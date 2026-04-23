@@ -54,6 +54,7 @@ def rate_limit_redeem(request, limit=5, window_seconds=60):
 # =============================================================================
 
 def pricing(request):
+    from django.conf import settings as django_settings
     candidate_plans = SubscriptionPlan.objects.filter(
         is_active=True, plan_type="candidate"
     ).order_by("order", "duration_days")
@@ -62,12 +63,14 @@ def pricing(request):
     ).order_by("order")
 
     has_active_sub = request.user.is_authenticated and has_active_access(request.user)
+    notchpay_available = bool(getattr(django_settings, "NOTCHPAY_PUBLIC_KEY", ""))
 
     return render(request, "billing/pricing.html", {
         "candidate_plans": candidate_plans,
         "recruiter_plans": recruiter_plans,
-        "plans": candidate_plans,  # compat anciens templates
+        "plans": candidate_plans,
         "has_active_sub": has_active_sub,
+        "notchpay_available": notchpay_available,
         "next": request.GET.get("next", ""),
     })
 

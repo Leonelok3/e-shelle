@@ -1,303 +1,241 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}Examen blanc Niveau {{ level }} | Immigration97{% endblock %}
+{% block meta_description %}Examen blanc niveau {{ level }} : CO, CE, EO et EE. Résultats instantanés avec Immigration97.{% endblock %}
+
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
 
-{% block title %}
-Examen blanc Niveau {{ level }} | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Examen blanc niveau {{ level }} : compréhension orale, compréhension écrite,
-expression orale et écrite. Résultats instantanés avec Immigration97.
-{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260329">
+<style>
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);}
+
+.me-breadcrumb{max-width:1080px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(255,255,255,.35);}
+.me-breadcrumb a{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+.me-breadcrumb a:hover{color:var(--h-gold-lt);}
+.me-breadcrumb__sep{color:rgba(255,255,255,.18);}
+
+.me-hero{max-width:1080px;margin:0 auto;padding:1.5rem 1.25rem 2rem;}
+.me-hero__eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--h-gold-lt);margin-bottom:.5rem;}
+.me-hero h1{font-size:2rem;font-weight:900;color:#fff;margin:0 0 .5rem;}
+.me-hero__lead{font-size:.88rem;color:rgba(255,255,255,.5);margin:0;line-height:1.6;max-width:560px;}
+
+.me-body{max-width:1080px;margin:0 auto;padding:0 1.25rem 3rem;}
+
+/* SECTION CARD */
+.me-section-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:1.5rem 1.75rem;margin-bottom:1.25rem;}
+.me-section-hd{display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid rgba(255,255,255,.07);}
+.me-section-hd__icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.me-section-hd--co .me-section-hd__icon{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);}
+.me-section-hd--ce .me-section-hd__icon{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);}
+.me-section-hd--eo .me-section-hd__icon{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);}
+.me-section-hd--ee .me-section-hd__icon{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);}
+.me-section-hd h2{font-size:1rem;font-weight:800;color:#fff;margin:0;}
+.me-section-hd__sub{font-size:.75rem;color:rgba(255,255,255,.35);margin-top:.1rem;}
+.me-section-hd__badge{margin-left:auto;font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);}
+
+/* PASSAGE */
+.me-passage{background:rgba(16,185,129,.04);border:1px solid rgba(16,185,129,.15);border-radius:12px;padding:1.1rem 1.25rem;margin-bottom:1.25rem;font-size:.88rem;line-height:1.75;color:rgba(255,255,255,.75);}
+.me-passage__label{font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(16,185,129,.7);margin-bottom:.6rem;}
+
+/* QUESTION */
+.me-question{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:1.1rem 1.25rem;margin-bottom:.75rem;}
+.me-question__num{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:.5rem;}
+.me-question__text{font-size:.92rem;font-weight:600;color:#fff;margin-bottom:.85rem;line-height:1.5;}
+
+/* AUDIO */
+.me-audio{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.75rem 1rem;margin-bottom:.85rem;display:flex;align-items:center;gap:.65rem;}
+.me-audio audio{flex:1;height:34px;min-width:0;}
+
+/* CHOICES */
+.me-choices{display:flex;flex-direction:column;gap:.4rem;}
+.me-choice{display:flex;align-items:center;gap:.65rem;padding:.6rem .85rem;border-radius:9px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.02);cursor:pointer;transition:all .15s;font-size:.87rem;color:rgba(255,255,255,.7);}
+.me-choice:hover{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.15);}
+.me-choice input[type="radio"]{accent-color:#D4A843;width:15px;height:15px;flex-shrink:0;}
+.me-choice:has(input:checked){background:rgba(212,168,67,.08);border-color:rgba(212,168,67,.3);color:#fff;}
+
+/* EO TOPIC */
+.me-eo-topic{background:rgba(245,158,11,.04);border-left:3px solid rgba(245,158,11,.4);border-radius:0 10px 10px 0;padding:1rem 1.25rem;margin-bottom:.75rem;}
+.me-eo-topic__num{font-size:.7rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:rgba(245,158,11,.7);margin-bottom:.4rem;}
+.me-eo-topic__title{font-size:.92rem;font-weight:700;color:#fff;margin-bottom:.3rem;}
+.me-eo-topic__inst{font-size:.82rem;color:rgba(255,255,255,.45);line-height:1.5;}
+.me-eo-topic__q{font-size:.85rem;color:#fbbf24;margin-top:.4rem;}
+
+/* EE TOPIC */
+.me-ee-topic{background:rgba(168,85,247,.04);border-left:3px solid rgba(168,85,247,.4);border-radius:0 10px 10px 0;padding:1rem 1.25rem;}
+.me-ee-topic__num{font-size:.7rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:rgba(168,85,247,.7);margin-bottom:.4rem;}
+.me-ee-topic__title{font-size:.92rem;font-weight:700;color:#fff;margin-bottom:.3rem;}
+.me-ee-topic__inst{font-size:.82rem;color:rgba(255,255,255,.45);line-height:1.5;}
+.me-ee-topic__q{font-size:.85rem;color:#d8b4fe;margin-top:.4rem;}
+
+/* SUBMIT */
+.me-submit-row{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem;}
+.me-btn-submit{display:inline-flex;align-items:center;gap:.4rem;font-size:.95rem;font-weight:700;padding:.75rem 2rem;border-radius:11px;border:none;background:linear-gradient(135deg,#D4A843,#f59e0b);color:#000;cursor:pointer;transition:filter .18s;}
+.me-btn-submit:hover{filter:brightness(1.1);}
+.me-btn-back{display:inline-flex;align-items:center;gap:.4rem;font-size:.87rem;font-weight:700;padding:.7rem 1.25rem;border-radius:11px;text-decoration:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);transition:all .18s;}
+.me-btn-back:hover{background:rgba(255,255,255,.08);color:#fff;}
+
+.me-empty{font-size:.85rem;color:rgba(255,255,255,.3);padding:1rem 0;}
+
+@media(max-width:640px){.me-hero h1{font-size:1.6rem;}.me-section-card{padding:1.1rem;}}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<!-- HERO -->
-<section class="pt-hero pt-hero--exam">
-  <div class="container pt-fade-up">
+<div class="me-breadcrumb">
+  <a href="{% url 'preparation_tests:french_exams' %}">Tests de langue</a>
+  <span class="me-breadcrumb__sep">›</span>
+  <a href="{% url 'preparation_tests:level_mock_hub' %}">Examen blanc par niveau</a>
+  <span class="me-breadcrumb__sep">›</span>
+  <span>Niveau {{ level }}</span>
+</div>
 
-    <span class="pt-badge pt-badge--exam">
-      🧪 Examen blanc
-    </span>
+<div class="me-hero">
+  <div class="me-hero__eyebrow">🧪 Examen blanc CECR</div>
+  <h1>Niveau {{ level }}</h1>
+  <p class="me-hero__lead">Réponds aux questions CO et CE, puis découvre les sujets EO et EE pour compléter ta pratique. Clique sur <strong>Terminer</strong> quand tu as tout rempli.</p>
+</div>
 
-    <h1 class="pt-title">
-      Niveau <span class="pt-gradient-primary">{{ level }}</span>
-    </h1>
+<div class="me-body">
+  <form method="post" id="level-mock-form">
+    {% csrf_token %}
 
-    <p class="pt-lead">
-      Réponds aux questions CO et CE, puis découvre les sujets EO et EE
-      pour compléter ta pratique. Clique sur <strong>Terminer</strong>
-      quand tu as répondu à tout.
-    </p>
+    <!-- IDs cachés pour reconstruction POST -->
+    {% for ex in co_exercises %}<input type="hidden" name="co_exercise_ids" value="{{ ex.id }}">{% endfor %}
+    {% for ex in ce_exercises %}<input type="hidden" name="ce_exercise_ids" value="{{ ex.id }}">{% endfor %}
+    {% for item in eo_items %}
+      <input type="hidden" name="eo_lesson_ids" value="{{ item.lesson.id }}">
+      <input type="hidden" name="eo_exercise_ids" value="{{ item.exercise.id }}">
+    {% endfor %}
+    {% if ee_lesson %}<input type="hidden" name="ee_lesson_id" value="{{ ee_lesson.id }}">{% endif %}
+    {% if ee_exercise %}<input type="hidden" name="ee_exercise_id" value="{{ ee_exercise.id }}">{% endif %}
 
-  </div>
-</section>
-
-<!-- FORMULAIRE EXAMEN -->
-<section class="pt-section pt-section--exam">
-  <div class="container">
-
-    <form method="post" id="level-mock-form">
-      {% csrf_token %}
-
-      {# ── IDs cachés pour reconstruction POST ──────────────── #}
-      {% for ex in co_exercises %}
-        <input type="hidden" name="co_exercise_ids" value="{{ ex.id }}">
-      {% endfor %}
-      {% for ex in ce_exercises %}
-        <input type="hidden" name="ce_exercise_ids" value="{{ ex.id }}">
-      {% endfor %}
-      {% for item in eo_items %}
-        <input type="hidden" name="eo_lesson_ids" value="{{ item.lesson.id }}">
-        <input type="hidden" name="eo_exercise_ids" value="{{ item.exercise.id }}">
-      {% endfor %}
-      {% if ee_lesson %}
-        <input type="hidden" name="ee_lesson_id" value="{{ ee_lesson.id }}">
-      {% endif %}
-      {% if ee_exercise %}
-        <input type="hidden" name="ee_exercise_id" value="{{ ee_exercise.id }}">
-      {% endif %}
-
-      {# ════════════════════════════════════════════════════════
-         SECTION CO — Compréhension Orale
-      ════════════════════════════════════════════════════════ #}
-      <article class="pt-card pt-card--section">
-        <header class="pt-section-header" style="margin-bottom:1.5rem;">
-          <h2>🎧 Compréhension Orale</h2>
-          {% if co_lesson %}
-            <p class="pt-card-meta">{{ co_lesson.title }}</p>
-          {% else %}
-            <p class="pt-empty">Aucune leçon CO disponible pour ce niveau.</p>
-          {% endif %}
-        </header>
-
-        {% if co_exercises %}
-          {% for ex in co_exercises %}
-          <div class="pt-card pt-card--question" style="margin-bottom:1rem;">
-
-            <header class="pt-question-header">
-              <span class="pt-question-index">CO — Question {{ forloop.counter }}</span>
-              <span class="pt-badge" style="font-size:.75rem;">🎧 Audio</span>
-            </header>
-
-            {% if ex.audio_url %}
-            <div class="pt-audio-wrap" style="margin:.75rem 0;">
-              <audio controls src="{{ ex.audio_url }}" preload="none"
-                     style="width:100%; border-radius:8px;">
-                Votre navigateur ne supporte pas l'audio.
-              </audio>
-            </div>
-            {% endif %}
-
-            <p class="pt-question-text">{{ ex.question_text }}</p>
-
-            <div class="pt-choices">
-              {% if ex.option_a %}
-              <label class="pt-choice">
-                <input type="radio" name="co_{{ ex.id }}" value="A" required>
-                <span>{{ ex.option_a }}</span>
-              </label>
-              {% endif %}
-              {% if ex.option_b %}
-              <label class="pt-choice">
-                <input type="radio" name="co_{{ ex.id }}" value="B">
-                <span>{{ ex.option_b }}</span>
-              </label>
-              {% endif %}
-              {% if ex.option_c %}
-              <label class="pt-choice">
-                <input type="radio" name="co_{{ ex.id }}" value="C">
-                <span>{{ ex.option_c }}</span>
-              </label>
-              {% endif %}
-              {% if ex.option_d %}
-              <label class="pt-choice">
-                <input type="radio" name="co_{{ ex.id }}" value="D">
-                <span>{{ ex.option_d }}</span>
-              </label>
-              {% endif %}
-            </div>
-
-          </div>
-          {% endfor %}
-        {% elif co_lesson %}
-          <p class="pt-empty">Pas d'exercices disponibles pour cette leçon.</p>
-        {% endif %}
-      </article>
-
-      {# ════════════════════════════════════════════════════════
-         SECTION CE — Compréhension Écrite
-      ════════════════════════════════════════════════════════ #}
-      <article class="pt-card pt-card--section">
-        <header class="pt-section-header" style="margin-bottom:1.5rem;">
-          <h2>📖 Compréhension Écrite</h2>
-          {% if ce_lesson %}
-            <p class="pt-card-meta">{{ ce_lesson.title }}</p>
-          {% else %}
-            <p class="pt-empty">Aucune leçon CE disponible pour ce niveau.</p>
-          {% endif %}
-        </header>
-
-        {% if ce_lesson and ce_lesson.content_html %}
-        <div class="pt-passage" style="
-          background:var(--pt-bg-card,#f8f9fa);
-          border-left:4px solid var(--pt-green-main,#2ecc71);
-          padding:1rem 1.25rem;
-          border-radius:6px;
-          margin-bottom:1.5rem;
-          font-size:.95rem;
-          line-height:1.7;
-        ">
-          {{ ce_lesson.content_html|safe }}
+    <!-- CO -->
+    <div class="me-section-card">
+      <div class="me-section-hd me-section-hd--co">
+        <div class="me-section-hd__icon">🎧</div>
+        <div>
+          <h2>Compréhension Orale</h2>
+          <div class="me-section-hd__sub">{% if co_lesson %}{{ co_lesson.title }}{% else %}CO niveau {{ level }}{% endif %}</div>
         </div>
-        {% endif %}
-
-        {% if ce_exercises %}
-          {% for ex in ce_exercises %}
-          <div class="pt-card pt-card--question" style="margin-bottom:1rem;">
-
-            <header class="pt-question-header">
-              <span class="pt-question-index">CE — Question {{ forloop.counter }}</span>
-            </header>
-
-            <p class="pt-question-text">{{ ex.question_text }}</p>
-
-            <div class="pt-choices">
-              {% if ex.option_a %}
-              <label class="pt-choice">
-                <input type="radio" name="ce_{{ ex.id }}" value="A" required>
-                <span>{{ ex.option_a }}</span>
-              </label>
-              {% endif %}
-              {% if ex.option_b %}
-              <label class="pt-choice">
-                <input type="radio" name="ce_{{ ex.id }}" value="B">
-                <span>{{ ex.option_b }}</span>
-              </label>
-              {% endif %}
-              {% if ex.option_c %}
-              <label class="pt-choice">
-                <input type="radio" name="ce_{{ ex.id }}" value="C">
-                <span>{{ ex.option_c }}</span>
-              </label>
-              {% endif %}
-              {% if ex.option_d %}
-              <label class="pt-choice">
-                <input type="radio" name="ce_{{ ex.id }}" value="D">
-                <span>{{ ex.option_d }}</span>
-              </label>
-              {% endif %}
-            </div>
-
-          </div>
-          {% endfor %}
-        {% elif ce_lesson %}
-          <p class="pt-empty">Pas d'exercices disponibles pour cette leçon.</p>
-        {% endif %}
-      </article>
-
-      {# ════════════════════════════════════════════════════════
-         SECTION EO — Expression Orale (pratique libre)
-      ════════════════════════════════════════════════════════ #}
-      <article class="pt-card pt-card--section">
-        <header class="pt-section-header" style="margin-bottom:1.5rem;">
-          <h2>🎤 Expression Orale <span style="font-size:.8em; font-weight:400; opacity:.7;">(pratique libre)</span></h2>
-          <p class="pt-card-meta">
-            Prépare ta réponse orale sur ces sujets. Parle 1 à 3 minutes.
-            Les résultats EO ne sont pas notés automatiquement dans cette version.
-          </p>
-        </header>
-
-        {% if eo_items %}
-          {% for item in eo_items %}
-          <div class="pt-card pt-card--eo-topic" style="
-            border-left: 4px solid #a855f7;
-            margin-bottom:1rem;
-            padding:1rem 1.25rem;
-          ">
-            <p class="pt-question-index" style="margin-bottom:.5rem;">
-              🎤 Sujet {{ forloop.counter }}
-            </p>
-            <p class="pt-question-text" style="font-weight:600;">
-              {{ item.exercise.title }}
-            </p>
-            {% if item.exercise.instruction %}
-            <p style="font-size:.9rem; opacity:.8; margin-top:.4rem;">
-              {{ item.exercise.instruction }}
-            </p>
-            {% endif %}
-            {% if item.exercise.question_text %}
-            <p style="font-size:.9rem; margin-top:.5rem; color:var(--pt-green-main,#2ecc71);">
-              📝 {{ item.exercise.question_text }}
-            </p>
-            {% endif %}
-          </div>
-          {% endfor %}
-        {% else %}
-          <p class="pt-empty">Aucun sujet EO disponible pour ce niveau.</p>
-        {% endif %}
-      </article>
-
-      {# ════════════════════════════════════════════════════════
-         SECTION EE — Expression Écrite (pratique libre)
-      ════════════════════════════════════════════════════════ #}
-      <article class="pt-card pt-card--section">
-        <header class="pt-section-header" style="margin-bottom:1.5rem;">
-          <h2>✍️ Expression Écrite <span style="font-size:.8em; font-weight:400; opacity:.7;">(pratique libre)</span></h2>
-          <p class="pt-card-meta">
-            Rédige ta réponse sur papier ou dans un éditeur.
-            Les résultats EE ne sont pas notés automatiquement dans cette version.
-          </p>
-        </header>
-
-        {% if ee_exercise %}
-        <div class="pt-card pt-card--ee-prompt" style="
-          border-left: 4px solid #f59e0b;
-          margin-bottom:1rem;
-          padding:1rem 1.25rem;
-        ">
-          <p class="pt-question-index" style="margin-bottom:.5rem;">✍️ Sujet de rédaction</p>
-          <p class="pt-question-text" style="font-weight:600;">{{ ee_exercise.title }}</p>
-          {% if ee_exercise.instruction %}
-          <p style="font-size:.9rem; opacity:.8; margin-top:.4rem;">
-            {{ ee_exercise.instruction }}
-          </p>
-          {% endif %}
-          {% if ee_exercise.question_text %}
-          <p style="font-size:.9rem; margin-top:.5rem; color:#f59e0b;">
-            📝 {{ ee_exercise.question_text }}
-          </p>
-          {% endif %}
-        </div>
-        {% else %}
-          <p class="pt-empty">Aucun sujet EE disponible pour ce niveau.</p>
-        {% endif %}
-      </article>
-
-      {# ── CTA ─────────────────────────────────────────────── #}
-      <div class="pt-cta-group center" style="margin-top:2rem;">
-        <button type="submit" class="pt-btn-primary pt-btn-lg">
-          ✅ Terminer et voir mes résultats
-        </button>
-        <a
-          href="{% url "preparation_tests:level_mock_hub" %}"
-          class="pt-btn-ghost"
-        >
-          ← Changer de niveau
-        </a>
+        <span class="me-section-hd__badge">{{ co_exercises|length }} question{{ co_exercises|length|pluralize }}</span>
       </div>
 
-    </form>
+      {% if co_exercises %}
+        {% for ex in co_exercises %}
+        <div class="me-question">
+          <div class="me-question__num">CO — Question {{ forloop.counter }}</div>
+          {% if ex.audio_url %}
+          <div class="me-audio">
+            <span>🎧</span>
+            <audio controls src="{{ ex.audio_url }}" preload="none">Votre navigateur ne supporte pas l'audio.</audio>
+          </div>
+          {% endif %}
+          <div class="me-question__text">{{ ex.question_text }}</div>
+          <div class="me-choices">
+            {% if ex.option_a %}<label class="me-choice"><input type="radio" name="co_{{ ex.id }}" value="A" required><span>{{ ex.option_a }}</span></label>{% endif %}
+            {% if ex.option_b %}<label class="me-choice"><input type="radio" name="co_{{ ex.id }}" value="B"><span>{{ ex.option_b }}</span></label>{% endif %}
+            {% if ex.option_c %}<label class="me-choice"><input type="radio" name="co_{{ ex.id }}" value="C"><span>{{ ex.option_c }}</span></label>{% endif %}
+            {% if ex.option_d %}<label class="me-choice"><input type="radio" name="co_{{ ex.id }}" value="D"><span>{{ ex.option_d }}</span></label>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="me-empty">Aucun exercice CO disponible pour ce niveau.</div>
+      {% endif %}
+    </div>
 
-  </div>
-</section>
+    <!-- CE -->
+    <div class="me-section-card">
+      <div class="me-section-hd me-section-hd--ce">
+        <div class="me-section-hd__icon">📖</div>
+        <div>
+          <h2>Compréhension Écrite</h2>
+          <div class="me-section-hd__sub">{% if ce_lesson %}{{ ce_lesson.title }}{% else %}CE niveau {{ level }}{% endif %}</div>
+        </div>
+        <span class="me-section-hd__badge">{{ ce_exercises|length }} question{{ ce_exercises|length|pluralize }}</span>
+      </div>
+
+      {% if ce_lesson and ce_lesson.content_html %}
+      <div class="me-passage">
+        <div class="me-passage__label">📄 Texte de compréhension</div>
+        {{ ce_lesson.content_html|safe }}
+      </div>
+      {% endif %}
+
+      {% if ce_exercises %}
+        {% for ex in ce_exercises %}
+        <div class="me-question">
+          <div class="me-question__num">CE — Question {{ forloop.counter }}</div>
+          <div class="me-question__text">{{ ex.question_text }}</div>
+          <div class="me-choices">
+            {% if ex.option_a %}<label class="me-choice"><input type="radio" name="ce_{{ ex.id }}" value="A" required><span>{{ ex.option_a }}</span></label>{% endif %}
+            {% if ex.option_b %}<label class="me-choice"><input type="radio" name="ce_{{ ex.id }}" value="B"><span>{{ ex.option_b }}</span></label>{% endif %}
+            {% if ex.option_c %}<label class="me-choice"><input type="radio" name="ce_{{ ex.id }}" value="C"><span>{{ ex.option_c }}</span></label>{% endif %}
+            {% if ex.option_d %}<label class="me-choice"><input type="radio" name="ce_{{ ex.id }}" value="D"><span>{{ ex.option_d }}</span></label>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="me-empty">Aucun exercice CE disponible pour ce niveau.</div>
+      {% endif %}
+    </div>
+
+    <!-- EO -->
+    <div class="me-section-card">
+      <div class="me-section-hd me-section-hd--eo">
+        <div class="me-section-hd__icon">🎤</div>
+        <div>
+          <h2>Expression Orale <span style="font-size:.8em;font-weight:400;opacity:.6;">— pratique libre</span></h2>
+          <div class="me-section-hd__sub">Prépare ta réponse orale. Parle 1 à 3 minutes.</div>
+        </div>
+      </div>
+      {% if eo_items %}
+        {% for item in eo_items %}
+        <div class="me-eo-topic">
+          <div class="me-eo-topic__num">🎤 Sujet {{ forloop.counter }}</div>
+          <div class="me-eo-topic__title">{{ item.exercise.title }}</div>
+          {% if item.exercise.instruction %}<div class="me-eo-topic__inst">{{ item.exercise.instruction }}</div>{% endif %}
+          {% if item.exercise.question_text %}<div class="me-eo-topic__q">📝 {{ item.exercise.question_text }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="me-empty">Aucun sujet EO disponible pour ce niveau.</div>
+      {% endif %}
+    </div>
+
+    <!-- EE -->
+    <div class="me-section-card">
+      <div class="me-section-hd me-section-hd--ee">
+        <div class="me-section-hd__icon">✍️</div>
+        <div>
+          <h2>Expression Écrite <span style="font-size:.8em;font-weight:400;opacity:.6;">— pratique libre</span></h2>
+          <div class="me-section-hd__sub">Rédige ta réponse sur papier ou dans un éditeur.</div>
+        </div>
+      </div>
+      {% if ee_exercise %}
+      <div class="me-ee-topic">
+        <div class="me-ee-topic__num">✍️ Sujet de rédaction</div>
+        <div class="me-ee-topic__title">{{ ee_exercise.title }}</div>
+        {% if ee_exercise.instruction %}<div class="me-ee-topic__inst">{{ ee_exercise.instruction }}</div>{% endif %}
+        {% if ee_exercise.question_text %}<div class="me-ee-topic__q">📝 {{ ee_exercise.question_text }}</div>{% endif %}
+      </div>
+      {% else %}
+      <div class="me-empty">Aucun sujet EE disponible pour ce niveau.</div>
+      {% endif %}
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="me-submit-row">
+      <button type="submit" class="me-btn-submit">✅ Terminer et voir mes résultats</button>
+      <a href="{% url 'preparation_tests:level_mock_hub' %}" class="me-btn-back">← Changer de niveau</a>
+    </div>
+
+  </form>
+</div>
 
 {% endblock %}
 
@@ -305,82 +243,41 @@ expression orale et écrite. Résultats instantanés avec Immigration97.
 <script>
 (function () {
   "use strict";
-
-  // Compter les questions CO et CE rendues (4 radio par question)
-  const coInputs = document.querySelectorAll('input[type="radio"][name^="co_"]');
-  const ceInputs = document.querySelectorAll('input[type="radio"][name^="ce_"]');
-  const coQ = coInputs.length ? [...new Set([...coInputs].map(i => i.name))].length : 0;
-  const ceQ = ceInputs.length ? [...new Set([...ceInputs].map(i => i.name))].length : 0;
-
-  // Durée TEF/TCF : 40s par question CO, 90s par question CE + 60s buffer
-  const totalSeconds = (coQ * 40) + (ceQ * 90) + 60;
+  var coInputs = document.querySelectorAll('input[type="radio"][name^="co_"]');
+  var ceInputs = document.querySelectorAll('input[type="radio"][name^="ce_"]');
+  var coQ = coInputs.length ? [...new Set([...coInputs].map(i => i.name))].length : 0;
+  var ceQ = ceInputs.length ? [...new Set([...ceInputs].map(i => i.name))].length : 0;
+  var totalSeconds = (coQ * 40) + (ceQ * 90) + 60;
   if (totalSeconds <= 60) return;
-
-  let remaining = totalSeconds;
-  const halfTime = Math.floor(totalSeconds / 2);
-  let alerted = false;
-
-  // Barre timer sticky
-  const bar = document.createElement("div");
-  bar.style.cssText = [
-    "position:fixed", "top:0", "left:0", "right:0", "z-index:9999",
-    "display:flex", "align-items:center", "justify-content:center", "gap:10px",
-    "padding:7px 16px", "font-size:.88rem", "font-weight:600",
-    "background:#1a1a2e", "color:#fff",
-    "box-shadow:0 2px 8px rgba(0,0,0,.35)",
-    "transition:background .5s"
-  ].join(";");
-
-  const display = document.createElement("span");
-  display.style.cssText = "font-size:1rem; font-variant-numeric:tabular-nums; letter-spacing:.06em;";
-
-  const hint = document.createElement("span");
-  hint.style.cssText = "font-size:.76rem; opacity:.65;";
-  hint.textContent = `CO×${coQ} (40s/q) · CE×${ceQ} (90s/q)`;
-
-  bar.innerHTML = "<span>⏱ Temps restant :</span>";
+  var remaining = totalSeconds;
+  var halfTime = Math.floor(totalSeconds / 2);
+  var alerted = false;
+  var bar = document.createElement("div");
+  bar.style.cssText = ["position:fixed","top:0","left:0","right:0","z-index:9999",
+    "display:flex","align-items:center","justify-content:center","gap:10px",
+    "padding:7px 16px","font-size:.88rem","font-weight:600",
+    "background:#1a1a2e","color:#fff","box-shadow:0 2px 8px rgba(0,0,0,.35)","transition:background .5s"].join(";");
+  var display = document.createElement("span");
+  display.style.cssText = "font-size:1rem;font-variant-numeric:tabular-nums;letter-spacing:.06em;";
+  var hint = document.createElement("span");
+  hint.style.cssText = "font-size:.76rem;opacity:.65;";
+  hint.textContent = "CO\u00d7"+coQ+" (40s/q) \u00b7 CE\u00d7"+ceQ+" (90s/q)";
+  bar.innerHTML = "<span>\u23f1 Temps restant :</span>";
   bar.append(display, hint);
   document.body.prepend(bar);
   document.body.style.paddingTop = "42px";
-
-  function fmt(s) {
-    const m = Math.floor(s / 60);
-    return m + ":" + String(s % 60).padStart(2, "0");
-  }
-
-  function tick() {
-    display.textContent = " " + fmt(remaining) + " ";
-
-    if (remaining === halfTime && !alerted) {
-      alerted = true;
-      bar.style.background = "#d35400";
-      hint.textContent = "⚡ Mi-temps — accélère !";
-    }
-    if (remaining <= Math.floor(totalSeconds * 0.2)) {
-      bar.style.background = "#c0392b";
-      hint.textContent = "🔴 Dépêche-toi !";
-    }
-
-    if (remaining <= 0) {
-      clearInterval(loop);
-      display.textContent = " 0:00 ";
-      hint.textContent = "⚠️ Temps écoulé — soumission dans 3s…";
-      bar.style.background = "#7b0000";
-      setTimeout(function () {
-        const form = document.getElementById("level-mock-form");
-        if (form) form.requestSubmit();
-      }, 3000);
-      return;
-    }
+  function fmt(s){var m=Math.floor(s/60);return m+":"+String(s%60).padStart(2,"0");}
+  function tick(){
+    display.textContent = " "+fmt(remaining)+" ";
+    if(remaining===halfTime&&!alerted){alerted=true;bar.style.background="#d35400";hint.textContent="\u26a1 Mi-temps \u2014 acc\u00e9l\u00e8re !";}
+    if(remaining<=Math.floor(totalSeconds*.2)){bar.style.background="#c0392b";hint.textContent="\ud83d\udd34 D\u00eap\u00eache-toi !";}
+    if(remaining<=0){clearInterval(loop);display.textContent=" 0:00 ";hint.textContent="\u26a0\ufe0f Temps \u00e9coul\u00e9 \u2014 soumission dans 3s\u2026";bar.style.background="#7b0000";
+      setTimeout(function(){var f=document.getElementById("level-mock-form");if(f)f.requestSubmit();},3000);return;}
     remaining--;
   }
-
   tick();
-  const loop = setInterval(tick, 1000);
-
-  document.getElementById("level-mock-form").addEventListener("submit", function () {
-    clearInterval(loop);
-  });
+  var loop = setInterval(tick, 1000);
+  document.getElementById("level-mock-form").addEventListener("submit",function(){clearInterval(loop);});
 })();
 </script>
 {% endblock %}
