@@ -27,21 +27,54 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # 1) Ajouter slug SANS contrainte unique (nullable temporairement)
-        migrations.AddField(
-            model_name="resource",
-            name="slug",
-            field=models.SlugField(blank=True, max_length=255, default="", verbose_name="Slug"),
+        # ── SLUG : idempotent via RunSQL (colonne/index peuvent déjà exister) ──
+
+        # 1) Ajouter la colonne si elle n'existe pas encore
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql="ALTER TABLE resources_resource ADD COLUMN IF NOT EXISTS slug varchar(255) NOT NULL DEFAULT '';",
+                    reverse_sql="ALTER TABLE resources_resource DROP COLUMN IF EXISTS slug;",
+                ),
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name="resource",
+                    name="slug",
+                    field=models.SlugField(blank=True, max_length=255, default="", verbose_name="Slug"),
+                ),
+            ],
         ),
-        # 2) Peupler les slugs depuis les titres existants
+
+        # 2) Peupler les slugs depuis les titres
         migrations.RunPython(populate_slugs, migrations.RunPython.noop),
-        # 3) Appliquer la contrainte unique maintenant que les slugs sont remplis
-        migrations.AlterField(
-            model_name="resource",
-            name="slug",
-            field=models.SlugField(blank=True, max_length=255, unique=True, verbose_name="Slug"),
+
+        # 3) Supprimer les anciens index partiels s'ils existent, puis créer unique + like
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql="""
+                        DROP INDEX IF EXISTS resources_resource_slug_8867b959_like;
+                        DROP INDEX IF EXISTS resources_resource_slug_key;
+                        CREATE UNIQUE INDEX resources_resource_slug_key ON resources_resource (slug);
+                        CREATE INDEX resources_resource_slug_8867b959_like ON resources_resource (slug varchar_pattern_ops);
+                    """,
+                    reverse_sql="""
+                        DROP INDEX IF EXISTS resources_resource_slug_key;
+                        DROP INDEX IF EXISTS resources_resource_slug_8867b959_like;
+                    """,
+                ),
+            ],
+            state_operations=[
+                migrations.AlterField(
+                    model_name="resource",
+                    name="slug",
+                    field=models.SlugField(blank=True, max_length=255, unique=True, verbose_name="Slug"),
+                ),
+            ],
         ),
-        # Autres nouveaux champs Resource
+
+        # ── Autres nouveaux champs Resource ──
         migrations.AddField(
             model_name="resource",
             name="long_description",
@@ -62,7 +95,8 @@ class Migration(migrations.Migration):
             name="downloads",
             field=models.PositiveIntegerField(default=0, editable=False, verbose_name="Nb téléchargements"),
         ),
-        # Mise à jour des choices existants
+
+        # ── Mise à jour des choices ──
         migrations.AlterField(
             model_name="resource",
             name="category",
@@ -133,7 +167,8 @@ class Migration(migrations.Migration):
             name="is_premium",
             field=models.BooleanField(default=False, help_text="Si coché, les abonnés Premium téléchargent gratuitement.", verbose_name="Inclus abonnement Premium"),
         ),
-        # Nouveau modèle ResourcePurchase
+
+        # ── Nouveau modèle ResourcePurchase ──
         migrations.CreateModel(
             name="ResourcePurchase",
             fields=[
