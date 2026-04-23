@@ -388,6 +388,7 @@ body.resources {
   <div class="res-filter-group">
     <a href="{% url 'resources:library' %}" class="res-filter-btn {% if not selected_filtre %}active{% endif %}">Tout</a>
     <a href="?filtre=free{% if selected_cat %}&cat={{ selected_cat }}{% endif %}{% if selected_dest %}&dest={{ selected_dest }}{% endif %}" class="res-filter-btn {% if selected_filtre == 'free' %}active{% endif %}">Gratuit</a>
+    <a href="?filtre=paid{% if selected_cat %}&cat={{ selected_cat }}{% endif %}{% if selected_dest %}&dest={{ selected_dest }}{% endif %}" class="res-filter-btn {% if selected_filtre == 'paid' %}active{% endif %}">À vendre</a>
     <a href="?filtre=premium{% if selected_cat %}&cat={{ selected_cat }}{% endif %}{% if selected_dest %}&dest={{ selected_dest }}{% endif %}" class="res-filter-btn {% if selected_filtre == 'premium' %}active{% endif %}">Premium</a>
   </div>
 
@@ -436,7 +437,9 @@ body.resources {
     <!-- Body -->
     <div class="res-card__body">
       <div class="res-card__cat">{{ resource.get_category_label }}</div>
-      <h2 class="res-card__title">{{ resource.title }}</h2>
+      <h2 class="res-card__title">
+        <a href="{% url 'resources:detail' resource.pk %}" style="color:inherit;text-decoration:none;">{{ resource.title }}</a>
+      </h2>
       <p class="res-card__desc">{{ resource.description|truncatechars:120 }}</p>
 
       <div class="res-card__meta">
@@ -462,19 +465,21 @@ body.resources {
           <a href="{% url 'resources:download' resource.pk %}" class="res-card__btn res-card__btn--gold">
             ↓ Télécharger
           </a>
-        {% elif resource.is_premium %}
-          {% if has_premium %}
-            <a href="{% url 'resources:download' resource.pk %}" class="res-card__btn res-card__btn--gold">
-              ↓ Télécharger
-            </a>
-          {% else %}
-            <a href="{% url 'billing:pricing' %}" class="res-card__btn res-card__btn--locked">
-              🔒 Premium requis
-            </a>
-          {% endif %}
-        {% else %}
-          <a href="{% url 'resources:download' resource.pk %}" class="res-card__btn res-card__btn--ghost">
+        {% elif resource.pk in purchased_ids or has_premium %}
+          <a href="{% url 'resources:download' resource.pk %}" class="res-card__btn res-card__btn--gold">
             ↓ Télécharger
+          </a>
+        {% elif resource.price_xaf %}
+          <a href="{% url 'resources:detail' resource.pk %}" class="res-card__btn res-card__btn--gold">
+            Acheter →
+          </a>
+        {% elif resource.is_premium %}
+          <a href="{% url 'billing:pricing' %}" class="res-card__btn res-card__btn--locked">
+            🔒 Premium requis
+          </a>
+        {% else %}
+          <a href="{% url 'resources:detail' resource.pk %}" class="res-card__btn res-card__btn--ghost">
+            Voir →
           </a>
         {% endif %}
       </div>
