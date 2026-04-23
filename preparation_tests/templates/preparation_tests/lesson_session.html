@@ -1,409 +1,519 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}{{ lesson.title }} — {{ section|upper }} {{ lesson.level }} | Immigration97{% endblock %}
+{% block meta_description %}{{ section|upper }} niveau {{ lesson.level }} : {{ lesson.title }} — exercices progressifs CECR pour réussir le TEF, TCF et DELF.{% endblock %}
+
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
 
-{% block title %}
-{{ lesson.title }} – {{ display_exam_code|upper }} {{ section|upper }} | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Leçon {{ section|upper }} – {{ display_exam_code|upper }} niveau {{ lesson.level }} :
-audio, questions corrigées et entraînement progressif CECR avec Immigration97.
-{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260329">
+<style>
+:root{
+  --h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);
+  {% if section == "co" %}--accent:#3B82F6;--accent-lt:#93c5fd;--accent-bg:rgba(59,130,246,.12);--accent-bd:rgba(59,130,246,.3);
+  {% elif section == "ce" %}--accent:#10b981;--accent-lt:#4ade80;--accent-bg:rgba(16,185,129,.12);--accent-bd:rgba(16,185,129,.3);
+  {% elif section == "eo" %}--accent:#f59e0b;--accent-lt:#fbbf24;--accent-bg:rgba(245,158,11,.12);--accent-bd:rgba(245,158,11,.3);
+  {% elif section == "ee" %}--accent:#a855f7;--accent-lt:#d8b4fe;--accent-bg:rgba(168,85,247,.12);--accent-bd:rgba(168,85,247,.3);
+  {% else %}--accent:#10b981;--accent-lt:#4ade80;--accent-bg:rgba(16,185,129,.12);--accent-bd:rgba(16,185,129,.3);
+  {% endif %}
+}
+
+/* ── BREADCRUMB ── */
+.ls-breadcrumb{max-width:1080px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(255,255,255,.35);flex-wrap:wrap;}
+.ls-breadcrumb a{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+.ls-breadcrumb a:hover{color:var(--h-gold-lt);}
+.ls-breadcrumb__sep{color:rgba(255,255,255,.18);}
+.ls-breadcrumb__current{color:rgba(255,255,255,.7);font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ── HERO ── */
+.ls-hero{max-width:1080px;margin:0 auto;padding:1.5rem 1.25rem 2rem;}
+.ls-hero__top{display:flex;align-items:flex-start;gap:1.25rem;flex-wrap:wrap;}
+.ls-hero__icon{width:56px;height:56px;border-radius:14px;background:var(--accent-bg);border:1.5px solid var(--accent-bd);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;}
+.ls-hero__body{flex:1;min-width:0;}
+.ls-hero__eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-lt);margin-bottom:.4rem;}
+.ls-hero__title{font-size:1.6rem;font-weight:900;color:#fff;margin:0 0 .4rem;line-height:1.2;}
+.ls-hero__desc{font-size:.88rem;color:rgba(255,255,255,.5);line-height:1.6;margin:0;}
+
+/* ── PROGRESS BAR ── */
+.ls-progress{margin-top:1.25rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem 1.25rem;}
+.ls-progress__top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;}
+.ls-progress__label{font-size:.78rem;font-weight:700;color:rgba(255,255,255,.6);}
+.ls-progress__stats{font-size:.78rem;color:var(--accent-lt);font-weight:700;}
+.ls-progress__track{height:6px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;}
+.ls-progress__fill{height:100%;background:var(--accent);border-radius:99px;transition:width .4s ease;}
+.ls-progress__hint{font-size:.7rem;color:rgba(255,255,255,.3);margin-top:.5rem;}
+
+/* ── LAYOUT ── */
+.ls-layout{max-width:1080px;margin:0 auto 2.5rem;padding:0 1.25rem;display:grid;grid-template-columns:1fr 280px;gap:1.5rem;align-items:start;}
+@media(max-width:860px){.ls-layout{grid-template-columns:1fr;}}
+
+/* ── PASSAGE (CE) ── */
+.ls-passage{background:var(--h-glass);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:1.5rem 1.75rem;margin-bottom:1.5rem;}
+.ls-passage__label{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-lt);margin-bottom:.75rem;}
+.ls-passage__body{font-size:.92rem;line-height:1.8;color:rgba(255,255,255,.8);}
+.ls-passage__body p{margin:0 0 .9rem;}
+.ls-passage__body p:last-child{margin-bottom:0;}
+
+/* ── EXERCISES SECTION ── */
+.ls-ex-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;}
+.ls-ex-header h2{font-size:1rem;font-weight:800;color:#fff;margin:0;}
+.ls-ex-chip{font-size:.72rem;color:rgba(255,255,255,.4);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:.2rem .65rem;}
+
+/* ── EXERCISE CARD ── */
+.ls-ex-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:1.5rem;margin-bottom:1rem;}
+.ls-ex-card__num{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-lt);margin-bottom:.75rem;}
+.ls-ex-card__num span{width:22px;height:22px;border-radius:6px;background:var(--accent-bg);border:1px solid var(--accent-bd);display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;}
+.ls-ex-card__question{font-size:.95rem;font-weight:600;color:#fff;line-height:1.55;margin-bottom:1rem;}
+.ls-ex-card__instruction{font-size:.82rem;color:rgba(255,255,255,.45);background:rgba(255,255,255,.03);border-left:3px solid var(--accent-bd);border-radius:0 8px 8px 0;padding:.6rem .85rem;margin-bottom:.85rem;line-height:1.5;}
+.ls-ex-card__points{font-size:.82rem;color:rgba(255,255,255,.4);background:rgba(255,255,255,.03);border-radius:8px;padding:.5rem .85rem;margin-bottom:.85rem;line-height:1.5;}
+
+/* ── MCQ OPTIONS ── */
+.ls-options{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem;}
+.ls-option{display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.02);cursor:pointer;transition:all .18s;font-size:.88rem;color:rgba(255,255,255,.75);}
+.ls-option:has(input:checked){background:var(--accent-bg);border-color:var(--accent-bd);color:#fff;}
+.ls-option:hover{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.04);}
+.ls-option input[type="radio"]{accent-color:var(--accent);width:16px;height:16px;flex-shrink:0;}
+.ls-option__letter{width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:rgba(255,255,255,.5);flex-shrink:0;}
+
+/* ── AUDIO PLAYER ── */
+.ls-audio{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem;}
+.ls-audio__icon{font-size:1.3rem;}
+.ls-audio audio{flex:1;height:36px;min-width:0;}
+.ls-audio--locked{background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.06);color:rgba(255,255,255,.35);font-size:.82rem;gap:.5rem;}
+.ls-audio--locked a{color:var(--h-gold-lt);text-decoration:none;font-weight:700;}
+
+/* ── RECORDER (EO) ── */
+.ls-recorder{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.1rem 1.25rem;margin-bottom:1rem;}
+.ls-recorder__controls{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+.pt-record-btn{display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700;padding:.55rem 1.1rem;border-radius:9px;border:1.5px solid var(--accent-bd);background:var(--accent-bg);color:var(--accent-lt);cursor:pointer;transition:all .18s;}
+.pt-record-btn:hover{background:rgba(255,255,255,.08);}
+.pt-record-btn.recording{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.1);color:#fca5a5;animation:pulse 1.2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.65;}}
+.pt-record-timer{font-size:.82rem;font-weight:700;color:rgba(255,255,255,.5);min-width:40px;}
+.pt-playback{width:100%;margin-top:.75rem;border-radius:8px;}
+
+/* ── TEXTAREA (EE) ── */
+.ls-textarea-wrap{position:relative;margin-bottom:.75rem;}
+.pt-ee-textarea{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:.85rem 1rem;font-size:.9rem;color:#fff;resize:vertical;min-height:160px;font-family:inherit;line-height:1.65;transition:border-color .18s;box-sizing:border-box;}
+.pt-ee-textarea:focus{outline:none;border-color:var(--accent-bd);}
+.pt-word-counter{font-size:.72rem;color:rgba(255,255,255,.35);text-align:right;margin-top:.35rem;}
+.pt-word-count{font-weight:700;color:var(--accent-lt);}
+
+/* ── FEEDBACK ── */
+.pt-feedback{margin-top:.75rem;padding:.75rem 1rem;border-radius:10px;font-size:.85rem;line-height:1.55;}
+.pt-feedback.correct{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#4ade80;}
+.pt-feedback.incorrect{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#fca5a5;}
+
+/* ── AI RESULT (EO/EE) ── */
+.pt-eo-result,.pt-ee-result{margin-top:1rem;padding:1rem 1.25rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:12px;font-size:.88rem;line-height:1.65;color:rgba(255,255,255,.8);}
+
+/* ── BUTTONS ── */
+.ls-btn{display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700;padding:.6rem 1.25rem;border-radius:9px;border:none;cursor:pointer;transition:all .18s;}
+.ls-btn--primary{background:var(--accent);color:#fff;}
+.ls-btn--primary:hover{filter:brightness(1.1);}
+.ls-btn--primary:disabled{opacity:.45;cursor:not-allowed;}
+.ls-btn--outline{background:transparent;border:1.5px solid var(--accent-bd);color:var(--accent-lt);}
+.ls-btn--outline:hover{background:var(--accent-bg);}
+
+/* ── SIDEBAR ── */
+.ls-sidebar{}
+.ls-sidebar__card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:1.25rem;margin-bottom:1rem;}
+.ls-sidebar__title{font-size:.82rem;font-weight:800;color:#fff;margin-bottom:.85rem;display:flex;align-items:center;gap:.4rem;}
+.ls-sidebar__list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.55rem;}
+.ls-sidebar__list li{font-size:.8rem;color:rgba(255,255,255,.55);line-height:1.45;padding-left:.9rem;position:relative;}
+.ls-sidebar__list li::before{content:"›";position:absolute;left:0;color:var(--accent-lt);}
+.ls-sidebar__note{font-size:.75rem;color:rgba(255,255,255,.3);margin-top:.85rem;line-height:1.5;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.06);}
+.ls-sidebar__note strong{color:var(--accent-lt);}
+
+/* ── BOTTOM NAV ── */
+.ls-bottom{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
+.ls-back-btn{display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700;color:rgba(255,255,255,.6);text-decoration:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem 1.1rem;transition:all .2s;}
+.ls-back-btn:hover{color:var(--h-gold-lt);border-color:rgba(212,168,67,.3);}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<section class="pt-hero pt-hero--lesson">
-  <div class="container pt-fade-up">
+<!-- BREADCRUMB -->
+<div class="ls-breadcrumb">
+  <a href="{% url 'preparation_tests:french_exams' %}">Tests de langue</a>
+  <span class="ls-breadcrumb__sep">›</span>
+  {% if section == "co" %}<a href="{% url 'preparation_tests:co_hub' %}">Compréhension Orale</a>
+  {% elif section == "ce" %}<a href="{% url 'preparation_tests:ce_hub' %}">Compréhension Écrite</a>
+  {% elif section == "eo" %}<a href="{% url 'preparation_tests:eo_hub' %}">Expression Orale</a>
+  {% elif section == "ee" %}<a href="{% url 'preparation_tests:ee_hub' %}">Expression Écrite</a>
+  {% endif %}
+  <span class="ls-breadcrumb__sep">›</span>
+  {% if section == "co" %}<a href="{% url 'preparation_tests:co_by_level' lesson.level %}">{{ lesson.level }}</a>
+  {% elif section == "ce" %}<a href="{% url 'preparation_tests:ce_by_level' lesson.level %}">{{ lesson.level }}</a>
+  {% elif section == "eo" %}<a href="{% url 'preparation_tests:eo_by_level' lesson.level %}">{{ lesson.level }}</a>
+  {% elif section == "ee" %}<a href="{% url 'preparation_tests:ee_by_level' lesson.level %}">{{ lesson.level }}</a>
+  {% endif %}
+  <span class="ls-breadcrumb__sep">›</span>
+  <span class="ls-breadcrumb__current">{{ lesson.title }}</span>
+</div>
 
-    <span class="pt-badge">
-      {{ display_exam_code|upper }} · {{ section|upper }} · Niveau {{ lesson.level }}
-    </span>
-
-    <h1 class="pt-title">{{ lesson.title }}</h1>
-
-    {# ✅ PROGRESSION LIVE #}
-    <div class="pt-progress-wrap" aria-label="Progression de la leçon">
-      <div class="pt-progress-top">
-        <strong class="pt-progress-label">Progression</strong>
-        <span class="pt-progress-stats">
-          <span id="ptProgressDone">{{ progress_completed }}</span>/<span id="ptProgressTotal">{{ progress_total }}</span>
-          – <span id="ptProgressPct">{{ progress_percent }}</span>%
-        </span>
-      </div>
-
-      <div class="pt-progress-bar" role="progressbar"
-           aria-valuenow="{{ progress_percent }}"
-           aria-valuemin="0"
-           aria-valuemax="100">
-        <div id="ptProgressFill" class="pt-progress-fill" style="width: {{ progress_percent }}%;"></div>
-      </div>
-
-      <p class="pt-progress-hint">
-        Valide un exercice correctement pour avancer.
+<!-- HERO -->
+<div class="ls-hero">
+  <div class="ls-hero__top">
+    <div class="ls-hero__icon">
+      {% if section == "co" %}🎧{% elif section == "ce" %}📖{% elif section == "eo" %}🎤{% elif section == "ee" %}✍️{% endif %}
+    </div>
+    <div class="ls-hero__body">
+      <div class="ls-hero__eyebrow">{{ display_exam_code|upper }} · {{ section|upper }} · Niveau {{ lesson.level }}</div>
+      <h1 class="ls-hero__title">{{ lesson.title }}</h1>
+      <p class="ls-hero__desc">
+        {% if section == "co" %}Écoute l'audio attentivement, puis réponds aux questions de compréhension.
+        {% elif section == "ce" %}Lis le texte ci-dessous avec attention, puis réponds aux questions.
+        {% elif section == "eo" %}Prépare ta réponse, enregistre-toi et reçois une évaluation IA détaillée.
+        {% elif section == "ee" %}Lis le sujet, rédige ta réponse et reçois une correction IA complète.
+        {% endif %}
       </p>
     </div>
+  </div>
 
-    {# 💎 CTA Premium (conversion) #}
-    {% if not is_premium %}
-      <div class="pt-card pt-card--premium-cta" style="margin-top:14px;">
-        <strong>🔒 Mode Premium</strong>
-        <p style="margin:6px 0 10px;">
-          Débloque <b>tous les audios</b>, la progression complète, et l’accès illimité A1 → C2 (FR / EN / DE / IT).
-        </p>
-        <a class="pt-btn-primary" href="{% url "billing:pricing" %}">
-          Passer Premium
-        </a>
+  <!-- PROGRESSION -->
+  <div class="ls-progress">
+    <div class="ls-progress__top">
+      <span class="ls-progress__label">Progression de la leçon</span>
+      <span class="ls-progress__stats">
+        <span id="ptProgressDone">{{ progress_completed }}</span> / <span id="ptProgressTotal">{{ progress_total }}</span>
+        &nbsp;·&nbsp;<span id="ptProgressPct">{{ progress_percent }}</span>%
+      </span>
+    </div>
+    <div class="ls-progress__track" role="progressbar" aria-valuenow="{{ progress_percent }}" aria-valuemin="0" aria-valuemax="100">
+      <div id="ptProgressFill" class="ls-progress__fill" style="width:{{ progress_percent }}%;"></div>
+    </div>
+    <div class="ls-progress__hint">Valide un exercice correctement pour avancer.</div>
+  </div>
+</div>
+
+<!-- CSRF token for JS -->
+<input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+
+<!-- MAIN LAYOUT -->
+<div class="ls-layout">
+
+  <!-- MAIN COLUMN -->
+  <div class="ls-main">
+
+    <!-- CE / CO: lesson text passage -->
+    {% if lesson.content_html %}
+    <div class="ls-passage">
+      <div class="ls-passage__label">
+        {% if section == "ce" %}📄 Texte de compréhension{% elif section == "co" %}📝 Contexte de l'audio{% else %}📘 Introduction{% endif %}
       </div>
+      <div class="ls-passage__body">{{ lesson.content_html|safe }}</div>
+    </div>
     {% endif %}
 
-    {% include "preparation_tests/partials/_cefr_bar.html" %}
-
-    <p class="pt-lead">
-      {% if section == "eo" %}
-        Entraînement à la <strong>prise de parole</strong> guidé avec
-        <strong>retour IA personnalisé</strong> et correction immédiate.
-      {% elif section == "ee" %}
-        Entraînement à la <strong>production écrite</strong> avec
-        <strong>correction IA</strong>, analyse des erreurs et version améliorée.
-      {% elif section == "ce" %}
-        Entraînement à la <strong>lecture et compréhension de textes</strong>
-        niveau {{ lesson.level }}. Lis attentivement le document ci-dessous
-        et réponds aux <strong>questions de compréhension</strong> avec correction immédiate.
-      {% else %}
-        Entraînement guidé avec <strong>audio</strong>,
-        <strong>questions interactives</strong> et
-        <strong>correction immédiate</strong>.
-      {% endif %}
-    </p>
-
-  </div>
-</section>
-
-<section class="pt-section pt-section--nav">
-  <div class="container">
-    {% include "preparation_tests/partials/_prep_nav.html" %}
-  </div>
-</section>
-
-<section class="pt-section">
-  <div class="container">
-    <div class="pt-grid-layout">
-
-      <div class="pt-main">
-        {% if section == "ce" %}
-          <p class="pt-card-meta" style="margin-bottom:8px;">
-            📄 <strong>Texte de compréhension</strong> — lisez attentivement avant de répondre aux questions.
-          </p>
+    <!-- EXERCISES -->
+    <div class="ls-ex-header">
+      <h2>
+        {% if section == "co" %}🎧 Exercices d'écoute
+        {% elif section == "ce" %}📖 Questions de compréhension
+        {% elif section == "eo" %}🎤 Sujets d'expression orale
+        {% elif section == "ee" %}✍️ Sujets de rédaction
         {% endif %}
-        <article class="pt-card pt-card--lesson-content">
-          {{ lesson.content_html|safe }}
-        </article>
+      </h2>
+      <span class="ls-ex-chip">{{ exercises|length }} exercice{% if exercises|length > 1 %}s{% endif %}</span>
+    </div>
+
+    {% for row in exercises %}
+    {% with exercise=row.obj %}
+
+    {# ============================================================ #}
+    {# 🎤 EO — Expression Orale                                     #}
+    {# ============================================================ #}
+    {% if section == "eo" %}
+
+    <div class="ls-ex-card pt-eo-card" data-exercise-id="{{ exercise.id }}">
+      <div class="ls-ex-card__num">
+        <span>{{ forloop.counter }}</span> Sujet {{ forloop.counter }}
       </div>
 
-      <aside class="pt-side">
-        <div class="pt-card pt-card--side">
-          {% if section == "ce" %}
-            <h3>📖 Conseils CE</h3>
-            <ul class="pt-side-list">
-              <li>Lis le texte une 1ère fois rapidement pour l'idée générale</li>
-              <li>Lis les questions avant de relire en détail</li>
-              <li>Repère les mots-clés dans le texte</li>
-              <li>Élimine les réponses clairement fausses</li>
-            </ul>
-            <p class="pt-small">
-              💡 Pour le TEF/TCF, tu as environ
-              <strong>1 min 30</strong> par question de CE.
-              Entraîne-toi à lire vite et efficacement.
-            </p>
-          {% else %}
-            <h3>🎯 Objectif pédagogique</h3>
-            <ul class="pt-side-list">
-              <li>Comprendre les consignes</li>
-              <li>Identifier les informations clés</li>
-              <li>Répondre efficacement sous contrainte de temps</li>
-            </ul>
-          {% endif %}
-        </div>
-      </aside>
+      <div class="ls-ex-card__question">{{ exercise.question_text }}</div>
 
-    </div>
-  </div>
-</section>
-
-<section class="pt-section pt-section--exercises">
-  <div class="container">
-
-    <h2 class="pt-section-title text-center">
-      {% if section == "eo" %}🎤 Sujets d’expression orale
-      {% elif section == "ee" %}✍️ Sujets d’expression écrite
-      {% elif section == "ce" %}📖 Questions de compréhension
-      {% else %}🎧 Exercices d’application
+      {% if exercise.instruction %}
+      <div class="ls-ex-card__instruction">
+        <strong>Consignes :</strong> {{ exercise.instruction }}
+      </div>
       {% endif %}
-    </h2>
 
-    <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+      {% if exercise.summary %}
+      <div class="ls-ex-card__points">
+        <strong>Points à aborder :</strong> {{ exercise.summary }}
+      </div>
+      {% endif %}
 
-    <div class="pt-exercises-grid">
-
-      {% for row in exercises %}
-      {% with exercise=row.obj %}
-
-      {# ============================================================ #}
-      {# 🎤 EO — Expression Orale : sujet + enregistreur audio        #}
-      {# ============================================================ #}
-      {% if section == "eo" %}
-
-      <article class="pt-card pt-card--exercise pt-eo-card"
-               data-exercise-id="{{ exercise.id }}">
-
-        <header class="pt-exercise-header">
-          <h3>Sujet {{ forloop.counter }}</h3>
-        </header>
-
-        <div class="pt-exercise-question">{{ exercise.question_text }}</div>
-
-        {% if exercise.instruction %}
-          <div class="pt-exercise-instruction pt-eo-instructions">
-            <strong>📋 Consignes :</strong>
-            <p>{{ exercise.instruction }}</p>
-          </div>
-        {% endif %}
-
-        {% if exercise.summary %}
-          <div class="pt-eo-expected">
-            <strong>🎯 Points à aborder :</strong>
-            <p class="pt-eo-points-hint">{{ exercise.summary }}</p>
-          </div>
-        {% endif %}
-
-        <div class="pt-recorder" data-exercise-id="{{ exercise.id }}">
-          <div class="pt-recorder-controls">
-            <button class="pt-record-btn" type="button">
-              🎤 Commencer l’enregistrement
-            </button>
-            <span class="pt-record-timer"></span>
-          </div>
-          <audio class="pt-playback" controls style="display:none; width:100%; margin-top:12px;"></audio>
+      <div class="ls-recorder pt-recorder" data-exercise-id="{{ exercise.id }}">
+        <div class="ls-recorder__controls pt-recorder-controls">
+          <button class="pt-record-btn" type="button">🎤 Commencer l'enregistrement</button>
+          <span class="pt-record-timer"></span>
         </div>
+        <audio class="pt-playback" controls style="display:none; width:100%; margin-top:12px;"></audio>
+      </div>
 
-        <div class="pt-cta-group" style="margin-top:14px;">
-          <button class="pt-submit-eo pt-btn-primary" type="button" disabled>
-            📤 Soumettre pour évaluation IA
-          </button>
-        </div>
+      <div style="margin-top:.75rem;">
+        <button class="ls-btn ls-btn--primary pt-submit-eo" type="button" disabled>
+          📤 Soumettre pour évaluation IA
+        </button>
+      </div>
 
-        <div class="pt-eo-result" style="display:none;"></div>
-
-      </article>
-
-      {# ============================================================ #}
-      {# ✍️ EE — Expression Écrite : sujet + zone de rédaction        #}
-      {# ============================================================ #}
-      {% elif section == "ee" %}
-
-      <article class="pt-card pt-card--exercise pt-ee-card"
-               data-exercise-id="{{ exercise.id }}">
-
-        <header class="pt-exercise-header">
-          <h3>Sujet {{ forloop.counter }}</h3>
-        </header>
-
-        <div class="pt-exercise-question">{{ exercise.question_text }}</div>
-
-        {% if exercise.instruction %}
-          <div class="pt-exercise-instruction pt-ee-instructions">
-            <strong>📋 Consignes :</strong>
-            <p>{{ exercise.instruction }}</p>
-          </div>
-        {% endif %}
-
-        <div class="pt-ee-editor">
-          <textarea
-            class="pt-ee-textarea"
-            rows="8"
-            placeholder="Rédigez votre réponse ici..."
-          ></textarea>
-          <div class="pt-word-counter">
-            <span class="pt-word-count">0</span> mot(s)
-          </div>
-        </div>
-
-        <div class="pt-cta-group" style="margin-top:14px;">
-          <button class="pt-submit-ee pt-btn-primary" type="button">
-            ✅ Soumettre pour correction IA
-          </button>
-        </div>
-
-        <div class="pt-ee-result" style="display:none;"></div>
-
-      </article>
-
-      {# ============================================================ #}
-      {# 📖 CE — Compréhension Écrite : QCM sans audio               #}
-      {# ============================================================ #}
-      {% elif section == "ce" %}
-
-      <article class="pt-card pt-card--exercise pt-ce-card"
-               data-exercise-id="{{ exercise.id }}">
-
-        <header class="pt-exercise-header">
-          <h3>Question {{ forloop.counter }}</h3>
-          {% if exercise.instruction %}
-            <p class="pt-exercise-instruction">{{ exercise.instruction }}</p>
-          {% endif %}
-        </header>
-
-        <p class="pt-exercise-question">{{ exercise.question_text }}</p>
-
-        <form
-          class="pt-exercise-form"
-          data-correct="{{ exercise.correct_option|upper }}"
-          data-exercise-id="{{ exercise.id }}"
-          novalidate
-        >
-
-          {% if exercise.option_a %}
-          <label class="pt-option">
-            <input type="radio" name="q{{ exercise.id }}" value="A">
-            <span>A.</span> {{ exercise.option_a }}
-          </label>
-          {% endif %}
-
-          {% if exercise.option_b %}
-          <label class="pt-option">
-            <input type="radio" name="q{{ exercise.id }}" value="B">
-            <span>B.</span> {{ exercise.option_b }}
-          </label>
-          {% endif %}
-
-          {% if exercise.option_c %}
-          <label class="pt-option">
-            <input type="radio" name="q{{ exercise.id }}" value="C">
-            <span>C.</span> {{ exercise.option_c }}
-          </label>
-          {% endif %}
-
-          {% if exercise.option_d %}
-          <label class="pt-option">
-            <input type="radio" name="q{{ exercise.id }}" value="D">
-            <span>D.</span> {{ exercise.option_d }}
-          </label>
-          {% endif %}
-
-          <div class="pt-cta-group">
-            <button type="button" class="pt-btn-primary pt-check-answer">
-              Vérifier la réponse
-            </button>
-          </div>
-
-          <p class="pt-feedback" hidden></p>
-        </form>
-
-      </article>
-
-      {# ============================================================ #}
-      {# 🎧 CO — Compréhension Orale : audio + QCM                   #}
-      {# ============================================================ #}
-      {% else %}
-
-      <article class="pt-card pt-card--exercise">
-
-        <header class="pt-exercise-header">
-          <h3>Exercice {{ forloop.counter }}</h3>
-          {% if exercise.instruction %}
-            <p class="pt-exercise-instruction">{{ exercise.instruction }}</p>
-          {% endif %}
-        </header>
-
-        {# 🔒 AUDIO PREMIUM READY #}
-        {% if exercise.audio_url %}
-          {% if row.can_audio %}
-            <div class="pt-audio-box">
-              <audio controls preload="metadata" playsinline controlslist="nodownload noplaybackrate">
-                <source src="{{ exercise.audio_url }}" type="audio/mpeg">
-                Votre navigateur ne supporte pas l’audio.
-              </audio>
-            </div>
-          {% else %}
-            <div class="pt-audio-box pt-audio-box--missing">
-              🔒 Audio Premium : <a href="{% url "billing:pricing" %}">débloquer</a>
-              <span style="display:block; opacity:.85; margin-top:4px;">
-                Astuce : valide l’exercice précédent ou passe Premium.
-              </span>
-            </div>
-          {% endif %}
-        {% else %}
-          <div class="pt-audio-box pt-audio-box--missing">⚠️ Aucun audio disponible pour cet exercice</div>
-        {% endif %}
-
-        <p class="pt-exercise-question">{{ exercise.question_text }}</p>
-
-        <form
-          class="pt-exercise-form"
-          data-correct="{{ exercise.correct_option|upper }}"
-          data-exercise-id="{{ exercise.id }}"
-          novalidate
-        >
-
-          {% if exercise.option_a %}
-          <label class="pt-option">
-            <input type="radio" name="q{{ exercise.id }}" value="A">
-            <span>A.</span> {{ exercise.option_a }}
-          </label>
-          {% endif %}
-
-          {% if exercise.option_b %}
-          <label class="pt-option">
-            <input type="radio" name="q{{ exercise.id }}" value="B">
-            <span>B.</span> {{ exercise.option_b }}
-          </label>
-          {% endif %}
-
-          {% if exercise.option_c %}
-          <label class="pt-option">
-            <input type="radio" name="q{{ exercise.id }}" value="C">
-            <span>C.</span> {{ exercise.option_c }}
-          </label>
-          {% endif %}
-
-          {% if exercise.option_d %}
-          <label class="pt-option">
-            <input type="radio" name="q{{ exercise.id }}" value="D">
-            <span>D.</span> {{ exercise.option_d }}
-          </label>
-          {% endif %}
-
-          <div class="pt-cta-group">
-            <button type="button" class="pt-btn-primary pt-check-answer">
-              Vérifier la réponse
-            </button>
-          </div>
-
-          <p class="pt-feedback" hidden></p>
-        </form>
-
-      </article>
-
-      {% endif %}{# end section branch #}
-
-      {% endwith %}
-      {% empty %}
-        <p class="pt-empty text-center">Aucun exercice disponible pour cette leçon.</p>
-      {% endfor %}
-
+      <div class="pt-eo-result" style="display:none;"></div>
     </div>
-  </div>
-</section>
+
+    {# ============================================================ #}
+    {# ✍️ EE — Expression Écrite                                    #}
+    {# ============================================================ #}
+    {% elif section == "ee" %}
+
+    <div class="ls-ex-card pt-ee-card" data-exercise-id="{{ exercise.id }}">
+      <div class="ls-ex-card__num">
+        <span>{{ forloop.counter }}</span> Sujet {{ forloop.counter }}
+      </div>
+
+      <div class="ls-ex-card__question">{{ exercise.question_text }}</div>
+
+      {% if exercise.instruction %}
+      <div class="ls-ex-card__instruction">
+        <strong>Consignes :</strong> {{ exercise.instruction }}
+      </div>
+      {% endif %}
+
+      <div class="ls-textarea-wrap">
+        <textarea class="pt-ee-textarea" rows="8" placeholder="Rédigez votre réponse ici…"></textarea>
+        <div class="pt-word-counter"><span class="pt-word-count">0</span> mot(s)</div>
+      </div>
+
+      <button class="ls-btn ls-btn--primary pt-submit-ee" type="button">
+        ✅ Soumettre pour correction IA
+      </button>
+
+      <div class="pt-ee-result" style="display:none;"></div>
+    </div>
+
+    {# ============================================================ #}
+    {# 📖 CE — Compréhension Écrite (QCM)                          #}
+    {# ============================================================ #}
+    {% elif section == "ce" %}
+
+    <div class="ls-ex-card pt-ce-card" data-exercise-id="{{ exercise.id }}">
+      <div class="ls-ex-card__num">
+        <span>{{ forloop.counter }}</span> Question {{ forloop.counter }}
+      </div>
+
+      {% if exercise.instruction %}
+      <div class="ls-ex-card__instruction">{{ exercise.instruction }}</div>
+      {% endif %}
+
+      <div class="ls-ex-card__question">{{ exercise.question_text }}</div>
+
+      <form class="pt-exercise-form ls-options"
+            data-correct="{{ exercise.correct_option|upper }}"
+            data-exercise-id="{{ exercise.id }}"
+            novalidate>
+
+        {% if exercise.option_a %}
+        <label class="ls-option">
+          <input type="radio" name="q{{ exercise.id }}" value="A">
+          <span class="ls-option__letter">A</span>
+          {{ exercise.option_a }}
+        </label>
+        {% endif %}
+        {% if exercise.option_b %}
+        <label class="ls-option">
+          <input type="radio" name="q{{ exercise.id }}" value="B">
+          <span class="ls-option__letter">B</span>
+          {{ exercise.option_b }}
+        </label>
+        {% endif %}
+        {% if exercise.option_c %}
+        <label class="ls-option">
+          <input type="radio" name="q{{ exercise.id }}" value="C">
+          <span class="ls-option__letter">C</span>
+          {{ exercise.option_c }}
+        </label>
+        {% endif %}
+        {% if exercise.option_d %}
+        <label class="ls-option">
+          <input type="radio" name="q{{ exercise.id }}" value="D">
+          <span class="ls-option__letter">D</span>
+          {{ exercise.option_d }}
+        </label>
+        {% endif %}
+
+        <div style="margin-top:.5rem;">
+          <button type="button" class="ls-btn ls-btn--outline pt-check-answer">Vérifier la réponse</button>
+        </div>
+
+        <p class="pt-feedback" hidden></p>
+      </form>
+    </div>
+
+    {# ============================================================ #}
+    {# 🎧 CO — Compréhension Orale (audio + QCM)                   #}
+    {# ============================================================ #}
+    {% else %}
+
+    <div class="ls-ex-card" data-exercise-id="{{ exercise.id }}">
+      <div class="ls-ex-card__num">
+        <span>{{ forloop.counter }}</span> Exercice {{ forloop.counter }}
+      </div>
+
+      {% if exercise.instruction %}
+      <div class="ls-ex-card__instruction">{{ exercise.instruction }}</div>
+      {% endif %}
+
+      <!-- AUDIO -->
+      {% if exercise.audio_url %}
+        {% if row.can_audio %}
+        <div class="ls-audio">
+          <span class="ls-audio__icon">🎧</span>
+          <audio controls preload="metadata" playsinline controlslist="nodownload noplaybackrate">
+            <source src="{{ exercise.audio_url }}" type="audio/mpeg">
+          </audio>
+        </div>
+        {% else %}
+        <div class="ls-audio ls-audio--locked">
+          🔒 Audio réservé aux abonnés Premium —
+          <a href="{% url 'billing:pricing' %}">Débloquer</a>
+        </div>
+        {% endif %}
+      {% else %}
+      <div class="ls-audio ls-audio--locked">⚠️ Aucun audio disponible pour cet exercice</div>
+      {% endif %}
+
+      <div class="ls-ex-card__question">{{ exercise.question_text }}</div>
+
+      <form class="pt-exercise-form ls-options"
+            data-correct="{{ exercise.correct_option|upper }}"
+            data-exercise-id="{{ exercise.id }}"
+            novalidate>
+
+        {% if exercise.option_a %}
+        <label class="ls-option">
+          <input type="radio" name="q{{ exercise.id }}" value="A">
+          <span class="ls-option__letter">A</span>
+          {{ exercise.option_a }}
+        </label>
+        {% endif %}
+        {% if exercise.option_b %}
+        <label class="ls-option">
+          <input type="radio" name="q{{ exercise.id }}" value="B">
+          <span class="ls-option__letter">B</span>
+          {{ exercise.option_b }}
+        </label>
+        {% endif %}
+        {% if exercise.option_c %}
+        <label class="ls-option">
+          <input type="radio" name="q{{ exercise.id }}" value="C">
+          <span class="ls-option__letter">C</span>
+          {{ exercise.option_c }}
+        </label>
+        {% endif %}
+        {% if exercise.option_d %}
+        <label class="ls-option">
+          <input type="radio" name="q{{ exercise.id }}" value="D">
+          <span class="ls-option__letter">D</span>
+          {{ exercise.option_d }}
+        </label>
+        {% endif %}
+
+        <div style="margin-top:.5rem;">
+          <button type="button" class="ls-btn ls-btn--outline pt-check-answer">Vérifier la réponse</button>
+        </div>
+
+        <p class="pt-feedback" hidden></p>
+      </form>
+    </div>
+
+    {% endif %}{# end section branch #}
+
+    {% empty %}
+    <div style="text-align:center;padding:3rem;color:rgba(255,255,255,.3);background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.08);border-radius:14px;font-size:.9rem;">
+      Aucun exercice disponible pour cette leçon.
+    </div>
+    {% endwith %}
+    {% endfor %}
+
+  </div>{# end ls-main #}
+
+  <!-- SIDEBAR -->
+  <aside class="ls-sidebar">
+
+    <div class="ls-sidebar__card">
+      <div class="ls-sidebar__title">
+        {% if section == "co" %}🎧 Conseils CO{% elif section == "ce" %}📖 Conseils CE{% elif section == "eo" %}🎤 Conseils EO{% elif section == "ee" %}✍️ Conseils EE{% endif %}
+      </div>
+      <ul class="ls-sidebar__list">
+        {% if section == "co" %}
+        <li>Écoute une 1ère fois sans regarder les options</li>
+        <li>Note les chiffres, noms propres et mots-clés</li>
+        <li>Lis les options avant la 2e écoute</li>
+        <li>Élimine les réponses clairement fausses</li>
+        {% elif section == "ce" %}
+        <li>Lis le texte rapidement pour l'idée générale</li>
+        <li>Lis les questions avant de relire en détail</li>
+        <li>Repère les mots-clés dans chaque question</li>
+        <li>Élimine les réponses contradictoires</li>
+        {% elif section == "eo" %}
+        <li>Structure : introduction, développement, conclusion</li>
+        <li>Utilise des connecteurs logiques variés</li>
+        <li>Donne des exemples concrets et personnels</li>
+        <li>Soigne la prononciation et le débit</li>
+        {% elif section == "ee" %}
+        <li>Respecte le format demandé (lettre, courriel…)</li>
+        <li>Structure en paragraphes distincts</li>
+        <li>Utilise un vocabulaire précis et varié</li>
+        <li>Relis et corrige les fautes avant de soumettre</li>
+        {% endif %}
+      </ul>
+      {% if section == "eo" or section == "ee" %}
+      <p class="ls-sidebar__note">
+        L'IA évalue ta réponse et te donne un score sur 100, des corrections détaillées et une version améliorée.
+        Vise <strong>70+</strong> pour valider.
+      </p>
+      {% elif section == "co" %}
+      <p class="ls-sidebar__note">
+        Pour le TEF/TCF, tu as environ <strong>1 min</strong> par question CO.
+        Entraîne-toi à répondre rapidement.
+      </p>
+      {% elif section == "ce" %}
+      <p class="ls-sidebar__note">
+        Pour le TEF/TCF, tu as environ <strong>1 min 30</strong> par question CE.
+        Lis vite, repère les indices.
+      </p>
+      {% endif %}
+    </div>
+
+    <div class="ls-sidebar__card">
+      <div class="ls-sidebar__title">📊 Cette leçon</div>
+      <ul class="ls-sidebar__list">
+        <li>Niveau : {{ lesson.level }}</li>
+        <li>Section : {{ section|upper }}</li>
+        <li>Examen : {{ display_exam_code|upper }}</li>
+        <li>Exercices : {{ exercises|length }}</li>
+      </ul>
+    </div>
+
+  </aside>
+
+</div>{# end ls-layout #}
+
+<!-- BOTTOM NAV -->
+<div class="ls-bottom">
+  {% if section == "co" %}<a href="{% url 'preparation_tests:co_by_level' lesson.level %}" class="ls-back-btn">← Retour aux leçons {{ lesson.level }}</a>
+  {% elif section == "ce" %}<a href="{% url 'preparation_tests:ce_by_level' lesson.level %}" class="ls-back-btn">← Retour aux leçons {{ lesson.level }}</a>
+  {% elif section == "eo" %}<a href="{% url 'preparation_tests:eo_by_level' lesson.level %}" class="ls-back-btn">← Retour aux leçons {{ lesson.level }}</a>
+  {% elif section == "ee" %}<a href="{% url 'preparation_tests:ee_by_level' lesson.level %}" class="ls-back-btn">← Retour aux leçons {{ lesson.level }}</a>
+  {% endif %}
+</div>
 
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/preparation_tests.js' %}?v=20260218-premium" defer></script>
+<script src="{% static 'js/preparation_tests.js' %}?v=20260422" defer></script>
 {% endblock %}

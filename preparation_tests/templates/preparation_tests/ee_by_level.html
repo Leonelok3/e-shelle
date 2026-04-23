@@ -1,136 +1,133 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}EE {{ level }} — Leçons Expression Écrite | Immigration97{% endblock %}
+{% block meta_description %}Leçons d'Expression Écrite niveau {{ level }} : sujets de rédaction progressifs pour réussir le TEF, TCF, DELF — niveau CECR {{ level }}.{% endblock %}
+
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
 
-{% block title %}
-Expression Écrite {{ level }} – Leçons & Entraînement CECR | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Préparation Expression Écrite (EE) – niveau {{ level }}.
-Sujets de production écrite CECR, correction IA et version améliorée
-pour les examens linguistiques officiels.
-{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260329">
+<style>
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-purple:#a855f7;--h-glass:rgba(255,255,255,.04);}
+.bl-breadcrumb{max-width:1080px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:rgba(255,255,255,.4);}
+.bl-breadcrumb a{color:rgba(255,255,255,.5);text-decoration:none;transition:color .2s;}
+.bl-breadcrumb a:hover{color:var(--h-gold-lt);}
+.bl-breadcrumb__sep{color:rgba(255,255,255,.2);}
+.bl-breadcrumb__current{color:rgba(255,255,255,.75);font-weight:600;}
+.bl-hero{max-width:1080px;margin:0 auto;padding:1.5rem 1.25rem 2rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;}
+.bl-hero__badge{width:80px;height:80px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;flex-shrink:0;}
+.bl-hero__badge--a1{background:rgba(16,185,129,.18);border:2px solid rgba(16,185,129,.4);color:#4ade80;}
+.bl-hero__badge--a2{background:rgba(34,197,94,.18);border:2px solid rgba(34,197,94,.4);color:#86efac;}
+.bl-hero__badge--b1{background:rgba(234,179,8,.18);border:2px solid rgba(234,179,8,.4);color:#fde047;}
+.bl-hero__badge--b2{background:rgba(245,158,11,.18);border:2px solid rgba(245,158,11,.4);color:#fbbf24;}
+.bl-hero__badge--c1{background:rgba(239,68,68,.18);border:2px solid rgba(239,68,68,.4);color:#fca5a5;}
+.bl-hero__badge--c2{background:rgba(168,85,247,.18);border:2px solid rgba(168,85,247,.4);color:#d8b4fe;}
+.bl-hero__body h1{font-size:1.8rem;font-weight:800;color:#fff;margin:0 0 .35rem;line-height:1.15;}
+.bl-hero__body h1 span{color:var(--h-gold-lt);}
+.bl-hero__body p{font-size:.9rem;color:rgba(255,255,255,.55);margin:0;line-height:1.6;max-width:520px;}
+.bl-hero__stats{display:flex;gap:1.5rem;margin-top:.75rem;}
+.bl-hero__stat-n{font-size:1.2rem;font-weight:800;color:var(--h-gold-lt);}
+.bl-hero__stat-l{font-size:.68rem;color:rgba(255,255,255,.4);}
+.bl-levels-nav{max-width:1080px;margin:0 auto 2rem;padding:0 1.25rem;}
+.bl-levels-nav__inner{display:flex;gap:.5rem;flex-wrap:wrap;}
+.bl-levels-nav__item{display:inline-flex;padding:.35rem .8rem;border-radius:8px;font-size:.78rem;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);background:rgba(255,255,255,.03);transition:all .2s;}
+.bl-levels-nav__item:hover,.bl-levels-nav__item--active{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.4);color:#d8b4fe;}
+.bl-section{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;}
+.bl-section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;}
+.bl-section-hd h2{font-size:1.05rem;font-weight:800;color:#fff;margin:0;}
+.bl-count-chip{font-size:.75rem;color:rgba(255,255,255,.4);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:.2rem .65rem;}
+.bl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;}
+.bl-lesson-card{background:var(--h-glass);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:1.35rem 1.5rem;display:flex;align-items:center;gap:1.25rem;transition:transform .2s,box-shadow .2s,border-color .2s;text-decoration:none;}
+.bl-lesson-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.35);border-color:rgba(168,85,247,.3);}
+.bl-lesson-card__num{width:38px;height:38px;border-radius:10px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.25);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:800;color:#d8b4fe;flex-shrink:0;}
+.bl-lesson-card__body{flex:1;min-width:0;}
+.bl-lesson-card__title{font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bl-lesson-card__meta{font-size:.75rem;color:rgba(255,255,255,.35);}
+.bl-lesson-card__arrow{color:rgba(255,255,255,.25);font-size:1rem;flex-shrink:0;transition:color .2s,transform .2s;}
+.bl-lesson-card:hover .bl-lesson-card__arrow{color:#d8b4fe;transform:translateX(3px);}
+.bl-empty{text-align:center;padding:3rem;color:rgba(255,255,255,.3);background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.08);border-radius:14px;font-size:.9rem;}
+.bl-bottom{max-width:1080px;margin:0 auto 3rem;padding:0 1.25rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
+.bl-back-btn{display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700;color:rgba(255,255,255,.6);text-decoration:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem 1.1rem;transition:all .2s;}
+.bl-back-btn:hover{color:var(--h-gold-lt);border-color:rgba(212,168,67,.3);}
+.bl-next-btn{display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700;color:#d8b4fe;text-decoration:none;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);border-radius:9px;padding:.55rem 1.1rem;transition:all .2s;}
+.bl-next-btn:hover{background:rgba(168,85,247,.18);}
+@media(max-width:640px){.bl-hero{flex-direction:column;gap:1rem;}.bl-grid{grid-template-columns:1fr;}}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<!-- ==================================================
-HERO — EXPRESSION ÉCRITE / NIVEAU {{ level }}
-================================================== -->
-<section class="pt-hero">
-  <div class="container pt-fade-up">
+<div class="bl-breadcrumb">
+  <a href="{% url 'preparation_tests:french_exams' %}">Tests de langue</a>
+  <span class="bl-breadcrumb__sep">›</span>
+  <a href="{% url 'preparation_tests:ee_hub' %}">Expression Écrite</a>
+  <span class="bl-breadcrumb__sep">›</span>
+  <span class="bl-breadcrumb__current">Niveau {{ level }}</span>
+</div>
 
-    <span class="pt-badge">
-      ✍️ Expression écrite
-    </span>
-
-    <h1 class="pt-title">
-      Niveau {{ level }}<br>
-      Leçons & entraînement
-      <span class="pt-gradient-primary">CECR</span>
-    </h1>
-
-    <p class="pt-lead">
-      Accède aux <strong>sujets de production écrite</strong> du niveau
-      <strong>{{ level }}</strong>. Rédige directement en ligne
-      et reçois une <strong>correction IA complète</strong> :
-      erreurs identifiées, score et version corrigée intégrale.
+<div class="bl-hero">
+  <div class="bl-hero__badge bl-hero__badge--{{ level|lower }}">{{ level }}</div>
+  <div class="bl-hero__body">
+    <h1>✍️ Expression Écrite — <span>Niveau {{ level }}</span></h1>
+    <p>
+      {% if level == "A1" %}Écrire des mots, des phrases simples et des cartes postales sur des sujets familiers.
+      {% elif level == "A2" %}Rédiger des notes, des messages et des textes courts sur la vie quotidienne.
+      {% elif level == "B1" %}Rédiger des textes articulés sur des sujets relatifs à ses centres d'intérêt.
+      {% elif level == "B2" %}Écrire des textes clairs et détaillés en défendant un point de vue argumenté.
+      {% elif level == "C1" %}Rédiger des textes bien structurés sur des sujets complexes avec précision.
+      {% elif level == "C2" %}Rédiger des textes clairs, fluides et complexes avec un style adapté au contexte.
+      {% endif %}
     </p>
-
-    {% if cefr %}
-      {% include "preparation_tests/partials/_cefr_bar.html" %}
-    {% endif %}
-
-  </div>
-</section>
-
-{% include "preparation_tests/partials/_prep_nav.html" %}
-
-<!-- ==================================================
-LEÇONS DISPONIBLES
-================================================== -->
-<section class="pt-section">
-  <div class="container">
-
-    <div class="pt-grid-layout">
-
-      <div class="pt-main">
-
-        <h2 class="pt-section-title">
-          ✍️ Leçons disponibles
-        </h2>
-
-        <div class="pt-modules-grid">
-
-          {% for lesson in lessons %}
-            <article class="pt-card pt-card--lesson">
-
-              <h3 class="pt-lesson-title">{{ lesson.title }}</h3>
-
-              <p class="pt-card-meta">
-                Leçon CECR – niveau {{ level }}
-              </p>
-
-              <div class="pt-cta-group">
-                <a
-                  href="{% url "preparation_tests:lesson_session" "CECR" "ee" lesson.id %}"
-                  class="pt-btn-primary"
-                >
-                  ▶ Commencer la leçon
-                </a>
-              </div>
-
-            </article>
-          {% empty %}
-            <div class="pt-empty">
-              Aucune leçon disponible pour ce niveau.
-            </div>
-          {% endfor %}
-
-        </div>
-
-        <div class="pt-back-link">
-          <a href="{% url "preparation_tests:ee_hub" %}" class="pt-btn-secondary">
-            ← Retour au hub Expression Écrite
-          </a>
-        </div>
-
-      </div>
-
-      <aside class="pt-side">
-        <div class="pt-card pt-card--side">
-
-          <h3>✍️ Conseils EE</h3>
-
-          <ul class="pt-side-list">
-            <li>Respecter le format demandé (courriel, lettre, texte)</li>
-            <li>Structurer en paragraphes distincts</li>
-            <li>Utiliser un vocabulaire précis et varié</li>
-            <li>Vérifier la grammaire et la ponctuation</li>
-          </ul>
-
-          <p class="pt-small">
-            💡 L'IA corrige ta grammaire, évalue ton vocabulaire
-            et te fournit une version améliorée intégrale.
-            Vise un score de <strong>70+</strong> pour valider le sujet.
-          </p>
-
-        </div>
-      </aside>
-
+    <div class="bl-hero__stats">
+      <div class="bl-hero__stat"><div class="bl-hero__stat-n">{{ lessons|length }}</div><div class="bl-hero__stat-l">leçons</div></div>
+      <div class="bl-hero__stat"><div class="bl-hero__stat-n">✍️</div><div class="bl-hero__stat-l">sujets inclus</div></div>
+      <div class="bl-hero__stat"><div class="bl-hero__stat-n">✓</div><div class="bl-hero__stat-l">gratuit</div></div>
     </div>
-
   </div>
-</section>
+</div>
 
-{% endblock %}
+<div class="bl-levels-nav">
+  <div class="bl-levels-nav__inner">
+    <a href="{% url 'preparation_tests:ee_by_level' 'A1' %}" class="bl-levels-nav__item {% if level == 'A1' %}bl-levels-nav__item--active{% endif %}">A1</a>
+    <a href="{% url 'preparation_tests:ee_by_level' 'A2' %}" class="bl-levels-nav__item {% if level == 'A2' %}bl-levels-nav__item--active{% endif %}">A2</a>
+    <a href="{% url 'preparation_tests:ee_by_level' 'B1' %}" class="bl-levels-nav__item {% if level == 'B1' %}bl-levels-nav__item--active{% endif %}">B1</a>
+    <a href="{% url 'preparation_tests:ee_by_level' 'B2' %}" class="bl-levels-nav__item {% if level == 'B2' %}bl-levels-nav__item--active{% endif %}">B2</a>
+    <a href="{% url 'preparation_tests:ee_by_level' 'C1' %}" class="bl-levels-nav__item {% if level == 'C1' %}bl-levels-nav__item--active{% endif %}">C1</a>
+    <a href="{% url 'preparation_tests:ee_by_level' 'C2' %}" class="bl-levels-nav__item {% if level == 'C2' %}bl-levels-nav__item--active{% endif %}">C2</a>
+  </div>
+</div>
 
-{% block extra_js %}
-<script src="{% static 'js/preparation_tests.js' %}?v=20260226-ee" defer></script>
+<div class="bl-section">
+  <div class="bl-section-hd">
+    <h2>✍️ Leçons du niveau {{ level }}</h2>
+    <span class="bl-count-chip">{{ lessons|length }} leçon{% if lessons|length > 1 %}s{% endif %}</span>
+  </div>
+  <div class="bl-grid">
+    {% for lesson in lessons %}
+    <a href="{% url 'preparation_tests:lesson_session' 'CECR' 'ee' lesson.id %}" class="bl-lesson-card">
+      <div class="bl-lesson-card__num">{{ forloop.counter }}</div>
+      <div class="bl-lesson-card__body">
+        <div class="bl-lesson-card__title">{{ lesson.title }}</div>
+        <div class="bl-lesson-card__meta">✍️ EE · Niveau {{ level }} · CECR</div>
+      </div>
+      <span class="bl-lesson-card__arrow">→</span>
+    </a>
+    {% empty %}
+    <div class="bl-empty">Aucune leçon disponible pour ce niveau.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="bl-bottom">
+  <a href="{% url 'preparation_tests:ee_hub' %}" class="bl-back-btn">← Retour au hub EE</a>
+  {% if level == "A1" %}<a href="{% url 'preparation_tests:ee_by_level' 'A2' %}" class="bl-next-btn">Niveau A2 →</a>
+  {% elif level == "A2" %}<a href="{% url 'preparation_tests:ee_by_level' 'B1' %}" class="bl-next-btn">Niveau B1 →</a>
+  {% elif level == "B1" %}<a href="{% url 'preparation_tests:ee_by_level' 'B2' %}" class="bl-next-btn">Niveau B2 →</a>
+  {% elif level == "B2" %}<a href="{% url 'preparation_tests:ee_by_level' 'C1' %}" class="bl-next-btn">Niveau C1 →</a>
+  {% elif level == "C1" %}<a href="{% url 'preparation_tests:ee_by_level' 'C2' %}" class="bl-next-btn">Niveau C2 →</a>
+  {% endif %}
+</div>
+
 {% endblock %}
