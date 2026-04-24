@@ -2,2279 +2,443 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="google-site-verification" content="Iawiq5lHjXn0VOj4Pd0y8O4BmrkgJKNS95ODHsvaMXk" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Immigration97 — La plateforme africaine de référence pour le placement international. Emploi qualifié, études à l'étranger, visa et accompagnement complet." />
-  <meta name="theme-color" content="#050A18" />
+  <meta charset="UTF-8"/>
+  <meta name="google-site-verification" content="Iawiq5lHjXn0VOj4Pd0y8O4BmrkgJKNS95ODHsvaMXk"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="description" content="Immigration97 — La plateforme qui connecte les talents africains aux employeurs internationaux. Créez votre profil, préparez vos tests de langue, trouvez du travail à l'étranger."/>
+  <meta name="theme-color" content="#050A18"/>
   <title>Immigration97 — Placement International pour Africains</title>
-
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=DM+Sans:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
-
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <style>
-    /* ============================================================
-       CSS CUSTOM PROPERTIES — DESIGN TOKENS
-    ============================================================ */
-    :root {
-      --navy-deep:   #050A18;
-      --navy-mid:    #0A1628;
-      --navy-light:  #0F2040;
-      --gold:        #D4A843;
-      --gold-light:  #F0C060;
-      --gold-dark:   #B8902A;
-      --amber:       #F59E0B;
-      --glass-bg:    rgba(255,255,255,0.04);
-      --glass-border:rgba(212,168,67,0.25);
-      --text-primary:  #FFFFFF;
-      --text-secondary:rgba(255,255,255,0.65);
-      --text-muted:    rgba(255,255,255,0.4);
-      --font-display: 'Cormorant Garamond', Georgia, serif;
-      --font-body:    'DM Sans', system-ui, sans-serif;
-      --font-number:  'Bebas Neue', Impact, sans-serif;
-      --radius-sm:  8px;
-      --radius-md:  16px;
-      --radius-lg:  24px;
-      --radius-xl:  40px;
-      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-      --shadow-gold:0 0 30px rgba(212,168,67,0.2);
-      --shadow-card:0 8px 40px rgba(0,0,0,0.4);
-    }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',system-ui,sans-serif;background:#050A18;color:#E8EAF0;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+img{max-width:100%;display:block;}
 
-    /* ============================================================
-       RESET & BASE
-    ============================================================ */
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    html{scroll-behavior:smooth;font-size:16px;}
-    body{
-      font-family:var(--font-body);
-      background:var(--navy-deep);
-      color:var(--text-primary);
-      overflow-x:hidden;
-      line-height:1.6;
-      -webkit-font-smoothing:antialiased;
-    }
-    a{text-decoration:none;color:inherit;}
-    ul{list-style:none;}
-    img{max-width:100%;display:block;}
-    button{cursor:pointer;border:none;background:none;font-family:inherit;}
+/* ── BG ── */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 80% 50% at 50% -5%,rgba(212,168,67,.10) 0%,transparent 60%),
+             radial-gradient(ellipse 40% 30% at 80% 70%,rgba(59,130,246,.05) 0%,transparent 60%);}
 
-    /* ============================================================
-       NOISE TEXTURE OVERLAY
-    ============================================================ */
-    body::before{
-      content:'';
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      z-index:0;
-      opacity:0.03;
-      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-      background-size:256px 256px;
-    }
+/* ── NAV ── */
+#nav{position:fixed;top:0;left:0;right:0;z-index:999;
+  background:rgba(5,10,24,.92);backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(212,168,67,.12);transition:background .3s;}
+#nav.scrolled{background:rgba(5,10,24,.98);}
+.nav-inner{max-width:1200px;margin:0 auto;padding:.85rem 1.5rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.nav-logo img{height:44px;}
+.nav-links{display:flex;align-items:center;gap:1.75rem;}
+.nav-links a{font-size:.85rem;font-weight:600;color:rgba(255,255,255,.6);transition:color .2s;}
+.nav-links a:hover{color:#F0C060;}
+.nav-cta-group{display:flex;align-items:center;gap:.75rem;}
+.nav-btn-outline{font-size:.83rem;font-weight:700;padding:.5rem 1.1rem;border-radius:9px;
+  border:1.5px solid rgba(255,255,255,.2);color:rgba(255,255,255,.75);transition:all .2s;}
+.nav-btn-outline:hover{border-color:#F0C060;color:#F0C060;}
+.nav-btn-primary{font-size:.83rem;font-weight:700;padding:.5rem 1.25rem;border-radius:9px;
+  background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;transition:all .2s;}
+.nav-btn-primary:hover{box-shadow:0 4px 16px rgba(212,168,67,.4);transform:translateY(-1px);}
+.nav-burger{display:none;flex-direction:column;gap:5px;padding:.5rem;cursor:pointer;z-index:1001;}
+.nav-burger span{width:22px;height:2px;background:#fff;border-radius:2px;transition:all .3s;}
 
-    /* ============================================================
-       KEYFRAME ANIMATIONS
-    ============================================================ */
-    @keyframes floatParticle{
-      0%,100%{transform:translateY(0) translateX(0) scale(1);opacity:0.6;}
-      33%{transform:translateY(-30px) translateX(15px) scale(1.2);opacity:1;}
-      66%{transform:translateY(-15px) translateX(-10px) scale(0.8);opacity:0.4;}
-    }
-    @keyframes heroFloat{
-      0%,100%{transform:translateY(0) rotate(0deg);}
-      50%{transform:translateY(-20px) rotate(2deg);}
-    }
-    @keyframes marqueeScroll{
-      from{transform:translateX(0);}
-      to{transform:translateX(-50%);}
-    }
-    @keyframes gradientShift{
-      0%{background-position:0% 50%;}
-      50%{background-position:100% 50%;}
-      100%{background-position:0% 50%;}
-    }
-    @keyframes pulse{
-      0%,100%{box-shadow:0 0 0 0 rgba(212,168,67,0.4);}
-      50%{box-shadow:0 0 0 15px rgba(212,168,67,0);}
-    }
-    @keyframes badgePulse{
-      0%,100%{box-shadow:0 0 0 0 rgba(212,168,67,0.5),0 0 20px rgba(212,168,67,0.2);}
-      50%{box-shadow:0 0 0 8px rgba(212,168,67,0),0 0 40px rgba(212,168,67,0.4);}
-    }
-    @keyframes ctaGradient{
-      0%{background-position:0% 50%;}
-      50%{background-position:100% 50%;}
-      100%{background-position:0% 50%;}
-    }
-    @keyframes whatsappPulse{
-      0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.5);}
-      50%{box-shadow:0 0 0 12px rgba(37,211,102,0);}
-    }
-    @keyframes hexSpin{
-      from{transform:rotate(0deg);}
-      to{transform:rotate(360deg);}
-    }
+/* ── PAGE ── */
+.page{position:relative;z-index:1;padding-top:72px;}
 
-    /* ============================================================
-       SCROLL REVEAL
-    ============================================================ */
-    .reveal{
-      opacity:0;
-      transform:translateY(40px);
-      transition:opacity 0.7s ease,transform 0.7s ease;
-    }
-    .reveal.visible{opacity:1;transform:translateY(0);}
-    .reveal-delay-1{transition-delay:0.1s;}
-    .reveal-delay-2{transition-delay:0.2s;}
-    .reveal-delay-3{transition-delay:0.3s;}
-    .reveal-delay-4{transition-delay:0.4s;}
-    .reveal-delay-5{transition-delay:0.5s;}
+/* ── HERO ── */
+.hero{max-width:1100px;margin:0 auto;padding:5.5rem 1.5rem 4rem;text-align:center;}
+.hero__kicker{display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);
+  color:#F0C060;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  padding:.35rem 1rem;border-radius:999px;margin-bottom:1.5rem;
+  animation:fadeDown .6s ease both;}
+.hero h1{font-size:clamp(2.2rem,5.5vw,4rem);font-weight:900;line-height:1.12;
+  color:#fff;margin-bottom:1.25rem;animation:fadeDown .65s .1s ease both;}
+.hero h1 .gold{background:linear-gradient(135deg,#D4A843,#F0C060);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.hero__sub{font-size:1.05rem;color:rgba(255,255,255,.55);line-height:1.75;max-width:600px;
+  margin:0 auto 2.5rem;animation:fadeDown .65s .2s ease both;}
+.hero__cta{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;
+  animation:fadeDown .65s .3s ease both;}
+.btn-hero-primary{display:inline-flex;align-items:center;gap:.5rem;
+  background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;
+  font-size:1rem;font-weight:800;padding:.85rem 2rem;border-radius:12px;
+  transition:all .25s;}
+.btn-hero-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(212,168,67,.4);}
+.btn-hero-ghost{display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.18);
+  color:rgba(255,255,255,.8);font-size:1rem;font-weight:700;padding:.85rem 2rem;border-radius:12px;
+  transition:all .25s;}
+.btn-hero-ghost:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.35);}
 
-    /* ============================================================
-       SHARED COMPONENTS
-    ============================================================ */
-    .section-label{
-      display:inline-block;
-      font-family:var(--font-body);
-      font-size:0.75rem;
-      font-weight:600;
-      letter-spacing:0.2em;
-      text-transform:uppercase;
-      color:var(--gold);
-      background:rgba(212,168,67,0.1);
-      border:1px solid rgba(212,168,67,0.3);
-      border-radius:100px;
-      padding:6px 16px;
-      margin-bottom:16px;
-    }
-    .section-title{
-      font-family:var(--font-display);
-      font-size:clamp(2rem,4vw,3.5rem);
-      font-weight:700;
-      color:var(--text-primary);
-      line-height:1.1;
-      margin-bottom:1rem;
-    }
-    .section-title span{color:var(--gold);font-style:italic;}
-    .section-subtitle{
-      font-family:var(--font-body);
-      font-size:1.1rem;
-      color:var(--text-secondary);
-      max-width:600px;
-      line-height:1.7;
-    }
-    .section-header{text-align:center;margin-bottom:4rem;}
-    .section-header .section-subtitle{margin:0 auto;}
+/* ── STATS ── */
+.stats{max-width:800px;margin:3.5rem auto 0;display:flex;justify-content:center;
+  border:1px solid rgba(212,168,67,.15);border-radius:16px;overflow:hidden;
+  animation:fadeUp .6s .4s ease both;}
+.stat{flex:1;text-align:center;padding:1.5rem 1rem;
+  border-right:1px solid rgba(212,168,67,.12);}
+.stat:last-child{border-right:none;}
+.stat__num{font-size:2rem;font-weight:900;color:#F0C060;display:block;line-height:1;}
+.stat__label{font-size:.72rem;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase;margin-top:.3rem;}
 
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      font-family:var(--font-body);
-      font-weight:600;
-      font-size:0.95rem;
-      padding:14px 28px;
-      border-radius:100px;
-      transition:var(--transition);
-      cursor:pointer;
-      position:relative;
-      overflow:hidden;
-      white-space:nowrap;
-    }
-    .btn-gold{
-      background:linear-gradient(135deg,var(--gold) 0%,var(--amber) 50%,var(--gold-dark) 100%);
-      color:var(--navy-deep);
-      box-shadow:0 4px 20px rgba(212,168,67,0.35);
-    }
-    .btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(212,168,67,0.5);}
-    .btn-ghost{
-      background:transparent;
-      color:var(--text-primary);
-      border:1.5px solid rgba(255,255,255,0.35);
-    }
-    .btn-ghost:hover{
-      border-color:var(--gold);
-      color:var(--gold);
-      background:rgba(212,168,67,0.08);
-    }
+/* ── SECTION ── */
+.section{max-width:1100px;margin:0 auto;padding:5rem 1.5rem;}
+.section-label{font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(212,168,67,.6);margin-bottom:.75rem;text-align:center;}
+.section-title{font-size:clamp(1.6rem,3.5vw,2.5rem);font-weight:800;color:#fff;
+  text-align:center;line-height:1.2;margin-bottom:1rem;}
+.section-sub{font-size:.92rem;color:rgba(255,255,255,.45);text-align:center;
+  max-width:560px;margin:0 auto 3rem;line-height:1.7;}
 
-    .glass-card{
-      background:var(--glass-bg);
-      backdrop-filter:blur(16px);
-      -webkit-backdrop-filter:blur(16px);
-      border:1px solid var(--glass-border);
-      border-radius:var(--radius-lg);
-      padding:2rem;
-    }
-    .container{max-width:1280px;margin:0 auto;padding:0 24px;}
-    section{position:relative;z-index:1;}
+/* ── COMMENT ÇA MARCHE ── */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;}
+.step{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;padding:2rem;text-align:center;transition:border-color .2s;}
+.step:hover{border-color:rgba(212,168,67,.3);}
+.step__num{width:44px;height:44px;border-radius:50%;
+  background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.35);
+  color:#F0C060;font-size:1.1rem;font-weight:900;
+  display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;}
+.step__icon{font-size:2rem;margin-bottom:.75rem;}
+.step__title{font-size:1rem;font-weight:700;color:#fff;margin-bottom:.5rem;}
+.step__desc{font-size:.83rem;color:rgba(255,255,255,.45);line-height:1.65;}
 
-    /* Hexagonal background shapes */
-    .hex-bg{
-      position:absolute;
-      pointer-events:none;
-      clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
-      opacity:0.04;
-      background:var(--gold);
-    }
-    .diagonal-accent{
-      position:absolute;
-      width:2px;
-      height:200px;
-      background:linear-gradient(180deg,transparent,var(--gold),transparent);
-      transform:rotate(-45deg);
-      opacity:0.3;
-      pointer-events:none;
-    }
+/* ── SERVICES ── */
+.services{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;}
+.service{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;padding:1.5rem;transition:all .25s;text-decoration:none;display:block;}
+.service:hover{background:rgba(212,168,67,.06);border-color:rgba(212,168,67,.3);
+  transform:translateY(-3px);}
+.service__icon{font-size:1.75rem;margin-bottom:.85rem;}
+.service__title{font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.4rem;}
+.service__desc{font-size:.8rem;color:rgba(255,255,255,.45);line-height:1.6;}
+.service__arrow{font-size:.8rem;color:rgba(212,168,67,.6);margin-top:.75rem;display:inline-block;}
 
-    /* ============================================================
-       NAVBAR
-    ============================================================ */
-    #navbar{
-      position:fixed;
-      top:0;left:0;right:0;
-      z-index:1000;
-      padding:20px 0;
-      transition:var(--transition);
-    }
-    #navbar.scrolled{
-      background:rgba(5,10,24,0.92);
-      backdrop-filter:blur(20px);
-      -webkit-backdrop-filter:blur(20px);
-      border-bottom:1px solid var(--glass-border);
-      padding:14px 0;
-    }
-    .nav-inner{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:32px;
-    }
-    .nav-logo{
-      font-family:var(--font-display);
-      font-size:1.6rem;
-      font-weight:700;
-      letter-spacing:-0.02em;
-      flex-shrink:0;
-    }
-    .nav-logo .gold{color:var(--gold);}
-    .nav-links{display:flex;align-items:center;gap:32px;}
-    .nav-links a{
-      font-size:0.9rem;
-      font-weight:500;
-      color:var(--text-secondary);
-      transition:color 0.2s;
-      position:relative;
-    }
-    .nav-links a::after{
-      content:'';
-      position:absolute;
-      bottom:-4px;left:0;right:0;
-      height:1px;
-      background:var(--gold);
-      transform:scaleX(0);
-      transition:transform 0.25s;
-    }
-    .nav-links a:hover{color:var(--text-primary);}
-    .nav-links a:hover::after{transform:scaleX(1);}
-    .nav-cta{
-      background:linear-gradient(135deg,var(--gold),var(--amber)) !important;
-      color:var(--navy-deep) !important;
-      font-weight:700 !important;
-      padding:10px 22px !important;
-      border-radius:100px !important;
-      font-size:0.85rem !important;
-      transition:var(--transition) !important;
-    }
-    .nav-cta:hover{box-shadow:0 6px 20px rgba(212,168,67,0.45) !important;transform:translateY(-1px);}
-    .nav-cta::after{display:none !important;}
+/* ── DEUX PUBLICS ── */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.split-card{border-radius:20px;padding:2.5rem;position:relative;overflow:hidden;}
+.split-card--candidate{background:linear-gradient(135deg,rgba(212,168,67,.12),rgba(212,168,67,.05));
+  border:1px solid rgba(212,168,67,.3);}
+.split-card--recruiter{background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(59,130,246,.04));
+  border:1px solid rgba(59,130,246,.2);}
+.split-card__label{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  margin-bottom:.75rem;}
+.split-card--candidate .split-card__label{color:#F0C060;}
+.split-card--recruiter .split-card__label{color:#93c5fd;}
+.split-card__title{font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:.75rem;line-height:1.25;}
+.split-card__list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.75rem;}
+.split-card__list li{font-size:.85rem;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:.5rem;}
+.split-card__list li::before{content:'✓';font-weight:800;flex-shrink:0;}
+.split-card--candidate .split-card__list li::before{color:#F0C060;}
+.split-card--recruiter .split-card__list li::before{color:#93c5fd;}
+.btn-split-candidate{display:inline-flex;align-items:center;gap:.4rem;
+  background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;
+  font-size:.88rem;font-weight:800;padding:.7rem 1.5rem;border-radius:10px;transition:all .2s;}
+.btn-split-candidate:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(212,168,67,.4);}
+.btn-split-recruiter{display:inline-flex;align-items:center;gap:.4rem;
+  background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.35);
+  color:#93c5fd;font-size:.88rem;font-weight:700;padding:.7rem 1.5rem;border-radius:10px;transition:all .2s;}
+.btn-split-recruiter:hover{background:rgba(59,130,246,.25);}
 
-    /* ════ TARIFS — PLAN CARDS ════ */
-    .tarifs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem;max-width:1080px;margin:0 auto 2.5rem;}
-    .plan-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:2rem;position:relative;transition:transform .25s,box-shadow .25s;}
-    .plan-card:hover{transform:translateY(-5px);box-shadow:0 20px 48px rgba(212,168,67,0.14);}
-    .plan-card--popular{background:linear-gradient(135deg,rgba(212,168,67,0.1),rgba(240,192,96,0.04));border:2px solid rgba(212,168,67,0.5);}
-    .plan-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.7rem;font-weight:800;padding:.3rem 1.1rem;border-radius:50px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;}
-    .plan-name{color:rgba(255,255,255,0.5);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.75rem;}
-    .plan-name--popular{color:#F0C060;}
-    .plan-price{font-size:2.3rem;font-weight:800;color:#F0C060;line-height:1;}
-    .plan-unit{font-size:.9rem;color:rgba(255,255,255,0.4);}
-    .plan-eur{color:rgba(255,255,255,0.4);font-size:.82rem;margin:.2rem 0 1.25rem;}
-    .plan-features{list-style:none;padding:0;margin:0 0 1.75rem;display:flex;flex-direction:column;gap:.3rem;}
-    .plan-features li{color:rgba(255,255,255,0.72);font-size:.88rem;display:flex;align-items:center;gap:.5rem;}
-    .plan-check{color:#10b981;font-weight:700;flex-shrink:0;}
-    .plan-btn{display:block;text-align:center;font-weight:700;padding:.8rem;border-radius:10px;text-decoration:none;font-size:.9rem;transition:opacity .2s,transform .2s;}
-    .plan-btn:hover{opacity:.85;transform:translateY(-1px);}
-    .plan-btn--gold{background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;}
-    .plan-btn--outline{border:1px solid rgba(212,168,67,0.4);color:#D4A843;}
-    .plan-btn--ghost{border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.75);}
-    .plan-empty{grid-column:1/-1;text-align:center;padding:2rem;color:rgba(255,255,255,0.5);}
-    .tarifs-hiw{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;text-align:center;}
-    @media(max-width:640px){.tarifs-hiw{grid-template-columns:1fr 1fr;}}
+/* ── ACTUALITÉS ── */
+.news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;}
+.news-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;
+  transition:all .25s;}
+.news-card:hover{transform:translateY(-3px);border-color:rgba(212,168,67,.25);
+  box-shadow:0 10px 30px rgba(0,0,0,.3);}
+.news-card__img{height:140px;overflow:hidden;background:#0A1628;}
+.news-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
+.news-card:hover .news-card__img img{transform:scale(1.04);}
+.news-card__placeholder{height:100%;display:flex;align-items:center;justify-content:center;
+  font-size:2rem;opacity:.3;}
+.news-card__body{padding:1rem;flex:1;display:flex;flex-direction:column;}
+.news-card__tag{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:rgba(212,168,67,.65);margin-bottom:.4rem;}
+.news-card__title{font-size:.88rem;font-weight:700;color:rgba(232,234,240,.9);
+  line-height:1.4;margin-bottom:.4rem;flex:1;
+  display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.news-card__meta{font-size:.7rem;color:rgba(255,255,255,.3);margin-top:.5rem;}
+.news-all{display:block;text-align:center;margin-top:1.75rem;
+  color:rgba(212,168,67,.7);font-size:.85rem;font-weight:600;transition:color .2s;}
+.news-all:hover{color:#F0C060;}
 
-    /* ── Lien Consultation (distinct) ── */
-    .nav-consult{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      background:rgba(212,168,67,0.12);
-      border:1px solid rgba(212,168,67,0.35);
-      border-radius:100px;
-      padding:7px 16px;
-      font-size:0.82rem !important;
-      font-weight:700 !important;
-      color:var(--gold-light) !important;
-      letter-spacing:0.02em;
-      transition:var(--transition) !important;
-      white-space:nowrap;
-    }
-    .nav-consult:hover{
-      background:rgba(212,168,67,0.22) !important;
-      box-shadow:0 0 16px rgba(212,168,67,0.25);
-      transform:translateY(-1px);
-      color:var(--gold-light) !important;
-    }
-    .nav-consult::after{display:none !important;}
-    .nav-consult__dot{
-      width:7px;height:7px;border-radius:50%;
-      background:var(--gold);flex-shrink:0;
-      animation:pulse 2s ease-in-out infinite;
-    }
+/* ── CTA FINAL ── */
+.cta-final{background:linear-gradient(135deg,rgba(212,168,67,.1),rgba(212,168,67,.04));
+  border:1px solid rgba(212,168,67,.25);border-radius:24px;padding:4rem 2rem;text-align:center;
+  position:relative;overflow:hidden;}
+.cta-final::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(212,168,67,.04),transparent);
+  animation:scanline 4s ease-in-out infinite;}
+@keyframes scanline{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.cta-final h2{font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:900;color:#fff;margin-bottom:.75rem;}
+.cta-final p{font-size:.95rem;color:rgba(255,255,255,.5);margin-bottom:2rem;max-width:500px;margin-left:auto;margin-right:auto;}
+.cta-btns{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;}
 
-    .hamburger{
-      display:none;
-      flex-direction:column;
-      gap:5px;
-      padding:6px;
-      z-index:1100;
-    }
-    .hamburger span{
-      display:block;width:24px;height:2px;
-      background:var(--text-primary);
-      border-radius:2px;
-      transition:var(--transition);
-    }
-    .hamburger.active span:nth-child(1){transform:translateY(7px) rotate(45deg);}
-    .hamburger.active span:nth-child(2){opacity:0;transform:scaleX(0);}
-    .hamburger.active span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+/* ── FOOTER ── */
+.home-footer{border-top:1px solid rgba(255,255,255,.07);padding:2rem 1.5rem;text-align:center;
+  font-size:.78rem;color:rgba(255,255,255,.3);}
+.home-footer a{color:rgba(212,168,67,.6);margin:0 .5rem;}
+.home-footer a:hover{color:#F0C060;}
 
-    #mobile-menu{
-      display:none;
-      position:fixed;inset:0;
-      z-index:1050;
-      background:rgba(5,10,24,0.98);
-      backdrop-filter:blur(20px);
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:32px;
-    }
-    #mobile-menu.open{display:flex;}
-    .mobile-links{display:flex;flex-direction:column;align-items:center;gap:24px;}
-    .mobile-links a{
-      font-family:var(--font-display);
-      font-size:2rem;
-      font-weight:600;
-      color:var(--text-secondary);
-      transition:color 0.2s;
-    }
-    .mobile-links a:hover{color:var(--gold);}
+/* ── ANIMATIONS ── */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
-    /* ============================================================
-       HERO
-    ============================================================ */
-    #hero{
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      position:relative;
-      overflow:hidden;
-      background:linear-gradient(135deg,var(--navy-deep) 0%,var(--navy-mid) 50%,#0D1E3A 100%);
-      padding-top:90px;
-    }
-    #hero::before{
-      content:'';position:absolute;
-      top:-20%;right:-10%;
-      width:700px;height:700px;
-      background:radial-gradient(circle,rgba(212,168,67,0.08) 0%,transparent 70%);
-      pointer-events:none;
-    }
-    #hero::after{
-      content:'';position:absolute;
-      bottom:-10%;left:-5%;
-      width:500px;height:500px;
-      background:radial-gradient(circle,rgba(15,32,64,0.9) 0%,transparent 70%);
-      pointer-events:none;
-    }
-    #particles-container{
-      position:absolute;inset:0;
-      pointer-events:none;overflow:hidden;
-    }
-    .particle{
-      position:absolute;width:4px;height:4px;
-      border-radius:50%;background:var(--gold);
-      animation:floatParticle linear infinite;
-    }
-    .hero-hex-1{width:300px;height:300px;top:10%;left:5%;animation:hexSpin 40s linear infinite;}
-    .hero-hex-2{width:200px;height:200px;bottom:20%;right:8%;animation:hexSpin 30s linear infinite reverse;}
-
-    .hero-inner{
-      position:relative;z-index:2;
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:60px;
-      align-items:center;
-    }
-    .hero-badge{
-      display:inline-flex;align-items:center;gap:8px;
-      background:rgba(212,168,67,0.1);
-      border:1px solid rgba(212,168,67,0.4);
-      border-radius:100px;
-      padding:8px 20px;
-      font-size:0.8rem;font-weight:600;
-      color:var(--gold-light);
-      letter-spacing:0.05em;
-      margin-bottom:2rem;
-      animation:badgePulse 3s ease-in-out infinite;
-    }
-    .hero-badge .dot{
-      width:6px;height:6px;border-radius:50%;
-      background:var(--gold);flex-shrink:0;
-    }
-    .hero-h1{
-      font-family:var(--font-display);
-      font-size:clamp(2.8rem,6vw,5.5rem);
-      font-weight:700;line-height:1.05;
-      color:var(--text-primary);
-      margin-bottom:1.5rem;
-    }
-    .hero-h1 em{color:var(--gold);font-style:italic;}
-    .hero-subtitle{
-      font-size:1.1rem;color:var(--text-secondary);
-      line-height:1.75;max-width:520px;margin-bottom:2.5rem;
-    }
-    .hero-ctas{
-      display:flex;flex-wrap:wrap;gap:16px;
-      align-items:center;margin-bottom:3rem;
-    }
-    .btn-magnetic{position:relative;display:inline-block;}
-
-    /* Floating mockup card */
-    .hero-right{display:flex;justify-content:center;align-items:center;}
-    .mockup-card{
-      width:320px;
-      background:linear-gradient(135deg,rgba(15,32,64,0.9) 0%,rgba(10,22,40,0.95) 100%);
-      border:1px solid var(--glass-border);
-      border-radius:var(--radius-lg);
-      padding:2rem;
-      box-shadow:0 30px 80px rgba(0,0,0,0.5),var(--shadow-gold);
-      animation:heroFloat 6s ease-in-out infinite;
-      position:relative;overflow:hidden;
-    }
-    .mockup-card::before{
-      content:'';position:absolute;
-      top:-50%;right:-50%;width:100%;height:100%;
-      background:radial-gradient(circle,rgba(212,168,67,0.06) 0%,transparent 70%);
-    }
-    .mockup-avatar{
-      width:64px;height:64px;border-radius:50%;
-      background:linear-gradient(135deg,var(--gold),var(--amber));
-      display:flex;align-items:center;justify-content:center;
-      font-family:var(--font-body);font-size:1.3rem;font-weight:700;
-      color:var(--navy-deep);
-      margin:0 auto 1rem;
-      border:3px solid rgba(212,168,67,0.4);
-    }
-    .mockup-badge{
-      display:inline-block;
-      background:rgba(34,197,94,0.15);
-      border:1px solid rgba(34,197,94,0.4);
-      color:#4ade80;
-      font-size:0.7rem;font-weight:600;
-      padding:4px 12px;border-radius:100px;
-      margin-bottom:0.5rem;
-    }
-    .mockup-name{font-family:var(--font-body);font-weight:700;font-size:1.1rem;text-align:center;}
-    .mockup-job{font-size:0.85rem;color:var(--text-secondary);text-align:center;margin-bottom:1rem;}
-    .mockup-route{
-      display:flex;align-items:center;justify-content:center;gap:12px;
-      font-size:1.2rem;
-      background:rgba(212,168,67,0.08);
-      border:1px solid rgba(212,168,67,0.15);
-      border-radius:var(--radius-sm);
-      padding:8px 16px;margin-bottom:1.5rem;
-    }
-    .mockup-route .arrow{color:var(--gold);font-size:1rem;}
-    .mockup-stats{
-      display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
-      border-top:1px solid rgba(255,255,255,0.06);padding-top:1rem;
-    }
-    .mockup-stat{text-align:center;}
-    .mockup-stat-val{font-family:var(--font-number);font-size:1.2rem;color:var(--gold);}
-    .mockup-stat-label{font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;}
-
-    /* Flags marquee */
-    .flags-marquee{
-      overflow:hidden;padding:16px 0;
-      border-top:1px solid rgba(255,255,255,0.06);
-      position:relative;z-index:2;margin-top:2rem;
-    }
-    .flags-marquee-track{
-      display:flex;align-items:center;gap:40px;
-      width:max-content;
-      animation:marqueeScroll 20s linear infinite;
-    }
-    .flag-item{
-      display:flex;align-items:center;gap:10px;
-      font-size:0.9rem;color:var(--text-secondary);font-weight:500;white-space:nowrap;
-    }
-    .flag-item .emoji{font-size:1.4rem;}
-    .flag-sep{color:var(--gold);opacity:0.4;font-size:0.6rem;}
-
-    /* Stats bar */
-    .hero-stats{
-      display:grid;grid-template-columns:repeat(4,1fr);
-      gap:1px;
-      background:rgba(255,255,255,0.05);
-      border:1px solid rgba(255,255,255,0.06);
-      border-radius:var(--radius-md);overflow:hidden;
-      position:relative;z-index:2;margin-top:1rem;
-    }
-    .stat-item{
-      padding:20px 16px;text-align:center;
-      background:rgba(5,10,24,0.7);
-      backdrop-filter:blur(10px);
-    }
-    .stat-item:not(:last-child){border-right:1px solid rgba(255,255,255,0.06);}
-    .stat-number{
-      font-family:var(--font-number);font-size:2.2rem;
-      color:var(--gold);line-height:1;display:block;
-    }
-    .stat-label{
-      font-size:0.75rem;color:var(--text-muted);font-weight:500;
-      text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;
-    }
-
-    /* ============================================================
-       TRUST MARQUEE
-    ============================================================ */
-    #trust-marquee{
-      background:var(--navy-light);
-      border-top:1px solid rgba(212,168,67,0.12);
-      border-bottom:1px solid rgba(212,168,67,0.12);
-      padding:18px 0;overflow:hidden;
-      position:relative;z-index:1;
-    }
-    .trust-track{
-      display:flex;align-items:center;gap:50px;
-      width:max-content;
-      animation:marqueeScroll 30s linear infinite;
-    }
-    .trust-item{
-      font-family:'Courier New',monospace;
-      font-size:0.8rem;font-weight:700;
-      letter-spacing:0.18em;text-transform:uppercase;
-      color:var(--gold);white-space:nowrap;
-    }
-    .trust-dot{
-      width:5px;height:5px;border-radius:50%;
-      background:var(--gold);opacity:0.5;flex-shrink:0;
-    }
-
-    /* ============================================================
-       HOW IT WORKS
-    ============================================================ */
-    #how-it-works{padding:100px 0;background:var(--navy-deep);position:relative;}
-    .steps-grid{
-      display:grid;grid-template-columns:repeat(3,1fr);
-      gap:2px;position:relative;
-    }
-    .steps-grid::before{
-      content:'';position:absolute;
-      top:80px;left:16.66%;right:16.66%;height:2px;
-      background:repeating-linear-gradient(
-        90deg,var(--gold) 0px,var(--gold) 8px,
-        transparent 8px,transparent 18px
-      );
-      opacity:0.4;
-    }
-    .step-card{text-align:center;padding:2.5rem 2rem;position:relative;}
-    .step-number{
-      font-family:var(--font-number);font-size:6rem;line-height:1;
-      color:transparent;-webkit-text-stroke:2px rgba(212,168,67,0.3);
-      display:block;margin-bottom:1rem;
-      transition:-webkit-text-stroke 0.3s;
-    }
-    .step-card:hover .step-number{-webkit-text-stroke-color:rgba(212,168,67,0.7);}
-    .step-icon-wrap{
-      width:72px;height:72px;border-radius:50%;
-      background:linear-gradient(135deg,rgba(212,168,67,0.15),rgba(212,168,67,0.05));
-      border:1.5px solid rgba(212,168,67,0.3);
-      display:flex;align-items:center;justify-content:center;
-      font-size:1.8rem;margin:0 auto 1.5rem;
-      transition:var(--transition);
-    }
-    .step-card:hover .step-icon-wrap{
-      background:linear-gradient(135deg,rgba(212,168,67,0.25),rgba(212,168,67,0.1));
-      border-color:var(--gold);
-      box-shadow:var(--shadow-gold);
-      transform:scale(1.1);
-    }
-    .step-title{font-family:var(--font-body);font-weight:700;font-size:1.2rem;color:var(--text-primary);margin-bottom:1rem;}
-    .step-desc{font-size:0.95rem;color:var(--text-secondary);line-height:1.7;}
-
-    /* ============================================================
-       DESTINATIONS
-    ============================================================ */
-    #destinations{
-      padding:100px 0;
-      background:linear-gradient(180deg,var(--navy-deep) 0%,var(--navy-mid) 100%);
-    }
-    .destinations-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
-    .dest-card{
-      background:var(--glass-bg);
-      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-      border:1px solid var(--glass-border);
-      border-radius:var(--radius-lg);padding:2rem;
-      cursor:pointer;
-      transition:border-color 0.3s,box-shadow 0.3s,transform 0.1s;
-      transform-style:preserve-3d;will-change:transform;
-    }
-    .dest-card:hover{
-      border-color:rgba(212,168,67,0.5);
-      box-shadow:0 20px 60px rgba(0,0,0,0.4),0 0 40px rgba(212,168,67,0.15);
-    }
-    .dest-flag{font-size:3rem;margin-bottom:1rem;display:block;}
-    .dest-country{font-weight:700;font-size:1.25rem;margin-bottom:8px;}
-    .dest-offers-badge{
-      display:inline-block;
-      background:rgba(212,168,67,0.12);
-      border:1px solid rgba(212,168,67,0.3);
-      color:var(--gold-light);
-      font-size:0.75rem;font-weight:600;
-      padding:4px 12px;border-radius:100px;margin-bottom:1.2rem;
-    }
-    .dest-sectors{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.5rem;}
-    .dest-sector-tag{
-      font-size:0.7rem;color:var(--text-muted);
-      background:rgba(255,255,255,0.05);
-      border:1px solid rgba(255,255,255,0.08);
-      border-radius:4px;padding:3px 8px;font-weight:500;
-    }
-    .dest-progress{margin-bottom:1.5rem;}
-    .dest-progress-label{
-      font-size:0.7rem;color:var(--text-muted);
-      margin-bottom:6px;display:flex;justify-content:space-between;
-    }
-    .dest-progress-bar-wrap{
-      height:4px;background:rgba(255,255,255,0.08);
-      border-radius:100px;overflow:hidden;
-    }
-    .dest-progress-bar{
-      height:100%;
-      background:linear-gradient(90deg,var(--gold-dark),var(--gold-light));
-      border-radius:100px;width:0%;
-      transition:width 1.2s cubic-bezier(0.4,0,0.2,1);
-    }
-    .dest-link{
-      font-size:0.85rem;font-weight:600;color:var(--gold);
-      display:inline-flex;align-items:center;gap:6px;transition:gap 0.2s;
-    }
-    .dest-link:hover{gap:10px;}
-
-    /* ============================================================
-       SERVICES
-    ============================================================ */
-    #services{
-      padding:100px 0;background:var(--navy-mid);
-      position:relative;overflow:hidden;
-    }
-    #services .diagonal-accent{top:10%;right:5%;}
-    .services-split{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;}
-    .services-col{
-      background:var(--glass-bg);backdrop-filter:blur(16px);
-      border:1px solid var(--glass-border);
-      border-radius:var(--radius-lg);padding:2.5rem;
-    }
-    .services-col-title{
-      font-family:var(--font-body);font-weight:700;font-size:1.1rem;
-      color:var(--gold);margin-bottom:2rem;
-      display:flex;align-items:center;gap:10px;
-    }
-    .service-item{
-      display:flex;align-items:flex-start;gap:14px;
-      padding:14px 0;
-      border-bottom:1px solid rgba(255,255,255,0.05);
-      transition:padding-left 0.2s;
-    }
-    .service-item:last-of-type{border-bottom:none;}
-    .service-item:hover{padding-left:6px;}
-    .service-icon{font-size:1.3rem;flex-shrink:0;margin-top:2px;}
-    .service-text{font-size:0.95rem;color:var(--text-secondary);line-height:1.5;}
-    .services-col .btn{margin-top:2rem;}
-
-    /* ============================================================
-       TESTIMONIALS
-    ============================================================ */
-    #testimonials{padding:100px 0;background:var(--navy-deep);overflow:hidden;}
-    .testimonials-slider-wrap{position:relative;}
-    .testimonials-track{display:flex;transition:transform 0.6s cubic-bezier(0.4,0,0.2,1);}
-    .testimonial-card{flex:0 0 100%;padding:0 12px;}
-    .testimonial-inner{
-      background:var(--glass-bg);backdrop-filter:blur(16px);
-      border:1px solid var(--glass-border);
-      border-radius:var(--radius-lg);padding:3rem;
-      max-width:800px;margin:0 auto;text-align:center;
-    }
-    .testimonial-avatar{
-      width:72px;height:72px;border-radius:50%;
-      background:linear-gradient(135deg,var(--gold),var(--amber));
-      display:flex;align-items:center;justify-content:center;
-      font-weight:700;font-size:1.2rem;color:var(--navy-deep);
-      margin:0 auto 1.5rem;
-      border:3px solid rgba(212,168,67,0.3);
-    }
-    .testimonial-stars{color:var(--gold);font-size:1.1rem;letter-spacing:2px;margin-bottom:1.5rem;}
-    .testimonial-quote{
-      font-family:var(--font-display);font-size:1.4rem;font-style:italic;
-      color:var(--text-primary);line-height:1.6;margin-bottom:2rem;
-    }
-    .testimonial-name{font-weight:700;font-size:1rem;color:var(--gold);}
-    .testimonial-origin{font-size:0.85rem;color:var(--text-secondary);margin:4px 0;}
-    .testimonial-role{font-size:0.8rem;color:var(--text-muted);}
-    .slider-controls{
-      display:flex;align-items:center;justify-content:center;
-      gap:24px;margin-top:3rem;
-    }
-    .slider-btn{
-      width:48px;height:48px;border-radius:50%;
-      border:1.5px solid var(--glass-border);
-      background:var(--glass-bg);color:var(--text-secondary);
-      font-size:1.1rem;
-      display:flex;align-items:center;justify-content:center;
-      transition:var(--transition);cursor:pointer;
-    }
-    .slider-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(212,168,67,0.08);}
-    .slider-dots{display:flex;gap:8px;}
-    .slider-dot{
-      width:8px;height:8px;border-radius:100px;
-      background:rgba(255,255,255,0.2);cursor:pointer;transition:var(--transition);
-    }
-    .slider-dot.active{background:var(--gold);width:24px;}
-
-    /* ============================================================
-       GUIDES / EBOOKS
-    ============================================================ */
-    #guides{
-      padding:100px 0;
-      background:linear-gradient(180deg,var(--navy-mid) 0%,var(--navy-deep) 100%);
-    }
-    .guides-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;}
-    .guide-card{
-      background:var(--glass-bg);backdrop-filter:blur(16px);
-      border:1px solid var(--glass-border);
-      border-radius:var(--radius-lg);overflow:hidden;
-      transition:var(--transition);
-    }
-    .guide-card:hover{
-      transform:translateY(-8px);
-      box-shadow:0 20px 60px rgba(0,0,0,0.4),var(--shadow-gold);
-      border-color:rgba(212,168,67,0.4);
-    }
-    .guide-header{
-      height:120px;
-      display:flex;align-items:center;justify-content:center;
-      font-size:3rem;position:relative;overflow:hidden;
-    }
-    .guide-header::after{
-      content:'';position:absolute;inset:0;
-      background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,0.3) 100%);
-    }
-    .guide-header-1{background:linear-gradient(135deg,#1a4a1a,#2d7a2d);}
-    .guide-header-2{background:linear-gradient(135deg,#1a1a4a,#2d2d9a);}
-    .guide-header-3{background:linear-gradient(135deg,#4a1a1a,#9a2d2d);}
-    .guide-header-4{background:linear-gradient(135deg,#3a2a0a,#8a6a1a);}
-    .guide-body{padding:1.5rem;}
-    .guide-badge{
-      display:inline-block;
-      background:rgba(212,168,67,0.12);
-      border:1px solid rgba(212,168,67,0.3);
-      color:var(--gold-light);
-      font-size:0.7rem;font-weight:700;
-      padding:3px 10px;border-radius:100px;margin-bottom:1rem;
-    }
-    .guide-title{font-weight:700;font-size:1rem;color:var(--text-primary);margin-bottom:0.75rem;line-height:1.35;}
-    .guide-desc{font-size:0.8rem;color:var(--text-secondary);line-height:1.6;margin-bottom:1.5rem;}
-    .guide-cta{
-      font-size:0.85rem;font-weight:600;color:var(--gold);
-      display:inline-flex;align-items:center;gap:6px;transition:gap 0.2s;
-    }
-    .guide-cta:hover{gap:10px;}
-
-    /* ============================================================
-       FINAL CTA
-    ============================================================ */
-    #final-cta{
-      padding:120px 0;
-      background:linear-gradient(135deg,#1a0f00 0%,var(--navy-deep) 30%,#0a1628 60%,#1a0800 100%);
-      background-size:300% 300%;
-      animation:ctaGradient 12s ease infinite;
-      position:relative;overflow:hidden;text-align:center;
-    }
-    #final-cta::before{
-      content:'';position:absolute;inset:0;
-      background:radial-gradient(ellipse at center,rgba(212,168,67,0.08) 0%,transparent 70%);
-      pointer-events:none;
-    }
-    .africa-silhouette{width:80px;height:80px;margin:0 auto 2rem;opacity:0.15;}
-    .africa-silhouette svg{width:100%;height:100%;fill:var(--gold);}
-    .final-cta-headline{
-      font-family:var(--font-display);
-      font-size:clamp(2.5rem,5vw,4.5rem);
-      font-weight:700;color:var(--text-primary);
-      margin-bottom:1rem;position:relative;z-index:1;
-    }
-    .final-cta-sub{
-      font-size:1.1rem;color:var(--text-secondary);
-      margin-bottom:3rem;position:relative;z-index:1;
-    }
-    .cta-form{
-      display:flex;gap:12px;
-      max-width:900px;margin:0 auto 1.5rem;
-      flex-wrap:wrap;justify-content:center;
-      position:relative;z-index:1;
-    }
-    .cta-form input,
-    .cta-form select{
-      flex:1;min-width:160px;
-      background:rgba(255,255,255,0.07);
-      border:1px solid rgba(255,255,255,0.15);
-      border-radius:var(--radius-md);
-      padding:14px 18px;
-      color:var(--text-primary);
-      font-family:var(--font-body);font-size:0.9rem;
-      outline:none;transition:border-color 0.2s;
-    }
-    .cta-form input::placeholder{color:var(--text-muted);}
-    .cta-form input:focus,
-    .cta-form select:focus{border-color:var(--gold);}
-    .cta-form select option{background:var(--navy-mid);color:var(--text-primary);}
-    .cta-form .btn-submit{
-      background:var(--navy-deep);color:var(--gold);
-      border:1.5px solid var(--gold);
-      padding:14px 28px;border-radius:var(--radius-md);
-      font-weight:700;font-size:0.95rem;
-      cursor:pointer;font-family:var(--font-body);
-      white-space:nowrap;transition:var(--transition);
-    }
-    .cta-form .btn-submit:hover{
-      background:var(--gold);color:var(--navy-deep);
-      box-shadow:0 8px 25px rgba(212,168,67,0.4);
-    }
-    .cta-note{font-size:0.85rem;color:var(--text-muted);position:relative;z-index:1;}
-    .cta-note span{color:rgba(212,168,67,0.7);}
-
-    /* ============================================================
-       FOOTER
-    ============================================================ */
-    #footer{
-      background:#030810;
-      border-top:1px solid rgba(212,168,67,0.1);
-      padding-top:80px;
-    }
-    .footer-top{
-      display:flex;align-items:center;justify-content:space-between;
-      padding-bottom:60px;
-      border-bottom:1px solid rgba(255,255,255,0.05);
-      flex-wrap:wrap;gap:24px;
-    }
-    .footer-logo{font-family:var(--font-display);font-size:2rem;font-weight:700;margin-bottom:8px;}
-    .footer-logo span{color:var(--gold);}
-    .footer-tagline{font-size:0.85rem;color:var(--text-muted);max-width:280px;line-height:1.6;}
-    .footer-socials{display:flex;gap:12px;}
-    .social-icon{
-      width:44px;height:44px;border-radius:50%;
-      background:var(--glass-bg);border:1px solid var(--glass-border);
-      display:flex;align-items:center;justify-content:center;
-      font-size:1.1rem;color:var(--text-secondary);transition:var(--transition);
-    }
-    .social-icon:hover{
-      border-color:var(--gold);color:var(--gold);
-      background:rgba(212,168,67,0.08);transform:translateY(-2px);
-    }
-    .footer-grid{
-      display:grid;grid-template-columns:2fr 1fr 1fr 1fr;
-      gap:48px;padding:60px 0;
-      border-bottom:1px solid rgba(255,255,255,0.05);
-    }
-    .footer-col-title{
-      font-weight:700;font-size:0.9rem;color:var(--gold);
-      text-transform:uppercase;letter-spacing:0.12em;margin-bottom:1.5rem;
-    }
-    .footer-col p{font-size:0.85rem;color:var(--text-muted);line-height:1.7;margin-bottom:1rem;}
-    .footer-col ul{display:flex;flex-direction:column;gap:10px;}
-    .footer-col ul li a{
-      font-size:0.85rem;color:var(--text-muted);transition:color 0.2s;
-      display:inline-flex;align-items:center;gap:6px;
-    }
-    .footer-col ul li a:hover{color:var(--gold);}
-    .footer-contact-item{
-      display:flex;align-items:center;gap:10px;
-      font-size:0.85rem;color:var(--text-muted);
-      margin-bottom:10px;transition:color 0.2s;
-    }
-    .footer-contact-item:hover{color:var(--gold);}
-    .footer-contact-item a{color:inherit;}
-    .footer-bottom{
-      padding:24px 0;
-      display:flex;align-items:center;justify-content:space-between;
-      flex-wrap:wrap;gap:16px;
-    }
-    .footer-copy{font-size:0.8rem;color:var(--text-muted);}
-    .footer-legal{display:flex;gap:20px;font-size:0.8rem;color:var(--text-muted);}
-    .footer-legal a:hover{color:var(--gold);}
-    .footer-made{font-size:0.8rem;color:var(--text-muted);}
-
-    /* WhatsApp floating */
-    #whatsapp-float{
-      position:fixed;bottom:32px;right:32px;z-index:999;
-      width:56px;height:56px;border-radius:50%;
-      background:#25D366;
-      display:flex;align-items:center;justify-content:center;
-      font-size:1.6rem;
-      box-shadow:0 4px 20px rgba(37,211,102,0.4);
-      animation:whatsappPulse 2.5s ease-in-out infinite;
-      transition:transform 0.2s;
-    }
-    #whatsapp-float:hover{transform:scale(1.1);}
-
-    /* ============================================================
-       RESPONSIVE
-    ============================================================ */
-    @media(max-width:1024px){
-      .destinations-grid{grid-template-columns:repeat(2,1fr);}
-      .guides-grid{grid-template-columns:repeat(2,1fr);}
-      .footer-grid{grid-template-columns:1fr 1fr;gap:32px;}
-      .hero-inner{gap:40px;}
-    }
-    @media(max-width:900px){
-      .nav-links{display:none;}
-      .hamburger{display:flex;}
-      .hero-inner{grid-template-columns:1fr;text-align:center;}
-      .hero-ctas{justify-content:center;}
-      .hero-subtitle{margin:0 auto 2.5rem;}
-      .hero-right{display:none;}
-      .hero-stats{grid-template-columns:repeat(2,1fr);}
-      .services-split{grid-template-columns:1fr;}
-      .steps-grid::before{display:none;}
-      .steps-grid{grid-template-columns:1fr;gap:24px;}
-      /* Section recruteurs */
-      #recruteurs .container > div { grid-template-columns: 1fr !important; gap: 2rem !important; }
-      /* Section tarifs */
-      #tarifs > .container > div:first-of-type { grid-template-columns: 1fr !important; }
-      /* Section consultation */
-      #consultation-cta .container > div { grid-template-columns: 1fr !important; gap: 2.5rem !important; }
-      /* Tarifs how-it-works */
-      .tarifs-hiw-grid { grid-template-columns: 1fr 1fr !important; gap: 1rem !important; }
-      /* Tarifs plan grid */
-      .tarifs-grid { grid-template-columns: 1fr !important; }
-    }
-    @media(max-width:640px){
-      .container{padding:0 16px;}
-      .destinations-grid{grid-template-columns:1fr;}
-      .guides-grid{grid-template-columns:1fr 1fr;}
-      .footer-grid{grid-template-columns:1fr;gap:24px;}
-      .footer-top{flex-direction:column;align-items:flex-start;}
-      .footer-bottom{flex-direction:column;align-items:flex-start;}
-      .testimonial-inner{padding:2rem 1.5rem;}
-      .testimonial-quote{font-size:1.1rem;}
-      .cta-form{flex-direction:column;}
-      .cta-form input,.cta-form select{min-width:100%;}
-      #whatsapp-float{bottom:20px;right:20px;width:48px;height:48px;font-size:1.3rem;}
-      /* Hero fix */
-      #hero{padding-top:80px;padding-left:0;padding-right:0;}
-      .hero-badge{font-size:0.72rem;padding:6px 14px;}
-      .hero-h1{font-size:2.2rem;line-height:1.1;}
-      .hero-subtitle{font-size:1rem;}
-      .hero-ctas .btn{padding:12px 20px;font-size:0.9rem;}
-      .hero-stats{grid-template-columns:repeat(2,1fr);gap:12px;}
-      .stat-item{padding:0.75rem;}
-      /* Sections nouvelles */
-      #recruteurs{padding:3rem 0;}
-      #recruteurs .container > div > div:last-child{grid-template-columns:1fr 1fr !important;}
-      #tarifs{padding:3rem 0;}
-    }
-    @media(max-width:480px){
-      .hero-h1{font-size:2rem;}
-      .guides-grid{grid-template-columns:1fr;}
-      .hero-stats{grid-template-columns:1fr 1fr;}
-      .stat-number{font-size:1.8rem;}
-    }
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){
+  .nav-links{display:none;}
+  .nav-burger{display:flex;}
+  .nav-mobile{display:none;position:fixed;inset:0;background:rgba(5,10,24,.98);
+    backdrop-filter:blur(20px);z-index:1000;
+    flex-direction:column;align-items:center;justify-content:center;gap:2rem;}
+  .nav-mobile.open{display:flex;}
+  .nav-mobile a{font-size:1.4rem;font-weight:700;color:rgba(255,255,255,.8);transition:color .2s;}
+  .nav-mobile a:hover{color:#F0C060;}
+  .nav-mobile .nav-btn-primary{font-size:1rem;padding:.75rem 2rem;}
+  .split{grid-template-columns:1fr;}
+  .steps{grid-template-columns:1fr;}
+}
+@media(max-width:640px){
+  .hero{padding:4rem 1rem 3rem;}
+  .stats{flex-wrap:wrap;}
+  .stat{min-width:50%;}
+  .section{padding:3.5rem 1rem;}
+  .cta-final{padding:2.5rem 1.25rem;}
+}
   </style>
-
-  <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','GTM-N65GF7K6');</script>
-  <!-- End Google Tag Manager -->
-
-  <!-- Google AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8153544065381730"
-       crossorigin="anonymous"></script>
-  <!-- End Google AdSense -->
 </head>
-
 <body>
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N65GF7K6"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
 
-  <!-- ============================================================
-       SECTION 1 — NAVBAR
-  ============================================================ -->
-  <nav id="navbar" role="navigation" aria-label="Navigation principale">
-    <div class="container">
-      <div class="nav-inner">
-
-        <a href="/" class="nav-logo" aria-label="Immigration97 — Retour à l'accueil">
-          <img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97" height="72"
-               style="height:72px;width:auto;vertical-align:middle;">
-        </a>
-
-        <ul class="nav-links" role="list">
-          <li><a href="{% url 'profiles:my_space' %}">Candidats</a></li>
-          <li><a href="{% url 'profiles:recruiter_dashboard' %}">Recruteurs</a></li>
-          <li><a href="/visa-etudes/">Étudiants</a></li>
-          <li><a href="/prep/">Tests de langue</a></li>
-          <li><a href="/cv-generator/">CV Professionnel</a></li>
-          <li><a href="{% url 'actualite:list' %}">Blog</a></li>
-          <li><a href="{% url 'job_agent:public_offers' %}">Job Agent</a></li>
-          <li>
-            <a href="{% url 'consultation_request' %}" class="nav-consult" aria-label="Demander une consultation privée">
-              <span class="nav-consult__dot" aria-hidden="true"></span>
-              Consultation
-            </a>
-          </li>
-          {% if user.is_authenticated %}
-            <li><a href="{% url 'profiles:my_space' %}" class="nav-link-espace">Mon espace</a></li>
-            <li><a href="{% url 'authentification:logout' %}" class="nav-cta nav-cta--ghost">Se déconnecter</a></li>
-          {% else %}
-            <li><a href="{% url 'authentification:login' %}" class="nav-link-espace">Se connecter</a></li>
-            <li><a href="{% url 'billing:access' %}" class="nav-cta">Déposer ma candidature</a></li>
-          {% endif %}
-        </ul>
-
-        <button class="hamburger" id="hamburger"
-          aria-label="Ouvrir le menu de navigation"
-          aria-expanded="false"
-          aria-controls="mobile-menu">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-
-      </div>
-    </div>
-  </nav>
-
-  <!-- Mobile menu overlay -->
-  <div id="mobile-menu" role="dialog" aria-label="Menu mobile" aria-modal="true">
-    <nav class="mobile-links" aria-label="Liens principaux mobile">
-      <a href="{% url 'profiles:my_space' %}" onclick="closeMobileMenu()">Candidats</a>
-      <a href="{% url 'profiles:recruiter_dashboard' %}" onclick="closeMobileMenu()">Recruteurs</a>
-      <a href="/visa-etudes/" onclick="closeMobileMenu()">Étudiants</a>
-      <a href="/prep/" onclick="closeMobileMenu()">Tests de langue</a>
-      <a href="/cv-generator/" onclick="closeMobileMenu()">CV Professionnel</a>
-      <a href="{% url 'actualite:list' %}" onclick="closeMobileMenu()">Blog</a>
-      <a href="{% url 'job_agent:public_offers' %}" onclick="closeMobileMenu()">Job Agent</a>
-      <a href="{% url 'consultation_request' %}" onclick="closeMobileMenu()" style="color:var(--gold-light)!important;">🎯 Consultation</a>
+<!-- ── NAV ── -->
+<header id="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><img src="{% static 'img/LOGOIMM97.png' %}" alt="Immigration97" height="44"></a>
+    <nav class="nav-links">
+      <a href="{% url 'profiles:list' %}">Talents</a>
+      <a href="/visa-etudes/">Étudiants</a>
+      <a href="/prep/">Tests de langue</a>
+      <a href="{% url 'actualite:list' %}">Actualité</a>
+      <a href="{% url 'resources:library' %}">Ressources</a>
     </nav>
-    <a href="{% url 'billing:access' %}" class="btn btn-gold" style="margin-top:1rem;">
-      Déposer ma candidature
+    <div class="nav-cta-group">
+      {% if user.is_authenticated %}
+        <a href="{% url 'profiles:my_space' %}" class="nav-btn-outline">Mon espace</a>
+        <a href="{% url 'authentification:logout' %}" class="nav-btn-primary">Se déconnecter</a>
+      {% else %}
+        <a href="{% url 'authentification:login' %}" class="nav-btn-outline">Se connecter</a>
+        <a href="{% url 'billing:access' %}" class="nav-btn-primary">Créer mon profil</a>
+      {% endif %}
+    </div>
+    <button class="nav-burger" id="nav-burger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- Menu mobile overlay -->
+<nav class="nav-mobile" id="nav-mobile">
+  <a href="{% url 'profiles:list' %}" onclick="closeMobile()">Talents</a>
+  <a href="/visa-etudes/" onclick="closeMobile()">Étudiants</a>
+  <a href="/prep/" onclick="closeMobile()">Tests de langue</a>
+  <a href="{% url 'actualite:list' %}" onclick="closeMobile()">Actualité</a>
+  <a href="{% url 'resources:library' %}" onclick="closeMobile()">Ressources</a>
+  {% if user.is_authenticated %}
+    <a href="{% url 'profiles:my_space' %}" onclick="closeMobile()">Mon espace</a>
+    <a href="{% url 'authentification:logout' %}" class="nav-btn-primary" onclick="closeMobile()">Se déconnecter</a>
+  {% else %}
+    <a href="{% url 'authentification:login' %}" onclick="closeMobile()">Se connecter</a>
+    <a href="{% url 'billing:access' %}" class="nav-btn-primary" onclick="closeMobile()">Créer mon profil</a>
+  {% endif %}
+</nav>
+
+<div class="page">
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero__kicker">✦ Plateforme de placement international</div>
+  <h1>Les talents africains<br>trouvent du travail<br><span class="gold">à l'international</span></h1>
+  <p class="hero__sub">Immigration97 connecte les professionnels africains qualifiés aux recruteurs d'Europe, du Canada et d'Australie. Créez votre profil, soyez visible, trouvez votre opportunité.</p>
+  <div class="hero__cta">
+    {% if user.is_authenticated %}
+      <a href="{% url 'profiles:my_space' %}" class="btn-hero-primary">→ Accéder à mon espace</a>
+    {% else %}
+      <a href="{% url 'billing:access' %}" class="btn-hero-primary">✦ Créer mon profil gratuit</a>
+    {% endif %}
+    <a href="{% url 'profiles:list' %}" class="btn-hero-ghost">🔍 Chercher des talents</a>
+  </div>
+  <div class="stats">
+    <div class="stat"><span class="stat__num">500+</span><span class="stat__label">Candidats inscrits</span></div>
+    <div class="stat"><span class="stat__num">15+</span><span class="stat__label">Pays de destination</span></div>
+    <div class="stat"><span class="stat__num">10+</span><span class="stat__label">Secteurs couverts</span></div>
+    <div class="stat"><span class="stat__num">100%</span><span class="stat__label">Gratuit pour recruteurs</span></div>
+  </div>
+</section>
+
+<!-- ── DEUX PUBLICS ── -->
+<section class="section">
+  <p class="section-label">Pour qui ?</p>
+  <h2 class="section-title">Candidats & Recruteurs</h2>
+  <p class="section-sub">Une plateforme pensée pour les deux côtés de la table.</p>
+  <div class="split">
+    <div class="split-card split-card--candidate">
+      <p class="split-card__label">👤 Je suis candidat</p>
+      <h3 class="split-card__title">Publiez votre profil, soyez recruté à l'étranger</h3>
+      <ul class="split-card__list">
+        <li>Profil visible par des centaines de recruteurs internationaux</li>
+        <li>CV, portfolio, compétences et niveau de langue en un seul endroit</li>
+        <li>Notifications d'opportunités selon votre secteur</li>
+        <li>Préparation aux tests de langue incluse</li>
+      </ul>
+      <a href="{% url 'billing:access' %}" class="btn-split-candidate">Créer mon profil →</a>
+    </div>
+    <div class="split-card split-card--recruiter">
+      <p class="split-card__label">🏢 Je suis recruteur</p>
+      <h3 class="split-card__title">Trouvez des talents africains qualifiés, gratuitement</h3>
+      <ul class="split-card__list">
+        <li>Accès à tous les profils sans inscription ni paiement</li>
+        <li>Filtrez par secteur, niveau de langue, destination</li>
+        <li>Contactez directement les candidats par email</li>
+        <li>Profils vérifiés avec CV et certifications</li>
+      </ul>
+      <a href="{% url 'profiles:list' %}" class="btn-split-recruiter">Parcourir les talents →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── COMMENT ÇA MARCHE ── -->
+<section class="section" style="padding-top:0;">
+  <p class="section-label">Simple & rapide</p>
+  <h2 class="section-title">Comment ça marche ?</h2>
+  <p class="section-sub">3 étapes pour décrocher votre opportunité à l'international.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step__num">1</div>
+      <div class="step__icon">📝</div>
+      <h4 class="step__title">Créez votre profil</h4>
+      <p class="step__desc">Renseignez vos compétences, votre secteur d'activité, votre niveau de langue et ajoutez votre CV et portfolio.</p>
+    </div>
+    <div class="step">
+      <div class="step__num">2</div>
+      <div class="step__icon">🌍</div>
+      <h4 class="step__title">Soyez visible</h4>
+      <p class="step__desc">Activez votre profil pour être visible par les recruteurs d'Europe, du Canada et d'Australie qui cherchent des talents comme vous.</p>
+    </div>
+    <div class="step">
+      <div class="step__num">3</div>
+      <div class="step__icon">🤝</div>
+      <h4 class="step__title">Recevez des offres</h4>
+      <p class="step__desc">Les recruteurs vous contactent directement. Vous répondez, vous échangez, vous décrochez le poste.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── SERVICES ── -->
+<section class="section" style="padding-top:0;">
+  <p class="section-label">Nos outils</p>
+  <h2 class="section-title">Tout ce dont vous avez besoin</h2>
+  <p class="section-sub">Immigration97 c'est plus qu'une plateforme de recrutement.</p>
+  <div class="services">
+    <a href="/prep/" class="service">
+      <div class="service__icon">🎓</div>
+      <h4 class="service__title">Tests de langue</h4>
+      <p class="service__desc">Préparez le TCF, TEF, DELF, TestDaF avec plus de 1 000 leçons et examens blancs.</p>
+      <span class="service__arrow">Commencer →</span>
+    </a>
+    <a href="{% url 'resources:library' %}" class="service">
+      <div class="service__icon">📚</div>
+      <h4 class="service__title">Guides & Ressources</h4>
+      <p class="service__desc">Guides PDF, tableaux Excel visa, modèles de lettres pour votre dossier d'immigration.</p>
+      <span class="service__arrow">Voir les ressources →</span>
+    </a>
+    <a href="/visa-etudes/" class="service">
+      <div class="service__icon">✈️</div>
+      <h4 class="service__title">Visa Études</h4>
+      <p class="service__desc">Préparez votre dossier visa étudiant pour le Canada, la France, l'Allemagne et plus.</p>
+      <span class="service__arrow">En savoir plus →</span>
+    </a>
+    <a href="{% url 'consultation_request' %}" class="service">
+      <div class="service__icon">💬</div>
+      <h4 class="service__title">Consultation</h4>
+      <p class="service__desc">Obtenez un accompagnement personnalisé par nos conseillers en immigration certifiés.</p>
+      <span class="service__arrow">Prendre RDV →</span>
     </a>
   </div>
+</section>
 
-  <!-- ============================================================
-       SECTION 2 — HERO
-  ============================================================ -->
-  <section id="hero" aria-label="Présentation principale">
-    <div id="particles-container" aria-hidden="true"></div>
-    <div class="hex-bg hero-hex-1" aria-hidden="true"></div>
-    <div class="hex-bg hero-hex-2" aria-hidden="true"></div>
-
-    <div class="container">
-      <div class="hero-inner">
-
-        <!-- Left: main content -->
-        <div class="hero-left">
-          <div class="hero-badge" aria-label="Agence certifiée depuis 2019, plus de 15 pays">
-            <span class="dot" aria-hidden="true"></span>
-            ✦ Agence certifiée · Depuis 2019 · +15 pays
-          </div>
-
-          <h1 class="hero-h1">
-            Votre avenir professionnel<br>
-            commence <em>ici.</em>
-          </h1>
-
-          <p class="hero-subtitle">
-            La plateforme africaine de référence pour le placement international — emploi qualifié, études à l'étranger, visa et accompagnement complet.
-          </p>
-
-          <div class="hero-ctas">
-            <div class="btn-magnetic">
-              <a href="{% url 'profiles:my_space' %}" class="btn btn-gold"
-                aria-label="Je cherche un emploi à l'étranger — accéder à mon espace">
-                Je cherche un emploi à l'étranger
-              </a>
-            </div>
-            <a href="{% url 'recruiters:dashboard' %}" class="btn btn-ghost"
-              aria-label="Je suis employeur — accéder au tableau de bord recruteur">
-              Je suis employeur
-            </a>
-          </div>
-        </div>
-
-        <!-- Right: floating mockup card -->
-        <div class="hero-right" aria-hidden="true">
-          <div class="mockup-card">
-            <div style="text-align:center;">
-              <div class="mockup-avatar">AD</div>
-              <div class="mockup-badge">Candidat Vérifié ✓</div>
-              <div class="mockup-name">Amara Diallo</div>
-              <div class="mockup-job">Technicien en bâtiment</div>
-              <div class="mockup-route">
-                <span>🇸🇳</span>
-                <span class="arrow">→</span>
-                <span>🇨🇦</span>
-              </div>
-              <div class="mockup-stats">
-                <div class="mockup-stat">
-                  <div class="mockup-stat-val">B2</div>
-                  <div class="mockup-stat-label">Niveau FR</div>
-                </div>
-                <div class="mockup-stat">
-                  <div class="mockup-stat-val">5</div>
-                  <div class="mockup-stat-label">Ans exp.</div>
-                </div>
-                <div class="mockup-stat">
-                  <div class="mockup-stat-val">✓</div>
-                  <div class="mockup-stat-label">Visé</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
+<!-- ── ACTUALITÉS ── -->
+{% if top_week %}
+<section class="section" style="padding-top:0;">
+  <p class="section-label">Restez informé</p>
+  <h2 class="section-title">Dernières actualités</h2>
+  <p class="section-sub">Opportunités, visas, offres d'emploi — filtré par nos experts.</p>
+  <div class="news-grid">
+    {% for article in top_week %}
+    <a href="{{ article.get_absolute_url }}" class="news-card">
+      <div class="news-card__img">
+        {% if article.cover_image %}
+          <img src="{{ article.cover_image.url }}" alt="{{ article.title }}" loading="lazy">
+        {% else %}
+          <div class="news-card__placeholder">📰</div>
+        {% endif %}
       </div>
-    </div>
-
-    <!-- Flags marquee strip -->
-    <div class="flags-marquee" aria-hidden="true">
-      <div class="flags-marquee-track">
-        <div class="flag-item"><span class="emoji">🇨🇦</span> Canada</div>
-        <span class="flag-sep" aria-hidden="true">●</span>
-        <div class="flag-item"><span class="emoji">🇮🇹</span> Italie</div>
-        <span class="flag-sep" aria-hidden="true">●</span>
-        <div class="flag-item"><span class="emoji">🇩🇪</span> Allemagne</div>
-        <span class="flag-sep" aria-hidden="true">●</span>
-        <div class="flag-item"><span class="emoji">🇪🇸</span> Espagne</div>
-        <span class="flag-sep" aria-hidden="true">●</span>
-        <div class="flag-item"><span class="emoji">🇯🇵</span> Japon</div>
-        <span class="flag-sep" aria-hidden="true">●</span>
-        <div class="flag-item"><span class="emoji">🇬🇧</span> Royaume-Uni</div>
-        <span class="flag-sep" aria-hidden="true">●</span>
-        <!-- repeat for seamless loop -->
-        <div class="flag-item"><span class="emoji">🇨🇦</span> Canada</div>
-        <span class="flag-sep" aria-hidden="true">●</span>
-        <div class="flag-item"><span class="emoji">🇮🇹</span> Italie</div>
-        <span class="flag-sep" aria-hidden="true">●</span>
-        <div class="flag-item"><span class="emoji">🇩🇪</span> Allemagne</div>
-        <span class="flag-sep" aria-hidden="true">●</span>
-        <div class="flag-item"><span class="emoji">🇪🇸</span> Espagne</div>
-        <span class="flag-sep" aria-hidden="true">●</span>
-        <div class="flag-item"><span class="emoji">🇯🇵</span> Japon</div>
-        <span class="flag-sep" aria-hidden="true">●</span>
-        <div class="flag-item"><span class="emoji">🇬🇧</span> Royaume-Uni</div>
-        <span class="flag-sep" aria-hidden="true">●</span>
+      <div class="news-card__body">
+        <div class="news-card__tag">{{ article.country|default:"Immigration" }}</div>
+        <h3 class="news-card__title">{{ article.title }}</h3>
+        <div class="news-card__meta">{{ article.publish_date|date:"d M Y" }} · {{ article.views_count|default:0 }} vues</div>
       </div>
-    </div>
+    </a>
+    {% endfor %}
+  </div>
+  <a href="{% url 'actualite:list' %}" class="news-all">Voir toutes les actualités →</a>
+</section>
+{% endif %}
 
-    <!-- Stats bar -->
-    <div class="container">
-      <div class="hero-stats" role="list" aria-label="Statistiques clés de la plateforme">
-        <div class="stat-item" role="listitem">
-          <span class="stat-number" data-target="200" aria-label=" 200 candidats placés">0</span>
-          <span class="stat-label">Candidats placés</span>
-        </div>
-        <div class="stat-item" role="listitem">
-          <span class="stat-number" data-target="47" aria-label="47 employeurs partenaires">0</span>
-          <span class="stat-label">Employeurs partenaires</span>
-        </div>
-        <div class="stat-item" role="listitem">
-          <span class="stat-number" data-target="15" aria-label="15 pays couverts">0</span>
-          <span class="stat-label">Pays couverts</span>
-        </div>
-        <div class="stat-item" role="listitem">
-          <span class="stat-number" data-target="94" aria-label="94 pourcent de satisfaction">0</span>
-          <span class="stat-label">% Satisfaction</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SECTION 3 — TRUST MARQUEE
-  ============================================================ -->
-  <div id="trust-marquee" role="region" aria-label="Programmes d'immigration couverts">
-    <div class="trust-track" aria-hidden="true">
-      <span class="trust-item">DECRETO FLUSSI ITALIA</span><span class="trust-dot"></span>
-      <span class="trust-item">SKILLED WORKER UK</span><span class="trust-dot"></span>
-      <span class="trust-item">ENTRÉE EXPRESS CANADA</span><span class="trust-dot"></span>
-      <span class="trust-item">GOETHE-ZERTIFIKAT</span><span class="trust-dot"></span>
-      <span class="trust-item">TCF CANADA</span><span class="trust-dot"></span>
-      <span class="trust-item">BLUE CARD EU</span><span class="trust-dot"></span>
-      <span class="trust-item">DV LOTTERY</span><span class="trust-dot"></span>
-      <span class="trust-item">KAFALA REFORM</span><span class="trust-dot"></span>
-      <span class="trust-item">ETA JAPAN</span><span class="trust-dot"></span>
-      <!-- repeat ×2 -->
-      <span class="trust-item">DECRETO FLUSSI ITALIA</span><span class="trust-dot"></span>
-      <span class="trust-item">SKILLED WORKER UK</span><span class="trust-dot"></span>
-      <span class="trust-item">ENTRÉE EXPRESS CANADA</span><span class="trust-dot"></span>
-      <span class="trust-item">GOETHE-ZERTIFIKAT</span><span class="trust-dot"></span>
-      <span class="trust-item">TCF CANADA</span><span class="trust-dot"></span>
-      <span class="trust-item">BLUE CARD EU</span><span class="trust-dot"></span>
-      <span class="trust-item">DV LOTTERY</span><span class="trust-dot"></span>
-      <span class="trust-item">KAFALA REFORM</span><span class="trust-dot"></span>
-      <span class="trust-item">ETA JAPAN</span><span class="trust-dot"></span>
-      <!-- repeat ×3 -->
-      <span class="trust-item">DECRETO FLUSSI ITALIA</span><span class="trust-dot"></span>
-      <span class="trust-item">SKILLED WORKER UK</span><span class="trust-dot"></span>
-      <span class="trust-item">ENTRÉE EXPRESS CANADA</span><span class="trust-dot"></span>
-      <span class="trust-item">GOETHE-ZERTIFIKAT</span><span class="trust-dot"></span>
-      <span class="trust-item">TCF CANADA</span><span class="trust-dot"></span>
-      <span class="trust-item">BLUE CARD EU</span><span class="trust-dot"></span>
-      <span class="trust-item">DV LOTTERY</span><span class="trust-dot"></span>
-      <span class="trust-item">KAFALA REFORM</span><span class="trust-dot"></span>
-      <span class="trust-item">ETA JAPAN</span><span class="trust-dot"></span>
+<!-- ── CTA FINAL ── -->
+<section class="section" style="padding-top:0;">
+  <div class="cta-final">
+    <h2>Prêt à changer votre avenir ?</h2>
+    <p>Des milliers de recruteurs internationaux cherchent des talents comme vous. Créez votre profil aujourd'hui — c'est rapide et simple.</p>
+    <div class="cta-btns">
+      <a href="{% url 'billing:access' %}" class="btn-hero-primary">✦ Créer mon profil</a>
+      <a href="{% url 'profiles:list' %}" class="btn-hero-ghost">🔍 Voir les talents</a>
     </div>
   </div>
-
-  <!-- ============================================================
-       SECTION 4 — HOW IT WORKS
-  ============================================================ -->
-  <section id="how-it-works" aria-labelledby="hiw-title">
-    <div class="hex-bg" style="width:400px;height:400px;top:50%;left:50%;transform:translate(-50%,-50%);" aria-hidden="true"></div>
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label reveal">Notre processus</span>
-        <h2 class="section-title reveal reveal-delay-1" id="hiw-title">
-          Comment <span>ça marche</span>
-        </h2>
-        <p class="section-subtitle reveal reveal-delay-2">
-          Un accompagnement complet en 3 étapes — de votre profil jusqu'à votre installation.
-        </p>
-      </div>
-
-      <div class="steps-grid">
-
-        <article class="step-card glass-card reveal reveal-delay-1" aria-label="Étape 1 sur 3 : Créez votre profil">
-          <span class="step-number" aria-hidden="true">01</span>
-          <div class="step-icon-wrap" aria-hidden="true">📝</div>
-          <h3 class="step-title">Créez votre profil</h3>
-          <p class="step-desc">
-            Remplissez votre dossier en 10 minutes. Notre équipe vérifie vos documents et certifie votre profil pour vous démarquer auprès des employeurs.
-          </p>
-        </article>
-
-        <article class="step-card glass-card reveal reveal-delay-2" aria-label="Étape 2 sur 3 : Nous matchons votre profil">
-          <span class="step-number" aria-hidden="true">02</span>
-          <div class="step-icon-wrap" aria-hidden="true">🎯</div>
-          <h3 class="step-title">Nous matchons votre profil</h3>
-          <p class="step-desc">
-            Algorithme + expertise humaine. On vous propose les offres qui correspondent à votre qualification et vos objectifs de vie à l'étranger.
-          </p>
-        </article>
-
-        <article class="step-card glass-card reveal reveal-delay-3" aria-label="Étape 3 sur 3 : Vous partez travailler">
-          <span class="step-number" aria-hidden="true">03</span>
-          <div class="step-icon-wrap" aria-hidden="true">✈️</div>
-          <h3 class="step-title">Vous partez travailler</h3>
-          <p class="step-desc">
-            Visa, logement, intégration accompagnés. On reste à vos côtés jusqu'à votre installation complète dans votre nouveau pays.
-          </p>
-        </article>
-
-      </div>
-
-      <div style="text-align:center;margin-top:3rem;" class="reveal reveal-delay-4">
-        <a href="/consultation/" class="btn btn-gold" aria-label="Demander un accompagnement personnalisé">
-          Parler à un expert →
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SECTION 5 — DESTINATIONS
-  ============================================================ -->
-  <section id="destinations" aria-labelledby="dest-title">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label reveal">Nos marchés</span>
-        <h2 class="section-title reveal reveal-delay-1" id="dest-title">
-          Choisissez votre <span>destination</span>
-        </h2>
-        <p class="section-subtitle reveal reveal-delay-2">
-          6 pays, des centaines d'offres actives dans les secteurs les plus porteurs pour les travailleurs africains.
-        </p>
-      </div>
-
-      <div class="destinations-grid">
-
-        <article class="dest-card reveal reveal-delay-1" data-tilt aria-label="Canada — 34 offres actives">
-          <span class="dest-flag" aria-hidden="true">🇨🇦</span>
-          <div class="dest-country">Canada</div>
-          <span class="dest-offers-badge">34 offres actives</span>
-          <div class="dest-sectors">
-            <span class="dest-sector-tag">Santé</span>
-            <span class="dest-sector-tag">IT</span>
-            <span class="dest-sector-tag">BTP</span>
-            <span class="dest-sector-tag">Agriculture</span>
-          </div>
-          <div class="dest-progress">
-            <div class="dest-progress-label"><span>Popularité</span><span>92%</span></div>
-            <div class="dest-progress-bar-wrap">
-              <div class="dest-progress-bar" data-width="92"></div>
-            </div>
-          </div>
-          <a href="{% url 'job_agent:public_offers' %}" class="dest-link" aria-label="Voir les offres au Canada">Voir les offres →</a>
-        </article>
-
-        <article class="dest-card reveal reveal-delay-2" data-tilt aria-label="Italie — 28 offres actives">
-          <span class="dest-flag" aria-hidden="true">🇮🇹</span>
-          <div class="dest-country">Italie</div>
-          <span class="dest-offers-badge">28 offres actives</span>
-          <div class="dest-sectors">
-            <span class="dest-sector-tag">Agriculture</span>
-            <span class="dest-sector-tag">Hôtellerie</span>
-            <span class="dest-sector-tag">BTP</span>
-          </div>
-          <div class="dest-progress">
-            <div class="dest-progress-label"><span>Popularité</span><span>85%</span></div>
-            <div class="dest-progress-bar-wrap">
-              <div class="dest-progress-bar" data-width="85"></div>
-            </div>
-          </div>
-          <a href="{% url 'job_agent:public_offers' %}" class="dest-link" aria-label="Voir les offres en Italie">Voir les offres →</a>
-        </article>
-
-        <article class="dest-card reveal reveal-delay-3" data-tilt aria-label="Allemagne — 19 offres actives">
-          <span class="dest-flag" aria-hidden="true">🇩🇪</span>
-          <div class="dest-country">Allemagne</div>
-          <span class="dest-offers-badge">19 offres actives</span>
-          <div class="dest-sectors">
-            <span class="dest-sector-tag">Ingénierie</span>
-            <span class="dest-sector-tag">Santé</span>
-            <span class="dest-sector-tag">Logistique</span>
-          </div>
-          <div class="dest-progress">
-            <div class="dest-progress-label"><span>Popularité</span><span>70%</span></div>
-            <div class="dest-progress-bar-wrap">
-              <div class="dest-progress-bar" data-width="70"></div>
-            </div>
-          </div>
-          <a href="{% url 'job_agent:public_offers' %}" class="dest-link" aria-label="Voir les offres en Allemagne">Voir les offres →</a>
-        </article>
-
-        <article class="dest-card reveal reveal-delay-1" data-tilt aria-label="Espagne — 15 offres actives">
-          <span class="dest-flag" aria-hidden="true">🇪🇸</span>
-          <div class="dest-country">Espagne</div>
-          <span class="dest-offers-badge">15 offres actives</span>
-          <div class="dest-sectors">
-            <span class="dest-sector-tag">Agriculture</span>
-            <span class="dest-sector-tag">Tourisme</span>
-            <span class="dest-sector-tag">Restauration</span>
-          </div>
-          <div class="dest-progress">
-            <div class="dest-progress-label"><span>Popularité</span><span>62%</span></div>
-            <div class="dest-progress-bar-wrap">
-              <div class="dest-progress-bar" data-width="62"></div>
-            </div>
-          </div>
-          <a href="{% url 'job_agent:public_offers' %}" class="dest-link" aria-label="Voir les offres en Espagne">Voir les offres →</a>
-        </article>
-
-        <article class="dest-card reveal reveal-delay-2" data-tilt aria-label="Japon — 11 offres actives">
-          <span class="dest-flag" aria-hidden="true">🇯🇵</span>
-          <div class="dest-country">Japon</div>
-          <span class="dest-offers-badge">11 offres actives</span>
-          <div class="dest-sectors">
-            <span class="dest-sector-tag">Industrie</span>
-            <span class="dest-sector-tag">IT</span>
-            <span class="dest-sector-tag">Restauration</span>
-          </div>
-          <div class="dest-progress">
-            <div class="dest-progress-label"><span>Popularité</span><span>48%</span></div>
-            <div class="dest-progress-bar-wrap">
-              <div class="dest-progress-bar" data-width="48"></div>
-            </div>
-          </div>
-          <a href="{% url 'job_agent:public_offers' %}" class="dest-link" aria-label="Voir les offres au Japon">Voir les offres →</a>
-        </article>
-
-        <article class="dest-card reveal reveal-delay-3" data-tilt aria-label="Royaume-Uni — 22 offres actives">
-          <span class="dest-flag" aria-hidden="true">🇬🇧</span>
-          <div class="dest-country">Royaume-Uni</div>
-          <span class="dest-offers-badge">22 offres actives</span>
-          <div class="dest-sectors">
-            <span class="dest-sector-tag">Santé</span>
-            <span class="dest-sector-tag">Finance</span>
-            <span class="dest-sector-tag">Logistique</span>
-          </div>
-          <div class="dest-progress">
-            <div class="dest-progress-label"><span>Popularité</span><span>78%</span></div>
-            <div class="dest-progress-bar-wrap">
-              <div class="dest-progress-bar" data-width="78"></div>
-            </div>
-          </div>
-          <a href="{% url 'job_agent:public_offers' %}" class="dest-link" aria-label="Voir les offres au Royaume-Uni">Voir les offres →</a>
-        </article>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SECTION 6 — SERVICES
-  ============================================================ -->
-  <section id="services" aria-labelledby="services-title">
-    <div class="diagonal-accent" aria-hidden="true"></div>
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label reveal">Ce que nous offrons</span>
-        <h2 class="section-title reveal reveal-delay-1" id="services-title">
-          Nos <span>services</span>
-        </h2>
-        <p class="section-subtitle reveal reveal-delay-2">
-          Un accompagnement 360° pour candidats et employeurs, de l'Afrique vers le monde.
-        </p>
-      </div>
-
-      <div class="services-split">
-
-        <div class="services-col reveal reveal-delay-1">
-          <div class="services-col-title">
-            <span>👤</span> Pour les candidats
-          </div>
-
-          <div class="service-item">
-            <span class="service-icon" aria-hidden="true">🎯</span>
-            <span class="service-text">Placement emploi international dans les meilleurs secteurs</span>
-          </div>
-          <div class="service-item">
-            <span class="service-icon" aria-hidden="true">📚</span>
-            <span class="service-text">Préparation aux tests de langue (TCF, Goethe, IELTS, TEF)</span>
-          </div>
-          <div class="service-item">
-            <span class="service-icon" aria-hidden="true">📄</span>
-            <span class="service-text">Accompagnement visa &amp; dossier de documents complet</span>
-          </div>
-          <div class="service-item">
-            <span class="service-icon" aria-hidden="true">🏠</span>
-            <span class="service-text">Aide à l'installation et recherche de logement</span>
-          </div>
-          <div class="service-item">
-            <span class="service-icon" aria-hidden="true">💼</span>
-            <span class="service-text">CV professionnel, lettres de motivation, coaching entretien</span>
-          </div>
-          <div class="service-item">
-            <span class="service-icon" aria-hidden="true">📸</span>
-            <span class="service-text">Photo visa biométrique conforme aux normes internationales</span>
-          </div>
-
-          <a href="{% url 'profiles:my_space' %}" class="btn btn-gold" aria-label="Créer mon profil candidat sur Immigration97">
-            Créer mon profil →
-          </a>
-        </div>
-
-        <div class="services-col reveal reveal-delay-2">
-          <div class="services-col-title">
-            <span>🏢</span> Pour les employeurs
-          </div>
-
-          <div class="service-item">
-            <span class="service-icon" aria-hidden="true">🔍</span>
-            <span class="service-text">Recrutement de main-d'œuvre africaine qualifiée et motivée</span>
-          </div>
-          <div class="service-item">
-            <span class="service-icon" aria-hidden="true">✅</span>
-            <span class="service-text">Profils pré-vérifiés, certifiés et prêts à l'emploi</span>
-          </div>
-          <div class="service-item">
-            <span class="service-icon" aria-hidden="true">📋</span>
-            <span class="service-text">Gestion administrative complète (Decreto Flussi, Skilled Worker…)</span>
-          </div>
-          <div class="service-item">
-            <span class="service-icon" aria-hidden="true">🤝</span>
-            <span class="service-text">Partenariats long terme avec suivi et garantie satisfaction</span>
-          </div>
-          <div class="service-item">
-            <span class="service-icon" aria-hidden="true">🌍</span>
-            <span class="service-text">Présence multi-pays : Cameroun, Sénégal, Côte d'Ivoire, RDC</span>
-          </div>
-
-          <a href="{% url 'recruiters:dashboard' %}" class="btn btn-ghost" aria-label="Accéder à l'espace recruteur Immigration97">
-            Espace recruteur →
-          </a>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SECTION 7 — TESTIMONIALS
-  ============================================================ -->
-  <section id="testimonials" aria-labelledby="testimonials-title">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label reveal">Témoignages</span>
-        <h2 class="section-title reveal reveal-delay-1" id="testimonials-title">
-          Ce qu'ils <span>disent de nous</span>
-        </h2>
-        <p class="section-subtitle reveal reveal-delay-2">
-          Des centaines de familles africaines ont déjà changé de vie grâce à Immigration97.
-        </p>
-      </div>
-
-      <div class="testimonials-slider-wrap reveal">
-        <div class="testimonials-track" id="testimonialsTrack" role="list" aria-live="polite">
-
-          <div class="testimonial-card" role="listitem" aria-label="Témoignage d'Amara D., Sénégal vers Italie">
-            <div class="testimonial-inner">
-              <div class="testimonial-avatar" aria-hidden="true">AD</div>
-              <div class="testimonial-stars" aria-label="Note : 5 étoiles sur 5">★★★★★</div>
-              <blockquote class="testimonial-quote">
-                "Grâce à Immigration97, j'ai obtenu mon visa travail pour l'Italie en moins de 3 mois. L'équipe a géré tous mes documents. Je recommande à 100%."
-              </blockquote>
-              <div class="testimonial-name">Amara D.</div>
-              <div class="testimonial-origin">Dakar, Sénégal → Rome, Italie</div>
-              <div class="testimonial-role">Ouvrier agricole</div>
-            </div>
-          </div>
-
-          <div class="testimonial-card" role="listitem" aria-label="Témoignage de Fatou M., Cameroun vers Canada">
-            <div class="testimonial-inner">
-              <div class="testimonial-avatar" aria-hidden="true" style="background:linear-gradient(135deg,#e056c0,#a83285);">FM</div>
-              <div class="testimonial-stars" aria-label="Note : 5 étoiles sur 5">★★★★★</div>
-              <blockquote class="testimonial-quote">
-                "J'avais peur de ne pas avoir le niveau de langue requis. La préparation TCF sur la plateforme m'a permis d'atteindre B2 en 8 semaines. Maintenant je suis infirmière au Canada !"
-              </blockquote>
-              <div class="testimonial-name">Fatou M.</div>
-              <div class="testimonial-origin">Douala, Cameroun → Montréal, Canada</div>
-              <div class="testimonial-role">Infirmière diplômée</div>
-            </div>
-          </div>
-
-          <div class="testimonial-card" role="listitem" aria-label="Témoignage de Kwame A., Côte d'Ivoire vers Allemagne">
-            <div class="testimonial-inner">
-              <div class="testimonial-avatar" aria-hidden="true" style="background:linear-gradient(135deg,#20b56e,#0a7a42);">KA</div>
-              <div class="testimonial-stars" aria-label="Note : 5 étoiles sur 5">★★★★★</div>
-              <blockquote class="testimonial-quote">
-                "Le coaching CV et entretien a tout changé. Mon dossier a été retenu du premier coup pour la carte bleue européenne en Allemagne."
-              </blockquote>
-              <div class="testimonial-name">Kwame A.</div>
-              <div class="testimonial-origin">Abidjan, Côte d'Ivoire → Berlin, Allemagne</div>
-              <div class="testimonial-role">Technicien en électronique</div>
-            </div>
-          </div>
-
-        </div>
-
-        <div class="slider-controls">
-          <button class="slider-btn" id="sliderPrev" aria-label="Témoignage précédent">&#8592;</button>
-          <div class="slider-dots" role="tablist" aria-label="Navigation par témoignage">
-            <button class="slider-dot active" role="tab" aria-selected="true" aria-label="Témoignage 1 sur 3" data-index="0"></button>
-            <button class="slider-dot" role="tab" aria-selected="false" aria-label="Témoignage 2 sur 3" data-index="1"></button>
-            <button class="slider-dot" role="tab" aria-selected="false" aria-label="Témoignage 3 sur 3" data-index="2"></button>
-          </div>
-          <button class="slider-btn" id="sliderNext" aria-label="Témoignage suivant">&#8594;</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SECTION 8 — EBOOKS & GUIDES
-  ============================================================ -->
-  <section id="guides" aria-labelledby="guides-title">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label reveal">Ressources gratuites</span>
-        <h2 class="section-title reveal reveal-delay-1" id="guides-title">
-          Préparez votre <span>départ</span>
-        </h2>
-        <p class="section-subtitle reveal reveal-delay-2">
-          Nos guides pratiques pour maximiser vos chances d'obtenir un visa et un emploi à l'étranger.
-        </p>
-      </div>
-
-      <div class="guides-grid">
-
-        <article class="guide-card reveal reveal-delay-1" aria-label="Guide Decreto Flussi 2025 — Gratuit">
-          <div class="guide-header guide-header-1" aria-hidden="true">📋</div>
-          <div class="guide-body">
-            <span class="guide-badge">Gratuit</span>
-            <h3 class="guide-title">Guide Decreto Flussi 2025</h3>
-            <p class="guide-desc">Tout sur le décret flux Italie : quota, secteurs, documents requis, procédure pas à pas.</p>
-            <a href="#" class="guide-cta" aria-label="Télécharger le guide Decreto Flussi 2025">Télécharger →</a>
-          </div>
-        </article>
-
-        <article class="guide-card reveal reveal-delay-2" aria-label="Guide Visa Skilled Worker UK — Gratuit">
-          <div class="guide-header guide-header-2" aria-hidden="true">🇬🇧</div>
-          <div class="guide-body">
-            <span class="guide-badge">Gratuit</span>
-            <h3 class="guide-title">Visa Skilled Worker UK</h3>
-            <p class="guide-desc">Conditions, salaire minimum, liste des métiers éligibles, dossier complet step by step.</p>
-            <a href="#" class="guide-cta" aria-label="Télécharger le guide Visa Skilled Worker UK">Télécharger →</a>
-          </div>
-        </article>
-
-        <article class="guide-card reveal reveal-delay-3" aria-label="Guide Travailler au Japon — 2 500 XAF">
-          <div class="guide-header guide-header-3" aria-hidden="true">🇯🇵</div>
-          <div class="guide-body">
-            <span class="guide-badge" style="background:rgba(212,168,67,0.2);color:var(--gold-light);">2 500 XAF</span>
-            <h3 class="guide-title">Travailler au Japon</h3>
-            <p class="guide-desc">Visa Specified Skilled Worker, secteurs porteurs, bases du japonais pour débuter.</p>
-            <a href="#" class="guide-cta" aria-label="Obtenir le guide Travailler au Japon">Obtenir →</a>
-          </div>
-        </article>
-
-        <article class="guide-card reveal reveal-delay-4" aria-label="Guide TCF Canada Préparation complète — Gratuit">
-          <div class="guide-header guide-header-4" aria-hidden="true">🎯</div>
-          <div class="guide-body">
-            <span class="guide-badge">Gratuit</span>
-            <h3 class="guide-title">TCF Canada — Préparation complète</h3>
-            <p class="guide-desc">Stratégies éprouvées, exercices pratiques et scores cibles par niveau CECR.</p>
-            <a href="#" class="guide-cta" aria-label="Télécharger le guide TCF Canada">Télécharger →</a>
-          </div>
-        </article>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SECTION 8b — RECRUTEURS
-  ============================================================ -->
-  <section id="recruteurs" style="padding:5rem 0;background:linear-gradient(135deg,rgba(212,168,67,0.04) 0%,transparent 60%);">
-    <div class="container">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;max-width:1100px;margin:0 auto;">
-        <div>
-          <span class="section-label reveal">🏢 Espace Recruteurs</span>
-          <h2 class="section-title reveal reveal-delay-1">
-            Recrutez les<br><span>meilleurs talents africains</span>
-          </h2>
-          <p class="section-subtitle reveal reveal-delay-2" style="text-align:left;max-width:100%;">
-            Accédez à une base de candidats qualifiés — professionnels, étudiants, multilingues —
-            prêts pour une mobilité internationale. Filtrez par compétence, niveau de langue et destination.
-          </p>
-          <ul style="list-style:none;padding:0;margin:2rem 0;" class="reveal reveal-delay-3">
-            <li style="padding:0.6rem 0;border-bottom:1px solid rgba(255,255,255,0.07);color:rgba(255,255,255,0.8);display:flex;align-items:center;gap:0.75rem;">
-              <span style="color:#D4A843;font-size:1.1rem;">✓</span> Parcourir les profils <strong style="color:#fff;">gratuitement</strong>
-            </li>
-            <li style="padding:0.6rem 0;border-bottom:1px solid rgba(255,255,255,0.07);color:rgba(255,255,255,0.8);display:flex;align-items:center;gap:0.75rem;">
-              <span style="color:#D4A843;font-size:1.1rem;">✓</span> Envoyer des invitations aux candidats (Premium)
-            </li>
-            <li style="padding:0.6rem 0;border-bottom:1px solid rgba(255,255,255,0.07);color:rgba(255,255,255,0.8);display:flex;align-items:center;gap:0.75rem;">
-              <span style="color:#D4A843;font-size:1.1rem;">✓</span> Messagerie intégrée après acceptation
-            </li>
-            <li style="padding:0.6rem 0;color:rgba(255,255,255,0.8);display:flex;align-items:center;gap:0.75rem;">
-              <span style="color:#D4A843;font-size:1.1rem;">✓</span> Tableau de bord recruteur dédié
-            </li>
-          </ul>
-          <div style="display:flex;gap:1rem;flex-wrap:wrap;" class="reveal reveal-delay-4">
-            <a href="{% url 'profiles:list' %}"
-               style="display:inline-block;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-weight:700;padding:0.85rem 1.75rem;border-radius:10px;font-size:0.95rem;text-decoration:none;">
-              Voir les candidats →
-            </a>
-            <a href="{% url 'billing:pricing' %}?role=recruiter"
-               style="display:inline-block;border:1px solid rgba(212,168,67,0.4);color:#D4A843;font-weight:600;padding:0.85rem 1.75rem;border-radius:10px;font-size:0.95rem;text-decoration:none;">
-              Abonnement Recruteur — 65 000 XAF/an
-            </a>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;" class="reveal reveal-delay-2">
-          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(212,168,67,0.2);border-radius:16px;padding:1.5rem;text-align:center;">
-            <div style="font-size:2rem;font-weight:800;color:#F0C060;font-family:'Bebas Neue',Impact,sans-serif;">500+</div>
-            <div style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin-top:0.25rem;">Candidats vérifiés</div>
-          </div>
-          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(212,168,67,0.2);border-radius:16px;padding:1.5rem;text-align:center;">
-            <div style="font-size:2rem;font-weight:800;color:#F0C060;font-family:'Bebas Neue',Impact,sans-serif;">15+</div>
-            <div style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin-top:0.25rem;">Pays de destination</div>
-          </div>
-          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(212,168,67,0.2);border-radius:16px;padding:1.5rem;text-align:center;">
-            <div style="font-size:2rem;font-weight:800;color:#F0C060;font-family:'Bebas Neue',Impact,sans-serif;">A1→C2</div>
-            <div style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin-top:0.25rem;">Niveaux de langue</div>
-          </div>
-          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(212,168,67,0.2);border-radius:16px;padding:1.5rem;text-align:center;">
-            <div style="font-size:2rem;font-weight:800;color:#F0C060;font-family:'Bebas Neue',Impact,sans-serif;">100€</div>
-            <div style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin-top:0.25rem;">Abonnement/an</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SECTION 8c — PRICING PREVIEW
-  ============================================================ -->
-  <section id="tarifs" style="padding:5rem 0;">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label reveal">Tarifs transparents</span>
-        <h2 class="section-title reveal reveal-delay-1">
-          Un prix juste,<br><span>un accès complet</span>
-        </h2>
-        <p class="section-subtitle reveal reveal-delay-2">
-          Pas d'abonnement caché. Choisis ton plan, contacte-nous sur WhatsApp, reçois ton code et active ton accès.
-        </p>
-      </div>
-
-      <!-- Plans dynamiques -->
-      <div class="tarifs-grid reveal reveal-delay-2">
-
-        {% for plan in candidate_plans %}
-        <div class="plan-card {% if plan.is_popular %}plan-card--popular{% endif %}">
-          {% if plan.is_popular %}
-          <div class="plan-badge">⭐ Le plus choisi</div>
-          {% endif %}
-          <div class="plan-name {% if plan.is_popular %}plan-name--popular{% endif %}">{{ plan.name }}</div>
-          <div class="plan-price">
-            {{ plan.price_xaf|floatformat:0 }}
-            <span class="plan-unit">XAF/{% if plan.duration_days <= 31 %}mois{% else %}an{% endif %}</span>
-          </div>
-          <div class="plan-eur">≈ {{ plan.price_usd }}€/{% if plan.duration_days <= 31 %}mois{% else %}an{% endif %}</div>
-          <ul class="plan-features">
-            {% for f in plan.features %}
-            <li><span class="plan-check">✓</span> {{ f }}</li>
-            {% endfor %}
-          </ul>
-          <a href="https://wa.me/237693649944?text=Bonjour+Immigration97%2C+je+souhaite+activer+le+plan+%22{{ plan.name|urlencode }}%22+%28{{ plan.price_xaf|floatformat:0 }}+FCFA%29.+Pouvez-vous+m%27envoyer+les+instructions+de+paiement+%3F"
-             target="_blank" rel="noopener"
-             class="plan-btn {% if plan.is_popular %}plan-btn--gold{% else %}plan-btn--outline{% endif %}">
-            Obtenir ce plan →
-          </a>
-        </div>
-        {% empty %}
-        <div class="plan-empty">Plans bientôt disponibles.</div>
-        {% endfor %}
-
-        {% for plan in recruiter_plans %}
-        <div class="plan-card plan-card--recruiter">
-          <div class="plan-name">{{ plan.name }}</div>
-          <div class="plan-price">
-            {{ plan.price_xaf|floatformat:0 }}
-            <span class="plan-unit">XAF/an</span>
-          </div>
-          <div class="plan-eur">≈ {{ plan.price_usd }}€/an</div>
-          <ul class="plan-features">
-            {% for f in plan.features %}
-            <li><span class="plan-check">✓</span> {{ f }}</li>
-            {% endfor %}
-          </ul>
-          <a href="https://wa.me/237693649944?text=Bonjour+Immigration97%2C+je+suis+recruteur+et+je+souhaite+activer+le+plan+%22{{ plan.name|urlencode }}%22+%28{{ plan.price_xaf|floatformat:0 }}+FCFA%29."
-             target="_blank" rel="noopener"
-             class="plan-btn plan-btn--ghost">
-            Accès recruteur →
-          </a>
-        </div>
-        {% endfor %}
-
-      </div>
-
-      <!-- Comment ça marche -->
-      <div style="background:rgba(255,255,255,0.025);border:1px solid rgba(212,168,67,0.15);border-radius:16px;padding:2rem 2.5rem;max-width:860px;margin:0 auto 2rem;" class="reveal reveal-delay-3">
-        <div style="text-align:center;margin-bottom:1.5rem;">
-          <span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:#D4A843;">Comment activer mon plan ?</span>
-        </div>
-        <div class="tarifs-hiw">
-          <div>
-            <div style="width:44px;height:44px;border-radius:50%;background:rgba(212,168,67,0.15);border:1px solid rgba(212,168,67,0.3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 0.6rem;">💬</div>
-            <div style="font-size:0.8rem;font-weight:700;color:#F0C060;margin-bottom:0.25rem;">1. WhatsApp</div>
-            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Contacte-nous et choisis ton plan</div>
-          </div>
-          <div>
-            <div style="width:44px;height:44px;border-radius:50%;background:rgba(212,168,67,0.15);border:1px solid rgba(212,168,67,0.3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 0.6rem;">💳</div>
-            <div style="font-size:0.8rem;font-weight:700;color:#F0C060;margin-bottom:0.25rem;">2. Paiement</div>
-            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">MoMo, PayPal, MoneyGram, Bitcoin…</div>
-          </div>
-          <div>
-            <div style="width:44px;height:44px;border-radius:50%;background:rgba(212,168,67,0.15);border:1px solid rgba(212,168,67,0.3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 0.6rem;">🔑</div>
-            <div style="font-size:0.8rem;font-weight:700;color:#F0C060;margin-bottom:0.25rem;">3. Ton code</div>
-            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Reçois ton code unique par message</div>
-          </div>
-          <div>
-            <div style="width:44px;height:44px;border-radius:50%;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 0.6rem;">✅</div>
-            <div style="font-size:0.8rem;font-weight:700;color:#10b981;margin-bottom:0.25rem;">4. Activé !</div>
-            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Accès immédiat + date d'expiration</div>
-          </div>
-        </div>
-      </div>
-
-      <div style="text-align:center;" class="reveal reveal-delay-4">
-        <a href="/billing/redeem/" style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:#10b981;font-weight:700;padding:0.75rem 1.75rem;border-radius:10px;text-decoration:none;font-size:0.9rem;margin-bottom:0.75rem;">
-          🔑 Activer mon code
-        </a>
-        <p style="color:rgba(255,255,255,0.35);font-size:0.8rem;margin:0;">
-          Tu as déjà un code ? Active-le directement sans passer par le paiement.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SECTION 9b — CONSULTATION / ACCOMPAGNEMENT
-  ============================================================ -->
-  <section id="consultation-cta" style="padding:5rem 0;background:linear-gradient(135deg,rgba(212,168,67,0.05) 0%,transparent 60%);">
-    <div class="container">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;">
-
-        <!-- Left: texte -->
-        <div class="reveal">
-          <span class="section-label">Accompagnement Privé</span>
-          <h2 class="section-title" style="margin-top:.75rem;">
-            Vous avez besoin d'un<br><span>expert à vos côtés ?</span>
-          </h2>
-          <p style="font-size:1rem;color:var(--text-secondary);line-height:1.8;margin-bottom:2rem;max-width:480px;">
-            Visa, études, emploi à l'étranger, test de langue, création de CV, mise en relation recruteur — un conseiller dédié analyse votre dossier et vous guide pas à pas.
-          </p>
-          <ul style="list-style:none;display:flex;flex-direction:column;gap:.85rem;margin-bottom:2.5rem;">
-            <li style="display:flex;align-items:center;gap:.75rem;font-size:.95rem;color:var(--text-secondary);">
-              <span style="width:28px;height:28px;border-radius:50%;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;">✓</span>
-              Réponse personnalisée sous 24h
-            </li>
-            <li style="display:flex;align-items:center;gap:.75rem;font-size:.95rem;color:var(--text-secondary);">
-              <span style="width:28px;height:28px;border-radius:50%;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;">✓</span>
-              Experts en immigration africaine vers +15 pays
-            </li>
-            <li style="display:flex;align-items:center;gap:.75rem;font-size:.95rem;color:var(--text-secondary);">
-              <span style="width:28px;height:28px;border-radius:50%;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;">✓</span>
-              Tarifs adaptés, consultation sans engagement
-            </li>
-          </ul>
-          <a href="{% url 'consultation_request' %}" class="btn btn-gold" style="font-size:1rem;">
-            Demander ma consultation →
-          </a>
-        </div>
-
-        <!-- Right: cards services -->
-        <div class="reveal reveal-delay-2" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-          {% for icon,label in consult_services %}
-          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
-            <div style="font-size:2rem;margin-bottom:.5rem;">{{ icon }}</div>
-            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">{{ label }}</div>
-          </div>
-          {% empty %}
-          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
-            <div style="font-size:2rem;margin-bottom:.5rem;">🎓</div>
-            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">Visa Études</div>
-          </div>
-          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
-            <div style="font-size:2rem;margin-bottom:.5rem;">💼</div>
-            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">Visa Travail</div>
-          </div>
-          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
-            <div style="font-size:2rem;margin-bottom:.5rem;">🗣️</div>
-            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">Tests Langue</div>
-          </div>
-          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
-            <div style="font-size:2rem;margin-bottom:.5rem;">📄</div>
-            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">CV Premium</div>
-          </div>
-          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
-            <div style="font-size:2rem;margin-bottom:.5rem;">👤</div>
-            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">Profil Recruteur</div>
-          </div>
-          <div class="glass-card" style="padding:1.25rem;text-align:center;border-color:rgba(212,168,67,0.15);">
-            <div style="font-size:2rem;margin-bottom:.5rem;">🏠</div>
-            <div style="font-size:.85rem;color:var(--text-secondary);font-weight:500;">Résidence Perm.</div>
-          </div>
-          {% endfor %}
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SECTION 9 — FINAL CTA
-  ============================================================ -->
-  <section id="final-cta" aria-labelledby="cta-headline">
-
-    <div class="africa-silhouette" aria-hidden="true">
-      <svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
-        <path d="M100 5 C95 5,60 15,45 30 C30 45,25 60,20 75 C15 90,10 105,12 120 C14 135,20 140,18 155 C16 165,10 172,15 185 C20 198,35 205,50 210 C65 215,75 218,90 220 C105 222,115 218,125 212 C140 204,148 195,155 182 C162 168,165 158,162 145 C158 130,150 125,155 110 C162 92,178 82,175 65 C172 48,158 38,148 28 C138 18,115 5,100 5 Z"/>
-      </svg>
-    </div>
-
-    <h2 class="final-cta-headline reveal" id="cta-headline">
-      Prêt à changer de vie ?
-    </h2>
-    <p class="final-cta-sub reveal reveal-delay-1">
-      Rejoignez <strong>3 200+ Africains</strong> qui ont franchi le pas.
-    </p>
-
-    <form class="cta-form reveal reveal-delay-2" action="#" method="POST" aria-label="Formulaire de démarrage rapide">
-      {% csrf_token %}
-      <input type="text" name="prenom" placeholder="Prénom" aria-label="Votre prénom" required />
-      <input type="email" name="email" placeholder="Email" aria-label="Votre adresse email" required />
-      <select name="pays_depart" aria-label="Sélectionnez votre pays de départ">
-        <option value="" disabled selected>Pays de départ</option>
-        <option value="cm">Cameroun</option>
-        <option value="sn">Sénégal</option>
-        <option value="ci">Côte d'Ivoire</option>
-        <option value="cd">RDC</option>
-        <option value="other">Autre</option>
-      </select>
-      <select name="destination" aria-label="Sélectionnez votre destination souhaitée">
-        <option value="" disabled selected>Destination</option>
-        <option value="ca">Canada</option>
-        <option value="it">Italie</option>
-        <option value="de">Allemagne</option>
-        <option value="es">Espagne</option>
-        <option value="jp">Japon</option>
-        <option value="uk">Royaume-Uni</option>
-      </select>
-      <button type="submit" class="btn-submit" aria-label="Commencer mon inscription gratuitement">
-        Je commence maintenant →
-      </button>
-    </form>
-
-    <p class="cta-note reveal reveal-delay-3">
-      <span>✓</span> Gratuit &nbsp;·&nbsp;
-      <span>✓</span> Sans engagement &nbsp;·&nbsp;
-      <span>✓</span> Réponse sous 24h
-    </p>
-  </section>
-
-  <!-- ============================================================
-       SECTION 10 — FOOTER
-  ============================================================ -->
-  <footer id="footer" aria-label="Pied de page Immigration97">
-    <div class="container">
-
-      <div class="footer-top">
-        <div class="footer-brand">
-          <div class="footer-logo">Immigration<span>97</span></div>
-          <p class="footer-tagline">La plateforme de placement international pour travailleurs et étudiants africains.</p>
-        </div>
-        <nav class="footer-socials" aria-label="Réseaux sociaux Immigration97">
-          <a href="https://wa.me/237693649944" class="social-icon" aria-label="Contacter sur WhatsApp" target="_blank" rel="noopener noreferrer">💬</a>
-          <a href="#" class="social-icon" aria-label="Page Facebook Immigration97" target="_blank" rel="noopener noreferrer">📘</a>
-          <a href="#" class="social-icon" aria-label="Instagram Immigration97" target="_blank" rel="noopener noreferrer">📷</a>
-          <a href="#" class="social-icon" aria-label="LinkedIn Immigration97" target="_blank" rel="noopener noreferrer">💼</a>
-          <a href="#" class="social-icon" aria-label="Chaîne YouTube Immigration97" target="_blank" rel="noopener noreferrer">▶️</a>
-        </nav>
-      </div>
-
-      <div class="footer-grid">
-
-        <div class="footer-col">
-          <div class="footer-col-title">Immigration97</div>
-          <p>Agence certifiée de placement international, accompagnant les travailleurs et étudiants africains vers de nouvelles opportunités depuis 2019.</p>
-          <p>📍 Yaoundé, Cameroun — Bastos</p>
-        </div>
-
-        <div class="footer-col">
-          <div class="footer-col-title">Services</div>
-          <ul>
-            <li><a href="#">Visa Travail</a></li>
-            <li><a href="#">Visa Études</a></li>
-            <li><a href="#">Tests de Langue</a></li>
-            <li><a href="#">CV Professionnel</a></li>
-            <li><a href="#">Lettre de Motivation</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <div class="footer-col-title">Destinations</div>
-          <ul>
-            <li><a href="{% url 'actualite:by_country' 'canada' %}">🇨🇦 Canada</a></li>
-            <li><a href="#">🇮🇹 Italie</a></li>
-            <li><a href="#">🇩🇪 Allemagne</a></li>
-            <li><a href="#">🇪🇸 Espagne</a></li>
-            <li><a href="#">🇯🇵 Japon</a></li>
-            <li><a href="#">🇬🇧 Royaume-Uni</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <div class="footer-col-title">Contact</div>
-          <a href="https://wa.me/237693649944" class="footer-contact-item" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp : plus 237 693 649 944">
-            <span>💬</span> +237 693 649 944
-          </a>
-          <a href="mailto:contact@immigration97.com" class="footer-contact-item" aria-label="Email : contact arobase immigration97.com">
-            <span>✉️</span> contact@immigration97.com
-          </a>
-          <a href="#" class="footer-contact-item" target="_blank" rel="noopener noreferrer" aria-label="Instagram : arobase immigration97">
-            <span>📷</span> @immigration97
-          </a>
-        </div>
-
-      </div>
-
-      <div class="footer-bottom">
-        <p class="footer-copy">© 2026 Immigration97. Tous droits réservés.</p>
-        <nav class="footer-legal" aria-label="Liens légaux">
-          <a href="#">Mentions légales</a>
-          <a href="#">Politique de confidentialité</a>
-        </nav>
-        <p class="footer-made">Site conçu et développé au Cameroun 🇨🇲</p>
-      </div>
-
-    </div>
-  </footer>
-
-  <!-- WhatsApp floating button -->
-  <a href="https://wa.me/237693649944"
-    id="whatsapp-float"
-    aria-label="Nous contacter sur WhatsApp"
-    target="_blank"
-    rel="noopener noreferrer">
-    💬
-  </a>
-
-  <!-- ============================================================
-       JAVASCRIPT — Vanilla, no external dependencies
-  ============================================================ -->
-  <script>
-    /* ============================================================
-       1. NAVBAR SCROLL — add .scrolled at 50px
-    ============================================================ */
-    (function () {
-      var navbar = document.getElementById('navbar');
-      function onScroll() {
-        navbar.classList.toggle('scrolled', window.scrollY > 50);
-      }
-      window.addEventListener('scroll', onScroll, { passive: true });
-      onScroll();
-    })();
-
-    /* ============================================================
-       2. MOBILE MENU — hamburger toggle
-    ============================================================ */
-    var hamburger = document.getElementById('hamburger');
-    var mobileMenu = document.getElementById('mobile-menu');
-
-    function closeMobileMenu() {
-      hamburger.classList.remove('active');
-      mobileMenu.classList.remove('open');
-      hamburger.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = '';
-    }
-
-    hamburger.addEventListener('click', function () {
-      var isOpen = mobileMenu.classList.contains('open');
-      if (isOpen) {
-        closeMobileMenu();
-      } else {
-        hamburger.classList.add('active');
-        mobileMenu.classList.add('open');
-        hamburger.setAttribute('aria-expanded', 'true');
-        document.body.style.overflow = 'hidden';
-      }
-    });
-
-    mobileMenu.addEventListener('click', function (e) {
-      if (e.target === mobileMenu) closeMobileMenu();
-    });
-
-    /* ============================================================
-       3. PARTICLE GENERATION — 30 animated gold dots
-    ============================================================ */
-    (function () {
-      var container = document.getElementById('particles-container');
-      var durations = [8, 10, 12, 14, 16, 18, 20];
-      var sizes = [2, 3, 4, 5, 6];
-
-      for (var i = 0; i < 30; i++) {
-        var p = document.createElement('div');
-        p.className = 'particle';
-        var size = sizes[Math.floor(Math.random() * sizes.length)];
-        p.style.cssText =
-          'width:' + size + 'px;' +
-          'height:' + size + 'px;' +
-          'left:' + (Math.random() * 100) + '%;' +
-          'top:' + (Math.random() * 100) + '%;' +
-          'animation-duration:' + durations[Math.floor(Math.random() * durations.length)] + 's;' +
-          'animation-delay:-' + Math.floor(Math.random() * 10) + 's;' +
-          'opacity:' + (0.3 + Math.random() * 0.7);
-        container.appendChild(p);
-      }
-    })();
-
-    /* ============================================================
-       4. COUNTER ANIMATION — eased count-up on IntersectionObserver
-    ============================================================ */
-    (function () {
-      var counters = document.querySelectorAll('[data-target]');
-      var started = new Set();
-
-      function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
-
-      function animateCounter(el) {
-        var target = parseInt(el.getAttribute('data-target'), 10);
-        var isPlus = target === 3200;
-        var isPercent = target === 94;
-        var duration = 2000;
-        var start = null;
-
-        function step(ts) {
-          if (!start) start = ts;
-          var progress = Math.min((ts - start) / duration, 1);
-          var val = Math.floor(easeOut(progress) * target);
-          el.textContent = val.toLocaleString('fr-FR') + (progress === 1 ? (isPlus ? '+' : isPercent ? '%' : '') : '');
-          if (progress < 1) requestAnimationFrame(step);
-          else el.textContent = target.toLocaleString('fr-FR') + (isPlus ? '+' : isPercent ? '%' : '');
-        }
-        requestAnimationFrame(step);
-      }
-
-      var obs = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          if (e.isIntersecting && !started.has(e.target)) {
-            started.add(e.target);
-            animateCounter(e.target);
-          }
-        });
-      }, { threshold: 0.5 });
-
-      counters.forEach(function (el) { obs.observe(el); });
-    })();
-
-    /* ============================================================
-       5. SCROLL REVEAL — fade-up on .reveal elements
-    ============================================================ */
-    (function () {
-      var reveals = document.querySelectorAll('.reveal');
-      var obs = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          if (e.isIntersecting) {
-            e.target.classList.add('visible');
-            obs.unobserve(e.target);
-          }
-        });
-      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-      reveals.forEach(function (el) { obs.observe(el); });
-    })();
-
-    /* ============================================================
-       6. TESTIMONIALS SLIDER — auto-play 4s, prev/next, dots
-    ============================================================ */
-    (function () {
-      var track = document.getElementById('testimonialsTrack');
-      if (!track) return;
-      var cards = track.querySelectorAll('.testimonial-card');
-      var dots  = document.querySelectorAll('.slider-dot');
-      var prev  = document.getElementById('sliderPrev');
-      var next  = document.getElementById('sliderNext');
-      var total = cards.length;
-      var cur = 0;
-      var paused = false;
-
-      function goTo(i) {
-        cur = ((i % total) + total) % total;
-        track.style.transform = 'translateX(-' + (cur * 100) + '%)';
-        dots.forEach(function (d, idx) {
-          d.classList.toggle('active', idx === cur);
-          d.setAttribute('aria-selected', String(idx === cur));
-        });
-      }
-
-      prev && prev.addEventListener('click', function () { goTo(cur - 1); });
-      next && next.addEventListener('click', function () { goTo(cur + 1); });
-      dots.forEach(function (d) {
-        d.addEventListener('click', function () { goTo(parseInt(d.getAttribute('data-index'), 10)); });
-      });
-
-      var wrap = track.closest('.testimonials-slider-wrap');
-      if (wrap) {
-        wrap.addEventListener('mouseenter', function () { paused = true; });
-        wrap.addEventListener('mouseleave', function () { paused = false; });
-      }
-
-      setInterval(function () { if (!paused) goTo(cur + 1); }, 4000);
-    })();
-
-    /* ============================================================
-       7. 3D DESTINATION CARDS — mousemove rotateX/Y tilt
-    ============================================================ */
-    (function () {
-      document.querySelectorAll('.dest-card[data-tilt]').forEach(function (card) {
-        card.addEventListener('mousemove', function (e) {
-          var r = card.getBoundingClientRect();
-          var dx = (e.clientX - r.left - r.width  / 2) / (r.width  / 2);
-          var dy = (e.clientY - r.top  - r.height / 2) / (r.height / 2);
-          card.style.transform = 'perspective(1000px) rotateX(' + (-dy * 8) + 'deg) rotateY(' + (dx * 8) + 'deg) scale3d(1.02,1.02,1.02)';
-        });
-        card.addEventListener('mouseleave', function () {
-          card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1,1,1)';
-        });
-      });
-    })();
-
-    /* ============================================================
-       8. MAGNETIC CTA — button follows cursor within 80px
-    ============================================================ */
-    (function () {
-      document.querySelectorAll('.btn-magnetic').forEach(function (wrap) {
-        var btn = wrap.querySelector('.btn');
-        if (!btn) return;
-        wrap.addEventListener('mousemove', function (e) {
-          var r = wrap.getBoundingClientRect();
-          var dx = e.clientX - (r.left + r.width  / 2);
-          var dy = e.clientY - (r.top  + r.height / 2);
-          var dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 80) {
-            var f = (80 - dist) / 80 * 0.3;
-            btn.style.transform = 'translate(' + (dx * f) + 'px,' + (dy * f) + 'px)';
-          }
-        });
-        wrap.addEventListener('mouseleave', function () {
-          btn.style.transform = '';
-        });
-      });
-    })();
-
-    /* ============================================================
-       9. PROGRESS BARS — animate width on scroll reveal
-    ============================================================ */
-    (function () {
-      var bars = document.querySelectorAll('.dest-progress-bar[data-width]');
-      var obs = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          if (e.isIntersecting) {
-            var bar = e.target;
-            setTimeout(function () {
-              bar.style.width = bar.getAttribute('data-width') + '%';
-            }, 200);
-            obs.unobserve(bar);
-          }
-        });
-      }, { threshold: 0.3 });
-      bars.forEach(function (b) { obs.observe(b); });
-    })();
-  </script>
-
+</section>
+
+</div>{# /page #}
+
+<!-- ── FOOTER ── -->
+<footer class="home-footer">
+  <p>© 2025 Immigration97 — La plateforme africaine de placement international
+    <a href="{% url 'billing:conditions_utilisation' %}">CGU</a>
+    <a href="{% url 'billing:politique_remboursement' %}">Remboursement</a>
+    <a href="{% url 'consultation_request' %}">Contact</a>
+  </p>
+</footer>
+
+<script>
+// Nav scroll
+window.addEventListener('scroll',function(){
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>30);
+});
+// Burger
+const burger = document.getElementById('nav-burger');
+const mobileNav = document.getElementById('nav-mobile');
+burger.addEventListener('click',function(){
+  mobileNav.classList.toggle('open');
+  document.body.style.overflow = mobileNav.classList.contains('open') ? 'hidden' : '';
+});
+function closeMobile(){
+  mobileNav.classList.remove('open');
+  document.body.style.overflow = '';
+}
+// Escape key closes mobile
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeMobile();});
+</script>
 </body>
 </html>
