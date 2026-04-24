@@ -49,31 +49,68 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 /* ── PAGE ── */
 .page{position:relative;z-index:1;padding-top:72px;}
 
-/* ── HERO ── */
-.hero{max-width:1100px;margin:0 auto;padding:5.5rem 1.5rem 4rem;text-align:center;}
-.hero__kicker{display:inline-flex;align-items:center;gap:.5rem;
-  background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);
-  color:#F0C060;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-  padding:.35rem 1rem;border-radius:999px;margin-bottom:1.5rem;
-  animation:fadeDown .6s ease both;}
-.hero h1{font-size:clamp(2.2rem,5.5vw,4rem);font-weight:900;line-height:1.12;
-  color:#fff;margin-bottom:1.25rem;animation:fadeDown .65s .1s ease both;}
-.hero h1 .gold{background:linear-gradient(135deg,#D4A843,#F0C060);
+/* ── SLIDER HERO ── */
+.hero-slider{position:relative;width:100%;overflow:hidden;min-height:92vh;display:flex;align-items:center;}
+.slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .9s ease,transform .9s ease;transform:scale(1.02);
+  pointer-events:none;}
+.slide.active{opacity:1;transform:scale(1);pointer-events:auto;position:relative;width:100%;}
+
+/* Image de fond du slide */
+.slide__bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0;}
+.slide__bg::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(5,10,24,.55) 0%,rgba(5,10,24,.75) 60%,rgba(5,10,24,.95) 100%);}
+
+/* Contenu slide */
+.slide__inner{position:relative;z-index:1;max-width:860px;margin:0 auto;
+  padding:8rem 1.5rem 5rem;text-align:center;}
+.slide__kicker{display:inline-flex;align-items:center;gap:.5rem;
+  font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  padding:.35rem 1rem;border-radius:999px;margin-bottom:1.5rem;}
+.slide__kicker--work{background:rgba(212,168,67,.15);border:1px solid rgba(212,168,67,.35);color:#F0C060;}
+.slide__kicker--study{background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.35);color:#a5b4fc;}
+.slide__title{font-size:clamp(2.2rem,5.5vw,4rem);font-weight:900;line-height:1.1;
+  color:#fff;margin-bottom:1.1rem;}
+.slide__title .accent-gold{background:linear-gradient(135deg,#D4A843,#F0C060);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
-.hero__sub{font-size:1.05rem;color:rgba(255,255,255,.55);line-height:1.75;max-width:600px;
-  margin:0 auto 2.5rem;animation:fadeDown .65s .2s ease both;}
-.hero__cta{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;
-  animation:fadeDown .65s .3s ease both;}
+.slide__title .accent-blue{background:linear-gradient(135deg,#60a5fa,#a78bfa);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.slide__sub{font-size:1rem;color:rgba(255,255,255,.6);line-height:1.75;max-width:580px;
+  margin:0 auto 2.25rem;}
+.slide__cta{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;}
+
+/* Boutons CTA */
 .btn-hero-primary{display:inline-flex;align-items:center;gap:.5rem;
   background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;
-  font-size:1rem;font-weight:800;padding:.85rem 2rem;border-radius:12px;
-  transition:all .25s;}
+  font-size:.97rem;font-weight:800;padding:.85rem 2rem;border-radius:12px;transition:all .25s;}
 .btn-hero-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(212,168,67,.4);}
 .btn-hero-ghost{display:inline-flex;align-items:center;gap:.5rem;
-  background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.18);
-  color:rgba(255,255,255,.8);font-size:1rem;font-weight:700;padding:.85rem 2rem;border-radius:12px;
+  background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.2);
+  color:rgba(255,255,255,.85);font-size:.97rem;font-weight:700;padding:.85rem 2rem;border-radius:12px;
   transition:all .25s;}
-.btn-hero-ghost:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.35);}
+.btn-hero-ghost:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.4);}
+.btn-study-primary{display:inline-flex;align-items:center;gap:.5rem;
+  background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;
+  font-size:.97rem;font-weight:800;padding:.85rem 2rem;border-radius:12px;transition:all .25s;}
+.btn-study-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(99,102,241,.4);}
+
+/* Contrôles slider */
+.slider-controls{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  z-index:10;display:flex;align-items:center;gap:1.5rem;}
+.slider-dots{display:flex;gap:.6rem;}
+.slider-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);
+  border:none;cursor:pointer;transition:all .3s;padding:0;}
+.slider-dot.active{width:28px;border-radius:4px;background:#F0C060;}
+.slider-arrow{width:40px;height:40px;border-radius:50%;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+  color:#fff;font-size:1rem;cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;}
+.slider-arrow:hover{background:rgba(255,255,255,.15);}
+
+/* Barre de progression */
+.slider-progress{position:absolute;bottom:0;left:0;height:3px;
+  background:linear-gradient(90deg,#D4A843,#F0C060);
+  width:0;transition:width linear;z-index:10;}
 
 /* ── STATS ── */
 .stats{max-width:800px;margin:3.5rem auto 0;display:flex;justify-content:center;
@@ -307,26 +344,68 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 
 <div class="page">
 
-<!-- ── HERO ── -->
-<section class="hero">
-  <div class="hero__kicker">✦ Plateforme de placement international</div>
-  <h1>Les talents africains<br>trouvent du travail<br><span class="gold">à l'international</span></h1>
-  <p class="hero__sub">Immigration97 connecte les professionnels africains qualifiés aux recruteurs d'Europe, du Canada et d'Australie. Créez votre profil, soyez visible, trouvez votre opportunité.</p>
-  <div class="hero__cta">
-    {% if user.is_authenticated %}
-      <a href="{% url 'profiles:my_space' %}" class="btn-hero-primary">→ Accéder à mon espace</a>
-    {% else %}
-      <a href="{% url 'billing:access' %}" class="btn-hero-primary">✦ Créer mon profil gratuit</a>
-    {% endif %}
-    <a href="{% url 'profiles:list' %}" class="btn-hero-ghost">🔍 Chercher des talents</a>
+<!-- ── HERO SLIDER ── -->
+<section class="hero-slider" id="heroSlider">
+
+  <!-- Slide 1 : Travailler à l'étranger -->
+  <div class="slide active" data-index="0">
+    <div class="slide__bg" style="background-image:linear-gradient(135deg,#050A18 0%,#0A1628 40%,#0F2040 100%);"></div>
+    <div class="slide__inner">
+      <div class="slide__kicker slide__kicker--work">💼 Travailler à l'étranger</div>
+      <h1 class="slide__title">
+        Les talents africains<br>trouvent du travail<br>
+        <span class="accent-gold">à l'international</span>
+      </h1>
+      <p class="slide__sub">Immigration97 connecte les professionnels africains qualifiés aux recruteurs d'Europe, du Canada et d'Australie. Créez votre profil, soyez visible, trouvez votre opportunité.</p>
+      <div class="slide__cta">
+        {% if user.is_authenticated %}
+          <a href="{% url 'profiles:my_space' %}" class="btn-hero-primary">→ Accéder à mon espace</a>
+        {% else %}
+          <a href="{% url 'billing:access' %}" class="btn-hero-primary">✦ Créer mon profil gratuit</a>
+        {% endif %}
+        <a href="{% url 'profiles:list' %}" class="btn-hero-ghost">🔍 Voir les talents</a>
+      </div>
+    </div>
   </div>
+
+  <!-- Slide 2 : Étudier à l'étranger -->
+  <div class="slide" data-index="1">
+    <div class="slide__bg" style="background-image:linear-gradient(135deg,#050A18 0%,#0a0f28 40%,#0d1540 100%);"></div>
+    <div class="slide__inner">
+      <div class="slide__kicker slide__kicker--study">🎓 Étudier à l'étranger</div>
+      <h1 class="slide__title">
+        Décrochez votre visa<br>étudiant et partez<br>
+        <span class="accent-blue">construire votre avenir</span>
+      </h1>
+      <p class="slide__sub">France, Canada, Allemagne, Belgique — Immigration97 vous accompagne pour préparer votre dossier visa, les tests de langue et l'admission dans les meilleures universités.</p>
+      <div class="slide__cta">
+        <a href="/visa-etudes/" class="btn-study-primary">✈️ Préparer mon visa étudiant</a>
+        <a href="/prep/" class="btn-hero-ghost">🎓 Tests de langue</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contrôles -->
+  <div class="slider-controls">
+    <button class="slider-arrow" id="sliderPrev" aria-label="Précédent">‹</button>
+    <div class="slider-dots">
+      <button class="slider-dot active" data-target="0" aria-label="Slide 1"></button>
+      <button class="slider-dot" data-target="1" aria-label="Slide 2"></button>
+    </div>
+    <button class="slider-arrow" id="sliderNext" aria-label="Suivant">›</button>
+  </div>
+  <div class="slider-progress" id="sliderProgress"></div>
+</section>
+
+<!-- ── STATS ── -->
+<div style="max-width:1100px;margin:0 auto;padding:0 1.5rem;">
   <div class="stats">
     <div class="stat"><span class="stat__num">500+</span><span class="stat__label">Candidats inscrits</span></div>
-    <div class="stat"><span class="stat__num">15+</span><span class="stat__label">Pays de destination</span></div>
-    <div class="stat"><span class="stat__num">10+</span><span class="stat__label">Secteurs couverts</span></div>
-    <div class="stat"><span class="stat__num">100%</span><span class="stat__label">Gratuit pour recruteurs</span></div>
+    <div class="stat"><span class="stat__num">15+</span><span class="stat__label">Pays couverts</span></div>
+    <div class="stat"><span class="stat__num">10+</span><span class="stat__label">Secteurs</span></div>
+    <div class="stat"><span class="stat__num">100%</span><span class="stat__label">Gratuit recruteurs</span></div>
   </div>
-</section>
+</div>
 
 <!-- ── DEUX PUBLICS ── -->
 <section class="section">
@@ -511,6 +590,59 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 </a>
 
 <script>
+// ── SLIDER ──
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const dots   = document.querySelectorAll('.slider-dot');
+  const progress = document.getElementById('sliderProgress');
+  const DURATION = 6000;
+  let current = 0, timer = null, progTimer = null;
+
+  function goTo(n){
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = (n + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+    startProgress();
+  }
+
+  function startProgress(){
+    clearInterval(progTimer);
+    if(progress){ progress.style.transition='none'; progress.style.width='0'; }
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        if(progress){
+          progress.style.transition='width '+DURATION+'ms linear';
+          progress.style.width='100%';
+        }
+      });
+    });
+  }
+
+  function startAuto(){
+    clearInterval(timer);
+    timer = setInterval(function(){ goTo(current+1); }, DURATION);
+  }
+
+  function reset(){ startAuto(); startProgress(); }
+
+  document.getElementById('sliderNext').addEventListener('click',function(){ goTo(current+1); reset(); });
+  document.getElementById('sliderPrev').addEventListener('click',function(){ goTo(current-1); reset(); });
+  dots.forEach(function(d){ d.addEventListener('click',function(){ goTo(+d.dataset.target); reset(); }); });
+
+  // Touch swipe
+  var tx=0;
+  document.getElementById('heroSlider').addEventListener('touchstart',function(e){tx=e.touches[0].clientX;},{passive:true});
+  document.getElementById('heroSlider').addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-tx;
+    if(Math.abs(dx)>50){ goTo(dx<0?current+1:current-1); reset(); }
+  },{passive:true});
+
+  startProgress();
+  startAuto();
+})();
+
 // Nav scroll
 window.addEventListener('scroll',function(){
   document.getElementById('nav').classList.toggle('scrolled',window.scrollY>30);
