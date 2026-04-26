@@ -76,6 +76,30 @@
   {% block extra_css %}{% endblock %}
 
   <style>
+    /* ══════════════════════════════════════════════════
+       ANTI-OVERFLOW MOBILE — CRITIQUE (inline = toujours actif)
+    ══════════════════════════════════════════════════ */
+    html { overflow-x: hidden; box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { overflow-x: hidden; max-width: 100vw; }
+    img, video, iframe, svg { max-width: 100%; height: auto; }
+
+    /* Nav : cache les liens desktop sur mobile */
+    @media (max-width: 1024px) {
+      .c-navbar__nav { display: none !important; }
+      .c-navbar__nav.is-open { display: flex !important; }
+      .c-navbar__toggle { display: flex !important; }
+      .c-navbar__container { flex-wrap: nowrap; }
+    }
+    /* Sections qui peuvent déborder */
+    @media (max-width: 768px) {
+      .c-footer__main { grid-template-columns: 1fr !important; padding: 2rem 1rem !important; }
+      .c-footer__bottom { flex-direction: column; text-align: center; padding: 1rem !important; }
+      .c-footer__geo-list { flex-direction: column; gap: .5rem; }
+      .app-container { padding-inline: .75rem; overflow-x: hidden; }
+      table { display: block; overflow-x: auto; max-width: 100%; }
+    }
+
     /* ── Lien Consultation navbar (distinct, pulsant) ── */
     .c-nav-consult {
       display: inline-flex;
