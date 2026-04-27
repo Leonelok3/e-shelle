@@ -1,246 +1,510 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block body_class %}residence-permanente{% endblock %}
-{% block app_scope %}residence-permanente{% endblock %}
-
-{% block title %}
-Résidence Permanente Canada & Australie – Diagnostic et Plan d’action | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Résidence Permanente Canada et Australie : diagnostic d’éligibilité,
-analyse de profil immigration, programmes RP adaptés et plan d’action
-personnalisé pour structurer votre projet avec Immigration97.
-{% endblock %}
+{% block title %}Résidence Permanente Canada — Guide Complet 2026 | Immigration97{% endblock %}
+{% block meta_description %}Guide complet de la résidence permanente au Canada 2026 : Entrée Express, PNP, score CRS, étapes, programmes. Faites votre diagnostic gratuit avec Immigration97.{% endblock %}
+{% block body_class %}rp-canada{% endblock %}
+{% block app_scope %}rp-canada{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
+<style>
+:root{
+  --rp-navy:#050A18;--rp-gold:#D4A843;--rp-gold-lt:#F0C060;
+  --rp-gold-dim:rgba(212,168,67,.08);--rp-gold-border:rgba(212,168,67,.22);
+  --rp-glass:rgba(8,15,32,.75);--rp-text:rgba(232,234,240,.9);--rp-muted:rgba(232,234,240,.45);
+  --rp-green:#22c55e;--rp-blue:#3b82f6;
+}
+body.rp-canada{background:var(--rp-navy);color:var(--rp-text);}
+body.rp-canada::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 80% 50% at 50% -5%,rgba(212,168,67,.09) 0%,transparent 60%),
+  linear-gradient(rgba(212,168,67,.025) 1px,transparent 1px) 0 0/60px 60px,
+  linear-gradient(90deg,rgba(212,168,67,.025) 1px,transparent 1px) 0 0/60px 60px;}
+
+.rp-wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 1.25rem 5rem;}
+
+/* HERO */
+.rp-hero{padding:3.5rem 0 3rem;text-align:center;}
+.rp-hero__eyebrow{display:inline-flex;align-items:center;gap:.5rem;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);color:var(--rp-gold-lt);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.35rem 1rem;border-radius:999px;margin-bottom:1.25rem;}
+.rp-hero h1{font-size:clamp(1.9rem,4.5vw,3.4rem);font-weight:900;color:#fff;line-height:1.15;margin:0 0 1rem;}
+.rp-hero h1 span{background:linear-gradient(135deg,#D4A843,#F0C060);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.rp-hero__sub{font-size:.95rem;color:var(--rp-muted);line-height:1.75;max-width:620px;margin:0 auto 2rem;}
+.rp-hero__cta{display:flex;justify-content:center;gap:.85rem;flex-wrap:wrap;}
+.btn-rp-primary{display:inline-flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.93rem;font-weight:800;padding:.8rem 1.75rem;border-radius:11px;transition:all .22s;}
+.btn-rp-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,168,67,.4);}
+.btn-rp-ghost{display:inline-flex;align-items:center;gap:.45rem;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8);font-size:.93rem;font-weight:700;padding:.8rem 1.75rem;border-radius:11px;transition:all .22s;}
+.btn-rp-ghost:hover{background:rgba(255,255,255,.1);}
+
+/* STATS */
+.rp-stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid rgba(212,168,67,.18);border-radius:16px;overflow:hidden;margin:2.5rem 0 0;}
+.rp-stat{text-align:center;padding:1.25rem .75rem;border-right:1px solid rgba(212,168,67,.1);}
+.rp-stat:last-child{border-right:none;}
+.rp-stat__num{font-size:1.6rem;font-weight:900;color:var(--rp-gold-lt);display:block;line-height:1;}
+.rp-stat__label{font-size:.63rem;color:var(--rp-muted);letter-spacing:.04em;text-transform:uppercase;margin-top:.3rem;}
+
+/* SECTIONS */
+.rp-section{padding:3.5rem 0;}
+.rp-eyebrow{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(212,168,67,.6);margin-bottom:.6rem;}
+.rp-title{font-size:clamp(1.45rem,3.5vw,2.2rem);font-weight:800;color:#fff;line-height:1.2;margin:0 0 .75rem;}
+.rp-sub{font-size:.9rem;color:var(--rp-muted);line-height:1.7;max-width:640px;margin:0 0 2.25rem;}
+.rp-divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:0;}
+
+/* ÉTAPES */
+.rp-step{display:grid;grid-template-columns:52px 1fr;gap:1.25rem;padding:1.4rem 1.6rem;background:var(--rp-glass);border:1px solid rgba(255,255,255,.07);border-radius:16px;margin-bottom:.65rem;transition:border-color .2s;}
+.rp-step:hover{border-color:rgba(212,168,67,.3);}
+.rp-step__num{width:44px;height:44px;border-radius:50%;background:rgba(212,168,67,.1);border:1.5px solid rgba(212,168,67,.35);color:var(--rp-gold-lt);font-size:1rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rp-step__title{font-size:.95rem;font-weight:700;color:#fff;margin:0 0 .3rem;}
+.rp-step__desc{font-size:.82rem;color:var(--rp-muted);line-height:1.6;margin:0;}
+.rp-step__tags{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem;}
+.rp-tag{display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.18rem .6rem;border-radius:5px;}
+.rp-tag--gold{background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.3);color:var(--rp-gold-lt);}
+.rp-tag--blue{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);color:#93c5fd;}
+.rp-tag--green{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#86efac;}
+.rp-tag--red{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5;}
+
+/* PROGRAMMES */
+.rp-programs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.15rem;}
+.rp-prog{background:var(--rp-glass);border:1px solid rgba(255,255,255,.07);border-radius:17px;padding:1.6rem;display:flex;flex-direction:column;transition:all .25s;}
+.rp-prog:hover{border-color:rgba(212,168,67,.3);transform:translateY(-3px);box-shadow:0 14px 36px rgba(0,0,0,.3);}
+.rp-prog__badge{display:inline-block;font-size:.63rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:.22rem .7rem;border-radius:6px;margin-bottom:.9rem;}
+.rp-prog__badge--ee{background:rgba(212,168,67,.15);border:1px solid rgba(212,168,67,.35);color:var(--rp-gold-lt);}
+.rp-prog__badge--pnp{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#a5b4fc;}
+.rp-prog__badge--fr{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#86efac;}
+.rp-prog__title{font-size:1rem;font-weight:800;color:#fff;margin:0 0 .55rem;line-height:1.3;}
+.rp-prog__desc{font-size:.82rem;color:var(--rp-muted);line-height:1.65;flex:1;margin:0 0 1.1rem;}
+.rp-prog__facts{display:flex;flex-direction:column;gap:.35rem;margin-bottom:1.1rem;}
+.rp-prog__fact{display:flex;justify-content:space-between;font-size:.77rem;padding:.28rem 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.rp-prog__fact:last-child{border-bottom:none;}
+.rp-prog__fact span:first-child{color:var(--rp-muted);}
+.rp-prog__fact span:last-child{color:var(--rp-gold-lt);font-weight:700;}
+.rp-prog__link{font-size:.8rem;font-weight:700;color:var(--rp-gold-lt);display:inline-flex;align-items:center;gap:.35rem;transition:gap .2s;}
+.rp-prog__link:hover{gap:.6rem;}
+
+/* CRS */
+.rp-crs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.9rem;}
+.rp-crs-card{background:var(--rp-glass);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:1.2rem;text-align:center;}
+.rp-crs-card__pts{font-size:1.55rem;font-weight:900;color:var(--rp-gold-lt);display:block;line-height:1;}
+.rp-crs-card__label{font-size:.75rem;color:var(--rp-muted);margin-top:.3rem;line-height:1.4;}
+.rp-crs-card__sub{font-size:.65rem;color:rgba(255,255,255,.22);margin-top:.2rem;}
+
+/* TABLEAU LANGUE */
+.rp-lang-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.rp-lang-table th{padding:.7rem .9rem;background:rgba(212,168,67,.08);border:1px solid rgba(212,168,67,.15);color:var(--rp-gold-lt);font-weight:700;text-align:left;}
+.rp-lang-table td{padding:.6rem .9rem;border:1px solid rgba(255,255,255,.06);color:var(--rp-text);}
+.rp-lang-table tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.rp-lang-table .clb{font-weight:700;color:var(--rp-gold-lt);}
+
+/* FAQ */
+.rp-faq{display:flex;flex-direction:column;gap:.45rem;}
+.rp-faq-item{background:var(--rp-glass);border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;}
+.rp-faq-q{width:100%;display:flex;align-items:center;justify-content:space-between;padding:1rem 1.2rem;background:transparent;border:none;color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;text-align:left;font-family:inherit;transition:background .2s;gap:1rem;}
+.rp-faq-q:hover{background:rgba(212,168,67,.05);}
+.rp-faq-q .icon{font-size:.9rem;transition:transform .3s;flex-shrink:0;color:var(--rp-gold);}
+.rp-faq-q[aria-expanded="true"] .icon{transform:rotate(45deg);}
+.rp-faq-a{display:none;padding:.1rem 1.2rem 1rem;font-size:.84rem;color:var(--rp-muted);line-height:1.7;}
+.rp-faq-a a{color:var(--rp-gold-lt);}
+.rp-faq-a.open{display:block;}
+
+/* SERVICES CARDS */
+.rp-services{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;}
+.rp-service{background:var(--rp-glass);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:1.5rem;}
+.rp-service__icon{font-size:1.5rem;margin-bottom:.75rem;}
+.rp-service h4{font-size:.95rem;font-weight:700;color:#fff;margin:0 0 .75rem;}
+
+/* CHECKLIST */
+.rp-checklist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.45rem;}
+.rp-checklist li{display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--rp-text);line-height:1.5;}
+.rp-checklist li::before{content:'✓';color:var(--rp-green);font-weight:800;flex-shrink:0;margin-top:.1rem;}
+
+/* NOTICE */
+.rp-notice{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:.9rem 1.1rem;font-size:.82rem;color:rgba(147,197,253,.9);display:flex;align-items:flex-start;gap:.6rem;margin-top:1.25rem;}
+
+/* CTA FINAL */
+.rp-cta-final{background:linear-gradient(135deg,rgba(212,168,67,.1),rgba(212,168,67,.04));border:1px solid rgba(212,168,67,.25);border-radius:22px;padding:3.5rem 2rem;text-align:center;position:relative;overflow:hidden;}
+.rp-cta-final::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(212,168,67,.04),transparent);animation:rpScan 4s ease-in-out infinite;}
+@keyframes rpScan{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.rp-cta-final h2{font-size:clamp(1.45rem,3vw,2rem);font-weight:900;color:#fff;margin:0 0 .75rem;}
+.rp-cta-final p{font-size:.9rem;color:var(--rp-muted);margin:0 0 2rem;max-width:500px;margin-left:auto;margin-right:auto;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .rp-stats{grid-template-columns:1fr 1fr;}
+  .rp-stat{border-bottom:1px solid rgba(212,168,67,.08);}
+  .rp-stat:nth-child(2){border-right:none;}
+  .rp-stat:nth-child(3),.rp-stat:nth-child(4){border-bottom:none;}
+  .rp-step{grid-template-columns:40px 1fr;padding:1.1rem;}
+  .rp-programs{grid-template-columns:1fr;}
+  .rp-crs-grid{grid-template-columns:1fr 1fr;}
+  .rp-lang-table{font-size:.72rem;}
+  .rp-lang-table th,.rp-lang-table td{padding:.45rem .5rem;}
+  .rp-cta-final{padding:2.25rem 1.25rem;}
+  .rp-hero__cta{flex-direction:column;align-items:center;}
+  .rp-hero__cta a{width:100%;max-width:320px;justify-content:center;}
+}
+@media(max-width:480px){
+  .rp-crs-grid{grid-template-columns:1fr 1fr;}
+  .rp-section{padding:2.5rem 0;}
+}
+</style>
 {% endblock %}
 
 {% block content %}
+<div class="rp-wrap">
 
-{% include "permanent_residence/_rp_nav.html" %}
+<!-- ══════════ HERO ══════════ -->
+<div class="rp-hero">
+  <div class="rp-hero__eyebrow">🇨🇦 Résidence Permanente Canada 2026</div>
+  <h1>Immigrez en permanence<br>au <span>Canada</span></h1>
+  <p class="rp-hero__sub">Entrée Express, PNP, programmes francophones — Immigration97 vous accompagne étape par étape pour obtenir votre résidence permanente canadienne. Diagnostic gratuit, plan personnalisé, coach IA.</p>
+  <div class="rp-hero__cta">
+    <a href="{% url 'permanent_residence:eligibility' %}" class="btn-rp-primary">🚀 Faire mon diagnostic gratuit</a>
+    <a href="{% url 'permanent_residence:dashboard' %}" class="btn-rp-ghost">📊 Mon tableau de bord RP</a>
+  </div>
+  <div class="rp-stats">
+    <div class="rp-stat"><span class="rp-stat__num">~500</span><span class="rp-stat__label">Score CRS moyen Entrée Express</span></div>
+    <div class="rp-stat"><span class="rp-stat__num">485 000</span><span class="rp-stat__label">Admissions cibles 2026</span></div>
+    <div class="rp-stat"><span class="rp-stat__num">6–12 mois</span><span class="rp-stat__label">Délai traitement moyen</span></div>
+    <div class="rp-stat"><span class="rp-stat__num">~380</span><span class="rp-stat__label">CRS min. tirage francophone</span></div>
+  </div>
+</div>
 
-<div class="rp-home">
+<hr class="rp-divider">
 
-  <!-- ================= HERO ================= -->
-  <section class="rp-card rp-home-hero">
+<!-- ══════════ 8 ÉTAPES ══════════ -->
+<div class="rp-section">
+  <p class="rp-eyebrow">Processus complet</p>
+  <h2 class="rp-title">Les 8 étapes pour obtenir la Résidence Permanente au Canada</h2>
+  <p class="rp-sub">De l'évaluation initiale à la réception de votre carte RP — le parcours complet, étape par étape.</p>
 
-    <div class="rp-home-hero__badges">
-      <span class="rp-badge rp-badge--success">
-        Suite Immigration97 – Résidence Permanente
-      </span>
-      <span class="rp-badge">
-        Canada 🇨🇦 · Australie 🇦🇺
-      </span>
+  <div class="rp-step">
+    <div class="rp-step__num">1</div>
+    <div>
+      <h3 class="rp-step__title">Évaluation de l'admissibilité et choix du programme</h3>
+      <p class="rp-step__desc">Analysez vos critères : âge, niveau d'études, expérience professionnelle (code CNP), niveau de langue et situation familiale. Identifiez le programme le plus adapté (Entrée Express, PNP, Québec, regroupement familial).</p>
+      <div class="rp-step__tags"><span class="rp-tag rp-tag--green">Gratuit</span><span class="rp-tag rp-tag--blue">1–2 semaines</span><span class="rp-tag rp-tag--gold">Diagnostic en ligne</span></div>
     </div>
-
-    <h1 class="rp-home-title">
-      Construis un <span class="rp-highlight">projet solide de Résidence Permanente</span>
-      pour le Canada ou l’Australie
-    </h1>
-
-    <p class="rp-text rp-home-subtitle">
-      Immigration97 t’aide à structurer un véritable projet de
-      <strong>Résidence Permanente au Canada ou en Australie</strong> :
-      diagnostic intelligent, analyse de ton profil immigration,
-      programmes RP adaptés et plan d’action clair, étape par étape.
-    </p>
-
-    <div class="rp-home-actions">
-      <a href="{% url 'permanent_residence:eligibility' %}"
-         class="rp-btn rp-btn--primary">
-        🚀 Faire mon diagnostic RP
-      </a>
-
-      <a href="{% url 'permanent_residence:dashboard' %}"
-         class="rp-btn rp-btn--outline">
-        📊 Accéder à mon Cockpit RP
-      </a>
-
-      <a href="{% url 'permanent_residence:coach' %}"
-         class="rp-btn rp-btn--info">
-        🤖 Poser mes questions au Coach IA RP
-      </a>
-    </div>
-
-    <p class="rp-muted rp-home-disclaimer">
-      Cet outil n’est pas un service gouvernemental.
-      Il t’aide à comprendre, structurer et optimiser ton projet
-      de Résidence Permanente.
-    </p>
-  </section>
-
-  <!-- ================= PARCOURS ================= -->
-  <div class="rp-home-grid">
-
-    <section class="rp-card">
-      <h2 class="rp-section-title">
-        Comment fonctionne ton parcours Résidence Permanente
-      </h2>
-
-      <ul class="rp-steps">
-        <li>
-          <span class="rp-step-index">1</span>
-          <div>
-            <strong>Diagnostic RP</strong>
-            <p>
-              Analyse de ton âge, études, langues, expérience professionnelle
-              et adaptabilité.
-            </p>
-          </div>
-        </li>
-
-        <li>
-          <span class="rp-step-index">2</span>
-          <div>
-            <strong>Résultat & programmes</strong>
-            <p>
-              Identification des programmes de Résidence Permanente
-              accessibles selon ton profil.
-            </p>
-          </div>
-        </li>
-
-        <li>
-          <span class="rp-step-index">3</span>
-          <div>
-            <strong>Plan d’action RP</strong>
-            <p>
-              Étapes concrètes à suivre pour renforcer ton dossier immigration.
-            </p>
-          </div>
-        </li>
-
-        <li>
-          <span class="rp-step-index">4</span>
-          <div>
-            <strong>Coach IA spécialisé</strong>
-            <p>
-              Questions, stratégies et optimisation continue de ton projet RP.
-            </p>
-          </div>
-        </li>
-      </ul>
-    </section>
-
-    <section class="rp-card">
-      <h2 class="rp-section-title">
-        Ce que tu obtiens avec Immigration97
-      </h2>
-
-      <ul class="rp-checklist">
-        <li>Diagnostic RP clair et réaliste</li>
-        <li>Analyse de ton score immigration</li>
-        <li>Programmes Canada & Australie adaptés</li>
-        <li>Plan d’action personnalisé</li>
-        <li>Suivi de progression (%)</li>
-        <li>Coach IA spécialisé immigration</li>
-      </ul>
-
-      <a href="{% url 'permanent_residence:program_list' %}" class="rp-link">
-        Explorer les programmes de Résidence Permanente →
-      </a>
-    </section>
-
   </div>
 
-  <!-- ================= SEO LONG FORM ================= -->
-  <section class="rp-card rp-seo-text">
-    <h2>
-      Résidence Permanente Canada & Australie : comprendre et agir
-    </h2>
+  <div class="rp-step">
+    <div class="rp-step__num">2</div>
+    <div>
+      <h3 class="rp-step__title">Tests de langue officiels (TEF Canada / TCF Canada / IELTS / CELPIP)</h3>
+      <p class="rp-step__desc">Les tests de langue sont <strong>obligatoires</strong> pour tous les programmes. Pour Entrée Express, le résultat doit dater de moins de 2 ans. CLB 7 minimum requis (B2). Pour le français : TEF Canada ou TCF Canada uniquement (DELF/DALF non acceptés). Pour l'anglais : IELTS General ou CELPIP General.</p>
+      <div class="rp-step__tags"><span class="rp-tag rp-tag--gold">TEF Canada / TCF Canada</span><span class="rp-tag rp-tag--blue">IELTS / CELPIP</span><span class="rp-tag rp-tag--red">Obligatoire</span><span class="rp-tag rp-tag--blue">CLB 7 minimum</span></div>
+    </div>
+  </div>
 
-    <p>
-      La Résidence Permanente au Canada ou en Australie repose sur des critères précis :
-      âge, niveau d’études, expérience professionnelle, compétences linguistiques
-      (français et anglais) et capacité d’intégration.
-      Immigration97 te permet de comprendre ces critères,
-      d’évaluer ton éligibilité réelle et de suivre un plan d’action structuré
-      pour améliorer ton dossier immigration.
-    </p>
-  </section>
+  <div class="rp-step">
+    <div class="rp-step__num">3</div>
+    <div>
+      <h3 class="rp-step__title">Évaluation des diplômes étrangers (EDE / WES)</h3>
+      <p class="rp-step__desc">Si votre diplôme a été obtenu hors du Canada, faites-le évaluer par un organisme reconnu (WES, IQAS, ICES, etc.). L'EDE compare votre diplôme aux standards canadiens. Une Licence africaine équivaut généralement à un baccalauréat canadien. Comptez 2 à 4 mois et ~200–300 CAD.</p>
+      <div class="rp-step__tags"><span class="rp-tag rp-tag--blue">WES · IQAS · ICES</span><span class="rp-tag rp-tag--gold">2–4 mois</span><span class="rp-tag rp-tag--red">Obligatoire si diplôme étranger</span></div>
+    </div>
+  </div>
 
-  <!-- ================= CTA FINAL ================= -->
-  <section class="rp-card rp-home-cta">
-    <h2 class="rp-home-cta__title">
-      Prêt(e) à lancer ton projet de Résidence Permanente ?
-    </h2>
+  <div class="rp-step">
+    <div class="rp-step__num">4</div>
+    <div>
+      <h3 class="rp-step__title">Création du profil Entrée Express et calcul du score CRS</h3>
+      <p class="rp-step__desc">Créez votre profil sur le portail IRCC (ircc.canada.ca). Le système calcule automatiquement votre <strong>Score de classement global (SCG / CRS)</strong> basé sur votre âge, éducation, expérience et langues. Vous entrez dans le bassin des candidats et attendez une invitation.</p>
+      <div class="rp-step__tags"><span class="rp-tag rp-tag--gold">Portail IRCC</span><span class="rp-tag rp-tag--blue">Score CRS calculé</span><span class="rp-tag rp-tag--green">Gratuit</span></div>
+    </div>
+  </div>
 
-    <p class="rp-text">
-      Commence par un diagnostic gratuit et découvre ta stratégie
-      RP personnalisée pour le Canada ou l’Australie.
-    </p>
+  <div class="rp-step">
+    <div class="rp-step__num">5</div>
+    <div>
+      <h3 class="rp-step__title">Invitation à présenter une demande (IRP) ou nomination provinciale (PNP)</h3>
+      <p class="rp-step__desc">IRCC organise des tirages réguliers (toutes les ~2 semaines) et invite les candidats avec les scores CRS les plus élevés. Alternativement, une nomination provinciale (PNP) ajoute +600 points CRS, garantissant quasi-systématiquement une IRP. Les tirages ciblés pour francophones ont des seuils bien plus bas (~360–430).</p>
+      <div class="rp-step__tags"><span class="rp-tag rp-tag--gold">Tirage tous les 14 jours</span><span class="rp-tag rp-tag--blue">+200 pts offre emploi</span><span class="rp-tag rp-tag--green">+600 pts nomination PNP</span></div>
+    </div>
+  </div>
 
-    <a href="{% url 'permanent_residence:eligibility' %}"
-       class="rp-btn rp-btn--primary rp-btn--lg">
-      Commencer mon diagnostic RP maintenant
-    </a>
-  </section>
+  <div class="rp-step">
+    <div class="rp-step__num">6</div>
+    <div>
+      <h3 class="rp-step__title">Rassemblement des documents (60 jours pour soumettre)</h3>
+      <p class="rp-step__desc">Une fois invité, vous avez <strong>60 jours</strong> pour soumettre votre demande complète. Documents : passeport, EDE, résultats de langue (moins de 2 ans), relevés d'emploi (IMM 5562), actes de naissance/mariage, photos réglementaires, preuve de fonds suffisants (selon la taille de la famille).</p>
+      <div class="rp-step__tags"><span class="rp-tag rp-tag--red">60 jours — délai impératif</span><span class="rp-tag rp-tag--gold">Dossier complet</span></div>
+    </div>
+  </div>
+
+  <div class="rp-step">
+    <div class="rp-step__num">7</div>
+    <div>
+      <h3 class="rp-step__title">Examen médical et vérification des antécédents judiciaires</h3>
+      <p class="rp-step__desc">Tous les membres de la famille doivent passer un examen médical auprès d'un <strong>médecin désigné IRCC</strong> (~200–350 CAD). Chaque demandeur de 18 ans+ fournit un certificat de police de son pays de résidence. Ces étapes peuvent se faire en parallèle dès la soumission.</p>
+      <div class="rp-step__tags"><span class="rp-tag rp-tag--blue">Médecin désigné IRCC</span><span class="rp-tag rp-tag--gold">Certificat police</span><span class="rp-tag rp-tag--green">Toute la famille</span></div>
+    </div>
+  </div>
+
+  <div class="rp-step">
+    <div class="rp-step__num">8</div>
+    <div>
+      <h3 class="rp-step__title">Décision finale et réception de la carte de Résidence Permanente</h3>
+      <p class="rp-step__desc">Après traitement (6–12 mois pour Entrée Express), vous recevez la <strong>lettre de confirmation de résidence permanente (CDRP)</strong>. À votre arrivée au Canada, vous devenez officiellement résident permanent. La carte RP (valide 5 ans) est envoyée dans les 2–3 mois à votre adresse canadienne.</p>
+      <div class="rp-step__tags"><span class="rp-tag rp-tag--green">Résidence Permanente obtenue ✓</span><span class="rp-tag rp-tag--blue">Carte RP 5 ans</span><span class="rp-tag rp-tag--gold">Voie vers la citoyenneté</span></div>
+    </div>
+  </div>
+</div>
+
+<hr class="rp-divider">
+
+<!-- ══════════ PROGRAMMES ══════════ -->
+<div class="rp-section">
+  <p class="rp-eyebrow">Voies d'immigration</p>
+  <h2 class="rp-title">Les principaux programmes de RP au Canada</h2>
+  <p class="rp-sub">Chaque programme a ses critères. Identifiez celui qui correspond à votre profil.</p>
+
+  <div class="rp-programs">
+    <div class="rp-prog">
+      <span class="rp-prog__badge rp-prog__badge--ee">⚡ Entrée Express</span>
+      <h3 class="rp-prog__title">Travailleurs qualifiés fédéraux (FSW)</h3>
+      <p class="rp-prog__desc">La voie principale pour les travailleurs qualifiés sans expérience canadienne. Basée sur le score CRS, l'éducation, la langue et l'expérience.</p>
+      <div class="rp-prog__facts">
+        <div class="rp-prog__fact"><span>Expérience requise</span><span>1 an (CNP 0/A/B)</span></div>
+        <div class="rp-prog__fact"><span>Langue minimum</span><span>CLB 7 (FR ou EN)</span></div>
+        <div class="rp-prog__fact"><span>Score CRS moyen</span><span>~490–540</span></div>
+        <div class="rp-prog__fact"><span>Traitement</span><span>6–12 mois</span></div>
+      </div>
+      <a href="{% url 'permanent_residence:program_list' %}" class="rp-prog__link">Voir les détails →</a>
+    </div>
+
+    <div class="rp-prog">
+      <span class="rp-prog__badge rp-prog__badge--ee">⚡ Entrée Express</span>
+      <h3 class="rp-prog__title">Expérience canadienne (CEC)</h3>
+      <p class="rp-prog__desc">Pour ceux qui ont déjà travaillé au Canada avec un permis temporaire. Scores CRS souvent plus bas car l'expérience canadienne est valorisée.</p>
+      <div class="rp-prog__facts">
+        <div class="rp-prog__fact"><span>Expérience au Canada</span><span>1 an minimum</span></div>
+        <div class="rp-prog__fact"><span>Langue minimum</span><span>CLB 7 (0/A) / CLB 5 (B)</span></div>
+        <div class="rp-prog__fact"><span>Score CRS moyen</span><span>~450–490</span></div>
+        <div class="rp-prog__fact"><span>Traitement</span><span>4–8 mois</span></div>
+      </div>
+      <a href="{% url 'permanent_residence:program_list' %}" class="rp-prog__link">Voir les détails →</a>
+    </div>
+
+    <div class="rp-prog">
+      <span class="rp-prog__badge rp-prog__badge--pnp">🏛️ PNP</span>
+      <h3 class="rp-prog__title">Programmes des candidats des provinces (PNP)</h3>
+      <p class="rp-prog__desc">Chaque province gère ses propres programmes selon ses besoins. Une nomination ajoute +600 points CRS. Ontario, Colombie-Britannique, Alberta, Manitoba, Nouvelle-Écosse...</p>
+      <div class="rp-prog__facts">
+        <div class="rp-prog__fact"><span>Bonus CRS nomination</span><span>+600 points</span></div>
+        <div class="rp-prog__fact"><span>Provinces actives</span><span>9 provinces + 2 TN</span></div>
+        <div class="rp-prog__fact"><span>Traitement</span><span>12–18 mois</span></div>
+        <div class="rp-prog__fact"><span>Atout</span><span>Tous profils</span></div>
+      </div>
+      <a href="{% url 'permanent_residence:program_list' %}" class="rp-prog__link">Voir les détails →</a>
+    </div>
+
+    <div class="rp-prog">
+      <span class="rp-prog__badge rp-prog__badge--pnp">🏛️ Québec</span>
+      <h3 class="rp-prog__title">Immigration au Québec (Arrima / PEQ)</h3>
+      <p class="rp-prog__desc">Le Québec gère sa propre immigration. Le PEQ est rapide (5 mois) pour ceux ayant étudié/travaillé au Québec. Le PRTQ via Arrima pour les autres profils francophones.</p>
+      <div class="rp-prog__facts">
+        <div class="rp-prog__fact"><span>Français obligatoire</span><span>Niveau intermédiaire</span></div>
+        <div class="rp-prog__fact"><span>PEQ délai</span><span>~5 mois</span></div>
+        <div class="rp-prog__fact"><span>PRTQ délai</span><span>24–36 mois</span></div>
+        <div class="rp-prog__fact"><span>Idéal pour</span><span>Francophones Afrique</span></div>
+      </div>
+      <a href="{% url 'permanent_residence:program_list' %}" class="rp-prog__link">Voir les détails →</a>
+    </div>
+
+    <div class="rp-prog">
+      <span class="rp-prog__badge rp-prog__badge--fr">🌟 Avantage francophone</span>
+      <h3 class="rp-prog__title">Tirages ciblés francophones (FSWC)</h3>
+      <p class="rp-prog__desc">Le Canada a des objectifs officiels pour l'immigration francophone hors Québec. Des tirages Entrée Express réservés aux francophones ont des seuils CRS bien inférieurs. Idéal pour les candidats d'Afrique francophone.</p>
+      <div class="rp-prog__facts">
+        <div class="rp-prog__fact"><span>Langue principale</span><span>Français CLB 7+</span></div>
+        <div class="rp-prog__fact"><span>Score CRS réduit</span><span>~360–430</span></div>
+        <div class="rp-prog__fact"><span>Destination</span><span>Hors Québec</span></div>
+        <div class="rp-prog__fact"><span>Atout Afrique</span><span>Très favorable ✓</span></div>
+      </div>
+      <a href="{% url 'permanent_residence:program_list' %}" class="rp-prog__link">Voir les détails →</a>
+    </div>
+
+    <div class="rp-prog">
+      <span class="rp-prog__badge rp-prog__badge--ee">⚡ Entrée Express</span>
+      <h3 class="rp-prog__title">Travailleurs de métiers spécialisés (FST)</h3>
+      <p class="rp-prog__desc">Pour les travailleurs qualifiés dans les métiers : construction, mécanique, soudure, électricité, plomberie. Offre d'emploi valide ou certificat professionnel canadien requis.</p>
+      <div class="rp-prog__facts">
+        <div class="rp-prog__fact"><span>Expérience requise</span><span>2 ans (CNP B)</span></div>
+        <div class="rp-prog__fact"><span>Langue minimum</span><span>CLB 5 (FR ou EN)</span></div>
+        <div class="rp-prog__fact"><span>Offre emploi / cert.</span><span>Obligatoire</span></div>
+        <div class="rp-prog__fact"><span>Atout</span><span>CLB requis plus bas</span></div>
+      </div>
+      <a href="{% url 'permanent_residence:program_list' %}" class="rp-prog__link">Voir les détails →</a>
+    </div>
+  </div>
+</div>
+
+<hr class="rp-divider">
+
+<!-- ══════════ SCORE CRS ══════════ -->
+<div class="rp-section">
+  <p class="rp-eyebrow">Score CRS</p>
+  <h2 class="rp-title">Comment est calculé votre score CRS ?</h2>
+  <p class="rp-sub">Le Système de classement global (SCG/CRS) attribue jusqu'à 1 200 points selon votre profil.</p>
+  <div class="rp-crs-grid">
+    <div class="rp-crs-card"><span class="rp-crs-card__pts">110</span><div class="rp-crs-card__label"><strong>Âge</strong><br>Facteur principal</div><div class="rp-crs-card__sub">Max à 20–29 ans</div></div>
+    <div class="rp-crs-card"><span class="rp-crs-card__pts">150</span><div class="rp-crs-card__label"><strong>Niveau d'études</strong><br>Facteur principal</div><div class="rp-crs-card__sub">Doctorat = 150 pts</div></div>
+    <div class="rp-crs-card"><span class="rp-crs-card__pts">160</span><div class="rp-crs-card__label"><strong>Langue 1re</strong><br>Facteur principal</div><div class="rp-crs-card__sub">CLB 10+ = 34 pts/habilité</div></div>
+    <div class="rp-crs-card"><span class="rp-crs-card__pts">24</span><div class="rp-crs-card__label"><strong>Langue 2e</strong><br>Bilingue FR+EN</div><div class="rp-crs-card__sub">Bonus important</div></div>
+    <div class="rp-crs-card"><span class="rp-crs-card__pts">80</span><div class="rp-crs-card__label"><strong>Expérience</strong><br>Facteur principal</div><div class="rp-crs-card__sub">≥6 ans = 80 pts</div></div>
+    <div class="rp-crs-card"><span class="rp-crs-card__pts">+600</span><div class="rp-crs-card__label"><strong>Nomination PNP</strong><br>Bonus</div><div class="rp-crs-card__sub">IRP quasi-garantie</div></div>
+    <div class="rp-crs-card"><span class="rp-crs-card__pts">+200</span><div class="rp-crs-card__label"><strong>Offre d'emploi</strong><br>Bonus</div><div class="rp-crs-card__sub">CNP 0/A = 200 pts</div></div>
+    <div class="rp-crs-card"><span class="rp-crs-card__pts">15</span><div class="rp-crs-card__label"><strong>Frère/sœur Canada</strong><br>Bonus adaptabilité</div><div class="rp-crs-card__sub">Citoyen ou RP</div></div>
+  </div>
+  <div class="rp-notice">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <span>Les seuils CRS varient à chaque tirage. Les tirages ciblés francophones (~360–430) sont bien inférieurs aux tirages généraux (~490–540). Si vous parlez français, c'est votre principal avantage stratégique.</span>
+  </div>
+</div>
+
+<hr class="rp-divider">
+
+<!-- ══════════ TABLEAU LANGUE ══════════ -->
+<div class="rp-section">
+  <p class="rp-eyebrow">Tests de langue reconnus</p>
+  <h2 class="rp-title">Équivalences CLB — TEF Canada / IELTS / CELPIP</h2>
+  <p class="rp-sub">Le niveau CLB (Canadian Language Benchmarks) est la référence officielle. Voici les équivalences avec les principaux tests reconnus.</p>
+  <div style="overflow-x:auto;">
+    <table class="rp-lang-table">
+      <thead>
+        <tr>
+          <th>CLB</th><th>TEF Canada (CO)</th><th>TEF Canada (EO)</th><th>TCF Canada (CO)</th><th>IELTS (Listening)</th><th>CELPIP</th><th>CECR</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="clb">CLB 5</td><td>181–216</td><td>226–270</td><td>369–397</td><td>5.0</td><td>5</td><td>B1</td></tr>
+        <tr><td class="clb">CLB 6</td><td>217–252</td><td>271–315</td><td>398–457</td><td>5.5</td><td>6</td><td>B1+</td></tr>
+        <tr><td class="clb">CLB 7</td><td>253–278</td><td>316–360</td><td>458–502</td><td>6.0</td><td>7</td><td>B2</td></tr>
+        <tr><td class="clb">CLB 8</td><td>279–298</td><td>361–392</td><td>503–522</td><td>6.5</td><td>8</td><td>B2+</td></tr>
+        <tr><td class="clb">CLB 9</td><td>299–316</td><td>393–415</td><td>523–548</td><td>7.0</td><td>9</td><td>C1</td></tr>
+        <tr><td class="clb">CLB 10</td><td>317–334</td><td>416–450</td><td>549–567</td><td>7.5</td><td>10</td><td>C1+</td></tr>
+        <tr><td class="clb">CLB 11+</td><td>335–360</td><td>451–490</td><td>568–699</td><td>8.0+</td><td>11–12</td><td>C2</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="rp-notice">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <span>CLB 7 minimum requis pour Entrée Express FSW/CEC. CLB 5 pour les métiers spécialisés (FST). Le <strong>TEF Canada</strong> et <strong>TCF Canada</strong> sont les seuls tests français reconnus pour Entrée Express — DELF/DALF non acceptés. Préparez votre test sur <a href="/prep/">Immigration97 Tests de langue →</a></span>
+  </div>
+</div>
+
+<hr class="rp-divider">
+
+<!-- ══════════ CE QU'ON OFFRE ══════════ -->
+<div class="rp-section">
+  <p class="rp-eyebrow">Avec Immigration97</p>
+  <h2 class="rp-title">Tout ce dont vous avez besoin pour réussir votre RP</h2>
+  <div class="rp-services">
+    <div class="rp-service">
+      <div class="rp-service__icon">📊</div>
+      <h4>Diagnostic d'éligibilité</h4>
+      <ul class="rp-checklist">
+        <li>Score CRS estimé</li>
+        <li>Programmes accessibles</li>
+        <li>Points forts et axes à améliorer</li>
+        <li>Recommandations personnalisées</li>
+      </ul>
+    </div>
+    <div class="rp-service">
+      <div class="rp-service__icon">🗺️</div>
+      <h4>Plan d'action personnalisé</h4>
+      <ul class="rp-checklist">
+        <li>Étapes dans l'ordre chronologique</li>
+        <li>Suivi de progression en temps réel</li>
+        <li>Rappels des délais importants</li>
+        <li>Documents à préparer</li>
+      </ul>
+    </div>
+    <div class="rp-service">
+      <div class="rp-service__icon">🤖</div>
+      <h4>Coach IA spécialisé RP</h4>
+      <ul class="rp-checklist">
+        <li>Réponses sur votre dossier</li>
+        <li>Stratégies pour augmenter CRS</li>
+        <li>Aide au choix de province</li>
+        <li>Analyse des tirages récents</li>
+      </ul>
+    </div>
+    <div class="rp-service">
+      <div class="rp-service__icon">🎓</div>
+      <h4>Préparation TEF Canada</h4>
+      <ul class="rp-checklist">
+        <li>1 000+ leçons TEF / TCF Canada</li>
+        <li>Examens blancs avec correction IA</li>
+        <li>Score CLB estimé après chaque test</li>
+        <li>Progression A1 → C2</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<hr class="rp-divider">
+
+<!-- ══════════ FAQ ══════════ -->
+<div class="rp-section">
+  <p class="rp-eyebrow">Questions fréquentes</p>
+  <h2 class="rp-title">FAQ — Résidence Permanente Canada</h2>
+  <div class="rp-faq">
+    <div class="rp-faq-item">
+      <button class="rp-faq-q" aria-expanded="false"><span>Quelle est la différence entre Entrée Express et le PNP ?</span><span class="icon">+</span></button>
+      <div class="rp-faq-a">Entrée Express est un système fédéral qui regroupe trois programmes (FSW, CEC, FST) et sélectionne les meilleurs profils via le score CRS. Le PNP (Programme des candidats des provinces) permet à chaque province de sélectionner des candidats selon ses besoins locaux. Une nomination PNP ajoute 600 points CRS, rendant l'IRP quasi-garantie. Les deux peuvent se combiner.</div>
+    </div>
+    <div class="rp-faq-item">
+      <button class="rp-faq-q" aria-expanded="false"><span>Mon diplôme africain est-il reconnu au Canada ?</span><span class="icon">+</span></button>
+      <div class="rp-faq-a">Les diplômes étrangers doivent être évalués par un organisme reconnu (WES, IQAS, ICES, etc.) via l'Évaluation des diplômes étrangers (EDE). En général, une Licence africaine équivaut à un baccalauréat canadien (4 ans). Comptez 2 à 4 mois et environ 200–300 CAD pour l'évaluation.</div>
+    </div>
+    <div class="rp-faq-item">
+      <button class="rp-faq-q" aria-expanded="false"><span>Quel test de français passer pour Entrée Express ?</span><span class="icon">+</span></button>
+      <div class="rp-faq-a">Seuls le <strong>TEF Canada</strong> et le <strong>TCF Canada</strong> sont reconnus pour Entrée Express. Le DELF, DALF, TCF classique ne sont PAS acceptés pour Entrée Express. Visez CLB 7 minimum (TEF Canada CO : 253–278 / TCF Canada CO : 458–502). <a href="/prep/">Préparez votre test sur Immigration97 →</a></div>
+    </div>
+    <div class="rp-faq-item">
+      <button class="rp-faq-q" aria-expanded="false"><span>Combien coûte une demande de Résidence Permanente ?</span><span class="icon">+</span></button>
+      <div class="rp-faq-a">Budget estimé par adulte : frais de traitement RP 1 365 CAD, droit de résidence permanente 515 CAD, examen médical ~200–350 CAD, EDE ~200–300 CAD, test de langue ~300–400 CAD, certificat de police ~50–150 CAD. <strong>Total : 2 500–4 000 CAD par adulte</strong>. Les enfants sont moins coûteux (frais réduits).</div>
+    </div>
+    <div class="rp-faq-item">
+      <button class="rp-faq-q" aria-expanded="false"><span>Quel est l'avantage d'être francophone pour immigrer au Canada ?</span><span class="icon">+</span></button>
+      <div class="rp-faq-a">Le Canada a des objectifs officiels pour l'immigration francophone hors Québec. Des tirages Entrée Express ciblés pour francophones sont organisés régulièrement avec des seuils CRS bien plus bas (360–430 vs 490–540 pour les tirages généraux). De plus, parler français ET anglais donne des points CRS supplémentaires pour la 2e langue officielle. C'est un avantage majeur pour les candidats d'Afrique francophone.</div>
+    </div>
+    <div class="rp-faq-item">
+      <button class="rp-faq-q" aria-expanded="false"><span>Puis-je amener ma famille avec moi ?</span><span class="icon">+</span></button>
+      <div class="rp-faq-a">Oui. Votre conjoint(e) et vos enfants mineurs peuvent être inclus dans votre demande comme demandeurs accompagnateurs — ils obtiennent le statut de résident permanent en même temps que vous. Les membres de la famille non inclus peuvent faire une demande de regroupement familial ultérieure.</div>
+    </div>
+    <div class="rp-faq-item">
+      <button class="rp-faq-q" aria-expanded="false"><span>Combien de temps avant de demander la citoyenneté canadienne ?</span><span class="icon">+</span></button>
+      <div class="rp-faq-a">Après l'obtention de la RP, vous devez résider au Canada pendant <strong>3 ans (1 095 jours) sur les 5 dernières années</strong> avant de pouvoir demander la citoyenneté canadienne. Les jours passés au Canada en tant que résident temporaire (avant l'obtention de la RP) peuvent compter pour moitié.</div>
+    </div>
+    <div class="rp-faq-item">
+      <button class="rp-faq-q" aria-expanded="false"><span>Que se passe-t-il si mon score CRS est trop bas ?</span><span class="icon">+</span></button>
+      <div class="rp-faq-a">Plusieurs stratégies permettent d'améliorer votre score : améliorer vos résultats de langue (CLB 9+ en français ET anglais), obtenir une offre d'emploi valide (+200 pts), obtenir une nomination provinciale (+600 pts), ou viser les tirages ciblés francophones. Notre Coach IA peut vous aider à identifier la meilleure stratégie pour votre profil.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ CTA FINAL ══════════ -->
+<div class="rp-section" style="padding-top:0;">
+  <div class="rp-cta-final">
+    <h2>Commencez votre projet de Résidence Permanente Canada</h2>
+    <p>Faites votre diagnostic en 5 minutes. Score CRS estimé, programmes accessibles et plan d'action personnalisé — gratuitement.</p>
+    <div class="rp-hero__cta">
+      <a href="{% url 'permanent_residence:eligibility' %}" class="btn-rp-primary">🚀 Faire mon diagnostic gratuit</a>
+      <a href="{% url 'permanent_residence:coach' %}" class="btn-rp-ghost">🤖 Parler au Coach IA</a>
+    </div>
+    <p style="font-size:.73rem;color:rgba(255,255,255,.22);margin-top:1.5rem;">⚠️ Outil d'orientation non officiel. Ne remplace pas un consultant réglementé (RCIC) ni un avocat en immigration.</p>
+  </div>
+</div>
 
 </div>
 
-<!-- ================= GEO — IA READY ================= -->
-<section class="rp-card rp-geo-block">
-
-  <h2>
-    Questions fréquentes sur la Résidence Permanente Canada & Australie
-  </h2>
-
-  <div class="rp-geo-content">
-
-    <h3>Qu’est-ce que la Résidence Permanente au Canada ou en Australie ?</h3>
-    <p>
-      La Résidence Permanente permet à un étranger de vivre, travailler et
-      s’installer durablement au Canada ou en Australie sans limite de durée.
-      Elle donne accès aux droits sociaux, au marché du travail et,
-      à terme, à la citoyenneté sous certaines conditions.
-    </p>
-
-    <h3>Comment savoir si je suis éligible à la Résidence Permanente ?</h3>
-    <p>
-      L’éligibilité dépend de plusieurs critères : âge, niveau d’études,
-      expérience professionnelle, compétences linguistiques
-      (français et/ou anglais), profession exercée et capacité d’intégration.
-      Le diagnostic Immigration97 analyse ces éléments pour estimer
-      tes chances réelles et identifier les programmes adaptés.
-    </p>
-
-    <h3>Quels sont les principaux programmes de Résidence Permanente ?</h3>
-    <p>
-      Au Canada, les programmes incluent notamment Entrée Express,
-      les Programmes des candidats des provinces (PNP) et certaines voies
-      fédérales ou régionales.
-      En Australie, les visas qualifiés reposent sur un système de points
-      et des listes de professions en demande.
-      Chaque programme a ses propres critères et stratégies.
-    </p>
-
-    <h3>Un plan d’action est-il vraiment nécessaire ?</h3>
-    <p>
-      Oui. Un plan d’action RP permet de prioriser les démarches :
-      amélioration des scores linguistiques, reconnaissance des diplômes,
-      choix du bon programme et calendrier réaliste.
-      Sans plan structuré, de nombreux candidats perdent du temps
-      ou déposent des dossiers trop faibles.
-    </p>
-
-    <h3>Le Coach IA Immigration97 remplace-t-il un consultant ?</h3>
-    <p>
-      Non. Le Coach IA Immigration97 est un outil d’aide à la décision.
-      Il t’aide à comprendre, structurer et optimiser ton projet
-      de Résidence Permanente, mais ne remplace pas un avocat
-      ou un consultant réglementé.
-    </p>
-
-  </div>
-
-  <p class="rp-muted">
-    Contenu informatif conçu pour aider les candidats à mieux comprendre
-    les démarches de Résidence Permanente au Canada et en Australie.
-  </p>
-
-</section>
-
+<script>
+document.querySelectorAll('.rp-faq-q').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var expanded = this.getAttribute('aria-expanded')==='true';
+    this.setAttribute('aria-expanded', String(!expanded));
+    this.nextElementSibling.classList.toggle('open', !expanded);
+  });
+});
+</script>
 {% endblock %}
