@@ -470,12 +470,8 @@ def program_list_view(request):
 
 
 def program_detail_view(request, slug):
-    """
-    Fiche détaillée d’un programme RP :
-    - résumé
-    - lien officiel
-    - ressources (vidéos, captures, articles…)
-    """
+    from .programs_config import get_program_detail, CANADA_PROGRAM_DETAILS
+
     program = get_object_or_404(ImmigrationProgram, slug=slug, is_active=True)
     resources = program.resources.all()
 
@@ -483,9 +479,20 @@ def program_detail_view(request, slug):
     for res in resources:
         grouped_resources.setdefault(res.resource_type, []).append(res)
 
+    detail = get_program_detail(slug) or {}
+
+    # Programmes liés
+    related_slugs = detail.get("related", [])
+    related_programs = ImmigrationProgram.objects.filter(
+        slug__in=related_slugs, is_active=True
+    ) if related_slugs else []
+
     context = {
         "program": program,
         "grouped_resources": grouped_resources,
+        "detail": detail,
+        "related_programs": related_programs,
+        "all_canada_programs": ImmigrationProgram.objects.filter(country="CA", is_active=True),
     }
     return render(request, "permanent_residence/program_detail.html", context)
 

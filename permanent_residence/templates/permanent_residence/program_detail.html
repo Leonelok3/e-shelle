@@ -1,184 +1,338 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block body_class %}residence-permanente rp-program-detail{% endblock %}
-{% block app_scope %}residence-permanente{% endblock %}
+{% block title %}{{ detail.name|default:program.name }} — RP Canada | Immigration97{% endblock %}
+{% block meta_description %}{{ detail.short_desc|default:program.summary }}{% endblock %}
+{% block body_class %}rp-canada{% endblock %}
+{% block app_scope %}rp-canada{% endblock %}
 
-{% block title %}
-{{ program.name }} – Programme Résidence Permanente {{ program.get_country_display }} | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-{{ program.summary|default:
-"Programme de Résidence Permanente au Canada ou en Australie : conditions,
-profil recherché, objectifs, conseils stratégiques et accompagnement Immigration97." }}
-{% endblock %}
-
-{% block head_extra %}
-<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
+{% block extra_css %}
+<style>
+:root{--rp-navy:#050A18;--rp-gold:#D4A843;--rp-gold-lt:#F0C060;--rp-gold-dim:rgba(212,168,67,.08);--rp-gold-border:rgba(212,168,67,.22);--rp-glass:rgba(8,15,32,.75);--rp-text:rgba(232,234,240,.9);--rp-muted:rgba(232,234,240,.45);--rp-green:#22c55e;--rp-blue:#3b82f6;}
+body.rp-canada{background:var(--rp-navy);color:var(--rp-text);}
+body.rp-canada::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 80% 50% at 50% -5%,rgba(212,168,67,.08) 0%,transparent 60%);}
+.rp-wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 1.25rem 5rem;}
+.rp-bc{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--rp-muted);padding:1.5rem 0 0;flex-wrap:wrap;}
+.rp-bc a{color:rgba(255,255,255,.4);text-decoration:none;}.rp-bc a:hover{color:var(--rp-gold-lt);}
+.rp-bc__sep{color:rgba(255,255,255,.15);}
+.rp-badge{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.28rem .85rem;border-radius:7px;margin-bottom:1rem;}
+.rp-badge--ee{background:rgba(212,168,67,.15);border:1px solid rgba(212,168,67,.35);color:var(--rp-gold-lt);}
+.rp-badge--pnp{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#a5b4fc;}
+.rp-badge--fr{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#86efac;}
+.rp-badge--fam{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5;}
+.rp-hero{padding:2rem 0 2.5rem;}
+.rp-hero__title{font-size:clamp(1.6rem,4vw,2.8rem);font-weight:900;color:#fff;line-height:1.15;margin:0 0 .85rem;}
+.rp-hero__desc{font-size:.93rem;color:var(--rp-muted);line-height:1.75;max-width:680px;margin:0 0 1.5rem;}
+.rp-hero__meta{display:flex;gap:.85rem;flex-wrap:wrap;margin-bottom:1.75rem;}
+.rp-chip{display:inline-flex;align-items:center;gap:.35rem;font-size:.78rem;color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.3rem .75rem;}
+.rp-chip strong{color:var(--rp-gold-lt);}
+.rp-hero__cta{display:flex;gap:.75rem;flex-wrap:wrap;}
+.btn-primary{display:inline-flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.88rem;font-weight:800;padding:.7rem 1.5rem;border-radius:10px;transition:all .22s;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,168,67,.4);}
+.btn-ghost{display:inline-flex;align-items:center;gap:.45rem;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8);font-size:.88rem;font-weight:700;padding:.7rem 1.5rem;border-radius:10px;transition:all .22s;}
+.btn-ghost:hover{background:rgba(255,255,255,.09);}
+.btn-official{display:inline-flex;align-items:center;gap:.45rem;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:#93c5fd;font-size:.85rem;font-weight:700;padding:.65rem 1.3rem;border-radius:10px;transition:all .22s;}
+.btn-official:hover{background:rgba(59,130,246,.18);}
+.rp-divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:0;}
+.rp-layout{display:grid;grid-template-columns:1fr 290px;gap:2rem;align-items:start;margin-top:2.5rem;}
+.rp-sidebar{position:sticky;top:90px;}
+.sec{margin-bottom:2.5rem;}
+.sec__eye{font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(212,168,67,.6);margin-bottom:.5rem;}
+.sec__title{font-size:1.15rem;font-weight:800;color:#fff;margin:0 0 1.1rem;}
+.criteria{display:flex;flex-direction:column;gap:.55rem;}
+.criterion{display:flex;align-items:flex-start;gap:.85rem;padding:.8rem 1rem;background:var(--rp-glass);border:1px solid rgba(255,255,255,.07);border-radius:11px;}
+.criterion__tag{min-width:36px;text-align:center;font-size:.6rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:.22rem .4rem;border-radius:5px;flex-shrink:0;margin-top:.1rem;}
+.criterion__tag--req{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25);color:#fca5a5;}
+.criterion__tag--opt{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#86efac;}
+.criterion__label{font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem;}
+.criterion__val{font-size:.79rem;color:var(--rp-muted);}
+.steps{display:flex;flex-direction:column;gap:.6rem;}
+.step{display:grid;grid-template-columns:40px 1fr;gap:1rem;padding:1.05rem 1.2rem;background:var(--rp-glass);border:1px solid rgba(255,255,255,.07);border-radius:14px;transition:border-color .2s;}
+.step:hover{border-color:rgba(212,168,67,.25);}
+.step__n{width:34px;height:34px;border-radius:50%;background:rgba(212,168,67,.1);border:1.5px solid rgba(212,168,67,.3);color:var(--rp-gold-lt);font-size:.88rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step__title{font-size:.88rem;font-weight:700;color:#fff;margin:0 0 .22rem;}
+.step__desc{font-size:.79rem;color:var(--rp-muted);line-height:1.6;margin:0;}
+.step__delay{display:inline-block;font-size:.62rem;font-weight:700;color:rgba(212,168,67,.7);background:rgba(212,168,67,.08);border-radius:4px;padding:.12rem .45rem;margin-top:.35rem;}
+.docs{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;}
+.doc{display:flex;align-items:flex-start;gap:.45rem;font-size:.8rem;color:var(--rp-text);padding:.5rem .7rem;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid rgba(255,255,255,.06);}
+.doc::before{content:'📄';font-size:.85rem;flex-shrink:0;}
+.tips{display:flex;flex-direction:column;gap:.45rem;}
+.tip{display:flex;align-items:flex-start;gap:.6rem;padding:.8rem .95rem;background:rgba(212,168,67,.05);border:1px solid rgba(212,168,67,.15);border-radius:10px;font-size:.82rem;color:var(--rp-text);line-height:1.55;}
+.tip::before{content:'💡';flex-shrink:0;}
+.rp-table{width:100%;border-collapse:collapse;font-size:.83rem;}
+.rp-table th{padding:.6rem .85rem;background:rgba(212,168,67,.08);border:1px solid rgba(212,168,67,.15);color:var(--rp-gold-lt);font-weight:700;text-align:left;}
+.rp-table td{padding:.55rem .85rem;border:1px solid rgba(255,255,255,.06);color:var(--rp-text);}
+.rp-table tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.rp-table .val{font-weight:700;color:var(--rp-gold-lt);}
+.provinces{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.7rem;}
+.province{background:var(--rp-glass);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.9rem;}
+.province:hover{border-color:rgba(212,168,67,.22);}
+.province__name{font-size:.85rem;font-weight:700;color:#fff;margin-bottom:.25rem;}
+.province__note{font-size:.73rem;color:var(--rp-muted);}
+.province__link{display:inline-flex;align-items:center;gap:.3rem;font-size:.7rem;font-weight:700;color:#93c5fd;margin-top:.35rem;}
+.points-grid{border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;}
+.points-row{display:flex;justify-content:space-between;padding:.6rem .9rem;border-bottom:1px solid rgba(255,255,255,.05);font-size:.82rem;}
+.points-row:last-child{border-bottom:none;}
+.points-row:nth-child(even){background:rgba(255,255,255,.02);}
+.points-row span:last-child{font-weight:700;color:var(--rp-gold-lt);}
+.qc-progs{display:flex;flex-direction:column;gap:.7rem;}
+.qc-prog{background:var(--rp-glass);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:1.05rem 1.2rem;}
+.qc-prog__name{font-size:.9rem;font-weight:700;color:#fff;margin-bottom:.3rem;}
+.qc-prog__desc{font-size:.79rem;color:var(--rp-muted);line-height:1.6;margin-bottom:.4rem;}
+.qc-prog__delay{font-size:.7rem;font-weight:700;color:var(--rp-gold-lt);}
+.notice{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:11px;padding:.85rem 1rem;font-size:.8rem;color:rgba(147,197,253,.9);display:flex;align-items:flex-start;gap:.55rem;margin-top:1.1rem;}
+.notice a{color:#93c5fd;}
+.sb-card{background:var(--rp-glass);border:1px solid rgba(212,168,67,.22);border-radius:15px;padding:1.35rem;margin-bottom:1.1rem;backdrop-filter:blur(10px);}
+.sb-card h4{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(212,168,67,.6);margin-bottom:.85rem;}
+.sb-stat{display:flex;justify-content:space-between;align-items:center;padding:.38rem 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.8rem;}
+.sb-stat:last-child{border-bottom:none;}
+.sb-stat span:first-child{color:var(--rp-muted);}
+.sb-stat span:last-child{color:var(--rp-gold-lt);font-weight:700;text-align:right;max-width:55%;}
+.sb-links{display:flex;flex-direction:column;gap:.4rem;}
+.sb-link{display:flex;align-items:center;gap:.45rem;padding:.6rem .8rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;font-size:.79rem;color:rgba(255,255,255,.7);text-decoration:none;transition:all .2s;}
+.sb-link:hover{background:rgba(212,168,67,.08);border-color:rgba(212,168,67,.25);color:#fff;}
+.all-nav{display:flex;flex-direction:column;gap:.3rem;max-height:260px;overflow-y:auto;}
+.all-nav a{display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;border-radius:7px;font-size:.78rem;color:rgba(255,255,255,.55);text-decoration:none;transition:all .2s;}
+.all-nav a:hover,.all-nav a.active{background:rgba(212,168,67,.08);color:var(--rp-gold-lt);}
+.all-nav a.active{font-weight:700;}
+.related{display:flex;flex-direction:column;gap:.45rem;}
+.rel-item{display:flex;align-items:center;justify-content:space-between;padding:.65rem .85rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;text-decoration:none;transition:all .2s;}
+.rel-item:hover{background:rgba(212,168,67,.06);border-color:rgba(212,168,67,.2);}
+.rel-item__name{font-size:.82rem;font-weight:700;color:#fff;}
+.rel-item__cat{font-size:.68rem;color:var(--rp-muted);}
+@media(max-width:900px){.rp-layout{grid-template-columns:1fr;}.rp-sidebar{position:static;}}
+@media(max-width:600px){.docs{grid-template-columns:1fr;}.provinces{grid-template-columns:1fr;}.rp-hero__cta{flex-direction:column;}.rp-hero__cta a{justify-content:center;}}
+</style>
 {% endblock %}
 
 {% block content %}
+<div class="rp-wrap">
 
-{% include "permanent_residence/_rp_nav.html" %}
+<nav class="rp-bc">
+  <a href="/">Accueil</a><span class="rp-bc__sep">›</span>
+  <a href="{% url 'residence_permanente' %}">Résidence Permanente Canada</a><span class="rp-bc__sep">›</span>
+  <a href="{% url 'permanent_residence:program_list' %}">Programmes</a><span class="rp-bc__sep">›</span>
+  <span>{{ detail.name|default:program.name }}</span>
+</nav>
 
-<div class="rp-program-page">
-
-  <!-- ================= HERO ================= -->
-  <section class="rp-program-hero">
-    <div class="rp-program-hero-header">
-
-      <div>
-        <p class="rp-program-country">
-          Programme de Résidence Permanente —
-          {% if program.country == "CA" %}🇨🇦 Canada
-          {% elif program.country == "AU" %}🇦🇺 Australie
-          {% else %}{{ program.get_country_display }}{% endif %}
-        </p>
-
-        <h1 class="rp-program-title">
-          {{ program.name }}
-        </h1>
-
-        {% if program.short_label %}
-          <span class="rp-program-badge">{{ program.short_label }}</span>
-        {% endif %}
-
-        {% if program.category %}
-          <p class="rp-program-category">
-            Catégorie : {{ program.category }}
-          </p>
-        {% endif %}
-
-        <p class="rp-program-summary">
-          {{ program.summary|default:
-          "Fiche détaillée de ce programme de Résidence Permanente :
-          objectif, logique de sélection et profil ciblé." }}
-        </p>
-      </div>
-
-      <!-- ================= SIDE ACTIONS ================= -->
-      <aside class="rp-program-side">
-        <div class="rp-program-side-box">
-          <strong>🎯 Conseil stratégique</strong>
-          <p>
-            Ce programme doit toujours être analysé en fonction de ton
-            <strong>âge, niveau de langue, études et expérience professionnelle</strong>.
-            Utilise le diagnostic RP pour vérifier ton éligibilité réelle.
-          </p>
-
-          <div class="rp-program-side-actions">
-            <a href="{% url 'permanent_residence:dashboard' %}" class="rp-btn-primary">
-              📊 Mon cockpit RP
-            </a>
-
-            <a href="/consultation/" class="rp-btn-secondary">
-              🎯 Demander une consultation
-            </a>
-
-            <a href="{% url 'permanent_residence:program_list' %}" class="rp-btn-secondary">
-              ← Tous les programmes RP
-            </a>
-
-            {% if program.official_url %}
-              <a href="{{ program.official_url }}" target="_blank" rel="noopener noreferrer"
-                 class="rp-btn-secondary">
-                🔗 Source officielle
-              </a>
-            {% endif %}
-          </div>
-        </div>
-      </aside>
-
-    </div>
-  </section>
-
-  <!-- ================= CONTENU PRINCIPAL ================= -->
-  <div class="rp-program-grid">
-
-    <!-- ===== CONTENU SEO ===== -->
-    <section class="rp-program-section">
-      <h2>
-        Présentation du programme {{ program.name }}
-      </h2>
-
-      <p>
-        Ce programme de Résidence Permanente fait partie des voies officielles
-        permettant d’obtenir un statut permanent
-        {% if program.country == "CA" %}au Canada{% elif program.country == "AU" %}en Australie{% endif %}.
-        Il est conçu pour sélectionner des profils répondant à des critères précis :
-        compétences professionnelles, expérience, langues et potentiel d’intégration.
-      </p>
-
-      <h3>
-        À quoi sert ce programme de Résidence Permanente ?
-      </h3>
-
-      <ul>
-        <li>Identifier les candidats correspondant aux besoins du pays</li>
-        <li>Attribuer des points selon un système officiel</li>
-        <li>Faciliter l’accès à la Résidence Permanente légale</li>
-        <li>Orienter les démarches administratives et documentaires</li>
-      </ul>
-
-      <h3>
-        À qui s’adresse ce programme ?
-      </h3>
-
-      <p>
-        Ce programme s’adresse principalement aux candidats ayant
-        une expérience professionnelle pertinente, un niveau linguistique suffisant
-        (anglais et/ou français) et un projet clair d’installation durable.
-      </p>
-    </section>
-
-    <!-- ===== ASIDE ===== -->
-    <aside class="rp-program-aside">
-
-      <section class="rp-program-section">
-        <h3>Comment l’utiliser intelligemment</h3>
-
-        <ul>
-          <li>Comparer ce programme avec ton score RP</li>
-          <li>Identifier les points à améliorer (langue, expérience, études)</li>
-          <li>L’intégrer dans ton plan d’action personnalisé</li>
-          <li>Suivre les mises à jour officielles</li>
-        </ul>
-      </section>
-
-      <section class="rp-program-section">
-        <h3>Étape suivante recommandée</h3>
-
-        <p>
-          Pour savoir si ce programme est réellement accessible pour toi,
-          réalise ou mets à jour ton diagnostic RP.
-        </p>
-
-        <a href="{% url 'permanent_residence:eligibility' %}" class="rp-btn-primary">
-          🚀 Lancer mon diagnostic RP
-        </a>
-      </section>
-
-    </aside>
-
+<div class="rp-hero">
+  {% if detail.badge_class %}<span class="rp-badge rp-badge--{{ detail.badge_class }}">{{ detail.flag }} {{ detail.badge }}</span>{% endif %}
+  <h1 class="rp-hero__title">{{ detail.name|default:program.name }}</h1>
+  <p class="rp-hero__desc">{{ detail.short_desc|default:program.summary }}</p>
+  <div class="rp-hero__meta">
+    {% if detail.crs_cutoff %}<div class="rp-chip">Score CRS : <strong>{{ detail.crs_cutoff }}</strong></div>{% endif %}
+    {% if detail.processing_time %}<div class="rp-chip">Délai : <strong>{{ detail.processing_time }}</strong></div>{% endif %}
+    {% if detail.fees %}<div class="rp-chip">Frais : <strong>{{ detail.fees }}</strong></div>{% endif %}
   </div>
-
-  <!-- ================= SEO FOOTER ================= -->
-  <section class="rp-program-section">
-    <h3>
-      Résidence Permanente {{ program.get_country_display }} :
-      ce qu’il faut retenir
-    </h3>
-
-    <p>
-      Chaque programme de Résidence Permanente possède ses propres critères,
-      seuils de points et exigences linguistiques.
-      Immigration97 t’aide à comprendre ces règles,
-      comparer les programmes et construire une stratégie réaliste,
-      étape par étape.
-    </p>
-  </section>
-
+  <div class="rp-hero__cta">
+    <a href="{% url 'permanent_residence:eligibility' %}" class="btn-primary">🚀 Faire mon diagnostic</a>
+    {% if detail.official_url %}<a href="{{ detail.official_url }}" target="_blank" rel="noopener" class="btn-official">🔗 Site officiel canada.ca ↗</a>{% endif %}
+    <a href="{% url 'permanent_residence:program_list' %}" class="btn-ghost">← Tous les programmes</a>
+  </div>
 </div>
 
+<hr class="rp-divider">
+
+<div class="rp-layout">
+<div><!-- MAIN -->
+
+  {% if detail.overview %}
+  <div class="sec">
+    <p class="sec__eye">Vue d'ensemble</p>
+    <h2 class="sec__title">Qu'est-ce que ce programme ?</h2>
+    <p style="font-size:.88rem;color:var(--rp-muted);line-height:1.75;margin-bottom:.85rem;">{{ detail.overview }}</p>
+    {% if detail.who_for %}
+    <p style="font-size:.86rem;color:var(--rp-text);line-height:1.7;background:rgba(212,168,67,.05);border-left:3px solid rgba(212,168,67,.4);padding:.85rem 1rem;border-radius:0 8px 8px 0;">
+      👤 <strong>Pour qui ?</strong><br>{{ detail.who_for }}
+    </p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if detail.criteria %}
+  <div class="sec">
+    <p class="sec__eye">Admissibilité</p>
+    <h2 class="sec__title">Critères d'admissibilité</h2>
+    <div class="criteria">
+      {% for c in detail.criteria %}
+      <div class="criterion">
+        <div class="criterion__tag {% if c.required %}criterion__tag--req{% else %}criterion__tag--opt{% endif %}">{% if c.required %}REQ{% else %}OPT{% endif %}</div>
+        <div><div class="criterion__label">{{ c.label }}</div><div class="criterion__val">{{ c.value }}</div></div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>REQ = obligatoire · OPT = optionnel mais augmente le score CRS. Source : <a href="{{ detail.official_url }}" target="_blank">canada.ca ↗</a></span></div>
+  </div>
+  {% endif %}
+
+  {% if detail.provinces %}
+  <div class="sec">
+    <p class="sec__eye">Provinces participantes</p>
+    <h2 class="sec__title">Programmes provinciaux actifs</h2>
+    <div class="provinces">
+      {% for prov in detail.provinces %}
+      <div class="province">
+        <div class="province__name">{{ prov.name }}</div>
+        <div class="province__note">{{ prov.note }}</div>
+        <a href="{{ prov.url }}" target="_blank" rel="noopener" class="province__link">Site officiel ↗</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if detail.programs_qc %}
+  <div class="sec">
+    <p class="sec__eye">Voies d'immigration</p>
+    <h2 class="sec__title">Programmes disponibles au Québec</h2>
+    <div class="qc-progs">
+      {% for qc in detail.programs_qc %}
+      <div class="qc-prog">
+        <div class="qc-prog__name">{{ qc.name }}</div>
+        <div class="qc-prog__desc">{{ qc.desc }}</div>
+        <div class="qc-prog__delay">⏱ {{ qc.delay }}</div>
+        <a href="{{ qc.url }}" target="_blank" rel="noopener" style="font-size:.73rem;color:#93c5fd;margin-top:.45rem;display:inline-block;">Site officiel Québec ↗</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if detail.fsw_points %}
+  <div class="sec">
+    <p class="sec__eye">Système de points FSW</p>
+    <h2 class="sec__title">6 facteurs de sélection FSW (sur 100 points)</h2>
+    <div class="points-grid">
+      {% for pt in detail.fsw_points %}
+      <div class="points-row"><span>{{ pt.factor }}</span><span>{{ pt.max }} pts max</span></div>
+      {% endfor %}
+    </div>
+    <p style="font-size:.76rem;color:var(--rp-muted);margin-top:.65rem;">Score minimum : <strong style="color:var(--rp-gold-lt)">67 points / 100</strong> pour être admissible FSW.</p>
+  </div>
+  {% endif %}
+
+  {% if detail.steps %}
+  <div class="sec">
+    <p class="sec__eye">Processus</p>
+    <h2 class="sec__title">Étapes pour ce programme</h2>
+    <div class="steps">
+      {% for step in detail.steps %}
+      <div class="step">
+        <div class="step__n">{{ step.num }}</div>
+        <div>
+          <div class="step__title">{{ step.title }}</div>
+          <div class="step__desc">{{ step.desc }}</div>
+          {% if step.delay %}<span class="step__delay">⏱ {{ step.delay }}</span>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if detail.documents %}
+  <div class="sec">
+    <p class="sec__eye">Documents requis</p>
+    <h2 class="sec__title">Documents à préparer</h2>
+    <div class="docs">{% for doc in detail.documents %}<div class="doc">{{ doc }}</div>{% endfor %}</div>
+  </div>
+  {% endif %}
+
+  {% if detail.funds_table %}
+  <div class="sec">
+    <p class="sec__eye">Preuves de fonds</p>
+    <h2 class="sec__title">Fonds minimaux requis (2025–2026)</h2>
+    <div style="overflow-x:auto;">
+      <table class="rp-table">
+        <thead><tr><th>Taille de la famille</th><th>Montant minimum</th></tr></thead>
+        <tbody>{% for row in detail.funds_table %}<tr><td>{{ row.size }}</td><td class="val">{{ row.amount }}</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+    <p style="font-size:.73rem;color:var(--rp-muted);margin-top:.55rem;">Source : <a href="https://www.canada.ca/fr/immigration-refugies-citoyennete/services/immigrer-canada/entree-express/documents/preuve-fonds.html" target="_blank" style="color:#93c5fd;">canada.ca — Preuve de fonds ↗</a></p>
+  </div>
+  {% endif %}
+
+  {% if detail.tips %}
+  <div class="sec">
+    <p class="sec__eye">Stratégie</p>
+    <h2 class="sec__title">Conseils pour maximiser vos chances</h2>
+    <div class="tips">{% for tip in detail.tips %}<div class="tip">{{ tip }}</div>{% endfor %}</div>
+  </div>
+  {% endif %}
+
+  {% if grouped_resources %}
+  <div class="sec">
+    <p class="sec__eye">Ressources</p>
+    <h2 class="sec__title">Documents & liens complémentaires</h2>
+    {% for rtype, res_list in grouped_resources.items %}
+    <h4 style="font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;color:var(--rp-gold);margin:.7rem 0 .4rem;">{{ rtype }}</h4>
+    {% for res in res_list %}
+    <a href="{{ res.url }}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:.5rem;padding:.55rem .8rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;margin-bottom:.35rem;color:rgba(255,255,255,.75);font-size:.81rem;text-decoration:none;">📎 {{ res.title }}{% if res.description %} — <span style="color:var(--rp-muted)">{{ res.description|truncatechars:55 }}</span>{% endif %}</a>
+    {% endfor %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if related_programs %}
+  <hr class="rp-divider" style="margin:1.5rem 0;">
+  <div class="sec">
+    <p class="sec__eye">À explorer</p>
+    <h2 class="sec__title">Programmes similaires</h2>
+    <div class="related">
+      {% for rel in related_programs %}
+      <a href="{% url 'permanent_residence:program_detail' rel.slug %}" class="rel-item">
+        <div><div class="rel-item__name">{{ rel.name }}</div><div class="rel-item__cat">{{ rel.category }}</div></div>
+        <span style="color:var(--rp-gold);font-size:.85rem;">→</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="notice" style="margin-top:1.5rem;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <span>Informations basées sur les données officielles du gouvernement du Canada (<a href="https://www.canada.ca/fr/immigration-refugies-citoyennete.html" target="_blank">canada.ca ↗</a> / <a href="https://www.ircc.canada.ca" target="_blank">ircc.canada.ca ↗</a>). Les critères et délais peuvent changer. Immigration97 n'est pas un consultant réglementé (RCIC).</span>
+  </div>
+
+</div><!-- /MAIN -->
+
+<div class="rp-sidebar">
+  <div class="sb-card">
+    <h4>Infos clés</h4>
+    {% if detail.crs_cutoff %}<div class="sb-stat"><span>Score CRS</span><span>{{ detail.crs_cutoff }}</span></div>{% endif %}
+    {% if detail.processing_time %}<div class="sb-stat"><span>Délai</span><span>{{ detail.processing_time }}</span></div>{% endif %}
+    {% if detail.fees %}<div class="sb-stat"><span>Frais</span><span>{{ detail.fees }}</span></div>{% endif %}
+    <div class="sb-stat"><span>Pays</span><span>🇨🇦 Canada</span></div>
+  </div>
+  <div class="sb-card">
+    <h4>Mes actions</h4>
+    <div class="sb-links">
+      <a href="{% url 'permanent_residence:eligibility' %}" class="sb-link">🚀 Diagnostic RP</a>
+      <a href="{% url 'permanent_residence:dashboard' %}" class="sb-link">📊 Mon tableau de bord</a>
+      <a href="{% url 'permanent_residence:coach' %}" class="sb-link">🤖 Coach IA</a>
+      <a href="/prep/" class="sb-link">🎓 Préparer TEF Canada</a>
+      {% if detail.official_url %}<a href="{{ detail.official_url }}" target="_blank" rel="noopener" class="sb-link">🔗 canada.ca officiel ↗</a>{% endif %}
+      {% if detail.arrima_url %}<a href="{{ detail.arrima_url }}" target="_blank" rel="noopener" class="sb-link">🔗 Portail Arrima ↗</a>{% endif %}
+      {% if detail.peq_url %}<a href="{{ detail.peq_url }}" target="_blank" rel="noopener" class="sb-link">🔗 PEQ officiel ↗</a>{% endif %}
+      {% if detail.ircc_url %}<a href="{{ detail.ircc_url }}" target="_blank" rel="noopener" class="sb-link">🔗 Portail IRCC ↗</a>{% endif %}
+      <a href="{% url 'consultation_request' %}" class="sb-link">💬 Consultation expert</a>
+    </div>
+  </div>
+  {% if all_canada_programs %}
+  <div class="sb-card">
+    <h4>Tous les programmes</h4>
+    <div class="all-nav">
+      {% for prog in all_canada_programs %}
+      <a href="{% url 'permanent_residence:program_detail' prog.slug %}" class="{% if prog.slug == program.slug %}active{% endif %}">
+        <span>{{ prog.short_label|default:prog.name|truncatechars:32 }}</span>
+        <span style="font-size:.65rem;color:rgba(212,168,67,.4);">→</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+</div>{# /rp-layout #}
+</div>{# /rp-wrap #}
 {% endblock %}
