@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Examen Blanc {{ level_code }} – Allemand | Immigration97{% endblock %}
+{% block meta_description %}Examen blanc allemand niveau {{ level_code }} – {{ cecr_label }}. {{ total_questions }} questions, {{ duration_min }} minutes. Style Goethe-Zertifikat / telc Deutsch.{% endblock %}
+{% block body_class %}german-prep{% endblock %}
+{% block app_scope %}german-prep{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);}
+body.german-prep{background:#050A18;color:rgba(232,234,240,.9);}
+body.german-prep::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 80% 50% at 50% -5%,rgba(212,168,67,.08) 0%,transparent 60%);}
+
+/* ── HEADER FIXE ── */
+.me-header{position:sticky;top:0;z-index:200;background:rgba(5,10,24,.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,168,67,.15);padding:.75rem 0;}
+.me-header__inner{max-width:900px;margin:0 auto;padding:0 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.me-header__info{flex:1;min-width:0;}
+.me-header__title{font-size:.97rem;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.me-header__sub{font-size:.72rem;color:rgba(255,255,255,.38);margin-top:.1rem;}
+
+/* Timer */
+.me-timer{display:flex;align-items:center;gap:.5rem;background:rgba(212,168,67,.1);border:1.5px solid rgba(212,168,67,.35);border-radius:10px;padding:.45rem .9rem;flex-shrink:0;}
+.me-timer__icon{font-size:.85rem;}
+.me-timer__val{font-size:1.05rem;font-weight:900;color:var(--h-gold-lt);font-variant-numeric:tabular-nums;letter-spacing:.03em;}
+.me-timer.warning{border-color:rgba(245,158,11,.6);background:rgba(245,158,11,.12);}
+.me-timer.warning .me-timer__val{color:#fcd34d;}
+.me-timer.danger{border-color:rgba(239,68,68,.6);background:rgba(239,68,68,.12);animation:timerPulse .6s ease-in-out infinite;}
+.me-timer.danger .me-timer__val{color:#fca5a5;}
+@keyframes timerPulse{0%,100%{opacity:1}50%{opacity:.65}}
+
+/* Progress bar globale */
+.me-progress{height:3px;background:rgba(255,255,255,.06);position:relative;}
+.me-progress__fill{height:100%;background:linear-gradient(90deg,#D4A843,#F0C060);transition:width .3s;position:absolute;top:0;left:0;}
+
+/* ── BODY ── */
+.me-wrap{max-width:900px;margin:0 auto;padding:2rem 1.25rem 5rem;}
+
+/* Infos examen */
+.me-exam-info{background:rgba(8,15,32,.8);border:1px solid rgba(212,168,67,.2);border-radius:16px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr auto;gap:1.5rem;align-items:center;}
+.me-exam-info h1{font-size:1.4rem;font-weight:900;color:#fff;margin:0 0 .4rem;}
+.me-exam-info__sub{font-size:.85rem;color:rgba(255,255,255,.48);line-height:1.6;margin:0;}
+.me-exam-chips{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem;}
+.me-chip{display:inline-block;font-size:.65rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:.2rem .6rem;border-radius:6px;}
+.me-chip--gold{background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.3);color:var(--h-gold-lt);}
+.me-chip--blue{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#93c5fd;}
+.me-chip--green{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.22);color:#86efac;}
+.me-level-badge{width:70px;height:70px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:900;color:var(--h-gold-lt);background:rgba(212,168,67,.1);border:2px solid rgba(212,168,67,.35);flex-shrink:0;}
+
+/* ── SECTIONS ── */
+.me-section{margin-bottom:2.5rem;}
+.me-section__head{display:flex;align-items:center;gap:.85rem;padding:1rem 1.25rem;background:rgba(212,168,67,.06);border:1px solid rgba(212,168,67,.18);border-radius:14px;margin-bottom:1.1rem;}
+.me-section__num{width:32px;height:32px;border-radius:50%;background:rgba(212,168,67,.15);border:1.5px solid rgba(212,168,67,.4);color:var(--h-gold-lt);font-size:.85rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.me-section__title{font-size:1rem;font-weight:800;color:#fff;}
+.me-section__count{font-size:.75rem;color:rgba(255,255,255,.4);margin-left:auto;}
+
+/* ── QUESTIONS ── */
+.me-q{background:rgba(8,15,32,.7);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.4rem;margin-bottom:.75rem;transition:border-color .2s;}
+.me-q.answered{border-color:rgba(212,168,67,.22);}
+.me-q__num{font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:.55rem;}
+.me-q__text{font-size:.97rem;font-weight:600;color:#fff;line-height:1.6;margin:0 0 1rem;}
+.me-q__options{display:flex;flex-direction:column;gap:.4rem;}
+.me-q__opt{display:flex;align-items:center;gap:.85rem;padding:.7rem 1rem;border:1.5px solid rgba(255,255,255,.08);border-radius:10px;cursor:pointer;transition:all .18s;user-select:none;}
+.me-q__opt:hover{border-color:rgba(212,168,67,.3);background:rgba(212,168,67,.05);}
+.me-q__opt input[type="radio"]{accent-color:var(--h-gold);width:17px;height:17px;flex-shrink:0;}
+.me-q__opt:has(input:checked){border-color:rgba(212,168,67,.55);background:rgba(212,168,67,.08);}
+.me-q__opt-label{font-size:.88rem;color:rgba(232,234,240,.85);}
+
+/* ── NAVIGATION SECTIONS ── */
+.me-nav{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:2rem;padding:1rem 1.25rem;background:rgba(8,15,32,.6);border:1px solid rgba(255,255,255,.07);border-radius:12px;}
+.me-nav__btn{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .85rem;border-radius:8px;font-size:.77rem;font-weight:600;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.55);cursor:pointer;transition:all .18s;font-family:inherit;}
+.me-nav__btn:hover,.me-nav__btn.active{background:rgba(212,168,67,.1);border-color:rgba(212,168,67,.35);color:var(--h-gold-lt);}
+
+/* ── FOOTER SUBMIT ── */
+.me-footer{position:sticky;bottom:0;z-index:100;background:rgba(5,10,24,.95);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);padding:1rem 0;}
+.me-footer__inner{max-width:900px;margin:0 auto;padding:0 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.me-footer__progress{flex:1;min-width:120px;}
+.me-footer__prog-label{font-size:.7rem;color:rgba(255,255,255,.38);margin-bottom:.3rem;}
+.me-footer__prog-track{height:6px;background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden;}
+.me-footer__prog-fill{height:100%;background:linear-gradient(90deg,#D4A843,#F0C060);border-radius:999px;transition:width .3s;}
+.me-footer__prog-val{font-size:.72rem;color:var(--h-gold-lt);font-weight:700;margin-top:.2rem;}
+.me-btn-submit{display:inline-flex;align-items:center;gap:.5rem;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.93rem;font-weight:800;padding:.8rem 2rem;border-radius:12px;border:none;cursor:pointer;transition:all .22s;font-family:inherit;}
+.me-btn-submit:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(212,168,67,.4);}
+.me-btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+/* ── CONFIRM MODAL ── */
+.me-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;backdrop-filter:blur(6px);align-items:center;justify-content:center;}
+.me-modal-overlay.open{display:flex;}
+.me-modal{background:#080F20;border:1px solid rgba(212,168,67,.3);border-radius:20px;padding:2rem;max-width:420px;width:90%;text-align:center;}
+.me-modal h3{font-size:1.2rem;font-weight:900;color:#fff;margin:0 0 .65rem;}
+.me-modal p{font-size:.88rem;color:rgba(255,255,255,.5);margin:0 0 1.5rem;line-height:1.65;}
+.me-modal__btns{display:flex;gap:.75rem;justify-content:center;}
+.me-modal__confirm{background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.9rem;font-weight:800;padding:.7rem 1.6rem;border-radius:10px;border:none;cursor:pointer;font-family:inherit;}
+.me-modal__cancel{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);font-size:.9rem;font-weight:700;padding:.7rem 1.6rem;border-radius:10px;cursor:pointer;font-family:inherit;}
+.me-modal__stats{display:flex;gap:1.5rem;justify-content:center;margin-bottom:1.25rem;}
+.me-modal__stat span:first-child{font-size:1.5rem;font-weight:900;color:var(--h-gold-lt);display:block;}
+.me-modal__stat span:last-child{font-size:.7rem;color:rgba(255,255,255,.38);text-transform:uppercase;letter-spacing:.06em;}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  .me-exam-info{grid-template-columns:1fr;}
+  .me-level-badge{display:none;}
+  .me-footer__inner{flex-direction:column;gap:.75rem;}
+  .me-btn-submit{width:100%;justify-content:center;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HEADER FIXE -->
+<div class="me-header">
+  <div class="me-header__inner">
+    <div class="me-header__info">
+      <div class="me-header__title">Examen Blanc {{ level_code }} — {{ cecr_label }}</div>
+      <div class="me-header__sub">{{ total_questions }} questions · {{ duration_min }} minutes</div>
+    </div>
+    <div class="me-timer" id="me-timer">
+      <span class="me-timer__icon">⏱</span>
+      <span class="me-timer__val" id="timer-display">{{ duration_min }}:00</span>
+    </div>
+  </div>
+  <div class="me-progress"><div class="me-progress__fill" id="time-progress" style="width:100%;"></div></div>
+</div>
+
+<div class="me-wrap">
+
+  <!-- Infos examen -->
+  <div class="me-exam-info">
+    <div>
+      <h1>Examen Blanc {{ level_code }} — Allemand</h1>
+      <p class="me-exam-info__sub">Style Goethe-Zertifikat / telc Deutsch. Toutes les compétences évaluées. Répondez à toutes les questions avant la fin du temps imparti.</p>
+      <div class="me-exam-chips">
+        <span class="me-chip me-chip--gold">{{ level_code }} — {{ cecr_label }}</span>
+        <span class="me-chip me-chip--blue">{{ total_questions }} questions</span>
+        <span class="me-chip me-chip--blue">{{ duration_min }} minutes</span>
+        <span class="me-chip me-chip--green">Réussite : ≥ 60%</span>
+      </div>
+    </div>
+    <div class="me-level-badge">{{ level_code }}</div>
+  </div>
+
+  <!-- Navigation sections -->
+  <nav class="me-nav" id="section-nav">
+    {% for section in sections %}
+    <button class="me-nav__btn {% if forloop.first %}active{% endif %}" onclick="scrollToSection('section-{{ forloop.counter0 }}', this)">
+      {{ section.label|truncatechars:20 }}
+      <span style="background:rgba(255,255,255,.1);border-radius:4px;padding:.05rem .35rem;font-size:.65rem;">{{ section.exercises|length }}</span>
+    </button>
+    {% endfor %}
+  </nav>
+
+  <!-- FORMULAIRE EXAMEN -->
+  <form method="post" id="exam-form">
+    {% csrf_token %}
+    <input type="hidden" name="duration_seconds" id="duration_seconds_input" value="0">
+
+    {% for section in sections %}
+    <div class="me-section" id="section-{{ forloop.counter0 }}">
+
+      <!-- Header section -->
+      <div class="me-section__head">
+        <div class="me-section__num">{{ forloop.counter }}</div>
+        <div class="me-section__title">{{ section.label }}</div>
+        <div class="me-section__count">{{ section.exercises|length }} question{{ section.exercises|length|pluralize }}</div>
+      </div>
+
+      <!-- Questions -->
+      {% for exercise in section.exercises %}
+      {% with q_num=forloop.counter %}
+      <div class="me-q" id="q-{{ exercise.id }}" data-eid="{{ exercise.id }}">
+        <div class="me-q__num">Question {{ q_num }} / {{ section.exercises|length }}</div>
+        <div class="me-q__text">{{ exercise.question_text }}</div>
+        <div class="me-q__options">
+          <label class="me-q__opt">
+            <input type="radio" name="exercise_{{ exercise.id }}" value="A" onchange="markAnswered({{ exercise.id }})">
+            <span class="me-q__opt-label">{{ exercise.option_a }}</span>
+          </label>
+          <label class="me-q__opt">
+            <input type="radio" name="exercise_{{ exercise.id }}" value="B" onchange="markAnswered({{ exercise.id }})">
+            <span class="me-q__opt-label">{{ exercise.option_b }}</span>
+          </label>
+          {% if exercise.option_c %}
+          <label class="me-q__opt">
+            <input type="radio" name="exercise_{{ exercise.id }}" value="C" onchange="markAnswered({{ exercise.id }})">
+            <span class="me-q__opt-label">{{ exercise.option_c }}</span>
+          </label>
+          {% endif %}
+          {% if exercise.option_d %}
+          <label class="me-q__opt">
+            <input type="radio" name="exercise_{{ exercise.id }}" value="D" onchange="markAnswered({{ exercise.id }})">
+            <span class="me-q__opt-label">{{ exercise.option_d }}</span>
+          </label>
+          {% endif %}
+        </div>
+      </div>
+      {% endwith %}
+      {% endfor %}
+
+    </div>
+    {% endfor %}
+
+  </form>
+
+</div><!-- /me-wrap -->
+
+<!-- FOOTER FIXE -->
+<div class="me-footer">
+  <div class="me-footer__inner">
+    <div class="me-footer__progress">
+      <div class="me-footer__prog-label">Questions répondues</div>
+      <div class="me-footer__prog-track">
+        <div class="me-footer__prog-fill" id="answer-progress" style="width:0;"></div>
+      </div>
+      <div class="me-footer__prog-val"><span id="answered-count">0</span> / {{ total_questions }}</div>
+    </div>
+    <button type="button" class="me-btn-submit" id="submit-btn" onclick="openConfirm()">
+      ✓ Terminer l'examen
+    </button>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMATION -->
+<div class="me-modal-overlay" id="confirm-modal">
+  <div class="me-modal">
+    <h3>Terminer l'examen ?</h3>
+    <div class="me-modal__stats">
+      <div class="me-modal__stat"><span id="modal-answered">0</span><span>Répondues</span></div>
+      <div class="me-modal__stat"><span id="modal-skipped">0</span><span>Ignorées</span></div>
+      <div class="me-modal__stat"><span id="modal-time">—</span><span>Temps</span></div>
+    </div>
+    <p>Une fois soumis, vous ne pourrez plus modifier vos réponses.</p>
+    <div class="me-modal__btns">
+      <button class="me-modal__confirm" onclick="submitExam()">Soumettre</button>
+      <button class="me-modal__cancel" onclick="closeConfirm()">Continuer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var TOTAL = {{ total_questions }};
+  var DURATION = {{ duration_seconds }};
+  var remaining = DURATION;
+  var startTime = Date.now();
+  var timerEl = document.getElementById('timer-display');
+  var timerBox = document.getElementById('me-timer');
+  var progressEl = document.getElementById('time-progress');
+  var answerProg = document.getElementById('answer-progress');
+  var answeredCount = document.getElementById('answered-count');
+  var durationInput = document.getElementById('duration_seconds_input');
+  var answered = new Set();
+
+  // ── TIMER ──
+  function pad(n){ return n < 10 ? '0'+n : n; }
+  function updateTimer(){
+    var m = Math.floor(remaining/60);
+    var s = remaining % 60;
+    timerEl.textContent = pad(m)+':'+pad(s);
+    progressEl.style.width = (remaining/DURATION*100)+'%';
+    if(remaining <= 60){ timerBox.className='me-timer danger'; }
+    else if(remaining <= 300){ timerBox.className='me-timer warning'; }
+    if(remaining <= 0){ autoSubmit(); return; }
+    remaining--;
+  }
+  updateTimer();
+  var timerInterval = setInterval(updateTimer, 1000);
+
+  // ── PROGRESS RÉPONSES ──
+  window.markAnswered = function(eid){
+    answered.add(eid);
+    var pct = (answered.size/TOTAL*100);
+    answerProg.style.width = pct+'%';
+    answeredCount.textContent = answered.size;
+    // marquer la card
+    var card = document.getElementById('q-'+eid);
+    if(card) card.classList.add('answered');
+  };
+
+  // ── NAVIGATION SECTIONS ──
+  window.scrollToSection = function(id, btn){
+    document.querySelectorAll('.me-nav__btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    var el = document.getElementById(id);
+    if(el){ var top = el.getBoundingClientRect().top + window.scrollY - 120; window.scrollTo({top:top, behavior:'smooth'}); }
+  };
+
+  // ── CONFIRM MODAL ──
+  window.openConfirm = function(){
+    var elapsed = Math.floor((Date.now()-startTime)/1000);
+    var elMin = Math.floor(elapsed/60), elSec = elapsed%60;
+    document.getElementById('modal-answered').textContent = answered.size;
+    document.getElementById('modal-skipped').textContent = TOTAL - answered.size;
+    document.getElementById('modal-time').textContent = pad(elMin)+':'+pad(elSec);
+    document.getElementById('confirm-modal').classList.add('open');
+  };
+  window.closeConfirm = function(){
+    document.getElementById('confirm-modal').classList.remove('open');
+  };
+  window.submitExam = function(){
+    clearInterval(timerInterval);
+    durationInput.value = Math.floor((Date.now()-startTime)/1000);
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').textContent = 'Envoi en cours…';
+    document.getElementById('exam-form').submit();
+  };
+
+  // Auto-submit quand timer expire
+  function autoSubmit(){
+    clearInterval(timerInterval);
+    timerEl.textContent = '00:00';
+    durationInput.value = DURATION;
+    document.getElementById('submit-btn').disabled = true;
+    setTimeout(function(){ document.getElementById('exam-form').submit(); }, 1500);
+  }
+
+  // Prévenir fermeture accidentelle
+  window.addEventListener('beforeunload', function(e){
+    if(answered.size > 0){
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  // Scroll pour tracking section active
+  window.addEventListener('scroll', function(){
+    var sections = document.querySelectorAll('.me-section');
+    var btns = document.querySelectorAll('.me-nav__btn');
+    sections.forEach(function(sec, i){
+      var rect = sec.getBoundingClientRect();
+      if(rect.top <= 160 && rect.bottom >= 160){
+        btns.forEach(function(b){ b.classList.remove('active'); });
+        if(btns[i]) btns[i].classList.add('active');
+      }
+    });
+  }, {passive:true});
+})();
+</script>
+{% endblock %}

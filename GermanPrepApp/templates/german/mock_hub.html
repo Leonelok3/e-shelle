@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Examens Blancs Allemand A1–C2 — Immigration97{% endblock %}
+{% block meta_description %}Testez votre niveau d'allemand avec nos examens blancs officiels A1, A2, B1, B2, C1, C2. Style Goethe-Zertifikat, telc, TestDaF. Timer, sections, résultats détaillés.{% endblock %}
+{% block body_class %}german-prep{% endblock %}
+{% block app_scope %}german-prep{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{--h-gold:#D4A843;--h-gold-lt:#F0C060;--h-glass:rgba(255,255,255,.04);--g-blue:#3b82f6;}
+body.german-prep{background:#050A18;color:rgba(232,234,240,.9);}
+body.german-prep::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 80% 50% at 50% -5%,rgba(212,168,67,.09) 0%,transparent 60%);}
+
+.mh-wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 1.25rem 5rem;}
+.mh-bc{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:rgba(255,255,255,.35);padding:1.5rem 0 0;flex-wrap:wrap;}
+.mh-bc a{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}.mh-bc a:hover{color:var(--h-gold-lt);}
+.mh-bc__sep{color:rgba(255,255,255,.15);}
+
+/* HERO */
+.mh-hero{padding:2.5rem 0 3rem;text-align:center;}
+.mh-hero__eye{display:inline-flex;align-items:center;gap:.45rem;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.28);color:var(--h-gold-lt);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.32rem .9rem;border-radius:999px;margin-bottom:1.1rem;}
+.mh-hero h1{font-size:clamp(1.8rem,4.5vw,3rem);font-weight:900;color:#fff;line-height:1.15;margin:0 0 .85rem;}
+.mh-hero h1 span{background:linear-gradient(135deg,#D4A843,#F0C060);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.mh-hero p{font-size:.93rem;color:rgba(255,255,255,.48);line-height:1.75;max-width:600px;margin:0 auto 2rem;}
+
+/* STATS BAR */
+.mh-stats{display:flex;justify-content:center;gap:0;border:1px solid rgba(212,168,67,.15);border-radius:14px;overflow:hidden;max-width:700px;margin:0 auto 3rem;}
+.mh-stat{flex:1;text-align:center;padding:1.1rem .75rem;border-right:1px solid rgba(212,168,67,.1);}
+.mh-stat:last-child{border-right:none;}
+.mh-stat__num{font-size:1.5rem;font-weight:900;color:var(--h-gold-lt);display:block;line-height:1;}
+.mh-stat__label{font-size:.65rem;color:rgba(255,255,255,.38);letter-spacing:.05em;text-transform:uppercase;margin-top:.25rem;}
+
+.mh-divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:0 0 2.5rem;}
+
+/* GRILLE NIVEAUX */
+.mh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem;}
+
+.mh-card{background:rgba(8,15,32,.75);border:1px solid rgba(255,255,255,.08);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;transition:all .28s;backdrop-filter:blur(12px);}
+.mh-card:hover{border-color:rgba(212,168,67,.35);transform:translateY(-4px);box-shadow:0 18px 45px rgba(0,0,0,.35);}
+.mh-card.not-ready{opacity:.6;pointer-events:none;}
+
+/* Header de la carte */
+.mh-card__head{padding:1.5rem 1.6rem 1.1rem;display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;}
+.mh-card__level-badge{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:900;flex-shrink:0;}
+.level-a1 .mh-card__level-badge{background:rgba(34,197,94,.15);border:2px solid rgba(34,197,94,.35);color:#86efac;}
+.level-a2 .mh-card__level-badge{background:rgba(59,130,246,.15);border:2px solid rgba(59,130,246,.35);color:#93c5fd;}
+.level-b1 .mh-card__level-badge{background:rgba(212,168,67,.15);border:2px solid rgba(212,168,67,.35);color:var(--h-gold-lt);}
+.level-b2 .mh-card__level-badge{background:rgba(245,158,11,.15);border:2px solid rgba(245,158,11,.35);color:#fcd34d;}
+.level-c1 .mh-card__level-badge{background:rgba(239,68,68,.12);border:2px solid rgba(239,68,68,.3);color:#fca5a5;}
+.level-c2 .mh-card__level-badge{background:rgba(168,85,247,.15);border:2px solid rgba(168,85,247,.35);color:#d8b4fe;}
+
+.mh-card__meta{flex:1;}
+.mh-card__cecr{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-bottom:.25rem;}
+.mh-card__title{font-size:1.25rem;font-weight:900;color:#fff;line-height:1.1;}
+
+/* Infos examen */
+.mh-card__body{padding:0 1.6rem 1.25rem;flex:1;}
+.mh-card__facts{display:flex;flex-direction:column;gap:.38rem;margin-bottom:1.1rem;}
+.mh-card__fact{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;padding:.28rem 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.mh-card__fact:last-child{border-bottom:none;}
+.mh-card__fact span:first-child{color:rgba(255,255,255,.45);}
+.mh-card__fact span:last-child{color:var(--h-gold-lt);font-weight:700;}
+
+/* Score barre */
+.mh-card__score{margin-bottom:1.1rem;}
+.mh-card__score-label{font-size:.68rem;color:rgba(255,255,255,.38);margin-bottom:.35rem;display:flex;justify-content:space-between;}
+.mh-card__score-track{height:5px;background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden;}
+.mh-card__score-fill{height:100%;border-radius:999px;transition:width .6s ease;}
+.score-none .mh-card__score-fill{width:0;}
+
+/* Bouton CTA */
+.mh-card__footer{padding:1rem 1.6rem 1.5rem;border-top:1px solid rgba(255,255,255,.06);}
+.mh-btn-start{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;padding:.85rem;border-radius:12px;font-size:.9rem;font-weight:800;text-decoration:none;border:none;cursor:pointer;font-family:inherit;transition:all .22s;}
+.mh-btn-start--ready{background:linear-gradient(135deg,rgba(212,168,67,.15),rgba(212,168,67,.08));border:1.5px solid rgba(212,168,67,.4);color:var(--h-gold-lt);}
+.mh-btn-start--ready:hover{background:rgba(212,168,67,.22);transform:translateY(-1px);}
+.mh-btn-start--not-ready{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);cursor:default;}
+
+/* Sections badge */
+.mh-sections{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.75rem;}
+.mh-sec-chip{display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:.18rem .55rem;border-radius:5px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.45);}
+
+/* Attempts */
+.mh-attempts{font-size:.72rem;color:rgba(255,255,255,.3);text-align:center;margin-top:.5rem;}
+
+/* INFO BOX */
+.mh-info{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.18);border-radius:14px;padding:1.25rem 1.5rem;margin-top:2.5rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;}
+.mh-info__item{display:flex;align-items:flex-start;gap:.6rem;}
+.mh-info__icon{font-size:1.2rem;flex-shrink:0;}
+.mh-info__title{font-size:.83rem;font-weight:700;color:#fff;margin-bottom:.2rem;}
+.mh-info__desc{font-size:.77rem;color:rgba(255,255,255,.45);line-height:1.5;}
+
+@media(max-width:640px){
+  .mh-stats{flex-wrap:wrap;}
+  .mh-stat{min-width:50%;}
+  .mh-grid{grid-template-columns:1fr;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mh-wrap">
+
+<nav class="mh-bc">
+  <a href="{% url 'germanprep:home' %}">Allemand</a>
+  <span class="mh-bc__sep">›</span>
+  <span>Examens blancs</span>
+</nav>
+
+<!-- HERO -->
+<div class="mh-hero">
+  <div class="mh-hero__eye">🇩🇪 Examens officiels type Goethe · telc · TestDaF</div>
+  <h1>Examens blancs<br><span>Allemand A1 – C2</span></h1>
+  <p>Simulez un vrai examen officiel pour chaque niveau CECR. Timer réel, sections par compétence (Hören · Lesen · Grammatik · Wortschatz), résultats détaillés et suivi de progression.</p>
+</div>
+
+<!-- STATS -->
+<div class="mh-stats">
+  <div class="mh-stat"><span class="mh-stat__num">6</span><span class="mh-stat__label">Niveaux</span></div>
+  <div class="mh-stat"><span class="mh-stat__num">A1–C2</span><span class="mh-stat__label">CECR</span></div>
+  <div class="mh-stat"><span class="mh-stat__num">Timer</span><span class="mh-stat__label">Chrono réel</span></div>
+  <div class="mh-stat"><span class="mh-stat__num">100%</span><span class="mh-stat__label">Gratuit</span></div>
+</div>
+
+<hr class="mh-divider">
+
+<!-- GRILLE -->
+<div class="mh-grid">
+  {% for lvl in levels_data %}
+  <div class="mh-card level-{{ lvl.code|lower }} {% if not lvl.ready %}not-ready{% endif %}">
+
+    <div class="mh-card__head">
+      <div class="mh-card__level-badge">{{ lvl.code }}</div>
+      <div class="mh-card__meta">
+        <div class="mh-card__cecr">{{ lvl.cecr_label }}</div>
+        <div class="mh-card__title">Niveau {{ lvl.code }}</div>
+      </div>
+    </div>
+
+    <div class="mh-card__body">
+
+      <!-- Sections disponibles -->
+      <div class="mh-sections">
+        <span class="mh-sec-chip">Hören</span>
+        <span class="mh-sec-chip">Lesen</span>
+        <span class="mh-sec-chip">Grammatik</span>
+        <span class="mh-sec-chip">Wortschatz</span>
+      </div>
+
+      <!-- Infos -->
+      <div class="mh-card__facts">
+        <div class="mh-card__fact"><span>⏱ Durée</span><span>{{ lvl.duration_min }} min</span></div>
+        <div class="mh-card__fact"><span>📝 Questions</span><span>{{ lvl.exercise_count }} disponibles</span></div>
+        <div class="mh-card__fact"><span>🏆 Réussite</span><span>≥ 60%</span></div>
+        <div class="mh-card__fact"><span>Tentatives</span><span>{{ lvl.attempts }}</span></div>
+      </div>
+
+      <!-- Meilleur score -->
+      <div class="mh-card__score {% if not lvl.best_score %}score-none{% endif %}">
+        <div class="mh-card__score-label">
+          <span>Meilleur score</span>
+          <span>{% if lvl.best_score %}{{ lvl.best_score }}%{% else %}—{% endif %}</span>
+        </div>
+        <div class="mh-card__score-track">
+          <div class="mh-card__score-fill" style="width:{% if lvl.best_score %}{{ lvl.best_score }}%{% else %}0{% endif %};background:{% if lvl.best_score >= 80 %}#86efac{% elif lvl.best_score >= 60 %}var(--h-gold-lt){% else %}#fca5a5{% endif %};"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mh-card__footer">
+      {% if lvl.ready %}
+        <a href="{% url 'germanprep:level_mock_exam' lvl.code %}" class="mh-btn-start mh-btn-start--ready">
+          ▶ Commencer l'examen {{ lvl.code }}
+        </a>
+      {% else %}
+        <div class="mh-btn-start mh-btn-start--not-ready">
+          🔒 Exercices en cours d'ajout
+        </div>
+      {% endif %}
+      {% if lvl.attempts > 0 %}
+        <div class="mh-attempts">{{ lvl.attempts }} tentative{{ lvl.attempts|pluralize }} effectuée{{ lvl.attempts|pluralize }}</div>
+      {% endif %}
+    </div>
+
+  </div>
+  {% endfor %}
+</div>
+
+<!-- INFO BOX -->
+<div class="mh-info">
+  <div class="mh-info__item">
+    <div class="mh-info__icon">⏱</div>
+    <div>
+      <div class="mh-info__title">Chrono réel</div>
+      <div class="mh-info__desc">Chaque examen est chronométré comme un vrai test officiel. Le temps restant s'affiche en permanence.</div>
+    </div>
+  </div>
+  <div class="mh-info__item">
+    <div class="mh-info__icon">📊</div>
+    <div>
+      <div class="mh-info__title">Résultats par compétence</div>
+      <div class="mh-info__desc">Après l'examen : score global + analyse Hören / Lesen / Grammatik / Wortschatz.</div>
+    </div>
+  </div>
+  <div class="mh-info__item">
+    <div class="mh-info__icon">🔁</div>
+    <div>
+      <div class="mh-info__title">Tentatives illimitées</div>
+      <div class="mh-info__desc">Recommencez autant de fois que vous voulez. Votre progression est sauvegardée.</div>
+    </div>
+  </div>
+  <div class="mh-info__item">
+    <div class="mh-info__icon">🎯</div>
+    <div>
+      <div class="mh-info__title">Score de réussite</div>
+      <div class="mh-info__desc">60% minimum pour valider le niveau. 80%+ pour une excellente maîtrise.</div>
+    </div>
+  </div>
+</div>
+
+</div>
+{% endblock %}

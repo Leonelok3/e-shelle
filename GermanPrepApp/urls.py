@@ -43,4 +43,8 @@ urlpatterns = [
     # EO / EE – soumissions IA
     path("api/submit-eo/", views.german_submit_eo, name="submit_eo"),
     path("api/submit-ee/", views.german_submit_ee, name="submit_ee"),
+
+    # ── EXAMENS BLANCS PAR NIVEAU ──
+    path("examens-blancs/", views.german_mock_hub, name="mock_hub"),
+    path("examens-blancs/<str:level_code>/", views.german_level_mock_exam, name="level_mock_exam"),
 ]

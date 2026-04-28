@@ -1238,3 +1238,191 @@ def german_submit_ee(request):
         "corrected_version": result.get("corrected_version", ""),
         "criteria": result.get("criteria", {}),
     })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# EXAMENS BLANCS PAR NIVEAU CECR (A1 → C2)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Durées en minutes et nombre de questions par skill pour chaque niveau
+MOCK_EXAM_CONFIG = {
+    "A1": {"duration_min": 45,  "label": "Débutant",          "questions_per_skill": 8},
+    "A2": {"duration_min": 60,  "label": "Élémentaire",        "questions_per_skill": 10},
+    "B1": {"duration_min": 75,  "label": "Intermédiaire",      "questions_per_skill": 12},
+    "B2": {"duration_min": 90,  "label": "Intermédiaire avancé","questions_per_skill": 15},
+    "C1": {"duration_min": 105, "label": "Avancé",             "questions_per_skill": 18},
+    "C2": {"duration_min": 120, "label": "Maîtrise",           "questions_per_skill": 20},
+}
+
+SKILL_ORDER = ["HOREN", "LESEN", "GRAMMATIK", "WORTSCHATZ", "SCHREIBEN", "SPRECHEN"]
+SKILL_LABELS = {
+    "HOREN":     "Hören — Compréhension orale",
+    "LESEN":     "Lesen — Compréhension écrite",
+    "GRAMMATIK": "Grammatik — Grammaire",
+    "WORTSCHATZ":"Wortschatz — Vocabulaire",
+    "SCHREIBEN": "Schreiben — Expression écrite",
+    "SPRECHEN":  "Sprechen — Expression orale",
+}
+
+
+@login_required
+def german_mock_hub(request):
+    """
+    Hub des examens blancs : 6 niveaux A1–C2 avec stats.
+    """
+    profile = _get_or_create_profile(request.user)
+    levels_data = []
+
+    for level_code, level_label in GERMAN_LEVEL_CHOICES:
+        cfg = MOCK_EXAM_CONFIG.get(level_code, {})
+        # Nombre total d'exercices disponibles pour ce niveau
+        exercise_count = GermanExercise.objects.filter(
+            lesson__exam__level=level_code,
+            lesson__exam__is_active=True,
+        ).count()
+
+        # Meilleur score de l'utilisateur pour ce niveau
+        best = GermanTestSession.objects.filter(
+            user=request.user,
+            exam__level=level_code,
+            score__isnull=False,
+        ).aggregate(best=Max("score"))["best"]
+
+        # Nombre de tentatives pour ce niveau
+        attempts = GermanTestSession.objects.filter(
+            user=request.user,
+            exam__level=level_code,
+        ).count()
+
+        levels_data.append({
+            "code": level_code,
+            "label": level_label,
+            "cecr_label": cfg.get("label", ""),
+            "duration_min": cfg.get("duration_min", 60),
+            "exercise_count": exercise_count,
+            "best_score": round(best, 1) if best else None,
+            "attempts": attempts,
+            "ready": exercise_count >= 10,
+        })
+
+    context = {
+        "profile": profile,
+        "levels_data": levels_data,
+    }
+    return render(request, "german/mock_hub.html", context)
+
+
+@login_required
+def german_level_mock_exam(request, level_code):
+    """
+    Examen blanc complet pour un niveau CECR.
+    - Agrège les exercices de TOUS les examens du niveau
+    - Groupe par skill (sections type examen officiel)
+    - Timer configurable par niveau
+    - POST → crée GermanTestSession + GermanUserAnswer
+    """
+    if level_code not in dict(GERMAN_LEVEL_CHOICES):
+        return redirect("germanprep:mock_hub")
+
+    cfg = MOCK_EXAM_CONFIG.get(level_code, {"duration_min": 60, "questions_per_skill": 10})
+    n = cfg["questions_per_skill"]
+
+    # Récupérer les exercices du niveau, groupés par skill, limités par section
+    sections = []
+    all_exercise_ids = []
+
+    for skill_code in SKILL_ORDER:
+        qs = GermanExercise.objects.filter(
+            lesson__exam__level=level_code,
+            lesson__exam__is_active=True,
+            lesson__skill=skill_code,
+        ).select_related("lesson", "lesson__exam").order_by("id")[:n]
+
+        exercises = list(qs)
+        if exercises:
+            sections.append({
+                "skill": skill_code,
+                "label": SKILL_LABELS.get(skill_code, skill_code),
+                "exercises": exercises,
+            })
+            all_exercise_ids.extend([e.id for e in exercises])
+
+    total_questions = len(all_exercise_ids)
+
+    if total_questions == 0:
+        messages.warning(request, f"Pas encore d'exercices disponibles pour le niveau {level_code}.")
+        return redirect("germanprep:mock_hub")
+
+    # Examen de référence pour la session (premier exam actif du niveau)
+    ref_exam = GermanExam.objects.filter(level=level_code, is_active=True).first()
+
+    if request.method == "POST":
+        if not ref_exam:
+            messages.error(request, "Aucun examen configuré pour ce niveau.")
+            return redirect("germanprep:mock_hub")
+
+        session = GermanTestSession.objects.create(
+            user=request.user,
+            exam=ref_exam,
+        )
+
+        correct_count = 0
+        answered = 0
+
+        for ex_id in all_exercise_ids:
+            selected = request.POST.get(f"exercise_{ex_id}")
+            if not selected:
+                continue
+            try:
+                ex = GermanExercise.objects.get(id=ex_id)
+            except GermanExercise.DoesNotExist:
+                continue
+
+            is_correct = (selected == ex.correct_option)
+            if is_correct:
+                correct_count += 1
+            answered += 1
+
+            GermanUserAnswer.objects.create(
+                session=session,
+                exercise=ex,
+                selected_option=selected,
+                is_correct=is_correct,
+            )
+
+        score = (correct_count / answered * 100) if answered > 0 else 0
+
+        # Durée
+        try:
+            session.duration_seconds = int(request.POST.get("duration_seconds", 0))
+        except (TypeError, ValueError):
+            session.duration_seconds = 0
+
+        session.score = score
+        session.finished_at = timezone.now()
+        session.total_questions = answered
+        session.correct_answers = correct_count
+        session.save()
+
+        profile = _get_or_create_profile(request.user)
+        try:
+            gained_xp = profile.add_result(score, answered)
+        except TypeError:
+            gained_xp = None
+        request.session["last_german_xp_gain"] = gained_xp
+
+        return redirect("germanprep:test_result", session_id=session.id)
+
+    # GET → afficher l'examen
+    level_label = dict(GERMAN_LEVEL_CHOICES).get(level_code, level_code)
+    context = {
+        "level_code": level_code,
+        "level_label": level_label,
+        "cecr_label": cfg.get("label", ""),
+        "duration_min": cfg["duration_min"],
+        "duration_seconds": cfg["duration_min"] * 60,
+        "sections": sections,
+        "total_questions": total_questions,
+        "ref_exam": ref_exam,
+    }
+    return render(request, "german/level_mock_exam.html", context)
