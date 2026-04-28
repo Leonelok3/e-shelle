@@ -3,460 +3,274 @@
 {% load actualite_extras %}
 
 {% block title %}{{ article.title }} – Immigration97{% endblock %}
-{% block meta_description %}
-  {% if article.summary %}{{ article.summary|truncatechars:160 }}{% else %}
-    Informations officielles, opportunités et conseils immigration — Immigration97.
-  {% endif %}
-{% endblock %}
-
+{% block meta_description %}{% if article.summary %}{{ article.summary|truncatechars:160 }}{% else %}Informations officielles, opportunités et conseils immigration — Immigration97.{% endif %}{% endblock %}
 {% block body_class %}actualite{% endblock %}
 {% block app_scope %}actualite{% endblock %}
-
 {% block og_type %}article{% endblock %}
 {% block og_title %}{{ article.title }} – Immigration97{% endblock %}
-{% block og_description %}{% if article.summary %}{{ article.summary|truncatechars:160 }}{% else %}Informations officielles, opportunités et conseils immigration — Immigration97.{% endif %}{% endblock %}
+{% block og_description %}{% if article.summary %}{{ article.summary|truncatechars:160 }}{% else %}Informations officielles immigration.{% endif %}{% endblock %}
 {% block og_image %}{% if article.image_url %}{{ article.image_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/LOGOIMM97.png' %}{% endif %}{% endblock %}
 {% block twitter_title %}{{ article.title }}{% endblock %}
-{% block twitter_description %}{% if article.summary %}{{ article.summary|truncatechars:160 }}{% else %}Informations officielles, opportunités et conseils immigration — Immigration97.{% endif %}{% endblock %}
+{% block twitter_description %}{% if article.summary %}{{ article.summary|truncatechars:160 }}{% else %}Informations officielles immigration.{% endif %}{% endblock %}
 {% block twitter_image %}{% if article.image_url %}{{ article.image_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/LOGOIMM97.png' %}{% endif %}{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/actualite.css' %}">
-  <link rel="alternate" type="application/rss+xml" title="Immigration97 Actualités RSS" href="{% url 'actualite:rss_feed' %}">
-  <link rel="alternate" type="application/atom+xml" title="Immigration97 Actualités Atom" href="{% url 'actualite:atom_feed' %}">
+<link rel="stylesheet" href="{% static 'css/actualite.css' %}">
+<style>
+body.actualite{background:#050A18!important;color:#E8EAF0!important;font-family:'DM Sans',system-ui,sans-serif;}
+
+/* ── HERO ARTICLE ── */
+.ad-hero{position:relative;min-height:440px;display:flex;align-items:flex-end;overflow:hidden;}
+.ad-hero__bg{position:absolute;inset:0;z-index:0;}
+.ad-hero__bg img{width:100%;height:100%;object-fit:cover;object-position:center;}
+.ad-hero__bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(5,10,24,.2) 0%,rgba(5,10,24,.7) 45%,rgba(5,10,24,.97) 100%);}
+.ad-hero__bg--no-img{background:linear-gradient(135deg,#050A18 0%,#0A1628 50%,#0F2040 100%);}
+.ad-hero__bg--no-img::before{content:'';position:absolute;top:-120px;right:-120px;width:500px;height:500px;background:radial-gradient(circle,rgba(212,168,67,.14) 0%,transparent 65%);pointer-events:none;}
+.ad-hero__bg--no-img::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#D4A843,#F0C060,transparent);}
+.ad-hero__inner{position:relative;z-index:1;width:100%;max-width:1100px;margin:0 auto;padding:3rem 1.5rem 2.5rem;}
+.ad-bc{display:flex;align-items:center;gap:.4rem;font-size:.76rem;color:rgba(255,255,255,.5);flex-wrap:wrap;margin-bottom:1rem;}
+.ad-bc a{color:rgba(255,255,255,.6);text-decoration:none;transition:color .2s;}.ad-bc a:hover{color:#F0C060;}
+.ad-bc__sep{color:rgba(255,255,255,.2);}
+.ad-badges{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.85rem;}
+.ad-badge{display:inline-block;font-size:.64rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .65rem;border-radius:6px;}
+.ad-badge--country{background:rgba(212,168,67,.15);border:1px solid rgba(212,168,67,.35);color:#F0C060;}
+.ad-badge--cat{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#93c5fd;}
+.ad-title{font-size:clamp(1.6rem,4.5vw,2.8rem);font-weight:900;color:#fff;line-height:1.15;margin:0 0 .8rem;}
+.ad-summary{font-size:.95rem;color:rgba(232,234,240,.72);line-height:1.75;margin:0 0 1rem;max-width:750px;}
+.ad-meta{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem;font-size:.77rem;color:rgba(255,255,255,.45);margin-bottom:1rem;}
+.ad-meta__dot{color:rgba(255,255,255,.2);}
+.ad-trust{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1.25rem;}
+.ad-trust__chip{display:inline-flex;align-items:center;gap:.3rem;padding:.26rem .65rem;border-radius:999px;font-size:.69rem;font-weight:700;text-decoration:none;}
+.ad-trust__chip--ok{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.28);color:#86efac;}
+.ad-trust__chip--src{background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.22);color:#F0C060;}
+.ad-trust__chip--tm{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);}
+.ad-share{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;margin-bottom:1.5rem;}
+.ad-shr{display:inline-flex;align-items:center;gap:.38rem;padding:.42rem .85rem;border-radius:8px;font-size:.76rem;font-weight:700;cursor:pointer;text-decoration:none;border:none;transition:all .18s;white-space:nowrap;font-family:inherit;line-height:1;}
+.ad-shr svg{width:14px;height:14px;flex-shrink:0;}
+.ad-shr--native{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18);}.ad-shr--native:hover{background:rgba(255,255,255,.18);}
+.ad-shr--wa{background:#25D366;color:#fff;}.ad-shr--wa:hover{background:#20b858;}
+.ad-shr--fb{background:#1877f2;color:#fff;}.ad-shr--fb:hover{background:#1464d8;}
+.ad-shr--cp{background:rgba(255,255,255,.08);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.15);}.ad-shr--cp:hover{background:rgba(255,255,255,.15);color:#fff;}
+.ad-shr--ok{font-size:.73rem;font-weight:600;color:#86efac;}
+.ad-ctas{display:flex;gap:.6rem;flex-wrap:wrap;}
+.ad-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.62rem 1.3rem;border-radius:10px;font-size:.84rem;font-weight:700;text-decoration:none;transition:all .2s;}
+.ad-btn--p{background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;}.ad-btn--p:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(212,168,67,.4);}
+.ad-btn--g{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8);}.ad-btn--g:hover{background:rgba(255,255,255,.12);}
+
+/* ── LAYOUT ── */
+.ad-layout{max-width:1100px;margin:0 auto;padding:2.5rem 1.5rem 5rem;display:grid;grid-template-columns:1fr 290px;gap:2.5rem;align-items:start;}
+.ad-sidebar{position:sticky;top:90px;}
+
+/* ── MAIN CONTENT ── */
+.ad-src{background:rgba(212,168,67,.06);border-left:3px solid rgba(212,168,67,.45);border-radius:0 10px 10px 0;padding:.7rem 1rem;font-size:.81rem;color:rgba(255,255,255,.6);margin-bottom:1.4rem;display:flex;align-items:center;gap:.5rem;}
+.ad-src a{color:#F0C060;font-weight:700;text-decoration:none;}.ad-src a:hover{text-decoration:underline;}
+.ad-toc{background:rgba(8,15,32,.8);border:1px solid rgba(212,168,67,.18);border-radius:12px;overflow:hidden;margin-bottom:1.4rem;}
+.ad-toc__hd{padding:.65rem 1rem;background:rgba(212,168,67,.08);border-bottom:1px solid rgba(212,168,67,.12);font-size:.75rem;font-weight:700;color:#F0C060;}
+.ad-toc__ul{list-style:none;margin:0;padding:.3rem 0;}
+.ad-toc__ul li a{display:block;padding:.28rem 1rem;font-size:.77rem;color:rgba(255,255,255,.52);text-decoration:none;transition:all .15s;border-left:2px solid transparent;}
+.ad-toc__ul li a:hover{color:#F0C060;background:rgba(212,168,67,.05);border-left-color:rgba(212,168,67,.4);}
+.ad-toc__ul li.toc-h3 a{padding-left:1.6rem;font-size:.72rem;}
+.ad-sum{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.18);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.4rem;}
+.ad-sum__hd{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#93c5fd;margin-bottom:.7rem;}
+.ad-sum__ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.4rem;}
+.ad-sum__ul li{display:flex;align-items:flex-start;gap:.45rem;font-size:.83rem;color:rgba(232,234,240,.8);line-height:1.5;}
+.ad-sum__ul li::before{content:'✓';color:#93c5fd;font-weight:800;flex-shrink:0;}
+/* Article text */
+.ad-art{font-size:.96rem;color:rgba(232,234,240,.85);line-height:1.85;margin-bottom:2rem;}
+.ad-art h2{font-size:1.3rem;font-weight:800;color:#fff;margin:2rem 0 .6rem;border-left:3px solid rgba(212,168,67,.55);padding-left:.8rem;}
+.ad-art h3{font-size:1.05rem;font-weight:700;color:rgba(232,234,240,.92);margin:1.5rem 0 .5rem;}
+.ad-art p{margin:0 0 1rem;}
+.ad-art a{color:#F0C060;text-decoration:underline;}
+.ad-art ul,.ad-art ol{padding-left:1.4rem;margin:0 0 1rem;}
+.ad-art li{margin-bottom:.35rem;}
+.ad-art blockquote{border-left:3px solid rgba(212,168,67,.5);background:rgba(212,168,67,.05);padding:.8rem 1.2rem;margin:1rem 0;border-radius:0 8px 8px 0;font-style:italic;color:rgba(232,234,240,.72);}
+.ad-art strong{color:#fff;font-weight:700;}
+.ad-art table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.87rem;}
+.ad-art th{background:rgba(212,168,67,.1);color:#F0C060;padding:.5rem .75rem;border:1px solid rgba(212,168,67,.2);text-align:left;font-weight:700;}
+.ad-art td{padding:.48rem .75rem;border:1px solid rgba(255,255,255,.07);color:rgba(232,234,240,.8);}
+.ad-art tr:nth-child(even) td{background:rgba(255,255,255,.03);}
+/* Related */
+.ad-rel-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
+.ad-rel{background:rgba(8,15,32,.75);border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;transition:all .22s;}
+.ad-rel:hover{border-color:rgba(212,168,67,.28);transform:translateY(-2px);}
+.ad-rel__img{height:95px;overflow:hidden;background:#0A1628;display:flex;align-items:center;justify-content:center;}
+.ad-rel__img img{width:100%;height:100%;object-fit:cover;}
+.ad-rel__placeholder{font-size:1.75rem;opacity:.3;}
+.ad-rel__body{padding:.8rem;}
+.ad-rel__tag{font-size:.6rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(212,168,67,.6);margin-bottom:.28rem;}
+.ad-rel__title{font-size:.81rem;font-weight:700;color:rgba(232,234,240,.88);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.ad-sec-eye{font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(212,168,67,.58);margin-bottom:.5rem;}
+.ad-sec-hd{font-size:1.05rem;font-weight:800;color:#fff;margin:0 0 1rem;}
+/* CTA */
+.ad-cta-box{background:linear-gradient(135deg,rgba(212,168,67,.08),rgba(212,168,67,.03));border:1px solid rgba(212,168,67,.2);border-radius:16px;padding:1.5rem;text-align:center;margin-top:2rem;}
+.ad-cta-box h3{font-size:.97rem;font-weight:800;color:#fff;margin:0 0 .45rem;}
+.ad-cta-box p{font-size:.82rem;color:rgba(255,255,255,.45);margin:0 0 1rem;}
+.ad-cta-btns{display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap;}
+/* SIDEBAR */
+.ad-sb{background:rgba(8,15,32,.8);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.25rem;margin-bottom:1rem;backdrop-filter:blur(10px);}
+.ad-sb h4{font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:rgba(212,168,67,.58);margin-bottom:.8rem;}
+.ad-sb-links{display:flex;flex-direction:column;gap:.38rem;}
+.ad-sb-lnk{display:flex;align-items:center;gap:.4rem;padding:.52rem .72rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;font-size:.79rem;color:rgba(255,255,255,.65);text-decoration:none;transition:all .2s;}
+.ad-sb-lnk:hover{background:rgba(212,168,67,.08);border-color:rgba(212,168,67,.22);color:#fff;}
+.ad-tags{display:flex;flex-wrap:wrap;gap:.35rem;}
+.ad-tag{padding:.22rem .6rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:999px;font-size:.7rem;color:rgba(255,255,255,.55);}
+/* Sticky */
+.a-nl-sticky{position:fixed;bottom:1.5rem;left:1.5rem;z-index:500;background:rgba(5,10,24,.95);border:1px solid rgba(212,168,67,.22);border-radius:14px;padding:1rem 1.25rem;max-width:300px;backdrop-filter:blur(20px);transition:opacity .3s,transform .3s;opacity:0;transform:translateY(20px);pointer-events:none;}
+.a-nl-sticky.is-visible{opacity:1;transform:translateY(0);pointer-events:auto;}
+.a-nl-sticky__close{position:absolute;top:.45rem;right:.45rem;background:transparent;border:none;color:rgba(255,255,255,.4);font-size:.85rem;cursor:pointer;padding:.2rem .35rem;}
+.a-nl-sticky__title{font-size:.83rem;font-weight:700;color:#fff;margin-bottom:.2rem;}
+.a-nl-sticky__text{font-size:.73rem;color:rgba(255,255,255,.45);margin-bottom:.7rem;}
+.a-nl-sticky__btn{display:inline-flex;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.78rem;font-weight:800;padding:.48rem 1rem;border-radius:8px;text-decoration:none;}
+
+@media(max-width:900px){.ad-layout{grid-template-columns:1fr;}.ad-sidebar{position:static;}}
+@media(max-width:600px){.ad-rel-grid{grid-template-columns:1fr;}.ad-cta-btns{flex-direction:column;align-items:center;}.ad-share{gap:.3rem;}.ad-shr{padding:.38rem .65rem;font-size:.7rem;}.ad-hero__inner{padding:2rem 1rem 2rem;}.ad-title{font-size:clamp(1.45rem,6vw,2.2rem);}}
+</style>
 {% endblock %}
 
 {% block content %}
+{% include "actualite/partials/_seo_meta.html" with page="detail" article=article %}
 
-  {# ================= SEO / Schema ================= #}
-  {% include "actualite/partials/_seo_meta.html" with page="detail" article=article %}
-
-  <!-- ================= HERO ARTICLE ================= -->
-  <section class="a-hero a-hero--detail">
-    <div class="a-hero__content">
-
-      <div class="a-breadcrumbs">
-        <a href="{% url 'actualite:list' %}">Actualités</a>
-        <span>›</span>
-        <a href="{% url 'actualite:by_country' article.country_target|country_slug %}">
-          {{ article.country_target|country_label }}
-        </a>
-      </div>
-
-      <h1 class="a-title">{{ article.title }}</h1>
-
-      {% if article.summary %}
-        <p class="a-subtitle">{{ article.summary }}</p>
-      {% endif %}
-
-      <div class="a-meta">
-        <span class="a-badge">{{ article.country_target|country_label }}</span>
-        <span class="a-dot">•</span>
-        <span>{{ article.get_category_display }}</span>
-        <span class="a-dot">•</span>
-        <span>Publié : {{ article.publish_date|date:"d M Y" }}</span>
-        <span class="a-dot">•</span>
-        <span>{{ article.views_count }} vues</span>
-      </div>
-
-      <!-- ✅ TRUST BAR : crédibilité + lecture -->
-      <div class="a-trustbar">
-        <span class="a-trust a-trust--verified">Info vérifiée</span>
-
-        {# ✅ USA: force DV official link #}
-        {% if article.country_target == "US" %}
-          <a class="a-trust a-trust--source"
-             href="https://dvprogram.state.gov"
-             target="_blank" rel="noopener nofollow">
-            Source officielle
-          </a>
-        {% elif article.source_url %}
-          <a class="a-trust a-trust--source"
-             href="{{ article.source_url }}"
-             target="_blank" rel="noopener">
-            Source officielle
-          </a>
-        {% else %}
-          <span class="a-trust a-trust--source">Source officielle</span>
-        {% endif %}
-
-        <span class="a-trust a-trust--time" id="reading-time">⏱️ Temps de lecture : —</span>
-
-        <span class="a-trust a-trust--date">
-          Mis à jour :
-          {% if article.updated_at %}
-            {{ article.updated_at|date:"d M Y" }}
-          {% else %}
-            {{ article.publish_date|date:"d M Y" }}
-          {% endif %}
-        </span>
-      </div>
-
-      <!-- ✅ SHARE BAR (premium + icônes) -->
-      <div class="a-share" id="share-bar"
-           data-url="{{ request.build_absolute_uri }}"
-           data-title="{{ article.title|escapejs }}"
-           data-text="{% if article.summary %}{{ article.summary|escapejs }}{% else %}Article Immigration97{% endif %}">
-
-        <button type="button" class="a-share__btn a-share__btn--native" id="btn-share-native" aria-label="Partager">
-          <span class="a-share__icon" aria-hidden="true">
-            <!-- Share icon -->
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M16 8a3 3 0 1 0-2.83-4H13a3 3 0 0 0 3 4ZM6 14a3 3 0 1 0 2.83 4H9a3 3 0 0 0-3-4Zm10 2a3 3 0 1 0 2.83 4H19a3 3 0 0 0-3-4Z" opacity=".0"/>
-              <path d="M15.5 6.5 8.7 10.2M8.7 13.8l6.8 3.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              <path d="M18 5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm10 7a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" stroke="currentColor" stroke-width="1.8"/>
-            </svg>
-          </span>
-          Partager
-        </button>
-
-        <a class="a-share__btn a-share__btn--wa" id="btn-share-whatsapp" target="_blank" rel="noopener" aria-label="Partager sur WhatsApp">
-          <span class="a-share__icon" aria-hidden="true">
-            <!-- WhatsApp icon -->
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M12 2.3c-5.35 0-9.7 4.1-9.7 9.16 0 1.62.45 3.18 1.3 4.54L2 22l6.25-1.63c1.25.65 2.66.99 4.1.99 5.35 0 9.7-4.1 9.7-9.16C21.7 6.4 17.35 2.3 12 2.3Z" stroke="currentColor" stroke-width="1.6"/>
-              <path d="M9.2 8.2c.2-.5.4-.5.7-.5h.6c.2 0 .5.1.6.4l.9 2.1c.1.3.1.6-.1.8l-.5.6c-.1.2-.2.4 0 .6.4.8 1.5 2.1 3.2 2.8.3.1.5.1.6-.1l.8-.9c.2-.2.4-.3.7-.2l2.3.8c.3.1.5.4.4.7-.1.7-.4 1.4-1 1.9-.7.6-1.6.8-2.5.6-1.2-.2-2.5-.8-3.8-1.7-1.3-.9-2.5-2.2-3.3-3.6-.6-1.1-.9-2.2-.7-3.1.2-.8.8-1.5 1.5-1.9Z" fill="currentColor"/>
-            </svg>
-          </span>
-          WhatsApp
-        </a>
-
-        <a class="a-share__btn a-share__btn--fb" id="btn-share-facebook" target="_blank" rel="noopener" aria-label="Partager sur Facebook">
-          <span class="a-share__icon" aria-hidden="true">
-            <!-- Facebook icon -->
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M13.5 9H15V6.5c0-1.3 1.1-2.5 2.6-2.5H20V7h-1.6c-.5 0-.9.4-.9.9V9H20l-.4 3H17.5v8h-3.1v-8H12V9h2.4V7.7c0-2.2 1.6-3.7 3.8-3.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </span>
-          Facebook
-        </a>
-
-        <a class="a-share__btn a-share__btn--ln" id="btn-share-linkedin" target="_blank" rel="noopener" aria-label="Partager sur LinkedIn">
-          <span class="a-share__icon" aria-hidden="true">
-            <!-- LinkedIn icon -->
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M6.5 9.5V20M6.5 6.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM10.5 20v-6.2c0-2.1 1.2-3.3 3-3.3s2.8 1.2 2.8 3.3V20M10.5 12.2V20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </span>
-          LinkedIn
-        </a>
-
-        <button type="button" class="a-share__btn a-share__btn--copy" id="btn-copy-link" aria-label="Copier le lien">
-          <span class="a-share__icon" aria-hidden="true">
-            <!-- Link icon -->
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M10 13a5 5 0 0 1 0-7l1.2-1.2a5 5 0 0 1 7 7L17 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              <path d="M14 11a5 5 0 0 1 0 7L12.8 19.2a5 5 0 0 1-7-7L7 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-          </span>
-          Copier
-        </button>
-
-        <span class="a-share__ok" id="copy-ok" aria-live="polite"></span>
-      </div>
-
-      <div class="a-hero__actions">
-        <a class="c-btn c-btn--primary" href="/consultation/">🎯 Demander un accompagnement</a>
-        <a class="c-btn c-btn--outline" href="/billing/access/">Accès Premium</a>
-      </div>
-
+<!-- HERO -->
+<div class="ad-hero" id="share-bar"
+     data-url="{{ request.build_absolute_uri }}"
+     data-title="{{ article.title|escapejs }}"
+     data-text="{% if article.summary %}{{ article.summary|escapejs }}{% else %}Article Immigration97{% endif %}">
+  <div class="ad-hero__bg {% if not article.image %}ad-hero__bg--no-img{% endif %}">
+    {% if article.image %}<img src="{{ article.image.url }}" alt="{{ article.title }}" loading="eager">{% endif %}
+  </div>
+  <div class="ad-hero__inner">
+    <nav class="ad-bc">
+      <a href="{% url 'actualite:list' %}">Actualités</a>
+      <span class="ad-bc__sep">›</span>
+      <a href="{% url 'actualite:by_country' article.country_target|country_slug %}">{{ article.country_target|country_label }}</a>
+    </nav>
+    <div class="ad-badges">
+      <span class="ad-badge ad-badge--country">{{ article.country_target|country_label }}</span>
+      <span class="ad-badge ad-badge--cat">{{ article.get_category_display }}</span>
     </div>
-  </section>
-
-  <!-- ================= LAYOUT ================= -->
-  <section class="a-layout">
-
-    <!-- ========== SIDEBAR ========== -->
-    <aside class="a-sidebar">
-
-      {% include "actualite/partials/_newsletter.html" with source_page="detail" country_slug=article.country_target|country_slug %}
-
-      {% include "actualite/partials/_cta.html" %}
-      {% include "actualite/partials/_ads_slot.html" with slot="sidebar" %}
-
-      {% if article.tags.all %}
-        <div class="a-card">
-          <div class="a-card__head">
-            <h3>Mots-clés</h3>
-            <p>Pour explorer plus vite.</p>
-          </div>
-          <div class="a-tags">
-            {% for t in article.tags.all %}
-              <span class="a-tag">#{{ t.name }}</span>
-            {% endfor %}
-          </div>
-        </div>
-      {% endif %}
-
-    </aside>
-
-    <!-- ========== MAIN CONTENT ========== -->
-    <div class="a-main">
-
-      {% if article.image %}
-        <div class="a-cover">
-          <img src="{{ article.image.url }}" alt="{{ article.title }}" loading="lazy">
-        </div>
-      {% endif %}
-
-      {% if article.video_url %}
-        <div class="a-video">
-          <a class="c-btn c-btn--outline" href="{{ article.video_url }}" target="_blank" rel="noopener">
-            ▶️ Voir la vidéo
-          </a>
-        </div>
-      {% endif %}
-
-      {# ✅ Source propre (pas d'URL brute) #}
-      {% if article.country_target == "US" %}
-        <div class="a-source">
-          <strong>Source officielle :</strong>
-          <a href="https://dvprogram.state.gov" target="_blank" rel="noopener nofollow">
-            dvprogram.state.gov
-          </a>
-        </div>
-      {% elif article.source_url %}
-        <div class="a-source">
-          <strong>Source officielle :</strong>
-          <a href="{{ article.source_url }}" target="_blank" rel="noopener">
-            Consulter la source
-          </a>
-        </div>
-      {% endif %}
-
-      <!-- ========== SOMMAIRE AUTOMATIQUE ========== -->
-      <div class="a-toc" id="toc-container">
-        <div class="a-toc__head">
-          <strong>Sommaire</strong>
-        </div>
-        <ul class="a-toc__list" id="toc-list"></ul>
-      </div>
-
-      <!-- ========== RÉSUMÉ AUTOMATIQUE (5 POINTS) ========== -->
-      <div class="a-summary" id="auto-summary" style="display:none;">
-        <div class="a-summary__head">
-          <h3>Résumé rapide</h3>
-          <p>Les 5 points essentiels à retenir.</p>
-        </div>
-        <ul class="a-summary__list" id="auto-summary-list"></ul>
-      </div>
-
-      <!-- ========== ARTICLE CONTENT ========== -->
-      <article class="a-article">
-        <div id="article-content">
-          {% if article.content %}
-            {{ article.content|safe }}
-          {% else %}
-            <p>Contenu en préparation.</p>
-          {% endif %}
-        </div>
-      </article>
-
-      {% include "actualite/partials/_ads_slot.html" with slot="in_article" %}
-
-      {% if related %}
-        <div class="a-card">
-          <div class="a-card__head">
-            <h2>Articles similaires ({{ article.country_target|country_label }})</h2>
-            <p>Pour aller plus loin sur le même pays.</p>
-          </div>
-          <div class="a-grid">
-            {% for item in related %}
-              {% include "actualite/partials/_news_card.html" with item=item featured=False %}
-            {% endfor %}
-          </div>
-        </div>
-      {% endif %}
-
-      {% if by_tags %}
-        <div class="a-card">
-          <div class="a-card__head">
-            <h2>Recommandés par mots-clés</h2>
-            <p>Articles liés par thèmes.</p>
-          </div>
-          <div class="a-grid">
-            {% for item in by_tags %}
-              {% include "actualite/partials/_news_card.html" with item=item featured=False %}
-            {% endfor %}
-          </div>
-        </div>
-      {% endif %}
-
-      <div class="a-card">
-        <div class="a-card__head">
-          <h2>Prêt à passer à l’action ?</h2>
-          <p>Ne lis pas seulement l’info : transforme-la en résultat.</p>
-        </div>
-        <div class="a-evergreen__cta">
-          <a class="c-btn c-btn--primary" href="/consultation/">🎯 Demander un accompagnement</a>
-          <a class="c-btn c-btn--outline" href="/cv-generator/">Créer mon CV</a>
-        </div>
-      </div>
-
-      {% include "actualite/partials/_ads_slot.html" with slot="bottom" %}
-
+    <h1 class="ad-title">{{ article.title }}</h1>
+    {% if article.summary %}<p class="ad-summary">{{ article.summary }}</p>{% endif %}
+    <div class="ad-meta">
+      <span>{{ article.publish_date|date:"d M Y" }}</span>
+      <span class="ad-meta__dot">•</span>
+      <span>{{ article.views_count }} vues</span>
+      <span class="ad-meta__dot">•</span>
+      <span id="reading-time">⏱ …</span>
     </div>
-  </section>
-
-  <!-- ========== NEWSLETTER STICKY (INTELLIGENTE) ========== -->
-  <div class="a-nl-sticky" id="nl-sticky" aria-hidden="true">
-    <button class="a-nl-sticky__close" id="nl-sticky-close" aria-label="Fermer">✕</button>
-    <div class="a-nl-sticky__content">
-      <div>
-        <div class="a-nl-sticky__title">Recevoir les alertes immigration</div>
-        <div class="a-nl-sticky__text">USA • Canada • Europe — opportunités, lois, offres.</div>
-      </div>
-      <a class="c-btn c-btn--primary a-nl-sticky__btn" href="#newsletter-form">Je m’inscris</a>
+    <div class="ad-trust">
+      <span class="ad-trust__chip ad-trust__chip--ok">✓ Info vérifiée</span>
+      {% if article.country_target == "US" %}<a class="ad-trust__chip ad-trust__chip--src" href="https://dvprogram.state.gov" target="_blank" rel="noopener nofollow">🔗 Source officielle</a>
+      {% elif article.source_url %}<a class="ad-trust__chip ad-trust__chip--src" href="{{ article.source_url }}" target="_blank" rel="noopener">🔗 Source officielle</a>
+      {% else %}<span class="ad-trust__chip ad-trust__chip--src">🔗 Source officielle</span>{% endif %}
+      <span class="ad-trust__chip ad-trust__chip--tm">Mis à jour : {% if article.updated_at %}{{ article.updated_at|date:"d M Y" }}{% else %}{{ article.publish_date|date:"d M Y" }}{% endif %}</span>
+    </div>
+    <div class="ad-share">
+      <button type="button" class="ad-shr ad-shr--native" id="btn-share-native">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15.5 6.5 8.7 10.2M8.7 13.8l6.8 3.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M18 5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm10 7a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" stroke="currentColor" stroke-width="2"/></svg>
+        Partager
+      </button>
+      <a class="ad-shr ad-shr--wa" id="btn-wa" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.932-1.438A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm4.406 13.155c-.24-.12-1.42-.7-1.64-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1.014-.374-1.932-1.19-.714-.636-1.196-1.42-1.336-1.66-.14-.24-.016-.37.104-.49.108-.108.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.196-.468-.396-.404-.54-.412l-.46-.008a.882.882 0 00-.64.3c-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.59 4.12 3.63.576.248 1.024.396 1.374.508.578.184 1.104.158 1.52.096.464-.068 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28z"/></svg>
+        WhatsApp
+      </a>
+      <a class="ad-shr ad-shr--fb" id="btn-fb" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+        Facebook
+      </a>
+      <button type="button" class="ad-shr ad-shr--cp" id="btn-cp">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Copier
+      </button>
+      <span class="ad-shr--ok" id="cp-ok"></span>
+    </div>
+    <div class="ad-ctas">
+      <a href="/consultation/" class="ad-btn ad-btn--p">🎯 Accompagnement</a>
+      <a href="{% url 'residence_permanente' %}" class="ad-btn ad-btn--g">🇨🇦 RP Canada</a>
     </div>
   </div>
+</div>
 
-  <!-- ========== JS : SHARE + TOC + RÉSUMÉ + LECTURE + STICKY ========== -->
-  <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const content = document.getElementById("article-content");
-    if (!content) return;
+<!-- LAYOUT -->
+<div class="ad-layout">
+  <div>
+    {% if article.country_target == "US" %}<div class="ad-src">🔗 <strong>Source :</strong> <a href="https://dvprogram.state.gov" target="_blank" rel="noopener nofollow">dvprogram.state.gov</a></div>
+    {% elif article.source_url %}<div class="ad-src">🔗 <strong>Source officielle :</strong> <a href="{{ article.source_url }}" target="_blank" rel="noopener">Consulter →</a></div>
+    {% endif %}
+    {% if article.video_url %}<div style="margin-bottom:1.25rem;"><a href="{{ article.video_url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.28);color:#93c5fd;padding:.55rem 1.05rem;border-radius:9px;font-size:.83rem;font-weight:700;text-decoration:none;">▶ Voir la vidéo</a></div>{% endif %}
+    <div class="ad-toc" id="toc-container"><div class="ad-toc__hd">📋 Sommaire</div><ul class="ad-toc__ul" id="toc-list"></ul></div>
+    <div class="ad-sum" id="auto-summary" style="display:none;"><div class="ad-sum__hd">⚡ Points essentiels</div><ul class="ad-sum__ul" id="auto-summary-list"></ul></div>
+    <article class="ad-art" id="article-content">{% if article.content %}{{ article.content|safe }}{% else %}<p>Contenu en préparation.</p>{% endif %}</article>
+    {% include "actualite/partials/_ads_slot.html" with slot="in_article" %}
+    {% if related %}
+    <div style="margin-top:2rem;">
+      <p class="ad-sec-eye">Même pays</p><h2 class="ad-sec-hd">Articles similaires</h2>
+      <div class="ad-rel-grid">
+        {% for item in related %}
+        <a href="{{ item.get_absolute_url }}" class="ad-rel">
+          <div class="ad-rel__img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}" loading="lazy">{% else %}<div class="ad-rel__placeholder">📰</div>{% endif %}</div>
+          <div class="ad-rel__body"><div class="ad-rel__tag">{{ item.country_target|country_label }}</div><div class="ad-rel__title">{{ item.title }}</div></div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    <div class="ad-cta-box">
+      <h3>Prêt à passer à l'action ?</h3>
+      <p>Ne lisez pas seulement l'info — transformez-la en résultat concret.</p>
+      <div class="ad-cta-btns">
+        <a href="/consultation/" class="ad-btn ad-btn--p">🎯 Demander un accompagnement</a>
+        <a href="{% url 'residence_permanente' %}" class="ad-btn ad-btn--g">🇨🇦 Résidence Permanente</a>
+      </div>
+    </div>
+  </div>
+  <div class="ad-sidebar">
+    {% include "actualite/partials/_newsletter.html" with source_page="detail" country_slug=article.country_target|country_slug %}
+    <div class="ad-sb">
+      <h4>Actions</h4>
+      <div class="ad-sb-links">
+        <a href="{% url 'permanent_residence:eligibility' %}" class="ad-sb-lnk">🚀 Diagnostic RP Canada</a>
+        <a href="/prep/" class="ad-sb-lnk">🎓 Préparer TEF Canada</a>
+        <a href="{% url 'resources:library' %}" class="ad-sb-lnk">📚 Guides & Ressources</a>
+        <a href="/consultation/" class="ad-sb-lnk">💬 Consultation</a>
+      </div>
+    </div>
+    {% if article.tags.all %}<div class="ad-sb"><h4>Mots-clés</h4><div class="ad-tags">{% for t in article.tags.all %}<span class="ad-tag">#{{ t.name }}</span>{% endfor %}</div></div>{% endif %}
+    {% include "actualite/partials/_ads_slot.html" with slot="sidebar" %}
+  </div>
+</div>
 
-    // ===== SHARE LINKS =====
-    const shareBar = document.getElementById("share-bar");
-    if (shareBar) {
-      const url = shareBar.dataset.url || window.location.href;
-      const title = shareBar.dataset.title || document.title;
-      const text = shareBar.dataset.text || "";
+<div class="a-nl-sticky" id="nl-sticky" aria-hidden="true">
+  <button class="a-nl-sticky__close" id="nl-sticky-close">✕</button>
+  <div class="a-nl-sticky__title">Alertes immigration</div>
+  <div class="a-nl-sticky__text">Canada · Allemagne · Italie · France — opportunités en temps réel.</div>
+  <a class="a-nl-sticky__btn" href="#newsletter-form">Je m'inscris</a>
+</div>
 
-      const encodedURL = encodeURIComponent(url);
-      const encodedTitle = encodeURIComponent(title);
-      const encodedText = encodeURIComponent(text);
-
-      const wa = document.getElementById("btn-share-whatsapp");
-      const fb = document.getElementById("btn-share-facebook");
-      const ln = document.getElementById("btn-share-linkedin");
-
-      if (wa) wa.href = `https://wa.me/?text=${encodedTitle}%0A${encodedURL}`;
-      if (fb) fb.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedURL}`;
-      if (ln) ln.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedURL}`;
-
-      const btnNative = document.getElementById("btn-share-native");
-      if (btnNative) {
-        if (navigator.share) {
-          btnNative.addEventListener("click", async () => {
-            try { await navigator.share({ title, text, url }); } catch (e) {}
-          });
-        } else {
-          btnNative.style.display = "none";
-        }
-      }
-
-      const btnCopy = document.getElementById("btn-copy-link");
-      const ok = document.getElementById("copy-ok");
-      if (btnCopy) {
-        btnCopy.addEventListener("click", async () => {
-          try {
-            await navigator.clipboard.writeText(url);
-            if (ok) ok.textContent = "Lien copié ✅";
-            setTimeout(() => { if (ok) ok.textContent = ""; }, 2000);
-          } catch (e) {
-            if (ok) ok.textContent = "Impossible de copier.";
-          }
-        });
-      }
-    }
-
-    // ===== TOC =====
-    const tocList = document.getElementById("toc-list");
-    const tocContainer = document.getElementById("toc-container");
-    if (tocList && tocContainer) {
-      const headings = content.querySelectorAll("h2, h3");
-      if (headings.length < 2) {
-        tocContainer.style.display = "none";
-      } else {
-        headings.forEach((heading, index) => {
-          const id = "section-" + index;
-          if (!heading.id) heading.setAttribute("id", id);
-
-          const li = document.createElement("li");
-          li.className = "a-toc__item a-toc__item--" + heading.tagName.toLowerCase();
-
-          const a = document.createElement("a");
-          a.href = "#" + heading.id;
-          a.textContent = heading.textContent;
-
-          li.appendChild(a);
-          tocList.appendChild(li);
-        });
-      }
-    }
-
-    // ===== Reading time =====
-    const output = document.getElementById("reading-time");
-    if (output) {
-      const text = (content.innerText || content.textContent || "").trim();
-      const words = text ? text.split(/\s+/).length : 0;
-      const minutes = Math.max(1, Math.round(words / 200));
-      output.textContent = "⏱️ Temps de lecture : " + minutes + " min";
-    }
-
-    // ===== Auto summary (5 points) =====
-    const box = document.getElementById("auto-summary");
-    const list = document.getElementById("auto-summary-list");
-    if (box && list) {
-      const text = (content.innerText || content.textContent || "").replace(/\s+/g, " ").trim();
-      if (text.length > 220) {
-        const sentences = text
-          .split(/[.!?]\s+/)
-          .map(s => s.trim())
-          .filter(s => s.length > 50 && s.length < 170);
-
-        const picked = [];
-        const used = new Set();
-        for (let s of sentences) {
-          const key = s.slice(0, 50).toLowerCase();
-          if (used.has(key)) continue;
-          used.add(key);
-          picked.push(s);
-          if (picked.length >= 5) break;
-        }
-
-        if (picked.length >= 3) {
-          list.innerHTML = "";
-          picked.forEach(s => {
-            const li = document.createElement("li");
-            li.textContent = s.endsWith(".") ? s : (s + ".");
-            list.appendChild(li);
-          });
-          box.style.display = "block";
-        }
-      }
-    }
-
-    // ===== Sticky newsletter =====
-    const sticky = document.getElementById("nl-sticky");
-    const closeBtn = document.getElementById("nl-sticky-close");
-    if (sticky && closeBtn) {
-      const KEY = "imm97_nl_sticky_closed";
-      if (localStorage.getItem(KEY) !== "1") {
-        function showSticky() {
-          sticky.classList.add("is-visible");
-          sticky.setAttribute("aria-hidden", "false");
-        }
-        function hideSticky() {
-          sticky.classList.remove("is-visible");
-          sticky.setAttribute("aria-hidden", "true");
-        }
-        closeBtn.addEventListener("click", function () {
-          localStorage.setItem(KEY, "1");
-          hideSticky();
-        });
-
-        window.addEventListener("scroll", function () {
-          const doc = document.documentElement;
-          const scrollTop = doc.scrollTop || document.body.scrollTop;
-          const scrollHeight = doc.scrollHeight - doc.clientHeight;
-          const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) : 0;
-          if (progress > 0.25) showSticky();
-        }, { passive: true });
-      }
-    }
-  });
-  </script>
-
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  var content=document.getElementById("article-content");
+  if(!content)return;
+  var bar=document.getElementById("share-bar");
+  if(bar){
+    var url=bar.dataset.url||window.location.href;
+    var title=bar.dataset.title||document.title;
+    var eu=encodeURIComponent(url),et=encodeURIComponent(title);
+    var wa=document.getElementById("btn-wa"),fb=document.getElementById("btn-fb");
+    if(wa)wa.href="https://wa.me/?text="+et+"%0A"+eu;
+    if(fb)fb.href="https://www.facebook.com/sharer/sharer.php?u="+eu;
+    var native=document.getElementById("btn-share-native");
+    if(native){if(navigator.share){native.addEventListener("click",function(){navigator.share({title:title,url:url}).catch(function(){});});}else{native.style.display="none";}}
+    var cp=document.getElementById("btn-cp"),ok=document.getElementById("cp-ok");
+    if(cp){cp.addEventListener("click",function(){navigator.clipboard.writeText(url).then(function(){if(ok){ok.textContent="✓ Copié";setTimeout(function(){ok.textContent="";},2000);}}).catch(function(){});});}
+  }
+  var rt=document.getElementById("reading-time");
+  if(rt){var w=(content.innerText||"").trim().split(/\s+/).length;rt.textContent="⏱ "+(Math.max(1,Math.round(w/200)))+" min";}
+  var tl=document.getElementById("toc-list"),tc=document.getElementById("toc-container");
+  if(tl&&tc){var hh=content.querySelectorAll("h2,h3");if(hh.length<2){tc.style.display="none";}else{hh.forEach(function(h,i){var id="s"+i;if(!h.id)h.id=id;var li=document.createElement("li");li.className=h.tagName==="H3"?"toc-h3":"";var a=document.createElement("a");a.href="#"+h.id;a.textContent=h.textContent;li.appendChild(a);tl.appendChild(li);});}}
+  var sb=document.getElementById("auto-summary"),sl=document.getElementById("auto-summary-list");
+  if(sb&&sl){var t=(content.innerText||"").replace(/\s+/g," ").trim();if(t.length>220){var ss=t.split(/[.!?]\s+/).map(function(s){return s.trim();}).filter(function(s){return s.length>50&&s.length<170;});var picked=[],used=new Set();for(var i=0;i<ss.length;i++){var k=ss[i].slice(0,50).toLowerCase();if(used.has(k))continue;used.add(k);picked.push(ss[i]);if(picked.length>=5)break;}if(picked.length>=3){sl.innerHTML="";picked.forEach(function(s){var li=document.createElement("li");li.textContent=s.endsWith(".")?s:s+".";sl.appendChild(li);});sb.style.display="block";}}}
+  var sticky=document.getElementById("nl-sticky"),close=document.getElementById("nl-sticky-close");
+  if(sticky&&close){if(localStorage.getItem("imm97_nl_c")!=="1"){close.addEventListener("click",function(){localStorage.setItem("imm97_nl_c","1");sticky.classList.remove("is-visible");});window.addEventListener("scroll",function(){var p=(document.documentElement.scrollTop||document.body.scrollTop)/(document.documentElement.scrollHeight-document.documentElement.clientHeight);if(p>.3){sticky.classList.add("is-visible");sticky.setAttribute("aria-hidden","false");}},{passive:true});}}
+});
+</script>
 {% endblock %}
