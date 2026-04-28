@@ -1,105 +1,104 @@
 {% extends "base.html" %}
 {% load static %}
-
-
-{% block body_class %}residence-permanente{% endblock %}
-{% block app_scope %}residence-permanente{% endblock %}
-
-
-{% block title %}
-Cockpit Résidence Permanente Canada & Australie | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Cockpit Résidence Permanente Immigration97 : tableau de bord intelligent
-pour immigrer au Canada ou en Australie. Diagnostic RP, score CRS,
-stratégies Express Entry, programmes provinciaux et coach IA immigration.
-{% endblock %}
-
-
+{% block title %}Tableau de bord — Résidence Permanente Canada | Immigration97{% endblock %}
+{% block meta_description %}Votre tableau de bord RP : suivi de votre projet Canada, score CRS, plan d'action, stratégies et coach IA.{% endblock %}
+{% block body_class %}rp-canada{% endblock %}
+{% block app_scope %}rp-canada{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
+<style>
+:root{--rp-navy:#050A18;--rp-gold:#D4A843;--rp-gold-lt:#F0C060;--rp-glass:rgba(8,15,32,.75);--rp-text:rgba(232,234,240,.9);--rp-muted:rgba(232,234,240,.45);--rp-green:#22c55e;}
+body.rp-canada{background:var(--rp-navy);color:var(--rp-text);}
+body.rp-canada::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 80% 50% at 50% -5%,rgba(212,168,67,.08) 0%,transparent 60%);}
+.rp-wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 1.25rem 5rem;}
+.rp-bc{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--rp-muted);padding:1.5rem 0 0;flex-wrap:wrap;}
+.rp-bc a{color:rgba(255,255,255,.4);text-decoration:none;}.rp-bc a:hover{color:var(--rp-gold-lt);}
+.rp-bc__sep{color:rgba(255,255,255,.15);}
+.rp-divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:1.5rem 0;}
+.btn-primary{display:inline-flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.93rem;font-weight:800;padding:.8rem 1.75rem;border-radius:11px;transition:all .22s;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,168,67,.4);}
+.btn-ghost{display:inline-flex;align-items:center;gap:.45rem;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8);font-size:.93rem;font-weight:700;padding:.8rem 1.75rem;border-radius:11px;transition:all .22s;}
+.btn-ghost:hover{background:rgba(255,255,255,.09);}
+.rp-cta-hero{padding:4rem 0;text-align:center;}
+.rp-cta-hero__eye{display:inline-flex;align-items:center;gap:.4rem;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);color:var(--rp-gold-lt);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.3rem .9rem;border-radius:999px;margin-bottom:1rem;}
+.rp-cta-hero h1{font-size:clamp(1.8rem,4.5vw,3rem);font-weight:900;color:#fff;line-height:1.15;margin:0 0 .85rem;}
+.rp-cta-hero h1 span{background:linear-gradient(135deg,#D4A843,#F0C060);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.rp-cta-hero p{font-size:.92rem;color:var(--rp-muted);line-height:1.7;max-width:560px;margin:0 auto 2rem;}
+.rp-cta-hero__btns{display:flex;justify-content:center;gap:.85rem;flex-wrap:wrap;}
+.rp-hero-band{display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:center;padding:2.5rem 0 2rem;}
+.rp-hero-band__eye{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(212,168,67,.65);margin-bottom:.55rem;}
+.rp-hero-band h1{font-size:clamp(1.5rem,3.5vw,2.3rem);font-weight:900;color:#fff;margin:0 0 .55rem;}
+.rp-hero-band p{font-size:.88rem;color:var(--rp-muted);line-height:1.65;margin:0 0 1.25rem;}
+.rp-hero-band__btns{display:flex;gap:.75rem;flex-wrap:wrap;}
+.rp-score-circle{width:110px;height:110px;border-radius:50%;background:rgba(212,168,67,.1);border:3px solid rgba(212,168,67,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.rp-score-circle__num{font-size:2rem;font-weight:900;color:var(--rp-gold-lt);line-height:1;}
+.rp-score-circle__label{font-size:.58rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--rp-muted);margin-top:.2rem;}
+.rp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;}
+.rp-card{background:var(--rp-glass);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.5rem;backdrop-filter:blur(10px);transition:border-color .2s;}
+.rp-card:hover{border-color:rgba(212,168,67,.25);}
+.rp-card__icon{font-size:1.4rem;margin-bottom:.7rem;}
+.rp-card__title{font-size:.9rem;font-weight:700;color:#fff;margin:0 0 .4rem;}
+.rp-card__desc{font-size:.79rem;color:var(--rp-muted);line-height:1.6;margin:0 0 .9rem;}
+.rp-card__link{display:inline-flex;align-items:center;gap:.35rem;font-size:.8rem;font-weight:700;color:var(--rp-gold-lt);transition:gap .2s;}
+.rp-card__link:hover{gap:.6rem;}
+.rp-profile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.45rem;}
+.rp-profile-chip{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:.55rem .75rem;}
+.rp-profile-chip span{font-size:.72rem;color:var(--rp-muted);display:block;}
+.rp-profile-chip strong{font-size:.82rem;color:var(--rp-gold-lt);}
+@media(max-width:700px){.rp-hero-band{grid-template-columns:1fr;}.rp-hero-band__btns{flex-direction:column;}.rp-cta-hero__btns{flex-direction:column;align-items:center;}}
+</style>
 {% endblock %}
-
 {% block content %}
+<div class="rp-wrap">
+<nav class="rp-bc">
+  <a href="/">Accueil</a><span class="rp-bc__sep">›</span>
+  <a href="{% url 'residence_permanente' %}">Résidence Permanente Canada</a><span class="rp-bc__sep">›</span>
+  <span>Tableau de bord</span>
+</nav>
 
-
-{% include "permanent_residence/_rp_nav.html" %}
-
-
-<div class="rp-dashboard">
-
-  {% if not profile %}
-
-  <section class="rp-card rp-card--cta">
-    <h1 class="rp-title">
-      Diagnostic Résidence Permanente Canada & Australie
-    </h1>
-
-    <p class="rp-text">
-      Le <strong>diagnostic Résidence Permanente Immigration97</strong>
-      analyse ton âge, tes études, ton expérience professionnelle,
-      ton niveau de langue et ton potentiel d’immigration
-      vers le <strong>Canada</strong> ou l’<strong>Australie</strong>.
-    </p>
-
-    <div class="rp-actions">
-      <a href="{% url 'permanent_residence:eligibility' %}"
-         class="rp-btn rp-btn--primary">
-        🚀 Faire mon diagnostic RP gratuit
-      </a>
-
-      <a href="{% url 'permanent_residence:program_list' %}"
-         class="rp-btn rp-btn--secondary">
-        📚 Découvrir les programmes RP
-      </a>
-    </div>
-  </section>
-
-  {% else %}
-
-
-  <section class="rp-card rp-hero">
-    <div class="rp-hero-content">
-      <p class="rp-kicker">
-        Cockpit Résidence Permanente · {{ profile.get_country_display }}
-      </p>
-
-      <h1 class="rp-title">
-        Tableau de bord Résidence Permanente
-      </h1>
-
-      <p class="rp-text">
-        Suivi stratégique de ton <strong>projet d’immigration permanente</strong> :
-        score RP, plan d’action, langues et priorités clés.
-      </p>
-
-      <div class="rp-actions">
-        <a href="{% url 'permanent_residence:plan' profile.id %}"
-           class="rp-btn rp-btn--primary">
-          📝 Ouvrir mon plan RP
-        </a>
-
-        <a href="{% url 'permanent_residence:coach' %}"
-           class="rp-btn rp-btn--ai">
-          🤖 Coach IA immigration
-        </a>
-      </div>
-    </div>
-
-    <!-- SCORE -->
-    <div class="rp-score">
-      <p class="rp-score-label">
-        Score global de préparation RP
-      </p>
-
-      <div class="rp-score-circle">
-        <span>{{ readiness_score }}%</span>
-      </div>
-    </div>
-  </section>
-
-  {% endif %}
+{% if not profile %}
+<div class="rp-cta-hero">
+  <div class="rp-cta-hero__eye">🇨🇦 Résidence Permanente Canada</div>
+  <h1>Votre tableau de bord<br><span>Résidence Permanente</span></h1>
+  <p>Commencez par votre diagnostic gratuit. Score CRS estimé, programmes adaptés à votre profil et plan d'action personnalisé.</p>
+  <div class="rp-cta-hero__btns">
+    <a href="{% url 'permanent_residence:eligibility' %}" class="btn-primary">🚀 Faire mon diagnostic gratuit</a>
+    <a href="{% url 'permanent_residence:program_list' %}" class="btn-ghost">📚 Voir les programmes</a>
+  </div>
 </div>
-
+{% else %}
+<div class="rp-hero-band">
+  <div>
+    <p class="rp-hero-band__eye">🇨🇦 Tableau de bord RP — Canada</p>
+    <h1>Mon projet de Résidence Permanente</h1>
+    <p>Suivez votre progression, consultez votre plan d'action et obtenez des recommandations de votre Coach IA.</p>
+    <div class="rp-hero-band__btns">
+      <a href="{% url 'permanent_residence:plan' profile.id %}" class="btn-primary">📝 Mon plan d'action</a>
+      <a href="{% url 'permanent_residence:coach' %}" class="btn-ghost">🤖 Coach IA</a>
+    </div>
+  </div>
+  <div class="rp-score-circle"><span class="rp-score-circle__num">{{ readiness_score }}%</span><span class="rp-score-circle__label">Préparation</span></div>
+</div>
+<hr class="rp-divider">
+<div class="rp-grid">
+  <div class="rp-card"><div class="rp-card__icon">🧪</div><div class="rp-card__title">Résultats du diagnostic</div><div class="rp-card__desc">Profil évalué, points forts, axes à améliorer et programmes recommandés.</div><a href="{% url 'permanent_residence:result' profile.id %}" class="rp-card__link">Voir mes résultats →</a></div>
+  <div class="rp-card"><div class="rp-card__icon">🗺️</div><div class="rp-card__title">Plan d'action RP</div><div class="rp-card__desc">Étapes personnalisées pour obtenir la résidence permanente au Canada.</div><a href="{% url 'permanent_residence:plan' profile.id %}" class="rp-card__link">Ouvrir mon plan →</a></div>
+  <div class="rp-card"><div class="rp-card__icon">🎯</div><div class="rp-card__title">Stratégies recommandées</div><div class="rp-card__desc">Voies identifiées : Entrée Express, PNP, Québec, Francophones...</div><a href="{% url 'permanent_residence:strategy' profile.id %}" class="rp-card__link">Mes stratégies →</a></div>
+  <div class="rp-card"><div class="rp-card__icon">📚</div><div class="rp-card__title">Programmes Canada</div><div class="rp-card__desc">Tous les programmes avec critères officiels et liens canada.ca.</div><a href="{% url 'permanent_residence:program_list' %}" class="rp-card__link">Explorer →</a></div>
+  <div class="rp-card"><div class="rp-card__icon">🤖</div><div class="rp-card__title">Coach IA RP</div><div class="rp-card__desc">Questions sur CRS, TEF Canada, PNP, EDE... Réponses personnalisées.</div><a href="{% url 'permanent_residence:coach' %}" class="rp-card__link">Accéder →</a></div>
+  <div class="rp-card"><div class="rp-card__icon">🎓</div><div class="rp-card__title">Préparer TEF Canada</div><div class="rp-card__desc">1 000+ leçons TEF/TCF Canada. CLB 7 requis pour Entrée Express.</div><a href="/prep/" class="rp-card__link">Préparer mes tests →</a></div>
+</div>
+<div style="margin-top:1.5rem;background:var(--rp-glass);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.4rem;backdrop-filter:blur(10px);">
+  <p style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(212,168,67,.6);margin-bottom:.75rem;">Mon profil RP</p>
+  <div class="rp-profile-grid">
+    {% if profile.age %}<div class="rp-profile-chip"><span>Âge</span><strong>{{ profile.age }} ans</strong></div>{% endif %}
+    {% if profile.education_level %}<div class="rp-profile-chip"><span>Études</span><strong>{{ profile.get_education_level_display }}</strong></div>{% endif %}
+    {% if profile.years_experience %}<div class="rp-profile-chip"><span>Expérience</span><strong>{{ profile.years_experience }} ans</strong></div>{% endif %}
+    {% if profile.french_level %}<div class="rp-profile-chip"><span>Français</span><strong>{{ profile.french_level|upper }}</strong></div>{% endif %}
+    {% if profile.english_level %}<div class="rp-profile-chip"><span>Anglais</span><strong>{{ profile.english_level|upper }}</strong></div>{% endif %}
+    {% if profile.has_job_offer %}<div class="rp-profile-chip"><span>Offre emploi</span><strong style="color:#86efac;">Oui ✓</strong></div>{% endif %}
+  </div>
+  <a href="{% url 'permanent_residence:eligibility' %}" style="display:inline-block;margin-top:.9rem;font-size:.78rem;color:#93c5fd;">✏️ Mettre à jour mon profil →</a>
+</div>
+{% endif %}
+</div>
 {% endblock %}

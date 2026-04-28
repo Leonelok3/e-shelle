@@ -1,181 +1,115 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block body_class %}residence-permanente{% endblock %}
-{% block app_scope %}residence-permanente{% endblock %}
-
-{% block title %}
-Stratégies Résidence Permanente – Canada & Australie | Immigration97
+{% block title %}Stratégies RP — Résidence Permanente Canada | Immigration97{% endblock %}
+{% block meta_description %}Stratégies de résidence permanente Canada personnalisées selon votre profil : Entrée Express, PNP, Québec, Francophones. Plan d'action concret.{% endblock %}
+{% block body_class %}rp-canada{% endblock %}
+{% block app_scope %}rp-canada{% endblock %}
+{% block extra_css %}
+<style>
+:root{--rp-navy:#050A18;--rp-gold:#D4A843;--rp-gold-lt:#F0C060;--rp-glass:rgba(8,15,32,.75);--rp-text:rgba(232,234,240,.9);--rp-muted:rgba(232,234,240,.45);--rp-green:#22c55e;}
+body.rp-canada{background:var(--rp-navy);color:var(--rp-text);}
+body.rp-canada::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 80% 50% at 50% -5%,rgba(212,168,67,.08) 0%,transparent 60%);}
+.rp-wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 1.25rem 5rem;}
+.rp-bc{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--rp-muted);padding:1.5rem 0 0;flex-wrap:wrap;}
+.rp-bc a{color:rgba(255,255,255,.4);text-decoration:none;}.rp-bc a:hover{color:var(--rp-gold-lt);}
+.rp-bc__sep{color:rgba(255,255,255,.15);}
+.rp-divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:1.5rem 0;}
+.btn-p{display:inline-flex;align-items:center;gap:.4rem;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.88rem;font-weight:800;padding:.7rem 1.5rem;border-radius:10px;transition:all .22s;}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,168,67,.4);}
+.btn-g{display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8);font-size:.88rem;font-weight:700;padding:.7rem 1.5rem;border-radius:10px;transition:all .22s;}
+.btn-g:hover{background:rgba(255,255,255,.09);}
+.rp-hero{padding:2.5rem 0 2rem;text-align:center;}
+.rp-hero__eye{display:inline-flex;align-items:center;gap:.4rem;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);color:var(--rp-gold-lt);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.3rem .9rem;border-radius:999px;margin-bottom:1rem;}
+.rp-hero h1{font-size:clamp(1.7rem,4vw,2.6rem);font-weight:900;color:#fff;line-height:1.15;margin:0 0 .7rem;}
+.rp-hero p{font-size:.9rem;color:var(--rp-muted);line-height:1.7;max-width:600px;margin:0 auto 1.5rem;}
+.rp-profile-chips{display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.rp-chip{display:inline-flex;align-items:center;gap:.3rem;font-size:.78rem;color:rgba(255,255,255,.6);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.3rem .75rem;}
+.rp-strats{display:flex;flex-direction:column;gap:1.25rem;margin-top:1rem;}
+.rp-strat{background:var(--rp-glass);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:1.75rem;backdrop-filter:blur(10px);transition:border-color .2s;}
+.rp-strat:hover{border-color:rgba(212,168,67,.28);}
+.rp-strat__header{display:grid;grid-template-columns:1fr auto;gap:1.5rem;align-items:start;margin-bottom:1.25rem;}
+.rp-strat__num{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(212,168,67,.6);margin-bottom:.35rem;}
+.rp-strat__title{font-size:1.05rem;font-weight:800;color:#fff;margin:0 0 .45rem;}
+.rp-strat__summary{font-size:.85rem;color:var(--rp-muted);line-height:1.65;margin:0 0 .5rem;}
+.rp-strat__ideal{font-size:.82rem;color:rgba(255,255,255,.6);}
+.rp-strat__ideal strong{color:var(--rp-gold-lt);}
+.rp-strat__tag{display:inline-block;font-size:.65rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:.22rem .7rem;border-radius:6px;background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.3);color:var(--rp-gold-lt);margin-bottom:.75rem;}
+.rp-strat__actions{display:flex;gap:.5rem;}
+.rp-actions-title{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:.6rem;}
+.rp-actions-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.4rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.06);}
+.rp-actions-list li{display:flex;align-items:flex-start;gap:.5rem;font-size:.83rem;color:var(--rp-text);line-height:1.5;}
+.rp-actions-list li::before{content:'→';color:var(--rp-gold);flex-shrink:0;font-weight:700;}
+.rp-empty{text-align:center;color:var(--rp-muted);padding:3rem;font-size:.9rem;}
+.rp-cta-box{background:linear-gradient(135deg,rgba(212,168,67,.1),rgba(212,168,67,.04));border:1px solid rgba(212,168,67,.25);border-radius:20px;padding:2.5rem 1.5rem;text-align:center;margin-top:2rem;}
+.rp-cta-box h2{font-size:1.25rem;font-weight:900;color:#fff;margin:0 0 .6rem;}
+.rp-cta-box p{font-size:.85rem;color:var(--rp-muted);margin:0 0 1.4rem;}
+@media(max-width:640px){.rp-strat__header{grid-template-columns:1fr;}.rp-strat__actions{flex-direction:column;}}
+</style>
 {% endblock %}
-
-{% block meta_description %}
-Stratégies de Résidence Permanente personnalisées pour le Canada et l’Australie :
-choix du programme, optimisation du profil, langues, expérience et plan d’action RP
-basé sur ton diagnostic avec Immigration97.
-{% endblock %}
-
-{% block head_extra %}
-<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
-{% endblock %}
-
 {% block content %}
+<div class="rp-wrap">
+<nav class="rp-bc">
+  <a href="/">Accueil</a><span class="rp-bc__sep">›</span>
+  <a href="{% url 'residence_permanente' %}">Résidence Permanente Canada</a><span class="rp-bc__sep">›</span>
+  <a href="{% url 'permanent_residence:dashboard' %}">Tableau de bord</a><span class="rp-bc__sep">›</span>
+  <span>Stratégies</span>
+</nav>
+<div class="rp-hero">
+  <div class="rp-hero__eye">🎯 Stratégies personnalisées</div>
+  <h1>Stratégies RP<br>adaptées à votre profil</h1>
+  <p>Voies d'immigration identifiées selon votre diagnostic. Chaque stratégie est réaliste et basée sur vos critères réels.</p>
+  <div class="rp-profile-chips">
+    {% if profile.age %}<div class="rp-chip">🎂 {{ profile.age }} ans</div>{% endif %}
+    {% if profile.years_experience %}<div class="rp-chip">💼 {{ profile.years_experience }} ans d'expérience</div>{% endif %}
+    {% if profile.french_level %}<div class="rp-chip">🇫🇷 Français {{ profile.french_level|upper }}</div>{% endif %}
+    {% if profile.english_level %}<div class="rp-chip">🇬🇧 Anglais {{ profile.english_level|upper }}</div>{% endif %}
+    <div class="rp-chip">🇨🇦 Canada</div>
+  </div>
+</div>
+<hr class="rp-divider">
 
-{% include "permanent_residence/_rp_nav.html" %}
-
-<div class="rp-strategies-page">
-  <div class="rp-strategies-container">
-
-    <!-- ================= HEADER GEO ================= -->
-    <header class="rp-strategies-header">
-      <p class="rp-strategies-kicker">
-        Analyse stratégique · Résidence Permanente
-      </p>
-
-      <h1 class="rp-strategies-title">
-        Stratégies de Résidence Permanente adaptées à ton profil
-      </h1>
-
-      <p class="rp-strategies-subtitle">
-        Cette page présente des <strong>stratégies de Résidence Permanente réalistes</strong>,
-        construites à partir de ton diagnostic RP (âge, études, expérience professionnelle,
-        niveaux de langue et pays ciblé).
-        L’objectif est de t’aider à choisir la voie la plus cohérente
-        pour immigrer légalement au Canada ou en Australie.
-      </p>
-
-      <div class="rp-strategies-meta">
-        <span class="rp-meta-pill">
-          🌍 Destination :
-          {% if profile.country == "CA" %}Canada
-          {% elif profile.country == "AU" %}Australie
-          {% else %}{{ profile.country }}{% endif %}
-        </span>
-
-        <span class="rp-meta-pill">
-          🎂 Âge : {{ profile.age|default:"—" }}
-        </span>
-
-        <span class="rp-meta-pill">
-          💼 Expérience : {{ profile.years_experience|default:"—" }} ans
-        </span>
+<div class="rp-strats">
+  {% for strat in strategies %}
+  <div class="rp-strat">
+    <div class="rp-strat__header">
+      <div>
+        <div class="rp-strat__num">Stratégie {{ forloop.counter }}</div>
+        <div class="rp-strat__title">{{ strat.label }}</div>
+        <div class="rp-strat__summary">{{ strat.summary }}</div>
+        <div class="rp-strat__ideal"><strong>Profil idéal :</strong> {{ strat.ideal_for }}</div>
       </div>
-    </header>
+      <div>
+        <div class="rp-strat__tag">{{ strat.tag }}</div>
+        <div class="rp-strat__actions">
+          <a href="{% url 'permanent_residence:plan' profile.id %}" class="btn-p">📝 Mon plan</a>
+          <a href="{% url 'permanent_residence:dashboard' %}" class="btn-g">📊 Dashboard</a>
+        </div>
+      </div>
+    </div>
+    {% if strat.key_actions %}
+    <div class="rp-actions-title">Actions clés recommandées</div>
+    <ul class="rp-actions-list">
+      {% for action in strat.key_actions %}<li>{{ action }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+  {% empty %}
+  <div class="rp-empty">
+    <p>Aucune stratégie disponible. Mettez à jour votre diagnostic pour obtenir des recommandations personnalisées.</p>
+    <a href="{% url 'permanent_residence:eligibility' %}" class="btn-p" style="margin-top:1rem;">🚀 Refaire mon diagnostic</a>
+  </div>
+  {% endfor %}
+</div>
 
-    <!-- ================= EXPLICATION GEO ================= -->
-    <section class="rp-card">
-      <h2 class="rp-section-title">
-        À quoi servent les stratégies RP ?
-      </h2>
-
-      <p class="rp-text">
-        Une stratégie de Résidence Permanente est un <strong>chemin structuré</strong>
-        combinant programme d’immigration, amélioration du profil et ordre des démarches.
-        Elle permet d’éviter les erreurs courantes comme viser un programme inaccessible
-        ou déposer un dossier trop tôt.
-      </p>
-
-      <p class="rp-text">
-        Les stratégies proposées ici ne sont pas des promesses de visa,
-        mais des <strong>scénarios cohérents</strong> utilisés par les candidats
-        qui réussissent leur projet d’immigration.
-      </p>
-
-      <a href="{% url 'permanent_residence:eligibility' %}"
-         class="rp-btn rp-btn--primary">
-        🧪 Refaire mon diagnostic RP
-      </a>
-    </section>
-
-    <!-- ================= LISTE DES STRATÉGIES ================= -->
-    <section class="rp-strategy-list">
-
-      {% for strat in strategies %}
-        <article class="rp-strategy-card">
-
-          <div class="rp-strategy-header">
-            <div>
-              <p class="rp-strategy-index">
-                Stratégie {{ forloop.counter }}
-              </p>
-
-              <h2 class="rp-strategy-title">
-                {{ strat.label }}
-              </h2>
-
-              <p class="rp-strategy-summary">
-                {{ strat.summary }}
-              </p>
-
-              <p class="rp-strategy-ideal">
-                <strong>Profil idéal :</strong> {{ strat.ideal_for }}
-              </p>
-            </div>
-
-            <div class="rp-strategy-actions">
-              <span class="rp-strategy-tag">
-                {{ strat.tag }}
-              </span>
-
-              <a href="{% url 'permanent_residence:plan' profile.id %}"
-                 class="rp-btn-primary">
-                ➕ Ajouter à mon plan RP
-              </a>
-
-              <a href="{% url 'permanent_residence:dashboard' %}"
-                 class="rp-btn-secondary">
-                📊 Retour au cockpit RP
-              </a>
-            </div>
-          </div>
-
-          <!-- ACTIONS CLÉS -->
-          <div class="rp-strategy-actions-list">
-            <p class="rp-strategy-actions-title">
-              Actions clés recommandées
-            </p>
-
-            <ul>
-              {% for action in strat.key_actions %}
-                <li>{{ action }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-
-        </article>
-      {% empty %}
-        <p class="rp-muted">
-          Aucune stratégie disponible pour ce profil.
-          Mets à jour ton diagnostic RP pour obtenir des recommandations.
-        </p>
-      {% endfor %}
-
-    </section>
-
-    <!-- ================= CTA FINAL GEO ================= -->
-    <section class="rp-card rp-home-cta">
-      <h2 class="rp-home-cta__title">
-        Tu veux une stratégie RP claire et personnalisée ?
-      </h2>
-
-      <p class="rp-text">
-        Le diagnostic Immigration97 analyse ton profil et génère automatiquement
-        les stratégies de Résidence Permanente les plus adaptées,
-        avec un plan d’action concret et priorisé.
-      </p>
-
-      <a href="{% url 'permanent_residence:eligibility' %}"
-         class="rp-btn rp-btn--primary rp-btn--lg">
-        🚀 Lancer mon diagnostic RP maintenant
-      </a>
-    </section>
-
-    <p class="rp-strategies-hint">
-      ⚠️ Ces stratégies doivent toujours être croisées avec les sources officielles
-      (IRCC Canada, Home Affairs Australie, provinces, États).
-      Les règles peuvent évoluer.
-    </p>
-
+<div class="rp-cta-box">
+  <h2>Questions sur votre stratégie ?</h2>
+  <p>Le Coach IA analyse votre profil et répond à vos questions sur Entrée Express, PNP, score CRS, TEF Canada...</p>
+  <div style="display:flex;justify-content:center;gap:.75rem;flex-wrap:wrap;">
+    <a href="{% url 'permanent_residence:coach' %}" class="btn-p">🤖 Parler au Coach IA</a>
+    <a href="{% url 'permanent_residence:eligibility' %}" class="btn-g">🔄 Refaire le diagnostic</a>
   </div>
 </div>
 
+<p style="font-size:.73rem;color:rgba(255,255,255,.25);text-align:center;margin-top:1.5rem;">⚠️ Ces stratégies sont indicatives. Vérifiez toujours les sources officielles canada.ca / ircc.canada.ca. Immigration97 n'est pas un consultant réglementé (RCIC).</p>
+</div>
 {% endblock %}

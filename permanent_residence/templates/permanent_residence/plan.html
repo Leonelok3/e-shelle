@@ -1,164 +1,112 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block body_class %}residence-permanente rp-plan{% endblock %}
-{% block app_scope %}residence-permanente{% endblock %}
-
-{% block title %}
-Plan d’action Résidence Permanente – Canada & Australie | Immigration97
+{% block title %}Mon Plan d'Action RP — Résidence Permanente Canada | Immigration97{% endblock %}
+{% block meta_description %}Votre plan d'action personnalisé pour la résidence permanente Canada : étapes, délais, suivi de progression et documents requis.{% endblock %}
+{% block body_class %}rp-canada{% endblock %}
+{% block app_scope %}rp-canada{% endblock %}
+{% block extra_css %}
+<style>
+:root{--rp-navy:#050A18;--rp-gold:#D4A843;--rp-gold-lt:#F0C060;--rp-glass:rgba(8,15,32,.75);--rp-text:rgba(232,234,240,.9);--rp-muted:rgba(232,234,240,.45);--rp-green:#22c55e;}
+body.rp-canada{background:var(--rp-navy);color:var(--rp-text);}
+body.rp-canada::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 80% 50% at 50% -5%,rgba(212,168,67,.08) 0%,transparent 60%);}
+.rp-wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 1.25rem 5rem;}
+.rp-bc{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--rp-muted);padding:1.5rem 0 0;flex-wrap:wrap;}
+.rp-bc a{color:rgba(255,255,255,.4);text-decoration:none;}.rp-bc a:hover{color:var(--rp-gold-lt);}
+.rp-bc__sep{color:rgba(255,255,255,.15);}
+.rp-divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:1.5rem 0;}
+.rp-hero{padding:2.5rem 0 2rem;text-align:center;}
+.rp-hero__eye{display:inline-flex;align-items:center;gap:.4rem;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);color:var(--rp-gold-lt);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.3rem .9rem;border-radius:999px;margin-bottom:1rem;}
+.rp-hero h1{font-size:clamp(1.7rem,4vw,2.7rem);font-weight:900;color:#fff;line-height:1.15;margin:0 0 .7rem;}
+.rp-hero p{font-size:.9rem;color:var(--rp-muted);line-height:1.7;max-width:580px;margin:0 auto;}
+/* Progress */
+.rp-progress-band{background:var(--rp-glass);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.5rem;margin-top:1.5rem;}
+.rp-progress-band__label{font-size:.75rem;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:.6rem;}
+.rp-progress-band__track{height:10px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-bottom:.4rem;}
+.rp-progress-band__fill{height:100%;background:linear-gradient(90deg,#D4A843,#F0C060);border-radius:999px;transition:width .5s ease;}
+.rp-progress-band__val{font-size:.85rem;font-weight:700;color:var(--rp-gold-lt);}
+/* Tabs */
+.rp-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:1.25rem;}
+.rp-tab{display:inline-flex;align-items:center;gap:.3rem;padding:.4rem .85rem;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--rp-muted);font-size:.78rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.rp-tab:hover{border-color:rgba(212,168,67,.35);color:rgba(255,255,255,.8);}
+.rp-tab--active{background:rgba(212,168,67,.1);border-color:rgba(212,168,67,.4);color:var(--rp-gold-lt);}
+/* Steps */
+.rp-steps{display:flex;flex-direction:column;gap:.7rem;margin-top:1.5rem;}
+.rp-step{background:var(--rp-glass);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:1.25rem;display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:start;transition:border-color .2s;}
+.rp-step:hover{border-color:rgba(212,168,67,.2);}
+.rp-step.status-done{border-color:rgba(34,197,94,.2);}
+.rp-step.status-in_progress{border-color:rgba(212,168,67,.3);}
+.rp-step__meta{font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--rp-muted);margin-bottom:.35rem;}
+.rp-step__title{font-size:.92rem;font-weight:700;color:#fff;margin:0 0 .3rem;}
+.rp-step.status-done .rp-step__title{color:rgba(255,255,255,.6);text-decoration:line-through;}
+.rp-step__desc{font-size:.8rem;color:var(--rp-muted);line-height:1.6;}
+.rp-step__status-form select{background:rgba(5,10,24,.8);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.4rem .7rem;font-size:.78rem;color:var(--rp-text);font-family:inherit;outline:none;cursor:pointer;transition:border-color .2s;}
+.rp-step__status-form select:focus{border-color:rgba(212,168,67,.4);}
+.rp-empty{text-align:center;color:var(--rp-muted);padding:3rem;font-size:.9rem;}
+.btn-p{display:inline-flex;align-items:center;gap:.4rem;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.88rem;font-weight:800;padding:.7rem 1.5rem;border-radius:10px;transition:all .22s;}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,168,67,.4);}
+</style>
 {% endblock %}
-
-{% block meta_description %}
-Plan d’action Résidence Permanente Canada et Australie :
-étapes clés, suivi de progression, documents requis, langues,
-stratégie immigration et accompagnement intelligent avec Immigration97.
-{% endblock %}
-
-{% block head_extra %}
-<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
-{% endblock %}
-
 {% block content %}
-
-{% include "permanent_residence/_rp_nav.html" %}
-
-
-<div class="rp-page-bg">
-  <main class="rp-card">
-
-    <!-- ================= HEADER ================= -->
-    <div class="rp-header-section">
-      <div class="rp-badge">🎯 Plan d’action Résidence Permanente</div>
-
-      <h1 class="rp-heading">
-        Ton plan d’action pour la Résidence Permanente
-      </h1>
-
-      <p class="rp-subtitle">
-        Suis pas à pas les étapes essentielles pour construire un
-        <strong>projet solide de Résidence Permanente</strong>
-        {% if profile.country == "CA" %}au Canada{% elif profile.country == "AU" %}en Australie{% else %}au Canada ou en Australie{% endif %}.
-        Ce plan t’aide à structurer tes démarches, prioriser les actions
-        et améliorer ton dossier immigration.
-      </p>
-    </div>
-
-    <!-- ================= PROGRESSION ================= -->
-    <section class="rp-progress-box">
-      <div class="rp-progress-label">Progression globale de ton projet RP</div>
-
-      <div class="rp-progress-text">
-        Chaque étape complétée augmente ton taux d’avancement.
-        Mets à jour le statut de chaque action pour suivre
-        précisément ta progression vers la Résidence Permanente.
-      </div>
-
-      <div class="rp-progress-bar">
-        <div class="rp-progress-fill" style="width: {{ progress_pct }}%;"></div>
-      </div>
-
-      <div class="rp-progress-value">
-        <strong>{{ progress_pct }}</strong> <span>% complété</span>
-      </div>
-
-      <!-- ================= FILTRES ================= -->
-      <div class="rp-tabs">
-        {% with base="/pr/plan/"|add:profile.id|stringformat:"s"|add:"/" %}
-          <a href="{{ base }}?category=all"
-             class="rp-tab {% if category == 'all' %}rp-tab--active{% endif %}">
-            📋 Toutes les étapes
-          </a>
-          <a href="{{ base }}?category=canada"
-             class="rp-tab {% if category == 'canada' %}rp-tab--active{% endif %}">
-            🇨🇦 Canada
-          </a>
-          <a href="{{ base }}?category=australia"
-             class="rp-tab {% if category == 'australia' %}rp-tab--active{% endif %}">
-            🇦🇺 Australie
-          </a>
-          <a href="{{ base }}?category=languages"
-             class="rp-tab {% if category == 'languages' %}rp-tab--active{% endif %}">
-            🗣️ Langues
-          </a>
-          <a href="{{ base }}?category=documents"
-             class="rp-tab {% if category == 'documents' %}rp-tab--active{% endif %}">
-            📄 Documents
-          </a>
-        {% endwith %}
-      </div>
-    </section>
-
-    <!-- ================= ÉTAPES ================= -->
-    <section>
-      <h2 class="rp-steps-title">
-        Étapes clés de ton plan d’action RP
-      </h2>
-
-      {% for step in steps %}
-        <article class="rp-step-card status-{{ step.status }}">
-          <header class="rp-step-header">
-
-            <div>
-              <div class="rp-step-meta">
-                Étape {{ step.order }} ·
-                {% if step.category == "canada" %}🇨🇦 Canada
-                {% elif step.category == "australia" %}🇦🇺 Australie
-                {% elif step.category == "languages" %}🗣️ Langues
-                {% elif step.category == "documents" %}📄 Documents
-                {% else %}📌 Général{% endif %}
-              </div>
-
-              <h3 class="rp-step-title">
-                {{ step.title }}
-              </h3>
-            </div>
-
-            <div class="rp-step-actions">
-              <a href="#" class="rp-step-btn">
-                📚 Ressources utiles
-              </a>
-
-              <form method="post" class="rp-step-status-form">
-                {% csrf_token %}
-                <input type="hidden" name="step_id" value="{{ step.id }}">
-                <select name="status" onchange="this.form.submit()">
-                  <option value="todo" {% if step.status == 'todo' %}>À faire</option>
-                  <option value="in_progress" {% if step.status == 'in_progress' %}>En cours</option>
-                  <option value="done" {% if step.status == 'done' %}>✓ Terminé</option>
-                </select>
-              </form>
-            </div>
-
-          </header>
-
-          <p class="rp-step-desc">
-            {{ step.description }}
-          </p>
-
-          <span class="rp-step-tag">
-            {{ step.category|title }}
-          </span>
-        </article>
-      {% empty %}
-        <p class="rp-empty">
-          Aucune étape n’est encore définie.
-          Complète ton diagnostic pour générer ton plan RP personnalisé.
-        </p>
-      {% endfor %}
-    </section>
-
-    <!-- ================= SEO LONG FORM ================= -->
-    <section class="rp-footer-hint">
-      <strong>À propos du plan d’action Résidence Permanente :</strong><br>
-      Ce plan d’action RP est conçu pour t’aider à comprendre
-      les exigences de la Résidence Permanente au Canada et en Australie,
-      organiser tes documents, améliorer ton score linguistique
-      et avancer méthodiquement dans ton projet d’immigration.
-      Il s’agit d’un outil d’aide à la décision, basé sur les critères
-      généraux des programmes d’immigration.
-    </section>
-
-  </main>
+<div class="rp-wrap">
+<nav class="rp-bc">
+  <a href="/">Accueil</a><span class="rp-bc__sep">›</span>
+  <a href="{% url 'residence_permanente' %}">Résidence Permanente Canada</a><span class="rp-bc__sep">›</span>
+  <a href="{% url 'permanent_residence:dashboard' %}">Tableau de bord</a><span class="rp-bc__sep">›</span>
+  <span>Plan d'action</span>
+</nav>
+<div class="rp-hero">
+  <div class="rp-hero__eye">🎯 Plan d'action RP — Canada</div>
+  <h1>Mon plan d'action<br>Résidence Permanente</h1>
+  <p>Suivez pas à pas les étapes pour construire votre dossier d'immigration canadien. Mettez à jour chaque étape au fur et à mesure.</p>
 </div>
 
+<div class="rp-progress-band">
+  <div class="rp-progress-band__label">Progression globale du projet RP</div>
+  <div class="rp-progress-band__track"><div class="rp-progress-band__fill" style="width:{{ progress_pct }}%;"></div></div>
+  <div class="rp-progress-band__val">{{ progress_pct }}% complété</div>
+  <div class="rp-tabs">
+    {% with base="/pr/plan/"|add:profile.id|stringformat:"s"|add:"/" %}
+    <a href="{{ base }}?category=all" class="rp-tab {% if category == 'all' %}rp-tab--active{% endif %}">📋 Toutes</a>
+    <a href="{{ base }}?category=canada" class="rp-tab {% if category == 'canada' %}rp-tab--active{% endif %}">🇨🇦 Canada</a>
+    <a href="{{ base }}?category=languages" class="rp-tab {% if category == 'languages' %}rp-tab--active{% endif %}">🗣️ Langues</a>
+    <a href="{{ base }}?category=documents" class="rp-tab {% if category == 'documents' %}rp-tab--active{% endif %}">📄 Documents</a>
+    {% endwith %}
+  </div>
+</div>
+
+<hr class="rp-divider">
+
+<div class="rp-steps">
+  {% for step in steps %}
+  <div class="rp-step status-{{ step.status }}">
+    <div>
+      <div class="rp-step__meta">
+        Étape {{ step.order }} ·
+        {% if step.category == "canada" %}🇨🇦 Canada
+        {% elif step.category == "languages" %}🗣️ Langues
+        {% elif step.category == "documents" %}📄 Documents
+        {% else %}📌 Général{% endif %}
+        {% if step.status == "done" %} · <span style="color:#86efac;">✓ Terminé</span>{% elif step.status == "in_progress" %} · <span style="color:var(--rp-gold-lt);">⏳ En cours</span>{% endif %}
+      </div>
+      <div class="rp-step__title">{{ step.title }}</div>
+      {% if step.description %}<div class="rp-step__desc">{{ step.description }}</div>{% endif %}
+    </div>
+    <form method="post" class="rp-step__status-form">
+      {% csrf_token %}
+      <input type="hidden" name="step_id" value="{{ step.id }}">
+      <select name="status" onchange="this.form.submit()">
+        <option value="todo" {% if step.status == 'todo' %}selected{% endif %}>À faire</option>
+        <option value="in_progress" {% if step.status == 'in_progress' %}selected{% endif %}>En cours</option>
+        <option value="done" {% if step.status == 'done' %}selected{% endif %}>✓ Terminé</option>
+      </select>
+    </form>
+  </div>
+  {% empty %}
+  <div class="rp-empty">
+    <p>Aucune étape définie. Complétez votre diagnostic pour générer votre plan RP personnalisé.</p>
+    <a href="{% url 'permanent_residence:eligibility' %}" class="btn-p" style="margin-top:1rem;">🚀 Faire mon diagnostic</a>
+  </div>
+  {% endfor %}
+</div>
+</div>
 {% endblock %}

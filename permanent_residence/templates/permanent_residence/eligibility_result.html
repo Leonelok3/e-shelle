@@ -1,130 +1,113 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block body_class %}residence-permanente{% endblock %}
-{% block app_scope %}residence-permanente{% endblock %}
-
-{# ================= SEO ================= #}
-{% block title %}
-Résultat Diagnostic Résidence Permanente Canada & Australie | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Résultat de votre diagnostic Résidence Permanente Canada / Australie :
-analyse complète de votre profil immigration, score, points forts,
-axes à renforcer et plan d’action personnalisé avec Immigration97.
-{% endblock %}
-
-{# ================= CSS (BLOCK CORRECT) ================= #}
+{% block title %}Résultat Diagnostic RP Canada | Immigration97{% endblock %}
+{% block meta_description %}Résultat de votre diagnostic résidence permanente Canada : profil, points forts, axes à améliorer et plan d'action.{% endblock %}
+{% block body_class %}rp-canada{% endblock %}
+{% block app_scope %}rp-canada{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
+<style>
+:root{--rp-navy:#050A18;--rp-gold:#D4A843;--rp-gold-lt:#F0C060;--rp-glass:rgba(8,15,32,.75);--rp-text:rgba(232,234,240,.9);--rp-muted:rgba(232,234,240,.45);--rp-green:#22c55e;}
+body.rp-canada{background:var(--rp-navy);color:var(--rp-text);}
+body.rp-canada::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 80% 50% at 50% -5%,rgba(212,168,67,.08) 0%,transparent 60%);}
+.rp-wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 1.25rem 5rem;}
+.rp-bc{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--rp-muted);padding:1.5rem 0 0;flex-wrap:wrap;}
+.rp-bc a{color:rgba(255,255,255,.4);text-decoration:none;}.rp-bc a:hover{color:var(--rp-gold-lt);}
+.rp-bc__sep{color:rgba(255,255,255,.15);}
+.rp-divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:1.5rem 0;}
+.btn-p{display:inline-flex;align-items:center;gap:.4rem;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.88rem;font-weight:800;padding:.7rem 1.5rem;border-radius:10px;transition:all .22s;}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,168,67,.4);}
+.btn-g{display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8);font-size:.88rem;font-weight:700;padding:.7rem 1.5rem;border-radius:10px;transition:all .22s;}
+.btn-g:hover{background:rgba(255,255,255,.09);}
+.rp-hero{padding:2.5rem 0 2rem;}
+.rp-hero__top{display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:start;}
+.rp-hero__eye{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(212,168,67,.65);margin-bottom:.5rem;}
+.rp-hero h1{font-size:clamp(1.6rem,4vw,2.5rem);font-weight:900;color:#fff;margin:0 0 .7rem;}
+.rp-hero p{font-size:.88rem;color:var(--rp-muted);line-height:1.7;margin:0 0 1.25rem;}
+.rp-btns{display:flex;gap:.65rem;flex-wrap:wrap;}
+.badge-ok{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:10px;font-size:.83rem;font-weight:700;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);color:#86efac;}
+.badge-warn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:10px;font-size:.83rem;font-weight:700;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#fcd34d;}
+.badge-err{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:10px;font-size:.83rem;font-weight:700;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5;}
+.rp-progress-box{background:var(--rp-glass);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.25rem;min-width:175px;text-align:center;}
+.rp-progress-box__label{font-size:.7rem;font-weight:600;color:var(--rp-muted);margin-bottom:.75rem;}
+.rp-progress-box__track{height:9px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-bottom:.4rem;}
+.rp-progress-box__fill{height:100%;background:linear-gradient(90deg,#D4A843,#F0C060);border-radius:999px;}
+.rp-progress-box__num{font-size:1.4rem;font-weight:900;color:var(--rp-gold-lt);}
+.rp-card{background:var(--rp-glass);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.6rem;backdrop-filter:blur(10px);margin-bottom:1.25rem;}
+.rp-card__eye{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(212,168,67,.6);margin-bottom:.5rem;}
+.rp-card__title{font-size:1.05rem;font-weight:800;color:#fff;margin:0 0 .75rem;}
+.rp-summary{font-size:.88rem;color:var(--rp-muted);line-height:1.75;margin-bottom:1.25rem;}
+.rp-cols{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.rp-col-title{font-size:.78rem;font-weight:700;margin-bottom:.55rem;}
+.rp-col-title--g{color:#86efac;}
+.rp-col-title--a{color:#fcd34d;}
+.rp-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.45rem;}
+.rp-list li{display:flex;align-items:flex-start;gap:.5rem;font-size:.83rem;color:var(--rp-text);line-height:1.5;}
+.rp-list--g li::before{content:'✓';color:var(--rp-green);font-weight:800;flex-shrink:0;}
+.rp-list--a li::before{content:'→';color:#fcd34d;font-weight:800;flex-shrink:0;}
+@media(max-width:680px){.rp-hero__top{grid-template-columns:1fr;}.rp-cols{grid-template-columns:1fr;}.rp-btns{flex-direction:column;}}
+</style>
 {% endblock %}
-
 {% block content %}
-
-{# ================= NAV RP UNIFIÉE ================= #}
-{% include "permanent_residence/_rp_nav.html" %}
-
-
-<div class="rp-result">
-
-  <!-- ================= HERO ================= -->
-  <section class="rp-card rp-result-hero">
-    <div class="rp-result-hero__top">
-
-      <div>
-        <p class="rp-kicker">
-          Résultat du diagnostic Résidence Permanente · {{ profile.get_country_display }}
-        </p>
-
-        <h1 class="rp-title">
-          Résultat de ton diagnostic Résidence Permanente
-        </h1>
-
-        <p class="rp-text">
-          Cette analyse repose sur les critères officiels des programmes de
-          <strong>Résidence Permanente au Canada et en Australie</strong>.
-          Elle t’indique clairement <strong>où tu te situes</strong>
-          et <strong>comment améliorer ton dossier d’immigration</strong>.
-        </p>
-      </div>
-
-      <div class="rp-result-hero__status">
-
-        {% if evaluation.status == "profil_potentiellement_interessant" %}
-          <span class="rp-badge rp-badge--success">
-            ✅ Profil intéressant pour la Résidence Permanente
-          </span>
-        {% elif evaluation.status == "profil_a_renforcer" %}
-          <span class="rp-badge rp-badge--warning">
-            ⚠️ Profil à renforcer avant dépôt
-          </span>
-        {% else %}
-          <span class="rp-badge rp-badge--danger">
-            🧩 Profil insuffisant ou incomplet
-          </span>
-        {% endif %}
-
-        <div class="rp-progress">
-          <p class="rp-progress__label">Progression de ton plan RP</p>
-          <div class="rp-progress__bar">
-            <div class="rp-progress__fill" style="width: {{ progress_percent }}%;"></div>
-          </div>
-          <p class="rp-progress__value">{{ progress_percent }}% complété</p>
-        </div>
-
+<div class="rp-wrap">
+<nav class="rp-bc">
+  <a href="/">Accueil</a><span class="rp-bc__sep">›</span>
+  <a href="{% url 'residence_permanente' %}">Résidence Permanente Canada</a><span class="rp-bc__sep">›</span>
+  <a href="{% url 'permanent_residence:dashboard' %}">Tableau de bord</a><span class="rp-bc__sep">›</span>
+  <span>Résultats</span>
+</nav>
+<div class="rp-hero">
+  <div class="rp-hero__top">
+    <div>
+      <p class="rp-hero__eye">🇨🇦 Résultat · Diagnostic Résidence Permanente</p>
+      <h1>Résultat de votre diagnostic RP</h1>
+      <p>Analyse basée sur les critères officiels IRCC. Voici où vous vous situez et comment améliorer votre dossier.</p>
+      {% if evaluation.status == "profil_potentiellement_interessant" %}
+        <div class="badge-ok" style="margin-bottom:1.25rem;">✅ Profil intéressant pour la RP</div>
+      {% elif evaluation.status == "profil_a_renforcer" %}
+        <div class="badge-warn" style="margin-bottom:1.25rem;">⚠️ Profil à renforcer</div>
+      {% else %}
+        <div class="badge-err" style="margin-bottom:1.25rem;">🔧 Profil insuffisant ou incomplet</div>
+      {% endif %}
+      <div class="rp-btns">
+        <a href="{% url 'permanent_residence:plan' profile.id %}" class="btn-p">📝 Voir mon plan d'action</a>
+        <a href="{% url 'permanent_residence:strategy' profile.id %}" class="btn-g">🎯 Mes stratégies</a>
+        <a href="{% url 'permanent_residence:coach' %}" class="btn-g">🤖 Coach IA</a>
       </div>
     </div>
-
-    <!-- CTA -->
-    <div class="rp-result-hero__actions">
-      <a href="{% url 'permanent_residence:plan' profile.id %}" class="rp-btn rp-btn--primary">
-        📝 Voir mon plan d’action RP
-      </a>
-      <a href="{% url 'permanent_residence:dashboard' %}" class="rp-btn rp-btn--secondary">
-        📊 Accéder à mon cockpit
-      </a>
-      <a href="{% url 'permanent_residence:coach' %}" class="rp-btn rp-btn--ai">
-        🤖 Consulter le coach IA
-      </a>
+    <div class="rp-progress-box">
+      <div class="rp-progress-box__label">Progression du plan RP</div>
+      <div class="rp-progress-box__track"><div class="rp-progress-box__fill" style="width:{{ progress_percent }}%;"></div></div>
+      <div class="rp-progress-box__num">{{ progress_percent }}%</div>
     </div>
-  </section>
-
-  <!-- ================= SYNTHÈSE ================= -->
-  <div class="rp-grid">
-
-    <section class="rp-card">
-      <h2 class="rp-section-title">
-        Synthèse de ton profil de Résidence Permanente
-      </h2>
-
-      <p class="rp-text">{{ evaluation.summary }}</p>
-
-      <div class="rp-result-columns">
-
-        <div>
-          <h3 class="rp-subtitle rp-subtitle--success">✔️ Points forts</h3>
-          <ul class="rp-list">
-            {% for reason in evaluation.reasons %}
-              <li>{{ reason }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-
-        <div>
-          <h3 class="rp-subtitle rp-subtitle--warning">🔧 Axes d’amélioration</h3>
-          <ul class="rp-list">
-            {% for suggestion in evaluation.suggestions %}
-              <li>{{ suggestion }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-
-      </div>
-    </section>
-
   </div>
-
 </div>
-
+<hr class="rp-divider">
+<div class="rp-card">
+  <p class="rp-card__eye">Synthèse</p>
+  <h2 class="rp-card__title">Analyse de votre profil d'immigration</h2>
+  {% if evaluation.summary %}<p class="rp-summary">{{ evaluation.summary }}</p>{% endif %}
+  <div class="rp-cols">
+    <div>
+      <div class="rp-col-title rp-col-title--g">✅ Points forts</div>
+      <ul class="rp-list rp-list--g">
+        {% for r in evaluation.reasons %}<li>{{ r }}</li>{% empty %}<li>Complétez le diagnostic pour voir vos atouts.</li>{% endfor %}
+      </ul>
+    </div>
+    <div>
+      <div class="rp-col-title rp-col-title--a">🔧 Axes d'amélioration</div>
+      <ul class="rp-list rp-list--a">
+        {% for s in evaluation.suggestions %}<li>{{ s }}</li>{% empty %}<li>Bon profil — continuez !</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="rp-card" style="text-align:center;">
+  <h3 style="font-size:1rem;font-weight:800;color:#fff;margin:0 0 .6rem;">Prochaine étape : votre plan d'action</h3>
+  <p style="font-size:.85rem;color:var(--rp-muted);margin:0 0 1.4rem;max-width:440px;margin-left:auto;margin-right:auto;">Accédez à votre plan avec les étapes dans l'ordre et les délais pour obtenir la résidence permanente.</p>
+  <div style="display:flex;justify-content:center;gap:.75rem;flex-wrap:wrap;">
+    <a href="{% url 'permanent_residence:plan' profile.id %}" class="btn-p">📝 Ouvrir mon plan d'action</a>
+    <a href="{% url 'permanent_residence:program_list' %}" class="btn-g">📚 Explorer les programmes</a>
+  </div>
+</div>
+</div>
 {% endblock %}
