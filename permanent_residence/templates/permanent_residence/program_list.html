@@ -1,230 +1,117 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block body_class %}residence-permanente{% endblock %}
-{% block app_scope %}residence-permanente{% endblock %}
-
-{% block title %}
-Programmes Résidence Permanente – Canada & Australie | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Liste complète des programmes de Résidence Permanente au Canada et en Australie :
-Entrée Express, PNP, visas australiens, critères officiels, profils éligibles
-et diagnostic personnalisé avec Immigration97.
-{% endblock %}
-
+{% block title %}Programmes Résidence Permanente Canada — Liste Complète | Immigration97{% endblock %}
+{% block meta_description %}Tous les programmes de résidence permanente au Canada : Entrée Express FSW/CEC/FST, PNP provinciaux, Québec Arrima/PEQ, Francophones, Regroupement familial. Liens officiels canada.ca.{% endblock %}
+{% block body_class %}rp-canada{% endblock %}
+{% block app_scope %}rp-canada{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
+<style>
+:root{--rp-navy:#050A18;--rp-gold:#D4A843;--rp-gold-lt:#F0C060;--rp-glass:rgba(8,15,32,.75);--rp-text:rgba(232,234,240,.9);--rp-muted:rgba(232,234,240,.45);}
+body.rp-canada{background:var(--rp-navy);color:var(--rp-text);}
+body.rp-canada::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 80% 50% at 50% -5%,rgba(212,168,67,.08) 0%,transparent 60%);}
+.rp-wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 1.25rem 5rem;}
+.rp-bc{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--rp-muted);padding:1.5rem 0 0;flex-wrap:wrap;}
+.rp-bc a{color:rgba(255,255,255,.4);text-decoration:none;}.rp-bc a:hover{color:var(--rp-gold-lt);}
+.rp-bc__sep{color:rgba(255,255,255,.15);}
+.rp-hero{padding:2.5rem 0 2.5rem;text-align:center;}
+.rp-hero__eye{display:inline-flex;align-items:center;gap:.4rem;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);color:var(--rp-gold-lt);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.3rem .9rem;border-radius:999px;margin-bottom:1rem;}
+.rp-hero h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;color:#fff;line-height:1.15;margin:0 0 .8rem;}
+.rp-hero p{font-size:.9rem;color:var(--rp-muted);line-height:1.7;max-width:620px;margin:0 auto 1.75rem;}
+.rp-hero__cta{display:flex;justify-content:center;gap:.75rem;flex-wrap:wrap;}
+.btn-primary{display:inline-flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.9rem;font-weight:800;padding:.75rem 1.6rem;border-radius:11px;transition:all .22s;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,168,67,.4);}
+.btn-ghost{display:inline-flex;align-items:center;gap:.45rem;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8);font-size:.9rem;font-weight:700;padding:.75rem 1.6rem;border-radius:11px;transition:all .22s;}
+.btn-ghost:hover{background:rgba(255,255,255,.09);}
+.rp-divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:0;}
+/* FILTRES */
+.rp-filters{display:flex;gap:.5rem;flex-wrap:wrap;padding:1.75rem 0;}
+.rp-pill{display:inline-flex;align-items:center;gap:.3rem;padding:.4rem .9rem;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--rp-muted);font-size:.78rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.rp-pill:hover{border-color:rgba(212,168,67,.4);color:rgba(255,255,255,.8);}
+.rp-pill.active{background:rgba(212,168,67,.12);border-color:rgba(212,168,67,.4);color:var(--rp-gold-lt);}
+/* GRILLE */
+.rp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.15rem;}
+.rp-card{background:var(--rp-glass);border:1px solid rgba(255,255,255,.07);border-radius:17px;padding:1.6rem;display:flex;flex-direction:column;transition:all .25s;backdrop-filter:blur(10px);}
+.rp-card:hover{border-color:rgba(212,168,67,.3);transform:translateY(-3px);box-shadow:0 14px 36px rgba(0,0,0,.3);}
+.rp-card__badge{display:inline-block;font-size:.63rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:.22rem .7rem;border-radius:6px;margin-bottom:.9rem;}
+.rp-card__badge--ee{background:rgba(212,168,67,.15);border:1px solid rgba(212,168,67,.35);color:var(--rp-gold-lt);}
+.rp-card__badge--pnp{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#a5b4fc;}
+.rp-card__badge--fr{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#86efac;}
+.rp-card__badge--fam{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5;}
+.rp-card__title{font-size:1rem;font-weight:800;color:#fff;margin:0 0 .55rem;line-height:1.3;}
+.rp-card__title a{color:inherit;text-decoration:none;}
+.rp-card__title a:hover{color:var(--rp-gold-lt);}
+.rp-card__sum{font-size:.82rem;color:var(--rp-muted);line-height:1.65;flex:1;margin:0 0 1.1rem;}
+.rp-card__actions{display:flex;gap:.6rem;margin-top:auto;}
+.rp-card__link{display:inline-flex;align-items:center;gap:.35rem;font-size:.8rem;font-weight:700;color:var(--rp-gold-lt);transition:gap .2s;}
+.rp-card__link:hover{gap:.6rem;}
+.rp-card__official{display:inline-flex;align-items:center;gap:.35rem;font-size:.78rem;font-weight:600;color:#93c5fd;}
+.rp-card__official:hover{text-decoration:underline;}
+/* CTA */
+.rp-cta-box{background:linear-gradient(135deg,rgba(212,168,67,.1),rgba(212,168,67,.04));border:1px solid rgba(212,168,67,.25);border-radius:20px;padding:2.75rem 2rem;text-align:center;margin-top:2.5rem;}
+.rp-cta-box h2{font-size:clamp(1.4rem,3vw,2rem);font-weight:900;color:#fff;margin:0 0 .7rem;}
+.rp-cta-box p{font-size:.88rem;color:var(--rp-muted);margin:0 0 1.75rem;max-width:500px;margin-left:auto;margin-right:auto;}
+@media(max-width:640px){.rp-grid{grid-template-columns:1fr;}}
+</style>
 {% endblock %}
-
-
 {% block content %}
+<div class="rp-wrap">
+<nav class="rp-bc">
+  <a href="/">Accueil</a><span class="rp-bc__sep">›</span>
+  <a href="{% url 'residence_permanente' %}">Résidence Permanente Canada</a><span class="rp-bc__sep">›</span>
+  <span>Tous les programmes</span>
+</nav>
+<div class="rp-hero">
+  <div class="rp-hero__eye">🇨🇦 Programmes officiels 2026</div>
+  <h1>Programmes de Résidence<br>Permanente au Canada</h1>
+  <p>Retrouvez tous les programmes d'immigration permanente au Canada avec leurs critères, délais et liens vers les sources officielles du gouvernement canadien (canada.ca / ircc.canada.ca).</p>
+  <div class="rp-hero__cta">
+    <a href="{% url 'permanent_residence:eligibility' %}" class="btn-primary">🚀 Faire mon diagnostic gratuit</a>
+    <a href="{% url 'permanent_residence:coach' %}" class="btn-ghost">🤖 Coach IA RP</a>
+  </div>
+</div>
+<hr class="rp-divider">
 
-{% include "permanent_residence/_rp_nav.html" %}
-
-
-
-<div class="rp-program-list-page">
-
-  <!-- ================= HERO ================= -->
-  <section class="rp-program-list-hero">
-    <div class="rp-program-list-hero-header">
-
-      <div>
-        <p class="rp-program-list-kicker">
-          Bibliothèque officielle · Résidence Permanente
-        </p>
-
-        <h1 class="rp-program-list-title">
-          Programmes de Résidence Permanente Canada & Australie
-        </h1>
-
-        <p class="rp-program-list-desc">
-          Cette page regroupe les principaux
-          <strong>programmes de Résidence Permanente au Canada et en Australie</strong>,
-          utilisés par les autorités d’immigration pour sélectionner les candidats
-          selon l’âge, les études, l’expérience professionnelle et le niveau de langue.
-        </p>
-      </div>
-
-      <aside class="rp-program-list-side">
-        <div class="rp-program-list-side-box">
-          <strong>🎯 Conseil stratégique</strong>
-          <p>
-            Avant de choisir un programme, il est essentiel d’analyser ton profil.
-            Le diagnostic RP permet d’identifier les options les plus réalistes.
-          </p>
-
-          <a href="{% url 'permanent_residence:eligibility' %}">
-            🧪 Faire mon diagnostic RP
-          </a>
-        </div>
-      </aside>
-
-    </div>
-  </section>
-
-  <!-- ================= GEO / EXPLICATION ================= -->
-  <section class="rp-card">
-    <h2 class="rp-section-title">
-      Comment fonctionnent les programmes de Résidence Permanente ?
-    </h2>
-
-    <p class="rp-text">
-      Les programmes de Résidence Permanente sont des voies officielles mises en place
-      par les gouvernements du Canada et de l’Australie pour sélectionner des candidats
-      qualifiés souhaitant s’installer durablement.
-    </p>
-
-    <p class="rp-text">
-      Chaque programme cible un type de profil précis :
-      travailleurs qualifiés, diplômés internationaux,
-      métiers en demande, candidats avec offre d’emploi
-      ou expérience locale.
-    </p>
-
-    <p class="rp-text">
-      L’éligibilité repose sur des critères mesurables :
-      âge, niveau d’études, expérience professionnelle,
-      résultats linguistiques (IELTS, TEF, TCF),
-      et parfois des facteurs régionaux ou familiaux.
-    </p>
-
-    <p class="rp-text">
-      👉 C’est pourquoi il est fortement recommandé de
-      <strong>réaliser un diagnostic personnalisé</strong>
-      avant de choisir un programme.
-    </p>
-
-    <a href="/consultation/"
-       class="rp-btn rp-btn--primary">
-      🎯 Parler à un expert RP
-    </a>
-  </section>
-
-  <!-- ================= FILTRES ================= -->
-  <section class="rp-program-filters">
-
-    <div class="rp-filter-group">
-      <p class="rp-filter-label">Pays</p>
-      <div class="rp-filter-items">
-        <a href="{% url 'permanent_residence:program_list' %}"
-           class="rp-filter-pill {% if not selected_country %}active{% endif %}">
-          Tous
-        </a>
-
-        {% for code in available_countries %}
-          <a href="?country={{ code }}{% if selected_category %}&category={{ selected_category }}{% endif %}"
-             class="rp-filter-pill {% if selected_country == code %}active{% endif %}">
-            {% if code == "CA" %}🇨🇦 Canada
-            {% elif code == "AU" %}🇦🇺 Australie
-            {% else %}{{ code }}{% endif %}
-          </a>
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="rp-filter-group">
-      <p class="rp-filter-label">Catégories</p>
-      <div class="rp-filter-items">
-        <a href="{% url 'permanent_residence:program_list' %}"
-           class="rp-filter-pill {% if not selected_category %}active{% endif %}">
-          Toutes
-        </a>
-
-        {% for cat in categories %}
-          <a href="?category={{ cat }}{% if selected_country %}&country={{ selected_country }}{% endif %}"
-             class="rp-filter-pill {% if selected_category == cat %}active{% endif %}">
-            {{ cat }}
-          </a>
-        {% endfor %}
-      </div>
-    </div>
-
-  </section>
-
-  <!-- ================= LISTE PROGRAMMES ================= -->
-  <section class="rp-program-list-box">
-
-    {% if programs %}
-      <div class="rp-program-grid">
-
-        {% for program in programs %}
-          <article class="rp-program-card">
-
-            <div>
-              <h3 class="rp-program-card-title">
-                {{ program.name }}
-              </h3>
-
-              <span class="rp-program-card-badge">
-                {% if program.country == "CA" %}🇨🇦 Canada
-                {% elif program.country == "AU" %}🇦🇺 Australie
-                {% else %}Résidence Permanente{% endif %}
-              </span>
-
-              {% if program.category %}
-                <div class="rp-program-card-category">
-                  {{ program.category }}
-                </div>
-              {% endif %}
-
-              {% if program.summary %}
-                <p class="rp-program-card-summary">
-                  {{ program.summary }}
-                </p>
-              {% else %}
-                <p class="rp-program-card-summary">
-                  Programme officiel de Résidence Permanente destiné
-                  aux profils qualifiés selon les critères gouvernementaux.
-                </p>
-              {% endif %}
-            </div>
-
-            <div class="rp-program-card-actions">
-              <a href="{% url 'permanent_residence:program_detail' program.slug %}">
-                Voir la fiche →
-              </a>
-
-              {% if program.official_url %}
-                <a href="{{ program.official_url }}" target="_blank" rel="noopener">
-                  Site officiel
-                </a>
-              {% endif %}
-            </div>
-
-          </article>
-        {% endfor %}
-
-      </div>
-    {% else %}
-      <p class="rp-muted">
-        Aucun programme ne correspond aux filtres sélectionnés.
-      </p>
-    {% endif %}
-
-  </section>
-
-  <!-- ================= CTA FINAL GEO ================= -->
-  <section class="rp-card rp-home-cta">
-    <h2 class="rp-home-cta__title">
-      Tu hésites entre plusieurs programmes de Résidence Permanente ?
-    </h2>
-
-    <p class="rp-text">
-      Chaque profil est unique. Le diagnostic RP Immigration97
-      analyse automatiquement ton âge, tes études,
-      ton expérience professionnelle et ton niveau de langue
-      afin d’identifier les programmes les plus réalistes pour toi.
-    </p>
-
-    <a href="{% url 'permanent_residence:eligibility' %}"
-       class="rp-btn rp-btn--primary rp-btn--lg">
-      🧪 Lancer mon diagnostic RP maintenant
-    </a>
-  </section>
-
+<!-- FILTRES -->
+<div class="rp-filters">
+  <a href="{% url 'permanent_residence:program_list' %}" class="rp-pill {% if not selected_category %}active{% endif %}">Tous</a>
+  {% for cat in categories %}
+  <a href="?category={{ cat }}{% if selected_country %}&country={{ selected_country }}{% endif %}" class="rp-pill {% if selected_category == cat %}active{% endif %}">{{ cat }}</a>
+  {% endfor %}
 </div>
 
+<!-- LISTE -->
+{% if programs %}
+<div class="rp-grid">
+  {% for program in programs %}
+  <div class="rp-card">
+    {% if program.category == "Entrée Express" %}
+      <span class="rp-card__badge rp-card__badge--ee">⚡ {{ program.category }}</span>
+    {% elif program.category == "PNP" or program.category == "PNP – Québec" %}
+      <span class="rp-card__badge rp-card__badge--pnp">🏛️ {{ program.category }}</span>
+    {% elif program.category == "Francophone" %}
+      <span class="rp-card__badge rp-card__badge--fr">🌟 {{ program.category }}</span>
+    {% elif program.category == "Famille" %}
+      <span class="rp-card__badge rp-card__badge--fam">👨‍👩‍👧 {{ program.category }}</span>
+    {% else %}
+      <span class="rp-card__badge rp-card__badge--ee">🇨🇦 {{ program.category }}</span>
+    {% endif %}
+    <h3 class="rp-card__title"><a href="{% url 'permanent_residence:program_detail' program.slug %}">{{ program.name }}</a></h3>
+    <p class="rp-card__sum">{{ program.summary|truncatechars:140 }}</p>
+    <div class="rp-card__actions">
+      <a href="{% url 'permanent_residence:program_detail' program.slug %}" class="rp-card__link">Voir le détail complet →</a>
+      {% if program.official_url %}<a href="{{ program.official_url }}" target="_blank" rel="noopener" class="rp-card__official">🔗 canada.ca</a>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p style="color:var(--rp-muted);text-align:center;padding:3rem 0;">Aucun programme pour ce filtre. <a href="{% url 'permanent_residence:program_list' %}" style="color:var(--rp-gold-lt);">Voir tous →</a></p>
+{% endif %}
+
+<div class="rp-cta-box">
+  <h2>Quel programme vous correspond ?</h2>
+  <p>Le diagnostic RP analyse votre profil et identifie automatiquement les programmes accessibles selon votre âge, niveau de langue, expérience et diplôme.</p>
+  <a href="{% url 'permanent_residence:eligibility' %}" class="btn-primary">🚀 Faire mon diagnostic gratuit</a>
+</div>
+</div>
 {% endblock %}

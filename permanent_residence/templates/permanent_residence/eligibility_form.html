@@ -1,140 +1,107 @@
 {% extends "base.html" %}
 {% load static %}
-
-{# =====================================================
-   BODY CLASS — ACTIVE LE SCOPE CSS
-===================================================== #}
-{% block body_class %}residence-permanente{% endblock %}
-{% block app_scope %}residence-permanente{% endblock %}
-
-{# =====================================================
-   SEO
-===================================================== #}
-{% block title %}
-Diagnostic Résidence Permanente Canada & Australie | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Diagnostic Résidence Permanente Immigration97 : évalue gratuitement tes chances
-d’immigrer au Canada ou en Australie. Analyse âge, études, expérience,
-langues (TEF, IELTS), score CRS et stratégies Express Entry.
-{% endblock %}
-
-
+{% block title %}Diagnostic Résidence Permanente Canada — Gratuit | Immigration97{% endblock %}
+{% block meta_description %}Évaluez votre éligibilité à la résidence permanente au Canada. Score CRS estimé, programmes adaptés, plan d'action. Basé sur les critères officiels IRCC.{% endblock %}
+{% block body_class %}rp-canada{% endblock %}
+{% block app_scope %}rp-canada{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
+<style>
+:root{--rp-navy:#050A18;--rp-gold:#D4A843;--rp-gold-lt:#F0C060;--rp-glass:rgba(8,15,32,.75);--rp-text:rgba(232,234,240,.9);--rp-muted:rgba(232,234,240,.45);}
+body.rp-canada{background:var(--rp-navy);color:var(--rp-text);}
+body.rp-canada::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 80% 50% at 50% -5%,rgba(212,168,67,.08) 0%,transparent 60%);}
+.rp-wrap{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:0 1.25rem 5rem;}
+.rp-bc{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--rp-muted);padding:1.5rem 0 0;flex-wrap:wrap;}
+.rp-bc a{color:rgba(255,255,255,.4);text-decoration:none;}.rp-bc a:hover{color:var(--rp-gold-lt);}
+.rp-bc__sep{color:rgba(255,255,255,.15);}
+.rp-hero{padding:2.5rem 0 2rem;text-align:center;}
+.rp-hero__eye{display:inline-flex;align-items:center;gap:.4rem;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);color:var(--rp-gold-lt);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.3rem .9rem;border-radius:999px;margin-bottom:1rem;}
+.rp-hero h1{font-size:clamp(1.7rem,4vw,2.7rem);font-weight:900;color:#fff;line-height:1.15;margin:0 0 .8rem;}
+.rp-hero p{font-size:.9rem;color:var(--rp-muted);line-height:1.7;max-width:580px;margin:0 auto;}
+.rp-divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:1.75rem 0;}
+.rp-card{background:var(--rp-glass);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:1.75rem;backdrop-filter:blur(10px);margin-bottom:1.1rem;}
+.rp-section-title{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(212,168,67,.65);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+.rp-section-title::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06);}
+.rp-grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+.rp-field{display:flex;flex-direction:column;gap:.35rem;}
+.rp-field label{font-size:.8rem;font-weight:600;color:rgba(255,255,255,.7);}
+.rp-field input,.rp-field select,.rp-field textarea{background:rgba(5,10,24,.8);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:.62rem .85rem;font-size:.87rem;color:var(--rp-text);font-family:inherit;outline:none;transition:border-color .2s;width:100%;}
+.rp-field input:focus,.rp-field select:focus,.rp-field textarea:focus{border-color:rgba(212,168,67,.5);}
+.rp-field select option{background:#050A18;}
+.rp-field textarea{resize:vertical;min-height:80px;}
+.rp-field .errorlist{font-size:.73rem;color:#fca5a5;list-style:none;padding:0;margin:.2rem 0 0;}
+.rp-alert-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:.75rem 1rem;font-size:.82rem;color:#fca5a5;margin-bottom:1.25rem;}
+.rp-notice{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:9px;padding:.75rem .95rem;font-size:.79rem;color:rgba(147,197,253,.9);display:flex;align-items:flex-start;gap:.5rem;margin-bottom:.9rem;}
+.rp-form-footer{text-align:center;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,.06);margin-top:1.25rem;}
+.rp-form-footer p{font-size:.73rem;color:var(--rp-muted);margin-bottom:.9rem;}
+.btn-submit{display:inline-flex;align-items:center;gap:.5rem;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.95rem;font-weight:800;padding:.85rem 2.25rem;border-radius:12px;border:none;cursor:pointer;transition:all .25s;font-family:inherit;}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,168,67,.4);}
+@media(max-width:600px){.rp-grid{grid-template-columns:1fr;}.rp-card{padding:1.25rem;}}
+</style>
 {% endblock %}
-
 {% block content %}
-
-
-{% include "permanent_residence/_rp_nav.html" %}
-
-
-<div class="rp-diagnostic">
-
-  <!-- ================= HERO SEO ================= -->
-  <header class="rp-card rp-diagnostic-header">
-    <p class="rp-kicker">Étape 1 · Diagnostic Résidence Permanente</p>
-
-    <h1 class="rp-title">
-      Diagnostic Résidence Permanente Canada & Australie
-    </h1>
-
-    <p class="rp-text">
-      Le <strong>diagnostic Résidence Permanente Immigration97</strong> te permet
-      d’évaluer objectivement tes chances d’<strong>immigrer légalement</strong>
-      vers le <strong>Canada</strong> ou l’<strong>Australie</strong>.
-    </p>
-
-    <p class="rp-text">
-      Analyse complète basée sur les critères officiels :
-      âge, études, expérience professionnelle, niveaux de langue
-      (<strong>TEF, TCF, IELTS</strong>) et adaptabilité.
-    </p>
-  </header>
-
-  <!-- ================= FORMULAIRE ================= -->
-  <section class="rp-card">
-    <form method="post" class="rp-form" novalidate>
-      {% csrf_token %}
-
-      {% if form.non_field_errors %}
-      <div class="rp-alert rp-alert--error">
-        {{ form.non_field_errors }}
-      </div>
-      {% endif %}
-
-      <!-- PROFIL GÉNÉRAL -->
-      <div class="rp-form-section">
-        <h2 class="rp-section-title">
-          Profil général – Immigration permanente
-        </h2>
-
-        <div class="rp-form-grid">
-          <div><label>{{ form.country.label }}</label>{{ form.country }}</div>
-          <div><label>{{ form.age.label }}</label>{{ form.age }}</div>
-          <div><label>{{ form.years_experience.label }}</label>{{ form.years_experience }}</div>
-          <div><label>{{ form.education_level.label }}</label>{{ form.education_level }}</div>
-        </div>
-      </div>
-
-      <!-- FRANÇAIS -->
-      <div class="rp-form-section">
-        <h2 class="rp-section-title">Français – TEF / TCF</h2>
-        <div class="rp-form-grid">
-          <div><label>{{ form.french_exam.label }}</label>{{ form.french_exam }}</div>
-          <div><label>{{ form.french_level.label }}</label>{{ form.french_level }}</div>
-          <div><label>{{ form.french_co.label }}</label>{{ form.french_co }}</div>
-          <div><label>{{ form.french_ce.label }}</label>{{ form.french_ce }}</div>
-          <div><label>{{ form.french_eo.label }}</label>{{ form.french_eo }}</div>
-          <div><label>{{ form.french_ee.label }}</label>{{ form.french_ee }}</div>
-        </div>
-      </div>
-
-      <!-- ANGLAIS -->
-      <div class="rp-form-section">
-        <h2 class="rp-section-title">Anglais – IELTS</h2>
-        <div class="rp-form-grid">
-          <div><label>{{ form.english_exam.label }}</label>{{ form.english_exam }}</div>
-          <div><label>{{ form.english_level.label }}</label>{{ form.english_level }}</div>
-          <div><label>{{ form.english_co.label }}</label>{{ form.english_co }}</div>
-          <div><label>{{ form.english_ce.label }}</label>{{ form.english_ce }}</div>
-          <div><label>{{ form.english_eo.label }}</label>{{ form.english_eo }}</div>
-          <div><label>{{ form.english_ee.label }}</label>{{ form.english_ee }}</div>
-        </div>
-      </div>
-
-      <!-- AUTRES FACTEURS -->
-      <div class="rp-form-section">
-        <h2 class="rp-section-title">Autres critères d’immigration</h2>
-
-        <div class="rp-form-grid">
-          <div><label>{{ form.profession_title.label }}</label>{{ form.profession_title }}</div>
-          <div><label>{{ form.noc_code.label }}</label>{{ form.noc_code }}</div>
-          <div><label>{{ form.anzsco_code.label }}</label>{{ form.anzsco_code }}</div>
-        </div>
-
-        <div class="rp-textarea">
-          <label>{{ form.notes.label }}</label>
-          {{ form.notes }}
-        </div>
-      </div>
-
-      <!-- CTA -->
-      <div class="rp-form-footer">
-        <p class="rp-muted">
-          🔒 Données utilisées uniquement pour ton diagnostic RP.
-        </p>
-
-        <button type="submit" class="rp-btn rp-btn--primary">
-          🚀 Voir mon résultat RP personnalisé
-        </button>
-      </div>
-
-    </form>
-  </section>
-
+<div class="rp-wrap">
+<nav class="rp-bc">
+  <a href="/">Accueil</a><span class="rp-bc__sep">›</span>
+  <a href="{% url 'residence_permanente' %}">Résidence Permanente Canada</a><span class="rp-bc__sep">›</span>
+  <span>Diagnostic</span>
+</nav>
+<div class="rp-hero">
+  <div class="rp-hero__eye">🇨🇦 Étape 1 · Diagnostic RP gratuit</div>
+  <h1>Votre diagnostic<br>Résidence Permanente Canada</h1>
+  <p>Analyse gratuite basée sur les critères officiels IRCC : âge, études, expérience, langues (TEF Canada, IELTS/CELPIP). Obtenez votre score CRS estimé et les programmes accessibles.</p>
 </div>
+<hr class="rp-divider">
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="rp-alert-error">{{ form.non_field_errors }}</div>{% endif %}
 
+  <div class="rp-card">
+    <div class="rp-section-title">👤 Profil général</div>
+    <div class="rp-grid">
+      <div class="rp-field"><label>Âge *</label>{{ form.age }}{% if form.age.errors %}<ul class="errorlist">{% for e in form.age.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}</div>
+      <div class="rp-field"><label>{{ form.education_level.label }} *</label>{{ form.education_level }}</div>
+      <div class="rp-field"><label>{{ form.years_experience.label }} *</label>{{ form.years_experience }}</div>
+      <div class="rp-field"><label>{{ form.profession_title.label }}</label>{{ form.profession_title }}</div>
+      <div class="rp-field"><label>Code CNP ({{ form.noc_code.label }})</label>{{ form.noc_code }}</div>
+      <div class="rp-field"><label>{{ form.has_job_offer.label }}</label>{{ form.has_job_offer }}</div>
+      <div class="rp-field"><label>{{ form.has_family_in_country.label }}</label>{{ form.has_family_in_country }}</div>
+    </div>
+  </div>
+
+  <div class="rp-card">
+    <div class="rp-section-title">🇫🇷 Français — TEF Canada / TCF Canada</div>
+    <div class="rp-notice"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Seuls le <strong>TEF Canada</strong> et le <strong>TCF Canada</strong> sont reconnus pour Entrée Express. CLB 7 minimum requis dans toutes les habiletés.</span></div>
+    <div class="rp-grid">
+      <div class="rp-field"><label>{{ form.french_exam.label }}</label>{{ form.french_exam }}</div>
+      <div class="rp-field"><label>{{ form.french_level.label }}</label>{{ form.french_level }}</div>
+      <div class="rp-field"><label>CO — Compréhension orale</label>{{ form.french_co }}</div>
+      <div class="rp-field"><label>CE — Compréhension écrite</label>{{ form.french_ce }}</div>
+      <div class="rp-field"><label>EO — Expression orale</label>{{ form.french_eo }}</div>
+      <div class="rp-field"><label>EE — Expression écrite</label>{{ form.french_ee }}</div>
+    </div>
+  </div>
+
+  <div class="rp-card">
+    <div class="rp-section-title">🇬🇧 Anglais — IELTS General / CELPIP</div>
+    <div class="rp-notice"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Bilingue FR + EN (CLB 5+) = points CRS supplémentaires pour la 2e langue officielle canadienne.</span></div>
+    <div class="rp-grid">
+      <div class="rp-field"><label>{{ form.english_exam.label }}</label>{{ form.english_exam }}</div>
+      <div class="rp-field"><label>{{ form.english_level.label }}</label>{{ form.english_level }}</div>
+      <div class="rp-field"><label>Listening</label>{{ form.english_co }}</div>
+      <div class="rp-field"><label>Reading</label>{{ form.english_ce }}</div>
+      <div class="rp-field"><label>Speaking</label>{{ form.english_eo }}</div>
+      <div class="rp-field"><label>Writing</label>{{ form.english_ee }}</div>
+    </div>
+  </div>
+
+  <div class="rp-card">
+    <div class="rp-section-title">📝 Notes complémentaires</div>
+    <div class="rp-field"><label>{{ form.notes.label }} (optionnel)</label>{{ form.notes }}</div>
+    <div class="rp-form-footer">
+      <p>🔒 Données utilisées uniquement pour votre diagnostic. Non partagées.</p>
+      <button type="submit" class="btn-submit">🚀 Obtenir mon diagnostic RP gratuit</button>
+    </div>
+  </div>
+</form>
+</div>
 {% endblock %}

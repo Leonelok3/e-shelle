@@ -1,160 +1,202 @@
 {% extends "base.html" %}
 {% load static %}
-
-{# =====================================================
-   BODY SCOPE — OBLIGATOIRE POUR LE CSS RP
-===================================================== #}
-{% block body_class %}residence-permanente{% endblock %}
-{% block app_scope %}residence-permanente{% endblock %}
-
-{# =====================================================
-   SEO CLASSIQUE
-===================================================== #}
-{% block title %}
-Coach IA Résidence Permanente Canada & Australie | Immigration97
-{% endblock %}
-
-{% block meta_description %}
-Coach IA Immigration97 spécialisé Résidence Permanente Canada et Australie :
-analyse de profil, optimisation du score, stratégies d’immigration et
-plans d’action personnalisés.
-{% endblock %}
-
-
+{% block title %}Coach IA Résidence Permanente Canada | Immigration97{% endblock %}
+{% block meta_description %}Coach IA spécialisé résidence permanente Canada : analyse de profil, optimisation score CRS, stratégies Entrée Express, PNP, Québec. Posez vos questions, obtenez des recommandations personnalisées.{% endblock %}
+{% block body_class %}rp-canada{% endblock %}
+{% block app_scope %}rp-canada{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/residence_permanente_nav.css' %}">
+<style>
+:root{--rp-navy:#050A18;--rp-gold:#D4A843;--rp-gold-lt:#F0C060;--rp-glass:rgba(8,15,32,.75);--rp-text:rgba(232,234,240,.9);--rp-muted:rgba(232,234,240,.45);--rp-green:#22c55e;}
+body.rp-canada{background:var(--rp-navy);color:var(--rp-text);}
+body.rp-canada::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 80% 50% at 50% -5%,rgba(212,168,67,.08) 0%,transparent 60%);}
+.rp-wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 1.25rem 5rem;}
+.rp-bc{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--rp-muted);padding:1.5rem 0 0;flex-wrap:wrap;}
+.rp-bc a{color:rgba(255,255,255,.4);text-decoration:none;}.rp-bc a:hover{color:var(--rp-gold-lt);}
+.rp-bc__sep{color:rgba(255,255,255,.15);}
+.rp-hero{padding:2.5rem 0 2.5rem;text-align:center;}
+.rp-hero__eye{display:inline-flex;align-items:center;gap:.4rem;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);color:var(--rp-gold-lt);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.3rem .9rem;border-radius:999px;margin-bottom:1rem;}
+.rp-hero h1{font-size:clamp(1.8rem,4.5vw,3rem);font-weight:900;color:#fff;line-height:1.15;margin:0 0 .8rem;}
+.rp-hero h1 span{background:linear-gradient(135deg,#D4A843,#F0C060);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.rp-hero p{font-size:.9rem;color:var(--rp-muted);line-height:1.7;max-width:600px;margin:0 auto 2rem;}
+.rp-hero__cta{display:flex;justify-content:center;gap:.75rem;flex-wrap:wrap;}
+.btn-primary{display:inline-flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#D4A843,#F0C060);color:#050A18;font-size:.9rem;font-weight:800;padding:.75rem 1.6rem;border-radius:11px;transition:all .22s;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,168,67,.4);}
+.btn-ghost{display:inline-flex;align-items:center;gap:.45rem;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8);font-size:.9rem;font-weight:700;padding:.75rem 1.6rem;border-radius:11px;transition:all .22s;}
+.btn-ghost:hover{background:rgba(255,255,255,.09);}
+.rp-divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:0;}
+.rp-card{background:var(--rp-glass);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:2rem;backdrop-filter:blur(10px);margin-bottom:1.25rem;}
+/* QUESTIONS RAPIDES */
+.rp-presets{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.5rem;}
+.rp-preset{display:flex;align-items:flex-start;gap:.65rem;padding:.9rem 1rem;background:rgba(212,168,67,.05);border:1px solid rgba(212,168,67,.15);border-radius:12px;cursor:pointer;text-align:left;font-family:inherit;color:var(--rp-text);font-size:.82rem;line-height:1.45;transition:all .2s;border-width:1px;}
+.rp-preset:hover{background:rgba(212,168,67,.1);border-color:rgba(212,168,67,.3);}
+.rp-preset__icon{font-size:1.1rem;flex-shrink:0;}
+/* CHAT */
+.rp-chat{min-height:280px;max-height:450px;overflow-y:auto;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.9rem;background:rgba(0,0,0,.2);display:flex;flex-direction:column;gap:.6rem;margin-bottom:1rem;}
+.rp-msg{max-width:88%;}
+.rp-msg.assistant{align-self:flex-start;}
+.rp-msg.user{align-self:flex-end;}
+.rp-msg-content{padding:.6rem .85rem;border-radius:13px;font-size:.87rem;line-height:1.55;white-space:pre-wrap;}
+.rp-msg.assistant .rp-msg-content{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(232,234,240,.85);border-radius:4px 13px 13px 13px;}
+.rp-msg.user .rp-msg-content{background:rgba(212,168,67,.15);border:1px solid rgba(212,168,67,.3);color:var(--rp-gold-lt);border-radius:13px 4px 13px 13px;}
+.rp-input-row{display:flex;gap:.75rem;align-items:flex-end;}
+.rp-textarea{flex:1;background:rgba(5,10,24,.8);border:1.5px solid rgba(255,255,255,.1);border-radius:11px;padding:.7rem .9rem;font-size:.87rem;color:var(--rp-text);resize:vertical;min-height:68px;font-family:inherit;outline:none;transition:border-color .2s;}
+.rp-textarea:focus{border-color:rgba(212,168,67,.5);}
+.rp-textarea::placeholder{color:var(--rp-muted);}
+.btn-send{display:inline-flex;align-items:center;gap:.4rem;background:rgba(212,168,67,.15);border:1.5px solid rgba(212,168,67,.4);color:var(--rp-gold-lt);border-radius:10px;padding:.75rem 1.25rem;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+.btn-send:hover{background:rgba(212,168,67,.25);}
+.btn-send:disabled{opacity:.5;cursor:not-allowed;}
+/* SERVICES */
+.rp-services{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-top:1.5rem;}
+.rp-service{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:1.35rem;}
+.rp-service__icon{font-size:1.4rem;margin-bottom:.65rem;}
+.rp-service h4{font-size:.9rem;font-weight:700;color:#fff;margin:0 0 .6rem;}
+.rp-service ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.35rem;}
+.rp-service li{display:flex;align-items:flex-start;gap:.5rem;font-size:.8rem;color:var(--rp-muted);}
+.rp-service li::before{content:'✓';color:var(--rp-green);font-weight:700;flex-shrink:0;margin-top:.05rem;}
+.rp-section__eye{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(212,168,67,.6);margin-bottom:.5rem;}
+.rp-section__title{font-size:1.1rem;font-weight:800;color:#fff;margin:0 0 1rem;}
+@media(max-width:640px){.rp-presets{grid-template-columns:1fr;}.rp-card{padding:1.25rem;}.rp-input-row{flex-direction:column;}.btn-send{width:100%;justify-content:center;}}
+</style>
 {% endblock %}
-
 {% block content %}
+<div class="rp-wrap">
+<nav class="rp-bc">
+  <a href="/">Accueil</a><span class="rp-bc__sep">›</span>
+  <a href="{% url 'residence_permanente' %}">Résidence Permanente Canada</a><span class="rp-bc__sep">›</span>
+  <span>Coach IA</span>
+</nav>
+<div class="rp-hero">
+  <div class="rp-hero__eye">🤖 Coach IA</div>
+  <h1>Coach IA<br><span>Résidence Permanente Canada</span></h1>
+  <p>Posez vos questions sur Entrée Express, PNP, score CRS, TEF Canada, EDE... Obtenez des recommandations personnalisées basées sur votre profil d'immigration.</p>
+  <div class="rp-hero__cta">
+    <a href="{% url 'permanent_residence:eligibility' %}" class="btn-primary">🚀 Faire mon diagnostic d'abord</a>
+    <a href="{% url 'permanent_residence:dashboard' %}" class="btn-ghost">📊 Mon tableau de bord</a>
+  </div>
+</div>
+<hr class="rp-divider" style="margin-bottom:2rem;">
 
+<!-- CHAT -->
+<div class="rp-card">
+  <p style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(212,168,67,.6);margin-bottom:.75rem;">Questions rapides</p>
+  <div class="rp-presets">
+    <button class="rp-preset" onclick="setQ(this)"><span class="rp-preset__icon">📊</span><span>Comment améliorer mon score CRS pour Entrée Express ?</span></button>
+    <button class="rp-preset" onclick="setQ(this)"><span class="rp-preset__icon">🇫🇷</span><span>Quel est l'avantage du TEF Canada pour les Africains francophones ?</span></button>
+    <button class="rp-preset" onclick="setQ(this)"><span class="rp-preset__icon">🏛️</span><span>Quelle province PNP est la plus accessible pour mon profil ?</span></button>
+    <button class="rp-preset" onclick="setQ(this)"><span class="rp-preset__icon">📄</span><span>Quels documents préparer pour Entrée Express FSW ?</span></button>
+    <button class="rp-preset" onclick="setQ(this)"><span class="rp-preset__icon">🎓</span><span>Mon diplôme africain est-il reconnu au Canada (WES/EDE) ?</span></button>
+    <button class="rp-preset" onclick="setQ(this)"><span class="rp-preset__icon">⏱️</span><span>Quel programme a le délai de traitement le plus court ?</span></button>
+  </div>
 
-{% include "permanent_residence/_rp_nav.html" %}
-
-
-
-<section class="rp-coach-page">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-9">
-
-        <!-- ================= HEADER ================= -->
-        <header class="rp-coach-header mb-4">
-          <p class="rp-coach-kicker">
-            🤖 Coach IA · Résidence Permanente
-          </p>
-
-          <h1 class="rp-coach-title">
-            Coach IA Résidence Permanente Canada & Australie
-          </h1>
-
-          <p class="rp-coach-subtitle">
-            Pose des questions stratégiques sur ton projet d’immigration et
-            reçois des recommandations personnalisées basées sur ton âge,
-            ton niveau d’études, ton expérience professionnelle et
-            tes compétences linguistiques.
-          </p>
-        </header>
-
-        <!-- ================= CARD ================= -->
-        <article class="rp-card">
-
-          <p class="rp-text">
-            Le <strong>Coach IA Immigration97</strong> est conçu pour t’aider à :
-          </p>
-
-          <ul class="rp-text" role="list">
-            <li>analyser ton profil de Résidence Permanente (Canada / Australie) ;</li>
-            <li>identifier les faiblesses qui bloquent ton score d’immigration ;</li>
-            <li>choisir les programmes RP les plus réalistes pour toi ;</li>
-            <li>éviter les erreurs fréquentes des candidats non accompagnés ;</li>
-            <li>structurer une stratégie claire et progressive.</li>
-          </ul>
-
-          <!-- ================= CTA PRINCIPAUX ================= -->
-          <div class="rp-actions mt-4">
-            <a href="{% url 'permanent_residence:dashboard' %}"
-               class="rp-btn rp-btn--primary">
-              📊 Accéder à mon Cockpit RP
-            </a>
-
-            <a href="{% url 'permanent_residence:eligibility' %}"
-               class="rp-btn rp-btn--outline">
-              🧪 Refaire mon diagnostic RP
-            </a>
-          </div>
-
-          <!-- ================= NOTE TECH ================= -->
-          <p class="rp-home-disclaimer mt-3">
-            🔌 API prête : <code>rp_coach_api</code> — intégration IA progressive.
-          </p>
-
-        </article>
-
-        <!-- =================================================
-             GEO / IA — CONTENU COMPRÉHENSIBLE PAR LES LLM
-        ================================================== -->
-        <section class="rp-card rp-geo-block mt-5">
-
-          <h2>
-            Questions fréquentes sur le Coach IA Résidence Permanente
-          </h2>
-
-          <h3>
-            À quoi sert un Coach IA pour la Résidence Permanente ?
-          </h3>
-          <p>
-            Un Coach IA Résidence Permanente aide les candidats à mieux comprendre
-            les critères officiels d’immigration au Canada et en Australie,
-            à analyser leur profil réel et à structurer une stratégie cohérente
-            vers la résidence permanente.
-          </p>
-
-          <h3>
-            Le Coach IA Immigration97 remplace-t-il un consultant ?
-          </h3>
-          <p>
-            Non. Le Coach IA Immigration97 est un outil d’aide à la décision.
-            Il ne remplace pas un avocat ou un consultant réglementé, mais
-            permet d’éviter les erreurs, de mieux se préparer et de renforcer
-            son dossier avant toute démarche officielle.
-          </p>
-
-          <h3>
-            À qui s’adresse le Coach IA RP ?
-          </h3>
-          <p>
-            Il s’adresse aux candidats souhaitant immigrer légalement au Canada
-            ou en Australie, notamment via des programmes comme Entrée Express,
-            les PNP, ou les visas qualifiés australiens.
-          </p>
-
-          <p class="rp-muted">
-            Contenu informatif à visée éducative. Immigration97 n’est pas un
-            service gouvernemental.
-          </p>
-
-        </section>
-
-        <!-- ================= CTA FINAL ================= -->
-        <section class="rp-card rp-home-cta mt-5">
-          <h2 class="rp-home-cta__title">
-            Prêt(e) à structurer ton projet de Résidence Permanente ?
-          </h2>
-
-          <p class="rp-text">
-            Commence par un diagnostic clair et découvre les stratégies
-            adaptées à ton profil.
-          </p>
-
-          <a href="{% url 'permanent_residence:eligibility' %}"
-             class="rp-btn rp-btn--primary rp-btn--lg">
-            🚀 Lancer mon diagnostic RP
-          </a>
-        </section>
-
-      </div>
+  <div class="rp-chat" id="chat-box">
+    <div class="rp-msg assistant">
+      <div class="rp-msg-content">Bonjour 👋 Je suis votre Coach IA spécialisé en résidence permanente au Canada. Posez-moi vos questions sur Entrée Express, PNP, score CRS, TEF Canada, l'EDE de vos diplômes... Je suis là pour vous aider à structurer votre projet d'immigration.</div>
     </div>
   </div>
-</section>
 
+  <div class="rp-input-row">
+    <textarea id="user-input" class="rp-textarea" rows="3" placeholder="Ex: J'ai 32 ans, niveau B2 en français, Master en informatique, 4 ans d'expérience. Quel programme me convient ?"></textarea>
+    <button id="send-btn" class="btn-send">▶ Envoyer</button>
+  </div>
+</div>
+
+<!-- CE QUE LE COACH PEUT FAIRE -->
+<div style="margin-top:2rem;">
+  <p class="rp-section__eye">Ce que le Coach IA vous aide à faire</p>
+  <div class="rp-services">
+    <div class="rp-service">
+      <div class="rp-service__icon">📊</div>
+      <h4>Optimiser votre score CRS</h4>
+      <ul>
+        <li>Identifier les points à améliorer</li>
+        <li>Stratégies langue 2e officielle</li>
+        <li>Impact offre d'emploi / PNP</li>
+        <li>Simuler différents scénarios</li>
+      </ul>
+    </div>
+    <div class="rp-service">
+      <div class="rp-service__icon">🗺️</div>
+      <h4>Choisir le bon programme</h4>
+      <ul>
+        <li>FSW vs CEC vs PNP</li>
+        <li>Québec (PEQ/PRTQ) vs hors Québec</li>
+        <li>Tirages francophones</li>
+        <li>Regroupement familial</li>
+      </ul>
+    </div>
+    <div class="rp-service">
+      <div class="rp-service__icon">📋</div>
+      <h4>Préparer votre dossier</h4>
+      <ul>
+        <li>Documents obligatoires</li>
+        <li>EDE diplômes (WES, IQAS)</li>
+        <li>Tests de langue requis</li>
+        <li>Délais à anticiper</li>
+      </ul>
+    </div>
+    <div class="rp-service">
+      <div class="rp-service__icon">🎯</div>
+      <h4>Stratégie personnalisée</h4>
+      <ul>
+        <li>Plan d'action chronologique</li>
+        <li>Priorités selon votre profil</li>
+        <li>Éviter les erreurs fréquentes</li>
+        <li>Suivi de votre progression</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem 1.25rem;margin-top:1.5rem;font-size:.78rem;color:var(--rp-muted);display:flex;align-items:flex-start;gap:.5rem;">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:.1rem;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+  <span>Le Coach IA Immigration97 est un outil d'aide à la décision. Il ne remplace pas un consultant réglementé (RCIC) ni un avocat en immigration. Pour un accompagnement officiel, <a href="{% url 'consultation_request' %}" style="color:#93c5fd;">demandez une consultation →</a></span>
+</div>
+</div>
+
+<script>
+(function(){
+  var chatBox = document.getElementById('chat-box');
+  var inp = document.getElementById('user-input');
+  var btn = document.getElementById('send-btn');
+  var history = [];
+
+  function appendMsg(role, text){
+    var w = document.createElement('div');
+    w.className = 'rp-msg ' + role;
+    var c = document.createElement('div');
+    c.className = 'rp-msg-content';
+    c.innerText = text;
+    w.appendChild(c);
+    chatBox.appendChild(w);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  async function send(){
+    var text = inp.value.trim();
+    if(!text) return;
+    appendMsg('user', text);
+    history.push({role:'user', content:text});
+    inp.value = '';
+    btn.disabled = true; btn.innerText = 'Envoi…';
+    try{
+      {% if profile_id %}
+      var url = "{% url 'permanent_residence:rp_coach_api' profile_id %}";
+      {% else %}
+      var url = null;
+      {% endif %}
+      if(!url){ appendMsg('assistant', 'Pour bénéficier du Coach IA personnalisé, veuillez d\'abord faire votre diagnostic RP.'); return; }
+      var r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({message:text, history:history})});
+      var d = await r.json();
+      if(d.reply){ appendMsg('assistant', d.reply); history.push({role:'assistant', content:d.reply}); }
+      else if(d.error){ appendMsg('assistant', 'Erreur : ' + d.error); }
+    } catch(e){ appendMsg('assistant', 'Une erreur est survenue. Réessayez ou vérifiez votre connexion.'); }
+    finally{ btn.disabled = false; btn.innerText = '▶ Envoyer'; }
+  }
+
+  btn.addEventListener('click', send);
+  inp.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); } });
+
+  window.setQ = function(el){ inp.value = el.querySelector('span:last-child').innerText; inp.focus(); };
+})();
+</script>
 {% endblock %}
