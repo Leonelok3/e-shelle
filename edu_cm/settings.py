@@ -18,6 +18,16 @@ CSRF_TRUSTED_ORIGINS = [
     "https://e-shelle.com",
     "https://www.e-shelle.com",
 ]
+CSRF_TRUSTED_ORIGINS += [
+    origin.strip()
+    for origin in os.getenv("MAPEX_CSRF_TRUSTED_ORIGINS", "https://mapex.e-shelle.com").split(",")
+    if origin.strip()
+]
+CSRF_TRUSTED_ORIGINS += [
+    origin.strip()
+    for origin in os.getenv("ESHELLE_SUBDOMAIN_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
 
 # Apps
 INSTALLED_APPS = [
@@ -205,6 +215,7 @@ USE_TZ = True
 
 # Static / Media
 STATIC_URL = "/static/"
+
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -343,7 +354,30 @@ EDU_PLATFORM = {
 
 # URL de base pour les webhooks Mobile Money
 SITE_URL = os.getenv('SITE_URL', 'https://e-shelle.com')
+FORMATIONS_PUBLIC_URL = os.getenv("FORMATIONS_PUBLIC_URL", "/formations/")
+BOUTIQUE_PUBLIC_URL = os.getenv("BOUTIQUE_PUBLIC_URL", "/boutique/")
+SERVICES_PUBLIC_URL = os.getenv("SERVICES_PUBLIC_URL", "/services/")
+MATHS_PUBLIC_URL = os.getenv("MATHS_PUBLIC_URL", "/maths/")
+LANGUES_PUBLIC_URL = os.getenv("LANGUES_PUBLIC_URL", "/langues/")
+ANGLAIS_PUBLIC_URL = os.getenv("ANGLAIS_PUBLIC_URL", "/anglais/")
+ALLEMAND_PUBLIC_URL = os.getenv("ALLEMAND_PUBLIC_URL", "/allemand/")
+ITALIEN_PUBLIC_URL = os.getenv("ITALIEN_PUBLIC_URL", "/italien/")
+PREP_PUBLIC_URL = os.getenv("PREP_PUBLIC_URL", "/prep/")
+IMMOBILIER_PUBLIC_URL = os.getenv("IMMOBILIER_PUBLIC_URL", "/immobilier/")
+AUTO_PUBLIC_URL = os.getenv("AUTO_PUBLIC_URL", "/auto/")
+ANNONCES_PUBLIC_URL = os.getenv("ANNONCES_PUBLIC_URL", "/annonces/")
+LOVE_PUBLIC_URL = os.getenv("LOVE_PUBLIC_URL", "/rencontres/")
+AGRO_PUBLIC_URL = os.getenv("AGRO_PUBLIC_URL", "/agro/")
+RESTO_PUBLIC_URL = os.getenv("RESTO_PUBLIC_URL", "/resto/")
+NJANGI_PUBLIC_URL = os.getenv("NJANGI_PUBLIC_URL", "/njangi/")
+ADGEN_PUBLIC_URL = os.getenv("ADGEN_PUBLIC_URL", "/pub/")
+GAZ_PUBLIC_URL = os.getenv("GAZ_PUBLIC_URL", "/gaz/")
+PHARMA_PUBLIC_URL = os.getenv("PHARMA_PUBLIC_URL", "/pharma/")
+PRESSING_PUBLIC_URL = os.getenv("PRESSING_PUBLIC_URL", "/pressing/")
+AI_PUBLIC_URL = os.getenv("AI_PUBLIC_URL", "/ai/")
 TCHASLUCPAY_PUBLIC_URL = os.getenv("TCHASLUCPAY_PUBLIC_URL", "http://127.0.0.1:8001/")
+SIMPLO_PUBLIC_URL = os.getenv("SIMPLO_PUBLIC_URL", "http://127.0.0.1:8020/")
+MAPEX_PUBLIC_URL = os.getenv("MAPEX_PUBLIC_URL", "http://127.0.0.1:8000/edu/")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

@@ -11,6 +11,11 @@ logger = logging.getLogger('edu_platform')
 EDU_CONF = getattr(settings, 'EDU_PLATFORM', {})
 
 
+def _edu_activate_url() -> str:
+    base = getattr(settings, 'MAPEX_PUBLIC_URL', getattr(settings, 'SITE_URL', 'https://e-shelle.com')).rstrip('/')
+    return f"{base}/activate/" if base.endswith('/edu') else f"{base}/edu/activate/"
+
+
 def send_access_code_notification(access_code, user):
     """
     Envoie le code d'accès à l'utilisateur via Email et/ou SMS.
@@ -34,7 +39,7 @@ def _send_code_email(access_code, user):
             'user': user,
             'access_code': access_code,
             'site_name': EDU_CONF.get('SITE_NAME', 'EduCam Pro'),
-            'activate_url': f"{getattr(settings, 'SITE_URL', 'https://e-shelle.com')}/edu/activate/",
+            'activate_url': _edu_activate_url(),
         }
         html_message = render_to_string('edu_platform/emails/access_code.html', context)
         plain_message = (
@@ -73,7 +78,7 @@ def _send_code_sms(access_code, user):
         message = (
             f"EduCam Pro - Votre code d'acces: {access_code.code}\n"
             f"Plan: {access_code.plan.name}\n"
-            f"Activez sur: e-shelle.com/edu/activate/"
+            f"Activez sur: {_edu_activate_url()}"
         )
 
         if provider == 'twilio':

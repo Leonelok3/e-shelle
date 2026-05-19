@@ -1,0 +1,75 @@
+{% extends "simplo/marketplace/base.html" %}
+
+{% block title %}Mon espace prestataire - Simplo{% endblock %}
+
+{% block content %}
+<main class="simplo-page">
+  <section class="container py-4">
+    <a class="simplo-back" href="{% url 'simplo_marketplace:home' %}">← Accueil</a>
+
+    <div class="simplo-dashboard-hero mt-3">
+      <div>
+        <span class="simplo-pill">Espace prestataire</span>
+        <h1 class="h2 mt-3 mb-1">{{ profile.nom }}</h1>
+        <p class="mb-0 text-secondary">{{ profile.get_type_service_display }} · {{ profile.quartier_base }} · {{ profile.ville }}</p>
+      </div>
+      <span class="simplo-status-badge {% if profile.statut == 'DISPONIBLE' %}is-on{% else %}is-off{% endif %}">
+        {{ profile.get_statut_display }}
+      </span>
+    </div>
+
+    <div class="row g-3 mt-2">
+      <div class="col-lg-4">
+        <div class="simplo-panel">
+          <div class="simplo-profile-preview mb-3">
+            <div class="simplo-avatar is-large">
+              {% if profile.photo %}
+                <img src="{{ profile.photo.url }}" alt="{{ profile.nom }}">
+              {% else %}
+                <span>{{ profile.nom|slice:":1" }}</span>
+              {% endif %}
+            </div>
+            <div>
+              <strong>{{ profile.nombre_courses }} missions</strong>
+              <span>★ {{ profile.note }} · {{ profile.nombre_avis }} avis</span>
+            </div>
+          </div>
+
+          <h2 class="h5">Disponibilité</h2>
+          <p class="text-secondary">Votre carte apparaît aux clients uniquement quand vous êtes disponible.</p>
+          <form method="post" action="{% url 'simplo_accounts:toggle_status' %}">
+            {% csrf_token %}
+            <button class="btn {% if profile.statut == 'DISPONIBLE' %}btn-dark{% else %}btn-success{% endif %} w-100 fw-bold" type="submit">
+              {% if profile.statut == 'DISPONIBLE' %}Passer occupé{% else %}Passer disponible{% endif %}
+            </button>
+          </form>
+
+          <div class="simplo-mini-list mt-4">
+            <div><span>Horaires</span><strong>{{ profile.horaires|default:"Non renseigné" }}</strong></div>
+            <div><span>Zone couverte</span><strong>{{ profile.zone_couverte|default:profile.quartier_base }}</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <form class="simplo-panel" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <h2 class="h5 mb-3">Informations visibles</h2>
+
+          {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+
+          <button class="btn btn-warning w-100 fw-bold" type="submit">Enregistrer mon profil</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

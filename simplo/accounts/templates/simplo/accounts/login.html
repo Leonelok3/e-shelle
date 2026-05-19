@@ -1,0 +1,44 @@
+{% extends "simplo/marketplace/base.html" %}
+
+{% block title %}Connexion prestataire - Simplo{% endblock %}
+
+{% block content %}
+<main class="simplo-page simplo-auth-page">
+  <section class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-7 col-lg-5">
+        <div class="simplo-auth-card">
+          <span class="simplo-pill">Prestataire terrain</span>
+          <h1 class="h3 mt-3 mb-2">Connexion Simplo</h1>
+          <p class="text-secondary mb-4">Connectez-vous pour changer votre statut et mettre à jour vos informations terrain.</p>
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.username.id_for_label }}">Nom d'utilisateur</label>
+              {{ form.username }}
+              {% if form.username.errors %}
+                <div class="text-danger small mt-1">{{ form.username.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.password.id_for_label }}">Mot de passe</label>
+              {{ form.password }}
+              {% if form.password.errors %}
+                <div class="text-danger small mt-1">{{ form.password.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+            <button class="btn btn-warning fw-bold w-100" type="submit">Entrer dans mon espace</button>
+          </form>
+
+          <div class="simplo-login-help mt-4">
+            <strong>Compte de test :</strong>
+            <span>moto_akwa_1</span>
+            <span>Simplo2026!</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

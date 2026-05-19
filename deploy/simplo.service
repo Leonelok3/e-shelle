@@ -1,0 +1,40 @@
+# Systemd service - Gunicorn pour Simplo
+# Fichier a placer : /etc/systemd/system/simplo.service
+# Activer          : sudo systemctl enable simplo && sudo systemctl start simplo
+
+[Unit]
+Description=Simplo - Gunicorn WSGI Server
+After=network.target
+
+[Service]
+User=eshelle
+Group=www-data
+WorkingDirectory=/home/eshelle/app
+
+EnvironmentFile=/home/eshelle/app/.env
+
+RuntimeDirectory=simplo
+RuntimeDirectoryMode=0755
+
+ExecStart=/home/eshelle/app/.venv/bin/gunicorn \
+    --workers 2 \
+    --worker-class sync \
+    --bind unix:/run/simplo/gunicorn.sock \
+    --timeout 120 \
+    --keep-alive 5 \
+    --access-logfile /var/log/simplo/access.log \
+    --error-logfile  /var/log/simplo/error.log \
+    --log-level info \
+    simplo.core.wsgi:application
+
+ExecReload=/bin/kill -s HUP $MAINPID
+
+Restart=on-failure
+RestartSec=5s
+
+PrivateTmp=true
+ProtectSystem=full
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

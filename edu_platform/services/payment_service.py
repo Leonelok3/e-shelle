@@ -261,19 +261,22 @@ class MobileMoneyService:
 
 
 def _build_return_url(provider: str, tx_id: str) -> str:
-    from django.urls import reverse
-    from django.conf import settings
-    base = getattr(settings, 'SITE_URL', 'https://e-shelle.com')
+    base = _edu_public_base_url()
     return f"{base}/edu/payment/return/{provider}/{tx_id}/"
 
 
 def _build_cancel_url() -> str:
-    from django.conf import settings
-    base = getattr(settings, 'SITE_URL', 'https://e-shelle.com')
+    base = _edu_public_base_url()
     return f"{base}/edu/plans/"
 
 
 def _build_webhook_url(provider: str) -> str:
-    from django.conf import settings
-    base = getattr(settings, 'SITE_URL', 'https://e-shelle.com')
+    base = _edu_public_base_url()
     return f"{base}/edu/webhooks/{provider}/"
+
+
+def _edu_public_base_url() -> str:
+    base = getattr(settings, 'MAPEX_PUBLIC_URL', getattr(settings, 'SITE_URL', 'https://e-shelle.com')).rstrip('/')
+    if base.endswith('/edu'):
+        base = base[:-4]
+    return base
