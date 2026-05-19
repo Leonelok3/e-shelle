@@ -1,0 +1,108 @@
+{% extends "sante/base.html" %}
+
+{% block title %}E-Shelle Santé · Produits et soins{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="rise">
+      <div class="eyebrow"><span class="pulse-dot"></span> Santé, bien-être et produits vérifiés</div>
+      <h1>Votre santé, vos produits, vos contacts utiles.</h1>
+      <p>
+        E-Shelle Santé connecte les familles, vendeurs santé, cliniques, laboratoires et professionnels.
+        Trouvez un produit, contactez un spécialiste ou publiez une offre santé en quelques minutes.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{% url 'sante:produits' %}">Voir les produits</a>
+        <a class="btn btn-outline" href="{% url 'sante:professionnels' %}">Trouver un professionnel</a>
+        <a class="btn btn-ghost" href="{% url 'sante:publier_produit' %}">Vendre un produit</a>
+      </div>
+    </div>
+
+    <form class="panel glass search-panel rise" method="get" action="{% url 'sante:produits' %}" style="animation-delay:.12s">
+      <h2 style="font-size:1.45rem">Recherche rapide</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="q">Produit ou besoin</label>
+          <input id="q" name="q" placeholder="Tensiomètre, bébé, vitamines, hygiène...">
+        </div>
+        <div class="grid grid-2">
+          <div class="field">
+            <label for="ville">Ville</label>
+            <select id="ville" name="ville">
+              <option value="">Toutes</option>
+              {% for ville in villes %}
+                <option value="{{ ville.slug }}">{{ ville.nom }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="livraison">Livraison</label>
+            <select id="livraison" name="livraison">
+              <option value="">Indifférent</option>
+              <option value="1">Disponible</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:14px" type="submit">Chercher maintenant</button>
+    </form>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap grid grid-4" style="grid-template-columns:repeat(4,1fr)">
+    <div class="panel" style="padding:18px"><strong style="font-size:2rem;color:var(--deep)">{{ stats.produits }}</strong><p>produits actifs</p></div>
+    <div class="panel" style="padding:18px"><strong style="font-size:2rem;color:var(--deep)">{{ stats.pros }}</strong><p>professionnels</p></div>
+    <div class="panel" style="padding:18px"><strong style="font-size:2rem;color:var(--deep)">{{ stats.villes }}</strong><p>villes couvertes</p></div>
+    <div class="panel" style="padding:18px"><strong style="font-size:2rem;color:var(--deep)">{{ stats.demandes }}</strong><p>demandes ouvertes</p></div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Mini boutique santé</h2>
+        <p style="margin:0">Produits utiles, matériel, hygiène, bien-être et maternité.</p>
+      </div>
+      <a class="btn btn-outline" href="{% url 'sante:produits' %}">Tout voir</a>
+    </div>
+    {% if produits_vedette %}
+      <div class="card-grid">
+        {% for produit in produits_vedette %}
+          {% include "sante/partials/produit_card.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">Aucun produit santé publié pour le moment.</div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Professionnels et centres</h2>
+        <p style="margin:0">Cliniques, laboratoires, consultations, kiné et services à domicile.</p>
+      </div>
+      <a class="btn btn-outline" href="{% url 'sante:professionnels' %}">Explorer</a>
+    </div>
+    {% if pros_vedette %}
+      <div class="card-grid">
+        {% for pro in pros_vedette %}
+          {% include "sante/partials/pro_card.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">Aucun professionnel en vedette pour le moment.</div>
+    {% endif %}
+  </div>
+</section>
+
+<style>
+@media(max-width:780px){ .grid-4{ grid-template-columns:1fr 1fr !important; } }
+@media(max-width:480px){ .grid-4{ grid-template-columns:1fr !important; } }
+</style>
+{% endblock %}

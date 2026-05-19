@@ -1,0 +1,39 @@
+{% extends "sante/base.html" %}
+
+{% block title %}Professionnels santé · E-Shelle Santé{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h1 style="font-size:clamp(2rem,4vw,3.4rem)">Professionnels santé</h1>
+        <p style="margin:0">{{ nb_results }} profil{{ nb_results|pluralize }} disponible{{ nb_results|pluralize }}</p>
+      </div>
+      <a class="btn btn-primary" href="{% url 'sante:inscrire_professionnel' %}">Inscrire un profil</a>
+    </div>
+
+    <form class="panel search-panel" method="get">
+      <div class="grid grid-3">
+        <div class="field"><label for="q">Recherche</label><input id="q" name="q" value="{{ q }}" placeholder="Clinique, labo, quartier..."></div>
+        <div class="field"><label for="ville">Ville</label><select id="ville" name="ville"><option value="">Toutes</option>{% for v in villes %}<option value="{{ v.slug }}" {% if ville == v.slug %}selected{% endif %}>{{ v.nom }}</option>{% endfor %}</select></div>
+        <div class="field"><label for="specialite">Spécialité</label><select id="specialite" name="specialite"><option value="">Toutes</option>{% for s in specialites %}<option value="{{ s.slug }}" {% if specialite == s.slug %}selected{% endif %}>{{ s.nom }}</option>{% endfor %}</select></div>
+        <div class="field"><label for="urgence">Urgence</label><select id="urgence" name="urgence"><option value="">Indifférent</option><option value="1" {% if urgence %}selected{% endif %}>Oui</option></select></div>
+        <div class="field"><label for="domicile">À domicile</label><select id="domicile" name="domicile"><option value="">Indifférent</option><option value="1" {% if domicile %}selected{% endif %}>Oui</option></select></div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:14px" type="submit">Filtrer</button>
+    </form>
+
+    <div style="height:20px"></div>
+    {% if pros %}
+      <div class="card-grid">
+        {% for pro in pros %}
+          {% include "sante/partials/pro_card.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">Aucun professionnel ne correspond à votre recherche.</div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

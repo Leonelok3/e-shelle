@@ -113,6 +113,15 @@ ESHELLE_SERVICES = [
         "category": "lifestyle",
     },
     {
+        "key": "sante",
+        "name": "E-Shelle Santé",
+        "icon": "➕",
+        "color": "#10B981",
+        "external_url": getattr(settings, "SANTE_PUBLIC_URL", "http://127.0.0.1:8000/sante/"),
+        "desc": "Produits santé, professionnels, soins et demandes utiles",
+        "category": "lifestyle",
+    },
+    {
         "key": "pressing",
         "name": "Pressing",
         "icon": "👔",

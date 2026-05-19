@@ -102,6 +102,9 @@ urlpatterns = [
     # ── E-Shelle Transport — Covoiturage & trajets interurbains ───────
     path("transport/", include("transport_core.urls", namespace="transport")),
 
+    # ── E-Shelle Santé — Produits santé & professionnels ──────────────
+    path("sante/", include("sante.urls", namespace="sante")),
+
     # ── E-Shelle AI — Agent Intelligent Central ───────────────────────
     path("ai/", include("e_shelle_ai.urls", namespace="eshelle_ai")),
 

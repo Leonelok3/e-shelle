@@ -1,0 +1,39 @@
+{% extends "sante/base.html" %}
+
+{% block title %}Produits santé · E-Shelle Santé{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h1 style="font-size:clamp(2rem,4vw,3.4rem)">Produits santé</h1>
+        <p style="margin:0">{{ nb_results }} produit{{ nb_results|pluralize }} trouvé{{ nb_results|pluralize }}</p>
+      </div>
+      <a class="btn btn-primary" href="{% url 'sante:publier_produit' %}">Vendre un produit</a>
+    </div>
+
+    <form class="panel search-panel" method="get">
+      <div class="grid grid-3">
+        <div class="field"><label for="q">Recherche</label><input id="q" name="q" value="{{ q }}" placeholder="Nom, vendeur, besoin..."></div>
+        <div class="field"><label for="ville">Ville</label><select id="ville" name="ville"><option value="">Toutes</option>{% for v in villes %}<option value="{{ v.slug }}" {% if ville == v.slug %}selected{% endif %}>{{ v.nom }}</option>{% endfor %}</select></div>
+        <div class="field"><label for="type">Type</label><select id="type" name="type"><option value="">Tous</option>{% for value,label in types %}<option value="{{ value }}" {% if type_produit == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+        <div class="field"><label for="cat">Catégorie</label><select id="cat" name="cat"><option value="">Toutes</option>{% for c in categories %}<option value="{{ c.slug }}" {% if cat == c.slug %}selected{% endif %}>{{ c.nom }}</option>{% endfor %}</select></div>
+        <div class="field"><label for="livraison">Livraison</label><select id="livraison" name="livraison"><option value="">Indifférent</option><option value="1" {% if livraison %}selected{% endif %}>Disponible</option></select></div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:14px" type="submit">Filtrer</button>
+    </form>
+
+    <div style="height:20px"></div>
+    {% if produits %}
+      <div class="card-grid">
+        {% for produit in produits %}
+          {% include "sante/partials/produit_card.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">Aucun produit ne correspond à votre recherche.</div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

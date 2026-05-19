@@ -1,0 +1,51 @@
+{% extends "sante/base.html" %}
+
+{% block title %}{{ produit.titre }} · E-Shelle Santé{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <div class="grid split-grid">
+      <article class="panel" style="padding:22px">
+        <div class="meta">
+          <span class="pill">{{ produit.get_type_produit_display }}</span>
+          {% if produit.is_verified %}<span class="pill">Vendeur vérifié</span>{% endif %}
+          {% if produit.livraison %}<span class="pill">Livraison disponible</span>{% endif %}
+        </div>
+        <h1 style="font-size:clamp(2rem,4vw,3.4rem);margin-top:14px">{{ produit.titre }}</h1>
+        <p>{{ produit.description|linebreaksbr }}</p>
+        <div class="grid grid-2" style="margin-top:20px">
+          <div class="panel" style="padding:14px;box-shadow:none"><strong>Ville</strong><p style="margin:.35rem 0 0">{{ produit.ville }}</p></div>
+          <div class="panel" style="padding:14px;box-shadow:none"><strong>Stock</strong><p style="margin:.35rem 0 0">{{ produit.stock_disponible }} disponible{{ produit.stock_disponible|pluralize }}</p></div>
+          <div class="panel" style="padding:14px;box-shadow:none"><strong>Vendeur</strong><p style="margin:.35rem 0 0">{{ produit.vendeur_nom }}</p></div>
+          <div class="panel" style="padding:14px;box-shadow:none"><strong>Catégorie</strong><p style="margin:.35rem 0 0">{{ produit.categorie|default:"Santé" }}</p></div>
+        </div>
+        {% if produit.ordonnance_requise %}
+          <p style="color:var(--danger);font-weight:850">Ce produit nécessite une ordonnance ou un conseil professionnel avant achat.</p>
+        {% endif %}
+      </article>
+      <aside class="panel" style="padding:18px;position:sticky;top:86px">
+        <h2 style="font-size:1.35rem">Commander</h2>
+        <div class="price">{{ produit.prix_display }}</div>
+        {% if produit.prix_barre %}<p style="margin:.25rem 0 1rem"><s class="muted">{{ produit.prix_barre }} FCFA</s> {% if produit.reduction %}<span class="pill">-{{ produit.reduction }}%</span>{% endif %}</p>{% endif %}
+        <p>Contact direct vendeur. Le paiement intégré pourra être ajouté ensuite avec Mobile Money.</p>
+        <div class="grid">
+          <a class="btn btn-primary" href="{{ produit.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="btn btn-outline" href="{{ produit.tel_url }}">Appeler</a>
+        </div>
+      </aside>
+    </div>
+
+    {% if similaires %}
+      <section class="section">
+        <div class="section-head"><h2>Produits similaires</h2></div>
+        <div class="card-grid">
+          {% for produit in similaires %}
+            {% include "sante/partials/produit_card.html" %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

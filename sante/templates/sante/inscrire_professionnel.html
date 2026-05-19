@@ -1,0 +1,25 @@
+{% extends "sante/base.html" %}
+
+{% block title %}Inscrire un professionnel · E-Shelle Santé{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap" style="max-width:900px">
+    <h1 style="font-size:clamp(2rem,4vw,3.4rem)">Inscrire un professionnel santé</h1>
+    <p>Ajoutez une clinique, un laboratoire, un infirmier, un cabinet ou un service santé.</p>
+    <form class="panel search-panel" method="post">
+      {% csrf_token %}
+      <div class="grid grid-2">
+        {% for field in form %}
+          <div class="field" {% if field.name == "description" or field.name == "specialites" %}style="grid-column:1/-1"{% endif %}>
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}<small style="display:block;color:var(--danger)">{{ error }}</small>{% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+      <button class="btn btn-primary" style="margin-top:16px" type="submit">Envoyer pour validation</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "sante/base.html" %}
+
+{% block title %}Vendre un produit santé · E-Shelle Santé{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap" style="max-width:900px">
+    <h1 style="font-size:clamp(2rem,4vw,3.4rem)">Vendre un produit santé</h1>
+    <p>Publiez votre produit santé. Notre équipe vérifie avant mise en ligne pour garder la plateforme propre.</p>
+    <form class="panel search-panel" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="grid grid-2">
+        {% for field in form %}
+          <div class="field" {% if field.name == "description" %}style="grid-column:1/-1"{% endif %}>
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}<small style="display:block;color:var(--danger)">{{ error }}</small>{% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+      <button class="btn btn-primary" style="margin-top:16px" type="submit">Envoyer pour validation</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

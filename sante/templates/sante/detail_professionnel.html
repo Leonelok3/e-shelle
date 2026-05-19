@@ -1,0 +1,55 @@
+{% extends "sante/base.html" %}
+
+{% block title %}{{ pro.nom }} · E-Shelle Santé{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <div class="grid split-grid">
+      <article class="panel" style="padding:22px">
+        <div class="meta">
+          <span class="pill">{{ pro.get_type_pro_display }}</span>
+          {% if pro.is_verified %}<span class="pill">Vérifié</span>{% endif %}
+          {% if pro.urgence %}<span class="pill">Urgence</span>{% endif %}
+          {% if pro.teleconsultation %}<span class="pill">Téléconsultation</span>{% endif %}
+        </div>
+        <h1 style="font-size:clamp(2rem,4vw,3.4rem);margin-top:14px">{{ pro.nom }}</h1>
+        <p>{{ pro.description|default:"Profil santé référencé sur E-Shelle."|linebreaksbr }}</p>
+        <div class="grid grid-2" style="margin-top:20px">
+          <div class="panel" style="padding:14px;box-shadow:none"><strong>Ville</strong><p style="margin:.35rem 0 0">{{ pro.ville }}</p></div>
+          <div class="panel" style="padding:14px;box-shadow:none"><strong>Quartier</strong><p style="margin:.35rem 0 0">{{ pro.quartier|default:"À confirmer" }}</p></div>
+          <div class="panel" style="padding:14px;box-shadow:none"><strong>Horaires</strong><p style="margin:.35rem 0 0">{{ pro.horaires }}</p></div>
+          <div class="panel" style="padding:14px;box-shadow:none"><strong>Adresse</strong><p style="margin:.35rem 0 0">{{ pro.adresse|default:"Contactez pour confirmer" }}</p></div>
+        </div>
+        <h2 style="margin-top:24px;font-size:1.4rem">Spécialités</h2>
+        <div class="meta">
+          {% for specialite in pro.specialites.all %}
+            <span class="pill">{{ specialite.nom }}</span>
+          {% empty %}
+            <span class="pill">Santé générale</span>
+          {% endfor %}
+        </div>
+      </article>
+      <aside class="panel" style="padding:18px;position:sticky;top:86px">
+        <h2 style="font-size:1.35rem">Prendre contact</h2>
+        <p>Contact direct pour rendez-vous, disponibilité ou information.</p>
+        <div class="grid">
+          <a class="btn btn-primary" href="{{ pro.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="btn btn-outline" href="{{ pro.tel_url }}">Appeler</a>
+        </div>
+      </aside>
+    </div>
+
+    {% if similaires %}
+      <section class="section">
+        <div class="section-head"><h2>Autres profils dans la ville</h2></div>
+        <div class="card-grid">
+          {% for pro in similaires %}
+            {% include "sante/partials/pro_card.html" %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

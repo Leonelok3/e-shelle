@@ -1,0 +1,44 @@
+{% extends "sante/base.html" %}
+
+{% block title %}Demande santé · E-Shelle Santé{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <div class="grid split-grid">
+      <div>
+        <h1 style="font-size:clamp(2rem,4vw,3.4rem)">Exprimer un besoin santé</h1>
+        <p>Demandez un produit, une consultation, un laboratoire ou un service de soins. Les prestataires peuvent vous contacter.</p>
+        <form class="panel search-panel" method="post">
+          {% csrf_token %}
+          <div class="grid">
+            {% for field in form %}
+              <div class="field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<small style="display:block;color:var(--danger)">{{ error }}</small>{% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+          <button class="btn btn-primary" style="margin-top:16px" type="submit">Publier ma demande</button>
+        </form>
+      </div>
+      <aside>
+        <h2>Demandes récentes</h2>
+        <div class="grid">
+          {% for demande in demandes %}
+            <article class="panel" style="padding:16px">
+              <h3>{{ demande.besoin }}</h3>
+              <div class="meta"><span class="pill">{{ demande.ville }}</span><span>{{ demande.nom }}</span></div>
+              <p>{{ demande.message|default:"Pas de détails supplémentaires." }}</p>
+              <a class="btn btn-outline" href="tel:{{ demande.telephone }}">Contacter</a>
+            </article>
+          {% empty %}
+            <div class="empty">Aucune demande ouverte pour le moment.</div>
+          {% endfor %}
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

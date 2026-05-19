@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}E-Shelle Santé{% endblock %}</title>
+  <style>
+    :root {
+      --green:#10b981;
+      --deep:#065f46;
+      --mint:#ecfdf5;
+      --teal:#0f766e;
+      --lime:#84cc16;
+      --ink:#0f172a;
+      --soft:#f7fbf8;
+      --muted:#64748b;
+      --line:#d8eadf;
+      --danger:#dc2626;
+      --shadow:0 20px 55px rgba(6,95,70,.13);
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif; color:var(--ink); background:#fff; }
+    a { color:inherit; text-decoration:none; }
+    .wrap { width:min(1160px, calc(100% - 32px)); margin:0 auto; }
+    .topbar { position:sticky; top:0; z-index:20; background:rgba(255,255,255,.92); border-bottom:1px solid var(--line); backdrop-filter:blur(18px); }
+    .nav { min-height:68px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
+    .brand { display:flex; align-items:center; gap:11px; font-weight:950; letter-spacing:.2px; }
+    .brand-mark { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg,var(--green),var(--deep)); box-shadow:0 12px 28px rgba(16,185,129,.28); }
+    .nav-links { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .nav-links a, .btn { display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:0 14px; border-radius:8px; font-weight:850; font-size:14px; border:1px solid transparent; transition:transform .18s ease, box-shadow .18s ease, background .18s ease; }
+    .nav-links a { color:#475569; }
+    .nav-links a:hover { background:var(--mint); color:var(--deep); }
+    .btn:hover { transform:translateY(-1px); }
+    .btn-primary { color:#fff; background:linear-gradient(135deg,var(--green),var(--deep)); box-shadow:0 12px 30px rgba(16,185,129,.24); }
+    .btn-outline { color:var(--deep); background:#fff; border-color:#a7f3d0; }
+    .btn-ghost { color:var(--deep); background:var(--mint); }
+    .hero { position:relative; overflow:hidden; padding:64px 0 46px; background:radial-gradient(circle at 14% 10%, rgba(16,185,129,.18), transparent 28%), linear-gradient(135deg,#f0fdf4 0%,#ffffff 52%,#ecfeff 100%); border-bottom:1px solid var(--line); }
+    .hero::before, .hero::after { content:""; position:absolute; width:280px; height:280px; border-radius:50%; pointer-events:none; filter:blur(10px); opacity:.35; animation:floatPulse 8s ease-in-out infinite; }
+    .hero::before { right:7%; top:22px; background:radial-gradient(circle, rgba(16,185,129,.28), transparent 65%); }
+    .hero::after { left:4%; bottom:-120px; background:radial-gradient(circle, rgba(132,204,22,.22), transparent 65%); animation-delay:-3s; }
+    @keyframes floatPulse { 0%,100%{ transform:translateY(0) scale(1); } 50%{ transform:translateY(-18px) scale(1.05); } }
+    @keyframes riseIn { from{ opacity:0; transform:translateY(18px); } to{ opacity:1; transform:translateY(0); } }
+    .rise { animation:riseIn .62s ease both; }
+    .hero-grid { position:relative; z-index:1; display:grid; grid-template-columns:1.08fr .92fr; gap:34px; align-items:center; }
+    .eyebrow { display:inline-flex; align-items:center; gap:8px; color:var(--deep); background:rgba(236,253,245,.86); border:1px solid #a7f3d0; border-radius:999px; padding:8px 12px; font-weight:950; font-size:13px; margin-bottom:18px; }
+    .pulse-dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 0 0 rgba(16,185,129,.45); animation:pulse 1.7s infinite; }
+    @keyframes pulse { 70%{ box-shadow:0 0 0 12px rgba(16,185,129,0); } 100%{ box-shadow:0 0 0 0 rgba(16,185,129,0); } }
+    h1 { margin:0 0 16px; font-size:clamp(2.3rem, 5vw, 4.7rem); line-height:.98; letter-spacing:-.04em; }
+    h2 { margin:0 0 10px; font-size:clamp(1.55rem, 3vw, 2.35rem); letter-spacing:-.025em; }
+    h3 { margin:0 0 8px; }
+    p { color:var(--muted); line-height:1.65; }
+    .hero-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:24px; }
+    .panel { background:rgba(255,255,255,.92); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow); }
+    .glass { background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.72)); backdrop-filter:blur(18px); }
+    .search-panel { padding:18px; }
+    .grid { display:grid; gap:16px; }
+    .grid-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .grid-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .split-grid { grid-template-columns:minmax(0,1fr) 350px; align-items:start; }
+    .field label { display:block; margin-bottom:6px; color:#334155; font-size:13px; font-weight:850; }
+    input, select, textarea { width:100%; min-height:42px; border:1px solid #cbd5e1; border-radius:8px; padding:10px 12px; font:inherit; background:#fff; color:var(--ink); }
+    textarea { min-height:112px; resize:vertical; }
+    input:focus, select:focus, textarea:focus { outline:2px solid rgba(16,185,129,.22); border-color:var(--green); }
+    .section { padding:44px 0; }
+    .section-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:20px; }
+    .card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:16px; }
+    .health-card { position:relative; overflow:hidden; padding:16px; border-radius:8px; border:1px solid var(--line); background:#fff; display:flex; flex-direction:column; gap:12px; min-height:250px; transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+    .health-card::before { content:""; position:absolute; inset:0 0 auto; height:3px; background:linear-gradient(90deg,var(--green),var(--lime),var(--teal)); opacity:.85; }
+    .health-card:hover { transform:translateY(-5px); border-color:#86efac; box-shadow:0 18px 46px rgba(16,185,129,.18); }
+    .meta { display:flex; flex-wrap:wrap; gap:8px; color:#475569; font-size:13px; }
+    .pill { display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border-radius:999px; background:var(--mint); border:1px solid #bbf7d0; color:var(--deep); font-size:12px; font-weight:850; }
+    .price { color:var(--deep); font-weight:950; font-size:1.25rem; }
+    .muted { color:var(--muted); }
+    .empty { padding:24px; text-align:center; border:1px dashed #a7f3d0; border-radius:8px; background:var(--mint); color:var(--deep); font-weight:800; }
+    .messages { margin:16px auto 0; display:grid; gap:8px; }
+    .message { padding:11px 13px; border-radius:8px; background:#ecfdf5; border:1px solid #bbf7d0; color:#166534; font-weight:850; }
+    .footer { padding:30px 0; border-top:1px solid var(--line); color:var(--muted); font-size:14px; background:#fbfefc; }
+    @media(max-width:780px) {
+      .nav { align-items:flex-start; padding:12px 0; }
+      .hero-grid, .grid-2, .grid-3, .split-grid { grid-template-columns:1fr; }
+      .section-head { align-items:flex-start; flex-direction:column; }
+      .hero { padding-top:38px; }
+      .nav-links { gap:6px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap nav">
+      <a class="brand" href="{% url 'sante:accueil' %}">
+        <span class="brand-mark">+</span>
+        <span>E-Shelle Santé</span>
+      </a>
+      <nav class="nav-links" aria-label="Navigation Santé">
+        <a href="{% url 'sante:produits' %}">Produits</a>
+        <a href="{% url 'sante:professionnels' %}">Professionnels</a>
+        <a href="{% url 'sante:demande' %}">Demande</a>
+        <a href="{% url 'sante:publier_produit' %}" class="btn btn-primary">Vendre</a>
+      </nav>
+    </div>
+  </header>
+
+  {% if messages %}
+    <div class="wrap messages">
+      {% for message in messages %}
+        <div class="message">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <main>{% block content %}{% endblock %}</main>
+  <footer class="footer">
+    <div class="wrap">E-Shelle Santé · Produits santé, professionnels vérifiés et demandes utiles. Les urgences vitales doivent être traitées par les services d'urgence locaux.</div>
+  </footer>
+</body>
+</html>
