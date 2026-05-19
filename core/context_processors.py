@@ -16,6 +16,7 @@ def eshelle_public_urls(request):
         "IMMOBILIER_PUBLIC_URL": getattr(settings, "IMMOBILIER_PUBLIC_URL", "/immobilier/"),
         "AUTO_PUBLIC_URL": getattr(settings, "AUTO_PUBLIC_URL", "/auto/"),
         "ANNONCES_PUBLIC_URL": getattr(settings, "ANNONCES_PUBLIC_URL", "/annonces/"),
+        "MARKET_PUBLIC_URL": getattr(settings, "MARKET_PUBLIC_URL", getattr(settings, "ANNONCES_PUBLIC_URL", "/annonces/")),
         "LOVE_PUBLIC_URL": getattr(settings, "LOVE_PUBLIC_URL", "/rencontres/"),
         "AGRO_PUBLIC_URL": getattr(settings, "AGRO_PUBLIC_URL", "/agro/"),
         "RESTO_PUBLIC_URL": getattr(settings, "RESTO_PUBLIC_URL", "/resto/"),

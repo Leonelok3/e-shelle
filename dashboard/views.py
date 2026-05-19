@@ -78,11 +78,11 @@ ESHELLE_SERVICES = [
     },
     {
         "key": "annonces",
-        "name": "Petites Annonces",
+        "name": "E-Shelle Market",
         "icon": "📢",
         "color": "#64748B",
-        "external_url": getattr(settings, "ANNONCES_PUBLIC_URL", "http://127.0.0.1:8000/annonces/"),
-        "desc": "Annonces classées toutes catégories",
+        "external_url": getattr(settings, "MARKET_PUBLIC_URL", "http://127.0.0.1:8000/annonces/"),
+        "desc": "Marketplace généraliste pour acheter, vendre et louer",
         "category": "commerce",
     },
     {
@@ -390,10 +390,10 @@ def _dashboard_hub(request):
         nb_annonces = Annonce.objects.filter(vendeur=user, statut="PUBLIEE").count()
         if nb_annonces:
             stats["annonces"] = {
-                "label": "Petites Annonces",
+                "label": "E-Shelle Market",
                 "icon": "📢",
                 "color": "#64748B",
-                "items": [{"v": nb_annonces, "l": "annonces actives"}],
+                "items": [{"v": nb_annonces, "l": "offres actives"}],
             }
     except Exception:
         nb_annonces = 0

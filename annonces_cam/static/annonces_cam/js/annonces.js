@@ -1,5 +1,5 @@
 /**
- * annonces.js — Marketplace Annonces Cam
+ * annonces.js — E-Shelle Market
  */
 
 // ── Utilitaire CSRF ─────────────────────────────────────────────

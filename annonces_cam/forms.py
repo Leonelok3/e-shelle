@@ -33,9 +33,9 @@ class AnnonceForm(forms.ModelForm):
             "telephone_contact", "whatsapp_contact", "email_contact", "mode_contact",
         ]
         widgets = {
-            "titre":             forms.TextInput(attrs={"class": "ann-input", "placeholder": "Ex : iPhone 14 Pro, Canapé en cuir…"}),
+            "titre":             forms.TextInput(attrs={"class": "ann-input", "placeholder": "Ex : iPhone 14 Pro, canapé, parcelle, service…"}),
             "categorie":         forms.Select(attrs={"class": "ann-input"}),
-            "description":       forms.Textarea(attrs={"class": "ann-input", "rows": 6, "placeholder": "Décrivez votre article en détail…"}),
+            "description":       forms.Textarea(attrs={"class": "ann-input", "rows": 6, "placeholder": "Décrivez le produit ou service en détail…"}),
             "etat_produit":      forms.Select(attrs={"class": "ann-input"}),
             "prix":              forms.NumberInput(attrs={"class": "ann-input", "placeholder": "Ex : 50000"}),
             "devise":            forms.Select(attrs={"class": "ann-input"}),
@@ -132,7 +132,7 @@ class SignalementAnnonceForm(forms.ModelForm):
 class RechercheAnnonceForm(forms.Form):
     q         = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={"class": "ann-input", "placeholder": "Que cherchez-vous ?"})
+        widget=forms.TextInput(attrs={"class": "ann-input", "placeholder": "Que voulez-vous acheter ou trouver ?"})
     )
     categorie = forms.IntegerField(
         required=False,

@@ -341,7 +341,7 @@ class Annonce(models.Model):
         if numero:
             import urllib.parse
             numero = numero.replace("+", "").replace(" ", "")
-            msg = f"Bonjour, je suis intéressé(e) par votre annonce : {self.titre} - {self.prix_formate}\n{self.get_absolute_url()}"
+            msg = f"Bonjour, je suis interesse(e) par votre offre sur E-Shelle Market : {self.titre} - {self.prix_formate}\n{self.get_absolute_url()}"
             return f"https://wa.me/{numero}?text={urllib.parse.quote(msg)}"
         return "#"
 

@@ -19,8 +19,8 @@ def notifier_statut_annonce(sender, instance, created, **kwargs):
                     subject=f"✅ Votre annonce est en ligne — {instance.titre}",
                     message=(
                         f"Bonjour {instance.vendeur.get_full_name() or instance.vendeur.username},\n\n"
-                        f"Votre annonce « {instance.titre} » est maintenant publiée sur Annonces Cam.\n\n"
-                        f"Bonne vente !\nL'équipe Annonces Cam"
+                        f"Votre annonce « {instance.titre} » est maintenant publiée sur E-Shelle Market.\n\n"
+                        f"Bonne vente !\nL'équipe E-Shelle Market"
                     ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[instance.vendeur.email],
@@ -37,7 +37,7 @@ def notifier_statut_annonce(sender, instance, created, **kwargs):
                         f"Bonjour {instance.vendeur.get_full_name() or instance.vendeur.username},\n\n"
                         f"Votre annonce « {instance.titre} » a été refusée.\n"
                         f"Motif : {note}\n\n"
-                        f"Contactez-nous pour plus d'informations.\nL'équipe Annonces Cam"
+                        f"Contactez-nous pour plus d'informations.\nL'équipe E-Shelle Market"
                     ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[instance.vendeur.email],

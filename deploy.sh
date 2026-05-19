@@ -68,11 +68,11 @@ if [ ! -f "$APP_DIR/.env" ]; then
     cat > "$APP_DIR/.env" <<EOF
 DJANGO_SECRET_KEY=$SECRET_KEY
 DJANGO_DEBUG=False
-DJANGO_ALLOWED_HOSTS=$DOMAIN,www.$DOMAIN,mapex.$DOMAIN,njangi.$DOMAIN,resto.$DOMAIN,gaz.$DOMAIN,pharma.$DOMAIN,pressing.$DOMAIN,agro.$DOMAIN,immobilier.$DOMAIN,auto.$DOMAIN,annonces.$DOMAIN,love.$DOMAIN,maths.$DOMAIN,formations.$DOMAIN,boutique.$DOMAIN,adgen.$DOMAIN,services.$DOMAIN,ai.$DOMAIN,jobs.$DOMAIN,anglais.$DOMAIN,allemand.$DOMAIN,italien.$DOMAIN,prep.$DOMAIN,langues.$DOMAIN
+DJANGO_ALLOWED_HOSTS=$DOMAIN,www.$DOMAIN,mapex.$DOMAIN,njangi.$DOMAIN,resto.$DOMAIN,gaz.$DOMAIN,pharma.$DOMAIN,pressing.$DOMAIN,agro.$DOMAIN,immobilier.$DOMAIN,auto.$DOMAIN,annonces.$DOMAIN,market.$DOMAIN,love.$DOMAIN,maths.$DOMAIN,formations.$DOMAIN,boutique.$DOMAIN,adgen.$DOMAIN,services.$DOMAIN,ai.$DOMAIN,jobs.$DOMAIN,anglais.$DOMAIN,allemand.$DOMAIN,italien.$DOMAIN,prep.$DOMAIN,langues.$DOMAIN
 SIMPLO_PUBLIC_URL=https://simplo.$DOMAIN/
 MAPEX_PUBLIC_URL=https://mapex.$DOMAIN/edu/
 MAPEX_CSRF_TRUSTED_ORIGINS=https://mapex.$DOMAIN
-ESHELLE_SUBDOMAIN_CSRF_TRUSTED_ORIGINS=https://njangi.$DOMAIN,https://resto.$DOMAIN,https://gaz.$DOMAIN,https://pharma.$DOMAIN,https://pressing.$DOMAIN,https://agro.$DOMAIN,https://immobilier.$DOMAIN,https://auto.$DOMAIN,https://annonces.$DOMAIN,https://love.$DOMAIN,https://maths.$DOMAIN,https://formations.$DOMAIN,https://boutique.$DOMAIN,https://adgen.$DOMAIN,https://services.$DOMAIN,https://ai.$DOMAIN,https://jobs.$DOMAIN,https://anglais.$DOMAIN,https://allemand.$DOMAIN,https://italien.$DOMAIN,https://prep.$DOMAIN,https://langues.$DOMAIN
+ESHELLE_SUBDOMAIN_CSRF_TRUSTED_ORIGINS=https://njangi.$DOMAIN,https://resto.$DOMAIN,https://gaz.$DOMAIN,https://pharma.$DOMAIN,https://pressing.$DOMAIN,https://agro.$DOMAIN,https://immobilier.$DOMAIN,https://auto.$DOMAIN,https://annonces.$DOMAIN,https://market.$DOMAIN,https://love.$DOMAIN,https://maths.$DOMAIN,https://formations.$DOMAIN,https://boutique.$DOMAIN,https://adgen.$DOMAIN,https://services.$DOMAIN,https://ai.$DOMAIN,https://jobs.$DOMAIN,https://anglais.$DOMAIN,https://allemand.$DOMAIN,https://italien.$DOMAIN,https://prep.$DOMAIN,https://langues.$DOMAIN
 FORMATIONS_PUBLIC_URL=https://formations.$DOMAIN/formations/
 BOUTIQUE_PUBLIC_URL=https://boutique.$DOMAIN/boutique/
 SERVICES_PUBLIC_URL=https://services.$DOMAIN/services/
@@ -85,6 +85,7 @@ PREP_PUBLIC_URL=https://prep.$DOMAIN/prep/
 IMMOBILIER_PUBLIC_URL=https://immobilier.$DOMAIN/immobilier/
 AUTO_PUBLIC_URL=https://auto.$DOMAIN/auto/
 ANNONCES_PUBLIC_URL=https://annonces.$DOMAIN/annonces/
+MARKET_PUBLIC_URL=https://market.$DOMAIN/annonces/
 LOVE_PUBLIC_URL=https://love.$DOMAIN/rencontres/
 AGRO_PUBLIC_URL=https://agro.$DOMAIN/agro/
 RESTO_PUBLIC_URL=https://resto.$DOMAIN/resto/
@@ -203,6 +204,7 @@ certbot --nginx \
     -d "immobilier.$DOMAIN" \
     -d "auto.$DOMAIN" \
     -d "annonces.$DOMAIN" \
+    -d "market.$DOMAIN" \
     -d "love.$DOMAIN" \
     -d "maths.$DOMAIN" \
     -d "formations.$DOMAIN" \
