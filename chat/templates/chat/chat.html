@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}E-Shelle - Votre assistant IA{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0a1628] flex flex-col pt-16" id="chat-app">
+  <div class="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#0a1628]/95 backdrop-blur sticky top-16 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#22c55e] to-[#16a34a] flex items-center justify-center text-white font-bold text-sm">E</div>
+      <div>
+        <p class="text-white font-semibold text-sm leading-none">E-Shelle AI</p>
+        <p class="text-green-400 text-xs mt-0.5 flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block"></span>
+          En ligne
+        </p>
+      </div>
+    </div>
+    <button onclick="clearChat()" class="text-white/40 hover:text-white/80 text-xs transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">
+      Nouvelle conversation
+    </button>
+  </div>
+
+  <div class="flex-1 overflow-y-auto px-4 py-4 space-y-4 max-w-2xl mx-auto w-full" id="messages-container">
+    {% if not messages %}
+    <div class="text-center py-8" id="welcome-screen">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#22c55e] to-[#16a34a] flex items-center justify-center mx-auto mb-4 text-2xl">ES</div>
+      <h2 class="text-white font-bold text-xl mb-2">Bonjour ! Je suis E-Shelle AI</h2>
+      <p class="text-white/60 text-sm mb-6">Dis-moi ce que tu cherches, je m'occupe du reste.</p>
+
+      <div class="grid grid-cols-2 gap-2 max-w-sm mx-auto">
+        <button onclick="sendSuggestion('Je veux du gaz ce soir')" class="suggestion-btn">Commander du gaz</button>
+        <button onclick="sendSuggestion('Trouve-moi un restaurant a Douala')" class="suggestion-btn">Trouver un resto</button>
+        <button onclick="sendSuggestion('Fais-moi une affiche pour mon business')" class="suggestion-btn">Creer une affiche</button>
+        <button onclick="sendSuggestion('Je prepare le concours ENAM')" class="suggestion-btn">Preparer un concours</button>
+        <button onclick="sendSuggestion('Je cherche un pressing pres de moi')" class="suggestion-btn">Trouver un pressing</button>
+        <button onclick="sendSuggestion('Je veux investir dans une tontine')" class="suggestion-btn">Rejoindre un Njangi</button>
+      </div>
+    </div>
+    {% endif %}
+
+    {% for msg in messages %}
+      {% if msg.role == "user" %}
+      <div class="flex justify-end">
+        <div class="bg-[#22c55e] text-white rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%] text-sm">
+          {{ msg.content }}
+        </div>
+      </div>
+      {% else %}
+      <div class="flex gap-2 items-end">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#22c55e] to-[#16a34a] flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">E</div>
+        <div class="max-w-[80%]">
+          <div class="bg-[#1a2744] text-white/90 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm">
+            {{ msg.content }}
+          </div>
+          {% if msg.has_image and msg.image_url %}
+          <img src="{{ msg.image_url }}" alt="Visuel genere" class="mt-2 rounded-xl max-w-full border border-white/10">
+          {% endif %}
+          {% if msg.results %}
+          <div class="mt-2 space-y-2">
+            {% for item in msg.results %}
+            <div class="bg-[#101c33] border border-white/10 rounded-xl p-3 text-white/90">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p class="text-sm font-semibold text-white">{{ item.title }}</p>
+                  <p class="text-xs text-white/55">{{ item.subtitle }}</p>
+                </div>
+                {% if item.badge %}
+                <span class="text-[10px] px-2 py-1 rounded-full bg-[#22c55e]/15 text-[#4ade80] border border-[#22c55e]/20">{{ item.badge }}</span>
+                {% endif %}
+              </div>
+              {% if item.details %}
+              <p class="text-xs text-white/65 mt-2">{{ item.details }}</p>
+              {% endif %}
+              <div class="flex flex-wrap gap-2 mt-3">
+                {% if item.primary_url %}
+                <a href="{{ item.primary_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#22c55e] text-white hover:bg-[#16a34a]">{{ item.primary_label|default:"Commander" }}</a>
+                {% endif %}
+                {% if item.secondary_url %}
+                <a href="{{ item.secondary_url }}" class="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/10 text-white hover:bg-white/15">{{ item.secondary_label|default:"Appeler" }}</a>
+                {% endif %}
+                {% if item.url %}
+                <a href="{{ item.url }}" class="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/5 text-white/75 hover:bg-white/10">Details</a>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% if msg.redirect_url and msg.redirect_url != "/" %}
+          <a href="{{ msg.redirect_url }}" class="inline-flex items-center gap-1.5 mt-2 bg-[#22c55e]/20 text-[#22c55e] text-xs px-3 py-1.5 rounded-lg hover:bg-[#22c55e]/30 transition-colors">
+            Ouvrir le module ->
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+
+    <div id="dynamic-messages"></div>
+
+    <div id="typing-indicator" class="flex gap-2 items-end hidden">
+      <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#22c55e] to-[#16a34a] flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">E</div>
+      <div class="bg-[#1a2744] rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1 items-center">
+        <span class="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce" style="animation-delay:0ms"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce" style="animation-delay:150ms"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce" style="animation-delay:300ms"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="px-4 py-3 border-t border-white/10 bg-[#0a1628]/95 backdrop-blur sticky bottom-0">
+    <div class="max-w-2xl mx-auto">
+      <div class="flex gap-2 items-end bg-[#1a2744] rounded-2xl border border-white/10 px-3 py-2 focus-within:border-[#22c55e]/50 transition-colors">
+        <textarea id="message-input" placeholder="Dis-moi ce que tu cherches..." rows="1" class="flex-1 bg-transparent text-white text-sm placeholder-white/40 resize-none outline-none max-h-32 py-1.5 leading-relaxed" onkeydown="handleKeydown(event)" oninput="autoResize(this)"></textarea>
+        <button id="send-btn" onclick="sendMessage()" class="w-9 h-9 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] flex-shrink-0 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed mb-0.5" aria-label="Envoyer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z"/>
+          </svg>
+        </button>
+      </div>
+      <p class="text-white/20 text-xs text-center mt-2">E-Shelle AI - Made in Cameroun</p>
+    </div>
+  </div>
+</div>
+
+<style>
+.suggestion-btn {
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.2);
+  color: rgba(255,255,255,0.8);
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+.suggestion-btn:hover {
+  background: rgba(34,197,94,0.2);
+  border-color: rgba(34,197,94,0.4);
+  color: #fff;
+  transform: translateY(-1px);
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+const CSRF_TOKEN = csrfMeta ? csrfMeta.content : '';
+const container = document.getElementById('messages-container');
+const input = document.getElementById('message-input');
+const sendBtn = document.getElementById('send-btn');
+const typingIndicator = document.getElementById('typing-indicator');
+const dynamicMessages = document.getElementById('dynamic-messages');
+const welcomeScreen = document.getElementById('welcome-screen');
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 128) + 'px';
+}
+
+function handleKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function sendSuggestion(text) {
+  input.value = text;
+  sendMessage();
+}
+
+function scrollToBottom() {
+  container.scrollTop = container.scrollHeight;
+}
+
+function appendUserMessage(text) {
+  if (welcomeScreen) welcomeScreen.style.display = 'none';
+  const div = document.createElement('div');
+  div.className = 'flex justify-end';
+  div.innerHTML = `<div class="bg-[#22c55e] text-white rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%] text-sm">${escapeHtml(text)}</div>`;
+  dynamicMessages.appendChild(div);
+  scrollToBottom();
+}
+
+function appendAIMessage(data) {
+  const div = document.createElement('div');
+  div.className = 'flex gap-2 items-end';
+  let extras = '';
+
+  if (data.image_url) {
+    extras += `<img src="${escapeHtml(data.image_url)}" alt="Visuel genere" class="mt-2 rounded-xl max-w-full border border-white/10">`;
+  }
+  if (Array.isArray(data.results) && data.results.length) {
+    extras += `<div class="mt-2 space-y-2">${data.results.map(renderResultCard).join('')}</div>`;
+  }
+  if (data.redirect && data.redirect_url && data.redirect_url !== '/') {
+    const label = data.redirect_label || 'Ouvrir le module ->';
+    extras += `<a href="${escapeHtml(data.redirect_url)}" class="inline-flex items-center gap-1.5 mt-2 bg-[#22c55e]/20 text-[#22c55e] text-xs px-3 py-1.5 rounded-lg hover:bg-[#22c55e]/30 transition-colors">${escapeHtml(label)}</a>`;
+  }
+
+  div.innerHTML = `
+    <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#22c55e] to-[#16a34a] flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">E</div>
+    <div class="max-w-[80%]">
+      <div class="bg-[#1a2744] text-white/90 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm">${escapeHtml(data.message)}</div>
+      ${extras}
+    </div>
+  `;
+  dynamicMessages.appendChild(div);
+  scrollToBottom();
+}
+
+function renderResultCard(item) {
+  const badge = item.badge ? `<span class="text-[10px] px-2 py-1 rounded-full bg-[#22c55e]/15 text-[#4ade80] border border-[#22c55e]/20">${escapeHtml(item.badge)}</span>` : '';
+  const details = item.details ? `<p class="text-xs text-white/65 mt-2">${escapeHtml(item.details)}</p>` : '';
+  const primary = item.primary_url ? `<a href="${escapeHtml(item.primary_url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#22c55e] text-white hover:bg-[#16a34a]">${escapeHtml(item.primary_label || 'Commander')}</a>` : '';
+  const secondary = item.secondary_url ? `<a href="${escapeHtml(item.secondary_url)}" class="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/10 text-white hover:bg-white/15">${escapeHtml(item.secondary_label || 'Appeler')}</a>` : '';
+  const detailsLink = item.url ? `<a href="${escapeHtml(item.url)}" class="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/5 text-white/75 hover:bg-white/10">Details</a>` : '';
+
+  return `
+    <div class="bg-[#101c33] border border-white/10 rounded-xl p-3 text-white/90">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <p class="text-sm font-semibold text-white">${escapeHtml(item.title || '')}</p>
+          <p class="text-xs text-white/55">${escapeHtml(item.subtitle || '')}</p>
+        </div>
+        ${badge}
+      </div>
+      ${details}
+      <div class="flex flex-wrap gap-2 mt-3">${primary}${secondary}${detailsLink}</div>
+    </div>
+  `;
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function sendMessage() {
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  sendBtn.disabled = true;
+  appendUserMessage(text);
+  typingIndicator.classList.remove('hidden');
+  scrollToBottom();
+
+  try {
+    const response = await fetch('{% url "chat:send_message" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': CSRF_TOKEN,
+      },
+      body: JSON.stringify({ message: text }),
+    });
+    const data = await response.json();
+    typingIndicator.classList.add('hidden');
+
+    if (data.error) {
+      appendAIMessage({ message: "Une erreur s'est produite. Reessaie dans quelques secondes.", redirect: false, image_url: '' });
+    } else {
+      appendAIMessage(data);
+    }
+  } catch (err) {
+    typingIndicator.classList.add('hidden');
+    appendAIMessage({ message: "Connexion perdue. Verifie ta connexion et reessaie.", redirect: false, image_url: '' });
+  } finally {
+    sendBtn.disabled = false;
+    input.focus();
+  }
+}
+
+async function clearChat() {
+  await fetch('{% url "chat:clear_session" %}', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF_TOKEN },
+  });
+  location.reload();
+}
+
+input.focus();
+scrollToBottom();
+</script>
+{% endblock %}

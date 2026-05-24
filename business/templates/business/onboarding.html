@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Créer ma fiche business - E-Shelle{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top:7rem;background:linear-gradient(180deg,#071321 0%,#0a1628 100%)">
+  <div class="container">
+    <div style="max-width:780px;margin:0 auto">
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <span class="section-label" style="display:inline-flex">Fiche prestataire</span>
+        <h1 class="section-title" style="color:#fff;margin-top:.8rem">Quel business voulez-vous inscrire ?</h1>
+        <p class="section-subtitle" style="color:rgba(255,255,255,.62)">
+          Créez votre fiche. Un client pourra vous trouver dans le chat IA et vous contacter sur WhatsApp.
+        </p>
+      </div>
+
+      <form method="post" style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem">
+        {% csrf_token %}
+        <input type="hidden" name="plan" value="{{ plan.code|default:'free' }}">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <label class="biz-field">Nom du business *
+            <input name="name" required placeholder="Ex: Gaz Rapide Bonamoussadi">
+          </label>
+          <label class="biz-field">Type de service
+            <select name="module">
+              {% for value,label in modules %}
+              <option value="{{ value }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="biz-field">Ville
+            <input name="city" placeholder="Douala">
+          </label>
+          <label class="biz-field">Quartier
+            <input name="district" placeholder="Bonamoussadi">
+          </label>
+          <label class="biz-field">Téléphone *
+            <input name="phone" required placeholder="+237 6XX XXX XXX">
+          </label>
+          <label class="biz-field">WhatsApp
+            <input name="whatsapp" placeholder="+237 6XX XXX XXX">
+          </label>
+        </div>
+
+        <label class="biz-field" style="margin-top:1rem">Description courte
+          <textarea name="description" rows="3" placeholder="Décrivez vos produits, services, horaires ou zone de livraison."></textarea>
+        </label>
+
+        {% if plan %}
+        <div style="margin:1rem 0;padding:1rem;border-radius:14px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.18);color:rgba(255,255,255,.76)">
+          Plan choisi: <strong style="color:#fff">{{ plan.name }}</strong> — {{ plan.monthly_price_xaf }} FCFA / {{ plan.duration_days }} jours.
+        </div>
+        {% endif %}
+
+        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center">Créer ma fiche</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<style>
+.biz-field { display:flex;flex-direction:column;gap:.45rem;color:rgba(255,255,255,.74);font-size:.86rem;font-weight:700; }
+.biz-field input,.biz-field select,.biz-field textarea { width:100%;background:#101c33;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:.85rem;outline:none; }
+.biz-field input:focus,.biz-field select:focus,.biz-field textarea:focus { border-color:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.14); }
+@media(max-width:700px){ form div[style*="grid-template-columns"]{grid-template-columns:1fr!important;} }
+</style>
+{% endblock %}

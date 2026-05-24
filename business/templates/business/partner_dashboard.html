@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard partenaire - E-Shelle{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top:7rem;background:#0a1628">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;gap:1rem;align-items:end;flex-wrap:wrap;margin-bottom:1.5rem">
+      <div>
+        <span class="section-label" style="display:inline-flex">Partenaire E-Shelle</span>
+        <h1 class="section-title" style="color:#fff;margin-top:.8rem">Mon dashboard partenaire</h1>
+      </div>
+      <a href="{% url 'business:commercial' %}" class="btn btn-outline-white">Guide commercial</a>
+    </div>
+
+    <div style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1rem;margin-bottom:1rem">
+      <p style="color:rgba(255,255,255,.55);margin-bottom:.5rem">Votre lien de parrainage</p>
+      <input value="{{ referral_link }}" readonly style="width:100%;background:#101c33;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:.85rem">
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.85rem">
+      <div class="stat-card"><span>Clics</span><strong>{{ profile.click_count }}</strong></div>
+      <div class="stat-card"><span>Inscrits</span><strong>{{ referrals_count }}</strong></div>
+      <div class="stat-card"><span>Prestataires</span><strong>{{ converted_businesses }}</strong></div>
+      <div class="stat-card"><span>En attente</span><strong>{{ pending_amount|floatformat:"0" }}</strong></div>
+      <div class="stat-card"><span>Payé</span><strong>{{ paid_amount|floatformat:"0" }}</strong></div>
+      <div class="stat-card"><span>À retirer</span><strong>{{ balance_amount|floatformat:"0" }}</strong></div>
+    </div>
+
+    <div style="margin-top:1.5rem;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;overflow:hidden">
+      <div style="padding:1rem;border-bottom:1px solid rgba(255,255,255,.08);color:#fff;font-weight:800">Dernières commissions</div>
+      <div style="overflow:auto">
+        <table style="width:100%;border-collapse:collapse;color:rgba(255,255,255,.75);font-size:.9rem">
+          <thead><tr style="text-align:left;color:rgba(255,255,255,.5)"><th style="padding:.8rem">Date</th><th>Montant</th><th>Devise</th><th>Statut</th></tr></thead>
+          <tbody>
+          {% for commission in commissions %}
+          <tr style="border-top:1px solid rgba(255,255,255,.06)">
+            <td style="padding:.8rem">{{ commission.created_at|date:"d/m/Y H:i" }}</td>
+            <td>{{ commission.amount }}</td>
+            <td>{{ commission.currency }}</td>
+            <td>{{ commission.status }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="padding:1rem;color:rgba(255,255,255,.55)">Aucune commission pour le moment.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.stat-card { background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:1rem; }
+.stat-card span { display:block;color:rgba(255,255,255,.52);font-size:.78rem;margin-bottom:.35rem; }
+.stat-card strong { color:#fff;font-size:1.5rem; }
+@media(max-width:980px){ section .container > div[style*="repeat(6"]{grid-template-columns:repeat(2,minmax(0,1fr))!important;} }
+</style>
+{% endblock %}

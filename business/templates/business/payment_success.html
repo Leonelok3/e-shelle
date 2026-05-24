@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Demande reçue - E-Shelle{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top:7rem;background:linear-gradient(180deg,#071321 0%,#0a1628 100%)">
+  <div class="container">
+    <div style="max-width:720px;margin:0 auto;text-align:center;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:2rem">
+      <div style="width:64px;height:64px;border-radius:20px;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:#4ade80;font-size:1.8rem">✓</div>
+      <h1 class="section-title" style="color:#fff;margin-bottom:.75rem">Demande reçue</h1>
+      <p style="color:rgba(255,255,255,.68);line-height:1.7">
+        Votre demande d'activation pour <strong style="color:#fff">{{ payment.business.name }}</strong> est enregistrée.
+        Un agent E-Shelle va vous contacter sur WhatsApp pour confirmer le paiement et activer votre fiche.
+      </p>
+
+      <div style="margin:1.5rem 0;padding:1rem;border-radius:16px;background:#101c33;color:rgba(255,255,255,.74);text-align:left">
+        <div>Référence: <strong style="color:#fff">#{{ payment.pk }}</strong></div>
+        <div>Plan: <strong style="color:#fff">{{ payment.plan.name }}</strong></div>
+        <div>Montant: <strong style="color:#fff">{{ payment.amount_xaf }} FCFA</strong></div>
+        <div>Mode: <strong style="color:#fff">{{ payment.get_method_display }}</strong></div>
+      </div>
+
+      <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+        <a href="{{ whatsapp_url }}" class="btn btn-primary btn-lg">Confirmer sur WhatsApp</a>
+        <a href="{% url 'business:dashboard' %}" class="btn btn-outline-white btn-lg">Voir mon dashboard</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

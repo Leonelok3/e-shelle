@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.shortcuts import render
+from billing import views_affiliate
 
 
 def home_view(request):
@@ -107,6 +108,9 @@ urlpatterns = [
 
     # ── E-Shelle AI — Agent Intelligent Central ───────────────────────
     path("ai/", include("e_shelle_ai.urls", namespace="eshelle_ai")),
+    path("chat/", include("chat.urls", namespace="chat")),
+    path("business/", include("business.urls", namespace="business")),
+    path("ref/<str:ref_code>/", views_affiliate.ref_redirect, name="public_ref_redirect"),
 
     # ── Facebook Agent IA — Dashboard auto-publication ────────────────
     path("facebook-agent/", include("facebook_agent.urls", namespace="facebook_agent")),

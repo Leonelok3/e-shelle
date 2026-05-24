@@ -11,8 +11,8 @@ DEFAULT_AFFILIATE_RATE = Decimal("0.50")
 
 
 def affiliate_is_allowed(user) -> bool:
-    """Un affiliate doit avoir un premium actif."""
-    return user.is_authenticated and has_active_access(user)
+    """Un partenaire actif peut parrainer et toucher des commissions."""
+    return bool(user and user.is_authenticated and user.is_active)
 
 
 def get_or_create_affiliate_profile(user) -> AffiliateProfile:
@@ -21,19 +21,9 @@ def get_or_create_affiliate_profile(user) -> AffiliateProfile:
         user=user,
         defaults={
             "rate": DEFAULT_AFFILIATE_RATE,
-            "is_active": True,
+            "is_enabled": True,
         },
     )
-
-    # Si l'utilisateur n'est plus premium => désactiver l'affiliation
-    if not affiliate_is_allowed(user):
-        if profile.is_active:
-            profile.is_active = False
-            profile.save(update_fields=["is_active"])
-    else:
-        if not profile.is_active:
-            profile.is_active = True
-            profile.save(update_fields=["is_active"])
 
     return profile
 
@@ -42,7 +32,7 @@ def get_affiliate_by_code(code: str):
     if not code:
         return None
     code = code.strip().upper()
-    return AffiliateProfile.objects.filter(code__iexact=code, is_active=True).select_related("user").first()
+    return AffiliateProfile.objects.filter(ref_code__iexact=code, is_enabled=True).select_related("user").first()
 
 
 def attach_referral_if_needed(referred_user, affiliate_profile, source="link"):
@@ -110,16 +100,15 @@ def create_commission_for_transaction(tx: Transaction) -> Commission | None:
         return None
 
     affiliate = referral.affiliate
-    if not affiliate or not affiliate.is_active:
+    if not affiliate or not affiliate.is_enabled:
         return None
 
-    # Affiliate doit être premium actif
+    # Le compte partenaire doit rester actif.
     if not affiliate_is_allowed(affiliate.user):
-        # Désactive le profil (optionnel mais pratique)
-        AffiliateProfile.objects.filter(id=affiliate.id).update(is_active=False)
+        AffiliateProfile.objects.filter(id=affiliate.id).update(is_enabled=False)
         return None
 
-    rate = affiliate.rate if affiliate.rate is not None else DEFAULT_AFFILIATE_RATE
+    rate = getattr(affiliate, "rate", None) or DEFAULT_AFFILIATE_RATE
     base = _commission_base_for_transaction(tx)
     if base <= 0:
         return None

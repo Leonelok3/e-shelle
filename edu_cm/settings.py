@@ -110,6 +110,8 @@ INSTALLED_APPS = [
 
     # ── E-Shelle AI — Agent Intelligent Central ────────────────────
     "e_shelle_ai.apps.EshelleAiConfig",
+    "chat.apps.ChatConfig",
+    "business.apps.BusinessConfig",
 
     # ── Facebook Agent IA — Auto-publication sur la page Facebook ──
     "facebook_agent.apps.FacebookAgentConfig",
@@ -176,6 +178,7 @@ TEMPLATES = [
                 "resto.context_processors.resto_globals",
                 # ── Abonnements globaux (injecte user_subs dans tous les templates)
                 "accounts.context_processors.subscription_context",
+                "accounts.context_processors.social_login_context",
                 # allauth context processor — non requis pour social login
             ],
         },
@@ -185,8 +188,11 @@ TEMPLATES = [
 WSGI_APPLICATION = "edu_cm.wsgi.application"
 
 # Base de données — SQLite en dev, PostgreSQL en prod (via DATABASE_URL)
+USE_SQLITE = os.getenv("USE_SQLITE", "").lower() in ("1", "true", "yes")
+USE_POSTGRES = os.getenv("USE_POSTGRES", "").lower()
 DATABASE_URL = os.getenv("DATABASE_URL", "")
-if DATABASE_URL:
+
+if DATABASE_URL and not USE_SQLITE and (not DEBUG or USE_POSTGRES == "true"):
     import urllib.parse as _up
     _u = _up.urlparse(DATABASE_URL)
     DATABASES = {

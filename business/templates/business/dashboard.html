@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Mon business - E-Shelle{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top:7rem;background:#0a1628">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem">
+      <div>
+        <span class="section-label" style="display:inline-flex">Prestataire E-Shelle</span>
+        <h1 class="section-title" style="color:#fff;margin-top:.8rem">Mon business</h1>
+      </div>
+      <a href="{% url 'business:onboarding' %}" class="btn btn-primary">Ajouter une fiche</a>
+    </div>
+
+    {% if current %}
+    <div style="display:grid;grid-template-columns:1.2fr .8fr;gap:1rem">
+      <article style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem">
+        <div style="display:flex;justify-content:space-between;gap:1rem;align-items:start">
+          <div>
+            <h2 style="color:#fff;margin-bottom:.25rem">{{ current.name }}</h2>
+            <p style="color:rgba(255,255,255,.58)">{{ current.get_module_display }}{% if current.city %} — {{ current.city }}{% endif %}{% if current.district %}, {{ current.district }}{% endif %}</p>
+          </div>
+          <span style="padding:.35rem .7rem;border-radius:999px;background:rgba(34,197,94,.13);color:#4ade80;font-size:.75rem;font-weight:800">{{ current.get_plan_display }}</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.75rem;margin-top:1.25rem">
+          <div class="biz-stat"><span>Vues</span><strong>{{ current.views_count }}</strong></div>
+          <div class="biz-stat"><span>WhatsApp</span><strong>{{ current.whatsapp_clicks }}</strong></div>
+          <div class="biz-stat"><span>Appels</span><strong>{{ current.phone_clicks }}</strong></div>
+          <div class="biz-stat"><span>Demandes</span><strong>{{ current.leads_count }}</strong></div>
+          <div class="biz-stat"><span>Crédits IA</span><strong>{{ current.ai_credits }}</strong></div>
+        </div>
+
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.25rem">
+          <a href="{% url 'business:payment_request' current.id %}?plan=business" class="btn btn-primary">Activer Business</a>
+          <a href="{% url 'business:payment_request' current.id %}?plan=premium" class="btn btn-outline-white">Passer Premium</a>
+          <a href="/chat/" class="btn btn-outline-white">Tester dans le chat</a>
+        </div>
+      </article>
+
+      <aside style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem;color:rgba(255,255,255,.74)">
+        <h3 style="color:#fff;margin-bottom:.75rem">Paiement adapté local</h3>
+        <p>Vous pouvez demander une activation et payer à la réception, par Mobile Money manuel ou avec un code d’accès.</p>
+        <p style="margin-top:.75rem;color:rgba(255,255,255,.55)">L'équipe E-Shelle confirme ensuite votre abonnement.</p>
+      </aside>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:2rem;border:1px solid rgba(255,255,255,.1);border-radius:18px;color:rgba(255,255,255,.7)">
+      Vous n'avez pas encore de fiche business.
+      <div style="margin-top:1rem"><a href="{% url 'business:onboarding' %}" class="btn btn-primary">Créer ma fiche</a></div>
+    </div>
+    {% endif %}
+
+    <div style="margin-top:1.5rem;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;overflow:hidden">
+      <div style="padding:1rem;color:#fff;font-weight:800;border-bottom:1px solid rgba(255,255,255,.08)">Demandes d'activation</div>
+      {% for req in pending_requests %}
+      <div style="padding:1rem;border-bottom:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.72)">
+        {{ req.business.name }} — {{ req.plan.name }} — {{ req.amount_xaf }} FCFA — <strong>{{ req.get_status_display }}</strong>
+      </div>
+      {% empty %}
+      <div style="padding:1rem;color:rgba(255,255,255,.52)">Aucune demande pour le moment.</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<style>
+.biz-stat { background:#101c33;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:.85rem; }
+.biz-stat span { display:block;color:rgba(255,255,255,.5);font-size:.75rem; }
+.biz-stat strong { color:#fff;font-size:1.35rem; }
+@media(max-width:900px){ section .container > div[style*="grid-template-columns:1.2fr"], article div[style*="repeat(5"]{grid-template-columns:1fr!important;} }
+</style>
+{% endblock %}

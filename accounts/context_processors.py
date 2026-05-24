@@ -56,3 +56,19 @@ def subscription_context(request):
         "active_sub_count": len(subs_map),
         "has_any_paid_sub": bool(paid_apps),
     }
+
+
+def social_login_context(request):
+    """Expose l'etat des connexions sociales sans faire casser les pages auth."""
+    try:
+        from allauth.socialaccount.models import SocialApp
+
+        return {
+            "social_google_enabled": SocialApp.objects.filter(provider="google").exists(),
+            "social_facebook_enabled": SocialApp.objects.filter(provider="facebook").exists(),
+        }
+    except Exception:
+        return {
+            "social_google_enabled": False,
+            "social_facebook_enabled": False,
+        }

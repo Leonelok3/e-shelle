@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Activer mon plan - E-Shelle{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top:7rem;background:linear-gradient(180deg,#071321 0%,#0a1628 100%)">
+  <div class="container">
+    <div style="max-width:720px;margin:0 auto">
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <span class="section-label" style="display:inline-flex">Activation abonnement</span>
+        <h1 class="section-title" style="color:#fff;margin-top:.8rem">Choisissez comment payer.</h1>
+        <p class="section-subtitle" style="color:rgba(255,255,255,.62)">
+          Ici, on s'adapte au terrain: paiement à la réception, Mobile Money manuel, code d'accès ou paiement en ligne.
+        </p>
+      </div>
+
+      <form method="post" style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem">
+        {% csrf_token %}
+        <input type="hidden" name="plan" value="{{ plan.code }}">
+        <div style="padding:1rem;border-radius:14px;background:#101c33;color:rgba(255,255,255,.75);margin-bottom:1rem">
+          Business: <strong style="color:#fff">{{ business.name }}</strong><br>
+          Plan: <strong style="color:#fff">{{ plan.name }}</strong> — {{ plan.monthly_price_xaf }} FCFA
+        </div>
+
+        <label class="pay-field">Mode de paiement
+          <select name="method">
+            {% for value,label in methods %}
+            <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="pay-field">Téléphone de contact / Mobile Money
+          <input name="phone" value="{{ business.whatsapp|default:business.phone }}" placeholder="+237 6XX XXX XXX">
+        </label>
+        <label class="pay-field">Note
+          <textarea name="note" rows="3" placeholder="Ex: Je veux payer à la livraison / Je vais envoyer par Orange Money / J'ai un code d'accès."></textarea>
+        </label>
+        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center">Envoyer la demande</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<style>
+.pay-field { display:flex;flex-direction:column;gap:.45rem;color:rgba(255,255,255,.74);font-size:.86rem;font-weight:700;margin-bottom:1rem; }
+.pay-field input,.pay-field select,.pay-field textarea { width:100%;background:#101c33;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:.85rem;outline:none; }
+.pay-field input:focus,.pay-field select:focus,.pay-field textarea:focus { border-color:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.14); }
+</style>
+{% endblock %}

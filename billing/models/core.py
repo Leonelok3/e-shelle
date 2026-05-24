@@ -258,6 +258,7 @@ class AffiliateProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="affiliate_profile")
     ref_code = models.CharField(max_length=20, unique=True, db_index=True)
     is_enabled = models.BooleanField(default=True)
+    click_count = models.PositiveIntegerField(default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -271,6 +272,11 @@ class AffiliateProfile(models.Model):
             code = "".join(secrets.choice(alphabet) for _ in range(8))
             if not AffiliateProfile.objects.filter(ref_code=code).exists():
                 return code
+
+    def save(self, *args, **kwargs):
+        if not self.ref_code:
+            self.ref_code = self.generate_ref_code()
+        super().save(*args, **kwargs)
 
 
 class Referral(models.Model):

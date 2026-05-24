@@ -121,8 +121,20 @@ def register(request):
                 is_active=True,
             )
             UserProfile.objects.get_or_create(user=user)
-            login(request, user)
+            try:
+                from billing.views_affiliate import bind_referral_if_any
+                bind_referral_if_any(request, user)
+            except Exception:
+                pass
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
             messages.success(request, f"Bienvenue {user.first_name or user.username} ! Votre compte a été créé.")
+            selected_plan = request.GET.get("plan") or request.POST.get("plan")
+            if selected_plan:
+                request.session["business_selected_plan"] = selected_plan
+                return redirect(f"/business/onboarding/?plan={selected_plan}")
+            next_url = request.GET.get("next") or request.POST.get("next")
+            if next_url:
+                return redirect(next_url)
             return redirect("dashboard:index")
 
     plan = request.GET.get("plan", "free")
