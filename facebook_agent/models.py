@@ -46,6 +46,12 @@ class ContentRule(models.Model):
         ("general", "Contenu Général"),
         ("resto", "Restaurants"),
         ("services", "Services"),
+        ("gaz", "Gaz domestique"),
+        ("pressing", "Pressing"),
+        ("sante", "Santé / Pharmacies"),
+        ("jobs", "Jobs / Emplois"),
+        ("business", "Prestataires E-Shelle"),
+        ("chat_ai", "Chat IA E-Shelle"),
     ]
 
     TONE_CHOICES = [

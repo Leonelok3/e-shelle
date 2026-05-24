@@ -281,8 +281,8 @@
           {% endif %}
           <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
             <select name="section" class="section-select" id="pub-section">
-              {% for val, label in content_rules %}
-                <option value="{{ val.section }}">{{ val.get_section_display }}</option>
+              {% for rule in content_rules %}
+                <option value="{{ rule.section }}">{{ rule.get_section_display }}</option>
               {% empty %}
                 <option value="general">Général</option>
                 <option value="annonces">Annonces</option>
@@ -305,14 +305,18 @@
         <p class="section-title">👁 Aperçu IA (sans publier)</p>
         <div style="display:flex;gap:.75rem;align-items:center;margin-bottom:.75rem;flex-wrap:wrap">
           <select class="section-select" id="preview-section">
-            <option value="general">Général</option>
-            <option value="annonces">Annonces</option>
-            <option value="immobilier">Immobilier</option>
-            <option value="auto">Auto</option>
-            <option value="agro">Agro</option>
-            <option value="rencontres">Rencontres</option>
-            <option value="njangi">Njangi</option>
-            <option value="promo">Promotions</option>
+            {% for rule in content_rules %}
+              <option value="{{ rule.section }}">{{ rule.get_section_display }}</option>
+            {% empty %}
+              <option value="general">Général</option>
+              <option value="annonces">Annonces</option>
+              <option value="immobilier">Immobilier</option>
+              <option value="auto">Auto</option>
+              <option value="agro">Agro</option>
+              <option value="rencontres">Rencontres</option>
+              <option value="njangi">Njangi</option>
+              <option value="promo">Promotions</option>
+            {% endfor %}
           </select>
           <button class="publish-btn" id="preview-btn" onclick="previewContent()">Générer aperçu</button>
         </div>

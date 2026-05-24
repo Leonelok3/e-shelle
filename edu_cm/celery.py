@@ -98,6 +98,48 @@ app.conf.beat_schedule = {
         "args": ("general",),
     },
 
+    # Croissance Douala — services à forte demande
+    "fb-chat-ai-matin": {
+        "task": "facebook_agent.tasks.generate_and_publish_post",
+        "schedule": crontab(hour=8, minute=30),
+        "args": ("chat_ai",),
+    },
+    "fb-gaz-matin": {
+        "task": "facebook_agent.tasks.generate_and_publish_post",
+        "schedule": crontab(hour=7, minute=0),
+        "args": ("gaz",),
+    },
+    "fb-gaz-soir": {
+        "task": "facebook_agent.tasks.generate_and_publish_post",
+        "schedule": crontab(hour=21, minute=0),
+        "args": ("gaz",),
+    },
+    "fb-resto-midi": {
+        "task": "facebook_agent.tasks.generate_and_publish_post",
+        "schedule": crontab(hour=11, minute=30),
+        "args": ("resto",),
+    },
+    "fb-pressing-matin": {
+        "task": "facebook_agent.tasks.generate_and_publish_post",
+        "schedule": crontab(hour=7, minute=45),
+        "args": ("pressing",),
+    },
+    "fb-sante-soir": {
+        "task": "facebook_agent.tasks.generate_and_publish_post",
+        "schedule": crontab(hour=19, minute=30),
+        "args": ("sante",),
+    },
+    "fb-jobs-apres-midi": {
+        "task": "facebook_agent.tasks.generate_and_publish_post",
+        "schedule": crontab(hour=15, minute=0),
+        "args": ("jobs",),
+    },
+    "fb-business-soir": {
+        "task": "facebook_agent.tasks.generate_and_publish_post",
+        "schedule": crontab(hour=18, minute=30),
+        "args": ("business",),
+    },
+
     # Maintenance — vérifier les posts planifiés toutes les 5 minutes
     "fb-process-scheduled": {
         "task": "facebook_agent.tasks.process_pending_scheduled_posts",

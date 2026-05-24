@@ -84,6 +84,36 @@ Toujours positif et orienté communauté. Appel à l'action: e-shelle.com""",
 Tu présentes les services disponibles: livraison gaz, pharmacie, pressing, etc.
 Style: pratique, rassurant, proche du quotidien. Mets en avant la facilité et rapidité.
 Appel à l'action: commander sur e-shelle.com""",
+
+    "gaz": """Tu es l'agent gaz domestique d'E-Shelle à Douala.
+Tu crées des posts simples, urgents et très pratiques pour montrer qu'un client peut trouver un dépôt de gaz proche via E-Shelle AI.
+Style: terrain, direct, camerounais, orienté problème du soir, cuisine, famille, livraison et WhatsApp.
+Appel à l'action: commander du gaz sur e-shelle.com/gaz/ ou demander dans le chat E-Shelle AI.""",
+
+    "pressing": """Tu es l'agent pressing d'E-Shelle.
+Tu montres comment trouver un pressing fiable, demander collecte/livraison et contacter par WhatsApp.
+Style: propre, pratique, urbain, adapté aux travailleurs, étudiants et familles à Douala.
+Appel à l'action: trouver un pressing sur e-shelle.com/pressing/.""",
+
+    "sante": """Tu es l'agent santé/pharmacies d'E-Shelle.
+Tu crées des posts prudents et utiles pour aider les gens à trouver pharmacies, produits santé et professionnels proches.
+Style: rassurant, clair, sans diagnostic médical, toujours orienté contact professionnel.
+Appel à l'action: chercher un service santé sur e-shelle.com/sante/.""",
+
+    "jobs": """Tu es l'agent jobs d'E-Shelle.
+Tu aides les jeunes, étudiants, freelances et travailleurs à découvrir des offres, stages et missions au Cameroun.
+Style: motivant, concret, orienté opportunités locales.
+Appel à l'action: consulter les offres sur e-shelle.com/jobs/.""",
+
+    "business": """Tu es l'agent prestataires E-Shelle.
+Tu recrutes les restaurants, pressings, dépôts de gaz, pharmacies, boutiques et services de quartier.
+Style: business terrain, très clair: créer sa fiche, recevoir des clients sur WhatsApp, booster sa visibilité, payer un abonnement adapté au Cameroun.
+Appel à l'action: créer sa fiche sur e-shelle.com/business/plans/.""",
+
+    "chat_ai": """Tu es l'agent E-Shelle AI.
+Tu racontes des mini-histoires africaines courtes qui montrent comment une personne tape simplement son besoin dans le chat et trouve un service.
+Style: viral, narratif, TikTok/Reels compatible, 1 problème réel + 1 solution simple + CTA.
+Appel à l'action: tester le chat sur e-shelle.com/chat/.""",
 }
 
 HASHTAGS_BY_SECTION = {
@@ -98,6 +128,12 @@ HASHTAGS_BY_SECTION = {
     "resto": "#EShelle #Restaurant #Food #Cameroun #Gastronomie #Manger #Douala",
     "general": "#EShelle #Cameroun #Tech #Innovation #Afrique #Digital #Plateforme",
     "services": "#EShelle #Services #Cameroun #Livraison #Pratique #Quotidien",
+    "gaz": "#EShelle #Gaz #Douala #Bonamoussadi #LivraisonGaz #Cameroun #ServiceLocal",
+    "pressing": "#EShelle #Pressing #Douala #LingePropre #ServiceLocal #Cameroun",
+    "sante": "#EShelle #Sante #Pharmacie #Douala #Cameroun #ServiceSante",
+    "jobs": "#EShelle #Jobs #Emploi #Stage #Douala #Cameroun #Opportunites",
+    "business": "#EShelleBusiness #Prestataires #Douala #EntrepreneurCameroun #WhatsAppBusiness #GagnerArgent",
+    "chat_ai": "#EShelleAI #IntelligenceArtificielle #Douala #Cameroun #SuperAppAfricaine #TechAfrica",
 }
 
 
@@ -506,6 +542,114 @@ class GeneralAgent(BaseAgent):
 
 
 # ------------------------------------------------------------------ #
+# Agents croissance Douala                                            #
+# ------------------------------------------------------------------ #
+
+class SimpleGrowthAgent(BaseAgent):
+    section = "general"
+    title = "Post E-Shelle"
+    link_url = "https://e-shelle.com/"
+    prompts = []
+
+    def __init__(self, rule=None):
+        super().__init__(self.section, rule)
+
+    def run(self) -> Optional[Dict[str, Any]]:
+        from random import choice
+
+        prompt = choice(self.prompts)
+        try:
+            content = self.generate_content(prompt)
+            return {
+                "section": self.section,
+                "content": content,
+                "title": self.title,
+                "link_url": self.link_url,
+                "tokens_used": self.tokens_used,
+            }
+        except Exception as e:
+            logger.error(f"[{self.__class__.__name__}] Erreur: {e}")
+            return None
+
+
+class GazAgent(SimpleGrowthAgent):
+    section = "gaz"
+    title = "Post Gaz Douala"
+    link_url = "https://e-shelle.com/gaz/"
+    prompts = [
+        "Crée un post Facebook très concret: il est tard à Douala, le gaz finit pendant la cuisine, E-Shelle aide à trouver un dépôt proche et à commander par WhatsApp.",
+        "Crée un post Facebook pour expliquer comment commander du gaz à Bonamoussadi, Akwa ou Makepe via E-Shelle AI.",
+        "Crée une mini-histoire réaliste d'une famille à Douala qui trouve rapidement du gaz grâce à E-Shelle.",
+    ]
+
+
+class RestoAgent(SimpleGrowthAgent):
+    section = "resto"
+    title = "Post Restaurants Douala"
+    link_url = "https://e-shelle.com/resto/"
+    prompts = [
+        "Crée un post Facebook appétissant pour aider quelqu'un à trouver un restaurant ou maquis à Douala via E-Shelle.",
+        "Crée un post de midi: faim au bureau, envie de bon plat, E-Shelle aide à trouver un resto proche.",
+        "Crée une mini-histoire d'un groupe d'amis qui cherche où manger à Douala et utilise E-Shelle.",
+    ]
+
+
+class PressingAgent(SimpleGrowthAgent):
+    section = "pressing"
+    title = "Post Pressing"
+    link_url = "https://e-shelle.com/pressing/"
+    prompts = [
+        "Crée un post Facebook pour les travailleurs de Douala qui veulent trouver un pressing fiable avec WhatsApp.",
+        "Crée un post pratique: vêtements prêts pour lundi, pressing proche, collecte et livraison via E-Shelle.",
+        "Crée une mini-histoire d'un client qui évite le stress du linge grâce à E-Shelle Pressing.",
+    ]
+
+
+class SanteAgent(SimpleGrowthAgent):
+    section = "sante"
+    title = "Post Santé"
+    link_url = "https://e-shelle.com/sante/"
+    prompts = [
+        "Crée un post Facebook rassurant pour trouver une pharmacie ou un produit santé proche via E-Shelle, sans donner de conseil médical.",
+        "Crée un post utile: quand on cherche une pharmacie à Douala, E-Shelle aide à trouver un contact rapidement.",
+        "Crée une mini-histoire responsable sur une personne qui cherche une pharmacie de garde et utilise E-Shelle pour contacter un professionnel.",
+    ]
+
+
+class JobsAgent(SimpleGrowthAgent):
+    section = "jobs"
+    title = "Post Jobs"
+    link_url = "https://e-shelle.com/jobs/"
+    prompts = [
+        "Crée un post Facebook motivant pour les jeunes de Douala qui cherchent un stage, un job ou une mission freelance.",
+        "Crée un post pratique pour expliquer que les opportunités locales peuvent être trouvées sur E-Shelle Jobs.",
+        "Crée une mini-histoire d'un étudiant qui trouve une mission grâce à E-Shelle.",
+    ]
+
+
+class BusinessAgent(SimpleGrowthAgent):
+    section = "business"
+    title = "Post Prestataires E-Shelle"
+    link_url = "https://e-shelle.com/business/plans/"
+    prompts = [
+        "Crée un post Facebook pour convaincre un restaurant, pressing, dépôt de gaz ou pharmacie de créer sa fiche E-Shelle et recevoir des clients sur WhatsApp.",
+        "Crée un post terrain pour les commerçants de Douala: visibilité, demandes reçues, WhatsApp, boosts et abonnement prestataire.",
+        "Crée un post commercial pour recruter des prestataires E-Shelle avec un ton direct et orienté argent.",
+    ]
+
+
+class ChatAIStoryAgent(SimpleGrowthAgent):
+    section = "chat_ai"
+    title = "Story E-Shelle AI"
+    link_url = "https://e-shelle.com/chat/"
+    prompts = [
+        "Crée une mini-histoire Facebook/Reels: quelqu'un tape 'je veux du gaz à Bonamoussadi' dans E-Shelle AI et trouve une solution.",
+        "Crée un post narratif court: au Cameroun, on veut tout faire sur WhatsApp, mais E-Shelle AI simplifie la recherche de services.",
+        "Crée un script très court pour vidéo IA: problème du quotidien à Douala, phrase tapée dans le chat, résultat immédiat, appel à tester E-Shelle.",
+    ]
+
+
+# ------------------------------------------------------------------ #
 # Registry des agents                                                  #
 # ------------------------------------------------------------------ #
 
@@ -518,6 +662,13 @@ AGENT_REGISTRY = {
     "njangi": NjangiAgent,
     "promo": PromoAgent,
     "general": GeneralAgent,
+    "gaz": GazAgent,
+    "resto": RestoAgent,
+    "pressing": PressingAgent,
+    "sante": SanteAgent,
+    "jobs": JobsAgent,
+    "business": BusinessAgent,
+    "chat_ai": ChatAIStoryAgent,
 }
 
 
