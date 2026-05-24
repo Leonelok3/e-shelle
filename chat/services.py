@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import urllib.parse
 
 from django.conf import settings
 from django.db.models import Q
@@ -25,7 +26,8 @@ MODULE_URLS = {
     "formation": "/formations/",
     "boutique": "/boutique/",
     "adgen": "/pub/",
-    "transport": "/transport/",
+    "transport": "https://simplo.e-shelle.com/",
+    "services": "/services/",
     "sante": "/sante/",
     "immobilier": "/immobilier/",
     "jobs": "/jobs/",
@@ -46,6 +48,7 @@ MODULE_LABELS = {
     "boutique": "Ouvrir la boutique ->",
     "adgen": "Créer un visuel ->",
     "transport": "Voir le transport ->",
+    "services": "Voir les services ->",
     "sante": "Voir sante ->",
     "immobilier": "Voir les annonces ->",
     "jobs": "Voir les emplois ->",
@@ -99,7 +102,7 @@ Ne reponds jamais hors JSON."""
 def route_message(user_message: str, conversation_history: list) -> dict:
     """Route un message vers le bon module E-Shelle."""
     fallback = _fallback_route(user_message)
-    fallback["results"] = get_module_results(fallback["module"], user_message)
+    fallback["results"] = _results_or_external(fallback["module"], user_message)
     api_key = getattr(settings, "OPENAI_API_KEY", "")
     if not api_key:
         return fallback
@@ -125,7 +128,7 @@ def route_message(user_message: str, conversation_history: list) -> dict:
         )
         result = json.loads(response.choices[0].message.content)
         result = _normalize_result(result, fallback)
-        result["results"] = get_module_results(result["module"], user_message)
+        result["results"] = _results_or_external(result["module"], user_message)
         if result.get("generate_image") and result.get("image_prompt"):
             result["image_url"] = generate_image(result["image_prompt"])
         else:
@@ -202,6 +205,56 @@ def get_module_results(module: str, query: str, limit: int = 3) -> list:
     except Exception as exc:
         logger.exception("Module result error for %s: %s", module, exc)
         return []
+
+
+def _results_or_external(module: str, query: str) -> list:
+    results = get_module_results(module, query)
+    if results:
+        return results
+    if module in {"adgen", "business_onboarding"}:
+        return []
+    if module == "general" and not _should_offer_external(query):
+        return []
+    return [_external_result_card(module, query)]
+
+
+def _external_result_card(module: str, query: str) -> dict:
+    label = MODULE_LABELS.get(module, "Continuer ->")
+    if module == "transport":
+        return {
+            "title": "Simplo Transport",
+            "subtitle": "Moto, taxi, transport et services terrain",
+            "details": "Ce service est disponible sur Simplo. Ouvre le module transport pour continuer.",
+            "badge": "Externe",
+            "url": "https://simplo.e-shelle.com/",
+            "primary_label": "Ouvrir Simplo",
+            "primary_url": "https://simplo.e-shelle.com/",
+            "secondary_label": "Recherche Google",
+            "secondary_url": _google_search_url(query),
+        }
+
+    return {
+        "title": "Recherche externe",
+        "subtitle": "E-Shelle elargit encore ses resultats",
+        "details": "Je n'ai pas encore assez de prestataires fiables dans ce module. Tu peux lancer une recherche externe en attendant.",
+        "badge": "Bientot sur E-Shelle",
+        "url": _google_search_url(query),
+        "primary_label": label.replace("Voir", "Chercher").replace("->", "").strip() or "Chercher",
+        "primary_url": _google_search_url(query),
+        "secondary_label": "Inscrire un prestataire",
+        "secondary_url": "/business/onboarding/",
+    }
+
+
+def _google_search_url(query: str) -> str:
+    q = f"{query} Cameroun Douala"
+    return f"https://www.google.com/search?q={urllib.parse.quote_plus(q)}"
+
+
+def _should_offer_external(query: str) -> bool:
+    text = query.lower()
+    triggers = ["cherche", "chercher", "trouve", "trouver", "besoin", "veux", "recherche"]
+    return any(trigger in text for trigger in triggers) and bool(_search_terms(query))
 
 
 def _gaz_results(query: str, limit: int) -> list:
@@ -305,7 +358,7 @@ def _pressing_results(query: str, limit: int) -> list:
             details.append(pressing.quartier.nom)
         if pressing.express:
             details.append("Express")
-        if pressing.livraison:
+        if getattr(pressing, "livraison", False) or getattr(pressing, "livraison_domicile", False):
             details.append("Collecte/livraison")
 
         urls = {
@@ -338,6 +391,14 @@ def _formation_results(query: str, limit: int) -> list:
         .select_related("categorie")
         .order_by("-is_featured", "titre")
     )
+    focus_terms = [term for term in _search_terms(query) if term in {"enam", "ens", "bac", "concours"}]
+    if focus_terms:
+        focus_q = Q()
+        for term in focus_terms:
+            focus_q |= Q(titre__icontains=term) | Q(description__icontains=term) | Q(description_courte__icontains=term)
+        focused = qs.filter(focus_q).distinct()
+        if focused.exists():
+            qs = focused
     qs = _apply_text_filter(qs, query, "titre", "description", "description_courte", "categorie__nom")
 
     cards = []
@@ -345,7 +406,8 @@ def _formation_results(query: str, limit: int) -> list:
         details = []
         if formation.categorie_id:
             details.append(formation.categorie.nom)
-        details.append("Gratuit" if formation.is_gratuite else _money_text(formation.prix))
+        is_free = getattr(formation, "is_gratuite", getattr(formation, "est_gratuite", False))
+        details.append("Gratuit" if is_free else _money_text(formation.prix))
 
         urls = {
             "url": f"/formations/{formation.slug}/",
@@ -414,6 +476,8 @@ def _jobs_results(query: str, limit: int) -> list:
 def _sante_results(query: str, limit: int) -> list:
     product_cards = _sante_product_results(query, limit)
     pro_cards = _sante_professional_results(query, limit)
+    if _location_terms(query):
+        return (pro_cards + product_cards)[:limit]
     combined = product_cards + pro_cards
     return combined[:limit]
 
@@ -567,6 +631,8 @@ def _search_terms(query: str) -> list:
 def _clean_term(value: str) -> str:
     value = re.split(r"\b(?:pour|avec|ce soir|aujourd'hui|demain|svp|merci)\b", value, maxsplit=1)[0]
     value = value.strip(" ,.;:!?()[]'\"")
+    if value == "bonaberie":
+        value = "bonaberi"
     return value if len(value) >= 3 else ""
 
 
@@ -611,6 +677,7 @@ _INTENT_WORDS = {
     "gaz", "restaurant", "resto", "maquis", "formation", "cours", "concours",
     "pressing", "emploi", "jobs", "stage", "travail", "sante", "santé",
     "pharmacie", "medicament", "médicament", "medecin", "médecin",
+    "service", "services", "plombier", "electricien", "électricien", "artisan",
 }
 
 
@@ -626,9 +693,10 @@ def _fallback_route(user_message: str) -> dict:
         ("resto", ["restaurant", "resto", "maquis", "manger", "plat", "nourriture"]),
         ("formation", ["formation", "cours", "concours", "enam", "ens", "apprendre", "certification"]),
         ("pressing", ["pressing", "linge", "vetement", "vêtement", "blanchisserie"]),
-        ("transport", ["transport", "taxi", "bus", "covoiturage", "colis", "livraison"]),
+        ("transport", ["transport", "taxi", "moto", "moto taxi", "mototaxi", "benskin", "bend skin", "okada", "bus", "covoiturage", "colis", "livraison"]),
+        ("services", ["plombier", "electricien", "électricien", "menuisier", "macon", "maçon", "peintre", "technicien", "reparateur", "réparateur", "artisan", "service a domicile", "service à domicile"]),
         ("sante", ["sante", "santé", "pharmacie", "medicament", "médicament", "medecin", "médecin"]),
-        ("immobilier", ["terrain", "maison", "appartement", "loyer", "location", "immobilier"]),
+        ("immobilier", ["terrain", "maison", "appartement", "logement", "studio", "chambre", "loyer", "location", "immobilier"]),
         ("jobs", ["emploi", "job", "stage", "travail", "freelance", "mission"]),
         ("njangi", ["njangi", "tontine", "cotisation", "investir"]),
         ("fintech", ["argent", "payer", "paiement", "mobile money", "transfert", "microfinance"]),
@@ -666,6 +734,9 @@ def _fallback_message(module: str) -> str:
         "gaz": "Parfait, je t'oriente vers les fournisseurs de gaz disponibles. Tu pourras choisir un depot et passer rapidement a l'action.",
         "resto": "Bonne idee. Je t'envoie vers E-Shelle Resto pour voir les restaurants, maquis et plats disponibles.",
         "formation": "Bien vu. Je t'oriente vers les formations et ressources pour apprendre ou preparer ton concours serieusement.",
+        "transport": "C'est note. Pour les motos, taxis et transports, je t'oriente vers Simplo Transport, le module dedie d'E-Shelle.",
+        "services": "C'est note. Je t'oriente vers les services et artisans. Si E-Shelle n'a pas encore de prestataire disponible, je te propose une recherche externe en attendant.",
+        "immobilier": "D'accord. Je t'oriente vers les annonces immobilieres et logements disponibles. Si E-Shelle n'a pas encore assez de resultats, je te propose aussi une recherche externe.",
         "general": "Dis-moi simplement ce que tu cherches: gaz, resto, formation, emploi, sante, transport ou creation d'affiche. Je te dirige au bon endroit.",
         "business_onboarding": "Tres bien. Vous pouvez inscrire votre business sur E-Shelle, recevoir des clients via WhatsApp et suivre vos demandes. Je vous ouvre la page pour creer votre fiche.",
     }
