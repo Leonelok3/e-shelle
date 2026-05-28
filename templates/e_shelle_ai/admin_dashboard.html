@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Agent IA - E-Shelle{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top:7rem;background:#071018;min-height:100vh">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem">
+      <div>
+        <span class="section-label" style="display:inline-flex">Pilotage IA</span>
+        <h1 class="section-title" style="color:#fff;margin-top:.8rem">Dashboard Agent Central</h1>
+        <p style="color:rgba(255,255,255,.62);max-width:720px">Suivez ce que les clients cherchent, les modules qui vendent, et les demandes sans résultat à transformer en opportunités commerciales.</p>
+      </div>
+      <a href="/admin/e_shelle_ai/centralagentquerylog/" class="btn btn-outline-white">Voir les logs admin</a>
+    </div>
+
+    <div class="ai-admin-grid ai-admin-grid--stats">
+      <div class="ai-admin-card"><span>Recherches 30 jours</span><strong>{{ total_queries }}</strong></div>
+      <div class="ai-admin-card"><span>Taux avec résultat</span><strong>{{ conversion_rate }}%</strong></div>
+      <div class="ai-admin-card"><span>Sans résultat</span><strong>{{ without_results }}</strong></div>
+      <div class="ai-admin-card"><span>Résultats premium vus</span><strong>{{ premium_results }}</strong></div>
+    </div>
+
+    <div class="ai-admin-grid" style="margin-top:1rem">
+      <article class="ai-admin-panel">
+        <h2>Modules demandés</h2>
+        {% for row in module_stats %}
+          <div class="ai-row">
+            <span>{{ row.module }}</span>
+            <strong>{{ row.total }}</strong>
+            <small>{{ row.empty }} sans résultat · {{ row.premium|default:0 }} premium</small>
+          </div>
+        {% empty %}
+          <p class="ai-muted">Aucune recherche pour le moment.</p>
+        {% endfor %}
+      </article>
+
+      <article class="ai-admin-panel">
+        <h2>Recherches fréquentes</h2>
+        {% for row in top_queries %}
+          <div class="ai-row">
+            <span>{{ row.query }}</span>
+            <strong>{{ row.total }}</strong>
+            <small>{{ row.module }}</small>
+          </div>
+        {% empty %}
+          <p class="ai-muted">Aucune recherche pour le moment.</p>
+        {% endfor %}
+      </article>
+    </div>
+
+    <div class="ai-admin-grid" style="margin-top:1rem">
+      <article class="ai-admin-panel">
+        <h2>À recruter en priorité</h2>
+        {% for row in no_result_queries %}
+          <div class="ai-row ai-row--warning">
+            <span>{{ row.query }}</span>
+            <strong>{{ row.total }}</strong>
+            <small>{{ row.module }}</small>
+          </div>
+        {% empty %}
+          <p class="ai-muted">Aucune demande sans résultat. Très bon signe.</p>
+        {% endfor %}
+      </article>
+
+      <article class="ai-admin-panel">
+        <h2>Prestataires qui performent</h2>
+        {% for business in top_businesses %}
+          <div class="ai-row">
+            <span>{{ business.name }}</span>
+            <strong>{{ business.leads_count }}</strong>
+            <small>{{ business.views_count }} vues · {{ business.get_plan_display }}</small>
+          </div>
+        {% empty %}
+          <p class="ai-muted">Aucune performance business disponible.</p>
+        {% endfor %}
+      </article>
+    </div>
+
+    <article class="ai-admin-panel" style="margin-top:1rem">
+      <h2>Événements commerciaux</h2>
+      <div class="ai-admin-events">
+        {% for row in lead_stats %}
+          <div class="ai-admin-chip">{{ row.event_type }} · {{ row.source }} <strong>{{ row.total }}</strong></div>
+        {% empty %}
+          <p class="ai-muted">Aucun événement commercial récent.</p>
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+</section>
+
+<style>
+.ai-admin-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+.ai-admin-grid--stats { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.ai-admin-card,.ai-admin-panel { background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:1rem; }
+.ai-admin-card span,.ai-muted { color:rgba(255,255,255,.55); }
+.ai-admin-card strong { display:block; color:#fff; font-size:2rem; margin-top:.35rem; }
+.ai-admin-panel h2 { color:#fff; font-size:1.05rem; margin-bottom:.85rem; }
+.ai-row { display:grid; grid-template-columns:1fr auto; gap:.35rem .75rem; padding:.75rem 0; border-bottom:1px solid rgba(255,255,255,.07); color:#fff; }
+.ai-row small { grid-column:1 / -1; color:rgba(255,255,255,.48); }
+.ai-row strong { color:#7cf66c; }
+.ai-row--warning strong { color:#facc15; }
+.ai-admin-events { display:flex; flex-wrap:wrap; gap:.65rem; }
+.ai-admin-chip { padding:.55rem .75rem; border-radius:999px; background:rgba(34,197,94,.12); color:#b7f7c1; font-weight:800; font-size:.85rem; }
+.ai-admin-chip strong { color:#fff; margin-left:.35rem; }
+@media(max-width:900px){ .ai-admin-grid,.ai-admin-grid--stats{grid-template-columns:1fr;} }
+</style>
+{% endblock %}

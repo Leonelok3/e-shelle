@@ -11,6 +11,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 from .models import (
     Bien, ProfilImmo, FavorisBien,
@@ -152,6 +153,47 @@ def detail_bien(request, slug):
         "est_favori":  est_favori,
         "similaires":  similaires,
         "stats":       calculer_stats_bien(bien),
+    })
+
+
+# ─────────────────────────────────────────────────────────────────
+# ESPACE PUBLIC AGENT — LIEN PARTAGEABLE
+# ─────────────────────────────────────────────────────────────────
+
+def espace_agent(request, username):
+    """Vitrine publique d'un agent/propriétaire avec toutes ses offres publiées."""
+    User = get_user_model()
+    agent = get_object_or_404(User, username=username, is_active=True)
+    profil, _ = ProfilImmo.objects.get_or_create(user=agent)
+    biens_qs = (
+        Bien.objects.filter(proprietaire=agent, statut=StatutBien.PUBLIE)
+        .select_related("proprietaire")
+        .prefetch_related("photos", "equipements")
+        .order_by("-est_mis_en_avant", "-est_coup_de_coeur", "-date_publication")
+    )
+
+    stats = {
+        "biens": biens_qs.count(),
+        "vues": sum(b.vues for b in biens_qs),
+        "favoris": sum(b.nb_favoris for b in biens_qs),
+        "locations": biens_qs.filter(type_transaction="LOCATION").count(),
+        "ventes": biens_qs.filter(type_transaction="VENTE").count(),
+    }
+
+    villes = biens_qs.values_list("ville", flat=True).distinct()
+    favoris_ids = set()
+    if request.user.is_authenticated:
+        favoris_ids = set(
+            FavorisBien.objects.filter(user=request.user).values_list("bien_id", flat=True)
+        )
+
+    return render(request, "immobilier_cameroun/espace_agent.html", {
+        "agent": agent,
+        "profil": profil,
+        "biens": biens_qs,
+        "stats": stats,
+        "villes": villes,
+        "favoris_ids": favoris_ids,
     })
 
 

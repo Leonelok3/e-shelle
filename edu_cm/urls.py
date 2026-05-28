@@ -16,6 +16,47 @@ def home_view(request):
         ).select_related("ville", "quartier")[:3]
     except Exception:
         ctx["gaz_depots_vedette"] = []
+    try:
+        from django.utils import timezone
+        from business.models import BusinessProfile, HomeAdSlide
+        now = timezone.now()
+        premium_businesses = list(
+            BusinessProfile.objects.filter(
+                is_active=True,
+                plan__in=[BusinessProfile.Plan.PREMIUM, BusinessProfile.Plan.BUSINESS],
+            ).order_by("-boost_expires_at", "-subscription_expires_at", "-leads_count", "-updated_at")[:12]
+        )
+        home_ad_slides = list(
+            HomeAdSlide.objects.filter(is_active=True)
+            .filter(starts_at__isnull=True)
+            .exclude(ends_at__lt=now)
+            .select_related("business")
+            .order_by("order", "-created_at")[:12]
+        )
+        timed_slides = list(
+            HomeAdSlide.objects.filter(is_active=True, starts_at__lte=now)
+            .exclude(ends_at__lt=now)
+            .select_related("business")
+            .order_by("order", "-created_at")[:12]
+        )
+        slide_ids = set()
+        merged_slides = []
+        for slide in home_ad_slides + timed_slides:
+            if slide.pk not in slide_ids and slide.is_live:
+                merged_slides.append(slide)
+                slide_ids.add(slide.pk)
+        if merged_slides:
+            from django.db.models import F
+            HomeAdSlide.objects.filter(pk__in=[slide.pk for slide in merged_slides[:10]]).update(
+                impressions_count=F("impressions_count") + 1
+            )
+        ctx["premium_businesses"] = premium_businesses
+        ctx["home_ad_slides"] = merged_slides[:10]
+        ctx["hero_businesses"] = [item for item in premium_businesses if item.promo_image][:6] or premium_businesses[:6]
+    except Exception:
+        ctx["premium_businesses"] = []
+        ctx["home_ad_slides"] = []
+        ctx["hero_businesses"] = []
     return render(request, "home.html", ctx)
 
 urlpatterns = [
@@ -39,6 +80,7 @@ urlpatterns = [
     path("formations/",  include("formations.urls",  namespace="formations")),
     path("boutique/",    include("boutique.urls",    namespace="boutique")),
     path("services/",    include("services.urls",    namespace="services")),
+    path("artisans/",    include("artisans.urls",    namespace="artisans")),
     path("dashboard/",   include("dashboard.urls",   namespace="dashboard")),
     path("payments/",    include("payments.urls",    namespace="payments")),
     path("ia/",          include("ai_engine.urls",   namespace="ai_engine")),
@@ -114,6 +156,10 @@ urlpatterns = [
 
     # ── Facebook Agent IA — Dashboard auto-publication ────────────────
     path("facebook-agent/", include("facebook_agent.urls", namespace="facebook_agent")),
+
+    # ── TIBO — Boutique dropshipping premium Canada ───────────────────
+    path("tibo/", include("apps.tibo.urls", namespace="tibo")),
+    path("api/tibo/", include("apps.tibo.api.urls", namespace="tibo_api")),
 
     # Page d'accueil
     path("", home_view, name="home"),

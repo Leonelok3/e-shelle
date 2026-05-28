@@ -1,26 +1,35 @@
-<article class="health-card rise">
-  <div class="meta">
-    <span class="pill">{{ produit.get_type_produit_display }}</span>
-    {% if produit.is_verified %}<span class="pill">Vérifié</span>{% endif %}
-    {% if produit.livraison %}<span class="pill">Livraison</span>{% endif %}
-  </div>
-  <div>
-    <h3>{{ produit.titre }}</h3>
-    <p style="margin:.35rem 0 0">{{ produit.description|truncatechars:118 }}</p>
-  </div>
-  <div class="meta">
-    <span>{{ produit.ville }}</span>
-    <span>Stock: {{ produit.stock_disponible }}</span>
-    {% if produit.ordonnance_requise %}<span>Ordonnance requise</span>{% endif %}
-  </div>
-  <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:12px">
-    <div>
-      <div class="price">{{ produit.prix_display }}</div>
-      {% if produit.reduction %}<small class="muted">-{{ produit.reduction }}% aujourd'hui</small>{% endif %}
+<article class="health-card product-card rise">
+  <a class="product-media" href="{{ produit.get_absolute_url }}" aria-label="Voir {{ produit.titre }}">
+    <div class="product-badges">
+      <span class="pill">{{ produit.get_type_produit_display }}</span>
+      {% if produit.is_verified %}<span class="pill">Vérifié</span>{% endif %}
+      {% if produit.livraison %}<span class="pill">Livraison</span>{% endif %}
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-      <a class="btn btn-ghost" href="{{ produit.commande_whatsapp_url }}" target="_blank" rel="noopener">Commander</a>
-      <a class="btn btn-outline" href="{{ produit.get_absolute_url }}">Voir</a>
+    {% if produit.image %}
+      <img src="{{ produit.image.url }}" alt="{{ produit.titre }}" loading="lazy">
+    {% else %}
+      <div class="product-media-fallback">+</div>
+    {% endif %}
+  </a>
+  <div class="product-body">
+    <div>
+      <h3>{{ produit.titre }}</h3>
+      <p>{{ produit.description|truncatechars:118 }}</p>
+    </div>
+    <div class="meta">
+      <span>{{ produit.ville }}</span>
+      <span>Stock: {{ produit.stock_disponible }}</span>
+      {% if produit.ordonnance_requise %}<span>Ordonnance requise</span>{% endif %}
+    </div>
+    <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div class="price">{{ produit.prix_display }}</div>
+        {% if produit.reduction %}<small class="muted">-{{ produit.reduction }}% aujourd'hui</small>{% endif %}
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <a class="btn btn-ghost" href="{{ produit.commande_whatsapp_url }}" target="_blank" rel="noopener">Commander</a>
+        <a class="btn btn-outline" href="{{ produit.get_absolute_url }}">Voir</a>
+      </div>
     </div>
   </div>
 </article>

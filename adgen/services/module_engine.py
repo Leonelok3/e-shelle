@@ -35,6 +35,8 @@ class ModuleEngine:
                 "cible": self.campaign.cible,
                 "pays": self.campaign.pays,
                 "pays_label": self.campaign.pays_label,
+                "ville": self.campaign.ville,
+                "ville_label": self.campaign.ville_label,
             }
 
             modules = self.campaign.modules_selected or []

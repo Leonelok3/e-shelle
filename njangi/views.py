@@ -54,6 +54,42 @@ class LandingView(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx["features"] = [
+            {
+                "icon": "💰",
+                "title": "Cotisations suivies",
+                "desc": "Chaque membre, chaque séance et chaque paiement sont tracés clairement, sans cahier papier.",
+            },
+            {
+                "icon": "🏆",
+                "title": "Gestion des mains",
+                "desc": "Planifiez les bénéficiaires, ouvrez les séances et clôturez les réunions avec les bons montants.",
+            },
+            {
+                "icon": "🏦",
+                "title": "Fond commun",
+                "desc": "Séparez tontine, dépôts, prêts, remboursements, intérêts et réserve de sécurité.",
+            },
+            {
+                "icon": "📋",
+                "title": "Prêts aux membres",
+                "desc": "Demande, approbation, décaissement, remboursement et garant sont gérés dans le même espace.",
+            },
+            {
+                "icon": "📄",
+                "title": "Rapports PDF",
+                "desc": "Exportez les relevés membres et l'état du fond commun pour rassurer tout le bureau.",
+            },
+            {
+                "icon": "🔍",
+                "title": "Audit & réconciliation",
+                "desc": "Le président et le trésorier voient qui a fait quoi, quand, et où se trouve chaque écart.",
+            },
+        ]
+        ctx["demo_group"] = (
+            Group.objects.filter(slug="reunion-demo-e-shelle").first()
+            or Group.objects.filter(status="active").order_by("-created_at").first()
+        )
         if self.request.user.is_authenticated:
             ctx["memberships"] = Membership.objects.filter(
                 user=self.request.user, is_active=True

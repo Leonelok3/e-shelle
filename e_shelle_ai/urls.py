@@ -5,6 +5,8 @@ from . import views
 app_name = "eshelle_ai"
 
 urlpatterns = [
+    path("admin-dashboard/",                 views.admin_dashboard,                 name="admin_dashboard"),
+
     # Interface principale
     path("",                                views.ChatView.as_view(),               name="chat"),
     path("c/<int:pk>/",                     views.ConversationLoadView.as_view(),   name="conversation"),

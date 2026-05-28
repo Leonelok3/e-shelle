@@ -63,7 +63,11 @@ def collecteur_dashboard(request):
     if request.method == "POST":
         if client_form.is_valid():
             client = client_form.save(collecteur)
-            messages.success(request, f"Client {client.user.get_full_name() or client.user.username} ajoute et assigne a votre portefeuille.")
+            messages.success(
+                request,
+                f"Client {client.user.get_full_name() or client.user.username} ajoute et assigne a votre portefeuille. "
+                "Aucun depot n'a ete enregistre automatiquement : utilisez « Enregistrer une operation » pour creer un depot ou un retrait."
+            )
             return redirect("tchaslucpay_dashboard:collecteur")
         messages.error(request, "Veuillez corriger les informations du nouveau client.")
 
@@ -91,6 +95,7 @@ def collecteur_dashboard(request):
         "collected_transactions": Transaction.objects.filter(collector=request.user)
         .select_related("account")
         .order_by("-created_at")[:25],
+        "demo_mode": request.user.username.startswith("collecteur_"),
     }
     return render(request, "tchaslucpay/dashboard/dashboard_collecteur.html", context)
 

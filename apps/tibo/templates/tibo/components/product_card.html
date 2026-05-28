@@ -1,0 +1,22 @@
+<article class="tibo-product-card">
+  <a href="{{ product.get_absolute_url }}" class="tibo-product-media">
+    {% with image=product.primary_image %}
+      <img loading="lazy" src="{% if image %}{{ image.url }}{% else %}/static/tibo/images/product-placeholder.svg{% endif %}" alt="{{ product.title }}">
+    {% endwith %}
+    {% if product.discount_percent %}<span class="tibo-badge">-{{ product.discount_percent }}%</span>{% endif %}
+  </a>
+  <div class="p-4">
+    <p class="text-xs uppercase tracking-[0.18em] text-blue-300">{{ product.category.name }}</p>
+    <h3 class="mt-2 text-base font-semibold text-white"><a href="{{ product.get_absolute_url }}">{{ product.title }}</a></h3>
+    <p class="mt-2 line-clamp-2 text-sm text-slate-400">{{ product.short_description }}</p>
+    <div class="mt-4 flex items-center justify-between">
+      <div><strong class="text-lg">{{ product.price }} {{ product.currency }}</strong></div>
+      <form method="post" action="{% url 'tibo:add_to_cart' %}" hx-post="{% url 'tibo:add_to_cart' %}" hx-target="#cart-drawer" hx-swap="innerHTML">
+        {% csrf_token %}
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+        <button class="tibo-icon-btn" aria-label="Ajouter au panier">+</button>
+      </form>
+    </div>
+  </div>
+</article>
+

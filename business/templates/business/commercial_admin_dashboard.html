@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard commercial - E-Shelle{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top:7rem;background:#071018;min-height:100vh">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem">
+      <div>
+        <span class="section-label" style="display:inline-flex">Admin commercial</span>
+        <h1 class="section-title" style="color:#fff;margin-top:.8rem">Prospects & campagnes premium</h1>
+        <p style="color:rgba(255,255,255,.62)">Suivez les secteurs, paiements, leads et campagnes pour vendre les abonnements Business/Premium.</p>
+      </div>
+      <a href="/admin/business/premiumsectorcampaign/add/" class="btn btn-primary">Créer une campagne</a>
+    </div>
+
+    <form class="com-filters" method="get">
+      <select name="module">
+        <option value="">Tous modules</option>
+        {% for value,label in modules %}
+          <option value="{{ value }}" {% if filters.module == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select name="status">
+        <option value="">Tous paiements</option>
+        {% for value,label in statuses %}
+          <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select name="days">
+        <option value="7" {% if filters.days == 7 %}selected{% endif %}>7 jours</option>
+        <option value="30" {% if filters.days == 30 %}selected{% endif %}>30 jours</option>
+        <option value="90" {% if filters.days == 90 %}selected{% endif %}>90 jours</option>
+        <option value="365" {% if filters.days == 365 %}selected{% endif %}>1 an</option>
+      </select>
+      <button class="btn btn-primary" type="submit">Filtrer</button>
+    </form>
+
+    <div class="com-grid com-grid--stats">
+      <div class="com-card"><span>Businesses</span><strong>{{ total_businesses }}</strong></div>
+      <div class="com-card"><span>Premium/Business</span><strong>{{ premium_businesses }}</strong></div>
+      <div class="com-card"><span>Paiements en attente</span><strong>{{ pending_payments }}</strong></div>
+      <div class="com-card"><span>Demandes générées</span><strong>{{ total_leads }}</strong></div>
+    </div>
+
+    <div class="com-grid" style="margin-top:1rem">
+      <article class="com-panel">
+        <h2>Tunnel de conversion</h2>
+        <div class="funnel-step"><span>Vues</span><strong>{{ funnel.visitors }}</strong><i style="width:100%"></i></div>
+        <div class="funnel-step"><span>Contacts</span><strong>{{ funnel.contacts }} · {{ funnel.contacts_pct }}%</strong><i style="width:{{ funnel.contacts_pct }}%"></i></div>
+        <div class="funnel-step"><span>Demandes abonnement</span><strong>{{ funnel.requests }} · {{ funnel.requests_pct }}%</strong><i style="width:{{ funnel.requests_pct }}%"></i></div>
+        <div class="funnel-step"><span>Premium/Business</span><strong>{{ funnel.premium }} · {{ funnel.premium_pct }}%</strong><i style="width:{{ funnel.premium_pct }}%"></i></div>
+      </article>
+      <article class="com-panel">
+        <h2>Pipeline par secteur</h2>
+        {% for row in module_pipeline %}
+          <div class="com-row"><span>{{ row.module }}</span><strong>{{ row.total }}</strong><small>{{ row.premium }} premium · {{ row.views|default:0 }} vues · {{ row.leads|default:0 }} leads</small></div>
+        {% empty %}
+          <p class="com-muted">Aucun business.</p>
+        {% endfor %}
+      </article>
+      <article class="com-panel">
+        <h2>Demandes de paiement</h2>
+        {% for req in payment_requests %}
+          <div class="com-row"><span>{{ req.business.name }}</span><strong>{{ req.amount_xaf }}</strong><small>{{ req.plan.name }} · {{ req.get_status_display }} · {{ req.created_at|date:"d/m H:i" }}</small></div>
+        {% empty %}
+          <p class="com-muted">Aucune demande.</p>
+        {% endfor %}
+      </article>
+    </div>
+
+    <div class="com-grid" style="margin-top:1rem">
+      <article class="com-panel">
+        <h2>Campagnes sectorielles</h2>
+        {% for campaign in campaigns %}
+          <div class="com-row"><span>{{ campaign.name }}</span><strong>{{ campaign.get_status_display }}</strong><small>{{ campaign.get_module_display }} · {{ campaign.city|default:"Toutes villes" }} · objectif {{ campaign.target_businesses }}</small></div>
+        {% empty %}
+          <p class="com-muted">Créez votre première campagne depuis l'admin.</p>
+        {% endfor %}
+      </article>
+      <article class="com-panel">
+        <h2>Derniers leads</h2>
+        {% for event in recent_leads %}
+          <div class="com-row"><span>{{ event.business.name }}</span><strong>{{ event.get_event_type_display }}</strong><small>{{ event.source }} · {{ event.created_at|date:"d/m H:i" }}</small></div>
+        {% empty %}
+          <p class="com-muted">Aucun lead récent.</p>
+        {% endfor %}
+      </article>
+    </div>
+  </div>
+</section>
+
+<style>
+.com-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.com-grid--stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+.com-card,.com-panel,.com-filters{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:1rem}
+.com-filters{display:flex;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem}
+.com-filters select{background:#101c33;color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:.75rem;min-width:160px}
+.com-card span,.com-muted{color:rgba(255,255,255,.55)}
+.com-card strong{display:block;color:#fff;font-size:2rem;margin-top:.35rem}
+.com-panel h2{color:#fff;font-size:1.05rem;margin-bottom:.85rem}
+.com-row{display:grid;grid-template-columns:1fr auto;gap:.35rem .7rem;padding:.75rem 0;border-bottom:1px solid rgba(255,255,255,.07);color:#fff}
+.com-row small{grid-column:1 / -1;color:rgba(255,255,255,.48)}
+.com-row strong{color:#7cf66c}
+.funnel-step{margin:.9rem 0;color:#fff}
+.funnel-step span{display:block;color:rgba(255,255,255,.56);font-size:.82rem;font-weight:800}
+.funnel-step strong{display:block;margin:.25rem 0;color:#fff}
+.funnel-step i{display:block;height:16px;border-radius:999px;background:linear-gradient(90deg,#22c55e,#38bdf8,#facc15);max-width:100%;min-width:6%;box-shadow:0 0 22px rgba(34,197,94,.18)}
+@media(max-width:900px){.com-grid,.com-grid--stats{grid-template-columns:1fr}}
+</style>
+{% endblock %}

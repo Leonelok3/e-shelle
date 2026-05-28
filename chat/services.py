@@ -13,7 +13,13 @@ def _track_actions(obj, module: str, urls: dict) -> dict:
     try:
         from business.services import build_tracked_actions
 
-        return build_tracked_actions(obj, module, urls, source="chat")
+        return build_tracked_actions(
+            obj,
+            module,
+            urls,
+            source="central_agent",
+            record_view=True,
+        )
     except Exception as exc:
         logger.debug("Business tracking unavailable: %s", exc)
         return {}
@@ -27,7 +33,8 @@ MODULE_URLS = {
     "boutique": "/boutique/",
     "adgen": "/pub/",
     "transport": "https://simplo.e-shelle.com/",
-    "services": "/services/",
+    "auto": "/auto/",
+    "services": "/artisans/",
     "sante": "/sante/",
     "immobilier": "/immobilier/",
     "jobs": "/jobs/",
@@ -48,6 +55,7 @@ MODULE_LABELS = {
     "boutique": "Ouvrir la boutique ->",
     "adgen": "Créer un visuel ->",
     "transport": "Voir le transport ->",
+    "auto": "Voir les véhicules ->",
     "services": "Voir les services ->",
     "sante": "Voir sante ->",
     "immobilier": "Voir les annonces ->",
@@ -74,6 +82,7 @@ Modules disponibles :
 - boutique : achat de produits, templates, ebooks, plugins
 - adgen : generation d'affiches, logos, visuels marketing par IA
 - transport : bus, taxis, covoiturage, livraison colis
+- auto : achat, vente et location de voitures
 - sante : medicaments, pharmacies, professionnels de sante
 - immobilier : vente et location de terrains, maisons, appartements
 - jobs : emplois, stages, missions freelance
@@ -101,6 +110,13 @@ Ne reponds jamais hors JSON."""
 
 def route_message(user_message: str, conversation_history: list) -> dict:
     """Route un message vers le bon module E-Shelle."""
+    try:
+        from e_shelle_ai.services.central_agent import CentralAgentService
+
+        return CentralAgentService().route_message(user_message, conversation_history)
+    except Exception as exc:
+        logger.debug("Central agent unavailable, using legacy router: %s", exc)
+
     fallback = _fallback_route(user_message)
     fallback["results"] = _results_or_external(fallback["module"], user_message)
     api_key = getattr(settings, "OPENAI_API_KEY", "")
@@ -678,6 +694,7 @@ _INTENT_WORDS = {
     "pressing", "emploi", "jobs", "stage", "travail", "sante", "santé",
     "pharmacie", "medicament", "médicament", "medecin", "médecin",
     "service", "services", "plombier", "electricien", "électricien", "artisan",
+    "auto", "voiture", "vehicule", "véhicule",
 }
 
 
@@ -687,12 +704,14 @@ def _fallback_route(user_message: str) -> dict:
     image = False
 
     rules = [
-        ("adgen", ["affiche", "logo", "flyer", "visuel", "banniere", "bannière", "poster", "design"]),
+        ("adgen", ["affiche", "logo", "flyer", "visuel", "banniere", "bannière", "poster", "design", "pub", "publicite", "publicité", "post facebook", "campagne"]),
         ("business_onboarding", ["inscrire mon", "inscrire ma", "ajouter mon", "ajouter ma", "referencer mon", "référencer mon", "publier mon business", "vendre sur e-shelle", "devenir prestataire"]),
+        ("boutique", ["template", "ebook", "plugin", "outil digital"]),
         ("gaz", ["gaz", "bouteille", "butane", "propane"]),
         ("resto", ["restaurant", "resto", "maquis", "manger", "plat", "nourriture"]),
         ("formation", ["formation", "cours", "concours", "enam", "ens", "apprendre", "certification"]),
         ("pressing", ["pressing", "linge", "vetement", "vêtement", "blanchisserie"]),
+        ("auto", ["auto", "voiture", "vehicule", "véhicule", "car", "occasion", "acheter voiture", "louer voiture"]),
         ("transport", ["transport", "taxi", "moto", "moto taxi", "mototaxi", "benskin", "bend skin", "okada", "bus", "covoiturage", "colis", "livraison"]),
         ("services", ["plombier", "electricien", "électricien", "menuisier", "macon", "maçon", "peintre", "technicien", "reparateur", "réparateur", "artisan", "service a domicile", "service à domicile"]),
         ("sante", ["sante", "santé", "pharmacie", "medicament", "médicament", "medecin", "médecin"]),
@@ -703,7 +722,7 @@ def _fallback_route(user_message: str) -> dict:
         ("agro", ["agro", "agriculture", "producteur", "recolte", "récolte", "vivres"]),
         ("rencontres", ["rencontre", "amour", "mariage", "relation"]),
         ("quincaillerie", ["quincaillerie", "ciment", "fer", "tole", "tôle", "outillage", "construction"]),
-        ("boutique", ["acheter", "produit", "boutique", "magasin", "shop"]),
+        ("boutique", ["acheter", "produit", "boutique", "magasin", "shop", "template", "ebook", "plugin", "outil"]),
     ]
 
     for candidate, keywords in rules:
@@ -735,6 +754,7 @@ def _fallback_message(module: str) -> str:
         "resto": "Bonne idee. Je t'envoie vers E-Shelle Resto pour voir les restaurants, maquis et plats disponibles.",
         "formation": "Bien vu. Je t'oriente vers les formations et ressources pour apprendre ou preparer ton concours serieusement.",
         "transport": "C'est note. Pour les motos, taxis et transports, je t'oriente vers Simplo Transport, le module dedie d'E-Shelle.",
+        "auto": "Parfait. Je te montre les vehicules disponibles sur E-Shelle Auto avec les contacts utiles pour avancer vite.",
         "services": "C'est note. Je t'oriente vers les services et artisans. Si E-Shelle n'a pas encore de prestataire disponible, je te propose une recherche externe en attendant.",
         "immobilier": "D'accord. Je t'oriente vers les annonces immobilieres et logements disponibles. Si E-Shelle n'a pas encore assez de resultats, je te propose aussi une recherche externe.",
         "general": "Dis-moi simplement ce que tu cherches: gaz, resto, formation, emploi, sante, transport ou creation d'affiche. Je te dirige au bon endroit.",

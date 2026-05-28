@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}{{ seo_title }}{% endblock %}
+{% block meta_description %}{{ seo_description }}{% endblock %}
+
+{% block content %}
+<script type="application/ld+json">{{ schema_json|safe }}</script>
+
+<section class="geo-local-hero">
+  <div class="container geo-local-wrap">
+    <div>
+      <nav class="geo-breadcrumb">
+        <a href="/">Accueil</a>
+        <span>/</span>
+        <a href="{% url 'business:geo_index' %}">Local</a>
+        <span>/</span>
+        <strong>{{ city_name }}</strong>
+      </nav>
+      <span class="section-label" style="display:inline-flex">{{ city_name }} · {{ service.plural }}</span>
+      <h1>{{ service.plural|capfirst }} à {{ city_name }}</h1>
+      <p>{{ seo_description }} Utilisez E-Shelle AI pour préciser votre quartier, comparer les offres et contacter le bon prestataire.</p>
+      <div class="geo-actions">
+        <a class="btn btn-primary btn-lg" href="{% url 'chat:home' %}?q=je%20cherche%20{{ service.singular|urlencode }}%20à%20{{ city_name|urlencode }}">Chercher avec E-Shelle AI</a>
+        <a class="btn btn-outline-white btn-lg" href="{% url 'business:provider_plans' %}">Inscrire mon business</a>
+      </div>
+    </div>
+    <aside class="geo-local-proof">
+      <div><span>Prestataires listés</span><strong>{{ businesses|length }}</strong></div>
+      <div><span>Premium/Business</span><strong>{{ premium_count }}</strong></div>
+      <div><span>Quartiers couverts</span><strong>{{ districts|length }}</strong></div>
+    </aside>
+  </div>
+</section>
+
+<section class="section" style="background:#08111d">
+  <div class="container">
+    {% if districts %}
+    <div class="geo-section-head">
+      <h2>Quartiers populaires à {{ city_name }}</h2>
+      <p>Ces zones permettent de mieux filtrer les résultats locaux.</p>
+    </div>
+    <div class="geo-tags">
+      {% for row in districts %}
+        <a href="{% url 'chat:home' %}?q={{ service.singular|urlencode }}%20{{ row.district|urlencode }}%20{{ city_name|urlencode }}">{{ row.district }} · {{ row.total }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="geo-section-head" style="margin-top:2rem">
+      <h2>Prestataires recommandés</h2>
+      <p>Les fiches Business et Premium sont priorisées pour offrir plus de visibilité aux prestataires actifs.</p>
+    </div>
+    <div class="geo-business-grid">
+      {% for business in businesses %}
+        <article class="geo-business-card">
+          <div>
+            <span>{{ business.get_plan_display }}</span>
+            <h3>{{ business.name }}</h3>
+            <p>{{ business.district|default:city_name }}{% if business.promo_offer %} · {{ business.promo_offer }}{% endif %}</p>
+          </div>
+          <div class="geo-business-actions">
+            <a href="{% url 'business:go_business' business.id 'order' %}">Contacter</a>
+            <small>{{ business.views_count }} vues · {{ business.leads_count }} demandes</small>
+          </div>
+        </article>
+      {% empty %}
+        <div class="geo-empty">
+          Aucun prestataire actif pour cette page. E-Shelle recrute encore des {{ service.plural }} à {{ city_name }}.
+          <a href="{% url 'business:onboarding' %}?plan=business">Inscrire mon business</a>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="geo-two">
+      <article>
+        <h2>Pourquoi utiliser E-Shelle à {{ city_name }} ?</h2>
+        <p>Cette page aide les clients à {{ service.intent }}. Les fiches locales centralisent les contacts, quartiers, offres et signaux de confiance pour aller plus vite.</p>
+      </article>
+      <article>
+        <h2>Questions fréquentes</h2>
+        {% for question, answer in service.faq %}
+          <details>
+            <summary>{{ question }}</summary>
+            <p>{{ answer }}</p>
+          </details>
+        {% endfor %}
+      </article>
+    </div>
+
+    {% if related_pages %}
+    <div class="geo-section-head" style="margin-top:2rem">
+      <h2>Autres recherches à {{ city_name }}</h2>
+    </div>
+    <div class="geo-tags">
+      {% for page in related_pages %}
+        <a href="{% url 'business:geo_landing' city_slug page.slug %}">{{ page.service.plural|capfirst }} · {{ page.count }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<style>
+.geo-local-hero{padding:7.5rem 0 4rem;background:radial-gradient(circle at 82% 18%,rgba(34,197,94,.2),transparent 35%),#061019;color:#fff}
+.geo-local-wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:2rem;align-items:center}
+.geo-breadcrumb{display:flex;gap:.45rem;align-items:center;margin-bottom:1rem;color:rgba(255,255,255,.5);font-size:.85rem}
+.geo-breadcrumb a{color:rgba(255,255,255,.66);text-decoration:none}
+.geo-local-hero h1{font-size:clamp(2.4rem,6vw,5.4rem);line-height:.94;max-width:820px;margin:.8rem 0}
+.geo-local-hero p{color:rgba(255,255,255,.68);line-height:1.7;max-width:760px}
+.geo-actions{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:1.3rem}
+.geo-local-proof{display:grid;gap:.8rem}
+.geo-local-proof div,.geo-business-card,.geo-two article{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:1rem}
+.geo-local-proof span{color:rgba(255,255,255,.56);font-weight:800;font-size:.82rem}
+.geo-local-proof strong{display:block;font-size:2.2rem;margin-top:.3rem}
+.geo-section-head h2,.geo-two h2{color:#fff;font-size:1.25rem;margin-bottom:.35rem}
+.geo-section-head p,.geo-two p{color:rgba(255,255,255,.58)}
+.geo-tags{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem}
+.geo-tags a{padding:.65rem .8rem;border-radius:999px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.78);text-decoration:none;font-weight:800;font-size:.85rem}
+.geo-business-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1rem}
+.geo-business-card{display:flex;flex-direction:column;justify-content:space-between;min-height:190px;color:#fff}
+.geo-business-card span{display:inline-flex;width:max-content;padding:.35rem .55rem;border-radius:999px;background:rgba(124,246,108,.14);color:#7cf66c;font-size:.72rem;font-weight:900}
+.geo-business-card h3{margin:.8rem 0 .35rem;font-size:1.1rem}
+.geo-business-card p{color:rgba(255,255,255,.6)}
+.geo-business-actions{display:flex;justify-content:space-between;align-items:center;gap:.8rem;margin-top:1rem}
+.geo-business-actions a{padding:.65rem .85rem;border-radius:999px;background:#7cf66c;color:#061019;font-weight:900;text-decoration:none}
+.geo-business-actions small{color:rgba(255,255,255,.44);text-align:right}
+.geo-two{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem}
+details{border-top:1px solid rgba(255,255,255,.08);padding:.8rem 0;color:#fff}
+summary{cursor:pointer;font-weight:900}
+.geo-empty{grid-column:1/-1;padding:1rem;border-radius:16px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.72)}
+.geo-empty a{color:#7cf66c;font-weight:900;margin-left:.4rem}
+@media(max-width:950px){.geo-local-wrap,.geo-business-grid,.geo-two{grid-template-columns:1fr}}
+</style>
+{% endblock %}

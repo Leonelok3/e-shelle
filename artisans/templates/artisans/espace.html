@@ -1,0 +1,30 @@
+{% extends "artisans/base.html" %}
+
+{% block title %}Espace artisan - E-Shelle{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap detail-grid">
+    <div>
+      <h1 style="font-size:clamp(2rem,4vw,3.4rem)">Espace artisan</h1>
+      <p>Créez votre profil public. Vos clients pourront le partager et voir vos métiers, zones et réalisations.</p>
+      <form class="panel" style="padding:18px;display:grid;gap:12px" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="field"><label>{{ field.label }}</label>{{ field }}{% if field.errors %}<small style="color:#dc2626">{{ field.errors.0 }}</small>{% endif %}</div>
+        {% endfor %}
+        <button class="btn btn-primary" type="submit">Enregistrer mon profil</button>
+      </form>
+    </div>
+    <aside class="panel" style="padding:18px">
+      <h2>Votre lien</h2>
+      {% if profil %}
+        <p style="word-break:break-all">{{ request.scheme }}://{{ request.get_host }}{{ profil.get_absolute_url }}</p>
+        <a class="btn btn-outline" href="{{ profil.get_absolute_url }}">Voir mon profil</a>
+      {% else %}
+        <p>Enregistrez votre profil pour obtenir votre lien public.</p>
+      {% endif %}
+    </aside>
+  </div>
+</section>
+{% endblock %}

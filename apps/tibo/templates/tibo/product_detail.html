@@ -1,0 +1,40 @@
+{% extends "tibo/base.html" %}
+{% block title %}{{ product.title }} - TIBO{% endblock %}
+{% block meta_description %}{{ product.seo_description|default:product.short_description }}{% endblock %}
+{% block content %}
+<section class="tibo-product-detail">
+  <div class="tibo-gallery">
+    {% for image in product.images.all %}
+      <img loading="lazy" src="{{ image.url }}" alt="{{ image.alt_text|default:product.title }}">
+    {% empty %}
+      <img src="/static/tibo/images/product-placeholder.svg" alt="{{ product.title }}">
+    {% endfor %}
+  </div>
+  <div class="tibo-buybox">
+    <p class="tibo-eyebrow">{{ product.source }} · {{ product.category.name }}</p>
+    <h1>{{ product.title }}</h1>
+    <p class="tibo-lead">{{ product.short_description }}</p>
+    <div class="tibo-price">{{ product.price }} {{ product.currency }}{% if product.compare_at_price %}<s>{{ product.compare_at_price }}</s>{% endif %}</div>
+    <form method="post" action="{% url 'tibo:add_to_cart' %}">
+      {% csrf_token %}
+      <input type="hidden" name="product_id" value="{{ product.id }}">
+      {% if product.variants.all %}
+        <select name="variant_id" class="tibo-input">
+          {% for variant in product.variants.all %}<option value="{{ variant.id }}">{{ variant.title }} - {{ variant.effective_price }} {{ product.currency }}</option>{% endfor %}
+        </select>
+      {% endif %}
+      <input type="number" class="tibo-input" name="quantity" value="1" min="1">
+      <button class="tibo-btn w-full">Ajouter au panier</button>
+    </form>
+    <div class="tibo-trust">
+      <span>Protection CSRF</span><span>Checkout sécurisé</span><span>Livraison Canada</span>
+    </div>
+    <article class="prose prose-invert mt-8 max-w-none">{{ product.description|safe }}</article>
+  </div>
+</section>
+<section class="tibo-section">
+  <h2>Recommandés avec ce produit</h2>
+  <div class="tibo-grid mt-6">{% for product in related_products %}{% include "tibo/components/product_card.html" %}{% endfor %}</div>
+</section>
+{% endblock %}
+

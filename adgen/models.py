@@ -19,6 +19,30 @@ PAYS_CHOICES = [
     ("bf", "Burkina Faso"),
 ]
 
+VILLE_CHOICES = [
+    ("", "Choisir une ville"),
+    ("douala", "Douala"),
+    ("yaounde", "Yaoundé"),
+    ("bafoussam", "Bafoussam"),
+    ("bamenda", "Bamenda"),
+    ("garoua", "Garoua"),
+    ("maroua", "Maroua"),
+    ("bertoua", "Bertoua"),
+    ("limbe", "Limbé"),
+    ("kribi", "Kribi"),
+    ("ebolowa", "Ebolowa"),
+    ("abidjan", "Abidjan"),
+    ("dakar", "Dakar"),
+    ("kinshasa", "Kinshasa"),
+    ("libreville", "Libreville"),
+    ("cotonou", "Cotonou"),
+    ("bamako", "Bamako"),
+    ("ouagadougou", "Ouagadougou"),
+    ("accra", "Accra"),
+    ("lagos", "Lagos"),
+    ("autre", "Autre ville"),
+]
+
 STATUS_CHOICES = [
     ("pending",    "En attente"),
     ("processing", "En cours"),
@@ -54,6 +78,7 @@ class AdCampaign(models.Model):
     prix             = models.CharField(max_length=50, verbose_name="Prix")
     cible            = models.CharField(max_length=200, verbose_name="Cible / audience")
     pays             = models.CharField(max_length=5, choices=PAYS_CHOICES, default="cm", verbose_name="Pays cible")
+    ville            = models.CharField(max_length=80, blank=True, verbose_name="Ville cible")
     modules_selected = models.JSONField(default=list, verbose_name="Modules sélectionnés")
     status           = models.CharField(max_length=15, choices=STATUS_CHOICES, default="pending")
     created_at       = models.DateTimeField(auto_now_add=True)
@@ -74,6 +99,12 @@ class AdCampaign(models.Model):
     @property
     def pays_label(self):
         return dict(PAYS_CHOICES).get(self.pays, self.pays)
+
+    @property
+    def ville_label(self):
+        if not self.ville:
+            return "Toutes les villes"
+        return dict(VILLE_CHOICES).get(self.ville, self.ville.title())
 
 
 class AdContent(models.Model):

@@ -1,0 +1,31 @@
+{% extends "tibo/base.html" %}
+{% block title %}Panier TIBO{% endblock %}
+{% block content %}
+<section class="tibo-page">
+  <h1>Panier</h1>
+  <div class="tibo-checkout-grid">
+    <div class="space-y-4">
+      {% for item in cart.items.all %}
+        <article class="tibo-line">
+          <strong>{{ item.product.title }}</strong>
+          <span>{{ item.unit_price }} {{ cart.currency }}</span>
+          <form method="post" action="{% url 'tibo:update_cart_item' item.id %}">
+            {% csrf_token %}
+            <input class="tibo-input" type="number" name="quantity" value="{{ item.quantity }}" min="0">
+            <button class="tibo-btn tibo-btn-ghost">Mettre à jour</button>
+          </form>
+        </article>
+      {% empty %}
+        <p class="text-slate-400">Votre panier est vide.</p>
+      {% endfor %}
+      <form class="tibo-panel" method="post" action="{% url 'tibo:apply_coupon' %}">
+        {% csrf_token %}
+        <label>Coupon<input class="tibo-input" name="code" placeholder="TIBO10"></label>
+        <button class="tibo-btn tibo-btn-ghost mt-3">Appliquer</button>
+      </form>
+    </div>
+    {% include "tibo/partials/cart_summary.html" %}
+  </div>
+</section>
+{% endblock %}
+

@@ -6,7 +6,9 @@ from .models import (
     BoostCampaign,
     BusinessLeadEvent,
     BusinessProfile,
+    HomeAdSlide,
     PaymentRequest,
+    PremiumSectorCampaign,
     ProviderPlan,
 )
 
@@ -19,7 +21,30 @@ class BusinessProfileAdmin(admin.ModelAdmin):
         "is_active", "is_verified",
     )
     list_filter = ("module", "plan", "is_active", "is_verified")
-    search_fields = ("name", "city", "district", "phone", "whatsapp")
+    search_fields = ("name", "city", "district", "phone", "whatsapp", "promo_headline")
+    fieldsets = (
+        (None, {
+            "fields": (
+                "owner", "module", "name", "slug", "city", "district",
+                "phone", "whatsapp", "description", "is_active", "is_verified",
+            )
+        }),
+        ("Publicite page d'accueil", {
+            "fields": ("promo_headline", "promo_offer", "promo_image", "promo_url"),
+            "description": "Ces champs alimentent le hero et les blocs Premium/Business de la page d'accueil.",
+        }),
+        ("Abonnement et performance", {
+            "fields": (
+                "plan", "subscription_expires_at", "boost_expires_at", "ai_credits",
+                "views_count", "whatsapp_clicks", "phone_clicks", "detail_clicks",
+                "leads_count", "economic_score",
+            )
+        }),
+        ("Lien technique", {
+            "fields": ("content_type", "object_id", "created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
     readonly_fields = (
         "views_count", "whatsapp_clicks", "phone_clicks", "detail_clicks",
         "leads_count", "economic_score", "created_at", "updated_at",
@@ -63,11 +88,74 @@ class ProviderPlanAdmin(admin.ModelAdmin):
     list_editable = ("is_active",)
 
 
+@admin.register(HomeAdSlide)
+class HomeAdSlideAdmin(admin.ModelAdmin):
+    list_display = (
+        "preview",
+        "title",
+        "business",
+        "badge",
+        "city",
+        "order",
+        "is_active",
+        "impressions_count",
+        "clicks_count",
+        "ctr_display",
+        "starts_at",
+        "ends_at",
+        "updated_at",
+    )
+    list_filter = ("is_active", "badge", "business__module", "business__plan")
+    search_fields = ("title", "subtitle", "business__name", "city")
+    list_editable = ("order", "is_active")
+    autocomplete_fields = ("business",)
+    readonly_fields = ("preview", "impressions_count", "clicks_count", "ctr_display", "created_at", "updated_at")
+    fieldsets = (
+        ("Contenu du slide", {
+            "fields": ("business", "title", "subtitle", "image", "badge", "city"),
+            "description": "Ajoutez ici le montage publicitaire: plat de restaurant, pressing, produit vedette, offre speciale.",
+        }),
+        ("Action client", {
+            "fields": ("cta_label", "cta_url"),
+            "description": "Si le lien est vide, le bouton utilisera WhatsApp du business ou E-Shelle IA.",
+        }),
+        ("Publication", {
+            "fields": ("is_active", "order", "starts_at", "ends_at", "impressions_count", "clicks_count", "ctr_display", "created_at", "updated_at"),
+        }),
+    )
+
+    @admin.display(description="Aperçu")
+    def preview(self, obj):
+        if not obj.image:
+            return "-"
+        return format_html('<img src="{}" style="width:74px;height:48px;object-fit:cover;border-radius:8px" />', obj.image.url)
+
+    @admin.display(description="CTR")
+    def ctr_display(self, obj):
+        if not obj.impressions_count:
+            return "0%"
+        return f"{(obj.clicks_count / obj.impressions_count) * 100:.1f}%"
+
+
 @admin.register(BoostCampaign)
 class BoostCampaignAdmin(admin.ModelAdmin):
     list_display = ("business", "starts_at", "ends_at", "amount_xaf", "source", "is_paid")
     list_filter = ("is_paid", "source")
     search_fields = ("business__name",)
+
+
+@admin.register(PremiumSectorCampaign)
+class PremiumSectorCampaignAdmin(admin.ModelAdmin):
+    list_display = ("name", "module", "city", "status", "target_businesses", "budget_xaf", "starts_at", "ends_at", "is_live")
+    list_filter = ("status", "module", "city")
+    search_fields = ("name", "goal", "pitch", "city")
+    list_editable = ("status",)
+    readonly_fields = ("created_at", "updated_at", "is_live")
+    fieldsets = (
+        ("Campagne", {"fields": ("name", "module", "city", "status", "goal", "pitch")}),
+        ("Objectifs", {"fields": ("target_businesses", "budget_xaf")}),
+        ("Calendrier", {"fields": ("starts_at", "ends_at", "is_live", "created_at", "updated_at")}),
+    )
 
 
 @admin.register(AICreditLedger)

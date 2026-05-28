@@ -1,0 +1,51 @@
+{% extends "artisans/base.html" %}
+
+{% block title %}{{ artisan.nom_public }} - E-Shelle Artisans{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap detail-grid">
+    <article class="panel" style="padding:22px">
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        {% if artisan.photo %}<img class="avatar" style="width:104px;height:104px" src="{{ artisan.photo.url }}" alt="{{ artisan.nom_public }}">{% else %}<div class="avatar" style="width:104px;height:104px">{{ artisan.nom_public|first|upper }}</div>{% endif %}
+        <div>
+          <div class="meta">{% for metier in artisan.metiers.all %}<span class="pill">{{ metier.nom }}</span>{% endfor %}{% if artisan.est_verifie %}<span class="pill">Vérifié</span>{% endif %}{% if artisan.est_premium %}<span class="pill">Premium</span>{% endif %}</div>
+          <h1 style="font-size:clamp(2rem,4vw,3.2rem);margin:12px 0 6px">{{ artisan.nom_public }}</h1>
+          <p style="margin:0">{{ artisan.quartier }}, {{ artisan.ville }} · {{ artisan.zone_intervention }}</p>
+        </div>
+      </div>
+      <div class="section" style="padding:24px 0 0">
+        <h2>Description</h2>
+        <p>{{ artisan.description|linebreaks }}</p>
+      </div>
+      {% if realisations %}
+        <div class="section" style="padding:24px 0 0">
+          <h2>Réalisations</h2>
+          <div class="gallery">
+            {% for item in realisations %}
+              <img src="{{ item.image.url }}" alt="{{ item.titre }}" loading="lazy">
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </article>
+    <aside class="panel" style="padding:18px;position:sticky;top:90px">
+      <h2 style="font-size:1.4rem">Contacter</h2>
+      <p>{{ artisan.note_moyenne }}/5 · {{ artisan.nombre_avis }} avis · {{ artisan.vues }} vues</p>
+      <div style="display:grid;gap:10px">
+        <a class="btn btn-primary" href="{{ artisan.whatsapp_url }}" target="_blank" rel="noopener">Contacter WhatsApp</a>
+        <a class="btn btn-outline" href="{{ artisan.tel_url }}">Appeler</a>
+        <a class="btn btn-ghost" href="https://wa.me/?text={{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener">Partager le profil</a>
+      </div>
+    </aside>
+  </div>
+</section>
+{% if similaires %}
+<section class="section">
+  <div class="wrap">
+    <h2>Prestataires similaires</h2>
+    <div class="grid">{% for artisan in similaires %}{% include "artisans/partials_card.html" %}{% endfor %}</div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

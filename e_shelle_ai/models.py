@@ -220,6 +220,40 @@ class AIQuota(models.Model):
             self.save(update_fields=["messages_used", "images_used", "reset_date"])
 
 
+# ─── Analytics agent central ─────────────────────────────────────────────────
+
+class CentralAgentQueryLog(models.Model):
+    """Journal des recherches et intentions du chat public E-Shelle AI."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="central_agent_queries",
+    )
+    session_key = models.CharField(max_length=80, blank=True)
+    query = models.TextField()
+    module = models.CharField(max_length=40, db_index=True)
+    response = models.TextField(blank=True)
+    results_count = models.PositiveIntegerField(default=0)
+    premium_results_count = models.PositiveIntegerField(default=0)
+    had_results = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Recherche Agent Central"
+        verbose_name_plural = "Recherches Agent Central"
+        indexes = [
+            models.Index(fields=["module", "created_at"]),
+            models.Index(fields=["had_results", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.module} - {self.query[:70]}"
+
+
 # ─── Log API ──────────────────────────────────────────────────────────────────
 
 class AILog(models.Model):

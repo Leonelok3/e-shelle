@@ -1,0 +1,71 @@
+{% extends "artisans/base.html" %}
+
+{% block title %}Artisans au Cameroun - E-Shelle{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">Artisans vérifiés · Travaux · Dépannage</span>
+      <h1>Trouvez vite un bon artisan près de chez vous.</h1>
+      <p>Plombiers, maçons, carreleurs, électriciens, peintres, menuisiers, manœuvres et techniciens locaux disponibles au Cameroun.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px">
+        <a class="btn btn-primary" href="{% url 'artisans:demande_travaux' %}">Publier un besoin</a>
+        <a class="btn btn-outline" href="{% url 'artisans:espace_artisan' %}">Inscrire mon activité</a>
+      </div>
+    </div>
+    <form class="panel search" method="get">
+      <div class="field"><label>Recherche</label>{{ form.q }}</div>
+      <div class="field"><label>Ville</label>{{ form.ville }}</div>
+      <div class="field"><label>Métier</label>{{ form.metier }}</div>
+      <button class="btn btn-primary" type="submit">Rechercher</button>
+      <label style="display:flex;gap:8px;align-items:center;font-weight:850">{{ form.urgence }} Urgence</label>
+    </form>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="stats">
+      <div class="panel stat"><strong>{{ stats.artisans }}</strong><span>artisans actifs</span></div>
+      <div class="panel stat"><strong>{{ stats.metiers }}</strong><span>métiers</span></div>
+      <div class="panel stat"><strong>{{ stats.villes }}</strong><span>villes</span></div>
+      <div class="panel stat"><strong>{{ stats.urgences }}</strong><span>disponibles urgence</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <div class="wrap">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px">
+      <div><h2>Métiers disponibles</h2><p style="margin:0">Choisissez le type de prestataire qu’il vous faut.</p></div>
+    </div>
+    <div class="grid">
+      {% for metier in metiers %}
+        <a class="card" style="min-height:150px" href="{% url 'artisans:accueil' %}?metier={{ metier.pk }}">
+          <span class="pill">{{ metier.icone }}</span>
+          <h3>{{ metier.nom }}</h3>
+          <p>{{ metier.description|default:"Prestataires disponibles sur E-Shelle Artisans." }}</p>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px">
+      <div><h2>Prestataires recommandés</h2><p style="margin:0">Les profils Business/Premium et vérifiés sont mis en avant.</p></div>
+    </div>
+    {% if artisans %}
+      <div class="grid">
+        {% for artisan in artisans %}
+          {% include "artisans/partials_card.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">Aucun artisan trouvé pour ces critères.</div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

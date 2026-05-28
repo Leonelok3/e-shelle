@@ -16,14 +16,14 @@ class AdContentInline(admin.StackedInline):
 
 @admin.register(AdCampaign)
 class AdCampaignAdmin(admin.ModelAdmin):
-    list_display   = ("nom_produit", "user", "pays", "status", "modules_selected", "created_at")
-    list_filter    = ("status", "pays", "created_at")
-    search_fields  = ("nom_produit", "user__username", "user__email")
+    list_display   = ("nom_produit", "user", "pays", "ville", "status", "modules_selected", "created_at")
+    list_filter    = ("status", "pays", "ville", "created_at")
+    search_fields  = ("nom_produit", "ville", "user__username", "user__email")
     readonly_fields = ("created_at", "updated_at")
     inlines        = [AdContentInline]
 
     fieldsets = (
-        ("Produit", {"fields": ("user", "nom_produit", "description", "prix", "cible", "pays")}),
+        ("Produit", {"fields": ("user", "nom_produit", "description", "prix", "cible", "pays", "ville")}),
         ("Configuration", {"fields": ("modules_selected", "status")}),
         ("Méta", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
     )

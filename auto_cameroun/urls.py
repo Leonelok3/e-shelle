@@ -7,6 +7,7 @@ urlpatterns = [
     # Catalogue
     path("",                              views.liste_vehicules,       name="liste_vehicules"),
     path("vehicule/<slug:slug>/",         views.detail_vehicule,       name="detail_vehicule"),
+    path("vendeur/<str:username>/",       views.espace_vendeur,        name="espace_vendeur"),
 
     # Mon compte
     path("compte/",                       views.mon_compte_auto,       name="mon_compte"),

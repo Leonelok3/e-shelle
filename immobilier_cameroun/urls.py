@@ -10,6 +10,7 @@ urlpatterns = [
     # ── Catalogue public ──────────────────────────────────────────
     path("",                    views.liste_biens,    name="liste_biens"),
     path("bien/<slug:slug>/",   views.detail_bien,    name="detail_bien"),
+    path("agent/<str:username>/", views.espace_agent, name="espace_agent"),
     path("recherche/",          views.recherche_biens, name="recherche_biens"),
 
     # ── Compte utilisateur ────────────────────────────────────────

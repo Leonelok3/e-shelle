@@ -1,0 +1,27 @@
+{% extends "tibo/base.html" %}
+{% block title %}Shop TIBO{% endblock %}
+{% block content %}
+<section class="tibo-page">
+  <div class="tibo-section-head">
+    <p class="tibo-eyebrow">Catalogue</p>
+    <h1>{% if category %}{{ category.name }}{% else %}Shop TIBO{% endif %}</h1>
+  </div>
+  <div class="tibo-shop-layout">
+    <aside class="tibo-filter">
+      <form method="get">
+        <label>Recherche<input name="q" value="{{ query }}" class="tibo-input"></label>
+        <label>Catégorie<select name="category" class="tibo-input"><option value="">Toutes</option>{% for c in categories %}<option value="{{ c.slug }}">{{ c.name }}</option>{% endfor %}</select></label>
+        <button class="tibo-btn w-full">Filtrer</button>
+      </form>
+    </aside>
+    <div class="tibo-grid">
+      {% for product in products %}
+        {% include "tibo/components/product_card.html" %}
+      {% empty %}
+        <p class="text-slate-400">Aucun produit disponible pour cette recherche.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+

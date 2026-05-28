@@ -13,6 +13,9 @@ ALLOWED_HOSTS = [h.strip() for h in os.getenv(
     "DJANGO_ALLOWED_HOSTS",
     "localhost,127.0.0.1,e-shelle.com,www.e-shelle.com"
 ).split(",") if h.strip()]
+RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME", "")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 CSRF_TRUSTED_ORIGINS = [
     "https://e-shelle.com",
@@ -28,6 +31,8 @@ CSRF_TRUSTED_ORIGINS += [
     for origin in os.getenv("ESHELLE_SUBDOMAIN_CSRF_TRUSTED_ORIGINS", "").split(",")
     if origin.strip()
 ]
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
 
 # Apps
 INSTALLED_APPS = [
@@ -50,6 +55,7 @@ INSTALLED_APPS = [
     "formations.apps.FormationsConfig",
     "boutique.apps.BoutiqueConfig",
     "services.apps.ServicesConfig",
+    "artisans.apps.ArtisansConfig",
     "dashboard.apps.DashboardConfig",
     "ai_engine.apps.AiEngineConfig",
     "payments.apps.PaymentsConfig",
@@ -116,6 +122,9 @@ INSTALLED_APPS = [
     # ── Facebook Agent IA — Auto-publication sur la page Facebook ──
     "facebook_agent.apps.FacebookAgentConfig",
 
+    # ── TIBO — Dropshipping premium Canada ────────────────────────
+    "apps.tibo.apps.TiboConfig",
+
     # ── Celery Beat — Scheduler persistant en base ──────────────────
     "django_celery_beat",
     "django_celery_results",
@@ -158,6 +167,7 @@ MIDDLEWARE = [
 
     # ── Allauth (social login) ────────────────────────────────────
     "allauth.account.middleware.AccountMiddleware",
+    "apps.tibo.middleware.security.TiboSecurityHeadersMiddleware",
 ]
 
 ROOT_URLCONF = "edu_cm.urls"

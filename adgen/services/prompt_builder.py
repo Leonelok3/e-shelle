@@ -20,12 +20,14 @@ RÈGLES ABSOLUES:
 - Langage simple, naturel, orienté vente
 - Priorité aux bénéfices clients (pas aux caractéristiques)
 - Références culturelles africaines appropriées pour le pays cible
+- Adapter les exemples, le ton, les habitudes d'achat et le CTA à la ville cible quand elle est fournie
 - Mettre en avant prix + praticité + accessibilité
 - Sentiment d'urgence si pertinent
 - SORTIE JSON UNIQUEMENT — pas de markdown, pas de texte avant ou après, pas de ```json
 - Chaque valeur doit être une chaîne ou liste valide JSON
 
 PAYS CIBLE: {pays}
+VILLE CIBLE: {ville}
 MODULES ACTIFS: {active_modules}
 
 DONNÉES PRODUIT:
@@ -51,9 +53,11 @@ class PromptBuilder:
 
         product_json = json.dumps(product_data, ensure_ascii=False, indent=2)
         pays = product_data.get("pays_label", product_data.get("pays", "Cameroun"))
+        ville = product_data.get("ville_label") or "Toutes les villes"
 
         return SYSTEM_TEMPLATE.format(
             pays=pays,
+            ville=ville,
             active_modules=active_modules,
             product_json=product_json,
             modules_instructions="\n".join(instructions_lines),

@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.utils import timezone
+from django.contrib.auth import get_user_model
 
 from .models import (
     Vehicule, PhotoVehicule, FavorisVehicule, SignalementVehicule,
@@ -124,6 +125,38 @@ def detail_vehicule(request, slug):
         "essai_form": essai_form,
         "similaires": similaires,
         "stats": stats,
+    })
+
+
+# ─────────────────────────────────────────────────────────────────
+# ESPACE PUBLIC VENDEUR / GARAGE
+# ─────────────────────────────────────────────────────────────────
+
+def espace_vendeur(request, username):
+    """Vitrine publique d'un vendeur auto avec ses véhicules en vente/location."""
+    User = get_user_model()
+    vendeur = get_object_or_404(User, username=username, is_active=True)
+    profil, _ = ProfilAuto.objects.get_or_create(user=vendeur)
+    vehicules = (
+        Vehicule.objects.filter(proprietaire=vendeur, statut=StatutVehicule.PUBLIE)
+        .select_related("proprietaire")
+        .prefetch_related("photos")
+        .order_by("-est_mis_en_avant", "-est_coup_de_coeur", "-date_publication", "-created_at")
+    )
+    stats = {
+        "vehicules": vehicules.count(),
+        "ventes": vehicules.filter(type_transaction="VENTE").count(),
+        "locations": vehicules.filter(type_transaction="LOCATION").count(),
+        "vues": sum(v.vues for v in vehicules),
+        "favoris": sum(v.favoris.count() for v in vehicules),
+    }
+    villes = vehicules.values_list("ville", flat=True).distinct()
+    return render(request, "auto_cameroun/espace_vendeur.html", {
+        "vendeur": vendeur,
+        "profil": profil,
+        "vehicules": vehicules,
+        "stats": stats,
+        "villes": villes,
     })
 
 

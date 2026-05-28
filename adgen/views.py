@@ -204,6 +204,7 @@ class ExportContentView(LoginRequiredMixin, View):
         export = {
             "produit": campaign.nom_produit,
             "pays": campaign.pays_label,
+            "ville": campaign.ville_label,
             "modules": campaign.modules_selected,
             "generated_at": content.generated_at.isoformat(),
             "titles": content.titles,

@@ -9,6 +9,14 @@
   <a class="btn tlp-btn-emerald" href="{% url 'tchaslucpay_dashboard:collecteur_action' %}">Enregistrer une opération</a>
 </div>
 
+{% if demo_mode %}
+<div class="alert alert-success border-success-subtle mb-4">
+  <strong>Mode démo :</strong> les transactions affichées plus bas sont des opérations déjà préchargées pour la présentation.
+  Quand vous ajoutez un client ici, il est seulement assigné au collecteur. Pour créer un vrai dépôt ou retrait,
+  cliquez sur <strong>Enregistrer une opération</strong>.
+</div>
+{% endif %}
+
 <div class="row g-4 mb-4">
   <div class="col-lg-7">
     <div class="bg-white border rounded p-4 h-100">
@@ -36,6 +44,9 @@
   <div class="col-lg-5">
     <div class="bg-white border rounded p-4 h-100">
       <h2 class="h5 mb-3">Ajouter un client</h2>
+      <p class="small text-muted mb-3">
+        Cette action crée le client et l'assigne à votre portefeuille. Elle ne crée pas automatiquement un dépôt.
+      </p>
       <form method="post" novalidate>
         {% csrf_token %}
         <div class="row g-3">
@@ -66,6 +77,7 @@
           <div class="col-md-6">
             <label class="form-label">{{ client_form.solde_initial.label }}</label>
             {{ client_form.solde_initial }}
+            <div class="form-text">0 signifie : nouveau client sans dépôt enregistré.</div>
             {% for error in client_form.solde_initial.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
           </div>
           <div class="col-12">
@@ -82,7 +94,10 @@
 <div class="row g-4">
   <div class="col-lg-4">
     <div class="bg-white border rounded">
-      <div class="p-3 border-bottom fw-semibold">Mes clients assignés</div>
+      <div class="p-3 border-bottom">
+        <div class="fw-semibold">Mes clients assignés</div>
+        <div class="small text-muted">Liste des clients de ce collecteur, avec leur solde actuel.</div>
+      </div>
       <div class="list-group list-group-flush">
         {% for client in clients %}
           <div class="list-group-item">
@@ -98,7 +113,10 @@
 
   <div class="col-lg-8">
     <div class="bg-white border rounded">
-      <div class="p-3 border-bottom fw-semibold">Transactions collectées</div>
+      <div class="p-3 border-bottom">
+        <div class="fw-semibold">Historique des opérations enregistrées</div>
+        <div class="small text-muted">Dépôts et retraits réellement validés par ce collecteur.</div>
+      </div>
       <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
           <thead><tr><th>Client</th><th>Type</th><th>Montant</th><th>Date</th><th>Reçu</th></tr></thead>

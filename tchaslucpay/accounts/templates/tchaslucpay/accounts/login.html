@@ -1,22 +1,76 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Connexion Tchaslucpay</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-  <main class="container py-5" style="max-width: 440px;">
-    <div class="bg-white border rounded p-4">
-      <h1 class="h4 mb-3">Connexion</h1>
+{% extends "tchaslucpay/dashboard/base.html" %}
+{% block title %}Connexion — Tchaslucpay{% endblock %}
+{% block body_class %}tlp-action-shell{% endblock %}
+{% block main_class %}container py-5{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center g-4">
+  <div class="col-lg-5">
+    <span class="badge text-bg-success mb-3">Démo collecte terrain</span>
+    <h1 class="display-6 fw-bold mb-3">Connectez-vous à Tchaslucpay</h1>
+    <p class="text-muted">
+      Testez le parcours complet : admin qui supervise, collecteur qui enregistre les opérations,
+      client qui consulte son solde et télécharge ses reçus PDF.
+    </p>
+    <div class="row g-3 mt-2">
+      <div class="col-sm-6 col-lg-12">
+        <div class="tlp-demo-card">
+          <strong>Collecteur terrain</strong>
+          <span>collecteur_central</span>
+          <code>Collecteur123!</code>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-12">
+        <div class="tlp-demo-card">
+          <strong>Client commerçant</strong>
+          <span>client_demo_1</span>
+          <code>Client123!</code>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-12">
+        <div class="tlp-demo-card">
+          <strong>Admin</strong>
+          <span>admin_tchaslucpay</span>
+          <code>Admin12345!</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="bg-white border rounded shadow-sm p-4 p-lg-5">
+      <h2 class="h4 fw-bold mb-1">Connexion</h2>
+      <p class="text-muted small mb-4">Entrez un compte démo ou votre compte utilisateur.</p>
       <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button class="btn btn-dark w-100" type="submit">Se connecter</button>
+        {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+          </div>
+        {% endfor %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <button class="btn tlp-btn-emerald w-100 btn-lg" type="submit">Se connecter</button>
       </form>
     </div>
-  </main>
-</body>
-</html>
+  </div>
+</div>
 
+<style>
+  form input {
+    display: block;
+    width: 100%;
+    padding: .75rem .9rem;
+    border: 1px solid rgba(19,34,56,.18);
+    border-radius: 8px;
+  }
+  form input:focus {
+    outline: none;
+    border-color: var(--tlp-emerald);
+    box-shadow: 0 0 0 3px rgba(15,163,107,.12);
+  }
+</style>
+{% endblock %}

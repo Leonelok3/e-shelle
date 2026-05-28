@@ -1,4 +1,5 @@
 import uuid
+import urllib.parse
 from datetime import timedelta
 
 from django.conf import settings
@@ -46,6 +47,26 @@ class BusinessProfile(models.Model):
     phone = models.CharField(max_length=40, blank=True)
     whatsapp = models.CharField(max_length=40, blank=True)
     description = models.TextField(blank=True)
+    promo_headline = models.CharField(
+        max_length=140,
+        blank=True,
+        help_text="Titre court affiche sur la page d'accueil.",
+    )
+    promo_offer = models.CharField(
+        max_length=160,
+        blank=True,
+        help_text="Offre, phrase d'accroche ou avantage commercial.",
+    )
+    promo_image = models.ImageField(
+        upload_to="business/promos/",
+        blank=True,
+        null=True,
+        help_text="Visuel publicitaire affiche dans le hero et les sections premium.",
+    )
+    promo_url = models.URLField(
+        blank=True,
+        help_text="Lien de destination de la publicite. Laisser vide pour utiliser WhatsApp ou le module.",
+    )
 
     content_type = models.ForeignKey(ContentType, null=True, blank=True, on_delete=models.SET_NULL)
     object_id = models.PositiveIntegerField(null=True, blank=True)
@@ -144,6 +165,72 @@ class ProviderPlan(models.Model):
         return f"{self.name} - {self.monthly_price_xaf:,} FCFA".replace(",", " ")
 
 
+class HomeAdSlide(models.Model):
+    """Slide publicitaire visible sur la page d'accueil."""
+
+    business = models.ForeignKey(
+        BusinessProfile,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="home_ad_slides",
+        help_text="Business premium/business associe au slide.",
+    )
+    title = models.CharField(max_length=140)
+    subtitle = models.CharField(max_length=190, blank=True)
+    image = models.ImageField(upload_to="business/home-slides/")
+    badge = models.CharField(max_length=60, blank=True, default="Premium")
+    cta_label = models.CharField(max_length=40, blank=True, default="Commander")
+    cta_url = models.URLField(
+        blank=True,
+        help_text="Lien de commande. Si vide, E-Shelle utilise WhatsApp ou la recherche IA du business.",
+    )
+    city = models.CharField(max_length=100, blank=True)
+    is_active = models.BooleanField(default=True)
+    starts_at = models.DateTimeField(null=True, blank=True)
+    ends_at = models.DateTimeField(null=True, blank=True)
+    order = models.PositiveIntegerField(default=0)
+    impressions_count = models.PositiveIntegerField(default=0)
+    clicks_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "-created_at"]
+        verbose_name = "Slide publicitaire accueil"
+        verbose_name_plural = "Slides publicitaires accueil"
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def is_live(self):
+        now = timezone.now()
+        if not self.is_active:
+            return False
+        if self.starts_at and self.starts_at > now:
+            return False
+        if self.ends_at and self.ends_at < now:
+            return False
+        if self.business and self.business.plan not in [BusinessProfile.Plan.BUSINESS, BusinessProfile.Plan.PREMIUM]:
+            return False
+        return True
+
+    def destination_url(self):
+        if self.cta_url:
+            return self.cta_url
+        if self.business:
+            number = (self.business.whatsapp or self.business.phone or "").replace("+", "").replace(" ", "").replace("-", "")
+            if number:
+                if not number.startswith("237"):
+                    number = f"237{number}"
+                text = urllib.parse.quote(f"Bonjour {self.business.name}, je viens de E-Shelle.")
+                return f"https://wa.me/{number}?text={text}"
+            query = urllib.parse.quote(f"Je veux commander chez {self.business.name}")
+            return f"/chat/?q={query}"
+        return "/chat/"
+
+
 class BoostCampaign(models.Model):
     """Historique des boosts achetes par un prestataire."""
 
@@ -162,6 +249,48 @@ class BoostCampaign(models.Model):
 
     def __str__(self):
         return f"Boost {self.business} jusqu'au {self.ends_at:%d/%m/%Y}"
+
+
+class PremiumSectorCampaign(models.Model):
+    """Campagne commerciale pour pousser un secteur premium sur E-Shelle."""
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Brouillon"
+        ACTIVE = "active", "Active"
+        PAUSED = "paused", "En pause"
+        DONE = "done", "Terminee"
+
+    name = models.CharField(max_length=160)
+    module = models.CharField(max_length=30, choices=BusinessProfile.Module.choices, db_index=True)
+    city = models.CharField(max_length=100, blank=True)
+    goal = models.CharField(max_length=180, blank=True, help_text="Ex: recruter 20 restos Premium a Douala")
+    pitch = models.TextField(blank=True, help_text="Script commercial ou message WhatsApp de campagne.")
+    starts_at = models.DateTimeField(default=timezone.now)
+    ends_at = models.DateTimeField(null=True, blank=True)
+    target_businesses = models.PositiveIntegerField(default=0)
+    budget_xaf = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-starts_at", "name"]
+        verbose_name = "Campagne secteur premium"
+        verbose_name_plural = "Campagnes secteurs premium"
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def is_live(self):
+        now = timezone.now()
+        if self.status != self.Status.ACTIVE:
+            return False
+        if self.starts_at and self.starts_at > now:
+            return False
+        if self.ends_at and self.ends_at < now:
+            return False
+        return True
 
 
 class AICreditLedger(models.Model):

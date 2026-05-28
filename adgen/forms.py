@@ -2,14 +2,20 @@
 AdGen — Formulaires
 """
 from django import forms
-from .models import AdCampaign, AdModule, PAYS_CHOICES
+from .models import AdCampaign, AdModule, PAYS_CHOICES, VILLE_CHOICES
 
 
 class CampaignForm(forms.ModelForm):
+    ville = forms.ChoiceField(
+        choices=VILLE_CHOICES,
+        required=False,
+        label="Ville cible",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
 
     class Meta:
         model  = AdCampaign
-        fields = ["nom_produit", "description", "prix", "cible", "pays"]
+        fields = ["nom_produit", "description", "prix", "cible", "pays", "ville"]
         widgets = {
             "nom_produit": forms.TextInput(attrs={
                 "class": "form-control",
@@ -29,6 +35,7 @@ class CampaignForm(forms.ModelForm):
                 "placeholder": "Ex: Femmes 25-45 ans, ménagères, revendeuses",
             }),
             "pays": forms.Select(attrs={"class": "form-select"}),
+            "ville": forms.Select(attrs={"class": "form-select"}),
         }
         labels = {
             "nom_produit": "Nom du produit",
@@ -36,6 +43,7 @@ class CampaignForm(forms.ModelForm):
             "prix":        "Prix de vente",
             "cible":       "Audience cible",
             "pays":        "Pays cible",
+            "ville":       "Ville cible",
         }
 
     def clean_nom_produit(self):

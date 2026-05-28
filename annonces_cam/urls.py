@@ -11,6 +11,7 @@ urlpatterns = [
 
     # Profil vendeur public
     path("vendeur/<int:user_id>/",                 views.profil_vendeur_public,   name="profil_vendeur_public"),
+    path("boutique/<str:username>/",               views.profil_vendeur_username, name="profil_vendeur_username"),
 
     # Mon compte
     path("compte/",                                views.mon_compte_annonces,     name="mon_compte"),

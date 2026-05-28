@@ -370,7 +370,8 @@ window.generateImage = async function() {
 
     if (!resp.ok || data.error) {
       showToast("⚠️ " + (data.error || "Erreur génération image."), "error");
-      appendMessage("assistant", "⚠️ " + (data.error || "Impossible de générer l'image."));
+      const adgenHint = data.adgen_url ? `\n\n👉 Créer une pub avec AdGen : ${data.adgen_url}` : "";
+      appendMessage("assistant", "⚠️ " + (data.error || "Impossible de générer l'image.") + adgenHint);
     } else {
       // Afficher l'image dans le chat
       const row = document.createElement("div");

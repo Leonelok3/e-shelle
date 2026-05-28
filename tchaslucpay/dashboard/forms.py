@@ -76,12 +76,17 @@ class ClientTerrainForm(forms.Form):
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     solde_initial = forms.DecimalField(
-        label="Solde initial",
+        label="Solde de départ (optionnel)",
         min_value=0,
         max_digits=18,
         decimal_places=2,
         initial=0,
-        widget=forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "min": "0",
+            "step": "0.01",
+            "placeholder": "0 = aucun dépôt enregistré",
+        }),
     )
 
     def clean_phone_number(self):

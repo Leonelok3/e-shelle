@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Sum, Count
 from django.utils.safestring import mark_safe
-from .models import AIConversation, AIMessage, AIUserMemory, AIQuota, AILog
+from .models import AIConversation, AIMessage, AIUserMemory, AIQuota, AILog, CentralAgentQueryLog
 
 
 # ─── Inline Messages ──────────────────────────────────────────────────────────
@@ -166,6 +166,39 @@ class AIQuotaAdmin(admin.ModelAdmin):
     def upgrade_to_enterprise(self, request, queryset):
         queryset.update(plan="enterprise", messages_limit=99999, images_limit=9999)
         self.message_user(request, f"{queryset.count()} utilisateur(s) passé(s) en Enterprise.")
+
+
+# ─── Analytics Agent Central ─────────────────────────────────────────────────
+
+@admin.register(CentralAgentQueryLog)
+class CentralAgentQueryLogAdmin(admin.ModelAdmin):
+    list_display = (
+        "created_at",
+        "module",
+        "query_short",
+        "results_count",
+        "premium_results_count",
+        "had_results",
+        "user",
+    )
+    list_filter = ("module", "had_results", "created_at")
+    search_fields = ("query", "response", "user__username", "session_key")
+    readonly_fields = (
+        "user",
+        "session_key",
+        "query",
+        "module",
+        "response",
+        "results_count",
+        "premium_results_count",
+        "had_results",
+        "created_at",
+    )
+    date_hierarchy = "created_at"
+
+    def query_short(self, obj):
+        return obj.query[:90]
+    query_short.short_description = "Recherche"
 
 
 # ─── Logs API ─────────────────────────────────────────────────────────────────

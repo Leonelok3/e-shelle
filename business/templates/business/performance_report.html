@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Rapport {{ business.name }} - E-Shelle{% endblock %}
+
+{% block content %}
+<section class="section report-page" style="padding-top:7rem;background:#f7faf8;min-height:100vh;color:#101827">
+  <div class="container">
+    <div class="report-head">
+      <div>
+        <span>Rapport E-Shelle</span>
+        <h1>{{ business.name }}</h1>
+        <p>{{ business.get_module_display }}{% if business.city %} · {{ business.city }}{% endif %}{% if business.district %} · {{ business.district }}{% endif %}</p>
+      </div>
+      <div class="report-actions">
+        <form method="get" class="report-filter">
+          <select name="days" onchange="this.form.submit()">
+            <option value="7" {% if days == 7 %}selected{% endif %}>7 jours</option>
+            <option value="30" {% if days == 30 %}selected{% endif %}>30 jours</option>
+            <option value="90" {% if days == 90 %}selected{% endif %}>90 jours</option>
+            <option value="365" {% if days == 365 %}selected{% endif %}>1 an</option>
+          </select>
+        </form>
+        <a href="{% url 'business:performance_report_pdf' business.id %}?days={{ days }}" class="btn btn-primary">Télécharger PDF</a>
+        <button onclick="window.print()" class="btn btn-outline">Imprimer</button>
+        <a href="{{ whatsapp_url }}" class="btn btn-outline" target="_blank">Partager WhatsApp</a>
+      </div>
+    </div>
+
+    <div class="report-grid">
+      <div><span>Vues</span><strong>{{ business.views_count }}</strong></div>
+      <div><span>WhatsApp</span><strong>{{ business.whatsapp_clicks }}</strong></div>
+      <div><span>Appels</span><strong>{{ business.phone_clicks }}</strong></div>
+      <div><span>Demandes</span><strong>{{ business.leads_count }}</strong></div>
+    </div>
+
+    <article class="report-panel">
+      <h2>Résumé partageable</h2>
+      <p>{{ report_text }}</p>
+    </article>
+
+    <article class="report-panel" style="margin-top:1rem">
+      <h2>Graphique de performance</h2>
+      {% for row in chart_stats %}
+        <div class="report-chart"><span>{{ row.label }}</span><i style="width:{{ row.percent }}%"></i><strong>{{ row.total }}</strong></div>
+      {% empty %}
+        <p>Aucune donnée sur cette période.</p>
+      {% endfor %}
+    </article>
+
+    <div class="report-two">
+      <article class="report-panel">
+        <h2>Statistiques par action</h2>
+        {% for row in event_stats %}
+          <div class="report-row"><span>{{ row.event_type }}</span><strong>{{ row.total }}</strong></div>
+        {% empty %}
+          <p>Aucune action enregistrée.</p>
+        {% endfor %}
+      </article>
+      <article class="report-panel">
+        <h2>Derniers événements</h2>
+        {% for event in events %}
+          <div class="report-row"><span>{{ event.get_event_type_display }} · {{ event.source }}</span><strong>{{ event.created_at|date:"d/m" }}</strong></div>
+        {% empty %}
+          <p>Aucun événement enregistré.</p>
+        {% endfor %}
+      </article>
+    </div>
+  </div>
+</section>
+
+<style>
+.report-head{display:flex;justify-content:space-between;gap:1rem;align-items:end;margin-bottom:1.5rem}
+.report-head span{font-weight:900;color:#16a34a;text-transform:uppercase;font-size:.8rem}
+.report-head h1{font-size:clamp(2rem,5vw,4rem);margin:.35rem 0}
+.report-head p{color:#5f6b76}
+.report-actions{display:flex;gap:.7rem;flex-wrap:wrap}
+.report-filter select{height:42px;border:1px solid #cbd5d1;border-radius:10px;padding:0 .7rem;background:#fff}
+.report-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin-bottom:1rem}
+.report-grid div,.report-panel{background:#fff;border:1px solid #dde7e0;border-radius:16px;padding:1rem;box-shadow:0 12px 34px rgba(15,23,42,.06)}
+.report-grid span{color:#64748b;font-weight:800;font-size:.82rem}
+.report-grid strong{display:block;font-size:2.1rem;margin-top:.25rem}
+.report-two{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+.report-panel h2{font-size:1.1rem;margin-bottom:.85rem}
+.report-row{display:flex;justify-content:space-between;gap:1rem;padding:.7rem 0;border-bottom:1px solid #e8efe9}
+.report-row strong{color:#16a34a}
+.report-chart{display:grid;grid-template-columns:110px 1fr auto;gap:.65rem;align-items:center;margin:.65rem 0}
+.report-chart span{font-weight:800;color:#64748b;font-size:.82rem}
+.report-chart i{display:block;height:15px;border-radius:999px;background:linear-gradient(90deg,#16a34a,#0ea5e9,#8b5cf6);min-width:6%;box-shadow:0 0 18px rgba(14,165,233,.18)}
+@media(max-width:850px){.report-head,.report-two{display:block}.report-grid{grid-template-columns:1fr 1fr}.report-actions{margin-top:1rem}}
+@media print{.navbar,.report-actions,.es-chat-float{display:none!important}.report-page{padding-top:1rem!important;background:#fff!important}.report-panel,.report-grid div{box-shadow:none}}
+</style>
+{% endblock %}

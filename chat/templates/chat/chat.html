@@ -21,9 +21,13 @@
         </p>
       </div>
     </div>
-    <button onclick="clearChat()" class="text-white/40 hover:text-white/80 text-xs transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">
-      Nouvelle conversation
-    </button>
+    <div class="flex items-center gap-2">
+      <a href="{% url 'eshelle_ai:chat' %}" class="hidden sm:inline-flex text-white/60 hover:text-white text-xs transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">Assistant avancé</a>
+      <a href="{% url 'adgen:dashboard' %}" class="hidden sm:inline-flex text-[#facc15] hover:text-white text-xs transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">Créer une pub</a>
+      <button onclick="clearChat()" class="text-white/40 hover:text-white/80 text-xs transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">
+        Nouvelle conversation
+      </button>
+    </div>
   </div>
 
   <div class="flex-1 overflow-y-auto px-4 py-4 space-y-4 max-w-2xl mx-auto w-full" id="messages-container">
@@ -292,5 +296,13 @@ async function clearChat() {
 
 input.focus();
 scrollToBottom();
+
+const INITIAL_QUERY = '{{ initial_query|default:""|escapejs }}';
+{% if not messages %}
+if (INITIAL_QUERY) {
+  input.value = INITIAL_QUERY;
+  sendMessage();
+}
+{% endif %}
 </script>
 {% endblock %}

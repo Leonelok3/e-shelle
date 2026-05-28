@@ -45,11 +45,28 @@
           {% endif %}
         {% endif %}
         <p class="ann-profil-card__membre">Membre depuis {{ vendeur.date_joined|date:"M Y" }}</p>
+        <div class="mt-3">
+          <a href="https://wa.me/?text={{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener" class="ann-btn ann-btn--whatsapp ann-btn--full">
+            <i class="fa-brands fa-whatsapp"></i> Partager la boutique
+          </a>
+        </div>
+      </div>
+      <div class="ann-profil-card mt-3">
+        <strong>Lien public</strong>
+        <p style="word-break:break-all;margin:.5rem 0 0">{{ request.build_absolute_uri }}</p>
       </div>
     </div>
 
     <!-- Annonces du vendeur -->
     <div class="col-lg-9">
+      {% if stats %}
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-md-3"><div class="ann-stat-card"><div class="ann-stat-card__num">{{ stats.annonces }}</div><div class="ann-stat-card__label">Annonces</div></div></div>
+          <div class="col-6 col-md-3"><div class="ann-stat-card ann-stat-card--green"><div class="ann-stat-card__num">{{ stats.vues }}</div><div class="ann-stat-card__label">Vues</div></div></div>
+          <div class="col-6 col-md-3"><div class="ann-stat-card ann-stat-card--orange"><div class="ann-stat-card__num">{{ stats.contacts }}</div><div class="ann-stat-card__label">Contacts</div></div></div>
+          <div class="col-6 col-md-3"><div class="ann-stat-card ann-stat-card--gray"><div class="ann-stat-card__num">{{ stats.favoris }}</div><div class="ann-stat-card__label">Favoris</div></div></div>
+        </div>
+      {% endif %}
       <h2 class="ann-section__titre mb-4">
         Annonces de ce vendeur ({{ annonces|length }})
       </h2>

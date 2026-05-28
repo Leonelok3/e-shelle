@@ -42,6 +42,7 @@ class Message(models.Model):
         ("boutique", "Boutique"),
         ("adgen", "AdGen"),
         ("transport", "Transport"),
+        ("auto", "Auto"),
         ("services", "Services"),
         ("sante", "Sante"),
         ("immobilier", "Immobilier"),

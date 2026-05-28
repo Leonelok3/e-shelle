@@ -9,6 +9,11 @@
     </span>
     <span>E-Shelle AI</span>
   </a>
+  <div class="es-chat-float__panel" aria-label="Raccourcis E-Shelle AI">
+    <a href="{% url 'chat:home' %}?q=je%20veux%20manger">Trouver un resto</a>
+    <a href="{% url 'chat:home' %}?q=fais-moi%20une%20pub">Créer une pub</a>
+    <a href="{% url 'chat:home' %}?q=je%20veux%20vendre%20sur%20e-shelle">Inscrire un business</a>
+  </div>
 </div>
 
 <style>
@@ -37,6 +42,41 @@
   transform: translateY(-2px);
   box-shadow: 0 20px 44px rgba(0,0,0,.42), 0 10px 30px rgba(34,197,94,.32);
 }
+.es-chat-float__panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + .7rem);
+  width: 220px;
+  padding: .55rem;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  background: rgba(8,14,18,.94);
+  box-shadow: 0 22px 50px rgba(0,0,0,.38);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity .18s ease, transform .18s ease;
+  backdrop-filter: blur(14px);
+}
+.es-chat-float:hover .es-chat-float__panel,
+.es-chat-float:focus-within .es-chat-float__panel {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.es-chat-float__panel a {
+  display: block;
+  padding: .7rem .75rem;
+  border-radius: 12px;
+  color: rgba(255,255,255,.86);
+  text-decoration: none;
+  font-size: .82rem;
+  font-weight: 800;
+}
+.es-chat-float__panel a:hover {
+  color: #fff;
+  background: rgba(34,197,94,.14);
+}
 .es-chat-float__icon {
   position: relative;
   display: inline-flex;
@@ -55,6 +95,7 @@
   .es-chat-float { right: 1rem; bottom: 5rem; }
   .es-chat-float__link span:last-child { display: none; }
   .es-chat-float__link { width: 52px; height: 52px; justify-content: center; padding: 0; border-radius: 18px; }
+  .es-chat-float__panel { display: none; }
 }
 </style>
 {% endif %}

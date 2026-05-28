@@ -73,6 +73,22 @@ def create_tracking_event(
     )
 
 
+def record_business_impression(
+    business: BusinessProfile,
+    source: str = "chat",
+    metadata: dict | None = None,
+) -> None:
+    """Compte une vue quand une fiche business est affichee dans l'agent."""
+    event = create_tracking_event(
+        business,
+        BusinessLeadEvent.EventType.VIEW,
+        "",
+        source=source,
+        metadata=metadata or {},
+    )
+    record_event_hit(event)
+
+
 @transaction.atomic
 def record_event_hit(event: BusinessLeadEvent, request=None) -> str:
     """Compte le clic puis retourne l'URL finale."""
@@ -104,9 +120,19 @@ def record_event_hit(event: BusinessLeadEvent, request=None) -> str:
     return event.target_url or "/"
 
 
-def build_tracked_actions(obj, module: str, urls: dict, source: str = "chat") -> dict:
+def build_tracked_actions(
+    obj,
+    module: str,
+    urls: dict,
+    source: str = "chat",
+    metadata: dict | None = None,
+    record_view: bool = False,
+) -> dict:
     """Cree les evenements de tracking et retourne des URLs traquees."""
     profile = ensure_business_for_object(obj, module)
+    if record_view:
+        record_business_impression(profile, source=source, metadata=metadata)
+
     tracked = {}
     event_map = {
         "primary_url": BusinessLeadEvent.EventType.WHATSAPP,
@@ -116,7 +142,7 @@ def build_tracked_actions(obj, module: str, urls: dict, source: str = "chat") ->
     for key, event_type in event_map.items():
         target = urls.get(key)
         if target:
-            event = create_tracking_event(profile, event_type, target, source=source)
+            event = create_tracking_event(profile, event_type, target, source=source, metadata=metadata)
             tracked[key] = event.tracking_url()
     return tracked
 

@@ -17,8 +17,11 @@ class EshelleAIService:
     """Service IA central — chat streaming + génération d'images."""
 
     def __init__(self):
-        from openai import OpenAI
-        self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        self.api_key = getattr(settings, "OPENAI_API_KEY", "")
+        self.client = None
+        if self.api_key:
+            from openai import OpenAI
+            self.client = OpenAI(api_key=self.api_key)
         self.chat_model  = getattr(settings, "OPENAI_CHAT_MODEL",  "gpt-4o")
         self.image_model = getattr(settings, "OPENAI_IMAGE_MODEL", "dall-e-3")
 
@@ -63,6 +66,10 @@ class EshelleAIService:
         prompt_tokens = 0
         completion_tokens = 0
         full_response = ""
+
+        if not self.client:
+            yield from self._central_agent_fallback(last_user_msg, messages, user=user)
+            return
 
         try:
             stream = self.client.chat.completions.create(
@@ -113,6 +120,9 @@ class EshelleAIService:
         full_messages = [{"role": "system", "content": system_prompt}]
         full_messages.extend(messages[-MAX_CONTEXT_MESSAGES:])
 
+        if not self.client:
+            return self._central_agent_text(messages, user=user)
+
         try:
             response = self.client.chat.completions.create(
                 model=self.chat_model,
@@ -138,6 +148,8 @@ class EshelleAIService:
 
     def generate_title(self, first_message: str) -> str:
         """Génère un titre court pour une nouvelle conversation."""
+        if not self.client:
+            return first_message[:50] + "…" if len(first_message) > 50 else first_message
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -165,6 +177,13 @@ class EshelleAIService:
         Génère une image avec DALL-E 3.
         Délègue au module image_generator.
         """
+        if not self.client:
+            return {
+                "image_url": "",
+                "local_path": "",
+                "enhanced_prompt": prompt,
+                "error": "OPENAI_API_KEY manquante. Utilisez AdGen pour créer du contenu publicitaire ou configurez la clé OpenAI pour générer des images.",
+            }
         from e_shelle_ai.services.tools.image_generator import generate_image, enhance_image_prompt
         result = generate_image(prompt, context, save_locally=True)
 
@@ -181,6 +200,36 @@ class EshelleAIService:
         return result
 
     # ─── Helpers internes ─────────────────────────────────────────────────
+
+    def _central_agent_fallback(self, last_user_msg: str, messages: list, user=None):
+        response = self._central_agent_route(last_user_msg, messages, user=user)
+        text = response.get("message") or "Je t'oriente vers le bon espace E-Shelle."
+        if response.get("redirect_label") and response.get("redirect_url"):
+            text += f"\n\n👉 {response['redirect_label']} : {response['redirect_url']}"
+        if response.get("results"):
+            lines = []
+            for item in response["results"][:4]:
+                title = item.get("title", "Résultat")
+                detail = item.get("details") or item.get("subtitle") or ""
+                action = item.get("primary_url") or item.get("url") or ""
+                lines.append(f"- {title} — {detail} {action}".strip())
+            text += "\n\nSuggestions E-Shelle:\n" + "\n".join(lines)
+        yield text
+
+    def _central_agent_text(self, messages: list, user=None) -> str:
+        last_user_msg = next((m["content"] for m in reversed(messages) if m["role"] == "user"), "")
+        response = self._central_agent_route(last_user_msg, messages, user=user)
+        return response.get("message", "")
+
+    def _central_agent_route(self, last_user_msg: str, messages: list, user=None) -> dict:
+        from e_shelle_ai.services.central_agent import route_message
+
+        history = [
+            {"role": msg.get("role"), "content": msg.get("content")}
+            for msg in messages
+            if msg.get("role") in {"user", "assistant"} and msg.get("content")
+        ]
+        return route_message(last_user_msg, history, user=user)
 
     def _get_internal_context(self, query: str) -> str:
         """Recherche dans la base E-Shelle si la question est pertinente."""

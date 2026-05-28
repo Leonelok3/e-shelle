@@ -10,6 +10,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 from django.utils import timezone
 from datetime import timedelta
+from django.contrib.auth import get_user_model
 
 from .models import (
     Annonce, PhotoAnnonce, FavoriAnnonce, SignalementAnnonce,
@@ -371,16 +372,32 @@ def signaler_annonce(request, annonce_id):
 # ─────────────────────────────────────────────────────────────────
 
 def profil_vendeur_public(request, user_id):
-    from django.contrib.auth import get_user_model
     User  = get_user_model()
     user  = get_object_or_404(User, pk=user_id)
+    return _render_profil_vendeur_public(request, user)
+
+
+def profil_vendeur_username(request, username):
+    User = get_user_model()
+    user = get_object_or_404(User, username=username, is_active=True)
+    return _render_profil_vendeur_public(request, user)
+
+
+def _render_profil_vendeur_public(request, user):
     try:
         profil = user.profil_vendeur
     except ProfilVendeur.DoesNotExist:
         profil = None
-    annonces = Annonce.objects.publiees().filter(vendeur=user).order_by("-date_publication")[:12]
+    annonces = Annonce.objects.publiees().filter(vendeur=user).order_by("-est_mise_en_avant", "-date_publication")[:24]
+    stats = {
+        "annonces": annonces.count(),
+        "vues": sum(a.vues for a in annonces),
+        "contacts": sum(a.nombre_contacts for a in annonces),
+        "favoris": sum(a.nombre_favoris for a in annonces),
+    }
     return render(request, "annonces_cam/profil_vendeur.html", {
         "vendeur":  user,
         "profil":   profil,
         "annonces": annonces,
+        "stats": stats,
     })

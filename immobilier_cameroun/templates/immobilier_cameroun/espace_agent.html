@@ -1,0 +1,123 @@
+{% extends "immobilier_cameroun/base_immobilier.html" %}
+{% load static %}
+
+{% block title %}{{ agent.get_full_name|default:agent.username }} — Offres immobilières | E-Shelle Immo{% endblock %}
+{% block meta_description %}Découvrez toutes les offres immobilières de {{ agent.get_full_name|default:agent.username }} sur E-Shelle : locations, ventes, appartements, villas et terrains.{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item"><a href="{% url 'immobilier:liste_biens' %}">Catalogue</a></li>
+  <li class="breadcrumb-item active">{{ agent.get_full_name|default:agent.username }}</li>
+{% endblock %}
+
+{% block immo_extra_css %}
+<style>
+  .agent-hero {
+    position:relative;
+    overflow:hidden;
+    border-radius:18px;
+    padding:34px;
+    color:#fff;
+    background:
+      linear-gradient(135deg, rgba(4,31,24,.92), rgba(10,76,58,.86)),
+      radial-gradient(circle at 84% 10%, rgba(245,124,0,.36), transparent 34%);
+    box-shadow:0 28px 80px rgba(6,95,70,.22);
+  }
+  .agent-hero__grid { display:grid; grid-template-columns:1fr auto; gap:24px; align-items:center; }
+  .agent-identity { display:flex; align-items:center; gap:18px; }
+  .agent-avatar { width:92px; height:92px; border-radius:18px; object-fit:cover; border:3px solid rgba(255,255,255,.22); background:rgba(255,255,255,.12); display:grid; place-items:center; font-size:2rem; font-weight:900; }
+  .agent-kicker { display:inline-flex; gap:8px; align-items:center; padding:7px 11px; border-radius:999px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); font-weight:800; font-size:.84rem; margin-bottom:10px; }
+  .agent-title { margin:0; font-size:clamp(2rem,4vw,3.7rem); line-height:1; letter-spacing:-.04em; }
+  .agent-bio { max-width:680px; color:rgba(255,255,255,.78); margin:.85rem 0 0; }
+  .agent-actions { display:grid; gap:10px; min-width:240px; }
+  .agent-stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:14px; margin-top:18px; }
+  .agent-stat { padding:15px; border-radius:14px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.14); }
+  .agent-stat strong { display:block; font-size:1.6rem; line-height:1; }
+  .agent-stat span { color:rgba(255,255,255,.72); font-size:.86rem; }
+  .agent-share { margin-top:18px; padding:14px 16px; border:1px solid #d8eadf; border-radius:14px; background:#fff; display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+  .agent-share code { color:#0f172a; white-space:normal; word-break:break-all; }
+  @media(max-width: 800px) {
+    .agent-hero__grid, .agent-stats { grid-template-columns:1fr; }
+    .agent-identity { align-items:flex-start; flex-direction:column; }
+    .agent-actions { min-width:0; }
+  }
+</style>
+{% endblock %}
+
+{% block immo_content %}
+<div class="container py-4">
+  <section class="agent-hero">
+    <div class="agent-hero__grid">
+      <div class="agent-identity">
+        {% if profil.photo_profil %}
+          <img src="{{ profil.photo_profil.url }}" alt="{{ agent.get_full_name|default:agent.username }}" class="agent-avatar">
+        {% else %}
+          <div class="agent-avatar">{{ agent.username|first|upper }}</div>
+        {% endif %}
+        <div>
+          <div class="agent-kicker">
+            <i class="fa-solid fa-user-tie"></i>
+            {{ profil.get_role_display }}
+            {% if profil.est_verifie %} · Vérifié{% endif %}
+            {% if profil.est_premium_actif %} · Premium{% endif %}
+          </div>
+          <h1 class="agent-title">{{ agent.get_full_name|default:agent.username }}</h1>
+          <p class="agent-bio">
+            {{ profil.bio|default:"Toutes les offres disponibles de cet agent immobilier sont regroupées ici pour faciliter le partage avec les clients." }}
+          </p>
+        </div>
+      </div>
+      <div class="agent-actions">
+        {% if profil.whatsapp or profil.telephone %}
+          <a class="immo-btn immo-btn--whatsapp immo-btn--full" href="https://wa.me/{{ profil.whatsapp|default:profil.telephone|cut:'+'|cut:' ' }}" target="_blank" rel="noopener">
+            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+          </a>
+          <a class="immo-btn immo-btn--outline immo-btn--full" href="tel:{{ profil.telephone|default:profil.whatsapp }}">
+            <i class="fa-solid fa-phone"></i> Appeler
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="agent-stats">
+      <div class="agent-stat"><strong>{{ stats.biens }}</strong><span>offres actives</span></div>
+      <div class="agent-stat"><strong>{{ stats.locations }}</strong><span>locations</span></div>
+      <div class="agent-stat"><strong>{{ stats.ventes }}</strong><span>ventes</span></div>
+      <div class="agent-stat"><strong>{{ stats.vues }}</strong><span>vues cumulées</span></div>
+      <div class="agent-stat"><strong>{{ stats.favoris }}</strong><span>favoris</span></div>
+    </div>
+  </section>
+
+  <div class="agent-share">
+    <div>
+      <strong>Lien public à partager</strong>
+      <div><code>{{ request.build_absolute_uri }}</code></div>
+    </div>
+    <a class="immo-btn immo-btn--primary" href="https://wa.me/?text={{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener">
+      <i class="fa-brands fa-whatsapp"></i> Partager
+    </a>
+  </div>
+
+  <div class="immo-section-header mt-5">
+    <div>
+      <h2>Offres de {{ agent.get_full_name|default:agent.username }}</h2>
+      <p class="text-muted mb-0">
+        {% for ville in villes %}{{ ville }}{% if not forloop.last %}, {% endif %}{% empty %}Aucune ville active{% endfor %}
+      </p>
+    </div>
+    <a href="{% url 'immobilier:liste_biens' %}" class="immo-lien-voir-tout">Catalogue complet <i class="fa-solid fa-arrow-right"></i></a>
+  </div>
+
+  {% if biens %}
+    <div class="immo-grid mt-3">
+      {% for bien in biens %}
+        {% include "immobilier_cameroun/partials/_card_bien.html" with bien=bien favoris_ids=favoris_ids %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="immo-empty mt-3">
+      <i class="fa-solid fa-house-circle-xmark fa-3x"></i>
+      <h3>Aucune offre active</h3>
+      <p>Les biens publiés par cet agent apparaîtront ici automatiquement.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

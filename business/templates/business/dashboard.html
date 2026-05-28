@@ -14,6 +14,20 @@
     </div>
 
     {% if current %}
+    <form class="biz-filter" method="get">
+      <select name="business">
+        {% for business in businesses %}
+          <option value="{{ business.id }}" {% if filters.business == business.id %}selected{% endif %}>{{ business.name }}</option>
+        {% endfor %}
+      </select>
+      <select name="days">
+        <option value="7" {% if filters.days == 7 %}selected{% endif %}>7 jours</option>
+        <option value="30" {% if filters.days == 30 %}selected{% endif %}>30 jours</option>
+        <option value="90" {% if filters.days == 90 %}selected{% endif %}>90 jours</option>
+        <option value="365" {% if filters.days == 365 %}selected{% endif %}>1 an</option>
+      </select>
+      <button class="btn btn-primary" type="submit">Filtrer</button>
+    </form>
     <div style="display:grid;grid-template-columns:1.2fr .8fr;gap:1rem">
       <article style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem">
         <div style="display:flex;justify-content:space-between;gap:1rem;align-items:start">
@@ -25,17 +39,26 @@
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.75rem;margin-top:1.25rem">
-          <div class="biz-stat"><span>Vues</span><strong>{{ current.views_count }}</strong></div>
-          <div class="biz-stat"><span>WhatsApp</span><strong>{{ current.whatsapp_clicks }}</strong></div>
-          <div class="biz-stat"><span>Appels</span><strong>{{ current.phone_clicks }}</strong></div>
-          <div class="biz-stat"><span>Demandes</span><strong>{{ current.leads_count }}</strong></div>
-          <div class="biz-stat"><span>Crédits IA</span><strong>{{ current.ai_credits }}</strong></div>
+          <div class="biz-stat biz-stat--green"><span>Vues</span><strong>{{ current.views_count }}</strong><i></i></div>
+          <div class="biz-stat biz-stat--blue"><span>WhatsApp</span><strong>{{ current.whatsapp_clicks }}</strong><i></i></div>
+          <div class="biz-stat biz-stat--amber"><span>Appels</span><strong>{{ current.phone_clicks }}</strong><i></i></div>
+          <div class="biz-stat biz-stat--pink"><span>Demandes</span><strong>{{ current.leads_count }}</strong><i></i></div>
+          <div class="biz-stat biz-stat--violet"><span>Crédits IA</span><strong>{{ current.ai_credits }}</strong><i></i></div>
+        </div>
+
+        <div style="display:flex;gap:.55rem;flex-wrap:wrap;margin-top:1rem">
+          {% for row in event_stats %}
+            <span class="biz-chip">{{ row.event_type }} · {{ row.total }}</span>
+          {% empty %}
+            <span class="biz-chip">En attente des premiers clics IA</span>
+          {% endfor %}
         </div>
 
         <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.25rem">
           <a href="{% url 'business:payment_request' current.id %}?plan=business" class="btn btn-primary">Activer Business</a>
           <a href="{% url 'business:payment_request' current.id %}?plan=premium" class="btn btn-outline-white">Passer Premium</a>
           <a href="/chat/" class="btn btn-outline-white">Tester dans le chat</a>
+          <a href="{% url 'business:performance_report' current.id %}" class="btn btn-outline-white">Rapport PDF/WhatsApp</a>
         </div>
       </article>
 
@@ -44,6 +67,49 @@
         <p>Vous pouvez demander une activation et payer à la réception, par Mobile Money manuel ou avec un code d’accès.</p>
         <p style="margin-top:.75rem;color:rgba(255,255,255,.55)">L'équipe E-Shelle confirme ensuite votre abonnement.</p>
       </aside>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
+      <article class="biz-panel">
+        <h3>Événements récents depuis E-Shelle AI</h3>
+        <div class="biz-chart">
+          {% for row in chart_stats %}
+            <div><span>{{ row.label }}</span><i style="width:{{ row.percent }}%"></i><strong>{{ row.total }}</strong></div>
+          {% empty %}
+            <p style="color:rgba(255,255,255,.52)">Pas encore assez de données pour afficher un graphique.</p>
+          {% endfor %}
+        </div>
+        {% for event in recent_events %}
+          <div class="biz-event">
+            <span>{{ event.get_event_type_display }}</span>
+            <strong>{{ event.source }}</strong>
+            <small>{{ event.created_at|date:"d/m/Y H:i" }}</small>
+          </div>
+        {% empty %}
+          <p style="color:rgba(255,255,255,.52)">Aucun clic récent. Les vues apparaîtront quand l'agent IA affichera votre fiche.</p>
+        {% endfor %}
+      </article>
+
+      <article class="biz-panel">
+        <h3>Kit marketing IA prêt à publier</h3>
+        {% if marketing_pack %}
+          <label>Statut WhatsApp</label>
+          <textarea readonly>{{ marketing_pack.status }}</textarea>
+          <label>Message WhatsApp</label>
+          <textarea readonly>{{ marketing_pack.whatsapp }}</textarea>
+          <label>Post Facebook</label>
+          <textarea readonly>{{ marketing_pack.facebook }}</textarea>
+          <label>Idées carrousel</label>
+          <ol>
+            {% for line in marketing_pack.carousel %}
+              <li>{{ line }}</li>
+            {% endfor %}
+          </ol>
+          <label>Prompt visuel IA</label>
+          <textarea readonly>{{ marketing_pack.image_prompt }}</textarea>
+          <a href="/chat/?q=fais-moi%20une%20pub%20pour%20{{ current.name|urlencode }}" class="btn btn-primary" style="margin-top:.85rem">Créer une pub avec IA</a>
+        {% endif %}
+      </article>
     </div>
     {% else %}
     <div style="text-align:center;padding:2rem;border:1px solid rgba(255,255,255,.1);border-radius:18px;color:rgba(255,255,255,.7)">
@@ -66,9 +132,28 @@
 </section>
 
 <style>
-.biz-stat { background:#101c33;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:.85rem; }
+.biz-filter { display:flex;gap:.7rem;flex-wrap:wrap;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:1rem;margin-bottom:1rem; }
+.biz-filter select { background:#101c33;color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:.75rem;min-width:180px; }
+.biz-stat { position:relative;overflow:hidden;background:linear-gradient(145deg,#101c33,#0c172a);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:.85rem;box-shadow:0 18px 38px rgba(0,0,0,.18); }
 .biz-stat span { display:block;color:rgba(255,255,255,.5);font-size:.75rem; }
 .biz-stat strong { color:#fff;font-size:1.35rem; }
-@media(max-width:900px){ section .container > div[style*="grid-template-columns:1.2fr"], article div[style*="repeat(5"]{grid-template-columns:1fr!important;} }
+.biz-stat i { position:absolute;right:-22px;bottom:-22px;width:70px;height:70px;border-radius:999px;opacity:.22; }
+.biz-stat--green i{background:#22c55e}.biz-stat--blue i{background:#38bdf8}.biz-stat--amber i{background:#facc15}.biz-stat--pink i{background:#fb7185}.biz-stat--violet i{background:#a78bfa}
+.biz-chip { padding:.45rem .65rem;border-radius:999px;background:rgba(34,197,94,.12);color:#a7f3b5;font-size:.78rem;font-weight:800; }
+.biz-panel { background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem;color:rgba(255,255,255,.74); }
+.biz-panel h3 { color:#fff;margin-bottom:.85rem; }
+.biz-panel label { display:block;color:rgba(255,255,255,.56);font-size:.78rem;font-weight:800;margin:.8rem 0 .35rem; }
+.biz-panel textarea { width:100%;min-height:74px;background:#101c33;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:.75rem;resize:vertical; }
+.biz-panel ol { margin-left:1.15rem;color:#fff;line-height:1.8; }
+.biz-event { display:grid;grid-template-columns:1fr auto;gap:.2rem .6rem;padding:.7rem 0;border-bottom:1px solid rgba(255,255,255,.06); }
+.biz-event span { color:#fff;font-weight:800; }
+.biz-event strong { color:#7cf66c;font-size:.8rem; }
+.biz-event small { grid-column:1 / -1;color:rgba(255,255,255,.45); }
+.biz-chart { margin-bottom:1rem; }
+.biz-chart div { display:grid;grid-template-columns:90px 1fr auto;gap:.6rem;align-items:center;margin:.7rem 0;color:#fff; }
+.biz-chart span { color:rgba(255,255,255,.56);font-size:.78rem;font-weight:800; }
+.biz-chart i { display:block;height:13px;border-radius:999px;background:linear-gradient(90deg,#22c55e,#38bdf8,#a78bfa);min-width:6%;box-shadow:0 0 18px rgba(56,189,248,.18); }
+.biz-chart strong { color:#fff;font-size:.85rem; }
+@media(max-width:900px){ section .container > div[style*="grid-template-columns:1.2fr"], section .container > div[style*="grid-template-columns:1fr 1fr"], article div[style*="repeat(5"]{grid-template-columns:1fr!important;} }
 </style>
 {% endblock %}

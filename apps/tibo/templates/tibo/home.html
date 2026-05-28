@@ -1,0 +1,62 @@
+{% extends "tibo/base.html" %}
+{% block title %}TIBO - Boutique premium Canada{% endblock %}
+{% block content %}
+<section class="tibo-hero">
+  <div class="tibo-hero-copy">
+    <p class="tibo-eyebrow">Canada first · Shopify · Amazon · CAD/USD</p>
+    <h1>TIBO</h1>
+    <p class="tibo-lead">Une boutique premium de produits sélectionnés, livrés par des partenaires fiables, avec une expérience rapide, sécurisée et élégante.</p>
+    <div class="flex flex-wrap gap-3">
+      <a class="tibo-btn" href="{% url 'tibo:shop' %}">Explorer la boutique</a>
+      <a class="tibo-btn tibo-btn-ghost" href="{% url 'tibo:about' %}">Pourquoi TIBO</a>
+    </div>
+  </div>
+  <div class="tibo-hero-stage" aria-hidden="true">
+    <div class="tibo-device-card">
+      <span>Trending now</span>
+      <strong>Smart essentials</strong>
+      <small>Livraison Canada · Taxes estimées · Checkout express</small>
+    </div>
+  </div>
+</section>
+
+<section class="tibo-section">
+  <div class="tibo-section-head">
+    <p class="tibo-eyebrow">Sélection premium</p>
+    <h2>Produits tendances</h2>
+  </div>
+  <div class="tibo-grid">
+    {% for product in trending_products %}
+      {% include "tibo/components/product_card.html" %}
+    {% empty %}
+      <p class="text-slate-400">Ajoutez des produits depuis l’admin TIBO ou synchronisez Shopify.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="tibo-section tibo-band">
+  <div class="tibo-section-head">
+    <p class="tibo-eyebrow">Catégories</p>
+    <h2>Shopping clair, rapide, crédible.</h2>
+  </div>
+  <div class="grid gap-4 md:grid-cols-3">
+    {% for category in categories %}
+      <a class="tibo-category" href="{{ category.get_absolute_url }}">
+        <span style="background:{{ category.accent_color }}"></span>
+        <strong>{{ category.name }}</strong>
+        <small>{{ category.description|default:"Collection soigneusement sélectionnée." }}</small>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="tibo-section">
+  <div class="tibo-proof">
+    <div><strong>95+</strong><span>Objectif Lighthouse</span></div>
+    <div><strong>CAD</strong><span>Taxes Canada prêtes</span></div>
+    <div><strong>API</strong><span>REST et imports externes</span></div>
+    <div><strong>SSL</strong><span>Paiements Stripe/PayPal</span></div>
+  </div>
+</section>
+{% endblock %}
+

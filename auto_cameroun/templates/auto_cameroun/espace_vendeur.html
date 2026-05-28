@@ -1,0 +1,121 @@
+{% extends "auto_cameroun/base_auto.html" %}
+
+{% block title %}{{ vendeur.get_full_name|default:vendeur.username }} — Vente & location auto | E-Shelle Auto{% endblock %}
+{% block meta_description %}Découvrez le parc auto de {{ vendeur.get_full_name|default:vendeur.username }} sur E-Shelle : véhicules en vente et location au Cameroun.{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item"><a href="{% url 'auto:liste_vehicules' %}">Auto</a></li>
+  <li class="breadcrumb-item active">{{ vendeur.get_full_name|default:vendeur.username }}</li>
+{% endblock %}
+
+{% block auto_extra_css %}
+<style>
+  .seller-hero {
+    overflow:hidden;
+    border-radius:18px;
+    padding:34px;
+    color:#fff;
+    background:
+      linear-gradient(135deg, rgba(9,22,42,.95), rgba(14,70,96,.88)),
+      radial-gradient(circle at 84% 8%, rgba(245,124,0,.35), transparent 36%);
+    box-shadow:0 28px 80px rgba(15,23,42,.22);
+  }
+  .seller-grid { display:grid; grid-template-columns:1fr auto; gap:24px; align-items:center; }
+  .seller-id { display:flex; gap:18px; align-items:center; }
+  .seller-avatar { width:92px; height:92px; border-radius:18px; object-fit:cover; display:grid; place-items:center; background:rgba(255,255,255,.12); border:3px solid rgba(255,255,255,.2); font-size:2rem; font-weight:900; }
+  .seller-kicker { display:inline-flex; gap:8px; align-items:center; padding:7px 11px; border-radius:999px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); font-weight:800; font-size:.84rem; margin-bottom:10px; }
+  .seller-title { margin:0; font-size:clamp(2rem,4vw,3.6rem); line-height:1; letter-spacing:-.04em; }
+  .seller-desc { max-width:720px; margin:.85rem 0 0; color:rgba(255,255,255,.78); }
+  .seller-actions { display:grid; gap:10px; min-width:240px; }
+  .seller-stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:14px; margin-top:18px; }
+  .seller-stat { padding:15px; border-radius:14px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.14); }
+  .seller-stat strong { display:block; font-size:1.6rem; line-height:1; }
+  .seller-stat span { color:rgba(255,255,255,.72); font-size:.86rem; }
+  .seller-share { margin-top:18px; padding:14px 16px; border:1px solid var(--auto-border,#dbeafe); border-radius:14px; background:#fff; display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+  .seller-share code { color:#0f172a; white-space:normal; word-break:break-all; }
+  @media(max-width: 800px) {
+    .seller-grid, .seller-stats { grid-template-columns:1fr; }
+    .seller-id { align-items:flex-start; flex-direction:column; }
+    .seller-actions { min-width:0; }
+  }
+</style>
+{% endblock %}
+
+{% block auto_content %}
+<div class="container py-4">
+  <section class="seller-hero">
+    <div class="seller-grid">
+      <div class="seller-id">
+        {% if profil.photo_profil %}
+          <img src="{{ profil.photo_profil.url }}" alt="{{ vendeur.get_full_name|default:vendeur.username }}" class="seller-avatar">
+        {% else %}
+          <div class="seller-avatar">{{ vendeur.username|first|upper }}</div>
+        {% endif %}
+        <div>
+          <div class="seller-kicker">
+            <i class="fa-solid fa-car"></i>
+            {{ profil.get_role_display }}
+            {% if profil.est_verifie %} · Vérifié{% endif %}
+            {% if profil.est_premium %} · Premium{% endif %}
+          </div>
+          <h1 class="seller-title">{{ vendeur.get_full_name|default:vendeur.username }}</h1>
+          <p class="seller-desc">
+            {{ profil.description|default:"Tous les véhicules disponibles de ce vendeur sont regroupés ici : ventes, locations, coups de cœur et offres premium." }}
+          </p>
+        </div>
+      </div>
+      <div class="seller-actions">
+        {% if profil.telephone %}
+          <a class="auto-btn auto-btn--whatsapp auto-btn--full" href="https://wa.me/{{ profil.telephone|cut:'+'|cut:' ' }}" target="_blank" rel="noopener">
+            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+          </a>
+          <a class="auto-btn auto-btn--outline auto-btn--full" href="tel:{{ profil.telephone }}">
+            <i class="fa-solid fa-phone"></i> Appeler
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="seller-stats">
+      <div class="seller-stat"><strong>{{ stats.vehicules }}</strong><span>véhicules actifs</span></div>
+      <div class="seller-stat"><strong>{{ stats.ventes }}</strong><span>ventes</span></div>
+      <div class="seller-stat"><strong>{{ stats.locations }}</strong><span>locations</span></div>
+      <div class="seller-stat"><strong>{{ stats.vues }}</strong><span>vues cumulées</span></div>
+      <div class="seller-stat"><strong>{{ stats.favoris }}</strong><span>favoris</span></div>
+    </div>
+  </section>
+
+  <div class="seller-share">
+    <div>
+      <strong>Lien public à partager</strong>
+      <div><code>{{ request.build_absolute_uri }}</code></div>
+    </div>
+    <a class="auto-btn auto-btn--primary" href="https://wa.me/?text={{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener">
+      <i class="fa-brands fa-whatsapp"></i> Partager
+    </a>
+  </div>
+
+  <div class="auto-section-header mt-5">
+    <div>
+      <h2>Parc auto disponible</h2>
+      <p class="text-muted mb-0">
+        {% for ville in villes %}{{ ville }}{% if not forloop.last %}, {% endif %}{% empty %}Aucune ville active{% endfor %}
+      </p>
+    </div>
+    <a href="{% url 'auto:liste_vehicules' %}" class="auto-link">Catalogue complet <i class="fa-solid fa-arrow-right"></i></a>
+  </div>
+
+  {% if vehicules %}
+    <div class="auto-grid mt-3">
+      {% for vehicule in vehicules %}
+        {% include "auto_cameroun/partials/_card_vehicule.html" with vehicule=vehicule %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="auto-empty mt-3">
+      <i class="fa-solid fa-car-burst fa-3x"></i>
+      <h3>Aucun véhicule actif</h3>
+      <p>Les ventes et locations publiées par ce vendeur apparaîtront ici automatiquement.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

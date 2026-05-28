@@ -5,6 +5,7 @@ Vues de l'agent IA central E-Shelle.
 import json
 import logging
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.http import (
@@ -13,8 +14,11 @@ from django.http import (
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+from django.db import models
+from django.db.models import Count, Sum
+from django.utils import timezone
 
-from .models import AIConversation, AIMessage, AIQuota
+from .models import AIConversation, AIMessage, AIQuota, CentralAgentQueryLog
 from .services.openai_service import EshelleAIService
 from .services.context_builder import UserContextBuilder
 from .services.memory_service import MemoryService
@@ -27,6 +31,65 @@ from django.core.cache import cache
 
 RATE_LIMIT_WINDOW = 60       # secondes
 RATE_LIMIT_MAX    = 30       # requêtes max par fenêtre
+
+
+@staff_member_required
+def admin_dashboard(request):
+    """Dashboard staff pour piloter l'Agent IA central."""
+    since = timezone.now() - timezone.timedelta(days=30)
+    logs = CentralAgentQueryLog.objects.filter(created_at__gte=since)
+
+    total_queries = logs.count()
+    without_results = logs.filter(had_results=False).count()
+    premium_results = logs.aggregate(total=Sum("premium_results_count"))["total"] or 0
+    conversion_rate = round(((total_queries - without_results) / total_queries) * 100, 1) if total_queries else 0
+
+    module_stats = (
+        logs.values("module")
+        .annotate(
+            total=Count("id"),
+            empty=Count("id", filter=models.Q(had_results=False)),
+            premium=Sum("premium_results_count"),
+        )
+        .order_by("-total")[:12]
+    )
+    top_queries = logs.values("query", "module").annotate(total=Count("id")).order_by("-total", "query")[:15]
+    no_result_queries = (
+        logs.filter(had_results=False)
+        .values("query", "module")
+        .annotate(total=Count("id"))
+        .order_by("-total", "query")[:15]
+    )
+
+    try:
+        from business.models import BusinessLeadEvent, BusinessProfile
+
+        top_businesses = BusinessProfile.objects.order_by("-leads_count", "-views_count")[:10]
+        lead_stats = (
+            BusinessLeadEvent.objects.filter(created_at__gte=since)
+            .values("event_type", "source")
+            .annotate(total=Count("id"))
+            .order_by("-total")[:12]
+        )
+    except Exception:
+        top_businesses = []
+        lead_stats = []
+
+    return render(
+        request,
+        "e_shelle_ai/admin_dashboard.html",
+        {
+            "total_queries": total_queries,
+            "without_results": without_results,
+            "premium_results": premium_results,
+            "conversion_rate": conversion_rate,
+            "module_stats": module_stats,
+            "top_queries": top_queries,
+            "no_result_queries": no_result_queries,
+            "top_businesses": top_businesses,
+            "lead_stats": lead_stats,
+        },
+    )
 
 
 def _check_rate_limit(user_id: int) -> bool:
@@ -259,7 +322,10 @@ class GenerateImageView(LoginRequiredMixin, View):
         result = ai_service.generate_image(prompt, context, user=user)
 
         if result.get("error"):
-            return JsonResponse({"error": f"Génération impossible : {result['error']}"}, status=500)
+            return JsonResponse({
+                "error": f"Génération image indisponible : {result['error']}",
+                "adgen_url": "/pub/",
+            })
 
         # Incrémenter quota
         quota_service.increment_usage(user, "image")

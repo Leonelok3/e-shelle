@@ -272,7 +272,8 @@ function initTestimonialSlider() {
 
   function goTo(index) {
     current = (index + slides.length) % slides.length;
-    track.style.transform = `translateX(-${current * 100}%)`;
+    const width = track.parentElement ? track.parentElement.clientWidth : track.clientWidth;
+    track.style.transform = `translateX(-${current * width}px)`;
     dots.forEach((d, i) => d.classList.toggle('active', i === current));
   }
 
@@ -294,6 +295,8 @@ function initTestimonialSlider() {
     const diff = touchX - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 50) { diff > 0 ? goTo(current + 1) : goTo(current - 1); startTimer(); }
   });
+
+  window.addEventListener('resize', () => goTo(current));
 
   goTo(0);
   startTimer();

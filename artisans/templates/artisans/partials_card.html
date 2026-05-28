@@ -1,0 +1,24 @@
+<article class="card">
+  <div style="display:flex;gap:12px;align-items:center">
+    {% if artisan.photo %}
+      <img class="avatar" src="{{ artisan.photo.url }}" alt="{{ artisan.nom_public }}" loading="lazy">
+    {% else %}
+      <div class="avatar">{{ artisan.nom_public|first|upper }}</div>
+    {% endif %}
+    <div>
+      <h3>{{ artisan.nom_public }}</h3>
+      <div class="meta"><span>{{ artisan.quartier }}, {{ artisan.ville }}</span></div>
+    </div>
+  </div>
+  <div class="meta">
+    {% for metier in artisan.metiers.all|slice:":3" %}<span class="pill">{{ metier.nom }}</span>{% endfor %}
+    {% if artisan.est_verifie %}<span class="pill">Vérifié</span>{% endif %}
+    {% if artisan.disponible_urgence %}<span class="pill">Urgence</span>{% endif %}
+  </div>
+  <p style="margin:0">{{ artisan.description|truncatechars:128 }}</p>
+  <div class="meta"><span>{{ artisan.note_moyenne }}/5</span><span>{{ artisan.vues }} vues</span><span>{{ artisan.contacts }} contacts</span></div>
+  <div style="margin-top:auto;display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between">
+    <a class="btn btn-ghost" href="{{ artisan.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>
+    <a class="btn btn-outline" href="{{ artisan.get_absolute_url }}">Voir</a>
+  </div>
+</article>

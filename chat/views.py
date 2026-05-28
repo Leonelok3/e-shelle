@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
 from .models import ConversationSession, Message
-from .services import route_message
+from e_shelle_ai.services.central_agent import log_central_agent_query, route_message
 
 
 def get_or_create_session(request):
@@ -26,7 +26,12 @@ def chat_view(request):
     """Page principale du chat universel."""
     session = get_or_create_session(request)
     messages = session.messages.all()
-    return render(request, "chat/chat.html", {"messages": messages, "session": session})
+    initial_query = request.GET.get("q", "").strip()[:500]
+    return render(
+        request,
+        "chat/chat.html",
+        {"messages": messages, "session": session, "initial_query": initial_query},
+    )
 
 
 @require_http_methods(["POST"])
@@ -43,7 +48,8 @@ def send_message(request):
         Message.objects.create(session=session, role="user", content=user_input)
 
         history = list(session.messages.values("role", "content").order_by("created_at"))
-        ai_response = route_message(user_input, history)
+        user = request.user if request.user.is_authenticated else None
+        ai_response = route_message(user_input, history, user=user)
 
         ai_message = Message.objects.create(
             session=session,
@@ -55,6 +61,13 @@ def send_message(request):
             has_image=bool(ai_response.get("image_url")),
             image_url=ai_response.get("image_url", ""),
         )
+        log_central_agent_query(
+            user_input,
+            ai_response,
+            user=user,
+            session_key=request.session.session_key or "",
+        )
+        _update_ai_memory(user, user_input, ai_message.content)
 
         return JsonResponse(
             {
@@ -77,5 +90,16 @@ def clear_session(request):
     session = get_or_create_session(request)
     session.messages.all().delete()
     return JsonResponse({"status": "cleared"})
+
+
+def _update_ai_memory(user, user_input: str, assistant_reply: str) -> None:
+    if not getattr(user, "is_authenticated", False):
+        return
+    try:
+        from e_shelle_ai.services.memory_service import MemoryService
+
+        MemoryService().update_memory_from_message(user, user_input, assistant_reply)
+    except Exception:
+        pass
 
 # Create your views here.

@@ -1,0 +1,35 @@
+{% extends "artisans/base.html" %}
+
+{% block title %}Demande de travaux - E-Shelle Artisans{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap detail-grid">
+    <div>
+      <h1 style="font-size:clamp(2rem,4vw,3.4rem)">Exprimer un besoin travaux</h1>
+      <p>Décrivez votre besoin : plomberie, électricité, maçonnerie, carrelage, peinture, dépannage ou main-d'œuvre.</p>
+      <form class="panel" style="padding:18px;display:grid;gap:12px" method="post">
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="field"><label>{{ field.label }}</label>{{ field }}{% if field.errors %}<small style="color:#dc2626">{{ field.errors.0 }}</small>{% endif %}</div>
+        {% endfor %}
+        <button class="btn btn-primary" type="submit">Publier ma demande</button>
+      </form>
+    </div>
+    <aside>
+      <h2>Demandes récentes</h2>
+      <div style="display:grid;gap:10px">
+        {% for demande in demandes %}
+          <div class="panel" style="padding:14px">
+            <strong>{{ demande.besoin }}</strong>
+            <p style="margin:.3rem 0">{{ demande.quartier }}, {{ demande.ville }}</p>
+            <span class="pill">{{ demande.metier|default:"Travaux" }}</span>
+          </div>
+        {% empty %}
+          <div class="empty">Aucune demande ouverte pour le moment.</div>
+        {% endfor %}
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}

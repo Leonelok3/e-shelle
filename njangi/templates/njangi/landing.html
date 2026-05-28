@@ -13,11 +13,13 @@
       Disponible au Cameroun &amp; diaspora
     </div>
     <h1 class="text-4xl md:text-6xl font-extrabold mb-4 leading-tight">
-      Votre <span style="color:#F5A623">Njangi</span><br>dans votre poche
+      Digitalisez votre réunion,<br>
+      <span style="color:#F5A623">tontine ou association</span><br>
+      en 10 minutes.
     </h1>
     <p class="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto mb-10">
-      Gérez votre tontine en ligne — cotisations, mains, prêts, fond commun et notifications SMS.
-      100 % sécurisé, 0 papier.
+      Cotisations, réunions, mains, prêts, fond commun, rapports PDF et audit :
+      votre bureau garde le contrôle, les membres gardent confiance.
     </p>
     <div class="flex flex-col sm:flex-row gap-4 justify-center">
       {% if user.is_authenticated %}
@@ -25,14 +27,19 @@
           Mon espace →
         </a>
         <a href="{% url 'njangi:create_group' %}" class="px-8 py-3 rounded-xl font-bold text-lg border-2 border-white text-white hover:bg-white/10 transition">
-          Créer un groupe
+          Créer ma réunion
         </a>
       {% else %}
-        <a href="{% url 'accounts:register' %}" class="px-8 py-3 rounded-xl font-bold text-lg bg-white text-blue-900 hover:bg-blue-50 transition shadow-lg">
-          Commencer gratuitement →
+        <a href="{% url 'njangi:create_group' %}" class="px-8 py-3 rounded-xl font-bold text-lg bg-white text-blue-900 hover:bg-blue-50 transition shadow-lg">
+          Créer ma réunion →
         </a>
         <a href="{% url 'accounts:login' %}" class="px-8 py-3 rounded-xl font-bold text-lg border-2 border-white text-white hover:bg-white/10 transition">
           Se connecter
+        </a>
+      {% endif %}
+      {% if demo_group %}
+        <a href="{% url 'njangi:group_detail' demo_group.slug %}" class="px-8 py-3 rounded-xl font-bold text-lg bg-yellow-400 text-blue-950 hover:bg-yellow-300 transition shadow-lg">
+          Voir la démo
         </a>
       {% endif %}
     </div>
@@ -45,7 +52,11 @@
 
 <!-- Fonctionnalités -->
 <section class="max-w-6xl mx-auto px-4 py-16">
-  <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">Tout ce dont votre groupe a besoin</h2>
+  <div class="text-center mb-12">
+    <span class="inline-flex px-4 py-1 rounded-full text-sm font-bold" style="background:#EBF4FB;color:#1B6CA8">Produit démo E-Shelle</span>
+    <h2 class="text-3xl font-bold text-gray-800 mt-4">Tout ce dont votre réunion a besoin</h2>
+    <p class="text-gray-500 mt-2 max-w-2xl mx-auto">Un espace simple pour les associations, réunions familiales, tontines, mutuelles et groupes de solidarité.</p>
+  </div>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for feat in features %}
     <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
@@ -58,6 +69,48 @@
     {% endfor %}
   </div>
 </section>
+
+<!-- Démo rapide -->
+{% if demo_group %}
+<section class="max-w-6xl mx-auto px-4 pb-16">
+  <div class="rounded-3xl overflow-hidden shadow-sm border border-blue-100 bg-white">
+    <div class="grid grid-cols-1 lg:grid-cols-[1.1fr_.9fr]">
+      <div class="p-8 md:p-10">
+        <span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700">Groupe exemple déjà rempli</span>
+        <h2 class="text-3xl font-extrabold text-gray-900 mt-4">{{ demo_group.name }}</h2>
+        <p class="text-gray-500 mt-3 max-w-xl">
+          Ouvrez cette démo pour voir une réunion avec membres, séances, cotisations, fonds communs, prêts et historique.
+          C'est exactement ce que vous pouvez présenter à une association ou une tontine.
+        </p>
+        <div class="flex flex-wrap gap-3 mt-6">
+          <a href="{% url 'njangi:group_detail' demo_group.slug %}" class="px-6 py-3 rounded-xl text-white font-bold shadow-sm" style="background:var(--njangi-primary)">
+            Ouvrir la démo →
+          </a>
+          <a href="{% url 'njangi:create_group' %}" class="px-6 py-3 rounded-xl border border-blue-200 font-bold hover:bg-blue-50" style="color:var(--njangi-primary)">
+            Créer ma réunion
+          </a>
+        </div>
+      </div>
+      <div class="p-8 md:p-10" style="background:linear-gradient(135deg,#EBF4FB,#fff6df)">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-white rounded-2xl p-5 border border-white shadow-sm">
+            <p class="text-xs text-gray-400">Membres</p>
+            <p class="text-3xl font-extrabold" style="color:var(--njangi-primary)">{{ demo_group.member_count }}</p>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-white shadow-sm">
+            <p class="text-xs text-gray-400">Cotisation</p>
+            <p class="text-xl font-extrabold text-green-600">{{ demo_group.formatted_contribution }}</p>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-white shadow-sm col-span-2">
+            <p class="text-xs text-gray-400">Fond commun actuel</p>
+            <p class="text-3xl font-extrabold text-yellow-600">{{ demo_group.fund_balance|floatformat:0 }} FCFA</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
 
 <!-- Mes groupes (si connecté) -->
 {% if memberships %}
@@ -92,38 +145,16 @@
 <section class="bg-white border-t border-gray-100 py-14">
   <div class="max-w-2xl mx-auto px-4 text-center">
     <h2 class="text-2xl font-bold text-gray-800 mb-3">Vous avez un code d'invitation ?</h2>
-    <p class="text-gray-500 mb-6">Entrez le code partagé par votre président pour rejoindre le groupe.</p>
-    <a href="{% url 'njangi:join' %}" class="inline-block px-8 py-3 rounded-xl font-bold text-white transition shadow" style="background:var(--njangi-primary)">
-      Rejoindre un groupe →
-    </a>
+    <p class="text-gray-500 mb-6">Entrez le code partagé par votre président pour rejoindre le groupe, ou créez votre propre réunion.</p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="{% url 'njangi:join' %}" class="inline-block px-8 py-3 rounded-xl font-bold text-white transition shadow" style="background:var(--njangi-primary)">
+        Rejoindre un groupe →
+      </a>
+      <a href="{% url 'njangi:create_group' %}" class="inline-block px-8 py-3 rounded-xl font-bold border border-blue-200 transition hover:bg-blue-50" style="color:var(--njangi-primary)">
+        Créer ma réunion
+      </a>
+    </div>
   </div>
 </section>
 
-{% endblock %}
-
-{% block extra_js %}
-<script>
-// Injecter les features depuis le contexte Django via JSON
-const features = [
-  {icon:"💰", title:"Cotisations automatisées", desc:"Chaque membre est notifié avant chaque séance. Les paiements Mobile Money sont confirmés instantanément."},
-  {icon:"🏆", title:"Gestion des mains", desc:"Ordre de rotation configurable. La main est versée automatiquement au bénéficiaire à la clôture de chaque séance."},
-  {icon:"🏦", title:"Fond commun", desc:"Séparez la tontine du fond de solidarité. Suivez le solde, les dépôts et les intérêts en temps réel."},
-  {icon:"📋", title:"Prêts du groupe", desc:"Demandez un prêt, obtenez l'approbation du bureau, et remboursez par tranche directement depuis l'app."},
-  {icon:"📊", title:"Tableau de bord bureau", desc:"Le président et le trésorier ont une vue complète : séances, cotisations, fond, prêts, retards."},
-  {icon:"🔔", title:"Notifications SMS", desc:"Rappels automatiques avant chaque séance, alertes de retard et confirmations de paiement par SMS."},
-];
-
-// Injecter dynamiquement les cartes features (contournement du template Django)
-document.addEventListener("DOMContentLoaded", () => {
-  const grid = document.querySelector("[data-features-grid]");
-  if (!grid) return;
-  grid.innerHTML = features.map(f => `
-    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
-      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4" style="background:#EBF4FB">${f.icon}</div>
-      <h3 class="font-bold text-gray-800 mb-2">${f.title}</h3>
-      <p class="text-gray-500 text-sm">${f.desc}</p>
-    </div>
-  `).join("");
-});
-</script>
 {% endblock %}
