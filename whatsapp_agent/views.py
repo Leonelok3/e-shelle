@@ -144,10 +144,10 @@ def detail_campagne(request, pk):
 
     campagne = get_object_or_404(Campagne.objects.select_related("cree_par"), pk=pk)
     recalculer_stats_campagne(campagne)
-    messages_qs = campagne.messages.select_related("user").order_by("-mis_a_jour_le")
+    messages_qs = campagne.messages.select_related("user", "commercial_prospect").order_by("-mis_a_jour_le")
     paginator = Paginator(messages_qs, 30)
     page_obj = paginator.get_page(request.GET.get("page"))
-    exemples = campagne.messages.select_related("user").order_by("id")[:5]
+    exemples = campagne.messages.select_related("user", "commercial_prospect").order_by("id")[:5]
 
     return render(
         request,
@@ -200,8 +200,8 @@ def export_csv(request, pk):
     response["Content-Disposition"] = f'attachment; filename="campagne-whatsapp-{campagne.pk}.csv"'
     writer = csv.writer(response)
     writer.writerow(["Campagne", "Utilisateur", "Numero", "Statut", "Message ID", "Erreur", "Envoye le"])
-    for msg in campagne.messages.select_related("user").order_by("id"):
-        writer.writerow([campagne.nom, msg.user.username, msg.numero_whatsapp, msg.statut, msg.whatsapp_message_id, msg.erreur, msg.envoye_le])
+    for msg in campagne.messages.select_related("user", "commercial_prospect").order_by("id"):
+        writer.writerow([campagne.nom, msg.destinataire_label, msg.numero_whatsapp, msg.statut, msg.whatsapp_message_id, msg.erreur, msg.envoye_le])
     return response
 
 

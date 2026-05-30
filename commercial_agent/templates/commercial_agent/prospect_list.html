@@ -10,6 +10,7 @@
   .ca-filter{display:flex;gap:10px;flex-wrap:wrap;background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;padding:14px;margin-bottom:16px}
   .ca-input{background:#07120d;color:#e8f5ee;border:1px solid #315641;border-radius:8px;padding:10px 12px}
   .ca-btn{border:0;border-radius:8px;background:#16a34a;color:#fff;font-weight:800;padding:10px 14px;text-decoration:none;cursor:pointer}
+  .ca-btn.blue{background:#0ea5e9}
   .ca-link{color:#86efac;font-weight:800;text-decoration:none}
   .ca-panel{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;overflow:hidden}
   .ca-table{width:100%;border-collapse:collapse}
@@ -39,6 +40,14 @@
       </select>
       <button class="ca-btn" type="submit">Filtrer</button>
       <a class="ca-link" href="{% url 'commercial_agent:dashboard' %}">Retour dashboard</a>
+    </form>
+    <form class="ca-filter" method="post" action="{% url 'commercial_agent:create_whatsapp_campaign' %}">
+      {% csrf_token %}
+      <input class="ca-input" name="name" placeholder="Campagne WhatsApp commerciale">
+      <input class="ca-input" name="module" value="{{ filters.module }}" placeholder="Module">
+      <input class="ca-input" name="ville" placeholder="Ville">
+      <input class="ca-input" name="limit" type="number" min="1" max="300" value="50" style="width:110px">
+      <button class="ca-btn blue" type="submit">Envoyer vers WhatsApp Agent</button>
     </form>
 
     <section class="ca-panel">

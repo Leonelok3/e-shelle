@@ -168,3 +168,24 @@ def create_auto_campaign(request):
     campagne = CommercialAgentService.create_campaign_from_due(name, user=request.user, module=module, ville=ville)
     messages.success(request, f"Campagne creee avec {campagne.prospects.count()} prospect(s).")
     return redirect("commercial_agent:dashboard")
+
+
+@staff_required
+@require_POST
+def create_whatsapp_campaign(request):
+    name = request.POST.get("name") or f"WhatsApp commercial E-Shelle {timezone.localdate().strftime('%d/%m/%Y')}"
+    module = request.POST.get("module", "")
+    ville = request.POST.get("ville", "")
+    limit = int(request.POST.get("limit") or 50)
+    campagne = CommercialAgentService.create_whatsapp_campaign_from_due(
+        name,
+        user=request.user,
+        module=module,
+        ville=ville,
+        limit=limit,
+    )
+    messages.success(
+        request,
+        f"Campagne WhatsApp commerciale creee avec {campagne.total_destinataires} prospect(s). Verifie avant lancement.",
+    )
+    return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)

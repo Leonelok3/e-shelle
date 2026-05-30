@@ -13,4 +13,5 @@ urlpatterns = [
     path("prospects/<int:pk>/statut/", views.update_status, name="update_status"),
     path("sync-business/", views.sync_business, name="sync_business"),
     path("campagne-auto/", views.create_auto_campaign, name="create_auto_campaign"),
+    path("campagne-whatsapp/", views.create_whatsapp_campaign, name="create_whatsapp_campaign"),
 ]

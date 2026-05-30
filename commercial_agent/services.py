@@ -224,6 +224,59 @@ Reponds uniquement avec le message."""
         return campagne
 
     @classmethod
+    def create_whatsapp_campaign_from_due(cls, name, user=None, module="", ville="", limit=50):
+        """Cree une campagne WhatsApp validee depuis les prospects commerciaux a relancer."""
+
+        from whatsapp_agent.models import Campagne, MessageEnvoi
+        from whatsapp_agent.tasks import recalculer_stats_campagne
+
+        qs = ProspectBusiness.objects.exclude(whatsapp="").filter(
+            statut__in=[
+                ProspectBusiness.Statut.NOUVEAU,
+                ProspectBusiness.Statut.QUALIFIE,
+                ProspectBusiness.Statut.CONTACTE,
+                ProspectBusiness.Statut.A_RELANCER,
+                ProspectBusiness.Statut.INTERESSE,
+                ProspectBusiness.Statut.NEGOCIATION,
+            ]
+        )
+        if module:
+            qs = qs.filter(module=module)
+        if ville:
+            qs = qs.filter(ville__icontains=ville)
+        qs = qs.filter(Q(prochain_contact__isnull=True) | Q(prochain_contact__lte=timezone.localdate())).order_by("-score")[:limit]
+        prospects = list(qs)
+
+        campagne = Campagne.objects.create(
+            nom=name,
+            description=(
+                "Campagne commerciale creee depuis l'Agent Commercial IA. "
+                "Verifiez l'apercu final avant lancement."
+            ),
+            message_template="Message commercial personnalise par prospect.",
+            statut=Campagne.STATUT_VALIDEE,
+            filtre_role="prospects_commerciaux",
+            filtre_ville=ville,
+            cree_par=user if getattr(user, "is_authenticated", False) else None,
+        )
+        messages = []
+        for prospect in prospects:
+            message = cls.generate_message(prospect, canal="whatsapp")
+            messages.append(
+                MessageEnvoi(
+                    campagne=campagne,
+                    user=None,
+                    commercial_prospect=prospect,
+                    destinataire_nom=prospect.nom,
+                    numero_whatsapp=prospect.contact_whatsapp,
+                    message_final=message,
+                )
+            )
+        MessageEnvoi.objects.bulk_create(messages, batch_size=200)
+        recalculer_stats_campagne(campagne)
+        return campagne
+
+    @classmethod
     def seed_scripts(cls):
         scripts = [
             ("WhatsApp premier contact", "whatsapp", "", "Bonjour {{nom}}, je suis de E-Shelle. On aide les business locaux a recevoir plus de clients via WhatsApp. Disponible pour une demo rapide ?"),

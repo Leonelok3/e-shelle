@@ -74,7 +74,15 @@ class MessageEnvoi(models.Model):
     ]
 
     campagne = models.ForeignKey(Campagne, on_delete=models.CASCADE, related_name="messages")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE)
+    commercial_prospect = models.ForeignKey(
+        "commercial_agent.ProspectBusiness",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="messages_whatsapp",
+    )
+    destinataire_nom = models.CharField(max_length=180, blank=True)
     numero_whatsapp = models.CharField(max_length=20)
     message_final = models.TextField()
     statut = models.CharField(max_length=20, choices=STATUTS, default=STATUT_EN_ATTENTE)
@@ -90,6 +98,16 @@ class MessageEnvoi(models.Model):
 
     def __str__(self):
         return f"{self.numero_whatsapp} - {self.get_statut_display()}"
+
+    @property
+    def destinataire_label(self):
+        if self.user_id:
+            return self.user.get_full_name() or self.user.username
+        if self.destinataire_nom:
+            return self.destinataire_nom
+        if self.commercial_prospect_id:
+            return self.commercial_prospect.nom
+        return self.numero_whatsapp
 
 
 class TemplateWhatsApp(models.Model):
