@@ -16,16 +16,16 @@ from .models import (
 @admin.register(BusinessProfile)
 class BusinessProfileAdmin(admin.ModelAdmin):
     list_display = (
-        "name", "module", "plan", "subscription_status", "boost_status",
+        "name", "module", "public_slug", "plan", "subscription_status", "boost_status",
         "ai_credits", "views_count", "whatsapp_clicks", "phone_clicks", "leads_count",
         "is_active", "is_verified",
     )
     list_filter = ("module", "plan", "is_active", "is_verified")
-    search_fields = ("name", "city", "district", "phone", "whatsapp", "promo_headline")
+    search_fields = ("name", "slug", "public_slug", "city", "district", "phone", "whatsapp", "promo_headline")
     fieldsets = (
         (None, {
             "fields": (
-                "owner", "module", "name", "slug", "city", "district",
+                "owner", "module", "name", "slug", "public_slug", "city", "district",
                 "phone", "whatsapp", "description", "is_active", "is_verified",
             )
         }),

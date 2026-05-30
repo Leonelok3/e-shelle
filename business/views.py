@@ -1,3 +1,5 @@
+import urllib.parse
+
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.db import models
@@ -12,7 +14,7 @@ from billing.models import AffiliateProfile, Commission, Referral
 
 from .models import BusinessLeadEvent, BusinessProfile, HomeAdSlide, PaymentRequest, PremiumSectorCampaign, ProviderPlan
 from .reporting import business_report_context, render_business_report_pdf
-from .services import create_tracking_event, record_event_hit
+from .services import collect_business_items, create_tracking_event, record_event_hit
 
 
 @require_GET
@@ -73,6 +75,36 @@ def _business_public_target(business, event_kind):
         return business.promo_url
     import urllib.parse
     return f"/chat/?q={urllib.parse.quote(f'Je veux contacter {business.name}')}"
+
+
+def public_profile(request, public_slug):
+    """Vitrine publique centrale d'une activite E-Shelle."""
+    business = get_object_or_404(BusinessProfile, public_slug=public_slug, is_active=True)
+    BusinessProfile.objects.filter(pk=business.pk).update(views_count=F("views_count") + 1)
+    source_object = business.content_object
+    source_url = ""
+    if source_object and hasattr(source_object, "get_absolute_url"):
+        try:
+            source_url = source_object.get_absolute_url()
+        except Exception:
+            source_url = ""
+    public_url = request.build_absolute_uri(business.get_absolute_url())
+    share_text = f"Decouvrez {business.name} sur E-Shelle: {public_url}"
+    whatsapp_url = business.whatsapp_url(f"Bonjour {business.name}, je viens de votre boutique E-Shelle: {public_url}")
+    return render(
+        request,
+        "business/public_profile.html",
+        {
+            "business": business,
+            "source_object": source_object,
+            "source_url": source_url,
+            "items": collect_business_items(business),
+            "public_url": public_url,
+            "share_text": share_text,
+            "share_whatsapp_url": f"https://wa.me/?text={urllib.parse.quote(share_text)}",
+            "whatsapp_url": whatsapp_url,
+        },
+    )
 
 
 def provider_plans(request):
@@ -162,6 +194,18 @@ def solutions(request):
         request,
         "business/solutions.html",
         {"solutions": solutions_grid, "demos": demos, "proof": proof},
+    )
+
+
+def custom_app_offer(request):
+    """Offre application personnalisee hebergee sur domaine client."""
+    whatsapp_text = urllib.parse.quote(
+        "Bonjour E-Shelle, je veux une application personnalisee pour mon business avec hebergement sur mon domaine."
+    )
+    return render(
+        request,
+        "business/custom_app_offer.html",
+        {"whatsapp_url": f"https://wa.me/237680625082?text={whatsapp_text}"},
     )
 
 
@@ -331,7 +375,14 @@ def dashboard(request):
     event_stats = []
     chart_stats = []
     marketing_pack = None
+    public_url = ""
+    share_whatsapp_url = ""
+    whatsapp_url = ""
     if current:
+        public_url = request.build_absolute_uri(current.get_absolute_url())
+        share_text = f"Decouvrez {current.name} sur E-Shelle: {public_url}"
+        share_whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(share_text)}"
+        whatsapp_url = current.whatsapp_url(f"Bonjour {current.name}, je viens de votre boutique E-Shelle: {public_url}")
         filtered_events = current.lead_events.filter(created_at__gte=since)
         recent_events = filtered_events.order_by("-created_at")[:12]
         event_stats = (
@@ -353,6 +404,9 @@ def dashboard(request):
             "event_stats": event_stats,
             "chart_stats": chart_stats,
             "marketing_pack": marketing_pack,
+            "public_url": public_url,
+            "share_whatsapp_url": share_whatsapp_url,
+            "whatsapp_url": whatsapp_url,
             "filters": {"days": days, "business": current.id if current else ""},
         },
     )

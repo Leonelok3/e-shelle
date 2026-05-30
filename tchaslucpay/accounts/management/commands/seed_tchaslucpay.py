@@ -137,6 +137,7 @@ class Command(BaseCommand):
                     user=user,
                     account_number=f"TLP-2026-000{index}",
                     national_id=f"CNI-DEMO-{index:03d}",
+                    national_id_expiry="2031-12-31",
                     city="Yaounde",
                     quarter=commerce,
                     phone_number=user.phone_number,
@@ -149,15 +150,12 @@ class Command(BaseCommand):
     def _create_transactions(self, clients, collecteurs):
         operations = [
             (clients[0], collecteurs[0], "DEPOT", Decimal("15000.00"), "Depot ouverture journee"),
-            (clients[1], collecteurs[0], "RETRAIT", Decimal("20000.00"), "Retrait achat stock"),
             (clients[2], collecteurs[0], "DEPOT", Decimal("35000.00"), "Depot ventes grossiste"),
             (clients[3], collecteurs[1], "DEPOT", Decimal("10000.00"), "Depot caisse matin"),
-            (clients[4], collecteurs[1], "RETRAIT", Decimal("15000.00"), "Retrait fournisseur"),
-            (clients[0], collecteurs[0], "RETRAIT", Decimal("12000.00"), "Paiement livraison"),
             (clients[1], collecteurs[0], "DEPOT", Decimal("50000.00"), "Depot recette"),
-            (clients[2], collecteurs[0], "RETRAIT", Decimal("40000.00"), "Retrait famille"),
-            (clients[3], collecteurs[1], "RETRAIT", Decimal("5000.00"), "Achat emballages"),
             (clients[4], collecteurs[1], "DEPOT", Decimal("25000.00"), "Depot fin de journee"),
+            (clients[0], collecteurs[0], "DEPOT", Decimal("12000.00"), "Depot complementaire"),
+            (clients[3], collecteurs[1], "DEPOT", Decimal("5000.00"), "Depot marche"),
         ]
         for client, collecteur, type_op, montant, note in operations:
             creer_transaction(client.pk, collecteur.pk, type_op, montant, note=note)

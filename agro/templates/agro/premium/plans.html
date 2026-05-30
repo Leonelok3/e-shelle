@@ -5,21 +5,21 @@
 <div class="container py-5">
 
   <div class="text-center mb-5">
-    <h1 class="fw-bold">Choisissez votre plan E-Shelle Agro</h1>
-    <p class="text-muted lead">Développez votre activité agroalimentaire avec des outils professionnels.</p>
+    <h1 class="fw-bold">Plans AgroConnect AI Cameroun</h1>
+    <p class="text-muted lead">IA agricole, prix du marché, stock, ventes et Mobile Money pour producteurs et coopératives.</p>
 
     <!-- Plan free -->
     <div class="d-inline-block bg-agro-light border rounded px-4 py-2 mb-3">
       <strong>✅ Plan Gratuit actuel</strong> :
-      5 produits · 3 devis/mois · Accès au catalogue
+      Marketplace limitée · IA basique · 3 alertes prix/mois
     </div>
   </div>
 
   <div class="row g-4 justify-content-center">
     {% for plan_key, plan in plans.items %}
     <div class="col-md-4">
-      <div class="card agro-card h-100 {% if plan_key == 'gold' %}border-warning border-2{% endif %}">
-        {% if plan_key == 'gold' %}
+      <div class="card agro-card h-100 {% if plan_key == 'pro' %}border-warning border-2{% endif %}">
+        {% if plan_key == 'pro' %}
         <div class="card-header bg-warning text-center text-dark fw-bold py-2">
           ⭐ Le plus populaire
         </div>
@@ -45,9 +45,13 @@
           </ul>
         </div>
         <div class="card-footer bg-transparent p-4">
-          {% if user.is_authenticated %}
+          {% if plan_key == 'free' %}
+          <a href="{% url 'agro:inscription' %}" class="btn btn-agro-outline w-100 btn-lg">
+            Commencer gratuitement
+          </a>
+          {% elif user.is_authenticated %}
           <a href="{% url 'agro:souscrire' plan=plan_key %}" class="btn btn-agro w-100 btn-lg">
-            Souscrire — {{ plan.emoji }} {{ plan.nom }}
+            {% if plan_key == 'business' %}Contacter l'équipe{% else %}Passer en premium{% endif %}
           </a>
           {% else %}
           <a href="{% url 'accounts:login' %}?next={% url 'agro:premium' %}"

@@ -1,0 +1,81 @@
+{% extends 'agro/base_agro.html' %}
+
+{% block content %}
+<div class="container-xl py-4">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+    <div>
+      <h1 class="h3 fw-bold mb-1">Dashboard producteur IA</h1>
+      <p class="text-muted mb-0">{{ acteur.nom_entreprise }} - stock, ventes, alertes et conseils.</p>
+    </div>
+    <a href="{% url 'agro:assistant_ia' %}" class="btn btn-agro">
+      <i class="bi bi-stars me-1"></i>Consulter l'IA
+    </a>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="agro-kpi-card"><span>Produits</span><strong>{{ stats.produits }}</strong></div></div>
+    <div class="col-6 col-lg-3"><div class="agro-kpi-card"><span>Demandes</span><strong>{{ stats.commandes }}</strong></div></div>
+    <div class="col-6 col-lg-3"><div class="agro-kpi-card"><span>Stock suivi</span><strong>{{ stats.stock|floatformat:0 }}</strong></div></div>
+    <div class="col-6 col-lg-3"><div class="agro-kpi-card"><span>Revenus estimés</span><strong>{{ stats.revenus|floatformat:0 }} FCFA</strong></div></div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="agro-form-card h-100">
+        <h2 class="h5 fw-bold">Mes produits</h2>
+        {% for produit in produits %}
+        <div class="agro-list-row">
+          <div>
+            <strong>{{ produit.nom }}</strong>
+            <div class="small text-muted">{{ produit.quantite_stock|floatformat:0 }} {{ produit.unite_mesure }} - {{ produit.prix_unitaire|floatformat:0 }} {{ produit.devise }}</div>
+          </div>
+          <span class="badge bg-success-subtle text-success-emphasis">{{ produit.get_statut_display }}</span>
+        </div>
+        {% empty %}
+        <p class="text-muted mb-0">Aucun produit publié.</p>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="agro-answer-card h-100">
+        <h2 class="h5 fw-bold">Conseils IA & alertes</h2>
+        {% for alerte in alertes %}
+        <div class="agro-history-item">{{ alerte }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mt-1">
+    <div class="col-lg-6">
+      <div class="agro-form-card">
+        <h2 class="h5 fw-bold">Stock disponible</h2>
+        {% for stock in stocks %}
+        <div class="agro-list-row">
+          <strong>{{ stock.produit.nom }}</strong>
+          <span class="{% if stock.est_en_alerte %}text-danger{% else %}text-success{% endif %} fw-semibold">{{ stock.quantite|floatformat:0 }}</span>
+        </div>
+        {% empty %}
+        <p class="text-muted mb-0">Les stocks suivis apparaitront ici.</p>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="agro-form-card">
+        <h2 class="h5 fw-bold">Commandes reçues</h2>
+        {% for devis in devis_recents %}
+        <div class="agro-list-row">
+          <div>
+            <strong>{{ devis.produit.nom|default:"Produit" }}</strong>
+            <div class="small text-muted">{{ devis.acheteur.nom_entreprise }} - {{ devis.destination }}</div>
+          </div>
+          <span>{{ devis.quantite|floatformat:0 }} {{ devis.unite_mesure }}</span>
+        </div>
+        {% empty %}
+        <p class="text-muted mb-0">Aucune commande récente.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

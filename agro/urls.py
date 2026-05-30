@@ -7,6 +7,11 @@ urlpatterns = [
     # ─── Accueil et catalogue ────────────────────────────────────────────────
     path('', views.accueil_agro, name='accueil'),
     path('catalogue/', views.catalogue, name='catalogue'),
+    path('marketplace/', views.marketplace_agro, name='marketplace'),
+    path('assistant-ia/', views.assistant_ia_agro, name='assistant_ia'),
+    path('prix-marche/', views.prix_marche_agro, name='prix_marche'),
+    path('dashboard-producteur/', views.dashboard_producteur_agro, name='dashboard_producteur'),
+    path('commander/<int:pk>/', views.commander_produit_agro, name='commander_produit'),
     path('categorie/<slug:slug>/', views.categorie, name='categorie'),
     path('produit/<slug:slug>/', views.detail_produit, name='produit'),
     path('recherche/', views.recherche, name='recherche'),

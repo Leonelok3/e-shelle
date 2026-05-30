@@ -62,6 +62,7 @@ class ClientProfile(models.Model):
     user = models.OneToOneField("tchaslucpay_accounts.CustomUser", on_delete=models.CASCADE, related_name="client_profile")
     account_number = models.CharField(max_length=24, unique=True, db_index=True)
     national_id = models.CharField(max_length=80, blank=True)
+    national_id_expiry = models.DateField(null=True, blank=True)
     city = models.CharField(max_length=80, default="Douala")
     quarter = models.CharField(max_length=120, blank=True)
     phone_number = models.CharField(max_length=25, db_index=True)

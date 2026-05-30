@@ -223,15 +223,25 @@ class CentralAgentService:
             "gaz": BusinessProfile.Module.GAZ,
             "pressing": BusinessProfile.Module.PRESSING,
             "sante": BusinessProfile.Module.SANTE,
+            "pharma": BusinessProfile.Module.PHARMA,
             "jobs": BusinessProfile.Module.JOBS,
+            "services": BusinessProfile.Module.SERVICES,
+            "artisan": BusinessProfile.Module.SERVICES,
             "boutique": BusinessProfile.Module.BOUTIQUE,
+            "market": BusinessProfile.Module.MARKET,
+            "annonces": BusinessProfile.Module.MARKET,
             "agro": BusinessProfile.Module.AGRO,
             "immobilier": BusinessProfile.Module.IMMOBILIER,
+            "auto": BusinessProfile.Module.AUTO,
+            "transport": BusinessProfile.Module.TRANSPORT,
+            "njangi": BusinessProfile.Module.NJANGI,
+            "adgen": BusinessProfile.Module.ADGEN,
+            "edu": BusinessProfile.Module.EDU,
             "quincaillerie": BusinessProfile.Module.QUINCAILLERIE,
         }
 
         mapped_module = module_map.get(module)
-        if not mapped_module and module not in {"general", "services"}:
+        if not mapped_module and module not in {"general"}:
             return []
 
         qs = BusinessProfile.objects.filter(
@@ -252,6 +262,7 @@ class CentralAgentService:
                 metadata={"query": query, "module": module, "placement": "premium_business_result"},
             )
             target_url = self._business_target_url(business)
+            public_url = business.get_absolute_url()
             event = create_tracking_event(
                 business,
                 BusinessLeadEvent.EventType.ORDER,
@@ -265,11 +276,11 @@ class CentralAgentService:
                     "subtitle": self._business_subtitle(business),
                     "details": business.promo_offer or self._shorten(business.description, 140),
                     "badge": business.get_plan_display(),
-                    "url": event.tracking_url(),
+                    "url": public_url,
                     "primary_label": "Commander" if business.module in {BusinessProfile.Module.RESTO, BusinessProfile.Module.GAZ, BusinessProfile.Module.SANTE} else "Contacter",
                     "primary_url": event.tracking_url(),
-                    "secondary_label": f"{business.views_count} vues",
-                    "secondary_url": "",
+                    "secondary_label": "Voir la boutique",
+                    "secondary_url": public_url,
                 }
             )
         return cards

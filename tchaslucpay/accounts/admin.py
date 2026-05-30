@@ -35,8 +35,8 @@ class CollecteurProfileAdmin(admin.ModelAdmin):
 class ClientProfileAdmin(admin.ModelAdmin):
     """Administration des clients commercants et de leur solde."""
 
-    list_display = ("account_number", "user", "trusted_collecteur", "solde", "city", "quarter", "created_at")
+    list_display = ("account_number", "user", "national_id", "national_id_expiry", "trusted_collecteur", "solde", "city", "quarter", "created_at")
     list_filter = ("city", "trusted_collecteur")
-    search_fields = ("account_number", "user__username", "user__first_name", "user__last_name", "phone_number")
+    search_fields = ("account_number", "national_id", "user__username", "user__first_name", "user__last_name", "phone_number")
     autocomplete_fields = ("user", "trusted_collecteur")
     readonly_fields = ("created_at",)

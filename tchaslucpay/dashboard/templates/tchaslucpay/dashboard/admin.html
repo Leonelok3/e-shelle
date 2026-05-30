@@ -2,8 +2,40 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h1 class="h4 mb-0">Pilotage financier</h1>
-  <span class="badge text-bg-dark">{{ balances_count }} comptes</span>
+  <div class="d-flex gap-2">
+    <a class="btn btn-sm btn-outline-success" href="{% url 'tchaslucpay_dashboard:rapport_agence' %}">Rapport agence</a>
+    <span class="badge text-bg-dark align-self-center">{{ balances_count }} comptes</span>
+  </div>
 </div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="bg-white border rounded p-3 h-100"><div class="text-muted small">Collecté aujourd'hui</div><div class="h4 mb-0 text-success">{{ summary.total_collecte|floatformat:0 }} XAF</div></div></div>
+  <div class="col-md-3"><div class="bg-white border rounded p-3 h-100"><div class="text-muted small">Dépôts</div><div class="h4 mb-0">{{ summary.nb_depots }}</div></div></div>
+  <div class="col-md-3"><div class="bg-white border rounded p-3 h-100"><div class="text-muted small">Clients servis</div><div class="h4 mb-0">{{ summary.nb_clients_servis }}</div></div></div>
+  <div class="col-md-3"><div class="bg-white border rounded p-3 h-100"><div class="text-muted small">Meilleur collecteur</div><div class="fw-semibold">{{ summary.meilleur_collecteur }}</div></div></div>
+</div>
+
+<div class="bg-white border rounded mb-4">
+  <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+    <div>
+      <div class="fw-semibold">Alertes du jour</div>
+      <div class="small text-muted">Agent Anti-fraude + Agent Superviseur</div>
+    </div>
+    <span class="badge text-bg-success">Live</span>
+  </div>
+  <div class="list-group list-group-flush">
+    {% for alert in alerts %}
+      <div class="list-group-item d-flex gap-3">
+        <span class="badge text-bg-{{ alert.level }} align-self-start">{{ alert.agent }}</span>
+        <div>
+          <div class="fw-semibold">{{ alert.title }}</div>
+          <div class="small text-muted">{{ alert.message }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
 <div class="table-responsive bg-white border rounded">
   <table class="table table-hover align-middle mb-0">
     <thead><tr><th>TRID</th><th>Client</th><th>Type</th><th>Montant</th><th>Solde</th><th>Date</th><th>Recu</th></tr></thead>

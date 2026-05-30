@@ -4,6 +4,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.shortcuts import render
+from django.http import HttpResponse
+from django.utils import timezone
+from business import views as business_views
 from billing import views_affiliate
 
 
@@ -59,7 +62,183 @@ def home_view(request):
         ctx["hero_businesses"] = []
     return render(request, "home.html", ctx)
 
+
+def commercial_pdf_view(request):
+    try:
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4
+        from reportlab.pdfgen import canvas
+    except ImportError:
+        return HttpResponse("ReportLab doit etre installe pour generer le PDF commercial.", status=500)
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="E-Shelle-presentation-commerciale.pdf"'
+
+    pdf = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+    navy = colors.HexColor("#07120D")
+    green = colors.HexColor("#16A34A")
+    gold = colors.HexColor("#FACC15")
+    muted = colors.HexColor("#64748B")
+    light = colors.HexColor("#F8FAFC")
+    border = colors.HexColor("#D9E2EA")
+
+    def money(value):
+        return f"{value:,.0f} FCFA".replace(",", " ")
+
+    def header(title, subtitle=None):
+        pdf.setFillColor(navy)
+        pdf.rect(0, height - 118, width, 118, stroke=0, fill=1)
+        pdf.setFillColor(green)
+        pdf.roundRect(42, height - 52, 88, 22, 7, stroke=0, fill=1)
+        pdf.setFillColor(colors.white)
+        pdf.setFont("Helvetica-Bold", 10)
+        pdf.drawString(55, height - 46, "E-SHELLE")
+        pdf.setFont("Helvetica-Bold", 22)
+        pdf.drawString(42, height - 82, title)
+        if subtitle:
+            pdf.setFont("Helvetica", 10)
+            pdf.setFillColor(colors.Color(1, 1, 1, alpha=.72))
+            pdf.drawString(42, height - 100, subtitle)
+
+    def section_title(text, y):
+        pdf.setFillColor(green)
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(42, y, text)
+        return y - 22
+
+    def paragraph(text, x, y, max_chars=92, leading=14, color=muted):
+        pdf.setFillColor(color)
+        pdf.setFont("Helvetica", 9.5)
+        words = text.split()
+        line = ""
+        for word in words:
+            if len(line + " " + word) > max_chars:
+                pdf.drawString(x, y, line.strip())
+                y -= leading
+                line = word
+            else:
+                line = f"{line} {word}"
+        if line:
+            pdf.drawString(x, y, line.strip())
+            y -= leading
+        return y
+
+    def bullet(text, x, y):
+        pdf.setFillColor(green)
+        pdf.circle(x, y + 3, 2.4, stroke=0, fill=1)
+        return paragraph(text, x + 12, y, max_chars=78, leading=13, color=colors.HexColor("#334155"))
+
+    def card(x, y, w, h, title, body, accent=green):
+        pdf.setFillColor(colors.white)
+        pdf.setStrokeColor(border)
+        pdf.roundRect(x, y - h, w, h, 10, stroke=1, fill=1)
+        pdf.setFillColor(accent)
+        pdf.roundRect(x + 14, y - 30, 28, 20, 6, stroke=0, fill=1)
+        pdf.setFillColor(colors.white)
+        pdf.setFont("Helvetica-Bold", 8)
+        pdf.drawCentredString(x + 28, y - 24, "IA")
+        pdf.setFillColor(navy)
+        pdf.setFont("Helvetica-Bold", 12)
+        pdf.drawString(x + 50, y - 24, title)
+        paragraph(body, x + 14, y - 50, max_chars=38, leading=12)
+
+    header("Presentation commerciale", "Ecosysteme digital et IA pour business africains")
+    y = height - 150
+    pdf.setFillColor(navy)
+    pdf.setFont("Helvetica-Bold", 24)
+    pdf.drawString(42, y, "Digitalisez. Automatisez. Grandissez.")
+    y -= 24
+    y = paragraph(
+        "E-Shelle est une plateforme modulaire qui aide les microfinances, cooperatives, agriculteurs, commercants, PME et organisations terrain a gerer leurs operations, vendre plus et produire des rapports fiables.",
+        42,
+        y,
+        max_chars=88,
+        leading=14,
+    )
+    y -= 12
+    y = section_title("Modules prioritaires", y)
+    card(42, y, 160, 102, "Tchaslucpay", "Collecte terrain, depots, CNI, recus PDF, anti-fraude, rapport agence.")
+    card(218, y, 160, 102, "AgroConnect AI", "Marketplace agricole, prix du marche, assistant IA et dashboard producteur.", green)
+    card(394, y, 160, 102, "Marketing IA", "Posts, publicites, calendrier editorial et messages WhatsApp prets a vendre.", gold)
+    y -= 128
+    y = section_title("Valeur pour le client", y)
+    for item in [
+        "Traçabilite des operations, clients, commandes, paiements et recus.",
+        "Reduction des pertes grace aux alertes anti-fraude et rapports journaliers.",
+        "Gain de temps avec des dashboards, exports PDF et notifications WhatsApp/SMS.",
+        "Modules deployables separement ou comme ecosysteme complet.",
+    ]:
+        y = bullet(item, 48, y)
+        y -= 3
+    y -= 8
+    y = section_title("Offres commerciales", y)
+    offers = [("Starter", money(15000) + " / mois", "Page vitrine, catalogue simple, support WhatsApp."),
+              ("Business", money(50000) + " / mois", "Dashboard, clients, commandes, rapports et notifications."),
+              ("Pro IA", "Sur devis", "Agents IA, workflows metier, formation et deploiement personnalise.")]
+    x = 42
+    for title, price, desc in offers:
+        pdf.setFillColor(light)
+        pdf.setStrokeColor(border)
+        pdf.roundRect(x, y - 96, 160, 96, 10, stroke=1, fill=1)
+        pdf.setFillColor(navy)
+        pdf.setFont("Helvetica-Bold", 13)
+        pdf.drawString(x + 14, y - 24, title)
+        pdf.setFillColor(green)
+        pdf.setFont("Helvetica-Bold", 12)
+        pdf.drawString(x + 14, y - 44, price)
+        paragraph(desc, x + 14, y - 62, max_chars=34, leading=11)
+        x += 176
+
+    pdf.showPage()
+    header("Cas concret: Tchaslucpay", "Microfinance digitale, collecteurs, agence et clients")
+    y = height - 150
+    y = section_title("Ce que la demo montre", y)
+    for item in [
+        "Creation client avec numero CNI et date d'expiration.",
+        "Depot terrain a partir de 500 XAF, retrait uniquement en agence.",
+        "Reçu PDF, historique client et solde actualise.",
+        "Agent anti-fraude, agent superviseur et coach collecteur.",
+        "Rapport agence PDF et notifications WhatsApp/SMS preparees.",
+    ]:
+        y = bullet(item, 48, y)
+        y -= 4
+    y -= 8
+    y = section_title("Script de vente en 20 secondes", y)
+    y = paragraph(
+        "E-Shelle n'est pas seulement une application. C'est un systeme digital complet qui transforme une activite locale en organisation moderne, suivie, traçable et capable de prendre de meilleures decisions grace a l'IA.",
+        42,
+        y,
+        max_chars=88,
+        leading=15,
+        color=colors.HexColor("#334155"),
+    )
+    y -= 16
+    y = section_title("Prochaine etape", y)
+    for item in [
+        "Programmer une demo de 10 minutes.",
+        "Choisir le module prioritaire: Tchaslucpay, AgroConnect AI, Marketing IA ou Marketplace.",
+        "Definir le pack et les adaptations metier.",
+        "Former l'equipe et lancer un pilote terrain.",
+    ]:
+        y = bullet(item, 48, y)
+        y -= 4
+
+    pdf.setFillColor(navy)
+    pdf.roundRect(42, 56, width - 84, 74, 12, stroke=0, fill=1)
+    pdf.setFillColor(colors.white)
+    pdf.setFont("Helvetica-Bold", 15)
+    pdf.drawString(62, 100, "Contact demo")
+    pdf.setFont("Helvetica", 10)
+    pdf.drawString(62, 82, "WhatsApp: +237 680 625 082   |   E-Shelle par IMAGENAF")
+    pdf.setFillColor(colors.Color(1, 1, 1, alpha=.65))
+    pdf.drawString(62, 66, f"Document genere le {timezone.localdate().strftime('%d/%m/%Y')}")
+
+    pdf.save()
+    return response
+
 urlpatterns = [
+    path("e-shelle-commercial.pdf", commercial_pdf_view, name="commercial_pdf"),
     path("admin/", admin.site.urls),
 
     # Authentification (vues custom E-Shelle)
@@ -152,10 +331,17 @@ urlpatterns = [
     path("ai/", include("e_shelle_ai.urls", namespace="eshelle_ai")),
     path("chat/", include("chat.urls", namespace="chat")),
     path("business/", include("business.urls", namespace="business")),
+    path("b/<slug:public_slug>/", business_views.public_profile, name="business_public_short"),
     path("ref/<str:ref_code>/", views_affiliate.ref_redirect, name="public_ref_redirect"),
 
     # ── Facebook Agent IA — Dashboard auto-publication ────────────────
     path("facebook-agent/", include("facebook_agent.urls", namespace="facebook_agent")),
+
+    # ── WhatsApp Agent IA — Campagnes Meta WhatsApp Business ──────────
+    path("whatsapp/", include("whatsapp_agent.urls", namespace="whatsapp_agent")),
+
+    # ── Agent Commercial IA — Prospection & ventes prestataires ──────
+    path("commercial-agent/", include("commercial_agent.urls", namespace="commercial_agent")),
 
     # ── TIBO — Boutique dropshipping premium Canada ───────────────────
     path("tibo/", include("apps.tibo.urls", namespace="tibo")),

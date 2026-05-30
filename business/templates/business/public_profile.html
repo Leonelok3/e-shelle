@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}{{ business.name }} - Vitrine E-Shelle{% endblock %}
+{% block meta_description %}Decouvrez {{ business.name }} sur E-Shelle et contactez directement par WhatsApp.{% endblock %}
+
+{% block content %}
+<section style="min-height:100vh;padding:8rem 0 4rem;background:radial-gradient(circle at 75% 15%,rgba(34,197,94,.16),transparent 30%),#050910;color:#fff">
+  <div class="container" style="max-width:1040px">
+    <div style="display:grid;grid-template-columns:1fr;gap:1.5rem">
+      <div style="border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(255,255,255,.05);padding:clamp(1.4rem,4vw,2.5rem)">
+        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem">
+          <span style="display:inline-flex;padding:.38rem .75rem;border-radius:999px;background:rgba(34,197,94,.14);color:#86efac;font-weight:800;font-size:.78rem;text-transform:uppercase">{{ business.get_module_display }}</span>
+          {% if business.is_verified %}<span style="color:#93c5fd;font-weight:800;font-size:.85rem">Verifie</span>{% endif %}
+          {% if business.plan != "free" %}<span style="color:#facc15;font-weight:800;font-size:.85rem">{{ business.get_plan_display }}</span>{% endif %}
+        </div>
+
+        <h1 style="font-family:var(--font-display);font-size:clamp(2.2rem,6vw,4.8rem);line-height:.95;margin:0 0 1rem">{{ business.name }}</h1>
+        <p style="max-width:700px;color:rgba(255,255,255,.7);font-size:1.05rem;line-height:1.75">
+          {{ business.description|default:business.promo_offer|default:"Cette activite est presente sur E-Shelle. Contactez directement le vendeur ou prestataire pour plus d'informations." }}
+        </p>
+
+        <div style="display:flex;flex-wrap:wrap;gap:.65rem;margin:1.5rem 0;color:rgba(255,255,255,.7);font-weight:700">
+          {% if business.city %}<span style="padding:.45rem .7rem;border-radius:999px;background:rgba(255,255,255,.08)">{{ business.city }}</span>{% endif %}
+          {% if business.district %}<span style="padding:.45rem .7rem;border-radius:999px;background:rgba(255,255,255,.08)">{{ business.district }}</span>{% endif %}
+          <span style="padding:.45rem .7rem;border-radius:999px;background:rgba(255,255,255,.08)">{{ business.views_count }} vues</span>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.7rem">
+          {% if whatsapp_url %}
+            <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border-radius:12px;background:#7dec6c;color:#06120a;font-weight:900">Contacter WhatsApp</a>
+          {% endif %}
+          <a href="{{ share_whatsapp_url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border-radius:12px;background:linear-gradient(135deg,#7dec6c,#f59e0b);color:#06120a;font-weight:900">Partager ma boutique</a>
+          <button type="button" data-copy-link="{{ public_url }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#fff;font-weight:850">Copier le lien</button>
+          {% if business.phone %}
+            <a href="tel:{{ business.phone }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,.18);font-weight:850">Appeler</a>
+          {% endif %}
+          {% if source_url %}
+            <a href="{{ source_url }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,.18);font-weight:850">Voir la page complete</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <section style="margin-top:1.5rem">
+        <div style="display:flex;align-items:end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
+          <div>
+            <p style="margin:0 0 .35rem;color:#86efac;font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em">Catalogue</p>
+            <h2 style="margin:0;font-family:var(--font-display);font-size:clamp(1.7rem,3vw,2.4rem)">Produits et services disponibles</h2>
+          </div>
+          {% if source_url %}
+            <a href="{{ source_url }}" style="color:#86efac;font-weight:850">Voir la page complete</a>
+          {% endif %}
+        </div>
+
+        {% if items %}
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
+            {% for item in items %}
+              <article style="overflow:hidden;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.045)">
+                <a href="{{ item.url|default:'#' }}" style="display:block;min-height:150px;background:linear-gradient(135deg,rgba(20,184,166,.45),rgba(30,41,59,.9));text-decoration:none">
+                  {% if item.image %}
+                    <img src="{{ item.image }}" alt="{{ item.title }}" style="width:100%;height:150px;object-fit:cover">
+                  {% else %}
+                    <div style="height:150px;display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-size:2.6rem;font-weight:900">{{ item.title|slice:":1" }}</div>
+                  {% endif %}
+                </a>
+                <div style="padding:1rem">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.55rem">
+                    <span style="color:#86efac;font-size:.72rem;font-weight:900;text-transform:uppercase">{{ item.type }}</span>
+                    {% if item.meta %}<span style="color:rgba(255,255,255,.45);font-size:.72rem;font-weight:750">{{ item.meta }}</span>{% endif %}
+                  </div>
+                  <h3 style="margin:0 0 .45rem;color:#fff;font-family:var(--font-display);font-size:1.05rem;line-height:1.18">{{ item.title }}</h3>
+                  <p style="min-height:44px;margin:0 0 .8rem;color:rgba(255,255,255,.58);font-size:.86rem;line-height:1.5">{{ item.description|default:"Disponible sur E-Shelle." }}</p>
+                  <strong style="display:block;margin-bottom:.9rem;color:#facc15">{{ item.price|default:"Prix a discuter" }}</strong>
+                  <div style="display:flex;gap:.55rem;flex-wrap:wrap">
+                    {% if item.contact_url %}
+                      <a href="{{ item.contact_url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;background:#7dec6c;color:#06120a;font-size:.82rem;font-weight:900">WhatsApp</a>
+                    {% endif %}
+                    {% if item.url %}
+                      <a href="{{ item.url }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;border:1px solid rgba(255,255,255,.16);font-size:.82rem;font-weight:850">Details</a>
+                    {% endif %}
+                  </div>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="border:1px dashed rgba(255,255,255,.16);border-radius:12px;background:rgba(255,255,255,.035);padding:2rem;text-align:center;color:rgba(255,255,255,.65)">
+            Aucun produit ou service public n'est encore associe a cette vitrine.
+          </div>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+</section>
+<script>
+document.querySelectorAll('[data-copy-link]').forEach(function(button){
+  button.addEventListener('click', function(){
+    var link = button.getAttribute('data-copy-link');
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(link).then(function(){ button.textContent = 'Lien copie'; });
+    }
+  });
+});
+</script>
+{% endblock %}

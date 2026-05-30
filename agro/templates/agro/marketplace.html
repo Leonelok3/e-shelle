@@ -1,0 +1,47 @@
+{% extends 'agro/base_agro.html' %}
+
+{% block content %}
+<div class="container-xl py-4">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+    <div>
+      <h1 class="h3 fw-bold mb-1">Marketplace AgroConnect AI</h1>
+      <p class="text-muted mb-0">{{ total }} produits disponibles avec vendeurs vérifiés, devis et livraison.</p>
+    </div>
+    <a href="{% url 'agro:ajouter_produit' %}" class="btn btn-agro">
+      <i class="bi bi-plus-circle me-1"></i>Vendre mes produits
+    </a>
+  </div>
+
+  <div class="row g-3">
+    {% for produit in page_obj %}
+    <div class="col-6 col-md-4 col-xl-3">
+      {% include 'agro/components/product_card.html' with produit=produit %}
+      <a href="{% url 'agro:commander_produit' pk=produit.pk %}" class="btn btn-agro-outline btn-sm w-100 mt-2">
+        <i class="bi bi-bag-check me-1"></i>Commander
+      </a>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="agro-empty-state text-center py-5">
+        <h2 class="h5">Aucun produit publié pour le moment.</h2>
+        <p class="text-muted">Ajoutez manioc, maïs, plantain, arachide, cacao, café, huile de palme ou poisson fumé.</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <nav class="mt-4 d-flex justify-content-center">
+    <ul class="pagination agro-pagination">
+      {% if page_obj.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédent</a></li>
+      {% endif %}
+      <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+      {% if page_obj.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivant</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

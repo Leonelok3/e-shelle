@@ -1,0 +1,93 @@
+{% extends "tchaslucpay/dashboard/base.html" %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <div>
+    <h1 class="h3 mb-1">Rapport agence</h1>
+    <p class="text-muted mb-0">Agent Superviseur, Anti-fraude, scoring client et notifications WhatsApp/SMS.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <form method="post" class="m-0">
+      {% csrf_token %}
+      <button class="btn btn-outline-success" type="submit">Préparer WhatsApp/SMS</button>
+    </form>
+    <a class="btn btn-dark" href="{% url 'tchaslucpay_dashboard:rapport_agence_pdf' %}">Exporter PDF journalier</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="bg-white border rounded p-3 h-100"><div class="text-muted small">Total collecté</div><div class="h4 text-success mb-0">{{ summary.total_collecte|floatformat:0 }} XAF</div></div></div>
+  <div class="col-md-3"><div class="bg-white border rounded p-3 h-100"><div class="text-muted small">Dépôts</div><div class="h4 mb-0">{{ summary.nb_depots }}</div></div></div>
+  <div class="col-md-3"><div class="bg-white border rounded p-3 h-100"><div class="text-muted small">Clients servis</div><div class="h4 mb-0">{{ summary.nb_clients_servis }}</div></div></div>
+  <div class="col-md-3"><div class="bg-white border rounded p-3 h-100"><div class="text-muted small">Montant moyen</div><div class="h4 mb-0">{{ summary.montant_moyen|floatformat:0 }} XAF</div></div></div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="bg-white border rounded h-100">
+      <div class="p-3 border-bottom">
+        <div class="fw-semibold">Alertes du jour</div>
+        <div class="small text-muted">Agent Anti-fraude + Superviseur</div>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for alert in alerts %}
+          <div class="list-group-item">
+            <span class="badge text-bg-{{ alert.level }} mb-2">{{ alert.agent }}</span>
+            <div class="fw-semibold">{{ alert.title }}</div>
+            <div class="small text-muted">{{ alert.message }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="bg-white border rounded h-100">
+      <div class="p-3 border-bottom">
+        <div class="fw-semibold">Classement collecteurs</div>
+        <div class="small text-muted">Agent Superviseur</div>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>Collecteur</th><th>Dépôts</th><th>Total</th></tr></thead>
+          <tbody>
+            {% for row in summary.classement_collecteurs %}
+              <tr>
+                <td>{{ row.collector__first_name }} {{ row.collector__last_name }}</td>
+                <td>{{ row.nb }}</td>
+                <td>{{ row.total|floatformat:0 }} XAF</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" class="text-center text-muted py-4">Aucune collecte aujourd'hui.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bg-white border rounded mt-4">
+  <div class="p-3 border-bottom">
+    <div class="fw-semibold">Badge risque client</div>
+    <div class="small text-muted">Faible / moyen / élevé selon CNI, activité et comportement.</div>
+  </div>
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead><tr><th>Client</th><th>CNI</th><th>Expiration</th><th>Solde</th><th>Risque</th><th>Raisons</th></tr></thead>
+      <tbody>
+        {% for client in clients %}
+          <tr>
+            <td>{{ client.user.get_full_name|default:client.user.username }}</td>
+            <td class="font-monospace small">{{ client.national_id|default:"-" }}</td>
+            <td>{{ client.national_id_expiry|date:"d/m/Y"|default:"-" }}</td>
+            <td>{{ client.solde|floatformat:0 }} XAF</td>
+            <td><span class="badge text-bg-{{ client.risk.css_class }}">{{ client.risk.label }}</span></td>
+            <td class="small text-muted">{{ client.risk.reasons|join:", " }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">Aucun client.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

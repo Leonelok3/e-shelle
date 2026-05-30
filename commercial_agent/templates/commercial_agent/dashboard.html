@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Agent Commercial IA E-Shelle{% endblock %}
+
+{% block content %}
+<style>
+  .ca-shell{min-height:100vh;background:#06110b;color:#eefcf4;padding:112px 16px 44px}
+  .ca-wrap{max-width:1220px;margin:0 auto}
+  .ca-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:22px}
+  .ca-title{font-size:clamp(1.7rem,3.4vw,2.7rem)!important;line-height:1.05!important;margin:0!important;font-weight:800!important;letter-spacing:0!important}
+  .ca-sub{color:#a8bbae;margin:.45rem 0 0;max-width:760px}
+  .ca-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .ca-btn{border:0;border-radius:8px;background:#16a34a;color:#fff;font-weight:800;padding:11px 15px;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+  .ca-btn:hover{color:#fff;background:#12813d}
+  .ca-btn.ghost{background:#10291c;border:1px solid #2f6b47}
+  .ca-btn.gold{background:#ca8a04}
+  .ca-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}
+  .ca-card{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;padding:16px;position:relative;overflow:hidden}
+  .ca-card span{display:block;color:#9fb3a8;font-size:.78rem;font-weight:800;text-transform:uppercase}
+  .ca-card strong{display:block;color:#facc15;font-size:1.65rem;margin-top:6px}
+  .ca-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+  .ca-panel{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;overflow:hidden}
+  .ca-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px;border-bottom:1px solid #1d3d2c}
+  .ca-panel-head h2{font-size:1rem;color:#facc15;margin:0}
+  .ca-table{width:100%;border-collapse:collapse}
+  .ca-table th,.ca-table td{padding:12px 14px;border-bottom:1px solid #173524;text-align:left;font-size:.9rem}
+  .ca-table th{color:#facc15;background:#0a1710}
+  .ca-link{color:#86efac;font-weight:800;text-decoration:none}
+  .ca-muted{color:#9fb3a8}
+  .ca-badge{display:inline-flex;border-radius:999px;padding:4px 10px;font-size:.76rem;font-weight:800;background:#1f2937;color:#e5e7eb}
+  .ca-badge.paye{background:#123b2a;color:#86efac}.ca-badge.interesse,.ca-badge.negociation{background:#12314a;color:#93c5fd}.ca-badge.perdu{background:#3b1d1d;color:#fca5a5}
+  .ca-list{display:grid;gap:10px;padding:14px}
+  .ca-row{background:#07120d;border:1px solid #1d3d2c;border-radius:8px;padding:12px}
+  .ca-row strong{color:#fff}.ca-row p{margin:.25rem 0 0}
+  .ca-mini-form{display:flex;gap:8px;flex-wrap:wrap;padding:14px;border-top:1px solid #1d3d2c}
+  .ca-input{background:#07120d;color:#e8f5ee;border:1px solid #315641;border-radius:8px;padding:10px 12px}
+  @media(max-width:960px){.ca-top,.ca-layout{grid-template-columns:1fr;flex-direction:column}.ca-grid{grid-template-columns:1fr 1fr}.ca-table{min-width:760px}.ca-panel{overflow-x:auto}}
+</style>
+
+<main class="ca-shell">
+  <div class="ca-wrap">
+    <div class="ca-top">
+      <div>
+        <h1 class="ca-title">Agent Commercial IA</h1>
+        <p class="ca-sub">Cockpit de vente E-Shelle: prioriser les prospects, generer les messages, relancer sur WhatsApp et suivre l'argent potentiel.</p>
+      </div>
+      <div class="ca-actions">
+        <form method="post" action="{% url 'commercial_agent:sync_business' %}">
+          {% csrf_token %}
+          <button class="ca-btn" type="submit">Synchroniser business</button>
+        </form>
+        <a class="ca-btn ghost" href="{% url 'commercial_agent:prospect_list' %}">Voir prospects</a>
+      </div>
+    </div>
+
+    <section class="ca-grid">
+      <div class="ca-card"><span>Prospects</span><strong>{{ stats.total }}</strong></div>
+      <div class="ca-card"><span>A traiter</span><strong>{{ stats.a_traiter }}</strong></div>
+      <div class="ca-card"><span>Interesses</span><strong>{{ stats.interesses }}</strong></div>
+      <div class="ca-card"><span>Payes</span><strong>{{ stats.payes }}</strong></div>
+      <div class="ca-card"><span>Potentiel</span><strong>{{ stats.potentiel }} FCFA</strong></div>
+      <div class="ca-card"><span>Encaisse</span><strong>{{ stats.encaisse }} FCFA</strong></div>
+    </section>
+
+    <section class="ca-layout">
+      <div class="ca-panel">
+        <div class="ca-panel-head">
+          <h2>Top prospects a contacter aujourd'hui</h2>
+          <a class="ca-link" href="{% url 'commercial_agent:prospect_list' %}">Tout voir</a>
+        </div>
+        <table class="ca-table">
+          <thead><tr><th>Prospect</th><th>Module</th><th>Ville</th><th>Score</th><th>Plan</th><th>Action</th></tr></thead>
+          <tbody>
+          {% for prospect in due_prospects %}
+            <tr>
+              <td><a class="ca-link" href="{% url 'commercial_agent:prospect_detail' prospect.pk %}">{{ prospect.nom }}</a></td>
+              <td>{{ prospect.module|default:"-" }}</td>
+              <td>{{ prospect.ville|default:"-" }}</td>
+              <td>{{ prospect.score }}/100</td>
+              <td>{{ prospect.plan_recommande|default:"-" }}</td>
+              <td><a class="ca-link" href="{% url 'commercial_agent:prospect_detail' prospect.pk %}">Ouvrir</a></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="ca-muted">Aucun prospect urgent. Synchronise les fiches business ou ajoute des prospects.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <form class="ca-mini-form" method="post" action="{% url 'commercial_agent:create_auto_campaign' %}">
+          {% csrf_token %}
+          <input class="ca-input" name="name" placeholder="Campagne du jour">
+          <input class="ca-input" name="module" placeholder="Module cible">
+          <input class="ca-input" name="ville" placeholder="Ville">
+          <button class="ca-btn gold" type="submit">Creer campagne auto</button>
+        </form>
+      </div>
+
+      <div class="ca-panel">
+        <div class="ca-panel-head"><h2>Pipeline business</h2></div>
+        <div class="ca-list">
+          {% for row in by_status %}
+          <div class="ca-row">
+            <strong>{{ row.statut|default:"-" }}</strong>
+            <p class="ca-muted">{{ row.total }} prospect(s)</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="ca-layout" style="margin-top:16px">
+      <div class="ca-panel">
+        <div class="ca-panel-head"><h2>Potentiel par module</h2></div>
+        <div class="ca-list">
+          {% for row in by_module %}
+          <div class="ca-row">
+            <strong>{{ row.module|default:"General" }}</strong>
+            <p class="ca-muted">{{ row.total }} prospect(s) - {{ row.potentiel|default:0 }} FCFA potentiel</p>
+          </div>
+          {% empty %}<div class="ca-row ca-muted">Aucune donnee module.</div>{% endfor %}
+        </div>
+      </div>
+      <div class="ca-panel">
+        <div class="ca-panel-head"><h2>Dernieres relances</h2></div>
+        <div class="ca-list">
+          {% for relance in recent_relances %}
+          <div class="ca-row">
+            <strong>{{ relance.prospect.nom }}</strong>
+            <p class="ca-muted">{{ relance.get_type_action_display }} - {{ relance.get_resultat_display }} - {{ relance.cree_le|date:"d/m/Y H:i" }}</p>
+          </div>
+          {% empty %}<div class="ca-row ca-muted">Aucune relance pour le moment.</div>{% endfor %}
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+{% endblock %}

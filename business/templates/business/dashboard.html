@@ -55,8 +55,15 @@
         </div>
 
         <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.25rem">
+          <a href="{{ public_url }}" target="_blank" rel="noopener" class="btn btn-primary">Voir ma boutique</a>
+          <a href="{{ share_whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-outline-white">Partager ma boutique</a>
+          {% if whatsapp_url %}
+            <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-outline-white">Contacter WhatsApp</a>
+          {% endif %}
           <a href="{% url 'business:payment_request' current.id %}?plan=business" class="btn btn-primary">Activer Business</a>
           <a href="{% url 'business:payment_request' current.id %}?plan=premium" class="btn btn-outline-white">Passer Premium</a>
+          <a href="{% url 'business:provider_plans' %}" class="btn btn-outline-white">Plans / Boost</a>
+          <a href="{% url 'business:custom_app_offer' %}" class="btn btn-outline-white">Application personnalisée</a>
           <a href="/chat/" class="btn btn-outline-white">Tester dans le chat</a>
           <a href="{% url 'business:performance_report' current.id %}" class="btn btn-outline-white">Rapport PDF/WhatsApp</a>
         </div>
@@ -66,6 +73,12 @@
         <h3 style="color:#fff;margin-bottom:.75rem">Paiement adapté local</h3>
         <p>Vous pouvez demander une activation et payer à la réception, par Mobile Money manuel ou avec un code d’accès.</p>
         <p style="margin-top:.75rem;color:rgba(255,255,255,.55)">L'équipe E-Shelle confirme ensuite votre abonnement.</p>
+        {% if public_url %}
+          <div style="margin-top:1rem;padding:.8rem;border-radius:12px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08)">
+            <strong style="display:block;color:#fff;margin-bottom:.35rem">Lien public</strong>
+            <span style="word-break:break-all;color:#86efac;font-size:.86rem">{{ public_url }}</span>
+          </div>
+        {% endif %}
       </aside>
     </div>
 

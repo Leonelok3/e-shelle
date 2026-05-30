@@ -4,6 +4,7 @@ from django.db import models
 
 class NotificationChannel(models.TextChoices):
     SMS = "SMS", "SMS"
+    WHATSAPP = "WHATSAPP", "WhatsApp"
     EMAIL = "EMAIL", "Email"
 
 

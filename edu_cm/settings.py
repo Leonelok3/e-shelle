@@ -122,6 +122,12 @@ INSTALLED_APPS = [
     # ── Facebook Agent IA — Auto-publication sur la page Facebook ──
     "facebook_agent.apps.FacebookAgentConfig",
 
+    # ── WhatsApp Agent IA — Campagnes Meta WhatsApp Business ───────
+    "whatsapp_agent.apps.WhatsappAgentConfig",
+
+    # ── Agent Commercial IA — Pipeline ventes E-Shelle ─────────────
+    "commercial_agent.apps.CommercialAgentConfig",
+
     # ── TIBO — Dropshipping premium Canada ────────────────────────
     "apps.tibo.apps.TiboConfig",
 
@@ -423,6 +429,17 @@ RESTO_FREE_TRIAL_DAYS = 30
 # ── Facebook Agent IA ─────────────────────────────────────────────
 FACEBOOK_APP_ID     = os.getenv("FACEBOOK_APP_ID", "")
 FACEBOOK_APP_SECRET = os.getenv("FACEBOOK_APP_SECRET", "")
+
+# ── WhatsApp Agent IA — Meta WhatsApp Business API ────────────────
+WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN", "")
+WHATSAPP_PHONE_ID = os.getenv("WHATSAPP_PHONE_ID", "")
+WHATSAPP_API_URL = os.getenv(
+    "WHATSAPP_API_URL",
+    f"https://graph.facebook.com/v19.0/{WHATSAPP_PHONE_ID}/messages",
+)
+WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "")
+WHATSAPP_DRY_RUN = os.getenv("WHATSAPP_DRY_RUN", "True").lower() in ("1", "true", "yes")
+WHATSAPP_CONFIG_READY = bool(WHATSAPP_TOKEN and WHATSAPP_PHONE_ID and WHATSAPP_VERIFY_TOKEN)
 
 # ── Celery — Broker & Backend ──────────────────────────────────────
 CELERY_BROKER_URL         = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Nouvelle campagne WhatsApp{% endblock %}
+
+{% block content %}
+<style>
+  .wa-shell{min-height:100vh;background:#07120d;color:#e8f5ee;padding:112px 16px 40px}
+  .wa-wrap{max-width:1120px;margin:0 auto}
+  .wa-head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:22px}
+  .wa-title{margin:0!important;font-size:clamp(1.65rem,3vw,2.35rem)!important;line-height:1.08!important;font-weight:800!important;letter-spacing:0!important}
+  .wa-link{color:#86efac;font-weight:800;text-decoration:none}
+  .wa-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);gap:18px}
+  .wa-panel{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;padding:18px}
+  .wa-panel h2{font-size:1rem;color:#facc15;margin:0 0 14px}
+  .wa-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .wa-field{margin-bottom:14px}
+  .wa-field label{display:block;font-weight:800;font-size:.85rem;color:#b9cabf;margin-bottom:6px}
+  .wa-input{width:100%;box-sizing:border-box;background:#07120d;color:#e8f5ee;border:1px solid #315641;border-radius:8px;padding:11px 12px;outline:none}
+  .wa-input:focus{border-color:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.18)}
+  .wa-btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:8px;background:#16a34a;color:white;font-weight:800;padding:11px 16px;text-decoration:none;cursor:pointer}
+  .wa-btn.gold{background:#ca8a04}
+  .wa-btn.ghost{background:#10291c;border:1px solid #2f6b47}
+  .wa-btn.validate{background:#22c55e}
+  .wa-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .wa-alert{background:#10291c;border:1px solid #2f6b47;color:#cfe0d6;border-radius:8px;padding:12px 14px;margin-bottom:16px}
+  .wa-presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .wa-chip{border:1px solid #2f6b47;background:#07120d;color:#d9fbe7;border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer}
+  .wa-chip:hover{border-color:#22c55e;color:#fff}
+  .wa-preview-phone{background:#06110b;border:1px solid #1d3d2c;border-radius:8px;padding:18px;min-height:360px}
+  .wa-bubble{max-width:86%;background:#dcf8c6;color:#102014;border-radius:8px 8px 8px 2px;padding:12px 14px;line-height:1.45;white-space:pre-wrap;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .wa-muted{color:#9fb3a8}
+  .wa-examples{display:grid;gap:8px;margin-top:12px}
+  .wa-example{background:#07120d;border:1px solid #1d3d2c;border-radius:8px;padding:10px;color:#cfe0d6}
+  @media(max-width:880px){.wa-shell{padding-top:96px}.wa-grid,.wa-row{grid-template-columns:1fr}.wa-head{align-items:flex-start;flex-direction:column}}
+</style>
+
+<main class="wa-shell">
+  <div class="wa-wrap">
+    <div class="wa-head">
+      <h1 class="wa-title">Nouvelle campagne WhatsApp</h1>
+      <a class="wa-link" href="{% url 'whatsapp_agent:wa_dashboard' %}">Retour au dashboard</a>
+    </div>
+    {% if whatsapp_dry_run %}
+    <div class="wa-alert">Mode simulation actif: tu peux valider et lancer sans envoyer de vrais messages Meta.</div>
+    {% endif %}
+
+    <form method="post" class="wa-grid" id="campaign-form">
+      {% csrf_token %}
+      <section class="wa-panel">
+        <h2>Parametres</h2>
+        <div class="wa-field">{{ form.nom.label_tag }}{{ form.nom }}</div>
+        <div class="wa-field">{{ form.description.label_tag }}{{ form.description }}</div>
+        <h2>Destinataires</h2>
+        <div class="wa-row">
+          <div class="wa-field">{{ form.filtre_role.label_tag }}{{ form.filtre_role }}</div>
+          <div class="wa-field">{{ form.filtre_ville.label_tag }}{{ form.filtre_ville }}</div>
+        </div>
+        <div class="wa-field">{{ form.filtre_date_inscription_depuis.label_tag }}{{ form.filtre_date_inscription_depuis }}</div>
+        <div class="wa-actions">
+          <button class="wa-btn ghost" type="button" id="preview-contacts">Apercu destinataires</button>
+          <span class="wa-muted" id="contacts-count">Aucun apercu lance.</span>
+        </div>
+        <div class="wa-examples" id="contacts-examples"></div>
+      </section>
+
+      <section class="wa-panel">
+        <h2>Message</h2>
+        <div class="wa-presets">
+          {% for key,preset in ai_presets.items %}
+          <button class="wa-chip" type="button" data-preset="{{ key }}" data-segment="{{ preset.segment }}" data-context="{{ preset.contexte }}">{{ preset.label }}</button>
+          {% endfor %}
+        </div>
+        <div class="wa-field">{{ form.message_template.label_tag }}{{ form.message_template }}</div>
+        <div class="wa-actions">
+          <button class="wa-btn gold" type="button" id="generate-ai">Generer avec l'IA E-Shelle</button>
+          <button class="wa-btn ghost" type="submit" name="action" value="draft">Sauvegarder brouillon</button>
+          <button class="wa-btn validate" type="submit" name="action" value="validate">Valider la campagne</button>
+        </div>
+        <div class="wa-preview-phone" style="margin-top:16px">
+          <div class="wa-bubble" id="message-preview">Votre message apparait ici...</div>
+        </div>
+      </section>
+    </form>
+  </div>
+</main>
+
+<script>
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const messageInput = document.querySelector('[data-message-input]');
+  const messagePreview = document.getElementById('message-preview');
+  const roleInput = document.getElementById('id_filtre_role');
+  const cityInput = document.getElementById('id_filtre_ville');
+  const dateInput = document.getElementById('id_filtre_date_inscription_depuis');
+  const descInput = document.getElementById('id_description');
+  let selectedPreset = '';
+
+  function refreshPreview() {
+    messagePreview.textContent = messageInput.value || 'Votre message apparait ici...';
+  }
+  messageInput.addEventListener('input', refreshPreview);
+  refreshPreview();
+
+  async function postJson(url, payload) {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+      body: JSON.stringify(payload)
+    });
+    return response.json();
+  }
+
+  document.getElementById('preview-contacts').addEventListener('click', async () => {
+    const data = await postJson("{% url 'whatsapp_agent:wa_api_apercu' %}", {
+      filtre_role: roleInput.value,
+      filtre_ville: cityInput.value,
+      date_depuis: dateInput.value
+    });
+    document.getElementById('contacts-count').textContent = `${data.total} contact(s) trouve(s).`;
+    document.getElementById('contacts-examples').innerHTML = data.exemples.map(item =>
+      `<div class="wa-example">${item.prenom} - ${item.ville || 'Ville non renseignee'} - ${item.role || 'Role non renseigne'}</div>`
+    ).join('');
+  });
+
+  document.getElementById('generate-ai').addEventListener('click', async () => {
+    const button = document.getElementById('generate-ai');
+    button.disabled = true;
+    button.textContent = 'Generation...';
+    const data = await postJson("{% url 'whatsapp_agent:wa_api_generer' %}", {
+      segment: roleInput.value || 'utilisateurs E-Shelle',
+      contexte: descInput.value || 'campagne E-Shelle',
+      preset: selectedPreset
+    });
+    if (data.message) {
+      messageInput.value = data.message;
+      refreshPreview();
+    }
+    button.disabled = false;
+    button.textContent = "Generer avec l'IA E-Shelle";
+  });
+
+  document.querySelectorAll('[data-preset]').forEach((button) => {
+    button.addEventListener('click', () => {
+      selectedPreset = button.dataset.preset;
+      roleInput.value = button.dataset.segment;
+      descInput.value = button.dataset.context;
+      document.querySelectorAll('[data-preset]').forEach((item) => item.style.borderColor = '#2f6b47');
+      button.style.borderColor = '#22c55e';
+    });
+  });
+</script>
+{% endblock %}

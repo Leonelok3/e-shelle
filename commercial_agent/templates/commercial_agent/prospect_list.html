@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Prospects commerciaux E-Shelle{% endblock %}
+
+{% block content %}
+<style>
+  .ca-shell{min-height:100vh;background:#06110b;color:#eefcf4;padding:112px 16px 44px}
+  .ca-wrap{max-width:1220px;margin:0 auto}
+  .ca-title{font-size:clamp(1.6rem,3vw,2.4rem)!important;margin:0 0 18px!important;line-height:1.05!important}
+  .ca-filter{display:flex;gap:10px;flex-wrap:wrap;background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;padding:14px;margin-bottom:16px}
+  .ca-input{background:#07120d;color:#e8f5ee;border:1px solid #315641;border-radius:8px;padding:10px 12px}
+  .ca-btn{border:0;border-radius:8px;background:#16a34a;color:#fff;font-weight:800;padding:10px 14px;text-decoration:none;cursor:pointer}
+  .ca-link{color:#86efac;font-weight:800;text-decoration:none}
+  .ca-panel{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;overflow:hidden}
+  .ca-table{width:100%;border-collapse:collapse}
+  .ca-table th,.ca-table td{padding:12px 14px;border-bottom:1px solid #173524;text-align:left;font-size:.9rem}
+  .ca-table th{color:#facc15;background:#0a1710}
+  .ca-muted{color:#9fb3a8}
+  .ca-pages{display:flex;gap:10px;padding:14px}
+  @media(max-width:820px){.ca-panel{overflow-x:auto}.ca-table{min-width:860px}}
+</style>
+
+<main class="ca-shell">
+  <div class="ca-wrap">
+    <h1 class="ca-title">Prospects commerciaux</h1>
+    <form class="ca-filter" method="get">
+      <input class="ca-input" name="q" value="{{ filters.q }}" placeholder="Recherche">
+      <select class="ca-input" name="status">
+        <option value="">Tous statuts</option>
+        {% for value,label in statuts %}
+        <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select class="ca-input" name="module">
+        <option value="">Tous modules</option>
+        {% for item in modules %}
+        <option value="{{ item }}" {% if filters.module == item %}selected{% endif %}>{{ item }}</option>
+        {% endfor %}
+      </select>
+      <button class="ca-btn" type="submit">Filtrer</button>
+      <a class="ca-link" href="{% url 'commercial_agent:dashboard' %}">Retour dashboard</a>
+    </form>
+
+    <section class="ca-panel">
+      <table class="ca-table">
+        <thead><tr><th>Nom</th><th>Module</th><th>Ville</th><th>Statut</th><th>Score</th><th>Plan</th><th>Potentiel</th><th>Prochain contact</th></tr></thead>
+        <tbody>
+        {% for prospect in page_obj %}
+          <tr>
+            <td><a class="ca-link" href="{% url 'commercial_agent:prospect_detail' prospect.pk %}">{{ prospect.nom }}</a></td>
+            <td>{{ prospect.module|default:"-" }}</td>
+            <td>{{ prospect.ville|default:"-" }}</td>
+            <td>{{ prospect.get_statut_display }}</td>
+            <td>{{ prospect.score }}/100</td>
+            <td>{{ prospect.plan_recommande|default:"-" }}</td>
+            <td>{{ prospect.montant_potentiel_xaf }} FCFA</td>
+            <td class="ca-muted">{{ prospect.prochain_contact|date:"d/m/Y"|default:"Maintenant" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="ca-muted">Aucun prospect.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <div class="ca-pages">
+        {% if page_obj.has_previous %}<a class="ca-link" href="?page={{ page_obj.previous_page_number }}">Precedent</a>{% endif %}
+        <span class="ca-muted">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a class="ca-link" href="?page={{ page_obj.next_page_number }}">Suivant</a>{% endif %}
+      </div>
+    </section>
+  </div>
+</main>
+{% endblock %}

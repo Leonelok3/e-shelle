@@ -55,6 +55,12 @@ class Role(models.TextChoices):
 
 class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.STUDENT)
+    whatsapp = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Format international: +237612345678",
+    )
+    ville = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
         return f"{self.username} ({self.role})"

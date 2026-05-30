@@ -1,0 +1,82 @@
+{% extends 'agro/base_agro.html' %}
+
+{% block content %}
+<div class="container-xl py-4">
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <h1 class="h3 fw-bold">Assistant IA agricole</h1>
+      <p class="text-muted">Choisissez un agent, posez une question et ajoutez une photo si utile.</p>
+
+      <div class="row g-3">
+        {% for agent in agents %}
+        <div class="col-12">
+          <div class="agro-ai-card">
+            <i class="bi {{ agent.icone }}"></i>
+            <h3>{{ agent.nom }}</h3>
+            <p>{{ agent.description }}</p>
+            <span>{{ agent.exemple }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="agro-form-card">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-5">
+              <label class="form-label fw-semibold">Agent</label>
+              <select name="agent_type" class="form-select">
+                {% for agent in agents %}
+                <option value="{{ agent.key }}">{{ agent.nom }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-7">
+              <label class="form-label fw-semibold">Photo feuille/fruit/tige</label>
+              <input type="file" name="image" class="form-control" accept="image/*">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Votre question</label>
+              <textarea name="question" class="form-control" rows="5" placeholder="Ex: Ma feuille de manioc jaunit, que faire ?"></textarea>
+            </div>
+            <div class="col-12">
+              <div class="alert alert-warning small mb-0">
+                Diagnostic indicatif, consultez un technicien agricole si possible.
+              </div>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-agro btn-lg" type="submit">
+                <i class="bi bi-stars me-1"></i>Demander à l'agent IA
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      {% if question_active %}
+      <div class="agro-answer-card mt-4">
+        <div class="small text-muted">{{ question_active.get_agent_type_display }}</div>
+        <h2 class="h5">Recommandation</h2>
+        <p class="mb-0">{{ question_active.reponse }}</p>
+      </div>
+      {% endif %}
+
+      {% if historique %}
+      <div class="mt-4">
+        <h2 class="h5 fw-bold">Historique récent</h2>
+        {% for item in historique %}
+        <div class="agro-history-item">
+          <strong>{{ item.get_agent_type_display }}</strong>
+          <p class="mb-1">{{ item.question }}</p>
+          <small class="text-muted">{{ item.date_creation|date:"d/m/Y H:i" }}</small>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

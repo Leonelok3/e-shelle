@@ -62,13 +62,13 @@ class PostTransactionSerializer(serializers.Serializer):
 class CreerTransactionSerializer(serializers.Serializer):
     client_id = serializers.IntegerField()
     collecteur_id = serializers.IntegerField()
-    type_op = serializers.ChoiceField(choices=("DEPOT", "RETRAIT"))
+    type_op = serializers.ChoiceField(choices=("DEPOT",))
     montant = serializers.DecimalField(max_digits=18, decimal_places=2)
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=255)
 
     def validate_montant(self, value):
-        if value <= 0:
-            raise serializers.ValidationError("Le montant doit etre strictement superieur a 0.")
+        if value < 500:
+            raise serializers.ValidationError("Alerte impossible : le depot minimum est de 500 XAF.")
         return value
 
     def create(self, validated_data):
@@ -101,8 +101,8 @@ class CollecteurTransactionSerializer(serializers.Serializer):
         return value
 
     def validate_montant(self, value):
-        if value <= 0:
-            raise serializers.ValidationError("Le montant doit etre strictement superieur a 0.")
+        if value < 500:
+            raise serializers.ValidationError("Alerte impossible : le depot minimum est de 500 XAF.")
         return value
 
     def create(self, validated_data):

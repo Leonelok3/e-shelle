@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}{{ campagne.nom }}{% endblock %}
+
+{% block content %}
+<style>
+  .wa-shell{min-height:100vh;background:#07120d;color:#e8f5ee;padding:112px 16px 40px}
+  .wa-wrap{max-width:1180px;margin:0 auto}
+  .wa-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:22px}
+  .wa-title{font-size:clamp(1.65rem,3vw,2.35rem)!important;line-height:1.08!important;font-weight:800!important;margin:0!important;letter-spacing:0!important}
+  .wa-muted{color:#9fb3a8}
+  .wa-link{color:#86efac;font-weight:800;text-decoration:none}
+  .wa-btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:8px;background:#16a34a;color:white;font-weight:800;padding:10px 14px;text-decoration:none;cursor:pointer}
+  .wa-btn.gold{background:#ca8a04}
+  .wa-btn.danger{background:#dc2626}
+  .wa-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .wa-alert{background:#10291c;border:1px solid #2f6b47;color:#cfe0d6;border-radius:8px;padding:12px 14px;margin-bottom:16px}
+  .wa-alert.danger{background:#2a1111;border-color:#7f1d1d;color:#fecaca}
+  .wa-card-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+  .wa-card{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;padding:16px}
+  .wa-card span{display:block;color:#9fb3a8;font-size:.86rem}
+  .wa-card strong{display:block;color:#facc15;font-size:1.8rem;margin-top:4px}
+  .wa-bar{height:9px;background:#07120d;border-radius:999px;overflow:hidden;margin-top:12px}
+  .wa-bar i{display:block;height:100%;background:#16a34a;border-radius:999px}
+  .wa-bar .blue{background:#38bdf8}.wa-bar .gold{background:#facc15}.wa-bar .red{background:#ef4444}
+  .wa-panel{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;overflow:hidden}
+  .wa-table{width:100%;border-collapse:collapse}
+  .wa-table th,.wa-table td{padding:13px 15px;border-bottom:1px solid #173524;text-align:left;font-size:.91rem}
+  .wa-table th{color:#facc15;background:#0a1710}
+  .wa-badge{display:inline-flex;border-radius:999px;padding:4px 10px;font-size:.78rem;font-weight:800;background:#1f2937;color:#e5e7eb}
+  .wa-badge.brouillon{background:#3b3b20;color:#fde68a}.wa-badge.validee{background:#123b2a;color:#86efac}.wa-badge.en_cours{background:#12314a;color:#93c5fd}
+  .wa-badge.envoye{background:#123b2a;color:#86efac}.wa-badge.livre{background:#12314a;color:#93c5fd}.wa-badge.lu{background:#2f245c;color:#ddd6fe}.wa-badge.echec{background:#3b1d1d;color:#fca5a5}
+  .wa-pages{display:flex;gap:10px;padding:14px}
+  .wa-preview{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+  .wa-preview-card{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;padding:16px}
+  .wa-preview-card h2{font-size:1rem;color:#facc15;margin:0 0 12px}
+  .wa-example{background:#07120d;border:1px solid #1d3d2c;border-radius:8px;padding:10px;margin-top:8px}
+  .wa-confirm{display:flex;align-items:center;gap:10px;margin-top:12px;color:#cfe0d6;font-weight:700}
+  @media(max-width:820px){.wa-shell{padding-top:96px}.wa-top{flex-direction:column}.wa-card-grid,.wa-preview{grid-template-columns:1fr}.wa-table{min-width:860px}.wa-panel{overflow-x:auto}}
+</style>
+
+<main class="wa-shell">
+  <div class="wa-wrap">
+    <div class="wa-top">
+      <div>
+        <a class="wa-link" href="{% url 'whatsapp_agent:wa_dashboard' %}">Retour aux campagnes</a>
+        <h1 class="wa-title">{{ campagne.nom }}</h1>
+        <p class="wa-muted">
+          <span class="wa-badge {{ campagne.statut }}">{{ campagne.get_statut_display }}</span>
+          {{ campagne.description|default:"Campagne WhatsApp E-Shelle" }}
+        </p>
+      </div>
+      <div class="wa-actions">
+        <a class="wa-btn gold" href="{% url 'whatsapp_agent:wa_export' campagne.pk %}">Exporter CSV</a>
+      </div>
+    </div>
+
+    {% if whatsapp_dry_run %}
+    <div class="wa-alert">Mode simulation actif: le lancement marquera les messages comme envoyes sans appel Meta.</div>
+    {% elif not whatsapp_config_ready %}
+    <div class="wa-alert danger">Configuration Meta incomplete: renseigne WHATSAPP_TOKEN, WHATSAPP_PHONE_ID et WHATSAPP_VERIFY_TOKEN avant un envoi reel.</div>
+    {% endif %}
+
+    <section class="wa-card-grid">
+      <div class="wa-card"><span>Total</span><strong>{{ campagne.total_destinataires }}</strong><div class="wa-bar"><i style="width:100%"></i></div></div>
+      <div class="wa-card"><span>Envoyes</span><strong>{{ campagne.total_envoyes }}</strong><div class="wa-bar"><i style="width:{{ progress_envoyes }}%"></i></div></div>
+      <div class="wa-card"><span>Livres / lus</span><strong>{{ campagne.total_livres }} / {{ campagne.total_lus }}</strong><div class="wa-bar"><i class="blue" style="width:{{ progress_livres }}%"></i></div></div>
+      <div class="wa-card"><span>Echecs</span><strong>{{ campagne.total_echecs }}</strong><div class="wa-bar"><i class="red" style="width:{{ progress_echecs }}%"></i></div></div>
+    </section>
+
+    <section class="wa-preview">
+      <div class="wa-preview-card">
+        <h2>Apercu final avant envoi</h2>
+        <p class="wa-muted">Destinataires prepares: <strong>{{ campagne.total_destinataires }}</strong></p>
+        <p class="wa-muted">Filtre role: <strong>{{ campagne.filtre_role|default:"Tous" }}</strong></p>
+        <p class="wa-muted">Filtre ville: <strong>{{ campagne.filtre_ville|default:"Toutes" }}</strong></p>
+        {% if campagne.statut == "validee" %}
+        <form method="post" action="{% url 'whatsapp_agent:wa_lancer' campagne.pk %}">
+          {% csrf_token %}
+          <label class="wa-confirm">
+            <input type="checkbox" name="confirm_launch">
+            Je confirme que cette campagne est prete a etre lancee.
+          </label>
+          <button class="wa-btn {% if not whatsapp_dry_run %}danger{% endif %}" type="submit" style="margin-top:12px">
+            {% if whatsapp_dry_run %}Lancer la simulation{% else %}Lancer l'envoi reel{% endif %}
+          </button>
+        </form>
+        {% elif campagne.statut == "brouillon" %}
+        <p class="wa-muted">Cette campagne est encore en brouillon. Retourne a la creation et valide-la avant lancement.</p>
+        {% endif %}
+      </div>
+      <div class="wa-preview-card">
+        <h2>Exemples personnalises</h2>
+        {% for item in exemples %}
+        <div class="wa-example">
+          <strong>{{ item.user.first_name|default:item.user.username }} - {{ item.numero_whatsapp }}</strong>
+          <p class="wa-muted">{{ item.message_final }}</p>
+        </div>
+        {% empty %}
+        <p class="wa-muted">Aucun destinataire ne correspond aux filtres.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="wa-panel">
+      <table class="wa-table">
+        <thead><tr><th>Utilisateur</th><th>Numero</th><th>Statut</th><th>Message</th><th>Erreur</th><th>Mise a jour</th></tr></thead>
+        <tbody>
+          {% for message in page_obj %}
+          <tr>
+            <td>{{ message.user.username }}</td>
+            <td>{{ message.numero_whatsapp }}</td>
+            <td><span class="wa-badge {{ message.statut }}">{{ message.get_statut_display }}</span></td>
+            <td>{{ message.message_final|truncatechars:90 }}</td>
+            <td class="wa-muted">{{ message.erreur|truncatechars:80 }}</td>
+            <td class="wa-muted">{{ message.mis_a_jour_le|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="wa-muted">Aucun message prepare.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="wa-pages">
+        {% if page_obj.has_previous %}<a class="wa-link" href="?page={{ page_obj.previous_page_number }}">Precedent</a>{% endif %}
+        <span class="wa-muted">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a class="wa-link" href="?page={{ page_obj.next_page_number }}">Suivant</a>{% endif %}
+      </div>
+    </section>
+  </div>
+</main>
+{% endblock %}

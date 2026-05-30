@@ -65,6 +65,10 @@ def creer_transaction(client_id, collecteur_id, type_op, montant, note=None):
     montant = Decimal(str(montant))
     if montant <= 0:
         raise ValidationError("Le montant doit etre strictement superieur a 0.")
+    if type_op == "RETRAIT":
+        raise ValidationError("Retrait impossible cote collecteur : les retraits se font uniquement a l'agence.")
+    if type_op in {"DEPOT", "DEPOSIT", TransactionType.DEPOSIT} and montant < Decimal("500"):
+        raise ValidationError("Alerte impossible : le depot minimum est de 500 XAF.")
 
     # Verrouillage pessimiste du profil client pour eviter les ecritures concurrentes.
     client = ClientProfile.objects.select_for_update().select_related("user").get(pk=client_id)
@@ -76,10 +80,7 @@ def creer_transaction(client_id, collecteur_id, type_op, montant, note=None):
     solde_avant = Decimal(str(client.solde))
     transaction_type = _normaliser_type_operation(type_op)
 
-    if type_op == "RETRAIT" and solde_avant < montant:
-        raise ValidationError("Solde insuffisant: cette operation empecherait tout solde negatif.")
-
-    delta = -montant if type_op == "RETRAIT" else montant
+    delta = montant
     solde_apres = solde_avant + delta
 
     transaction_obj = Transaction.objects.create(

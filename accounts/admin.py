@@ -11,11 +11,12 @@ from .models import (
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display  = ("username", "email", "role", "is_staff", "is_active", "date_joined")
+    list_display  = ("username", "email", "role", "whatsapp", "ville", "is_staff", "is_active", "date_joined")
     list_filter   = ("role", "is_staff", "is_active")
-    search_fields = ("username", "email", "first_name", "last_name")
+    search_fields = ("username", "email", "first_name", "last_name", "whatsapp", "ville")
     fieldsets = UserAdmin.fieldsets + (
         ("Rôle E-Shelle", {"fields": ("role",)}),
+        ("Contact WhatsApp", {"fields": ("whatsapp", "ville")}),
     )
 
 

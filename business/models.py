@@ -6,8 +6,9 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+from django.utils.text import slugify
 
 
 class BusinessProfile(models.Model):
@@ -18,11 +19,19 @@ class BusinessProfile(models.Model):
         GAZ = "gaz", "Gaz"
         PRESSING = "pressing", "Pressing"
         SANTE = "sante", "Sante"
+        PHARMA = "pharma", "Pharma"
         JOBS = "jobs", "Jobs"
+        SERVICES = "services", "Services"
         FORMATION = "formation", "Formation"
         BOUTIQUE = "boutique", "Boutique"
+        MARKET = "market", "Market"
         AGRO = "agro", "Agro"
         IMMOBILIER = "immobilier", "Immobilier"
+        AUTO = "auto", "Auto"
+        TRANSPORT = "transport", "Transport"
+        NJANGI = "njangi", "Njangi"
+        ADGEN = "adgen", "AdGen"
+        EDU = "edu", "EduCam Pro"
         QUINCAILLERIE = "quincaillerie", "Quincaillerie"
         GENERAL = "general", "General"
 
@@ -42,6 +51,14 @@ class BusinessProfile(models.Model):
     module = models.CharField(max_length=30, choices=Module.choices, db_index=True)
     name = models.CharField(max_length=180)
     slug = models.SlugField(max_length=220, blank=True)
+    public_slug = models.SlugField(
+        max_length=240,
+        unique=True,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Slug public stable pour la vitrine E-Shelle, ex: /business/@ma-boutique/.",
+    )
     city = models.CharField(max_length=100, blank=True)
     district = models.CharField(max_length=120, blank=True)
     phone = models.CharField(max_length=40, blank=True)
@@ -100,6 +117,50 @@ class BusinessProfile(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.get_module_display()})"
+
+    def save(self, *args, **kwargs):
+        if not self.public_slug:
+            self.public_slug = self._build_unique_public_slug()
+        super().save(*args, **kwargs)
+
+    def _build_unique_public_slug(self):
+        base = slugify(self.slug or f"{self.name}-{self.city}" or self.name)[:210] or "business"
+        slug = base
+        n = 1
+        while BusinessProfile.objects.filter(public_slug=slug).exclude(pk=self.pk).exists():
+            slug = f"{base}-{n}"[:240]
+            n += 1
+        return slug
+
+    def get_absolute_url(self):
+        if self.public_slug:
+            try:
+                return reverse("business_public_short", kwargs={"public_slug": self.public_slug})
+            except NoReverseMatch:
+                return reverse("business:public_profile", kwargs={"public_slug": self.public_slug})
+        return reverse("business:dashboard")
+
+    @property
+    def public_url(self):
+        return self.get_absolute_url()
+
+    @property
+    def clean_whatsapp_number(self):
+        number = (self.whatsapp or self.phone or "").replace("+", "").replace(" ", "").replace("-", "")
+        if number and not number.startswith("237"):
+            number = f"237{number}"
+        return number
+
+    def whatsapp_url(self, text=None):
+        number = self.clean_whatsapp_number
+        if not number:
+            return ""
+        message = text or f"Bonjour {self.name}, je viens de E-Shelle."
+        import urllib.parse
+        return f"https://wa.me/{number}?text={urllib.parse.quote(message)}"
+
+    def share_text(self):
+        return f"Decouvrez {self.name} sur E-Shelle: {self.get_absolute_url()}"
 
     @property
     def subscription_active(self):

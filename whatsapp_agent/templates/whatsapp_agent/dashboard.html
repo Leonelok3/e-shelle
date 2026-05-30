@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Campagnes WhatsApp E-Shelle{% endblock %}
+
+{% block content %}
+<style>
+  .wa-shell{min-height:100vh;background:#07120d;color:#e8f5ee;padding:112px 16px 40px}
+  .wa-wrap{max-width:1180px;margin:0 auto}
+  .wa-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+  .wa-title{font-size:clamp(1.65rem,3vw,2.4rem)!important;line-height:1.08!important;font-weight:800!important;margin:0!important;letter-spacing:0!important}
+  .wa-sub{color:#a7b8ae;margin:.35rem 0 0}
+  .wa-btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:8px;background:#16a34a;color:white;font-weight:800;padding:11px 16px;text-decoration:none;cursor:pointer}
+  .wa-btn:hover{background:#12813d;color:white}
+  .wa-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:22px}
+  .wa-card-grid.business{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .wa-card{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;padding:18px}
+  .wa-card span{display:block;color:#9fb3a8;font-size:.9rem}
+  .wa-card strong{display:block;color:#facc15;font-size:2rem;line-height:1.2;margin-top:6px}
+  .wa-panel{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;overflow:hidden}
+  .wa-alert{background:#10291c;border:1px solid #2f6b47;color:#cfe0d6;border-radius:8px;padding:12px 14px;margin-bottom:16px}
+  .wa-alert.danger{background:#2a1111;border-color:#7f1d1d;color:#fecaca}
+  .wa-filter{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #1d3d2c}
+  .wa-filter select{background:#07120d;color:#e8f5ee;border:1px solid #315641;border-radius:8px;padding:10px 12px}
+  .wa-table{width:100%;border-collapse:collapse}
+  .wa-table th,.wa-table td{padding:14px 16px;border-bottom:1px solid #173524;text-align:left;font-size:.92rem}
+  .wa-table th{color:#facc15;font-weight:800;background:#0a1710}
+  .wa-muted{color:#9fb3a8}
+  .wa-badge{display:inline-flex;border-radius:999px;padding:4px 10px;font-size:.78rem;font-weight:800;background:#1f2937;color:#e5e7eb}
+  .wa-badge.brouillon{background:#3b3b20;color:#fde68a}
+  .wa-badge.validee{background:#123b2a;color:#86efac}
+  .wa-badge.en_cours{background:#123b2a;color:#86efac}
+  .wa-badge.terminee{background:#12314a;color:#93c5fd}
+  .wa-badge.annulee{background:#3b1d1d;color:#fca5a5}
+  .wa-actions{display:flex;gap:8px;align-items:center}
+  .wa-link{color:#86efac;font-weight:800;text-decoration:none}
+  .wa-small-btn{border:1px solid #2f6b47;background:#10291c;color:#e8f5ee;border-radius:8px;padding:7px 10px;font-weight:800;cursor:pointer}
+  @media(max-width:760px){.wa-shell{padding-top:96px}.wa-top,.wa-filter{align-items:flex-start;flex-direction:column}.wa-card-grid,.wa-card-grid.business{grid-template-columns:1fr}.wa-table{min-width:760px}.wa-panel{overflow-x:auto}}
+</style>
+
+<main class="wa-shell">
+  <div class="wa-wrap">
+    <div class="wa-top">
+      <div>
+        <h1 class="wa-title">Campagnes WhatsApp</h1>
+        <p class="wa-sub">Envois massifs via l'API officielle Meta WhatsApp Business.</p>
+      </div>
+      <a class="wa-btn" href="{% url 'whatsapp_agent:wa_creer' %}">+ Nouvelle campagne</a>
+    </div>
+    {% if whatsapp_dry_run %}
+    <div class="wa-alert">Mode simulation actif: les campagnes lancees ne contactent pas Meta.</div>
+    {% elif not whatsapp_config_ready %}
+    <div class="wa-alert danger">Configuration Meta incomplete: renseigne les variables WhatsApp avant un envoi reel.</div>
+    {% endif %}
+
+    <section class="wa-card-grid business">
+      <div class="wa-card"><span>Total campagnes</span><strong>{{ total_campagnes }}</strong></div>
+      <div class="wa-card"><span>Messages envoyes</span><strong>{{ total_envoyes }}</strong></div>
+      <div class="wa-card"><span>Taux livraison moyen</span><strong>{{ taux_livraison }}%</strong></div>
+      <div class="wa-card"><span>Taux echec</span><strong>{{ taux_echec }}%</strong></div>
+    </section>
+
+    <section class="wa-card-grid">
+      <div class="wa-card">
+        <span>Top villes</span>
+        {% for row in stats_villes %}
+        <p class="wa-muted">{{ row.user__ville|default:"Non renseignee" }}: <strong style="font-size:1rem;display:inline;color:#e8f5ee">{{ row.total }}</strong></p>
+        {% empty %}<p class="wa-muted">Aucune donnee.</p>{% endfor %}
+      </div>
+      <div class="wa-card">
+        <span>Top roles</span>
+        {% for row in stats_roles %}
+        <p class="wa-muted">{{ row.user__role|default:"Non renseigne" }}: <strong style="font-size:1rem;display:inline;color:#e8f5ee">{{ row.total }}</strong></p>
+        {% empty %}<p class="wa-muted">Aucune donnee.</p>{% endfor %}
+      </div>
+      <div class="wa-card"><span>Echecs tout temps</span><strong>{{ total_echecs }}</strong></div>
+    </section>
+
+    <section class="wa-panel">
+      <form class="wa-filter" method="get">
+        <strong>Liste des campagnes</strong>
+        <select name="statut" onchange="this.form.submit()">
+          <option value="">Tous les statuts</option>
+          {% for value,label in statuts %}
+          <option value="{{ value }}" {% if statut_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </form>
+      <table class="wa-table">
+        <thead>
+          <tr>
+            <th>Nom</th><th>Statut</th><th>Destinataires</th><th>Envoyes</th><th>Livres</th><th>Echecs</th><th>Date</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for campagne in campagnes %}
+          <tr>
+            <td><a class="wa-link" href="{% url 'whatsapp_agent:wa_detail' campagne.pk %}">{{ campagne.nom }}</a></td>
+            <td><span class="wa-badge {{ campagne.statut }}">{{ campagne.get_statut_display }}</span></td>
+            <td>{{ campagne.total_destinataires }}</td>
+            <td>{{ campagne.total_envoyes }}</td>
+            <td>{{ campagne.total_livres }}</td>
+            <td>{{ campagne.total_echecs }}</td>
+            <td class="wa-muted">{{ campagne.cree_le|date:"d/m/Y H:i" }}</td>
+            <td>
+              <div class="wa-actions">
+                <a class="wa-link" href="{% url 'whatsapp_agent:wa_detail' campagne.pk %}">Voir</a>
+                {% if campagne.statut == "brouillon" %}
+                <form method="post" action="{% url 'whatsapp_agent:wa_lancer' campagne.pk %}">
+                  {% csrf_token %}
+                  <button class="wa-small-btn" type="submit">Lancer</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="wa-muted">Aucune campagne pour le moment.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </div>
+</main>
+{% endblock %}

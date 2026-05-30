@@ -3,148 +3,119 @@
 
 {% block content %}
 
-<!-- ═══ HERO SECTION ═════════════════════════════════════════════════════════ -->
-<section class="agro-hero">
+<section class="agro-hero agro-ai-hero">
   <div class="container-xl">
-    <div class="row align-items-center min-vh-60">
+    <div class="row align-items-center min-vh-60 g-5">
       <div class="col-lg-7">
-        <div class="agro-hero-badge mb-3">
-          <span class="badge bg-agro-accent text-dark px-3 py-2 rounded-pill fw-semibold">
-            🌍 Marketplace Agroalimentaire Africaine N°1
-          </span>
-        </div>
+        <span class="badge bg-agro-accent text-dark px-3 py-2 rounded-pill fw-semibold mb-3">
+          AgroConnect AI Cameroun
+        </span>
         <h1 class="agro-hero-title">
-          La plateforme qui connecte les <span class="text-agro-accent">producteurs africains</span>
-          au monde entier
+          La plateforme IA qui aide les agriculteurs et commerçants africains à mieux vendre,
+          mieux produire et mieux gagner.
         </h1>
         <p class="agro-hero-subtitle">
-          Cacao, café, maïs, manioc, poisson fumé... Achetez et vendez directement
-          avec des acteurs vérifiés dans plus de 50 pays africains.
+          Conseils agricoles, prix de marché, ventes locales, livraison vers les villes,
+          Mobile Money et dashboard producteur dans un seul hub mobile/web.
         </p>
 
         <div class="d-flex flex-wrap gap-3 mt-4">
-          <a href="{% url 'agro:inscription' %}?type=vendeur"
-             class="btn btn-agro btn-lg px-4">
-            <i class="bi bi-shop me-2"></i>Je suis Vendeur / Producteur
+          <a href="{% url 'agro:ajouter_produit' %}" class="btn btn-agro-accent btn-lg px-4">
+            <i class="bi bi-plus-circle me-2"></i>Vendre mes produits
           </a>
-          <a href="{% url 'agro:catalogue' %}"
-             class="btn btn-outline-light btn-lg px-4">
-            <i class="bi bi-cart me-2"></i>Je cherche à Acheter
+          <a href="{% url 'agro:assistant_ia' %}" class="btn btn-outline-light btn-lg px-4">
+            <i class="bi bi-stars me-2"></i>Consulter l'agent IA
+          </a>
+          <a href="{% url 'agro:prix_marche' %}" class="btn btn-outline-light btn-lg px-4">
+            <i class="bi bi-graph-up-arrow me-2"></i>Voir les prix du marché
           </a>
         </div>
 
-        <!-- Preuves sociales -->
         <div class="d-flex flex-wrap gap-4 mt-4 agro-trust-badges">
-          <div class="agro-trust-item">
-            <i class="bi bi-check-circle-fill text-agro-accent me-1"></i>
-            <strong>{{ stats.nb_producteurs|default:"2 400" }}+</strong> producteurs
-          </div>
-          <div class="agro-trust-item">
-            <i class="bi bi-check-circle-fill text-agro-accent me-1"></i>
-            <strong>{{ stats.nb_pays|default:"50" }}+</strong> pays
-          </div>
-          <div class="agro-trust-item">
-            <i class="bi bi-check-circle-fill text-agro-accent me-1"></i>
-            <strong>{{ stats.nb_produits|default:"50 000" }}+</strong> produits
-          </div>
-          <div class="agro-trust-item">
-            <i class="bi bi-check-circle-fill text-agro-accent me-1"></i>
-            Paiement Mobile Money
-          </div>
+          <div class="agro-trust-item"><strong>{{ stats.nb_producteurs|default:"2400" }}+</strong> acteurs</div>
+          <div class="agro-trust-item"><strong>{{ stats.nb_produits|default:"50000" }}+</strong> produits</div>
+          <div class="agro-trust-item"><strong>MTN</strong> MoMo & Orange Money</div>
+          <div class="agro-trust-item"><strong>FR/EN</strong> prêt pour le vocal</div>
         </div>
       </div>
-      <div class="col-lg-5 d-none d-lg-block text-center">
-        <div class="agro-hero-visual">
-          <div class="agro-hero-circle">
-            <span class="agro-hero-emoji">🌿</span>
+      <div class="col-lg-5">
+        <div class="agro-ai-panel">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+              <div class="small text-muted">Assistant producteur</div>
+              <h2 class="h5 mb-0">Diagnostic manioc</h2>
+            </div>
+            <span class="badge bg-success-subtle text-success-emphasis">IA simulée</span>
           </div>
-          <div class="agro-hero-float agro-hero-float-1">🌾 Céréales</div>
-          <div class="agro-hero-float agro-hero-float-2">🍫 Cacao</div>
-          <div class="agro-hero-float agro-hero-float-3">🐟 Poissons</div>
-          <div class="agro-hero-float agro-hero-float-4">☕ Café</div>
+          <div class="agro-chat-preview">
+            <div class="agro-chat-bubble user">Ma feuille de manioc jaunit, que faire ?</div>
+            <div class="agro-chat-bubble ai">
+              Vérifiez l'humidité du sol, retirez les feuilles très atteintes et surveillez
+              les taches pendant 48h. Ajoutez une photo nette pour affiner le diagnostic.
+            </div>
+          </div>
+          <div class="row g-2 mt-3">
+            <div class="col-6"><div class="agro-mini-metric">Prix maïs<br><strong>+8% Douala</strong></div></div>
+            <div class="col-6"><div class="agro-mini-metric">Stock<br><strong>12 sacs prêts</strong></div></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ CATÉGORIES ════════════════════════════════════════════════════════════ -->
-<section class="agro-section bg-agro-light">
-  <div class="container-xl">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-      <h2 class="agro-section-title">Parcourir par catégorie</h2>
-      <a href="{% url 'agro:catalogue' %}" class="btn btn-agro-outline btn-sm">
-        Voir tout <i class="bi bi-arrow-right ms-1"></i>
-      </a>
-    </div>
-    <div class="agro-categories-scroll">
-      {% for cat in categories %}
-      <a href="{{ cat.get_absolute_url }}" class="agro-category-card">
-        <div class="agro-category-icon">{{ cat.icone }}</div>
-        <div class="agro-category-nom">{{ cat.nom }}</div>
-        <div class="agro-category-nb text-muted small">
-          {{ cat.nb_produits }} produit{{ cat.nb_produits|pluralize }}
-        </div>
-      </a>
-      {% empty %}
-      <p class="text-muted">Aucune catégorie disponible.</p>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-
-<!-- ═══ APPELS D'OFFRE URGENTS ════════════════════════════════════════════════ -->
-{% if appels_urgents %}
 <section class="agro-section bg-white">
   <div class="container-xl">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-      <h2 class="agro-section-title">
-        <span class="badge bg-danger me-2 rounded-pill">URGENT</span>
-        Appels d'offre actifs
-      </h2>
-      <a href="{% url 'agro:appels_offre' %}" class="btn btn-agro-outline btn-sm">
-        Tous les AO <i class="bi bi-arrow-right ms-1"></i>
-      </a>
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+      <div>
+        <p class="text-agro-primary fw-semibold mb-1">Agents IA agricoles</p>
+        <h2 class="agro-section-title mb-0">Quatre agents pour produire, vendre et financer</h2>
+      </div>
+      <a href="{% url 'agro:assistant_ia' %}" class="btn btn-agro-outline btn-sm">Ouvrir l'assistant</a>
     </div>
     <div class="row g-3">
-      {% for ao in appels_urgents %}
-      <div class="col-md-6">
-        <a href="{% url 'agro:detail_ao' pk=ao.pk %}" class="agro-ao-card">
-          <div class="d-flex align-items-start gap-3">
-            <div class="agro-ao-icon {% if ao.est_urgent %}bg-danger{% else %}bg-warning{% endif %}">
-              {% if ao.est_urgent %}🔴{% else %}🟡{% endif %}
-            </div>
-            <div class="flex-grow-1">
-              <h6 class="fw-semibold mb-1">{{ ao.titre }}</h6>
-              <div class="d-flex flex-wrap gap-2 small text-muted">
-                <span><i class="bi bi-geo me-1"></i>{{ ao.acheteur.pays }}</span>
-                <span><i class="bi bi-box me-1"></i>{{ ao.quantite_min }} {{ ao.unite_mesure }}</span>
-                {% if ao.budget_max %}
-                <span class="text-success fw-semibold">
-                  <i class="bi bi-currency-dollar me-1"></i>Budget: {{ ao.budget_max }} {{ ao.devise }}
-                </span>
-                {% endif %}
-              </div>
-            </div>
-            <div class="text-end">
-              <small class="text-muted">{{ ao.nb_reponses }} répons{{ ao.nb_reponses|pluralize:'e,es' }}</small>
-            </div>
-          </div>
-        </a>
+      <div class="col-md-6 col-xl-3">
+        <div class="agro-ai-card h-100">
+          <i class="bi bi-flower1"></i>
+          <h3>Agent agricole</h3>
+          <p>Conseils sur manioc, maïs, plantain, arachide, cacao et palmier.</p>
+          <span>“Quand semer le maïs à l'Ouest Cameroun ?”</span>
+        </div>
       </div>
-      {% endfor %}
+      <div class="col-md-6 col-xl-3">
+        <div class="agro-ai-card h-100">
+          <i class="bi bi-camera"></i>
+          <h3>Maladies & photos</h3>
+          <p>Upload de feuilles, fruits et tiges pour une analyse indicative.</p>
+          <span>Diagnostic indicatif, consultez un technicien agricole si possible.</span>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="agro-ai-card h-100">
+          <i class="bi bi-graph-up-arrow"></i>
+          <h3>Agent marché</h3>
+          <p>Meilleurs prix à Douala, Yaoundé, Bafoussam, Garoua et Bamenda.</p>
+          <span>“Où vendre mon maïs aujourd'hui ?”</span>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="agro-ai-card h-100">
+          <i class="bi bi-wallet2"></i>
+          <h3>Finance & stock</h3>
+          <p>Trésorerie, semences, stock, microcrédit et prévisions de saison.</p>
+          <span>“Quel prêt puis-je rembourser ?”</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
-{% endif %}
 
-<!-- ═══ PRODUITS EN VEDETTE ════════════════════════════════════════════════════ -->
 <section class="agro-section bg-agro-light">
   <div class="container-xl">
     <div class="d-flex align-items-center justify-content-between mb-4">
-      <h2 class="agro-section-title">Produits en vedette</h2>
-      <a href="{% url 'agro:catalogue' %}" class="btn btn-agro-outline btn-sm">
-        Voir le catalogue <i class="bi bi-arrow-right ms-1"></i>
+      <h2 class="agro-section-title">Produits agricoles populaires</h2>
+      <a href="{% url 'agro:marketplace' %}" class="btn btn-agro-outline btn-sm">
+        Marketplace <i class="bi bi-arrow-right ms-1"></i>
       </a>
     </div>
     <div class="row g-4">
@@ -153,90 +124,143 @@
         {% include 'agro/components/product_card.html' with produit=produit %}
       </div>
       {% empty %}
-      <div class="col-12 text-center py-5">
-        <p class="text-muted">Aucun produit disponible pour l'instant.</p>
-        {% if user.is_authenticated %}
-        <a href="{% url 'agro:ajouter_produit' %}" class="btn btn-agro">
-          <i class="bi bi-plus-circle me-2"></i>Publier le premier produit
-        </a>
-        {% endif %}
+      <div class="col-12">
+        <div class="agro-empty-state text-center py-5">
+          <h3 class="h5">Publiez les premiers produits camerounais</h3>
+          <p class="text-muted">Manioc, maïs, plantain, arachide, cacao, café, huile de palme ou poisson fumé.</p>
+          <a href="{% url 'agro:ajouter_produit' %}" class="btn btn-agro">Publier un produit</a>
+        </div>
       </div>
       {% endfor %}
     </div>
   </div>
 </section>
 
-<!-- ═══ PRODUCTEURS VEDETTES ══════════════════════════════════════════════════ -->
-{% if acteurs_vedettes %}
 <section class="agro-section bg-white">
   <div class="container-xl">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-      <h2 class="agro-section-title">Producteurs & Exportateurs de confiance</h2>
-      <a href="{% url 'agro:annuaire' %}" class="btn btn-agro-outline btn-sm">
-        Annuaire complet <i class="bi bi-arrow-right ms-1"></i>
-      </a>
-    </div>
-    <div class="row g-4">
-      {% for acteur in acteurs_vedettes %}
-      <div class="col-6 col-md-4 col-lg-2">
-        {% include 'agro/components/actor_card.html' with acteur=acteur %}
+    <div class="row g-4 align-items-stretch">
+      <div class="col-lg-6">
+        <div class="agro-value-block h-100">
+          <h2>Pour les producteurs</h2>
+          <ul>
+            <li>Recevoir des conseils IA adaptés aux cultures locales.</li>
+            <li>Comparer les prix avant de vendre au marché.</li>
+            <li>Gérer stock, commandes, alertes et trésorerie.</li>
+            <li>Accepter MTN Mobile Money, Orange Money ou paiement livraison.</li>
+          </ul>
+        </div>
       </div>
-      {% endfor %}
+      <div class="col-lg-6">
+        <div class="agro-value-block h-100">
+          <h2>Pour les acheteurs</h2>
+          <ul>
+            <li>Trouver des vendeurs vérifiés par ville et produit.</li>
+            <li>Commander du volume auprès de coopératives fiables.</li>
+            <li>Organiser la livraison vers Douala, Yaoundé ou Bafoussam.</li>
+            <li>Suivre devis, commandes et documents commerciaux.</li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 </section>
-{% endif %}
 
-<!-- ═══ CHIFFRES CLÉS ═════════════════════════════════════════════════════════ -->
-<section class="agro-stats-section">
+<section class="agro-section bg-agro-light">
   <div class="container-xl">
-    <div class="row text-center g-4">
-      <div class="col-6 col-md-3">
-        <div class="agro-stat-item">
-          <div class="agro-stat-nb">{{ stats.nb_producteurs|default:"2 400" }}+</div>
-          <div class="agro-stat-label">Producteurs actifs</div>
-        </div>
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <h2 class="agro-section-title">Marchés locaux</h2>
+        <p class="text-muted">Des relevés de prix pour décider où vendre et quand déclencher une alerte.</p>
+        <a href="{% url 'agro:prix_marche' %}" class="btn btn-agro">Voir les prix</a>
       </div>
-      <div class="col-6 col-md-3">
-        <div class="agro-stat-item">
-          <div class="agro-stat-nb">{{ stats.nb_produits|default:"50 000" }}+</div>
-          <div class="agro-stat-label">Produits listés</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="agro-stat-item">
-          <div class="agro-stat-nb">{{ stats.nb_pays|default:"180" }}+</div>
-          <div class="agro-stat-label">Pays actifs</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="agro-stat-item">
-          <div class="agro-stat-nb">98%</div>
-          <div class="agro-stat-label">Satisfaction clients</div>
+      <div class="col-lg-8">
+        <div class="row g-3">
+          <div class="col-md-4"><div class="agro-market-tile">Douala<br><strong>Maïs, plantain</strong></div></div>
+          <div class="col-md-4"><div class="agro-market-tile">Yaoundé<br><strong>Manioc, arachide</strong></div></div>
+          <div class="col-md-4"><div class="agro-market-tile">Bafoussam<br><strong>Cacao, café</strong></div></div>
+          <div class="col-md-4"><div class="agro-market-tile">Garoua<br><strong>Maïs, arachide</strong></div></div>
+          <div class="col-md-4"><div class="agro-market-tile">Bamenda<br><strong>Plantain, pommes</strong></div></div>
+          <div class="col-md-4"><div class="agro-market-tile">Maroua<br><strong>Oignon, céréales</strong></div></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ CTA INSCRIPTION ═══════════════════════════════════════════════════════ -->
-{% if not user.is_authenticated %}
+<section class="agro-section bg-white">
+  <div class="container-xl">
+    <div class="text-center mb-4">
+      <h2 class="agro-section-title">Offre premium rentable</h2>
+      <p class="text-muted mb-0">Freemium pour attirer les petits producteurs, premium pour ceux qui vendent plus.</p>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="agro-pricing-card h-100">
+          <h3>Gratuit</h3>
+          <strong>0 FCFA</strong>
+          <p>Marketplace limitée, IA basique, 3 alertes prix/mois.</p>
+          <a href="{% url 'agro:inscription' %}" class="btn btn-agro-outline w-100">Commencer</a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="agro-pricing-card featured h-100">
+          <span class="badge bg-warning text-dark mb-2">Recommandé</span>
+          <h3>Pro Producteur</h3>
+          <strong>2 500 FCFA/mois</strong>
+          <p>Alertes illimitées, assistant IA avancé, dashboard stock, visibilité vendeur.</p>
+          <a href="{% url 'agro:premium' %}" class="btn btn-agro w-100">Passer en premium</a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="agro-pricing-card h-100">
+          <h3>Business / Coopérative</h3>
+          <strong>15 000 FCFA/mois</strong>
+          <p>Multi-utilisateurs, statistiques marché, commandes groupées, support prioritaire.</p>
+          <a href="{% url 'agro:premium' %}" class="btn btn-agro-outline w-100">Contacter l'équipe</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="agro-section bg-agro-light">
+  <div class="container-xl">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-5">
+        <h2 class="agro-section-title">Comment ça marche</h2>
+        <p class="text-muted">Un parcours simple pour les producteurs qui utilisent déjà WhatsApp et Mobile Money.</p>
+      </div>
+      <div class="col-lg-7">
+        <div class="agro-steps">
+          <div><span>1</span><strong>Publiez</strong><p>Produit, ville, quantité, prix et photo.</p></div>
+          <div><span>2</span><strong>Optimisez</strong><p>Demandez à l'IA quand vendre ou traiter.</p></div>
+          <div><span>3</span><strong>Vendez</strong><p>Recevez commandes, paiements et livraisons.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="agro-section bg-white">
+  <div class="container-xl">
+    <h2 class="agro-section-title text-center mb-4">Témoignages réalistes</h2>
+    <div class="row g-3">
+      <div class="col-md-4"><div class="agro-testimonial">“J'ai vendu mon plantain plus tôt en comparant Douala et Bafoussam.”<strong>Solange, productrice à Mbouda</strong></div></div>
+      <div class="col-md-4"><div class="agro-testimonial">“Le dashboard m'aide à savoir combien de sacs garder pour les commandes.”<strong>Eric, coopérative à Mbalmayo</strong></div></div>
+      <div class="col-md-4"><div class="agro-testimonial">“On trouve des vendeurs vérifiés et le paiement à la livraison rassure.”<strong>Nadia, acheteuse à Yaoundé</strong></div></div>
+    </div>
+  </div>
+</section>
+
 <section class="agro-cta-section">
   <div class="container-xl text-center">
-    <h2 class="text-white fw-bold mb-3">Prêt à rejoindre la plateforme ?</h2>
-    <p class="text-white-75 mb-4 lead">
-      Gratuit pour commencer. Créez votre profil et publiez vos premiers produits en 5 minutes.
-    </p>
+    <h2 class="text-white fw-bold mb-3">Lancez votre hub agro IA aujourd'hui</h2>
+    <p class="text-white-75 mb-4 lead">Commencez gratuitement, ajoutez vos produits, puis activez les agents premium quand les ventes montent.</p>
     <div class="d-flex justify-content-center gap-3 flex-wrap">
-      <a href="{% url 'agro:inscription' %}" class="btn btn-agro-gold btn-lg px-5">
-        <i class="bi bi-person-plus me-2"></i>S'inscrire gratuitement
-      </a>
-      <a href="{% url 'agro:catalogue' %}" class="btn btn-outline-light btn-lg px-5">
-        <i class="bi bi-eye me-2"></i>Explorer le catalogue
-      </a>
+      <a href="{% url 'agro:assistant_ia' %}" class="btn btn-agro-gold btn-lg px-5">Tester l'agent IA</a>
+      <a href="{% url 'agro:marketplace' %}" class="btn btn-outline-light btn-lg px-5">Explorer la marketplace</a>
     </div>
   </div>
 </section>
-{% endif %}
 
 {% endblock %}

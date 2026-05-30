@@ -13,9 +13,9 @@ from ..forms import ActeurAgroForm
 
 # Plans fallback si la DB est vide
 _PLANS_FALLBACK = {
-    'silver':   {'nom': 'Silver',   'emoji': '🥈', 'prix_xaf': 9900,  'features': ["Jusqu'à 20 produits","Badge Silver","10 devis/mois","Statistiques de base"]},
-    'gold':     {'nom': 'Gold',     'emoji': '🥇', 'prix_xaf': 24900, 'features': ["Produits illimités","Badge Gold + priorité","Devis illimités","Analytics avancées","Accès AO privés"]},
-    'platinum': {'nom': 'Platinum', 'emoji': '💎', 'prix_xaf': 59900, 'features': ["TOUT illimité","Badge Platinum animé","Vitrine exportateur","Support WhatsApp dédié","Rapport mensuel marché"]},
+    'free': {'nom': 'Gratuit', 'emoji': '🌱', 'prix_xaf': 0, 'features': ["Marketplace limitée", "Consultation IA basique", "3 alertes prix/mois"]},
+    'pro': {'nom': 'Pro Producteur', 'emoji': '🌾', 'prix_xaf': 2500, 'features': ["Alertes prix illimitées", "Assistant IA agricole avancé", "Dashboard stock", "Visibilité vendeur"]},
+    'business': {'nom': 'Business / Coopérative', 'emoji': '🏢', 'prix_xaf': 15000, 'features': ["Multi-utilisateurs", "Statistiques marché", "Commandes groupées", "Support prioritaire"]},
 }
 
 # Mapping slug agro → slug PlanPremiumApp

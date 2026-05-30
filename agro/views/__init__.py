@@ -26,3 +26,7 @@ from .recherche_views import (
     ajax_recherche, ajax_favoris,
     ajax_contact, ajax_convertir, ajax_stats_produit,
 )
+from .intelligence_views import (
+    marketplace_agro, assistant_ia_agro, prix_marche_agro,
+    dashboard_producteur_agro, commander_produit_agro,
+)

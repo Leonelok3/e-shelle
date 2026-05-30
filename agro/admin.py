@@ -6,6 +6,7 @@ from .models import (
     ModerationProduit, OffreCommerciale, AppelOffre,
     ReponseAppelOffre, DemandeDevis, CommandeAgro,
     CertificationAgro, AvisActeur, ZoneLivraison,
+    PrixMarche, QuestionAgentIA, StockProducteur,
 )
 
 
@@ -219,6 +220,30 @@ class CommandeAgroAdmin(admin.ModelAdmin):
     readonly_fields = ['numero_commande', 'date_creation', 'date_mise_a_jour']
     list_editable   = ['statut', 'paiement_statut']
     ordering        = ['-date_creation']
+
+
+# ─── Intelligence agro ───────────────────────────────────────────────────────
+
+@admin.register(PrixMarche)
+class PrixMarcheAdmin(admin.ModelAdmin):
+    list_display = ['produit', 'ville', 'prix_moyen', 'unite', 'tendance', 'date_releve']
+    list_filter = ['ville', 'tendance', 'date_releve']
+    search_fields = ['produit', 'ville']
+
+
+@admin.register(QuestionAgentIA)
+class QuestionAgentIAAdmin(admin.ModelAdmin):
+    list_display = ['agent_type', 'utilisateur', 'question', 'date_creation']
+    list_filter = ['agent_type', 'date_creation']
+    search_fields = ['question', 'reponse', 'utilisateur__username']
+    readonly_fields = ['date_creation']
+
+
+@admin.register(StockProducteur)
+class StockProducteurAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'produit', 'quantite', 'seuil_alerte', 'date_mise_a_jour']
+    list_filter = ['date_mise_a_jour']
+    search_fields = ['utilisateur__username', 'produit__nom']
 
 
 # ─── Certifications ──────────────────────────────────────────────────────────

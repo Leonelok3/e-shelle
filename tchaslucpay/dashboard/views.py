@@ -10,8 +10,16 @@ from decimal import Decimal
 from io import BytesIO
 
 from .forms import ClientTerrainForm, NouvelleTransactionForm
+from .intelligence import (
+    build_agency_report,
+    build_anti_fraud_alerts,
+    build_collector_coach,
+    build_supervisor_summary,
+    enrich_clients_with_risk,
+)
 from .mixins import client_required, collecteur_required
 from tchaslucpay.accounts.models import ClientProfile, UserRole
+from tchaslucpay.notifications.models import NotificationChannel, NotificationLog, NotificationStatus
 from tchaslucpay.transactions.models import AccountBalance, Transaction, TransactionStatus, TransactionType
 from tchaslucpay.transactions.services import creer_transaction
 
@@ -42,9 +50,13 @@ def home(request):
 
 @login_required
 def admin_dashboard(request):
+    summary = build_supervisor_summary()
+    alerts = build_anti_fraud_alerts()
     context = {
         "balances_count": ClientProfile.objects.count(),
         "transactions": Transaction.objects.select_related("account", "collector").order_by("-created_at")[:25],
+        "summary": summary,
+        "alerts": alerts,
     }
     return render(request, "tchaslucpay/dashboard/admin.html", context)
 
@@ -57,7 +69,9 @@ def collecteur_dashboard(request):
         messages.error(request, "Votre profil collecteur n'est pas encore configure.")
         return render(request, "tchaslucpay/dashboard/index.html", status=403)
 
-    clients = collecteur.clients.select_related("user", "trusted_collecteur").order_by("user__first_name", "user__last_name")
+    clients = enrich_clients_with_risk(
+        collecteur.clients.select_related("user", "trusted_collecteur").order_by("user__first_name", "user__last_name")
+    )
     client_form = ClientTerrainForm(request.POST or None)
 
     if request.method == "POST":
@@ -66,7 +80,7 @@ def collecteur_dashboard(request):
             messages.success(
                 request,
                 f"Client {client.user.get_full_name() or client.user.username} ajoute et assigne a votre portefeuille. "
-                "Aucun depot n'a ete enregistre automatiquement : utilisez « Enregistrer une operation » pour creer un depot ou un retrait."
+                "Aucun depot n'a ete enregistre automatiquement : utilisez « Enregistrer une operation » pour creer un depot terrain."
             )
             return redirect("tchaslucpay_dashboard:collecteur")
         messages.error(request, "Veuillez corriger les informations du nouveau client.")
@@ -92,6 +106,7 @@ def collecteur_dashboard(request):
         "objectif_mensuel": OBJECTIF_MENSUEL_COLLECTEUR,
         "progress_value": progress_value,
         "is_elite": volume_mensuel >= OBJECTIF_MENSUEL_COLLECTEUR,
+        "coach": build_collector_coach(collecteur),
         "collected_transactions": Transaction.objects.filter(collector=request.user)
         .select_related("account")
         .order_by("-created_at")[:25],
@@ -120,8 +135,8 @@ def collecteur_action(request):
         montant = request.POST.get("montant")
         note = request.POST.get("note")
 
-        if type_op not in {"DEPOT", "RETRAIT"}:
-            messages.error(request, "Type d'operation invalide.")
+        if type_op != "DEPOT":
+            messages.error(request, "Retrait impossible cote collecteur : les retraits se font uniquement a l'agence.")
             return redirect("tchaslucpay_dashboard:collecteur_action")
 
         if not clients.filter(pk=client_id).exists():
@@ -144,6 +159,116 @@ def collecteur_action(request):
             return redirect("tchaslucpay_dashboard:collecteur")
 
     return render(request, "tchaslucpay/dashboard/collecteur_action.html", {"clients": clients})
+
+
+@login_required
+def rapport_agence(request):
+    if not (request.user.is_staff or getattr(request.user, "role", None) == UserRole.ADMIN):
+        messages.error(request, "Acces reserve a l'administration.")
+        return redirect("tchaslucpay_dashboard:home")
+
+    report = build_agency_report()
+    notifications_count = 0
+    if request.method == "POST":
+        for alert in report["alerts"]:
+            message = f"Tchaslucpay - {alert['title']}: {alert['message']}"
+            for channel in [NotificationChannel.SMS, NotificationChannel.WHATSAPP]:
+                NotificationLog.objects.create(
+                    user=request.user,
+                    channel=channel,
+                    recipient="supervision-agence",
+                    subject="Alerte Tchaslucpay",
+                    message=message,
+                    status=NotificationStatus.QUEUED,
+                    metadata={"agent": alert["agent"], "level": alert["level"]},
+                )
+                notifications_count += 1
+        messages.success(request, f"{notifications_count} notifications WhatsApp/SMS preparees pour la supervision.")
+        return redirect("tchaslucpay_dashboard:rapport_agence")
+
+    return render(request, "tchaslucpay/dashboard/rapport_agence.html", report)
+
+
+@login_required
+def rapport_agence_pdf(request):
+    if not (request.user.is_staff or getattr(request.user, "role", None) == UserRole.ADMIN):
+        messages.error(request, "Acces reserve a l'administration.")
+        return redirect("tchaslucpay_dashboard:home")
+
+    try:
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4
+        from reportlab.pdfgen import canvas
+    except ImportError:
+        messages.error(request, "ReportLab doit etre installe pour generer le rapport PDF.")
+        return redirect("tchaslucpay_dashboard:rapport_agence")
+
+    report = build_agency_report()
+    summary = report["summary"]
+    alerts = report["alerts"]
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    navy = colors.HexColor("#07182F")
+    emerald = colors.HexColor("#0FA36B")
+    muted = colors.HexColor("#667085")
+
+    pdf.setFillColor(navy)
+    pdf.rect(0, height - 110, width, 110, stroke=0, fill=1)
+    pdf.setFillColor(colors.white)
+    pdf.setFont("Helvetica-Bold", 22)
+    pdf.drawString(42, height - 48, "Rapport agence Tchaslucpay")
+    pdf.setFont("Helvetica", 10)
+    pdf.drawString(42, height - 70, f"Rapport journalier - {timezone.localdate().strftime('%d/%m/%Y')}")
+
+    y = height - 145
+    pdf.setFillColor(emerald)
+    pdf.setFont("Helvetica-Bold", 14)
+    pdf.drawString(42, y, "Synthese superviseur")
+    y -= 24
+    pdf.setFillColor(navy)
+    pdf.setFont("Helvetica", 11)
+    rows = [
+        ("Total collecte", f"{summary['total_collecte']:,.0f} XAF".replace(",", " ")),
+        ("Nombre de depots", str(summary["nb_depots"])),
+        ("Clients servis", str(summary["nb_clients_servis"])),
+        ("Montant moyen", f"{summary['montant_moyen']:,.0f} XAF".replace(",", " ")),
+        ("Meilleur collecteur", summary["meilleur_collecteur"]),
+    ]
+    for label, value in rows:
+        pdf.setFillColor(muted)
+        pdf.drawString(52, y, label)
+        pdf.setFillColor(navy)
+        pdf.setFont("Helvetica-Bold", 11)
+        pdf.drawString(190, y, value)
+        pdf.setFont("Helvetica", 11)
+        y -= 20
+
+    y -= 14
+    pdf.setFillColor(emerald)
+    pdf.setFont("Helvetica-Bold", 14)
+    pdf.drawString(42, y, "Alertes du jour")
+    y -= 24
+    pdf.setFont("Helvetica", 10)
+    for alert in alerts[:8]:
+        if y < 80:
+            pdf.showPage()
+            y = height - 60
+        pdf.setFillColor(navy)
+        pdf.setFont("Helvetica-Bold", 10)
+        pdf.drawString(52, y, f"[{alert['agent']}] {alert['title']}")
+        y -= 14
+        pdf.setFillColor(muted)
+        pdf.setFont("Helvetica", 9)
+        pdf.drawString(64, y, alert["message"][:110])
+        y -= 20
+
+    pdf.save()
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="rapport-agence-tchaslucpay.pdf"'
+    return response
 
 
 @login_required

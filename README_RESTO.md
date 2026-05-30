@@ -27,6 +27,62 @@ Ou dans `requirements.txt`, vérifier la présence de :
 Pillow>=10.0.0
 ```
 
+---
+
+## Agent WhatsApp E-Shelle
+
+Le module `whatsapp_agent` permet de creer des campagnes WhatsApp et d'envoyer des messages en masse via l'API officielle Meta WhatsApp Business.
+
+### Variables `.env`
+
+```bash
+WHATSAPP_TOKEN=EAAxxxxx
+WHATSAPP_PHONE_ID=123456789
+WHATSAPP_VERIFY_TOKEN=mon_secret_webhook
+ANTHROPIC_API_KEY=sk-ant-xxxxx
+WHATSAPP_DRY_RUN=True
+```
+
+### Commandes de lancement
+
+```bash
+pip install -r requirements.txt
+python manage.py makemigrations accounts whatsapp_agent
+python manage.py migrate
+python manage.py seed_whatsapp_contacts
+redis-server
+celery -A edu_cm worker -l info
+celery -A edu_cm beat -l info
+python manage.py runserver
+```
+
+Dashboard: `/whatsapp/campagnes/`
+
+---
+
+## Agent Commercial IA E-Shelle
+
+Le module `commercial_agent` sert a suivre les prospects, generer des messages commerciaux IA, relancer sur WhatsApp et transformer les prestataires en abonnements.
+
+```bash
+python manage.py makemigrations commercial_agent
+python manage.py migrate
+python manage.py seed_commercial_agent
+```
+
+Dashboard staff: `/commercial-agent/`
+
+### Passage en envoi reel Meta
+
+1. Cree une app Meta sur `developers.facebook.com` et active WhatsApp Business.
+2. Copie le Bearer token dans `WHATSAPP_TOKEN`.
+3. Copie l'ID du numero Business dans `WHATSAPP_PHONE_ID`.
+4. Configure le webhook Meta vers `/whatsapp/webhook/`.
+5. Mets le meme secret dans Meta et dans `WHATSAPP_VERIFY_TOKEN`.
+6. Quand un test avec ton propre numero est OK, passe `WHATSAPP_DRY_RUN=False`.
+
+Tant que `WHATSAPP_DRY_RUN=True`, aucune requete d'envoi n'est faite a Meta.
+
 ### 2. Vérifier les paramètres (settings.py)
 
 Ces lignes ont été ajoutées automatiquement :

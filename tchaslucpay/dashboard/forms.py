@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 import secrets
 import string
 
@@ -15,15 +16,15 @@ class NouvelleTransactionForm(forms.Form):
     )
     type_op = forms.ChoiceField(
         label="Type d'operation",
-        choices=(("DEPOT", "Depot"), ("RETRAIT", "Retrait")),
+        choices=(("DEPOT", "Depot"),),
         widget=forms.Select(attrs={"class": "form-select"}),
     )
     montant = forms.DecimalField(
         label="Montant",
-        min_value=1,
+        min_value=500,
         max_digits=18,
         decimal_places=2,
-        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "min": "1"}),
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "min": "500"}),
     )
     note = forms.CharField(
         label="Note",
@@ -63,6 +64,15 @@ class ClientTerrainForm(forms.Form):
         required=False,
         widget=forms.EmailInput(attrs={"class": "form-control"}),
     )
+    national_id = forms.CharField(
+        label="Numero CNI",
+        max_length=80,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: 107812345678"}),
+    )
+    national_id_expiry = forms.DateField(
+        label="Date d'expiration CNI",
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+    )
     city = forms.CharField(
         label="Ville",
         max_length=80,
@@ -95,6 +105,18 @@ class ClientTerrainForm(forms.Form):
         if User.objects.filter(phone_number=phone_number).exists() or ClientProfile.objects.filter(phone_number=phone_number).exists():
             raise forms.ValidationError("Ce numero de telephone est deja utilise.")
         return phone_number
+
+    def clean_national_id(self):
+        national_id = self.cleaned_data["national_id"].strip().upper()
+        if ClientProfile.objects.filter(national_id__iexact=national_id).exists():
+            raise forms.ValidationError("Ce numero de CNI est deja enregistre.")
+        return national_id
+
+    def clean_national_id_expiry(self):
+        expiry = self.cleaned_data["national_id_expiry"]
+        if expiry <= timezone.localdate():
+            raise forms.ValidationError("La CNI doit etre encore valide.")
+        return expiry
 
     def _generate_username(self):
         """Genere un identifiant client stable et unique."""
@@ -134,6 +156,8 @@ class ClientTerrainForm(forms.Form):
         return ClientProfile.objects.create(
             user=user,
             account_number=self._generate_account_number(),
+            national_id=self.cleaned_data["national_id"],
+            national_id_expiry=self.cleaned_data["national_id_expiry"],
             city=self.cleaned_data["city"],
             quarter=self.cleaned_data.get("quarter", ""),
             phone_number=self.cleaned_data["phone_number"],
