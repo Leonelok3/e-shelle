@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Opportunites Business Key{% endblock %}
+
+{% block content %}
+<section class="opp-page">
+  <div class="opp-container">
+    <div class="opp-head">
+      <div>
+        <a href="{% url 'business:business_key_crm' %}">Retour CRM</a>
+        <h1>Opportunites d'argent</h1>
+        <p>Vue claire des prospects chauds, relances a faire et potentiel de commission.</p>
+      </div>
+      <a class="opp-btn" href="{% url 'business:business_key_kit' %}">Kit commercial</a>
+    </div>
+
+    <div class="opp-stats">
+      <article><span>Prospects ouverts</span><strong>{{ total_open }}</strong></article>
+      <article><span>Potentiel total</span><strong>{{ potential }} FCFA</strong></article>
+      <article><span>Commission estimee</span><strong>{{ estimated_commission }} FCFA</strong></article>
+    </div>
+
+    <div class="opp-grid">
+      <section class="opp-card">
+        <h2>Prospects les plus chauds</h2>
+        {% for lead in hot_leads %}
+        <article>
+          <strong>{{ lead.business_name }}</strong>
+          <span>{{ lead.get_status_display }} · {{ lead.get_sector_display }} · {{ lead.potential_xaf }} FCFA</span>
+          <a href="{% url 'business:business_key_crm_demo' lead.pk %}">Voir demo</a>
+        </article>
+        {% empty %}
+        <p>Aucun prospect chaud pour le moment.</p>
+        {% endfor %}
+      </section>
+
+      <section class="opp-card">
+        <h2>Relances dues</h2>
+        {% for lead in due_leads %}
+        <article>
+          <strong>{{ lead.business_name }}</strong>
+          <span>Relance prevue le {{ lead.next_follow_up_at|date:"d/m/Y" }}</span>
+          <a href="{% url 'business:business_key_crm' %}?status={{ lead.status }}">Relancer</a>
+        </article>
+        {% empty %}
+        <p>Aucune relance due aujourd'hui.</p>
+        {% endfor %}
+      </section>
+    </div>
+
+    <div class="opp-grid">
+      <section class="opp-card">
+        <h2>Par statut</h2>
+        {% for row in by_status %}
+        <article><strong>{{ row.label }}</strong><span>{{ row.total }} prospect(s) · {{ row.potential|default:0 }} FCFA</span></article>
+        {% empty %}<p>Aucune donnee.</p>{% endfor %}
+      </section>
+      <section class="opp-card">
+        <h2>Par secteur</h2>
+        {% for row in by_sector %}
+        <article><strong>{{ row.label }}</strong><span>{{ row.total }} prospect(s) · {{ row.potential|default:0 }} FCFA</span></article>
+        {% empty %}<p>Aucune donnee.</p>{% endfor %}
+      </section>
+    </div>
+  </div>
+</section>
+
+<style>
+.opp-page{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
+.opp-container{width:min(1120px,92vw);margin:0 auto}
+.opp-head{display:flex;justify-content:space-between;gap:1rem;align-items:end;flex-wrap:wrap;margin-bottom:1rem}
+.opp-head a{color:#78ff97;text-decoration:none;font-weight:900}
+.opp-head h1{font-size:clamp(2.4rem,6vw,5rem);line-height:.86;color:#fffbe8;margin:.55rem 0}
+.opp-head p{color:#b9ddc3;line-height:1.55}
+.opp-btn{border:1px solid rgba(114,255,146,.3);border-radius:8px;padding:.8rem 1rem}
+.opp-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem;margin-bottom:1rem}
+.opp-stats article,.opp-card{background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px;padding:1rem}
+.opp-stats span{display:block;color:#a8d5b7}.opp-stats strong{display:block;color:#ffd51f;font-size:1.8rem;margin-top:.3rem}
+.opp-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.opp-card h2{color:#ffd51f;margin:0 0 .8rem}
+.opp-card article{background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.85rem;margin-bottom:.6rem}
+.opp-card strong{display:block;color:#fff}.opp-card span,.opp-card p{display:block;color:#b9ddc3;margin:.3rem 0;line-height:1.45}
+.opp-card a{color:#78ff97;font-weight:900;text-decoration:none}
+@media(max-width:900px){.opp-stats,.opp-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}

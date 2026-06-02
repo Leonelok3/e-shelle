@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Business Key Academy{% endblock %}
+
+{% block content %}
+<section class="academy-page">
+  <div class="academy-container">
+    <div class="academy-hero">
+      <a href="{% url 'business:partner_dashboard' %}">Retour dashboard</a>
+      <span>Business Key Academy</span>
+      <h1>Apprendre a vendre E-Shelle sans spam, avec methode.</h1>
+      <p>
+        L'Academy transforme un partenaire debutant en vendeur terrain organise:
+        comprendre, choisir un secteur, prospecter, faire une demo, conclure et suivre la commission.
+      </p>
+      <div class="academy-actions">
+        <a href="{% url 'business:business_key_kit' %}">Ouvrir le kit commercial</a>
+        <a href="{% url 'business:business_key_packs' %}">Activer ma Business Key</a>
+      </div>
+    </div>
+
+    <section class="academy-card">
+      <h2>Parcours en 5 modules</h2>
+      <div class="module-grid">
+        {% for number, title, desc in modules %}
+        <article>
+          <span>{{ number }}</span>
+          <strong>{{ title }}</strong>
+          <p>{{ desc }}</p>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="academy-card">
+      <h2>Secteurs a attaquer en premier</h2>
+      <div class="academy-sector-grid">
+        {% for sector in sectors %}
+        <article>
+          <h3>{{ sector.name }}</h3>
+          <p>{{ sector.solution }}</p>
+          <strong>{{ sector.offer }}</strong>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="academy-card">
+      <h2>Regle d'or E-Shelle</h2>
+      <div class="rule-grid">
+        <article><strong>Pas de promesse magique</strong><p>On parle de travail, prospection, service utile et commissions validees.</p></article>
+        <article><strong>Pas de spam</strong><p>On contacte des business pertinents avec un message court et respectueux.</p></article>
+        <article><strong>Preuve avant paiement</strong><p>On montre une fiche, une campagne, un post ou une page locale avant de conclure.</p></article>
+      </div>
+    </section>
+  </div>
+</section>
+
+<style>
+.academy-page{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
+.academy-container{width:min(1180px,92vw);margin:0 auto}
+.academy-hero,.academy-card{background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px;padding:1rem;margin-bottom:1rem}
+.academy-hero a{color:#78ff97;text-decoration:none;font-weight:900}
+.academy-hero span{display:inline-flex;margin-top:1rem;border:1px solid rgba(114,255,146,.32);border-radius:999px;padding:.45rem .75rem;color:#78ff97;font-weight:900;text-transform:uppercase}
+.academy-hero h1{font-size:clamp(2.3rem,6vw,5rem);line-height:.88;color:#fffbe8;margin:.8rem 0}
+.academy-hero p,.academy-card p{color:#b9ddc3;line-height:1.58}
+.academy-actions{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1rem}
+.academy-actions a{background:linear-gradient(135deg,#35b257,#d49618);border-radius:8px;color:#fff;text-decoration:none;font-weight:900;padding:.85rem 1rem}
+.academy-actions a+ a{background:#06170f;border:1px solid rgba(114,255,146,.3)}
+.academy-card h2{color:#ffd51f;margin:0 0 .8rem}
+.module-grid,.academy-sector-grid,.rule-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem}
+.module-grid article,.academy-sector-grid article,.rule-grid article{background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.9rem}
+.module-grid span{display:inline-flex;width:2rem;height:2rem;align-items:center;justify-content:center;border-radius:50%;background:#35b257;color:#fff;font-weight:900}
+.module-grid strong,.rule-grid strong,.academy-sector-grid h3{display:block;color:#fff;margin:.6rem 0 .25rem}
+.academy-sector-grid strong{color:#78ff97}
+@media(max-width:920px){.module-grid,.academy-sector-grid,.rule-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}

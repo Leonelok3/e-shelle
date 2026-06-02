@@ -3,18 +3,31 @@ from django.utils.html import format_html
 
 from .models import (
     AICreditLedger,
+    AppCommission,
     BoostCampaign,
+    BusinessKeyAccount,
+    BusinessKeyPaymentRequest,
+    BusinessCatalogItem,
     BusinessLeadEvent,
     BusinessProfile,
     HomeAdSlide,
+    PartnerCRMLead,
+    PartnerLevel,
     PaymentRequest,
     PremiumSectorCampaign,
     ProviderPlan,
 )
 
 
+class BusinessCatalogItemInline(admin.TabularInline):
+    model = BusinessCatalogItem
+    extra = 1
+    fields = ("title", "item_type", "price_label", "order", "is_active")
+
+
 @admin.register(BusinessProfile)
 class BusinessProfileAdmin(admin.ModelAdmin):
+    inlines = (BusinessCatalogItemInline,)
     list_display = (
         "name", "module", "public_slug", "plan", "subscription_status", "boost_status",
         "ai_credits", "views_count", "whatsapp_clicks", "phone_clicks", "leads_count",
@@ -80,6 +93,15 @@ class BusinessProfileAdmin(admin.ModelAdmin):
             profile.activate_boost(7)
 
 
+@admin.register(BusinessCatalogItem)
+class BusinessCatalogItemAdmin(admin.ModelAdmin):
+    list_display = ("title", "business", "item_type", "price_label", "is_active", "order", "updated_at")
+    list_filter = ("item_type", "is_active", "business__module")
+    search_fields = ("title", "description", "business__name", "price_label")
+    list_editable = ("is_active", "order")
+    autocomplete_fields = ("business",)
+
+
 @admin.register(ProviderPlan)
 class ProviderPlanAdmin(admin.ModelAdmin):
     list_display = ("name", "code", "plan_level", "monthly_price_xaf", "duration_days", "included_boost_days", "included_ai_credits", "is_active")
@@ -94,6 +116,7 @@ class HomeAdSlideAdmin(admin.ModelAdmin):
         "preview",
         "title",
         "business",
+        "media_type",
         "badge",
         "city",
         "order",
@@ -105,15 +128,15 @@ class HomeAdSlideAdmin(admin.ModelAdmin):
         "ends_at",
         "updated_at",
     )
-    list_filter = ("is_active", "badge", "business__module", "business__plan")
+    list_filter = ("is_active", "media_type", "badge", "business__module", "business__plan")
     search_fields = ("title", "subtitle", "business__name", "city")
     list_editable = ("order", "is_active")
     autocomplete_fields = ("business",)
     readonly_fields = ("preview", "impressions_count", "clicks_count", "ctr_display", "created_at", "updated_at")
     fieldsets = (
         ("Contenu du slide", {
-            "fields": ("business", "title", "subtitle", "image", "badge", "city"),
-            "description": "Ajoutez ici le montage publicitaire: plat de restaurant, pressing, produit vedette, offre speciale.",
+            "fields": ("business", "title", "subtitle", "media_type", "image", "video", "video_url", "badge", "city"),
+            "description": "Ajoutez ici le montage publicitaire: flyer, plat de restaurant, ecole, produit vedette, offre speciale ou video.",
         }),
         ("Action client", {
             "fields": ("cta_label", "cta_url"),
@@ -126,6 +149,8 @@ class HomeAdSlideAdmin(admin.ModelAdmin):
 
     @admin.display(description="Aperçu")
     def preview(self, obj):
+        if obj.media_type == HomeAdSlide.MediaType.VIDEO and obj.video:
+            return format_html('<span style="font-weight:700;color:#16a34a">Video</span>')
         if not obj.image:
             return "-"
         return format_html('<img src="{}" style="width:74px;height:48px;object-fit:cover;border-radius:8px" />', obj.image.url)
@@ -208,5 +233,62 @@ class PaymentRequestAdmin(admin.ModelAdmin):
     def cancel_requests(self, request, queryset):
         count = queryset.exclude(status=PaymentRequest.Status.CONFIRMED).update(status=PaymentRequest.Status.CANCELED)
         self.message_user(request, f"{count} demande(s) annulee(s).")
+
+
+@admin.register(BusinessKeyAccount)
+class BusinessKeyAccountAdmin(admin.ModelAdmin):
+    list_display = ("user", "tier", "activated_at", "expires_at", "created_at")
+    list_filter = ("tier",)
+    search_fields = ("user__username", "user__email")
+    readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(BusinessKeyPaymentRequest)
+class BusinessKeyPaymentRequestAdmin(admin.ModelAdmin):
+    list_display = ("user", "tier", "amount_xaf", "momo_number", "status", "created_at", "confirmed_at")
+    list_filter = ("tier", "status", "created_at")
+    search_fields = ("user__username", "user__email", "momo_number", "note")
+    readonly_fields = ("created_at", "confirmed_at")
+    actions = ("confirm_business_key", "cancel_business_key")
+
+    @admin.action(description="Confirmer et activer la Business Key")
+    def confirm_business_key(self, request, queryset):
+        count = 0
+        for payment_request in queryset.select_related("user"):
+            if payment_request.status != BusinessKeyPaymentRequest.Status.CONFIRMED:
+                payment_request.confirm()
+                count += 1
+        self.message_user(request, f"{count} Business Key activee(s).")
+
+    @admin.action(description="Annuler les demandes Business Key")
+    def cancel_business_key(self, request, queryset):
+        count = queryset.exclude(status=BusinessKeyPaymentRequest.Status.CONFIRMED).update(status=BusinessKeyPaymentRequest.Status.CANCELED)
+        self.message_user(request, f"{count} demande(s) annulee(s).")
+
+
+@admin.register(PartnerCRMLead)
+class PartnerCRMLeadAdmin(admin.ModelAdmin):
+    list_display = ("business_name", "partner", "sector", "status", "city", "preferred_phone", "potential_xaf", "next_follow_up_at", "updated_at")
+    list_filter = ("status", "sector", "city", "created_at")
+    search_fields = ("business_name", "contact_name", "phone", "whatsapp", "partner__username", "city", "district")
+    list_editable = ("status",)
+    readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(AppCommission)
+class AppCommissionAdmin(admin.ModelAdmin):
+    list_display = ("label", "app_name", "commission_rate", "commission_fixe", "is_recurring", "is_active", "priority")
+    list_editable = ("commission_rate", "commission_fixe", "is_active", "priority")
+    search_fields = ("label", "app_name", "description", "script_vente")
+    list_filter = ("is_active", "is_recurring")
+    ordering = ("priority", "app_name")
+
+
+@admin.register(PartnerLevel)
+class PartnerLevelAdmin(admin.ModelAdmin):
+    list_display = ("label", "level", "prix_fcfa", "is_active")
+    list_filter = ("is_active", "level")
+    search_fields = ("label", "description", "bonus_description")
+    filter_horizontal = ("apps_accessibles",)
 
 # Register your models here.

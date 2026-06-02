@@ -17,9 +17,16 @@ def staff_required(view_func):
 @staff_required
 def dashboard(request):
     prospects = ProspectBusiness.objects.all()
+    try:
+        from whatsapp_agent.models import ContactWhatsApp
+
+        contacts_whatsapp = ContactWhatsApp.objects.filter(consentement_confirme=True).count()
+    except Exception:
+        contacts_whatsapp = 0
     today = timezone.localdate()
     stats = {
         "total": prospects.count(),
+        "contacts_whatsapp": contacts_whatsapp,
         "a_traiter": prospects.filter(Q(prochain_contact__isnull=True) | Q(prochain_contact__lte=today)).exclude(statut__in=["paye", "perdu"]).count(),
         "interesses": prospects.filter(statut__in=["interesse", "negociation"]).count(),
         "payes": prospects.filter(statut="paye").count(),
@@ -156,6 +163,26 @@ def sync_business(request):
     result = CommercialAgentService.sync_from_business_profiles(assigne_a=request.user)
     CommercialAgentService.seed_scripts()
     messages.success(request, f"Synchronisation terminee: {result['created']} crees, {result['updated']} mis a jour.")
+    return redirect("commercial_agent:dashboard")
+
+
+@staff_required
+@require_POST
+def sync_whatsapp_contacts(request):
+    module = request.POST.get("module") or "services"
+    limit = int(request.POST.get("limit") or 300)
+    result = CommercialAgentService.sync_from_whatsapp_contacts(
+        limit=limit,
+        assigne_a=request.user,
+        module=module,
+    )
+    messages.success(
+        request,
+        (
+            "Contacts WhatsApp synchronises: "
+            f"{result['created']} crees, {result['updated']} mis a jour, {result['skipped']} ignores."
+        ),
+    )
     return redirect("commercial_agent:dashboard")
 
 

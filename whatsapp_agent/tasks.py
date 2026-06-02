@@ -32,6 +32,45 @@ def recalculer_stats_campagne(campagne: Campagne):
     )
 
 
+def _traiter_message_direct(msg: MessageEnvoi):
+    """Traite un message sans Celery, utile en local et en simulation."""
+
+    result = WhatsAppService.envoyer_message(msg.numero_whatsapp, msg.message_final)
+    if result["success"]:
+        msg.statut = MessageEnvoi.STATUT_ENVOYE
+        msg.whatsapp_message_id = result["message_id"]
+        msg.erreur = ""
+        msg.envoye_le = timezone.now()
+        msg.save(update_fields=["statut", "whatsapp_message_id", "erreur", "envoye_le", "mis_a_jour_le"])
+    else:
+        msg.statut = MessageEnvoi.STATUT_ECHEC
+        msg.erreur = result["erreur"]
+        msg.save(update_fields=["statut", "erreur", "mis_a_jour_le"])
+
+
+def lancer_campagne_direct(campagne_id: int):
+    """Lance une campagne sans broker Celery, pour les tests locaux."""
+
+    campagne = Campagne.objects.get(id=campagne_id)
+    if campagne.statut not in [Campagne.STATUT_VALIDEE, Campagne.STATUT_EN_COURS]:
+        return
+
+    campagne.statut = Campagne.STATUT_EN_COURS
+    campagne.lance_le = timezone.now()
+    campagne.save(update_fields=["statut", "lance_le"])
+
+    messages = list(campagne.messages.filter(statut=MessageEnvoi.STATUT_EN_ATTENTE).order_by("id"))
+    for msg in messages:
+        _traiter_message_direct(msg)
+
+    recalculer_stats_campagne(campagne)
+    campagne.refresh_from_db()
+    if not campagne.messages.filter(statut=MessageEnvoi.STATUT_EN_ATTENTE).exists():
+        campagne.statut = Campagne.STATUT_TERMINEE
+        campagne.termine_le = timezone.now()
+        campagne.save(update_fields=["statut", "termine_le"])
+
+
 @shared_task(bind=True, max_retries=2)
 def envoyer_message_task(self, message_envoi_id: int):
     """Envoie un seul message et reessaie deux fois en cas d'echec temporaire."""

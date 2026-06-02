@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Kit commercial Business Key{% endblock %}
+
+{% block content %}
+<section class="kit-page">
+  <div class="kit-container">
+    <div class="kit-head">
+      <a href="{% url 'business:partner_dashboard' %}">Retour dashboard</a>
+      <h1>Kit commercial Business Key</h1>
+      <p>Scripts, cartes sectorielles, objections, calculateur de gains et raccourcis vers les agents IA.</p>
+      <div class="kit-head-actions">
+        <a href="{% url 'business:business_key_academy' %}">Ouvrir l'Academy</a>
+        <a href="{% url 'business:business_key_packs' %}">Voir les packs</a>
+      </div>
+    </div>
+
+    <div class="kit-link">
+      <div>
+        <span>Ton lien partenaire</span>
+        <strong>{{ referral_link }}</strong>
+      </div>
+      <button type="button" data-copy="{{ referral_link }}">Copier</button>
+    </div>
+
+    <section class="kit-card">
+      <h2>Calculateur de gains</h2>
+      <div class="gain-grid">
+        <label>Plans Business vendus
+          <input id="gain-business" type="number" min="0" value="3">
+        </label>
+        <label>Plans Premium vendus
+          <input id="gain-premium" type="number" min="0" value="1">
+        </label>
+        <label>Business Key vendues
+          <input id="gain-key" type="number" min="0" value="5">
+        </label>
+        <div class="gain-result">
+          <span>Estimation commission</span>
+          <strong id="gain-total">0 FCFA</strong>
+          <small>Simulation indicative. La commission reelle depend des validations de paiement.</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="kit-card">
+      <h2>Boutons vers les agents IA</h2>
+      <div class="agent-grid">
+        {% for label, url, desc in agent_links %}
+        <a href="{{ url }}">
+          <strong>{{ label }}</strong>
+          <span>{{ desc }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="kit-card">
+      <h2>Cartes sectorielles</h2>
+      <div class="sector-grid">
+        {% for sector in sectors %}
+        <article class="sector-card">
+          <div class="sector-top">
+            <span>{{ forloop.counter }}</span>
+            <h3>{{ sector.name }}</h3>
+          </div>
+          <p><b>Probleme:</b> {{ sector.problem }}</p>
+          <p><b>Solution:</b> {{ sector.solution }}</p>
+          <p><b>Offre:</b> {{ sector.offer }}</p>
+          <div class="sector-script">
+            <strong>Script</strong>
+            <button type="button" data-copy="{{ sector.script }}">Copier</button>
+            <p>{{ sector.script }}</p>
+          </div>
+          <div class="objection">
+            <strong>Objection: {{ sector.objection }}</strong>
+            <p>{{ sector.answer }}</p>
+          </div>
+          <div class="sector-links">
+            {% for label, url in sector.links %}
+            <a href="{{ url }}">{{ label }}</a>
+            {% endfor %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <div class="kit-grid">
+      <section class="kit-card">
+        <h2>Scripts rapides</h2>
+        {% for script in scripts %}
+        <article>
+          <div>
+            <strong>{{ script.title }}</strong>
+            <button type="button" data-copy="{{ script.text }}">Copier</button>
+          </div>
+          <p>{{ script.text }}</p>
+        </article>
+        {% endfor %}
+      </section>
+
+      <section class="kit-card">
+        <h2>Prix a presenter</h2>
+        {% for name, price, desc in price_lines %}
+        <article>
+          <strong>{{ name }} - {{ price }}</strong>
+          <p>{{ desc }}</p>
+        </article>
+        {% endfor %}
+      </section>
+    </div>
+
+    <section class="kit-card">
+      <h2>Routine terrain simple</h2>
+      <ol>
+        <li>Choisir un quartier et un secteur rentable.</li>
+        <li>Contacter 10 business avec la carte sectorielle adaptee.</li>
+        <li>Ajouter les contacts dans E-Shelle ou Phone OCR, avec autorisation.</li>
+        <li>Creer une fiche ou une campagne WhatsApp de suivi.</li>
+        <li>Faire valider le paiement puis suivre la commission.</li>
+      </ol>
+    </section>
+  </div>
+</section>
+
+<script>
+function formatFcfa(value) {
+  return new Intl.NumberFormat("fr-FR").format(Math.max(0, Math.round(value))) + " FCFA";
+}
+function updateGain() {
+  const business = Number(document.getElementById("gain-business").value || 0);
+  const premium = Number(document.getElementById("gain-premium").value || 0);
+  const key = Number(document.getElementById("gain-key").value || 0);
+  const total = business * 15000 * 0.5 + premium * 30000 * 0.5 + key * 5000 * 0.3;
+  document.getElementById("gain-total").textContent = formatFcfa(total);
+}
+document.addEventListener("input", function (event) {
+  if (event.target.closest(".gain-grid")) updateGain();
+});
+document.addEventListener("click", function (event) {
+  const button = event.target.closest("[data-copy]");
+  if (!button) return;
+  navigator.clipboard.writeText(button.dataset.copy || "");
+  const oldText = button.textContent;
+  button.textContent = "Copie";
+  setTimeout(function () { button.textContent = oldText; }, 1200);
+});
+updateGain();
+</script>
+
+<style>
+.kit-page{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
+.kit-container{width:min(1220px,92vw);margin:0 auto}
+.kit-head a{color:#78ff97;text-decoration:none;font-weight:900}
+.kit-head h1{font-size:clamp(2.4rem,6vw,5rem);line-height:.86;margin:.6rem 0;color:#fffbe8}
+.kit-head p{color:#b9ddc3;font-size:1.1rem;line-height:1.55}
+.kit-head-actions{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:.8rem}
+.kit-head-actions a,.sector-links a{background:#06170f;border:1px solid rgba(114,255,146,.28);border-radius:8px;padding:.7rem .85rem;color:#eefdf0;text-decoration:none}
+.kit-link,.kit-card{background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px;padding:1rem;margin-bottom:1rem}
+.kit-link{display:grid;grid-template-columns:1fr auto;gap:.7rem;align-items:center}
+.kit-link span{color:#a8d5b7}.kit-link strong{display:block;word-break:break-all;color:#fff}
+.kit-link button,.kit-card button{background:#35b257;color:#fff;border:0;border-radius:8px;padding:.65rem .85rem;font-weight:900;cursor:pointer}
+.kit-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:1rem}
+.kit-card h2{color:#ffd51f;margin:0 0 .8rem}
+.kit-card article{background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.9rem;margin-bottom:.7rem}
+.kit-card article div{display:flex;justify-content:space-between;gap:.7rem;align-items:center}
+.kit-card strong{color:#fff}.kit-card p,.kit-card li{color:#b9ddc3;line-height:1.55}
+.kit-card ol{margin:0;padding-left:1.3rem}
+.gain-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem;align-items:end}
+.gain-grid label{display:grid;gap:.4rem;color:#dfffe6;font-weight:900}
+.gain-grid input{background:#06170f;border:1px solid rgba(114,255,146,.22);border-radius:8px;color:#fff;padding:.8rem}
+.gain-result{background:#06170f;border:1px solid rgba(255,213,31,.25);border-radius:8px;padding:.9rem}
+.gain-result span,.gain-result small{display:block;color:#b9ddc3}.gain-result strong{display:block;color:#ffd51f;font-size:1.8rem;margin:.25rem 0}
+.agent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem}
+.agent-grid a{background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.9rem;text-decoration:none;color:#eefdf0}
+.agent-grid span{display:block;color:#b9ddc3;margin-top:.3rem;line-height:1.45}
+.sector-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.sector-card{margin:0!important}
+.sector-top{display:flex!important;justify-content:flex-start!important;align-items:center!important}
+.sector-top span{display:inline-flex;width:2rem;height:2rem;border-radius:50%;align-items:center;justify-content:center;background:#35b257;color:#fff;font-weight:900}
+.sector-top h3{margin:0;color:#fff}
+.sector-script,.objection{border-top:1px solid rgba(114,255,146,.14);padding-top:.7rem;margin-top:.7rem}
+.sector-script button{float:right}
+.objection strong{color:#ffd51f}
+.sector-links{display:flex!important;flex-wrap:wrap;gap:.5rem;margin-top:.8rem}
+@media(max-width:980px){.kit-grid,.kit-link,.gain-grid,.agent-grid,.sector-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}

@@ -41,6 +41,11 @@ class BusinessProfile(models.Model):
         BUSINESS = "business", "Business"
         PREMIUM = "premium", "Premium"
 
+    class ActivationStatus(models.TextChoices):
+        DEMO = "demo", "Demo"
+        PENDING = "pending", "Paiement en attente"
+        ACTIVE = "active", "Activee"
+
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
@@ -90,6 +95,12 @@ class BusinessProfile(models.Model):
     content_object = GenericForeignKey("content_type", "object_id")
 
     plan = models.CharField(max_length=20, choices=Plan.choices, default=Plan.FREE, db_index=True)
+    activation_status = models.CharField(
+        max_length=20,
+        choices=ActivationStatus.choices,
+        default=ActivationStatus.DEMO,
+        db_index=True,
+    )
     subscription_expires_at = models.DateTimeField(null=True, blank=True)
     boost_expires_at = models.DateTimeField(null=True, blank=True)
     ai_credits = models.PositiveIntegerField(default=0)
@@ -187,6 +198,7 @@ class BusinessProfile(models.Model):
 
     def activate_plan(self, plan: str, days: int = 30):
         self.plan = plan
+        self.activation_status = self.ActivationStatus.ACTIVE
         base = self.subscription_expires_at if self.subscription_active else timezone.now()
         self.subscription_expires_at = base + timedelta(days=days)
         if plan == self.Plan.PRO:
@@ -195,12 +207,72 @@ class BusinessProfile(models.Model):
             self.ai_credits += 20
         elif plan == self.Plan.PREMIUM:
             self.ai_credits += 50
-        self.save(update_fields=["plan", "subscription_expires_at", "ai_credits", "updated_at"])
+        self.save(update_fields=["plan", "activation_status", "subscription_expires_at", "ai_credits", "updated_at"])
 
     def activate_boost(self, days: int = 7):
         base = self.boost_expires_at if self.boost_active else timezone.now()
         self.boost_expires_at = base + timedelta(days=days)
         self.save(update_fields=["boost_expires_at", "updated_at"])
+
+
+class BusinessCatalogItem(models.Model):
+    """Produit ou service ajoute directement sur une fiche business autonome."""
+
+    class ItemType(models.TextChoices):
+        PRODUCT = "product", "Produit"
+        SERVICE = "service", "Service"
+        MENU = "menu", "Menu"
+        DELIVERY = "delivery", "Livraison"
+        OFFER = "offer", "Offre"
+
+    business = models.ForeignKey(
+        BusinessProfile,
+        on_delete=models.CASCADE,
+        related_name="catalog_items",
+    )
+    item_type = models.CharField(max_length=20, choices=ItemType.choices, default=ItemType.PRODUCT)
+    title = models.CharField(max_length=140)
+    description = models.TextField(blank=True)
+    price_label = models.CharField(max_length=80, blank=True, help_text="Ex: 2 500 FCFA, Prix a discuter.")
+    image = models.ImageField(upload_to="business/catalogue/", blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "-created_at"]
+        indexes = [
+            models.Index(fields=["business", "is_active", "order"]),
+        ]
+        verbose_name = "Produit/service business"
+        verbose_name_plural = "Produits/services business"
+
+    def __str__(self):
+        return f"{self.title} - {self.business.name}"
+
+    @property
+    def image_url(self):
+        if not self.image:
+            return ""
+        try:
+            return self.image.url
+        except Exception:
+            return ""
+
+    def to_public_item(self):
+        return {
+            "type": self.get_item_type_display(),
+            "title": self.title,
+            "description": self.description[:180],
+            "price": self.price_label or "Prix a discuter",
+            "image": self.image_url,
+            "url": "",
+            "contact_url": self.business.whatsapp_url(
+                f"Bonjour {self.business.name}, je suis interesse par {self.title} vu sur E-Shelle."
+            ),
+            "meta": self.business.district or self.business.city,
+        }
 
 
 class ProviderPlan(models.Model):
@@ -229,6 +301,10 @@ class ProviderPlan(models.Model):
 class HomeAdSlide(models.Model):
     """Slide publicitaire visible sur la page d'accueil."""
 
+    class MediaType(models.TextChoices):
+        IMAGE = "image", "Image / flyer"
+        VIDEO = "video", "Video"
+
     business = models.ForeignKey(
         BusinessProfile,
         null=True,
@@ -240,6 +316,9 @@ class HomeAdSlide(models.Model):
     title = models.CharField(max_length=140)
     subtitle = models.CharField(max_length=190, blank=True)
     image = models.ImageField(upload_to="business/home-slides/")
+    media_type = models.CharField(max_length=10, choices=MediaType.choices, default=MediaType.IMAGE)
+    video = models.FileField(upload_to="business/home-slides/videos/", blank=True, null=True)
+    video_url = models.URLField(blank=True, help_text="Lien direct MP4 optionnel si la video n'est pas uploadee.")
     badge = models.CharField(max_length=60, blank=True, default="Premium")
     cta_label = models.CharField(max_length=40, blank=True, default="Commander")
     cta_url = models.URLField(
@@ -456,6 +535,231 @@ class PaymentRequest(models.Model):
         self.status = self.Status.CONFIRMED
         self.confirmed_at = timezone.now()
         self.save(update_fields=["status", "confirmed_at"])
+        if self.business.activation_status != BusinessProfile.ActivationStatus.ACTIVE:
+            self.business.activation_status = BusinessProfile.ActivationStatus.ACTIVE
+            self.business.save(update_fields=["activation_status", "updated_at"])
         return tx
+
+
+class BusinessKeyAccount(models.Model):
+    """Statut commercial d'un partenaire E-Shelle Business Key."""
+
+    class Tier(models.TextChoices):
+        FREE = "free", "Gratuit"
+        KEY = "key", "Business Key"
+        PRO = "pro", "Ambassadeur Pro"
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="business_key_account")
+    tier = models.CharField(max_length=20, choices=Tier.choices, default=Tier.FREE, db_index=True)
+    activated_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Compte Business Key"
+        verbose_name_plural = "Comptes Business Key"
+
+    def __str__(self):
+        return f"{self.user} - {self.get_tier_display()}"
+
+    @property
+    def is_paid(self):
+        return self.tier in {self.Tier.KEY, self.Tier.PRO}
+
+    @property
+    def is_active_paid(self):
+        return self.is_paid and (not self.expires_at or self.expires_at > timezone.now())
+
+    def activate(self, tier, days=30):
+        self.tier = tier
+        self.activated_at = timezone.now()
+        base = self.expires_at if self.expires_at and self.expires_at > timezone.now() else timezone.now()
+        self.expires_at = base + timedelta(days=days)
+        self.save(update_fields=["tier", "activated_at", "expires_at", "updated_at"])
+
+
+class BusinessKeyPaymentRequest(models.Model):
+    """Demande de paiement manuel pour activer une Business Key."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "En attente"
+        CONFIRMED = "confirmed", "Confirme"
+        CANCELED = "canceled", "Annule"
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="business_key_payment_requests")
+    tier = models.CharField(max_length=20, choices=BusinessKeyAccount.Tier.choices, db_index=True)
+    amount_xaf = models.PositiveIntegerField(default=0)
+    momo_number = models.CharField(max_length=40, blank=True)
+    proof = models.FileField(upload_to="business_key/proofs/", blank=True, null=True)
+    note = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Paiement Business Key"
+        verbose_name_plural = "Paiements Business Key"
+
+    def __str__(self):
+        return f"{self.user} - {self.get_tier_display()} - {self.amount_xaf} FCFA"
+
+    def confirm(self):
+        if self.status == self.Status.CONFIRMED:
+            return None
+        account, _ = BusinessKeyAccount.objects.get_or_create(user=self.user)
+        account.activate(self.tier, days=30)
+        self.status = self.Status.CONFIRMED
+        self.confirmed_at = timezone.now()
+        self.save(update_fields=["status", "confirmed_at"])
+        return account
+
+
+class AppCommission(models.Model):
+    """Catalogue des apps E-Shelle vendables par les partenaires."""
+
+    class AppName(models.TextChoices):
+        MARKETPLACE = "marketplace", "Marketplace"
+        LOVE = "love", "E-Shelle Love"
+        FORMATIONS = "formations", "Formations"
+        NJANGI = "njangi", "Njangi Tontine"
+        AGRO = "agro", "Agro B2B/B2C"
+        PHARMA = "pharma", "Pharma"
+        TRANSPORT = "transport", "Transport"
+        TCHASLUCPAY = "tchaslucpay", "Tchaslucpay"
+        PRESSING = "pressing", "Pressing"
+        RESTO = "resto", "Resto"
+        IMMOBILIER = "immobilier", "Immobilier"
+        AUTO = "auto", "Auto"
+        GAZ = "gaz", "Gaz & Livraison"
+        JOBS = "jobs", "Jobs"
+        ADGEN = "adgen", "AdGen"
+        EDU = "edu", "EduCam Pro"
+        SANTE = "sante", "Sante"
+        SIMPLO = "simplo", "Simplo"
+        MARKET = "market", "Market general"
+        SERVICES_WEB = "services_web", "Services Web"
+
+    app_name = models.CharField(max_length=50, choices=AppName.choices, unique=True)
+    label = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    commission_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=10.00,
+        help_text="% commission sur vente",
+    )
+    commission_fixe = models.DecimalField(
+        max_digits=10,
+        decimal_places=0,
+        default=0,
+        help_text="Commission fixe en FCFA",
+    )
+    is_recurring = models.BooleanField(default=False, help_text="Commission mensuelle recurrente")
+    is_active = models.BooleanField(default=True)
+    script_vente = models.TextField(blank=True, help_text="Script WhatsApp pour vendre cette app")
+    priority = models.IntegerField(default=0, help_text="Ordre d'affichage (0=premier)")
+    icon = models.CharField(max_length=50, blank=True, help_text="Icone ou emoji simple")
+
+    class Meta:
+        ordering = ["priority", "app_name"]
+        verbose_name = "Commission par App"
+        verbose_name_plural = "Commissions par App"
+
+    def __str__(self):
+        return f"{self.label} - {self.commission_rate}%"
+
+
+class PartnerLevel(models.Model):
+    """Niveau commercial Business Key et apps debloquees."""
+
+    class Level(models.TextChoices):
+        GRATUIT = "gratuit", "Gratuit"
+        BUSINESS_KEY = "business_key", "Business Key"
+        AMBASSADEUR = "ambassadeur", "Ambassadeur Pro"
+        MULTI_APP = "multi_app", "Multi-App Master"
+
+    level = models.CharField(max_length=30, choices=Level.choices, unique=True)
+    label = models.CharField(max_length=100)
+    prix_fcfa = models.IntegerField(default=0)
+    description = models.TextField(blank=True)
+    apps_accessibles = models.ManyToManyField(
+        AppCommission,
+        blank=True,
+        help_text="Apps dont le partenaire peut vendre et toucher commission",
+    )
+    bonus_description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Niveau Partenaire"
+        verbose_name_plural = "Niveaux Partenaires"
+
+    def __str__(self):
+        return f"{self.label} - {self.prix_fcfa} FCFA"
+
+
+class PartnerCRMLead(models.Model):
+    """Prospect suivi par un partenaire Business Key."""
+
+    class Status(models.TextChoices):
+        NEW = "new", "Nouveau"
+        CONTACTED = "contacted", "Contacte"
+        INTERESTED = "interested", "Interesse"
+        FOLLOW_UP = "follow_up", "A relancer"
+        CONVERTED = "converted", "Converti"
+        REFUSED = "refused", "Refuse"
+
+    class Sector(models.TextChoices):
+        RESTAURANT = "restaurant", "Restaurant"
+        PRESSING = "pressing", "Pressing"
+        GAZ = "gaz", "Gaz"
+        IMMOBILIER = "immobilier", "Immobilier"
+        AUTO = "auto", "Auto"
+        AGRO = "agro", "Agro"
+        MARKET = "market", "Market"
+        SANTE = "sante", "Sante"
+        SERVICES = "services", "Services"
+        OTHER = "other", "Autre"
+
+    partner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="business_key_crm_leads")
+    business_name = models.CharField(max_length=180)
+    contact_name = models.CharField(max_length=120, blank=True)
+    phone = models.CharField(max_length=40, blank=True)
+    whatsapp = models.CharField(max_length=40, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    district = models.CharField(max_length=120, blank=True)
+    sector = models.CharField(max_length=30, choices=Sector.choices, default=Sector.OTHER, db_index=True)
+    status = models.CharField(max_length=30, choices=Status.choices, default=Status.NEW, db_index=True)
+    potential_xaf = models.PositiveIntegerField(default=15000)
+    next_follow_up_at = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["status", "next_follow_up_at", "-updated_at"]
+        indexes = [
+            models.Index(fields=["partner", "status"]),
+            models.Index(fields=["partner", "sector"]),
+        ]
+        verbose_name = "Prospect CRM partenaire"
+        verbose_name_plural = "Prospects CRM partenaires"
+
+    def __str__(self):
+        return f"{self.business_name} - {self.get_status_display()}"
+
+    @property
+    def preferred_phone(self):
+        return self.whatsapp or self.phone
+
+    def whatsapp_url(self, text=""):
+        number = (self.preferred_phone or "").replace("+", "").replace(" ", "").replace("-", "")
+        if not number:
+            return ""
+        if not number.startswith("237"):
+            number = f"237{number}"
+        return f"https://wa.me/{number}?text={urllib.parse.quote(text)}"
 
 # Create your models here.

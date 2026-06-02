@@ -12,6 +12,7 @@ urlpatterns = [
     path("prospects/<int:pk>/relance/", views.create_relance, name="create_relance"),
     path("prospects/<int:pk>/statut/", views.update_status, name="update_status"),
     path("sync-business/", views.sync_business, name="sync_business"),
+    path("sync-whatsapp-contacts/", views.sync_whatsapp_contacts, name="sync_whatsapp_contacts"),
     path("campagne-auto/", views.create_auto_campaign, name="create_auto_campaign"),
     path("campagne-whatsapp/", views.create_whatsapp_campaign, name="create_whatsapp_campaign"),
 ]

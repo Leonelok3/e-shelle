@@ -2,6 +2,41 @@ from django.conf import settings
 from django.db import models
 
 
+class ContactWhatsApp(models.Model):
+    """Contact WhatsApp importe avec autorisation explicite."""
+
+    SOURCE_CSV = "csv"
+    SOURCE_EXCEL = "excel"
+    SOURCE_MANUEL = "manuel"
+    SOURCE_API = "api"
+
+    SOURCES = [
+        (SOURCE_CSV, "CSV"),
+        (SOURCE_EXCEL, "Excel"),
+        (SOURCE_MANUEL, "Manuel"),
+        (SOURCE_API, "API"),
+    ]
+
+    nom = models.CharField(max_length=180, blank=True)
+    numero = models.CharField(max_length=30, unique=True, db_index=True)
+    ville = models.CharField(max_length=120, blank=True)
+    groupe = models.CharField(max_length=180, blank=True)
+    source = models.CharField(max_length=20, choices=SOURCES, default=SOURCE_API)
+    consentement_confirme = models.BooleanField(default=True)
+    note = models.TextField(blank=True)
+    importe_par = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    cree_le = models.DateTimeField(auto_now_add=True)
+    mis_a_jour_le = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-cree_le"]
+        verbose_name = "Contact WhatsApp autorise"
+        verbose_name_plural = "Contacts WhatsApp autorises"
+
+    def __str__(self):
+        return self.nom or self.numero
+
+
 class Campagne(models.Model):
     """Campagne d'envoi WhatsApp vers les utilisateurs E-Shelle."""
 
@@ -29,6 +64,12 @@ class Campagne(models.Model):
     filtre_role = models.CharField(max_length=50, blank=True, help_text="ex: vendeur, acheteur, tous")
     filtre_ville = models.CharField(max_length=100, blank=True)
     filtre_date_inscription_depuis = models.DateField(null=True, blank=True)
+    destinataires_contacts = models.ManyToManyField(
+        ContactWhatsApp,
+        blank=True,
+        related_name="campagnes_whatsapp",
+        help_text="Contacts WhatsApp selectionnes manuellement pour cette campagne.",
+    )
 
     total_destinataires = models.IntegerField(default=0)
     total_envoyes = models.IntegerField(default=0)

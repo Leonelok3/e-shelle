@@ -1,7 +1,15 @@
 from django.contrib import admin, messages
 
-from .models import Campagne, MessageEnvoi, TemplateWhatsApp
+from .models import Campagne, ContactWhatsApp, MessageEnvoi, TemplateWhatsApp
 from .tasks import lancer_campagne_task
+
+
+@admin.register(ContactWhatsApp)
+class ContactWhatsAppAdmin(admin.ModelAdmin):
+    list_display = ["nom", "numero", "ville", "groupe", "source", "consentement_confirme", "cree_le"]
+    list_filter = ["source", "consentement_confirme", "ville", "cree_le"]
+    search_fields = ["nom", "numero", "ville", "groupe", "note"]
+    readonly_fields = ["cree_le", "mis_a_jour_le"]
 
 
 @admin.register(Campagne)

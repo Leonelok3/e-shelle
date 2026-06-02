@@ -3,7 +3,7 @@ from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import BusinessLeadEvent, BusinessProfile
+from .models import BusinessCatalogItem, BusinessLeadEvent, BusinessProfile
 
 
 MODULE_MODEL_MAP = {
@@ -176,38 +176,46 @@ def build_tracked_actions(
 
 def collect_business_items(business: BusinessProfile, limit: int = 24) -> list[dict]:
     """Retourne les produits/services/offres affichables sur la vitrine publique."""
+    manual_items = [
+        item.to_public_item()
+        for item in BusinessCatalogItem.objects.filter(business=business, is_active=True).order_by("order", "-created_at")[:limit]
+    ]
+    remaining = max(limit - len(manual_items), 0)
+    if remaining <= 0:
+        return manual_items
+
     obj = business.content_object
     if not obj:
-        return []
+        return manual_items
 
     model_name = obj.__class__.__name__
     if model_name == "ActeurAgro":
-        return _items_agro_actor(obj, business, limit)
+        return manual_items + _items_agro_actor(obj, business, remaining)
     if model_name == "ProfilVendeur":
-        return _items_market_seller(obj, limit)
+        return manual_items + _items_market_seller(obj, remaining)
     if model_name == "Annonce":
-        return [_item_announcement(obj)]
+        return manual_items + [_item_announcement(obj)]
     if model_name == "Restaurant":
-        return _items_restaurant(obj, limit)
+        return manual_items + _items_restaurant(obj, remaining)
     if model_name == "Pressing":
-        return _items_pressing(obj, limit)
+        return manual_items + _items_pressing(obj, remaining)
     if model_name == "DepotGaz":
-        return _items_gaz_depot(obj)
+        return manual_items + _items_gaz_depot(obj)[:remaining]
     if model_name == "ProfessionnelSante":
-        return _items_sante_pro(obj, business, limit)
+        return manual_items + _items_sante_pro(obj, business, remaining)
     if model_name == "ProduitSante":
-        return [_item_sante_product(obj)]
+        return manual_items + [_item_sante_product(obj)]
     if model_name == "OffreJob":
-        return [_item_job_offer(obj)]
+        return manual_items + [_item_job_offer(obj)]
     if model_name == "ProfilArtisan":
-        return _items_artisan(obj, limit)
+        return manual_items + _items_artisan(obj, remaining)
     if model_name == "Vehicule":
-        return [_item_direct_listing(obj, "Vehicule", "Auto")]
+        return manual_items + [_item_direct_listing(obj, "Vehicule", "Auto")]
     if model_name == "Bien":
-        return [_item_direct_listing(obj, "Bien immobilier", "Immobilier")]
+        return manual_items + [_item_direct_listing(obj, "Bien immobilier", "Immobilier")]
     if model_name == "Product":
-        return [_item_tibo_product(obj)]
-    return []
+        return manual_items + [_item_tibo_product(obj)]
+    return manual_items
 
 
 def _items_agro_actor(actor, business, limit):

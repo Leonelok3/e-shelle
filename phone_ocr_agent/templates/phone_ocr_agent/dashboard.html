@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Phone OCR Agent E-Shelle{% endblock %}
+
+{% block content %}
+<style>
+  .ocr-shell{min-height:100vh;background:#06110b;color:#eefcf4;padding:112px 16px 44px}
+  .ocr-wrap{max-width:1120px;margin:0 auto}
+  .ocr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px}
+  .ocr-title{font-size:clamp(1.7rem,3.2vw,2.7rem)!important;line-height:1.05!important;margin:0!important;font-weight:800!important;letter-spacing:0!important}
+  .ocr-sub{color:#a8bbae;margin:.45rem 0 0;max-width:760px}
+  .ocr-layout{display:grid;grid-template-columns:.95fr 1.05fr;gap:16px}
+  .ocr-panel{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;padding:16px}
+  .ocr-panel h2{font-size:1rem;color:#facc15;margin:0 0 12px}
+  .ocr-alert{background:#10291c;border:1px solid #2f6b47;color:#cfe0d6;border-radius:8px;padding:12px;margin-bottom:14px}
+  .ocr-alert.danger{background:#2a1111;border-color:#7f1d1d;color:#fecaca}
+  .ocr-field{display:grid;gap:8px;margin-bottom:14px}
+  .ocr-label{font-weight:800;color:#d5eadf}
+  .ocr-input{width:100%;background:#07120d;color:#e8f5ee;border:1px solid #315641;border-radius:8px;padding:11px 12px}
+  .ocr-textarea{width:100%;min-height:280px;background:#07120d;color:#e8f5ee;border:1px solid #315641;border-radius:8px;padding:12px;line-height:1.55}
+  .ocr-btn{border:0;border-radius:8px;background:#16a34a;color:#fff;font-weight:800;padding:11px 15px;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+  .ocr-btn.gold{background:#ca8a04}.ocr-btn.blue{background:#0ea5e9}.ocr-btn.ghost{background:#10291c;border:1px solid #2f6b47}
+  .ocr-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .ocr-stat{display:flex;align-items:center;justify-content:space-between;background:#07120d;border:1px solid #1d3d2c;border-radius:8px;padding:12px;margin-bottom:12px}
+  .ocr-stat strong{color:#facc15;font-size:1.8rem}.ocr-muted{color:#9fb3a8}
+  .ocr-table{width:100%;border-collapse:collapse;margin-top:10px}
+  .ocr-table th,.ocr-table td{padding:10px;border-bottom:1px solid #173524;text-align:left}
+  .ocr-table th{color:#facc15;background:#0a1710}
+  @media(max-width:900px){.ocr-top,.ocr-layout{grid-template-columns:1fr;flex-direction:column}}
+</style>
+
+<main class="ocr-shell">
+  <div class="ocr-wrap">
+    <div class="ocr-top">
+      <div>
+        <h1 class="ocr-title">Phone OCR Agent</h1>
+        <p class="ocr-sub">Extraction locale de numeros depuis une capture d'ecran du repertoire. Aucune image n'est envoyee a une API externe.</p>
+      </div>
+      <a class="ocr-btn ghost" href="{% url 'whatsapp_agent:wa_import_contacts' %}">Import WhatsApp</a>
+    </div>
+
+    <div class="ocr-alert">Utilise cet outil uniquement avec l'autorisation du proprietaire des contacts. Les images sont traitees localement par Django.</div>
+    {% if error %}<div class="ocr-alert danger">{{ error }}</div>{% endif %}
+
+    <section class="ocr-layout">
+      <form class="ocr-panel" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h2>Charger une capture</h2>
+        <div class="ocr-field">
+          <label class="ocr-label" for="image">Image PNG/JPG/JPEG</label>
+          <input id="image" class="ocr-input" name="image" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" required>
+        </div>
+        <button class="ocr-btn" type="submit">Extraire les numeros</button>
+        <p class="ocr-muted" style="margin-top:14px">Si Tesseract n'est pas installe, l'outil affichera les instructions au lieu de planter.</p>
+      </form>
+
+      <div class="ocr-panel">
+        <h2>Resultats copiables</h2>
+        <div class="ocr-stat">
+          <span>Numeros trouves</span>
+          <strong>{{ numbers|length }}</strong>
+        </div>
+        <textarea id="numbersBox" class="ocr-textarea" readonly>{% for number in numbers %}{{ number }}
+{% endfor %}</textarea>
+        <div class="ocr-actions" style="margin-top:12px">
+          <button class="ocr-btn blue" type="button" onclick="copyNumbers()">Copier</button>
+          <form method="post" action="{% url 'phone_ocr_agent:export_csv' %}">
+            {% csrf_token %}
+            <input type="hidden" name="numbers" value="{% for number in numbers %}{{ number }}&#10;{% endfor %}">
+            <button class="ocr-btn gold" type="submit" {% if not numbers %}disabled{% endif %}>Exporter CSV</button>
+          </form>
+          <form method="post" action="{% url 'whatsapp_agent:wa_import_contacts' %}">
+            {% csrf_token %}
+            <input type="hidden" name="numeros" value="{% for number in whatsapp_numbers %}{{ number }}&#10;{% endfor %}">
+            <input type="hidden" name="source" value="ocr">
+            <input type="hidden" name="groupe" value="OCR repertoire">
+            <input type="hidden" name="module" value="services">
+            <input type="hidden" name="consentement" value="on">
+            <input type="hidden" name="sync_commercial" value="on">
+            <button class="ocr-btn" type="submit" {% if not numbers %}disabled{% endif %}>Envoyer vers WhatsApp</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    {% if raw_text %}
+    <section class="ocr-panel" style="margin-top:16px">
+      <h2>Texte OCR brut</h2>
+      <textarea class="ocr-textarea" readonly>{{ raw_text }}</textarea>
+    </section>
+    {% endif %}
+  </div>
+</main>
+
+<script>
+  function copyNumbers(){
+    const box = document.getElementById("numbersBox");
+    box.select();
+    document.execCommand("copy");
+  }
+</script>
+{% endblock %}

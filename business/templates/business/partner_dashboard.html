@@ -1,59 +1,230 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard partenaire - E-Shelle{% endblock %}
+{% block title %}Business Key - Dashboard partenaire{% endblock %}
 
 {% block content %}
-<section class="section" style="padding-top:7rem;background:#0a1628">
-  <div class="container">
-    <div style="display:flex;justify-content:space-between;gap:1rem;align-items:end;flex-wrap:wrap;margin-bottom:1.5rem">
+<section class="key-dashboard">
+  <div class="kd-container">
+    <div class="kd-top">
       <div>
-        <span class="section-label" style="display:inline-flex">Partenaire E-Shelle</span>
-        <h1 class="section-title" style="color:#fff;margin-top:.8rem">Mon dashboard partenaire</h1>
+        <a class="kd-back" href="{% url 'business:partner' %}">Retour a l'offre</a>
+        <h1>Ma Business Key</h1>
+        <p>Ton centre de mission pour vendre E-Shelle proprement: lien, scripts, outils IA, prospects et commissions.</p>
       </div>
-      <a href="{% url 'business:commercial' %}" class="btn btn-outline-white">Guide commercial</a>
+      <div class="kd-actions">
+        <a href="{% url 'business:business_key_packs' %}" class="kd-btn kd-btn-gold">Activer ma Business Key</a>
+        <a href="{{ whatsapp_share_url }}" target="_blank" rel="noopener" class="kd-btn kd-btn-green">Partager sur WhatsApp</a>
+        <a href="{% url 'business:business_key_kit' %}" class="kd-btn kd-btn-blue">Kit commercial</a>
+        <a href="{% url 'business:catalogue_commissions' %}" class="kd-btn kd-btn-gold">Catalogue commissions</a>
+        <a href="{% url 'business:business_key_academy' %}" class="kd-btn kd-btn-blue">Academy</a>
+        <a href="{% url 'business:business_key_crm' %}" class="kd-btn kd-btn-gold">CRM prospects</a>
+        <a href="/business/onboarding/?plan=free" class="kd-btn kd-btn-green">Creer une fiche</a>
+      </div>
     </div>
 
-    <div style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1rem;margin-bottom:1rem">
-      <p style="color:rgba(255,255,255,.55);margin-bottom:.5rem">Votre lien de parrainage</p>
-      <input value="{{ referral_link }}" readonly style="width:100%;background:#101c33;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:.85rem">
-    </div>
-
-    <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.85rem">
-      <div class="stat-card"><span>Clics</span><strong>{{ profile.click_count }}</strong></div>
-      <div class="stat-card"><span>Inscrits</span><strong>{{ referrals_count }}</strong></div>
-      <div class="stat-card"><span>Prestataires</span><strong>{{ converted_businesses }}</strong></div>
-      <div class="stat-card"><span>En attente</span><strong>{{ pending_amount|floatformat:"0" }}</strong></div>
-      <div class="stat-card"><span>Payé</span><strong>{{ paid_amount|floatformat:"0" }}</strong></div>
-      <div class="stat-card"><span>À retirer</span><strong>{{ balance_amount|floatformat:"0" }}</strong></div>
-    </div>
-
-    <div style="margin-top:1.5rem;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;overflow:hidden">
-      <div style="padding:1rem;border-bottom:1px solid rgba(255,255,255,.08);color:#fff;font-weight:800">Dernières commissions</div>
-      <div style="overflow:auto">
-        <table style="width:100%;border-collapse:collapse;color:rgba(255,255,255,.75);font-size:.9rem">
-          <thead><tr style="text-align:left;color:rgba(255,255,255,.5)"><th style="padding:.8rem">Date</th><th>Montant</th><th>Devise</th><th>Statut</th></tr></thead>
-          <tbody>
-          {% for commission in commissions %}
-          <tr style="border-top:1px solid rgba(255,255,255,.06)">
-            <td style="padding:.8rem">{{ commission.created_at|date:"d/m/Y H:i" }}</td>
-            <td>{{ commission.amount }}</td>
-            <td>{{ commission.currency }}</td>
-            <td>{{ commission.status }}</td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="4" style="padding:1rem;color:rgba(255,255,255,.55)">Aucune commission pour le moment.</td></tr>
+    <div class="kd-status-card">
+      <div>
+        <span>Mon statut</span>
+        <strong>{{ account.get_tier_display }}</strong>
+        {% if account.expires_at %}<small>Actif jusqu'au {{ account.expires_at|date:"d/m/Y" }}</small>{% endif %}
+      </div>
+      <div>
+        <span>Outils debloques</span>
+        <div class="kd-unlocked">
+          {% for tool in unlocked_tools %}
+          <em>{{ tool }}</em>
           {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="kd-link-card">
+      <div>
+        <span>Lien partenaire</span>
+        <strong>{{ referral_link }}</strong>
+      </div>
+      <button type="button" class="kd-btn kd-btn-gold" data-copy="{{ referral_link }}">Copier</button>
+    </div>
+
+    <div class="kd-stats">
+      <article><span>Clics</span><strong>{{ profile.click_count }}</strong></article>
+      <article><span>Inscrits</span><strong>{{ referrals_count }}</strong></article>
+      <article><span>Conversions</span><strong>{{ converted_businesses }}</strong></article>
+      <article><span>Taux conversion</span><strong>{{ conversion_rate }}%</strong></article>
+      <article><span>En attente</span><strong>{{ pending_amount|floatformat:"0" }}</strong></article>
+      <article><span>Total commissions</span><strong>{{ total_commissions|floatformat:"0" }}</strong></article>
+    </div>
+
+    <div class="kd-grid">
+      <section class="kd-card">
+        <div class="kd-card-head">
+          <h2>Missions rentables</h2>
+          <span>Cette semaine</span>
+        </div>
+        <div class="kd-missions">
+          {% for mission in missions %}
+          <article>
+            <div class="kd-mission-title">
+              <strong>{{ mission.title }}</strong>
+              <span>{% if mission.done %}Terminee{% else %}{{ mission.progress }}/{{ mission.target }}{% endif %}</span>
+            </div>
+            <div class="kd-progress"><i style="width:{% widthratio mission.progress mission.target 100 %}%"></i></div>
+            <p>{{ mission.reward }}</p>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="kd-card">
+        <div class="kd-card-head">
+          <h2>Outils E-Shelle</h2>
+          <span>Pipeline</span>
+        </div>
+        <div class="kd-tools">
+          {% for label, url in tools %}
+          <a href="{{ url }}">{{ label }}</a>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <div class="kd-grid">
+      <section class="kd-card">
+        <div class="kd-card-head">
+          <h2>Scripts WhatsApp</h2>
+          <span>A copier</span>
+        </div>
+        <div class="kd-scripts">
+          {% for script in scripts %}
+          <article>
+            <div>
+              <strong>{{ script.label }}</strong>
+              <button type="button" data-copy="{{ script.text }}">Copier</button>
+            </div>
+            <p>{{ script.text }}</p>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="kd-card">
+        <div class="kd-card-head">
+          <h2>Derniers inscrits</h2>
+          <span>Par ton lien</span>
+        </div>
+        <div class="kd-referrals">
+          {% for referral in recent_referrals %}
+          <div>
+            <strong>{{ referral.referred_user.get_username }}</strong>
+            <span>{{ referral.created_at|date:"d/m/Y H:i" }}</span>
+          </div>
+          {% empty %}
+          <p>Aucun inscrit pour le moment. Commence par partager ton lien dans 3 conversations utiles.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <section class="kd-card">
+      <div class="kd-card-head">
+        <h2>Dernieres commissions</h2>
+        <span>Taux indicatif: {{ affiliate_rate_percent }}%</span>
+      </div>
+      <div class="kd-table-wrap">
+        <table class="kd-table">
+          <thead>
+            <tr><th>Date</th><th>Montant</th><th>Devise</th><th>Statut</th></tr>
+          </thead>
+          <tbody>
+            {% for commission in commissions %}
+            <tr>
+              <td>{{ commission.created_at|date:"d/m/Y H:i" }}</td>
+              <td>{{ commission.amount }}</td>
+              <td>{{ commission.currency }}</td>
+              <td><span class="kd-status">{{ commission.status }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Aucune commission pour le moment.</td></tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
+
+    <section class="kd-card">
+      <div class="kd-card-head">
+        <h2>Paiements Business Key</h2>
+        <span>Validation admin</span>
+      </div>
+      <div class="kd-referrals">
+        {% for payment in payment_requests %}
+        <div>
+          <strong>{{ payment.get_tier_display }} - {{ payment.amount_xaf }} FCFA</strong>
+          <span>{{ payment.get_status_display }} · {{ payment.created_at|date:"d/m/Y H:i" }}</span>
+        </div>
+        {% empty %}
+        <p>Aucune demande de paiement. Clique sur "Activer ma Business Key" pour envoyer une preuve Mobile Money.</p>
+        {% endfor %}
+      </div>
+    </section>
   </div>
 </section>
 
+<script>
+document.addEventListener("click", function (event) {
+  const button = event.target.closest("[data-copy]");
+  if (!button) return;
+  navigator.clipboard.writeText(button.dataset.copy || "");
+  const oldText = button.textContent;
+  button.textContent = "Copie";
+  setTimeout(function () { button.textContent = oldText; }, 1200);
+});
+</script>
+
 <style>
-.stat-card { background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:1rem; }
-.stat-card span { display:block;color:rgba(255,255,255,.52);font-size:.78rem;margin-bottom:.35rem; }
-.stat-card strong { color:#fff;font-size:1.5rem; }
-@media(max-width:980px){ section .container > div[style*="repeat(6"]{grid-template-columns:repeat(2,minmax(0,1fr))!important;} }
+.key-dashboard{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
+.kd-container{width:min(1180px,92vw);margin:0 auto}
+.kd-top{display:flex;align-items:end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem}
+.kd-back{color:#78ff97;text-decoration:none;font-weight:900}
+.kd-top h1{font-size:clamp(2.4rem,6vw,5rem);line-height:.85;margin:.6rem 0;color:#fffbe8;letter-spacing:0}
+.kd-top p{color:#b9ddc3;max-width:720px;font-size:1.05rem;line-height:1.55}
+.kd-actions,.kd-tools{display:flex;gap:.7rem;flex-wrap:wrap}
+.kd-btn{border:0;border-radius:8px;padding:.8rem 1rem;color:#fff;text-decoration:none;font-weight:900;cursor:pointer}
+.kd-btn-green{background:#2faf52}.kd-btn-blue{background:#339ce3}.kd-btn-gold{background:#c99013}
+.kd-link-card,.kd-card,.kd-stats article,.kd-status-card{background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px}
+.kd-status-card{display:grid;grid-template-columns:.55fr 1.45fr;gap:1rem;padding:1rem;margin-bottom:1rem}
+.kd-status-card span{display:block;color:#a8d5b7;font-size:.82rem}
+.kd-status-card strong{display:block;color:#ffd51f;font-size:1.8rem;margin-top:.2rem}
+.kd-status-card small{color:#b9ddc3}
+.kd-unlocked{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem}
+.kd-unlocked em{font-style:normal;border:1px solid rgba(114,255,146,.18);background:#06170f;color:#eefdf0;border-radius:999px;padding:.35rem .55rem;font-weight:800;font-size:.82rem}
+.kd-link-card{display:flex;justify-content:space-between;gap:1rem;align-items:center;padding:1rem;margin-bottom:1rem}
+.kd-link-card span,.kd-stats span,.kd-card-head span{display:block;color:#a8d5b7;font-size:.82rem}
+.kd-link-card strong{display:block;color:#fff;word-break:break-all;margin-top:.3rem}
+.kd-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.8rem;margin-bottom:1rem}
+.kd-stats article{padding:1rem}
+.kd-stats strong{display:block;color:#ffd51f;font-size:2rem;margin-top:.35rem}
+.kd-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:1rem;margin-bottom:1rem}
+.kd-card{padding:1rem}
+.kd-card-head{display:flex;justify-content:space-between;gap:1rem;align-items:center;border-bottom:1px solid rgba(114,255,146,.14);padding-bottom:.8rem;margin-bottom:.8rem}
+.kd-card h2{color:#ffd51f;margin:0;font-size:1.2rem}
+.kd-missions,.kd-scripts,.kd-referrals{display:grid;gap:.7rem}
+.kd-missions article,.kd-scripts article,.kd-referrals div{background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.9rem}
+.kd-missions strong,.kd-scripts strong,.kd-referrals strong{color:#fff}
+.kd-missions p,.kd-scripts p,.kd-referrals p{color:#b9ddc3;line-height:1.5;margin:.45rem 0}
+.kd-missions span,.kd-referrals span{color:#78ff97;font-weight:800}
+.kd-mission-title{display:flex;justify-content:space-between;gap:.7rem;align-items:center}
+.kd-progress{height:9px;background:#021009;border-radius:999px;overflow:hidden;margin:.7rem 0}
+.kd-progress i{display:block;height:100%;background:linear-gradient(90deg,#35b257,#ffd51f)}
+.kd-tools a{flex:1 1 180px;background:#06170f;border:1px solid rgba(114,255,146,.2);border-radius:8px;padding:.85rem;color:#eefdf0;text-decoration:none;font-weight:900}
+.kd-scripts article div{display:flex;justify-content:space-between;gap:.7rem;align-items:center}
+.kd-scripts button{background:#35b257;color:#fff;border:0;border-radius:8px;padding:.45rem .7rem;font-weight:900;cursor:pointer}
+.kd-table-wrap{overflow:auto}
+.kd-table{width:100%;border-collapse:collapse;color:#d7f5dd}
+.kd-table th{color:#ffd51f;text-align:left;padding:.8rem;border-bottom:1px solid rgba(114,255,146,.18)}
+.kd-table td{padding:.8rem;border-top:1px solid rgba(114,255,146,.1)}
+.kd-status{display:inline-flex;border-radius:999px;background:#123d28;color:#78ff97;padding:.25rem .55rem;font-weight:900}
+@media(max-width:980px){.kd-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.kd-grid,.kd-status-card{grid-template-columns:1fr}.kd-link-card{align-items:stretch;flex-direction:column}}
+@media(max-width:560px){.kd-stats{grid-template-columns:1fr}.key-dashboard{padding-top:6rem}}
 </style>
 {% endblock %}

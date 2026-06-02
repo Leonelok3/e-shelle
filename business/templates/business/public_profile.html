@@ -12,12 +12,21 @@
           <span style="display:inline-flex;padding:.38rem .75rem;border-radius:999px;background:rgba(34,197,94,.14);color:#86efac;font-weight:800;font-size:.78rem;text-transform:uppercase">{{ business.get_module_display }}</span>
           {% if business.is_verified %}<span style="color:#93c5fd;font-weight:800;font-size:.85rem">Verifie</span>{% endif %}
           {% if business.plan != "free" %}<span style="color:#facc15;font-weight:800;font-size:.85rem">{{ business.get_plan_display }}</span>{% endif %}
+          <span style="color:{% if business.activation_status == 'active' %}#86efac{% elif business.activation_status == 'pending' %}#fde68a{% else %}#cbd5e1{% endif %};font-weight:900;font-size:.85rem">{{ business.get_activation_status_display }}</span>
         </div>
 
+        {% if business.promo_headline %}
+          <p style="margin:0 0 .45rem;color:#facc15;font-size:.86rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em">{{ business.promo_headline }}</p>
+        {% endif %}
         <h1 style="font-family:var(--font-display);font-size:clamp(2.2rem,6vw,4.8rem);line-height:.95;margin:0 0 1rem">{{ business.name }}</h1>
         <p style="max-width:700px;color:rgba(255,255,255,.7);font-size:1.05rem;line-height:1.75">
           {{ business.description|default:business.promo_offer|default:"Cette activite est presente sur E-Shelle. Contactez directement le vendeur ou prestataire pour plus d'informations." }}
         </p>
+        {% if business.promo_offer %}
+          <div style="margin-top:1rem;display:inline-flex;max-width:780px;padding:.85rem 1rem;border-radius:14px;background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.22);color:#fffbe8;font-weight:850;line-height:1.45">
+            {{ business.promo_offer }}
+          </div>
+        {% endif %}
 
         <div style="display:flex;flex-wrap:wrap;gap:.65rem;margin:1.5rem 0;color:rgba(255,255,255,.7);font-weight:700">
           {% if business.city %}<span style="padding:.45rem .7rem;border-radius:999px;background:rgba(255,255,255,.08)">{{ business.city }}</span>{% endif %}
@@ -52,14 +61,14 @@
         </div>
 
         {% if items %}
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,260px));gap:1rem;align-items:start">
             {% for item in items %}
               <article style="overflow:hidden;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.045)">
-                <a href="{{ item.url|default:'#' }}" style="display:block;min-height:150px;background:linear-gradient(135deg,rgba(20,184,166,.45),rgba(30,41,59,.9));text-decoration:none">
+                <a href="{{ item.url|default:'#' }}" style="display:block;aspect-ratio:1/1;background:linear-gradient(135deg,rgba(20,184,166,.45),rgba(30,41,59,.9));text-decoration:none;overflow:hidden">
                   {% if item.image %}
-                    <img src="{{ item.image }}" alt="{{ item.title }}" style="width:100%;height:150px;object-fit:cover">
+                    <img src="{{ item.image }}" alt="{{ item.title }}" style="width:100%;height:100%;object-fit:cover;display:block">
                   {% else %}
-                    <div style="height:150px;display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-size:2.6rem;font-weight:900">{{ item.title|slice:":1" }}</div>
+                    <div style="height:100%;display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-size:2.6rem;font-weight:900">{{ item.title|slice:":1" }}</div>
                   {% endif %}
                 </a>
                 <div style="padding:1rem">

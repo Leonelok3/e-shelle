@@ -50,17 +50,22 @@
           {% csrf_token %}
           <button class="ca-btn" type="submit">Synchroniser business</button>
         </form>
+        <form method="post" action="{% url 'commercial_agent:sync_whatsapp_contacts' %}">
+          {% csrf_token %}
+          <input type="hidden" name="module" value="services">
+          <button class="ca-btn blue" type="submit">Importer contacts WhatsApp</button>
+        </form>
         <a class="ca-btn ghost" href="{% url 'commercial_agent:prospect_list' %}">Voir prospects</a>
       </div>
     </div>
 
     <section class="ca-grid">
       <div class="ca-card"><span>Prospects</span><strong>{{ stats.total }}</strong></div>
+      <div class="ca-card"><span>Contacts WA</span><strong>{{ stats.contacts_whatsapp }}</strong></div>
       <div class="ca-card"><span>A traiter</span><strong>{{ stats.a_traiter }}</strong></div>
       <div class="ca-card"><span>Interesses</span><strong>{{ stats.interesses }}</strong></div>
       <div class="ca-card"><span>Payes</span><strong>{{ stats.payes }}</strong></div>
       <div class="ca-card"><span>Potentiel</span><strong>{{ stats.potentiel }} FCFA</strong></div>
-      <div class="ca-card"><span>Encaisse</span><strong>{{ stats.encaisse }} FCFA</strong></div>
     </section>
 
     <section class="ca-layout">
@@ -100,6 +105,12 @@
           <input class="ca-input" name="ville" placeholder="Ville">
           <input class="ca-input" name="limit" type="number" min="1" max="300" value="50" style="width:110px">
           <button class="ca-btn blue" type="submit">Creer campagne WhatsApp</button>
+        </form>
+        <form class="ca-mini-form" method="post" action="{% url 'commercial_agent:sync_whatsapp_contacts' %}">
+          {% csrf_token %}
+          <input class="ca-input" name="module" placeholder="Module pour contacts importes" value="services">
+          <input class="ca-input" name="limit" type="number" min="1" max="1000" value="300" style="width:110px">
+          <button class="ca-btn" type="submit">Transformer contacts en prospects</button>
         </form>
       </div>
 

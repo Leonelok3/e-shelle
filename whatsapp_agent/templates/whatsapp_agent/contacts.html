@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Contacts WhatsApp E-Shelle{% endblock %}
+
+{% block content %}
+<style>
+  .wa-shell{min-height:100vh;background:#07120d;color:#e8f5ee;padding:112px 16px 40px}
+  .wa-wrap{max-width:1180px;margin:0 auto}
+  .wa-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}
+  .wa-title{font-size:clamp(1.65rem,3vw,2.35rem)!important;line-height:1.08!important;font-weight:800!important;margin:0!important;letter-spacing:0!important}
+  .wa-muted{color:#9fb3a8}
+  .wa-link{color:#86efac;font-weight:800;text-decoration:none}
+  .wa-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .wa-btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:#16a34a;color:white;font-weight:800;padding:11px 16px;text-decoration:none;cursor:pointer}
+  .wa-btn.gold{background:#ca8a04}
+  .wa-btn.ghost{background:#10291c;border:1px solid #2f6b47}
+  .wa-card-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+  .wa-card{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;padding:16px}
+  .wa-card span{display:block;color:#9fb3a8;font-size:.86rem}
+  .wa-card strong{display:block;color:#facc15;font-size:1.8rem;margin-top:4px}
+  .wa-panel{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;margin-bottom:18px;overflow:hidden}
+  .wa-filter{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr auto;gap:10px;padding:16px;border-bottom:1px solid #1d3d2c}
+  .wa-input{width:100%;box-sizing:border-box;background:#07120d;color:#e8f5ee;border:1px solid #315641;border-radius:8px;padding:10px 12px}
+  .wa-builder{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(320px,1fr) auto;gap:12px;padding:16px;border-bottom:1px solid #1d3d2c}
+  .wa-builder textarea{min-height:92px;resize:vertical}
+  .wa-select-line{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#0a1710;border-bottom:1px solid #1d3d2c}
+  .wa-table{width:100%;border-collapse:collapse}
+  .wa-table th,.wa-table td{padding:13px 15px;border-bottom:1px solid #173524;text-align:left;font-size:.91rem;vertical-align:top}
+  .wa-table th{color:#facc15;background:#0a1710}
+  .wa-check{width:18px;height:18px;accent-color:#22c55e}
+  .wa-badge{display:inline-flex;border-radius:999px;padding:4px 10px;font-size:.78rem;font-weight:800;background:#123b2a;color:#86efac}
+  .wa-badge.off{background:#3b1d1d;color:#fca5a5}
+  .wa-pages{display:flex;gap:10px;padding:14px}
+  @media(max-width:900px){.wa-shell{padding-top:96px}.wa-top{flex-direction:column}.wa-card-grid,.wa-filter,.wa-builder{grid-template-columns:1fr}.wa-table{min-width:900px}.wa-panel{overflow-x:auto}}
+</style>
+
+<main class="wa-shell">
+  <div class="wa-wrap">
+    <div class="wa-top">
+      <div>
+        <a class="wa-link" href="{% url 'whatsapp_agent:wa_dashboard' %}">Retour aux campagnes</a>
+        <h1 class="wa-title">Contacts WhatsApp</h1>
+        <p class="wa-muted">Carnet global des numeros importes pour tes campagnes E-Shelle.</p>
+      </div>
+      <div class="wa-actions">
+        <a class="wa-btn ghost" href="{% url 'phone_ocr_agent:dashboard' %}">Phone OCR</a>
+        <a class="wa-btn" href="{% url 'whatsapp_agent:wa_import_contacts' %}">Importer numeros</a>
+      </div>
+    </div>
+
+    <section class="wa-card-grid">
+      <div class="wa-card"><span>Total en base</span><strong>{{ total_contacts }}</strong></div>
+      <div class="wa-card"><span>Autorises</span><strong>{{ total_autorises }}</strong></div>
+      <div class="wa-card"><span>Resultats filtres</span><strong>{{ total_filtres }}</strong></div>
+      <div class="wa-card"><span>Campagnes</span><strong>{{ total_campagnes }}</strong></div>
+    </section>
+
+    <section class="wa-panel">
+      <form class="wa-filter" method="get">
+        <input class="wa-input" name="q" value="{{ q }}" placeholder="Recherche nom, numero, groupe...">
+        <input class="wa-input" name="ville" value="{{ ville }}" placeholder="Ville">
+        <input class="wa-input" name="groupe" value="{{ groupe }}" placeholder="Groupe">
+        <select class="wa-input" name="source">
+          <option value="">Toutes sources</option>
+          {% for value,label in sources %}
+          <option value="{{ value }}" {% if source == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button class="wa-btn" type="submit">Filtrer</button>
+      </form>
+
+      <form method="post" action="{% url 'whatsapp_agent:wa_contacts_campagne' %}" id="contacts-campaign-form">
+        {% csrf_token %}
+        <div class="wa-builder">
+          <input class="wa-input" name="nom" placeholder="Nom campagne" value="Campagne contacts WhatsApp">
+          <textarea class="wa-input" name="message_template" placeholder="Bonjour {% templatetag openvariable %}prenom{% templatetag closevariable %}, je suis de E-Shelle. Nous pouvons vous aider a recevoir plus de clients via WhatsApp. Voulez-vous une demo rapide ?"></textarea>
+          <button class="wa-btn gold" type="submit">Creer campagne avec selection</button>
+        </div>
+        <div class="wa-select-line">
+          <input class="wa-check" id="select-page" type="checkbox">
+          <label for="select-page">Selectionner tous les contacts affiches sur cette page</label>
+          <span class="wa-muted" id="selected-count">0 selectionne</span>
+        </div>
+        <table class="wa-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Nom</th>
+              <th>Numero</th>
+              <th>Ville</th>
+              <th>Groupe</th>
+              <th>Source</th>
+              <th>Autorisation</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for contact in page_obj %}
+            <tr>
+              <td>
+                <input class="wa-check contact-check" name="contacts" value="{{ contact.id }}" type="checkbox" {% if not contact.consentement_confirme %}disabled{% endif %}>
+              </td>
+              <td>{{ contact.nom|default:"Contact WhatsApp" }}</td>
+              <td><strong>{{ contact.numero }}</strong></td>
+              <td class="wa-muted">{{ contact.ville|default:"-" }}</td>
+              <td class="wa-muted">{{ contact.groupe|default:"-" }}</td>
+              <td>{{ contact.get_source_display }}</td>
+              <td>
+                {% if contact.consentement_confirme %}
+                <span class="wa-badge">OK</span>
+                {% else %}
+                <span class="wa-badge off">Non confirme</span>
+                {% endif %}
+              </td>
+              <td class="wa-muted">{{ contact.cree_le|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="wa-muted">Aucun contact trouve.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </form>
+      <div class="wa-pages">
+        {% if page_obj.has_previous %}<a class="wa-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&ville={{ ville }}&groupe={{ groupe }}&source={{ source }}">Precedent</a>{% endif %}
+        <span class="wa-muted">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a class="wa-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&ville={{ ville }}&groupe={{ groupe }}&source={{ source }}">Suivant</a>{% endif %}
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+  const selectPage = document.getElementById('select-page');
+  const checks = Array.from(document.querySelectorAll('.contact-check:not(:disabled)'));
+  const selectedCount = document.getElementById('selected-count');
+
+  function updateSelectedCount() {
+    const total = checks.filter((item) => item.checked).length;
+    selectedCount.textContent = `${total} selectionne${total > 1 ? 's' : ''}`;
+  }
+
+  selectPage.addEventListener('change', () => {
+    checks.forEach((item) => item.checked = selectPage.checked);
+    updateSelectedCount();
+  });
+  checks.forEach((item) => item.addEventListener('change', updateSelectedCount));
+  updateSelectedCount();
+</script>
+{% endblock %}

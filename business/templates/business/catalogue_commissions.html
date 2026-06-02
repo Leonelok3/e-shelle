@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Catalogue des commissions Business Key{% endblock %}
+
+{% block content %}
+<section class="commission-page">
+  <div class="commission-container">
+    <div class="commission-head">
+      <div>
+        <a class="commission-back" href="{% url 'business:partner_dashboard' %}">Retour dashboard</a>
+        <h1>Toutes vos sources de commission</h1>
+        <p>Un catalogue multi-app pour vendre E-Shelle proprement: apps, commissions, scripts WhatsApp et packs debloques.</p>
+      </div>
+      <div class="commission-badge">
+        <span>Apps actives</span>
+        <strong>{{ apps|length }}</strong>
+      </div>
+    </div>
+
+    <div class="commission-ref">
+      <div>
+        <span>Lien partenaire</span>
+        <strong>{{ referral_link }}</strong>
+      </div>
+      <button type="button" data-copy="{{ referral_link }}">Copier</button>
+    </div>
+
+    <div class="commission-grid">
+      {% for app in apps %}
+      <article class="commission-card">
+        <div class="commission-card-top">
+          <span class="commission-icon">{{ app.icon|default:"*" }}</span>
+          <div>
+            <h2>{{ app.label }}</h2>
+            <small>{{ app.get_app_name_display }}</small>
+          </div>
+        </div>
+
+        <div class="commission-money">
+          {% if app.commission_fixe %}
+          <strong>{{ app.commission_fixe|floatformat:"0" }} FCFA</strong>
+          <span>commission fixe</span>
+          {% else %}
+          <strong>{{ app.commission_rate|floatformat:"0" }}%</strong>
+          <span>sur vente validee</span>
+          {% endif %}
+        </div>
+
+        {% if app.is_recurring %}
+        <em class="commission-recurring">Recurrent</em>
+        {% endif %}
+
+        <p>{{ app.description }}</p>
+
+        <button type="button" class="script-toggle" data-target="script-{{ app.pk }}">Voir script</button>
+        <div id="script-{{ app.pk }}" class="script-box" hidden>
+          <textarea readonly>{{ app.script_vente }}</textarea>
+          <button type="button" data-copy="{{ app.script_vente }}">Copier le script</button>
+        </div>
+      </article>
+      {% empty %}
+      <div class="commission-empty">
+        <h2>Aucune app active pour le moment.</h2>
+        <p>Lance la commande seed_app_commissions pour remplir le catalogue.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <section class="level-card">
+      <div class="level-head">
+        <h2>Niveaux partenaires</h2>
+        <span>Ce que chaque pack peut vendre</span>
+      </div>
+      <div class="level-table-wrap">
+        <table class="level-table">
+          <thead>
+            <tr>
+              <th>Niveau</th>
+              <th>Prix</th>
+              <th>Bonus</th>
+              <th>Apps accessibles</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for level in levels %}
+            <tr>
+              <td>
+                <strong>{{ level.label }}</strong>
+                <span>{{ level.description }}</span>
+              </td>
+              <td>{{ level.prix_fcfa }} FCFA</td>
+              <td>{{ level.bonus_description|default:"-" }}</td>
+              <td>
+                <div class="level-apps">
+                  {% for app in level.apps_accessibles.all %}
+                  <em>{{ app.label }}</em>
+                  {% empty %}
+                  <span>Aucune app configuree.</span>
+                  {% endfor %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4">Aucun niveau partenaire configure pour le moment.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>
+
+<script>
+document.addEventListener("click", function (event) {
+  const toggle = event.target.closest(".script-toggle");
+  if (toggle) {
+    const box = document.getElementById(toggle.dataset.target);
+    if (!box) return;
+    box.hidden = !box.hidden;
+    toggle.textContent = box.hidden ? "Voir script" : "Masquer script";
+    return;
+  }
+
+  const copyButton = event.target.closest("[data-copy]");
+  if (!copyButton) return;
+  navigator.clipboard.writeText(copyButton.dataset.copy || "");
+  const oldText = copyButton.textContent;
+  copyButton.textContent = "Copie";
+  setTimeout(function () { copyButton.textContent = oldText; }, 1200);
+});
+</script>
+
+<style>
+.commission-page{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
+.commission-container{width:min(1240px,92vw);margin:0 auto}
+.commission-head{display:flex;justify-content:space-between;align-items:end;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.commission-back{color:#78ff97;text-decoration:none;font-weight:900}
+.commission-head h1{font-size:clamp(2.4rem,6vw,5.2rem);line-height:.86;margin:.55rem 0;color:#fffbe8;letter-spacing:0}
+.commission-head p{color:#b9ddc3;font-size:1.08rem;line-height:1.55;max-width:760px}
+.commission-badge,.commission-ref,.commission-card,.level-card{background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px}
+.commission-badge{padding:1rem;min-width:180px}
+.commission-badge span,.commission-ref span,.commission-money span,.level-head span,.level-table td span{display:block;color:#a8d5b7}
+.commission-badge strong{display:block;color:#ffd51f;font-size:2.4rem;line-height:1;margin-top:.35rem}
+.commission-ref{display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center;padding:1rem;margin-bottom:1rem}
+.commission-ref strong{display:block;color:#fff;word-break:break-all;margin-top:.25rem}
+.commission-ref button,.script-toggle,.script-box button{border:0;border-radius:8px;background:#35b257;color:#fff;font-weight:900;padding:.75rem .95rem;cursor:pointer}
+.commission-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.commission-card{padding:1rem;display:flex;flex-direction:column;gap:.75rem;min-height:330px}
+.commission-card-top{display:flex;align-items:center;gap:.8rem}
+.commission-icon{display:inline-flex;width:2.6rem;height:2.6rem;border-radius:8px;align-items:center;justify-content:center;background:#06170f;border:1px solid rgba(255,213,31,.25);font-weight:900;color:#ffd51f}
+.commission-card h2{color:#fff;margin:0;font-size:1.25rem}
+.commission-card small{color:#78ff97;font-weight:800}
+.commission-money{background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.9rem}
+.commission-money strong{display:block;color:#ffd51f;font-size:2.1rem;line-height:1}
+.commission-recurring{align-self:flex-start;font-style:normal;border-radius:999px;background:#123d28;color:#78ff97;padding:.35rem .65rem;font-weight:900}
+.commission-card p{color:#b9ddc3;line-height:1.55;margin:0}
+.script-toggle{align-self:flex-start;background:#c99013}
+.script-box{display:grid;gap:.6rem;margin-top:auto}
+.script-box textarea{width:100%;min-height:145px;resize:vertical;background:#06170f;border:1px solid rgba(114,255,146,.22);border-radius:8px;color:#eefdf0;padding:.8rem;line-height:1.5}
+.commission-empty{grid-column:1/-1;background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px;padding:1rem}
+.commission-empty h2{color:#ffd51f;margin-top:0}
+.level-card{margin-top:1rem;padding:1rem}
+.level-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;border-bottom:1px solid rgba(114,255,146,.14);padding-bottom:.8rem;margin-bottom:.8rem}
+.level-head h2{color:#ffd51f;margin:0;font-size:1.35rem}
+.level-table-wrap{overflow:auto}
+.level-table{width:100%;border-collapse:collapse;color:#d7f5dd}
+.level-table th{color:#ffd51f;text-align:left;padding:.85rem;border-bottom:1px solid rgba(114,255,146,.18)}
+.level-table td{vertical-align:top;padding:.85rem;border-top:1px solid rgba(114,255,146,.1)}
+.level-table td strong{display:block;color:#fff;margin-bottom:.25rem}
+.level-apps{display:flex;gap:.4rem;flex-wrap:wrap}
+.level-apps em{font-style:normal;border-radius:999px;background:#06170f;border:1px solid rgba(114,255,146,.18);padding:.3rem .5rem;color:#eefdf0;font-weight:800;font-size:.82rem}
+@media(max-width:1020px){.commission-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.commission-page{padding-top:6rem}.commission-grid,.commission-ref{grid-template-columns:1fr}.commission-head h1{font-size:2.5rem}}
+</style>
+{% endblock %}

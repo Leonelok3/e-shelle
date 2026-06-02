@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     "rest_framework",
+    "rest_framework.authtoken",
 
     "accounts.apps.AccountsConfig",
     "curriculum.apps.CurriculumConfig",
@@ -137,6 +138,12 @@ INSTALLED_APPS = [
 
     # ── Agent Commercial IA — Pipeline ventes E-Shelle ─────────────
     "commercial_agent.apps.CommercialAgentConfig",
+
+    # ── Phone OCR Agent — Extraction locale de numeros depuis images ─
+    "phone_ocr_agent.apps.PhoneOcrAgentConfig",
+
+    # ── SEO Agent IA — Audit, GEO, schema, CTA et indexation Google ─
+    "seo_agent.apps.SeoAgentConfig",
 
     # ── TIBO — Dropshipping premium Canada ────────────────────────
     "apps.tibo.apps.TiboConfig",
@@ -329,6 +336,7 @@ DEFAULT_FROM_EMAIL  = os.getenv("DEFAULT_FROM_EMAIL", "noreply@e-shelle.com")
 
 # Sécurité HTTPS (activée quand DEBUG=False)
 if not DEBUG:
+    SECURE_SSL_REDIRECT   = os.getenv("SECURE_SSL_REDIRECT",   "True").lower() == "true"
     SESSION_COOKIE_SECURE  = os.getenv("SESSION_COOKIE_SECURE",  "True").lower() == "true"
     CSRF_COOKIE_SECURE     = os.getenv("CSRF_COOKIE_SECURE",     "True").lower() == "true"
     SECURE_HSTS_SECONDS    = int(os.getenv("SECURE_HSTS_SECONDS", "63072000"))
@@ -426,6 +434,7 @@ MAPEX_PUBLIC_URL = os.getenv("MAPEX_PUBLIC_URL", "http://127.0.0.1:8000/edu/")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [

@@ -18,7 +18,6 @@ urlpatterns = [
 
     # ✅ referral
     path("ref/<str:ref_code>/", views_affiliate.ref_redirect, name="ref_redirect"),
-    path("ref/<str:ref_code>/", views_affiliate.ref_redirect, name="ref_redirect"),
 
     ################################ facture des clients #############################
     path("receipts/<uuid:receipt_id>/", views.receipt_detail, name="receipt_detail"),

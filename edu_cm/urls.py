@@ -8,6 +8,8 @@ from django.http import HttpResponse
 from django.utils import timezone
 from business import views as business_views
 from billing import views_affiliate
+from seo_agent import views as seo_views
+import urllib.parse
 
 
 def home_view(request):
@@ -21,7 +23,8 @@ def home_view(request):
         ctx["gaz_depots_vedette"] = []
     try:
         from django.utils import timezone
-        from business.models import BusinessProfile, HomeAdSlide
+        from django.db.models import Q, Sum
+        from business.models import BusinessCatalogItem, BusinessLeadEvent, BusinessProfile, HomeAdSlide
         now = timezone.now()
         premium_businesses = list(
             BusinessProfile.objects.filter(
@@ -29,6 +32,92 @@ def home_view(request):
                 plan__in=[BusinessProfile.Plan.PREMIUM, BusinessProfile.Plan.BUSINESS],
             ).order_by("-boost_expires_at", "-subscription_expires_at", "-leads_count", "-updated_at")[:12]
         )
+        recent_catalog_items = list(
+            BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True)
+            .select_related("business")
+            .order_by("-created_at")[:12]
+        )
+        try:
+            from immobilier_cameroun.models import Bien, StatutBien
+            recent_immo_items = list(
+                Bien.objects.filter(statut=StatutBien.PUBLIE)
+                .filter(Q(est_mis_en_avant=True) | Q(est_coup_de_coeur=True))
+                .prefetch_related("photos")
+                .order_by("-date_publication", "-updated_at")[:8]
+            )
+        except Exception:
+            recent_immo_items = []
+        premium_showcase_items = []
+        for item in recent_catalog_items:
+            business = item.business
+            premium_showcase_items.append(
+                {
+                    "_rank": item.created_at,
+                    "tag": item.get_item_type_display(),
+                    "title": item.title,
+                    "kind": f"{business.get_module_display()} · {business.city or 'Cameroun'}",
+                    "meta": business.district or business.city or "Proche",
+                    "price": item.price_label or "Prix a discuter",
+                    "image": item.image_url,
+                    "initial": item.title[:1],
+                    "url": business.get_absolute_url(),
+                    "contact_url": item.to_public_item().get("contact_url") or business.get_absolute_url(),
+                    "views": business.views_count,
+                    "leads": business.leads_count,
+                }
+            )
+        for bien in recent_immo_items:
+            photo = getattr(bien, "photo_principale", None)
+            image = ""
+            if photo and getattr(photo, "image", None):
+                try:
+                    image = photo.image.url
+                except Exception:
+                    image = ""
+            try:
+                contact_url = bien.get_whatsapp_url()
+            except Exception:
+                contact_url = bien.get_absolute_url()
+            premium_showcase_items.append(
+                {
+                    "_rank": bien.date_publication or bien.updated_at,
+                    "tag": "Immobilier",
+                    "title": bien.titre,
+                    "kind": f"{bien.get_type_bien_display()} · {bien.ville}",
+                    "meta": bien.quartier or bien.ville or "Cameroun",
+                    "price": bien.prix_formate,
+                    "image": image,
+                    "initial": bien.titre[:1],
+                    "url": bien.get_absolute_url(),
+                    "contact_url": contact_url,
+                    "views": bien.vues,
+                    "leads": 0,
+                }
+            )
+        premium_showcase_items = sorted(
+            premium_showcase_items,
+            key=lambda entry: entry.get("_rank") or now,
+            reverse=True,
+        )[:12]
+        for business in premium_businesses:
+            if len(premium_showcase_items) >= 12:
+                break
+            premium_showcase_items.append(
+                {
+                    "_rank": business.updated_at,
+                    "tag": business.get_plan_display(),
+                    "title": business.promo_headline or business.name,
+                    "kind": f"{business.get_module_display()} · {business.city or 'Cameroun'}",
+                    "meta": business.district or business.city or "Proche",
+                    "price": "",
+                    "image": business.promo_image.url if business.promo_image else "",
+                    "initial": business.name[:1],
+                    "url": business.get_absolute_url(),
+                    "contact_url": business.promo_url or f"/chat/?q=Contacter%20{urllib.parse.quote(business.name)}",
+                    "views": business.views_count,
+                    "leads": business.leads_count,
+                }
+            )
         home_ad_slides = list(
             HomeAdSlide.objects.filter(is_active=True)
             .filter(starts_at__isnull=True)
@@ -53,13 +142,46 @@ def home_view(request):
             HomeAdSlide.objects.filter(pk__in=[slide.pk for slide in merged_slides[:10]]).update(
                 impressions_count=F("impressions_count") + 1
             )
+        active_businesses = BusinessProfile.objects.filter(is_active=True)
+        top_verified_businesses = list(
+            active_businesses.filter(is_verified=True)
+            .order_by("-leads_count", "-whatsapp_clicks", "-views_count", "-updated_at")[:6]
+        )
+        if len(top_verified_businesses) < 6:
+            extra_ids = [business.pk for business in top_verified_businesses]
+            top_verified_businesses += list(
+                active_businesses.exclude(pk__in=extra_ids)
+                .order_by("-leads_count", "-whatsapp_clicks", "-views_count", "-updated_at")[: 6 - len(top_verified_businesses)]
+            )
+        lead_total = active_businesses.aggregate(total=Sum("leads_count"))["total"] or 0
+        whatsapp_total = active_businesses.aggregate(total=Sum("whatsapp_clicks"))["total"] or 0
+        ctx["live_needs"] = [
+            {"need": "Je cherche un restaurant ouvert a Makepe", "module": "Resto", "city": "Douala", "url": "/chat/?q=restaurant%20ouvert%20a%20Makepe"},
+            {"need": "Je veux commander du gaz proche", "module": "Gaz", "city": "Bonamoussadi", "url": "/chat/?q=gaz%20proche%20Bonamoussadi"},
+            {"need": "Je cherche un appartement a louer", "module": "Immobilier", "city": "Douala", "url": "/chat/?q=appartement%20a%20louer%20Douala"},
+            {"need": "Je veux un pressing qui livre", "module": "Pressing", "city": "Yaounde", "url": "/chat/?q=pressing%20livraison%20Yaounde"},
+        ]
+        ctx["top_verified_businesses"] = top_verified_businesses
+        ctx["home_numbers"] = {
+            "businesses": active_businesses.count(),
+            "premium": active_businesses.filter(plan__in=[BusinessProfile.Plan.BUSINESS, BusinessProfile.Plan.PREMIUM]).count(),
+            "products": BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True).count(),
+            "leads": lead_total + whatsapp_total,
+            "ads": len(merged_slides),
+            "events": BusinessLeadEvent.objects.count(),
+        }
         ctx["premium_businesses"] = premium_businesses
+        ctx["premium_showcase_items"] = premium_showcase_items
         ctx["home_ad_slides"] = merged_slides[:10]
         ctx["hero_businesses"] = [item for item in premium_businesses if item.promo_image][:6] or premium_businesses[:6]
     except Exception:
         ctx["premium_businesses"] = []
+        ctx["premium_showcase_items"] = []
         ctx["home_ad_slides"] = []
         ctx["hero_businesses"] = []
+        ctx["live_needs"] = []
+        ctx["top_verified_businesses"] = []
+        ctx["home_numbers"] = {"businesses": 0, "premium": 0, "products": 0, "leads": 0, "ads": 0, "events": 0}
     return render(request, "home.html", ctx)
 
 
@@ -342,6 +464,14 @@ urlpatterns = [
 
     # ── Agent Commercial IA — Prospection & ventes prestataires ──────
     path("commercial-agent/", include("commercial_agent.urls", namespace="commercial_agent")),
+
+    # ── Phone OCR Agent — Extraction locale de numeros depuis captures ─
+    path("phone-ocr/", include("phone_ocr_agent.urls", namespace="phone_ocr_agent")),
+
+    # ── SEO Agent IA — Audit & referencement naturel ────────────────
+    path("seo/", include("seo_agent.urls", namespace="seo_agent")),
+    path("robots.txt", seo_views.robots_txt, name="robots_txt"),
+    path("sitemap.xml", seo_views.sitemap_xml, name="sitemap_xml"),
 
     # ── TIBO — Boutique dropshipping premium Canada ───────────────────
     path("tibo/", include("apps.tibo.urls", namespace="tibo")),

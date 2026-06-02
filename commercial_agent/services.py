@@ -34,11 +34,19 @@ class CommercialAgentService:
 
     @classmethod
     def score_prospect(cls, prospect: ProspectBusiness) -> int:
-        score = 20
+        score = 15
         if prospect.contact_whatsapp:
-            score += 20
+            score += 25
         if prospect.ville:
             score += 10
+        if prospect.source == ProspectBusiness.Source.IMPORT:
+            score += 10
+        if prospect.assigne_a_id:
+            score += 5
+        if prospect.description or prospect.notes:
+            score += 5
+        if prospect.statut == ProspectBusiness.Statut.QUALIFIE:
+            score += 5
         if prospect.business_profile:
             score += min(prospect.business_profile.views_count // 5, 15)
             score += min(prospect.business_profile.leads_count * 3, 20)
@@ -46,7 +54,7 @@ class CommercialAgentService:
                 score += 25
             elif prospect.business_profile.plan == "pro":
                 score += 15
-        if prospect.module in {"resto", "gaz", "pressing", "sante", "agro"}:
+        if prospect.module in {"resto", "gaz", "pressing", "sante", "agro", "services", "immobilier", "auto", "jobs"}:
             score += 10
         if prospect.statut in {ProspectBusiness.Statut.INTERESSE, ProspectBusiness.Statut.NEGOCIATION}:
             score += 20
@@ -125,6 +133,70 @@ class CommercialAgentService:
         return {"created": created, "updated": updated}
 
     @classmethod
+    def sync_from_whatsapp_contacts(cls, limit=300, assigne_a=None, module="services", contact_ids=None):
+        """Transforme les contacts WhatsApp autorises en prospects commerciaux."""
+
+        try:
+            from whatsapp_agent.models import ContactWhatsApp
+        except Exception:
+            return {"created": 0, "updated": 0, "skipped": 0}
+
+        qs = ContactWhatsApp.objects.filter(consentement_confirme=True)
+        if contact_ids:
+            qs = qs.filter(id__in=contact_ids)
+        qs = qs.order_by("-cree_le")[:limit]
+        created = 0
+        updated = 0
+        skipped = 0
+        for contact in qs:
+            numero = contact.numero.strip()
+            if not numero:
+                skipped += 1
+                continue
+            prospect = ProspectBusiness.objects.filter(Q(whatsapp=numero) | Q(telephone=numero)).first()
+            if prospect:
+                prospect.nom = prospect.nom or contact.nom or numero
+                prospect.ville = prospect.ville or contact.ville
+                prospect.telephone = prospect.telephone or numero
+                prospect.whatsapp = prospect.whatsapp or numero
+                prospect.description = prospect.description or contact.note
+                prospect.notes = (prospect.notes or "") + (
+                    f"\nImport WhatsApp: {contact.groupe or contact.source}".strip()
+                    if contact.groupe or contact.source
+                    else ""
+                )
+                prospect.assigne_a = prospect.assigne_a or assigne_a
+                prospect.save(
+                    update_fields=[
+                        "nom",
+                        "ville",
+                        "telephone",
+                        "whatsapp",
+                        "description",
+                        "notes",
+                        "assigne_a",
+                        "maj_le",
+                    ]
+                )
+                updated += 1
+            else:
+                prospect = ProspectBusiness.objects.create(
+                    nom=contact.nom or f"Contact WhatsApp {numero}",
+                    module=module or "services",
+                    ville=contact.ville,
+                    telephone=numero,
+                    whatsapp=numero,
+                    description=contact.note,
+                    source=ProspectBusiness.Source.IMPORT,
+                    statut=ProspectBusiness.Statut.QUALIFIE,
+                    assigne_a=assigne_a,
+                    notes=f"Import WhatsApp autorise. Groupe/source: {contact.groupe or contact.source}",
+                )
+                created += 1
+            cls.refresh_prospect(prospect)
+        return {"created": created, "updated": updated, "skipped": skipped}
+
+    @classmethod
     def generate_message(cls, prospect: ProspectBusiness, canal="whatsapp", contexte="") -> str:
         """Genere un message commercial court. Utilise Claude si configure, sinon fallback solide."""
 
@@ -199,7 +271,7 @@ Reponds uniquement avec le message."""
 
     @classmethod
     def create_campaign_from_due(cls, name, user=None, module="", ville="", limit=50):
-        qs = ProspectBusiness.objects.exclude(contact_whatsapp="")
+        qs = ProspectBusiness.objects.filter(Q(whatsapp__gt="") | Q(telephone__gt=""))
         qs = qs.filter(statut__in=[
             ProspectBusiness.Statut.NOUVEAU,
             ProspectBusiness.Statut.QUALIFIE,
@@ -230,7 +302,7 @@ Reponds uniquement avec le message."""
         from whatsapp_agent.models import Campagne, MessageEnvoi
         from whatsapp_agent.tasks import recalculer_stats_campagne
 
-        qs = ProspectBusiness.objects.exclude(whatsapp="").filter(
+        qs = ProspectBusiness.objects.filter(Q(whatsapp__gt="") | Q(telephone__gt="")).filter(
             statut__in=[
                 ProspectBusiness.Statut.NOUVEAU,
                 ProspectBusiness.Statut.QUALIFIE,

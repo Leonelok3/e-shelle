@@ -20,7 +20,6 @@ def get_or_create_affiliate_profile(user) -> AffiliateProfile:
     profile, _ = AffiliateProfile.objects.get_or_create(
         user=user,
         defaults={
-            "rate": DEFAULT_AFFILIATE_RATE,
             "is_enabled": True,
         },
     )
@@ -53,7 +52,6 @@ def attach_referral_if_needed(referred_user, affiliate_profile, source="link"):
     return Referral.objects.create(
         affiliate=affiliate_profile,
         referred_user=referred_user,
-        source=source,
     )
 
 

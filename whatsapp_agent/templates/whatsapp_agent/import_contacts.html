@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Importer contacts WhatsApp{% endblock %}
+
+{% block content %}
+<style>
+  .wa-shell{min-height:100vh;background:#07120d;color:#e8f5ee;padding:112px 16px 40px}
+  .wa-wrap{max-width:1120px;margin:0 auto}
+  .wa-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}
+  .wa-title{font-size:clamp(1.7rem,3.4vw,2.6rem)!important;line-height:1.05!important;margin:0!important;font-weight:800!important;letter-spacing:0!important}
+  .wa-sub{color:#a7b8ae;margin:.45rem 0 0;max-width:760px}
+  .wa-link{color:#86efac;font-weight:800;text-decoration:none}
+  .wa-layout{display:grid;grid-template-columns:1.08fr .92fr;gap:16px}
+  .wa-panel{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;padding:16px}
+  .wa-panel h2{font-size:1.05rem;color:#facc15;margin:0 0 14px}
+  .wa-field{display:grid;gap:7px;margin-bottom:13px}
+  .wa-field label{font-weight:800;color:#d5eadf}
+  .wa-input,.wa-textarea{width:100%;background:#07120d;color:#e8f5ee;border:1px solid #315641;border-radius:8px;padding:11px 12px}
+  .wa-textarea{min-height:260px;line-height:1.55;resize:vertical}
+  .wa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .wa-check{display:flex;gap:10px;align-items:flex-start;color:#c9dbd1;margin:10px 0}
+  .wa-check input{margin-top:4px}
+  .wa-btn{border:0;border-radius:8px;background:#16a34a;color:#fff;font-weight:800;padding:12px 16px;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+  .wa-btn:hover{background:#12813d;color:#fff}
+  .wa-btn.blue{background:#0ea5e9}
+  .wa-muted{color:#9fb3a8}
+  .wa-table{width:100%;border-collapse:collapse}
+  .wa-table th,.wa-table td{padding:10px;border-bottom:1px solid #173524;text-align:left;font-size:.9rem}
+  .wa-table th{color:#facc15;background:#0a1710}
+  .wa-help{background:#10291c;border:1px solid #2f6b47;color:#cfe0d6;border-radius:8px;padding:12px;margin-bottom:14px}
+  @media(max-width:900px){.wa-layout,.wa-grid{grid-template-columns:1fr}.wa-top{flex-direction:column}.wa-panel{overflow-x:auto}.wa-table{min-width:640px}}
+</style>
+
+<main class="wa-shell">
+  <div class="wa-wrap">
+    <div class="wa-top">
+      <div>
+        <a class="wa-link" href="{% url 'whatsapp_agent:wa_dashboard' %}">Retour campagnes</a>
+        <h1 class="wa-title">Importer numeros WhatsApp</h1>
+        <p class="wa-sub">Colle une liste de numeros prospects autorises. E-Shelle les nettoie, evite les doublons, puis peut les envoyer a l'Agent Commercial IA.</p>
+      </div>
+      <a class="wa-btn blue" href="{% url 'commercial_agent:dashboard' %}">Agent Commercial IA</a>
+    </div>
+
+    <section class="wa-layout">
+      <form class="wa-panel" method="post">
+        {% csrf_token %}
+        <h2>Liste brute</h2>
+        <div class="wa-help">Exemple accepte: +237 6 99 25 22 65, un numero par ligne, avec ou sans espaces.</div>
+        <div class="wa-field">
+          <label for="numeros">Numeros WhatsApp</label>
+          <textarea id="numeros" class="wa-textarea" name="numeros" placeholder="+237 6 99 25 22 65&#10;+237 6 97 77 10 04"></textarea>
+        </div>
+        <div class="wa-grid">
+          <div class="wa-field">
+            <label for="ville">Ville</label>
+            <input id="ville" class="wa-input" name="ville" placeholder="Douala, Yaounde...">
+          </div>
+          <div class="wa-field">
+            <label for="groupe">Source / groupe</label>
+            <input id="groupe" class="wa-input" name="groupe" placeholder="Prospects resto, salon, clients...">
+          </div>
+        </div>
+        <div class="wa-grid">
+          <div class="wa-field">
+            <label for="module">Module commercial</label>
+            <select id="module" class="wa-input" name="module">
+              <option value="services">Services</option>
+              <option value="resto">Resto</option>
+              <option value="gaz">Gaz</option>
+              <option value="pressing">Pressing</option>
+              <option value="agro">Agro</option>
+              <option value="sante">Sante</option>
+              <option value="immobilier">Immobilier</option>
+              <option value="auto">Auto</option>
+            </select>
+          </div>
+          <div class="wa-field">
+            <label for="note">Note</label>
+            <input id="note" class="wa-input" name="note" placeholder="Prospects chauds, deja appeles...">
+          </div>
+        </div>
+        <label class="wa-check">
+          <input type="checkbox" name="consentement" required>
+          <span>Je confirme que ces prospects peuvent etre contactes par E-Shelle sur WhatsApp.</span>
+        </label>
+        <label class="wa-check">
+          <input type="checkbox" name="sync_commercial" checked>
+          <span>Creer ou mettre a jour les prospects dans l'Agent Commercial IA maintenant.</span>
+        </label>
+        <button class="wa-btn" type="submit">Importer et preparer les prospects</button>
+      </form>
+
+      <aside class="wa-panel">
+        <h2>Derniers contacts importes</h2>
+        <table class="wa-table">
+          <thead><tr><th>Numero</th><th>Ville</th><th>Source</th><th>Date</th></tr></thead>
+          <tbody>
+            {% for contact in recent_contacts %}
+            <tr>
+              <td>{{ contact.numero }}</td>
+              <td>{{ contact.ville|default:"-" }}</td>
+              <td>{{ contact.groupe|default:contact.get_source_display }}</td>
+              <td class="wa-muted">{{ contact.cree_le|date:"d/m H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="wa-muted">Aucun contact importe pour le moment.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </aside>
+    </section>
+  </div>
+</main>
+{% endblock %}

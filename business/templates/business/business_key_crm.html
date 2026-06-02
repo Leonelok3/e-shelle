@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}CRM Partenaire Business Key{% endblock %}
+
+{% block content %}
+<section class="crm-page">
+  <div class="crm-container">
+    <div class="crm-head">
+      <div>
+        <a href="{% url 'business:partner_dashboard' %}">Retour dashboard</a>
+        <h1>CRM Partenaire</h1>
+        <p>Garde tes prospects, tes relances et tes opportunites d'argent au meme endroit.</p>
+      </div>
+      <div class="crm-head-actions">
+        <a class="crm-kit" href="{% url 'business:business_key_crm_opportunities' %}">Opportunites d'argent</a>
+        <a class="crm-kit" href="{% url 'business:business_key_kit' %}">Kit commercial</a>
+      </div>
+    </div>
+
+    <div class="crm-stats">
+      <article><span>Total prospects</span><strong>{{ stats.total }}</strong></article>
+      <article><span>Interessés</span><strong>{{ stats.interested }}</strong></article>
+      <article><span>A relancer</span><strong>{{ stats.follow_up }}</strong></article>
+      <article><span>Convertis</span><strong>{{ stats.converted }}</strong></article>
+      <article><span>Potentiel</span><strong>{{ stats.potential }} FCFA</strong></article>
+    </div>
+
+    <section class="crm-card">
+      <h2>Ajouter un prospect</h2>
+      <form method="post" class="crm-form">
+        {% csrf_token %}
+        <input name="business_name" placeholder="Nom du business *" required>
+        <input name="contact_name" placeholder="Nom du contact">
+        <input name="whatsapp" placeholder="WhatsApp">
+        <input name="phone" placeholder="Telephone">
+        <input name="city" placeholder="Ville">
+        <input name="district" placeholder="Quartier">
+        <select name="sector">
+          {% for value, label in sectors %}
+          <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+        <select name="status">
+          {% for value, label in statuses %}
+          <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+        <input name="potential_xaf" type="number" min="0" value="15000" placeholder="Potentiel FCFA">
+        <textarea name="notes" placeholder="Notes rapides"></textarea>
+        <button type="submit">Ajouter au CRM</button>
+      </form>
+    </section>
+
+    <section class="crm-card">
+      <div class="crm-card-head">
+        <h2>Pipeline prospects</h2>
+        <form method="get" class="crm-filters">
+          <select name="status">
+            <option value="">Tous statuts</option>
+            {% for value, label in statuses %}
+            <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <select name="sector">
+            <option value="">Tous secteurs</option>
+            {% for value, label in sectors %}
+            <option value="{{ value }}" {% if filters.sector == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">Filtrer</button>
+        </form>
+      </div>
+
+      <form id="campaign-form" method="post" action="{% url 'business:business_key_crm_create_campaign' %}" class="campaign-bar">
+        {% csrf_token %}
+        <input name="campaign_name" placeholder="Nom campagne WhatsApp">
+        <input name="message_template" placeholder="Message de campagne, avec {{prenom}} possible">
+        <button type="submit">Créer campagne avec la sélection</button>
+      </form>
+
+      <div class="lead-list">
+        {% for item in leads %}
+        {% with lead=item.lead %}
+        <article class="lead-card">
+          <div class="lead-main">
+            <label class="lead-check">
+              <input type="checkbox" name="lead_ids" value="{{ lead.pk }}" form="campaign-form">
+            </label>
+            <div>
+              <h3>{{ lead.business_name }}</h3>
+              <p>{{ lead.get_sector_display }} · {{ lead.city|default:"Ville non renseignee" }}{% if lead.district %} · {{ lead.district }}{% endif %}</p>
+              <span>{{ lead.get_status_display }} · Potentiel {{ lead.potential_xaf }} FCFA</span>
+            </div>
+            <div class="lead-actions">
+              <a href="{% url 'business:business_key_crm_demo' lead.pk %}">Demo express</a>
+              {% if item.first_whatsapp_url %}<a href="{{ item.first_whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
+              <button type="button" data-copy="{{ item.first_script }}">Copier script</button>
+            </div>
+          </div>
+
+          <div class="lead-script">
+            <strong>Premier message</strong>
+            <p>{{ item.first_script }}</p>
+          </div>
+
+          <details>
+            <summary>Modeles de relance</summary>
+            <div class="follow-grid">
+              {% for relance in item.relances %}
+              <div>
+                <strong>{{ relance.label }}</strong>
+                <p>{{ relance.text }}</p>
+                <button type="button" data-copy="{{ relance.text }}">Copier</button>
+                {% if relance.whatsapp_url %}<a href="{{ relance.whatsapp_url }}" target="_blank" rel="noopener">Envoyer</a>{% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </details>
+
+          <form method="post" action="{% url 'business:business_key_crm_update' lead.pk %}" class="lead-update">
+            {% csrf_token %}
+            <select name="status">
+              {% for value, label in statuses %}
+              <option value="{{ value }}" {% if lead.status == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <input type="date" name="next_follow_up_at" value="{{ lead.next_follow_up_at|date:'Y-m-d' }}">
+            <input name="notes" value="{{ lead.notes }}" placeholder="Note de suivi">
+            <button type="submit">Mettre a jour</button>
+          </form>
+        </article>
+        {% endwith %}
+        {% empty %}
+        <p>Aucun prospect pour le moment. Ajoute ton premier restaurant, pressing, gaz ou service.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+
+<script>
+document.addEventListener("click", function (event) {
+  const button = event.target.closest("[data-copy]");
+  if (!button) return;
+  navigator.clipboard.writeText(button.dataset.copy || "");
+  const oldText = button.textContent;
+  button.textContent = "Copie";
+  setTimeout(function () { button.textContent = oldText; }, 1200);
+});
+</script>
+
+<style>
+.crm-page{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
+.crm-container{width:min(1220px,92vw);margin:0 auto}
+.crm-head{display:flex;justify-content:space-between;gap:1rem;align-items:end;flex-wrap:wrap;margin-bottom:1rem}
+.crm-head a{color:#78ff97;text-decoration:none;font-weight:900}
+.crm-head h1{font-size:clamp(2.4rem,6vw,5rem);line-height:.86;color:#fffbe8;margin:.55rem 0}
+.crm-head p{color:#b9ddc3;line-height:1.55}
+.crm-head-actions{display:flex;gap:.7rem;flex-wrap:wrap}
+.crm-kit{border:1px solid rgba(114,255,146,.3);border-radius:8px;padding:.8rem 1rem}
+.crm-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.8rem;margin-bottom:1rem}
+.crm-stats article,.crm-card,.lead-card{background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px}
+.crm-stats article{padding:1rem}
+.crm-stats span{display:block;color:#a8d5b7}.crm-stats strong{display:block;color:#ffd51f;font-size:1.8rem;margin-top:.3rem}
+.crm-card{padding:1rem;margin-bottom:1rem}
+.crm-card h2{color:#ffd51f;margin:0 0 .8rem}
+.crm-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.7rem}
+.crm-form input,.crm-form select,.crm-form textarea,.crm-filters select,.lead-update input,.lead-update select{background:#06170f;border:1px solid rgba(114,255,146,.22);border-radius:8px;color:#fff;padding:.75rem}
+.crm-form textarea{grid-column:span 2;min-height:48px}
+.crm-form button,.crm-filters button,.lead-update button,.lead-actions button,.follow-grid button{background:#35b257;border:0;border-radius:8px;color:#fff;font-weight:900;padding:.75rem;cursor:pointer}
+.crm-card-head{display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap}
+.crm-filters{display:flex;gap:.6rem;flex-wrap:wrap}
+.campaign-bar{display:grid;grid-template-columns:240px 1fr auto;gap:.6rem;margin:.8rem 0}
+.campaign-bar input{background:#06170f;border:1px solid rgba(114,255,146,.22);border-radius:8px;color:#fff;padding:.75rem}
+.campaign-bar button{background:#c99013;color:#fff;border:0;border-radius:8px;padding:.75rem;font-weight:900;cursor:pointer}
+.lead-list{display:grid;gap:.8rem}
+.lead-card{padding:1rem}
+.lead-main{display:grid;grid-template-columns:auto 1fr auto;justify-content:space-between;gap:1rem;align-items:start}
+.lead-check input{width:1.15rem;height:1.15rem}
+.lead-main h3{color:#fff;margin:0}.lead-main p,.lead-script p,.follow-grid p{color:#b9ddc3;line-height:1.5}.lead-main span{color:#78ff97;font-weight:900}
+.lead-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.lead-actions a,.follow-grid a{background:#c99013;color:#fff;text-decoration:none;border-radius:8px;padding:.75rem;font-weight:900}
+.lead-script{background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.8rem;margin:.8rem 0}
+details summary{cursor:pointer;color:#ffd51f;font-weight:900}
+.follow-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem;margin-top:.7rem}
+.follow-grid div{background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.8rem}
+.follow-grid strong{color:#fff}
+.lead-update{display:grid;grid-template-columns:180px 170px 1fr auto;gap:.6rem;margin-top:.8rem}
+@media(max-width:980px){.crm-stats,.crm-form,.follow-grid,.lead-update,.campaign-bar{grid-template-columns:1fr}.lead-main{grid-template-columns:1fr}.crm-form textarea{grid-column:auto}}
+</style>
+{% endblock %}

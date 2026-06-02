@@ -35,7 +35,12 @@
             <h2 style="color:#fff;margin-bottom:.25rem">{{ current.name }}</h2>
             <p style="color:rgba(255,255,255,.58)">{{ current.get_module_display }}{% if current.city %} — {{ current.city }}{% endif %}{% if current.district %}, {{ current.district }}{% endif %}</p>
           </div>
-          <span style="padding:.35rem .7rem;border-radius:999px;background:rgba(34,197,94,.13);color:#4ade80;font-size:.75rem;font-weight:800">{{ current.get_plan_display }}</span>
+          <div style="display:flex;gap:.45rem;flex-wrap:wrap;justify-content:flex-end">
+            <span style="padding:.35rem .7rem;border-radius:999px;background:rgba(34,197,94,.13);color:#4ade80;font-size:.75rem;font-weight:800">{{ current.get_plan_display }}</span>
+            <span style="padding:.35rem .7rem;border-radius:999px;background:{% if current.activation_status == 'active' %}rgba(34,197,94,.16){% elif current.activation_status == 'pending' %}rgba(250,204,21,.14){% else %}rgba(148,163,184,.14){% endif %};color:{% if current.activation_status == 'active' %}#86efac{% elif current.activation_status == 'pending' %}#fde68a{% else %}#cbd5e1{% endif %};font-size:.75rem;font-weight:900">
+              {{ current.get_activation_status_display }}
+            </span>
+          </div>
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.75rem;margin-top:1.25rem">
@@ -54,11 +59,29 @@
           {% endfor %}
         </div>
 
+        <div class="biz-preview">
+          <div>
+            <span>Apercu fiche publique</span>
+            <h3>{{ current.promo_headline|default:current.name }}</h3>
+            <p>{{ current.promo_offer|default:current.description|default:"Ajoutez une accroche et une offre pour rendre votre fiche plus vendeuse." }}</p>
+          </div>
+          <ul>
+            <li class="{% if current.description %}ok{% endif %}">Description</li>
+            <li class="{% if current.whatsapp %}ok{% endif %}">WhatsApp</li>
+            <li class="{% if current.city and current.district %}ok{% endif %}">Ville/quartier</li>
+            <li class="{% if current.promo_headline or current.promo_offer %}ok{% endif %}">Accroche/offre</li>
+          </ul>
+        </div>
+
         <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.25rem">
           <a href="{{ public_url }}" target="_blank" rel="noopener" class="btn btn-primary">Voir ma boutique</a>
+          <a href="{% url 'business:catalog_manage' current.id %}" class="btn btn-primary">Gérer les produits</a>
           <a href="{{ share_whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-outline-white">Partager ma boutique</a>
           {% if whatsapp_url %}
             <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-outline-white">Contacter WhatsApp</a>
+          {% endif %}
+          {% if current.activation_status != "active" %}
+            <a href="{% url 'business:payment_request' current.id %}?plan=pro" class="btn btn-primary">Activer cette fiche - 5 000 FCFA</a>
           {% endif %}
           <a href="{% url 'business:payment_request' current.id %}?plan=business" class="btn btn-primary">Activer Business</a>
           <a href="{% url 'business:payment_request' current.id %}?plan=premium" class="btn btn-outline-white">Passer Premium</a>
@@ -153,6 +176,13 @@
 .biz-stat i { position:absolute;right:-22px;bottom:-22px;width:70px;height:70px;border-radius:999px;opacity:.22; }
 .biz-stat--green i{background:#22c55e}.biz-stat--blue i{background:#38bdf8}.biz-stat--amber i{background:#facc15}.biz-stat--pink i{background:#fb7185}.biz-stat--violet i{background:#a78bfa}
 .biz-chip { padding:.45rem .65rem;border-radius:999px;background:rgba(34,197,94,.12);color:#a7f3b5;font-size:.78rem;font-weight:800; }
+.biz-preview { display:grid;grid-template-columns:1.15fr .85fr;gap:.8rem;margin-top:1rem;padding:1rem;border:1px solid rgba(34,197,94,.14);border-radius:16px;background:rgba(0,0,0,.16); }
+.biz-preview span { display:block;color:#86efac;font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.35rem; }
+.biz-preview h3 { color:#fff;margin:0 0 .35rem;font-family:var(--font-display);line-height:1.1; }
+.biz-preview p { color:rgba(255,255,255,.66);line-height:1.55;margin:0; }
+.biz-preview ul { list-style:none;margin:0;padding:0;display:grid;gap:.35rem;align-content:start; }
+.biz-preview li { border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:.4rem .65rem;color:rgba(255,255,255,.48);font-size:.78rem;font-weight:850; }
+.biz-preview li.ok { color:#86efac;background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.22); }
 .biz-panel { background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem;color:rgba(255,255,255,.74); }
 .biz-panel h3 { color:#fff;margin-bottom:.85rem; }
 .biz-panel label { display:block;color:rgba(255,255,255,.56);font-size:.78rem;font-weight:800;margin:.8rem 0 .35rem; }
@@ -167,6 +197,6 @@
 .biz-chart span { color:rgba(255,255,255,.56);font-size:.78rem;font-weight:800; }
 .biz-chart i { display:block;height:13px;border-radius:999px;background:linear-gradient(90deg,#22c55e,#38bdf8,#a78bfa);min-width:6%;box-shadow:0 0 18px rgba(56,189,248,.18); }
 .biz-chart strong { color:#fff;font-size:.85rem; }
-@media(max-width:900px){ section .container > div[style*="grid-template-columns:1.2fr"], section .container > div[style*="grid-template-columns:1fr 1fr"], article div[style*="repeat(5"]{grid-template-columns:1fr!important;} }
+@media(max-width:900px){ section .container > div[style*="grid-template-columns:1.2fr"], section .container > div[style*="grid-template-columns:1fr 1fr"], article div[style*="repeat(5"], .biz-preview{grid-template-columns:1fr!important;} }
 </style>
 {% endblock %}

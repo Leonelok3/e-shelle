@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Plan de correction SEO - E-Shelle{% endblock %}
+{% block meta_description %}Plan de correction SEO genere par l'Agent SEO Audit IA E-Shelle.{% endblock %}
+
+{% block content %}
+<style>
+  .seo-shell{min-height:100vh;background:#07120d;color:#e8f5ee;padding:112px 16px 44px}
+  .seo-wrap{max-width:980px;margin:0 auto}
+  .seo-title{font-size:clamp(1.7rem,3vw,2.5rem)!important;line-height:1.05!important;margin:0 0 10px!important;font-weight:900!important;letter-spacing:0!important}
+  .seo-muted{color:#9fb3a8}
+  .seo-link{color:#86efac;font-weight:900;text-decoration:none}
+  .seo-panel{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;padding:18px;margin-top:16px}
+  .seo-panel h2{font-size:1rem;color:#facc15;margin:0 0 12px}
+  .seo-code{background:#06110b;border:1px solid #1d3d2c;border-radius:8px;color:#d9fbe7;padding:14px;white-space:pre-wrap;overflow:auto}
+  .seo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .seo-badge{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:.75rem;font-weight:900;background:#123b2a;color:#86efac}
+  .seo-badge.off{background:#3b1d1d;color:#fca5a5}
+  @media(max-width:760px){.seo-shell{padding-top:96px}.seo-grid{grid-template-columns:1fr}}
+</style>
+
+<main class="seo-shell">
+  <div class="seo-wrap">
+    <a class="seo-link" href="{% url 'seo_agent:dashboard' %}">Retour SEO Agent</a>
+    <h1 class="seo-title">Plan de correction SEO</h1>
+    {% if error %}
+      <div class="seo-panel"><p class="seo-muted">{{ error }}</p></div>
+    {% elif plan %}
+      <p class="seo-muted">{{ plan.file_path }} - {{ plan.issue_title }}</p>
+      <section class="seo-panel">
+        <h2>Etat detecte</h2>
+        <div class="seo-grid">
+          <p>Titre: <span class="seo-badge {% if not plan.has_title %}off{% endif %}">{% if plan.has_title %}OK{% else %}A ajouter{% endif %}</span></p>
+          <p>Meta description: <span class="seo-badge {% if not plan.has_meta %}off{% endif %}">{% if plan.has_meta %}OK{% else %}A ajouter{% endif %}</span></p>
+          <p>H1: <span class="seo-badge {% if not plan.has_h1 %}off{% endif %}">{% if plan.has_h1 %}OK{% else %}A ajouter{% endif %}</span></p>
+          <p>Schema: <span class="seo-badge {% if not plan.has_schema %}off{% endif %}">{% if plan.has_schema %}OK{% else %}A ajouter{% endif %}</span></p>
+        </div>
+      </section>
+      <section class="seo-panel">
+        <h2>Blocs conseilles</h2>
+        <p class="seo-muted">A placer en haut du template, juste apres extends si possible.</p>
+        <pre class="seo-code">{{ plan.title_block }}
+{{ plan.meta_block }}</pre>
+      </section>
+      <section class="seo-panel">
+        <h2>H1 conseille</h2>
+        <pre class="seo-code">{{ plan.h1_example }}</pre>
+      </section>
+      <section class="seo-panel">
+        <h2>CTA conseille</h2>
+        <pre class="seo-code">{{ plan.cta_block }}</pre>
+      </section>
+      <section class="seo-panel">
+        <h2>Schema.org minimal</h2>
+        <pre class="seo-code">{{ plan.schema_block }}</pre>
+      </section>
+    {% endif %}
+  </div>
+</main>
+{% endblock %}

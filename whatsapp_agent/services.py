@@ -31,7 +31,7 @@ class WhatsAppService:
 
         payload = {
             "messaging_product": "whatsapp",
-            "to": WhatsAppService.normaliser_numero(numero),
+            "to": WhatsAppService.normaliser_numero_meta(numero),
             "type": "text",
             "text": {"body": message, "preview_url": False},
         }
@@ -103,10 +103,28 @@ Reponds UNIQUEMENT avec le texte du message, rien d'autre."""
 
     @staticmethod
     def normaliser_numero(numero: str) -> str:
-        """Convertit un numero vers le format attendu par Meta, sans espaces."""
+        """Convertit un numero vers un format E-Shelle lisible: +237..."""
 
-        cleaned = re.sub(r"[\s().-]+", "", numero or "")
-        return cleaned
+        cleaned = re.sub(r"[\s().-]+", "", numero or "").strip()
+        if not cleaned:
+            return ""
+        digits = re.sub(r"\D", "", cleaned)
+        if cleaned.startswith("+") and digits:
+            return f"+{digits}"
+        if digits.startswith("00"):
+            return f"+{digits[2:]}"
+        if digits.startswith("237"):
+            return f"+{digits}"
+        if len(digits) >= 8:
+            return f"+237{digits}"
+        return digits
+
+    @staticmethod
+    def normaliser_numero_meta(numero: str) -> str:
+        """Convertit un numero vers le format Cloud API: code pays sans +."""
+
+        normalized = WhatsAppService.normaliser_numero(numero)
+        return re.sub(r"\D", "", normalized)
 
 
 AI_PRESETS = {

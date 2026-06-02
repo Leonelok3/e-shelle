@@ -21,14 +21,14 @@ class Command(BaseCommand):
             },
             {
                 "code": "pro",
-                "name": "Pro",
+                "name": "Activation fiche",
                 "plan_level": BusinessProfile.Plan.PRO,
                 "monthly_price_xaf": 5000,
                 "duration_days": 30,
                 "included_boost_days": 0,
                 "included_ai_credits": 5,
                 "order": 10,
-                "description": "Fiche complete, badge pro, statistiques simples, 5 credits IA.",
+                "description": "Activation de la fiche publique, produits visibles, lien partageable et 5 credits IA.",
             },
             {
                 "code": "business",

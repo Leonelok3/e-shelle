@@ -36,6 +36,8 @@
   .wa-preview-card h2{font-size:1rem;color:#facc15;margin:0 0 12px}
   .wa-example{background:#07120d;border:1px solid #1d3d2c;border-radius:8px;padding:10px;margin-top:8px}
   .wa-confirm{display:flex;align-items:center;gap:10px;margin-top:12px;color:#cfe0d6;font-weight:700}
+  .wa-test-form{display:grid;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid #1d3d2c}
+  .wa-input{background:#07120d;color:#e8f5ee;border:1px solid #315641;border-radius:8px;padding:10px 12px;width:100%}
   @media(max-width:820px){.wa-shell{padding-top:96px}.wa-top{flex-direction:column}.wa-card-grid,.wa-preview{grid-template-columns:1fr}.wa-table{min-width:860px}.wa-panel{overflow-x:auto}}
 </style>
 
@@ -51,6 +53,16 @@
         </p>
       </div>
       <div class="wa-actions">
+        <form method="post" action="{% url 'whatsapp_agent:wa_dupliquer' campagne.pk %}">
+          {% csrf_token %}
+          <button class="wa-btn" type="submit">Dupliquer</button>
+        </form>
+        {% if campagne.statut == "terminee" %}
+        <form method="post" action="{% url 'whatsapp_agent:wa_relancer' campagne.pk %}">
+          {% csrf_token %}
+          <button class="wa-btn danger" type="submit">Relancer non-repondants</button>
+        </form>
+        {% endif %}
         <a class="wa-btn gold" href="{% url 'whatsapp_agent:wa_export' campagne.pk %}">Exporter CSV</a>
       </div>
     </div>
@@ -72,8 +84,17 @@
       <div class="wa-preview-card">
         <h2>Apercu final avant envoi</h2>
         <p class="wa-muted">Destinataires prepares: <strong>{{ campagne.total_destinataires }}</strong></p>
+        {% if contacts_selectionnes %}
+        <p class="wa-muted">Selection manuelle: <strong>{{ contacts_selectionnes }} contact(s) du carnet WhatsApp</strong></p>
+        {% endif %}
         <p class="wa-muted">Filtre role: <strong>{{ campagne.filtre_role|default:"Tous" }}</strong></p>
         <p class="wa-muted">Filtre ville: <strong>{{ campagne.filtre_ville|default:"Toutes" }}</strong></p>
+        <form class="wa-test-form" method="post" action="{% url 'whatsapp_agent:wa_test' campagne.pk %}">
+          {% csrf_token %}
+          <label class="wa-muted" for="numero_test">Envoyer un test a mon numero</label>
+          <input id="numero_test" class="wa-input" name="numero_test" placeholder="+237 6XX XXX XXX" value="{{ request.user.whatsapp|default:'' }}">
+          <button class="wa-btn gold" type="submit">Envoyer le test</button>
+        </form>
         {% if campagne.statut == "validee" %}
         <form method="post" action="{% url 'whatsapp_agent:wa_lancer' campagne.pk %}">
           {% csrf_token %}

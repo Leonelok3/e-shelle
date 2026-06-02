@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Prix E-Shelle Business Key{% endblock %}
+
+{% block content %}
+<section class="bk-price-page">
+  <div class="bk-price-container">
+    <div class="bk-price-hero">
+      <a href="{% url 'business:partner' %}">Retour Business Key</a>
+      <h1>Choisis ta Business Key</h1>
+      <p>Un pack clair pour demarrer, apprendre a vendre E-Shelle et suivre tes commissions sans confusion.</p>
+    </div>
+
+    <div class="bk-price-grid">
+      {% for pack in packs %}
+      <article class="bk-price-card {% if pack.tier == 'key' %}featured{% endif %}">
+        <span>{{ pack.label }}</span>
+        <h2>{{ pack.name }}</h2>
+        <strong>{% if pack.price %}{{ pack.price }} FCFA{% else %}0 FCFA{% endif %}</strong>
+        <p>{{ pack.desc }}</p>
+        <ul>
+          {% for tool in pack.tools %}
+          <li>{{ tool }}</li>
+          {% endfor %}
+        </ul>
+        {% if pack.tier == 'free' %}
+          {% if user.is_authenticated %}
+          <a class="bk-pack-btn" href="{% url 'business:partner_dashboard' %}">Ouvrir gratuitement</a>
+          {% else %}
+          <a class="bk-pack-btn" href="/accounts/register/?next=/business/partner/dashboard/">Demarrer</a>
+          {% endif %}
+        {% else %}
+          {% if user.is_authenticated %}
+          <form method="post" action="{% url 'business:business_key_payment_request' %}" enctype="multipart/form-data" class="bk-pay-form">
+            {% csrf_token %}
+            <input type="hidden" name="tier" value="{{ pack.tier }}">
+            <label>Numero Mobile Money</label>
+            <input name="momo_number" placeholder="+237 6XX XXX XXX">
+            <label>Preuve de paiement</label>
+            <input type="file" name="proof" accept="image/*,.pdf">
+            <textarea name="note" placeholder="Nom utilise pour le paiement, heure, commentaire..."></textarea>
+            <button type="submit">Demander l'activation</button>
+          </form>
+          {% else %}
+          <a class="bk-pack-btn" href="/accounts/login/?next=/business/partner/packs/">Se connecter pour activer</a>
+          {% endif %}
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+
+    <div class="bk-payment-box">
+      <h2>Paiement Mobile Money manuel</h2>
+      <p>
+        Tu envoies le paiement au numero E-Shelle, tu ajoutes ton numero et une capture de preuve.
+        L'admin valide ensuite dans Django Admin et ton pack devient actif 30 jours.
+      </p>
+      <strong>Numero E-Shelle: +237 680 625 082</strong>
+    </div>
+  </div>
+</section>
+
+<style>
+.bk-price-page{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
+.bk-price-container{width:min(1180px,92vw);margin:0 auto}
+.bk-price-hero{margin-bottom:1.2rem}
+.bk-price-hero a{color:#78ff97;text-decoration:none;font-weight:900}
+.bk-price-hero h1{font-size:clamp(2.4rem,6vw,5rem);line-height:.86;margin:.6rem 0;color:#fffbe8}
+.bk-price-hero p{color:#b9ddc3;font-size:1.1rem;max-width:760px;line-height:1.6}
+.bk-price-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.bk-price-card,.bk-payment-box{background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px;padding:1rem}
+.bk-price-card.featured{border-color:rgba(255,213,31,.55);background:linear-gradient(180deg,#17331f,#0b2518)}
+.bk-price-card span{color:#78ff97;font-weight:900;text-transform:uppercase;font-size:.78rem}
+.bk-price-card h2,.bk-payment-box h2{color:#fff;margin:.45rem 0}
+.bk-price-card strong{display:block;color:#ffd51f;font-size:2rem}
+.bk-price-card p,.bk-payment-box p{color:#b9ddc3;line-height:1.55}
+.bk-price-card ul{list-style:none;padding:0;margin:1rem 0;display:grid;gap:.45rem}
+.bk-price-card li{border-top:1px solid rgba(114,255,146,.13);padding-top:.45rem}
+.bk-price-card li:before{content:"OK";color:#78ff97;font-weight:900;margin-right:.5rem;font-size:.72rem}
+.bk-pack-btn,.bk-pay-form button{display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#35b257,#d49618);border:0;border-radius:8px;color:#fff;text-decoration:none;font-weight:900;padding:.85rem 1rem;width:100%;cursor:pointer}
+.bk-pay-form{display:grid;gap:.55rem;margin-top:1rem}
+.bk-pay-form label{font-weight:900;color:#dfffe6}
+.bk-pay-form input,.bk-pay-form textarea{background:#06170f;border:1px solid rgba(114,255,146,.22);border-radius:8px;color:#fff;padding:.75rem;width:100%}
+.bk-pay-form textarea{min-height:78px;resize:vertical}
+.bk-payment-box{margin-top:1rem}
+.bk-payment-box strong{color:#ffd51f}
+@media(max-width:950px){.bk-price-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}

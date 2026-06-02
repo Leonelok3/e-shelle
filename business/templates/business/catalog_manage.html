@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Catalogue - {{ business.name }}{% endblock %}
+
+{% block content %}
+<section class="catalog-admin">
+  <div class="container">
+    <div class="catalog-head">
+      <div>
+        <a class="catalog-back" href="{% url 'business:dashboard' %}?business={{ business.id }}">Retour dashboard</a>
+        <h1>Catalogue de {{ business.name }}</h1>
+        <p>Ajoute ici les produits, menus ou services visibles sur la fiche publique.</p>
+      </div>
+      <div class="catalog-actions">
+        <a href="{{ public_url }}" target="_blank" rel="noopener">Voir la fiche</a>
+      </div>
+    </div>
+
+    <div class="catalog-grid">
+      <form class="catalog-card" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h2>Ajouter un produit/service</h2>
+        <label>Nom *</label>
+        <input name="title" maxlength="140" required placeholder="Ex: Ndole plantain, Poulet DG, Livraison Makepe">
+
+        <label>Type</label>
+        <select name="item_type">
+          {% for value, label in item_types %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+
+        <label>Prix</label>
+        <input name="price_label" maxlength="80" placeholder="Ex: 2 500 FCFA, Prix a discuter">
+
+        <label>Description courte</label>
+        <textarea name="description" rows="4" placeholder="Ex: Plat chaud disponible aujourd'hui, livraison Makepe et Logpom."></textarea>
+
+        <div class="catalog-row">
+          <div>
+            <label>Photo</label>
+            <input type="file" name="image" accept="image/png,image/jpeg,image/jpg">
+          </div>
+          <div>
+            <label>Ordre</label>
+            <input name="order" type="number" min="0" value="0">
+          </div>
+        </div>
+
+        <button type="submit">Ajouter au catalogue</button>
+      </form>
+
+      <aside class="catalog-card catalog-guide">
+        <h2>Comment bien remplir</h2>
+        <p><strong>Pour un restaurant :</strong> ajoute les plats les plus vendeurs, pas tout le menu au debut.</p>
+        <p><strong>Pour un service :</strong> ajoute les prestations claires avec un prix de depart.</p>
+        <p><strong>Pour vendre vite :</strong> photo propre + prix + zone de livraison + bouton WhatsApp.</p>
+        <div>
+          <span>{{ items|length }}</span>
+          produit/service dans cette fiche
+        </div>
+      </aside>
+    </div>
+
+    <div class="catalog-list">
+      <div class="catalog-list-head">
+        <h2>Catalogue de la fiche</h2>
+        <span>{{ items|length }} element(s)</span>
+      </div>
+
+      {% for item in items %}
+        <article class="catalog-item">
+          <div class="catalog-thumb">
+            {% if item.image %}
+              <img src="{{ item.image.url }}" alt="{{ item.title }}">
+            {% else %}
+              <span>{{ item.title|slice:":1" }}</span>
+            {% endif %}
+          </div>
+          <div>
+            <strong>{{ item.title }}</strong>
+            <p>{{ item.description|default:"Aucune description." }}</p>
+            <small>{{ item.get_item_type_display }} · {{ item.price_label|default:"Prix a discuter" }} · ordre {{ item.order }}</small>
+            <em class="{% if item.is_active %}status-on{% else %}status-off{% endif %}">
+              {% if item.is_active %}Visible sur la fiche publique{% else %}Masque sur la fiche publique{% endif %}
+            </em>
+          </div>
+          <div class="catalog-item-actions">
+            <form method="post" action="{% url 'business:catalog_item_action' business.id item.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="toggle">
+              <button type="submit" class="{% if item.is_active %}is-on{% endif %}">
+                {% if item.is_active %}Masquer{% else %}Afficher{% endif %}
+              </button>
+            </form>
+            <form method="post" action="{% url 'business:catalog_item_action' business.id item.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete">
+              <button type="submit" class="danger">Supprimer</button>
+            </form>
+          </div>
+        </article>
+      {% empty %}
+        <div class="catalog-empty">
+          Aucun produit pour le moment. Ajoute 3 a 5 produits pour rendre la fiche vendeuse.
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<style>
+.catalog-admin{min-height:100vh;padding:7rem 0 4rem;background:#03130c;color:#f5fff6}
+.catalog-head{display:flex;justify-content:space-between;align-items:end;gap:1rem;flex-wrap:wrap;margin-bottom:1.4rem}
+.catalog-back{color:#76ff94;font-weight:900;text-decoration:none}
+.catalog-head h1{font-family:var(--font-display);font-size:clamp(2rem,5vw,4rem);line-height:.95;margin:.45rem 0;color:#fffbe8}
+.catalog-head p{color:#bdebd0;font-size:1.05rem;max-width:720px}
+.catalog-actions a,.catalog-card button,.catalog-item-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:.7rem 1rem;border-radius:9px;border:1px solid rgba(124,246,108,.25);background:#12301e;color:#fff;font-weight:900;text-decoration:none;cursor:pointer}
+.catalog-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:1rem}
+.catalog-card{border:1px solid rgba(124,246,108,.2);background:#092014;border-radius:12px;padding:1rem}
+.catalog-card h2,.catalog-list h2{color:#ffd91f;margin:0 0 1rem;font-family:var(--font-display)}
+.catalog-card label{display:block;margin:.75rem 0 .35rem;color:#c8f7d7;font-weight:850}
+.catalog-card input,.catalog-card select,.catalog-card textarea{width:100%;border:1px solid rgba(124,246,108,.24);border-radius:9px;background:#03130c;color:#fff;padding:.8rem;font:inherit}
+.catalog-card button{width:100%;margin-top:1rem;background:linear-gradient(135deg,#3aae4e,#d49412);border:0;color:#fff}
+.catalog-row{display:grid;grid-template-columns:1fr 120px;gap:.8rem}
+.catalog-guide p{color:#c8f7d7;line-height:1.65}
+.catalog-guide div{margin-top:1rem;border:1px solid rgba(255,217,31,.25);border-radius:10px;padding:1rem;color:#c8f7d7}
+.catalog-guide span{display:block;color:#ffd91f;font-size:2rem;font-weight:950}
+.catalog-list{margin-top:1rem;border:1px solid rgba(124,246,108,.2);background:#092014;border-radius:12px;overflow:hidden}
+.catalog-list-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem;border-bottom:1px solid rgba(124,246,108,.16)}
+.catalog-list-head span{color:#c8f7d7;font-weight:850}
+.catalog-item{display:grid;grid-template-columns:82px 1fr auto;gap:1rem;align-items:center;padding:1rem;border-bottom:1px solid rgba(124,246,108,.12)}
+.catalog-thumb{width:82px;height:82px;border-radius:10px;background:linear-gradient(135deg,#14532d,#111827);display:grid;place-items:center;overflow:hidden}
+.catalog-thumb img{width:100%;height:100%;object-fit:cover}
+.catalog-thumb span{font-family:var(--font-display);font-size:2rem;font-weight:950;color:#fff}
+.catalog-item strong{display:block;color:#fff;font-size:1.05rem}
+.catalog-item p{margin:.3rem 0;color:#c8f7d7;line-height:1.5}
+.catalog-item small{color:#8fd0a5}
+.catalog-item em{display:inline-flex;margin-top:.45rem;padding:.22rem .5rem;border-radius:999px;font-style:normal;font-size:.72rem;font-weight:900}
+.catalog-item em.status-on{background:rgba(34,197,94,.14);color:#86efac}
+.catalog-item em.status-off{background:rgba(148,163,184,.14);color:#cbd5e1}
+.catalog-item-actions{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end}
+.catalog-item-actions button{min-height:38px;padding:.55rem .75rem;background:#172033}
+.catalog-item-actions button.is-on{background:#14532d;color:#86efac}
+.catalog-item-actions button.danger{background:#3b1212;color:#fecaca;border-color:rgba(248,113,113,.28)}
+.catalog-empty{padding:1.4rem;color:#c8f7d7;text-align:center}
+@media(max-width:900px){.catalog-grid,.catalog-item{grid-template-columns:1fr}.catalog-item-actions{justify-content:flex-start}.catalog-row{grid-template-columns:1fr}}
+</style>
+{% endblock %}
