@@ -145,6 +145,15 @@ INSTALLED_APPS = [
     # ── SEO Agent IA — Audit, GEO, schema, CTA et indexation Google ─
     "seo_agent.apps.SeoAgentConfig",
 
+    # ── Audio Studio IA — Voix-off, voix enregistrees et musiques video ─
+    "audio_studio.apps.AudioStudioConfig",
+
+    # ── LEBELAGE Importer — Scraping produit vers Shopify ───────────
+    "lebelage_importer.apps.LebelageImporterConfig",
+
+    # ── Shelle Premium — Cartes prestataires autonomes ─────────────
+    "shelle_premium.apps.ShellePremiumConfig",
+
     # ── TIBO — Dropshipping premium Canada ────────────────────────
     "apps.tibo.apps.TiboConfig",
 
@@ -364,7 +373,7 @@ AUTO_WHATSAPP_CONTACT       = "+237680625082"
 RENCONTRES_SETTINGS = {
     'MAX_PHOTOS_FREE': 6,
     'MAX_PHOTOS_PREMIUM': 12,
-    'LIKES_PAR_JOUR_FREE': 10,
+    'LIKES_PAR_JOUR_FREE': 5,
     'SUPER_LIKES_PAR_JOUR_FREE': 1,
     'MESSAGES_PAR_JOUR_FREE': 5,
     'AGE_MINIMUM': 18,

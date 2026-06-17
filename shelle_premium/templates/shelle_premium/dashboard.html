@@ -1,0 +1,379 @@
+{% extends "shelle_premium/base.html" %}
+
+{% block title %}Dashboard administrateur | Shelle Premium{% endblock %}
+{% block body_class %}page-dashboard{% endblock %}
+
+{% block header_action %}
+<a class="admin-action" href="{% url 'shelle_premium:export_csv' %}">Exporter CSV</a>
+{% endblock %}
+
+{% block extra_css %}
+/* Bouton d'action du header administrateur */
+.admin-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 1px solid var(--bordure);
+    border-radius: 8px;
+    color: var(--or-clair);
+    background: rgba(201, 168, 76, 0.08);
+    font-weight: 500;
+}
+
+.dashboard-hero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 26px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin: 0 0 22px;
+}
+
+.stat-card {
+    padding: 18px;
+}
+
+.stat-label {
+    margin: 0 0 8px;
+    color: var(--texte-secondaire);
+    font-size: 0.82rem;
+}
+
+.stat-value {
+    margin: 0;
+    font-family: "Playfair Display", Georgia, serif;
+    color: var(--or-clair);
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.search-box {
+    flex: 1;
+    min-width: 220px;
+}
+
+.search-box input {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid var(--bordure);
+    border-radius: 8px;
+    outline: none;
+    padding: 0 15px;
+    color: var(--texte-principal);
+    background: rgba(10, 10, 15, 0.72);
+}
+
+.search-box input:focus {
+    border-color: rgba(232, 201, 122, 0.72);
+    box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.1);
+}
+
+.table-panel {
+    overflow: hidden;
+}
+
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.premium-table {
+    width: 100%;
+    min-width: 880px;
+    border-collapse: collapse;
+}
+
+.premium-table th,
+.premium-table td {
+    padding: 15px 16px;
+    border-bottom: 1px solid rgba(201, 168, 76, 0.12);
+    text-align: left;
+    vertical-align: top;
+}
+
+.premium-table th {
+    color: var(--or-clair);
+    background: rgba(201, 168, 76, 0.08);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.premium-table td {
+    color: var(--texte-principal);
+    line-height: 1.45;
+}
+
+.premium-table tbody tr {
+    transition: background 160ms ease;
+}
+
+.premium-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.muted {
+    color: var(--texte-secondaire);
+}
+
+.code-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--bordure);
+    border-radius: 999px;
+    color: var(--or-clair);
+    background: rgba(201, 168, 76, 0.08);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+
+.status-badge.is-active {
+    color: #dffbe8;
+    background: rgba(72, 199, 116, 0.18);
+    border: 1px solid rgba(72, 199, 116, 0.35);
+}
+
+.status-badge.is-expired {
+    color: #ffe1e1;
+    background: rgba(239, 91, 91, 0.16);
+    border: 1px solid rgba(239, 91, 91, 0.34);
+}
+
+.empty-state {
+    padding: 46px 18px;
+    color: var(--texte-secondaire);
+    text-align: center;
+}
+
+.pagination {
+    display: none;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 16px;
+    border-top: 1px solid rgba(201, 168, 76, 0.12);
+}
+
+.pagination.is-visible {
+    display: flex;
+}
+
+.page-button {
+    min-width: 38px;
+    min-height: 38px;
+    border: 1px solid var(--bordure);
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--texte-principal);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.page-button.is-current {
+    color: #111016;
+    background: linear-gradient(135deg, var(--or-principal), var(--or-clair));
+}
+
+.page-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+@media (max-width: 760px) {
+    .dashboard-hero,
+    .toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-action {
+        width: 100%;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-hero fade-up">
+    <div>
+        <p class="page-kicker">Administration</p>
+        <h1 class="page-title">Prestataires Premium</h1>
+        <p class="page-copy">Visualisez les inscriptions, filtrez les cartes et exportez la liste au format CSV.</p>
+    </div>
+</section>
+
+<!-- Compteurs administrateur -->
+<section class="stats-grid fade-up" style="animation-delay: 80ms;" aria-label="Compteurs Shelle Premium">
+    <article class="gold-card stat-card">
+        <p class="stat-label">Total prestataires</p>
+        <p class="stat-value">{{ total }}</p>
+    </article>
+    <article class="gold-card stat-card">
+        <p class="stat-label">Actifs</p>
+        <p class="stat-value">{{ actifs }}</p>
+    </article>
+    <article class="gold-card stat-card">
+        <p class="stat-label">Expires</p>
+        <p class="stat-value">{{ expires }}</p>
+    </article>
+</section>
+
+<!-- Barre de recherche et export -->
+<section class="toolbar fade-up" style="animation-delay: 140ms;">
+    <label class="search-box">
+        <input id="search-input" type="search" placeholder="Rechercher par nom, code, date ou adresse" autocomplete="off">
+    </label>
+    <a class="admin-action" href="{% url 'shelle_premium:export_csv' %}">Exporter CSV</a>
+</section>
+
+<!-- Tableau des prestataires -->
+<section class="gold-card table-panel fade-up" style="animation-delay: 200ms;">
+    {% if prestataires %}
+        <div class="table-scroll">
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>Nom complet</th>
+                        <th>Code Premium</th>
+                        <th>Date Expiration</th>
+                        <th>Adresse</th>
+                        <th>Date d'inscription</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody id="prestataires-body">
+                    {% for prestataire in prestataires %}
+                        <tr data-search="{{ prestataire.nom_complet|lower }} {{ prestataire.code_premium|lower }} {{ prestataire.date_expiration|lower }} {{ prestataire.adresse|lower }}">
+                            <td>{{ prestataire.nom_complet }}</td>
+                            <td><span class="code-pill">{{ prestataire.code_premium }}</span></td>
+                            <td>{{ prestataire.date_expiration }}</td>
+                            <td class="muted">{{ prestataire.adresse|linebreaksbr }}</td>
+                            <td>{{ prestataire.date_inscription|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if prestataire.est_actif %}
+                                    <span class="status-badge is-active">Actif</span>
+                                {% else %}
+                                    <span class="status-badge is-expired">Expire</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div id="pagination" class="pagination" aria-label="Pagination du tableau"></div>
+    {% else %}
+        <div class="empty-state">Aucun prestataire enregistre</div>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Pagination et recherche cote client pour garder le dashboard autonome.
+    const rows = Array.from(document.querySelectorAll("#prestataires-body tr"));
+    const searchInput = document.getElementById("search-input");
+    const pagination = document.getElementById("pagination");
+    const pageSize = 20;
+    let currentPage = 1;
+    let filteredRows = rows;
+
+    function renderRows() {
+        const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+
+        rows.forEach((row) => {
+            row.style.display = "none";
+        });
+        filteredRows.slice(start, end).forEach((row) => {
+            row.style.display = "";
+        });
+
+        renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+        if (!pagination) return;
+        pagination.innerHTML = "";
+        pagination.classList.toggle("is-visible", filteredRows.length > pageSize);
+
+        const previous = document.createElement("button");
+        previous.className = "page-button";
+        previous.type = "button";
+        previous.textContent = "<";
+        previous.disabled = currentPage === 1;
+        previous.addEventListener("click", () => {
+            currentPage -= 1;
+            renderRows();
+        });
+        pagination.appendChild(previous);
+
+        for (let page = 1; page <= totalPages; page += 1) {
+            const button = document.createElement("button");
+            button.className = `page-button${page === currentPage ? " is-current" : ""}`;
+            button.type = "button";
+            button.textContent = page;
+            button.addEventListener("click", () => {
+                currentPage = page;
+                renderRows();
+            });
+            pagination.appendChild(button);
+        }
+
+        const next = document.createElement("button");
+        next.className = "page-button";
+        next.type = "button";
+        next.textContent = ">";
+        next.disabled = currentPage === totalPages;
+        next.addEventListener("click", () => {
+            currentPage += 1;
+            renderRows();
+        });
+        pagination.appendChild(next);
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", () => {
+            const query = searchInput.value.trim().toLowerCase();
+            filteredRows = rows.filter((row) => row.dataset.search.includes(query));
+            currentPage = 1;
+            renderRows();
+        });
+    }
+
+    renderRows();
+</script>
+{% endblock %}

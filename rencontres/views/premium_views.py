@@ -15,7 +15,7 @@ def page_premium(request):
     profil = request.user.profil_rencontre
     notifs = get_stats_notifications(profil)
 
-    plans = PlanPremiumRencontre.objects.all().order_by('prix_mensuel')
+    plans = PlanPremiumRencontre.objects.all().order_by('duree_jours', 'prix_xaf_mensuel')
 
     abonnement_actif = AbonnementRencontre.objects.filter(
         profil=profil, est_actif=True, date_fin__gt=timezone.now()
@@ -36,12 +36,12 @@ def souscrire_premium(request, plan):
     plan_obj = get_object_or_404(PlanPremiumRencontre, nom=plan)
 
     if request.method == 'POST':
-        periodicite = request.POST.get('periodicite', 'mensuel')
         methode     = request.POST.get('methode', 'mtn_momo')
         telephone   = request.POST.get('telephone', '')
+        reference_client = request.POST.get('reference_client', '').strip()
 
-        montant     = plan_obj.prix_xaf_mensuel if periodicite == 'mensuel' else plan_obj.prix_xaf_annuel
-        duree_jours = 30 if periodicite == 'mensuel' else 365
+        montant     = plan_obj.prix_xaf_mensuel
+        duree_jours = plan_obj.duree_jours
 
         try:
             from payments.models import Transaction as PaymentTransaction
@@ -52,23 +52,27 @@ def souscrire_premium(request, plan):
                 montant=montant,
                 telephone=telephone,
                 devise='XAF',
+                statut='en_attente',
                 metadata={
                     'plan_rencontre': plan,
-                    'periodicite': periodicite,
                     'duree_jours': duree_jours,
+                    'reference_client': reference_client,
+                    'activation': 'manual_admin',
                 },
             )
-            # TODO: Intégrer API MTN/Airtel — simulation pour l'instant
-            tx.statut = 'succes'
-            tx.save()
-
-            # Activer l'abonnement immédiatement
-            activer_abonnement_premium(profil, plan, duree_jours, str(tx.reference))
+            AbonnementRencontre.objects.create(
+                profil=profil,
+                plan=plan_obj,
+                date_fin=timezone.now(),
+                est_actif=False,
+                renouvellement_auto=False,
+                payment_reference=str(tx.reference),
+            )
 
             messages.success(
                 request,
-                f"✅ Plan {plan_obj.get_nom_display()} activé ! "
-                f"Votre profil est maintenant Premium pour {duree_jours} jours."
+                "Demande reçue. Votre abonnement sera activé manuellement après "
+                "vérification du paiement."
             )
             return redirect('rencontres:premium')
 

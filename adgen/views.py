@@ -67,6 +67,18 @@ class CampaignCreateView(LoginRequiredMixin, UsageLimitMixin, CreateView):
     form_class    = CampaignForm
     template_name = "adgen/campaign_create.html"
 
+    def get_initial(self):
+        initial = super().get_initial()
+        allowed = {"nom_produit", "description", "prix", "cible", "ville"}
+        for field in allowed:
+            value = self.request.GET.get(field, "").strip()
+            if value:
+                initial[field] = value
+        if self.request.GET.get("source") == "arsenal_ia":
+            initial.setdefault("prix", "A confirmer")
+            initial.setdefault("cible", "Clients locaux")
+        return initial
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["modules"] = AdModule.objects.filter(is_active=True).order_by("order")

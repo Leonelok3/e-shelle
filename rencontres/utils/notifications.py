@@ -35,7 +35,7 @@ def get_stats_notifications(profil):
     }
 
 
-def verifier_limite_likes(profil):
+def verifier_limite_likes(profil, type_like='like'):
     """
     Vérifie si le profil peut encore liker aujourd'hui.
     Retourne (peut_liker, likes_restants).
@@ -46,11 +46,19 @@ def verifier_limite_likes(profil):
     if profil.est_premium:
         return True, -1  # illimité pour premium
 
-    limite = getattr(settings, 'RENCONTRES_SETTINGS', {}).get('LIKES_PAR_JOUR_FREE', 10)
+    settings_rencontres = getattr(settings, 'RENCONTRES_SETTINGS', {})
+    if type_like == 'super_like':
+        limite = settings_rencontres.get('SUPER_LIKES_PAR_JOUR_FREE', 1)
+        filters = {'type_like': 'super_like'}
+    else:
+        limite = settings_rencontres.get('LIKES_PAR_JOUR_FREE', 5)
+        filters = {}
+
     aujourd_hui = timezone.now().date()
     likes_aujourd_hui = Like.objects.filter(
         envoyeur=profil,
-        date_like__date=aujourd_hui
+        date_like__date=aujourd_hui,
+        **filters,
     ).count()
 
     restants = max(0, limite - likes_aujourd_hui)

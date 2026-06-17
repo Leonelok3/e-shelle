@@ -14,8 +14,9 @@
           restaurants, pressings, gaz, immobilier, artisans, sante et services locaux.
         </p>
         <p class="bk-note">
-          Ici on ne vend pas du reve vide. Le partenaire gagne quand il apporte un business reel,
-          quand ce business active une fiche, une campagne, un boost ou un service IA.
+          Prix unique: {{ business_key_price }} FCFA. Le partenaire accede a tous les outils marketing,
+          gagne {{ partner_recruit_rate }}% quand il fait souscrire un autre partenaire, et {{ provider_rate }}%
+          sur les frais d'un prestataire qu'il fait enregistrer.
         </p>
         <div class="bk-actions">
           {% if user.is_authenticated %}
@@ -23,7 +24,7 @@
           {% else %}
           <a href="/accounts/register/?next=/business/partner/dashboard/" class="bk-btn bk-btn-primary">Demarrer gratuitement</a>
           {% endif %}
-          <a href="{% url 'business:business_key_packs' %}" class="bk-btn bk-btn-ghost">Voir les prix</a>
+          <a href="{% url 'business:business_key_packs' %}" class="bk-btn bk-btn-ghost">Activer a {{ business_key_price }} FCFA</a>
           <a href="{% url 'business:business_key_how_to_earn' %}" class="bk-btn bk-btn-ghost">Comment gagner</a>
         </div>
       </div>
@@ -43,7 +44,7 @@
 
     <div class="bk-grid bk-grid-3">
       {% for pack in packs %}
-      <article class="bk-card {% if forloop.counter == 2 %}bk-card-featured{% endif %}">
+      <article class="bk-card bk-card-featured">
         <div class="bk-card-top">
           <span>{{ pack.label }}</span>
           <h3>{{ pack.name }}</h3>
@@ -57,6 +58,17 @@
         </ul>
       </article>
       {% endfor %}
+    </div>
+
+    <div class="bk-grid bk-grid-2" style="margin-top:1rem">
+      <article class="bk-wide-card">
+        <h2>{{ partner_recruit_rate }}% sur une Business Key partenaire</h2>
+        <p>Quand un partenaire utilise ton lien et souscrit a la cle E-Shelle, tu gagnes une commission forte sur son activation validee.</p>
+      </article>
+      <article class="bk-wide-card">
+        <h2>{{ provider_rate }}% sur les frais prestataire</h2>
+        <p>Quand tu fais enregistrer un restaurant, pressing, artisan, pharmacie, vendeur de gaz ou autre prestataire payant, tu gagnes sur les frais valides.</p>
+      </article>
     </div>
 
     <div class="bk-path">

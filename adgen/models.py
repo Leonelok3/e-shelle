@@ -75,6 +75,7 @@ class AdCampaign(models.Model):
     user             = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ad_campaigns")
     nom_produit      = models.CharField(max_length=200, verbose_name="Nom du produit")
     description      = models.TextField(verbose_name="Description du produit")
+    photo_produit    = models.ImageField(upload_to="adgen/products/", blank=True, null=True, verbose_name="Photo du produit")
     prix             = models.CharField(max_length=50, verbose_name="Prix")
     cible            = models.CharField(max_length=200, verbose_name="Cible / audience")
     pays             = models.CharField(max_length=5, choices=PAYS_CHOICES, default="cm", verbose_name="Pays cible")
@@ -105,6 +106,15 @@ class AdCampaign(models.Model):
         if not self.ville:
             return "Toutes les villes"
         return dict(VILLE_CHOICES).get(self.ville, self.ville.title())
+
+    @property
+    def photo_url(self):
+        if not self.photo_produit:
+            return ""
+        try:
+            return self.photo_produit.url
+        except Exception:
+            return ""
 
 
 class AdContent(models.Model):

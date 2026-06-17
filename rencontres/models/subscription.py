@@ -5,9 +5,9 @@ from django.utils import timezone
 class PlanPremiumRencontre(models.Model):
     """Plans premium spécifiques à l'app de rencontre."""
     NOM_CHOICES = [
-        ('silver', 'Silver'),
-        ('gold', 'Gold'),
-        ('platinum', 'Platinum'),
+        ('silver', '3 jours'),
+        ('gold', '10 jours'),
+        ('platinum', '1 mois'),
     ]
     nom = models.CharField(max_length=20, choices=NOM_CHOICES, unique=True)
     prix_mensuel = models.DecimalField(max_digits=10, decimal_places=2)
@@ -19,6 +19,7 @@ class PlanPremiumRencontre(models.Model):
     prix_xaf_annuel = models.DecimalField(
         max_digits=12, decimal_places=0, default=0
     )
+    duree_jours = models.PositiveSmallIntegerField(default=30)
 
     # Fonctionnalités
     likes_par_jour = models.IntegerField(default=10, help_text="-1 = illimité")
@@ -40,11 +41,11 @@ class PlanPremiumRencontre(models.Model):
         verbose_name_plural = "Plans premium rencontre"
 
     def get_icon(self):
-        icons = {'silver': '💎', 'gold': '🥇', 'platinum': '💎'}
+        icons = {'silver': '⚡', 'gold': '💗', 'platinum': '👑'}
         return icons.get(self.nom, '⭐')
 
     def __str__(self):
-        return f"{self.get_nom_display()} — {self.prix_mensuel}€/mois"
+        return f"{self.get_nom_display()} — {int(self.prix_xaf_mensuel)} FCFA"
 
 
 class AbonnementRencontre(models.Model):
@@ -82,8 +83,13 @@ class AbonnementRencontre(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Mettre à jour le statut premium du profil
-        self.profil.est_premium = self.est_valide()
+        # Mettre à jour le statut premium du profil selon tous ses abonnements.
+        has_active = AbonnementRencontre.objects.filter(
+            profil=self.profil,
+            est_actif=True,
+            date_fin__gt=timezone.now(),
+        ).exists()
+        self.profil.est_premium = has_active
         self.profil.save(update_fields=['est_premium'])
 
     def __str__(self):

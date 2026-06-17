@@ -23,6 +23,7 @@ apt-get install -y -qq \
     postgresql postgresql-contrib \
     nginx certbot python3-certbot-nginx \
     git curl build-essential libpq-dev \
+    redis-server tesseract-ocr tesseract-ocr-fra \
     supervisor
 
 # ── 2. Utilisateur applicatif ───────────────────────────────────────────────
@@ -71,10 +72,21 @@ DJANGO_ALLOWED_HOSTS=$DOMAIN,www.$DOMAIN
 DATABASE_URL=postgres://eshelle_user:$DB_PASSWORD@localhost:5432/eshelle_db
 
 ANTHROPIC_API_KEY=sk-ant-REMPLACER_PAR_VOTRE_CLE
+OPENAI_API_KEY=sk-REMPLACER_PAR_VOTRE_CLE_OPENAI
+
+WHATSAPP_DRY_RUN=True
+WHATSAPP_TOKEN=
+WHATSAPP_PHONE_ID=
+WHATSAPP_VERIFY_TOKEN=un_secret_webhook_a_definir
+
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=django-db
+DJANGO_LOG_FILE=/var/log/eshelle/django_errors.log
 
 EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 DEFAULT_FROM_EMAIL=E-Shelle <contact@$DOMAIN>
 
+SECURE_SSL_REDIRECT=True
 SESSION_COOKIE_SECURE=True
 CSRF_COOKIE_SECURE=True
 SECURE_HSTS_SECONDS=63072000
@@ -93,16 +105,9 @@ sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" migrate --noi
 echo "→ Collecte des fichiers statiques..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput
 
-# Superuser (si pas encore créé)
-echo "→ Création du superuser admin (si absent)..."
-sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" shell -c "
-from accounts.models import CustomUser
-if not CustomUser.objects.filter(is_superuser=True).exists():
-    CustomUser.objects.create_superuser('admin', 'admin@$DOMAIN', 'AdminEshelle2026!')
-    print('Superuser créé : admin / AdminEshelle2026!')
-else:
-    print('Superuser déjà existant.')
-"
+# Superuser
+echo "→ Superuser Django : à créer manuellement après déploiement si nécessaire."
+echo "   Commande : sudo -u $APP_USER $APP_DIR/.venv/bin/python $APP_DIR/manage.py createsuperuser"
 
 # ── 8. Permissions Nginx → staticfiles ──────────────────────────────────────
 # Ubuntu crée les home dirs en 700 → www-data (Nginx) ne peut pas lire
@@ -154,11 +159,13 @@ echo "======================================================================"
 echo ""
 echo "  URL       : https://$DOMAIN"
 echo "  Admin     : https://$DOMAIN/admin/"
-echo "  Login     : admin / AdminEshelle2026!"
+echo "  Admin     : créez-le avec python manage.py createsuperuser"
 echo ""
 echo "  ⚠️  Actions restantes :"
 echo "     1. Éditez /home/$APP_USER/app/.env"
 echo "        → Ajoutez ANTHROPIC_API_KEY"
+echo "        → Ajoutez OPENAI_API_KEY si vous utilisez les agents GPT/images"
+echo "        → Laissez WHATSAPP_DRY_RUN=True tant que Meta WhatsApp n'est pas prêt"
 echo "        → Configurez SMTP (EMAIL_HOST_USER / EMAIL_HOST_PASSWORD)"
 echo "     2. Changez le mot de passe admin sur /admin/"
 echo "     3. sudo systemctl restart eshelle"

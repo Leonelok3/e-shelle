@@ -93,8 +93,21 @@ def moderation_photos(request):
         if action == 'approuver':
             photo.est_approuvee = True
             photo.save()
+            profil = photo.profil
+            if photo.est_principale or not profil.photo_principale:
+                profil.photo_principale = photo.image
+            profil.est_verifie = True
+            profil.badge_verifie = True
+            profil.calculer_completion()
+            profil.save(update_fields=[
+                'photo_principale', 'est_verifie', 'badge_verifie', 'profil_complet'
+            ])
             messages.success(request, "Photo approuvée.")
         elif action == 'rejeter':
+            profil = photo.profil
+            if profil.photo_principale == photo.image:
+                profil.photo_principale = None
+                profil.save(update_fields=['photo_principale'])
             photo.delete()
             messages.success(request, "Photo rejetée et supprimée.")
 

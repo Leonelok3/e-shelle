@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LEBELAGE Importer - E-Shelle</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --brand: #6d3df5;
+      --brand-2: #16a34a;
+      --danger: #dc2626;
+      --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    a { color: inherit; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(255,255,255,.94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+    .nav {
+      max-width: 1180px;
+      margin: 0 auto;
+      min-height: 72px;
+      padding: 0 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      font-weight: 800;
+    }
+    .logo {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      color: white;
+      background: var(--brand);
+      font-weight: 900;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 9px 11px;
+      border-radius: 8px;
+    }
+    .nav-links a:hover { background: #f1f5f9; color: var(--ink); }
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 22px 60px;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+      gap: 20px;
+      align-items: stretch;
+      margin-bottom: 22px;
+    }
+    .hero-main {
+      background: linear-gradient(135deg, #22123f 0%, #6d3df5 58%, #0f766e 100%);
+      color: white;
+      padding: 28px;
+      min-height: 260px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .panel, .hero-main {
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      box-shadow: 0 16px 45px rgba(15, 23, 42, .08);
+    }
+    .eyebrow {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 900;
+      opacity: .82;
+    }
+    h1 {
+      margin: 12px 0 10px;
+      font-size: clamp(30px, 5vw, 56px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+    .hero-main p {
+      max-width: 720px;
+      margin: 0;
+      color: rgba(255,255,255,.86);
+      font-size: 16px;
+    }
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .stat {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 74px;
+    }
+    .stat strong { display: block; font-size: 25px; }
+    .stat span { display: block; color: rgba(255,255,255,.75); font-size: 13px; }
+    .panel {
+      background: var(--panel);
+      padding: 22px;
+    }
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+    .status {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 14px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      margin-bottom: 14px;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      margin-top: 6px;
+      background: var(--danger);
+      flex: 0 0 auto;
+    }
+    .dot.ok { background: var(--brand-2); }
+    .status strong { display: block; }
+    .status span { color: var(--muted); font-size: 14px; }
+    form {
+      display: grid;
+      gap: 14px;
+    }
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    input {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      min-height: 44px;
+      padding: 10px 12px;
+      color: var(--ink);
+      background: white;
+      font: inherit;
+    }
+    input:focus {
+      outline: 3px solid rgba(109,61,245,.16);
+      border-color: var(--brand);
+    }
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .check input {
+      width: 18px;
+      height: 18px;
+      min-height: 18px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    button, .button {
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      min-height: 44px;
+      color: white;
+      background: var(--brand);
+      cursor: pointer;
+      font: inherit;
+      font-weight: 900;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    button.secondary, .button.secondary { background: #0f172a; }
+    button.danger { background: var(--danger); }
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .messages {
+      display: grid;
+      gap: 10px;
+      margin: 0 0 18px;
+    }
+    .message {
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      font-weight: 700;
+    }
+    .message.success { background: #ecfdf5; border-color: #bbf7d0; color: #166534; }
+    .message.error { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+    .products-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 30px 0 14px;
+    }
+    .products-head h2 {
+      margin: 0;
+      font-size: 24px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 28px rgba(15,23,42,.06);
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+    .card img {
+      width: 100%;
+      aspect-ratio: 1 / .78;
+      object-fit: cover;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--line);
+    }
+    .card-body {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .card-title {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.28;
+    }
+    .price {
+      display: inline-flex;
+      width: fit-content;
+      border-radius: 8px;
+      padding: 6px 9px;
+      background: #ecfdf5;
+      color: #166534;
+      font-weight: 900;
+    }
+    .desc {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tag {
+      background: #f1f5f9;
+      color: #475569;
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .empty {
+      background: white;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .summary-box {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 15px;
+    }
+    .summary-box strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+    }
+    .summary-box span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .mini-list {
+      display: grid;
+      gap: 8px;
+    }
+    .mini-row {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+    .mini-row small {
+      color: var(--muted);
+      font-weight: 800;
+    }
+    @media (max-width: 980px) {
+      .hero, .grid, .summary-grid { grid-template-columns: 1fr; }
+      .field-grid { grid-template-columns: 1fr; }
+      .hero-stats { grid-template-columns: 1fr; }
+      .nav { align-items: flex-start; flex-direction: column; padding-top: 14px; padding-bottom: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="{% url 'lebelage_importer:dashboard' %}">
+        <span class="logo">L</span>
+        <span>LEBELAGE Importer</span>
+      </a>
+      <div class="nav-links">
+        <a href="/pub/">AdGen</a>
+        <a href="/tibo/">TIBO</a>
+        <a href="/audio-studio/">Audio Studio</a>
+        <a href="/admin/">Admin</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="hero">
+      <div class="hero-main">
+        <div>
+          <div class="eyebrow">Agent IA commerce</div>
+          <h1>Exporter avant d'importer</h1>
+          <p>On met tout en fichiers locaux d'abord: produits LEBELAGE d'un cote, produits Shopify existants de l'autre. Tu verifies avant toute action.</p>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><strong>{{ product_count }}</strong><span>produits LEBELAGE exportes</span></div>
+          <div class="stat"><strong>{% if shopify_ready %}OK{% else %}OFF{% endif %}</strong><span>connexion Shopify</span></div>
+          <div class="stat"><strong>{{ shopify_product_count }}</strong><span>produits Shopify exportes</span></div>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <h2>Exports locaux</h2>
+        <div class="status">
+          <span class="dot {% if shopify_ready %}ok{% endif %}"></span>
+          <div>
+            <strong>{% if shopify_ready %}Shopify configure{% else %}Shopify non configure{% endif %}</strong>
+            <span>{% if shopify_ready %}Tu peux exporter les produits de ta boutique en local.{% else %}Ajoute SHOPIFY_SHOP_DOMAIN et SHOPIFY_ADMIN_ACCESS_TOKEN pour exporter ta boutique.{% endif %}</span>
+          </div>
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+          <label>
+            URL de depart
+            <input name="source_url" value="{{ form.source_url }}" placeholder="https://en.lebelage.co.kr/">
+          </label>
+
+          <div class="field-grid">
+            <label>
+              Limite produits
+              <input type="number" name="limit" value="{{ form.limit }}" min="1" max="200">
+            </label>
+            <label>
+              Pages max
+              <input type="number" name="max_pages" value="{{ form.max_pages }}" min="1" max="20">
+            </label>
+            <label>
+              Pause secondes
+              <input type="number" step="0.1" name="sleep" value="{{ form.sleep }}" min="0" max="5">
+            </label>
+          </div>
+
+          <div class="field-grid">
+            <label>
+              Livraison par produit
+              <input type="number" step="0.01" name="shipping" value="{{ form.shipping }}" min="0">
+            </label>
+            <label>
+              Marge par produit
+              <input type="number" step="0.01" name="margin" value="{{ form.margin }}" min="0">
+            </label>
+            <label>
+              Confirmation brouillon
+              <input name="confirmation" placeholder="Tape BROUILLON pour importer">
+            </label>
+          </div>
+
+          <div class="actions">
+            <button type="submit" name="action" value="scrape">Exporter LEBELAGE en local</button>
+            <button class="secondary" type="submit" name="action" value="export_shopify">Exporter ma boutique Shopify</button>
+            <button class="secondary" type="submit" name="action" value="compare">Comparer LEBELAGE vs Shopify</button>
+            <button class="danger" type="submit" name="action" value="import_draft">Importer en brouillon</button>
+          </div>
+          <div class="hint">Les exports et la comparaison creent des fichiers JSON/CSV dans `tmp`. L'import en brouillon exige BROUILLON et ne publie jamais directement.</div>
+        </form>
+      </aside>
+    </section>
+
+    <section>
+      <div class="products-head">
+        <div>
+          <h2>Comparateur LEBELAGE vs Shopify</h2>
+          <div class="hint">JSON: {{ comparison_json }}<br>CSV: {{ comparison_csv }}</div>
+        </div>
+      </div>
+      {% if comparison_summary %}
+        <div class="summary-grid">
+          <div class="summary-box"><strong>{{ comparison_summary.new_count }}</strong><span>nouveaux produits</span></div>
+          <div class="summary-box"><strong>{{ comparison_summary.duplicate_count }}</strong><span>doublons possibles</span></div>
+          <div class="summary-box"><strong>{{ comparison_summary.price_difference_count }}</strong><span>prix differents</span></div>
+        </div>
+
+        {% if price_differences %}
+          <h3>Prix differents</h3>
+          <div class="mini-list">
+            {% for item in price_differences %}
+              <div class="mini-row">
+                <strong>{{ item.title }}</strong>
+                <small>LEBELAGE {{ item.lebelage_price }} / Shopify {{ item.shopify_price }} / Ecart {{ item.difference }}</small>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="empty">Exporte LEBELAGE, exporte Shopify, puis clique sur Comparer LEBELAGE vs Shopify.</div>
+      {% endif %}
+    </section>
+
+    <section>
+      <div class="products-head">
+        <div>
+          <h2>Produits LEBELAGE exportes</h2>
+          <div class="hint">JSON: {{ export_json }}<br>CSV: {{ export_csv }}</div>
+        </div>
+      </div>
+
+      {% if products %}
+        <div class="grid">
+          {% for product in products %}
+            <article class="card">
+              {% if product.image_url %}
+                <img src="{{ product.image_url }}" alt="{{ product.title }}">
+              {% endif %}
+              <div class="card-body">
+                <h3 class="card-title">{{ product.title }}</h3>
+                <span class="price">{% if product.final_price_amount %}Prix final {{ product.final_price_amount }}{% else %}{{ product.price }}{% endif %}</span>
+                <p class="desc">{% if product.selling_description %}{{ product.selling_description }}{% else %}{{ product.description }}{% endif %}</p>
+                <div class="tags">
+                  {% for tag in product.tags %}
+                    <span class="tag">{{ tag }}</span>
+                  {% endfor %}
+                </div>
+                <a class="button secondary" href="{{ product.source_url }}" target="_blank" rel="noreferrer">Voir source</a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty">Aucun produit extrait pour le moment. Lance un test local.</div>
+      {% endif %}
+    </section>
+
+    <section>
+      <div class="products-head">
+        <div>
+          <h2>Produits Shopify exportes</h2>
+          <div class="hint">JSON: {{ shopify_export_json }}<br>CSV: {{ shopify_export_csv }}</div>
+        </div>
+      </div>
+
+      {% if shopify_products %}
+        <div class="grid">
+          {% for product in shopify_products %}
+            <article class="card">
+              {% if product.image.src %}
+                <img src="{{ product.image.src }}" alt="{{ product.title }}">
+              {% elif product.images.0.src %}
+                <img src="{{ product.images.0.src }}" alt="{{ product.title }}">
+              {% endif %}
+              <div class="card-body">
+                <h3 class="card-title">{{ product.title }}</h3>
+                {% if product.variants.0.price %}
+                  <span class="price">{{ product.variants.0.price }}</span>
+                {% endif %}
+                <p class="desc">{{ product.vendor }}{% if product.product_type %} - {{ product.product_type }}{% endif %}</p>
+                <div class="tags">
+                  {% if product.status %}<span class="tag">{{ product.status }}</span>{% endif %}
+                  {% if product.tags %}<span class="tag">{{ product.tags }}</span>{% endif %}
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty">Aucun export Shopify local pour le moment. Configure Shopify puis clique sur Exporter ma boutique Shopify.</div>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>

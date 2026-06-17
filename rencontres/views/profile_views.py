@@ -3,9 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import Http404
 from django.db.models import Q
+from django.utils import timezone
 
-from rencontres.models import ProfilRencontre, PhotoProfil, Like, Match
+from rencontres.models import (
+    AbonnementRencontre, Conversation, ProfilRencontre, PhotoProfil, Like, Match
+)
 from rencontres.forms import ProfilRencontreForm, PhotoProfilForm
+from rencontres.utils.matching_algo import get_profils_compatibles
 from rencontres.utils.notifications import get_stats_notifications
 
 
@@ -25,10 +29,78 @@ def profil_requis(vue):
 
 @login_required
 def accueil_rencontre(request):
-    """Page d'entrée de l'app rencontres."""
-    if hasattr(request.user, 'profil_rencontre'):
-        return redirect('rencontres:decouverte')
-    return render(request, 'rencontres/accueil.html')
+    """Page d'entrée opérationnelle de l'app rencontres."""
+    if not hasattr(request.user, 'profil_rencontre'):
+        return render(request, 'rencontres/accueil.html')
+
+    profil = request.user.profil_rencontre
+    notifs = get_stats_notifications(profil)
+
+    profils_avec_scores = get_profils_compatibles(profil, limit=6)
+    suggestions = [
+        {
+            'profil': p,
+            'score': score,
+            'distance_km': dist,
+        }
+        for p, score, dist in profils_avec_scores
+    ]
+
+    matchs = Match.objects.filter(
+        Q(profil_1=profil) | Q(profil_2=profil),
+        est_actif=True
+    ).select_related('profil_1', 'profil_2').order_by('-date_match')[:6]
+
+    matchs_recents = []
+    for match in matchs:
+        autre = match.get_other_profil(profil)
+        conversation = getattr(match, 'conversation', None)
+        dernier_message = None
+        nb_non_lus = 0
+        if conversation:
+            dernier_message = conversation.messages.order_by('-date_envoi').first()
+            nb_non_lus = conversation.nb_non_lus(profil)
+        matchs_recents.append({
+            'match': match,
+            'autre': autre,
+            'conversation': conversation,
+            'dernier_message': dernier_message,
+            'nb_non_lus': nb_non_lus,
+        })
+
+    abonnement_actif = AbonnementRencontre.objects.filter(
+        profil=profil,
+        est_actif=True,
+        date_fin__gt=timezone.now()
+    ).select_related('plan').first()
+
+    abonnement_en_attente = AbonnementRencontre.objects.filter(
+        profil=profil,
+        est_actif=False,
+        date_fin__lte=timezone.now()
+    ).select_related('plan').order_by('-date_debut').first()
+
+    conversations_count = Conversation.objects.filter(
+        match__in=Match.objects.filter(
+            Q(profil_1=profil) | Q(profil_2=profil),
+            est_actif=True
+        )
+    ).count()
+
+    return render(request, 'rencontres/accueil.html', {
+        'profil': profil,
+        'notifs': notifs,
+        'suggestions': suggestions,
+        'matchs_recents': matchs_recents,
+        'abonnement_actif': abonnement_actif,
+        'abonnement_en_attente': abonnement_en_attente,
+        'stats': {
+            'suggestions': len(suggestions),
+            'matchs': matchs.count(),
+            'conversations': conversations_count,
+            'vues': profil.vues_profil,
+        },
+    })
 
 
 @login_required
@@ -118,6 +190,7 @@ def detail_profil(request, pk):
         ).exists()
 
     photos = profil.photos.filter(est_approuvee=True).order_by('ordre')
+    photos_en_attente = profil.photos.filter(est_approuvee=False).count() if est_mon_profil else 0
     notifs = get_stats_notifications(mon_profil)
 
     return render(request, 'rencontres/profile_detail.html', {
@@ -126,6 +199,7 @@ def detail_profil(request, pk):
         'a_like': a_like,
         'est_match': est_match,
         'photos': photos,
+        'photos_en_attente': photos_en_attente,
         'notifs': notifs,
     })
 
@@ -156,21 +230,24 @@ def gerer_photos(request):
                 photo = form.save(commit=False)
                 photo.profil = profil
                 photo.ordre = nb_photos
+                photo.est_approuvee = False
+                photo.est_principale = nb_photos == 0 or form.cleaned_data.get('est_principale')
                 photo.save()
-                # Mettre comme principale si c'est la première
-                if nb_photos == 0 or form.cleaned_data.get('est_principale'):
-                    profil.photo_principale = photo.image
-                    profil.save(update_fields=['photo_principale'])
-                messages.success(request, "Photo ajoutée avec succès.")
+                messages.success(
+                    request,
+                    "Photo envoyée. Elle sera visible après validation par l'administration."
+                )
                 profil.calculer_completion()
             return redirect('rencontres:gerer_photos')
     else:
         form = PhotoProfilForm()
 
     photos = profil.photos.filter(est_approuvee=True).order_by('ordre')
+    photos_en_attente = profil.photos.filter(est_approuvee=False).order_by('ordre')
     return render(request, 'rencontres/gerer_photos.html', {
         'form': form,
         'photos': photos,
+        'photos_en_attente': photos_en_attente,
         'profil': profil,
         'photos_max': photos_max,
         'peut_ajouter': profil.photos.count() < photos_max,

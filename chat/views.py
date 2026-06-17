@@ -25,8 +25,10 @@ def get_or_create_session(request):
 def chat_view(request):
     """Page principale du chat universel."""
     session = get_or_create_session(request)
-    messages = session.messages.all()
     initial_query = request.GET.get("q", "").strip()[:500]
+    if initial_query:
+        session.messages.all().delete()
+    messages = session.messages.all()
     return render(
         request,
         "chat/chat.html",

@@ -42,11 +42,13 @@ def decouverte(request):
     ]
 
     _, likes_restants = verifier_limite_likes(profil)
+    profil_visible = profil.photos.filter(est_approuvee=True).exists()
 
     return render(request, 'rencontres/discovery.html', {
         'profil': profil,
         'profils_json': json.dumps(profils_initiaux),
         'likes_restants': likes_restants,
+        'profil_visible': profil_visible,
         'notifs': notifs,
     })
 
@@ -82,15 +84,6 @@ def ajax_like(request, profil_id):
 
     mon_profil = request.user.profil_rencontre
 
-    # Vérifier la limite de likes
-    peut_liker, likes_restants = verifier_limite_likes(mon_profil)
-    if not peut_liker:
-        return JsonResponse({
-            'success': False,
-            'limite_atteinte': True,
-            'message': "Vous avez atteint votre limite de likes pour aujourd'hui. Passez en premium pour des likes illimités !",
-        })
-
     recepteur = get_object_or_404(ProfilRencontre, pk=profil_id, est_actif=True)
 
     # Vérifier les blocages
@@ -106,6 +99,21 @@ def ajax_like(request, profil_id):
 
     if type_like not in ('like', 'super_like'):
         type_like = 'like'
+
+    # Vérifier la limite après avoir identifié l'action demandée.
+    peut_liker, likes_restants = verifier_limite_likes(mon_profil, type_like=type_like)
+    if not peut_liker:
+        action_label = "super likes" if type_like == "super_like" else "likes"
+        return JsonResponse({
+            'success': False,
+            'limite_atteinte': True,
+            'type_like': type_like,
+            'likes_restants': likes_restants,
+            'message': (
+                f"Vous avez utilisé vos {action_label} gratuits aujourd'hui. "
+                "Passez en premium pour continuer sans limite."
+            ),
+        })
 
     # Créer ou récupérer le like
     like, created = Like.objects.get_or_create(

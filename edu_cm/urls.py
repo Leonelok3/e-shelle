@@ -473,6 +473,15 @@ urlpatterns = [
     path("robots.txt", seo_views.robots_txt, name="robots_txt"),
     path("sitemap.xml", seo_views.sitemap_xml, name="sitemap_xml"),
 
+    # ── Audio Studio IA — voix-off et musiques pour video ───────────
+    path("audio-studio/", include("audio_studio.urls", namespace="audio_studio")),
+
+    # ── LEBELAGE Importer — test local et import Shopify ─────────────
+    path("lebelage-importer/", include("lebelage_importer.urls", namespace="lebelage_importer")),
+
+    # ── Shelle Premium — Formulaire public et dashboard staff ───────
+    path("", include("shelle_premium.urls", namespace="shelle_premium")),
+
     # ── TIBO — Boutique dropshipping premium Canada ───────────────────
     path("tibo/", include("apps.tibo.urls", namespace="tibo")),
     path("api/tibo/", include("apps.tibo.api.urls", namespace="tibo_api")),

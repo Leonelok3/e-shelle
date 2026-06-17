@@ -181,9 +181,11 @@ class DiscoveryManager {
         card.className = 'profile-card slide-up';
         card.dataset.profilId = profil.id;
 
+        const tone = Number(profil.id || 0) % 5;
+        const initial = escapeHtml((profil.prenom || '?').charAt(0).toUpperCase());
         const photoHtml = profil.photo
             ? `<img src="${profil.photo}" alt="${profil.prenom}" class="card-photo" loading="lazy">`
-            : `<div class="card-photo-placeholder">👤</div>`;
+            : `<div class="card-photo-placeholder avatar-tone-${tone}"><span>${initial}</span></div>`;
 
         const badgesHtml = [
             profil.badge_verifie ? '<span class="badge-verifie">✓ Vérifié</span>' : '',
@@ -206,7 +208,7 @@ class DiscoveryManager {
         card.innerHTML = `
             ${photoHtml}
             <div class="overlay-like">LIKE ❤️</div>
-            <div class="overlay-pass">PASS ✗</div>
+            <div class="overlay-pass">SUIVANT →</div>
             <div class="card-overlay">
                 <div class="card-name">${escapeHtml(profil.prenom)}, ${profil.age} ans</div>
                 <div class="card-location">${distanceHtml}</div>
@@ -240,7 +242,7 @@ class DiscoveryManager {
             const data = await response.json();
 
             if (data.limite_atteinte) {
-                showPremiumModal('likes');
+                showPremiumModal(data.type_like === 'super_like' ? 'super_like' : 'likes');
                 return;
             }
 
@@ -429,8 +431,9 @@ function showPremiumModal(raison) {
     if (!modal) return;
 
     const messages = {
-        'likes': "Vous avez atteint votre limite de likes aujourd'hui !",
-        'messages': "Vous avez atteint votre limite de messages aujourd'hui !",
+        'likes': "Vous avez utilisé vos 5 likes gratuits aujourd'hui. Premium débloque les likes illimités.",
+        'messages': "Vous avez utilisé vos 5 messages gratuits aujourd'hui. Premium débloque les messages illimités.",
+        'super_like': "Le super like gratuit du jour est utilisé. Premium débloque plus d'actions.",
         'filtres': "Les filtres avancés sont réservés aux membres premium.",
     };
 

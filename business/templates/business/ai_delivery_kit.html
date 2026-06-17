@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Kit IA {{ business.name }} - E-Shelle{% endblock %}
+
+{% block content %}
+<section class="section ai-kit-page">
+  <div class="container">
+    <div class="ai-kit-head">
+      <div>
+        <a class="ai-kit-back" href="{% url 'business:dashboard' %}?business={{ business.id }}">Retour dashboard</a>
+        <span class="section-label">Atelier client IA</span>
+        <h1 class="section-title">{{ business.name }}</h1>
+        <p>{{ business.get_module_display }}{% if business.city %} - {{ business.city }}{% endif %}{% if business.district %}, {{ business.district }}{% endif %}</p>
+      </div>
+      <div class="ai-kit-actions">
+        <form method="post">
+          {% csrf_token %}
+          <textarea name="extra_brief" rows="3" placeholder="Ajoutez une note client: cible, objectif, ton, offre speciale, contrainte...">{{ kit.client_brief.note_client }}</textarea>
+          <button class="btn btn-primary" type="submit">Generer / mettre a jour</button>
+        </form>
+        {% if whatsapp_url %}
+          <a class="btn btn-outline-white" target="_blank" rel="noopener" href="{{ whatsapp_url }}">Partager resume WhatsApp</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="ai-kit-status">
+      <div><span>Statut</span><strong>{{ kit.get_status_display }}</strong></div>
+      <div><span>Derniere generation</span><strong>{% if kit.generated_at %}{{ kit.generated_at|date:"d/m/Y H:i" }}{% else %}A generer{% endif %}</strong></div>
+      <div><span>Fiche publique</span><strong><a href="{{ business.get_absolute_url }}" target="_blank" rel="noopener">ouvrir</a></strong></div>
+    </div>
+
+    {% if not kit.generated_at %}
+      <article class="ai-kit-empty">
+        <h2>Le kit n'est pas encore genere</h2>
+        <p>Ajoutez une note si besoin, puis cliquez sur "Generer / mettre a jour". E-Shelle preparera tous les livrables exploitables pour ce client.</p>
+      </article>
+    {% else %}
+      <div class="ai-kit-grid ai-kit-grid--two">
+        <article class="ai-kit-panel">
+          <h2>Brief client</h2>
+          <dl class="ai-kit-brief">
+            <div><dt>Secteur</dt><dd>{{ kit.client_brief.secteur }}</dd></div>
+            <div><dt>Zone</dt><dd>{{ kit.client_brief.zone }}</dd></div>
+            <div><dt>Cible</dt><dd>{{ kit.client_brief.cible }}</dd></div>
+            <div><dt>Promesse</dt><dd>{{ kit.client_brief.promesse }}</dd></div>
+            <div><dt>Action</dt><dd>{{ kit.client_brief.action_principale }}</dd></div>
+          </dl>
+        </article>
+
+        <article class="ai-kit-panel">
+          <h2>Agents a utiliser</h2>
+          {% for agent in kit.recommended_agents %}
+            <div class="ai-kit-row">
+              <strong>{{ agent.agent }}</strong>
+              <span>{{ agent.role }}</span>
+              <small>{{ agent.source }}</small>
+            </div>
+          {% endfor %}
+        </article>
+      </div>
+
+      <article class="ai-kit-panel">
+        <h2>Prompt chatbot client</h2>
+        <textarea readonly class="ai-kit-textarea ai-kit-textarea--large">{{ kit.chatbot_prompt }}</textarea>
+      </article>
+
+      <div class="ai-kit-grid ai-kit-grid--two">
+        <article class="ai-kit-panel">
+          <h2>Plan mini-site IA</h2>
+          <h3>{{ kit.website_plan.hero.h1 }}</h3>
+          <p>{{ kit.website_plan.hero.subtitle }}</p>
+          <ul>
+            {% for section in kit.website_plan.sections %}
+              <li>{{ section }}</li>
+            {% endfor %}
+          </ul>
+        </article>
+
+        <article class="ai-kit-panel">
+          <h2>Contenus prets</h2>
+          <label>Post Facebook</label>
+          <textarea readonly>{{ kit.content_pack.facebook_post }}</textarea>
+          <label>Statut WhatsApp</label>
+          <textarea readonly>{{ kit.content_pack.whatsapp_status }}</textarea>
+          <label>Prompt visuel</label>
+          <textarea readonly>{{ kit.content_pack.image_prompt }}</textarea>
+        </article>
+      </div>
+
+      <div class="ai-kit-grid ai-kit-grid--three">
+        <article class="ai-kit-panel">
+          <h2>Scripts WhatsApp</h2>
+          {% for script in kit.whatsapp_scripts %}
+            <div class="ai-kit-script">
+              <strong>{{ script.label }}</strong>
+              <p>{{ script.text }}</p>
+            </div>
+          {% endfor %}
+        </article>
+
+        <article class="ai-kit-panel">
+          <h2>SEO local</h2>
+          <p><strong>{{ kit.seo_plan.title }}</strong></p>
+          <p>{{ kit.seo_plan.meta_description }}</p>
+          <div class="ai-kit-tags">
+            {% for keyword in kit.seo_plan.keywords %}
+              <span>{{ keyword }}</span>
+            {% endfor %}
+          </div>
+          <small>{{ kit.seo_plan.geo_page }}</small>
+        </article>
+
+        <article class="ai-kit-panel">
+          <h2>Video IA</h2>
+          <p><strong>{{ kit.video_plan.format }}</strong></p>
+          <p>{{ kit.video_plan.hook }}</p>
+          <ol>
+            {% for scene in kit.video_plan.scenes %}
+              <li>{{ scene }}</li>
+            {% endfor %}
+          </ol>
+        </article>
+      </div>
+
+      <div class="ai-kit-grid ai-kit-grid--two">
+        <article class="ai-kit-panel">
+          <h2>Automatisations</h2>
+          {% for workflow in kit.automation_plan %}
+            <div class="ai-kit-workflow">
+              <strong>{{ workflow.workflow }}</strong>
+              <ol>
+                {% for step in workflow.steps %}
+                  <li>{{ step }}</li>
+                {% endfor %}
+              </ol>
+            </div>
+          {% endfor %}
+        </article>
+
+        <article class="ai-kit-panel">
+          <h2>Checklist qualite</h2>
+          {% for row in kit.qa_checklist %}
+            <div class="ai-kit-check {% if row.done %}ok{% endif %}">
+              <span>{% if row.done %}OK{% else %}A faire{% endif %}</span>
+              <p>{{ row.item }}</p>
+            </div>
+          {% endfor %}
+        </article>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<style>
+.ai-kit-page{padding-top:7rem;background:#07140f;min-height:100vh;color:#eefdf0}
+.ai-kit-head{display:grid;grid-template-columns:1fr minmax(300px,440px);gap:1rem;align-items:end;margin-bottom:1rem}
+.ai-kit-back{display:inline-flex;margin-bottom:.8rem;color:#8ee6a0;font-weight:850;text-decoration:none}
+.ai-kit-head h1{color:#fff;margin:.45rem 0}
+.ai-kit-head p{color:rgba(255,255,255,.62);margin:0}
+.ai-kit-actions form{display:grid;gap:.7rem}
+.ai-kit-actions textarea,.ai-kit-panel textarea{width:100%;background:#102017;color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:.75rem;resize:vertical}
+.ai-kit-status{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-bottom:1rem}
+.ai-kit-status div,.ai-kit-panel,.ai-kit-empty{background:rgba(255,255,255,.052);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:1rem}
+.ai-kit-status span{display:block;color:rgba(255,255,255,.52);font-size:.78rem;font-weight:850}
+.ai-kit-status strong{display:block;color:#fff;margin-top:.3rem}
+.ai-kit-status a{color:#8ee6a0;text-decoration:none}
+.ai-kit-grid{display:grid;gap:1rem;margin-top:1rem}
+.ai-kit-grid--two{grid-template-columns:1fr 1fr}
+.ai-kit-grid--three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ai-kit-panel h2{color:#fff;font-size:1.1rem;margin:0 0 .8rem}
+.ai-kit-panel h3{color:#8ee6a0;margin:.3rem 0}
+.ai-kit-panel p,.ai-kit-panel li,.ai-kit-panel dd{color:rgba(255,255,255,.72);line-height:1.55}
+.ai-kit-panel ul,.ai-kit-panel ol{margin-left:1.1rem}
+.ai-kit-panel label{display:block;margin:.65rem 0 .3rem;color:rgba(255,255,255,.52);font-weight:850;font-size:.78rem}
+.ai-kit-textarea--large{min-height:330px}
+.ai-kit-brief{display:grid;gap:.5rem;margin:0}
+.ai-kit-brief div{display:grid;grid-template-columns:120px 1fr;gap:.7rem;border-bottom:1px solid rgba(255,255,255,.07);padding:.5rem 0}
+.ai-kit-brief dt{color:rgba(255,255,255,.5);font-weight:850}
+.ai-kit-row,.ai-kit-script,.ai-kit-workflow{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.75rem;margin:.6rem 0;background:rgba(0,0,0,.12)}
+.ai-kit-row strong,.ai-kit-script strong,.ai-kit-workflow strong{display:block;color:#fff}
+.ai-kit-row span{display:block;color:rgba(255,255,255,.68);margin-top:.25rem}
+.ai-kit-row small,.ai-kit-panel small{display:block;color:#8ee6a0;margin-top:.35rem;word-break:break-all}
+.ai-kit-tags{display:flex;flex-wrap:wrap;gap:.45rem;margin:.8rem 0}
+.ai-kit-tags span{padding:.38rem .55rem;border-radius:999px;background:rgba(142,230,160,.12);color:#b8f7c4;font-size:.75rem;font-weight:850}
+.ai-kit-check{display:grid;grid-template-columns:70px 1fr;gap:.7rem;align-items:start;border-bottom:1px solid rgba(255,255,255,.07);padding:.65rem 0}
+.ai-kit-check span{display:inline-flex;justify-content:center;border-radius:999px;background:rgba(250,204,21,.14);color:#fde68a;font-size:.72rem;font-weight:900;padding:.25rem .45rem}
+.ai-kit-check.ok span{background:rgba(34,197,94,.16);color:#86efac}
+.ai-kit-check p{margin:0}
+.ai-kit-empty h2{color:#fff}
+@media(max-width:950px){.ai-kit-head,.ai-kit-grid--two,.ai-kit-grid--three,.ai-kit-status{grid-template-columns:1fr}.ai-kit-brief div{grid-template-columns:1fr}}
+</style>
+{% endblock %}

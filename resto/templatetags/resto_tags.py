@@ -69,7 +69,7 @@ def dish_card(dish):
 
 @register.filter
 def split_time(time_obj):
-    """Format time as HH:MM for display."""
+    """Format time as HHhMM for a clearer French display."""
     if time_obj:
-        return time_obj.strftime("%H:%M")
+        return time_obj.strftime("%Hh%M")
     return ""

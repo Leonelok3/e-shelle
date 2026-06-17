@@ -1,6 +1,7 @@
 import urllib.parse
 
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.db.models import Count, F, Sum
@@ -12,7 +13,6 @@ from django.views.decorators.http import require_GET, require_POST
 
 from billing.models import AffiliateProfile, Commission, Referral
 from billing.affiliates import (
-    DEFAULT_AFFILIATE_RATE,
     attach_referral_if_needed,
     get_affiliate_by_code,
     get_or_create_affiliate_profile,
@@ -25,38 +25,66 @@ from .models import (
     BusinessCatalogItem,
     BusinessLeadEvent,
     BusinessProfile,
+    ClientAIKit,
     HomeAdSlide,
     PaymentRequest,
     PartnerCRMLead,
     PartnerLevel,
     PremiumSectorCampaign,
     ProviderPlan,
+    UnmetSearchRequest,
+    UnmetSearchResponse,
 )
+from .ai_delivery import generate_client_ai_kit, kit_summary_for_whatsapp
+from .ai_arsenal import arsenal_agents, arsenal_stats, fidelisation_agent, opportunites_agent
 from .reporting import business_report_context, render_business_report_pdf
 from .services import collect_business_items, create_tracking_event, record_event_hit
 
+
+BUSINESS_KEY_PRICE_XAF = 9900
+BUSINESS_KEY_PARTNER_RECRUIT_RATE = 50
+BUSINESS_KEY_PROVIDER_RATE = 30
+BUSINESS_KEY_FULL_TOOLS = [
+    "Lien partenaire personnel",
+    "Dashboard commissions",
+    "CRM prospects",
+    "Creation de fiches prestataires",
+    "Kit commercial et scripts WhatsApp",
+    "Agent Commercial IA",
+    "Contacts et campagnes WhatsApp",
+    "Phone OCR local",
+    "Agent SEO IA",
+    "AdGen publicites IA",
+    "Audio Studio IA",
+    "LEBELAGE/Shopify Importer",
+    "Catalogue commissions",
+    "Academy quotidienne",
+]
 
 BUSINESS_KEY_PACKS = {
     BusinessKeyAccount.Tier.FREE: {
         "name": "Gratuit",
         "price": 0,
-        "label": "Demarrer sans argent",
-        "desc": "Lien partenaire, scripts de base et acces aux outils publics pour commencer.",
-        "tools": ["Lien partenaire", "Scripts WhatsApp", "Dashboard commissions", "Phone OCR local"],
+        "label": "Apercu",
+        "desc": "Compte de decouverte. Pour vendre et toucher les commissions, active la Business Key.",
+        "tools": ["Lien partenaire", "Apercu dashboard", "Scripts de decouverte"],
+        "public": False,
     },
     BusinessKeyAccount.Tier.KEY: {
-        "name": "Business Key",
-        "price": 5000,
-        "label": "Pack recommande",
-        "desc": "La methode complete pour prospecter, importer des contacts, creer des campagnes et vendre E-Shelle.",
-        "tools": ["Missions avancees", "Scripts premium", "Agent Commercial IA", "Contacts WhatsApp", "Pages SEO locales"],
+        "name": "E-Shelle Business Key",
+        "price": BUSINESS_KEY_PRICE_XAF,
+        "label": "Prix unique",
+        "desc": "Une seule cle pour acceder a toutes les fonctionnalites et outils marketing E-Shelle.",
+        "tools": BUSINESS_KEY_FULL_TOOLS,
+        "public": True,
     },
     BusinessKeyAccount.Tier.PRO: {
-        "name": "Ambassadeur Pro",
-        "price": 10000,
-        "label": "Equipe terrain",
-        "desc": "Pour organiser une petite force commerciale locale et suivre les opportunites par ville.",
-        "tools": ["Pipeline prioritaire", "Scripts equipe", "Campagnes par ville", "Reporting", "Support prioritaire"],
+        "name": "E-Shelle Business Key",
+        "price": BUSINESS_KEY_PRICE_XAF,
+        "label": "Ancien niveau compatible",
+        "desc": "Ancien niveau conserve pour compatibilite. Acces complet comme la Business Key.",
+        "tools": BUSINESS_KEY_FULL_TOOLS,
+        "public": False,
     },
 }
 
@@ -123,6 +151,245 @@ def _business_key_missions(user, profile, referrals_count, converted_businesses)
             "reward": "Visibilite Google locale.",
         },
     ]
+
+
+def _business_key_daily_lessons():
+    return [
+        {
+            "day": 1,
+            "title": "Pitch Business Key en 30 secondes",
+            "lesson": "Explique E-Shelle simplement: une cle a 9 900 XAF, tous les outils marketing, 50% sur partenaires et 30% sur prestataires.",
+            "script": "Bonjour, E-Shelle Business Key te donne les outils pour vendre des services digitaux locaux: fiches prestataires, scripts, CRM, IA et commissions. La cle est a 9 900 XAF.",
+            "mission": "Envoie ce pitch a 3 personnes serieuses qui cherchent une activite commerciale.",
+            "proof": "Note les 3 noms dans ton CRM ou dans ton cahier terrain.",
+        },
+        {
+            "day": 2,
+            "title": "Prospection WhatsApp propre",
+            "lesson": "Un bon partenaire ne spamme pas. Il cible un commerce precis, ecrit court et propose une demo.",
+            "script": "Bonjour, je peux vous creer une fiche E-Shelle propre avec WhatsApp, services, photos et lien partageable. Voulez-vous voir une demo rapide avec votre activite ?",
+            "mission": "Contacte 5 prestataires autour de toi avec un message personnalise.",
+            "proof": "Ajoute les prospects chauds dans le CRM partenaire.",
+        },
+        {
+            "day": 3,
+            "title": "Fiche prestataire qui vend",
+            "lesson": "Une fiche vend quand elle contient nom clair, ville, quartier, WhatsApp, photo, services/prix et appel a l'action.",
+            "script": "Je vais vous montrer une fiche propre: le client voit vos services, votre zone, vos prix et peut vous ecrire directement sur WhatsApp.",
+            "mission": "Cree ou ameliore une fiche prestataire test.",
+            "proof": "Verifie la checklist qualite avant de partager le lien.",
+        },
+        {
+            "day": 4,
+            "title": "Recruter un partenaire",
+            "lesson": "La commission partenaire est forte: 50% sur une Business Key validee. Il faut recruter des gens capables de vendre proprement.",
+            "script": "Tu peux rejoindre E-Shelle Business Key a 9 900 XAF, utiliser tous les outils et gagner quand tu aides des prestataires ou recrutes un partenaire.",
+            "mission": "Presente Business Key a 2 personnes qui savent parler aux commerces.",
+            "proof": "Partage ton lien partenaire et note les retours.",
+        },
+        {
+            "day": 5,
+            "title": "Vendre a un prestataire",
+            "lesson": "Le prestataire paie s'il voit une preuve: fiche, catalogue, message WhatsApp, post ou page locale.",
+            "script": "On ne vous demande pas de payer dans le vide. Je vous montre d'abord une fiche ou une campagne test, ensuite vous decidez.",
+            "mission": "Fais une demo a un commerce reel.",
+            "proof": "Capture le lien ou la fiche montree au prospect.",
+        },
+        {
+            "day": 6,
+            "title": "Relance sans pression",
+            "lesson": "La relance rappelle la valeur, pas la pression. Elle doit etre courte, polie et utile.",
+            "script": "Bonjour, je reviens vers vous pour la fiche E-Shelle. Le but est que vos clients trouvent vos services et vous contactent plus vite. On active cette semaine ?",
+            "mission": "Relance 5 prospects deja contactes.",
+            "proof": "Classe-les: interesse, a relancer, refuse, converti.",
+        },
+        {
+            "day": 7,
+            "title": "Bilan et certification",
+            "lesson": "Un partenaire progresse quand il mesure: prospects, fiches, demos, paiements, commissions.",
+            "script": "Cette semaine j'ai contacte des prestataires, cree des fiches et suivi mes prospects. Je passe maintenant au plan de la semaine prochaine.",
+            "mission": "Fais ton bilan hebdomadaire et choisis 10 prospects pour la semaine prochaine.",
+            "proof": "Mets a jour ton CRM et tes missions.",
+        },
+    ]
+
+
+def _business_key_quality_checklist(business=None):
+    checks = [
+        ("Nom clair", bool(getattr(business, "name", "")) if business else False),
+        ("Ville renseignee", bool(getattr(business, "city", "")) if business else False),
+        ("Quartier ou zone", bool(getattr(business, "district", "")) if business else False),
+        ("WhatsApp ou telephone", bool((getattr(business, "whatsapp", "") or getattr(business, "phone", ""))) if business else False),
+        ("Description utile", len(getattr(business, "description", "") or "") >= 40 if business else False),
+        ("Offre ou promesse claire", bool(getattr(business, "promo_offer", "")) if business else False),
+    ]
+    done = sum(1 for _, ok in checks if ok)
+    total = len(checks)
+    score = int((done / total) * 100) if total else 0
+    return {"checks": checks, "done": done, "total": total, "score": score}
+
+
+def _business_key_certification(profile, referrals_count, converted_businesses, completed_lessons_count, crm_count):
+    criteria = [
+        ("Lire 7 lecons", completed_lessons_count, 7),
+        ("Ajouter 10 prospects CRM", crm_count, 10),
+        ("Obtenir 5 clics lien", profile.click_count, 5),
+        ("Faire inscrire 1 business", converted_businesses, 1),
+        ("Recruter 1 inscrit", referrals_count, 1),
+    ]
+    done = sum(1 for _, value, target in criteria if value >= target)
+    score = int((done / len(criteria)) * 100) if criteria else 0
+    return {
+        "criteria": criteria,
+        "done": done,
+        "total": len(criteria),
+        "score": score,
+        "is_certified": done == len(criteria),
+    }
+
+
+def _detect_unmet_module(query: str) -> str:
+    text = (query or "").lower()
+    keyword_map = [
+        (BusinessProfile.Module.RESTO, ["restaurant", "resto", "manger", "plat", "ndole", "eru", "taro", "pizza", "grill"]),
+        (BusinessProfile.Module.GAZ, ["gaz", "bouteille", "bonbonne"]),
+        (BusinessProfile.Module.PRESSING, ["pressing", "linge", "laver", "blanchisserie", "repassage"]),
+        (BusinessProfile.Module.PHARMA, ["pharmacie", "medicament", "medicament", "sante", "ordonnance"]),
+        (BusinessProfile.Module.IMMOBILIER, ["maison", "studio", "appartement", "chambre", "terrain", "loyer", "loyer", "immobilier", "meuble", "meuble", "non meuble", "non meuble", "bail"]),
+        (BusinessProfile.Module.AUTO, ["voiture", "vehicule", "auto", "location voiture", "taxi"]),
+        (BusinessProfile.Module.AGRO, ["agro", "plantain", "mais", "huile", "legume", "legumes", "vivres", "tomate", "manioc", "macabo"]),
+        (BusinessProfile.Module.TRANSPORT, ["transport", "course", "livraison", "chauffeur", "colis"]),
+        (BusinessProfile.Module.SERVICES, ["service", "reparation", "technicien", "plombier", "electricien", "artisan"]),
+        (BusinessProfile.Module.FORMATION, ["cours", "formation", "apprendre", "professeur", "repetition"]),
+        (BusinessProfile.Module.MARKET, ["montre", "telephone", "iphone", "ordinateur", "laptop", "pc", "accessoire"]),
+        (BusinessProfile.Module.BOUTIQUE, ["boutique", "acheter", "produit", "vetement", "chaussure"]),
+    ]
+    for module, keywords in keyword_map:
+        if any(keyword in text for keyword in keywords):
+            return module
+    return BusinessProfile.Module.GENERAL
+
+
+def _normalize_unmet_module(query: str, selected_module: str) -> str:
+    """Corrige la categorie si le texte du client est plus precis que le choix manuel."""
+
+    detected = _detect_unmet_module(query)
+    if detected != BusinessProfile.Module.GENERAL and detected != selected_module:
+        return detected
+    return selected_module if selected_module in dict(BusinessProfile.Module.choices) else detected
+
+
+def _score_unmet_request(query: str, city: str = "", district: str = "", whatsapp: str = "", email: str = "", notes: str = "") -> dict:
+    text = " ".join([query or "", notes or ""]).lower()
+    module = _detect_unmet_module(text)
+    score = 35
+    if whatsapp:
+        score += 25
+    if email:
+        score += 10
+    if city:
+        score += 10
+    if district:
+        score += 10
+    if any(word in text for word in ["urgent", "aujourd", "maintenant", "ce soir", "vite"]):
+        score += 15
+    if any(word in text for word in ["budget", "prix", "payer", "acheter", "louer", "commander"]):
+        score += 10
+    score = min(score, 100)
+    priority = "haute" if score >= 80 else "moyenne" if score >= 60 else "normal"
+    return {
+        "module": module,
+        "ai_category": dict(BusinessProfile.Module.choices).get(module, "General"),
+        "ai_priority": priority,
+        "lead_score": score,
+        "estimated_value_xaf": _estimated_unmet_value(module),
+    }
+
+
+def _estimated_unmet_value(module: str) -> int:
+    return {
+        BusinessProfile.Module.IMMOBILIER: 30000,
+        BusinessProfile.Module.AUTO: 25000,
+        BusinessProfile.Module.MARKET: 15000,
+        BusinessProfile.Module.RESTO: 5000,
+        BusinessProfile.Module.AGRO: 8000,
+        BusinessProfile.Module.SERVICES: 12000,
+    }.get(module, 10000)
+
+
+def _notify_partner_text(unmet_request):
+    zone = " / ".join(part for part in [unmet_request.district, unmet_request.city] if part) or "zone non precisee"
+    return (
+        "Nouvelle opportunite E-Shelle. "
+        f"Besoin: {unmet_request.query}. Categorie: {unmet_request.get_module_display()}. "
+        f"Zone: {zone}. Score IA: {unmet_request.lead_score}/100. "
+        "Connecte-toi pour voir la demande et relancer proprement."
+    )
+
+
+def _client_followup_text(unmet_request):
+    return (
+        f"Bonjour, ici E-Shelle. Nous avons bien recu votre demande: {unmet_request.query}. "
+        "Un partenaire/prestataire peut vous recontacter si une solution est disponible."
+    )
+
+
+def _external_search_links(query: str) -> list:
+    q = urllib.parse.quote_plus(f"{query} Cameroun")
+    return [
+        {"label": "Google", "url": f"https://www.google.com/search?q={q}", "desc": "Verifier les resultats web maintenant."},
+        {"label": "Images", "url": f"https://www.google.com/search?tbm=isch&q={q}", "desc": "Voir les photos et annonces visuelles."},
+        {"label": "Facebook", "url": f"https://www.facebook.com/search/top?q={urllib.parse.quote_plus(query)}", "desc": "Explorer les groupes, pages et annonces locales."},
+    ]
+
+
+def _opportunity_matches(unmet_request, limit=3):
+    businesses = BusinessProfile.objects.filter(is_active=True)
+    if unmet_request.module and unmet_request.module != BusinessProfile.Module.GENERAL:
+        businesses = businesses.filter(module=unmet_request.module)
+    if unmet_request.city:
+        city_matches = businesses.filter(city__iexact=unmet_request.city)
+        if city_matches.exists():
+            businesses = city_matches
+    if unmet_request.district:
+        district_matches = businesses.filter(district__icontains=unmet_request.district)
+        if district_matches.exists():
+            businesses = district_matches
+    return list(businesses.order_by("-plan", "-leads_count", "-views_count", "name")[:limit])
+
+
+def _matching_businesses_for_request(unmet_request, limit=20):
+    businesses = BusinessProfile.objects.filter(is_active=True)
+    if unmet_request.module and unmet_request.module != BusinessProfile.Module.GENERAL:
+        businesses = businesses.filter(module=unmet_request.module)
+    if unmet_request.city:
+        businesses = businesses.filter(city__icontains=unmet_request.city)
+    if unmet_request.district:
+        district_matches = businesses.filter(district__icontains=unmet_request.district)
+        if district_matches.exists():
+            businesses = district_matches
+    return businesses.order_by("-boost_expires_at", "-subscription_expires_at", "-leads_count", "name")[:limit]
+
+
+def _provider_unmet_message(unmet_request, business):
+    zone = " / ".join(part for part in [unmet_request.district, unmet_request.city] if part) or "votre zone"
+    contact = unmet_request.whatsapp or unmet_request.email or "contact a demander via E-Shelle"
+    return (
+        f"Bonjour {business.name}, une personne cherche un service comme le votre a {zone}. "
+        f"Besoin: {unmet_request.query}. Contact client: {contact}. "
+        "Si vous pouvez l'aider, contactez-le rapidement. "
+        "E-Shelle vous remercie pour votre fidelite, nous travaillons chaque jour pour ameliorer votre visibilite."
+    )
+
+
+def _customer_unmet_capture_text(query=""):
+    base = "Aucun resultat parfait pour votre recherche."
+    if query:
+        base = f"Aucun resultat parfait pour: {query}."
+    return (
+        f"{base} Laissez votre WhatsApp ou email: E-Shelle peut transmettre votre besoin aux prestataires "
+        "disponibles dans votre zone et vous prevenir des bons plans locaux."
+    )
 
 
 def _business_key_sector_cards(referral_link=""):
@@ -477,6 +744,227 @@ def custom_app_offer(request):
     )
 
 
+def eshelle_communication(request):
+    """Plan de lancement terrain pour faire connaitre E-Shelle sans disperser les outils."""
+    proof = {
+        "businesses": BusinessProfile.objects.filter(is_active=True).count(),
+        "requests": UnmetSearchRequest.objects.count(),
+        "premium": BusinessProfile.objects.filter(
+            is_active=True,
+            plan__in=[BusinessProfile.Plan.BUSINESS, BusinessProfile.Plan.PREMIUM],
+        ).count(),
+    }
+    promise = "Vous cherchez quelque chose au Cameroun ? E-Shelle trouve ou demande au reseau pour vous."
+    scripts = [
+        {
+            "channel": "WhatsApp statut",
+            "title": "Message court quotidien",
+            "text": f"{promise} Teste maintenant: cherche resto, gaz, studio, formation, produit ou service local sur E-Shelle.",
+        },
+        {
+            "channel": "WhatsApp direct",
+            "title": "Client ou proche",
+            "text": "Bonjour, si tu cherches un service, un produit ou un prestataire au Cameroun, essaie E-Shelle. Si le resultat n'existe pas encore, E-Shelle enregistre ta demande et active le reseau local.",
+        },
+        {
+            "channel": "Facebook",
+            "title": "Post de lancement",
+            "text": "E-Shelle veut devenir le moteur local du Cameroun: vous cherchez, E-Shelle trouve dans sa base, demande au reseau ou propose des pistes externes. Les prestataires gagnent en visibilite, les clients gagnent du temps.",
+        },
+        {
+            "channel": "TikTok/Reel",
+            "title": "Script 25 secondes",
+            "text": "0-5s: Vous cherchez un studio, un resto ou un service fiable ? 5-15s: Tapez votre besoin sur E-Shelle. 15-22s: Si E-Shelle ne trouve pas, il demande au reseau. 22-25s: E-Shelle, le Google local assiste par IA.",
+        },
+        {
+            "channel": "Prestataire",
+            "title": "Recrutement business",
+            "text": "Bonjour, E-Shelle recoit des recherches locales. Si votre fiche est visible, les clients peuvent vous contacter plus vite. On peut creer votre fiche avec WhatsApp, zone, services, photos et offres.",
+        },
+        {
+            "channel": "Partenaire",
+            "title": "Business Key",
+            "text": "Avec la Business Key a 9 900 XAF, vous avez les outils E-Shelle pour vendre: fiches, IA marketing, CRM, demandes clients, scripts et commissions.",
+        },
+    ]
+    niches = [
+        {
+            "name": "Studios et chambres Yaounde",
+            "goal": "Verifier que les demandes immobilieres sortent bien vers les partenaires.",
+            "mission": "Faire 20 recherches test par quartier et recruter 10 bailleurs/agences.",
+        },
+        {
+            "name": "Restaurants Douala",
+            "goal": "Prouver que les clients trouvent ou demandent un plat precis.",
+            "mission": "Creer 15 fiches resto avec photos, menus et WhatsApp.",
+        },
+        {
+            "name": "Gaz et livraison quartier",
+            "goal": "Transformer les recherches urgentes en appels WhatsApp.",
+            "mission": "Recruter les depots par quartier et tester les demandes sans resultat.",
+        },
+        {
+            "name": "Produits market Akwa",
+            "goal": "Comparer produits existants, demandes manquees et redirections externes.",
+            "mission": "Ajouter 30 produits reels et mesurer les recherches sans resultat.",
+        },
+    ]
+    checklist = [
+        "Publier 3 statuts WhatsApp par jour pendant 7 jours.",
+        "Faire 10 demonstrations E-Shelle a des prestataires chaque jour.",
+        "Creer ou ameliorer les fiches des prestataires qui repondent.",
+        "Verifier chaque soir les demandes non satisfaites dans le Command Center.",
+        "Contacter les categories sans offre et recruter les prestataires manquants.",
+        "Mesurer les sources: accueil, chat, recherche, Facebook, WhatsApp et terrain.",
+    ]
+    quick_links = [
+        ("Tester une recherche", "/chat/?q=studio%20obili"),
+        ("Demande express", "/business/demande-express/"),
+        ("Demandes clients", "/business/demandes/"),
+        ("Pipeline opportunites", "/business/opportunites/"),
+        ("Command Center", "/business/command-center/"),
+        ("Business Key", "/business/partner/"),
+    ]
+    return render(
+        request,
+        "business/eshelle_communication.html",
+        {
+            "promise": promise,
+            "proof": proof,
+            "scripts": scripts,
+            "niches": niches,
+            "checklist": checklist,
+            "quick_links": quick_links,
+        },
+    )
+
+
+def ai_arsenal(request):
+    """Cockpit public/interne des agents IA E-Shelle et des agents a activer."""
+    days = _positive_int(request.GET.get("days"), 14)
+    return render(
+        request,
+        "business/ai_arsenal.html",
+        {
+            "days": days,
+            "agents": arsenal_agents(),
+            "stats": arsenal_stats(days=days),
+            "fidelisation_rows": fidelisation_agent(days=days),
+            "opportunity_rows": opportunites_agent(),
+        },
+    )
+
+
+@staff_member_required
+@require_POST
+def ai_arsenal_action(request):
+    """Actions directes lancees depuis l'Arsenal IA, sans dupliquer les agents existants."""
+    action = request.POST.get("action", "").strip()
+    next_url = request.POST.get("next") or "business:ai_arsenal"
+
+    if action == "generate_relance":
+        business = get_object_or_404(BusinessProfile, pk=request.POST.get("business_id"), is_active=True)
+        from commercial_agent.models import ProspectBusiness
+        from commercial_agent.services import CommercialAgentService
+
+        prospect, created = ProspectBusiness.objects.get_or_create(
+            business_profile=business,
+            defaults={
+                "nom": business.name,
+                "module": business.module,
+                "ville": business.city,
+                "quartier": business.district,
+                "telephone": business.phone,
+                "whatsapp": business.whatsapp,
+                "description": business.description,
+                "source": ProspectBusiness.Source.BUSINESS_PROFILE,
+                "statut": ProspectBusiness.Statut.QUALIFIE,
+                "assigne_a": request.user,
+            },
+        )
+        if not created:
+            prospect.nom = business.name
+            prospect.module = business.module
+            prospect.ville = business.city
+            prospect.quartier = business.district
+            prospect.telephone = business.phone
+            prospect.whatsapp = business.whatsapp
+            prospect.description = business.description
+            prospect.assigne_a = prospect.assigne_a or request.user
+            prospect.save(update_fields=["nom", "module", "ville", "quartier", "telephone", "whatsapp", "description", "assigne_a", "maj_le"])
+        CommercialAgentService.refresh_prospect(prospect)
+        relance = CommercialAgentService.create_relance(
+            prospect,
+            user=request.user,
+            message=CommercialAgentService.generate_message(
+                prospect,
+                canal="whatsapp",
+                contexte="Relance de fidelisation depuis l'Arsenal IA E-Shelle.",
+            ),
+        )
+        messages.success(request, f"Relance IA generee pour {prospect.nom}: {relance.message[:140]}")
+        return redirect("commercial_agent:prospect_detail", pk=prospect.pk)
+
+    if action == "create_whatsapp_campaign":
+        from commercial_agent.services import CommercialAgentService
+
+        module = request.POST.get("module", "").strip()
+        city = request.POST.get("city", "").strip()
+        if city == "Toutes zones":
+            city = ""
+        limit = _positive_int(request.POST.get("limit"), 50)
+        name = request.POST.get("name") or f"Arsenal IA WhatsApp {module or 'E-Shelle'} {timezone.localdate().strftime('%d/%m/%Y')}"
+        campaign = CommercialAgentService.create_whatsapp_campaign_from_due(
+            name=name,
+            user=request.user,
+            module=module,
+            ville=city,
+            limit=limit,
+        )
+        if campaign.total_destinataires:
+            messages.success(request, f"Campagne WhatsApp creee avec {campaign.total_destinataires} prospect(s). Verifie avant lancement.")
+        else:
+            messages.warning(request, "Campagne WhatsApp creee mais aucun prospect eligible n'a ete trouve. Synchronise d'abord les fiches/contacts.")
+        return redirect("whatsapp_agent:wa_detail", pk=campaign.pk)
+
+    if action == "create_prospect_campaign":
+        from commercial_agent.services import CommercialAgentService
+
+        module = request.POST.get("module", "").strip()
+        city = request.POST.get("city", "").strip()
+        if city == "Toutes zones":
+            city = ""
+        name = request.POST.get("name") or f"Arsenal IA Prospection {module or 'E-Shelle'} {timezone.localdate().strftime('%d/%m/%Y')}"
+        campaign = CommercialAgentService.create_campaign_from_due(name=name, user=request.user, module=module, ville=city)
+        messages.success(request, f"Campagne de prospection creee avec {campaign.prospects.count()} prospect(s).")
+        return redirect("commercial_agent:dashboard")
+
+    if action == "assign_opportunities":
+        module = request.POST.get("module", "").strip()
+        city = request.POST.get("city", "").strip()
+        district = request.POST.get("district", "").strip()
+        open_statuses = [
+            UnmetSearchRequest.Status.NEW,
+            UnmetSearchRequest.Status.NOTIFIED,
+            UnmetSearchRequest.Status.IN_PROGRESS,
+            UnmetSearchRequest.Status.CONTACTED,
+            UnmetSearchRequest.Status.PROVIDER_FOUND,
+        ]
+        requests_qs = UnmetSearchRequest.objects.filter(status__in=open_statuses)
+        if module:
+            requests_qs = requests_qs.filter(module=module)
+        if city and city != "Toutes zones":
+            requests_qs = requests_qs.filter(city__iexact=city)
+        if district:
+            requests_qs = requests_qs.filter(district__icontains=district)
+        count = requests_qs.update(assigned_partner=request.user, status=UnmetSearchRequest.Status.NOTIFIED, updated_at=timezone.now())
+        messages.success(request, f"{count} demande(s) assignee(s) a votre compte.")
+        return redirect("business:unmet_search_opportunities")
+
+    messages.error(request, "Action Arsenal IA inconnue.")
+    return redirect(next_url)
+
+
 def partner(request):
     """Page publique pour recruter ambassadeurs et affiliés."""
     account = _get_business_key_account(request.user)
@@ -498,8 +986,20 @@ def partner(request):
             "items": data["tools"],
         }
         for tier, data in BUSINESS_KEY_PACKS.items()
+        if data.get("public", True)
     ]
-    return render(request, "business/partner.html", {"proof": proof, "packs": packs, "account": account})
+    return render(
+        request,
+        "business/partner.html",
+        {
+            "proof": proof,
+            "packs": packs,
+            "account": account,
+            "business_key_price": BUSINESS_KEY_PRICE_XAF,
+            "partner_recruit_rate": BUSINESS_KEY_PARTNER_RECRUIT_RATE,
+            "provider_rate": BUSINESS_KEY_PROVIDER_RATE,
+        },
+    )
 
 
 def business_key_packs(request):
@@ -508,13 +1008,32 @@ def business_key_packs(request):
     packs = [
         {"tier": tier, **data}
         for tier, data in BUSINESS_KEY_PACKS.items()
+        if data.get("public", True)
     ]
-    return render(request, "business/business_key_packs.html", {"packs": packs, "account": account})
+    return render(
+        request,
+        "business/business_key_packs.html",
+        {
+            "packs": packs,
+            "account": account,
+            "business_key_price": BUSINESS_KEY_PRICE_XAF,
+            "partner_recruit_rate": BUSINESS_KEY_PARTNER_RECRUIT_RATE,
+            "provider_rate": BUSINESS_KEY_PROVIDER_RATE,
+        },
+    )
 
 
 def business_key_how_to_earn(request):
     """Page pedagogique: comment gagner proprement avec E-Shelle."""
-    return render(request, "business/business_key_how_to_earn.html")
+    return render(
+        request,
+        "business/business_key_how_to_earn.html",
+        {
+            "business_key_price": BUSINESS_KEY_PRICE_XAF,
+            "partner_recruit_rate": BUSINESS_KEY_PARTNER_RECRUIT_RATE,
+            "provider_rate": BUSINESS_KEY_PROVIDER_RATE,
+        },
+    )
 
 
 def business_key_recruit(request):
@@ -537,6 +1056,59 @@ def business_key_academy(request):
         request,
         "business/business_key_academy.html",
         {"account": account, "sectors": sectors, "modules": modules},
+    )
+
+
+def business_key_daily_academy(request):
+    """Formation quotidienne Business Key: lecon, mission, score et certification."""
+    profile = get_or_create_affiliate_profile(request.user) if request.user.is_authenticated else None
+    lessons = _business_key_daily_lessons()
+    selected_day = _positive_int(request.GET.get("jour"), 0)
+    if not selected_day:
+        selected_day = ((timezone.localdate().toordinal() - 1) % len(lessons)) + 1
+    selected_day = max(1, min(len(lessons), selected_day))
+    lesson = lessons[selected_day - 1]
+
+    completed = set(request.session.get("business_key_completed_lessons", []))
+    if request.method == "POST":
+        completed.add(str(selected_day))
+        request.session["business_key_completed_lessons"] = sorted(completed)
+        request.session.modified = True
+        messages.success(request, "Lecon marquee comme terminee. Continue comme ca.")
+        return redirect(f"{request.path}?jour={selected_day}")
+
+    crm_count = PartnerCRMLead.objects.filter(partner=request.user).count() if request.user.is_authenticated else 0
+    referrals_count = Referral.objects.filter(affiliate=profile).count() if profile else 0
+    converted_businesses = PartnerCRMLead.objects.filter(
+        partner=request.user,
+        status=PartnerCRMLead.Status.CONVERTED,
+    ).count() if request.user.is_authenticated else 0
+    latest_business = BusinessProfile.objects.filter(owner=request.user).order_by("-updated_at").first() if request.user.is_authenticated else None
+    quality = _business_key_quality_checklist(latest_business)
+    certification = _business_key_certification(
+        profile=profile,
+        referrals_count=referrals_count,
+        converted_businesses=converted_businesses,
+        completed_lessons_count=len(completed),
+        crm_count=crm_count,
+    ) if profile else None
+
+    return render(
+        request,
+        "business/business_key_daily_academy.html",
+        {
+            "lessons": lessons,
+            "lesson": lesson,
+            "selected_day": selected_day,
+            "completed": completed,
+            "completed_count": len(completed),
+            "quality": quality,
+            "latest_business": latest_business,
+            "certification": certification,
+            "business_key_price": BUSINESS_KEY_PRICE_XAF,
+            "partner_recruit_rate": BUSINESS_KEY_PARTNER_RECRUIT_RATE,
+            "provider_rate": BUSINESS_KEY_PROVIDER_RATE,
+        },
     )
 
 
@@ -581,7 +1153,9 @@ def business_key_kit(request):
         ("E-Shelle Love", "5 000 FCFA/mois", "Rencontres serieuses, profils verifies et accompagnement discret"),
         ("Business", "15 000 FCFA/mois", "Visibilite, leads WhatsApp, IA commerciale"),
         ("Premium", "30 000 FCFA/mois", "Boost, priorite locale, contenu et campagnes"),
-        ("Business Key", "5 000 FCFA", "Pack partenaire pour vendre E-Shelle"),
+        ("Business Key", f"{BUSINESS_KEY_PRICE_XAF} FCFA", "Prix unique avec acces complet aux outils marketing E-Shelle"),
+        ("Commission partenaire", f"{BUSINESS_KEY_PARTNER_RECRUIT_RATE}%", "Quand tu fais souscrire un autre partenaire a la Business Key"),
+        ("Commission prestataire", f"{BUSINESS_KEY_PROVIDER_RATE}%", "Sur les frais payes par un prestataire que tu fais enregistrer"),
         ("Site web vitrine", "50 000 FCFA+", "Page professionnelle, WhatsApp, SEO local et formulaire de contact"),
         ("Boutique / catalogue web", "100 000 FCFA+", "Catalogue produits, commandes WhatsApp, paiements et administration"),
         ("Logiciel personnalise", "150 000 FCFA+", "Application metier sur mesure pour ecole, commerce, tontine ou service"),
@@ -603,6 +1177,9 @@ def business_key_kit(request):
             "price_lines": price_lines,
             "sectors": sectors,
             "agent_links": agent_links,
+            "business_key_price": BUSINESS_KEY_PRICE_XAF,
+            "partner_recruit_rate": BUSINESS_KEY_PARTNER_RECRUIT_RATE,
+            "provider_rate": BUSINESS_KEY_PROVIDER_RATE,
         },
     )
 
@@ -611,7 +1188,10 @@ def business_key_kit(request):
 def catalogue_commissions(request):
     """Catalogue de toutes les apps E-Shelle vendables par un partenaire."""
     apps = AppCommission.objects.filter(is_active=True).order_by("priority", "app_name")
-    levels = PartnerLevel.objects.filter(is_active=True).prefetch_related("apps_accessibles").order_by("prix_fcfa", "level")
+    levels = PartnerLevel.objects.filter(
+        is_active=True,
+        level=PartnerLevel.Level.BUSINESS_KEY,
+    ).prefetch_related("apps_accessibles").order_by("prix_fcfa", "level")
     profile = get_or_create_affiliate_profile(request.user)
     referral_link = request.build_absolute_uri(f"/ref/{profile.ref_code}/")
     return render(
@@ -625,6 +1205,379 @@ def catalogue_commissions(request):
             "page_title": "Catalogue des commissions",
         },
     )
+
+
+def unmet_search_create(request):
+    """Capture une recherche non satisfaite pour la transformer en opportunite locale."""
+    initial_query = (request.GET.get("q") or request.POST.get("query") or "").strip()[:260]
+    initial_city = (request.GET.get("city") or request.POST.get("city") or "").strip()[:100]
+    initial_district = (request.GET.get("district") or request.POST.get("district") or "").strip()[:120]
+    detected_module = _detect_unmet_module(initial_query)
+    created_request = None
+    matching_businesses = []
+    provider_messages = []
+
+    if request.method == "POST":
+        query = request.POST.get("query", "").strip()[:260]
+        whatsapp = request.POST.get("whatsapp", "").strip()[:40]
+        email = request.POST.get("email", "").strip()[:254]
+        consent_share = request.POST.get("consent_share_contact") == "on"
+        if not query:
+            messages.error(request, "Expliquez rapidement ce que vous cherchez.")
+        elif not (whatsapp or email):
+            messages.error(request, "Laissez au moins un WhatsApp ou un email.")
+        elif not consent_share:
+            messages.error(request, "Le consentement est obligatoire pour transmettre votre demande aux prestataires.")
+        else:
+            city = request.POST.get("city", "").strip()[:100]
+            district = request.POST.get("district", "").strip()[:120]
+            notes = request.POST.get("notes", "").strip()
+            ai = _score_unmet_request(query, city=city, district=district, whatsapp=whatsapp, email=email, notes=notes)
+            module = _normalize_unmet_module(query, request.POST.get("module") or ai["module"])
+            ai["ai_category"] = dict(BusinessProfile.Module.choices).get(module, ai["ai_category"])
+            ai["estimated_value_xaf"] = _estimated_unmet_value(module)
+            created_request = UnmetSearchRequest.objects.create(
+                query=query,
+                module=module,
+                city=city,
+                district=district,
+                customer_name=request.POST.get("customer_name", "").strip()[:120],
+                whatsapp=whatsapp,
+                email=email,
+                notes=notes,
+                consent_share_contact=consent_share,
+                consent_promotions=request.POST.get("consent_promotions") == "on",
+                source=request.POST.get("source", "search").strip()[:40] or "search",
+                ai_category=ai["ai_category"],
+                ai_priority=ai["ai_priority"],
+                lead_score=ai["lead_score"],
+                estimated_value_xaf=ai["estimated_value_xaf"],
+                created_by=request.user if request.user.is_authenticated else None,
+                expires_at=timezone.now() + timezone.timedelta(days=7),
+            )
+            matching_businesses = list(_matching_businesses_for_request(created_request, limit=12))
+            created_request.notified_count = len(matching_businesses)
+            created_request.status = UnmetSearchRequest.Status.NOTIFIED if matching_businesses else UnmetSearchRequest.Status.NEW
+            created_request.save(update_fields=["notified_count", "status", "updated_at"])
+            provider_messages = [
+                {
+                    "business": business,
+                    "text": _provider_unmet_message(created_request, business),
+                    "whatsapp_url": business.whatsapp_url(_provider_unmet_message(created_request, business)),
+                }
+                for business in matching_businesses
+                if business.clean_whatsapp_number
+            ]
+            messages.success(request, "Votre demande a ete enregistree. E-Shelle va la rendre visible aux prestataires concernes.")
+
+    return render(
+        request,
+        "business/unmet_search_create.html",
+        {
+            "initial_query": initial_query,
+            "initial_city": initial_city,
+            "initial_district": initial_district,
+            "detected_module": detected_module,
+            "modules": BusinessProfile.Module.choices,
+            "created_request": created_request,
+            "matching_businesses": matching_businesses,
+            "provider_messages": provider_messages,
+            "capture_text": _customer_unmet_capture_text(initial_query),
+            "external_links": _external_search_links(initial_query or "service Cameroun"),
+        },
+    )
+
+
+@login_required
+def unmet_search_requests(request):
+    """Demandes clients visibles par les prestataires connectes."""
+    my_businesses = BusinessProfile.objects.filter(owner=request.user, is_active=True).order_by("name")
+    modules = list(my_businesses.values_list("module", flat=True).distinct())
+    cities = [city for city in my_businesses.values_list("city", flat=True).distinct() if city]
+    requests_qs = UnmetSearchRequest.objects.filter(
+        status__in=[
+            UnmetSearchRequest.Status.NEW,
+            UnmetSearchRequest.Status.NOTIFIED,
+            UnmetSearchRequest.Status.IN_PROGRESS,
+        ],
+        consent_share_contact=True,
+    )
+
+    rows = []
+    for unmet_request in requests_qs.order_by("-created_at")[:80]:
+        module_match = my_businesses.filter(module=unmet_request.module)
+        city_match = module_match.filter(city__iexact=unmet_request.city) if unmet_request.city else module_match
+        district_match = city_match.filter(district__icontains=unmet_request.district) if unmet_request.district else city_match
+        matching_business = district_match.first() or city_match.first() or module_match.first()
+        if not matching_business and unmet_request.module == BusinessProfile.Module.GENERAL:
+            matching_business = my_businesses.first()
+        response = None
+        if matching_business:
+            response = UnmetSearchResponse.objects.filter(request=unmet_request, business=matching_business).first()
+        is_module_match = bool(matching_business and matching_business.module == unmet_request.module)
+        is_city_match = bool(matching_business and (not unmet_request.city or matching_business.city.lower() == unmet_request.city.lower()))
+        compatibility = "compatible" if is_module_match and is_city_match else "a verifier"
+        if matching_business and is_module_match and not is_city_match:
+            compatibility = "meme categorie"
+        can_contact = bool(matching_business and (is_module_match or unmet_request.module == BusinessProfile.Module.GENERAL))
+        contact_text = _provider_unmet_message(unmet_request, matching_business) if can_contact else ""
+        partner_text = (
+            "Bonjour, je vous contacte via E-Shelle au sujet de votre demande: "
+            f"{unmet_request.query}. Pouvez-vous confirmer votre besoin et votre zone ?"
+        )
+        rows.append(
+            {
+                "request": unmet_request,
+                "business": matching_business,
+                "response": response,
+                "whatsapp_url": f"https://wa.me/{unmet_request.clean_whatsapp_number}?text={urllib.parse.quote(contact_text)}" if unmet_request.clean_whatsapp_number and can_contact else "",
+                "client_whatsapp_url": f"https://wa.me/{unmet_request.clean_whatsapp_number}?text={urllib.parse.quote(partner_text)}" if unmet_request.clean_whatsapp_number else "",
+                "compatibility": compatibility,
+            }
+        )
+    rows.sort(key=lambda row: {"compatible": 0, "meme categorie": 1, "a verifier": 2}.get(row["compatibility"], 3))
+
+    return render(
+        request,
+        "business/unmet_search_requests.html",
+        {
+            "rows": rows,
+            "my_businesses": my_businesses,
+        },
+    )
+
+
+@login_required
+def unmet_search_opportunities(request):
+    """Pipeline commercial Search -> Demande -> Relance -> Conversion."""
+    selected_status = request.GET.get("status", "").strip()
+    selected_module = request.GET.get("module", "").strip()
+    selected_priority = request.GET.get("priority", "").strip()
+
+    qs = UnmetSearchRequest.objects.filter(consent_share_contact=True).select_related("assigned_partner", "created_by")
+    if not request.user.is_staff:
+        qs = qs.filter(models.Q(assigned_partner=request.user) | models.Q(assigned_partner__isnull=True))
+    if selected_status:
+        qs = qs.filter(status=selected_status)
+    else:
+        qs = qs.exclude(status__in=[UnmetSearchRequest.Status.EXPIRED, UnmetSearchRequest.Status.CANCELED])
+    if selected_module:
+        qs = qs.filter(module=selected_module)
+    if selected_priority:
+        qs = qs.filter(ai_priority=selected_priority)
+
+    rows = []
+    for unmet_request in qs.order_by("-lead_score", "-created_at")[:120]:
+        partner_message = _notify_partner_text(unmet_request)
+        client_message = _client_followup_text(unmet_request)
+        matches = _opportunity_matches(unmet_request, limit=3)
+        rows.append(
+            {
+                "request": unmet_request,
+                "matches": matches,
+                "needs_recruitment": not bool(matches),
+                "partner_whatsapp_url": f"https://wa.me/?text={urllib.parse.quote(partner_message)}",
+                "client_whatsapp_url": f"https://wa.me/{unmet_request.clean_whatsapp_number}?text={urllib.parse.quote(client_message)}" if unmet_request.clean_whatsapp_number else "",
+            }
+        )
+
+    stats_base = UnmetSearchRequest.objects.filter(consent_share_contact=True)
+    if not request.user.is_staff:
+        stats_base = stats_base.filter(models.Q(assigned_partner=request.user) | models.Q(assigned_partner__isnull=True))
+    stats = {
+        "open": stats_base.exclude(status__in=[UnmetSearchRequest.Status.SOLD, UnmetSearchRequest.Status.LOST, UnmetSearchRequest.Status.CANCELED, UnmetSearchRequest.Status.EXPIRED]).count(),
+        "new": stats_base.filter(status=UnmetSearchRequest.Status.NEW).count(),
+        "contacted": stats_base.filter(status=UnmetSearchRequest.Status.CONTACTED).count(),
+        "sold": stats_base.filter(status=UnmetSearchRequest.Status.SOLD).count(),
+        "value": stats_base.exclude(status=UnmetSearchRequest.Status.LOST).aggregate(total=Sum("estimated_value_xaf"))["total"] or 0,
+    }
+    partners = get_user_model().objects.filter(
+        models.Q(business_key_account__tier__in=[BusinessKeyAccount.Tier.KEY, BusinessKeyAccount.Tier.PRO])
+        | models.Q(is_staff=True)
+    ).distinct().order_by("username") if request.user.is_staff else []
+
+    return render(
+        request,
+        "business/unmet_search_opportunities.html",
+        {
+            "rows": rows,
+            "stats": stats,
+            "partners": partners,
+            "statuses": UnmetSearchRequest.Status.choices,
+            "modules": BusinessProfile.Module.choices,
+            "priorities": ["haute", "moyenne", "normal"],
+            "filters": {"status": selected_status, "module": selected_module, "priority": selected_priority},
+        },
+    )
+
+
+@staff_member_required
+def eshelle_command_center(request):
+    """Cockpit global du moteur de recherche et du reseau commercial E-Shelle."""
+    days = _positive_int(request.GET.get("days"), 7)
+    since = timezone.now() - timezone.timedelta(days=days)
+    today = timezone.localdate()
+
+    try:
+        from e_shelle_ai.models import CentralAgentQueryLog
+    except Exception:
+        CentralAgentQueryLog = None
+
+    requests_qs = UnmetSearchRequest.objects.filter(created_at__gte=since)
+    open_requests = UnmetSearchRequest.objects.exclude(
+        status__in=[
+            UnmetSearchRequest.Status.SOLD,
+            UnmetSearchRequest.Status.LOST,
+            UnmetSearchRequest.Status.CANCELED,
+            UnmetSearchRequest.Status.EXPIRED,
+        ]
+    )
+    businesses = BusinessProfile.objects.filter(is_active=True)
+    lead_events = BusinessLeadEvent.objects.filter(created_at__gte=since)
+
+    query_logs = CentralAgentQueryLog.objects.filter(created_at__gte=since) if CentralAgentQueryLog else []
+    query_count = query_logs.count() if CentralAgentQueryLog else 0
+    no_result_count = query_logs.filter(had_results=False).count() if CentralAgentQueryLog else 0
+
+    hot_requests = []
+    for unmet_request in open_requests.order_by("-lead_score", "-created_at")[:12]:
+        matches = _opportunity_matches(unmet_request, limit=3)
+        hot_requests.append({"request": unmet_request, "matches": matches, "needs_recruitment": not bool(matches)})
+
+    module_labels = dict(BusinessProfile.Module.choices)
+    recruitment_rows = []
+    for row in open_requests.values("module", "city").annotate(total=Count("id"), max_score=models.Max("lead_score")).order_by("-total", "-max_score")[:16]:
+        provider_count = businesses.filter(module=row["module"], city__iexact=row["city"]).count() if row["city"] else businesses.filter(module=row["module"]).count()
+        if provider_count == 0 or row["total"] >= 2:
+            recruitment_rows.append(
+                {
+                    "module": row["module"],
+                    "label": module_labels.get(row["module"], row["module"]),
+                    "city": row["city"] or "Toutes zones",
+                    "requests": row["total"],
+                    "providers": provider_count,
+                    "max_score": row["max_score"] or 0,
+                }
+            )
+
+    module_demand = [
+        {**row, "label": module_labels.get(row["module"], row["module"])}
+        for row in open_requests.values("module").annotate(total=Count("id"), value=Sum("estimated_value_xaf")).order_by("-total")[:10]
+    ]
+    partner_accounts = BusinessKeyAccount.objects.select_related("user").filter(
+        tier__in=[BusinessKeyAccount.Tier.KEY, BusinessKeyAccount.Tier.PRO],
+        expires_at__gt=timezone.now(),
+    )
+    assigned_by_partner = (
+        open_requests.exclude(assigned_partner__isnull=True)
+        .values("assigned_partner__username")
+        .annotate(total=Count("id"), sold=Count("id", filter=models.Q(status=UnmetSearchRequest.Status.SOLD)))
+        .order_by("-total")[:10]
+    )
+    source_rows = (
+        UnmetSearchRequest.objects.filter(created_at__gte=since)
+        .values("source")
+        .annotate(
+            total=Count("id"),
+            hot=Count("id", filter=models.Q(lead_score__gte=80)),
+            value=Sum("estimated_value_xaf"),
+        )
+        .order_by("-total")[:10]
+    )
+
+    stats = {
+        "days": days,
+        "queries": query_count,
+        "no_results": no_result_count,
+        "captured": requests_qs.count(),
+        "today_captured": UnmetSearchRequest.objects.filter(created_at__date=today).count(),
+        "open": open_requests.count(),
+        "hot": open_requests.filter(lead_score__gte=80).count(),
+        "sold": UnmetSearchRequest.objects.filter(status=UnmetSearchRequest.Status.SOLD, updated_at__gte=since).count(),
+        "pipeline_value": open_requests.aggregate(total=Sum("estimated_value_xaf"))["total"] or 0,
+        "contacts": lead_events.filter(event_type__in=[BusinessLeadEvent.EventType.WHATSAPP, BusinessLeadEvent.EventType.PHONE, BusinessLeadEvent.EventType.ORDER]).count(),
+        "active_partners": partner_accounts.count(),
+        "providers": businesses.count(),
+    }
+
+    return render(
+        request,
+        "business/eshelle_command_center.html",
+        {
+            "stats": stats,
+            "hot_requests": hot_requests,
+            "recruitment_rows": recruitment_rows,
+            "module_demand": module_demand,
+            "assigned_by_partner": assigned_by_partner,
+            "source_rows": source_rows,
+            "recent_queries": query_logs[:12] if CentralAgentQueryLog else [],
+            "days": days,
+        },
+    )
+
+
+@login_required
+@require_POST
+def unmet_search_opportunity_action(request, request_id):
+    unmet_request = get_object_or_404(UnmetSearchRequest, pk=request_id, consent_share_contact=True)
+    if unmet_request.assigned_partner_id and unmet_request.assigned_partner_id != request.user.id and not request.user.is_staff:
+        messages.error(request, "Cette opportunite est assignee a un autre partenaire.")
+        return redirect("business:unmet_search_opportunities")
+
+    status = request.POST.get("status", "").strip()
+    if status in dict(UnmetSearchRequest.Status.choices):
+        unmet_request.status = status
+    note = request.POST.get("conversion_note", "").strip()
+    if note:
+        unmet_request.conversion_note = note
+    if not unmet_request.assigned_partner_id:
+        unmet_request.assigned_partner = request.user
+    unmet_request.save(update_fields=["status", "conversion_note", "assigned_partner", "updated_at"])
+    messages.success(request, "Opportunite mise a jour.")
+    return redirect("business:unmet_search_opportunities")
+
+
+@staff_member_required
+@require_POST
+def unmet_search_assign(request, request_id):
+    unmet_request = get_object_or_404(UnmetSearchRequest, pk=request_id, consent_share_contact=True)
+    partner_id = request.POST.get("partner_id")
+    partner = get_user_model().objects.filter(pk=partner_id).first() if partner_id else None
+    unmet_request.assigned_partner = partner
+    if partner and unmet_request.status == UnmetSearchRequest.Status.NEW:
+        unmet_request.status = UnmetSearchRequest.Status.NOTIFIED
+    unmet_request.save(update_fields=["assigned_partner", "status", "updated_at"])
+    messages.success(request, "Assignation mise a jour.")
+    return redirect("business:unmet_search_opportunities")
+
+
+@login_required
+@require_POST
+def unmet_search_request_action(request, request_id):
+    unmet_request = get_object_or_404(UnmetSearchRequest, pk=request_id, consent_share_contact=True)
+    business = BusinessProfile.objects.filter(pk=request.POST.get("business_id"), owner=request.user, is_active=True).first()
+    if not business:
+        messages.error(request, "Aucune fiche prestataire valide pour repondre a cette demande.")
+        return redirect("business:unmet_search_requests")
+    status = request.POST.get("status", UnmetSearchResponse.Status.CONTACTED)
+    if status not in dict(UnmetSearchResponse.Status.choices):
+        status = UnmetSearchResponse.Status.CONTACTED
+    UnmetSearchResponse.objects.update_or_create(
+        request=unmet_request,
+        business=business,
+        defaults={
+            "responded_by": request.user,
+            "status": status,
+            "note": request.POST.get("note", "").strip(),
+        },
+    )
+    if status == UnmetSearchResponse.Status.SATISFIED:
+        unmet_request.status = UnmetSearchRequest.Status.SATISFIED
+    else:
+        unmet_request.status = UnmetSearchRequest.Status.IN_PROGRESS
+    unmet_request.save(update_fields=["status", "updated_at"])
+    messages.success(request, "Action enregistree.")
+    return redirect("business:unmet_search_requests")
 
 
 @login_required
@@ -741,7 +1694,7 @@ def business_key_crm_opportunities(request):
     hot_leads = leads.filter(status__in=[PartnerCRMLead.Status.INTERESTED, PartnerCRMLead.Status.FOLLOW_UP]).order_by("next_follow_up_at", "-potential_xaf")[:20]
     due_leads = open_leads.filter(next_follow_up_at__lte=timezone.localdate()).order_by("next_follow_up_at")[:20]
     potential = open_leads.aggregate(total=Sum("potential_xaf"))["total"] or 0
-    estimated_commission = int(potential * float(DEFAULT_AFFILIATE_RATE))
+    estimated_commission = int(potential * (BUSINESS_KEY_PROVIDER_RATE / 100))
     status_labels = dict(PartnerCRMLead.Status.choices)
     sector_labels = dict(PartnerCRMLead.Sector.choices)
     by_status = [
@@ -830,8 +1783,8 @@ def business_key_payment_request(request):
         return redirect("business:business_key_packs")
 
     tier = request.POST.get("tier", "").strip()
-    if tier not in {BusinessKeyAccount.Tier.KEY, BusinessKeyAccount.Tier.PRO}:
-        messages.error(request, "Choisis un pack payant valide.")
+    if tier != BusinessKeyAccount.Tier.KEY:
+        messages.error(request, "La Business Key est maintenant une offre unique a 9 900 FCFA.")
         return redirect("business:business_key_packs")
 
     pack = BUSINESS_KEY_PACKS[tier]
@@ -853,13 +1806,70 @@ def business_key_payment_request(request):
 @staff_member_required
 def business_key_admin(request):
     """Interface staff simple pour valider les Business Key sans chercher dans Django Admin."""
+    days = _positive_int(request.GET.get("days"), 30)
+    since = timezone.now() - timezone.timedelta(days=days)
     pending = BusinessKeyPaymentRequest.objects.select_related("user").filter(
         status=BusinessKeyPaymentRequest.Status.PENDING
     )
     recent = BusinessKeyPaymentRequest.objects.select_related("user").exclude(
         status=BusinessKeyPaymentRequest.Status.PENDING
     )[:20]
-    return render(request, "business/business_key_admin.html", {"pending": pending, "recent": recent})
+    accounts = BusinessKeyAccount.objects.select_related("user")
+    active_accounts = accounts.filter(
+        tier__in=[BusinessKeyAccount.Tier.KEY, BusinessKeyAccount.Tier.PRO],
+        expires_at__gt=timezone.now(),
+    )
+    commissions = Commission.objects.select_related("affiliate", "affiliate__user", "transaction")
+    pending_commissions = commissions.filter(status="PENDING")
+    provider_payments = PaymentRequest.objects.select_related("business", "plan", "requested_by")
+    crm_leads = PartnerCRMLead.objects.select_related("partner")
+    businesses = BusinessProfile.objects.select_related("owner")
+
+    hot_leads = crm_leads.filter(
+        status__in=[PartnerCRMLead.Status.INTERESTED, PartnerCRMLead.Status.FOLLOW_UP]
+    ).order_by("next_follow_up_at", "-potential_xaf")[:10]
+    unmet_requests = UnmetSearchRequest.objects.filter(
+        status__in=[UnmetSearchRequest.Status.NEW, UnmetSearchRequest.Status.NOTIFIED, UnmetSearchRequest.Status.IN_PROGRESS]
+    )
+    recent_businesses = businesses.order_by("-created_at")[:10]
+    recent_partners = active_accounts.order_by("-activated_at")[:10]
+    top_commissions = (
+        pending_commissions.values("affiliate__user__username")
+        .annotate(total=Sum("amount"), count=Count("id"))
+        .order_by("-total")[:8]
+    )
+
+    stats = {
+        "active_partners": active_accounts.count(),
+        "pending_business_key_payments": pending.count(),
+        "pending_provider_payments": provider_payments.filter(status=PaymentRequest.Status.PENDING).count(),
+        "pending_commissions": pending_commissions.aggregate(total=Sum("amount"))["total"] or 0,
+        "paid_commissions": commissions.filter(status="PAID").aggregate(total=Sum("amount"))["total"] or 0,
+        "crm_hot": crm_leads.filter(status__in=[PartnerCRMLead.Status.INTERESTED, PartnerCRMLead.Status.FOLLOW_UP]).count(),
+        "unmet_open": unmet_requests.count(),
+        "new_businesses": businesses.filter(created_at__gte=since).count(),
+        "converted_crm": crm_leads.filter(status=PartnerCRMLead.Status.CONVERTED).count(),
+    }
+
+    return render(
+        request,
+        "business/business_key_admin.html",
+        {
+            "pending": pending,
+            "recent": recent,
+            "stats": stats,
+            "days": days,
+            "recent_partners": recent_partners,
+            "top_commissions": top_commissions,
+            "hot_leads": hot_leads,
+            "unmet_requests": unmet_requests.order_by("-created_at")[:10],
+            "recent_businesses": recent_businesses,
+            "provider_payment_requests": provider_payments.order_by("-created_at")[:10],
+            "business_key_price": BUSINESS_KEY_PRICE_XAF,
+            "partner_recruit_rate": BUSINESS_KEY_PARTNER_RECRUIT_RATE,
+            "provider_rate": BUSINESS_KEY_PROVIDER_RATE,
+        },
+    )
 
 
 @staff_member_required
@@ -1001,13 +2011,15 @@ def partner_dashboard(request):
     tools = [
         ("Agent Commercial IA", "/commercial-agent/"),
         ("CRM Partenaire", "/business/partner/crm/"),
+        ("Demandes clients", "/business/demandes/"),
+        ("Opportunites E-Shelle", "/business/opportunites/"),
         ("Contacts WhatsApp", "/whatsapp/contacts/"),
         ("Campagnes WhatsApp", "/whatsapp/campagnes/"),
         ("Phone OCR", "/phone-ocr/"),
         ("Agent SEO IA", "/seo/"),
         ("Creer une fiche business", "/business/onboarding/?plan=free"),
     ]
-    unlocked_tools = BUSINESS_KEY_PACKS[account.tier]["tools"]
+    unlocked_tools = BUSINESS_KEY_FULL_TOOLS if account.is_active_paid else BUSINESS_KEY_PACKS[BusinessKeyAccount.Tier.FREE]["tools"]
     payment_requests = BusinessKeyPaymentRequest.objects.filter(user=request.user).order_by("-created_at")[:5]
 
     context = {
@@ -1022,7 +2034,10 @@ def partner_dashboard(request):
         "balance_amount": pending_amount,
         "total_commissions": total_commissions,
         "conversion_rate": conversion_rate,
-        "affiliate_rate_percent": int(DEFAULT_AFFILIATE_RATE * 100),
+        "affiliate_rate_percent": BUSINESS_KEY_PARTNER_RECRUIT_RATE,
+        "partner_recruit_rate": BUSINESS_KEY_PARTNER_RECRUIT_RATE,
+        "provider_rate": BUSINESS_KEY_PROVIDER_RATE,
+        "business_key_price": BUSINESS_KEY_PRICE_XAF,
         "recent_referrals": recent_referrals,
         "commissions": commissions.order_by("-created_at")[:20],
         "missions": missions,
@@ -1239,6 +2254,33 @@ def performance_report_pdf(request, business_id):
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
+
+
+@login_required
+def ai_delivery_kit(request, business_id):
+    """Atelier IA: kit complet pour livrer un client avec les agents E-Shelle."""
+    business = get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
+    kit = getattr(business, "ai_delivery_kit", None)
+
+    if request.method == "POST":
+        extra_brief = request.POST.get("extra_brief", "")
+        kit = generate_client_ai_kit(business, user=request.user, extra_brief=extra_brief)
+        messages.success(request, "Kit IA client genere. Vous pouvez maintenant vendre/livrer ce pack.")
+        return redirect("business:ai_delivery_kit", business_id=business.id)
+
+    if not kit:
+        kit = ClientAIKit.objects.create(business=business, created_by=request.user)
+
+    whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(kit_summary_for_whatsapp(kit))}" if kit.generated_at else ""
+    return render(
+        request,
+        "business/ai_delivery_kit.html",
+        {
+            "business": business,
+            "kit": kit,
+            "whatsapp_url": whatsapp_url,
+        },
+    )
 
 
 def _event_chart_stats(event_stats):

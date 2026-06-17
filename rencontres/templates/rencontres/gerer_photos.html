@@ -18,6 +18,12 @@
     </div>
 
     <!-- Grille photos -->
+    {% if photos_en_attente %}
+    <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;color:#fbbf24">
+        {{ photos_en_attente.count }} photo{{ photos_en_attente.count|pluralize }} en attente de validation.
+    </div>
+    {% endif %}
+
     <div class="photos-grid" style="margin-bottom:1.5rem">
         {% for photo in photos %}
         <div style="position:relative">
@@ -44,6 +50,29 @@
         </div>
         {% endfor %}
     </div>
+
+    {% if photos_en_attente %}
+    <h4 style="font-size:.9rem;color:var(--love-muted);margin-bottom:.75rem">En attente</h4>
+    <div class="photos-grid" style="margin-bottom:1.5rem;opacity:.72">
+        {% for photo in photos_en_attente %}
+        <div style="position:relative">
+            <img src="{{ photo.image.url }}" alt="Photo en attente {{ forloop.counter }}">
+            <span style="position:absolute;top:4px;left:4px;background:#f59e0b;color:#1a1a2e;font-size:0.65rem;padding:0.15rem 0.4rem;border-radius:4px;font-weight:800">
+                En attente
+            </span>
+            <form method="post" style="position:absolute;top:4px;right:4px">
+                {% csrf_token %}
+                <input type="hidden" name="photo_id" value="{{ photo.id }}">
+                <button type="submit" name="supprimer"
+                    style="background:rgba(0,0,0,0.6);border:none;color:white;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:0.75rem;display:flex;align-items:center;justify-content:center"
+                    onclick="return confirm('Supprimer cette photo ?')">
+                    ✕
+                </button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <!-- Ajouter photo -->
     {% if peut_ajouter %}

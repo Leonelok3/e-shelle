@@ -9,7 +9,12 @@ from django.dispatch import receiver
 def update_profil_premium_status(sender, instance, **kwargs):
     """Met à jour le statut premium du profil lors d'un changement d'abonnement."""
     profil = instance.profil
-    is_premium = instance.est_valide()
+    from django.utils import timezone
+    is_premium = sender.objects.filter(
+        profil=profil,
+        est_actif=True,
+        date_fin__gt=timezone.now(),
+    ).exists()
     if profil.est_premium != is_premium:
         profil.est_premium = is_premium
         profil.save(update_fields=['est_premium'])

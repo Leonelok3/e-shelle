@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Validation Business Key{% endblock %}
+{% block title %}Pilotage Business Key{% endblock %}
 
 {% block content %}
 <section class="key-admin-page">
@@ -8,14 +8,34 @@
     <div class="ka-head">
       <div>
         <a href="{% url 'business:partner_dashboard' %}">Retour dashboard</a>
-        <h1>Valider Business Key</h1>
-        <p>Interface simple pour confirmer ou refuser les paiements Mobile Money des partenaires.</p>
+        <h1>Pilotage Business Key</h1>
+        <p>
+          Suivi admin des partenaires, paiements, commissions, prospects chauds et fiches prestataires.
+          Offre actuelle: {{ business_key_price }} FCFA, {{ partner_recruit_rate }}% partenaire, {{ provider_rate }}% prestataire.
+        </p>
       </div>
-      <a class="ka-btn" href="/admin/business/businesskeypaymentrequest/">Django Admin</a>
+      <div class="ka-actions">
+        <a class="ka-btn" href="{% url 'business:eshelle_command_center' %}">Command Center</a>
+        <a class="ka-btn" href="{% url 'business:unmet_search_opportunities' %}">Opportunites E-Shelle</a>
+        <a class="ka-btn" href="{% url 'business:business_key_daily_academy' %}">Formation du jour</a>
+        <a class="ka-btn" href="/admin/business/businesskeypaymentrequest/">Django Admin</a>
+      </div>
+    </div>
+
+    <div class="ka-stats">
+      <article><span>Partenaires actifs</span><strong>{{ stats.active_partners }}</strong></article>
+      <article><span>Paiements Key attente</span><strong>{{ stats.pending_business_key_payments }}</strong></article>
+      <article><span>Paiements prestataires</span><strong>{{ stats.pending_provider_payments }}</strong></article>
+      <article><span>Commissions dues</span><strong>{{ stats.pending_commissions|floatformat:"0" }}</strong></article>
+      <article><span>Prospects chauds</span><strong>{{ stats.crm_hot }}</strong></article>
+      <article><span>Demandes ouvertes</span><strong>{{ stats.unmet_open }}</strong></article>
     </div>
 
     <section class="ka-card">
-      <h2>Demandes en attente</h2>
+      <div class="ka-card-head">
+        <h2>Demandes Business Key en attente</h2>
+        <span>Validation Mobile Money</span>
+      </div>
       <div class="ka-list">
         {% for payment in pending %}
         <article>
@@ -40,8 +60,139 @@
       </div>
     </section>
 
+    <div class="ka-grid">
+      <section class="ka-card">
+        <div class="ka-card-head">
+          <h2>Partenaires actifs recents</h2>
+          <span>Business Key</span>
+        </div>
+        <div class="ka-list compact">
+          {% for account in recent_partners %}
+          <article>
+            <div>
+              <strong>{{ account.user.get_username }}</strong>
+              <span>{{ account.get_tier_display }} · expire le {{ account.expires_at|date:"d/m/Y" }}</span>
+            </div>
+          </article>
+          {% empty %}
+          <p>Aucun partenaire actif pour le moment.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="ka-card">
+        <div class="ka-card-head">
+          <h2>Top commissions dues</h2>
+          <span>A payer</span>
+        </div>
+        <div class="ka-list compact">
+          {% for row in top_commissions %}
+          <article>
+            <div>
+              <strong>{{ row.affiliate__user__username|default:"Partenaire" }}</strong>
+              <span>{{ row.total|floatformat:"0" }} XAF · {{ row.count }} commission(s)</span>
+            </div>
+          </article>
+          {% empty %}
+          <p>Aucune commission en attente.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <div class="ka-grid">
+      <section class="ka-card">
+        <div class="ka-card-head">
+          <h2>Demandes non satisfaites</h2>
+          <span>Google local E-Shelle</span>
+        </div>
+        <div class="ka-list compact">
+          {% for item in unmet_requests %}
+          <article>
+            <div>
+              <strong>{{ item.query }}</strong>
+              <span>{{ item.get_module_display }} · {{ item.district|default:"zone" }} {{ item.city|default:"" }} · {{ item.get_status_display }} · score {{ item.lead_score }}/100</span>
+              <a href="{% url 'business:unmet_search_opportunities' %}">Voir pipeline</a>
+            </div>
+          </article>
+          {% empty %}
+          <p>Aucune demande ouverte.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="ka-card">
+        <div class="ka-card-head">
+          <h2>Prospects chauds CRM</h2>
+          <span>Relance prioritaire</span>
+        </div>
+        <div class="ka-list compact">
+          {% for lead in hot_leads %}
+          <article>
+            <div>
+              <strong>{{ lead.business_name }}</strong>
+              <span>{{ lead.partner.get_username }} · {{ lead.get_status_display }} · {{ lead.potential_xaf }} FCFA</span>
+            </div>
+          </article>
+          {% empty %}
+          <p>Aucun prospect chaud.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="ka-card">
+        <div class="ka-card-head">
+          <h2>Fiches prestataires recentes</h2>
+          <span>Controle qualite</span>
+        </div>
+        <div class="ka-list compact">
+          {% for business in recent_businesses %}
+          <article>
+            <div>
+              <strong>{{ business.name }}</strong>
+              <span>{{ business.owner.get_username }} · {{ business.city|default:"ville ?" }} · {{ business.created_at|date:"d/m/Y H:i" }}</span>
+            </div>
+          </article>
+          {% empty %}
+          <p>Aucune fiche recente.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
     <section class="ka-card">
-      <h2>Historique recent</h2>
+      <div class="ka-card-head">
+        <h2>Paiements prestataires recents</h2>
+        <span>30% commission si parrainage valide</span>
+      </div>
+      <div class="ka-table-wrap">
+        <table class="ka-table">
+          <thead>
+            <tr><th>Prestataire</th><th>Plan</th><th>Montant</th><th>Demandeur</th><th>Statut</th><th>Date</th></tr>
+          </thead>
+          <tbody>
+            {% for payment in provider_payment_requests %}
+            <tr>
+              <td>{{ payment.business.name }}</td>
+              <td>{{ payment.plan.name }}</td>
+              <td>{{ payment.amount_xaf }} FCFA</td>
+              <td>{{ payment.requested_by.get_username }}</td>
+              <td>{{ payment.get_status_display }}</td>
+              <td>{{ payment.created_at|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">Aucun paiement prestataire recent.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="ka-card">
+      <div class="ka-card-head">
+        <h2>Historique Business Key recent</h2>
+        <span>Validation admin</span>
+      </div>
       <div class="ka-list compact">
         {% for payment in recent %}
         <article>
@@ -60,14 +211,23 @@
 
 <style>
 .key-admin-page{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
-.ka-container{width:min(1120px,92vw);margin:0 auto}
+.ka-container{width:min(1240px,92vw);margin:0 auto}
 .ka-head{display:flex;justify-content:space-between;gap:1rem;align-items:end;flex-wrap:wrap;margin-bottom:1rem}
 .ka-head a{color:#78ff97;text-decoration:none;font-weight:900}
-.ka-head h1{font-size:clamp(2.4rem,5vw,4.6rem);line-height:.9;color:#fffbe8;margin:.55rem 0}
-.ka-head p{color:#b9ddc3;line-height:1.55}
-.ka-btn{border:1px solid rgba(114,255,146,.3);border-radius:8px;padding:.75rem 1rem}
-.ka-card{background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px;padding:1rem;margin-bottom:1rem}
-.ka-card h2{color:#ffd51f;margin:0 0 .8rem}
+.ka-head h1{font-size:clamp(2.4rem,5vw,4.8rem);line-height:.9;color:#fffbe8;margin:.55rem 0}
+.ka-head p{color:#b9ddc3;line-height:1.55;max-width:820px}
+.ka-actions{display:flex;gap:.7rem;flex-wrap:wrap}
+.ka-btn{border:1px solid rgba(114,255,146,.3);border-radius:8px;padding:.75rem 1rem;background:#06170f}
+.ka-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.8rem;margin-bottom:1rem}
+.ka-stats article,.ka-card{background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px}
+.ka-stats article{padding:1rem}
+.ka-stats span{display:block;color:#a8d5b7;font-size:.82rem}
+.ka-stats strong{display:block;color:#ffd51f;font-size:2rem;margin-top:.35rem}
+.ka-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.ka-card{padding:1rem;margin-bottom:1rem}
+.ka-card-head{display:flex;justify-content:space-between;gap:1rem;align-items:center;border-bottom:1px solid rgba(114,255,146,.14);padding-bottom:.8rem;margin-bottom:.8rem}
+.ka-card h2{color:#ffd51f;margin:0;font-size:1.2rem}
+.ka-card-head span{color:#a8d5b7;font-weight:800}
 .ka-list{display:grid;gap:.7rem}
 .ka-list article{display:grid;grid-template-columns:1fr auto auto;gap:.6rem;align-items:center;background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.9rem}
 .ka-list.compact article{grid-template-columns:1fr}
@@ -76,6 +236,11 @@
 .ka-list a{color:#78ff97;font-weight:900}
 .ka-list button{border:0;border-radius:8px;color:#fff;font-weight:900;padding:.65rem .85rem;cursor:pointer}
 .ka-list button.confirm{background:#2faf52}.ka-list button.cancel{background:#dc2626}
-@media(max-width:780px){.ka-list article{grid-template-columns:1fr}}
+.ka-table-wrap{overflow:auto}
+.ka-table{width:100%;border-collapse:collapse;min-width:780px}
+.ka-table th,.ka-table td{padding:.75rem;border-bottom:1px solid rgba(114,255,146,.14);text-align:left}
+.ka-table th{color:#78ff97;background:#06170f}.ka-table td{color:#dfffe6}
+@media(max-width:1000px){.ka-stats,.ka-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:780px){.ka-stats,.ka-grid,.ka-list article{grid-template-columns:1fr}}
 </style>
 {% endblock %}

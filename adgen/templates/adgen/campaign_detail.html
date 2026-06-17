@@ -46,6 +46,55 @@
   }
   .copy-btn:hover { opacity: .85; }
   .copy-btn.copied { background: #10b981; }
+  .product-photo {
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    border-radius: 1.25rem;
+    border: 1px solid #ede9fe;
+    box-shadow: 0 16px 42px rgba(17,24,39,.08);
+    margin-bottom: 1rem;
+  }
+  .campaign-summary {
+    background: linear-gradient(135deg,#fff,#faf7ff);
+    border: 1px solid #ede9fe;
+    border-radius: 1.25rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: center;
+  }
+  .campaign-summary p { color: #6b7280; margin-top: .35rem; font-size: .9rem; }
+  .mode-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    border-radius: 999px;
+    padding: .42rem .7rem;
+    font-size: .72rem;
+    font-weight: 800;
+    background: #ecfdf5;
+    color: #047857;
+    white-space: nowrap;
+  }
+  .quick-actions { display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem; }
+  .quick-actions a {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:.85rem;
+    padding:.62rem .9rem;
+    font-size:.8rem;
+    font-weight:800;
+    color:#fff;
+    text-decoration:none;
+  }
+  .quick-actions .wa{background:#22c55e}
+  .quick-actions .fb{background:#1877f2}
+  .quick-actions .new{background:var(--adgen-primary)}
+  @media(max-width:700px){.campaign-summary{grid-template-columns:1fr}.product-photo{max-height:240px}}
 </style>
 {% endblock %}
 
@@ -85,6 +134,24 @@
     </div>
   </div>
 
+  <div class="campaign-summary">
+    <div>
+      <h2 class="text-lg font-black text-gray-900">{{ campaign.nom_produit }}</h2>
+      <p>{{ campaign.description|truncatechars:170 }}</p>
+    </div>
+    {% if content %}
+      {% if content.tokens_used == 0 %}
+      <span class="mode-badge">Mode test local</span>
+      {% else %}
+      <span class="mode-badge">Generation IA</span>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  {% if campaign.photo_url %}
+  <img class="product-photo" src="{{ campaign.photo_url }}" alt="Photo {{ campaign.nom_produit }}">
+  {% endif %}
+
   {% if not content %}
   <!-- Pas de contenu -->
   <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 sm:p-16 text-center">
@@ -99,7 +166,7 @@
     {% elif campaign.status == 'failed' %}
     <div class="text-5xl mb-4">❌</div>
     <h3 class="text-xl font-bold text-gray-800 mb-2">La génération a échoué</h3>
-    <p class="text-gray-400 mb-6">Vérifiez votre clé API Anthropic et réessayez.</p>
+    <p class="text-gray-400 mb-6">Vous pouvez relancer. Si l'API est indisponible, AdGen utilisera le mode test local.</p>
     <a href="{% url 'adgen:generate' pk=campaign.pk %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white" style="background:#ef4444">Relancer</a>
     {% else %}
     <div class="text-5xl mb-4">⏳</div>
@@ -113,6 +180,16 @@
   </div>
 
   {% else %}
+  <div class="quick-actions">
+    {% if content.whatsapp_message %}
+    <a class="wa" target="_blank" rel="noopener" href="https://wa.me/?text={{ content.whatsapp_message|urlencode }}">Partager WhatsApp</a>
+    {% endif %}
+    {% if content.facebook_post %}
+    <a class="fb" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}">Partager Facebook</a>
+    {% endif %}
+    <a class="new" href="{% url 'adgen:create' %}">Nouvelle campagne</a>
+  </div>
+
   <!-- Tabs -->
   <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
 
@@ -192,6 +269,7 @@
             <h3 class="font-bold text-gray-800">Post Facebook</h3>
           </div>
           <div class="content-block">{{ content.facebook_post }}<button class="copy-btn" onclick="copyText(`{{ content.facebook_post|escapejs }}`, this)">Copier</button></div>
+          <a class="inline-flex mt-2 text-xs font-bold px-3 py-2 rounded-lg text-white" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" style="background:#1877f2">Partager sur Facebook</a>
         </div>
         {% endif %}
         {% if content.instagram_post %}
@@ -210,6 +288,7 @@
             <h3 class="font-bold text-gray-800">Message WhatsApp</h3>
           </div>
           <div class="content-block">{{ content.whatsapp_message }}<button class="copy-btn" onclick="copyText(`{{ content.whatsapp_message|escapejs }}`, this)">Copier</button></div>
+          <a class="inline-flex mt-2 text-xs font-bold px-3 py-2 rounded-lg text-white" target="_blank" rel="noopener" href="https://wa.me/?text={{ content.whatsapp_message|urlencode }}" style="background:#25d366">Envoyer sur WhatsApp</a>
         </div>
         {% endif %}
         {% if content.hashtags %}

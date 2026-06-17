@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from django.utils.html import mark_safe
 from django.utils import timezone
 
@@ -13,7 +14,7 @@ from rencontres.models import (
 class ProfilRencontreAdmin(admin.ModelAdmin):
     list_display = [
         'prenom_affiche', 'user', 'genre', 'age_display', 'ville',
-        'pays', 'est_verifie', 'est_premium', 'est_actif',
+        'pays', 'photo_status', 'est_verifie', 'est_premium', 'est_actif',
         'profil_complet', 'derniere_connexion'
     ]
     list_filter = ['genre', 'est_verifie', 'est_premium', 'est_actif', 'pays', 'religion', 'est_diaspora']
@@ -66,6 +67,16 @@ class ProfilRencontreAdmin(admin.ModelAdmin):
             return "—"
     age_display.short_description = "Âge"
 
+    def photo_status(self, obj):
+        approved = obj.photos.filter(est_approuvee=True).count()
+        pending = obj.photos.filter(est_approuvee=False).count()
+        if approved:
+            return format_html('<span style="color:#22c55e;font-weight:700">{} approuvée(s)</span>', approved)
+        if pending:
+            return format_html('<span style="color:#f59e0b;font-weight:700">{} en attente</span>', pending)
+        return format_html('<span style="color:#ef4444;font-weight:700">Aucune</span>')
+    photo_status.short_description = "Photos"
+
     @admin.action(description="Vérifier les profils sélectionnés")
     def verifier_profils(self, request, queryset):
         queryset.update(est_verifie=True, badge_verifie=True)
@@ -84,17 +95,17 @@ class ProfilRencontreAdmin(admin.ModelAdmin):
     @admin.action(description="Activer le premium (test 30j)")
     def activer_premium_test(self, request, queryset):
         from rencontres.models import PlanPremiumRencontre, AbonnementRencontre
-        plan = PlanPremiumRencontre.objects.filter(nom='gold').first()
+        plan = PlanPremiumRencontre.objects.filter(nom='platinum').first()
         if not plan:
-            self.message_user(request, "Plan Gold introuvable.", level='error')
+            self.message_user(request, "Plan 1 mois introuvable.", level='error')
             return
         for profil in queryset:
             AbonnementRencontre.objects.create(
                 profil=profil,
                 plan=plan,
-                date_fin=timezone.now() + timezone.timedelta(days=30)
+                date_fin=timezone.now() + timezone.timedelta(days=plan.duree_jours)
             )
-        self.message_user(request, f"{queryset.count()} profil(s) passés en premium (30j).")
+        self.message_user(request, f"{queryset.count()} profil(s) passés en premium ({plan.duree_jours}j).")
 
 
 @admin.register(PhotoProfil)
@@ -111,12 +122,27 @@ class PhotoProfilAdmin(admin.ModelAdmin):
 
     @admin.action(description="Approuver les photos sélectionnées")
     def approuver_photos(self, request, queryset):
-        queryset.update(est_approuvee=True)
+        for photo in queryset.select_related('profil'):
+            photo.est_approuvee = True
+            photo.save(update_fields=['est_approuvee'])
+            profil = photo.profil
+            if photo.est_principale or not profil.photo_principale:
+                profil.photo_principale = photo.image
+            profil.est_verifie = True
+            profil.badge_verifie = True
+            profil.calculer_completion()
+            profil.save(update_fields=[
+                'photo_principale', 'est_verifie', 'badge_verifie', 'profil_complet'
+            ])
         self.message_user(request, f"{queryset.count()} photo(s) approuvée(s).")
 
     @admin.action(description="Rejeter (supprimer) les photos sélectionnées")
     def rejeter_photos(self, request, queryset):
         count = queryset.count()
+        for photo in queryset.select_related('profil'):
+            if photo.profil.photo_principale == photo.image:
+                photo.profil.photo_principale = None
+                photo.profil.save(update_fields=['photo_principale'])
         queryset.delete()
         self.message_user(request, f"{count} photo(s) supprimée(s).")
 
@@ -138,20 +164,20 @@ class MatchAdmin(admin.ModelAdmin):
 @admin.register(PlanPremiumRencontre)
 class PlanPremiumRencontreAdmin(admin.ModelAdmin):
     list_display = [
-        'plan_badge', 'prix_xaf_display', 'prix_annuel_display',
+        'plan_badge', 'duree_jours', 'prix_xaf_display',
         'likes_par_jour', 'messages_par_jour', 'photos_max',
         'filtre_avance', 'mode_incognito',
     ]
-    ordering = ['prix_xaf_mensuel']
+    ordering = ['duree_jours', 'prix_xaf_mensuel']
 
     fieldsets = (
         ('🏷️ Identité du plan', {
             'fields': ('nom', 'description'),
-            'description': 'Silver = entrée de gamme · Gold = populaire · Platinum = tout illimité'
+            'description': '3 jours · 10 jours · 1 mois'
         }),
         ('💰 Tarification FCFA (Mobile Money)', {
-            'fields': ('prix_xaf_mensuel', 'prix_xaf_annuel'),
-            'description': 'Saisir les prix en FCFA. Le prix annuel doit offrir ~2 mois gratuits.'
+            'fields': ('prix_xaf_mensuel', 'duree_jours'),
+            'description': 'Paiement manuel : le client paie, puis l’admin active après vérification.'
         }),
         ('📊 Limites d\'utilisation', {
             'fields': ('likes_par_jour', 'super_likes_par_jour', 'messages_par_jour', 'photos_max', 'boost_profil_par_semaine'),
@@ -165,7 +191,7 @@ class PlanPremiumRencontreAdmin(admin.ModelAdmin):
 
     def plan_badge(self, obj):
         colors = {'silver': '#9CA3AF', 'gold': '#F59E0B', 'platinum': '#8B5CF6'}
-        icons  = {'silver': '🥈', 'gold': '🥇', 'platinum': '💎'}
+        icons  = {'silver': '⚡', 'gold': '💗', 'platinum': '👑'}
         color  = colors.get(obj.nom, '#666')
         icon   = icons.get(obj.nom, '⭐')
         return format_html(
@@ -176,24 +202,138 @@ class PlanPremiumRencontreAdmin(admin.ModelAdmin):
     plan_badge.admin_order_field = 'nom'
 
     def prix_xaf_display(self, obj):
-        return format_html('<strong>{:,} FCFA</strong>/mois', int(obj.prix_xaf_mensuel)).replace(',', ' ')
-    prix_xaf_display.short_description = 'Prix mensuel'
+        return format_html('<strong>{:,} FCFA</strong>', int(obj.prix_xaf_mensuel)).replace(',', ' ')
+    prix_xaf_display.short_description = 'Prix'
     prix_xaf_display.admin_order_field = 'prix_xaf_mensuel'
-
-    def prix_annuel_display(self, obj):
-        return format_html('{:,} FCFA/an', int(obj.prix_xaf_annuel)).replace(',', ' ')
-    prix_annuel_display.short_description = 'Prix annuel'
 
 
 @admin.register(AbonnementRencontre)
 class AbonnementRencontreAdmin(admin.ModelAdmin):
-    list_display = ['profil', 'plan', 'date_debut', 'date_fin', 'est_actif', 'jours_restants_display']
-    list_filter = ['est_actif', 'plan']
-    search_fields = ['profil__prenom_affiche']
+    list_display = [
+        'profil', 'plan', 'demande_status', 'payment_reference',
+        'telephone_paiement', 'reference_client', 'statut_transaction',
+        'date_debut', 'date_fin', 'jours_restants_display'
+    ]
+    list_filter = ['est_actif', 'plan', 'date_debut']
+    search_fields = [
+        'profil__prenom_affiche', 'profil__user__username',
+        'payment_reference', 'profil__user__email'
+    ]
+    readonly_fields = [
+        'payment_reference', 'telephone_paiement',
+        'reference_client', 'statut_transaction'
+    ]
+    date_hierarchy = 'date_debut'
+    actions = ['activer_abonnements', 'desactiver_abonnements']
+
+    fieldsets = (
+        ('Demande', {
+            'fields': ('profil', 'plan', 'est_actif', 'date_fin')
+        }),
+        ('Paiement manuel', {
+            'fields': (
+                'payment_reference', 'telephone_paiement',
+                'reference_client', 'statut_transaction'
+            ),
+            'description': (
+                'Verifier le paiement Mobile Money, puis utiliser l’action '
+                '"Activer manuellement les abonnements sélectionnés".'
+            )
+        }),
+        ('Options', {
+            'fields': ('renouvellement_auto',)
+        }),
+    )
+
+    def _transaction(self, obj):
+        if not obj.payment_reference:
+            return None
+        try:
+            from payments.models import Transaction
+            return Transaction.objects.filter(reference=obj.payment_reference).first()
+        except Exception:
+            return None
+
+    def demande_status(self, obj):
+        if obj.est_valide():
+            return format_html('<span style="color:#22c55e;font-weight:800">Actif</span>')
+        if obj.est_actif and obj.date_fin <= timezone.now():
+            return format_html('<span style="color:#ef4444;font-weight:800">Expiré</span>')
+        return format_html('<span style="color:#f59e0b;font-weight:800">En attente</span>')
+    demande_status.short_description = "Statut"
+    demande_status.admin_order_field = 'est_actif'
+
+    def telephone_paiement(self, obj):
+        tx = self._transaction(obj)
+        return tx.telephone if tx and tx.telephone else "—"
+    telephone_paiement.short_description = "Téléphone"
+
+    def reference_client(self, obj):
+        tx = self._transaction(obj)
+        if tx and isinstance(tx.metadata, dict):
+            return tx.metadata.get('reference_client') or "—"
+        return "—"
+    reference_client.short_description = "Référence client"
+
+    def statut_transaction(self, obj):
+        tx = self._transaction(obj)
+        if not tx:
+            return "—"
+        colors = {
+            'succes': '#22c55e',
+            'en_attente': '#f59e0b',
+            'initie': '#94a3b8',
+            'echec': '#ef4444',
+        }
+        return format_html(
+            '<span style="color:{};font-weight:700">{}</span>',
+            colors.get(tx.statut, '#94a3b8'),
+            tx.get_statut_display(),
+        )
+    statut_transaction.short_description = "Transaction"
 
     def jours_restants_display(self, obj):
         return f"{obj.jours_restants()} jours"
     jours_restants_display.short_description = "Jours restants"
+
+    @admin.action(description="Activer manuellement les abonnements sélectionnés")
+    def activer_abonnements(self, request, queryset):
+        count = 0
+        for abo in queryset.select_related('profil', 'plan'):
+            AbonnementRencontre.objects.filter(
+                profil=abo.profil,
+                est_actif=True,
+            ).exclude(pk=abo.pk).update(est_actif=False)
+            abo.est_actif = True
+            abo.date_fin = timezone.now() + timezone.timedelta(days=abo.plan.duree_jours)
+            abo.save(update_fields=['est_actif', 'date_fin'])
+            abo.profil.est_premium = True
+            abo.profil.save(update_fields=['est_premium'])
+            if abo.payment_reference:
+                try:
+                    from payments.models import Transaction
+                    Transaction.objects.filter(reference=abo.payment_reference).update(statut='succes')
+                except Exception:
+                    pass
+            count += 1
+        self.message_user(request, f"{count} abonnement(s) activé(s).")
+
+    @admin.action(description="Désactiver les abonnements sélectionnés")
+    def desactiver_abonnements(self, request, queryset):
+        profils = []
+        for abo in queryset.select_related('profil'):
+            abo.est_actif = False
+            abo.save(update_fields=['est_actif'])
+            profils.append(abo.profil)
+        for profil in profils:
+            has_active = AbonnementRencontre.objects.filter(
+                profil=profil,
+                est_actif=True,
+                date_fin__gt=timezone.now(),
+            ).exists()
+            profil.est_premium = has_active
+            profil.save(update_fields=['est_premium'])
+        self.message_user(request, f"{queryset.count()} abonnement(s) désactivé(s).")
 
 
 @admin.register(Signalement)

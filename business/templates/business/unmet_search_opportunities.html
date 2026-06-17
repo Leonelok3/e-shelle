@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Opportunites E-Shelle{% endblock %}
+
+{% block content %}
+<section class="opp-page">
+  <div class="opp-container">
+    <div class="opp-head">
+      <div>
+        <a href="{% url 'business:partner_dashboard' %}">Retour dashboard</a>
+        <h1>Opportunites E-Shelle</h1>
+        <p>Le pipeline commercial du moteur de recherche: demande, assignation, relance, conversion et commission.</p>
+      </div>
+      <a class="opp-btn" href="{% url 'business:unmet_search_create' %}">Demande express</a>
+    </div>
+
+    <div class="opp-stats">
+      <article><span>Ouvertes</span><strong>{{ stats.open }}</strong></article>
+      <article><span>Nouvelles</span><strong>{{ stats.new }}</strong></article>
+      <article><span>Contactees</span><strong>{{ stats.contacted }}</strong></article>
+      <article><span>Vendues</span><strong>{{ stats.sold }}</strong></article>
+      <article><span>Valeur pipeline</span><strong>{{ stats.value }} XAF</strong></article>
+    </div>
+
+    <form class="opp-filters" method="get">
+      <select name="status">
+        <option value="">Tous les statuts actifs</option>
+        {% for value,label in statuses %}
+        <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select name="module">
+        <option value="">Toutes categories</option>
+        {% for value,label in modules %}
+        <option value="{{ value }}" {% if filters.module == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select name="priority">
+        <option value="">Toutes priorites</option>
+        {% for priority in priorities %}
+        <option value="{{ priority }}" {% if filters.priority == priority %}selected{% endif %}>{{ priority }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit">Filtrer</button>
+    </form>
+
+    <div class="opp-list">
+      {% for row in rows %}
+      <article class="opp-card">
+        <div class="opp-top">
+          <div>
+            <span>{{ row.request.get_module_display }} · {{ row.request.district|default:"zone" }} {{ row.request.city|default:"" }}</span>
+            <h2>{{ row.request.query }}</h2>
+          </div>
+          <div class="opp-score">
+            <strong>{{ row.request.lead_score }}/100</strong>
+            <em>{{ row.request.ai_priority }}</em>
+          </div>
+        </div>
+
+        <div class="opp-grid">
+          <div><span>Client</span><b>{{ row.request.customer_name|default:"Non renseigne" }}</b></div>
+          <div><span>WhatsApp</span><b>{{ row.request.whatsapp|default:"Non renseigne" }}</b></div>
+          <div><span>Email</span><b>{{ row.request.email|default:"Non renseigne" }}</b></div>
+          <div><span>Statut</span><b>{{ row.request.get_status_display }}</b></div>
+          <div><span>Assigne a</span><b>{{ row.request.assigned_partner.get_username|default:"Non assigne" }}</b></div>
+          <div><span>Valeur estimee</span><b>{{ row.request.estimated_value_xaf }} XAF</b></div>
+        </div>
+
+        {% if row.request.notes %}
+        <p class="opp-note">{{ row.request.notes }}</p>
+        {% endif %}
+        {% if row.request.conversion_note %}
+        <p class="opp-note">Suivi: {{ row.request.conversion_note }}</p>
+        {% endif %}
+
+        <div class="opp-matches">
+          <strong>Matching automatique</strong>
+          {% if row.matches %}
+          <div class="opp-match-grid">
+            {% for business in row.matches %}
+            <article>
+              <b>{{ business.name }}</b>
+              <span>{{ business.get_module_display }} · {{ business.district|default:"zone" }} {{ business.city|default:"" }}</span>
+              <a href="{{ business.get_absolute_url }}">Voir fiche</a>
+            </article>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p>0 prestataire compatible. Priorite recrutement dans cette categorie et cette zone.</p>
+          {% endif %}
+        </div>
+
+        <div class="opp-actions">
+          {% if row.client_whatsapp_url %}
+          <a class="opp-btn" href="{{ row.client_whatsapp_url }}" target="_blank" rel="noopener">Relancer client</a>
+          {% endif %}
+          <a class="opp-link" href="{{ row.partner_whatsapp_url }}" target="_blank" rel="noopener">Notifier WhatsApp</a>
+          {% if request.user.is_staff %}
+          <form method="post" action="{% url 'business:unmet_search_assign' row.request.pk %}">
+            {% csrf_token %}
+            <select name="partner_id">
+              <option value="">Non assigne</option>
+              {% for partner in partners %}
+              <option value="{{ partner.pk }}" {% if row.request.assigned_partner_id == partner.pk %}selected{% endif %}>{{ partner.get_username }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit">Assigner</button>
+          </form>
+          {% endif %}
+        </div>
+
+        <form class="opp-update" method="post" action="{% url 'business:unmet_search_opportunity_action' row.request.pk %}">
+          {% csrf_token %}
+          <select name="status">
+            {% for value,label in statuses %}
+            <option value="{{ value }}" {% if row.request.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <input name="conversion_note" placeholder="Note de suivi ou resultat..." value="{{ row.request.conversion_note }}">
+          <button type="submit">Mettre a jour</button>
+        </form>
+      </article>
+      {% empty %}
+      <section class="opp-card">
+        <h2>Aucune opportunite</h2>
+        <p>Les demandes capturees par le moteur de recherche apparaitront ici.</p>
+      </section>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<style>
+.opp-page{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
+.opp-container{width:min(1220px,92vw);margin:0 auto}.opp-head{display:flex;justify-content:space-between;gap:1rem;align-items:end;flex-wrap:wrap;margin-bottom:1rem}
+.opp-head a{color:#78ff97;text-decoration:none;font-weight:900}.opp-head h1{font-size:clamp(2.4rem,6vw,5rem);line-height:.9;color:#fffbe8;margin:.6rem 0}.opp-head p,.opp-card p{color:#b9ddc3}
+.opp-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.8rem;margin-bottom:1rem}.opp-stats article,.opp-card{background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px;padding:1rem}.opp-stats span,.opp-grid span{display:block;color:#9fd7ac;font-size:.75rem;text-transform:uppercase;font-weight:900}.opp-stats strong{font-size:1.4rem;color:#ffd51f}
+.opp-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.7rem;margin-bottom:1rem}.opp-filters select,.opp-filters button,.opp-update select,.opp-update input,.opp-update button,.opp-actions select,.opp-actions button{background:#06170f;border:1px solid rgba(114,255,146,.25);border-radius:8px;color:#fff;padding:.75rem;font-weight:800}.opp-filters button,.opp-update button,.opp-actions button,.opp-btn{background:linear-gradient(135deg,#35b257,#d49618);border:0;color:#fff;text-decoration:none;font-weight:900}
+.opp-card{margin-bottom:1rem}.opp-top{display:flex;justify-content:space-between;gap:1rem}.opp-top span{color:#78ff97;font-weight:900;text-transform:uppercase;font-size:.78rem}.opp-top h2{color:#ffd51f;margin:.35rem 0}.opp-score{text-align:right}.opp-score strong,.opp-score em{display:inline-block;background:#06170f;border-radius:999px;padding:.45rem .7rem;font-style:normal;color:#fff}.opp-score em{color:#78ff97}
+.opp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;margin:.8rem 0}.opp-grid div,.opp-note,.opp-matches{background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.75rem}.opp-grid b{color:#fff;word-break:break-word}.opp-matches>strong{display:block;color:#ffd51f;margin-bottom:.5rem}.opp-match-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem}.opp-match-grid article{background:#0b2518;border:1px solid rgba(114,255,146,.12);border-radius:8px;padding:.65rem}.opp-match-grid b,.opp-match-grid span{display:block}.opp-match-grid span{color:#9fd7ac;font-size:.82rem}.opp-match-grid a{color:#78ff97;text-decoration:none;font-weight:900;font-size:.85rem}.opp-actions,.opp-update{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin-top:.8rem}.opp-btn,.opp-link{border-radius:8px;padding:.75rem .95rem}.opp-link{color:#78ff97;text-decoration:none;border:1px solid rgba(114,255,146,.25);font-weight:900}.opp-update input{flex:1;min-width:260px}
+@media(max-width:900px){.opp-stats,.opp-filters,.opp-grid,.opp-match-grid{grid-template-columns:1fr}.opp-top,.opp-actions,.opp-update{display:grid}.opp-actions a,.opp-actions button,.opp-update button{width:100%}}
+</style>
+{% endblock %}

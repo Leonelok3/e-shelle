@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}E-Shelle Command Center{% endblock %}
+
+{% block content %}
+<section class="cc-page">
+  <div class="cc-container">
+    <div class="cc-head">
+      <div>
+        <a href="{% url 'business:business_key_admin' %}">Retour pilotage</a>
+        <h1>E-Shelle Command Center</h1>
+        <p>Le cockpit du Google local E-Shelle: recherches, demandes, matching prestataires, recrutement et conversion.</p>
+      </div>
+      <div class="cc-actions">
+        <a class="cc-btn" href="{% url 'business:ai_arsenal' %}">Arsenal IA</a>
+        <a class="cc-btn" href="{% url 'business:eshelle_communication' %}">Plan communication</a>
+        <a class="cc-btn" href="{% url 'business:unmet_search_opportunities' %}">Pipeline opportunites</a>
+        <a class="cc-btn ghost" href="{% url 'business:unmet_search_express' %}">Demande express</a>
+      </div>
+    </div>
+
+    <form class="cc-filter" method="get">
+      <label>Fenetre d'analyse</label>
+      <select name="days">
+        <option value="1" {% if days == 1 %}selected{% endif %}>24 heures</option>
+        <option value="7" {% if days == 7 %}selected{% endif %}>7 jours</option>
+        <option value="30" {% if days == 30 %}selected{% endif %}>30 jours</option>
+      </select>
+      <button type="submit">Actualiser</button>
+    </form>
+
+    <div class="cc-stats">
+      <article><span>Recherches</span><strong>{{ stats.queries }}</strong></article>
+      <article><span>Sans resultat</span><strong>{{ stats.no_results }}</strong></article>
+      <article><span>Demandes captees</span><strong>{{ stats.captured }}</strong></article>
+      <article><span>Aujourd'hui</span><strong>{{ stats.today_captured }}</strong></article>
+      <article><span>Ouvertes</span><strong>{{ stats.open }}</strong></article>
+      <article><span>Leads chauds</span><strong>{{ stats.hot }}</strong></article>
+      <article><span>Vendues</span><strong>{{ stats.sold }}</strong></article>
+      <article><span>Valeur pipeline</span><strong>{{ stats.pipeline_value }} XAF</strong></article>
+      <article><span>Contacts</span><strong>{{ stats.contacts }}</strong></article>
+      <article><span>Partenaires actifs</span><strong>{{ stats.active_partners }}</strong></article>
+      <article><span>Prestataires</span><strong>{{ stats.providers }}</strong></article>
+    </div>
+
+    <div class="cc-grid">
+      <section class="cc-card wide">
+        <div class="cc-card-head">
+          <h2>Opportunites chaudes</h2>
+          <span>Priorite relance</span>
+        </div>
+        <div class="cc-list">
+          {% for row in hot_requests %}
+          <article>
+            <div>
+              <strong>{{ row.request.query }}</strong>
+              <span>{{ row.request.get_module_display }} · {{ row.request.city|default:"zone" }} · score {{ row.request.lead_score }}/100 · {{ row.request.get_status_display }}</span>
+              {% if row.matches %}
+              <small>Matches: {% for business in row.matches %}{{ business.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</small>
+              {% else %}
+              <small class="danger">0 match: recruter un prestataire dans cette zone.</small>
+              {% endif %}
+            </div>
+            <a href="{% url 'business:unmet_search_opportunities' %}">Traiter</a>
+          </article>
+          {% empty %}
+          <p>Aucune opportunite chaude pour le moment.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="cc-card">
+        <div class="cc-card-head">
+          <h2>Recrutement prioritaire</h2>
+          <span>Categories sans offre</span>
+        </div>
+        <div class="cc-list compact">
+          {% for row in recruitment_rows %}
+          <article>
+            <div>
+              <strong>{{ row.label }} · {{ row.city }}</strong>
+              <span>{{ row.requests }} demande(s), {{ row.providers }} prestataire(s), score max {{ row.max_score }}</span>
+            </div>
+          </article>
+          {% empty %}
+          <p>Pas de trou critique detecte.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <div class="cc-grid">
+      <section class="cc-card">
+        <div class="cc-card-head">
+          <h2>Top categories demandees</h2>
+          <span>Ouvertes</span>
+        </div>
+        <div class="cc-list compact">
+          {% for row in module_demand %}
+          <article>
+            <div>
+              <strong>{{ row.label }}</strong>
+              <span>{{ row.total }} demande(s) · {{ row.value|default:0 }} XAF estimes</span>
+            </div>
+          </article>
+          {% empty %}
+          <p>Aucune demande ouverte.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="cc-card">
+        <div class="cc-card-head">
+          <h2>Partenaires sur opportunites</h2>
+          <span>Assignations</span>
+        </div>
+        <div class="cc-list compact">
+          {% for row in assigned_by_partner %}
+          <article>
+            <div>
+              <strong>{{ row.assigned_partner__username|default:"Partenaire" }}</strong>
+              <span>{{ row.total }} opportunite(s) · {{ row.sold }} vendue(s)</span>
+            </div>
+          </article>
+          {% empty %}
+          <p>Aucune assignation pour le moment.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="cc-card">
+        <div class="cc-card-head">
+          <h2>Sources communication</h2>
+          <span>Acquisition</span>
+        </div>
+        <div class="cc-list compact">
+          {% for row in source_rows %}
+          <article>
+            <div>
+              <strong>{{ row.source|default:"source inconnue" }}</strong>
+              <span>{{ row.total }} demande(s) · {{ row.hot }} chaude(s) · {{ row.value|default:0 }} XAF estimes</span>
+            </div>
+          </article>
+          {% empty %}
+          <p>Aucune source de demande mesuree pour cette periode.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="cc-card">
+        <div class="cc-card-head">
+          <h2>Dernieres recherches IA</h2>
+          <span>Signal marche</span>
+        </div>
+        <div class="cc-list compact">
+          {% for log in recent_queries %}
+          <article>
+            <div>
+              <strong>{{ log.query|truncatechars:70 }}</strong>
+              <span>{{ log.module }} · {{ log.results_count }} resultat(s) · {{ log.created_at|date:"d/m/Y H:i" }}</span>
+            </div>
+          </article>
+          {% empty %}
+          <p>Aucune recherche journalisee.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<style>
+.cc-page{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
+.cc-container{width:min(1280px,92vw);margin:0 auto}.cc-head{display:flex;justify-content:space-between;gap:1rem;align-items:end;flex-wrap:wrap;margin-bottom:1rem}.cc-head a{color:#78ff97;text-decoration:none;font-weight:900}.cc-head h1{font-size:clamp(2.4rem,6vw,5.2rem);line-height:.9;color:#fffbe8;margin:.6rem 0}.cc-head p,.cc-card p{color:#b9ddc3}
+.cc-actions,.cc-filter{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}.cc-btn,.cc-filter button,.cc-list article>a{background:linear-gradient(135deg,#35b257,#d49618);border:0;border-radius:8px;color:#fff;text-decoration:none;font-weight:900;padding:.8rem 1rem}.cc-btn.ghost{background:#06170f;border:1px solid rgba(114,255,146,.25);color:#78ff97}.cc-filter{background:#0b2518;border:1px solid rgba(114,255,146,.18);border-radius:8px;padding:.8rem;margin-bottom:1rem}.cc-filter label{font-weight:900;color:#ffd51f}.cc-filter select{background:#06170f;border:1px solid rgba(114,255,146,.25);border-radius:8px;color:#fff;padding:.75rem}
+.cc-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.75rem;margin-bottom:1rem}.cc-stats article,.cc-card{background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px;padding:1rem}.cc-stats span{display:block;color:#9fd7ac;font-weight:900;text-transform:uppercase;font-size:.72rem}.cc-stats strong{display:block;color:#ffd51f;font-size:1.25rem;margin-top:.25rem;word-break:break-word}
+.cc-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:1rem;margin-bottom:1rem}.cc-grid .wide{grid-column:auto}.cc-card-head{display:flex;justify-content:space-between;gap:1rem;align-items:center;margin-bottom:.75rem}.cc-card-head h2{margin:0;color:#ffd51f}.cc-card-head span{color:#78ff97;font-weight:900}.cc-list{display:grid;gap:.65rem}.cc-list article{display:flex;justify-content:space-between;gap:1rem;align-items:center;background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.75rem}.cc-list strong,.cc-list span,.cc-list small{display:block}.cc-list span{color:#b9ddc3}.cc-list small{color:#9fd7ac;margin-top:.25rem}.cc-list .danger{color:#ffb4a8}.cc-list.compact article{align-items:flex-start}
+@media(max-width:1050px){.cc-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.cc-grid{grid-template-columns:1fr}.cc-list article{display:grid}.cc-actions,.cc-filter{display:grid}.cc-actions a,.cc-filter button,.cc-filter select{width:100%}}
+</style>
+{% endblock %}

@@ -21,32 +21,24 @@
             <span style="font-weight:600">{{ plan.get_nom_display }}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
-            <span style="color:var(--love-muted)">Mensuel</span>
-            <span>{{ plan.prix_xaf_mensuel|floatformat:0 }} FCFA</span>
+            <span style="color:var(--love-muted)">Durée</span>
+            <span>{{ plan.duree_jours }} jour{{ plan.duree_jours|pluralize }}</span>
         </div>
         <div style="display:flex;justify-content:space-between">
-            <span style="color:var(--love-muted)">Annuel (économisez 30%)</span>
-            <span>{{ plan.prix_xaf_annuel|floatformat:0 }} FCFA</span>
+            <span style="color:var(--love-muted)">Montant à payer</span>
+            <span>{{ plan.prix_xaf_mensuel|floatformat:0 }} FCFA</span>
         </div>
     </div>
 
     <form method="post">
         {% csrf_token %}
 
-        <div style="background:var(--love-card);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem">
-            <h4 style="font-size:0.9rem;color:var(--love-primary);margin-bottom:0.75rem">Durée</h4>
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="radio" name="periodicite" value="mensuel" id="mensuel" checked>
-                <label class="form-check-label" for="mensuel">
-                    Mensuel — {{ plan.prix_xaf_mensuel|floatformat:0 }} FCFA/mois
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="periodicite" value="annuel" id="annuel">
-                <label class="form-check-label" for="annuel">
-                    Annuel — {{ plan.prix_xaf_annuel|floatformat:0 }} FCFA/an <span style="color:var(--love-success);font-size:0.8rem">(-30%)</span>
-                </label>
-            </div>
+        <div style="background:rgba(232,67,106,0.08);border:1px solid rgba(232,67,106,0.25);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem">
+            <h4 style="font-size:0.9rem;color:var(--love-primary);margin-bottom:0.75rem">Paiement manuel</h4>
+            <p style="color:var(--love-muted);font-size:0.86rem;margin:0">
+                Payez le montant indiqué sur le numéro officiel E-Shelle, puis saisissez votre numéro et la référence de transaction.
+                L'abonnement sera activé après vérification par l'administrateur.
+            </p>
         </div>
 
         <div style="background:var(--love-card);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem">
@@ -73,12 +65,20 @@
                           background:rgba(255,255,255,.05);color:inherit;font-size:.95rem;">
         </div>
 
+        <div style="background:var(--love-card);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem">
+            <h4 style="font-size:0.9rem;color:var(--love-primary);margin-bottom:0.75rem">Référence de paiement</h4>
+            <input type="text" name="reference_client"
+                   placeholder="Ex: OM2506..., MTN..., nom expéditeur"
+                   style="width:100%;padding:.75rem 1rem;border-radius:8px;border:1px solid var(--love-border);
+                          background:rgba(255,255,255,.05);color:inherit;font-size:.95rem;">
+        </div>
+
         <button type="submit" class="btn-premium" style="width:100%">
-            Payer maintenant 🔒
+            Envoyer ma demande d'activation
         </button>
 
         <p style="text-align:center;color:var(--love-muted);font-size:0.75rem;margin-top:1rem">
-            Paiement sécurisé · Annulable à tout moment
+            Activation manuelle après confirmation du paiement.
         </p>
     </form>
 </div>

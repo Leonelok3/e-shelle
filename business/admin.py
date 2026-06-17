@@ -10,12 +10,15 @@ from .models import (
     BusinessCatalogItem,
     BusinessLeadEvent,
     BusinessProfile,
+    ClientAIKit,
     HomeAdSlide,
     PartnerCRMLead,
     PartnerLevel,
     PaymentRequest,
     PremiumSectorCampaign,
     ProviderPlan,
+    UnmetSearchRequest,
+    UnmetSearchResponse,
 )
 
 
@@ -275,6 +278,32 @@ class PartnerCRMLeadAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
+@admin.register(ClientAIKit)
+class ClientAIKitAdmin(admin.ModelAdmin):
+    list_display = ("business", "status", "generated_at", "updated_at", "created_by")
+    list_filter = ("status", "business__module", "business__plan", "generated_at")
+    search_fields = ("business__name", "business__city", "chatbot_prompt", "notes")
+    autocomplete_fields = ("business", "created_by")
+    readonly_fields = ("generated_at", "created_at", "updated_at")
+    fieldsets = (
+        ("Client", {"fields": ("business", "status", "created_by", "notes")}),
+        ("Brief et agents", {"fields": ("client_brief", "recommended_agents")}),
+        ("Livrables", {
+            "fields": (
+                "chatbot_prompt",
+                "website_plan",
+                "content_pack",
+                "whatsapp_scripts",
+                "seo_plan",
+                "video_plan",
+                "automation_plan",
+                "qa_checklist",
+            )
+        }),
+        ("Dates", {"fields": ("generated_at", "created_at", "updated_at"), "classes": ("collapse",)}),
+    )
+
+
 @admin.register(AppCommission)
 class AppCommissionAdmin(admin.ModelAdmin):
     list_display = ("label", "app_name", "commission_rate", "commission_fixe", "is_recurring", "is_active", "priority")
@@ -290,5 +319,32 @@ class PartnerLevelAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "level")
     search_fields = ("label", "description", "bonus_description")
     filter_horizontal = ("apps_accessibles",)
+
+
+class UnmetSearchResponseInline(admin.TabularInline):
+    model = UnmetSearchResponse
+    extra = 0
+    fields = ("business", "responded_by", "status", "note", "created_at")
+    readonly_fields = ("created_at",)
+    autocomplete_fields = ("business", "responded_by")
+
+
+@admin.register(UnmetSearchRequest)
+class UnmetSearchRequestAdmin(admin.ModelAdmin):
+    inlines = (UnmetSearchResponseInline,)
+    list_display = ("query", "module", "city", "district", "preferred_contact", "status", "ai_priority", "lead_score", "assigned_partner", "notified_count", "created_at")
+    list_filter = ("status", "module", "ai_priority", "assigned_partner", "city", "consent_share_contact", "consent_promotions", "created_at")
+    search_fields = ("query", "customer_name", "whatsapp", "email", "city", "district", "notes", "assigned_partner__username")
+    list_editable = ("status",)
+    readonly_fields = ("created_at", "updated_at")
+    autocomplete_fields = ("assigned_partner",)
+
+
+@admin.register(UnmetSearchResponse)
+class UnmetSearchResponseAdmin(admin.ModelAdmin):
+    list_display = ("request", "business", "responded_by", "status", "created_at")
+    list_filter = ("status", "created_at", "business__module")
+    search_fields = ("request__query", "business__name", "responded_by__username", "note")
+    autocomplete_fields = ("request", "business", "responded_by")
 
 # Register your models here.

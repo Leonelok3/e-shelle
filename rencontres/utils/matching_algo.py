@@ -159,12 +159,13 @@ def get_profils_compatibles(profil, limit=20, exclude_ids=None):
 
     # Filtrer par critères de base
     qs = ProfilRencontre.objects.filter(
-        est_actif=True
-    ).exclude(id__in=exclusions).select_related('user')
+        est_actif=True,
+        photos__est_approuvee=True,
+    ).exclude(id__in=exclusions).select_related('user').distinct()
 
     # Filtrer par genre recherché
     if profil.recherche_genre:
-        qs = qs.filter(genre=profil.recherche_genre)
+        qs = qs.filter(genre=profil.recherche_genre.lower())
 
     # Filtrer par tranche d'âge recherchée
     from datetime import date

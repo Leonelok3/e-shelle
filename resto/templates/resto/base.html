@@ -174,12 +174,25 @@
 
   <!-- ── Footer ────────────────────────────────────────────────────────────── -->
   <footer class="hidden md:block bg-white border-t border-gray-100 mt-16 py-8">
-    <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-      <p>© 2026 E-Shelle Resto — Plateforme de découverte des restaurants au Cameroun</p>
-      <div class="flex items-center gap-6">
-        <a href="{% url 'resto:home' %}" class="hover:text-gray-900 transition">Accueil</a>
-        <a href="{% url 'resto:restaurant_list' %}" class="hover:text-gray-900 transition">Restaurants</a>
-        <a href="{% url 'resto:register' %}" class="hover:text-gray-900 transition">Inscrire mon restaurant</a>
+    <div class="max-w-6xl mx-auto px-4 space-y-6">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+        <p>© 2026 E-Shelle Resto — Plateforme de découverte des restaurants au Cameroun</p>
+        <div class="flex items-center gap-6">
+          <a href="{% url 'resto:home' %}" class="hover:text-gray-900 transition">Accueil</a>
+          <a href="{% url 'resto:restaurant_list' %}" class="hover:text-gray-900 transition">Restaurants</a>
+          <a href="{% url 'resto:register' %}" class="hover:text-gray-900 transition">Inscrire mon restaurant</a>
+        </div>
+      </div>
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Villes du Cameroun</p>
+        <div class="flex flex-wrap gap-2">
+          {% for city in resto_cities %}
+          <a href="{% url 'resto:restaurant_list' %}?city={{ city.slug }}"
+             class="text-sm text-gray-600 hover:text-resto-primary transition">
+            {{ city.name }}
+          </a>
+          {% endfor %}
+        </div>
       </div>
     </div>
   </footer>

@@ -298,11 +298,12 @@ input.focus();
 scrollToBottom();
 
 const INITIAL_QUERY = '{{ initial_query|default:""|escapejs }}';
-{% if not messages %}
 if (INITIAL_QUERY) {
   input.value = INITIAL_QUERY;
   sendMessage();
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
 }
-{% endif %}
 </script>
 {% endblock %}

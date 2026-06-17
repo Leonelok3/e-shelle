@@ -214,7 +214,7 @@ class PhotoProfil(models.Model):
     )
     image = models.ImageField(upload_to='rencontres/photos/%Y/%m/')
     est_principale = models.BooleanField(default=False)
-    est_approuvee = models.BooleanField(default=True)
+    est_approuvee = models.BooleanField(default=False)
     ordre = models.IntegerField(default=0)
     date_ajout = models.DateTimeField(auto_now_add=True)
 
@@ -230,6 +230,10 @@ class PhotoProfil(models.Model):
                 profil=self.profil, est_principale=True
             ).exclude(pk=self.pk).update(est_principale=False)
         super().save(*args, **kwargs)
+
+    @property
+    def is_visible(self):
+        return self.est_approuvee
 
     def __str__(self):
         return f"Photo {self.ordre} — {self.profil.prenom_affiche}"

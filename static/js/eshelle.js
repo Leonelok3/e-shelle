@@ -631,7 +631,19 @@ function initSearchOverlay() {
 
 function renderSearchResults(data, container) {
   if (!data.results?.length) {
-    container.innerHTML = '<p class="text-muted" style="padding:1rem">Aucun résultat.</p>';
+    const unmet = data.unmet_search || {};
+    container.innerHTML = `
+      <div style="padding:1rem">
+        <strong style="display:block;color:var(--text-primary);margin-bottom:.35rem">Aucun resultat parfait dans E-Shelle.</strong>
+        <p class="text-muted" style="margin:0 0 .8rem">${unmet.message || 'E-Shelle peut chercher pour vous.'}</p>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          ${unmet.capture_url ? `<a class="btn btn-primary btn-sm" href="${unmet.capture_url}">Demander au reseau</a>` : ''}
+          ${unmet.chat_url ? `<a class="btn btn-outline btn-sm" href="${unmet.chat_url}">Chercher avec IA</a>` : ''}
+          ${unmet.google_url ? `<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="${unmet.google_url}">Google</a>` : ''}
+          ${unmet.facebook_url ? `<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="${unmet.facebook_url}">Facebook</a>` : ''}
+        </div>
+      </div>
+    `;
     return;
   }
   container.innerHTML = data.results.map(r => `

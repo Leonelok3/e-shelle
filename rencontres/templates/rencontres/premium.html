@@ -12,7 +12,7 @@
                 Passez en Premium
             </span>
         </h1>
-        <p style="color:var(--love-muted)">Débloquez toutes les fonctionnalités pour des rencontres sans limites.</p>
+        <p style="color:var(--love-muted)">Choisissez une durée simple. Activation manuelle après vérification du paiement.</p>
 
         {% if abonnement_actif %}
         <div style="display:inline-block;background:var(--love-card);border:1px solid var(--love-gold);border-radius:12px;padding:0.75rem 1.5rem;margin-top:1rem">
@@ -24,33 +24,17 @@
         {% endif %}
     </div>
 
-    <!-- Comparaison périodicité -->
-    <div style="display:flex;justify-content:center;gap:1rem;margin-bottom:2rem">
-        <button onclick="switchPeriode('mensuel')" id="btn-mensuel"
-            class="btn-love" style="padding:0.5rem 1.5rem;font-size:0.85rem">
-            Mensuel
-        </button>
-        <button onclick="switchPeriode('annuel')" id="btn-annuel"
-            class="btn-love-outline" style="padding:0.5rem 1.5rem;font-size:0.85rem">
-            Annuel <span style="background:var(--gradient-love);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700"> -30%</span>
-        </button>
-    </div>
-
     <!-- Plans -->
     <div class="plans-grid">
         {% for plan in plans %}
-        <div class="plan-card {% if plan.nom == 'gold' %}plan-gold{% endif %}">
+        <div class="plan-card {% if plan.nom == 'platinum' %}plan-gold{% endif %}">
             <div class="plan-name">
                 {{ plan.get_icon }} {{ plan.get_nom_display }}
             </div>
 
-            <div class="plan-price" id="price-{{ plan.nom }}-mensuel">
+            <div class="plan-price">
                 {{ plan.prix_xaf_mensuel|floatformat:0 }} FCFA
-                <span>/ mois</span>
-            </div>
-            <div class="plan-price" id="price-{{ plan.nom }}-annuel" style="display:none">
-                {{ plan.prix_xaf_annuel|floatformat:0 }} FCFA
-                <span>/ an</span>
+                <span>/ {{ plan.duree_jours }} jour{{ plan.duree_jours|pluralize }}</span>
             </div>
 
             <ul class="plan-features">
@@ -101,31 +85,8 @@
 
     <!-- Sécurité paiement -->
     <div style="text-align:center;margin-top:2rem;color:var(--love-muted);font-size:0.8rem">
-        <p>🔒 Paiement sécurisé · MTN Mobile Money · Orange Money · Airtel Money</p>
-        <p>Annulez à tout moment · Pas d'engagement</p>
+        <p>MTN Mobile Money · Orange Money · Airtel Money</p>
+        <p>Après paiement, envoyez la référence. Le bureau E-Shelle active manuellement votre accès.</p>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-let periodeActive = 'mensuel';
-
-function switchPeriode(periode) {
-    periodeActive = periode;
-
-    document.querySelectorAll('[id^="price-"]').forEach(el => {
-        el.style.display = 'none';
-    });
-    document.querySelectorAll(`[id$="-${periode}"]`).forEach(el => {
-        el.style.display = 'block';
-    });
-
-    document.getElementById('btn-mensuel').className = periode === 'mensuel' ? 'btn-love' : 'btn-love-outline';
-    document.getElementById('btn-annuel').className = periode === 'annuel' ? 'btn-love' : 'btn-love-outline';
-    if (periode === 'annuel') {
-        document.getElementById('btn-annuel').innerHTML = 'Annuel <span style="background:var(--gradient-love);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700"> -30%</span>';
-    }
-}
-</script>
 {% endblock %}

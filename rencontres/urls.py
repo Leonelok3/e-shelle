@@ -6,6 +6,9 @@ app_name = 'rencontres'
 urlpatterns = [
     # Entrée dans l'app
     path('', views.accueil_rencontre, name='accueil'),
+    path('rencontre-serieuse-cameroun/', views.seo_landing, {'slug': 'cameroun'}, name='seo_cameroun'),
+    path('rencontre-serieuse-douala/', views.seo_landing, {'slug': 'douala'}, name='seo_douala'),
+    path('rencontre-serieuse-yaounde/', views.seo_landing, {'slug': 'yaounde'}, name='seo_yaounde'),
 
     # Profil
     path('profil/creer/', views.creer_profil, name='creer_profil'),
@@ -23,6 +26,9 @@ urlpatterns = [
     path('ajax/profils/', views.ajax_charger_profils, name='ajax_profils'),
     path('ajax/stats/', views.ajax_stats_profil, name='ajax_stats'),
     path('ajax/notifications/', views.ajax_check_notifications, name='ajax_notifications'),
+
+    # Coach IA
+    path('coach/', views.coach_love, name='coach'),
 
     # Matchs
     path('matchs/', views.liste_matchs, name='matchs'),

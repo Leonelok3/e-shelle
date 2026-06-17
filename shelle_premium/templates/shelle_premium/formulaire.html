@@ -1,0 +1,362 @@
+{% extends "shelle_premium/base.html" %}
+
+{% block title %}Enregistrement prestataire | Shelle Premium{% endblock %}
+{% block body_class %}page-formulaire{% endblock %}
+
+{% block extra_css %}
+/* Mise en page du formulaire prestataire */
+.form-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(360px, 480px);
+    align-items: center;
+    gap: clamp(28px, 6vw, 78px);
+    min-height: calc(100vh - 132px);
+}
+
+.intro-panel {
+    padding: 24px 0;
+}
+
+.form-card {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(24px, 4vw, 38px);
+}
+
+.form-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--or-principal), var(--or-clair), transparent);
+}
+
+.form-grid {
+    display: grid;
+    gap: 18px;
+}
+
+.field {
+    position: relative;
+}
+
+.field input,
+.field textarea {
+    width: 100%;
+    border: 1px solid var(--bordure);
+    border-radius: 8px;
+    outline: none;
+    color: var(--texte-principal);
+    background: rgba(10, 10, 15, 0.72);
+    transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.field input {
+    height: 58px;
+    padding: 22px 15px 8px;
+}
+
+.field textarea {
+    min-height: 132px;
+    resize: vertical;
+    padding: 24px 15px 12px;
+}
+
+.field label {
+    position: absolute;
+    top: 18px;
+    left: 15px;
+    pointer-events: none;
+    color: var(--texte-secondaire);
+    font-size: 0.95rem;
+    transition: transform 180ms ease, color 180ms ease, font-size 180ms ease;
+}
+
+.field input:focus,
+.field textarea:focus {
+    border-color: rgba(232, 201, 122, 0.72);
+    background: rgba(10, 10, 15, 0.95);
+    box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.1);
+}
+
+.field input:focus + label,
+.field textarea:focus + label,
+.field input:not(:placeholder-shown) + label,
+.field textarea:not(:placeholder-shown) + label {
+    color: var(--or-clair);
+    font-size: 0.74rem;
+    transform: translateY(-12px);
+}
+
+.field-error {
+    min-height: 18px;
+    margin-top: 6px;
+    color: var(--danger);
+    font-size: 0.82rem;
+}
+
+.submit-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 56px;
+    margin-top: 6px;
+    border: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    color: #111016;
+    background: linear-gradient(135deg, var(--or-principal), var(--or-clair));
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: transform 180ms ease, filter 180ms ease;
+}
+
+.submit-button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%);
+    background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.55), transparent 70%);
+    transition: transform 650ms ease;
+}
+
+.submit-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+}
+
+.submit-button:hover::after {
+    transform: translateX(120%);
+}
+
+.submit-button:disabled {
+    cursor: not-allowed;
+    filter: grayscale(0.25) brightness(0.75);
+    transform: none;
+}
+
+.success-box {
+    display: none;
+    margin-top: 18px;
+    padding: 16px;
+    border: 1px solid rgba(72, 199, 116, 0.35);
+    border-radius: 8px;
+    color: #dffbe8;
+    background: rgba(72, 199, 116, 0.12);
+}
+
+.success-box.is-visible {
+    display: block;
+}
+
+.form-note {
+    margin: 14px 0 0;
+    color: var(--texte-secondaire);
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+@media (max-width: 880px) {
+    .form-layout {
+        grid-template-columns: 1fr;
+        align-items: start;
+        min-height: auto;
+    }
+
+    .form-card {
+        width: 100%;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<section class="form-layout">
+    <div class="intro-panel fade-up">
+        <p class="page-kicker">Carte prestataire</p>
+        <h1 class="page-title">Validation Shelle Premium</h1>
+        <p class="page-copy">
+            Enregistrez votre carte prestataire avec le code Premium et la date d'expiration au format MM/AA.
+            Le code est normalise automatiquement en majuscules.
+        </p>
+    </div>
+
+    <section class="gold-card form-card fade-up" style="animation-delay: 120ms;">
+        <form id="prestataire-form" class="form-grid" method="post" novalidate>
+            {% csrf_token %}
+
+            <!-- Champ nom complet -->
+            <div class="field" data-field="nom_complet">
+                <input id="id_nom_complet" name="nom_complet" type="text" placeholder=" " autocomplete="name" required>
+                <label for="id_nom_complet">Nom complet</label>
+                <div class="field-error" aria-live="polite"></div>
+            </div>
+
+            <!-- Champ code Premium avec uppercase automatique -->
+            <div class="field" data-field="code_premium">
+                <input id="id_code_premium" name="code_premium" type="text" placeholder=" " autocomplete="off" required>
+                <label for="id_code_premium">Code Shelle Premium</label>
+                <div class="field-error" aria-live="polite"></div>
+            </div>
+
+            <!-- Champ date expiration avec validation MM/AA -->
+            <div class="field" data-field="date_expiration">
+                <input id="id_date_expiration" name="date_expiration" type="text" placeholder=" " inputmode="numeric" maxlength="5" required>
+                <label for="id_date_expiration">Date d'expiration MM/AA</label>
+                <div class="field-error" aria-live="polite"></div>
+            </div>
+
+            <!-- Champ adresse du prestataire -->
+            <div class="field" data-field="adresse">
+                <textarea id="id_adresse" name="adresse" placeholder=" " required></textarea>
+                <label for="id_adresse">Adresse du prestataire</label>
+                <div class="field-error" aria-live="polite"></div>
+            </div>
+
+            <button id="submit-button" class="submit-button" type="submit">Valider</button>
+            <p class="form-note">Une confirmation apparait ici apres validation, sans rechargement de page.</p>
+            <div id="success-box" class="success-box" role="status" aria-live="polite"></div>
+        </form>
+    </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Lecture du jeton CSRF depose par Django dans le formulaire.
+    function getCsrfToken() {
+        const input = document.querySelector("input[name='csrfmiddlewaretoken']");
+        return input ? input.value : "";
+    }
+
+    // Validation temps reel des champs requis.
+    const form = document.getElementById("prestataire-form");
+    const submitButton = document.getElementById("submit-button");
+    const successBox = document.getElementById("success-box");
+    const fields = {
+        nom_complet: document.getElementById("id_nom_complet"),
+        code_premium: document.getElementById("id_code_premium"),
+        date_expiration: document.getElementById("id_date_expiration"),
+        adresse: document.getElementById("id_adresse")
+    };
+    const expirationRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
+
+    function setError(name, message) {
+        const container = document.querySelector(`[data-field="${name}"]`);
+        const error = container ? container.querySelector(".field-error") : null;
+        if (error) {
+            error.textContent = message || "";
+        }
+    }
+
+    function formatExpiration(value) {
+        const digits = value.replace(/\D/g, "").slice(0, 4);
+        if (digits.length <= 2) {
+            return digits;
+        }
+        return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    }
+
+    function validateForm(showErrors = true) {
+        let valid = true;
+        const values = {
+            nom_complet: fields.nom_complet.value.trim(),
+            code_premium: fields.code_premium.value.trim(),
+            date_expiration: fields.date_expiration.value.trim(),
+            adresse: fields.adresse.value.trim()
+        };
+
+        if (!values.nom_complet) {
+            valid = false;
+            if (showErrors) setError("nom_complet", "Le nom complet est obligatoire.");
+        } else if (showErrors) {
+            setError("nom_complet", "");
+        }
+
+        if (!values.code_premium) {
+            valid = false;
+            if (showErrors) setError("code_premium", "Le code Shelle Premium est obligatoire.");
+        } else if (showErrors) {
+            setError("code_premium", "");
+        }
+
+        if (!expirationRegex.test(values.date_expiration)) {
+            valid = false;
+            if (showErrors) setError("date_expiration", "Format attendu : MM/AA, exemple 03/29.");
+        } else if (showErrors) {
+            setError("date_expiration", "");
+        }
+
+        if (!values.adresse) {
+            valid = false;
+            if (showErrors) setError("adresse", "L'adresse est obligatoire.");
+        } else if (showErrors) {
+            setError("adresse", "");
+        }
+
+        submitButton.disabled = !valid;
+        return valid;
+    }
+
+    fields.code_premium.addEventListener("input", () => {
+        fields.code_premium.value = fields.code_premium.value.toUpperCase();
+        validateForm(false);
+    });
+
+    fields.date_expiration.addEventListener("input", () => {
+        fields.date_expiration.value = formatExpiration(fields.date_expiration.value);
+        validateForm(false);
+    });
+
+    Object.values(fields).forEach((field) => {
+        field.addEventListener("blur", () => validateForm(true));
+        field.addEventListener("input", () => {
+            successBox.classList.remove("is-visible");
+            validateForm(false);
+        });
+    });
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!validateForm(true)) return;
+
+        submitButton.disabled = true;
+        submitButton.textContent = "Validation...";
+
+        try {
+            const response = await fetch(window.location.href, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCsrfToken(),
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: new FormData(form)
+            });
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                Object.entries(data.errors || {}).forEach(([name, messages]) => {
+                    setError(name, Array.isArray(messages) ? messages.join(" ") : String(messages));
+                });
+                return;
+            }
+
+            form.reset();
+            Object.keys(fields).forEach((name) => setError(name, ""));
+            successBox.textContent = data.message || "Carte Shelle Premium validee avec succes.";
+            successBox.classList.add("is-visible");
+        } catch (error) {
+            successBox.textContent = "Impossible d'envoyer le formulaire pour le moment.";
+            successBox.classList.add("is-visible");
+        } finally {
+            submitButton.textContent = "Valider";
+            validateForm(false);
+        }
+    });
+
+    validateForm(false);
+</script>
+{% endblock %}

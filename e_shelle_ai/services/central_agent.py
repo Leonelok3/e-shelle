@@ -72,8 +72,12 @@ class CentralAgentService:
         module_results = legacy.get_module_results(module, query, limit=3)
 
         results = self._merge_results(premium_results, extra_results, module_results)
+        if self._has_unmatched_need(query, results):
+            return self._attach_unmet_search(route, query)
         if not results:
             results = legacy._results_or_external(module, query)
+        if self._has_unmatched_need(query, results):
+            return self._attach_unmet_search(route, query)
         if self._should_ask_location(module, query):
             results = self._merge_results(results, [self._location_followup_card(module, query)])
         if self._should_add_order_followup(module, results):
@@ -544,6 +548,30 @@ class CentralAgentService:
         if not terms:
             return qs
 
+        need_terms = self._need_terms(query)
+        location_terms = [term for term in terms if term not in need_terms]
+        if need_terms:
+            need_filter = Q()
+            for term in need_terms:
+                need_filter |= (
+                    Q(name__icontains=term)
+                    | Q(description__icontains=term)
+                    | Q(promo_headline__icontains=term)
+                    | Q(promo_offer__icontains=term)
+                )
+            qs = qs.filter(need_filter).distinct()
+            if not qs.exists():
+                return qs.none()
+
+            if location_terms:
+                location_filter = Q()
+                for term in location_terms:
+                    location_filter |= Q(city__icontains=term) | Q(district__icontains=term)
+                location_matched = qs.filter(location_filter).distinct()
+                if location_matched.exists():
+                    return location_matched
+            return qs
+
         query_filter = Q()
         for term in terms:
             query_filter |= (
@@ -556,7 +584,9 @@ class CentralAgentService:
             )
 
         matched = qs.filter(query_filter).distinct()
-        return matched if matched.exists() else qs
+        if matched.exists():
+            return matched
+        return qs.none() if self._need_terms(query) else qs
 
     def _business_target_url(self, business) -> str:
         if business.promo_url:
@@ -595,6 +625,98 @@ class CentralAgentService:
         terms = legacy._search_terms(query)
         return [term for term in terms if term not in legacy._INTENT_WORDS]
 
+    def _need_terms(self, query: str) -> list:
+        """Mots qui expriment le besoin reel, hors ville/quartier/intention."""
+
+        location_terms = {
+            "douala", "yaounde", "yaoundé", "bafoussam", "buea", "limbe", "akwa", "bonamoussadi",
+            "kotto", "bonaberi", "bonaberie", "bastos", "mvan", "bali", "deido", "logpom",
+            "bonapriso", "bonanjo", "makepe", "pk14", "pk12", "newbell", "new-bell",
+        }
+        generic_terms = {
+            "produit", "produits", "article", "articles", "service", "services", "client",
+            "clients", "quartier", "ville", "cameroun", "urgent", "rapidement",
+        }
+        return [
+            term for term in self._search_terms(query)
+            if term not in location_terms and term not in generic_terms
+        ]
+
+    def _has_unmatched_need(self, query: str, results: list) -> bool:
+        need_terms = self._need_terms(query)
+        if not need_terms:
+            return False
+        if not results:
+            return True
+
+        searchable = " ".join(
+            " ".join(str(item.get(key, "")) for key in ("title", "subtitle", "details", "badge"))
+            for item in results
+        ).lower()
+        return not any(term in searchable for term in need_terms)
+
+    def _attach_unmet_search(self, route: dict, query: str) -> dict:
+        capture_url = f"/business/demandes/nouvelle/?q={urllib.parse.quote(query)}"
+        external_cards = self._external_search_cards(query)
+        route.update(
+            {
+                "module": "general",
+                "message": (
+                    "Je n'ai pas encore trouve de resultat fiable dans E-Shelle. "
+                    "Tu peux laisser ta demande pour que l'IA active le reseau local, ou ouvrir une recherche externe "
+                    "en attendant. E-Shelle continue de chercher pour toi."
+                ),
+                "redirect": True,
+                "redirect_label": "Demander au reseau E-Shelle ->",
+                "redirect_url": capture_url,
+                "results": [
+                    {
+                        "title": "Demander au reseau E-Shelle",
+                        "subtitle": "L'IA enregistre et transmet le besoin",
+                        "details": "Laisse ton WhatsApp ou email: E-Shelle rendra ta demande visible aux partenaires/prestataires concernes.",
+                        "badge": "Agent IA",
+                        "url": capture_url,
+                        "primary_label": "Laisser mon contact",
+                        "primary_url": capture_url,
+                        "secondary_label": "Voir les pistes externes",
+                        "secondary_url": external_cards[0]["primary_url"] if external_cards else "",
+                    }
+                ] + external_cards,
+            }
+        )
+        return route
+
+    def _external_search_cards(self, query: str) -> list:
+        q = urllib.parse.quote_plus(f"{query} Cameroun")
+        google = f"https://www.google.com/search?q={q}"
+        images = f"https://www.google.com/search?tbm=isch&q={q}"
+        facebook = f"https://www.facebook.com/search/top?q={urllib.parse.quote_plus(query)}"
+        cards = [
+            {
+                "title": "Recherche Google",
+                "subtitle": "Verification externe immediate",
+                "details": "Ouvre Google pour comparer rapidement les resultats disponibles hors E-Shelle.",
+                "badge": "Externe",
+                "url": google,
+                "primary_label": "Chercher sur Google",
+                "primary_url": google,
+                "secondary_label": "Images",
+                "secondary_url": images,
+            },
+            {
+                "title": "Recherche Facebook",
+                "subtitle": "Groupes, pages et annonces locales",
+                "details": "Utile pour les annonces informelles, vendeurs locaux, studios, objets et services de quartier.",
+                "badge": "Externe",
+                "url": facebook,
+                "primary_label": "Chercher sur Facebook",
+                "primary_url": facebook,
+                "secondary_label": "Google Images",
+                "secondary_url": images,
+            },
+        ]
+        return cards
+
     def _shorten(self, value: str, limit: int) -> str:
         value = (value or "").strip()
         if len(value) <= limit:
@@ -602,7 +724,7 @@ class CentralAgentService:
         return value[: limit - 1].rstrip() + "..."
 
     def _apply_text_filter(self, qs, query: str, *fields: str):
-        terms = self._search_terms(query)
+        terms = self._need_terms(query) or self._search_terms(query)
         if not terms:
             return qs
 
@@ -612,7 +734,9 @@ class CentralAgentService:
                 query_filter |= Q(**{f"{field}__icontains": term})
 
         matched = qs.filter(query_filter).distinct()
-        return matched if matched.exists() else qs
+        if matched.exists():
+            return matched
+        return qs.none() if self._need_terms(query) else qs
 
     def _join_text(self, *values: str) -> str:
         return " - ".join(str(value).strip() for value in values if value)

@@ -16,17 +16,21 @@ class AdContentInline(admin.StackedInline):
 
 @admin.register(AdCampaign)
 class AdCampaignAdmin(admin.ModelAdmin):
-    list_display   = ("nom_produit", "user", "pays", "ville", "status", "modules_selected", "created_at")
+    list_display   = ("nom_produit", "user", "pays", "ville", "has_photo", "status", "modules_selected", "created_at")
     list_filter    = ("status", "pays", "ville", "created_at")
     search_fields  = ("nom_produit", "ville", "user__username", "user__email")
     readonly_fields = ("created_at", "updated_at")
     inlines        = [AdContentInline]
 
     fieldsets = (
-        ("Produit", {"fields": ("user", "nom_produit", "description", "prix", "cible", "pays", "ville")}),
+        ("Produit", {"fields": ("user", "nom_produit", "description", "photo_produit", "prix", "cible", "pays", "ville")}),
         ("Configuration", {"fields": ("modules_selected", "status")}),
         ("Méta", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
     )
+
+    @admin.display(description="Photo", boolean=True)
+    def has_photo(self, obj):
+        return bool(obj.photo_produit)
 
 
 @admin.register(AdModule)

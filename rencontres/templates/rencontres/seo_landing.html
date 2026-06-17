@@ -1,0 +1,129 @@
+{% extends 'rencontres/base_rencontre.html' %}
+
+{% block title %}{{ page.title }} — E-Shelle Love{% endblock %}
+{% block meta_description %}{{ page.intro }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.seo-wrap {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 5rem;
+}
+.seo-hero {
+    min-height: 58vh;
+    display: grid;
+    align-items: center;
+    background:
+        linear-gradient(135deg, rgba(232,67,106,.22), rgba(255,126,66,.16)),
+        var(--love-card);
+    border: 1px solid var(--love-border);
+    border-radius: var(--radius);
+    padding: clamp(1.5rem, 4vw, 3rem);
+    margin-bottom: 1rem;
+}
+.seo-hero h1 {
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 950;
+    margin: 0 0 .75rem;
+    max-width: 820px;
+}
+.seo-hero p {
+    color: var(--love-muted);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    max-width: 680px;
+}
+.seo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .85rem;
+    margin: 1rem 0;
+}
+.seo-card {
+    background: var(--love-card);
+    border: 1px solid var(--love-border);
+    border-radius: var(--radius);
+    padding: 1rem;
+}
+.seo-card h2 {
+    font-size: 1rem;
+    font-weight: 850;
+    margin: 0 0 .45rem;
+}
+.seo-card p,
+.seo-card li {
+    color: var(--love-muted);
+    font-size: .92rem;
+    line-height: 1.6;
+}
+.seo-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+    margin-top: 1rem;
+}
+@media (max-width: 760px) {
+    .seo-grid { grid-template-columns: 1fr; }
+    .seo-hero { min-height: auto; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="seo-wrap">
+    <section class="seo-hero">
+        <div>
+            <div style="color:var(--love-primary);font-weight:800;margin-bottom:.5rem">
+                E-Shelle Love · {{ page.city }}
+            </div>
+            <h1>{{ page.h1 }}</h1>
+            <p>{{ page.intro }}</p>
+            <div class="seo-links">
+                {% if request.user.is_authenticated %}
+                <a href="{% url 'rencontres:accueil' %}" class="btn-love">Ouvrir mon espace Love</a>
+                <a href="{% url 'rencontres:decouverte' %}" class="btn-love-outline">Découvrir des profils</a>
+                {% else %}
+                <a href="{% url 'rencontres:creer_profil' %}" class="btn-love">Créer mon profil</a>
+                <a href="{% url 'accounts:login' %}" class="btn-love-outline">Se connecter</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <div class="seo-grid">
+        <article class="seo-card">
+            <h2>Rencontres plus sérieuses</h2>
+            <p>
+                L'objectif est de favoriser des échanges respectueux, avec profils détaillés,
+                photos validées et messagerie après match.
+            </p>
+        </article>
+        <article class="seo-card">
+            <h2>Pourquoi {{ page.city }}</h2>
+            <ul style="margin:0;padding-left:1.1rem">
+                {% for point in page.points %}
+                <li>{{ point }}</li>
+                {% endfor %}
+            </ul>
+        </article>
+        <article class="seo-card">
+            <h2>Avec Coach IA</h2>
+            <p>
+                Le Coach Love aide à améliorer la bio, préparer un premier message et
+                rendre les profils plus convaincants.
+            </p>
+        </article>
+    </div>
+
+    <section class="seo-card">
+        <h2>Explorer les pages locales</h2>
+        <div class="seo-links">
+            <a href="{% url 'rencontres:seo_cameroun' %}" class="btn-love-outline">Cameroun</a>
+            <a href="{% url 'rencontres:seo_douala' %}" class="btn-love-outline">Douala</a>
+            <a href="{% url 'rencontres:seo_yaounde' %}" class="btn-love-outline">Yaoundé</a>
+            <a href="{% url 'rencontres:premium' %}" class="btn-love-outline">Abonnements</a>
+        </div>
+    </section>
+</div>
+{% endblock %}

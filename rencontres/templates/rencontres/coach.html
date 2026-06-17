@@ -1,0 +1,165 @@
+{% extends 'rencontres/base_rencontre.html' %}
+
+{% block title %}Coach IA — E-Shelle Love{% endblock %}
+
+{% block extra_css %}
+<style>
+.coach-wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 5.5rem;
+}
+.coach-hero {
+    background: var(--love-card);
+    border: 1px solid var(--love-border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+.coach-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, .8fr);
+    gap: 1rem;
+}
+.coach-panel {
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--love-border);
+    border-radius: var(--radius);
+    padding: 1rem;
+}
+.coach-panel h2 {
+    font-size: 1rem;
+    font-weight: 800;
+    margin: 0 0 .85rem;
+}
+.coach-text {
+    background: rgba(0,0,0,.18);
+    border: 1px solid var(--love-border);
+    border-radius: 12px;
+    padding: .9rem;
+    color: var(--love-text);
+    line-height: 1.65;
+}
+.coach-list {
+    display: grid;
+    gap: .75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.coach-list li {
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--love-border);
+    border-radius: 12px;
+    padding: .85rem;
+    color: var(--love-text);
+}
+.coach-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    margin-top: 1rem;
+}
+@media (max-width: 780px) {
+    .coach-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="coach-wrap">
+    <section class="coach-hero">
+        <div style="color:var(--love-primary);font-weight:800;font-size:.85rem;margin-bottom:.35rem">
+            <i class="bi bi-stars"></i> Coach IA Love
+        </div>
+        <h1 style="font-size:1.8rem;font-weight:900;margin:0 0 .45rem">
+            Améliorez votre profil et vos échanges.
+        </h1>
+        <p style="color:var(--love-muted);margin:0">
+            Suggestions générées à partir de votre profil{% if target %} et du profil de {{ target.prenom_affiche }}{% endif %}.
+        </p>
+        <div class="coach-actions">
+            <a href="{% url 'rencontres:accueil' %}" class="btn-love-outline">
+                <i class="bi bi-house-heart"></i> Accueil Love
+            </a>
+            <a href="{% url 'rencontres:modifier_profil' %}" class="btn-love-outline">
+                <i class="bi bi-pencil"></i> Modifier mon profil
+            </a>
+            {% if conversation %}
+            <a href="{% url 'rencontres:conversation' conversation.id %}" class="btn-love">
+                <i class="bi bi-chat-heart"></i> Retour conversation
+            </a>
+            {% elif target %}
+            <a href="{% url 'rencontres:detail_profil' target.pk %}" class="btn-love">
+                <i class="bi bi-person-heart"></i> Voir le profil
+            </a>
+            {% endif %}
+        </div>
+    </section>
+
+    <div class="coach-grid">
+        <div style="display:grid;gap:1rem">
+            <section class="coach-panel">
+                <h2><i class="bi bi-person-lines-fill"></i> Bio améliorée</h2>
+                <div class="coach-text" id="bio-text">{{ bio_amelioree }}</div>
+                <button type="button" class="btn-love-outline copy-coach" data-target="bio-text" style="margin-top:.75rem;padding:.55rem 1rem">
+                    <i class="bi bi-copy"></i> Copier
+                </button>
+            </section>
+
+            {% if target %}
+            <section class="coach-panel">
+                <h2><i class="bi bi-send-heart"></i> Premiers messages pour {{ target.prenom_affiche }}</h2>
+                <ul class="coach-list">
+                    {% for message in messages %}
+                    <li>
+                        <div id="msg-{{ forloop.counter }}">{{ message }}</div>
+                        <button type="button" class="btn-love-outline copy-coach" data-target="msg-{{ forloop.counter }}" style="margin-top:.65rem;padding:.45rem .8rem;font-size:.82rem">
+                            <i class="bi bi-copy"></i> Copier
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+        </div>
+
+        <aside style="display:grid;gap:1rem;align-content:start">
+            <section class="coach-panel">
+                <h2><i class="bi bi-lightbulb"></i> Conseils de profil</h2>
+                <ul class="coach-list">
+                    {% for conseil in conseils %}
+                    <li>{{ conseil }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            {% if target %}
+            <section class="coach-panel">
+                <h2><i class="bi bi-heart-pulse"></i> Angle de compatibilité</h2>
+                <ul class="coach-list">
+                    {% for note in compatibilite %}
+                    <li>{{ note }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.copy-coach').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+        const target = document.getElementById(btn.dataset.target);
+        if (!target) return;
+        await navigator.clipboard.writeText(target.innerText.trim());
+        const initial = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check2"></i> Copié';
+        setTimeout(() => { btn.innerHTML = initial; }, 1200);
+    });
+});
+</script>
+{% endblock %}

@@ -10,7 +10,9 @@
       <h1>Kit commercial Business Key</h1>
       <p>Scripts, cartes sectorielles, objections, calculateur de gains et raccourcis vers les agents IA.</p>
       <div class="kit-head-actions">
+        <a href="{% url 'business:business_key_daily_academy' %}">Formation du jour</a>
         <a href="{% url 'business:business_key_academy' %}">Ouvrir l'Academy</a>
+        <a href="{% url 'business:unmet_search_requests' %}">Demandes clients</a>
         <a href="{% url 'business:business_key_packs' %}">Voir les packs</a>
       </div>
     </div>
@@ -26,13 +28,13 @@
     <section class="kit-card">
       <h2>Calculateur de gains</h2>
       <div class="gain-grid">
-        <label>Plans Business vendus
+        <label>Prestataires Business
           <input id="gain-business" type="number" min="0" value="3">
         </label>
-        <label>Plans Premium vendus
+        <label>Prestataires Premium
           <input id="gain-premium" type="number" min="0" value="1">
         </label>
-        <label>Business Key vendues
+        <label>Business Key partenaires
           <input id="gain-key" type="number" min="0" value="5">
         </label>
         <div class="gain-result">
@@ -132,7 +134,9 @@ function updateGain() {
   const business = Number(document.getElementById("gain-business").value || 0);
   const premium = Number(document.getElementById("gain-premium").value || 0);
   const key = Number(document.getElementById("gain-key").value || 0);
-  const total = business * 15000 * 0.5 + premium * 30000 * 0.5 + key * 5000 * 0.3;
+  const total = business * 15000 * {{ provider_rate }} / 100
+    + premium * 30000 * {{ provider_rate }} / 100
+    + key * {{ business_key_price }} * {{ partner_recruit_rate }} / 100;
   document.getElementById("gain-total").textContent = formatFcfa(total);
 }
 document.addEventListener("input", function (event) {

@@ -15,7 +15,7 @@ class CampaignForm(forms.ModelForm):
 
     class Meta:
         model  = AdCampaign
-        fields = ["nom_produit", "description", "prix", "cible", "pays", "ville"]
+        fields = ["nom_produit", "description", "photo_produit", "prix", "cible", "pays", "ville"]
         widgets = {
             "nom_produit": forms.TextInput(attrs={
                 "class": "form-control",
@@ -25,6 +25,10 @@ class CampaignForm(forms.ModelForm):
                 "class": "form-control",
                 "rows": 4,
                 "placeholder": "Décrivez votre produit : composition, avantages, comment ça marche...",
+            }),
+            "photo_produit": forms.ClearableFileInput(attrs={
+                "class": "form-control",
+                "accept": "image/*",
             }),
             "prix": forms.TextInput(attrs={
                 "class": "form-control",
@@ -40,6 +44,7 @@ class CampaignForm(forms.ModelForm):
         labels = {
             "nom_produit": "Nom du produit",
             "description": "Description du produit",
+            "photo_produit": "Photo du produit",
             "prix":        "Prix de vente",
             "cible":       "Audience cible",
             "pays":        "Pays cible",

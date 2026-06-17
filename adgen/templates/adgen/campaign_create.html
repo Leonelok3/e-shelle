@@ -66,6 +66,22 @@
     text-align: center;
   }
   .spinner-overlay.active { display: flex; }
+  .photo-upload {
+    border: 1.5px dashed #c4b5fd;
+    border-radius: 1rem;
+    background: linear-gradient(135deg,#faf7ff,#fff);
+    padding: 1rem;
+  }
+  .photo-preview {
+    display: none;
+    margin-top: .85rem;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: .875rem;
+    object-fit: cover;
+    border: 1px solid #ede9fe;
+  }
+  .photo-preview.active { display: block; }
 </style>
 {% endblock %}
 
@@ -100,7 +116,7 @@
     <p class="text-gray-400 mt-1.5">Renseignez votre produit, choisissez les modules, et l'IA génère votre contenu.</p>
   </div>
 
-  <form method="post" id="campaignForm" novalidate>
+  <form method="post" id="campaignForm" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
 
     <!-- Étape 1 -->
@@ -129,6 +145,16 @@
           <p class="text-xs text-gray-400 mt-1.5">Plus c'est détaillé, plus le contenu sera précis et vendeur.</p>
           {% if form.description.errors %}
           <p class="text-red-500 text-xs mt-1">{{ form.description.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="photo-upload">
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Photo du produit</label>
+          <input type="file" name="photo_produit" accept="image/*" class="form-field" id="photoInput">
+          <p class="text-xs text-gray-400 mt-1.5">Ajoutez une vraie photo pour mieux tester, presenter et partager la campagne.</p>
+          <img id="photoPreview" class="photo-preview" alt="Apercu photo produit">
+          {% if form.photo_produit.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ form.photo_produit.errors.0 }}</p>
           {% endif %}
         </div>
 
@@ -257,5 +283,20 @@
     document.getElementById('spinnerOverlay').classList.add('active');
     document.getElementById('submitBtn').disabled = true;
   });
+
+  const photoInput = document.getElementById('photoInput');
+  const photoPreview = document.getElementById('photoPreview');
+  if (photoInput && photoPreview) {
+    photoInput.addEventListener('change', function() {
+      const file = this.files && this.files[0];
+      if (!file) {
+        photoPreview.removeAttribute('src');
+        photoPreview.classList.remove('active');
+        return;
+      }
+      photoPreview.src = URL.createObjectURL(file);
+      photoPreview.classList.add('active');
+    });
+  }
 </script>
 {% endblock %}

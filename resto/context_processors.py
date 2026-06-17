@@ -14,12 +14,12 @@ def resto_globals(request):
 
     # Unread notification count for logged-in restaurant owners (used in dashboard sidebar)
     if request.user.is_authenticated:
-        try:
-            restaurant = Restaurant.objects.get(owner=request.user, is_active=True)
+        restaurant = Restaurant.objects.filter(owner=request.user, is_active=True).order_by("name").first()
+        if restaurant:
             ctx["unread_notifications_count"] = Notification.objects.filter(
                 restaurant=restaurant, is_read=False
             ).count()
-        except Restaurant.DoesNotExist:
+        else:
             ctx["unread_notifications_count"] = 0
 
     return ctx

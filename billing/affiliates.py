@@ -8,6 +8,7 @@ from .services import has_active_access
 
 
 DEFAULT_AFFILIATE_RATE = Decimal("0.50")
+PROVIDER_SUBSCRIPTION_RATE = Decimal("0.30")
 
 
 def affiliate_is_allowed(user) -> bool:
@@ -106,7 +107,11 @@ def create_commission_for_transaction(tx: Transaction) -> Commission | None:
         AffiliateProfile.objects.filter(id=affiliate.id).update(is_enabled=False)
         return None
 
-    rate = getattr(affiliate, "rate", None) or DEFAULT_AFFILIATE_RATE
+    product_type = (tx.metadata or {}).get("product_type")
+    if product_type == "provider_subscription":
+        rate = PROVIDER_SUBSCRIPTION_RATE
+    else:
+        rate = getattr(affiliate, "rate", None) or DEFAULT_AFFILIATE_RATE
     base = _commission_base_for_transaction(tx)
     if base <= 0:
         return None

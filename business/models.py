@@ -606,10 +606,29 @@ class BusinessKeyPaymentRequest(models.Model):
         return f"{self.user} - {self.get_tier_display()} - {self.amount_xaf} FCFA"
 
     def confirm(self):
+        from billing.affiliates import create_commission_for_transaction
+        from billing.models import Transaction
+
         if self.status == self.Status.CONFIRMED:
             return None
         account, _ = BusinessKeyAccount.objects.get_or_create(user=self.user)
         account.activate(self.tier, days=30)
+        tx = Transaction.objects.create(
+            user=self.user,
+            amount=self.amount_xaf,
+            currency="XAF",
+            type="CREDIT",
+            status="COMPLETED",
+            payment_method="OTHER",
+            description="Activation E-Shelle Business Key",
+            metadata={
+                "business_key_tier": self.tier,
+                "commission_base": str(self.amount_xaf),
+                "product_type": "business_key_subscription",
+                "payment_request_id": self.id,
+            },
+        )
+        create_commission_for_transaction(tx)
         self.status = self.Status.CONFIRMED
         self.confirmed_at = timezone.now()
         self.save(update_fields=["status", "confirmed_at"])
@@ -761,5 +780,160 @@ class PartnerCRMLead(models.Model):
         if not number.startswith("237"):
             number = f"237{number}"
         return f"https://wa.me/{number}?text={urllib.parse.quote(text)}"
+
+
+class ClientAIKit(models.Model):
+    """Kit de livraison IA reutilisable pour personnaliser E-Shelle a un client."""
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Brouillon"
+        READY = "ready", "Pret a vendre"
+        DELIVERED = "delivered", "Livre"
+        ARCHIVED = "archived", "Archive"
+
+    business = models.OneToOneField(
+        BusinessProfile,
+        on_delete=models.CASCADE,
+        related_name="ai_delivery_kit",
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT, db_index=True)
+    client_brief = models.JSONField(default=dict, blank=True)
+    recommended_agents = models.JSONField(default=list, blank=True)
+    chatbot_prompt = models.TextField(blank=True)
+    website_plan = models.JSONField(default=dict, blank=True)
+    content_pack = models.JSONField(default=dict, blank=True)
+    whatsapp_scripts = models.JSONField(default=list, blank=True)
+    seo_plan = models.JSONField(default=dict, blank=True)
+    video_plan = models.JSONField(default=dict, blank=True)
+    automation_plan = models.JSONField(default=list, blank=True)
+    qa_checklist = models.JSONField(default=list, blank=True)
+    notes = models.TextField(blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="created_client_ai_kits",
+    )
+    generated_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        verbose_name = "Kit client IA"
+        verbose_name_plural = "Kits clients IA"
+
+    def __str__(self):
+        return f"Kit IA - {self.business.name}"
+
+
+class UnmetSearchRequest(models.Model):
+    """Demande client creee quand E-Shelle ne trouve pas de resultat satisfaisant."""
+
+    class Status(models.TextChoices):
+        NEW = "new", "Nouvelle"
+        VIEWED = "viewed", "Vue"
+        NOTIFIED = "notified", "Prestataires notifies"
+        IN_PROGRESS = "in_progress", "En traitement"
+        CONTACTED = "contacted", "Client contacte"
+        PROVIDER_FOUND = "provider_found", "Prestataire trouve"
+        SOLD = "sold", "Vendu"
+        LOST = "lost", "Perdu"
+        SATISFIED = "satisfied", "Satisfaite"
+        EXPIRED = "expired", "Expiree"
+        CANCELED = "canceled", "Annulee"
+
+    query = models.CharField(max_length=260)
+    module = models.CharField(max_length=30, choices=BusinessProfile.Module.choices, default=BusinessProfile.Module.GENERAL, db_index=True)
+    city = models.CharField(max_length=100, blank=True, db_index=True)
+    district = models.CharField(max_length=120, blank=True)
+    customer_name = models.CharField(max_length=120, blank=True)
+    whatsapp = models.CharField(max_length=40, blank=True)
+    email = models.EmailField(blank=True)
+    notes = models.TextField(blank=True)
+    consent_share_contact = models.BooleanField(default=False)
+    consent_promotions = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NEW, db_index=True)
+    source = models.CharField(max_length=40, default="search")
+    notified_count = models.PositiveIntegerField(default=0)
+    assigned_partner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="assigned_unmet_search_requests",
+    )
+    ai_category = models.CharField(max_length=80, blank=True)
+    ai_priority = models.CharField(max_length=20, default="normal", db_index=True)
+    lead_score = models.PositiveIntegerField(default=50, db_index=True)
+    estimated_value_xaf = models.PositiveIntegerField(default=0)
+    conversion_note = models.TextField(blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="unmet_search_requests",
+    )
+    expires_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["module", "city", "status"]),
+            models.Index(fields=["created_at", "status"]),
+        ]
+        verbose_name = "Demande non satisfaite"
+        verbose_name_plural = "Demandes non satisfaites"
+
+    def __str__(self):
+        return f"{self.query} - {self.get_module_display()} - {self.city or 'zone non precisee'}"
+
+    @property
+    def preferred_contact(self):
+        return self.whatsapp or self.email
+
+    @property
+    def clean_whatsapp_number(self):
+        number = (self.whatsapp or "").replace("+", "").replace(" ", "").replace("-", "")
+        if number and not number.startswith("237"):
+            number = f"237{number}"
+        return number
+
+
+class UnmetSearchResponse(models.Model):
+    """Action d'un prestataire sur une demande client non satisfaite."""
+
+    class Status(models.TextChoices):
+        CONTACTED = "contacted", "Client contacte"
+        NOT_AVAILABLE = "not_available", "Non disponible"
+        SATISFIED = "satisfied", "Client satisfait"
+
+    request = models.ForeignKey(UnmetSearchRequest, on_delete=models.CASCADE, related_name="responses")
+    business = models.ForeignKey(BusinessProfile, on_delete=models.CASCADE, related_name="unmet_search_responses")
+    responded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="unmet_search_responses",
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.CONTACTED)
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["request", "business"], name="uniq_unmet_response_per_business"),
+        ]
+        verbose_name = "Reponse a une demande non satisfaite"
+        verbose_name_plural = "Reponses aux demandes non satisfaites"
+
+    def __str__(self):
+        return f"{self.business.name} -> {self.request.query}"
 
 # Create your models here.

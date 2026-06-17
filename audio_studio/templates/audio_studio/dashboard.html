@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Audio Studio IA - E-Shelle{% endblock %}
+
+{% block content %}
+<section class="audio-page">
+  <div class="audio-shell">
+    <header class="audio-hero">
+      <div>
+        <span>Creation video</span>
+        <h1>Audio Studio IA</h1>
+        <p>Enregistrez votre voix, transformez vos textes en voix-off et creez des musiques simples pour vos videos.</p>
+      </div>
+      <div class="audio-proof">
+        <strong>{{ voices|length }}</strong><small>voix</small>
+        <strong>{{ voice_jobs|length }}</strong><small>voix-off</small>
+        <strong>{{ music_jobs|length }}</strong><small>musiques</small>
+      </div>
+    </header>
+
+    <div class="audio-grid">
+      <article class="audio-panel">
+        <h2>1. Enregistrer ma voix</h2>
+        <p>Ajoutez un extrait clair de 20 a 60 secondes. Le consentement est obligatoire.</p>
+        <form method="post" action="{% url 'audio_studio:voice_create' %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ voice_form.name }}
+          {{ voice_form.sample }}
+          <label class="audio-check">{{ voice_form.consent_confirmed }} <span>{{ voice_form.consent_confirmed.label }}</span></label>
+          {{ voice_form.consent_note }}
+          <button class="audio-btn" type="submit">Sauvegarder la voix</button>
+        </form>
+      </article>
+
+      <article class="audio-panel">
+        <h2>2. Generer une voix-off</h2>
+        <p>Collez le script ChatGPT ou AdGen. En local, l'app cree un guide audio testable.</p>
+        <form method="post" action="{% url 'audio_studio:voiceover_create' %}">
+          {% csrf_token %}
+          {{ voiceover_form.title }}
+          {{ voiceover_form.voice_profile }}
+          {{ voiceover_form.mode }}
+          {{ voiceover_form.script }}
+          <button class="audio-btn" type="submit">Generer la voix-off</button>
+        </form>
+      </article>
+
+      <article class="audio-panel">
+        <h2>3. Creer une musique</h2>
+        <p>Choisissez une ambiance et une duree pour produire un fond sonore video.</p>
+        <form method="post" action="{% url 'audio_studio:music_create' %}">
+          {% csrf_token %}
+          {{ music_form.title }}
+          {{ music_form.prompt }}
+          {{ music_form.mood }}
+          {{ music_form.duration_seconds }}
+          <button class="audio-btn" type="submit">Generer la musique</button>
+        </form>
+      </article>
+    </div>
+
+    <div class="audio-two">
+      <article class="audio-list">
+        <h2>Mes voix-off</h2>
+        {% for job in voice_jobs %}
+          <div class="audio-row">
+            <div>
+              <strong>{{ job.title }}</strong>
+              <span>{{ job.get_mode_display }} - {{ job.get_status_display }} - {{ job.created_at|date:"d/m H:i" }}</span>
+              {% if job.error_message %}<small>{{ job.error_message }}</small>{% endif %}
+            </div>
+            {% if job.audio_file %}
+              <audio controls src="{{ job.audio_file.url }}"></audio>
+              <a href="{{ job.audio_file.url }}" download>Telecharger</a>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p class="audio-empty">Aucune voix-off pour le moment.</p>
+        {% endfor %}
+      </article>
+
+      <article class="audio-list">
+        <h2>Mes musiques</h2>
+        {% for job in music_jobs %}
+          <div class="audio-row">
+            <div>
+              <strong>{{ job.title }}</strong>
+              <span>{{ job.get_mood_display }} - {{ job.duration_seconds }}s - {{ job.get_status_display }}</span>
+            </div>
+            {% if job.audio_file %}
+              <audio controls src="{{ job.audio_file.url }}"></audio>
+              <a href="{{ job.audio_file.url }}" download>Telecharger</a>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p class="audio-empty">Aucune musique pour le moment.</p>
+        {% endfor %}
+      </article>
+    </div>
+
+    <article class="audio-list">
+      <h2>Voix enregistrees</h2>
+      {% for voice in voices %}
+        <div class="audio-row">
+          <div>
+            <strong>{{ voice.name }}</strong>
+            <span>{% if voice.consent_confirmed %}Consentement confirme{% else %}Consentement manquant{% endif %} - {{ voice.created_at|date:"d/m/Y" }}</span>
+          </div>
+          <audio controls src="{{ voice.sample.url }}"></audio>
+        </div>
+      {% empty %}
+        <p class="audio-empty">Ajoutez votre premiere voix pour commencer.</p>
+      {% endfor %}
+    </article>
+  </div>
+</section>
+
+<style>
+.audio-page{padding:7rem 1rem 4rem;background:#071012;color:#eefdf9;min-height:100vh}
+.audio-shell{max-width:1180px;margin:0 auto}
+.audio-hero{display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:end;margin-bottom:1.2rem}
+.audio-hero span{display:inline-flex;color:#7cf6ca;font-weight:900;text-transform:uppercase;font-size:.78rem;letter-spacing:.08em}
+.audio-hero h1{font-family:var(--font-display);font-size:clamp(2.3rem,6vw,5rem);line-height:.92;margin:.55rem 0;color:#fff}
+.audio-hero p{max-width:720px;color:rgba(255,255,255,.66);font-size:1.04rem;line-height:1.6}
+.audio-proof{display:grid;grid-template-columns:auto auto;gap:.2rem .7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:1rem;min-width:180px}
+.audio-proof strong{color:#7cf6ca;font-size:1.6rem}.audio-proof small{color:rgba(255,255,255,.6);align-self:center}
+.audio-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.audio-panel,.audio-list{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.1rem;box-shadow:0 22px 48px rgba(0,0,0,.18)}
+.audio-panel h2,.audio-list h2{color:#fff;font-size:1.1rem;margin:0 0 .5rem}
+.audio-panel p,.audio-empty{color:rgba(255,255,255,.6);line-height:1.5}
+.audio-panel form{display:grid;gap:.7rem;margin-top:.9rem}
+.audio-panel input,.audio-panel textarea,.audio-panel select{width:100%;background:#0f2024;color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:.78rem}
+.audio-panel input[type=file]{padding:.68rem;background:#11262a}
+.audio-check{display:flex;gap:.55rem;align-items:flex-start;color:rgba(255,255,255,.72);font-size:.86rem;line-height:1.4}
+.audio-check input{width:auto;margin-top:.15rem}
+.audio-btn{border:0;border-radius:12px;padding:.85rem 1rem;background:linear-gradient(135deg,#22c55e,#14b8a6);color:#04120f;font-weight:950;cursor:pointer}
+.audio-two{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+.audio-list{margin-top:1rem}
+.audio-row{display:grid;grid-template-columns:1fr minmax(180px,270px) auto;gap:.8rem;align-items:center;padding:.85rem 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.audio-row strong{display:block;color:#fff}.audio-row span,.audio-row small{display:block;color:rgba(255,255,255,.55);font-size:.8rem;margin-top:.18rem}
+.audio-row audio{width:100%}.audio-row a{color:#7cf6ca;font-weight:850;text-decoration:none}
+@media(max-width:980px){.audio-hero,.audio-grid,.audio-two,.audio-row{grid-template-columns:1fr}.audio-proof{width:100%}}
+</style>
+{% endblock %}

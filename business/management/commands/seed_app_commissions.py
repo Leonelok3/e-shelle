@@ -4,6 +4,8 @@ from business.models import AppCommission, PartnerLevel
 
 
 REF_LINK = "http://127.0.0.1:8025/ref/YRB1RY94/"
+BUSINESS_KEY_PRICE_XAF = 9900
+PROVIDER_COMMISSION_RATE = 30
 
 
 def generic_script(label):
@@ -23,7 +25,7 @@ class Command(BaseCommand):
                 "app_name": AppCommission.AppName.MARKETPLACE,
                 "label": "Marketplace",
                 "description": "Vendre des fiches, vitrines et offres marketplace aux commerces locaux.",
-                "commission_rate": 10,
+                "commission_rate": PROVIDER_COMMISSION_RATE,
                 "is_recurring": False,
                 "priority": 10,
                 "icon": "M",
@@ -33,7 +35,7 @@ class Command(BaseCommand):
                 "app_name": AppCommission.AppName.LOVE,
                 "label": "E-Shelle Love",
                 "description": "Rencontres serieuses et profils locaux avec abonnement a 5 000 FCFA/mois.",
-                "commission_rate": 15,
+                "commission_rate": PROVIDER_COMMISSION_RATE,
                 "is_recurring": True,
                 "priority": 20,
                 "icon": "L",
@@ -43,7 +45,7 @@ class Command(BaseCommand):
                 "app_name": AppCommission.AppName.FORMATIONS,
                 "label": "Langues & Formations IA/Marketing",
                 "description": "Cours de langue, IA, marketing digital et vente en ligne a partir de 5 000 FCFA/mois.",
-                "commission_rate": 20,
+                "commission_rate": PROVIDER_COMMISSION_RATE,
                 "is_recurring": False,
                 "priority": 30,
                 "icon": "F",
@@ -53,7 +55,7 @@ class Command(BaseCommand):
                 "app_name": AppCommission.AppName.NJANGI,
                 "label": "Njangi Tontine",
                 "description": "Digitalisation des tontines, cotisations, mains et rapports.",
-                "commission_rate": 10,
+                "commission_rate": PROVIDER_COMMISSION_RATE,
                 "is_recurring": True,
                 "priority": 40,
                 "icon": "N",
@@ -63,7 +65,7 @@ class Command(BaseCommand):
                 "app_name": AppCommission.AppName.AGRO,
                 "label": "Agro B2B/B2C",
                 "description": "Connecter producteurs, revendeurs, restaurants et acheteurs.",
-                "commission_rate": 10,
+                "commission_rate": PROVIDER_COMMISSION_RATE,
                 "is_recurring": False,
                 "priority": 50,
                 "icon": "A",
@@ -73,7 +75,7 @@ class Command(BaseCommand):
                 "app_name": AppCommission.AppName.TCHASLUCPAY,
                 "label": "Microfinance Tchaslucpay",
                 "description": "Collecte, depot, retrait et suivi terrain pour microfinance.",
-                "commission_rate": 8,
+                "commission_rate": PROVIDER_COMMISSION_RATE,
                 "is_recurring": True,
                 "priority": 60,
                 "icon": "T",
@@ -83,7 +85,7 @@ class Command(BaseCommand):
                 "app_name": AppCommission.AppName.TRANSPORT,
                 "label": "Transport & Courses",
                 "description": "Connecter passagers, conducteurs, coursiers et services locaux.",
-                "commission_rate": 10,
+                "commission_rate": PROVIDER_COMMISSION_RATE,
                 "is_recurring": False,
                 "priority": 70,
                 "icon": "TR",
@@ -197,7 +199,7 @@ class Command(BaseCommand):
 
         created = 0
         for data in apps_data:
-            data.setdefault("commission_rate", 10)
+            data.setdefault("commission_rate", PROVIDER_COMMISSION_RATE)
             data.setdefault("commission_fixe", 0)
             data.setdefault("is_recurring", False)
             data.setdefault("is_active", True)
@@ -221,17 +223,17 @@ class Command(BaseCommand):
             {
                 "level": PartnerLevel.Level.BUSINESS_KEY,
                 "label": "Business Key",
-                "prix_fcfa": 5000,
-                "description": "Pack partenaire pour vendre les apps locales les plus rapides.",
-                "bonus_description": "Kit commercial, CRM et scripts sectoriels.",
-                "apps": ["marketplace", "resto", "pressing", "gaz", "pharma", "agro", "adgen", "services_web"],
+                "prix_fcfa": BUSINESS_KEY_PRICE_XAF,
+                "description": "Prix unique avec acces complet aux outils marketing et IA E-Shelle.",
+                "bonus_description": "50% sur partenaires Business Key, 30% sur frais prestataires valides.",
+                "apps": [app.app_name for app in all_apps],
             },
             {
                 "level": PartnerLevel.Level.AMBASSADEUR,
                 "label": "Ambassadeur Pro",
-                "prix_fcfa": 10000,
-                "description": "Niveau terrain pour vendre plus de secteurs et suivre une equipe.",
-                "bonus_description": "Acces a plus de scripts, relances et opportunites multi-ville.",
+                "prix_fcfa": BUSINESS_KEY_PRICE_XAF,
+                "description": "Ancien niveau conserve pour compatibilite. Meme acces complet que Business Key.",
+                "bonus_description": "Acces complet, prix unique et commissions simplifiees.",
                 "apps": [
                     "marketplace",
                     "resto",
@@ -251,9 +253,9 @@ class Command(BaseCommand):
             {
                 "level": PartnerLevel.Level.MULTI_APP,
                 "label": "Multi-App Master",
-                "prix_fcfa": 25000,
-                "description": "Acces complet pour vendre tout l'ecosysteme E-Shelle.",
-                "bonus_description": "Vision multi-app, commissions recurrentes et grands comptes.",
+                "prix_fcfa": BUSINESS_KEY_PRICE_XAF,
+                "description": "Ancien niveau conserve pour compatibilite. Acces complet au prix unique.",
+                "bonus_description": "Vision multi-app et commissions 50/30.",
                 "apps": [app.app_name for app in all_apps],
             },
         ]
