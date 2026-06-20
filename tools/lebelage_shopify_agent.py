@@ -126,14 +126,35 @@ def with_page(url: str, page: int) -> str:
     return urlunparse(parsed._replace(query=urlencode(query)))
 
 
+def _same_host(url_a: str, url_b: str) -> bool:
+    return urlparse(url_a).netloc == urlparse(url_b).netloc
+
+
+def looks_like_product_url(url: str) -> bool:
+    path = urlparse(url).path.lower()
+    if any(segment in path for segment in ["/product/", "/products/", "/produit/", "/produits/", "/p/"]):
+        return True
+    segments = [segment for segment in path.split("/") if segment]
+    if len(segments) >= 2 and segments[-2] in {"product", "products", "produit", "produits", "item", "p"}:
+        return True
+    return bool(re.search(r"(?:^|[/_-])(product|products|produit|produits|item|p)(?:[/_-]|$)", path))
+
+
+def looks_like_listing_url(url: str) -> bool:
+    path = urlparse(url).path.lower()
+    if any(token in path for token in ["/category", "/categories", "/collection", "/collections", "/catalog", "/shop", "/boutique", "/marque", "/brand", "/tag", "/tags", "/search", "/produits", "/products"]):
+        return True
+    return "/product" not in path and "/produit" not in path and "/p/" not in path
+
+
 def discover_category_urls(home_url: str, html_text: str) -> list[str]:
     parser = parse_html(html_text)
     urls = {home_url}
     for href, _title in parser.links:
         url = normalize_url(home_url, href)
-        if "en.lebelage.co.kr" not in url:
+        if not _same_host(home_url, url):
             continue
-        if "/category/" in url or "/product/list" in url:
+        if looks_like_listing_url(url) or looks_like_product_url(url):
             urls.add(url.split("#")[0])
     return sorted(urls)
 
@@ -143,44 +164,61 @@ def discover_product_urls(page_url: str, html_text: str) -> list[str]:
     urls = set()
     for href, title in parser.links:
         url = normalize_url(page_url, href)
-        if "en.lebelage.co.kr" not in url:
+        if not _same_host(page_url, url):
             continue
-        if "/product/" not in url:
-            continue
-        if not title and re.search(r"/product/[^/]+/\d+", url) is None:
-            continue
-        urls.add(url.split("#")[0])
+        if looks_like_product_url(url):
+            urls.add(url.split("#")[0])
+    if looks_like_product_url(page_url):
+        urls.add(page_url.split("#")[0])
     return sorted(urls)
 
 
 def crawl_product_urls(start_url: str, max_pages: int, limit: int, sleep: float) -> list[str]:
     home = fetch(start_url)
-    categories = discover_category_urls(start_url, home)
-    logging.info("Categories/pages candidates: %s", len(categories))
+    candidates = discover_category_urls(start_url, home)
+    logging.info("Candidates URL initiales: %s", len(candidates))
 
     seen_products: list[str] = []
     seen_set = set()
-    for category_url in categories:
-        for page in range(1, max_pages + 1):
-            page_url = category_url if page == 1 else with_page(category_url, page)
-            try:
-                text = fetch(page_url)
-            except Exception as exc:
-                logging.warning("Skip page %s: %s", page_url, exc)
-                break
-            found = discover_product_urls(page_url, text)
-            new_count = 0
-            for url in found:
-                if url in seen_set:
-                    continue
-                seen_set.add(url)
-                seen_products.append(url)
-                new_count += 1
-                if limit and len(seen_products) >= limit:
-                    return seen_products
-            if new_count == 0 and page > 1:
-                break
-            time.sleep(sleep)
+    visited = set()
+    queue = list(candidates)
+
+    while queue:
+        page_url = queue.pop(0)
+        if page_url in visited:
+            continue
+        visited.add(page_url)
+
+        try:
+            text = fetch(page_url)
+        except Exception as exc:
+            logging.warning("Skip page %s: %s", page_url, exc)
+            continue
+
+        found = discover_product_urls(page_url, text)
+        for url in found:
+            if url in seen_set:
+                continue
+            seen_set.add(url)
+            seen_products.append(url)
+            if limit and len(seen_products) >= limit:
+                return seen_products
+
+        if len(seen_products) >= limit:
+            return seen_products
+
+        for candidate in discover_category_urls(page_url, text):
+            if candidate not in visited and candidate not in queue:
+                queue.append(candidate)
+
+        if looks_like_listing_url(page_url):
+            for page in range(2, max_pages + 1):
+                page_url_with_num = with_page(page_url, page)
+                if page_url_with_num not in visited and page_url_with_num not in queue:
+                    queue.append(page_url_with_num)
+
+        time.sleep(sleep)
+
     return seen_products
 
 
@@ -193,12 +231,28 @@ def text_from_html(raw_html: str) -> str:
 
 def parse_price(value: str) -> tuple[str, str, str]:
     value = html.unescape(value or "").strip()
-    match = re.search(r"([$€£])\s*([0-9]+(?:[.,][0-9]{1,2})?)", value)
-    if not match:
-        return value, "", "USD"
-    currency_symbol, amount = match.groups()
-    currency = {"$": "USD", "€": "EUR", "£": "GBP"}.get(currency_symbol, "USD")
-    return f"{currency_symbol}{amount}", amount.replace(",", "."), currency
+    patterns = [
+        r'(?P<symbol>[$€£¥₹])\s*(?P<amount>[0-9]+(?:[.,][0-9]{1,2})?)',
+        r'(?P<code>USD|EUR|GBP|CAD|AUD|XAF|XOF|NGN|KES|MAD|TZS|GHS|ZAR|INR|JPY|CHF|AED|RUB|BRL|SEK|DKK|NOK)\s*[: ]?\s*(?P<amount>[0-9]+(?:[.,][0-9]{1,2})?)',
+        r'(?P<amount>[0-9]+(?:[.,][0-9]{1,2})?)\s*(?P<code>USD|EUR|GBP|CAD|AUD|XAF|XOF|NGN|KES|MAD|TZS|GHS|ZAR|INR|JPY|CHF|AED|RUB|BRL|SEK|DKK|NOK)',
+        r'(?P<amount>[0-9]+(?:[.,][0-9]{1,2})?)',
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, value, flags=re.I)
+        if not match:
+            continue
+        amount = match.group("amount")
+        symbol = match.groupdict().get("symbol")
+        code = match.groupdict().get("code")
+        if symbol:
+            currency = {"$": "USD", "€": "EUR", "£": "GBP", "¥": "JPY", "₹": "INR"}.get(symbol, "USD")
+            return f"{symbol}{amount}", amount.replace(",", "."), currency
+        if code:
+            return f"{amount} {code.upper()}", amount.replace(",", "."), code.upper()
+        return value, amount.replace(",", "."), "USD"
+
+    return value, "", "USD"
 
 
 def extract_between(text: str, start: str, end_candidates: Iterable[str]) -> str:
@@ -400,21 +454,14 @@ def calculate_final_price(source_price: str | float, shipping: float = 0.0, marg
 
 def build_selling_description(product: Product) -> str:
     title = product.title.strip()
-    base = product.description.strip()
-    benefits = [
-        "formule pensee pour une routine beaute simple et efficace",
-        "presentation claire pour rassurer le client avant l'achat",
-        "produit ideal pour enrichir une boutique skincare ou K-beauty",
-    ]
+    base = product.description.strip() or f"Produit extrait depuis la source indiquee pour verification avant publication."
     return (
-        f"{title} est un soin LEBELAGE selectionne pour les clients qui recherchent une solution "
-        f"skincare pratique et qualitative. {base}\n\n"
-        f"Points forts:\n"
-        f"- {benefits[0]}\n"
-        f"- {benefits[1]}\n"
-        f"- {benefits[2]}\n\n"
-        f"Conseil boutique: verifier les ingredients, les consignes d'utilisation et les obligations "
-        f"cosmetiques locales avant publication."
+        f"{title} est un produit extrait depuis la source du site cible. {base}\n\n"
+        f"Points a verifier:\n"
+        f"- prix affiche sur la page source\n"
+        f"- disponibilite et variantes du produit\n"
+        f"- photos, description et informations complementaires\n\n"
+        f"Conseil boutique: verifier les details avant publication ou import dans votre catalogue."
     )
 
 

@@ -265,6 +265,7 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 14px;
+      align-items: stretch;
     }
     .card {
       background: white;
@@ -274,7 +275,8 @@
       box-shadow: 0 10px 28px rgba(15,23,42,.06);
       display: flex;
       flex-direction: column;
-      min-height: 100%;
+      height: 100%;
+      align-self: stretch;
     }
     .card img {
       width: 100%;
@@ -285,22 +287,40 @@
     }
     .card-body {
       padding: 14px;
-      display: grid;
+      display: flex;
+      flex-direction: column;
       gap: 10px;
+      flex: 1;
     }
     .card-title {
       margin: 0;
       font-size: 16px;
       line-height: 1.28;
+      min-height: 2.6em;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .price-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
     .price {
       display: inline-flex;
+      align-items: center;
       width: fit-content;
+      max-width: 100%;
       border-radius: 8px;
       padding: 6px 9px;
       background: #ecfdf5;
       color: #166534;
       font-weight: 900;
+      line-height: 1.2;
+      white-space: normal;
+      word-break: break-word;
     }
     .desc {
       color: var(--muted);
@@ -308,8 +328,11 @@
       margin: 0;
       display: -webkit-box;
       -webkit-line-clamp: 3;
+      line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      min-height: 3.9em;
+      flex: 1;
     }
     .tags {
       display: flex;
@@ -409,13 +432,13 @@
       <div class="hero-main">
         <div>
           <div class="eyebrow">Agent IA commerce</div>
-          <h1>Exporter avant d'importer</h1>
-          <p>On met tout en fichiers locaux d'abord: produits LEBELAGE d'un cote, produits Shopify existants de l'autre. Tu verifies avant toute action.</p>
+          <h1>Importer des produits depuis un site</h1>
+          <p>Colle l'URL du site cible, exporte les produits en local, puis vérifie les prix et les données avant toute action complémentaire.</p>
         </div>
         <div class="hero-stats">
-          <div class="stat"><strong>{{ product_count }}</strong><span>produits LEBELAGE exportes</span></div>
+          <div class="stat"><strong>{{ product_count }}</strong><span>produits extraits</span></div>
           <div class="stat"><strong>{% if shopify_ready %}OK{% else %}OFF{% endif %}</strong><span>connexion Shopify</span></div>
-          <div class="stat"><strong>{{ shopify_product_count }}</strong><span>produits Shopify exportes</span></div>
+          <div class="stat"><strong>{{ shopify_product_count }}</strong><span>produits Shopify</span></div>
         </div>
       </div>
 
@@ -432,8 +455,8 @@
         <form method="post">
           {% csrf_token %}
           <label>
-            URL de depart
-            <input name="source_url" value="{{ form.source_url }}" placeholder="https://en.lebelage.co.kr/">
+            URL du site à importer
+            <input name="source_url" value="{{ form.source_url }}" placeholder="https://exemple.com/ ou https://boutique.com/collections">
           </label>
 
           <div class="field-grid">
@@ -467,12 +490,12 @@
           </div>
 
           <div class="actions">
-            <button type="submit" name="action" value="scrape">Exporter LEBELAGE en local</button>
+            <button type="submit" name="action" value="scrape">Exporter les produits du site</button>
             <button class="secondary" type="submit" name="action" value="export_shopify">Exporter ma boutique Shopify</button>
-            <button class="secondary" type="submit" name="action" value="compare">Comparer LEBELAGE vs Shopify</button>
+            <button class="secondary" type="submit" name="action" value="compare">Comparer source vs Shopify</button>
             <button class="danger" type="submit" name="action" value="import_draft">Importer en brouillon</button>
           </div>
-          <div class="hint">Les exports et la comparaison creent des fichiers JSON/CSV dans `tmp`. L'import en brouillon exige BROUILLON et ne publie jamais directement.</div>
+          <div class="hint">Les exports et la comparaison créent des fichiers JSON/CSV dans <strong>tmp</strong>. Tu peux vérifier les produits extraits avant de comparer ou d’importer.</div>
         </form>
       </aside>
     </section>
@@ -480,8 +503,14 @@
     <section>
       <div class="products-head">
         <div>
-          <h2>Comparateur LEBELAGE vs Shopify</h2>
+          <h2>Comparateur source vs Shopify</h2>
           <div class="hint">JSON: {{ comparison_json }}<br>CSV: {{ comparison_csv }}</div>
+          {% if has_comparison_json or has_comparison_csv %}
+            <div class="actions" style="margin-top:10px;">
+              {% if has_comparison_json %}<a class="button secondary" href="{% url 'lebelage_importer:download_export' bucket='comparison' file_format='json' %}" target="_blank" rel="noreferrer">Télécharger JSON</a>{% endif %}
+              {% if has_comparison_csv %}<a class="button secondary" href="{% url 'lebelage_importer:download_export' bucket='comparison' file_format='csv' %}" target="_blank" rel="noreferrer">Télécharger CSV</a>{% endif %}
+            </div>
+          {% endif %}
         </div>
       </div>
       {% if comparison_summary %}
@@ -497,21 +526,27 @@
             {% for item in price_differences %}
               <div class="mini-row">
                 <strong>{{ item.title }}</strong>
-                <small>LEBELAGE {{ item.lebelage_price }} / Shopify {{ item.shopify_price }} / Ecart {{ item.difference }}</small>
+                <small>Source {{ item.lebelage_price }} USD / Shopify {{ item.shopify_price }} USD / Écart {{ item.difference }} USD</small>
               </div>
             {% endfor %}
           </div>
         {% endif %}
       {% else %}
-        <div class="empty">Exporte LEBELAGE, exporte Shopify, puis clique sur Comparer LEBELAGE vs Shopify.</div>
+        <div class="empty">Exporte les produits du site, exporte Shopify, puis clique sur Comparer source vs Shopify.</div>
       {% endif %}
     </section>
 
     <section>
       <div class="products-head">
         <div>
-          <h2>Produits LEBELAGE exportes</h2>
+          <h2>Produits extraits</h2>
           <div class="hint">JSON: {{ export_json }}<br>CSV: {{ export_csv }}</div>
+          {% if has_export_json or has_export_csv %}
+            <div class="actions" style="margin-top:10px;">
+              {% if has_export_json %}<a class="button secondary" href="{% url 'lebelage_importer:download_export' bucket='export' file_format='json' %}" target="_blank" rel="noreferrer">Télécharger JSON</a>{% endif %}
+              {% if has_export_csv %}<a class="button secondary" href="{% url 'lebelage_importer:download_export' bucket='export' file_format='csv' %}" target="_blank" rel="noreferrer">Télécharger CSV</a>{% endif %}
+            </div>
+          {% endif %}
         </div>
       </div>
 
@@ -524,7 +559,15 @@
               {% endif %}
               <div class="card-body">
                 <h3 class="card-title">{{ product.title }}</h3>
-                <span class="price">{% if product.final_price_amount %}Prix final {{ product.final_price_amount }}{% else %}{{ product.price }}{% endif %}</span>
+                <div class="price-group">
+                  <span class="price">Prix site : {{ product.price|default:product.final_price_amount }}{% if product.currency %} {{ product.currency }}{% endif %}</span>
+                  {% if product.price_amount %}
+                    <span class="price" style="background:#eef2ff;color:#3730a3;">Prix brut : {{ product.price_amount }} {{ product.currency|default:'USD' }}</span>
+                  {% endif %}
+                  {% if product.final_price_amount and product.final_price_amount != product.price_amount %}
+                    <span class="price" style="background:#fef3c7;color:#92400e;">Prix ajusté : {{ product.final_price_amount }} {{ product.currency|default:'USD' }}</span>
+                  {% endif %}
+                </div>
                 <p class="desc">{% if product.selling_description %}{{ product.selling_description }}{% else %}{{ product.description }}{% endif %}</p>
                 <div class="tags">
                   {% for tag in product.tags %}

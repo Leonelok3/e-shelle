@@ -6,6 +6,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib import messages
+from django.http import FileResponse, Http404
 from django.shortcuts import render
 
 from tools.lebelage_shopify_agent import (
@@ -110,6 +111,30 @@ def _shopify_ready() -> bool:
     shop = os.getenv("SHOPIFY_SHOP_DOMAIN") or os.getenv("TIBO_SHOPIFY_SHOP_DOMAIN")
     token = os.getenv("SHOPIFY_ADMIN_ACCESS_TOKEN") or os.getenv("TIBO_SHOPIFY_ACCESS_TOKEN")
     return bool(shop and token)
+
+
+def download_export(request, bucket: str, file_format: str):
+    bucket = bucket.lower()
+    file_format = file_format.lower()
+    if file_format not in {"json", "csv"}:
+        raise Http404
+
+    mappings = {
+        "export": (EXPORT_JSON, EXPORT_CSV),
+        "shopify": (SHOPIFY_EXPORT_JSON, SHOPIFY_EXPORT_CSV),
+        "comparison": (COMPARISON_JSON, COMPARISON_CSV),
+    }
+    candidates = mappings.get(bucket)
+    if not candidates:
+        raise Http404
+
+    file_path = candidates[0] if file_format == "json" else candidates[1]
+    if not file_path.exists():
+        raise Http404
+
+    response = FileResponse(file_path.open("rb"), as_attachment=True)
+    response["Content-Disposition"] = f'attachment; filename="{file_path.name}"'
+    return response
 
 
 def dashboard(request):
@@ -228,6 +253,12 @@ def dashboard(request):
         "shopify_export_csv": SHOPIFY_EXPORT_CSV,
         "comparison_json": COMPARISON_JSON,
         "comparison_csv": COMPARISON_CSV,
+        "has_export_json": EXPORT_JSON.exists(),
+        "has_export_csv": EXPORT_CSV.exists(),
+        "has_shopify_export_json": SHOPIFY_EXPORT_JSON.exists(),
+        "has_shopify_export_csv": SHOPIFY_EXPORT_CSV.exists(),
+        "has_comparison_json": COMPARISON_JSON.exists(),
+        "has_comparison_csv": COMPARISON_CSV.exists(),
         "shopify_ready": _shopify_ready(),
     }
     return render(request, "lebelage_importer/dashboard.html", context)
