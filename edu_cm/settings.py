@@ -7,11 +7,11 @@ load_dotenv(BASE_DIR / '.env')
 
 # Sécurité
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key-change-me")
-DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes")
+DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("1", "true", "yes")
 
 ALLOWED_HOSTS = [h.strip() for h in os.getenv(
     "DJANGO_ALLOWED_HOSTS",
-    "localhost,127.0.0.1,e-shelle.com,www.e-shelle.com,.up.railway.app"
+    "localhost,127.0.0.1,e-shelle.com,www.e-shelle.com"
 ).split(",") if h.strip()]
 RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME", "")
 if RENDER_EXTERNAL_HOSTNAME:
@@ -20,29 +20,46 @@ RAILWAY_PUBLIC_DOMAIN = os.getenv("RAILWAY_PUBLIC_DOMAIN", "")
 if RAILWAY_PUBLIC_DOMAIN:
     ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
 
-CSRF_TRUSTED_ORIGINS = [
+DEFAULT_CSRF_ORIGINS = [
     "https://e-shelle.com",
     "https://www.e-shelle.com",
 ]
-CSRF_TRUSTED_ORIGINS += [
+DEFAULT_CSRF_ORIGINS += [
     origin.strip()
-    for origin in os.getenv("MAPEX_CSRF_TRUSTED_ORIGINS", "https://mapex.e-shelle.com").split(",")
+    for origin in os.getenv(
+        "DJANGO_CSRF_TRUSTED_ORIGINS",
+        os.getenv("MAPEX_CSRF_TRUSTED_ORIGINS", "https://mapex.e-shelle.com")
+    ).split(",")
     if origin.strip()
 ]
-CSRF_TRUSTED_ORIGINS += [
+DEFAULT_CSRF_ORIGINS += [
     origin.strip()
     for origin in os.getenv("ESHELLE_SUBDOMAIN_CSRF_TRUSTED_ORIGINS", "").split(",")
     if origin.strip()
 ]
 if RENDER_EXTERNAL_HOSTNAME:
-    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+    DEFAULT_CSRF_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
 if RAILWAY_PUBLIC_DOMAIN:
-    CSRF_TRUSTED_ORIGINS.append(f"https://{RAILWAY_PUBLIC_DOMAIN}")
-CSRF_TRUSTED_ORIGINS += [
+    DEFAULT_CSRF_ORIGINS.append(f"https://{RAILWAY_PUBLIC_DOMAIN}")
+DEFAULT_CSRF_ORIGINS += [
     origin.strip()
-    for origin in os.getenv("RAILWAY_CSRF_TRUSTED_ORIGINS", "https://*.up.railway.app").split(",")
+    for origin in os.getenv(
+        "RAILWAY_CSRF_TRUSTED_ORIGINS",
+        "https://*.up.railway.app"
+    ).split(",")
     if origin.strip()
 ]
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(DEFAULT_CSRF_ORIGINS))
+
+# Headers / cookies de sécurité communs
+SECURE_REFERRER_POLICY = os.getenv("SECURE_REFERRER_POLICY", "strict-origin-when-cross-origin")
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = "DENY"
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
 
 # Apps
 INSTALLED_APPS = [
@@ -345,13 +362,14 @@ DEFAULT_FROM_EMAIL  = os.getenv("DEFAULT_FROM_EMAIL", "noreply@e-shelle.com")
 
 # Sécurité HTTPS (activée quand DEBUG=False)
 if not DEBUG:
-    SECURE_SSL_REDIRECT   = os.getenv("SECURE_SSL_REDIRECT",   "True").lower() == "true"
-    SESSION_COOKIE_SECURE  = os.getenv("SESSION_COOKIE_SECURE",  "True").lower() == "true"
-    CSRF_COOKIE_SECURE     = os.getenv("CSRF_COOKIE_SECURE",     "True").lower() == "true"
-    SECURE_HSTS_SECONDS    = int(os.getenv("SECURE_HSTS_SECONDS", "63072000"))
+    SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "True").lower() == "true"
+    SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "True").lower() == "true"
+    CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "True").lower() == "true"
+    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "63072000"))
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD    = True
+    SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_REDIRECT_EXEMPT = os.getenv("SECURE_REDIRECT_EXEMPT", "").split(",") if os.getenv("SECURE_REDIRECT_EXEMPT") else []
 
 # Taille max upload (fichiers produits digitaux)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800   # 50 Mo
