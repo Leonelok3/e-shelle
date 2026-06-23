@@ -237,3 +237,110 @@ class ExportContentView(LoginRequiredMixin, View):
         )
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
+
+
+# ─── Génération Vidéo Publicitaire ───────────────────────────────────────────
+from e_shelle_ai.services.tools.google_media_generator import start_google_video, check_google_video_status
+from e_shelle_ai.services.quota_service import QuotaService
+import base64
+
+class StartAdVideoView(LoginRequiredMixin, View):
+    """
+    POST /pub/api/campaign/<pk>/generate-video/start/
+    Démarre la génération de vidéo publicitaire avec Google Veo en utilisant la photo du produit.
+    """
+    def post(self, request, pk):
+        campaign = get_object_or_404(AdCampaign, pk=pk, user=request.user)
+        try:
+            content = campaign.content
+        except AdContent.DoesNotExist:
+            return JsonResponse({"error": "Veuillez d'abord générer le contenu textuel de la campagne."}, status=400)
+
+        # Vérifier le quota d'image/vidéo
+        quota_service = QuotaService()
+        if not quota_service.check_image_quota(request.user):
+            upgrade_msg = quota_service.get_upgrade_message(request.user, "image")
+            return JsonResponse({"error": upgrade_msg, "quota_exceeded": True}, status=402)
+
+        # Lire le prompt personnalisé et la durée s'ils sont fournis
+        custom_prompt = None
+        duration = 5
+        if request.content_type == "application/json" or request.body.startswith(b"{"):
+            try:
+                data = json.loads(request.body)
+                custom_prompt = data.get("prompt")
+                duration = int(data.get("duration", 5))
+            except Exception:
+                pass
+        else:
+            custom_prompt = request.POST.get("prompt")
+            duration = int(request.POST.get("duration", 5))
+
+        if custom_prompt:
+            prompt = custom_prompt.strip()
+        else:
+            prompt = content.tiktok_script or f"A commercial for {campaign.nom_produit}. {campaign.description}"
+        
+        prompt = prompt[:1200]
+        if duration not in [5, 10]:
+            duration = 5
+
+        # Encodage de l'image du produit si présente
+        image_b64 = None
+        if campaign.photo_produit:
+            try:
+                with campaign.photo_produit.open("rb") as img_file:
+                    image_b64 = base64.b64encode(img_file.read()).decode("utf-8")
+            except Exception as e:
+                logger.warning(f"Failed to read campaign product image: {e}")
+
+        # Lancer la génération
+        result = start_google_video(prompt, aspect_ratio="16:9", image_b64=image_b64, duration=duration)
+
+        if result.get("error"):
+            return JsonResponse({"error": f"Impossible de démarrer la génération vidéo : {result['error']}"}, status=500)
+
+        return JsonResponse({
+            "operation_name": result["operation_name"],
+            "prompt": prompt
+        })
+
+
+class PollAdVideoView(LoginRequiredMixin, View):
+    """
+    GET /pub/api/campaign/<pk>/generate-video/poll/
+    Vérifie le statut et sauvegarde le résultat final de la vidéo.
+    """
+    def get(self, request, pk):
+        campaign = get_object_or_404(AdCampaign, pk=pk, user=request.user)
+        try:
+            content = campaign.content
+        except AdContent.DoesNotExist:
+            return JsonResponse({"error": "Contenu de campagne manquant."}, status=400)
+
+        operation_name = request.GET.get("operation_name")
+        if not operation_name:
+            return JsonResponse({"error": "Nom de l'opération manquant."}, status=400)
+
+        result = check_google_video_status(operation_name)
+
+        if result.get("error"):
+            return JsonResponse({"error": result["error"]}, status=500)
+
+        if not result.get("done"):
+            return JsonResponse({"done": False})
+
+        # Vidéo terminée avec succès !
+        video_url = result["video_url"]
+        content.ad_video_url = video_url
+        content.save(update_fields=["ad_video_url"])
+
+        # Incrémenter le quota
+        quota_service = QuotaService()
+        quota_service.increment_usage(request.user, "image")
+
+        return JsonResponse({
+            "done": True,
+            "video_url": video_url,
+            "quota": quota_service.get_remaining(request.user)
+        })

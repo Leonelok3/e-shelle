@@ -81,6 +81,7 @@ class AIMessage(models.Model):
     TYPE_CHOICES = [
         ("text",  "Texte"),
         ("image", "Image générée"),
+        ("video", "Vidéo générée"),
         ("mixed", "Texte + Image"),
     ]
 

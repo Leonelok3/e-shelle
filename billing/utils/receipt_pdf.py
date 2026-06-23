@@ -12,9 +12,9 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
 
-WHATSAPP_NUMBER = "+237 693649944"
-WEBSITE = "www.immigration97.com"
-SUPPORT_EMAIL = "support@immigration97.com"
+WHATSAPP_NUMBER = "+237 680625082"
+WEBSITE = "www.e-shelle.com"
+SUPPORT_EMAIL = "e.shelleltd@gmail.com"
 
 
 def _money(amount) -> str:
@@ -93,10 +93,10 @@ def render_receipt_pdf(receipt, response: HttpResponse) -> None:
     title_y = top - 7 * mm
 
     p.setFont("Helvetica-Bold", 16)
-    p.drawString(text_x, title_y, "IMMIGRATION97")
+    p.drawString(text_x, title_y, "E-SHELLE")
 
     p.setFont("Helvetica", 10)
-    p.drawString(text_x, title_y - 6 * mm, f"Plateforme d'immigration légale — {WEBSITE}")
+    p.drawString(text_x, title_y - 6 * mm, f"Plateforme digitale et IA — {WEBSITE}")
     p.drawString(text_x, title_y - 12 * mm, f"WhatsApp : {WHATSAPP_NUMBER}")
 
     # Ligne de séparation sous header
@@ -176,7 +176,7 @@ def render_receipt_pdf(receipt, response: HttpResponse) -> None:
     # ====== Footer
     p.setFont("Helvetica", 9)
     p.setFillGray(0.35)
-    p.drawString(left, 18 * mm, "Ce reçu est généré automatiquement par Immigration97.")
+    p.drawString(left, 18 * mm, "Ce reçu est généré automatiquement par E-Shelle.")
     p.drawString(left, 12 * mm, f"Support : {SUPPORT_EMAIL}  |  WhatsApp : {WHATSAPP_NUMBER}")
     p.setFillGray(0)
 

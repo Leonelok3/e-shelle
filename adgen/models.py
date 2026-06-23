@@ -135,6 +135,7 @@ class AdContent(models.Model):
     # TikTok
     tiktok_script        = models.TextField(blank=True)
     voice_over           = models.TextField(blank=True)
+    ad_video_url         = models.CharField(max_length=500, blank=True, null=True, verbose_name="URL Vidéo Publicitaire")
 
     # Chatbot
     chatbot_reply        = models.TextField(blank=True)

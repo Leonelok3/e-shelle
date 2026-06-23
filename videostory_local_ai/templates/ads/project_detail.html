@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Détails projet</h2>
+<p>Projet: {{ project }}</p>
+<p>Status: {{ project.status }}</p>
+{% if project.final_video %}
+  <video controls width="360">
+    <source src="{{ project.final_video.url }}" type="video/mp4">
+  </video>
+{% endif %}
+<form method="post" action="{% url 'ads:start_render' project.pk %}">
+  {% csrf_token %}
+  <button type="submit">Lancer la génération</button>
+</form>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Commander {{ link.product_title }} | E-Shelle{% endblock %}
+
+{% block content %}
+<div class="esh-checkout-container" style="max-width: 600px; margin: 40px auto; padding: 0 16px; font-family: 'Outfit', sans-serif;">
+  <div style="background: rgba(14, 20, 28, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); backdrop-filter: blur(10px);">
+    
+    <!-- Product Info -->
+    <div style="text-align: center; margin-bottom: 28px;">
+      <span style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 30px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; margin-bottom: 12px;">Achat Revente</span>
+      <h1 style="color: #fff; font-size: 26px; font-weight: 700; margin: 0 0 8px 0; line-height: 1.2;">{{ link.product_title }}</h1>
+      <p style="color: rgba(255, 255, 255, 0.6); font-size: 15px; margin: 0 0 16px 0;">{{ product.description|truncatewords:20 }}</p>
+      
+      <div style="font-size: 32px; font-weight: 800; color: #10b981; margin: 16px 0 8px 0;">
+        {{ config.price|floatformat:0 }} <span style="font-size: 18px; font-weight: 600;">FCFA</span>
+      </div>
+      <div style="color: rgba(255, 255, 255, 0.4); font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <span>🚚 Paiement Cash à la Livraison</span>
+      </div>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 24px 0;">
+
+    <!-- Order Form -->
+    <form method="POST" style="display: flex; flex-direction: column; gap: 20px;">
+      {% csrf_token %}
+      
+      {% if messages %}
+        {% for message in messages %}
+          <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 12px 16px; border-radius: 10px; font-size: 14px;">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <div>
+        <label for="buyer_name" style="display: block; color: rgba(255, 255, 255, 0.8); font-size: 14px; font-weight: 500; margin-bottom: 8px;">Votre Nom Complet <span style="color: #ef4444;">*</span></label>
+        <input type="text" id="buyer_name" name="buyer_name" placeholder="Ex: Leonel Messi" required style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(0, 0, 0, 0.2); color: #fff; font-size: 15px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255, 255, 255, 0.12)'">
+      </div>
+
+      <div>
+        <label for="buyer_phone" style="display: block; color: rgba(255, 255, 255, 0.8); font-size: 14px; font-weight: 500; margin-bottom: 8px;">Numéro Téléphone / WhatsApp <span style="color: #ef4444;">*</span></label>
+        <input type="tel" id="buyer_phone" name="buyer_phone" placeholder="Ex: +237 6XX XX XX XX" required style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(0, 0, 0, 0.2); color: #fff; font-size: 15px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255, 255, 255, 0.12)'">
+      </div>
+
+      <div>
+        <label for="buyer_address" style="display: block; color: rgba(255, 255, 255, 0.8); font-size: 14px; font-weight: 500; margin-bottom: 8px;">Adresse de Livraison <span style="color: #ef4444;">*</span></label>
+        <input type="text" id="buyer_address" name="buyer_address" placeholder="Ex: Douala, Bonamoussadi - Rue du Commerce" required style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(0, 0, 0, 0.2); color: #fff; font-size: 15px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255, 255, 255, 0.12)'">
+      </div>
+
+      <button type="submit" style="width: 100%; padding: 14px; border-radius: 10px; border: none; background: #10b981; color: #000; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.2s, background-color 0.2s; margin-top: 10px;" onmouseover="this.style.backgroundColor='#059669'; this.style.transform='scale(1.02)'" onmouseout="this.style.backgroundColor='#10b981'; this.style.transform='scale(1)'">
+        Valider la commande (Paiement à la livraison)
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 20px;">
+      <small style="color: rgba(255, 255, 255, 0.4); font-size: 12px;">Recommandé par le partenaire E-Shelle : {{ link.reseller.user.username }}</small>
+    </div>
+  </div>
+</div>
+{% endblock %}

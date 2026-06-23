@@ -131,3 +131,117 @@ class RedeemViewTests(TestCase):
         self.cc_7.refresh_from_db()
         self.assertTrue(self.cc_7.is_used)
         self.assertEqual(self.cc_7.used_by_id, self.user.id)
+
+
+class ResellerSystemTests(TestCase):
+    def setUp(self):
+        self.provider_user = User.objects.create_user(username="prov1", email="prov@test.com", password="password")
+        self.reseller_user = User.objects.create_user(username="resell1", email="resell@test.com", password="password")
+        
+        from business.models import BusinessProfile, BusinessCatalogItem
+        from billing.models import AffiliateProfile
+        
+        # Create business profile
+        self.business = BusinessProfile.objects.create(
+            owner=self.provider_user,
+            name="Resto Saveur",
+            slug="resto-saveur",
+            module="resto",
+            is_active=True
+        )
+        
+        # Create catalog product
+        self.product = BusinessCatalogItem.objects.create(
+            business=self.business,
+            title="Ndolé Crevettes",
+            price_label="5000 FCFA",
+            is_active=True
+        )
+        
+        # Create reseller profile
+        self.reseller_profile = AffiliateProfile.objects.create(
+            user=self.reseller_user,
+            ref_code="RESELLCODE",
+            is_enabled=True
+        )
+
+    def test_reseller_flow_verification(self):
+        from django.contrib.contenttypes.models import ContentType
+        from billing.models import AffiliateProductConfig, ResellerProductLink, ProviderWallet, AffiliateOrder, Commission
+        
+        ct = ContentType.objects.get_for_model(self.product)
+        
+        # 1. Create product config
+        config = AffiliateProductConfig.objects.create(
+            content_type=ct,
+            object_id=self.product.id,
+            price=Decimal("5000.00"),
+            reseller_commission=Decimal("500.00"),
+            platform_fee=Decimal("200.00"),
+            is_active=True
+        )
+        
+        # 2. Create reseller link
+        link = ResellerProductLink.objects.create(
+            reseller=self.reseller_profile,
+            content_type=ct,
+            object_id=self.product.id,
+            promo_code="BUY-TEST-123"
+        )
+        
+        # 3. Checkout with empty provider wallet should show unavailable page
+        url = reverse("billing:reseller_checkout", kwargs={"promo_code": link.promo_code})
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Offre Temporairement Indisponible")
+        
+        # 4. Recharge provider wallet
+        wallet = ProviderWallet.objects.get(business=self.business)
+        wallet.credit(Decimal("2000.00"))
+        
+        # Now checkout should load the form
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Valider la commande")
+        
+        # Place order
+        post_data = {
+            "buyer_name": "Jean Dupont",
+            "buyer_phone": "+237 677777777",
+            "buyer_address": "Douala Makepe",
+        }
+        resp = self.client.post(url, data=post_data, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Commande Validée !")
+        
+        # Check order created
+        order = AffiliateOrder.objects.filter(provider_profile=self.business).first()
+        self.assertIsNotNone(order)
+        self.assertEqual(order.status, "PENDING")
+        self.assertEqual(order.amount_total, Decimal("5000.00"))
+        
+        # 5. Validate delivery with incorrect code
+        val_url = reverse("billing:validate_delivery", kwargs={"order_id": order.id})
+        self.client.force_login(self.provider_user)
+        resp = self.client.post(val_url, data={"delivery_code": "0000"}, follow=True)
+        self.assertContains(resp, "Code de validation incorrect")
+        order.refresh_from_db()
+        self.assertEqual(order.status, "PENDING")
+        
+        # 6. Validate delivery with correct code
+        resp = self.client.post(val_url, data={"delivery_code": order.delivery_code}, follow=True)
+        self.assertContains(resp, "validée avec succès")
+        
+        order.refresh_from_db()
+        self.assertEqual(order.status, "DELIVERED")
+        
+        # Verify wallet deducted: 2000 - (500 + 200) = 1300 FCFA
+        wallet.refresh_from_db()
+        self.assertEqual(wallet.balance, Decimal("1300.00"))
+        
+        # Verify reseller credited commission
+        commission = Commission.objects.filter(affiliate=self.reseller_profile).first()
+        self.assertIsNotNone(commission)
+        self.assertEqual(commission.amount, Decimal("500.00"))
+        self.assertEqual(commission.status, "PAID")
+

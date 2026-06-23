@@ -32,4 +32,5 @@ def eshelle_public_urls(request):
         "TCHASLUCPAY_PUBLIC_URL": getattr(settings, "TCHASLUCPAY_PUBLIC_URL", "http://127.0.0.1:8001/"),
         "SIMPLO_PUBLIC_URL": getattr(settings, "SIMPLO_PUBLIC_URL", "http://127.0.0.1:8020/"),
         "MAPEX_PUBLIC_URL": getattr(settings, "MAPEX_PUBLIC_URL", "/edu/"),
+        "EXPROD_PUBLIC_URL": getattr(settings, "EXPROD_PUBLIC_URL", "/lebelage-importer/"),
     }

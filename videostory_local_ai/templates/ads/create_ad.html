@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Créer une publicité</h2>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <h3>Informations entreprise</h3>
+  {{ bform.as_p }}
+  <h3>Photos (3-10)</h3>
+  <input type="file" name="photos" accept="image/*" multiple required />
+  {% if error %}
+    <p style="color:red">{{ error }}</p>
+  {% endif %}
+  <h3>Options vidéo</h3>
+  {{ aform.as_p }}
+  <button type="submit">Générer ma publicité</button>
+</form>
+{% endblock %}

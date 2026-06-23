@@ -329,6 +329,11 @@ SOCIALACCOUNT_LOGIN_ON_GET      = True    # démarre OAuth sur clic direct
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True  # fusionne si email connu
 
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+FACEBOOK_APP_ID = os.getenv("FACEBOOK_APP_ID", "")
+FACEBOOK_APP_SECRET = os.getenv("FACEBOOK_APP_SECRET", "")
+
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": ["profile", "email"],
@@ -345,11 +350,32 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
+if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
+    SOCIALACCOUNT_PROVIDERS["google"]["APP"] = {
+        "client_id": GOOGLE_CLIENT_ID,
+        "secret": GOOGLE_CLIENT_SECRET,
+        "key": ""
+    }
+
+if FACEBOOK_APP_ID and FACEBOOK_APP_SECRET and FACEBOOK_APP_ID != "VOTRE_APP_ID_ICI":
+    SOCIALACCOUNT_PROVIDERS["facebook"]["APP"] = {
+        "client_id": FACEBOOK_APP_ID,
+        "secret": FACEBOOK_APP_SECRET,
+        "key": ""
+    }
+
+
 # Anthropic / Claude AI
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
 # OpenAI (EnglishPrepApp, GermanPrepApp, italian_courses)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+
+# Google GenAI / Vertex AI
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+GOOGLE_VIDEO_MODEL = os.getenv("GOOGLE_VIDEO_MODEL", "veo-2.0-generate-001")
+GCP_VERTEX_KEY_PATH = os.getenv("GCP_VERTEX_KEY_PATH", str(BASE_DIR / "gcp_vertex_key.json"))
+
 
 # Email (dev : console, prod : SMTP)
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
@@ -458,6 +484,7 @@ SANTE_PUBLIC_URL = os.getenv("SANTE_PUBLIC_URL", "/sante/")
 TCHASLUCPAY_PUBLIC_URL = os.getenv("TCHASLUCPAY_PUBLIC_URL", "http://127.0.0.1:8001/")
 SIMPLO_PUBLIC_URL = os.getenv("SIMPLO_PUBLIC_URL", "http://127.0.0.1:8020/")
 MAPEX_PUBLIC_URL = os.getenv("MAPEX_PUBLIC_URL", "http://127.0.0.1:8000/edu/")
+EXPROD_PUBLIC_URL = os.getenv("EXPROD_PUBLIC_URL", "/lebelage-importer/")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

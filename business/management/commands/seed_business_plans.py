@@ -21,14 +21,14 @@ class Command(BaseCommand):
             },
             {
                 "code": "pro",
-                "name": "Activation fiche",
+                "name": "Fiche Business Premium",
                 "plan_level": BusinessProfile.Plan.PRO,
                 "monthly_price_xaf": 5000,
                 "duration_days": 30,
                 "included_boost_days": 0,
                 "included_ai_credits": 5,
                 "order": 10,
-                "description": "Activation de la fiche publique, produits visibles, lien partageable et 5 credits IA.",
+                "description": "Fiche de présence sur E-Shelle, catalogue de produits/services visibles, lien de partage et 5 crédits IA.",
             },
             {
                 "code": "business",

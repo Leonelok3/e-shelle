@@ -24,11 +24,11 @@ def build_receipt_pdf(receipt) -> bytes:
     width, height = A4
 
     # ==== BRAND CONFIG ====
-    brand_name = "Immigration97"
-    site = "immigration97.com"
-    email = "support@immigration97.com"
-    phone = "+237 XXX XXX XXX"  # change
-    address = "Plateforme d'immigration légale – Afrique francophone"
+    brand_name = "E-Shelle"
+    site = "e-shelle.com"
+    email = "e.shelleltd@gmail.com"
+    phone = "+237 680625082"
+    address = "Ecosystème digital et IA — Douala, Makepe"
 
     # ==== HEADER ====
     top = height - 20 * mm
@@ -131,8 +131,8 @@ def build_receipt_pdf(receipt) -> bytes:
     c.line(20 * mm, 28 * mm, width - 20 * mm, 28 * mm)
 
     c.setFont("Helvetica", 8)
-    c.drawString(20 * mm, 22 * mm, "Ce reçu confirme un paiement lié à un service Immigration97.")
-    c.drawString(20 * mm, 18 * mm, "Pour toute réclamation : support@immigration97.com • immigration97.com")
+    c.drawString(20 * mm, 22 * mm, "Ce reçu confirme un paiement lié à un service E-Shelle.")
+    c.drawString(20 * mm, 18 * mm, "Pour toute réclamation : e.shelleltd@gmail.com • e-shelle.com")
 
     c.showPage()
     c.save()

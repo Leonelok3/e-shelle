@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Projet {{ project.pk }} · VideoStory Local AI{% endblock %}
+{% block content %}
+<div class="detail-container" data-status-url="{% url 'stories:status' project.pk %}">
+    
+    <!-- Main Progress Card -->
+    <section class="card progress-card">
+        <div class="detail-header">
+            <a href="/" class="back-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                Tableau de bord
+            </a>
+            {% if project.is_avatar_project %}
+                <span class="project-type-badge avatar-badge">Talking Avatar Pro</span>
+            {% else %}
+                <span class="project-type-badge story-badge">Vidéo Narrative (Local)</span>
+            {% endif %}
+        </div>
+        
+        <h1 id="project-title">{{ project.title|default:'Génération en cours' }}</h1>
+        
+        {% if not project.is_avatar_project %}
+            <p class="muted font-sm">Prompt initial : {{ project.prompt }}</p>
+        {% endif %}
+
+        <div class="progress-wrap-premium">
+            <div id="progress-bar" class="progress-bar-premium" style="width: {{ project.progress }}%"></div>
+        </div>
+        
+        <div class="status-meta">
+            <div><strong>Étape actuelle :</strong> <span id="current-step">{{ project.current_step }}</span></div>
+            <div><strong>Statut :</strong> <span id="status" class="status-txt-val">{{ project.get_status_display }}</span></div>
+        </div>
+        
+        <p id="error" class="error-msg-box {% if project.error_message %}visible{% endif %}">{{ project.error_message }}</p>
+
+        <div id="video-zone" class="video-render-zone">
+            {% if project.final_video %}
+                <div class="video-container-box">
+                    <video controls class="video-player-premium" src="{{ project.final_video.url }}"></video>
+                    <div class="download-bar">
+                        <a class="download-btn-premium" href="{{ project.final_video.url }}" download>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                            Télécharger le fichier MP4
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-video-placeholder">
+                    <div class="spinner"></div>
+                    <p class="muted">La vidéo apparaîtra automatiquement dès que la génération sera finalisée.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Side-by-side or Scenario Cards -->
+    {% if project.is_avatar_project %}
+        <div class="avatar-info-grid">
+            <section class="card">
+                <h2>Avatar de Référence</h2>
+                <div class="avatar-photo-frame">
+                    {% if project.avatar_image %}
+                        <img src="{{ project.avatar_image.url }}" alt="Avatar de référence" class="avatar-ref-image">
+                    {% else %}
+                        <p class="muted">Aucune photo d'avatar.</p>
+                    {% endif %}
+                </div>
+                <div class="avatar-meta-settings">
+                    <p><strong>Arrière-plan :</strong> {{ project.avatar_background|capfirst }}</p>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>Script Texte</h2>
+                <div class="script-text-box">
+                    {{ project.script_text|linebreaks }}
+                </div>
+            </section>
+        </div>
+    {% else %}
+        <section class="card scenes-section">
+            <h2>Scènes de la vidéo</h2>
+            <div class="scenes-list">
+                {% for scene in project.scenes.all %}
+                    <article class="scene-card-premium">
+                        <div class="scene-image-frame">
+                            {% if scene.generated_image and scene.generated_image.image %}
+                                <img src="{{ scene.generated_image.image.url }}" alt="Image Scène {{ scene.order }}" class="scene-img">
+                            {% else %}
+                                <div class="scene-img-placeholder">Image en cours de génération...</div>
+                            {% endif %}
+                        </div>
+                        <div class="scene-details">
+                            <div class="scene-num">Scène {{ scene.order }} · {{ scene.duration_seconds }}s</div>
+                            <h3>{{ scene.title }}</h3>
+                            <p class="scene-narration">{{ scene.narration }}</p>
+                            <div class="scene-prompt-box">
+                                <strong>Prompt d'image :</strong>
+                                <pre>{{ scene.image_prompt }}</pre>
+                            </div>
+                        </div>
+                    </article>
+                {% empty %}
+                    <p class="empty-state">Les scènes générées apparaîtront bientôt ici.</p>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+</div>
+
+<script src="/static/js/progress.js"></script>
+<script>
+    // Overriding the default progress status labels
+    const originalStatusLabel = statusLabel;
+    statusLabel = function(status) {
+        // Ensure standard capitalizations
+        return {
+            draft: 'Brouillon',
+            running: 'Génération en cours',
+            done: 'Terminé',
+            failed: 'Échec',
+        }[status] || status;
+    };
+    
+    // Smoothly toggle error box visibility
+    const errorBox = document.getElementById('error');
+    const observer = new MutationObserver(function() {
+        if(errorBox.textContent.trim()) {
+            errorBox.classList.add('visible');
+        } else {
+            errorBox.classList.remove('visible');
+        }
+    });
+    observer.observe(errorBox, { childList: true });
+</script>
+{% endblock %}

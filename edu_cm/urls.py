@@ -3,13 +3,20 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.utils import timezone
 from business import views as business_views
 from billing import views_affiliate
 from seo_agent import views as seo_views
 import urllib.parse
+
+
+def avatar_redirect(request):
+    if settings.DEBUG:
+        return redirect('http://127.0.0.1:8002/')
+    return redirect('https://e-shelle.com/avatar/')
+
 
 
 def home_view(request):
@@ -55,6 +62,7 @@ def home_view(request):
                     "_rank": item.created_at,
                     "tag": item.get_item_type_display(),
                     "title": item.title,
+                    "description": item.description,
                     "kind": f"{business.get_module_display()} · {business.city or 'Cameroun'}",
                     "meta": business.district or business.city or "Proche",
                     "price": item.price_label or "Prix a discuter",
@@ -83,6 +91,7 @@ def home_view(request):
                     "_rank": bien.date_publication or bien.updated_at,
                     "tag": "Immobilier",
                     "title": bien.titre,
+                    "description": bien.description,
                     "kind": f"{bien.get_type_bien_display()} · {bien.ville}",
                     "meta": bien.quartier or bien.ville or "Cameroun",
                     "price": bien.prix_formate,
@@ -107,6 +116,7 @@ def home_view(request):
                     "_rank": business.updated_at,
                     "tag": business.get_plan_display(),
                     "title": business.promo_headline or business.name,
+                    "description": business.description,
                     "kind": f"{business.get_module_display()} · {business.city or 'Cameroun'}",
                     "meta": business.district or business.city or "Proche",
                     "price": "",
@@ -183,6 +193,57 @@ def home_view(request):
         ctx["top_verified_businesses"] = []
         ctx["home_numbers"] = {"businesses": 0, "premium": 0, "products": 0, "leads": 0, "ads": 0, "events": 0}
     return render(request, "home.html", ctx)
+
+
+def presentation_view(request):
+    ctx = {}
+    try:
+        from django.db.models import Sum
+        from business.models import BusinessProfile, BusinessCatalogItem, BusinessLeadEvent
+        active_businesses = BusinessProfile.objects.filter(is_active=True)
+        lead_total = active_businesses.aggregate(total=Sum("leads_count"))["total"] or 0
+        whatsapp_total = active_businesses.aggregate(total=Sum("whatsapp_clicks"))["total"] or 0
+        ctx["home_numbers"] = {
+            "businesses": active_businesses.count(),
+            "premium": active_businesses.filter(plan__in=[BusinessProfile.Plan.BUSINESS, BusinessProfile.Plan.PREMIUM]).count(),
+            "products": BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True).count(),
+            "leads": lead_total + whatsapp_total,
+            "events": BusinessLeadEvent.objects.count(),
+        }
+    except Exception:
+        ctx["home_numbers"] = {"businesses": 0, "premium": 0, "products": 0, "leads": 0, "events": 0}
+    return render(request, "presentation.html", ctx)
+
+
+def tarifs_view(request):
+    ctx = {}
+    try:
+        from django.db.models import Sum
+        from business.models import BusinessProfile, ProviderPlan
+        active_businesses = BusinessProfile.objects.filter(is_active=True)
+        lead_total = active_businesses.aggregate(total=Sum("leads_count"))["total"] or 0
+        whatsapp_total = active_businesses.aggregate(total=Sum("whatsapp_clicks"))["total"] or 0
+        ctx["home_numbers"] = {
+            "businesses": active_businesses.count(),
+            "premium": active_businesses.filter(plan__in=[BusinessProfile.Plan.BUSINESS, BusinessProfile.Plan.PREMIUM]).count(),
+            "leads": lead_total + whatsapp_total,
+        }
+        ctx["plans"] = list(ProviderPlan.objects.filter(is_active=True).order_by("order", "monthly_price_xaf"))
+    except Exception:
+        ctx["home_numbers"] = {"businesses": 0, "premium": 0, "leads": 0}
+        ctx["plans"] = []
+
+    try:
+        from business.views import BUSINESS_KEY_PRICE_XAF, BUSINESS_KEY_PARTNER_RECRUIT_RATE, BUSINESS_KEY_PROVIDER_RATE
+        ctx["business_key_price"] = BUSINESS_KEY_PRICE_XAF
+        ctx["partner_recruit_rate"] = BUSINESS_KEY_PARTNER_RECRUIT_RATE
+        ctx["provider_rate"] = BUSINESS_KEY_PROVIDER_RATE
+    except Exception:
+        ctx["business_key_price"] = 9900
+        ctx["partner_recruit_rate"] = 50
+        ctx["provider_rate"] = 30
+
+    return render(request, "tarifs.html", ctx)
 
 
 def commercial_pdf_view(request):
@@ -360,6 +421,7 @@ def commercial_pdf_view(request):
     return response
 
 urlpatterns = [
+    path("avatar/", avatar_redirect, name="avatar_redirect"),
     path("e-shelle-commercial.pdf", commercial_pdf_view, name="commercial_pdf"),
     path("admin/", admin.site.urls),
 
@@ -488,6 +550,8 @@ urlpatterns = [
 
     # Page d'accueil
     path("", home_view, name="home"),
+    path("presentation/", presentation_view, name="presentation"),
+    path("tarifs/", tarifs_view, name="tarifs"),
 ]
 
 

@@ -174,17 +174,31 @@ class EshelleAIService:
 
     def generate_image(self, prompt: str, context: str = "general", user=None) -> dict:
         """
-        Génère une image avec DALL-E 3.
-        Délègue au module image_generator.
+        Génère une image avec Google Imagen 3 ou DALL-E 3.
         """
+        if getattr(settings, "GOOGLE_API_KEY", ""):
+            from e_shelle_ai.services.tools.google_media_generator import generate_google_image
+            result = generate_google_image(prompt, context)
+            if not result.get("error"):
+                # Log
+                self._log_api_call(
+                    user=user,
+                    type_appel="image",
+                    model="imagen-3.0",
+                    prompt_tokens=0,
+                    completion_tokens=0,
+                    success=True,
+                )
+                return result
+
         if not self.client:
             return {
                 "image_url": "",
                 "local_path": "",
                 "enhanced_prompt": prompt,
-                "error": "OPENAI_API_KEY manquante. Utilisez AdGen pour créer du contenu publicitaire ou configurez la clé OpenAI pour générer des images.",
+                "error": "Clé API non configurée. Veuillez ajouter GOOGLE_API_KEY dans votre fichier .env pour générer des images.",
             }
-        from e_shelle_ai.services.tools.image_generator import generate_image, enhance_image_prompt
+        from e_shelle_ai.services.tools.image_generator import generate_image
         result = generate_image(prompt, context, save_locally=True)
 
         # Log

@@ -30,7 +30,7 @@ def create_stripe_checkout_session(amount_usd, plan_name, user_email, success_ur
                 'price_data': {
                     'currency': 'usd',
                     'product_data': {
-                        'name': f'Immigration97 - {plan_name}',
+                        'name': f'E-Shelle - {plan_name}',
                         'description': f'Abonnement {plan_name}',
                     },
                     'unit_amount': int(float(amount_usd) * 100),  # Stripe utilise les centimes

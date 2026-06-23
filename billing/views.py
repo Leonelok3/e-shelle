@@ -404,7 +404,7 @@ def receipt_pdf(request, receipt_id):
 
 def contract_protection(request):
     """
-    Page bilingue (FR/EN) : Contrat de protection Immigration97.
+    Page bilingue (FR/EN) : Contrat de protection E-Shelle.
     """
     return render(request, "billing/contract_protection.html")
 
@@ -426,9 +426,9 @@ def render_receipt_pdf(receipt: Receipt, response: HttpResponse) -> None:
     x, y = 50, height - 60
 
     p.setFont("Helvetica-Bold", 18)
-    p.drawString(x, y, "IMMIGRATION97")
+    p.drawString(x, y, "E-SHELLE")
     p.setFont("Helvetica", 10)
-    p.drawString(x, y - 18, "Plateforme d'immigration légale — www.immigration97.com")
+    p.drawString(x, y - 18, "Plateforme digitale et IA — www.e-shelle.com")
 
     y -= 60
     p.setFont("Helvetica-Bold", 14)
@@ -458,8 +458,8 @@ def render_receipt_pdf(receipt: Receipt, response: HttpResponse) -> None:
     p.drawString(x, y, f"{receipt.amount} {receipt.currency}")
 
     p.setFont("Helvetica", 9)
-    p.drawString(x, 55, "Ce reçu est généré automatiquement par Immigration97.")
-    p.drawString(x, 40, "support@immigration97.com")
+    p.drawString(x, 55, "Ce reçu est généré automatiquement par E-Shelle.")
+    p.drawString(x, 40, "e.shelleltd@gmail.com")
 
     p.showPage()
     p.save()

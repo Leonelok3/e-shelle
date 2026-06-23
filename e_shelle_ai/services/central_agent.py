@@ -62,16 +62,91 @@ class CentralAgentService:
             logger.exception("Central agent routing error: %s", exc)
             fallback["error"] = str(exc)
             return fallback
+"""Service central de routage pour E-Shelle AI.
+
+Ce module devient le cerveau commun du chat public et, progressivement, de
+l'agent IA avance. Il garde la compatibilite avec le routeur existant tout en
+ajoutant la priorite aux prestataires Premium/Business.
+"""
+
+import json
+import logging
+import urllib.parse
+
+from django.conf import settings
+from django.db.models import Q
+
+logger = logging.getLogger(__name__)
+
+
+class CentralAgentService:
+    """Route les demandes utilisateur vers le bon module E-Shelle."""
+
+    def route_message(self, user_message: str, conversation_history: list | None = None, user=None) -> dict:
+        conversation_history = conversation_history or []
+
+        from chat import services as legacy
+
+        fallback = legacy._fallback_route(user_message)
+        fallback = self._attach_results(fallback, user_message)
+
+        api_key = getattr(settings, "OPENAI_API_KEY", "")
+        if not api_key:
+            return fallback
+
+        system_prompt = self._system_prompt(legacy.SYSTEM_PROMPT, user)
+        messages = [{"role": "system", "content": system_prompt}]
+        for msg in conversation_history[-10:]:
+            role = msg.get("role")
+            content = msg.get("content")
+            if role in {"user", "assistant"} and content:
+                messages.append({"role": role, "content": content})
+        messages.append({"role": "user", "content": user_message})
+
+        try:
+            from openai import OpenAI
+
+            client = OpenAI(api_key=api_key)
+            response = client.chat.completions.create(
+                model=getattr(settings, "OPENAI_CHAT_MODEL", "gpt-4o"),
+                messages=messages,
+                response_format={"type": "json_object"},
+                max_tokens=500,
+                temperature=0.7,
+            )
+            result = json.loads(response.choices[0].message.content)
+            result = legacy._normalize_result(result, fallback)
+            result = self._attach_results(result, user_message)
+            if result.get("generate_image") and result.get("image_prompt"):
+                result["image_url"] = legacy.generate_image(result["image_prompt"])
+            else:
+                result["image_url"] = ""
+            return result
+        except Exception as exc:
+            logger.exception("Central agent routing error: %s", exc)
+            fallback["error"] = str(exc)
+            return fallback
 
     def _attach_results(self, route: dict, query: str) -> dict:
         from chat import services as legacy
 
         module = route.get("module", "general")
         premium_results = self._premium_business_results(query, module=module, limit=3)
+        
+        # Multi-app search: search resto dishes and business catalog items
+        dish_results = self._resto_dish_results(query, limit=3)
+        catalog_results = self._business_catalog_results(query, limit=3)
+        
         extra_results = self._extra_module_results(module, query, limit=3)
         module_results = legacy.get_module_results(module, query, limit=3)
 
-        results = self._merge_results(premium_results, extra_results, module_results)
+        results = self._merge_results(
+            premium_results, 
+            dish_results, 
+            catalog_results, 
+            extra_results, 
+            module_results
+        )
         if self._has_unmatched_need(query, results):
             return self._attach_unmet_search(route, query)
         if not results:
@@ -83,8 +158,16 @@ class CentralAgentService:
         if self._should_add_order_followup(module, results):
             results = self._merge_results(results, [self._order_followup_card(module, query)])
 
+        # Resolve card URLs (local paths -> absolute subdomains in production)
+        resolved_results = []
+        for card in results:
+            card_module = card.get("module") or module
+            resolved_results.append(self._resolve_card_urls(card, card_module))
+        results = resolved_results
+
         route["results"] = results
         route["message"] = self._commercial_message(route, query, results)
+        route["redirect_url"] = self._resolve_url(route.get("redirect_url") or legacy.MODULE_URLS.get(module, "/"), module)
         return route
 
     def _system_prompt(self, base_prompt: str, user=None) -> str:
@@ -285,6 +368,7 @@ class CentralAgentService:
                     "primary_url": event.tracking_url(),
                     "secondary_label": "Voir la boutique",
                     "secondary_url": public_url,
+                    "module": business.module,
                 }
             )
         return cards
@@ -331,6 +415,7 @@ class CentralAgentService:
                     "primary_url": bien.get_whatsapp_url(),
                     "secondary_label": f"{bien.vues} vues",
                     "secondary_url": bien.get_absolute_url(),
+                    "module": "immobilier",
                 }
             )
         return cards
@@ -357,6 +442,7 @@ class CentralAgentService:
                     "primary_url": f"/boutique/{produit.slug}/",
                     "secondary_label": f"{produit.nb_ventes} ventes",
                     "secondary_url": "/boutique/catalogue/",
+                    "module": "boutique",
                 }
             )
         return cards
@@ -397,6 +483,7 @@ class CentralAgentService:
                     "primary_url": pharmacie.whatsapp_url_medicament(med.nom),
                     "secondary_label": "Appeler",
                     "secondary_url": pharmacie.tel_url,
+                    "module": "pharma",
                 }
             )
         if cards:
@@ -415,6 +502,7 @@ class CentralAgentService:
                 "primary_url": pharmacie.whatsapp_url,
                 "secondary_label": "Appeler",
                 "secondary_url": pharmacie.tel_url,
+                "module": "pharma",
             }
             for pharmacie in pharmacies[:limit]
         ]
@@ -443,6 +531,7 @@ class CentralAgentService:
                     "primary_url": trajet.whatsapp_url,
                     "secondary_label": f"{trajet.places_disponibles} places",
                     "secondary_url": trajet.get_absolute_url(),
+                    "module": "transport",
                 }
             )
         return cards
@@ -473,6 +562,7 @@ class CentralAgentService:
                     "primary_url": vehicule.get_whatsapp_url(),
                     "secondary_label": f"{vehicule.vues} vues",
                     "secondary_url": vehicule.get_absolute_url(),
+                    "module": "auto",
                 }
             )
         return cards
@@ -509,6 +599,7 @@ class CentralAgentService:
                     "primary_url": whatsapp_url or produit.get_absolute_url(),
                     "secondary_label": f"{produit.nb_vues} vues",
                     "secondary_url": produit.get_absolute_url(),
+                    "module": "agro",
                 }
             )
         return cards
@@ -525,6 +616,7 @@ class CentralAgentService:
                 "primary_url": "/rencontres/",
                 "secondary_label": "Premium",
                 "secondary_url": "/rencontres/premium/",
+                "module": "rencontres",
             }
         ][:limit]
 
@@ -540,8 +632,219 @@ class CentralAgentService:
                 "primary_url": "/business/onboarding/",
                 "secondary_label": "Voir les plans",
                 "secondary_url": "/business/plans/",
+                "module": "business_onboarding",
             }
         ][:limit]
+
+    def _resto_dish_results(self, query: str, limit: int) -> list:
+        try:
+            from resto.models import Dish
+            from chat.services import _search_terms
+
+            terms = _search_terms(query)
+            if not terms:
+                return []
+
+            qs = Dish.objects.filter(is_active=True, restaurant__is_active=True)
+
+            q_filter = Q()
+            for term in terms:
+                q_filter |= Q(name__icontains=term) | Q(description__icontains=term)
+
+            qs = qs.filter(q_filter).select_related("restaurant", "restaurant__city", "restaurant__neighborhood").distinct()
+
+            cards = []
+            for dish in qs[:limit]:
+                resto = dish.restaurant
+                details = [
+                    dish.formatted_price,
+                    resto.name,
+                ]
+                if resto.neighborhood:
+                    details.append(resto.neighborhood.name)
+
+                urls = {
+                    "url": f"/resto/r/{resto.slug}/",
+                    "primary_url": resto.whatsapp_url(dish.name),
+                    "secondary_url": resto.phone_url(),
+                }
+
+                cards.append({
+                    "title": dish.name,
+                    "subtitle": f"Plat - {resto.name}",
+                    "details": " - ".join(details),
+                    "badge": "Plat Resto",
+                    "url": urls["url"],
+                    "primary_label": "Commander",
+                    "primary_url": urls["primary_url"],
+                    "secondary_label": "Appeler",
+                    "secondary_url": urls["secondary_url"],
+                    "module": "resto",
+                })
+            return cards
+        except Exception as exc:
+            logger.debug("Resto dish search unavailable: %s", exc)
+            return []
+
+    def _business_catalog_results(self, query: str, limit: int) -> list:
+        try:
+            from business.models import BusinessCatalogItem
+            from chat.services import _search_terms
+
+            terms = _search_terms(query)
+            if not terms:
+                return []
+
+            qs = BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True)
+
+            q_filter = Q()
+            for term in terms:
+                q_filter |= Q(title__icontains=term) | Q(description__icontains=term)
+
+            qs = qs.filter(q_filter).select_related("business").distinct()
+
+            cards = []
+            for item in qs[:limit]:
+                biz = item.business
+                details = [
+                    item.price_label or "Prix à discuter",
+                    biz.name,
+                ]
+                location = " - ".join([part for part in [biz.city, biz.district] if part])
+                if location:
+                    details.append(location)
+
+                public_url = biz.get_absolute_url()
+                contact_url = biz.whatsapp_url(
+                    f"Bonjour {biz.name}, je suis intéressé par {item.title} vu sur E-Shelle."
+                )
+
+                cards.append({
+                    "title": item.title,
+                    "subtitle": f"{item.get_item_type_display()} - {biz.name}",
+                    "details": " - ".join(details),
+                    "badge": biz.get_plan_display(),
+                    "url": public_url,
+                    "primary_label": "Commander" if item.item_type in ["product", "menu"] else "Contacter",
+                    "primary_url": contact_url,
+                    "secondary_label": "Voir la boutique",
+                    "secondary_url": public_url,
+                    "module": biz.module,
+                })
+            return cards
+        except Exception as exc:
+            logger.debug("Business catalog search unavailable: %s", exc)
+            return []
+
+    def _resolve_url(self, relative_url: str, module: str) -> str:
+        """
+        Resolves a relative url into an absolute subdomain url using settings variables if present,
+        matching the given module name.
+        """
+        if not relative_url:
+            return ""
+        if (
+            relative_url.startswith("http://")
+            or relative_url.startswith("https://")
+            or relative_url.startswith("wa.me")
+            or relative_url.startswith("tel:")
+        ):
+            return relative_url
+
+        # Global main domain paths should remain relative to the main site
+        if (
+            relative_url.startswith("/chat/")
+            or relative_url.startswith("/business/")
+            or relative_url.startswith("/accounts/")
+            or relative_url.startswith("/tarifs/")
+            or relative_url == "/"
+        ):
+            return relative_url
+
+        url_settings_map = {
+            "resto": "RESTO_PUBLIC_URL",
+            "pressing": "PRESSING_PUBLIC_URL",
+            "gaz": "GAZ_PUBLIC_URL",
+            "formation": "FORMATIONS_PUBLIC_URL",
+            "boutique": "BOUTIQUE_PUBLIC_URL",
+            "services": "SERVICES_PUBLIC_URL",
+            "sante": "SANTE_PUBLIC_URL",
+            "pharma": "PHARMA_PUBLIC_URL",
+            "immobilier": "IMMOBILIER_PUBLIC_URL",
+            "auto": "AUTO_PUBLIC_URL",
+            "annonces": "ANNONCES_PUBLIC_URL",
+            "market": "MARKET_PUBLIC_URL",
+            "love": "LOVE_PUBLIC_URL",
+            "rencontres": "LOVE_PUBLIC_URL",
+            "agro": "AGRO_PUBLIC_URL",
+            "njangi": "NJANGI_PUBLIC_URL",
+            "adgen": "ADGEN_PUBLIC_URL",
+            "jobs": "JOBS_PUBLIC_URL",
+            "transport": "TRANSPORT_PUBLIC_URL",
+            "maths": "MATHS_PUBLIC_URL",
+            "langues": "LANGUES_PUBLIC_URL",
+            "anglais": "ANGLAIS_PUBLIC_URL",
+            "allemand": "ALLEMAND_PUBLIC_URL",
+            "italien": "ITALIEN_PUBLIC_URL",
+            "prep": "PREP_PUBLIC_URL",
+        }
+
+        setting_name = url_settings_map.get(module)
+        if not setting_name:
+            return relative_url
+
+        base_url = getattr(settings, setting_name, None)
+        if not base_url:
+            return relative_url
+
+        if not base_url.startswith("http://") and not base_url.startswith("https://"):
+            return relative_url
+
+        prefixes = {
+            "resto": "/resto",
+            "pressing": "/pressing",
+            "gaz": "/gaz",
+            "formation": "/formations",
+            "boutique": "/boutique",
+            "sante": "/sante",
+            "pharma": "/pharma",
+            "immobilier": "/immobilier",
+            "auto": "/auto",
+            "rencontres": "/rencontres",
+            "agro": "/agro",
+            "njangi": "/njangi",
+            "adgen": "/pub",
+            "jobs": "/jobs",
+            "transport": "/transport",
+        }
+
+        prefix = prefixes.get(module, f"/{module}")
+
+        if relative_url.startswith(prefix):
+            resolved = relative_url.replace(prefix, base_url.rstrip("/"), 1)
+            if "://" in resolved:
+                scheme, rest = resolved.split("://", 1)
+                resolved = scheme + "://" + rest.replace("//", "/")
+            else:
+                resolved = resolved.replace("//", "/")
+            return resolved
+
+        resolved_base = base_url.rstrip("/")
+        resolved_path = relative_url.lstrip("/")
+        resolved = f"{resolved_base}/{resolved_path}"
+        if "://" in resolved:
+            scheme, rest = resolved.split("://", 1)
+            resolved = scheme + "://" + rest.replace("//", "/")
+        else:
+            resolved = resolved.replace("//", "/")
+        return resolved
+
+    def _resolve_card_urls(self, card: dict, module: str) -> dict:
+        resolved_card = card.copy()
+        for key in ["url", "primary_url", "secondary_url"]:
+            if key in resolved_card:
+                resolved_card[key] = self._resolve_url(resolved_card[key], module)
+        return resolved_card
 
     def _filter_businesses(self, qs, query: str):
         terms = self._search_terms(query)

@@ -30,7 +30,7 @@ def initiate_cinetpay_payment(transaction_id, amount, currency="XAF", customer_n
         "transaction_id": str(transaction_id),
         "amount": int(amount),
         "currency": currency,
-        "description": f"Paiement Immigration97 - Transaction #{transaction_id}",
+        "description": f"Paiement E-Shelle - Transaction #{transaction_id}",
         "customer_name": customer_name,
         "customer_surname": customer_name,
         "customer_email": customer_email,

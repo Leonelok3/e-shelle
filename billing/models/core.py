@@ -10,6 +10,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
 User = get_user_model()
@@ -324,4 +326,208 @@ class Commission(models.Model):
 
     def __str__(self) -> str:
         return f"Commission({self.affiliate.ref_code}) {self.amount} {self.currency}"
+
+
+# ==========================================
+# RÉSEAU DE REVENTE (COMMISSIONS PRODUITS)
+# ==========================================
+
+class ProviderWallet(models.Model):
+    """
+    Portefeuille prépayé du prestataire (lié à sa fiche Business).
+    Sert à pré-payer les commissions revendeurs et frais plateforme.
+    """
+    business = models.OneToOneField(
+        "business.BusinessProfile", 
+        on_delete=models.CASCADE, 
+        related_name="wallet"
+    )
+    balance = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2, 
+        default=Decimal("0.00"), 
+        validators=[MinValueValidator(Decimal("0.00"))],
+        verbose_name="Solde (FCFA)"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Portefeuille prestataire"
+        verbose_name_plural = "Portefeuilles prestataires"
+
+    def __str__(self) -> str:
+        return f"Wallet({self.business.name}) - {self.balance} FCFA"
+
+    def credit(self, amount: Decimal):
+        if amount <= 0:
+            raise ValueError("Le montant doit être positif.")
+        self.balance = models.F("balance") + amount
+        self.save(update_fields=["balance", "updated_at"])
+        self.refresh_from_db()
+
+    def debit(self, amount: Decimal):
+        if amount <= 0:
+            raise ValueError("Le montant doit être positif.")
+        if self.balance < amount:
+            raise ValueError("Solde insuffisant.")
+        self.balance = models.F("balance") - amount
+        self.save(update_fields=["balance", "updated_at"])
+        self.refresh_from_db()
+
+
+class AffiliateProductConfig(models.Model):
+    """
+    Configuration de revente/commission pour un produit (BusinessCatalogItem ou Dish).
+    """
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey("content_type", "object_id")
+
+    price = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2, 
+        validators=[MinValueValidator(Decimal("0.00"))],
+        verbose_name="Prix de vente (FCFA)"
+    )
+    reseller_commission = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2, 
+        validators=[MinValueValidator(Decimal("0.00"))],
+        verbose_name="Commission revendeur (FCFA)"
+    )
+    platform_fee = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2, 
+        default=Decimal("200.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        verbose_name="Frais de service plateforme (FCFA)"
+    )
+    is_active = models.BooleanField(default=True, verbose_name="Actif")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Config affiliation produit"
+        verbose_name_plural = "Configs affiliation produit"
+        indexes = [
+            models.Index(fields=["content_type", "object_id"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"Config({self.content_object}) - {self.price} FCFA"
+
+
+class ResellerProductLink(models.Model):
+    """
+    Lien de revente généré par un revendeur (titulaire Business Key) pour un produit.
+    """
+    reseller = models.ForeignKey(
+        AffiliateProfile, 
+        on_delete=models.CASCADE, 
+        related_name="resold_products"
+    )
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey("content_type", "object_id")
+
+    promo_code = models.CharField(max_length=32, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Lien de revente produit"
+        verbose_name_plural = "Liens de revente produit"
+        indexes = [
+            models.Index(fields=["content_type", "object_id"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"Promo({self.reseller.user.username}) - {self.promo_code}"
+
+    @property
+    def product_title(self) -> str:
+        obj = self.content_object
+        if not obj:
+            return "Produit"
+        return getattr(obj, "title", None) or getattr(obj, "name", None) or "Produit"
+
+    @staticmethod
+    def generate_unique_code(prefix="BUY") -> str:
+        alphabet = string.ascii_uppercase + string.digits
+        while True:
+            code = "".join(secrets.choice(alphabet) for _ in range(8))
+            full_code = f"{prefix}-{code[:4]}-{code[4:]}"
+            if not ResellerProductLink.objects.filter(promo_code=full_code).exists():
+                return full_code
+
+    def save(self, *args, **kwargs):
+        if not self.promo_code:
+            self.promo_code = self.generate_unique_code()
+        super().save(*args, **kwargs)
+
+
+class AffiliateOrder(models.Model):
+    """
+    Commande d'affiliation avec paiement à la livraison.
+    """
+    STATUS_CHOICES = (
+        ("PENDING", "En attente de livraison"),
+        ("DELIVERED", "Livrée"),
+        ("CANCELED", "Annulée"),
+    )
+
+    reference = models.CharField(max_length=32, unique=True, db_index=True)
+    
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey("content_type", "object_id")
+
+    reseller = models.ForeignKey(
+        AffiliateProfile, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name="resold_orders"
+    )
+    provider_profile = models.ForeignKey(
+        "business.BusinessProfile", 
+        on_delete=models.CASCADE, 
+        related_name="affiliate_orders"
+    )
+
+    buyer_name = models.CharField(max_length=120, verbose_name="Nom de l'acheteur")
+    buyer_phone = models.CharField(max_length=30, verbose_name="Téléphone WhatsApp")
+    buyer_address = models.CharField(max_length=255, verbose_name="Adresse de livraison")
+
+    amount_total = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Montant total (FCFA)")
+    reseller_commission = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Commission revendeur (FCFA)")
+    platform_fee = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Frais de service (FCFA)")
+
+    delivery_code = models.CharField(max_length=10, db_index=True, verbose_name="Code secret de validation")
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default="PENDING")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Commande de revente"
+        verbose_name_plural = "Commandes de revente"
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"Order({self.reference}) - {self.buyer_name} - {self.status}"
+
+    @property
+    def product_title(self) -> str:
+        obj = self.content_object
+        if not obj:
+            return "Produit"
+        return getattr(obj, "title", None) or getattr(obj, "name", None) or "Produit"
+
+    def save(self, *args, **kwargs):
+        if not self.reference:
+            self.reference = f"CMD-AFF-{secrets.token_hex(4).upper()}"
+        if not self.delivery_code:
+            self.delivery_code = "".join(secrets.choice(string.digits) for _ in range(4))
+        super().save(*args, **kwargs)
     

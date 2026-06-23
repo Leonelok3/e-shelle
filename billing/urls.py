@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import views_affiliate
+from . import views_reseller
 
 app_name = "billing"
 
@@ -18,6 +19,13 @@ urlpatterns = [
 
     # ✅ referral
     path("ref/<str:ref_code>/", views_affiliate.ref_redirect, name="ref_redirect"),
+
+    # ✅ Reseller & Wallet System
+    path("buy/promo/<str:promo_code>/", views_reseller.reseller_checkout_view, name="reseller_checkout"),
+    path("order/success/<str:reference>/", views_reseller.order_success_view, name="order_success"),
+    path("dashboard/affiliation/commandes/", views_reseller.provider_orders_view, name="provider_affiliate_orders"),
+    path("dashboard/affiliation/valider/<int:order_id>/", views_reseller.validate_delivery_view, name="validate_delivery"),
+    path("dashboard/portefeuille/", views_reseller.provider_wallet_view, name="provider_wallet"),
 
     ################################ facture des clients #############################
     path("receipts/<uuid:receipt_id>/", views.receipt_detail, name="receipt_detail"),

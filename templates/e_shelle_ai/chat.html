@@ -159,6 +159,11 @@
               <img src="{{ msg.image_url }}" alt="Image générée" class="generated-image"/>
               <a href="{{ msg.image_url }}" download class="img-download-btn">⬇ Télécharger</a>
             </div>
+            {% elif msg.message_type == 'video' and msg.image_url %}
+            <div class="message-video-container">
+              <video src="{{ msg.image_url }}" controls class="generated-video" style="max-width:100%; border-radius:12px; margin-top:8px; border:1px solid rgba(255,255,255,0.1); display:block;"></video>
+              <a href="{{ msg.image_url }}" download class="img-download-btn" style="margin-top:8px; display:inline-flex;">⬇ Télécharger la vidéo</a>
+            </div>
             {% else %}
             <div class="message-content markdown-content" data-raw="{{ msg.content }}">{{ msg.content }}</div>
             {% endif %}
@@ -187,15 +192,24 @@
   <!-- Zone d'input -->
   <div class="input-zone">
 
-    <!-- Modal génération d'image -->
+    <!-- Modal génération média (Image / Vidéo) -->
     <div class="image-modal hidden" id="image-modal">
       <div class="image-modal-header">
-        <span>📸 Générer une image avec DALL-E 3</span>
+        <span id="modal-title-text">✨ Création de média IA</span>
         <button onclick="closeImageModal()">×</button>
       </div>
+      
+      <!-- Onglets Média -->
+      <div class="media-tabs" style="display: flex; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+        <button class="media-tab active" id="tab-image" onclick="switchMediaTab('image')" style="flex: 1; padding: 6px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-glass); color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;">📸 Image IA</button>
+        <button class="media-tab" id="tab-video" onclick="switchMediaTab('video')" style="flex: 1; padding: 6px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: transparent; color: var(--text-2); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;">🎥 Vidéo IA</button>
+      </div>
+      
       <div class="image-modal-body">
         <input type="text" id="img-prompt-input" placeholder="Décrivez votre image (ex: ndolé présenté sur assiette blanche...)" maxlength="400"/>
-        <div class="img-context-row">
+        
+        <!-- Options Image -->
+        <div class="img-context-row" id="image-options-row">
           <label>Style :</label>
           <select id="img-context-select">
             <option value="food">🍽️ Plat / Nourriture</option>
@@ -207,14 +221,25 @@
             <option value="general">✦ Général</option>
           </select>
         </div>
-        <button class="btn-generate-img" id="btn-generate-img" onclick="generateImage()">
+        
+        <!-- Options Vidéo -->
+        <div class="img-context-row hidden" id="video-options-row">
+          <label>Format :</label>
+          <select id="video-ratio-select">
+            <option value="16:9">🎥 Paysage (16:9)</option>
+            <option value="9:16">📱 Vertical / Story (9:16)</option>
+            <option value="1:1">⬜ Carré (1:1)</option>
+          </select>
+        </div>
+        
+        <button class="btn-generate-img" id="btn-generate-img" onclick="generateMedia()">
           ✦ Générer l'image
         </button>
       </div>
     </div>
 
     <div class="input-row">
-      <button class="input-btn img-btn" id="btn-open-image" title="Générer une image IA" onclick="openImageModal()">📸</button>
+      <button class="input-btn img-btn" id="btn-open-image" title="Générer une image ou vidéo IA" onclick="openImageModal()">✨</button>
       <div class="textarea-wrapper">
         <textarea
           id="message-input"
@@ -239,6 +264,8 @@
     activeConvId:   {% if active_conv %}{{ active_conv.pk }}{% else %}null{% endif %},
     chatApiUrl:     "{% url 'eshelle_ai:api_chat' %}",
     imageApiUrl:    "{% url 'eshelle_ai:api_image' %}",
+    videoStartApiUrl: "{% url 'eshelle_ai:api_video_start' %}",
+    videoPollUrl:     "{% url 'eshelle_ai:api_video_poll' %}",
     newConvUrl:     "{% url 'eshelle_ai:conversation_new' %}",
     deleteConvUrl:  "/ai/conversations/{id}/delete/",
     convUrl:        "/ai/c/{id}/",

@@ -333,24 +333,74 @@ window.copyMessage = function(btn) {
   });
 };
 
-// ─── Génération image ─────────────────────────────────────────────────────────
-window.openImageModal  = () => $("image-modal").classList.remove("hidden");
+// ─── Génération de médias IA ──────────────────────────────────────────────────
+State.activeMediaType = "image";
+
+window.openImageModal  = () => {
+  $("image-modal").classList.remove("hidden");
+  switchMediaTab("image");
+};
 window.closeImageModal = () => $("image-modal").classList.add("hidden");
 
-window.generateImage = async function() {
-  const prompt  = $("img-prompt-input").value.trim();
-  const context = $("img-context-select").value;
-  if (!prompt) { showToast("Décrivez l'image souhaitée.", "error"); return; }
-
+window.switchMediaTab = function(type) {
+  State.activeMediaType = type;
+  const tabImage = $("tab-image");
+  const tabVideo = $("tab-video");
+  const imageOptions = $("image-options-row");
+  const videoOptions = $("video-options-row");
   const btn = $("btn-generate-img");
-  btn.disabled     = true;
-  btn.textContent  = "⏳ Génération en cours…";
+  const input = $("img-prompt-input");
+  
+  if (type === "image") {
+    tabImage.classList.add("active");
+    tabImage.style.background = "var(--bg-glass)";
+    tabImage.style.color = "#fff";
+    tabVideo.classList.remove("active");
+    tabVideo.style.background = "transparent";
+    tabVideo.style.color = "var(--text-2)";
+    imageOptions.classList.remove("hidden");
+    videoOptions.classList.add("hidden");
+    btn.textContent = "✦ Générer l'image";
+    input.placeholder = "Décrivez votre image (ex: ndolé présenté sur assiette blanche...)";
+  } else {
+    tabVideo.classList.add("active");
+    tabVideo.style.background = "var(--bg-glass)";
+    tabVideo.style.color = "#fff";
+    tabImage.classList.remove("active");
+    tabImage.style.background = "transparent";
+    tabImage.style.color = "var(--text-2)";
+    imageOptions.classList.add("hidden");
+    videoOptions.classList.remove("hidden");
+    btn.textContent = "✦ Générer la vidéo";
+    input.placeholder = "Décrivez votre vidéo (ex: un lion majestueux marchant dans la savane...)";
+  }
+};
 
-  // Cacher le welcome
+window.generateMedia = async function() {
+  const prompt = $("img-prompt-input").value.trim();
+  if (!prompt) {
+    showToast("Veuillez décrire le média souhaité.", "error");
+    return;
+  }
+
+  if (State.activeMediaType === "image") {
+    await runGenerateImage(prompt);
+  } else {
+    await runGenerateVideo(prompt);
+  }
+};
+
+async function runGenerateImage(prompt) {
+  const context = $("img-context-select").value;
+  const btn = $("btn-generate-img");
+  btn.disabled = true;
+  btn.textContent = "⏳ Génération en cours…";
+
   if (welcomeScreen) welcomeScreen.style.display = "none";
-
   appendMessage("user", `📸 Génère une image : ${prompt}`);
   scrollToBottom();
+  closeImageModal();
+  $("img-prompt-input").value = "";
 
   try {
     const resp = await fetch(DJANGO_DATA.imageApiUrl, {
@@ -373,7 +423,6 @@ window.generateImage = async function() {
       const adgenHint = data.adgen_url ? `\n\n👉 Créer une pub avec AdGen : ${data.adgen_url}` : "";
       appendMessage("assistant", "⚠️ " + (data.error || "Impossible de générer l'image.") + adgenHint);
     } else {
-      // Afficher l'image dans le chat
       const row = document.createElement("div");
       row.className = "message-row assistant";
       row.innerHTML = `
@@ -392,15 +441,145 @@ window.generateImage = async function() {
 
       if (data.quota) updateQuotaUI(data.quota.messages, data.quota.msg_used, data.quota.msg_limit);
     }
-
   } catch (err) {
     showToast("Erreur réseau.", "error");
   } finally {
-    btn.disabled    = false;
+    btn.disabled = false;
     btn.textContent = "✦ Générer l'image";
-    closeImageModal();
   }
-};
+}
+
+async function runGenerateVideo(prompt) {
+  const aspect_ratio = $("video-ratio-select").value;
+  const btn = $("btn-generate-img");
+  btn.disabled = true;
+  btn.textContent = "⏳ Initialisation de la vidéo…";
+
+  if (welcomeScreen) welcomeScreen.style.display = "none";
+  appendMessage("user", `🎥 Génère une vidéo : ${prompt}`);
+  scrollToBottom();
+  closeImageModal();
+  $("img-prompt-input").value = "";
+
+  try {
+    const resp = await fetch(DJANGO_DATA.videoStartApiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken":  DJANGO_DATA.csrfToken,
+      },
+      body: JSON.stringify({
+        prompt,
+        aspect_ratio,
+        conversation_id: State.currentConvId,
+      }),
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok || data.error) {
+      showToast("⚠️ " + (data.error || "Erreur de démarrage."), "error");
+      appendMessage("assistant", "⚠️ " + (data.error || "Impossible d'initialiser la génération de la vidéo."));
+      btn.disabled = false;
+      btn.textContent = "✦ Générer la vidéo";
+      return;
+    }
+
+    // Afficher la bulle de progression
+    const row = document.createElement("div");
+    row.className = "message-row assistant";
+    row.innerHTML = `
+      <div class="message-avatar">✦</div>
+      <div class="message-bubble assistant">
+        <div class="video-loading-content" style="display: flex; align-items: center; gap: 12px; padding: 4px 0;">
+          <div class="video-spinner" style="width: 22px; height: 22px; border: 3px solid rgba(0,212,170,0.15); border-top-color: var(--ai-1); border-radius: 50%; animation: spin 1s linear infinite; flex-shrink: 0;"></div>
+          <div>
+            <div style="font-weight: 700; color: #fff; font-size: 13px;">Génération de la vidéo IA en cours...</div>
+            <div style="font-size: 11px; color: var(--text-2);">Google Veo prépare votre vidéo. Temps estimé : 40-70s</div>
+          </div>
+        </div>
+        <div class="message-actions" style="margin-top: 4px;">
+          <span class="message-time">${new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</span>
+        </div>
+      </div>`;
+    messagesList.appendChild(row);
+    scrollToBottom();
+
+    // Lancer le polling
+    pollVideoStatus(data.operation_name, data.conversation_id, prompt, row, btn);
+
+  } catch (err) {
+    showToast("Erreur réseau.", "error");
+    btn.disabled = false;
+    btn.textContent = "✦ Générer la vidéo";
+  }
+}
+
+function pollVideoStatus(operationName, conversationId, prompt, rowElement, btnElement) {
+  const pollUrl = `${DJANGO_DATA.videoPollUrl}?operation_name=${encodeURIComponent(operationName)}&conversation_id=${conversationId || ""}&prompt=${encodeURIComponent(prompt)}`;
+  
+  let attempts = 0;
+  const maxAttempts = 50; // 50 * 4s = 200s
+  
+  const interval = setInterval(async () => {
+    attempts++;
+    if (attempts > maxAttempts) {
+      clearInterval(interval);
+      rowElement.innerHTML = `
+        <div class="message-avatar">✦</div>
+        <div class="message-bubble assistant">
+          <div style="color: #EF4444; font-weight: 700; font-size: 13px;">⚠️ Temps de génération vidéo dépassé.</div>
+          <div style="font-size: 11px; color: var(--text-2); margin-top: 2px;">Google prend un peu trop de temps à répondre. Veuillez réessayer plus tard.</div>
+        </div>`;
+      btnElement.disabled = false;
+      btnElement.textContent = "✦ Générer la vidéo";
+      return;
+    }
+
+    try {
+      const resp = await fetch(pollUrl);
+      const data = await resp.json();
+
+      if (data.error) {
+        clearInterval(interval);
+        rowElement.innerHTML = `
+          <div class="message-avatar">✦</div>
+          <div class="message-bubble assistant">
+            <div style="color: #EF4444; font-weight: 700; font-size: 13px;">⚠️ Échec de la génération</div>
+            <div style="font-size: 11px; color: var(--text-2); margin-top: 2px;">${data.error}</div>
+          </div>`;
+        btnElement.disabled = false;
+        btnElement.textContent = "✦ Générer la vidéo";
+        return;
+      }
+
+      if (data.done) {
+        clearInterval(interval);
+        rowElement.innerHTML = `
+          <div class="message-avatar">✦</div>
+          <div class="message-bubble assistant">
+            <div class="message-video-container">
+              <video src="${data.video_url}" controls class="generated-video" style="max-width:100%; border-radius:12px; margin-top:8px; border:1px solid rgba(255,255,255,0.1); display:block;"></video>
+              <a href="${data.video_url}" download class="img-download-btn" style="margin-top:8px; display:inline-flex;">⬇ Télécharger la vidéo</a>
+            </div>
+            <div class="message-actions">
+              <span class="message-time">${new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</span>
+            </div>
+          </div>`;
+        scrollToBottom();
+
+        btnElement.disabled = false;
+        btnElement.textContent = "✦ Générer la vidéo";
+
+        if (data.quota) {
+          updateQuotaUI(data.quota.messages, data.quota.msg_used, data.quota.msg_limit);
+        }
+      }
+    } catch (err) {
+      console.error("Error polling video:", err);
+    }
+  }, 4000);
+}
 
 // ─── Nouvelle conversation ────────────────────────────────────────────────────
 async function createNewConversation() {

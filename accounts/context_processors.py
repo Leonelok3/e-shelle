@@ -62,13 +62,25 @@ def social_login_context(request):
     """Expose l'etat des connexions sociales sans faire casser les pages auth."""
     try:
         from allauth.socialaccount.models import SocialApp
+        from django.conf import settings
+
+        google_in_settings = False
+        google_prov = getattr(settings, "SOCIALACCOUNT_PROVIDERS", {}).get("google", {})
+        if "APP" in google_prov and google_prov["APP"].get("client_id"):
+            google_in_settings = True
+
+        facebook_in_settings = False
+        facebook_prov = getattr(settings, "SOCIALACCOUNT_PROVIDERS", {}).get("facebook", {})
+        if "APP" in facebook_prov and facebook_prov["APP"].get("client_id"):
+            facebook_in_settings = True
 
         return {
-            "social_google_enabled": SocialApp.objects.filter(provider="google").exists(),
-            "social_facebook_enabled": SocialApp.objects.filter(provider="facebook").exists(),
+            "social_google_enabled": google_in_settings or SocialApp.objects.filter(provider="google").exists(),
+            "social_facebook_enabled": facebook_in_settings or SocialApp.objects.filter(provider="facebook").exists(),
         }
     except Exception:
         return {
             "social_google_enabled": False,
             "social_facebook_enabled": False,
         }
+

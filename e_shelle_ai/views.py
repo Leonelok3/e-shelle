@@ -23,6 +23,10 @@ from .services.openai_service import EshelleAIService
 from .services.context_builder import UserContextBuilder
 from .services.memory_service import MemoryService
 from .services.quota_service import QuotaService
+from .services.tools.google_media_generator import (
+    generate_google_image, start_google_video, check_google_video_status
+)
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -318,8 +322,18 @@ class GenerateImageView(LoginRequiredMixin, View):
         prompt = prompt[:500]
         context = context if context in ["food", "product", "banner", "logo", "social_media", "portrait", "general"] else "general"
 
-        ai_service = EshelleAIService()
-        result = ai_service.generate_image(prompt, context, user=user)
+        result = {}
+        # Tentative d'utilisation de Google Imagen 3 si la clé est définie
+        if getattr(settings, "GOOGLE_API_KEY", ""):
+            result = generate_google_image(prompt, context)
+            if result.get("error"):
+                logger.warning(f"Google Imagen 3 failed: {result['error']}. Falling back to OpenAI DALL-E.")
+                result = {}
+
+        # Fallback vers DALL-E 3
+        if not result or result.get("error"):
+            ai_service = EshelleAIService()
+            result = ai_service.generate_image(prompt, context, user=user)
 
         if result.get("error"):
             return JsonResponse({
@@ -341,13 +355,105 @@ class GenerateImageView(LoginRequiredMixin, View):
                     message_type="image",
                     image_url=result.get("media_url", ""),
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error(f"Error saving image message: {e}")
 
         return JsonResponse({
             "image_url":       result.get("media_url", ""),
             "enhanced_prompt": result.get("enhanced_prompt", ""),
             "quota":           quota_service.get_remaining(user),
+        })
+
+
+# ─── Génération de vidéo ─────────────────────────────────────────────────────
+
+class StartVideoView(LoginRequiredMixin, View):
+    """
+    POST /ai/api/video/start/
+    Body JSON: {"prompt": "...", "aspect_ratio": "16:9", "conversation_id": null|int}
+    """
+
+    def post(self, request):
+        user = request.user
+
+        # Quota image/vidéo
+        quota_service = QuotaService()
+        if not quota_service.check_image_quota(user):
+            upgrade_msg = quota_service.get_upgrade_message(user, "image")
+            return JsonResponse({"error": upgrade_msg, "quota_exceeded": True}, status=402)
+
+        try:
+            data = json.loads(request.body)
+            prompt = data.get("prompt", "").strip()
+            aspect_ratio = data.get("aspect_ratio", "16:9")
+            conv_id = data.get("conversation_id")
+        except (json.JSONDecodeError, ValueError):
+            return JsonResponse({"error": "Format invalide."}, status=400)
+
+        if not prompt:
+            return JsonResponse({"error": "Prompt vide."}, status=400)
+
+        # Lancer l'opération asynchrone chez Google
+        result = start_google_video(prompt, aspect_ratio=aspect_ratio)
+
+        if result.get("error"):
+            return JsonResponse({
+                "error": f"Génération vidéo impossible : {result['error']}"
+            }, status=500)
+
+        return JsonResponse({
+            "operation_name": result["operation_name"],
+            "conversation_id": conv_id,
+            "prompt": prompt,
+        })
+
+
+class PollVideoView(LoginRequiredMixin, View):
+    """
+    GET /ai/api/video/poll/
+    Query: ?operation_name=...&conversation_id=...&prompt=...
+    """
+
+    def get(self, request):
+        user = request.user
+        operation_name = request.GET.get("operation_name")
+        conversation_id = request.GET.get("conversation_id")
+        prompt = request.GET.get("prompt", "Vidéo générée")
+
+        if not operation_name:
+            return JsonResponse({"error": "Nom de l'opération manquant."}, status=400)
+
+        result = check_google_video_status(operation_name)
+
+        if result.get("error"):
+            return JsonResponse({"error": result["error"]}, status=500)
+
+        if not result.get("done"):
+            return JsonResponse({"done": False})
+
+        # Vidéo terminée !
+        # Incrémenter le quota
+        quota_service = QuotaService()
+        quota_service.increment_usage(user, "image")
+
+        # Sauvegarder dans le message de conversation si conv_id fourni
+        if conversation_id:
+            try:
+                conv = AIConversation.objects.get(pk=conversation_id, user=user)
+                AIMessage.objects.create(
+                    conversation=conv,
+                    role="assistant",
+                    content=f"Vidéo générée : {prompt}",
+                    message_type="video",
+                    image_url=result["video_url"],
+                )
+            except Exception as e:
+                logger.error(f"Error saving video message: {e}")
+
+        return JsonResponse({
+            "done": True,
+            "video_url": result["video_url"],
+            "quota": quota_service.get_remaining(user),
         })
 
 

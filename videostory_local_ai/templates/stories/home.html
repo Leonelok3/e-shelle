@@ -1,0 +1,393 @@
+{% extends 'base.html' %}
+{% block title %}Tableau de Bord · VideoStory Local AI{% endblock %}
+{% block content %}
+<section class="hero-premium">
+    <div class="hero-glow"></div>
+    <div class="hero-text-content">
+        <h1>Studio Vidéo Intelligent</h1>
+        <p>
+            Propulsez vos idées en vidéos professionnelles. Créez des narrations locales immersives ou générez un Avatar Parlant ultra-réaliste avec la puissance de Google Cloud Vertex AI & OpenAI TTS.
+        </p>
+    </div>
+</section>
+
+<!-- Tab Switcher -->
+<div class="tab-container">
+    <button class="tab-btn active" onclick="switchTab('story-mode')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>
+        Vidéo Narrative (Local)
+    </button>
+    <button class="tab-btn" onclick="switchTab('avatar-mode')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Talking Avatar Pro (Vertex AI)
+    </button>
+</div>
+
+<div class="form-container">
+    <!-- Form 1: Local Narrative Story -->
+    <div id="story-mode-pane" class="tab-pane active">
+        <div class="premium-card">
+            <div class="card-header">
+                <h2>Nouvelle Vidéo Narrative</h2>
+                <p>Générez un scénario complet découpé en scènes avec images et voix off générées localement.</p>
+            </div>
+            <form method="post" class="prompt-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="{{ form.prompt.id_for_label }}">Votre idée ou synopsis :</label>
+                    {{ form.prompt }}
+                </div>
+                <button type="submit" class="btn-primary">
+                    <span>Lancer la génération locale</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Form 2: Talking Avatar Pro (Vertex AI) -->
+    <div id="avatar-mode-pane" class="tab-pane">
+        <div class="premium-card">
+            <div class="card-header">
+                <h2>Générateur d'Avatar Parlant Pro</h2>
+                <p>Animez votre présentateur avec les mouvements de Google Veo et la voix d'OpenAI TTS.</p>
+            </div>
+            <form method="post" enctype="multipart/form-data" class="prompt-form">
+                {% csrf_token %}
+                <input type="hidden" name="is_avatar" value="1">
+                
+                <div class="form-grid">
+                    <div class="form-group-avatar-upload">
+                        <label>Avatar de référence (Photo Optionnelle) :</label>
+                        <div class="avatar-dropzone" onclick="document.getElementById('avatar_image_input').click()">
+                            <input type="file" id="avatar_image_input" name="avatar_image" accept="image/*" style="display: none;" onchange="previewAvatar(this)">
+                            <div id="avatar-preview-placeholder">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                <p>Cliquez pour choisir une photo</p>
+                                <span>Optionnelle (générée par Imagen 3 par défaut)</span>
+                            </div>
+                            <img id="avatar-preview-img" src="#" alt="Aperçu de l'avatar" style="display: none;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-fields-column">
+                        <div class="form-group">
+                            <label for="avatar_title">Nom du projet :</label>
+                            <input type="text" id="avatar_title" name="title" placeholder="Ex: Vidéo Corporate Q3" class="text-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="avatar_background">Environnement (Arrière-plan) :</label>
+                            <select id="avatar_background" name="avatar_background" class="select-input">
+                                <option value="auto" selected>🤖 Détection automatique depuis le script</option>
+                                <option value="office">🏢 Bureau moderne (Corporate)</option>
+                                <option value="studio">📺 Studio TV (Journal télévisé)</option>
+                                <option value="sober">🎨 Studio sobre (Éclairage de profil)</option>
+                                <option value="cinema">🎬 Plateau de tournage (Ambiance cinéma)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Voice Cloning Section -->
+                <div class="voice-selection-box mt-4">
+                    <label class="voice-section-title">🎙️ Choix de la Voix Off :</label>
+                    <div class="voice-options-grid">
+                        <label class="voice-option-card active">
+                            <input type="radio" name="voice_option" value="standard" checked onclick="toggleVoiceSection('standard')">
+                            <div class="card-inner">
+                                <span class="voice-icon">🎙️</span>
+                                <div class="card-info">
+                                    <strong>Voix Standard (IA)</strong>
+                                    <span>Voix de synthèse standard (OpenAI Onyx)</span>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        {% for voice in cloned_voices %}
+                        <label class="voice-option-card">
+                            <input type="radio" name="voice_option" value="{{ voice.pk }}" onclick="toggleVoiceSection('existing')">
+                            <div class="card-inner">
+                                <span class="voice-icon">👤</span>
+                                <div class="card-info">
+                                    <strong>{{ voice.name }}</strong>
+                                    <span>Votre voix clonée ElevenLabs</span>
+                                </div>
+                            </div>
+                        </label>
+                        {% endfor %}
+
+                        <label class="voice-option-card" id="new-voice-card">
+                            <input type="radio" name="voice_option" value="new" onclick="toggleVoiceSection('new')">
+                            <div class="card-inner">
+                                <span class="voice-icon">➕</span>
+                                <div class="card-info">
+                                    <strong>Cloner une voix...</strong>
+                                    <span>Enregistrer ou importer un échantillon</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Hidden/conditional sections for recording/uploading voice -->
+                    <div id="new-voice-panel" class="new-voice-panel" style="display: none;">
+                        <div class="form-group mt-3">
+                            <label for="cloned_voice_name">Nom de la voix clonée :</label>
+                            <input type="text" id="cloned_voice_name" name="cloned_voice_name" placeholder="Ex: Ma Voix Professionnelle" class="text-input">
+                        </div>
+
+                        <div class="voice-source-tabs mt-3">
+                            <button type="button" class="voice-tab-btn record-tab active" onclick="switchVoiceSource('record')">🎤 Enregistrer en direct</button>
+                            <button type="button" class="voice-tab-btn upload-tab" onclick="switchVoiceSource('upload')">📁 Importer un fichier audio</button>
+                        </div>
+
+                        <!-- Record Pane -->
+                        <div id="voice-pane-record" class="voice-source-pane active mt-3">
+                            <div class="recorder-container">
+                                <button type="button" id="record-btn" class="recorder-btn">
+                                    <div class="mic-icon-circle">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                                    </div>
+                                </button>
+                                <div class="recorder-status">
+                                    <span id="record-status-txt">Cliquez sur le micro pour enregistrer votre voix (10 secondes recommandées)</span>
+                                    <span id="record-timer" class="record-timer">00:00</span>
+                                </div>
+                                <div class="visualizer-container" id="visualizer-container" style="display: none;">
+                                    <span class="vis-bar"></span><span class="vis-bar"></span><span class="vis-bar"></span><span class="vis-bar"></span><span class="vis-bar"></span>
+                                </div>
+                                <audio id="recorded-audio-preview" controls style="display: none; margin-top: 15px; width: 100%;"></audio>
+                            </div>
+                        </div>
+
+                        <!-- Upload Pane -->
+                        <div id="voice-pane-upload" class="voice-source-pane mt-3" style="display: none;">
+                            <div class="audio-dropzone" onclick="document.getElementById('cloned_voice_file_input').click()">
+                                <input type="file" id="cloned_voice_file_input" name="cloned_voice_file" accept="audio/*" style="display: none;" onchange="previewUploadAudio(this)">
+                                <div id="audio-upload-placeholder">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    <p>Cliquez pour choisir un échantillon audio</p>
+                                    <span>MP3, WAV ou M4A (Max 10 Mo)</span>
+                                </div>
+                                <div id="audio-upload-fileinfo" style="display: none;">
+                                    <span class="file-icon">🎵</span>
+                                    <div class="file-details">
+                                        <strong id="audio-filename-txt">nom_du_fichier.mp3</strong>
+                                        <span id="audio-filesize-txt">250 KB</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mt-4">
+                    <label for="script_text">Texte à prononcer (Script) :</label>
+                    <textarea id="script_text" name="script_text" rows="5" class="prompt-input" placeholder="Bonjour à tous et bienvenue dans cette présentation de nos résultats annuels..." required></textarea>
+                </div>
+                
+                <button type="submit" class="btn-primary btn-gold">
+                    <span>Générer l'Avatar Parlant (GCP Credit)</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<section class="card recent-projects-card">
+    <div class="card-header">
+        <h2>Projets récents</h2>
+    </div>
+    {% if projects %}
+        <div class="project-grid">
+            {% for project in projects %}
+                <a class="project-card-link" href="{% url 'stories:detail' project.pk %}">
+                    <div class="project-card-header">
+                        {% if project.is_avatar_project %}
+                            <span class="project-type-badge avatar-badge">Avatar Parlant</span>
+                        {% else %}
+                            <span class="project-type-badge story-badge">Vidéo Narrative</span>
+                        {% endif %}
+                        <span class="status-indicator {{ project.status }}">{{ project.get_status_display }}</span>
+                    </div>
+                    <h3>{{ project.title|default:'Projet sans titre' }}</h3>
+                    <div class="project-card-footer">
+                        <span class="progress-txt">{{ project.progress }}%</span>
+                        <span class="date-txt">{{ project.created_at|date:"d M Y" }}</span>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="empty-state">Aucun projet pour le moment. Créez votre première vidéo ci-dessus !</p>
+    {% endif %}
+</section>
+
+<script>
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    
+    // Set active tab
+    const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.getAttribute('onclick').includes(tabId));
+    if (activeBtn) activeBtn.classList.add('active');
+    
+    document.getElementById(tabId + '-pane').classList.add('active');
+}
+
+function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var img = document.getElementById('avatar-preview-img');
+            var placeholder = document.getElementById('avatar-preview-placeholder');
+            img.src = e.target.result;
+            img.style.display = 'block';
+            placeholder.style.display = 'none';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Voice Cloning Functions
+function toggleVoiceSection(mode) {
+    document.querySelectorAll('.voice-option-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    
+    const selectedRadio = document.querySelector('input[name="voice_option"]:checked');
+    if (selectedRadio) {
+        selectedRadio.closest('.voice-option-card').classList.add('active');
+    }
+
+    const panel = document.getElementById('new-voice-panel');
+    const voiceFileInput = document.getElementById('cloned_voice_file_input');
+    const voiceNameInput = document.getElementById('cloned_voice_name');
+
+    if (mode === 'new') {
+        panel.style.display = 'block';
+        voiceFileInput.required = true;
+        voiceNameInput.required = true;
+    } else {
+        panel.style.display = 'none';
+        voiceFileInput.required = false;
+        voiceNameInput.required = false;
+    }
+}
+
+function switchVoiceSource(source) {
+    document.querySelectorAll('.voice-tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.voice-source-pane').forEach(pane => pane.classList.remove('active'));
+    
+    const activeBtn = document.querySelector(`.voice-tab-btn.${source}-tab`);
+    if (activeBtn) activeBtn.classList.add('active');
+    
+    document.getElementById('voice-pane-' + source).classList.add('active');
+    
+    if (source === 'record') {
+        // Clear file input upload
+        document.getElementById('cloned_voice_file_input').value = "";
+        document.getElementById('audio-upload-placeholder').style.display = 'block';
+        document.getElementById('audio-upload-fileinfo').style.display = 'none';
+    } else if (source === 'upload') {
+        // Stop active recording
+        stopRecording();
+        document.getElementById('recorded-audio-preview').style.display = 'none';
+        document.getElementById('recorded-audio-preview').src = "";
+    }
+}
+
+function previewUploadAudio(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        document.getElementById('audio-upload-placeholder').style.display = 'none';
+        document.getElementById('audio-filename-txt').innerText = file.name;
+        
+        let sizeStr = (file.size / 1024).toFixed(1) + " KB";
+        if (file.size > 1024 * 1024) {
+            sizeStr = (file.size / (1024 * 1024)).toFixed(2) + " MB";
+        }
+        document.getElementById('audio-filesize-txt').innerText = sizeStr;
+        document.getElementById('audio-upload-fileinfo').style.display = 'flex';
+    }
+}
+
+// Media Recorder Logic
+let mediaRecorder;
+let audioChunks = [];
+let recordInterval;
+let recordStartTime;
+let audioBlob = null;
+
+const recordBtn = document.getElementById('record-btn');
+const statusTxt = document.getElementById('record-status-txt');
+const timerTxt = document.getElementById('record-timer');
+const audioPreview = document.getElementById('recorded-audio-preview');
+const visualizer = document.getElementById('visualizer-container');
+
+if (recordBtn) {
+    recordBtn.addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    });
+}
+
+async function startRecording() {
+    audioChunks = [];
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = () => {
+            audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            audioPreview.src = audioUrl;
+            audioPreview.style.display = 'block';
+            
+            // Put it into the input file element using DataTransfer
+            const file = new File([audioBlob], "recorded_voice.wav", {type: "audio/wav"});
+            const container = new DataTransfer();
+            container.items.add(file);
+            document.getElementById('cloned_voice_file_input').files = container.files;
+            
+            // Clean up stream tracks
+            stream.getTracks().forEach(track => track.stop());
+        };
+
+        mediaRecorder.start();
+        recordBtn.classList.add('recording');
+        statusTxt.innerText = "Enregistrement en cours... Cliquez à nouveau pour arrêter.";
+        visualizer.style.display = 'flex';
+        
+        recordStartTime = Date.now();
+        timerTxt.innerText = "00:00";
+        recordInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - recordStartTime) / 1000);
+            const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+            const secs = String(elapsed % 60).padStart(2, '0');
+            timerTxt.innerText = `${mins}:${secs}`;
+        }, 1000);
+        
+    } catch (err) {
+        console.error("Microphone access denied: ", err);
+        statusTxt.innerText = "Erreur d'accès au micro. Veuillez vérifier vos autorisations.";
+    }
+}
+
+function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+        recordBtn.classList.remove('recording');
+        statusTxt.innerText = "Enregistrement terminé. Écoutez ou enregistrez à nouveau.";
+        visualizer.style.display = 'none';
+        clearInterval(recordInterval);
+    }
+}
+</script>
+{% endblock %}

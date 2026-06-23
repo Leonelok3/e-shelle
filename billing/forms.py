@@ -8,7 +8,7 @@ class RedeemCodeForm(forms.Form):
         label="Code prépayé",
         max_length=32,
         widget=forms.TextInput(attrs={
-            "placeholder": "I97-XXXX-XXXX-XXXX",
+            "placeholder": "ESH-XXXX-XXXX-XXXX",
             "class": "form-input",
             "autocomplete": "off",
         }),
@@ -31,6 +31,6 @@ class WalletReloadForm(forms.Form):
         max_length=255,
         widget=forms.TextInput(attrs={
             "class": "form-input",
-            "placeholder": "Ex: Recharge pour préparation TEF Canada",
+            "placeholder": "Ex: Recharge pour accès Premium E-Shelle",
         })
     )
