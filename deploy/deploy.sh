@@ -97,6 +97,10 @@ else
     echo "→ .env existant conservé"
 fi
 
+# ── Logs ──────────────────────────────────────────────────────────────────────
+mkdir -p /var/log/eshelle
+chown $APP_USER:www-data /var/log/eshelle
+
 # ── 7. Django : migrations + static ─────────────────────────────────────────
 echo "→ Migrations Django..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" migrate --noinput
@@ -114,10 +118,6 @@ chmod o+x /home/$APP_USER
 chmod o+x "$APP_DIR"
 chmod -R o+r "$APP_DIR/staticfiles/"
 echo "✔  Permissions staticfiles corrigées pour Nginx"
-
-# ── Logs ──────────────────────────────────────────────────────────────────────
-mkdir -p /var/log/eshelle
-chown $APP_USER:www-data /var/log/eshelle
 
 # ── 9. Service systemd Gunicorn ─────────────────────────────────────────────
 echo "→ Installation du service systemd..."
