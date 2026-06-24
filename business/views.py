@@ -23,6 +23,7 @@ from .models import (
     BusinessKeyAccount,
     BusinessKeyPaymentRequest,
     BusinessCatalogItem,
+    BusinessCatalogItemImage,
     BusinessLeadEvent,
     BusinessProfile,
     ClientAIKit,
