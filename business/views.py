@@ -2084,6 +2084,7 @@ def onboarding(request):
                 promo_headline=promo_headline,
                 promo_offer=promo_offer,
                 description=description,
+                logo=request.FILES.get("logo"),
                 plan=BusinessProfile.Plan.FREE,
                 is_active=True,
             )
