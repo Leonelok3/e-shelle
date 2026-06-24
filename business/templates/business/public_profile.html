@@ -15,10 +15,17 @@
           <span style="color:{% if business.activation_status == 'active' %}#86efac{% elif business.activation_status == 'pending' %}#fde68a{% else %}#cbd5e1{% endif %};font-weight:900;font-size:.85rem">{{ business.get_activation_status_display }}</span>
         </div>
 
-        {% if business.promo_headline %}
-          <p style="margin:0 0 .45rem;color:#facc15;font-size:.86rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em">{{ business.promo_headline }}</p>
-        {% endif %}
-        <h1 style="font-family:var(--font-display);font-size:clamp(2.2rem,6vw,4.8rem);line-height:.95;margin:0 0 1rem">{{ business.name }}</h1>
+        <div style="display:flex;align-items:center;gap:1.2rem;margin-bottom:1rem;flex-wrap:wrap;">
+          {% if business.logo %}
+            <img src="{{ business.logo.url }}" alt="Logo {{ business.name }}" style="width:72px;height:72px;border-radius:14px;object-fit:cover;border:2px solid rgba(255,255,255,.15);background:#fff">
+          {% endif %}
+          <div>
+            {% if business.promo_headline %}
+              <p style="margin:0 0 .45rem;color:#facc15;font-size:.86rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em">{{ business.promo_headline }}</p>
+            {% endif %}
+            <h1 style="font-family:var(--font-display);font-size:clamp(2.2rem,6vw,4.8rem);line-height:.95;margin:0">{{ business.name }}</h1>
+          </div>
+        </div>
         <p style="max-width:700px;color:rgba(255,255,255,.7);font-size:1.05rem;line-height:1.75">
           {{ business.description|default:business.promo_offer|default:"Cette activite est presente sur E-Shelle. Contactez directement le vendeur ou prestataire pour plus d'informations." }}
         </p>
@@ -64,28 +71,26 @@
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,260px));gap:1rem;align-items:start">
             {% for item in items %}
               <article style="overflow:hidden;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.045)">
-                <a href="{{ item.url|default:'#' }}" style="display:block;aspect-ratio:1/1;background:linear-gradient(135deg,rgba(20,184,166,.45),rgba(30,41,59,.9));text-decoration:none;overflow:hidden">
+                <div onclick="openProductModal({{ forloop.counter0 }})" style="display:block;aspect-ratio:1/1;background:linear-gradient(135deg,rgba(20,184,166,.45),rgba(30,41,59,.9));text-decoration:none;overflow:hidden;cursor:pointer;">
                   {% if item.image %}
                     <img src="{{ item.image }}" alt="{{ item.title }}" style="width:100%;height:100%;object-fit:cover;display:block">
                   {% else %}
                     <div style="height:100%;display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-size:2.6rem;font-weight:900">{{ item.title|slice:":1" }}</div>
                   {% endif %}
-                </a>
+                </div>
                 <div style="padding:1rem">
                   <div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.55rem">
                     <span style="color:#86efac;font-size:.72rem;font-weight:900;text-transform:uppercase">{{ item.type }}</span>
                     {% if item.meta %}<span style="color:rgba(255,255,255,.45);font-size:.72rem;font-weight:750">{{ item.meta }}</span>{% endif %}
                   </div>
-                  <h3 style="margin:0 0 .45rem;color:#fff;font-family:var(--font-display);font-size:1.05rem;line-height:1.18">{{ item.title }}</h3>
-                  <p style="min-height:44px;margin:0 0 .8rem;color:rgba(255,255,255,.58);font-size:.86rem;line-height:1.5">{{ item.description|default:"Disponible sur E-Shelle." }}</p>
+                  <h3 onclick="openProductModal({{ forloop.counter0 }})" style="margin:0 0 .45rem;color:#fff;font-family:var(--font-display);font-size:1.05rem;line-height:1.18;cursor:pointer;">{{ item.title }}</h3>
+                  <p style="min-height:44px;margin:0 0 .8rem;color:rgba(255,255,255,.58);font-size:.86rem;line-height:1.5">{{ item.description|truncatechars:100|default:"Disponible sur E-Shelle." }}</p>
                   <strong style="display:block;margin-bottom:.9rem;color:#facc15">{{ item.price|default:"Prix a discuter" }}</strong>
                   <div style="display:flex;gap:.55rem;flex-wrap:wrap">
                     {% if item.contact_url %}
                       <a href="{{ item.contact_url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;background:#7dec6c;color:#06120a;font-size:.82rem;font-weight:900">WhatsApp</a>
                     {% endif %}
-                    {% if item.url %}
-                      <a href="{{ item.url }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;border:1px solid rgba(255,255,255,.16);font-size:.82rem;font-weight:850">Details</a>
-                    {% endif %}
+                    <button type="button" onclick="openProductModal({{ forloop.counter0 }})" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:transparent;color:#fff;font-size:.82rem;font-weight:850;cursor:pointer">Détails</button>
                   </div>
                 </div>
               </article>
@@ -100,6 +105,60 @@
     </div>
   </div>
 </section>
+{{ items|json_script:"items-data" }}
+
+<!-- Modal Details Produit -->
+<div id="productModal" class="modal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;overflow:auto;background-color:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;">
+  <div class="modal-content" style="background:#091424;border:1px solid rgba(255,255,255,0.12);border-radius:18px;max-width:800px;width:100%;color:#fff;position:relative;overflow:hidden;box-shadow:0 24px 50px rgba(0,0,0,0.5);">
+    <span class="close-modal" onclick="closeProductModal()" style="position:absolute;right:1.2rem;top:0.8rem;color:rgba(255,255,255,0.6);font-size:2rem;font-weight:bold;cursor:pointer;z-index:10;">&times;</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.8rem;padding:2.2rem;" class="modal-body-grid">
+      <!-- Zone Images -->
+      <div>
+        <div style="aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#050910;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;position:relative;" id="modal-img-container">
+          <img id="modal-main-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+        </div>
+        <div id="modal-thumbnails" style="display:flex;gap:0.5rem;margin-top:0.8rem;overflow-x:auto;padding-bottom:0.3rem;">
+          <!-- Les vignettes seront insérées ici en JS -->
+        </div>
+      </div>
+      <!-- Zone Infos -->
+      <div style="display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <span id="modal-item-type" style="display:inline-block;color:#86efac;font-size:0.75rem;font-weight:900;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;"></span>
+          <h2 id="modal-item-title" style="margin:0 0 0.6rem;font-family:var(--font-display);font-size:1.8rem;line-height:1.2;color:#fff;"></h2>
+          <strong id="modal-item-price" style="display:block;color:#facc15;font-size:1.3rem;margin-bottom:1rem;"></strong>
+          <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:1rem;">
+            <p id="modal-item-description" style="color:rgba(255,255,255,0.72);font-size:0.95rem;line-height:1.6;margin:0;white-space:pre-line;max-height:220px;overflow-y:auto;"></p>
+          </div>
+        </div>
+        <div style="margin-top:1.5rem;display:flex;gap:0.8rem;">
+          <a id="modal-order-btn" href="" target="_blank" rel="noopener" style="display:flex;flex:1;align-items:center;justify-content:center;min-height:48px;padding:0.75rem 1rem;border-radius:12px;background:#7dec6c;color:#06120a;font-weight:900;text-decoration:none;text-align:center;box-shadow: 0 4px 14px rgba(125,236,108,0.3);">Commander sur WhatsApp</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@media (max-width: 640px) {
+  .modal-body-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.2rem !important;
+    padding: 1.5rem 1.2rem 1.2rem !important;
+  }
+  #productModal {
+    padding: 0.5rem !important;
+  }
+}
+#modal-thumbnails::-webkit-scrollbar {
+  height: 4px;
+}
+#modal-thumbnails::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+</style>
+
 <script>
 document.querySelectorAll('[data-copy-link]').forEach(function(button){
   button.addEventListener('click', function(){
@@ -108,6 +167,94 @@ document.querySelectorAll('[data-copy-link]').forEach(function(button){
       navigator.clipboard.writeText(link).then(function(){ button.textContent = 'Lien copie'; });
     }
   });
+});
+
+function openProductModal(index) {
+  const items = JSON.parse(document.getElementById('items-data').textContent);
+  const item = items[index];
+  if (!item) return;
+
+  document.getElementById('modal-item-title').textContent = item.title;
+  document.getElementById('modal-item-type').textContent = item.type;
+  document.getElementById('modal-item-price').textContent = item.price;
+  document.getElementById('modal-item-description').textContent = item.description || "Disponible sur E-Shelle.";
+  
+  const orderBtn = document.getElementById('modal-order-btn');
+  if (item.contact_url) {
+    orderBtn.href = item.contact_url;
+    orderBtn.style.display = 'flex';
+  } else {
+    orderBtn.style.display = 'none';
+  }
+
+  // Setup images
+  const mainImg = document.getElementById('modal-main-img');
+  const imgContainer = document.getElementById('modal-img-container');
+  const thumbsContainer = document.getElementById('modal-thumbnails');
+  thumbsContainer.innerHTML = '';
+
+  // Clean old text placeholder if any
+  const oldPlaceholder = imgContainer.querySelector('.text-placeholder');
+  if (oldPlaceholder) {
+    oldPlaceholder.remove();
+  }
+
+  if (item.images && item.images.length > 0) {
+    mainImg.src = item.images[0];
+    mainImg.style.display = 'block';
+
+    item.images.forEach((imgUrl, i) => {
+      const thumb = document.createElement('div');
+      thumb.style.width = '55px';
+      thumb.style.height = '55px';
+      thumb.style.borderRadius = '8px';
+      thumb.style.overflow = 'hidden';
+      thumb.style.cursor = 'pointer';
+      thumb.style.border = i === 0 ? '2px solid #7dec6c' : '1px solid rgba(255,255,255,0.2)';
+      thumb.style.background = '#050910';
+      thumb.style.flexShrink = '0';
+      thumb.innerHTML = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+      
+      thumb.addEventListener('click', function() {
+        mainImg.src = imgUrl;
+        Array.from(thumbsContainer.children).forEach(child => {
+          child.style.border = '1px solid rgba(255,255,255,0.2)';
+        });
+        thumb.style.border = '2px solid #7dec6c';
+      });
+
+      thumbsContainer.appendChild(thumb);
+    });
+  } else {
+    mainImg.style.display = 'none';
+    const placeholder = document.createElement('div');
+    placeholder.className = 'text-placeholder';
+    placeholder.style.height = '100%';
+    placeholder.style.width = '100%';
+    placeholder.style.display = 'grid';
+    placeholder.style.placeItems = 'center';
+    placeholder.style.color = '#fff';
+    placeholder.style.fontFamily = 'var(--font-display)';
+    placeholder.style.fontSize = '4.5rem';
+    placeholder.style.fontWeight = '900';
+    placeholder.textContent = item.title.charAt(0);
+    imgContainer.appendChild(placeholder);
+  }
+
+  const modal = document.getElementById('productModal');
+  modal.style.display = 'flex';
+}
+
+function closeProductModal() {
+  document.getElementById('productModal').style.display = 'none';
+}
+
+// Close when clicking outside modal-content
+window.addEventListener('click', function(event) {
+  const modal = document.getElementById('productModal');
+  if (event.target === modal) {
+    closeProductModal();
+  }
 });
 </script>
 {% endblock %}

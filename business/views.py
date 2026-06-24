@@ -2170,7 +2170,7 @@ def catalog_manage(request, business_id):
         else:
             if item_type not in dict(BusinessCatalogItem.ItemType.choices):
                 item_type = BusinessCatalogItem.ItemType.PRODUCT
-            BusinessCatalogItem.objects.create(
+            item = BusinessCatalogItem.objects.create(
                 business=business,
                 item_type=item_type,
                 title=title,
@@ -2180,6 +2180,11 @@ def catalog_manage(request, business_id):
                 order=order,
                 is_active=True,
             )
+            # handle additional photos
+            extra_images = request.FILES.getlist("images")
+            for img in extra_images:
+                BusinessCatalogItemImage.objects.create(item=item, image=img)
+
             messages.success(request, "Produit/service ajoute sur la fiche publique.")
             return redirect("business:catalog_manage", business_id=business.id)
 
@@ -2392,4 +2397,106 @@ def payment_success(request, pk):
         },
     )
 
-# Create your views here.
+@login_required
+def business_edit(request, business_id):
+    """Modification d'une fiche business existante."""
+    business = get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        module = request.POST.get("module", BusinessProfile.Module.GENERAL)
+        city = request.POST.get("city", "").strip()
+        district = request.POST.get("district", "").strip()
+        phone = request.POST.get("phone", "").strip()
+        whatsapp = request.POST.get("whatsapp", "").strip()
+        promo_headline = request.POST.get("promo_headline", "").strip()
+        promo_offer = request.POST.get("promo_offer", "").strip()
+        description = request.POST.get("description", "").strip()
+        promo_url = request.POST.get("promo_url", "").strip()
+
+        if not name or not phone:
+            messages.error(request, "Le nom du business et le telephone sont obligatoires.")
+        else:
+            business.name = name
+            if module in dict(BusinessProfile.Module.choices):
+                business.module = module
+            business.city = city
+            business.district = district
+            business.phone = phone
+            business.whatsapp = whatsapp or phone
+            business.promo_headline = promo_headline
+            business.promo_offer = promo_offer
+            business.description = description
+            business.promo_url = promo_url
+
+            if "logo" in request.FILES:
+                business.logo = request.FILES["logo"]
+            if "promo_image" in request.FILES:
+                business.promo_image = request.FILES["promo_image"]
+
+            business.save()
+            messages.success(request, "Votre fiche business a été mise à jour.")
+            return redirect(f"/business/dashboard/?business={business.id}")
+
+    return render(
+        request,
+        "business/business_edit.html",
+        {
+            "business": business,
+            "modules": BusinessProfile.Module.choices,
+        },
+    )
+
+
+@login_required
+def catalog_item_edit(request, business_id, item_id):
+    """Modification d'un produit/service et de ses photos supplementaires."""
+    business = get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
+    item = get_object_or_404(BusinessCatalogItem, pk=item_id, business=business)
+
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        item_type = request.POST.get("item_type", BusinessCatalogItem.ItemType.PRODUCT)
+        description = request.POST.get("description", "").strip()
+        price_label = request.POST.get("price_label", "").strip()
+        order = _positive_int(request.POST.get("order"), 0)
+
+        delete_images_ids = request.POST.getlist("delete_images")
+
+        if not title:
+            messages.error(request, "Le nom du produit ou service est obligatoire.")
+        else:
+            if item_type not in dict(BusinessCatalogItem.ItemType.choices):
+                item_type = BusinessCatalogItem.ItemType.PRODUCT
+            item.title = title
+            item.item_type = item_type
+            item.description = description
+            item.price_label = price_label
+            item.order = order
+
+            if "image" in request.FILES:
+                item.image = request.FILES["image"]
+
+            item.save()
+
+            # Delete checked images
+            if delete_images_ids:
+                BusinessCatalogItemImage.objects.filter(item=item, id__in=delete_images_ids).delete()
+
+            # Add new extra images
+            extra_images = request.FILES.getlist("images")
+            for img in extra_images:
+                BusinessCatalogItemImage.objects.create(item=item, image=img)
+
+            messages.success(request, "Produit/service mis à jour.")
+            return redirect("business:catalog_manage", business_id=business.id)
+
+    return render(
+        request,
+        "business/catalog_item_edit.html",
+        {
+            "business": business,
+            "item": item,
+            "item_types": BusinessCatalogItem.ItemType.choices,
+        },
+    )

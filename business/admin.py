@@ -8,6 +8,7 @@ from .models import (
     BusinessKeyAccount,
     BusinessKeyPaymentRequest,
     BusinessCatalogItem,
+    BusinessCatalogItemImage,
     BusinessLeadEvent,
     BusinessProfile,
     ClientAIKit,
@@ -42,7 +43,7 @@ class BusinessProfileAdmin(admin.ModelAdmin):
         (None, {
             "fields": (
                 "owner", "module", "name", "slug", "public_slug", "city", "district",
-                "phone", "whatsapp", "description", "is_active", "is_verified",
+                "phone", "whatsapp", "description", "logo", "is_active", "is_verified",
             )
         }),
         ("Publicite page d'accueil", {
@@ -96,8 +97,14 @@ class BusinessProfileAdmin(admin.ModelAdmin):
             profile.activate_boost(7)
 
 
+class BusinessCatalogItemImageInline(admin.TabularInline):
+    model = BusinessCatalogItemImage
+    extra = 1
+
+
 @admin.register(BusinessCatalogItem)
 class BusinessCatalogItemAdmin(admin.ModelAdmin):
+    inlines = (BusinessCatalogItemImageInline,)
     list_display = ("title", "business", "item_type", "price_label", "is_active", "order", "updated_at")
     list_filter = ("item_type", "is_active", "business__module")
     search_fields = ("title", "description", "business__name", "price_label")

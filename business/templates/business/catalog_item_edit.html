@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier le produit - {{ item.title }}{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top:7rem;background:linear-gradient(180deg,#071321 0%,#0a1628 100%);min-height:100vh;">
+  <div class="container">
+    <div style="max-width:780px;margin:0 auto">
+      <div style="margin-bottom:1.5rem">
+        <a href="{% url 'business:catalog_manage' business.id %}" style="color:#76ff94;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;gap:.35rem">
+          &larr; Retour au catalogue
+        </a>
+        <div style="text-align:center;margin-top:1rem">
+          <span class="section-label" style="display:inline-flex">Gestion Catalogue</span>
+          <h1 class="section-title" style="color:#fff;margin-top:.8rem">Modifier le produit</h1>
+          <p style="color:rgba(255,255,255,.62)">{{ item.title }} - {{ business.name }}</p>
+        </div>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem">
+        {% csrf_token %}
+
+        <div style="display:grid;grid-template-columns:1fr;gap:1rem">
+          <label class="item-field">Nom du produit/service *
+            <input name="title" value="{{ item.title }}" maxlength="140" required placeholder="Ex: Ndole plantain, Poulet DG, Livraison Makepe">
+          </label>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
+          <label class="item-field">Type
+            <select name="item_type">
+              {% for value, label in item_types %}
+                <option value="{{ value }}" {% if item.item_type == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="item-field">Prix
+            <input name="price_label" value="{{ item.price_label }}" maxlength="80" placeholder="Ex: 2 500 FCFA, Prix à discuter">
+          </label>
+        </div>
+
+        <label class="item-field" style="margin-top:1rem">Description courte
+          <textarea name="description" rows="4" placeholder="Ex: Plat chaud disponible aujourd'hui, livraison Makepe et Logpom.">{{ item.description }}</textarea>
+        </label>
+
+        <div style="display:grid;grid-template-columns:1fr 120px;gap:.8rem;margin-top:1rem">
+          <label class="item-field">Photo principale
+            {% if item.image %}
+              <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                <img src="{{ item.image.url }}" alt="Photo principale actuelle" style="width:50px;height:50px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,0.2);">
+                <span style="font-size:0.78rem;color:rgba(255,255,255,0.5);">Photo actuelle</span>
+              </div>
+            {% endif %}
+            <input type="file" name="image" accept="image/png,image/jpeg,image/jpg">
+          </label>
+          <label class="item-field">Ordre d'affichage
+            <input name="order" type="number" min="0" value="{{ item.order }}">
+          </label>
+        </div>
+
+        <!-- Section Photos Supplémentaires -->
+        <div style="margin-top:1.5rem;border-top:1px solid rgba(255,255,255,0.08);padding-top:1.5rem">
+          <h3 style="color:#ffd91f;margin:0 0 0.5rem;font-size:1.1rem;font-weight:bold;">Photos supplémentaires (galerie)</h3>
+          <p style="color:rgba(255,255,255,.55);font-size:0.82rem;margin-bottom:1rem;">Permet aux clients de faire défiler plusieurs photos dans les détails du produit.</p>
+          
+          {% if item.images.all %}
+            <div style="display:flex;flex-wrap:wrap;gap:0.8rem;margin-bottom:1rem;">
+              {% for img in item.images.all %}
+                <div style="position:relative;width:90px;height:90px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.15);background:#050910">
+                  <img src="{{ img.image.url }}" style="width:100%;height:100%;object-fit:cover;display:block;">
+                  <label style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.75);color:#fca5a5;font-size:0.65rem;text-align:center;padding:0.2rem 0;cursor:pointer;font-weight:bold;display:flex;align-items:center;justify-content:center;gap:0.15rem;">
+                    <input type="checkbox" name="delete_images" value="{{ img.id }}" style="margin:0;"> Suppr.
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <label class="item-field">Ajouter d'autres photos
+            <input type="file" name="images" accept="image/png,image/jpeg,image/jpg" multiple>
+            <span style="font-size:0.75rem;color:rgba(255,255,255,0.48);margin-top:0.25rem;">Vous pouvez sélectionner plusieurs images en même temps.</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:2rem;background:linear-gradient(135deg,#3aae4e,#d49412);border:0;">Enregistrer les modifications</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<style>
+.item-field { display:flex;flex-direction:column;gap:.45rem;color:rgba(255,255,255,.74);font-size:.86rem;font-weight:700; }
+.item-field input,.item-field select,.item-field textarea { width:100%;background:#101c33;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:.85rem;outline:none; }
+.item-field input:focus,.item-field select:focus,.item-field textarea:focus { border-color:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.14); }
+@media(max-width:700px){ form div[style*="grid-template-columns"]{grid-template-columns:1fr!important;} }
+</style>
+{% endblock %}

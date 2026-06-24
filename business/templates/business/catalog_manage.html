@@ -38,7 +38,7 @@
 
         <div class="catalog-row">
           <div>
-            <label>Photo</label>
+            <label>Photo principale</label>
             <input type="file" name="image" accept="image/png,image/jpeg,image/jpg">
           </div>
           <div>
@@ -46,6 +46,9 @@
             <input name="order" type="number" min="0" value="0">
           </div>
         </div>
+
+        <label style="display:block;margin:.75rem 0 .35rem;color:#c8f7d7;font-weight:850">Photos secondaires (plusieurs)</label>
+        <input type="file" name="images" accept="image/png,image/jpeg,image/jpg" multiple>
 
         <button type="submit">Ajouter au catalogue</button>
       </form>
@@ -86,6 +89,7 @@
             </em>
           </div>
           <div class="catalog-item-actions">
+            <a href="{% url 'business:catalog_item_edit' business.id item.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:9px;border:1px solid rgba(124,246,108,.25);background:#101c33;color:#fff;font-weight:900;text-decoration:none;cursor:pointer">Modifier</a>
             <form method="post" action="{% url 'business:catalog_item_action' business.id item.id %}">
               {% csrf_token %}
               <input type="hidden" name="action" value="toggle">

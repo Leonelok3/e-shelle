@@ -89,6 +89,12 @@ class BusinessProfile(models.Model):
         blank=True,
         help_text="Lien de destination de la publicite. Laisser vide pour utiliser WhatsApp ou le module.",
     )
+    logo = models.ImageField(
+        upload_to="business/logos/",
+        blank=True,
+        null=True,
+        help_text="Logo officiel du business.",
+    )
 
     content_type = models.ForeignKey(ContentType, null=True, blank=True, on_delete=models.SET_NULL)
     object_id = models.PositiveIntegerField(null=True, blank=True)
@@ -262,17 +268,38 @@ class BusinessCatalogItem(models.Model):
 
     def to_public_item(self):
         return {
+            "id": self.id,
             "type": self.get_item_type_display(),
             "title": self.title,
-            "description": self.description[:180],
+            "description": self.description,
             "price": self.price_label or "Prix a discuter",
             "image": self.image_url,
+            "images": ([self.image.url] if self.image else []) + [img.image.url for img in self.images.all() if img.image],
             "url": "",
             "contact_url": self.business.whatsapp_url(
                 f"Bonjour {self.business.name}, je suis interesse par {self.title} vu sur E-Shelle."
             ),
             "meta": self.business.district or self.business.city,
         }
+
+
+class BusinessCatalogItemImage(models.Model):
+    """Photos supplementaires pour un produit/service du catalogue."""
+
+    item = models.ForeignKey(
+        BusinessCatalogItem,
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+    image = models.ImageField(upload_to="business/catalogue/extra/")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Photo produit supplementaire"
+        verbose_name_plural = "Photos produit supplementaires"
+
+    def __str__(self):
+        return f"Photo pour {self.item.title}"
 
 
 class ProviderPlan(models.Model):
