@@ -2502,3 +2502,137 @@ def catalog_item_edit(request, business_id, item_id):
             "item_types": BusinessCatalogItem.ItemType.choices,
         },
     )
+
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+@staff_member_required
+def ai_slide_generator_page(request):
+    """Page d'administration pour generer des slides de presentation avec l'IA."""
+    from .models import PresentationSlide, BusinessProfile
+    
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        subtitle = request.POST.get("subtitle", "").strip()
+        badge = request.POST.get("badge", "").strip()
+        mockup_type = request.POST.get("mockup_type", "desktop")
+        cta_label = request.POST.get("cta_label", "Visiter le site").strip()
+        cta_url = request.POST.get("cta_url", "").strip()
+        tech_stack = request.POST.get("tech_stack", "").strip()
+        features = request.POST.get("features", "").strip()
+        bg_gradient = request.POST.get("bg_gradient", "linear-gradient(135deg, #0f172a, #1e293b)").strip()
+        text_color = request.POST.get("text_color", "#ffffff").strip()
+        order = _positive_int(request.POST.get("order"), 0)
+        is_active = request.POST.get("is_active") == "on" or request.POST.get("is_active") == "true" or request.POST.get("is_active") == True
+
+        if not title:
+            messages.error(request, "Le titre est obligatoire.")
+        else:
+            slide = PresentationSlide(
+                title=title,
+                subtitle=subtitle,
+                badge=badge,
+                mockup_type=mockup_type,
+                cta_label=cta_label,
+                cta_url=cta_url,
+                tech_stack=tech_stack,
+                features=features,
+                bg_gradient=bg_gradient,
+                text_color=text_color,
+                order=order,
+                is_active=is_active,
+            )
+            if "image" in request.FILES:
+                slide.image = request.FILES["image"]
+            
+            slide.save()
+            messages.success(request, f"Le slide '{title}' a été créé avec succès !")
+            return redirect("admin:business_presentationslide_changelist")
+
+    # GET request
+    businesses = BusinessProfile.objects.filter(is_active=True).order_by("name")
+    return render(
+        request,
+        "business/ai_slide_generator.html",
+        {
+            "businesses": businesses,
+        }
+    )
+
+
+@csrf_exempt
+@staff_member_required
+@require_POST
+def api_generate_slide_ai(request):
+    """Endpoint API pour generer les specifications d'un slide via Claude AI."""
+    from django.conf import settings
+    from django.http import JsonResponse
+    import anthropic
+
+    try:
+        data = json.loads(request.body)
+        prompt = data.get("prompt", "").strip()
+    except Exception:
+        return JsonResponse({"success": False, "error": "JSON invalide"}, status=400)
+
+    if not prompt:
+        return JsonResponse({"success": False, "error": "Le prompt ne doit pas être vide"}, status=400)
+
+    api_key = getattr(settings, "ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return JsonResponse({"success": False, "error": "Cle API Anthropic non configuree dans settings.py"}, status=500)
+
+    system_instruction = (
+        "Tu es un expert en marketing et UI designer pour E-Shelle, une agence web au Cameroun. "
+        "Ton but est de concevoir un slide de présentation accrocheur pour présenter une maquette de site web. "
+        "Génère des textes percutants adaptés au contexte camerounais et africain. "
+        "Choisis un gradient de fond linear-gradient CSS très moderne (favorise le dark mode chic, e.g. indigo foncé, bleu nuit, forêt profond, pourpre, violet, doré, etc. de haute qualité) qui s'associe bien avec le domaine. "
+        "Retourne UNIQUEMENT un objet JSON valide avec les clés suivantes :\n"
+        "{\n"
+        '  "title": "Nom court du projet / site",\n'
+        '  "subtitle": "Slogan court de vente (max 150 caractères)",\n'
+        '  "badge": "Catégorie (ex: Fintech, E-Commerce, Agri-Tech, Restauration)",\n'
+        '  "cta_label": "Libellé d\'appel à l\'action (ex: Visiter le site)",\n'
+        '  "cta_url": "Lien logique fictif ou réel (ex: /resto/ ou /agro/)",\n'
+        '  "tech_stack": "Technologies clés séparées par des virgules (ex: Django, Postgres, TailwindCSS)",\n'
+        '  "features": ["3 fonctionnalités phares concises"],\n'
+        '  "bg_gradient": "linear-gradient(135deg, #hex1, #hex2)",\n'
+        '  "text_color": "#ffffff",\n'
+        '  "mockup_type": "Choix parmi: desktop, laptop, mobile"\n'
+        "}\n"
+        "Ne mets aucun bloc de code markdown, pas de ```json ou d'explications supplémentaires. Juste le JSON brut."
+    )
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        # Fallback cascade to avoid environment specific issues
+        model = getattr(settings, "ANTHROPIC_MODEL", "claude-3-5-haiku-20241022")
+        
+        response = client.messages.create(
+            model=model,
+            max_tokens=1000,
+            messages=[{"role": "user", "content": prompt}],
+            system=system_instruction,
+        )
+
+        content_text = response.content[0].text.strip()
+        
+        # Clean potential markdown wrapping if Claude ignores prompt instructions
+        if content_text.startswith("```"):
+            lines = content_text.split("\n")
+            if lines[0].startswith("```json") or lines[0].startswith("```"):
+                content_text = "\n".join(lines[1:-1]).strip()
+        
+        slide_data = json.loads(content_text)
+        return JsonResponse({"success": True, "slide": slide_data})
+
+    except Exception as e:
+        logger.exception("Erreur lors de l'appel Anthropic")
+        return JsonResponse({"success": False, "error": f"Erreur IA : {str(e)}"}, status=500)
+

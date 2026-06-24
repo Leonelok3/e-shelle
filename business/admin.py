@@ -17,6 +17,7 @@ from .models import (
     PartnerLevel,
     PaymentRequest,
     PremiumSectorCampaign,
+    PresentationSlide,
     ProviderPlan,
     UnmetSearchRequest,
     UnmetSearchResponse,
@@ -354,4 +355,21 @@ class UnmetSearchResponseAdmin(admin.ModelAdmin):
     search_fields = ("request__query", "business__name", "responded_by__username", "note")
     autocomplete_fields = ("request", "business", "responded_by")
 
-# Register your models here.
+
+@admin.register(PresentationSlide)
+class PresentationSlideAdmin(admin.ModelAdmin):
+    list_display = ("preview", "title", "badge", "mockup_type", "order", "is_active", "created_at")
+    list_filter = ("is_active", "mockup_type", "badge")
+    search_fields = ("title", "subtitle", "badge", "tech_stack")
+    list_editable = ("order", "is_active")
+    readonly_fields = ("preview", "created_at", "updated_at")
+
+    @admin.display(description="Aperçu")
+    def preview(self, obj):
+        if not obj.image:
+            return "-"
+        try:
+            return format_html('<img src="{}" style="width:74px;height:48px;object-fit:cover;border-radius:8px" />', obj.image.url)
+        except Exception:
+            return "-"
+

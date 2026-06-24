@@ -963,4 +963,71 @@ class UnmetSearchResponse(models.Model):
     def __str__(self):
         return f"{self.business.name} -> {self.request.query}"
 
-# Create your models here.
+
+class PresentationSlide(models.Model):
+    """Slide pour le Slider Revolution de la page de présentation."""
+    
+    class MockupType(models.TextChoices):
+        DESKTOP = "desktop", "Navigateur Desktop"
+        LAPTOP = "laptop", "MacBook Laptop"
+        MOBILE = "mobile", "Smartphone Mobile"
+        GLASS = "glass", "Carte Glassmorphism"
+
+    title = models.CharField(max_length=150, verbose_name="Nom du site / Titre")
+    subtitle = models.CharField(max_length=250, blank=True, verbose_name="Sous-titre / Tagline")
+    badge = models.CharField(max_length=50, blank=True, verbose_name="Badge / Catégorie")
+    image = models.ImageField(upload_to="business/presentation-slides/", verbose_name="Capture / Maquette", blank=True, null=True)
+    mockup_type = models.CharField(
+        max_length=20, 
+        choices=MockupType.choices, 
+        default=MockupType.DESKTOP, 
+        verbose_name="Type de Maquette"
+    )
+    cta_label = models.CharField(max_length=50, default="Visiter le site", verbose_name="Texte du bouton")
+    cta_url = models.CharField(max_length=250, blank=True, verbose_name="URL du bouton")
+    tech_stack = models.CharField(
+        max_length=200, 
+        blank=True, 
+        verbose_name="Technologies (séparées par des virgules)", 
+        help_text="Ex: Django, Postgres, TailwindCSS"
+    )
+    features = models.TextField(
+        blank=True, 
+        verbose_name="Fonctionnalités clés (une par ligne)", 
+        help_text="Ex: Paiement Mobile Money\nAlertes temps réel"
+    )
+    bg_gradient = models.CharField(
+        max_length=250, 
+        blank=True, 
+        default="linear-gradient(135deg, #0f172a, #1e293b)", 
+        verbose_name="Gradient de fond CSS", 
+        help_text="Style linear-gradient CSS complet."
+    )
+    text_color = models.CharField(max_length=30, default="#ffffff", verbose_name="Couleur du texte (Hex)")
+    is_active = models.BooleanField(default=True, verbose_name="Actif")
+    order = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "-created_at"]
+        verbose_name = "Slide de Présentation (Maquette)"
+        verbose_name_plural = "Slides de Présentation (Maquettes)"
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def tech_tags(self):
+        """Retourne la liste des technologies."""
+        if not self.tech_stack:
+            return []
+        return [tag.strip() for tag in self.tech_stack.split(",") if tag.strip()]
+
+    @property
+    def features_list(self):
+        """Retourne la liste des fonctionnalités (séparées par des sauts de ligne)."""
+        if not self.features:
+            return []
+        return [f.strip() for f in self.features.split("\n") if f.strip()]
+

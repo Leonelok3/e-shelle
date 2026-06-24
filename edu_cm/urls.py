@@ -210,7 +210,7 @@ def presentation_view(request):
     ctx = {}
     try:
         from django.db.models import Sum
-        from business.models import BusinessProfile, BusinessCatalogItem, BusinessLeadEvent
+        from business.models import BusinessProfile, BusinessCatalogItem, BusinessLeadEvent, PresentationSlide
         active_businesses = BusinessProfile.objects.filter(is_active=True)
         lead_total = active_businesses.aggregate(total=Sum("leads_count"))["total"] or 0
         whatsapp_total = active_businesses.aggregate(total=Sum("whatsapp_clicks"))["total"] or 0
@@ -221,8 +221,10 @@ def presentation_view(request):
             "leads": lead_total + whatsapp_total,
             "events": BusinessLeadEvent.objects.count(),
         }
+        ctx["slides"] = list(PresentationSlide.objects.filter(is_active=True).order_by("order", "-created_at"))
     except Exception:
         ctx["home_numbers"] = {"businesses": 0, "premium": 0, "products": 0, "leads": 0, "events": 0}
+        ctx["slides"] = []
     return render(request, "presentation.html", ctx)
 
 

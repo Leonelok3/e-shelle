@@ -1,0 +1,788 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Générateur de Slide IA - E-Shelle{% endblock %}
+
+{% block extra_head %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap');
+
+  :root {
+    --color-bg-dark: #070f1e;
+    --color-primary: #22c55e;
+    --color-secondary: #f59e0b;
+    --color-accent: #3b82f6;
+    --color-card: rgba(15, 23, 42, 0.8);
+    --border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .generator-section {
+    padding: 7.5rem 0 5rem;
+    background: radial-gradient(circle at 50% 0%, rgba(34, 197, 94, 0.06), transparent 50%), var(--color-bg-dark);
+    min-height: 100vh;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #fff;
+  }
+
+  .generator-shell {
+    width: min(1300px, calc(100% - 40px));
+    margin: 0 auto;
+  }
+
+  .gen-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 2.5rem;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 1024px) {
+    .gen-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .gen-card {
+    background: var(--color-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-label {
+    display: block;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: #cbd5e1;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-control {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.92rem;
+    transition: all 0.2s ease;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .btn-gen {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #22c55e, #10b981);
+    color: #070f1e;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    padding: 0.8rem 1.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+
+  .btn-gen:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+  }
+
+  .btn-gen:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Live Preview Area */
+  .preview-wrapper {
+    position: sticky;
+    top: 7.5rem;
+  }
+
+  .slide-preview-container {
+    width: 100%;
+    aspect-ratio: 1.7;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+    display: flex;
+    padding: 1.5rem;
+    box-sizing: border-box;
+  }
+
+  .slide-preview-left {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-right: 1rem;
+    z-index: 2;
+  }
+
+  .slide-preview-right {
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .prev-badge {
+    align-self: flex-start;
+    padding: 0.25rem 0.6rem;
+    border-radius: 100px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .prev-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 0.4rem;
+  }
+
+  .prev-subtitle {
+    font-size: 0.78rem;
+    opacity: 0.8;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .prev-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.8rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .prev-features li {
+    font-size: 0.72rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .prev-features li::before {
+    content: "✓";
+    color: var(--color-primary);
+    font-weight: bold;
+  }
+
+  .prev-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .prev-tech span {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+  }
+
+  .prev-btn {
+    align-self: flex-start;
+    padding: 0.4rem 1rem;
+    background: linear-gradient(135deg, #22c55e, #10b981);
+    color: #070f1e;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(34, 197, 94, 0.2);
+  }
+
+  /* Mockup styling */
+  .mock-frame {
+    width: 100%;
+    height: 90%;
+    position: relative;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    background: #1e293b;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mock-screen {
+    flex: 1;
+    width: 100%;
+    background-size: cover;
+    background-position: top center;
+    background-color: #0d1527;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 0.75rem;
+  }
+
+  /* Desktop Mockup Frame */
+  .mock-desktop .mock-header {
+    height: 18px;
+    background: #334155;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    gap: 0.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .mock-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  .dot-red { background: #ef4444; }
+  .dot-yellow { background: #f59e0b; }
+  .dot-green { background: #10b981; }
+
+  .mock-address {
+    flex: 1;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+    margin: 0 1rem;
+  }
+
+  /* Mobile Mockup Frame */
+  .mock-mobile {
+    width: 60%;
+    height: 95%;
+    border-radius: 16px;
+    border: 3px solid #334155;
+    background: #020617;
+  }
+
+  .mock-mobile .mock-header {
+    height: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .mock-notch {
+    width: 35px;
+    height: 6px;
+    background: #334155;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+
+  /* Laptop Mockup Frame */
+  .mock-laptop {
+    width: 90%;
+    height: 80%;
+    border: 4px solid #334155;
+    border-radius: 6px;
+    position: relative;
+  }
+
+  .mock-laptop::after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: -20px;
+    right: -20px;
+    height: 6px;
+    background: #475569;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-top: 1px solid #64748b;
+  }
+
+  /* Glassmorphism styling */
+  .mock-glass {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mock-glass-inner {
+    width: 80%;
+    height: 80%;
+    border-radius: 8px;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .spinner {
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border-left-color: #22c55e;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="generator-section">
+  <div class="generator-shell">
+    
+    <div style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <span class="section-label" style="display:inline-flex; background:rgba(34, 197, 94, 0.1); color:var(--color-primary); padding:0.4rem 1rem; border-radius:100px; font-weight:700; font-size:0.8rem; border:1px solid rgba(34, 197, 94, 0.2)">Console Staff</span>
+        <h1 style="font-family:'Outfit', sans-serif; font-size:2.5rem; font-weight:900; margin-top:0.75rem; color:#fff;">Générateur de Slides IA</h1>
+        <p style="color:#94a3b8; font-size:1.05rem; max-width:700px; margin-top:0.5rem;">
+          Créez un slide haut de gamme de type "Slider Revolution" en décrivant un site internet. L'IA rédigera les textes marketing, concevra l'agencement et stylisera les couleurs.
+        </p>
+      </div>
+      <div>
+        <a href="/admin/business/presentationslide/" class="btn-cta-secondary" style="font-size:0.9rem; padding:0.6rem 1.2rem; display:inline-flex; align-items:center; gap:0.5rem; height:auto; text-decoration:none;">
+          <span>←</span> Retour à la liste
+        </a>
+      </div>
+    </div>
+
+    <!-- AI Prompt Box -->
+    <div class="gen-card" style="margin-bottom: 2rem;">
+      <h3 style="font-family:'Outfit', sans-serif; font-size:1.25rem; font-weight:700; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
+        <span>🪄</span> Rédiger avec l'IA
+      </h3>
+      
+      <div class="form-group">
+        <label class="form-label" for="ai-prompt">Décrivez le site, l'application ou l'activité à mettre en avant</label>
+        <textarea id="ai-prompt" class="form-control" placeholder="Exemple: Un site e-commerce de mode éco-responsable au Cameroun nommé 'KamerBio'. L'application propose des vêtements locaux, paiement MTN/Orange Money et livraison à Douala/Yaoundé."></textarea>
+      </div>
+
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+        <div style="display: flex; gap: 1rem; align-items: center;">
+          <span style="font-size: 0.85rem; color: #94a3b8;">Ou importer un business existant :</span>
+          <select id="business-select" class="form-control" style="width: auto; padding: 0.4rem 1.5rem; font-size: 0.85rem;">
+            <option value="">-- Aucun --</option>
+            {% for b in businesses %}
+              <option value="{{ b.name }} - {{ b.get_module_display }} · {{ b.city|default:'Cameroun' }}. {{ b.description|slice:':200' }}">{{ b.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button type="button" id="btn-ai-generate" class="btn-gen" style="width: auto; min-width: 200px;">
+          <span>Générer le Slide</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="gen-grid">
+      <!-- Edit form -->
+      <div class="gen-card">
+        <h3 style="font-family:'Outfit', sans-serif; font-size:1.25rem; font-weight:700; margin-bottom:1.5rem; border-bottom:1px solid var(--border-color); padding-bottom:0.75rem;">
+          ⚙️ Paramètres du Slide
+        </h3>
+
+        <form method="post" enctype="multipart/form-data" id="slide-form">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label class="form-label" for="id_title">Nom du site / Titre</label>
+            <input type="text" name="title" id="id_title" class="form-control" required placeholder="Ex: Tchaslucpay">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="id_subtitle">Sous-titre / Tagline</label>
+            <input type="text" name="subtitle" id="id_subtitle" class="form-control" placeholder="Ex: Logiciel de microfinance & collecte terrain">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="id_badge">Catégorie / Badge</label>
+            <input type="text" name="badge" id="id_badge" class="form-control" placeholder="Ex: Fintech">
+          </div>
+
+          <div class="grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label class="form-label" for="id_mockup_type">Type de Maquette</label>
+              <select name="mockup_type" id="id_mockup_type" class="form-control">
+                <option value="desktop" selected>Navigateur Desktop</option>
+                <option value="laptop">MacBook Laptop</option>
+                <option value="mobile">Smartphone Mobile</option>
+                <option value="glass">Carte Glassmorphism</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="id_order">Ordre d'affichage</label>
+              <input type="number" name="order" id="id_order" class="form-control" value="0" min="0">
+            </div>
+          </div>
+
+          <div class="grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label class="form-label" for="id_cta_label">Texte du bouton (CTA)</label>
+              <input type="text" name="cta_label" id="id_cta_label" class="form-control" value="Visiter le site">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="id_cta_url">Lien d'action (CTA URL)</label>
+              <input type="text" name="cta_url" id="id_cta_url" class="form-control" placeholder="Ex: /agro/">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="id_tech_stack">Technologies (séparées par des virgules)</label>
+            <input type="text" name="tech_stack" id="id_tech_stack" class="form-control" placeholder="Ex: Django, Postgres, TailwindCSS, Mobile Money">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="id_features">Fonctionnalités clés (une par ligne)</label>
+            <textarea name="features" id="id_features" class="form-control" rows="3" placeholder="Ex: Suivi des collecteurs en temps réel&#10;Reçus de paiement PDF&#10;Alertes SMS automatisées"></textarea>
+          </div>
+
+          <div class="grid-2" style="display:grid; grid-template-columns:1.5fr 0.5fr; gap:1rem;">
+            <div class="form-group">
+              <label class="form-label" for="id_bg_gradient">Gradient de fond CSS</label>
+              <input type="text" name="bg_gradient" id="id_bg_gradient" class="form-control" value="linear-gradient(135deg, #0f172a, #1e293b)">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="id_text_color">Couleur texte</label>
+              <input type="color" name="text_color" id="id_text_color" class="form-control" style="height:44px; padding:2px; cursor:pointer;" value="#ffffff">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="id_image">Capture d'écran de la maquette (Image)</label>
+            <input type="file" name="image" id="id_image" class="form-control" accept="image/*">
+            <span style="font-size:0.75rem; color:#64748b; margin-top:0.25rem; display:block;">Optionnel. Si vide, une illustration moderne sera affichée.</span>
+          </div>
+
+          <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; margin-top:1.5rem;">
+            <input type="checkbox" name="is_active" id="id_is_active" checked style="width:18px; height:18px; cursor:pointer;">
+            <label for="id_is_active" style="cursor:pointer; font-size:0.9rem; font-weight:600; color:#cbd5e1;">Rendre ce slide actif immédiatement</label>
+          </div>
+
+          <button type="submit" class="btn-gen" style="margin-top:1.5rem;">
+            <span>Créer et Publier le Slide</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Preview -->
+      <div class="preview-wrapper">
+        <div class="gen-card" style="position: relative;">
+          <h3 style="font-family:'Outfit', sans-serif; font-size:1.25rem; font-weight:700; margin-bottom:1.5rem; border-bottom:1px solid var(--border-color); padding-bottom:0.75rem; display:flex; justify-content:space-between; align-items:center;">
+            <span>👁️ Aperçu Temps Réel</span>
+            <span style="font-size:0.75rem; font-weight:normal; color:#64748b;">(Échelle 1:1)</span>
+          </h3>
+
+          <!-- The Live Preview Render -->
+          <div id="slide-live-preview" class="slide-preview-container" style="background: linear-gradient(135deg, #0f172a, #1e293b);">
+            
+            <div class="slide-preview-left">
+              <span id="prev-badge-text" class="prev-badge">Fintech</span>
+              <h2 id="prev-title-text" class="prev-title">Titre du Site</h2>
+              <p id="prev-subtitle-text" class="prev-subtitle">Ceci est une description d'accroche générée automatiquement par l'IA pour présenter les maquettes.</p>
+              
+              <ul id="prev-features-list" class="prev-features">
+                <li>Fonctionnalité 1</li>
+                <li>Fonctionnalité 2</li>
+                <li>Fonctionnalité 3</li>
+              </ul>
+
+              <div id="prev-tech-tags" class="prev-tech">
+                <span>Django</span><span>Tailwind</span>
+              </div>
+
+              <a href="#" id="prev-btn-action" class="prev-btn" onclick="event.preventDefault();">Visiter le site</a>
+            </div>
+
+            <div class="slide-preview-right">
+              <!-- Mockup Dynamic Box -->
+              <div id="mockup-frame-element" class="mock-frame mock-desktop">
+                <div class="mock-header">
+                  <span class="mock-dot dot-red"></span>
+                  <span class="mock-dot dot-yellow"></span>
+                  <span class="mock-dot dot-green"></span>
+                  <div class="mock-address"></div>
+                </div>
+                <div id="mockup-screen-bg" class="mock-screen">
+                  <span>Aucune image</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div style="margin-top: 1.5rem; font-size:0.85rem; color:#94a3b8; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.05); padding:1rem; border-radius:8px;">
+            <strong>💡 Astuce Pro :</strong> Les gradients de fond peuvent utiliser des styles CSS avancés comme <code>linear-gradient(135deg, #1e1b4b 0%, #311042 100%)</code>. Claude choisit des thèmes de couleurs adaptés au secteur du projet !
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- JavaScript for Interactive Real-Time Preview & AI Fetch -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    
+    // Elements
+    const inputTitle = document.getElementById('id_title');
+    const inputSubtitle = document.getElementById('id_subtitle');
+    const inputBadge = document.getElementById('id_badge');
+    const inputMockupType = document.getElementById('id_mockup_type');
+    const inputCtaLabel = document.getElementById('id_cta_label');
+    const inputCtaUrl = document.getElementById('id_cta_url');
+    const inputTechStack = document.getElementById('id_tech_stack');
+    const inputFeatures = document.getElementById('id_features');
+    const inputBgGradient = document.getElementById('id_bg_gradient');
+    const inputTextColor = document.getElementById('id_text_color');
+    const inputImage = document.getElementById('id_image');
+
+    // Preview elements
+    const previewContainer = document.getElementById('slide-live-preview');
+    const prevBadgeText = document.getElementById('prev-badge-text');
+    const prevTitleText = document.getElementById('prev-title-text');
+    const prevSubtitleText = document.getElementById('prev-subtitle-text');
+    const prevFeaturesList = document.getElementById('prev-features-list');
+    const prevTechTags = document.getElementById('prev-tech-tags');
+    const prevBtnAction = document.getElementById('prev-btn-action');
+    const mockupFrameElement = document.getElementById('mockup-frame-element');
+
+    // AI Generation elements
+    const aiPrompt = document.getElementById('ai-prompt');
+    const btnAiGenerate = document.getElementById('btn-ai-generate');
+    const businessSelect = document.getElementById('business-select');
+
+    // Populate prompt from select
+    businessSelect.addEventListener('change', function() {
+      if (this.value) {
+        aiPrompt.value = "Générer un slide de présentation complet pour ce business : " + this.value;
+      }
+    });
+
+    // Update real-time preview
+    function updatePreview() {
+      // 1. Text elements
+      prevTitleText.textContent = inputTitle.value || "Titre du Site";
+      prevSubtitleText.textContent = inputSubtitle.value || "Description du site web...";
+      prevBadgeText.textContent = inputBadge.value || "SaaS";
+      prevBadgeText.style.display = inputBadge.value ? 'inline-block' : 'none';
+      prevBtnAction.textContent = inputCtaLabel.value || "Visiter le site";
+      
+      // 2. Colors and Gradients
+      const textColor = inputTextColor.value || '#ffffff';
+      previewContainer.style.background = inputBgGradient.value || 'linear-gradient(135deg, #0f172a, #1e293b)';
+      previewContainer.style.color = textColor;
+      prevTitleText.style.color = textColor;
+      
+      // Compute a lighter/darker transparent text style for subtitle
+      prevSubtitleText.style.color = textColor;
+      prevSubtitleText.style.opacity = '0.8';
+
+      // 3. Features
+      prevFeaturesList.innerHTML = '';
+      const lines = inputFeatures.value.split('\n');
+      lines.forEach(line => {
+        if (line.trim()) {
+          const li = document.createElement('li');
+          li.textContent = line.trim();
+          // match check color to primary
+          li.style.fontSize = '0.72rem';
+          li.style.display = 'flex';
+          li.style.alignItems = 'center';
+          li.style.gap = '0.35rem';
+          prevFeaturesList.appendChild(li);
+        }
+      });
+
+      // 4. Tech stack tags
+      prevTechTags.innerHTML = '';
+      const tags = inputTechStack.value.split(',');
+      tags.forEach(tag => {
+        if (tag.trim()) {
+          const span = document.createElement('span');
+          span.textContent = tag.trim();
+          prevTechTags.appendChild(span);
+        }
+      });
+
+      // 5. Mockup Type
+      const mType = inputMockupType.value;
+      mockupFrameElement.className = 'mock-frame'; // Reset class
+      
+      if (mType === 'desktop') {
+        mockupFrameElement.classList.add('mock-desktop');
+        mockupFrameElement.innerHTML = `
+          <div class="mock-header">
+            <span class="mock-dot dot-red"></span>
+            <span class="mock-dot dot-yellow"></span>
+            <span class="mock-dot dot-green"></span>
+            <div class="mock-address"></div>
+          </div>
+          <div id="mockup-screen-bg" class="mock-screen"></div>
+        `;
+      } else if (mType === 'mobile') {
+        mockupFrameElement.classList.add('mock-mobile');
+        mockupFrameElement.innerHTML = `
+          <div class="mock-header">
+            <div class="mock-notch"></div>
+          </div>
+          <div id="mockup-screen-bg" class="mock-screen"></div>
+        `;
+      } else if (mType === 'laptop') {
+        mockupFrameElement.classList.add('mock-laptop');
+        mockupFrameElement.innerHTML = `
+          <div id="mockup-screen-bg" class="mock-screen"></div>
+        `;
+      } else if (mType === 'glass') {
+        mockupFrameElement.classList.add('mock-glass');
+        mockupFrameElement.innerHTML = `
+          <div class="mock-glass-inner">
+            <div style="text-align:center;">
+              <span style="font-size:1.5rem;">💎</span>
+              <p style="font-size:0.6rem; color:#94a3b8; margin:0.25rem 0 0;">Glass Card</p>
+            </div>
+          </div>
+        `;
+      }
+
+      // Re-query screen background element since innerHTML changed
+      const currentScreenBg = document.getElementById('mockup-screen-bg');
+      if (currentScreenBg) {
+        if (imageSrc) {
+          currentScreenBg.style.backgroundImage = `url(${imageSrc})`;
+          currentScreenBg.innerHTML = '';
+        } else {
+          currentScreenBg.style.backgroundImage = 'none';
+          currentScreenBg.innerHTML = '<span style="font-size: 0.65rem; color:#64748b;">Aucune capture</span>';
+        }
+      }
+    }
+
+    // Bind inputs to trigger real-time updates
+    [inputTitle, inputSubtitle, inputBadge, inputMockupType, inputCtaLabel, inputCtaUrl, inputTechStack, inputFeatures, inputBgGradient, inputTextColor].forEach(el => {
+      el.addEventListener('input', updatePreview);
+      el.addEventListener('change', updatePreview);
+    });
+
+    // Handle Image Upload File Reader
+    let imageSrc = null;
+    inputImage.addEventListener('change', function() {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          imageSrc = e.target.result;
+          updatePreview();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        imageSrc = null;
+        updatePreview();
+      }
+    });
+
+    // Initialize Preview on page load
+    updatePreview();
+
+    // AI Call integration
+    btnAiGenerate.addEventListener('click', async function() {
+      const promptText = aiPrompt.value.trim();
+      if (!promptText) {
+        alert("Veuillez saisir une description ou sélectionner un business.");
+        return;
+      }
+
+      btnAiGenerate.disabled = true;
+      btnAiGenerate.innerHTML = '<span class="spinner"></span> <span>Génération IA...</span>';
+
+      try {
+        const response = await fetch('/business/api/v1/generate-slide-ai/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+          body: JSON.stringify({ prompt: promptText })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          // Fill form fields
+          inputTitle.value = data.slide.title || '';
+          inputSubtitle.value = data.slide.subtitle || '';
+          inputBadge.value = data.slide.badge || '';
+          inputMockupType.value = data.slide.mockup_type || 'desktop';
+          inputCtaLabel.value = data.slide.cta_label || 'Visiter le site';
+          inputCtaUrl.value = data.slide.cta_url || '';
+          inputTechStack.value = data.slide.tech_stack || '';
+          inputFeatures.value = (data.slide.features || []).join('\n');
+          inputBgGradient.value = data.slide.bg_gradient || 'linear-gradient(135deg, #0f172a, #1e293b)';
+          inputTextColor.value = data.slide.text_color || '#ffffff';
+
+          // Trigger preview updates
+          updatePreview();
+          
+          // Toast or message
+          alert("✨ Slide généré par l'IA avec succès ! Vous pouvez maintenant le modifier, y ajouter une capture d'écran, et l'enregistrer.");
+        } else {
+          alert("Erreur de génération : " + (data.error || "Une erreur inconnue est survenue."));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Impossible de contacter le service de génération IA.");
+      } finally {
+        btnAiGenerate.disabled = false;
+        btnAiGenerate.innerHTML = '<span>Générer le Slide</span>';
+      }
+    });
+
+  });
+</script>
+{% endblock %}
