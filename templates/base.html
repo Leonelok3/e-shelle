@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr" data-theme="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,22 +9,26 @@
 
   {# SEO dynamique #}
   <title>{% block title %}E-Shelle — L'expérience à votre service{% endblock %}</title>
-  <meta name="description" content="{% block meta_description %}E-Shelle, plateforme SaaS africaine tout-en-un : formation en ligne, boutique digitale, création web IA, automatisation. Made in Cameroun.{% endblock %}">
+  <meta name="description"
+    content="{% block meta_description %}E-Shelle, plateforme SaaS africaine tout-en-un : formation en ligne, boutique digitale, création web IA, automatisation. Made in Cameroun.{% endblock %}">
 
   {# Open Graph #}
-  <meta property="og:title"       content="{% block og_title %}E-Shelle{% endblock %}">
-  <meta property="og:description" content="{% block og_description %}Plateforme SaaS africaine tout-en-un{% endblock %}">
-  <meta property="og:type"        content="website">
-  <meta property="og:url"         content="{{ request.build_absolute_uri }}">
-  <meta property="og:locale"      content="fr_FR">
+  <meta property="og:title" content="{% block og_title %}E-Shelle{% endblock %}">
+  <meta property="og:description"
+    content="{% block og_description %}Plateforme SaaS africaine tout-en-un{% endblock %}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:locale" content="fr_FR">
   {% block og_image %}{% endblock %}
-  <meta name="twitter:card"       content="summary_large_image">
+  <meta name="twitter:card" content="summary_large_image">
   {% block twitter_image %}{% endblock %}
 
   {# Google Fonts : Syne + Inter + JetBrains Mono #}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
 
   {# Vendors CSS (Bootstrap, etc.) — chargés AVANT eshelle.css pour que le design system gagne #}
   {% load static %}
@@ -45,7 +50,8 @@
   {% block extra_head %}{% endblock %}
 
   {# ── Google AdSense ── #}
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8153544065381730" crossorigin="anonymous"></script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8153544065381730"
+    crossorigin="anonymous"></script>
 
   {# ── NAVBAR CRITIQUE — inline pour résister à Bootstrap et au cache CSS ── #}
   <style>
@@ -58,6 +64,7 @@
       z-index: 1000 !important;
       width: 100% !important;
     }
+
     .navbar-inner {
       display: flex !important;
       flex-direction: row !important;
@@ -66,6 +73,7 @@
       width: 100% !important;
       gap: 1rem !important;
     }
+
     .navbar-nav {
       display: flex !important;
       flex-direction: row !important;
@@ -75,143 +83,237 @@
       margin: 0 !important;
       gap: .15rem !important;
     }
-    .navbar-nav > li {
+
+    .navbar-nav>li {
       list-style: none !important;
     }
+
     .navbar-actions {
       display: flex !important;
       flex-direction: row !important;
       align-items: center !important;
       gap: .5rem !important;
     }
+
     /* Dropdown */
-    .nav-dropdown { position: relative; }
+    .nav-dropdown {
+      position: relative;
+    }
+
     .nav-dropdown__menu {
       display: none;
       position: absolute;
-      top: 100%;                        /* pas de gap — zone hover continue */
+      top: 100%;
+      /* pas de gap — zone hover continue */
       left: 50%;
       transform: translateX(-50%);
       min-width: 290px;
       background: #161616;
-      border: 1px solid rgba(255,255,255,.1);
+      border: 1px solid rgba(255, 255, 255, .1);
       border-radius: 12px;
-      box-shadow: 0 24px 64px rgba(0,0,0,.7);
-      padding: .6rem .4rem .4rem;       /* padding-top = bridge invisible */
+      box-shadow: 0 24px 64px rgba(0, 0, 0, .7);
+      padding: .6rem .4rem .4rem;
+      /* padding-top = bridge invisible */
       flex-direction: column;
       gap: .1rem;
       z-index: 9999;
     }
+
     /* Pont transparent au-dessus du menu pour ne pas casser le hover */
     .nav-dropdown__menu::before {
       content: '';
       position: absolute;
       top: -.6rem;
-      left: 0; right: 0;
+      left: 0;
+      right: 0;
       height: .6rem;
     }
-    .nav-dropdown__menu.dd-open { display: flex; }
+
+    .nav-dropdown__menu.dd-open {
+      display: flex;
+    }
+
     .nav-dropdown__item {
       display: flex;
       align-items: center;
       gap: .75rem;
       padding: .65rem .85rem;
       border-radius: 8px;
-      color: rgba(255,255,255,.82);
+      color: rgba(255, 255, 255, .82);
       text-decoration: none;
       transition: background .15s;
       white-space: nowrap;
     }
-    .nav-dropdown__item:hover { background: rgba(255,255,255,.07); color: #fff; }
-    .nav-dropdown__item strong { display: block; font-size: .88rem; font-weight: 600; }
-    .nav-dropdown__item small  { display: block; font-size: .75rem; opacity: .55; white-space: normal; }
-    .nav-dropdown__icon { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
-    .nav-dropdown__toggle { background: none; border: none; cursor: pointer; }
-    .nav-dropdown__sep { height: 1px; background: rgba(255,255,255,.08); margin: .25rem .5rem; }
+
+    .nav-dropdown__item:hover {
+      background: rgba(255, 255, 255, .07);
+      color: #fff;
+    }
+
+    .nav-dropdown__item strong {
+      display: block;
+      font-size: .88rem;
+      font-weight: 600;
+    }
+
+    .nav-dropdown__item small {
+      display: block;
+      font-size: .75rem;
+      opacity: .55;
+      white-space: normal;
+    }
+
+    .nav-dropdown__icon {
+      font-size: 1.2rem;
+      width: 28px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .nav-dropdown__toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .nav-dropdown__sep {
+      height: 1px;
+      background: rgba(255, 255, 255, .08);
+      margin: .25rem .5rem;
+    }
+
     /* Ouverture au hover — délai mouseleave pour éviter fermeture accidentelle */
-    .nav-dropdown:hover .nav-dropdown__menu { display: flex; }
+    .nav-dropdown:hover .nav-dropdown__menu {
+      display: flex;
+    }
+
     .mobile-section-label {
       font-size: .7rem;
       font-weight: 700;
       letter-spacing: .08em;
       text-transform: uppercase;
-      color: rgba(255,255,255,.35);
+      color: rgba(255, 255, 255, .35);
       padding: .85rem 1rem .3rem;
     }
-    .nav-link.mobile-sub { padding-left: 1.75rem; font-size: .88rem; }
+
+    .nav-link.mobile-sub {
+      padding-left: 1.75rem;
+      font-size: .88rem;
+    }
 
     /* ── RESPONSIVE MOBILE — prioritaire sur tout le reste ── */
     @media (max-width: 900px) {
+
       /* Cacher les liens desktop */
-      .navbar-nav        { display: none !important; }
+      .navbar-nav {
+        display: none !important;
+      }
+
       /* Afficher le burger */
-      .burger            { display: flex !important; }
+      .burger {
+        display: flex !important;
+      }
+
       /* Cacher tout dans actions sauf burger */
-      .navbar-actions > *:not(#burger-btn) { display: none !important; }
+      .navbar-actions>*:not(#burger-btn) {
+        display: none !important;
+      }
     }
+
     @media (max-width: 900px) {
+
       /* Menu mobile ouvert */
-      .navbar-mobile.open { display: flex !important; }
+      .navbar-mobile.open {
+        display: flex !important;
+      }
     }
 
     /* ── SOUS-APPS : espace sous la navbar fixe (70px desktop, 60px mobile) ── */
     /* Inline = toujours frais, résiste au cache des CSS statiques */
-    .ann-page, .auto-page { padding-top: 4.5rem !important; }
-    .immo-breadcrumb       { padding-top: 4.5rem !important; }
+    .ann-page,
+    .auto-page {
+      padding-top: 4.5rem !important;
+    }
+
+    .immo-breadcrumb {
+      padding-top: 4.5rem !important;
+    }
+
     @media (max-width: 900px) {
-      .ann-page, .auto-page { padding-top: 4rem !important; }
-      .immo-breadcrumb       { padding-top: 4rem !important; }
+
+      .ann-page,
+      .auto-page {
+        padding-top: 4rem !important;
+      }
+
+      .immo-breadcrumb {
+        padding-top: 4rem !important;
+      }
     }
   </style>
 </head>
+
 <body class="{% block body_class %}{% endblock %}">
 
-{# ── Messages Django → Toasts automatiques ─────────────────── #}
-{% if messages %}
+  {# ── Messages Django → Toasts automatiques ─────────────────── #}
+  {% if messages %}
   {% for message in messages %}
-    <div data-django-message="{{ message.tags|default:'info' }}" style="display:none">{{ message }}</div>
+  <div data-django-message="{{ message.tags|default:'info' }}" style="display:none">{{ message }}</div>
   {% endfor %}
-{% endif %}
+  {% endif %}
 
-{# ── NAVBAR ─────────────────────────────────────────────────── #}
-{% block navbar %}
-<nav class="navbar" id="main-navbar" role="navigation" aria-label="Navigation principale">
-  <div class="container navbar-inner">
+  {# ── NAVBAR ─────────────────────────────────────────────────── #}
+  {% block navbar %}
+  <nav class="navbar" id="main-navbar" role="navigation" aria-label="Navigation principale">
+    <div class="container navbar-inner">
 
-    {# Logo E-Shelle #}
-    <a href="/" class="navbar-logo">
-      <img src="{% static 'img/logo.png' %}" alt="E-Shelle" height="38" style="height:38px;width:auto;display:block;border-radius:6px;">
-      <span style="color:var(--primary-light)">E</span>-<span>Shelle</span>
-    </a>
+      {# Logo E-Shelle #}
+      <a href="/" class="navbar-logo">
+        <img src="{% static 'img/logo.png' %}" alt="E-Shelle" height="38"
+          style="height:38px;width:auto;display:block;border-radius:6px;">
+        <span style="color:var(--primary-light)">E</span>-<span>Shelle</span>
+      </a>
 
-    {# Liens de navigation #}
-    <ul class="navbar-nav" role="list">
-      <li><a href="/" class="nav-link {% block nav_home %}{% endblock %}">Accueil</a></li>
-      <li><a href="/presentation/" class="nav-link {% block nav_presentation %}{% endblock %}">Présentation</a></li>
-      <li><a href="/formations/" class="nav-link {% block nav_formations %}{% endblock %}">Formations</a></li>
-      <li><a href="/business/partner/" class="nav-link {% block nav_business_key %}{% endblock %}">Business Key</a></li>
-      <li><a href="{% url 'tarifs' %}" class="nav-link {% block nav_tarifs %}{% endblock %}">Tarifs</a></li>
-      <li><a href="/services/contact/" class="nav-link {% block nav_contact %}{% endblock %}">Contact</a></li>
-    </ul>
+      {# Liens de navigation #}
+      <ul class="navbar-nav" role="list">
+        <li><a href="/" class="nav-link {% block nav_home %}{% endblock %}">Accueil</a></li>
+        <li><a href="/presentation/" class="nav-link {% block nav_presentation %}{% endblock %}">Présentation</a></li>
+        <li><a href="{% url 'boutique:catalogue' %}" class="nav-link {% block nav_boutique %}{% endblock %}">🛍️ Boutique Digital</a></li>
+        <li><a href="{% url 'tarifs' %}" class="nav-link {% block nav_tarifs %}{% endblock %}">Tarifs</a></li>
+        <li><a href="/services/contact/" class="nav-link {% block nav_contact %}{% endblock %}">Contact</a></li>
+      </ul>
 
-    {# Boutons d'action #}
-    <div class="navbar-actions">
+      {# Boutons d'action #}
+      <div class="navbar-actions">
 
-      {# Recherche #}
-      <button class="btn-icon btn-ghost" id="search-btn" aria-label="Rechercher (Ctrl+K)" title="Rechercher">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      </button>
+        {# Recherche #}
+        <button class="btn-icon btn-ghost" id="search-btn" aria-label="Rechercher (Ctrl+K)" title="Rechercher">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+        </button>
 
-      {% if user.is_authenticated %}
+        {% if user.is_authenticated %}
         {# Notifications #}
         <button class="notif-bell" data-modal-open="notif-modal" aria-label="Notifications">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
           <span class="notif-badge" id="notif-count" style="display:none">0</span>
         </button>
 
         {# Panier #}
         <button class="btn-icon btn-ghost" data-open-cart aria-label="Panier">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+          </svg>
           <span class="notif-badge" id="cart-count" style="display:none">0</span>
         </button>
 
@@ -220,219 +322,279 @@
           {{ user.get_short_name|default:user.username }} →
         </a>
 
-      {% else %}
-        <a href="/accounts/login/"    class="btn btn-outline btn-sm">Connexion</a>
-        <a href="/accounts/register/" class="btn btn-accent  btn-sm">S'inscrire</a>
-      {% endif %}
-
-      {# Burger mobile #}
-      <button class="burger" id="burger-btn" aria-label="Ouvrir le menu" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </div>
-
-  {# Menu mobile déroulant #}
-  <div class="navbar-mobile" id="navbar-mobile" role="menu">
-    <div style="padding:0 .5rem">
-      <a href="/" class="nav-link" role="menuitem">🏠 Accueil</a>
-      <a href="/presentation/" class="nav-link" role="menuitem">ℹ️ Présentation</a>
-      <a href="/formations/" class="nav-link" role="menuitem">📚 Formations</a>
-      <a href="/business/partner/" class="nav-link" role="menuitem">🤝 Business Key</a>
-      <a href="{% url 'tarifs' %}"            class="nav-link" role="menuitem">💰 Tarifs</a>
-      <a href="/services/contact/"  class="nav-link" role="menuitem">📩 Contact</a>
-
-      <div style="display:flex;gap:.75rem;padding:.75rem 1rem 1rem">
-        {% if user.is_authenticated %}
-          <a href="/dashboard/"     class="btn btn-primary btn-sm" style="flex:1">Mon espace →</a>
         {% else %}
-          <a href="/accounts/login/"    class="btn btn-outline btn-sm" style="flex:1">Connexion</a>
-          <a href="/accounts/register/" class="btn btn-accent  btn-sm" style="flex:1">S'inscrire</a>
+        <a href="/accounts/login/" class="btn btn-outline btn-sm">Connexion</a>
+        <a href="/accounts/register/" class="btn btn-accent  btn-sm">S'inscrire</a>
         {% endif %}
+
+        {# Burger mobile #}
+        <button class="burger" id="burger-btn" aria-label="Ouvrir le menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
       </div>
     </div>
-  </div>
-</nav>
 
-{# Overlay de recherche #}
-<div id="search-overlay" style="
+    {# Menu mobile déroulant #}
+    <div class="navbar-mobile" id="navbar-mobile" role="menu">
+      <div style="padding:0 .5rem">
+        <a href="/" class="nav-link" role="menuitem">🏠 Accueil</a>
+        <a href="/presentation/" class="nav-link" role="menuitem">ℹ️ Présentation</a>
+        <a href="{% url 'boutique:catalogue' %}" class="nav-link {% block nav_boutique_mobile %}{% endblock %}" role="menuitem">🛍️ Boutique Digital</a>
+        <a href="{% url 'tarifs' %}" class="nav-link" role="menuitem">💰 Tarifs</a>
+        <a href="/services/contact/" class="nav-link" role="menuitem">📩 Contact</a>
+
+        <div style="display:flex;gap:.75rem;padding:.75rem 1rem 1rem">
+          {% if user.is_authenticated %}
+          <a href="/dashboard/" class="btn btn-primary btn-sm" style="flex:1">Mon espace →</a>
+          {% else %}
+          <a href="/accounts/login/" class="btn btn-outline btn-sm" style="flex:1">Connexion</a>
+          <a href="/accounts/register/" class="btn btn-accent  btn-sm" style="flex:1">S'inscrire</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  {# Overlay de recherche #}
+  <div id="search-overlay" style="
   position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   z-index:var(--z-modal);display:flex;align-items:flex-start;justify-content:center;
   padding:5rem 1rem 1rem;opacity:0;pointer-events:none;transition:opacity .25s ease;" role="search">
-  <div style="width:100%;max-width:640px">
-    <div class="input-group" style="border-radius:var(--radius-lg);overflow:hidden;">
-      <span style="display:flex;align-items:center;padding:0 1rem;color:var(--text-muted);background:rgba(255,255,255,.04)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <div style="width:100%;max-width:640px">
+      <div class="input-group" style="border-radius:var(--radius-lg);overflow:hidden;">
+        <span
+          style="display:flex;align-items:center;padding:0 1rem;color:var(--text-muted);background:rgba(255,255,255,.04)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+        </span>
+        <input type="search" id="search-input" class="form-control"
+          placeholder="Rechercher formations, produits, services…" autocomplete="off"
+          style="background:rgba(255,255,255,.04);border:none;font-size:1rem;padding:.85rem 1rem;">
+        <button class="btn btn-ghost" style="border-radius:0;padding:0 1rem"
+          onclick="document.getElementById('search-overlay').classList.remove('open')" aria-label="Fermer">✕</button>
+      </div>
+      <div id="search-results"
+        style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);margin-top:.5rem;overflow:hidden;max-height:400px;overflow-y:auto;">
+      </div>
+      <p style="text-align:center;color:var(--text-muted);font-size:.78rem;margin-top:.75rem">Appuie sur <kbd
+          style="background:rgba(255,255,255,.08);padding:.1rem .4rem;border-radius:4px">Échap</kbd> pour fermer</p>
+    </div>
+  </div>
+  <style>
+    #search-overlay.open {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .85rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+      transition: background .15s;
+    }
+
+    .search-result-item:hover {
+      background: rgba(255, 255, 255, .04);
+    }
+
+    .search-result-title {
+      font-size: .9rem;
+    }
+  </style>
+  {% endblock navbar %}
+
+  {# ── CONTENU PRINCIPAL ───────────────────────────────────────── #}
+  <main id="main-content" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  {# ── PANIER SLIDE-IN ─────────────────────────────────────────── #}
+  <div id="cart-backdrop" class="cart-panel-backdrop" role="presentation"></div>
+  <aside id="cart-panel" class="cart-panel" aria-label="Panier" role="complementary">
+    <div class="cart-header">
+      <span style="font-family:var(--font-display);font-weight:700;font-size:1rem">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          style="vertical-align:middle;margin-right:.3rem">
+          <circle cx="9" cy="21" r="1" />
+          <circle cx="20" cy="21" r="1" />
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+        </svg>
+        Mon panier
       </span>
-      <input type="search" id="search-input" class="form-control"
-             placeholder="Rechercher formations, produits, services…" autocomplete="off"
-             style="background:rgba(255,255,255,.04);border:none;font-size:1rem;padding:.85rem 1rem;">
-      <button class="btn btn-ghost" style="border-radius:0;padding:0 1rem"
-              onclick="document.getElementById('search-overlay').classList.remove('open')" aria-label="Fermer">✕</button>
+      <button class="modal-close" data-close-cart aria-label="Fermer le panier">✕</button>
     </div>
-    <div id="search-results" style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);margin-top:.5rem;overflow:hidden;max-height:400px;overflow-y:auto;"></div>
-    <p style="text-align:center;color:var(--text-muted);font-size:.78rem;margin-top:.75rem">Appuie sur <kbd style="background:rgba(255,255,255,.08);padding:.1rem .4rem;border-radius:4px">Échap</kbd> pour fermer</p>
-  </div>
-</div>
-<style>
-  #search-overlay.open { opacity:1 !important; pointer-events:auto !important; }
-  .search-result-item { display:flex;align-items:center;gap:.75rem;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);color:var(--text-primary);transition:background .15s; }
-  .search-result-item:hover { background:rgba(255,255,255,.04); }
-  .search-result-title { font-size:.9rem; }
-</style>
-{% endblock navbar %}
+    <div class="cart-body" id="cart-items">
+      <div style="text-align:center;padding:3rem 1rem">
+        <div style="font-size:3rem;margin-bottom:1rem">🛒</div>
+        <p style="color:var(--text-secondary);font-size:.9rem">Votre panier est vide.</p>
+        <a href="/boutique/" class="btn btn-outline btn-sm" style="margin-top:1rem" data-close-cart>Découvrir la
+          boutique</a>
+      </div>
+    </div>
+    <div class="cart-footer">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <span style="font-weight:600">Total</span>
+        <span id="cart-total"
+          style="font-family:var(--font-display);font-weight:800;font-size:1.15rem;color:var(--primary-light)">0
+          FCFA</span>
+      </div>
+      <a href="/boutique/checkout/" class="btn btn-primary btn-block">Passer commande →</a>
+    </div>
+  </aside>
 
-{# ── CONTENU PRINCIPAL ───────────────────────────────────────── #}
-<main id="main-content" tabindex="-1">
-  {% block content %}{% endblock %}
-</main>
-
-{# ── PANIER SLIDE-IN ─────────────────────────────────────────── #}
-<div id="cart-backdrop" class="cart-panel-backdrop" role="presentation"></div>
-<aside id="cart-panel" class="cart-panel" aria-label="Panier" role="complementary">
-  <div class="cart-header">
-    <span style="font-family:var(--font-display);font-weight:700;font-size:1rem">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:.3rem"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      Mon panier
-    </span>
-    <button class="modal-close" data-close-cart aria-label="Fermer le panier">✕</button>
-  </div>
-  <div class="cart-body" id="cart-items">
-    <div style="text-align:center;padding:3rem 1rem">
-      <div style="font-size:3rem;margin-bottom:1rem">🛒</div>
-      <p style="color:var(--text-secondary);font-size:.9rem">Votre panier est vide.</p>
-      <a href="/boutique/" class="btn btn-outline btn-sm" style="margin-top:1rem" data-close-cart>Découvrir la boutique</a>
+  {# ── MODAL NOTIFICATIONS ─────────────────────────────────────── #}
+  <div class="modal-overlay" id="notif-modal" role="dialog" aria-modal="true" aria-label="Notifications">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-header">
+        <span class="modal-title">🔔 Notifications</span>
+        <button class="modal-close" data-modal-close="notif-modal" aria-label="Fermer">✕</button>
+      </div>
+      <div id="notif-list">
+        <p style="color:var(--text-secondary);padding:1.5rem 0;text-align:center">Aucune nouvelle notification.</p>
+      </div>
+      {% if user.is_authenticated %}
+      <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
+        <a href="/dashboard/notifications/" class="btn btn-ghost btn-sm btn-block">Voir tout l'historique</a>
+      </div>
+      {% endif %}
     </div>
   </div>
-  <div class="cart-footer">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-      <span style="font-weight:600">Total</span>
-      <span id="cart-total" style="font-family:var(--font-display);font-weight:800;font-size:1.15rem;color:var(--primary-light)">0 FCFA</span>
-    </div>
-    <a href="/boutique/checkout/" class="btn btn-primary btn-block">Passer commande →</a>
-  </div>
-</aside>
 
-{# ── MODAL NOTIFICATIONS ─────────────────────────────────────── #}
-<div class="modal-overlay" id="notif-modal" role="dialog" aria-modal="true" aria-label="Notifications">
-  <div class="modal" style="max-width:420px">
-    <div class="modal-header">
-      <span class="modal-title">🔔 Notifications</span>
-      <button class="modal-close" data-modal-close="notif-modal" aria-label="Fermer">✕</button>
-    </div>
-    <div id="notif-list">
-      <p style="color:var(--text-secondary);padding:1.5rem 0;text-align:center">Aucune nouvelle notification.</p>
-    </div>
-    {% if user.is_authenticated %}
-    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
-      <a href="/dashboard/notifications/" class="btn btn-ghost btn-sm btn-block">Voir tout l'historique</a>
-    </div>
-    {% endif %}
-  </div>
-</div>
+  {# ── FOOTER ──────────────────────────────────────────────────── #}
+  {% block footer %}
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
 
-{# ── FOOTER ──────────────────────────────────────────────────── #}
-{% block footer %}
-<footer class="footer" role="contentinfo">
-  <div class="container">
-    <div class="footer-grid">
-
-      {# À propos #}
-      <div class="footer-brand">
-        <div class="footer-logo">
-          <img src="{% static 'img/logo.png' %}" alt="E-Shelle" height="32" style="height:32px;width:auto;display:inline-block;border-radius:5px;vertical-align:middle;margin-right:.4rem;">
+        {# À propos #}
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <img src="{% static 'img/logo.png' %}" alt="E-Shelle" height="32"
+              style="height:32px;width:auto;display:inline-block;border-radius:5px;vertical-align:middle;margin-right:.4rem;">
+          </div>
+          <p>Plateforme SaaS africaine tout-en-un. Formation, boutique digitale, création web IA et automatisation.<br>
+            <strong style="color:var(--primary-light)">L'expérience à votre service.</strong>
+          </p>
+          <div class="footer-social" style="margin-top:1.25rem">
+            <a href="https://wa.me/237680625082" class="social-btn" aria-label="WhatsApp" title="WhatsApp">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+              </svg>
+            </a>
+            <a href="#" class="social-btn" aria-label="LinkedIn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z" />
+                <circle cx="4" cy="4" r="2" />
+              </svg>
+            </a>
+            <a href="#" class="social-btn" aria-label="Facebook">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+              </svg>
+            </a>
+            <a href="#" class="social-btn" aria-label="YouTube">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
+                <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white" />
+              </svg>
+            </a>
+          </div>
         </div>
-        <p>Plateforme SaaS africaine tout-en-un. Formation, boutique digitale, création web IA et automatisation.<br>
-        <strong style="color:var(--primary-light)">L'expérience à votre service.</strong></p>
-        <div class="footer-social" style="margin-top:1.25rem">
-          <a href="https://wa.me/237680625082" class="social-btn" aria-label="WhatsApp" title="WhatsApp">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-          </a>
-          <a href="#" class="social-btn" aria-label="LinkedIn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
-          </a>
-          <a href="#" class="social-btn" aria-label="Facebook">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-          </a>
-          <a href="#" class="social-btn" aria-label="YouTube">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white"/></svg>
-          </a>
+
+        {# Modules #}
+        <div class="footer-col">
+          <h4>Modules</h4>
+          <ul>
+            <li><a href="/formations/">📚 Formations en ligne</a></li>
+            <li><a href="/boutique/">🛍️ Boutique digitale</a></li>
+            <li><a href="/services/">🌐 Création web IA</a></li>
+            <li><a href="/agro/" style="color:#40916C;font-weight:600">🌿 E-Shelle Agro</a></li>
+            <li><a href="/rencontres/" style="color:#E8436A;font-weight:600">❤️ E-Shelle Love</a></li>
+          </ul>
+        </div>
+
+        {# Ressources #}
+        <div class="footer-col">
+          <h4>Ressources</h4>
+          <ul>
+            <li><a href="#">📖 Documentation</a></li>
+            <li><a href="/api/v1/">#️⃣ API publique</a></li>
+            <li><a href="#">✍️ Blog</a></li>
+            <li><a href="#">🎓 Devenir formateur</a></li>
+            <li><a href="/business/partner/">🤝 E-Shelle Business Key</a></li>
+          </ul>
+        </div>
+
+        {# Contact #}
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="/services/contact/">📩 Nous contacter</a></li>
+            <li><a href="/services/devis/">💰 Devis gratuit</a></li>
+            <li><a href="#">📄 Conditions d'utilisation</a></li>
+            <li><a href="#">🔒 Confidentialité</a></li>
+            <li><a href="https://wa.me/237680625082">💬 WhatsApp direct</a></li>
+          </ul>
         </div>
       </div>
 
-      {# Modules #}
-      <div class="footer-col">
-        <h4>Modules</h4>
-        <ul>
-          <li><a href="/formations/">📚 Formations en ligne</a></li>
-          <li><a href="/boutique/">🛍️ Boutique digitale</a></li>
-          <li><a href="/services/">🌐 Création web IA</a></li>
-          <li><a href="/agro/" style="color:#40916C;font-weight:600">🌿 E-Shelle Agro</a></li>
-          <li><a href="/rencontres/" style="color:#E8436A;font-weight:600">❤️ E-Shelle Love</a></li>
-        </ul>
+      {# Newsletter footer #}
+      <div
+        style="background: rgba(125, 236, 108, 0.04); border: 1px solid rgba(125, 236, 108, 0.15); border-radius: 14px; padding: 2rem 2.2rem; margin-bottom: 3rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.8rem;">
+        <div>
+          <p
+            style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.2rem; margin: 0 0 0.35rem; color: #fff;">
+            📬 Restez informé</p>
+          <p
+            style="color: rgba(255, 255, 255, 0.65); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; margin: 0;">
+            Recevez nos actualités, offres et tutoriels gratuits.</p>
+        </div>
+        <form class="newsletter-form" style="margin: 0; max-width: 420px; width: 100%; display: flex; gap: 0.75rem;"
+          onsubmit="return false">
+          <input type="email" class="form-control" placeholder="votre@email.com" required
+            style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.92rem; height: 42px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color: #fff; padding: 0 1rem; flex: 1; min-width: 0;">
+          <button type="submit" class="btn btn-primary"
+            style="white-space: nowrap; height: 42px; padding: 0 1.4rem; border-radius: 8px; font-family: 'Outfit', sans-serif; font-size: 0.92rem; font-weight: 700; background: #7dec6c; border: 0; color: #050a11; cursor: pointer; transition: all 0.2s ease;">S'abonner
+            →</button>
+        </form>
       </div>
 
-      {# Ressources #}
-      <div class="footer-col">
-        <h4>Ressources</h4>
-        <ul>
-          <li><a href="#">📖 Documentation</a></li>
-          <li><a href="/api/v1/">#️⃣ API publique</a></li>
-          <li><a href="#">✍️ Blog</a></li>
-          <li><a href="#">🎓 Devenir formateur</a></li>
-          <li><a href="/business/partner/">🤝 E-Shelle Business Key</a></li>
-        </ul>
-      </div>
-
-      {# Contact #}
-      <div class="footer-col">
-        <h4>Contact</h4>
-        <ul>
-          <li><a href="/services/contact/">📩 Nous contacter</a></li>
-          <li><a href="/services/devis/">💰 Devis gratuit</a></li>
-          <li><a href="#">📄 Conditions d'utilisation</a></li>
-          <li><a href="#">🔒 Confidentialité</a></li>
-          <li><a href="https://wa.me/237680625082">💬 WhatsApp direct</a></li>
-        </ul>
+      <div class="footer-bottom">
+        <p>© {% now "Y" %} E-Shelle. Tous droits réservés.</p>
+        <p>Made with ❤️ &amp; IA in Cameroon 🇨🇲 · <a href="https://e-shelle.com"
+            style="color:var(--primary-light)">e-shelle.com</a></p>
       </div>
     </div>
+  </footer>
+  {% endblock footer %}
 
-    {# Newsletter footer #}
-    <div style="background: rgba(125, 236, 108, 0.04); border: 1px solid rgba(125, 236, 108, 0.15); border-radius: 14px; padding: 2rem 2.2rem; margin-bottom: 3rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.8rem;">
-      <div>
-        <p style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.2rem; margin: 0 0 0.35rem; color: #fff;">📬 Restez informé</p>
-        <p style="color: rgba(255, 255, 255, 0.65); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; margin: 0;">Recevez nos actualités, offres et tutoriels gratuits.</p>
-      </div>
-      <form class="newsletter-form" style="margin: 0; max-width: 420px; width: 100%; display: flex; gap: 0.75rem;" onsubmit="return false">
-        <input type="email" class="form-control" placeholder="votre@email.com" required style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.92rem; height: 42px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color: #fff; padding: 0 1rem; flex: 1; min-width: 0;">
-        <button type="submit" class="btn btn-primary" style="white-space: nowrap; height: 42px; padding: 0 1.4rem; border-radius: 8px; font-family: 'Outfit', sans-serif; font-size: 0.92rem; font-weight: 700; background: #7dec6c; border: 0; color: #050a11; cursor: pointer; transition: all 0.2s ease;">S'abonner →</button>
-      </form>
-    </div>
+  {% if request.path != '/' %}
+  {# ── BOUTON WHATSAPP FLOTTANT ────────────────────────────────── #}
+  <a href="https://wa.me/237680625082?text=Bonjour%20E-Shelle%2C%20je%20souhaite%20en%20savoir%20plus%20sur%20vos%20services."
+    class="whatsapp-btn" target="_blank" rel="noopener noreferrer" aria-label="Contacter sur WhatsApp"
+    title="Contacter sur WhatsApp">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+      <path
+        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+    </svg>
+  </a>
+  {% endif %}
 
-    <div class="footer-bottom">
-      <p>© {% now "Y" %} E-Shelle. Tous droits réservés.</p>
-      <p>Made with ❤️ &amp; IA in Cameroon 🇨🇲 · <a href="https://e-shelle.com" style="color:var(--primary-light)">e-shelle.com</a></p>
-    </div>
-  </div>
-</footer>
-{% endblock footer %}
+  {% include "partials/chat_widget.html" %}
 
-{% if request.path != '/' %}
-{# ── BOUTON WHATSAPP FLOTTANT ────────────────────────────────── #}
-<a href="https://wa.me/237680625082?text=Bonjour%20E-Shelle%2C%20je%20souhaite%20en%20savoir%20plus%20sur%20vos%20services."
-   class="whatsapp-btn" target="_blank" rel="noopener noreferrer"
-   aria-label="Contacter sur WhatsApp" title="Contacter sur WhatsApp">
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-</a>
-{% endif %}
-
-{% include "partials/chat_widget.html" %}
-
-{# ── SCRIPTS ─────────────────────────────────────────────────── #}
-<script src="{% static 'js/eshelle.js' %}"></script>
-<script src="{% static 'js/lesson_engine.js' %}"></script>
-{% block extra_scripts %}{% endblock %}
-{% block extra_js %}{% endblock %}
+  {# ── SCRIPTS ─────────────────────────────────────────────────── #}
+  <script src="{% static 'js/eshelle.js' %}"></script>
+  <script src="{% static 'js/lesson_engine.js' %}"></script>
+  {% block extra_scripts %}{% endblock %}
+  {% block extra_js %}{% endblock %}
 
 </body>
+
 </html>
