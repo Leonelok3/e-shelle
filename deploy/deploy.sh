@@ -8,7 +8,7 @@ set -e
 
 APP_USER="eshelle"
 APP_DIR="/home/$APP_USER/app"
-REPO="https://github.com/Leonelok3/e-shelle-app.git"
+REPO="https://github.com/Leonelok3/e-shelle.git"
 DOMAIN="e-shelle.com"
 PYTHON="python3.12"
 
