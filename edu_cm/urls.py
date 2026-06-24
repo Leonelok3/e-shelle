@@ -42,7 +42,7 @@ def home_view(request):
         recent_catalog_items = list(
             BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True)
             .select_related("business")
-            .order_by("-created_at")[:12]
+            .order_by("-created_at")
         )
         try:
             from immobilier_cameroun.models import Bien, StatutBien
@@ -50,7 +50,7 @@ def home_view(request):
                 Bien.objects.filter(statut=StatutBien.PUBLIE)
                 .filter(Q(est_mis_en_avant=True) | Q(est_coup_de_coeur=True))
                 .prefetch_related("photos")
-                .order_by("-date_publication", "-updated_at")[:8]
+                .order_by("-date_publication", "-updated_at")
             )
         except Exception:
             recent_immo_items = []
@@ -107,27 +107,28 @@ def home_view(request):
             premium_showcase_items,
             key=lambda entry: entry.get("_rank") or now,
             reverse=True,
-        )[:12]
-        for business in premium_businesses:
-            if len(premium_showcase_items) >= 12:
-                break
-            premium_showcase_items.append(
-                {
-                    "_rank": business.updated_at,
-                    "tag": business.get_plan_display(),
-                    "title": business.promo_headline or business.name,
-                    "description": business.description,
-                    "kind": f"{business.get_module_display()} · {business.city or 'Cameroun'}",
-                    "meta": business.district or business.city or "Proche",
-                    "price": "",
-                    "image": business.promo_image.url if business.promo_image else "",
-                    "initial": business.name[:1],
-                    "url": business.get_absolute_url(),
-                    "contact_url": business.promo_url or f"/chat/?q=Contacter%20{urllib.parse.quote(business.name)}",
-                    "views": business.views_count,
-                    "leads": business.leads_count,
-                }
-            )
+        )
+        if len(premium_showcase_items) < 12:
+            for business in premium_businesses:
+                if len(premium_showcase_items) >= 12:
+                    break
+                premium_showcase_items.append(
+                    {
+                        "_rank": business.updated_at,
+                        "tag": business.get_plan_display(),
+                        "title": business.promo_headline or business.name,
+                        "description": business.description,
+                        "kind": f"{business.get_module_display()} · {business.city or 'Cameroun'}",
+                        "meta": business.district or business.city or "Proche",
+                        "price": "",
+                        "image": business.promo_image.url if business.promo_image else "",
+                        "initial": business.name[:1],
+                        "url": business.get_absolute_url(),
+                        "contact_url": business.promo_url or f"/chat/?q=Contacter%20{urllib.parse.quote(business.name)}",
+                        "views": business.views_count,
+                        "leads": business.leads_count,
+                    }
+                )
         home_ad_slides = list(
             HomeAdSlide.objects.filter(is_active=True)
             .filter(starts_at__isnull=True)
@@ -180,8 +181,18 @@ def home_view(request):
             "ads": len(merged_slides),
             "events": BusinessLeadEvent.objects.count(),
         }
+        from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+        paginator = Paginator(premium_showcase_items, 30)
+        page_num = request.GET.get('page', 1)
+        try:
+            paginated_items = paginator.page(page_num)
+        except PageNotAnInteger:
+            paginated_items = paginator.page(1)
+        except EmptyPage:
+            paginated_items = paginator.page(paginator.num_pages)
+
         ctx["premium_businesses"] = premium_businesses
-        ctx["premium_showcase_items"] = premium_showcase_items
+        ctx["premium_showcase_items"] = paginated_items
         ctx["home_ad_slides"] = merged_slides[:10]
         ctx["hero_businesses"] = [item for item in premium_businesses if item.promo_image][:6] or premium_businesses[:6]
     except Exception:

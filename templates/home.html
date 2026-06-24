@@ -2082,7 +2082,7 @@
 
       {% if premium_showcase_items %}
         <div class="esh-business-grid">
-          {% for item in premium_showcase_items|slice:":8" %}
+          {% for item in premium_showcase_items %}
             <a class="esh-business-card" href="{{ item.url }}">
               <div class="esh-card-media">
                 {% if item.image %}
@@ -2114,6 +2114,26 @@
             </a>
           {% endfor %}
         </div>
+
+        {% if premium_showcase_items.has_other_pages %}
+          <div class="esh-pagination" style="display:flex;justify-content:center;align-items:center;gap:0.5rem;margin-top:2.5rem;margin-bottom:1.5rem;">
+            {% if premium_showcase_items.has_previous %}
+              <a href="?page={{ premium_showcase_items.previous_page_number }}" class="esh-page-btn" style="display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:#fff;text-decoration:none;font-weight:bold;">&laquo;</a>
+            {% endif %}
+            
+            {% for num in premium_showcase_items.paginator.page_range %}
+              {% if premium_showcase_items.number == num %}
+                <span class="esh-page-btn active" style="display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#7dec6c,#f59e0b);color:#06120a;font-weight:900;">{{ num }}</span>
+              {% elif num > premium_showcase_items.number|add:'-3' and num < premium_showcase_items.number|add:'3' %}
+                <a href="?page={{ num }}" class="esh-page-btn" style="display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:#fff;text-decoration:none;font-weight:bold;">{{ num }}</a>
+              {% endif %}
+            {% endfor %}
+
+            {% if premium_showcase_items.has_next %}
+              <a href="?page={{ premium_showcase_items.next_page_number }}" class="esh-page-btn" style="display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:#fff;text-decoration:none;font-weight:bold;">&raquo;</a>
+            {% endif %}
+          </div>
+        {% endif %}
       {% else %}
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4rem 2rem; background: rgba(15,23,42,0.02); border: 1px dashed rgba(15,23,42,0.15); border-radius: 16px; margin: 2rem 0;">
           <span style="font-size: 3rem; margin-bottom: 1rem;">🛒</span>
