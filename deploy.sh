@@ -18,6 +18,9 @@ echo "======================================================================"
 
 # ── 1. Paquets système ──────────────────────────────────────────────────────
 apt-get update -qq
+apt-get install -y -qq software-properties-common
+add-apt-repository -y ppa:deadsnakes/ppa
+apt-get update -qq
 apt-get install -y -qq \
     $PYTHON python3.12-venv python3.12-dev python3-pip \
     postgresql postgresql-contrib \

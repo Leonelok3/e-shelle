@@ -18,6 +18,9 @@ echo "======================================================================"
 
 # ── 1. Paquets système ──────────────────────────────────────────────────────
 apt-get update -qq
+apt-get install -y -qq software-properties-common
+add-apt-repository -y ppa:deadsnakes/ppa
+apt-get update -qq
 apt-get install -y -qq \
     $PYTHON python3.12-venv python3.12-dev python3-pip \
     postgresql postgresql-contrib \
@@ -25,7 +28,6 @@ apt-get install -y -qq \
     git curl build-essential libpq-dev \
     redis-server tesseract-ocr tesseract-ocr-fra \
     supervisor
-
 # ── 2. Utilisateur applicatif ───────────────────────────────────────────────
 if ! id "$APP_USER" &>/dev/null; then
     adduser --system --group --home /home/$APP_USER --shell /bin/bash $APP_USER
