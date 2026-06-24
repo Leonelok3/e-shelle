@@ -10,7 +10,7 @@ APP_USER="eshelle"
 APP_DIR="/home/$APP_USER/app"
 REPO="https://github.com/Leonelok3/e-shelle.git"
 DOMAIN="e-shelle.com"
-PYTHON="python3.12"
+PYTHON="python3"
 
 echo "======================================================================"
 echo "  E-Shelle — Déploiement automatique"
@@ -18,11 +18,8 @@ echo "======================================================================"
 
 # ── 1. Paquets système ──────────────────────────────────────────────────────
 apt-get update -qq
-apt-get install -y -qq software-properties-common
-add-apt-repository -y ppa:deadsnakes/ppa
-apt-get update -qq
 apt-get install -y -qq \
-    $PYTHON python3.12-venv python3.12-dev python3-pip \
+    $PYTHON python3-venv python3-dev python3-pip \
     postgresql postgresql-contrib \
     nginx certbot python3-certbot-nginx \
     git curl build-essential libpq-dev \
