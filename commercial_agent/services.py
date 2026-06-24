@@ -11,8 +11,8 @@ from .models import CampagneProspection, ProspectBusiness, RelanceProspect, Scri
 
 PLAN_PRICES = {
     "pro": 5000,
-    "business": 15000,
-    "premium": 30000,
+    "business": 10000,
+    "premium": 25000,
 }
 
 

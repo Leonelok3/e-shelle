@@ -235,15 +235,21 @@
     position: relative;
     z-index: 1;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
     flex: 0 0 clamp(210px, 23vw, 330px);
-    min-height: clamp(220px, 25vw, 305px);
+    min-height: clamp(240px, 26vw, 325px);
     border-radius: 14px;
     border: 1px solid rgba(255,255,255,.12);
-    background:
-      radial-gradient(circle at 16% 0%, rgba(34,197,94,.24), transparent 38%),
-      radial-gradient(circle at 86% 6%, rgba(249,132,35,.2), transparent 36%),
-      linear-gradient(145deg, rgba(27,79,62,.9), rgba(84,70,34,.72) 48%, rgba(8,13,18,.94));
-    box-shadow: 0 24px 70px rgba(0,0,0,.28), 0 0 44px rgba(249,132,35,.08) inset;
+    background: #0d131b;
+    box-shadow: 0 24px 70px rgba(0,0,0,.28);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .esh-feature-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(125,236,108,.35);
+    box-shadow: 0 30px 80px rgba(0,0,0,.45), 0 0 20px rgba(125,236,108,.12);
   }
 
   .esh-feature-card::before {
@@ -254,6 +260,7 @@
     transform: translateX(-120%);
     animation: eshCardShine 7s ease-in-out infinite;
     pointer-events: none;
+    z-index: 5;
   }
 
   .esh-feature-media,
@@ -269,10 +276,22 @@
   }
 
   .esh-feature-media {
-    height: clamp(125px, 15vw, 190px);
+    height: clamp(130px, 15.5vw, 195px);
+    width: 100%;
+    z-index: 1;
   }
 
-  .esh-feature-media img,
+  .esh-feature-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .esh-feature-card:hover .esh-feature-media img {
+    transform: scale(1.07);
+  }
+
   .esh-card-media img {
     width: 100%;
     height: 100%;
@@ -287,33 +306,44 @@
   }
 
   .esh-feature-body {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: .72rem;
-    background: linear-gradient(180deg, transparent, rgba(16,18,14,.9) 28%, rgba(6,9,10,.98) 72%);
+    position: relative;
+    padding: .75rem;
+    background: #0d131b;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 2;
+    border-top: 1px solid rgba(255,255,255,.05);
   }
 
   .esh-tag {
     display: inline-flex;
     align-items: center;
-    min-height: 30px;
-    padding: .28rem .68rem;
+    min-height: 26px;
+    padding: .2rem .6rem;
     border-radius: 999px;
     background: var(--esh-gold);
     color: #10140c;
-    font-size: .7rem;
+    font-size: .65rem;
     font-weight: 950;
     text-transform: uppercase;
   }
 
+  .esh-feature-media .esh-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+  }
+
   .esh-feature-title {
     display: -webkit-box;
-    margin: .5rem 0 .58rem;
+    margin: .2rem 0 .5rem;
     font-family: var(--font-display);
     font-size: clamp(.86rem, 1.24vw, 1.16rem);
-    line-height: 1.04;
+    line-height: 1.1;
     color: #fff;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -323,19 +353,20 @@
   .esh-meta-row {
     display: flex;
     flex-wrap: wrap;
-    gap: .45rem;
+    gap: .4rem;
     align-items: center;
+    margin-top: auto;
   }
 
   .esh-meta {
     display: inline-flex;
     align-items: center;
-    min-height: 34px;
-    padding: .38rem .62rem;
+    min-height: 30px;
+    padding: .25rem .55rem;
     border-radius: 999px;
-    background: rgba(255,255,255,.12);
+    background: rgba(255,255,255,.08);
     color: rgba(255,255,255,.72);
-    font-size: .72rem;
+    font-size: .7rem;
     font-weight: 800;
   }
 
@@ -1928,9 +1959,9 @@
                   {% else %}
                     <span class="esh-initial">{{ item.initial }}</span>
                   {% endif %}
+                  <span class="esh-tag">{{ item.tag }}</span>
                 </div>
                 <div class="esh-feature-body">
-                  <span class="esh-tag">{{ item.tag }}</span>
                   <h2 class="esh-feature-title">{{ item.title }}</h2>
                   <div class="esh-meta-row">
                     <span class="esh-meta">{{ item.kind }}</span>
@@ -1955,9 +1986,9 @@
                   {% else %}
                     <span class="esh-initial">{{ item.initial }}</span>
                   {% endif %}
+                  <span class="esh-tag">{{ item.tag }}</span>
                 </div>
                 <div class="esh-feature-body">
-                  <span class="esh-tag">{{ item.tag }}</span>
                   <h2 class="esh-feature-title">{{ item.title }}</h2>
                   <div class="esh-meta-row">
                     <span class="esh-meta">{{ item.kind }}</span>
