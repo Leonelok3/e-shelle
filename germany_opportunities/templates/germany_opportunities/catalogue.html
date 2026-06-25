@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Offres Ausbildung — Allemagne | E-Shelle{% endblock %}
+
+{% block content %}
+<div style="max-width:1200px;margin:0 auto;padding:2rem 1rem 4rem">
+
+  <!-- HEADER -->
+  <div style="margin-bottom:2rem">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">
+      <a href="{% url 'allemagne:hub' %}" style="color:var(--text-muted);font-size:.85rem;text-decoration:none">🇩🇪 Votre chemin</a>
+      <span style="color:var(--text-muted)">/</span>
+      <span style="font-size:.85rem">Offres Ausbildung</span>
+    </div>
+    <h1 style="font-size:1.75rem;font-weight:800;margin:0 0 .5rem">
+      💼 Offres Ausbildung en Allemagne
+    </h1>
+    <p style="color:var(--text-muted);margin:0">
+      {{ total_offers }} offre{{ total_offers|pluralize }} active{{ total_offers|pluralize }} — mise a jour quotidienne depuis la Bundesagentur fuer Arbeit
+    </p>
+  </div>
+
+  <!-- FILTRES -->
+  <form method="get" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:1rem;padding:1.25rem;margin-bottom:2rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;align-items:end">
+    <div>
+      <label style="font-size:.75rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:.35rem">RECHERCHE</label>
+      <input type="text" name="q" value="{{ search_q }}" placeholder="Metier, entreprise..."
+        style="width:100%;padding:.55rem .85rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:.9rem">
+    </div>
+    <div>
+      <label style="font-size:.75rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:.35rem">SECTEUR</label>
+      <select name="sector" style="width:100%;padding:.55rem .85rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:#1a1f2e;color:#fff;font-size:.9rem">
+        <option value="">Tous les secteurs</option>
+        {% for val, label in sector_choices %}
+          <option value="{{ val }}" {% if active_sector == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label style="font-size:.75rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:.35rem">NIVEAU ALLEMAND</label>
+      <select name="level" style="width:100%;padding:.55rem .85rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:#1a1f2e;color:#fff;font-size:.9rem">
+        <option value="">Tous niveaux</option>
+        {% for val, label in level_choices %}
+          <option value="{{ val }}" {% if active_level == val %}selected{% endif %}>{{ val }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label style="font-size:.75rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:.35rem">VILLE</label>
+      <input type="text" name="city" value="{{ city_q }}" placeholder="Berlin, Hamburg..."
+        style="width:100%;padding:.55rem .85rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:.9rem">
+    </div>
+    <div>
+      <button type="submit" style="width:100%;padding:.6rem 1rem;background:var(--primary,#4f46e5);color:#fff;border:none;border-radius:.6rem;font-weight:600;cursor:pointer;font-size:.9rem">
+        Filtrer
+      </button>
+    </div>
+  </form>
+
+  <!-- GRILLE OFFRES -->
+  {% if offers %}
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem;margin-bottom:3rem">
+    {% for offer in offers %}
+    <div class="offer-card {% if offer.is_new %}offer-card--new{% endif %}"
+         style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:1rem;padding:1.5rem;display:flex;flex-direction:column;gap:.75rem;position:relative;transition:transform .2s,border-color .2s">
+
+      {% if offer.is_new %}
+      <span style="position:absolute;top:.75rem;right:.75rem;background:#22c55e;color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:20px;letter-spacing:.06em">NOUVEAU</span>
+      {% endif %}
+
+      <!-- Badge secteur -->
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--primary-light,#a5b4fc)">
+        {{ offer.get_sector_display }}
+      </div>
+
+      <h3 style="margin:0;font-size:1rem;font-weight:700;color:#fff;line-height:1.35">
+        {{ offer.title }}
+      </h3>
+
+      <div style="font-size:.85rem;color:rgba(255,255,255,.65);display:flex;flex-direction:column;gap:.2rem">
+        <span>🏢 {{ offer.company }}</span>
+        <span>📍 {{ offer.city }}{% if offer.region %}, {{ offer.region }}{% endif %}</span>
+        {% if offer.start_date %}
+        <span>📅 Debut : {{ offer.start_date|date:"d.m.Y" }}</span>
+        {% endif %}
+        <span style="color:#ffce00">💶 {{ offer.salary_display }}</span>
+      </div>
+
+      {% if offer.ai_summary_fr %}
+      <p style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.55;margin:0;border-top:1px solid rgba(255,255,255,.06);padding-top:.75rem">
+        {{ offer.ai_summary_fr|truncatewords:30 }}
+      </p>
+      {% endif %}
+
+      <!-- Niveau langue requis -->
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+        <span style="font-size:.72rem;padding:.2rem .65rem;border-radius:20px;background:rgba(99,179,237,.15);color:#63b3ed;border:1px solid rgba(99,179,237,.25)">
+          🇩🇪 {{ offer.language_req }} requis
+        </span>
+      </div>
+
+      <div style="display:flex;gap:.75rem;margin-top:auto;padding-top:.5rem">
+        <a href="{% url 'germany_opportunities:offer_detail' offer.pk %}"
+           style="flex:1;text-align:center;padding:.55rem .75rem;border-radius:.6rem;background:var(--primary,#4f46e5);color:#fff;text-decoration:none;font-size:.83rem;font-weight:600">
+          Voir le detail
+        </a>
+        {% if user.is_authenticated %}
+        <button class="bookmark-btn" data-pk="{{ offer.pk }}" data-bookmarked="{{ offer.pk in bookmarked_ids|yesno:'true,false' }}"
+          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid rgba(255,255,255,.15);color:{% if offer.pk in bookmarked_ids %}#ffce00{% else %}rgba(255,255,255,.5){% endif %};cursor:pointer;font-size:1rem;transition:all .2s">
+          {% if offer.pk in bookmarked_ids %}★{% else %}☆{% endif %}
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:4rem 2rem;color:var(--text-muted)">
+    <div style="font-size:3rem;margin-bottom:1rem">🔍</div>
+    <p>Aucune offre pour ces criteres.<br>Essayez d'elargir votre recherche.</p>
+    {% if total_offers == 0 %}
+    <p style="margin-top:1rem;font-size:.85rem">
+      Les offres sont mises a jour quotidiennement.<br>
+      Revenez demain ou <a href="?">effacez les filtres</a>.
+    </p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- BOURSES -->
+  {% if scholarships %}
+  <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:2.5rem">
+    <h2 style="font-size:1.3rem;font-weight:700;margin:0 0 1.5rem">🎓 Bourses disponibles</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
+      {% for s in scholarships %}
+      <a href="{{ s.url }}" target="_blank" rel="noopener"
+         style="background:rgba(72,199,142,.05);border:1px solid rgba(72,199,142,.2);border-radius:.875rem;padding:1.25rem;text-decoration:none;color:inherit;display:block;transition:transform .2s,border-color .2s">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#48c78e;margin-bottom:.4rem">{{ s.provider }}</div>
+        <div style="font-size:.95rem;font-weight:600;color:#fff;margin-bottom:.4rem">{{ s.title }}</div>
+        {% if s.deadline %}
+        <div style="font-size:.78rem;color:rgba(255,255,255,.5)">Date limite : {{ s.deadline|date:"d.m.Y" }}</div>
+        {% endif %}
+        {% if s.amount %}
+        <div style="font-size:.78rem;color:#48c78e;margin-top:.3rem">{{ s.amount }}</div>
+        {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+document.querySelectorAll('.bookmark-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var pk = this.dataset.pk;
+    var csrf = document.cookie.match(/csrftoken=([^;]+)/);
+    csrf = csrf ? csrf[1] : '';
+    fetch('/allemagne/opportunites/offre/' + pk + '/bookmark/', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.status === 'saved') {
+        btn.textContent = '★';
+        btn.style.color = '#ffce00';
+      } else {
+        btn.textContent = '☆';
+        btn.style.color = 'rgba(255,255,255,.5)';
+      }
+    });
+  });
+});
+
+// Hover effect cards
+document.querySelectorAll('.offer-card').forEach(function(card) {
+  card.addEventListener('mouseenter', function() {
+    this.style.transform = 'translateY(-4px)';
+    this.style.borderColor = 'rgba(79,70,229,.4)';
+  });
+  card.addEventListener('mouseleave', function() {
+    this.style.transform = '';
+    this.style.borderColor = 'rgba(255,255,255,.08)';
+  });
+});
+</script>
+{% endblock %}

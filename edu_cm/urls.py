@@ -18,6 +18,16 @@ def avatar_redirect(request):
     return redirect('https://e-shelle.com/avatar/')
 
 
+def _allemagne_hub(request):
+    """Hub central de la plateforme E-Shelle Allemagne."""
+    try:
+        from germany_opportunities.models import AusbildungOffer
+        total_offers = AusbildungOffer.objects.filter(is_active=True).count()
+    except Exception:
+        total_offers = 0
+    return render(request, "allemagne/hub.html", {"total_offers": total_offers})
+
+
 
 def home_view(request):
     ctx = {}
@@ -478,6 +488,11 @@ urlpatterns = [
     path("allemand/",    include("GermanPrepApp.urls",     namespace="germanprep")),
     path("italien/",     include("italian_courses.urls",   namespace="italian_courses")),
     path("prep/",        include("preparation_tests.urls", namespace="preparation_tests")),
+
+    # ── E-Shelle Allemagne — Hub immigration / Ausbildung / Lebenslauf ──
+    path("allemagne/opportunites/", include("germany_opportunities.urls", namespace="germany_opportunities")),
+    path("allemagne/mon-cv/",       include("lebenslauf.urls",            namespace="lebenslauf")),
+    path("allemagne/",              _allemagne_hub,                       name="allemagne_hub"),
 
     # Immobilier Cameroun
     path("immobilier/", include("immobilier_cameroun.urls", namespace="immobilier")),

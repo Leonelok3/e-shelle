@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Mon Lebenslauf | E-Shelle{% endblock %}
+{% block content %}
+<div style="max-width:900px;margin:0 auto;padding:2rem 1rem 4rem">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+    <div>
+      <a href="{% url 'lebenslauf:dashboard' %}" style="font-size:.82rem;color:var(--text-muted);text-decoration:none">← Mes Lebenslauf</a>
+      <h1 style="font-size:1.5rem;font-weight:800;margin:.5rem 0 .25rem">{{ lebenslauf.offer_title }}</h1>
+      <p style="color:var(--text-muted);font-size:.82rem;margin:0">Genere le {{ lebenslauf.created_at|date:"d/m/Y a H:i" }}</p>
+    </div>
+    <a href="{% url 'lebenslauf:download' lebenslauf.pk %}"
+       style="display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.25rem;background:#48c78e;color:#fff;border-radius:.75rem;text-decoration:none;font-weight:700;font-size:.88rem">
+      ⬇️ Telecharger HTML (imprimable)
+    </a>
+  </div>
+
+  <!-- LEBENSLAUF HTML -->
+  <div style="background:#fff;border-radius:1rem;padding:2.5rem;color:#1a1a1a;font-family:'Arial',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+    {{ lebenslauf.content_html|safe }}
+  </div>
+
+  <!-- LETTRE DE MOTIVATION -->
+  {% if lebenslauf.ai_cover_letter %}
+  <div style="margin-top:2rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:1rem;padding:1.75rem">
+    <h2 style="font-size:1.1rem;font-weight:700;margin:0 0 1rem">✉️ Lettre de motivation</h2>
+    <div style="font-size:.9rem;color:rgba(255,255,255,.8);line-height:1.7;white-space:pre-wrap">{{ lebenslauf.ai_cover_letter }}</div>
+  </div>
+  {% endif %}
+
+</div>
+
+<style>
+/* Styles Lebenslauf officiel injectes dans le blanc */
+.lebenslauf { font-family: Arial, sans-serif; font-size: 11pt; color: #1a1a1a; }
+.section-title { font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; margin: 1rem 0 .5rem; padding-bottom: .25rem; }
+.entry { display: grid; grid-template-columns: 120px 1fr; gap: .5rem; margin-bottom: .75rem; }
+.entry-date { font-size: 10pt; color: #555; }
+.entry-content { font-size: 11pt; }
+.skills-grid { display: flex; flex-wrap: wrap; gap: .5rem; }
+.skill-item { background: #f0f0f0; padding: .2rem .6rem; border-radius: 4px; font-size: 10pt; }
+</style>
+{% endblock %}

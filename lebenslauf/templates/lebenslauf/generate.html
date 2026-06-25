@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Generer mon Lebenslauf | E-Shelle{% endblock %}
+{% block content %}
+<div style="max-width:720px;margin:0 auto;padding:2rem 1rem 4rem">
+  <a href="{% url 'lebenslauf:dashboard' %}" style="font-size:.82rem;color:var(--text-muted);text-decoration:none">← Mon Lebenslauf</a>
+  <h1 style="font-size:1.5rem;font-weight:800;margin:.75rem 0 .5rem">🤖 Generer mon Lebenslauf par IA</h1>
+
+  {% if offer %}
+  <div style="background:rgba(72,199,142,.07);border:1px solid rgba(72,199,142,.25);border-radius:.875rem;padding:1rem 1.25rem;margin:.5rem 0 2rem">
+    <div style="font-size:.78rem;font-weight:700;color:#48c78e;margin-bottom:.2rem">OFFRE CIBLEE</div>
+    <div style="font-weight:600;color:#fff">{{ offer.title }}</div>
+    <div style="font-size:.82rem;color:rgba(255,255,255,.6)">{{ offer.company }} — {{ offer.city }}</div>
+  </div>
+  {% else %}
+  <p style="color:var(--text-muted);margin:0 0 2rem;font-size:.9rem">Candidature spontanee — l'IA va cree un Lebenslauf general base sur votre profil.</p>
+  {% endif %}
+
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:1rem;padding:1.75rem;margin-bottom:2rem">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 1rem">Resume de votre profil</h2>
+    <div style="font-size:.85rem;color:rgba(255,255,255,.75);display:flex;flex-direction:column;gap:.3rem">
+      <span>👤 {{ profile.full_name }}</span>
+      <span>🇩🇪 Niveau : <strong>{{ profile.german_level }}</strong></span>
+      <span>📍 {{ profile.address }}</span>
+    </div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    {% if not offer %}
+    <div style="margin-bottom:1.25rem">
+      <label style="display:block;font-size:.8rem;font-weight:600;color:var(--text-muted);margin-bottom:.35rem">INTITULE DU POSTE VISE</label>
+      <input type="text" name="custom_offer_title" placeholder="Ex: Pflegefachkraft, Fachinformatiker..."
+        style="width:100%;padding:.6rem .9rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:.9rem;box-sizing:border-box">
+    </div>
+    <div style="margin-bottom:1.5rem">
+      <label style="display:block;font-size:.8rem;font-weight:600;color:var(--text-muted);margin-bottom:.35rem">ENTREPRISE (optionnel)</label>
+      <input type="text" name="custom_offer_company"
+        style="width:100%;padding:.6rem .9rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:.9rem;box-sizing:border-box">
+    </div>
+    {% endif %}
+
+    <div style="background:rgba(79,70,229,.1);border:1px solid rgba(79,70,229,.25);border-radius:.875rem;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:.82rem;color:rgba(255,255,255,.7)">
+      ⏱️ La generation prend 15 a 30 secondes. Ne fermez pas la page.
+    </div>
+
+    <button type="submit" id="gen-btn"
+      style="width:100%;padding:.85rem;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:.875rem;font-weight:700;font-size:1rem;cursor:pointer;transition:opacity .2s">
+      🤖 Generer mon Lebenslauf maintenant
+    </button>
+  </form>
+</div>
+<script>
+document.querySelector('form').addEventListener('submit', function() {
+  var btn = document.getElementById('gen-btn');
+  btn.textContent = '⏳ Generation en cours...';
+  btn.disabled = true;
+  btn.style.opacity = '.6';
+});
+</script>
+{% endblock %}

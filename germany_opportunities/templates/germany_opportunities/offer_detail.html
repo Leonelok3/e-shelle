@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}{{ offer.title }} — {{ offer.company }} | E-Shelle{% endblock %}
+
+{% block content %}
+<div style="max-width:860px;margin:0 auto;padding:2rem 1rem 4rem">
+
+  <!-- BREADCRUMB -->
+  <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:1.5rem;display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+    <a href="{% url 'allemagne:hub' %}" style="color:inherit;text-decoration:none">🇩🇪 Allemagne</a>
+    <span>/</span>
+    <a href="{% url 'germany_opportunities:catalogue' %}" style="color:inherit;text-decoration:none">Offres</a>
+    <span>/</span>
+    <span>{{ offer.title|truncatewords:5 }}</span>
+  </div>
+
+  <!-- HEADER OFFRE -->
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:1.25rem;padding:2rem;margin-bottom:1.5rem">
+    <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--primary-light,#a5b4fc);margin-bottom:.5rem">
+      {{ offer.get_sector_display }}
+    </div>
+    <h1 style="font-size:1.6rem;font-weight:800;color:#fff;margin:0 0 .75rem">{{ offer.title }}</h1>
+
+    <div style="display:flex;flex-wrap:wrap;gap:1.5rem;font-size:.88rem;color:rgba(255,255,255,.7);margin-bottom:1.25rem">
+      <span>🏢 {{ offer.company }}</span>
+      <span>📍 {{ offer.city }}{% if offer.region %}, {{ offer.region }}{% endif %}</span>
+      {% if offer.start_date %}<span>📅 {{ offer.start_date|date:"d.m.Y" }}</span>{% endif %}
+      <span style="color:#ffce00">💶 {{ offer.salary_display }}</span>
+      <span style="color:#63b3ed">🇩🇪 {{ offer.language_req }} requis</span>
+    </div>
+
+    <!-- ACTIONS -->
+    <div style="display:flex;gap:1rem;flex-wrap:wrap">
+      <a href="{{ offer.url_apply }}" target="_blank" rel="noopener"
+         style="display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.5rem;background:#22c55e;color:#fff;border-radius:.75rem;text-decoration:none;font-weight:700;font-size:.9rem">
+        Postuler sur Bundesagentur →
+      </a>
+      {% if user.is_authenticated %}
+      <a href="{% url 'lebenslauf:generate_for_offer' offer.pk %}"
+         style="display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.5rem;background:var(--primary,#4f46e5);color:#fff;border-radius:.75rem;text-decoration:none;font-weight:700;font-size:.9rem">
+        📄 Generer mon Lebenslauf pour cette offre
+      </a>
+      <button id="bookmark-btn" onclick="toggleBookmark({{ offer.pk }}, this)"
+        style="padding:.7rem 1.25rem;border-radius:.75rem;border:1px solid rgba(255,255,255,.15);background:transparent;color:{% if is_bookmarked %}#ffce00{% else %}rgba(255,255,255,.6){% endif %};cursor:pointer;font-size:.9rem;transition:all .2s">
+        {% if is_bookmarked %}★ Sauvegarde{% else %}☆ Sauvegarder{% endif %}
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- RESUME IA -->
+  {% if offer.ai_summary_fr %}
+  <div style="background:rgba(99,179,237,.06);border:1px solid rgba(99,179,237,.2);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 .75rem;color:#63b3ed">🤖 Analyse IA pour les candidats africains</h2>
+    <p style="font-size:.9rem;color:rgba(255,255,255,.8);line-height:1.65;margin:0">{{ offer.ai_summary_fr }}</p>
+  </div>
+  {% endif %}
+
+  <!-- DESCRIPTION OFFICIELLE -->
+  {% if offer.description %}
+  <div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 .75rem">Description du poste</h2>
+    <div style="font-size:.88rem;color:rgba(255,255,255,.75);line-height:1.7;white-space:pre-wrap">{{ offer.description }}</div>
+  </div>
+  {% endif %}
+
+  <!-- OFFRES SIMILAIRES -->
+  {% if similar %}
+  <div>
+    <h2 style="font-size:1.1rem;font-weight:700;margin:0 0 1rem">Offres similaires</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem">
+      {% for s in similar %}
+      <a href="{% url 'germany_opportunities:offer_detail' s.pk %}"
+         style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:.875rem;padding:1rem;text-decoration:none;color:inherit;display:block;transition:transform .2s">
+        <div style="font-size:.9rem;font-weight:600;color:#fff;margin-bottom:.3rem">{{ s.title }}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.5)">{{ s.company }} — {{ s.city }}</div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+<script>
+function toggleBookmark(pk, btn) {
+  var csrf = document.cookie.match(/csrftoken=([^;]+)/);
+  csrf = csrf ? csrf[1] : '';
+  fetch('/allemagne/opportunites/offre/' + pk + '/bookmark/', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': csrf }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.status === 'saved') {
+      btn.textContent = '★ Sauvegarde';
+      btn.style.color = '#ffce00';
+    } else {
+      btn.textContent = '☆ Sauvegarder';
+      btn.style.color = 'rgba(255,255,255,.6)';
+    }
+  });
+}
+</script>
+{% endblock %}

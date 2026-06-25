@@ -184,6 +184,10 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.facebook",
+
+    # ── E-Shelle Allemagne — Immigrations / Ausbildung / Lebenslauf ─
+    "germany_opportunities.apps.GermanyOpportunitiesConfig",
+    "lebenslauf.apps.LebenslaufConfig",
 ]
 
 # ── E-Shelle AI — Configuration ─────────────────────────────────────
