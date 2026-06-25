@@ -104,10 +104,17 @@
           Voir le detail
         </a>
         {% if user.is_authenticated %}
-        <button class="bookmark-btn" data-pk="{{ offer.pk }}" data-bookmarked="{{ offer.pk in bookmarked_ids|yesno:'true,false' }}"
-          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid rgba(255,255,255,.15);color:{% if offer.pk in bookmarked_ids %}#ffce00{% else %}rgba(255,255,255,.5){% endif %};cursor:pointer;font-size:1rem;transition:all .2s">
-          {% if offer.pk in bookmarked_ids %}★{% else %}☆{% endif %}
+        {% if offer.pk in bookmarked_ids %}
+        <button class="bookmark-btn" data-pk="{{ offer.pk }}" data-bookmarked="true"
+          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid rgba(255,255,255,.15);color:#ffce00;cursor:pointer;font-size:1rem;transition:all .2s">
+          ★
         </button>
+        {% else %}
+        <button class="bookmark-btn" data-pk="{{ offer.pk }}" data-bookmarked="false"
+          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);cursor:pointer;font-size:1rem;transition:all .2s">
+          ☆
+        </button>
+        {% endif %}
         {% endif %}
       </div>
     </div>
