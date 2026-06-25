@@ -8,7 +8,9 @@ from .models import (
     Session, Attempt, Answer,
     CourseLesson, CourseExercise,
     EOSubmission, EESubmission,
+    CompetencyTag,
 )
+
 
 # =====================================================
 # EXAM
@@ -214,3 +216,19 @@ class EESubmissionAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "text")
     readonly_fields = ("feedback_json", "created_at")
     ordering = ("-created_at",)
+
+
+# =====================================================
+# 🎯 TAGS DE COMPÉTENCE GRANULAIRES (TCF/TEF/DELF/DALF)
+# =====================================================
+
+@admin.register(CompetencyTag)
+class CompetencyTagAdmin(admin.ModelAdmin):
+    list_display  = ("label", "skill", "exercises_count")
+    list_filter   = ("skill",)
+    search_fields = ("label", "description")
+    ordering      = ("skill", "label")
+
+    def exercises_count(self, obj):
+        return obj.exercises.count()
+    exercises_count.short_description = "Exercices liés"

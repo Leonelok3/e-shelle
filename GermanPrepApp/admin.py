@@ -8,6 +8,7 @@ from .models import (
     GermanTestSession,
     GermanUserAnswer,
     GermanUserProfile,
+    GermanCompetencyTag,
 )
 
 
@@ -27,8 +28,14 @@ class GermanLessonAdmin(admin.ModelAdmin):
 
 @admin.register(GermanExercise)
 class GermanExerciseAdmin(admin.ModelAdmin):
-    list_display = ("id", "lesson", "question_text")
+    list_display = ("id", "lesson", "question_text_short", "correct_option")
     search_fields = ("question_text",)
+    list_filter = ("lesson__exam__level", "lesson__skill")
+    filter_horizontal = ("competency_tags",)
+
+    def question_text_short(self, obj):
+        return obj.question_text[:60] + "…" if len(obj.question_text) > 60 else obj.question_text
+    question_text_short.short_description = "Question"
 
 
 @admin.register(GermanResource)
@@ -59,3 +66,19 @@ class GermanUserAnswerAdmin(admin.ModelAdmin):
 @admin.register(GermanUserProfile)
 class GermanUserProfileAdmin(admin.ModelAdmin):
     list_display = ("user", "xp", "level", "total_tests", "best_score", "placement_level", "placement_score")
+
+
+# =====================================================
+# 🎯 TAGS DE COMPÉTENCE GRANULAIRES (Goethe)
+# =====================================================
+
+@admin.register(GermanCompetencyTag)
+class GermanCompetencyTagAdmin(admin.ModelAdmin):
+    list_display  = ("label", "skill", "exercises_count")
+    list_filter   = ("skill",)
+    search_fields = ("label", "description")
+    ordering      = ("skill", "label")
+
+    def exercises_count(self, obj):
+        return obj.exercises.count()
+    exercises_count.short_description = "Exercices liés"
