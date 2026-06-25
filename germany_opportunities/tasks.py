@@ -7,6 +7,7 @@ Taches Celery pour germany_opportunities.
 import logging
 import requests
 from datetime import date
+from typing import Any, Dict, List
 
 from celery import shared_task
 from django.utils import timezone
@@ -51,6 +52,29 @@ def _guess_sector(title: str) -> str:
     return "andere"
 
 
+def _extract_offer_items(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if not isinstance(payload, dict):
+        return []
+
+    for key in ("ausbildungsangebote", "stellenangebote", "offers", "items"):
+        items = payload.get(key)
+        if isinstance(items, list):
+            return items
+        if isinstance(items, dict):
+            nested_items = items.get("items")
+            if isinstance(nested_items, list):
+                return nested_items
+    return []
+
+
+def _safe_text(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value.strip()
+    return str(value).strip()
+
+
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
 def fetch_ausbildung_offers(self):
     """
@@ -81,45 +105,65 @@ def fetch_ausbildung_offers(self):
         try:
             resp = requests.get(BA_BASE_URL, headers=headers, params=params, timeout=15)
             if resp.status_code == 200:
-                data = resp.json()
-                offers = data.get("ausbildungsangebote", []) or data.get("stellenangebote", []) or []
+                try:
+                    data = resp.json()
+                except ValueError:
+                    log.warning(f"API BA returned invalid JSON for keyword '{keyword}'")
+                    errors += 1
+                    continue
+
+                offers = _extract_offer_items(data)
                 for item in offers:
-                    ref_nr = item.get("refnr") or item.get("referenznummer", "")
+                    if not isinstance(item, dict):
+                        continue
+
+                    ref_nr = _safe_text(item.get("refnr") or item.get("referenznummer") or item.get("id"))
                     if not ref_nr or ref_nr in seen_refs:
                         continue
                     seen_refs.add(ref_nr)
 
-                    title   = item.get("titel", "")
-                    company = (item.get("arbeitgeber") or {}).get("name", "")
-                    ort     = (item.get("arbeitsort") or {})
-                    city    = ort.get("ort", "")
-                    plz     = ort.get("plz", "")
-                    region  = ort.get("region", "")
+                    title = _safe_text(item.get("titel") or item.get("title") or item.get("beruf"))
+                    employer = item.get("arbeitgeber") or item.get("employer") or {}
+                    if isinstance(employer, dict):
+                        company = _safe_text(employer.get("name") or employer.get("company"))
+                    else:
+                        company = _safe_text(employer)
 
-                    # Date debut
-                    beginn = item.get("ausbildungsbeginn") or item.get("eintrittsdatum")
-                    start  = None
+                    ort = item.get("arbeitsort") or item.get("location") or {}
+                    if isinstance(ort, dict):
+                        city = _safe_text(ort.get("ort") or ort.get("city"))
+                        plz = _safe_text(ort.get("plz") or ort.get("postalCode") or ort.get("postal_code"))
+                        region = _safe_text(ort.get("region") or ort.get("state") or ort.get("bundesland"))
+                    else:
+                        city = ""
+                        plz = ""
+                        region = ""
+
+                    beginn = item.get("ausbildungsbeginn") or item.get("eintrittsdatum") or item.get("startDate")
+                    start = None
                     if beginn:
                         try:
                             from datetime import datetime
-                            start = datetime.strptime(beginn[:10], "%Y-%m-%d").date()
+                            start = datetime.strptime(str(beginn)[:10], "%Y-%m-%d").date()
                         except Exception:
                             pass
 
-                    url_apply = f"https://www.arbeitsagentur.de/jobsuche/jobdetail/{ref_nr}"
+                    url_apply = _safe_text(item.get("url") or item.get("applyUrl") or item.get("link"))
+                    if not url_apply:
+                        url_apply = f"https://www.arbeitsagentur.de/jobsuche/jobdetail/{ref_nr}"
 
-                    obj, created = AusbildungOffer.objects.update_or_create(
+                    _, created = AusbildungOffer.objects.update_or_create(
                         ref_nr=ref_nr,
                         defaults={
-                            "title":      title,
-                            "company":    company,
-                            "city":       city,
+                            "title": title,
+                            "company": company,
+                            "city": city,
                             "postal_code": plz,
-                            "region":     region,
-                            "sector":     _guess_sector(title),
+                            "region": region,
+                            "sector": _guess_sector(title),
                             "start_date": start,
-                            "url_apply":  url_apply,
-                            "is_active":  True,
+                            "url_apply": url_apply,
+                            "is_active": True,
                         }
                     )
                     if created:

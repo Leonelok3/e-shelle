@@ -20,7 +20,7 @@
   </div>
 
   <!-- FILTRES -->
-  <form method="get" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:1rem;padding:1.25rem;margin-bottom:2rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;align-items:end">
+  <form method="get" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:1rem;padding:1.25rem;margin-bottom:1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;align-items:end">
     <div>
       <label style="font-size:.75rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:.35rem">RECHERCHE</label>
       <input type="text" name="q" value="{{ search_q }}" placeholder="Metier, entreprise..."
@@ -50,14 +50,47 @@
         style="width:100%;padding:.55rem .85rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:.9rem">
     </div>
     <div>
+      <label style="font-size:.75rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:.35rem">REGION</label>
+      <input type="text" name="region" value="{{ active_region }}" placeholder="Berlin, Bayern..."
+        style="width:100%;padding:.55rem .85rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:.9rem">
+    </div>
+    <div>
+      <label style="font-size:.75rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:.35rem">TRI</label>
+      <select name="sort" style="width:100%;padding:.55rem .85rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:#1a1f2e;color:#fff;font-size:.9rem">
+        <option value="newest" {% if active_sort == 'newest' %}selected{% endif %}>Plus récentes</option>
+        <option value="soonest" {% if active_sort == 'soonest' %}selected{% endif %}>Début le plus tôt</option>
+        <option value="alphabetical" {% if active_sort == 'alphabetical' %}selected{% endif %}>Nom A-Z</option>
+      </select>
+    </div>
+    <div>
       <button type="submit" style="width:100%;padding:.6rem 1rem;background:var(--primary,#4f46e5);color:#fff;border:none;border-radius:.6rem;font-weight:600;cursor:pointer;font-size:.9rem">
         Filtrer
       </button>
     </div>
   </form>
 
+  {% if has_active_filters %}
+  <div style="margin-bottom:1.25rem;font-size:.85rem;color:var(--text-muted)">
+    Filtres actifs :
+    {% if search_q %}<span style="margin-left:.25rem;color:#fff">Recherche “{{ search_q }}”</span>{% endif %}
+    {% if sector %}<span style="margin-left:.25rem;color:#fff">Secteur “{{ sector }}”</span>{% endif %}
+    {% if level %}<span style="margin-left:.25rem;color:#fff">Niveau “{{ level }}”</span>{% endif %}
+    {% if city_q %}<span style="margin-left:.25rem;color:#fff">Ville “{{ city_q }}”</span>{% endif %}
+    {% if active_region %}<span style="margin-left:.25rem;color:#fff">Région “{{ active_region }}”</span>{% endif %}
+    <a href="?" style="margin-left:.75rem;color:#63b3ed;text-decoration:none">Effacer</a>
+  </div>
+  {% endif %}
+
   <!-- GRILLE OFFRES -->
   {% if offers %}
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
+    <div style="font-size:.9rem;color:var(--text-muted)">
+      {{ offers|length }} offre{{ offers|length|pluralize }} affichée{{ offers|length|pluralize }}
+    </div>
+    <div style="font-size:.8rem;color:rgba(255,255,255,.55)">
+      Les nouvelles opportunités apparaissent en haut de la liste.
+    </div>
+  </div>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem;margin-bottom:3rem">
     {% for offer in offers %}
     <div class="offer-card {% if offer.is_new %}offer-card--new{% endif %}"
@@ -106,12 +139,12 @@
         {% if user.is_authenticated %}
         {% if offer.pk in bookmarked_ids %}
         <button class="bookmark-btn" data-pk="{{ offer.pk }}" data-bookmarked="true"
-          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid rgba(255,255,255,.15);color:#ffce00;cursor:pointer;font-size:1rem;transition:all .2s">
+          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid rgba(255,255,255,.15);color:#ffce00;cursor:pointer;font-size:1rem;transition:all .2s" aria-label="Retirer des favoris">
           ★
         </button>
         {% else %}
         <button class="bookmark-btn" data-pk="{{ offer.pk }}" data-bookmarked="false"
-          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);cursor:pointer;font-size:1rem;transition:all .2s">
+          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);cursor:pointer;font-size:1rem;transition:all .2s" aria-label="Ajouter aux favoris">
           ☆
         </button>
         {% endif %}
@@ -172,9 +205,11 @@ document.querySelectorAll('.bookmark-btn').forEach(function(btn) {
       if (data.status === 'saved') {
         btn.textContent = '★';
         btn.style.color = '#ffce00';
+        btn.setAttribute('aria-label', 'Retirer des favoris');
       } else {
         btn.textContent = '☆';
         btn.style.color = 'rgba(255,255,255,.5)';
+        btn.setAttribute('aria-label', 'Ajouter aux favoris');
       }
     });
   });
