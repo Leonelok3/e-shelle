@@ -2,31 +2,34 @@ from django.contrib import admin
 from .models import GermanCVProfile, CVExperience, CVEducation, CVLanguage, GeneratedLebenslauf
 
 
-class CVExperienceInline(admin.TabularInline):
-    model  = CVExperience
-    extra  = 0
-    fields = ("title", "company", "city", "start_date", "end_date", "is_current")
-
-
-class CVEducationInline(admin.TabularInline):
-    model  = CVEducation
-    extra  = 0
-    fields = ("degree", "school", "start_year", "end_year")
-
-
-class CVLanguageInline(admin.TabularInline):
-    model  = CVLanguage
-    extra  = 0
-    fields = ("language", "proficiency", "certificate")
-
-
 @admin.register(GermanCVProfile)
 class GermanCVProfileAdmin(admin.ModelAdmin):
     list_display  = ("full_name", "user", "german_level", "goethe_certified",
                      "target_sector", "updated_at")
     list_filter   = ("german_level", "goethe_certified")
     search_fields = ("first_name", "last_name", "user__username")
-    inlines       = [CVExperienceInline, CVEducationInline, CVLanguageInline]
+
+
+@admin.register(CVExperience)
+class CVExperienceAdmin(admin.ModelAdmin):
+    list_display  = ("title", "company", "city", "start_date", "end_date", "is_current")
+    list_filter   = ("is_current", "country")
+    search_fields = ("title", "company", "user__username")
+    raw_id_fields = ("user",)
+
+
+@admin.register(CVEducation)
+class CVEducationAdmin(admin.ModelAdmin):
+    list_display  = ("degree", "school", "city", "start_year", "end_year")
+    search_fields = ("degree", "school", "user__username")
+    raw_id_fields = ("user",)
+
+
+@admin.register(CVLanguage)
+class CVLanguageAdmin(admin.ModelAdmin):
+    list_display  = ("language", "proficiency", "certificate")
+    list_filter   = ("proficiency",)
+    raw_id_fields = ("user",)
 
 
 @admin.register(GeneratedLebenslauf)
