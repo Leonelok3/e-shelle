@@ -125,12 +125,131 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.le-option').forEach(opt => {
-    opt.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); opt.click(); }
+(function () {
+  "use strict";
+
+  /* ── Timer Goethe officiel ─────────────────────────────── */
+  var TOTAL_SEC = {{ timer_sec|default:2700 }};
+  if (TOTAL_SEC <= 30) return;
+
+  var remaining = TOTAL_SEC;
+  var alerted   = false;
+
+  /* Barre timer sticky */
+  var bar = document.createElement("div");
+  bar.id = "goethe-timer-bar";
+  bar.style.cssText = [
+    "position:fixed","top:0","left:0","right:0","z-index:9999",
+    "display:flex","align-items:center","justify-content:center","gap:12px",
+    "padding:8px 16px","font-size:.88rem","font-weight:600",
+    "background:#1a1a2e","color:#fff",
+    "box-shadow:0 2px 10px rgba(0,0,0,.5)",
+    "transition:background .5s"
+  ].join(";");
+
+  var label = document.createElement("span");
+  label.textContent = "\u23F1 Temps restant :";
+
+  var display = document.createElement("span");
+  display.style.cssText = "font-size:1.05rem;font-variant-numeric:tabular-nums;letter-spacing:.06em;min-width:5ch;text-align:center;";
+
+  var levelBadge = document.createElement("span");
+  levelBadge.style.cssText = "font-size:.75rem;opacity:.65;background:rgba(255,255,255,.1);padding:2px 8px;border-radius:20px;";
+  levelBadge.textContent = "🇩🇪 Goethe {{ exam.level }}";
+
+  bar.append(label, display, levelBadge);
+  document.body.prepend(bar);
+  document.body.style.paddingTop = "44px";
+
+  function fmt(s) {
+    var m = Math.floor(s / 60);
+    return m + ":" + String(s % 60).padStart(2, "0");
+  }
+
+  var startTime = Date.now();
+
+  function tick() {
+    display.textContent = " " + fmt(remaining) + " ";
+
+    var pct = remaining / TOTAL_SEC;
+    if (pct <= 0.5 && !alerted) {
+      alerted = true;
+      bar.style.background = "#d35400";
+      levelBadge.textContent = "\u26A1 Mi-temps \u2014 acc\u00E9l\u00E8re !";
+    }
+    if (pct <= 0.2) {
+      bar.style.background = "#c0392b";
+      levelBadge.textContent = "\uD83D\uDD34 D\u00E9p\u00EAche-toi !";
+    }
+    if (remaining <= 0) {
+      clearInterval(loop);
+      display.textContent = " 0:00 ";
+      levelBadge.textContent = "\u26A0\uFE0F Temps \u00E9coul\u00E9 \u2014 soumission dans 3s\u2026";
+      bar.style.background = "#7b0000";
+      /* Injecter le temps passé avant soumission auto */
+      var form = document.getElementById("le-exam-form");
+      if (form) {
+        var durInput = document.createElement("input");
+        durInput.type = "hidden";
+        durInput.name = "duration_seconds";
+        durInput.value = Math.floor((Date.now() - startTime) / 1000);
+        form.appendChild(durInput);
+        setTimeout(function () { form.requestSubmit(); }, 3000);
+      }
+      return;
+    }
+    remaining--;
+  }
+
+  tick();
+  var loop = setInterval(tick, 1000);
+
+  /* ── Auto-save AJAX toutes les 30s ─────────────────────── */
+  var CSRF = document.cookie.match(/csrftoken=([^;]+)/);
+  CSRF = CSRF ? CSRF[1] : "";
+
+  function collectAnswers() {
+    var data = {};
+    document.querySelectorAll("input[type='radio']:checked").forEach(function(r) {
+      data[r.name] = r.value;
     });
+    return data;
+  }
+
+  setInterval(function () {
+    var answers = collectAnswers();
+    if (!Object.keys(answers).length) return;
+    try {
+      localStorage.setItem(
+        "goethe_autosave_{{ exam.id }}",
+        JSON.stringify({ answers: answers, remaining: remaining, ts: Date.now() })
+      );
+    } catch(e) {}
+  }, 30000);
+
+  /* Restaurer depuis localStorage si rechargement accidentel */
+  try {
+    var saved = JSON.parse(localStorage.getItem("goethe_autosave_{{ exam.id }}") || "null");
+    if (saved && saved.answers && (Date.now() - saved.ts) < 3600000) {
+      Object.keys(saved.answers).forEach(function(name) {
+        var radio = document.querySelector("input[name='" + name + "'][value='" + saved.answers[name] + "']");
+        if (radio) { radio.checked = true; radio.dispatchEvent(new Event("change")); }
+      });
+      if (saved.remaining > 0 && saved.remaining < TOTAL_SEC) remaining = saved.remaining;
+    }
+  } catch(e) {}
+
+  /* Effacer l'autosave à la soumission */
+  document.getElementById("le-exam-form").addEventListener("submit", function () {
+    clearInterval(loop);
+    /* Injecter la durée passée */
+    var durInput = document.createElement("input");
+    durInput.type = "hidden"; durInput.name = "duration_seconds";
+    durInput.value = Math.floor((Date.now() - startTime) / 1000);
+    this.appendChild(durInput);
+    try { localStorage.removeItem("goethe_autosave_{{ exam.id }}"); } catch(e) {}
   });
-});
+
+})();
 </script>
 {% endblock %}

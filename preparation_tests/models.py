@@ -116,6 +116,36 @@ class Question(models.Model):
         return f"Question {self.pk}"
 
 
+# =====================================================
+# 🎯 TAGS DE COMPÉTENCE GRANULAIRES
+# ex: "comprendre une intention implicite", "accord du participe passé"
+# =====================================================
+
+class CompetencyTag(models.Model):
+    """
+    Tag de compétence granulaire pour le TCF/TEF/DELF/DALF.
+    Permet de cibler les faiblesses précises de l’étudiant après chaque examen.
+    """
+    SKILL_CHOICES = [
+        ("co", "Compréhension Orale"),
+        ("ce", "Compréhension Écrite"),
+        ("ee", "Expression Écrite"),
+        ("eo", "Expression Orale"),
+    ]
+    skill      = models.CharField(max_length=2, choices=SKILL_CHOICES)
+    label      = models.CharField(max_length=200, unique=True,
+                                  help_text='ex: « accord du participe passé », « intonation interrogative »')
+    description = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["skill", "label"]
+        verbose_name = "Tag de compétence"
+
+    def __str__(self):
+        return f"[{self.skill.upper()}] {self.label}"
+
+
+
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="choices")
     text = models.CharField(max_length=300)
@@ -301,6 +331,14 @@ class CourseExercise(models.Model):
 
     order = models.PositiveIntegerField(default=1)
     is_active = models.BooleanField(default=True)
+
+    # 🎯 Tags de compétence granulaires — renseignes manuellement ou via l'agent d'ingestion
+    competency_tags = models.ManyToManyField(
+        "CompetencyTag",
+        blank=True,
+        related_name="exercises",
+        help_text="Tags de compétences testées par cet exercice",
+    )
 
     def __str__(self):
         return f"{self.lesson.title} – Exercice {self.order}"

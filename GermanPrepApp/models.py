@@ -80,6 +80,33 @@ class GermanLesson(models.Model):
         return f"{self.exam.title} – {self.title}"
 
 
+class GermanCompetencyTag(models.Model):
+    """
+    Tag de compétence granulaire pour le Goethe-Zertifikat.
+    ex: 'Trennbare Verben', 'Konjunktiv II', 'Präpositionen mit Dativ',
+        'Satzstellung im Nebensatz', 'Wortbildung'
+    """
+    SKILL_CHOICES = [
+        ("HOREN",     "Hören (Compréhension orale)"),
+        ("LESEN",     "Lesen (Compréhension écrite)"),
+        ("SCHREIBEN", "Schreiben (Expression écrite)"),
+        ("SPRECHEN",  "Sprechen (Expression orale)"),
+        ("GRAMMATIK", "Grammatik"),
+        ("WORTSCHATZ","Wortschatz"),
+    ]
+    skill       = models.CharField(max_length=20, choices=SKILL_CHOICES)
+    label       = models.CharField(max_length=200, unique=True,
+                                   help_text='ex: « Trennbare Verben », « Konjunktiv II »')
+    description = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["skill", "label"]
+        verbose_name = "Tag de compétence (Allemand)"
+
+    def __str__(self):
+        return f"[{self.skill}] {self.label}"
+
+
 class GermanExercise(models.Model):
     """
     Exercice type QCM lié à une leçon.
@@ -105,6 +132,14 @@ class GermanExercise(models.Model):
     correct_option = models.CharField(max_length=1, choices=CORRECT_CHOICES)
 
     explanation = models.TextField(blank=True)
+
+    # 🎯 Tags de compétence granulaires
+    competency_tags = models.ManyToManyField(
+        GermanCompetencyTag,
+        blank=True,
+        related_name="exercises",
+        help_text="Tags de compétences testées (ex: Trennbare Verben, Konjunktiv II)",
+    )
 
     def __str__(self):
         return f"Exercice {self.id} – {self.lesson.title}"

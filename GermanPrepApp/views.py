@@ -312,9 +312,21 @@ def take_practice_test(request, exam_id):
             }
             return redirect("germanprep:anon_result")
 
+    # Durées officielles Goethe par niveau (en secondes, CO+CE uniquement)
+    GOETHE_TIMER = {
+        "A1": (20 + 20) * 60,   # Hören 20min + Lesen 20min
+        "A2": (25 + 30) * 60,   # Hören 25min + Lesen 30min
+        "B1": (25 + 60) * 60,   # Hören 25min + Lesen 60min
+        "B2": (30 + 65) * 60,   # Hören 30min + Lesen 65min
+        "C1": (40 + 70) * 60,   # Hören 40min + Lesen 70min
+        "C2": (40 + 75) * 60,   # Hören 40min + Lesen 75min
+    }
+    timer_sec = GOETHE_TIMER.get(exam.level, 45 * 60)
+
     context = {
         "exam": exam,
         "exercises": exercises,
+        "timer_sec": timer_sec,
     }
     return render(request, "german/take_practice_test.html", context)
 
