@@ -11,10 +11,69 @@ from django.http import Http404, HttpResponse, FileResponse
 from django.views import View
 from django.utils import timezone
 from django.conf import settings
+from django.db import transaction
 
 from edu_platform.models import Subject, ExamDocument, VideoLesson, AccessCode
 
 logger = logging.getLogger('edu_platform')
+
+DEFAULT_SUBJECTS = [
+    {
+        'title': 'Mathématiques BEPC 2023',
+        'slug': 'mathematiques-bepc-2023',
+        'subject_type': 'math',
+        'level': 'bepc',
+        'year': 2023,
+        'description': 'Sujets officiels de mathématiques au BEPC 2023.',
+        'is_premium': True,
+        'is_published': True,
+        'order': 1,
+    },
+    {
+        'title': 'Français BEPC 2023',
+        'slug': 'francais-bepc-2023',
+        'subject_type': 'french',
+        'level': 'bepc',
+        'year': 2023,
+        'description': 'Sujets de français au BEPC 2023.',
+        'is_premium': True,
+        'is_published': True,
+        'order': 2,
+    },
+    {
+        'title': 'Physique-Chimie BEPC 2023',
+        'slug': 'physique-chimie-bepc-2023',
+        'subject_type': 'physics',
+        'level': 'bepc',
+        'year': 2023,
+        'description': 'Physique-Chimie BEPC 2023.',
+        'is_premium': True,
+        'is_published': True,
+        'order': 3,
+    },
+    {
+        'title': 'Mathématiques Série C — Bac 2023',
+        'slug': 'mathematiques-serie-c-bac-2023',
+        'subject_type': 'math',
+        'level': 'bac',
+        'year': 2023,
+        'description': 'Sujets de mathématiques série C au Baccalauréat 2023.',
+        'is_premium': True,
+        'is_published': True,
+        'order': 4,
+    },
+    {
+        'title': 'Anglais — Probatoire 2023',
+        'slug': 'anglais-probatoire-2023',
+        'subject_type': 'english',
+        'level': 'probatoire',
+        'year': 2023,
+        'description': 'Épreuves d’anglais au Probatoire 2023.',
+        'is_premium': True,
+        'is_published': True,
+        'order': 5,
+    },
+]
 
 
 class EduLoginRequiredMixin(LoginRequiredMixin):
@@ -26,6 +85,8 @@ class SubjectListView(EduLoginRequiredMixin, View):
     template_name = 'edu_platform/content/subject_list.html'
 
     def get(self, request):
+        self._ensure_sample_subjects()
+
         level = request.GET.get('level', '')
         subject_type = request.GET.get('type', '')
 
@@ -45,6 +106,27 @@ class SubjectListView(EduLoginRequiredMixin, View):
             'type_choices': Subject.SUBJECT_TYPES,
         }
         return render(request, self.template_name, context)
+
+    def _ensure_sample_subjects(self):
+        if Subject.objects.filter(is_published=True).exists():
+            return
+
+        with transaction.atomic():
+            for data in DEFAULT_SUBJECTS:
+                Subject.objects.get_or_create(
+                    slug=data['slug'],
+                    defaults={
+                        'title': data['title'],
+                        'subject_type': data['subject_type'],
+                        'level': data['level'],
+                        'year': data['year'],
+                        'description': data['description'],
+                        'is_premium': data['is_premium'],
+                        'is_published': data['is_published'],
+                        'order': data['order'],
+                        'section': 'francophone',
+                    },
+                )
 
 
 class SubjectDetailView(EduLoginRequiredMixin, View):

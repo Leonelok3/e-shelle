@@ -3,7 +3,7 @@ Tests d'intégration des vues EduCam Pro (smoke tests HTTP).
 """
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
-from edu_platform.models import SubscriptionPlan, EduProfile
+from edu_platform.models import SubscriptionPlan, EduProfile, Subject, AccessCode
 
 User = get_user_model()
 
@@ -110,6 +110,23 @@ class TestProtectedViews(TestCase):
         # Le middleware redirige vers /edu/plans/ si pas d'abonnement actif
         r = self.client.get('/edu/subjects/')
         self.assertIn(r.status_code, [200, 302])
+
+    def test_subject_list_seeds_sample_subjects_when_none_are_published(self):
+        Subject.objects.all().delete()
+        plan = make_plan()
+        AccessCode.objects.create(
+            code='TEST-ACCESS-001',
+            plan=plan,
+            activated_by=self.user,
+            status='active',
+            expires_at=None,
+        )
+
+        r = self.client.get('/edu/subjects/')
+
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(Subject.objects.filter(is_published=True).exists())
+        self.assertContains(r, 'Mathématiques')
 
     def test_activate_code_page_accessible(self):
         r = self.client.get('/edu/activate/')
