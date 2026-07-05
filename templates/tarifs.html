@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Tarifs E-Shelle — Boostez votre visibilité et vos revenus{% endblock %}
-{% block meta_description %}Découvrez nos solutions de visibilité pour prestataires à partir de 5 000 FCFA / mois et devenez partenaire E-Shelle avec la Business Key à 9 900 FCFA pour gagner des commissions.{% endblock %}
+{% block title %}Tarifs de Création de Site Internet & Solutions IA au Cameroun | E-Shelle{% endblock %}
+{% block meta_description %}Choisissez le plan idéal pour votre commerce local ou devenez partenaire avec l'E-Shelle Business Key. Des tarifs clairs et un accompagnement professionnel à Douala, Yaoundé et partout au Cameroun.{% endblock %}
 
 {% block nav_tarifs %}active{% endblock %}
 
@@ -104,6 +104,11 @@
     margin-bottom: 6rem;
   }
 
+  @keyframes sheen {
+    0% { transform: rotate(45deg) translateX(-150%); }
+    100% { transform: rotate(45deg) translateX(150%); }
+  }
+
   /* Pricing Cards */
   .plan-card {
     border: 1px solid var(--color-border);
@@ -112,11 +117,13 @@
     padding: 2.5rem 1.75rem;
     display: flex;
     flex-direction: column;
-    transition: var(--transition-smooth);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     color: #1e293b;
+    transform-style: preserve-3d;
+    perspective: 1000px;
   }
 
   .plan-card::before {
@@ -126,12 +133,32 @@
     background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
     opacity: 0;
     transition: var(--transition-smooth);
+    z-index: 2;
+  }
+
+  .plan-card::after {
+    content: "";
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(45deg) translateX(-150%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .plan-card:hover::after {
+    animation: sheen 1.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .plan-card:hover {
-    transform: translateY(-6px);
+    transform: translateY(-10px) rotateX(2deg) rotateY(1deg);
     border-color: rgba(34, 197, 94, 0.4);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12), 0 0 30px rgba(34, 197, 94, 0.05);
   }
 
   .plan-card:hover::before {
@@ -152,7 +179,7 @@
   }
 
   .plan-card.featured {
-    border-color: rgba(34, 197, 94, 0.45);
+    border-color: rgba(34, 197, 94, 0.5);
     background: #ffffff;
     box-shadow: 0 15px 35px rgba(34, 197, 94, 0.12);
   }
@@ -160,6 +187,20 @@
   .plan-card.featured::before {
     opacity: 1;
     background: linear-gradient(90deg, transparent, var(--color-primary-light), transparent);
+  }
+
+  .plan-card.featured::after {
+    background: linear-gradient(
+      to right,
+      rgba(125, 236, 108, 0) 0%,
+      rgba(125, 236, 108, 0.4) 50%,
+      rgba(125, 236, 108, 0) 100%
+    );
+  }
+
+  .plan-card.featured:hover {
+    transform: translateY(-12px) rotateX(2.5deg) rotateY(1.5deg);
+    box-shadow: 0 35px 70px rgba(34, 197, 94, 0.16), 0 0 40px rgba(125, 236, 108, 0.08);
   }
 
   .plan-card.featured .plan-badge {
@@ -460,8 +501,8 @@
     <!-- Hero Header -->
     <header class="tarifs-hero">
       <span class="pres-pill">Tarifs & Opportunités</span>
-      <h1>Des plans adaptés pour <span>Grandir</span> et <span>Gagner</span></h1>
-      <p>Que vous soyez un commerce local cherchant à attirer de nouveaux clients ou un partenaire souhaitant se lancer dans la vente et l'IA, E-Shelle a la solution idéale pour vous.</p>
+      <h1>Des plans sur mesure pour <span>propulser</span> vos <span>revenus</span></h1>
+      <p>Que vous soyez une entreprise cherchant à attirer des clients en continu ou un partenaire souhaitant distribuer des solutions web & IA, E-Shelle vous garantit le meilleur ROI du marché.</p>
     </header>
 
     <!-- SECTION A: PRESTATAIRES (COMMERCES & ARTISANS) -->
