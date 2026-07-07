@@ -118,27 +118,8 @@ def home_view(request):
             key=lambda entry: entry.get("_rank") or now,
             reverse=True,
         )
-        if len(premium_showcase_items) < 12:
-            for business in premium_businesses:
-                if len(premium_showcase_items) >= 12:
-                    break
-                premium_showcase_items.append(
-                    {
-                        "_rank": business.updated_at,
-                        "tag": business.get_plan_display(),
-                        "title": business.promo_headline or business.name,
-                        "description": business.description,
-                        "kind": f"{business.get_module_display()} · {business.city or 'Cameroun'}",
-                        "meta": business.district or business.city or "Proche",
-                        "price": "",
-                        "image": business.promo_image.url if business.promo_image else "",
-                        "initial": business.name[:1],
-                        "url": business.get_absolute_url(),
-                        "contact_url": business.promo_url or f"/chat/?q=Contacter%20{urllib.parse.quote(business.name)}",
-                        "views": business.views_count,
-                        "leads": business.leads_count,
-                    }
-                )
+        # Ne plus ajouter les fiches entreprises comme fallbacks dans la vitrine produits/services
+        pass
         home_ad_slides = list(
             HomeAdSlide.objects.filter(is_active=True)
             .filter(starts_at__isnull=True)
