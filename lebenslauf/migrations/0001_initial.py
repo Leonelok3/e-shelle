@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('germany_opportunities', '0003_rename_germany_opp_is_acti_idx1_germany_opp_is_acti_a41f9e_idx_and_more'),
+        ('germany_opportunities', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
