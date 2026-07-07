@@ -5,8 +5,8 @@
 ##############################################################################
 set -e
 
-APP_USER="eshelle"
-APP_DIR="/home/$APP_USER/app"
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+APP_USER=$(stat -c '%U' "$APP_DIR")
 
 echo "→ Pull du code..."
 sudo -u $APP_USER git -C "$APP_DIR" pull origin main
@@ -32,10 +32,11 @@ echo "→ Collecte des statiques Simplo..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput --settings=simplo.core.settings
 
 echo "→ Correction permissions staticfiles..."
-chmod o+x /home/eshelle /home/eshelle/app
-chmod -R o+r /home/eshelle/app/staticfiles/
-chmod -R o+r /home/eshelle/app/simplo/staticfiles/ 2>/dev/null || true
-chmod -R o+r /home/eshelle/app/simplo/media/ 2>/dev/null || true
+PARENT_DIR="$(dirname "$APP_DIR")"
+chmod o+x "$PARENT_DIR" "$APP_DIR"
+chmod -R o+r "$APP_DIR/staticfiles/"
+chmod -R o+r "$APP_DIR/simplo/staticfiles/" 2>/dev/null || true
+chmod -R o+r "$APP_DIR/simplo/media/" 2>/dev/null || true
 
 echo "→ Rechargement Gunicorn (gracieux)..."
 systemctl reload eshelle 2>/dev/null || systemctl restart eshelle
