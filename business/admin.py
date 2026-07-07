@@ -4,6 +4,7 @@ from django.utils.html import format_html
 from .models import (
     AICreditLedger,
     AppCommission,
+    AppPromotionSlide,
     BoostCampaign,
     BusinessKeyAccount,
     BusinessKeyPaymentRequest,
@@ -370,6 +371,24 @@ class PresentationSlideAdmin(admin.ModelAdmin):
             return "-"
         try:
             return format_html('<img src="{}" style="width:74px;height:48px;object-fit:cover;border-radius:8px" />', obj.image.url)
+        except Exception:
+            return "-"
+
+
+@admin.register(AppPromotionSlide)
+class AppPromotionSlideAdmin(admin.ModelAdmin):
+    list_display = ("preview", "title", "cta_label", "cta_url", "order", "is_active", "created_at")
+    list_filter = ("is_active", "created_at")
+    search_fields = ("title", "cta_label", "cta_url")
+    list_editable = ("order", "is_active")
+    readonly_fields = ("preview", "created_at")
+
+    @admin.display(description="Aperçu")
+    def preview(self, obj):
+        if not obj.image:
+            return "-"
+        try:
+            return format_html('<img src="{}" style="width:100px;height:33px;object-fit:cover;border-radius:4px" />', obj.image.url)
         except Exception:
             return "-"
 

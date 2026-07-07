@@ -41,7 +41,7 @@ def home_view(request):
     try:
         from django.utils import timezone
         from django.db.models import Q, Sum
-        from business.models import BusinessCatalogItem, BusinessLeadEvent, BusinessProfile, HomeAdSlide
+        from business.models import BusinessCatalogItem, BusinessLeadEvent, BusinessProfile, HomeAdSlide, AppPromotionSlide
         now = timezone.now()
         premium_businesses = list(
             BusinessProfile.objects.filter(
@@ -201,9 +201,9 @@ def home_view(request):
         except EmptyPage:
             paginated_items = paginator.page(paginator.num_pages)
 
-        ctx["premium_businesses"] = premium_businesses
         ctx["premium_showcase_items"] = paginated_items
         ctx["home_ad_slides"] = merged_slides[:10]
+        ctx["app_promo_slides"] = list(AppPromotionSlide.objects.filter(is_active=True).order_by("order", "-created_at"))
         ctx["hero_businesses"] = [item for item in premium_businesses if item.promo_image][:6] or premium_businesses[:6]
     except Exception:
         ctx["premium_businesses"] = []

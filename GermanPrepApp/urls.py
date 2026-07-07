@@ -1,9 +1,12 @@
 from django.urls import path
+from django.shortcuts import redirect
 from . import views
 
 app_name = "germanprep"
 
 urlpatterns = [
+    path("opportunites/", lambda r: redirect("germany_opportunities:catalogue")),
+    path("mon-cv/", lambda r: redirect("lebenslauf:dashboard")),
     path("", views.home, name="home"),
     path("evaluation/", views.placement_test, name="placement_test"),
     path("profil/", views.german_profile, name="profile"),

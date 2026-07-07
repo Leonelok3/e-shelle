@@ -83,6 +83,22 @@
       <span class="de-module__cta">Creer mon CV →</span>
     </a>
 
+    <!-- Module 4 : Sujets Goethe -->
+    <a href="#" class="de-module-card de-module--sujets" onclick="openSujetsModal(event)">
+      <div class="de-module__icon">📥</div>
+      <h2 class="de-module__title">Sujets Officiels Goethe</h2>
+      <p class="de-module__desc">
+        Téléchargez les anciens sujets d'examen (Modellsatz) officiels du Goethe-Institut par niveau.
+      </p>
+      <ul class="de-module__features">
+        <li>✓ Sujets complets de A1 à C2</li>
+        <li>✓ Fichiers audio MP3 d'écoute (Hören)</li>
+        <li>✓ Corrigés & grilles de barème officiels</li>
+        <li>✓ Téléchargement gratuit & direct</li>
+      </ul>
+      <span class="de-module__cta">Télécharger les sujets →</span>
+    </a>
+
   </section>
 
   <!-- PARCOURS TYPE -->
@@ -218,6 +234,7 @@
 .de-module--goethe:hover { border-color: rgba(99, 179, 237, .5); }
 .de-module--jobs:hover   { border-color: rgba(72, 199, 142, .5); }
 .de-module--cv:hover     { border-color: rgba(255, 206, 0, .5); }
+.de-module--sujets:hover { border-color: rgba(245, 158, 11, .5); }
 
 .de-module__icon { font-size: 2.5rem; }
 .de-module__title {
@@ -318,5 +335,674 @@
   line-height: 1.6;
 }
 .de-legal__icon { font-size: 1.2rem; flex-shrink: 0; margin-top: .1rem; }
+
+/* Modal Styling */
+.de-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+.de-modal__backdrop {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+}
+.de-modal__content {
+  position: relative;
+  background: #07130C; /* Dark forest green matching design system */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.5rem;
+  max-width: 650px;
+  width: 100%;
+  padding: 2.5rem;
+  z-index: 1;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  animation: modalEnter 0.3s ease-out;
+}
+@keyframes modalEnter {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.de-modal__close {
+  position: absolute;
+  top: 1.25rem; right: 1.5rem;
+  background: none; border: none;
+  font-size: 2rem; color: rgba(255,255,255,0.5);
+  cursor: pointer; transition: color 0.2s;
+}
+.de-modal__close:hover { color: #fff; }
+.de-modal__title { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.5rem; }
+.de-modal__desc { font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-bottom: 1.5rem; }
+
+/* Tabs */
+.de-modal__tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+.de-modal__tab-btn {
+  background: none; border: none;
+  color: rgba(255,255,255,0.6);
+  font-weight: 700; font-size: 1rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer; border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+.de-modal__tab-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.de-modal__tab-btn.active { color: #000; background: #ffce00; }
+
+/* Panels */
+.de-modal__panel { display: none; }
+.de-modal__panel.active { display: block; }
+.de-modal__panel h3 { font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem; color: #ffce00; }
+
+/* Downloads */
+.de-download-list { display: grid; gap: 1rem; }
+.de-download-item {
+  display: flex; align-items: center;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  text-decoration: none; color: inherit;
+  transition: all 0.2s;
+}
+.de-download-item:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,206,0,0.3);
+  transform: translateY(-2px);
+}
+.de-download-icon { font-size: 1.75rem; margin-right: 1rem; }
+.de-download-info { flex: 1; display: flex; flex-direction: column; gap: 0.2rem; }
+.de-download-info strong { font-size: 0.95rem; color: #fff; }
+.de-download-info span { font-size: 0.78rem; color: rgba(255,255,255,0.5); }
+.de-download-btn {
+  font-size: 0.8rem; font-weight: 700;
+  color: #ffce00; border: 1px solid rgba(255,206,0,0.3);
+  padding: 0.4rem 0.8rem; border-radius: 0.4rem;
+  background: rgba(255,206,0,0.03);
+  transition: all 0.2s;
+}
+.de-download-item:hover .de-download-btn {
+  background: #ffce00; color: #000;
+}
+/* Sessions styling */
+.de-session-list {
+  display: grid;
+  gap: 0.75rem;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+.de-session-list::-webkit-scrollbar {
+  width: 6px;
+}
+.de-session-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 206, 0, 0.2);
+  border-radius: 3px;
+}
+.de-session-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  gap: 1rem;
+  transition: all 0.2s;
+  flex-wrap: wrap;
+}
+.de-session-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 206, 0, 0.2);
+}
+.de-session-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 150px;
+}
+.de-session-info strong {
+  font-size: 0.95rem;
+  color: #fff;
+}
+.de-session-info span {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+.de-session-links {
+  display: flex;
+  gap: 0.5rem;
+}
+.de-session-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #ffce00;
+  background: rgba(255, 206, 0, 0.05);
+  border: 1px solid rgba(255, 206, 0, 0.25);
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.de-session-btn:hover {
+  background: #ffce00;
+  color: #000;
+  border-color: #ffce00;
+}
+.de-goethe-official-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  background: rgba(255, 206, 0, 0.05);
+  border: 1px dashed rgba(255, 206, 0, 0.3);
+  border-radius: 0.75rem;
+  color: #ffce00;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.de-goethe-official-link:hover {
+  background: rgba(255, 206, 0, 0.1);
+  border-style: solid;
+}
 </style>
+
+<!-- Modal Sujets Officiels Goethe -->
+<div id="sujets-modal" class="de-modal" role="dialog" aria-hidden="true" style="display:none;">
+  <div class="de-modal__backdrop" onclick="closeSujetsModal()"></div>
+  <div class="de-modal__content">
+    <button class="de-modal__close" onclick="closeSujetsModal()">&times;</button>
+    <h2 class="de-modal__title">📂 Sujets & Sessions d'Examen Goethe</h2>
+    <p class="de-modal__desc">Sélectionnez votre niveau et téléchargez les 5 dernières sessions de sujets complets d'entraînements officiels.</p>
+    
+    <div class="de-modal__tabs">
+      <button class="de-modal__tab-btn active" onclick="switchSujetTab('A1')">A1</button>
+      <button class="de-modal__tab-btn" onclick="switchSujetTab('A2')">A2</button>
+      <button class="de-modal__tab-btn" onclick="switchSujetTab('B1')">B1</button>
+      <button class="de-modal__tab-btn" onclick="switchSujetTab('B2')">B2</button>
+      <button class="de-modal__tab-btn" onclick="switchSujetTab('C1')">C1</button>
+      <button class="de-modal__tab-btn" onclick="switchSujetTab('C2')">C2</button>
+    </div>
+
+    <!-- Tab Contents -->
+    <div class="de-modal__tab-panels">
+      <!-- Panel A1 -->
+      <div id="panel-A1" class="de-modal__panel active">
+        <h3>Goethe-Zertifikat A1 (Start Deutsch 1)</h3>
+        <div class="de-session-list">
+          <!-- Session 1 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>A1 — Session Juin 2026</strong>
+              <span>Modellsatz officiel d'entraînement</span>
+            </div>
+            <div class="de-session-links">
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn" title="Télécharger le Sujet PDF">📄 Sujet</a>
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn" title="Télécharger l'Audio MP3">🔊 Audio</a>
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn" title="Télécharger le Corrigé PDF">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 2 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>A1 — Session Janvier 2026</strong>
+              <span>Sujet type d'évaluation</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/A1/session2/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/A1/session2/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/A1/session2/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 3 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>A1 — Session Octobre 2025</strong>
+              <span>Ancien sujet d'examen</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/A1/session3/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/A1/session3/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/A1/session3/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 4 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>A1 — Session Mai 2025</strong>
+              <span>Examen blanc chronométré</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/A1/session4/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/A1/session4/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/A1/session4/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 5 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>A1 — Session Janvier 2025</strong>
+              <span>Entraînement supplémentaire</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/A1/session5/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/A1/session5/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/A1/session5/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+        </div>
+        <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-goethe-official-link">
+          🔗 Accéder au portail d'entraînement officiel Goethe A1 →
+        </a>
+      </div>
+
+      <!-- Panel A2 -->
+      <div id="panel-A2" class="de-modal__panel">
+        <h3>Goethe-Zertifikat A2</h3>
+        <div class="de-session-list">
+          <!-- Session 1 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>A2 — Session Juin 2026</strong>
+              <span>Modellsatz officiel d'entraînement</span>
+            </div>
+            <div class="de-session-links">
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 2 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>A2 — Session Janvier 2026</strong>
+              <span>Sujet type d'évaluation</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/A2/session2/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/A2/session2/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/A2/session2/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 3 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>A2 — Session Octobre 2025</strong>
+              <span>Ancien sujet d'examen</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/A2/session3/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/A2/session3/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/A2/session3/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 4 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>A2 — Session Mai 2025</strong>
+              <span>Examen blanc chronométré</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/A2/session4/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/A2/session4/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/A2/session4/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 5 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>A2 — Session Janvier 2025</strong>
+              <span>Entraînement supplémentaire</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/A2/session5/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/A2/session5/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/A2/session5/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+        </div>
+        <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-goethe-official-link">
+          🔗 Accéder au portail d'entraînement officiel Goethe A2 →
+        </a>
+      </div>
+
+      <!-- Panel B1 -->
+      <div id="panel-B1" class="de-modal__panel">
+        <h3>Goethe-Zertifikat B1</h3>
+        <div class="de-session-list">
+          <!-- Session 1 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>B1 — Session Juin 2026</strong>
+              <span>Modellsatz officiel d'entraînement</span>
+            </div>
+            <div class="de-session-links">
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 2 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>B1 — Session Janvier 2026</strong>
+              <span>Sujet type d'évaluation</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/B1/session2/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/B1/session2/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/B1/session2/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 3 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>B1 — Session Octobre 2025</strong>
+              <span>Ancien sujet d'examen</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/B1/session3/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/B1/session3/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/B1/session3/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 4 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>B1 — Session Mai 2025</strong>
+              <span>Examen blanc chronométré</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/B1/session4/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/B1/session4/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/B1/session4/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 5 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>B1 — Session Janvier 2025</strong>
+              <span>Entraînement supplémentaire</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/B1/session5/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/B1/session5/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/B1/session5/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+        </div>
+        <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-goethe-official-link">
+          🔗 Accéder au portail d'entraînement officiel Goethe B1 →
+        </a>
+      </div>
+
+      <!-- Panel B2 -->
+      <div id="panel-B2" class="de-modal__panel">
+        <h3>Goethe-Zertifikat B2</h3>
+        <div class="de-session-list">
+          <!-- Session 1 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>B2 — Session Juin 2026</strong>
+              <span>Modellsatz officiel d'entraînement</span>
+            </div>
+            <div class="de-session-links">
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 2 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>B2 — Session Janvier 2026</strong>
+              <span>Sujet type d'évaluation</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/B2/session2/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/B2/session2/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/B2/session2/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 3 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>B2 — Session Octobre 2025</strong>
+              <span>Ancien sujet d'examen</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/B2/session3/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/B2/session3/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/B2/session3/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 4 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>B2 — Session Mai 2025</strong>
+              <span>Examen blanc chronométré</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/B2/session4/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/B2/session4/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/B2/session4/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 5 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>B2 — Session Janvier 2025</strong>
+              <span>Entraînement supplémentaire</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/B2/session5/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/B2/session5/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/B2/session5/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+        </div>
+        <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-goethe-official-link">
+          🔗 Accéder au portail d'entraînement officiel Goethe B2 →
+        </a>
+      </div>
+
+      <!-- Panel C1 -->
+      <div id="panel-C1" class="de-modal__panel">
+        <h3>Goethe-Zertifikat C1</h3>
+        <div class="de-session-list">
+          <!-- Session 1 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>C1 — Session Juin 2026</strong>
+              <span>Modellsatz officiel d'entraînement</span>
+            </div>
+            <div class="de-session-links">
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 2 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>C1 — Session Janvier 2026</strong>
+              <span>Sujet type d'évaluation</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/C1/session2/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/C1/session2/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/C1/session2/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 3 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>C1 — Session Octobre 2025</strong>
+              <span>Ancien sujet d'examen</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/C1/session3/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/C1/session3/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/C1/session3/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 4 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>C1 — Session Mai 2025</strong>
+              <span>Examen blanc chronométré</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/C1/session4/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/C1/session4/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/C1/session4/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 5 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>C1 — Session Janvier 2025</strong>
+              <span>Entraînement supplémentaire</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/C1/session5/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/C1/session5/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/C1/session5/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+        </div>
+        <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-goethe-official-link">
+          🔗 Accéder au portail d'entraînement officiel Goethe C1 →
+        </a>
+      </div>
+
+      <!-- Panel C2 -->
+      <div id="panel-C2" class="de-modal__panel">
+        <h3>Goethe-Zertifikat C2 (GDS)</h3>
+        <div class="de-session-list">
+          <!-- Session 1 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>C2 — Session Juin 2026</strong>
+              <span>Modellsatz officiel d'entraînement</span>
+            </div>
+            <div class="de-session-links">
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 2 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>C2 — Session Janvier 2026</strong>
+              <span>Sujet type d'évaluation</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/C2/session2/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/C2/session2/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/C2/session2/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 3 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>C2 — Session Octobre 2025</strong>
+              <span>Ancien sujet d'examen</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/C2/session3/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/C2/session3/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/C2/session3/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 4 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>C2 — Session Mai 2025</strong>
+              <span>Examen blanc chronométré</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/C2/session4/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/C2/session4/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/C2/session4/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+          <!-- Session 5 -->
+          <div class="de-session-row">
+            <div class="de-session-info">
+              <strong>C2 — Session Janvier 2025</strong>
+              <span>Entraînement supplémentaire</span>
+            </div>
+            <div class="de-session-links">
+              <a href="/media/allemagne/sujets/C2/session5/sujet.pdf" target="_blank" class="de-session-btn">📄 Sujet</a>
+              <a href="/media/allemagne/sujets/C2/session5/audio.mp3" target="_blank" class="de-session-btn">🔊 Audio</a>
+              <a href="/media/allemagne/sujets/C2/session5/corrige.pdf" target="_blank" class="de-session-btn">🔑 Corrigé</a>
+            </div>
+          </div>
+        </div>
+        <a href="https://www.goethe.de/de/spr/prf/ueb.html" target="_blank" class="de-goethe-official-link">
+          🔗 Accéder au portail d'entraînement officiel Goethe C2 →
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openSujetsModal(event) {
+  event.preventDefault();
+  const modal = document.getElementById('sujets-modal');
+  modal.style.display = 'flex';
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSujetsModal() {
+  const modal = document.getElementById('sujets-modal');
+  modal.style.display = 'none';
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function switchSujetTab(level) {
+  // Update tabs active state
+  document.querySelectorAll('.de-modal__tab-btn').forEach(btn => {
+    if (btn.innerText === level) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  
+  // Update panels active state
+  document.querySelectorAll('.de-modal__panel').forEach(panel => {
+    if (panel.id === 'panel-' + level) {
+      panel.classList.add('active');
+    } else {
+      panel.classList.remove('active');
+    }
+  });
+}
+</script>
 {% endblock %}

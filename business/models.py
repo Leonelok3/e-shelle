@@ -1031,3 +1031,23 @@ class PresentationSlide(models.Model):
             return []
         return [f.strip() for f in self.features.split("\n") if f.strip()]
 
+
+class AppPromotionSlide(models.Model):
+    """Slide pour uploader les affiches Canva de promotion des applications d'E-Shelle."""
+
+    title = models.CharField(max_length=150, verbose_name="Titre descriptif (admin)")
+    image = models.ImageField(upload_to="business/promo-slides/", verbose_name="Affiche Canva")
+    cta_url = models.CharField(max_length=250, blank=True, verbose_name="Lien de l'application (optionnel)")
+    cta_label = models.CharField(max_length=100, blank=True, default="Accéder à l'application", verbose_name="Texte du bouton sous l'affiche (optionnel)")
+    is_active = models.BooleanField(default=True, verbose_name="Actif")
+    order = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["order", "-created_at"]
+        verbose_name = "Slide de promotion E-Shelle"
+        verbose_name_plural = "Slides de promotion E-Shelle"
+
+    def __str__(self):
+        return self.title
+

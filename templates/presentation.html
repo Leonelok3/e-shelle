@@ -148,6 +148,7 @@
     --color-text-white: #ffffff;
     --color-text-gray: #cbd5e1;
     --color-card-bg: #ffffff;
+    --color-border: rgba(0, 0, 0, 0.08);
     --font-heading: 'Outfit', sans-serif;
     --font-body: 'Plus Jakarta Sans', sans-serif;
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -258,22 +259,24 @@
     flex-wrap: wrap;
     position: relative;
     z-index: 1;
+    max-width: 720px;
+    margin: 0 auto;
   }
 
   .btn-cta-primary {
     height: 52px;
     padding: 0 2.2rem;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #22c55e, #10b981);
-    color: #07110c;
+    border-radius: 999px; /* Pill shaped like Capture 2 */
+    background: linear-gradient(135deg, #2e7d32 0%, #f59e0b 100%);
+    color: #ffffff !important;
     font-family: var(--font-heading);
-    font-weight: 700;
+    font-weight: 800;
     font-size: 0.95rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border: none;
-    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 8px 24px rgba(46, 125, 50, 0.25);
     text-decoration: none;
     transition: var(--transition-smooth);
     cursor: pointer;
@@ -281,15 +284,16 @@
 
   .btn-cta-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.4);
-    color: #07110c;
+    box-shadow: 0 12px 30px rgba(245, 158, 11, 0.4);
+    background: linear-gradient(135deg, #1b9c4c 0%, #ff9800 100%);
+    color: #ffffff !important;
   }
 
   .btn-cta-secondary {
     height: 50px;
     padding: 0 2.2rem;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 999px; /* Match pill shape */
+    border: 1px solid rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.03);
     color: var(--color-text-white);
     font-family: var(--font-heading);
@@ -304,9 +308,10 @@
 
   .btn-cta-secondary:hover {
     background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(245, 158, 11, 0.45);
     transform: translateY(-2px);
     color: var(--color-text-white);
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.15);
   }
 
   /* Section Styling */
@@ -358,15 +363,30 @@
   .service-card {
     border: 1px solid var(--color-border);
     border-radius: 16px;
-    background: var(--color-card-bg);
+    background: var(--color-card-bg) !important;
     padding: 2.5rem 2.25rem;
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    color: #1e293b;
+    color: #1e293b !important;
     transform-style: preserve-3d;
     perspective: 1000px;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  #services .service-card {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12) !important;
+  }
+
+  #services .service-card .service-name,
+  #services .service-card .service-desc,
+  #services .service-card .service-features li {
+    color: #0f172a !important;
   }
 
   .service-card::before {
@@ -446,6 +466,7 @@
     margin-top: 2rem;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
     color: #1e293b;
+  }
 
   .modules-tabs {
     display: flex;
@@ -510,12 +531,12 @@
   .module-tagline {
     color: var(--color-secondary);
     font-family: var(--font-heading);
-    font-weight: 700;
-    font-size: 0.95rem;
-    margin-bottom: 1.5rem;
+    font-weight: 800;
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    display: inline-block;
+    display: block;
   }
 
   .module-description {
@@ -582,7 +603,7 @@
     font-family: var(--font-heading);
     font-size: 1.85rem;
     font-weight: 800;
-    color: var(--color-text-white);
+    color: #0f172a;
     margin-top: 0.5rem;
   }
 
@@ -641,6 +662,7 @@
     outline: none;
     transition: var(--transition-smooth);
     width: 100%;
+    box-sizing: border-box;
   }
 
   .calc-select:focus, .calc-input:focus {
@@ -779,6 +801,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
+    align-items: flex-start;
   }
 
   .devis-group-full {
@@ -857,19 +880,17 @@
   }
 
   .faq-item {
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 14px;
-    background: var(--color-card-bg);
+    background: #160e06; /* Dark premium orange-tinted background */
     overflow: hidden;
     transition: var(--transition-smooth);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
   }
 
   .faq-item:hover {
-    border-color: rgba(34, 197, 94, 0.25);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(245, 158, 11, 0.45); /* Orange border on hover */
+    box-shadow: 0 14px 35px rgba(245, 158, 11, 0.18); /* Orange shadow glow */
+    background: #251609; /* Slightly lighter orange-brown on hover */
   }
 
   .faq-item summary {
@@ -885,6 +906,7 @@
     align-items: center;
     outline: none;
     user-select: none;
+    background: rgba(255, 255, 255, 0.02);
   }
 
   .faq-item summary::-webkit-details-marker {
@@ -894,7 +916,7 @@
   .faq-item summary::after {
     content: "+";
     font-size: 1.4rem;
-    color: var(--color-primary);
+    color: var(--color-secondary); /* Orange indicator icon */
     font-family: var(--font-heading);
     transition: transform 0.3s ease;
   }
@@ -989,6 +1011,7 @@
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 1.25rem;
     margin-top: 2rem;
+    align-items: stretch;
   }
 
   .esh-app-tile {
@@ -1346,10 +1369,8 @@
   .mock-glass-card {
     width: 80%;
     height: 75%;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border-radius: 18px;
     padding: 1.5rem;
     box-sizing: border-box;
@@ -1361,7 +1382,7 @@
   .glass-reflection {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%);
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 45%);
     pointer-events: none;
     border-radius: 18px;
   }
@@ -1394,8 +1415,8 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(15, 23, 42, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: #fff;
     width: 44px;
     height: 44px;
@@ -1407,8 +1428,6 @@
     z-index: 10;
     transition: var(--transition-smooth);
     font-size: 1rem;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
   }
 
   .slider-rev-arrow:hover {
@@ -1497,8 +1516,8 @@
         E-Shelle propulse la transition digitale des PME et grandes entreprises à Douala, Yaoundé et dans toute l'Afrique. Nous concevons des sites vitrines, e-commerce, des logiciels de tontine (Njangi), de microfinance (Tchaslucpay) et des agents IA ultra-performants.
       </p>
       <div class="pres-hero-ctas">
-        <a href="#solutions" class="btn-cta-primary">Lancer mon Projet 🚀</a>
-        <a href="#devis" class="btn-cta-secondary">Estimer mon Budget en 1 clic 📊</a>
+        <a href="#solutions" class="btn-cta-primary">Lancer mon Projet &rarr;</a>
+        <a href="#devis" class="btn-cta-secondary">Estimer mon Budget &rarr;</a>
       </div>
     </div>
   </header>
@@ -1690,7 +1709,7 @@
               <div class="module-bullet-item"><i></i> Reçus numériques et alertes par SMS</div>
               <div class="module-bullet-item"><i></i> Rapports d'agences et tableaux de bord</div>
             </div>
-            <a href="#devis" class="btn-cta-primary" onclick="selectService('tchaslucpay')">Configurer Tchaslucpay</a>
+            <a href="#devis" class="btn-cta-primary" onclick="selectService('tchaslucpay')">Configurer Tchaslucpay &rarr;</a>
           </div>
           <div class="module-preview">
             <div class="mock-ui-header">
@@ -1726,7 +1745,7 @@
               <div class="module-bullet-item"><i></i> Calcul dynamique des tarifs et trajets</div>
               <div class="module-bullet-item"><i></i> Notifications d'arrivée intégrées</div>
             </div>
-            <a href="#devis" class="btn-cta-primary" onclick="selectService('simplo')">Déployer Simplo</a>
+            <a href="#devis" class="btn-cta-primary" onclick="selectService('simplo')">Déployer Simplo &rarr;</a>
           </div>
           <div class="module-preview">
             <div class="mock-ui-header">
@@ -1759,7 +1778,7 @@
               <div class="module-bullet-item"><i></i> Demandes de prêts et calcul d'intérêts</div>
               <div class="module-bullet-item"><i></i> Notifications d'échéances automatiques</div>
             </div>
-            <a href="#devis" class="btn-cta-primary" onclick="selectService('njangi')">Activer Njangi Digital</a>
+            <a href="#devis" class="btn-cta-primary" onclick="selectService('njangi')">Activer Njangi Digital &rarr;</a>
           </div>
           <div class="module-preview">
             <div class="mock-ui-header">
@@ -1791,7 +1810,7 @@
               <div class="module-bullet-item"><i></i> Gestion des stocks en cuisine en temps réel</div>
               <div class="module-bullet-item"><i></i> Paiement mobile intégré (Momo, OM)</div>
             </div>
-            <a href="#devis" class="btn-cta-primary" onclick="selectService('resto')">Installer E-Shelle Resto</a>
+            <a href="#devis" class="btn-cta-primary" onclick="selectService('resto')">Installer E-Shelle Resto &rarr;</a>
           </div>
           <div class="module-preview">
             <div class="mock-ui-header">
@@ -1823,7 +1842,7 @@
               <div class="module-bullet-item"><i></i> Optimisation SEO pour Google Maps</div>
               <div class="module-bullet-item"><i></i> Gestion des mandats et clients potentiels</div>
             </div>
-            <a href="#devis" class="btn-cta-primary" onclick="selectService('immo')">Lancer ma Vitrine Immo</a>
+            <a href="#devis" class="btn-cta-primary" onclick="selectService('immo')">Lancer ma Vitrine Immo &rarr;</a>
           </div>
           <div class="module-preview">
             <div class="mock-ui-header">
@@ -1877,8 +1896,8 @@
       </div>
 
       <div class="esh-cta-actions" style="margin-top:3rem;display:flex;justify-content:center;gap:1rem;">
-        <a class="btn-cta-primary" href="/chat/">Commencer gratuitement</a>
-        <a class="btn-cta-secondary" href="/dashboard/">Accéder à mon espace</a>
+        <a class="btn-cta-primary" href="/chat/">Commencer gratuitement &rarr;</a>
+        <a class="btn-cta-secondary" href="/dashboard/">Accéder à mon espace &rarr;</a>
       </div>
     </div>
   </section>
@@ -1996,8 +2015,8 @@
           <div class="calc-result-pane">
             <div class="pres-pill" style="margin-bottom:0.5rem">Tarif estimé</div>
             <div class="calc-price" id="price-output">0 FCFA</div>
-            <p style="color:var(--color-text-gray);font-size:.85rem;margin:0 0 1.5rem" id="price-terms">Frais de maintenance et d'hébergement inclus</p>
-            <a href="#devis" class="btn-cta-primary" onclick="transferCalcToDevis()">Demander mon devis</a>
+            <p style="color:#f59e0b;font-size:.85rem;margin:0 0 1.5rem" id="price-terms">Frais de maintenance et d'hébergement inclus</p>
+            <a href="#devis" class="btn-cta-primary" onclick="transferCalcToDevis()">Demander mon devis &rarr;</a>
           </div>
         </div>
       </div>
@@ -2019,8 +2038,8 @@
               Nous mettons à votre disposition des outils marketing complets et un support dédié pour vous accompagner vers le succès.
             </p>
             <div style="display:flex;gap:1.25rem;flex-wrap:wrap">
-              <a href="/business/partner/" class="btn-cta-primary" style="background:linear-gradient(135deg, #f9c332, #f59e0b);box-shadow:0 8px 24px rgba(245, 158, 11, 0.25);">Découvrir le programme</a>
-              <a href="/business/partner/kit/" class="btn-cta-secondary">Télécharger le kit commercial</a>
+              <a href="/business/partner/" class="btn-cta-primary" style="background:linear-gradient(135deg, #f9c332, #f59e0b);box-shadow:0 8px 24px rgba(245, 158, 11, 0.25);border-radius:999px;">Découvrir le programme &rarr;</a>
+              <a href="/business/partner/kit/" class="btn-cta-secondary">Télécharger le kit commercial &rarr;</a>
             </div>
           </div>
           
@@ -2161,7 +2180,7 @@
           </div>
 
           <div class="devis-group-full" style="text-align:center;margin-top:1.5rem">
-            <button type="submit" class="btn-cta-primary" style="width:100%;max-width:340px">Obtenir mon Devis Gratuit sous 24h 🚀</button>
+            <button type="submit" class="btn-cta-primary" style="width:100%;max-width:340px">Obtenir mon Devis Gratuit sous 24h &rarr;</button>
           </div>
         </form>
       </div>
