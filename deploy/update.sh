@@ -39,7 +39,8 @@ chmod -R o+r "$APP_DIR/simplo/staticfiles/" 2>/dev/null || true
 chmod -R o+r "$APP_DIR/simplo/media/" 2>/dev/null || true
 
 echo "→ Rechargement Gunicorn (gracieux)..."
-systemctl reload eshelle 2>/dev/null || systemctl restart eshelle
+systemctl reload e-shelle 2>/dev/null || systemctl restart e-shelle
 systemctl reload simplo 2>/dev/null || systemctl restart simplo
+systemctl reload tchaslucpay 2>/dev/null || systemctl restart tchaslucpay
 
 echo "✅ Mise à jour terminée — aucune coupure de service."
