@@ -130,7 +130,12 @@
             <div class="flex justify-between items-center">
               <div>
                 <p class="text-sm font-medium text-gray-700">Séance #{{ session.session_number }}</p>
-                <p class="text-xs text-gray-400">{{ session.date|date:"d/m/Y" }}</p>
+                <p class="text-xs text-gray-400">
+                  {{ session.date|date:"d/m/Y" }}
+                  {% if session.beneficiary %}
+                    · 🏆 {{ session.beneficiary.user.get_full_name|default:session.beneficiary.user.username }}
+                  {% endif %}
+                </p>
               </div>
               <span class="text-xs px-2 py-1 rounded-full
                 {% if session.status == 'completed' %}bg-green-100 text-green-700
