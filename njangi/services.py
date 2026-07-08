@@ -314,6 +314,23 @@ class DistributionCalculator:
             gross_amount = group.contribution_amount * group.member_count
         gross = int(gross_amount)
 
+        # Les membres absents ou dont l'absence est signalee ne peuvent pas recevoir la tontine (bouffer) de la seance
+        from njangi.models.session import Session
+        active_session = group.sessions.filter(status="in_progress").first()
+        if active_session:
+            contribution = active_session.contributions.filter(membership=membership).first()
+            if contribution and contribution.presence in ("absent", "excused"):
+                return {
+                    "membership":        membership,
+                    "gross_amount":      gross,
+                    "deductions":        [],
+                    "total_deductions":  0,
+                    "net_amount":        0,
+                    "can_receive":       False,
+                    "blocked":           True,
+                    "blocking_reason":   "Le membre est absent (ou excusé) à cette séance et ne peut pas recevoir la distribution.",
+                }
+
         deductions = []
         total_deductions = 0
 

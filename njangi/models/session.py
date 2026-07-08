@@ -123,6 +123,18 @@ class Contribution(models.Model):
     penalty_amount = models.DecimalField(max_digits=10, decimal_places=0, default=0, verbose_name="Pénalité (FCFA)")
     penalty_paid  = models.BooleanField(default=False)
 
+    PRESENCE_CHOICES = [
+        ("present", "Présent"),
+        ("absent",  "Absent"),
+        ("excused", "Absence Signalée"),
+    ]
+    presence = models.CharField(
+        max_length=10,
+        choices=PRESENCE_CHOICES,
+        default="present",
+        verbose_name="Présence"
+    )
+
     status     = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
     recorded_by = models.ForeignKey(

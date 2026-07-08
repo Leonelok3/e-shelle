@@ -524,6 +524,36 @@ class HtmxBureauMemberRoleView(BureauRequiredMixin, View):
         return HttpResponse(html)
 
 
+class HtmxBureauContributionPresenceView(BureauRequiredMixin, View):
+    """Permet au bureau de changer le statut de présence d'un membre pour une séance."""
+
+    def post(self, request, slug, session_pk, contribution_pk):
+        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        contribution = get_object_or_404(Contribution, pk=contribution_pk, session=session)
+        
+        new_presence = request.POST.get("presence")
+        if new_presence in ("present", "absent", "excused"):
+            contribution.presence = new_presence
+            # Si absence non signalée (unexcused), on applique une pénalité de 1000 FCFA
+            if new_presence == "absent":
+                contribution.penalty_amount = 1000
+            else:
+                contribution.penalty_amount = 0
+            contribution.save(update_fields=["presence", "penalty_amount"])
+            
+        from django.template.loader import render_to_string
+        html = render_to_string(
+            "njangi/partials/bureau_contribution_row.html",
+            {
+                "c": contribution,
+                "group": self.group,
+                "session": session,
+            },
+            request=request,
+        )
+        return HttpResponse(html)
+
+
 class HtmxRepaymentView(LoginRequiredMixin, View):
     def post(self, request, pk):
         loan = get_object_or_404(Loan, pk=pk, membership__user=request.user, status="active")
