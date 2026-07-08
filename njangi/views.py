@@ -396,7 +396,7 @@ class SessionDetailView(BureauRequiredMixin, TemplateView):
         ctx["session"] = session
         ctx["contributions"] = session.contributions.select_related("membership__user").order_by("membership__hand_order")
         ctx["pay_form"] = ContributionPayForm()
-        ctx["active_loans"] = self.group.loans.filter(status="active").select_related("membership__user")
+        ctx["active_loans"] = Loan.objects.filter(membership__group=self.group, status="active").select_related("membership__user")
         return ctx
 
 
