@@ -27,11 +27,28 @@
   </td>
   
   <!-- Methode de paiement -->
-  <td class="px-5 py-3 text-center text-gray-400 text-xs">
+  <!-- Methode de paiement -->
+  <td class="px-5 py-3 text-center text-xs">
     {% if c.status == 'paid' %}
-      {{ c.get_payment_method_display|default:"Espèces" }}
+      {% if session.status == 'completed' %}
+        <span class="text-gray-700 font-semibold">
+          {% if c.payment_method == 'transfer' or c.payment_method == 'mtn_momo' or c.payment_method == 'orange_money' %}Dépôt{% else %}Cash{% endif %}
+        </span>
+      {% else %}
+        <form style="margin: 0; padding: 0; display: inline-block;">
+          {% csrf_token %}
+          <select name="payment_method"
+                  hx-post="{% url 'njangi:htmx_bureau_contribution_method' slug=group.slug session_pk=session.pk contribution_pk=c.pk %}"
+                  hx-target="#bureau-row-{{ c.pk }}"
+                  hx-swap="outerHTML"
+                  class="text-xs rounded-xl bg-gray-50 border border-gray-200 px-2.5 py-1 text-gray-700 font-semibold cursor-pointer">
+            <option value="cash" {% if c.payment_method == 'cash' or not c.payment_method %}selected{% endif %}>Cash</option>
+            <option value="transfer" {% if c.payment_method == 'transfer' or c.payment_method == 'mtn_momo' or c.payment_method == 'orange_money' %}selected{% endif %}>Dépôt</option>
+          </select>
+        </form>
+      {% endif %}
     {% else %}
-      —
+      <span class="text-gray-300">—</span>
     {% endif %}
   </td>
 

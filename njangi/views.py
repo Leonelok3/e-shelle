@@ -570,6 +570,32 @@ class HtmxBureauContributionPresenceView(BureauRequiredMixin, View):
         return HttpResponse(html)
 
 
+class HtmxBureauContributionMethodView(BureauRequiredMixin, View):
+    """Permet au bureau de changer le mode de paiement (dépot ou cash) d'une cotisation payée."""
+
+    def post(self, request, slug, session_pk, contribution_pk):
+        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        contribution = get_object_or_404(Contribution, pk=contribution_pk, session=session)
+        
+        new_method = request.POST.get("payment_method")
+        if new_method in ("cash", "transfer"):
+            contribution.payment_method = new_method
+            contribution.transaction_ref = "Validé par le bureau"
+            contribution.save(update_fields=["payment_method", "transaction_ref"])
+            
+        from django.template.loader import render_to_string
+        html = render_to_string(
+            "njangi/partials/bureau_contribution_row.html",
+            {
+                "c": contribution,
+                "group": self.group,
+                "session": session,
+            },
+            request=request,
+        )
+        return HttpResponse(html)
+
+
 class HtmxRepaymentView(LoginRequiredMixin, View):
     def post(self, request, pk):
         loan = get_object_or_404(Loan, pk=pk, membership__user=request.user, status="active")

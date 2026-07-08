@@ -53,6 +53,7 @@ urlpatterns = [
     path("htmx/bureau/<slug:slug>/seances/<int:session_pk>/cotisation/<int:contribution_pk>/toggle/", views.HtmxBureauContributionToggleView.as_view(), name="htmx_bureau_contribution_toggle"),
     path("htmx/bureau/<slug:slug>/membres/<int:membership_pk>/role/", views.HtmxBureauMemberRoleView.as_view(), name="htmx_bureau_member_role"),
     path("htmx/bureau/<slug:slug>/seances/<int:session_pk>/cotisation/<int:contribution_pk>/presence/", views.HtmxBureauContributionPresenceView.as_view(), name="htmx_bureau_contribution_presence"),
+    path("htmx/bureau/<slug:slug>/seances/<int:session_pk>/cotisation/<int:contribution_pk>/methode/", views.HtmxBureauContributionMethodView.as_view(), name="htmx_bureau_contribution_method"),
     path("htmx/remboursement/<int:pk>/",      views.HtmxRepaymentView.as_view(),        name="htmx_repayment"),
     path("htmx/notifications/marquer-lues/",  views.HtmxMarkNotificationsRead.as_view(), name="htmx_mark_read"),
 

@@ -90,6 +90,11 @@ class Session(models.Model):
     def formatted_hand(self):
         return f"{int(self.hand_amount):,}".replace(",", " ") + " FCFA"
 
+    @property
+    def estimated_total(self):
+        from django.db.models import Sum
+        return self.contributions.aggregate(total=Sum("amount_due"))["total"] or (self.group.contribution_amount * self.group.member_count)
+
 
 class Contribution(models.Model):
     """Cotisation d'un membre à une séance."""

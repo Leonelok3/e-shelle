@@ -16,8 +16,9 @@
       <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
         <th class="px-5 py-3 text-left">#</th>
         <th class="px-5 py-3 text-left">Date</th>
-        <th class="px-5 py-3 text-left">Bénéficiaire</th>
-        <th class="px-5 py-3 text-right">Collecté</th>
+        <th class="px-5 py-3 text-left">Bénéficiaires de la séance</th>
+        <th class="px-5 py-3 text-right">Montant total de la séance</th>
+        <th class="px-5 py-3 text-right">Montant par bénéficiaire</th>
         <th class="px-5 py-3 text-center">Présence</th>
         <th class="px-5 py-3 text-center">Statut</th>
         <th class="px-5 py-3"></th>
@@ -31,7 +32,20 @@
         <td class="px-5 py-3 text-gray-600">
           {% if session.beneficiary %}{{ session.beneficiary.user.get_full_name|default:session.beneficiary.user.username }}{% else %}<span class="text-gray-300">—</span>{% endif %}
         </td>
-        <td class="px-5 py-3 text-right font-semibold text-gray-700">{{ session.total_collected|floatformat:0 }} FCFA</td>
+        <td class="px-5 py-3 text-right font-semibold text-gray-700">
+          {% if session.status == 'completed' %}
+            {{ session.total_collected|floatformat:0 }} FCFA
+          {% else %}
+            {{ session.estimated_total|floatformat:0 }} FCFA
+          {% endif %}
+        </td>
+        <td class="px-5 py-3 text-right font-semibold text-gray-700">
+          {% if session.status == 'completed' %}
+            {{ session.hand_amount|floatformat:0 }} FCFA
+          {% else %}
+            {{ session.estimated_total|floatformat:0 }} FCFA
+          {% endif %}
+        </td>
         <td class="px-5 py-3 text-center">
           <div class="inline-flex items-center gap-1">
             <div class="w-12 bg-gray-100 rounded-full h-1.5">
