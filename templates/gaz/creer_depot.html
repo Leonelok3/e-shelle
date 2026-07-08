@@ -1,0 +1,237 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inscrire mon dépôt &mdash; E-Shelle Gaz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif']},colors:{flame:{'50':'#fff7ed','100':'#ffedd5','400':'#fb923c','500':'#f97316','600':'#FF6B00','700':'#c2410c','900':'#7c2d12'}}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #030712; color: #fff; }
+    .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    .custom-input { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); transition: all 0.2s; }
+    .custom-input:focus { border-color: #FF6B00; box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.2); outline: none; }
+  </style>
+</head>
+<body class="antialiased min-h-screen pb-16">
+
+<!-- Navbar -->
+<nav class="sticky top-0 z-40 border-b" style="background:rgba(3,7,18,.9);backdrop-filter:blur(20px);border-color:rgba(255,255,255,.06)">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <a href="{% url 'gaz:accueil' %}" class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm"
+           style="background:linear-gradient(135deg,#FF6B00,#FFD700)">G</div>
+      <span class="font-black text-white">E-Shelle <span style="color:#FF6B00">Gaz</span></span>
+    </a>
+    <a href="{% url 'gaz:accueil' %}" class="text-sm font-semibold text-white/60 hover:text-white transition">&larr; Retour</a>
+  </div>
+</nav>
+
+<!-- Page Content -->
+<div class="max-w-4xl mx-auto px-4 mt-10">
+  <div class="text-center mb-8">
+    <span class="text-4xl">&#128293;</span>
+    <h1 class="text-3xl font-black text-white mt-3">Inscrire mon dépôt de gaz</h1>
+    <p class="text-white/50 text-sm mt-2">Créez votre vitrine de livraison de gaz à domicile en quelques instants</p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    {% if form.errors %}
+    <div class="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm space-y-1">
+      <strong class="block font-bold">Veuillez corriger les erreurs suivantes :</strong>
+      {% for field, errors in form.errors.items %}
+        {% for error in errors %}
+          <p>{{ field|capfirst }} : {{ error }}</p>
+        {% endfor %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Section 1: Général -->
+    <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
+      <h2 class="text-lg font-bold text-orange-400 border-b border-white/5 pb-2">Informations Générales</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-white/80">Nom du dépôt *</label>
+          <input type="text" name="nom" required value="{{ form.nom.value|default:'' }}"
+                 class="w-full px-4 py-3 rounded-xl text-sm custom-input" placeholder="Ex: Dépôt Gaz Express Douala">
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-white/80">Logo / Image de vitrine</label>
+          <input type="file" name="photo" accept="image/*"
+                 class="w-full text-sm text-white/60 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-orange-600 file:text-white hover:file:bg-orange-700 cursor-pointer">
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-white/80">Description / Présentation</label>
+        <textarea name="description" rows="3"
+                  class="w-full px-4 py-3 rounded-xl text-sm custom-input"
+                  placeholder="Présentez votre dépôt, vos engagements de service, etc.">{{ form.description.value|default:'' }}</textarea>
+      </div>
+    </div>
+
+    <!-- Section 2: Localisation -->
+    <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
+      <h2 class="text-lg font-bold text-orange-400 border-b border-white/5 pb-2">Localisation</h2>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-white/80">Ville *</label>
+          <select name="ville" required class="w-full px-4 py-3 rounded-xl text-sm custom-input text-white bg-gray-900">
+            {% for item in form.fields.ville.queryset %}
+            <option value="{{ item.id }}" {% if form.ville.value == item.id %}selected{% endif %}>{{ item.nom }}</option>
+            {% endfor %}/
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-white/80">Quartier principal *</label>
+          <select name="quartier" required class="w-full px-4 py-3 rounded-xl text-sm custom-input text-white bg-gray-900">
+            {% for item in form.fields.quartier.queryset %}
+            <option value="{{ item.id }}" {% if form.quartier.value == item.id %}selected{% endif %}>{{ item.nom }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-white/80">Adresse physique</label>
+          <input type="text" name="adresse" value="{{ form.adresse.value|default:'' }}"
+                 class="w-full px-4 py-3 rounded-xl text-sm custom-input" placeholder="Ex: En face de la pharmacie">
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-white/80">Zones de livraison (Couverture) *</label>
+        <textarea name="zone_livraison" rows="2" required
+                  class="w-full px-4 py-3 rounded-xl text-sm custom-input"
+                  placeholder="Quartiers couverts. Ex: Akwa, Bali, Bonapriso, Deido, Koumassi...">{{ form.zone_livraison.value|default:'' }}</textarea>
+        <span class="text-xs text-white/40 block">Séparez les quartiers par des virgules</span>
+      </div>
+    </div>
+
+    <!-- Section 3: Contacts -->
+    <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
+      <h2 class="text-lg font-bold text-orange-400 border-b border-white/5 pb-2">Contacts client</h2>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-white/80">Téléphone de livraison *</label>
+          <input type="text" name="telephone" required value="{{ form.telephone.value|default:'' }}"
+                 class="w-full px-4 py-3 rounded-xl text-sm custom-input" placeholder="Ex: 699999999">
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-white/80">Numéro WhatsApp *</label>
+          <input type="text" name="whatsapp" required value="{{ form.whatsapp.value|default:'' }}"
+                 class="w-full px-4 py-3 rounded-xl text-sm custom-input" placeholder="Format international sans le + (ex: 237699999999)">
+          <span class="text-xs text-white/40 block">Sert à recevoir les commandes directement par message</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Marques & Tarifs -->
+    <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
+      <h2 class="text-lg font-bold text-orange-400 border-b border-white/5 pb-2">Marques & Tarifs</h2>
+      
+      <div class="space-y-3">
+        <label class="block text-sm font-medium text-white/80">Marques disponibles</label>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+          {% for choice in form.marques.field.queryset %}
+          <label class="flex items-center gap-2 text-sm text-white/80 hover:text-white cursor-pointer">
+            <input type="checkbox" name="marques" value="{{ choice.id }}"
+                   {% if choice.id in form.marques.value or choice.id in form.fields.marques.initial %}checked{% endif %}
+                   class="rounded text-orange-500 focus:ring-orange-500 border-white/10 bg-gray-900 w-4 h-4">
+            <span>{{ choice.nom }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <label class="block text-sm font-medium text-white/80">Tailles de bouteilles disponibles</label>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 p-4 rounded-2xl bg-white/5 border border-white/5">
+          {% for val, label in form.fields.tailles.choices %}
+          <label class="flex items-center gap-2 text-sm text-white/80 hover:text-white cursor-pointer">
+            <input type="checkbox" name="tailles" value="{{ val }}"
+                   {% if val in form.tailles.value or val in form.fields.tailles.initial %}checked{% endif %}
+                   class="rounded text-orange-500 focus:ring-orange-500 border-white/10 bg-gray-900 w-4 h-4">
+            <span>{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-2">
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-white/80">Prix Bouteille 6kg (FCFA)</label>
+          <input type="number" name="prix_6kg" value="{{ form.prix_6kg.value|default:'' }}"
+                 class="w-full px-4 py-3 rounded-xl text-sm custom-input" placeholder="Ex: 2500">
+        </div>
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-white/80">Prix Bouteille 12kg (FCFA)</label>
+          <input type="number" name="prix_12kg" value="{{ form.prix_12kg.value|default:'' }}"
+                 class="w-full px-4 py-3 rounded-xl text-sm custom-input" placeholder="Ex: 5000">
+        </div>
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-white/80">Prix Bouteille 15kg (FCFA)</label>
+          <input type="number" name="prix_15kg" value="{{ form.prix_15kg.value|default:'' }}"
+                 class="w-full px-4 py-3 rounded-xl text-sm custom-input" placeholder="Ex: 6500">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: Logistique -->
+    <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
+      <h2 class="text-lg font-bold text-orange-400 border-b border-white/5 pb-2">Logistique & Horaires</h2>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-white/80">Délai de livraison estimé</label>
+          <input type="text" name="delai_livraison" value="{{ form.delai_livraison.value|default:'30-60 min' }}"
+                 class="w-full px-4 py-3 rounded-xl text-sm custom-input" placeholder="Ex: 30-60 min">
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-white/80">Horaires d'ouverture</label>
+          <input type="text" name="horaires" value="{{ form.horaires.value|default:'Lun-Sam 7h-20h' }}"
+                 class="w-full px-4 py-3 rounded-xl text-sm custom-input" placeholder="Ex: Lun-Sam 7h-20h, Dim 8h-15h">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 6: Autres Services -->
+    <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
+      <h2 class="text-lg font-bold text-orange-400 border-b border-white/5 pb-2">Autres services proposés</h2>
+      
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-white/80">Services additionnels</label>
+        <textarea name="autres_services" rows="2"
+                  class="w-full px-4 py-3 rounded-xl text-sm custom-input"
+                  placeholder="Ex: Vente de détendeurs, de tuyaux de sécurité, brûleurs, foyers de cuisine, et maintenance/raccordement à domicile.">{{ form.autres_services.value|default:'' }}</textarea>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="flex justify-end gap-4 pt-4">
+      <a href="{% url 'gaz:accueil' %}"
+         class="px-6 py-3.5 rounded-xl font-bold text-sm text-white/80 border border-white/10 hover:bg-white/5 transition">
+        Annuler
+      </a>
+      <button type="submit"
+              class="px-8 py-3.5 rounded-xl font-black text-white text-sm shadow-xl transition hover:opacity-90 cursor-pointer"
+              style="background:linear-gradient(135deg,#FF6B00,#FFD700)">
+        Créer et publier mon dépôt
+      </button>
+    </div>
+  </form>
+</div>
+
+</body>
+</html>

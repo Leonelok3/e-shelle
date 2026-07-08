@@ -115,6 +115,8 @@ class DepotGaz(models.Model):
     livraison_nuit   = models.BooleanField(default=False)
     paiement_info    = models.CharField(max_length=200,
                             default="Paiement a la livraison (especes)")
+    autres_services  = models.TextField(blank=True,
+                            help_text="Autres services proposes (vente d'accessoires, tuyaux...)")
 
     # ── Souscription mensuelle depot ─────────────────────────────
     PLAN_CHOICES = [

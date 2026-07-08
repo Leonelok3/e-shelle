@@ -1,7 +1,9 @@
 """gaz/views.py — E-Shelle Gaz"""
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from .models import VilleGaz, QuartierGaz, MarqueGaz, DepotGaz, AvisDepot
+from .forms import DepotGazForm
 
 
 def accueil(request):
@@ -9,6 +11,7 @@ def accueil(request):
     villes    = VilleGaz.objects.filter(active=True).prefetch_related("depots")
     featured  = DepotGaz.objects.filter(is_active=True, is_featured=True).select_related("ville", "quartier").prefetch_related("marques")[:6]
     verified  = DepotGaz.objects.filter(is_active=True, is_verified=True).select_related("ville", "quartier").prefetch_related("marques")[:8]
+    recents   = DepotGaz.objects.filter(is_active=True).select_related("ville", "quartier").prefetch_related("marques").order_by("-created_at")[:6]
     nb_total  = DepotGaz.objects.filter(is_active=True).count()
     nb_villes = VilleGaz.objects.filter(active=True, depots__is_active=True).distinct().count()
 
@@ -16,10 +19,31 @@ def accueil(request):
         "villes":    villes,
         "featured":  featured,
         "verified":  verified,
+        "recents":   recents,
         "nb_total":  nb_total,
         "nb_villes": nb_villes,
     }
     return render(request, "gaz/accueil.html", context)
+
+
+@login_required
+def creer_depot(request):
+    """Creation rapide d'un depot de gaz par un client."""
+    if request.method == "POST":
+        form = DepotGazForm(request.POST, request.FILES)
+        if form.is_valid():
+            depot = form.save(commit=False)
+            depot.gerant = request.user
+            # Auto-active et verifie par defaut pour affichage immediat sur la plateforme
+            depot.is_active = True
+            depot.is_verified = True
+            depot.save()
+            form.save_m2m()
+            return redirect("gaz:detail", slug=depot.slug)
+    else:
+        form = DepotGazForm()
+    
+    return render(request, "gaz/creer_depot.html", {"form": form})
 
 
 def catalogue(request):

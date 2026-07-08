@@ -98,6 +98,10 @@
       </a>
     </div>
     <div class="ml-auto flex items-center gap-3">
+      <a href="{% url 'gaz:creer_depot' %}"
+         class="text-sm font-bold px-4 py-2 rounded-xl border border-orange-500/30 text-orange-400 hover:bg-orange-500/10 transition">
+        🚀 Inscrire mon dépôt
+      </a>
       {% if user.is_authenticated %}
       <a href="{% url 'accounts:mon_compte' %}"
          class="text-sm font-semibold px-4 py-2 rounded-xl border border-white/10 text-white/80 hover:bg-white/5 transition">
@@ -346,6 +350,99 @@
           <!-- Prix si renseignes -->
           {% if depot.prix_6kg %}
           <div class="text-xs text-white/40 mb-3">6 kg &mdash; <strong class="text-orange-400">{{ depot.prix_6kg }} FCFA</strong></div>
+          {% endif %}
+          <!-- CTA -->
+          <div class="flex gap-2 mt-auto">
+            <a href="{{ depot.whatsapp_url }}" target="_blank" rel="noopener noreferrer"
+               onclick="event.stopPropagation()"
+               class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-black text-white transition hover:opacity-90"
+               style="background:#25D366">
+              &#128242; WhatsApp
+            </a>
+            <a href="{{ depot.tel_url }}" onclick="event.stopPropagation()"
+               class="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black text-white transition hover:opacity-90"
+               style="background:rgba(59,130,246,.8)">
+              &#128222;
+            </a>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ═══ NOUVEAUX DEPOTS ══════════════════════════════════════════════════════ -->
+{% if recents %}
+<section class="py-16 px-4 relative border-t border-white/5">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h2 class="text-2xl font-black text-white">&#128293; Nouveaux dépôts de gaz</h2>
+        <p class="text-white/40 text-sm mt-1">Derniers dépôts de livraison inscrits sur la plateforme</p>
+      </div>
+      <a href="{% url 'gaz:catalogue' %}"
+         class="text-sm font-bold px-4 py-2 rounded-xl text-orange-400 border border-orange-400/30 hover:bg-orange-400/10 transition">
+        Voir tout &rarr;
+      </a>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {% for depot in recents %}
+      <a href="{% url 'gaz:detail' depot.slug %}"
+         class="depot-card group bg-white/3 backdrop-blur rounded-3xl border border-white/5 overflow-hidden flex flex-col">
+        <!-- Header carte -->
+        <div class="relative h-36 flex items-center justify-center overflow-hidden"
+             style="background:linear-gradient(135deg,rgba(255,107,0,.15),rgba(255,200,0,.1))">
+          {% if depot.photo %}
+          <img src="{{ depot.photo.url }}" alt="{{ depot.nom }}"
+               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+          {% else %}
+          <div class="text-6xl" style="filter:drop-shadow(0 0 20px rgba(255,150,0,.6))">&#128293;</div>
+          {% endif %}
+          <!-- Badges -->
+          <div class="absolute top-3 left-3 flex gap-1.5">
+            {% if depot.is_verified %}
+            <span class="text-xs font-black px-2.5 py-1 rounded-full bg-green-500/90 text-white backdrop-blur">&#10003; Vérifié</span>
+            {% endif %}
+            {% if depot.livraison_rapide %}
+            <span class="text-xs font-black px-2.5 py-1 rounded-full text-white backdrop-blur"
+                  style="background:rgba(255,107,0,.9)">&#9889; Express</span>
+            {% endif %}
+          </div>
+        </div>
+        <!-- Infos -->
+        <div class="p-5 flex flex-col flex-1">
+          <h3 class="font-black text-white text-base mb-1 leading-snug">{{ depot.nom }}</h3>
+          <div class="flex items-center gap-2 text-xs text-white/50 mb-3">
+            <span>&#128205;</span>
+            <span>{{ depot.quartier.nom|default:depot.ville.nom }}, {{ depot.ville.nom }}</span>
+          </div>
+
+          <!-- Zones de couverture -->
+          {% if depot.zone_livraison %}
+          <div class="text-xs text-white/60 mb-2 line-clamp-1">
+            <strong>Zones :</strong> {{ depot.zone_livraison }}
+          </div>
+          {% endif %}
+
+          <!-- Autres services -->
+          {% if depot.autres_services %}
+          <div class="text-xs text-white/40 mb-3 line-clamp-1 italic">
+            <strong>Services :</strong> {{ depot.autres_services }}
+          </div>
+          {% endif %}
+
+          <!-- Tailles -->
+          {% if depot.tailles %}
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            {% for t in depot.tailles_display %}
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold text-orange-300"
+                  style="background:rgba(255,107,0,.15);border:1px solid rgba(255,107,0,.2)">
+              {{ t }}
+            </span>
+            {% endfor %}
+          </div>
           {% endif %}
           <!-- CTA -->
           <div class="flex gap-2 mt-auto">
