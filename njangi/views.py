@@ -600,9 +600,15 @@ class HtmxBureauContributionMethodView(BureauRequiredMixin, View):
 class HtmxBureauRepaymentView(BureauRequiredMixin, View):
     """Permet au bureau d'enregistrer manuellement un remboursement de prêt pendant une séance."""
 
-    def post(self, request, slug, session_pk, loan_pk):
+    def post(self, request, slug, session_pk, loan_pk=None):
         session = get_object_or_404(Session, pk=session_pk, group=self.group)
-        loan = get_object_or_404(Loan, pk=loan_pk, membership__group=self.group, status="active")
+        
+        target_loan_pk = loan_pk or request.POST.get("loan_pk")
+        if not target_loan_pk:
+            messages.error(request, "Veuillez sélectionner un prêt.")
+            return redirect("njangi:session_detail", slug=slug, pk=session_pk)
+            
+        loan = get_object_or_404(Loan, pk=target_loan_pk, membership__group=self.group, status="active")
         
         amount_str = request.POST.get("amount")
         if amount_str:

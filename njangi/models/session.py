@@ -113,6 +113,14 @@ class Session(models.Model):
         hand = self.hand_amount if self.status == 'completed' else 0
         return self.total_contributions_paid + self.total_repayments - hand
 
+    @property
+    def repayments_made(self):
+        from njangi.models.loan import LoanRepayment
+        return LoanRepayment.objects.filter(
+            loan__membership__group=self.group,
+            paid_at__date=self.date
+        ).select_related("loan__membership__user")
+
 
 class Contribution(models.Model):
     """Cotisation d'un membre à une séance."""
