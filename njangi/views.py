@@ -396,6 +396,7 @@ class SessionDetailView(BureauRequiredMixin, TemplateView):
         ctx["session"] = session
         ctx["contributions"] = session.contributions.select_related("membership__user").order_by("membership__hand_order")
         ctx["pay_form"] = ContributionPayForm()
+        ctx["active_loans"] = self.group.loans.filter(status="active").select_related("membership__user")
         return ctx
 
 
@@ -594,6 +595,34 @@ class HtmxBureauContributionMethodView(BureauRequiredMixin, View):
             request=request,
         )
         return HttpResponse(html)
+
+
+class HtmxBureauRepaymentView(BureauRequiredMixin, View):
+    """Permet au bureau d'enregistrer manuellement un remboursement de prêt pendant une séance."""
+
+    def post(self, request, slug, session_pk, loan_pk):
+        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        loan = get_object_or_404(Loan, pk=loan_pk, membership__group=self.group, status="active")
+        
+        amount_str = request.POST.get("amount")
+        if amount_str:
+            try:
+                amount = int(float(amount_str))
+                if amount > 0:
+                    from njangi.models.loan import LoanRepayment
+                    # On cree le remboursement
+                    LoanRepayment.objects.create(
+                        loan=loan,
+                        amount_paid=amount,
+                        payment_method="cash",
+                        transaction_ref=f"Validé séance #{session.session_number}",
+                        recorded_by=request.user,
+                    )
+                    messages.success(request, f"Remboursement de {amount:,} FCFA enregistré pour {loan.membership.user}.")
+            except ValueError:
+                pass
+                
+        return redirect("njangi:session_detail", slug=slug, pk=session_pk)
 
 
 class HtmxRepaymentView(LoginRequiredMixin, View):

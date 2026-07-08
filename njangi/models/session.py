@@ -108,6 +108,11 @@ class Session(models.Model):
             paid_at__date=self.date
         ).aggregate(total=Sum("amount_paid"))["total"] or 0
 
+    @property
+    def cash_returned(self):
+        hand = self.hand_amount if self.status == 'completed' else 0
+        return self.total_contributions_paid + self.total_repayments - hand
+
 
 class Contribution(models.Model):
     """Cotisation d'un membre à une séance."""
