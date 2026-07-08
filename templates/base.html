@@ -317,14 +317,18 @@
           <span class="notif-badge" id="cart-count" style="display:none">0</span>
         </button>
 
+        {% if not user_has_business %}
+        <a href="{% url 'business:onboarding' %}" class="btn btn-accent btn-sm">Créer ma boutique</a>
+        {% endif %}
+
         {# Lien dashboard #}
         <a href="/dashboard/" class="btn btn-outline btn-sm">
           {{ user.get_short_name|default:user.username }} →
         </a>
 
         {% else %}
+        <a href="{% url 'business:onboarding' %}" class="btn btn-accent btn-sm">Créer ma boutique</a>
         <a href="/accounts/login/" class="btn btn-outline btn-sm">Connexion</a>
-        <a href="/accounts/register/" class="btn btn-accent  btn-sm">S'inscrire</a>
         {% endif %}
 
         {# Burger mobile #}
@@ -342,6 +346,9 @@
         <a href="{% url 'boutique:catalogue' %}" class="nav-link {% block nav_boutique_mobile %}{% endblock %}" role="menuitem">🛍️ Boutique Digital</a>
         <a href="{% url 'tarifs' %}" class="nav-link" role="menuitem">💰 Tarifs</a>
         <a href="/services/contact/" class="nav-link" role="menuitem">📩 Contact</a>
+        {% if not user_has_business %}
+        <a href="{% url 'business:onboarding' %}" class="nav-link" role="menuitem" style="color:#7dec6c;font-weight:900">🚀 Créer ma boutique</a>
+        {% endif %}
 
         <div style="display:flex;gap:.75rem;padding:.75rem 1rem 1rem">
           {% if user.is_authenticated %}

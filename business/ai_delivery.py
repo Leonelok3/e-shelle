@@ -124,7 +124,7 @@ def _context(business, items, extra_brief):
         {
             "title": item.title,
             "type": item.get_item_type_display(),
-            "price": item.price_label or "Prix a confirmer",
+            "price": item.formatted_price,
             "description": item.description[:160],
         }
         for item in items

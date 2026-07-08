@@ -60,6 +60,8 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
 CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
+SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN", None)
+CSRF_COOKIE_DOMAIN = os.getenv("CSRF_COOKIE_DOMAIN", None)
 
 # Apps
 INSTALLED_APPS = [
@@ -400,6 +402,12 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_REDIRECT_EXEMPT = os.getenv("SECURE_REDIRECT_EXEMPT", "").split(",") if os.getenv("SECURE_REDIRECT_EXEMPT") else []
+    
+    # Partage de session et cookies sur les sous-domaines en production
+    if SESSION_COOKIE_DOMAIN is None:
+        SESSION_COOKIE_DOMAIN = ".e-shelle.com"
+    if CSRF_COOKIE_DOMAIN is None:
+        CSRF_COOKIE_DOMAIN = ".e-shelle.com"
 
 # Taille max upload (fichiers produits digitaux)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800   # 50 Mo

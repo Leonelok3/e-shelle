@@ -6,6 +6,38 @@
 {% block content %}
 <section style="min-height:100vh;padding:8rem 0 4rem;background:radial-gradient(circle at 75% 15%,rgba(34,197,94,.16),transparent 30%),#050910;color:#fff">
   <div class="container" style="max-width:1040px">
+    {% if user.is_authenticated and business.owner == user %}
+      <!-- Admin Bar -->
+      <div style="margin-bottom: 2rem; padding: 1.25rem; border-radius: 16px; background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.25); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 10px; height: 10px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 10px #4ade80; animation: pulse 2s infinite;"></div>
+          <div>
+            <h4 style="margin: 0; color: #fff; font-size: 1.05rem; font-weight: 800;">Mode Administration</h4>
+            <p style="margin: 0; color: rgba(255, 255, 255, 0.7); font-size: 0.85rem;">Vous êtes le propriétaire de cette fiche. Utilisez les boutons pour la gérer en direct.</p>
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <a href="{% url 'business:business_edit' business.id %}" style="display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0.5rem 1.2rem; border-radius: 10px; background: #ffd91f; color: #000; font-weight: 900; text-decoration: none; font-size: 0.9rem; transition: transform 0.2s;">
+            Modifier la fiche
+          </a>
+          <a href="{% url 'business:catalog_manage' business.id %}" style="display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0.5rem 1.2rem; border-radius: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; font-weight: 850; text-decoration: none; font-size: 0.9rem; transition: transform 0.2s;">
+            Ajouter un produit / service
+          </a>
+          <a href="{% url 'business:dashboard' %}?business={{ business.id }}" style="display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0.5rem 1.2rem; border-radius: 10px; background: #22c55e; color: #fff; font-weight: 900; text-decoration: none; font-size: 0.9rem; transition: transform 0.2s;">
+            Tableau de bord
+          </a>
+        </div>
+      </div>
+      
+      <style>
+        @keyframes pulse {
+          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+          70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+      </style>
+    {% endif %}
+
     <div style="display:grid;grid-template-columns:1fr;gap:1.5rem">
       <div style="border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(255,255,255,.05);padding:clamp(1.4rem,4vw,2.5rem)">
         <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem">
@@ -92,13 +124,28 @@
                     {% endif %}
                     <button type="button" onclick="openProductModal({{ forloop.counter0 }})" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:transparent;color:#fff;font-size:.82rem;font-weight:850;cursor:pointer">Détails</button>
                   </div>
+                  {% if user.is_authenticated and business.owner == user and item.id %}
+                    <div style="display:flex;gap:.45rem;margin-top:.75rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.1)">
+                      <a href="{% url 'business:catalog_item_edit' business.id item.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 .75rem;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:#fff;font-size:.78rem;font-weight:800;text-decoration:none">Modifier</a>
+                      <form method="post" action="{% url 'business:catalog_item_action' business.id item.id %}" style="display:inline-block;margin:0" onsubmit="return confirm('Supprimer ce produit/service ?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" style="display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 .75rem;border-radius:8px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:#fecaca;font-size:.78rem;font-weight:800;cursor:pointer">Supprimer</button>
+                      </form>
+                    </div>
+                  {% endif %}
                 </div>
               </article>
             {% endfor %}
           </div>
         {% else %}
           <div style="border:1px dashed rgba(255,255,255,.16);border-radius:12px;background:rgba(255,255,255,.035);padding:2rem;text-align:center;color:rgba(255,255,255,.65)">
-            Aucun produit ou service public n'est encore associe a cette vitrine.
+            <p style="margin:0 0 .5rem">Aucun produit ou service public n'est encore associe a cette vitrine.</p>
+            {% if user.is_authenticated and business.owner == user %}
+              <div style="margin-top:1rem">
+                <a href="{% url 'business:catalog_manage' business.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 1.5rem;border-radius:10px;background:#7dec6c;color:#06120a;font-weight:900;text-decoration:none">Ajouter mon premier produit</a>
+              </div>
+            {% endif %}
           </div>
         {% endif %}
       </section>

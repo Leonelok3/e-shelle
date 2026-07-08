@@ -2219,6 +2219,9 @@ def catalog_item_action(request, business_id, item_id):
         messages.success(request, "Produit/service supprime du catalogue.")
     else:
         messages.error(request, "Action catalogue inconnue.")
+    referer = request.META.get("HTTP_REFERER")
+    if referer:
+        return redirect(referer)
     return redirect("business:catalog_manage", business_id=business.id)
 
 

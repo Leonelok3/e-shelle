@@ -74,13 +74,35 @@ def social_login_context(request):
         if "APP" in facebook_prov and facebook_prov["APP"].get("client_id"):
             facebook_in_settings = True
 
+        # Expose the absolute next URL for social login to ensure it redirects back to the subdomain
+        next_path = request.GET.get('next', '/')
+        if next_path.startswith('/'):
+            absolute_next = request.build_absolute_uri(next_path)
+        else:
+            absolute_next = next_path
+
+        # Check if the user has a business profile
+        user_has_business = False
+        if request.user.is_authenticated:
+            try:
+                from business.models import BusinessProfile
+                user_has_business = BusinessProfile.objects.filter(owner=request.user).exists()
+            except Exception:
+                pass
+
         return {
             "social_google_enabled": google_in_settings or SocialApp.objects.filter(provider="google").exists(),
             "social_facebook_enabled": facebook_in_settings or SocialApp.objects.filter(provider="facebook").exists(),
+            "social_next_url": absolute_next,
+            "SITE_URL": getattr(settings, "SITE_URL", "https://e-shelle.com").rstrip('/'),
+            "user_has_business": user_has_business,
         }
     except Exception:
         return {
             "social_google_enabled": False,
             "social_facebook_enabled": False,
+            "social_next_url": "/",
+            "SITE_URL": "https://e-shelle.com",
+            "user_has_business": False,
         }
 

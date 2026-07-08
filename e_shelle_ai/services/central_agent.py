@@ -707,7 +707,7 @@ class CentralAgentService:
             for item in qs[:limit]:
                 biz = item.business
                 details = [
-                    item.price_label or "Prix à discuter",
+                    item.formatted_price,
                     biz.name,
                 ]
                 location = " - ".join([part for part in [biz.city, biz.district] if part])

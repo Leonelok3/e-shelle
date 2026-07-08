@@ -266,13 +266,28 @@ class BusinessCatalogItem(models.Model):
         except Exception:
             return ""
 
+    @property
+    def formatted_price(self):
+        val = (self.price_label or "").strip()
+        if not val:
+            return "Prix a discuter"
+        try:
+            cleaned = val.replace(" ", "").replace(",", "")
+            num_val = float(cleaned)
+            if num_val.is_integer():
+                return f"{int(num_val):,}".replace(",", " ") + " XAF"
+            else:
+                return f"{num_val:,.2f}".replace(",", " ") + " XAF"
+        except ValueError:
+            return val
+
     def to_public_item(self):
         return {
             "id": self.id,
             "type": self.get_item_type_display(),
             "title": self.title,
             "description": self.description,
-            "price": self.price_label or "Prix a discuter",
+            "price": self.formatted_price,
             "image": self.image_url,
             "images": ([self.image.url] if self.image else []) + [img.image.url for img in self.images.all() if img.image],
             "url": "",

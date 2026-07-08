@@ -75,7 +75,7 @@ def home_view(request):
                     "description": item.description,
                     "kind": f"{business.get_module_display()} · {business.city or 'Cameroun'}",
                     "meta": business.district or business.city or "Proche",
-                    "price": item.price_label or "Prix a discuter",
+                    "price": item.formatted_price,
                     "image": item.image_url,
                     "initial": item.title[:1],
                     "url": business.get_absolute_url(),
