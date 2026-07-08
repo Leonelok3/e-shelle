@@ -103,9 +103,19 @@ class Session(models.Model):
     def total_repayments(self):
         from njangi.models.loan import LoanRepayment
         from django.db.models import Sum
+        import datetime
+        from django.conf import settings
+        from django.utils import timezone
+        
+        min_dt = datetime.datetime.combine(self.date, datetime.time.min)
+        max_dt = datetime.datetime.combine(self.date, datetime.time.max)
+        if settings.USE_TZ:
+            min_dt = timezone.make_aware(min_dt)
+            max_dt = timezone.make_aware(max_dt)
+
         return LoanRepayment.objects.filter(
             loan__membership__group=self.group,
-            paid_at__date=self.date
+            paid_at__range=(min_dt, max_dt)
         ).aggregate(total=Sum("amount_paid"))["total"] or 0
 
     @property
@@ -116,9 +126,19 @@ class Session(models.Model):
     @property
     def repayments_made(self):
         from njangi.models.loan import LoanRepayment
+        import datetime
+        from django.conf import settings
+        from django.utils import timezone
+        
+        min_dt = datetime.datetime.combine(self.date, datetime.time.min)
+        max_dt = datetime.datetime.combine(self.date, datetime.time.max)
+        if settings.USE_TZ:
+            min_dt = timezone.make_aware(min_dt)
+            max_dt = timezone.make_aware(max_dt)
+
         return LoanRepayment.objects.filter(
             loan__membership__group=self.group,
-            paid_at__date=self.date
+            paid_at__range=(min_dt, max_dt)
         ).select_related("loan__membership__user")
 
 
