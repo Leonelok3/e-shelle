@@ -64,6 +64,15 @@ def home_view(request):
             )
         except Exception:
             recent_immo_items = []
+        try:
+            from resto.models import Dish
+            recent_dishes = list(
+                Dish.objects.filter(is_active=True, restaurant__is_approved=True, restaurant__is_active=True)
+                .select_related("restaurant", "restaurant__city", "restaurant__neighborhood")
+                .order_by("-id")[:30]
+            )
+        except Exception:
+            recent_dishes = []
         premium_showcase_items = []
         for item in recent_catalog_items:
             business = item.business
@@ -110,6 +119,36 @@ def home_view(request):
                     "url": bien.get_absolute_url(),
                     "contact_url": contact_url,
                     "views": bien.vues,
+                    "leads": 0,
+                }
+            )
+        for dish in recent_dishes:
+            image_url = ""
+            if dish.image:
+                try:
+                    image_url = dish.image.url
+                except Exception:
+                    image_url = ""
+            contact_url = dish.restaurant.whatsapp_url(dish.name)
+            try:
+                from django.urls import reverse
+                detail_url = reverse("resto:restaurant_detail", kwargs={"slug": dish.restaurant.slug})
+            except Exception:
+                detail_url = f"/resto/restaurant/{dish.restaurant.slug}/"
+            premium_showcase_items.append(
+                {
+                    "_rank": dish.restaurant.created_at,
+                    "tag": "Plat",
+                    "title": dish.name,
+                    "description": dish.description,
+                    "kind": f"{dish.restaurant.name} · {dish.restaurant.city.name}",
+                    "meta": dish.restaurant.neighborhood.name if dish.restaurant.neighborhood else (dish.restaurant.address or dish.restaurant.city.name),
+                    "price": dish.formatted_price,
+                    "image": image_url,
+                    "initial": dish.name[:1],
+                    "url": detail_url,
+                    "contact_url": contact_url,
+                    "views": dish.restaurant.views_count,
                     "leads": 0,
                 }
             )
