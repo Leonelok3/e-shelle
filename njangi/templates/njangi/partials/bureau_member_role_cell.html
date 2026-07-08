@@ -1,0 +1,21 @@
+<td class="px-5 py-3" id="member-role-cell-{{ ms.pk }}">
+  {% if membership.role == 'president' and ms.pk != membership.pk %}
+    <form style="margin:0;padding:0;display:inline-block;">
+      {% csrf_token %}
+      <select name="role"
+              hx-post="{% url 'njangi:htmx_bureau_member_role' slug=group.slug membership_pk=ms.pk %}"
+              hx-target="#member-role-cell-{{ ms.pk }}"
+              hx-swap="outerHTML"
+              class="text-xs rounded-xl bg-gray-50 border border-gray-200 px-2.5 py-1 text-gray-700 font-semibold cursor-pointer focus:ring-2 focus:ring-blue-500">
+        {% for val, label in ms.ROLE_CHOICES %}
+          <option value="{{ val }}" {% if ms.role == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  {% else %}
+    <span class="px-2 py-0.5 rounded-full text-xs font-semibold
+      {% if ms.is_bureau %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+      {{ ms.get_role_display }}
+    </span>
+  {% endif %}
+</td>

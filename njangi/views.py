@@ -495,6 +495,35 @@ class HtmxBureauContributionToggleView(BureauRequiredMixin, View):
         return HttpResponse(html)
 
 
+class HtmxBureauMemberRoleView(BureauRequiredMixin, View):
+    """Permet au President du bureau de nommer/changer le role d'un membre."""
+
+    def post(self, request, slug, membership_pk):
+        if self.membership.role != "president":
+            return HttpResponse("Action non autorisée", status=403)
+        
+        target_membership = get_object_or_404(Membership, pk=membership_pk, group=self.group)
+        if target_membership.pk == self.membership.pk:
+            return HttpResponse("Vous ne pouvez pas modifier votre propre rôle", status=400)
+            
+        new_role = request.POST.get("role")
+        if new_role in dict(Membership.ROLE_CHOICES):
+            target_membership.role = new_role
+            target_membership.save(update_fields=["role"])
+            
+        from django.template.loader import render_to_string
+        html = render_to_string(
+            "njangi/partials/bureau_member_role_cell.html",
+            {
+                "ms": target_membership,
+                "membership": self.membership,
+                "group": self.group,
+            },
+            request=request,
+        )
+        return HttpResponse(html)
+
+
 class HtmxRepaymentView(LoginRequiredMixin, View):
     def post(self, request, pk):
         loan = get_object_or_404(Loan, pk=pk, membership__user=request.user, status="active")
