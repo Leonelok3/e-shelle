@@ -377,6 +377,22 @@ class SessionDetailView(BureauRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         session = get_object_or_404(Session, pk=self.kwargs["pk"], group=self.group)
+        
+        # S'assurer que tous les membres actifs du groupe ont un enregistrement de cotisation pour cette seance
+        members = session.group.memberships.filter(is_active=True)
+        existing_mids = set(session.contributions.values_list("membership_id", flat=True))
+        missing_members = [m for m in members if m.id not in existing_mids]
+        if missing_members:
+            from njangi.models.session import Contribution
+            Contribution.objects.bulk_create([
+                Contribution(
+                    membership=m,
+                    session=session,
+                    amount_due=session.group.contribution_amount,
+                )
+                for m in missing_members
+            ])
+
         ctx["session"] = session
         ctx["contributions"] = session.contributions.select_related("membership__user").order_by("membership__hand_order")
         ctx["pay_form"] = ContributionPayForm()

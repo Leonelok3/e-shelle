@@ -158,6 +158,7 @@ class Contribution(models.Model):
         self.transaction_ref = ref
         self.paid_at = timezone.now()
         self.status = "paid" if amount >= self.amount_due else "partial"
+        self.recorded_by = user
         self.save()
 
         # Mettre à jour les totaux du membre
@@ -174,6 +175,7 @@ class Contribution(models.Model):
             self.transaction_ref = ""
             self.paid_at = None
             self.status = "pending"
+            self.recorded_by = None
             self.save()
             
             # Mettre a jour les totaux du membre
@@ -187,6 +189,7 @@ class Contribution(models.Model):
             self.transaction_ref = "Valide par le bureau"
             self.paid_at = timezone.now()
             self.status = "paid"
+            self.recorded_by = user
             self.save()
             
             # Mettre a jour les totaux du membre
