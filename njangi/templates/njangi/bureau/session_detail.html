@@ -67,28 +67,12 @@
         <th class="px-5 py-3 text-right">Payé</th>
         <th class="px-5 py-3 text-center">Statut</th>
         <th class="px-5 py-3 text-center">Méthode</th>
+        <th class="px-5 py-3 text-center">Reçu</th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-50">
       {% for c in contributions %}
-      <tr class="hover:bg-gray-50 transition">
-        <td class="px-5 py-3 font-medium text-gray-700">
-          {{ c.membership.user.get_full_name|default:c.membership.user.username }}
-          {% if c.is_late %}<span class="text-xs text-red-500 ml-1">⚠ retard</span>{% endif %}
-        </td>
-        <td class="px-5 py-3 text-right text-gray-500">{{ c.amount_due|floatformat:0 }}</td>
-        <td class="px-5 py-3 text-right font-semibold text-gray-700">{{ c.amount_paid|floatformat:0 }}</td>
-        <td class="px-5 py-3 text-center">
-          <span class="px-2 py-0.5 rounded-full text-xs font-semibold
-            {% if c.status == 'paid' %}bg-green-100 text-green-700
-            {% elif c.status == 'partial' %}bg-yellow-100 text-yellow-700
-            {% elif c.status == 'late' %}bg-red-100 text-red-600
-            {% else %}bg-gray-100 text-gray-400{% endif %}">
-            {{ c.get_status_display }}
-          </span>
-        </td>
-        <td class="px-5 py-3 text-center text-gray-400 text-xs">{{ c.get_payment_method_display|default:"—" }}</td>
-      </tr>
+        {% include "njangi/partials/bureau_contribution_row.html" with c=c group=group session=session %}
       {% endfor %}
     </tbody>
   </table>

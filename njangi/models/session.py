@@ -152,6 +152,35 @@ class Contribution(models.Model):
         self.membership.total_contributed += amount
         self.membership.save(update_fields=["total_contributed"])
 
+    def toggle_paid(self, user=None):
+        from django.utils import timezone
+        if self.status == "paid":
+            # Repasser en attente
+            amount_to_subtract = self.amount_paid
+            self.amount_paid = 0
+            self.payment_method = ""
+            self.transaction_ref = ""
+            self.paid_at = None
+            self.status = "pending"
+            self.save()
+            
+            # Mettre a jour les totaux du membre
+            self.membership.total_contributed = max(0, self.membership.total_contributed - amount_to_subtract)
+            self.membership.save(update_fields=["total_contributed"])
+        else:
+            # Marquer comme payee
+            amount_to_add = self.amount_due
+            self.amount_paid = amount_to_add
+            self.payment_method = "cash"
+            self.transaction_ref = "Valide par le bureau"
+            self.paid_at = timezone.now()
+            self.status = "paid"
+            self.save()
+            
+            # Mettre a jour les totaux du membre
+            self.membership.total_contributed += amount_to_add
+            self.membership.save(update_fields=["total_contributed"])
+
     @property
     def balance_due(self):
         return self.amount_due - self.amount_paid

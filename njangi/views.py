@@ -473,6 +473,28 @@ class HtmxContributionPayView(LoginRequiredMixin, View):
         return HttpResponse(html)
 
 
+class HtmxBureauContributionToggleView(BureauRequiredMixin, View):
+    """Permet au bureau de cocher/decocher le paiement de la cotisation d'un membre."""
+
+    def post(self, request, slug, session_pk, contribution_pk):
+        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        contribution = get_object_or_404(Contribution, pk=contribution_pk, session=session)
+        
+        contribution.toggle_paid(user=request.user)
+        
+        from django.template.loader import render_to_string
+        html = render_to_string(
+            "njangi/partials/bureau_contribution_row.html",
+            {
+                "c": contribution,
+                "group": self.group,
+                "session": session,
+            },
+            request=request,
+        )
+        return HttpResponse(html)
+
+
 class HtmxRepaymentView(LoginRequiredMixin, View):
     def post(self, request, pk):
         loan = get_object_or_404(Loan, pk=pk, membership__user=request.user, status="active")
