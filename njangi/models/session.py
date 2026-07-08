@@ -95,6 +95,19 @@ class Session(models.Model):
         from django.db.models import Sum
         return self.contributions.aggregate(total=Sum("amount_due"))["total"] or (self.group.contribution_amount * self.group.member_count)
 
+    @property
+    def total_contributions_paid(self):
+        return sum(c.amount_paid for c in self.contributions.filter(status="paid"))
+
+    @property
+    def total_repayments(self):
+        from njangi.models.loan import LoanRepayment
+        from django.db.models import Sum
+        return LoanRepayment.objects.filter(
+            loan__membership__group=self.group,
+            paid_at__date=self.date
+        ).aggregate(total=Sum("amount_paid"))["total"] or 0
+
 
 class Contribution(models.Model):
     """Cotisation d'un membre à une séance."""

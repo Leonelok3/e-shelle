@@ -81,4 +81,48 @@
   </table>
 </div>
 
+<!-- Résumé financier de la séance -->
+<div class="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+  <div class="px-5 py-4 border-b border-gray-50">
+    <h3 class="font-bold text-gray-700">Résumé financier de la séance</h3>
+  </div>
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+        <th class="px-5 py-3 text-left">Fond total de la séance</th>
+        <th class="px-5 py-3 text-left">Bénéficiaires de la séance</th>
+        <th class="px-5 py-3 text-right">Remboursement des prêts</th>
+        <th class="px-5 py-3 text-right">Fond disponible pour prêt</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="hover:bg-gray-50 transition">
+        <!-- Fond total de la seance -->
+        <td class="px-5 py-4 font-semibold text-gray-700">
+          {{ session.total_contributions_paid|floatformat:0 }} FCFA
+        </td>
+        
+        <!-- Beneficiaire de la seance -->
+        <td class="px-5 py-4 text-gray-600 font-medium">
+          {% if session.beneficiary %}
+            {{ session.beneficiary.user.get_full_name|default:session.beneficiary.user.username }}
+          {% else %}
+            <span class="text-gray-300">Aucun</span>
+          {% endif %}
+        </td>
+        
+        <!-- Remboursement des prets -->
+        <td class="px-5 py-4 text-right font-semibold text-gray-700">
+          {{ session.total_repayments|floatformat:0 }} FCFA
+        </td>
+        
+        <!-- Fond disponible pour pret -->
+        <td class="px-5 py-4 text-right font-bold text-green-600">
+          {{ group.fund_available_for_loans|floatformat:0 }} FCFA
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
 {% endblock %}
