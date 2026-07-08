@@ -32,6 +32,7 @@ urlpatterns = [
     path("bureau/<slug:slug>/seances/<int:pk>/",        views.SessionDetailView.as_view(),      name="session_detail"),
     path("bureau/<slug:slug>/seances/<int:pk>/ouvrir/", views.SessionOpenView.as_view(),        name="session_open"),
     path("bureau/<slug:slug>/seances/<int:pk>/cloturer/", views.SessionCloseView.as_view(),    name="session_close"),
+    path("bureau/<slug:slug>/seances/<int:pk>/finances/", views.SessionFinancialUpdateView.as_view(), name="session_financial_update"),
     path("bureau/<slug:slug>/seances/<int:session_pk>/prets/<int:loan_pk>/rembourser/", views.HtmxBureauRepaymentView.as_view(), name="bureau_loan_repay"),
     path("bureau/<slug:slug>/seances/<int:session_pk>/rembourser-pret/", views.HtmxBureauRepaymentView.as_view(), name="bureau_loan_repay_quick"),
     path("bureau/<slug:slug>/prets/",                   views.BureauLoansView.as_view(),        name="bureau_loans"),

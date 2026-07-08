@@ -9,7 +9,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 from .models import Group, Membership, Session, Contribution, FundDeposit, Loan, LoanRepayment, Notification, SubscriptionRequest
-from .forms import GroupCreateForm, JoinGroupForm, LoanRequestForm, DepositCreateForm, ContributionPayForm, RepaymentForm
+from .forms import GroupCreateForm, JoinGroupForm, LoanRequestForm, DepositCreateForm, ContributionPayForm, RepaymentForm, SessionFinancialForm
 
 
 # ── Mixins ────────────────────────────────────────────────────────────────────
@@ -180,6 +180,8 @@ class MemberDashboardView(LoginRequiredMixin, TemplateView):
         memberships = Membership.objects.filter(
             user=self.request.user, is_active=True
         ).select_related("group")
+        for membership in memberships:
+            membership.latest_session = membership.group.sessions.order_by("-date").first()
         ctx["memberships"] = memberships
         ctx["unread_count"] = Notification.objects.filter(
             membership__user=self.request.user, is_read=False
@@ -397,7 +399,20 @@ class SessionDetailView(BureauRequiredMixin, TemplateView):
         ctx["contributions"] = session.contributions.select_related("membership__user").order_by("membership__hand_order")
         ctx["pay_form"] = ContributionPayForm()
         ctx["active_loans"] = Loan.objects.filter(membership__group=self.group, status="active").select_related("membership__user")
+        ctx["financial_form"] = SessionFinancialForm(instance=session)
         return ctx
+
+
+class SessionFinancialUpdateView(BureauRequiredMixin, View):
+    def post(self, request, slug, pk):
+        session = get_object_or_404(Session, pk=pk, group=self.group)
+        form = SessionFinancialForm(request.POST, instance=session)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Données financières de la séance enregistrées.")
+        else:
+            messages.error(request, "Veuillez corriger les erreurs du formulaire de finances de la séance.")
+        return redirect("njangi:session_detail", slug=slug, pk=pk)
 
 
 class SessionOpenView(BureauRequiredMixin, View):

@@ -29,6 +29,26 @@ class Session(models.Model):
     # Montants
     total_collected  = models.DecimalField(max_digits=14, decimal_places=0, default=0, verbose_name="Total collecté (FCFA)")
     hand_amount      = models.DecimalField(max_digits=14, decimal_places=0, default=0, verbose_name="Main versée (FCFA)")
+    main_raised_amount = models.DecimalField(
+        max_digits=14, decimal_places=0, default=0,
+        verbose_name="Main levée de la séance (FCFA)"
+    )
+    loan_fund_available = models.DecimalField(
+        max_digits=14, decimal_places=0, default=0,
+        verbose_name="Fond disponible pour prêt (FCFA)"
+    )
+    loan_interest_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True,
+        verbose_name="Taux d'intérêt (%)"
+    )
+    loan_due_date = models.DateField(
+        null=True, blank=True,
+        verbose_name="Date butoire de remboursement"
+    )
+    cash_returned_manual = models.DecimalField(
+        max_digits=14, decimal_places=0, default=0,
+        verbose_name="Retour en caisse (FCFA)"
+    )
     penalties_collected = models.DecimalField(max_digits=12, decimal_places=0, default=0, verbose_name="Pénalités collectées (FCFA)")
 
     status     = models.CharField(max_length=15, choices=STATUS_CHOICES, default="planned")

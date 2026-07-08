@@ -85,87 +85,98 @@
 <div class="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
   <div class="px-5 py-4 border-b border-gray-50">
     <h3 class="font-bold text-gray-700">Résumé financier de la séance</h3>
+    <p class="text-sm text-gray-500 mt-1">Saisissez ou mettez à jour les montants du bureau pour cette séance.</p>
   </div>
-  <table class="w-full text-sm">
-    <thead>
-      <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
-        <th class="px-5 py-3 text-left">Fond total de la séance</th>
-        <th class="px-5 py-3 text-left">Bénéficiaires de la séance</th>
-        <th class="px-5 py-3 text-right">Remboursement des prêts</th>
-        <th class="px-5 py-3 text-right">Retour en caisse</th>
-        <th class="px-5 py-3 text-right">Fond disponible pour prêt</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr class="hover:bg-gray-50 transition align-top">
-        <!-- Fond total de la seance -->
-        <td class="px-5 py-4 font-semibold text-gray-700">
-          {{ session.total_contributions_paid|floatformat:0 }} FCFA
-        </td>
-        
-        <!-- Beneficiaire de la seance -->
-        <td class="px-5 py-4 text-gray-600 font-medium">
-          {% if session.beneficiary %}
-            {{ session.beneficiary.user.get_full_name|default:session.beneficiary.user.username }}
-          {% else %}
-            <span class="text-gray-300">Aucun</span>
-          {% endif %}
-        </td>
-        
-        <!-- Remboursement des prets (Nom et Montant avec saisie manuelle) -->
-        <td class="px-5 py-4 text-right">
-          <div class="font-bold text-gray-800 text-base mb-2">
-            {{ session.total_repayments|floatformat:0 }} FCFA
+
+  <div class="grid gap-6 lg:grid-cols-2 p-5">
+    <div class="bg-gray-50 rounded-2xl p-5">
+      <h4 class="font-semibold text-gray-700 mb-4">Montants saisis manuellement</h4>
+      <form method="post" action="{% url 'njangi:session_financial_update' slug=group.slug pk=session.pk %}" class="space-y-4">
+        {% csrf_token %}
+        <div class="grid gap-4">
+          <label class="text-sm text-gray-600">Main levée de la séance (FCFA)</label>
+          {{ financial_form.main_raised_amount }}
+          {% if financial_form.main_raised_amount.errors %}<p class="text-xs text-red-500">{{ financial_form.main_raised_amount.errors|striptags }}</p>{% endif %}
+        </div>
+        <div class="grid gap-4">
+          <label class="text-sm text-gray-600">Fond disponible pour prêt (FCFA)</label>
+          {{ financial_form.loan_fund_available }}
+          {% if financial_form.loan_fund_available.errors %}<p class="text-xs text-red-500">{{ financial_form.loan_fund_available.errors|striptags }}</p>{% endif %}
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label class="text-sm text-gray-600">Taux d’intérêt (%)</label>
+            {{ financial_form.loan_interest_rate }}
+            {% if financial_form.loan_interest_rate.errors %}<p class="text-xs text-red-500">{{ financial_form.loan_interest_rate.errors|striptags }}</p>{% endif %}
           </div>
-          
-          <!-- Liste des remboursements de cette seance -->
-          {% if session.repayments_made %}
-            <div class="space-y-1 mb-3 inline-block text-left w-full max-w-[220px]">
-              {% for r in session.repayments_made %}
-                <div class="text-xs text-gray-600 bg-gray-50 rounded px-2 py-1 border border-gray-100 flex justify-between gap-2">
-                  <span class="font-medium truncate max-w-[120px]">{{ r.loan.membership.user.get_full_name|default:r.loan.membership.user.username }}</span>
-                  <span class="font-semibold text-gray-900">{{ r.amount_paid|floatformat:0 }} FCFA</span>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="text-xs text-gray-400 mb-2 italic">Aucun remboursement</div>
-          {% endif %}
-          
-          <!-- Formulaire de saisie rapide pour le bureau -->
-          {% if session.status != 'completed' and active_loans %}
-            <form method="post" action="{% url 'njangi:bureau_loan_repay_quick' slug=group.slug session_pk=session.pk %}" 
-                  class="mt-2 text-left space-y-1.5 inline-block w-full max-w-[220px]">
-              {% csrf_token %}
-              <select name="loan_pk" required class="w-full text-xs rounded-lg border border-gray-200 px-2 py-1 bg-white focus:ring-1 focus:ring-blue-500">
-                <option value="">-- Choisir membre --</option>
-                {% for loan in active_loans %}
-                  <option value="{{ loan.pk }}">{{ loan.membership.user.get_full_name|default:loan.membership.user.username }} (Max: {{ loan.balance_remaining|floatformat:0 }})</option>
-                {% endfor %}
-              </select>
-              <div class="flex gap-1">
-                <input type="number" name="amount" min="1" required placeholder="Montant"
-                       class="w-full text-xs rounded-lg border border-gray-200 px-2 py-1 focus:ring-1 focus:ring-blue-500">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1 rounded-lg transition flex-shrink-0">
-                  Enregistrer
-                </button>
+          <div>
+            <label class="text-sm text-gray-600">Date butoire de remboursement</label>
+            {{ financial_form.loan_due_date }}
+            {% if financial_form.loan_due_date.errors %}<p class="text-xs text-red-500">{{ financial_form.loan_due_date.errors|striptags }}</p>{% endif %}
+          </div>
+        </div>
+        <div class="grid gap-4">
+          <label class="text-sm text-gray-600">Retour en caisse (FCFA)</label>
+          {{ financial_form.cash_returned_manual }}
+          {% if financial_form.cash_returned_manual.errors %}<p class="text-xs text-red-500">{{ financial_form.cash_returned_manual.errors|striptags }}</p>{% endif %}
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl text-white font-semibold bg-blue-600 hover:bg-blue-700 transition">
+          Enregistrer la saisie financière
+        </button>
+      </form>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+      <h4 class="font-semibold text-gray-700 mb-4">Détails des prêts et remboursements</h4>
+      <div class="space-y-4">
+        <div class="rounded-2xl bg-green-50 p-4">
+          <p class="text-xs text-gray-500 uppercase tracking-wide">Main levée manuelle</p>
+          <p class="mt-2 font-bold text-gray-900">{{ session.main_raised_amount|floatformat:0 }} FCFA</p>
+        </div>
+        <div class="rounded-2xl bg-yellow-50 p-4">
+          <p class="text-xs text-gray-500 uppercase tracking-wide">Fond prêt saisi</p>
+          <p class="mt-2 font-bold text-gray-900">{{ session.loan_fund_available|floatformat:0 }} FCFA</p>
+        </div>
+        <div class="rounded-2xl bg-blue-50 p-4">
+          <p class="text-xs text-gray-500 uppercase tracking-wide">Retour en caisse saisi</p>
+          <p class="mt-2 font-bold text-gray-900">{{ session.cash_returned_manual|floatformat:0 }} FCFA</p>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <h5 class="text-sm font-semibold text-gray-700 mb-3">Remboursements enregistrés</h5>
+        {% if session.repayments_made %}
+          <div class="space-y-2">
+            {% for r in session.repayments_made %}
+              <div class="rounded-xl border border-gray-100 bg-gray-50 p-3 flex items-center justify-between gap-3">
+                <span class="text-sm text-gray-700 truncate">{{ r.loan.membership.user.get_full_name|default:r.loan.membership.user.username }}</span>
+                <span class="text-sm font-semibold text-gray-900">{{ r.amount_paid|floatformat:0 }} FCFA</span>
               </div>
-            </form>
-          {% endif %}
-        </td>
-        
-        <!-- Retour en caisse -->
-        <td class="px-5 py-4 text-right font-bold text-blue-600">
-          {{ session.cash_returned|floatformat:0 }} FCFA
-        </td>
-        
-        <!-- Fond disponible pour pret -->
-        <td class="px-5 py-4 text-right font-bold text-green-600">
-          {{ group.fund_available_for_loans|floatformat:0 }} FCFA
-        </td>
-      </tr>
-    </tbody>
-  </table>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-xs text-gray-400 italic">Aucun remboursement saisi pour cette séance.</p>
+        {% endif %}
+      </div>
+
+      {% if session.status != 'completed' and active_loans %}
+      <div class="mt-6">
+        <h5 class="text-sm font-semibold text-gray-700 mb-3">Saisie rapide de remboursement</h5>
+        <form method="post" action="{% url 'njangi:bureau_loan_repay_quick' slug=group.slug session_pk=session.pk %}" class="space-y-3">
+          {% csrf_token %}
+          <select name="loan_pk" required class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm">
+            <option value="">Sélectionner un prêt actif</option>
+            {% for loan in active_loans %}
+              <option value="{{ loan.pk }}">{{ loan.membership.user.get_full_name|default:loan.membership.user.username }} — Solde: {{ loan.balance_remaining|floatformat:0 }} FCFA</option>
+            {% endfor %}
+          </select>
+          <input type="number" name="amount" min="1" required placeholder="Montant" class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm" />
+          <button type="submit" class="w-full py-3 rounded-xl text-white font-semibold bg-blue-600 hover:bg-blue-700 transition">Enregistrer remboursement</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
 </div>
 
 {% endblock %}

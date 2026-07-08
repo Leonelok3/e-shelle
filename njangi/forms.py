@@ -35,10 +35,14 @@ class JoinGroupForm(forms.Form):
 class SessionCreateForm(forms.ModelForm):
     class Meta:
         model = Session
-        fields = ["session_number", "date", "beneficiary", "notes"]
+        fields = [
+            "session_number", "date", "beneficiary", "notes",
+            "main_raised_amount", "loan_fund_available", "loan_interest_rate", "loan_due_date", "cash_returned_manual",
+        ]
         widgets = {
             "date": forms.DateInput(attrs={"type": "date"}),
             "notes": forms.Textarea(attrs={"rows": 3}),
+            "loan_due_date": forms.DateInput(attrs={"type": "date"}),
         }
 
     def __init__(self, *args, group=None, **kwargs):
@@ -116,3 +120,38 @@ class RepaymentForm(forms.Form):
     amount          = forms.DecimalField(max_digits=14, decimal_places=0, min_value=1)
     payment_method  = forms.ChoiceField(choices=PAYMENT_METHOD_CHOICES)
     transaction_ref = forms.CharField(max_length=100, required=False, label="Référence (optionnel)")
+
+
+class SessionFinancialForm(forms.ModelForm):
+    class Meta:
+        model = Session
+        fields = [
+            "main_raised_amount",
+            "loan_fund_available",
+            "loan_interest_rate",
+            "loan_due_date",
+            "cash_returned_manual",
+        ]
+        widgets = {
+            "main_raised_amount": forms.NumberInput(attrs={
+                "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
+                "min": "0",
+            }),
+            "loan_fund_available": forms.NumberInput(attrs={
+                "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
+                "min": "0",
+            }),
+            "loan_interest_rate": forms.NumberInput(attrs={
+                "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
+                "step": "0.01",
+                "min": "0",
+            }),
+            "loan_due_date": forms.DateInput(attrs={
+                "type": "date",
+                "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
+            }),
+            "cash_returned_manual": forms.NumberInput(attrs={
+                "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
+                "min": "0",
+            }),
+        }
