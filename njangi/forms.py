@@ -37,7 +37,7 @@ class SessionCreateForm(forms.ModelForm):
         model = Session
         fields = [
             "session_number", "date", "beneficiary", "notes",
-            "repayment_amount_manual", "main_raised_amount", "loan_fund_available", "loan_interest_rate", "loan_due_date", "cash_returned_manual",
+            "repayment_amount_manual", "repayment_members_manual", "main_raised_amount", "loan_fund_available", "loan_interest_rate", "loan_due_date", "cash_returned_manual",
         ]
         widgets = {
             "date": forms.DateInput(attrs={"type": "date"}),
@@ -127,6 +127,7 @@ class SessionFinancialForm(forms.ModelForm):
         model = Session
         fields = [
             "repayment_amount_manual",
+            "repayment_members_manual",
             "main_raised_amount",
             "loan_fund_available",
             "loan_interest_rate",
@@ -134,6 +135,11 @@ class SessionFinancialForm(forms.ModelForm):
             "cash_returned_manual",
         ]
         widgets = {
+            "repayment_members_manual": forms.Textarea(attrs={
+                "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
+                "rows": 2,
+                "placeholder": "Ex : Ange, Hassan, Fatou",
+            }),
             "main_raised_amount": forms.NumberInput(attrs={
                 "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
                 "min": "0",

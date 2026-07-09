@@ -99,6 +99,12 @@
           {% if financial_form.repayment_amount_manual.errors %}<p class="text-xs text-red-500">{{ financial_form.repayment_amount_manual.errors|striptags }}</p>{% endif %}
         </div>
         <div class="grid gap-4">
+          <label class="text-sm text-gray-600">Membres remboursant</label>
+          {{ financial_form.repayment_members_manual }}
+          {% if financial_form.repayment_members_manual.errors %}<p class="text-xs text-red-500">{{ financial_form.repayment_members_manual.errors|striptags }}</p>{% endif %}
+          <p class="text-xs text-gray-500">Entrez les noms séparés par des virgules.</p>
+        </div>
+        <div class="grid gap-4">
           <label class="text-sm text-gray-600">Main levée de la séance (FCFA)</label>
           {{ financial_form.main_raised_amount }}
           {% if financial_form.main_raised_amount.errors %}<p class="text-xs text-red-500">{{ financial_form.main_raised_amount.errors|striptags }}</p>{% endif %}
@@ -141,6 +147,9 @@
         <div class="rounded-2xl bg-indigo-50 p-4">
           <p class="text-xs text-gray-500 uppercase tracking-wide">Remboursements saisis</p>
           <p class="mt-2 font-bold text-gray-900">{{ session.repayment_amount_manual|floatformat:0 }} FCFA</p>
+          {% if session.repayment_members_manual %}
+          <p class="text-xs text-gray-500 mt-2">Membres déclarés : {{ session.repayment_members_manual }}</p>
+          {% endif %}
           {% if session.repayments_made %}
           <p class="text-xs text-gray-500 mt-2">Membres remboursés :
             {% for r in session.repayments_made %}
