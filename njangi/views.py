@@ -399,14 +399,15 @@ class SessionDetailView(BureauRequiredMixin, TemplateView):
         ctx["contributions"] = session.contributions.select_related("membership__user").order_by("membership__hand_order")
         ctx["pay_form"] = ContributionPayForm()
         ctx["active_loans"] = Loan.objects.filter(membership__group=self.group, status="active").select_related("membership__user")
-        ctx["financial_form"] = SessionFinancialForm(instance=session)
+        ctx["loans"] = Loan.objects.filter(membership__group=self.group).select_related("membership__user")
+        ctx["financial_form"] = SessionFinancialForm(instance=session, group=self.group)
         return ctx
 
 
 class SessionFinancialUpdateView(BureauRequiredMixin, View):
     def post(self, request, slug, pk):
         session = get_object_or_404(Session, pk=pk, group=self.group)
-        form = SessionFinancialForm(request.POST, instance=session)
+        form = SessionFinancialForm(request.POST, instance=session, group=self.group)
         if form.is_valid():
             form.save()
             messages.success(request, "Données financières de la séance enregistrées.")
@@ -1148,6 +1149,141 @@ class FundStatementPDFView(BureauRequiredMixin, View):
         doc.build(story)
         buffer.seek(0)
         filename = f"fond_commun_{group.slug}_{datetime.now().strftime('%Y%m%d')}.pdf"
+        response = HttpResponse(buffer, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+
+class SessionReportPDFView(BureauRequiredMixin, View):
+    """
+    Génère un rapport PDF complet pour une séance clôturée.
+    URL: /njangi/bureau/<slug>/seances/<pk>/rapport-pdf/
+    """
+
+    def get(self, request, slug, pk):
+        from io import BytesIO
+        from datetime import datetime
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+        from reportlab.lib.units import cm
+
+        session = get_object_or_404(Session, pk=pk, group=self.group)
+        if session.status != "completed":
+            messages.error(request, "Le rapport PDF n'est disponible qu'après clôture de la séance.")
+            return redirect("njangi:session_detail", slug=slug, pk=pk)
+
+        contributions = session.contributions.select_related("membership__user").order_by("membership__hand_order")
+        repayments = session.repayments_made
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(
+            buffer, pagesize=A4,
+            rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm,
+        )
+        styles = getSampleStyleSheet()
+        PRIMARY = colors.HexColor("#1B6CA8")
+        LIGHT = colors.HexColor("#EFF6FF")
+
+        story = []
+        title_style = ParagraphStyle("title", parent=styles["Title"], textColor=PRIMARY, fontSize=18)
+        story.append(Paragraph(f"Rapport de séance #{session.session_number}", title_style))
+        story.append(Spacer(1, 0.2*cm))
+        story.append(Paragraph(
+            f"Groupe : <b>{self.group.name}</b> | Date : <b>{session.date.strftime('%d/%m/%Y')}</b> | Cycle : <b>{session.cycle}</b>",
+            styles["Normal"],
+        ))
+        story.append(Paragraph(
+            f"Bénéficiaire : <b>{session.beneficiary.user.get_full_name() or session.beneficiary.user.username if session.beneficiary else '—'}</b>",
+            styles["Normal"],
+        ))
+        story.append(Paragraph(f"Statut : <b>{session.get_status_display}</b>", styles["Normal"]))
+        story.append(Spacer(1, 0.4*cm))
+
+        overview_data = [
+            ["Indicateur", "Valeur"],
+            ["Total collecté", f"{int(session.total_collected):,} FCFA"],
+            ["Main levée", f"{int(session.main_raised_amount):,} FCFA"],
+            ["Remboursements saisis", f"{int(session.repayment_amount_manual):,} FCFA"],
+            ["Retour en caisse", f"{int(session.cash_returned_manual):,} FCFA"],
+            ["Fonds disponibles pour prêt", f"{int(session.loan_fund_available):,} FCFA"],
+            ["Pénalités collectées", f"{int(session.penalties_collected):,} FCFA"],
+        ]
+        table = Table(overview_data, colWidths=[9*cm, 8*cm])
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+            ("PADDING", (0, 0), (-1, -1), 6),
+        ]))
+        story.append(table)
+        story.append(Spacer(1, 0.5*cm))
+
+        if session.repayment_members_manual:
+            story.append(Paragraph("Membres remboursant (manuel) :", styles["Normal"]))
+            story.append(Paragraph(session.repayment_members_manual, styles["Normal"]))
+            story.append(Spacer(1, 0.3*cm))
+
+        if contributions.exists():
+            story.append(Paragraph("Détail des cotisations", styles["Heading2"]))
+            story.append(Spacer(1, 0.2*cm))
+            contrib_data = [["Membre", "Dû", "Payé", "Statut", "Méthode"]]
+            for c in contributions:
+                contrib_data.append([
+                    c.membership.user.get_full_name() or c.membership.user.username,
+                    f"{int(c.amount_due):,} FCFA",
+                    f"{int(c.amount_paid):,} FCFA",
+                    c.get_status_display(),
+                    c.payment_method or "—",
+                ])
+            t_contrib = Table(contrib_data, colWidths=[6*cm, 3*cm, 3*cm, 3*cm, 2*cm])
+            t_contrib.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("PADDING", (0, 0), (-1, -1), 5),
+            ]))
+            story.append(t_contrib)
+            story.append(Spacer(1, 0.5*cm))
+
+        if repayments.exists():
+            story.append(Paragraph("Remboursements enregistrés", styles["Heading2"]))
+            story.append(Spacer(1, 0.2*cm))
+            repay_data = [["Membre", "Montant", "Date"]]
+            for r in repayments:
+                repay_data.append([
+                    r.loan.membership.user.get_full_name() or r.loan.membership.user.username,
+                    f"{int(r.amount_paid):,} FCFA",
+                    r.paid_at.strftime("%d/%m/%Y"),
+                ])
+            t_repay = Table(repay_data, colWidths=[7*cm, 4*cm, 5*cm])
+            t_repay.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("PADDING", (0, 0), (-1, -1), 5),
+            ]))
+            story.append(t_repay)
+            story.append(Spacer(1, 0.5*cm))
+
+        story.append(Paragraph(
+            f"<font color='grey' size='8'>Document généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')} — E-Shelle Njangi+</font>",
+            styles["Normal"],
+        ))
+
+        doc.build(story)
+        buffer.seek(0)
+        filename = f"rapport_seance_{self.group.slug}_{session.session_number}_{session.date.strftime('%Y%m%d')}.pdf"
         response = HttpResponse(buffer, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response

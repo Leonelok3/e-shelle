@@ -13,7 +13,7 @@
       <p class="text-sm text-gray-600 mt-1">🏆 Bénéficiaire : <strong>{{ session.beneficiary.user.get_full_name|default:session.beneficiary.user.username }}</strong></p>
       {% endif %}
     </div>
-    <div class="flex gap-2">
+    <div class="flex gap-2 items-center">
       {% if session.status == 'planned' %}
       <form method="post" action="{% url 'njangi:session_open' slug=group.slug pk=session.pk %}">
         {% csrf_token %}
@@ -30,6 +30,12 @@
       </form>
       {% else %}
       <span class="px-4 py-2 rounded-xl text-sm font-semibold bg-gray-100 text-gray-500">{{ session.get_status_display }}</span>
+      {% endif %}
+
+      {% if session.status == 'completed' %}
+      <a href="{% url 'njangi:session_report_pdf' slug=group.slug pk=session.pk %}" class="px-4 py-2 rounded-xl text-white font-semibold text-sm bg-blue-600 hover:bg-blue-700">
+        📄 Télécharger le rapport PDF
+      </a>
       {% endif %}
     </div>
   </div>
@@ -187,6 +193,34 @@
           <p class="text-xs text-gray-400 italic">Aucun remboursement saisi pour cette séance.</p>
         {% endif %}
       </div>
+
+      {% if loans %}
+      <div class="mt-6">
+        <h5 class="text-sm font-semibold text-gray-700 mb-3">Tableau des prêts</h5>
+        <div class="overflow-x-auto rounded-xl border border-gray-100 bg-white">
+          <table class="min-w-full text-sm text-left">
+            <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+              <tr>
+                <th class="px-4 py-3">Membre</th>
+                <th class="px-4 py-3">Montant prêté</th>
+                <th class="px-4 py-3">Reste dû</th>
+                <th class="px-4 py-3">Statut</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              {% for loan in loans %}
+              <tr class="bg-white">
+                <td class="px-4 py-3">{{ loan.membership.user.get_full_name|default:loan.membership.user.username }}</td>
+                <td class="px-4 py-3">{{ loan.formatted_amount }}</td>
+                <td class="px-4 py-3">{{ loan.balance_remaining|floatformat:0 }} FCFA</td>
+                <td class="px-4 py-3">{{ loan.get_status_display }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
 
       {% if session.status != 'completed' and active_loans %}
       <div class="mt-6">
