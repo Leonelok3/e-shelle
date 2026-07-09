@@ -414,7 +414,12 @@ class SessionDetailView(BureauRequiredMixin, TemplateView):
         ctx["session"] = session
         ctx["contributions"] = session.contributions.select_related("membership__user").order_by("membership__hand_order")
         ctx["pay_form"] = ContributionPayForm()
+        ctx["loan_depositors"] = FundDeposit.objects.filter(
+            membership__group=self.group,
+            status="active"
+        ).select_related("membership__user")
         ctx["active_loans"] = Loan.objects.filter(membership__group=self.group, status="active").select_related("membership__user")
+        ctx["borrowers"] = Loan.objects.filter(membership__group=self.group, status="active").select_related("membership__user")
         ctx["loans"] = Loan.objects.filter(membership__group=self.group).select_related("membership__user")
         ctx["financial_form"] = SessionFinancialForm(instance=session, group=self.group)
         return ctx

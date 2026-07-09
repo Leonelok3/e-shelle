@@ -178,7 +178,19 @@
         </div>
       </div>
 
-      {% if session.main_raised_members.exists %}
+      {% if loan_depositors %}
+      <div class="mt-6 rounded-2xl bg-slate-50 p-5 border border-gray-100">
+        <h5 class="text-sm font-semibold text-gray-700 mb-3">Membres ayant mis des fonds à disposition pour prêt</h5>
+        <div class="space-y-2 text-sm text-gray-700">
+          {% for deposit in loan_depositors %}
+          <div class="flex items-center justify-between rounded-xl bg-white border border-gray-100 px-4 py-3">
+            <span>{{ deposit.membership.user.get_full_name|default:deposit.membership.user.username }}</span>
+            <span class="font-semibold">{{ deposit.formatted_amount }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% elif session.main_raised_members %}
       <div class="mt-6 rounded-2xl bg-slate-50 p-5 border border-gray-100">
         <h5 class="text-sm font-semibold text-gray-700 mb-3">Membres ayant contribué à la main levée</h5>
         <div class="space-y-2 text-sm text-gray-700">
@@ -186,6 +198,20 @@
           <div class="flex items-center justify-between rounded-xl bg-white border border-gray-100 px-4 py-3">
             <span>{{ contribution.membership.user.get_full_name|default:contribution.membership.user.username }}</span>
             <span class="font-semibold">{{ contribution.amount_paid|floatformat:0 }} FCFA</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if borrowers %}
+      <div class="mt-6 rounded-2xl bg-slate-50 p-5 border border-gray-100">
+        <h5 class="text-sm font-semibold text-gray-700 mb-3">Membres ayant emprunté</h5>
+        <div class="space-y-2 text-sm text-gray-700">
+          {% for loan in borrowers %}
+          <div class="flex items-center justify-between rounded-xl bg-white border border-gray-100 px-4 py-3">
+            <span>{{ loan.membership.user.get_full_name|default:loan.membership.user.username }}</span>
+            <span class="font-semibold">{{ loan.formatted_amount }}</span>
           </div>
           {% endfor %}
         </div>

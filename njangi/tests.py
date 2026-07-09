@@ -12,6 +12,7 @@ from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, RequestFactory
+from django.urls import reverse
 from django.utils import timezone
 
 from njangi.models import (
@@ -280,6 +281,34 @@ class InterestCalculationServiceTest(TestCase):
             session.repayment_members_display,
             f"{self.m_bob.user.get_full_name() or self.m_bob.user.username}, {self.m_carol.user.username}"
         )
+
+    def test_session_detail_shows_loan_depositors_and_borrowers(self):
+        """La vue détail de séance affiche dépôts et emprunteurs liés au fond."""
+        group = self.group
+        m_bob = make_membership(make_user("bob2"), group, hand_order=2)
+        m_carol = make_membership(make_user("carol2"), group, hand_order=3)
+
+        session = Session.objects.create(
+            group=group,
+            session_number=1,
+            cycle=1,
+            date=self.today,
+            status="in_progress",
+            created_by=self.president,
+        )
+
+        deposit = make_deposit(m_bob, 150_000)
+        loan = make_active_loan(m_carol, 100_000)
+
+        self.client.force_login(self.president)
+        url = reverse("njangi:session_detail", kwargs={"slug": group.slug, "pk": session.pk})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, deposit.membership.user.get_full_name() or deposit.membership.user.username)
+        self.assertContains(response, "150 000 FCFA")
+        self.assertContains(response, loan.membership.user.get_full_name() or loan.membership.user.username)
+        self.assertContains(response, "100 000 FCFA")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
