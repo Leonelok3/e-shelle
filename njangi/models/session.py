@@ -155,6 +155,28 @@ class Session(models.Model):
             paid_at__date=self.date,
         ).select_related("loan__membership__user")
 
+    @property
+    def repayment_members_list(self):
+        return [name.strip() for name in self.repayment_members_manual.split(",") if name.strip()]
+
+    @property
+    def repayment_members_display(self):
+        return ", ".join(self.repayment_members_list)
+
+    @property
+    def repayment_members(self):
+        """Retourne les memberships correspondant aux noms saisis manuellement."""
+        names = self.repayment_members_list
+        if not names:
+            return []
+        members = list(self.group.memberships.filter(is_active=True).select_related("user"))
+        lookup = {
+            (m.user.get_full_name() or m.user.username): m
+            for m in members
+        }
+        lookup.update({m.user.username: m for m in members})
+        return [lookup.get(name) for name in names if lookup.get(name)]
+
 
 class Contribution(models.Model):
     """Cotisation d'un membre à une séance."""

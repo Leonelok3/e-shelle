@@ -11,7 +11,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django.utils import timezone
 
 from njangi.models import (
@@ -258,6 +258,28 @@ class InterestCalculationServiceTest(TestCase):
             self.assertIn("deposit", entry)
             self.assertIn("interest", entry)
             self.assertIn("wallet", entry)
+
+    def test_session_repayment_members_display_property(self):
+        """La propriété de session renvoie la liste formatée des membres remboursant."""
+        session = Session.objects.create(
+            group=self.group,
+            session_number=1,
+            cycle=1,
+            date=self.today,
+            status="completed",
+            created_by=self.president,
+        )
+        session.repayment_members_manual = f"{self.m_bob.user.get_full_name() or self.m_bob.user.username}, {self.m_carol.user.username}"
+        session.save()
+
+        self.assertEqual(
+            session.repayment_members_list,
+            [self.m_bob.user.get_full_name() or self.m_bob.user.username, self.m_carol.user.username]
+        )
+        self.assertEqual(
+            session.repayment_members_display,
+            f"{self.m_bob.user.get_full_name() or self.m_bob.user.username}, {self.m_carol.user.username}"
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════

@@ -176,12 +176,28 @@ class MemberDashboardView(LoginRequiredMixin, TemplateView):
     template_name = "njangi/member/dashboard.html"
 
     def get_context_data(self, **kwargs):
+        from njangi.models.wallet import MemberMonthlyStatement
+
         ctx = super().get_context_data(**kwargs)
-        memberships = Membership.objects.filter(
+        memberships = list(Membership.objects.filter(
             user=self.request.user, is_active=True
-        ).select_related("group")
+        ).select_related("group"))
+        membership_ids = [m.id for m in memberships]
+
+        latest_statements = {}
+        statements = MemberMonthlyStatement.objects.filter(
+            membership_id__in=membership_ids
+        ).select_related("monthly_record").order_by(
+            "-monthly_record__year", "-monthly_record__month"
+        )
+        for stmt in statements:
+            if stmt.membership_id not in latest_statements:
+                latest_statements[stmt.membership_id] = stmt
+
         for membership in memberships:
             membership.latest_session = membership.group.sessions.order_by("-date").first()
+            membership.latest_monthly_statement = latest_statements.get(membership.id)
+
         ctx["memberships"] = memberships
         ctx["unread_count"] = Notification.objects.filter(
             membership__user=self.request.user, is_read=False
@@ -1223,9 +1239,9 @@ class SessionReportPDFView(BureauRequiredMixin, View):
         story.append(table)
         story.append(Spacer(1, 0.5*cm))
 
-        if session.repayment_members_manual:
+        if session.repayment_members_display:
             story.append(Paragraph("Membres remboursant (manuel) :", styles["Normal"]))
-            story.append(Paragraph(session.repayment_members_manual, styles["Normal"]))
+            story.append(Paragraph(session.repayment_members_display, styles["Normal"]))
             story.append(Spacer(1, 0.3*cm))
 
         if contributions.exists():
