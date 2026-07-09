@@ -45,6 +45,10 @@ class Session(models.Model):
         null=True, blank=True,
         verbose_name="Date butoire de remboursement"
     )
+    repayment_amount_manual = models.DecimalField(
+        max_digits=14, decimal_places=0, default=0,
+        verbose_name="Montant remboursements (FCFA)"
+    )
     cash_returned_manual = models.DecimalField(
         max_digits=14, decimal_places=0, default=0,
         verbose_name="Retour en caisse (FCFA)"
@@ -142,6 +146,10 @@ class Session(models.Model):
     def cash_returned(self):
         hand = self.hand_amount if self.status == 'completed' else 0
         return self.total_contributions_paid + self.total_repayments - hand
+
+    @property
+    def total_loan_resources(self):
+        return self.main_raised_amount + self.repayment_amount_manual
 
     @property
     def repayments_made(self):
