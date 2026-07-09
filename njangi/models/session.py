@@ -138,6 +138,10 @@ class Session(models.Model):
         ).aggregate(total=Sum("amount_paid"))["total"] or 0
 
     @property
+    def main_raised_members(self):
+        return self.contributions.filter(status="paid").select_related("membership__user").order_by("membership__hand_order")
+
+    @property
     def cash_returned(self):
         hand = self.hand_amount if self.status == 'completed' else 0
         return self.total_contributions_paid + self.total_repayments - hand
