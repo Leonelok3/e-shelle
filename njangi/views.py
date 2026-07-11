@@ -1386,7 +1386,7 @@ class SessionReportPDFView(BureauRequiredMixin, View):
             styles["Normal"],
         ))
         story.append(Paragraph(
-            f"Bénéficiaire de la main : <b>{session.beneficiary.user.get_full_name() or session.beneficiary.user.username if session.beneficiary else '—'}</b> (Montant : <b>{int(session.hand_amount):,} FCFA</b>)",
+            f"Bénéficiaire de la séance : <b>{session.beneficiary.user.get_full_name() or session.beneficiary.user.username if session.beneficiary else '—'}</b> (Montant : <b>{int(session.hand_amount):,} FCFA</b>)",
             styles["Normal"],
         ))
         story.append(Paragraph(f"Statut : <b>{session.get_status_display()}</b>", styles["Normal"]))
