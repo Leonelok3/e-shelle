@@ -457,6 +457,32 @@ class InterestCalculationServiceTest(TestCase):
         response_filtered = self.client.get(url + "?action=session_created")
         self.assertEqual(response_filtered.status_code, 200)
 
+    def test_create_virtual_member(self):
+        """Teste la création d'un membre virtuel (sans compte email existant) par le bureau."""
+        group = self.group
+        self.client.force_login(self.president)
+        
+        url = reverse("njangi:bureau_members", kwargs={"slug": group.slug})
+        res = self.client.post(url, {
+            "action": "create_virtual",
+            "first_name": "Fatou",
+            "last_name": "Diome",
+            "whatsapp": "+221771234567"
+        })
+        self.assertEqual(res.status_code, 302)
+        
+        # Vérifier que le membre virtuel existe et est lié au groupe
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        virtual_user = User.objects.filter(first_name="Fatou", last_name="Diome").first()
+        self.assertIsNotNone(virtual_user)
+        self.assertTrue(virtual_user.username.startswith("virtual_"))
+        
+        # Vérifier le membership
+        m = Membership.objects.filter(user=virtual_user, group=group).first()
+        self.assertIsNotNone(m)
+        self.assertTrue(m.is_active)
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SUITE 2 — DistributionCalculator

@@ -6,38 +6,88 @@
   <h2 class="text-xl font-bold text-gray-700">Membres ({{ members|length }})</h2>
 </div>
 
-{% if group.created_by == request.user %}
-<div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
-  <h3 class="text-lg font-semibold text-gray-800 mb-2">Ajouter un nouveau membre</h3>
-  <p class="text-sm text-gray-500 mb-4">Recherchez un utilisateur par son nom d'utilisateur ou son adresse email pour l'ajouter directement au groupe.</p>
+{% if group.created_by == request.user or membership.is_bureau %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
   
-  <form method="post" class="flex flex-col sm:flex-row gap-3">
-    {% csrf_token %}
-    <div class="flex-1">
-      <input 
-        type="text" 
-        name="username_or_email" 
-        placeholder="Nom d'utilisateur ou email de l'utilisateur..." 
-        required 
-        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-      >
+  <!-- Ajouter un utilisateur existant -->
+  <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+    <div>
+      <h3 class="text-lg font-semibold text-gray-800 mb-1">Ajouter un utilisateur existant</h3>
+      <p class="text-xs text-gray-500 mb-4">Recherchez un utilisateur par son nom d'utilisateur ou son adresse email pour l'ajouter directement au groupe.</p>
     </div>
-    <button 
-      type="submit" 
-      class="px-5 py-2.5 hover:opacity-90 text-white font-medium rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm"
-      style="background-color: var(--njangi-primary);"
-    >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-      </svg>
-      Ajouter le membre
-    </button>
-  </form>
+    <form method="post" class="space-y-3">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_existing" />
+      <div>
+        <input 
+          type="text" 
+          name="username_or_email" 
+          placeholder="Nom d'utilisateur ou email..." 
+          required 
+          class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+        >
+      </div>
+      <button 
+        type="submit" 
+        class="w-full py-2 hover:opacity-90 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-sm"
+        style="background-color: var(--njangi-primary);"
+      >
+        Ajouter ce compte existant
+      </button>
+    </form>
+  </div>
+
+  <!-- Créer un membre virtuel sans compte -->
+  <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+    <h3 class="text-lg font-semibold text-gray-800 mb-1">Créer un membre sans compte (virtuel)</h3>
+    <p class="text-xs text-gray-500 mb-4">Pour les membres n'ayant pas de compte e-shelle (sans adresse email, ex: les mamans). Le bureau gère tout pour elles.</p>
+    
+    <form method="post" class="grid grid-cols-2 gap-3">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_virtual" />
+      <div>
+        <label class="block text-[10px] font-semibold text-gray-600 mb-1">Prénom</label>
+        <input 
+          type="text" 
+          name="first_name" 
+          placeholder="Ex: Fatou" 
+          required 
+          class="w-full px-3 py-1.5 rounded-xl border border-gray-200 text-xs"
+        >
+      </div>
+      <div>
+        <label class="block text-[10px] font-semibold text-gray-600 mb-1">Nom de famille</label>
+        <input 
+          type="text" 
+          name="last_name" 
+          placeholder="Ex: Ndiaye" 
+          required 
+          class="w-full px-3 py-1.5 rounded-xl border border-gray-200 text-xs"
+        >
+      </div>
+      <div class="col-span-2">
+        <label class="block text-[10px] font-semibold text-gray-600 mb-1">Numéro WhatsApp (optionnel)</label>
+        <input 
+          type="text" 
+          name="whatsapp" 
+          placeholder="Ex: +237612345678" 
+          class="w-full px-3 py-1.5 rounded-xl border border-gray-200 text-xs"
+        >
+      </div>
+      <button 
+        type="submit" 
+        class="col-span-2 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-xs transition shadow-sm"
+      >
+        Créer et ajouter le membre virtuel
+      </button>
+    </form>
+  </div>
+
 </div>
 {% else %}
 <div class="bg-gray-50 rounded-2xl p-4 border border-gray-200/60 mb-6 flex items-center gap-3">
   <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm">🔒</div>
-  <p class="text-sm text-gray-500">Seul le créateur du groupe (<strong>{{ group.created_by.get_full_name|default:group.created_by.username }}</strong>) peut ajouter de nouveaux membres.</p>
+  <p class="text-sm text-gray-500">Seul le créateur du groupe ou les membres du bureau peuvent ajouter de nouveaux membres.</p>
 </div>
 {% endif %}
 

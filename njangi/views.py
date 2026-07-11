@@ -330,11 +330,62 @@ class BureauMembersView(BureauRequiredMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         group = self.group
-        # Seul le créateur du groupe peut ajouter des membres
-        if group.created_by != request.user:
-            messages.error(request, "Seul le créateur du groupe peut ajouter des membres.")
+        
+        action = request.POST.get("action", "add_existing")
+        
+        if action == "create_virtual":
+            first_name = request.POST.get("first_name", "").strip()
+            last_name = request.POST.get("last_name", "").strip()
+            whatsapp = request.POST.get("whatsapp", "").strip()
+            
+            if not (first_name and last_name):
+                messages.error(request, "Veuillez saisir le prénom et le nom du membre virtuel.")
+                return redirect("njangi:bureau_members", slug=group.slug)
+                
+            # Vérifier la limite du plan
+            if not group.can_add_member:
+                messages.warning(
+                    request,
+                    f"Le groupe « {group.name} » a atteint la limite de son plan "
+                    f"({group.plan_config['max_members']} membres). "
+                    f"Le président doit passer à un plan supérieur."
+                )
+                return redirect("njangi:bureau_members", slug=group.slug)
+
+            import uuid
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            
+            # Créer l'utilisateur virtuel
+            unique_id = uuid.uuid4().hex[:8]
+            username = f"virtual_{first_name.lower()}_{last_name.lower()}_{unique_id}"
+            email = f"{username}@virtual.e-shelle.com"
+            
+            from django.db import transaction
+            try:
+                with transaction.atomic():
+                    new_user = User.objects.create_user(
+                        username=username,
+                        email=email,
+                        first_name=first_name,
+                        last_name=last_name,
+                        password=uuid.uuid4().hex,
+                        whatsapp=whatsapp
+                    )
+                    # Créer le profil
+                    from accounts.models import UserProfile
+                    UserProfile.objects.create(user=new_user, telephone=whatsapp)
+                    
+                    # Créer le membership
+                    Membership.objects.create(user=new_user, group=group, is_active=True)
+                    
+                messages.success(request, f"Membre virtuel « {first_name} {last_name} » créé et ajouté avec succès.")
+            except Exception as e:
+                messages.error(request, f"Erreur lors de la création : {str(e)}")
+                
             return redirect("njangi:bureau_members", slug=group.slug)
 
+        # Action par défaut : ajouter un utilisateur existant
         identifier = request.POST.get("username_or_email", "").strip()
         if not identifier:
             messages.error(request, "Veuillez saisir un nom d'utilisateur ou un email.")
