@@ -122,8 +122,6 @@ class SessionFinancialForm(forms.ModelForm):
         fields = [
             "notes",
             "loan_fund_available",
-            "loan_interest_rate",
-            "loan_due_date",
             "cash_returned_manual",
         ]
         widgets = {
@@ -135,15 +133,6 @@ class SessionFinancialForm(forms.ModelForm):
             "loan_fund_available": forms.NumberInput(attrs={
                 "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
                 "min": "0",
-            }),
-            "loan_interest_rate": forms.NumberInput(attrs={
-                "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
-                "step": "0.01",
-                "min": "0",
-            }),
-            "loan_due_date": forms.DateInput(attrs={
-                "type": "date",
-                "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
             }),
             "cash_returned_manual": forms.NumberInput(attrs={
                 "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
