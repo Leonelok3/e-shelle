@@ -122,32 +122,13 @@ class JoinGroupView(LoginRequiredMixin, View):
         return render(request, self.template_name, {"form": JoinGroupForm()})
 
     def post(self, request):
-        from django.shortcuts import render
-        form = JoinGroupForm(request.POST)
-        if form.is_valid():
-            code = form.cleaned_data["invite_code"].upper()
-            group = get_object_or_404(Group, invite_code=code, status="active")
+        messages.error(
+            request,
+            "L'adhésion par code d'invitation est désactivée pour des raisons de sécurité. "
+            "Veuillez demander au créateur du groupe de vous ajouter."
+        )
+        return redirect("njangi:member_dashboard")
 
-            # Vérifier si déjà membre
-            existing = Membership.objects.filter(user=request.user, group=group).first()
-            if existing:
-                messages.info(request, "Vous êtes déjà membre de ce groupe.")
-                return redirect("njangi:member_dashboard")
-
-            # Vérifier la limite du plan
-            if not group.can_add_member:
-                messages.warning(
-                    request,
-                    f"Le groupe « {group.name} » a atteint la limite de son plan "
-                    f"({group.plan_config['max_members']} membres). "
-                    f"Le président doit passer à un plan supérieur."
-                )
-                return redirect("njangi:upgrade", slug=group.slug)
-
-            Membership.objects.create(user=request.user, group=group, is_active=True)
-            messages.success(request, f"Bienvenue dans le groupe « {group.name} » !")
-            return redirect("njangi:member_dashboard")
-        return render(request, self.template_name, {"form": form})
 
 
 class CreateGroupView(LoginRequiredMixin, CreateView):
@@ -342,6 +323,62 @@ class BureauMembersView(BureauRequiredMixin, TemplateView):
         ctx = super().get_context_data(**kwargs)
         ctx["members"] = self.group.memberships.filter(is_active=True).select_related("user")
         return ctx
+
+    def post(self, request, *args, **kwargs):
+        group = self.group
+        # Seul le créateur du groupe peut ajouter des membres
+        if group.created_by != request.user:
+            messages.error(request, "Seul le créateur du groupe peut ajouter des membres.")
+            return redirect("njangi:bureau_members", slug=group.slug)
+
+        identifier = request.POST.get("username_or_email", "").strip()
+        if not identifier:
+            messages.error(request, "Veuillez saisir un nom d'utilisateur ou un email.")
+            return redirect("njangi:bureau_members", slug=group.slug)
+
+        from django.contrib.auth import get_user_model
+        from django.db.models import Q
+        User = get_user_model()
+        user_to_add = User.objects.filter(Q(username__iexact=identifier) | Q(email__iexact=identifier)).first()
+
+        if not user_to_add:
+            messages.error(request, f"Utilisateur « {identifier} » introuvable.")
+            return redirect("njangi:bureau_members", slug=group.slug)
+
+        # Vérifier si déjà membre
+        existing = Membership.objects.filter(user=user_to_add, group=group).first()
+        if existing:
+            if existing.is_active:
+                messages.info(request, f"{user_to_add.get_full_name() or user_to_add.username} est déjà membre de ce groupe.")
+            else:
+                # Réactiver le membre s'il était inactif
+                if not group.can_add_member:
+                    messages.warning(
+                        request,
+                        f"Le groupe « {group.name} » a atteint la limite de son plan "
+                        f"({group.plan_config['max_members']} membres). "
+                        f"Le président doit passer à un plan supérieur."
+                    )
+                    return redirect("njangi:bureau_members", slug=group.slug)
+                existing.is_active = True
+                existing.save()
+                messages.success(request, f"{user_to_add.get_full_name() or user_to_add.username} a été réactivé(e) dans le groupe.")
+            return redirect("njangi:bureau_members", slug=group.slug)
+
+        # Vérifier la limite du plan
+        if not group.can_add_member:
+            messages.warning(
+                request,
+                f"Le groupe « {group.name} » a atteint la limite de son plan "
+                f"({group.plan_config['max_members']} membres). "
+                f"Le président doit passer à un plan supérieur."
+            )
+            return redirect("njangi:bureau_members", slug=group.slug)
+
+        # Créer le membership
+        Membership.objects.create(user=user_to_add, group=group, is_active=True)
+        messages.success(request, f"{user_to_add.get_full_name() or user_to_add.username} a été ajouté(e) avec succès au groupe.")
+        return redirect("njangi:bureau_members", slug=group.slug)
 
 
 class BureauSessionsView(BureauRequiredMixin, TemplateView):
