@@ -270,6 +270,38 @@
         </form>
       </div>
 
+      <!-- Enregistrer un remboursement -->
+      <div class="border-t border-gray-200/80 pt-4 mt-6">
+        <h5 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+          <span>📥 Enregistrer un remboursement</span>
+        </h5>
+        <form id="direct-repayment-form" method="post" action="{% url 'njangi:bureau_loan_repay_quick' slug=group.slug session_pk=session.pk %}" class="space-y-3 bg-gray-50 border border-gray-100 rounded-xl p-3.5 mb-6">
+          {% csrf_token %}
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Membre qui effectue le remboursement</label>
+            <select name="loan_pk" id="repay-loan-select" required class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs bg-white">
+              <option value="" data-balance="0">Sélectionner un membre...</option>
+              {% for loan in active_loans %}
+                <option value="{{ loan.pk }}" data-balance="{{ loan.balance_remaining|floatformat:0 }}">{{ loan.membership.user.get_full_name|default:loan.membership.user.username }} (Total dû: {{ loan.total_due|floatformat:0 }} FCFA)</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Reste à rembourser actuel (FCFA)</label>
+              <input type="text" id="repay-balance-display" readonly placeholder="0" class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs bg-gray-100 text-gray-500 font-bold" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Montant du remboursement (FCFA)</label>
+              <input type="number" name="amount" min="1" required placeholder="Ex: 20000" class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs bg-white font-bold text-gray-900" />
+            </div>
+          </div>
+          <button type="submit" class="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
+            Enregistrer ce remboursement
+          </button>
+        </form>
+      </div>
+
       <button type="submit" form="financial-form" class="w-full py-3 rounded-xl text-white font-semibold bg-blue-600 hover:bg-blue-700 transition">
         Enregistrer la saisie financière
       </button>
@@ -474,27 +506,22 @@
       </div>
       {% endif %}
 
-      {% if session.status != 'completed' and active_loans %}
-      <div class="mt-6">
-        <h5 class="text-sm font-semibold text-gray-700 mb-3">Saisie rapide de remboursement</h5>
-        <p class="text-xs text-gray-500 mb-3">Choisissez le membre qui effectue le remboursement et le prêt correspondant.</p>
-        <form method="post" action="{% url 'njangi:bureau_loan_repay_quick' slug=group.slug session_pk=session.pk %}" class="space-y-3">
-          {% csrf_token %}
-          <label class="block text-sm text-gray-600">Membre remboursant / Prêt</label>
-          <select name="loan_pk" required class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm">
-            <option value="">Sélectionner un membre et son prêt actif</option>
-            {% for loan in active_loans %}
-              <option value="{{ loan.pk }}">{{ loan.membership.user.get_full_name|default:loan.membership.user.username }} — Solde: {{ loan.balance_remaining|floatformat:0 }} FCFA</option>
-            {% endfor %}
-          </select>
-          <label class="block text-sm text-gray-600">Montant remboursé (FCFA)</label>
-          <input type="number" name="amount" min="1" required placeholder="Montant" class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm" />
-          <button type="submit" class="w-full py-3 rounded-xl text-white font-semibold bg-blue-600 hover:bg-blue-700 transition">Enregistrer remboursement</button>
-        </form>
-      </div>
-      {% endif %}
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const selectEl = document.getElementById("repay-loan-select");
+    const displayEl = document.getElementById("repay-balance-display");
+    if (selectEl && displayEl) {
+      selectEl.addEventListener("change", function() {
+        const selectedOption = selectEl.options[selectEl.selectedIndex];
+        const balance = selectedOption.getAttribute("data-balance") || "0";
+        displayEl.value = Number(balance).toLocaleString('fr-FR') + " FCFA";
+      });
+    }
+  });
+</script>
 
 {% endblock %}
