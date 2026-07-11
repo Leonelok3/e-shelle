@@ -462,6 +462,8 @@ class SessionDetailView(BureauRequiredMixin, TemplateView):
         ctx["active_loans"] = Loan.objects.filter(membership__group=self.group, status="active").select_related("membership__user")
         ctx["borrowers"] = Loan.objects.filter(membership__group=self.group, status="active").select_related("membership__user")
         ctx["loans"] = Loan.objects.filter(membership__group=self.group).select_related("membership__user")
+        ctx["pending_loans_session"] = Loan.objects.filter(membership__group=self.group, status="pending").select_related("membership__user")
+        ctx["approved_loans_session"] = Loan.objects.filter(membership__group=self.group, status="approved").select_related("membership__user")
         ctx["financial_form"] = SessionFinancialForm(instance=session, group=self.group)
         return ctx
 
@@ -511,6 +513,9 @@ class LoanApproveView(BureauRequiredMixin, View):
         loan = get_object_or_404(Loan, pk=pk, membership__group=self.group, status="pending")
         loan.approve(reviewer=request.user)
         messages.success(request, f"Prêt de {loan.formatted_amount} approuvé.")
+        referer = request.META.get('HTTP_REFERER')
+        if referer:
+            return redirect(referer)
         return redirect("njangi:bureau_loans", slug=slug)
 
 
@@ -520,6 +525,9 @@ class LoanRejectView(BureauRequiredMixin, View):
         reason = request.POST.get("reason", "")
         loan.reject(reviewer=request.user, reason=reason)
         messages.warning(request, "Demande de prêt refusée.")
+        referer = request.META.get('HTTP_REFERER')
+        if referer:
+            return redirect(referer)
         return redirect("njangi:bureau_loans", slug=slug)
 
 
@@ -528,6 +536,9 @@ class LoanDisburseView(BureauRequiredMixin, View):
         loan = get_object_or_404(Loan, pk=pk, membership__group=self.group, status="approved")
         loan.disburse(user=request.user)
         messages.success(request, f"Prêt décaissé : {loan.formatted_amount} versés.")
+        referer = request.META.get('HTTP_REFERER')
+        if referer:
+            return redirect(referer)
         return redirect("njangi:bureau_loans", slug=slug)
 
 
