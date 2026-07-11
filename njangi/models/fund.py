@@ -19,6 +19,10 @@ class FundDeposit(models.Model):
     ]
 
     membership     = models.ForeignKey("njangi.Membership", on_delete=models.CASCADE, related_name="fund_deposits")
+    session        = models.ForeignKey(
+        "njangi.Session", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="deposits", verbose_name="Séance associée"
+    )
     amount         = models.DecimalField(max_digits=14, decimal_places=0, verbose_name="Montant déposé (FCFA)")
     deposited_at   = models.DateTimeField(auto_now_add=True)
     interest_rate  = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Taux d'intérêt (%/mois)")

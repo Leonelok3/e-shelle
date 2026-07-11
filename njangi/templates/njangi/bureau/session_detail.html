@@ -101,11 +101,6 @@
         {% csrf_token %}
 
         <div class="grid gap-4">
-          <label class="text-sm text-gray-600">Main levée de la séance (FCFA)</label>
-          {{ financial_form.main_raised_amount }}
-          {% if financial_form.main_raised_amount.errors %}<p class="text-xs text-red-500">{{ financial_form.main_raised_amount.errors|striptags }}</p>{% endif %}
-        </div>
-        <div class="grid gap-4">
           <label class="text-sm text-gray-600">Fond disponible pour prêt (FCFA)</label>
           {{ financial_form.loan_fund_available }}
           {% if financial_form.loan_fund_available.errors %}<p class="text-xs text-red-500">{{ financial_form.loan_fund_available.errors|striptags }}</p>{% endif %}
@@ -260,6 +255,32 @@
         </form>
       </div>
 
+      <!-- Enregistrer une main levée (Dépôt de fond) -->
+      <div class="border-t border-gray-200/80 pt-4 mt-6">
+        <h5 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+          <span>⚖️ Enregistrer une main levée (Dépôt)</span>
+        </h5>
+        <form id="direct-deposit-form" method="post" action="{% url 'njangi:session_direct_deposit' slug=group.slug session_pk=session.pk %}" class="space-y-3 bg-gray-50 border border-gray-100 rounded-xl p-3.5 mb-6">
+          {% csrf_token %}
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Membre déposant</label>
+            <select name="membership_pk" required class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs bg-white">
+              <option value="">Sélectionner un membre...</option>
+              {% for m in group_members %}
+                <option value="{{ m.pk }}">{{ m.user.get_full_name|default:m.user.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Montant de la main levée (FCFA)</label>
+            <input type="number" name="amount" min="1" required placeholder="Ex: 20000" class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs bg-white font-bold text-gray-900" />
+          </div>
+          <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
+            Enregistrer cette main levée
+          </button>
+        </form>
+      </div>
+
       <!-- Enregistrer un remboursement -->
       <div class="border-t border-gray-200/80 pt-4 mt-6">
         <h5 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
@@ -301,8 +322,8 @@
       <h4 class="font-semibold text-gray-700 mb-4">Détails des prêts et remboursements</h4>
       <div class="space-y-4">
         <div class="rounded-2xl bg-green-50 p-4">
-          <p class="text-xs text-gray-500 uppercase tracking-wide">Main levée manuelle</p>
-          <p class="mt-2 font-bold text-gray-900">{{ session.main_raised_amount|floatformat:0 }} FCFA</p>
+          <p class="text-xs text-gray-500 uppercase tracking-wide">Main levée totale</p>
+          <p class="mt-2 font-bold text-gray-900">{{ session.total_deposits|floatformat:0 }} FCFA</p>
         </div>
         <div class="rounded-2xl bg-indigo-50 p-4">
           <p class="text-xs text-gray-500 uppercase tracking-wide">Remboursements saisis</p>
@@ -342,31 +363,28 @@
       </div>
       {% endif %}
 
-      {% if loan_depositors %}
-      <div class="mt-6 rounded-2xl bg-slate-50 p-5 border border-gray-100">
-        <h5 class="text-sm font-semibold text-gray-700 mb-3">Membres ayant mis des fonds à disposition pour prêt</h5>
-        <div class="space-y-2 text-sm text-gray-700">
-          {% for deposit in loan_depositors %}
-          <div class="flex items-center justify-between rounded-xl bg-white border border-gray-100 px-4 py-3">
-            <span>{{ deposit.membership.user.get_full_name|default:deposit.membership.user.username }}</span>
-            <span class="font-semibold">{{ deposit.formatted_amount }}</span>
+      <!-- Dépôts de main levée de la séance -->
+      <div class="mt-6 border-t border-gray-100 pt-5">
+        <h5 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-1.5">
+          <span>⚖️ Dépôts de main levée de la séance</span>
+          <span class="text-xs text-gray-400">({{ session_deposits|length }})</span>
+        </h5>
+        {% if session_deposits %}
+          <div class="space-y-2">
+            {% for d in session_deposits %}
+              <div class="rounded-xl border border-indigo-100 bg-indigo-50/20 p-3 flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-bold text-indigo-950">{{ d.membership.user.get_full_name|default:d.membership.user.username }}</p>
+                  <p class="text-[10px] text-gray-500">Taux d'intérêt : {{ d.interest_rate }}%</p>
+                </div>
+                <span class="text-sm font-extrabold text-indigo-900">{{ d.formatted_amount }}</span>
+              </div>
+            {% endfor %}
           </div>
-          {% endfor %}
-        </div>
+        {% else %}
+          <p class="text-xs text-gray-400 italic text-center py-2 bg-gray-50 rounded-xl border border-gray-100">Aucun dépôt de main levée pour cette séance.</p>
+        {% endif %}
       </div>
-      {% elif session.main_raised_members %}
-      <div class="mt-6 rounded-2xl bg-slate-50 p-5 border border-gray-100">
-        <h5 class="text-sm font-semibold text-gray-700 mb-3">Membres ayant contribué à la main levée</h5>
-        <div class="space-y-2 text-sm text-gray-700">
-          {% for contribution in session.main_raised_members %}
-          <div class="flex items-center justify-between rounded-xl bg-white border border-gray-100 px-4 py-3">
-            <span>{{ contribution.membership.user.get_full_name|default:contribution.membership.user.username }}</span>
-            <span class="font-semibold">{{ contribution.amount_paid|floatformat:0 }} FCFA</span>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
 
       <!-- Prêts accordés durant la séance -->
       <div class="mt-6 border-t border-gray-100 pt-5">

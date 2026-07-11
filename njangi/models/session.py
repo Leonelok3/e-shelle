@@ -147,8 +147,12 @@ class Session(models.Model):
         return self.total_contributions_paid + self.total_repayments - hand
 
     @property
+    def total_deposits(self):
+        return sum(d.amount for d in self.deposits.filter(status="active"))
+
+    @property
     def total_loan_resources(self):
-        return self.main_raised_amount + self.total_repayments
+        return self.total_deposits + self.total_repayments
 
     @property
     def repayments_made(self):

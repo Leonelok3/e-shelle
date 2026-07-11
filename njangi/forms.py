@@ -125,17 +125,12 @@ class SessionFinancialForm(forms.ModelForm):
     class Meta:
         model = Session
         fields = [
-            "main_raised_amount",
             "loan_fund_available",
             "loan_interest_rate",
             "loan_due_date",
             "cash_returned_manual",
         ]
         widgets = {
-            "main_raised_amount": forms.NumberInput(attrs={
-                "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
-                "min": "0",
-            }),
             "loan_fund_available": forms.NumberInput(attrs={
                 "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
                 "min": "0",

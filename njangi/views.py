@@ -472,6 +472,7 @@ class SessionDetailView(BureauRequiredMixin, TemplateView):
         ctx["session_absentees"] = session.contributions.filter(presence="absent").select_related("membership__user")
         ctx["session_penalties"] = session.contributions.filter(penalty_amount__gt=0).select_related("membership__user")
         ctx["session_repayments"] = session.repayments_made
+        ctx["session_deposits"] = session.deposits.select_related("membership__user").all()
         return ctx
 
 
@@ -540,6 +541,55 @@ class SessionDirectLoanView(BureauRequiredMixin, View):
             messages.success(request, f"Prêt de {loan.formatted_amount} accordé et décaissé à {membership.user.get_full_name() or membership.user.username}.")
         except Exception as e:
             messages.error(request, f"Erreur lors de l'enregistrement du prêt : {str(e)}")
+
+        return redirect("njangi:session_detail", slug=slug, pk=session_pk)
+
+
+class SessionDirectDepositView(BureauRequiredMixin, View):
+    def post(self, request, slug, session_pk):
+        from decimal import Decimal
+        from django.db import transaction
+        from njangi.models.fund import FundDeposit, FundTransaction
+        from njangi.models.session import Session
+        from njangi.models.group import Membership
+
+        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        membership_pk = request.POST.get("membership_pk")
+        amount_str = request.POST.get("amount")
+
+        if not (membership_pk and amount_str):
+            messages.error(request, "Veuillez remplir tous les champs du dépôt de main levée.")
+            return redirect("njangi:session_detail", slug=slug, pk=session_pk)
+
+        try:
+            membership = get_object_or_404(Membership, pk=membership_pk, group=self.group)
+            amount = Decimal(amount_str)
+
+            with transaction.atomic():
+                # Créer le dépôt de main levée
+                deposit = FundDeposit.objects.create(
+                    membership=membership,
+                    session=session,
+                    amount=amount,
+                    interest_rate=self.group.fund_deposit_rate,
+                    status="active",
+                    payment_method="cash",
+                    transaction_ref=f"Main levée séance #{session.session_number}",
+                )
+
+                # Créer le mouvement comptable dans FundTransaction (Dépôt entrant)
+                FundTransaction.objects.create(
+                    group=self.group,
+                    type="deposit_in",
+                    amount=amount,
+                    description=f"Dépôt main levée — {membership.user.get_full_name() or membership.user.username}",
+                    reference_deposit=deposit,
+                    created_by=request.user,
+                )
+
+            messages.success(request, f"Dépôt de main levée de {deposit.formatted_amount} enregistré pour {membership.user.get_full_name() or membership.user.username}.")
+        except Exception as e:
+            messages.error(request, f"Erreur lors de l'enregistrement du dépôt : {str(e)}")
 
         return redirect("njangi:session_detail", slug=slug, pk=session_pk)
 
@@ -1316,6 +1366,7 @@ class SessionReportPDFView(BureauRequiredMixin, View):
         penalties = session.contributions.filter(penalty_amount__gt=0).select_related("membership__user")
         repayments = session.repayments_made
         loans_disbursed = session.loans_granted.select_related("membership__user").all()
+        deposits = session.deposits.select_related("membership__user").all()
 
         buffer = BytesIO()
         doc = SimpleDocTemplate(
@@ -1344,8 +1395,8 @@ class SessionReportPDFView(BureauRequiredMixin, View):
         overview_data = [
             ["Indicateur", "Valeur"],
             ["Total collecté", f"{int(session.total_collected):,} FCFA"],
-            ["Main levée", f"{int(session.main_raised_amount):,} FCFA"],
-            ["Remboursements saisis", f"{int(session.repayment_amount_manual):,} FCFA"],
+            ["Main levée totale", f"{int(session.total_deposits):,} FCFA"],
+            ["Remboursements réels", f"{int(session.total_repayments):,} FCFA"],
             ["Retour en caisse", f"{int(session.cash_returned_manual):,} FCFA"],
             ["Fonds disponibles pour prêt", f"{int(session.loan_fund_available):,} FCFA"],
             ["Pénalités collectées", f"{int(session.penalties_collected):,} FCFA"],
@@ -1363,10 +1414,28 @@ class SessionReportPDFView(BureauRequiredMixin, View):
         story.append(table)
         story.append(Spacer(1, 0.5*cm))
 
-        if session.repayment_members_display:
-            story.append(Paragraph("Membres remboursant (manuel) :", styles["Normal"]))
-            story.append(Paragraph(session.repayment_members_display, styles["Normal"]))
-            story.append(Spacer(1, 0.3*cm))
+        if deposits.exists():
+            story.append(Paragraph("Dépôts de main levée (Fonds mis à disposition)", styles["Heading2"]))
+            story.append(Spacer(1, 0.2*cm))
+            dep_data = [["Membre", "Montant déposé", "Taux d'intérêt"]]
+            for d in deposits:
+                dep_data.append([
+                    d.membership.user.get_full_name() or d.membership.user.username,
+                    f"{int(d.amount):,} FCFA",
+                    f"{d.interest_rate}%",
+                ])
+            t_dep = Table(dep_data, colWidths=[7*cm, 5*cm, 5*cm])
+            t_dep.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("PADDING", (0, 0), (-1, -1), 5),
+            ]))
+            story.append(t_dep)
+            story.append(Spacer(1, 0.5*cm))
 
         if contributions.exists():
             story.append(Paragraph("Détail des cotisations", styles["Heading2"]))

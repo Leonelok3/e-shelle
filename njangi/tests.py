@@ -65,11 +65,12 @@ def make_membership(user, group, role="member", hand_order=None):
     )
 
 
-def make_deposit(membership, amount):
+def make_deposit(membership, amount, session=None):
     deposit = FundDeposit.objects.create(
         membership=membership,
         amount=amount,
         interest_rate=membership.group.fund_deposit_rate,
+        session=session,
     )
     FundTransaction.objects.create(
         group=membership.group,
@@ -297,7 +298,7 @@ class InterestCalculationServiceTest(TestCase):
             created_by=self.president,
         )
 
-        deposit = make_deposit(m_bob, 150_000)
+        deposit = make_deposit(m_bob, 150_000, session=session)
         loan = make_active_loan(m_carol, 100_000)
 
         self.client.force_login(self.president)
