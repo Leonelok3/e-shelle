@@ -25,7 +25,15 @@
         <td class="px-5 py-3 font-semibold text-gray-700">Séance #{{ c.session.session_number }}</td>
         <td class="px-5 py-3 text-gray-500">{{ c.membership.group.name }}</td>
         <td class="px-5 py-3 text-gray-600">
-          {% if c.session.beneficiary %}{{ c.session.beneficiary.user.get_full_name|default:c.session.beneficiary.user.username }}{% else %}<span class="text-gray-300">—</span>{% endif %}
+          {% if c.session.session_beneficiaries.all %}
+            {% for sb in c.session.session_beneficiaries.all %}
+              {{ sb.membership.user.get_full_name|default:sb.membership.user.username }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          {% elif c.session.beneficiary %}
+            {{ c.session.beneficiary.user.get_full_name|default:c.session.beneficiary.user.username }}
+          {% else %}
+            <span class="text-gray-300">—</span>
+          {% endif %}
         </td>
         <td class="px-5 py-3 text-right text-gray-500">{{ c.amount_due|floatformat:0 }}</td>
         <td class="px-5 py-3 text-right font-semibold text-gray-700">{{ c.amount_paid|floatformat:0 }}</td>

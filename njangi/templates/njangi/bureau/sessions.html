@@ -30,7 +30,15 @@
         <td class="px-5 py-3 font-bold text-gray-700">{{ session.session_number }}</td>
         <td class="px-5 py-3 text-gray-600">{{ session.date|date:"d M Y" }}</td>
         <td class="px-5 py-3 text-gray-600">
-          {% if session.beneficiary %}{{ session.beneficiary.user.get_full_name|default:session.beneficiary.user.username }}{% else %}<span class="text-gray-300">—</span>{% endif %}
+          {% if session.session_beneficiaries.all %}
+            {% for sb in session.session_beneficiaries.all %}
+              {{ sb.membership.user.get_full_name|default:sb.membership.user.username }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          {% elif session.beneficiary %}
+            {{ session.beneficiary.user.get_full_name|default:session.beneficiary.user.username }}
+          {% else %}
+            <span class="text-gray-300">—</span>
+          {% endif %}
         </td>
         <td class="px-5 py-3 text-right font-semibold text-gray-700">
           {% if session.status == 'completed' %}
