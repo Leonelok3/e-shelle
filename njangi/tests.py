@@ -434,6 +434,29 @@ class InterestCalculationServiceTest(TestCase):
         # Bob doit récupérer ses 10000: 35000 + 10000 = 45000
         self.assertEqual(m_bob.base_fund_balance, 45000)
 
+    def test_audit_trail_rendering(self):
+        """La page du journal d'audit s'affiche correctement."""
+        group = self.group
+        self.client.force_login(self.president)
+        
+        # Enregistrer des actions d'audit
+        from njangi.models.audit import AuditLog
+        AuditLog.log(
+            group=group,
+            user=self.president,
+            action="session_created",
+            description="Création séance test",
+        )
+        
+        url = reverse("njangi:audit_trail", kwargs={"slug": group.slug})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Création séance test")
+        
+        # Filtrer
+        response_filtered = self.client.get(url + "?action=session_created")
+        self.assertEqual(response_filtered.status_code, 200)
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SUITE 2 — DistributionCalculator

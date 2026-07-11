@@ -1621,15 +1621,14 @@ class AuditTrailView(BureauRequiredMixin, TemplateView):
         ctx = super().get_context_data(**kwargs)
         logs = AuditLog.objects.filter(
             group=self.group
-        ).select_related("performed_by").order_by("-created_at")[:200]
-        ctx["logs"]         = logs
-        ctx["total_count"]  = AuditLog.objects.filter(group=self.group).count()
+        ).select_related("performed_by").order_by("-created_at")
+        ctx["total_count"]  = logs.count()
         # Filtre par action si passé en GET
         action_filter = self.request.GET.get("action", "")
         if action_filter:
             logs = logs.filter(action=action_filter)
-            ctx["logs"] = logs
             ctx["action_filter"] = action_filter
+        ctx["logs"] = logs[:200]
         from njangi.models.audit import AuditLog as AL
         ctx["action_choices"] = AL.ACTION_CHOICES
         return ctx
