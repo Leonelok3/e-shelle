@@ -108,6 +108,8 @@ class FundTransaction(models.Model):
         ("hand_paid",    "Main versée au bénéficiaire"),
         ("expense",      "Dépense du groupe"),
         ("adjustment",   "Ajustement manuel"),
+        ("base_fund_in", "Versement fond de caisse"),
+        ("base_fund_out", "Retrait fond de caisse"),
     ]
 
     group       = models.ForeignKey("njangi.Group", on_delete=models.CASCADE, related_name="fund_transactions")
@@ -150,3 +152,53 @@ class FundTransaction(models.Model):
     @property
     def is_credit(self):
         return self.signed_amount > 0
+
+
+class BaseFundDeposit(models.Model):
+    """Enregistre un versement d'un membre pour son fond de caisse (fonds de base obligatoire)."""
+    membership   = models.ForeignKey("njangi.Membership", on_delete=models.CASCADE, related_name="base_fund_deposits")
+    session      = models.ForeignKey(
+        "njangi.Session", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="base_fund_deposits", verbose_name="Séance associée"
+    )
+    amount       = models.DecimalField(max_digits=14, decimal_places=0, verbose_name="Montant versé (FCFA)")
+    deposited_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = "Versement fond de caisse"
+        verbose_name_plural = "Versements fond de caisse"
+        ordering = ["-deposited_at"]
+
+    def __str__(self):
+        return f"{self.membership.user} — {self.amount} FCFA"
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        if is_new:
+            # Mettre à jour le solde sur le membership
+            self.membership.base_fund_balance += self.amount
+            self.membership.save(update_fields=["base_fund_balance"])
+
+            # Créer la transaction de fonds
+            FundTransaction.objects.create(
+                group=self.membership.group,
+                type="base_fund_in",
+                amount=self.amount,
+                description=f"Versement fond de caisse — {self.membership.user}",
+                reference_session=self.session,
+            )
+
+    def delete(self, *args, **kwargs):
+        # Mettre à jour le solde
+        self.membership.base_fund_balance = max(0, self.membership.base_fund_balance - self.amount)
+        self.membership.save(update_fields=["base_fund_balance"])
+        
+        # Supprimer la transaction liée
+        FundTransaction.objects.filter(
+            group=self.membership.group,
+            type="base_fund_in",
+            amount=self.amount,
+            reference_session=self.session,
+        ).delete()
+        super().delete(*args, **kwargs)

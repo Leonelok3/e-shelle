@@ -220,6 +220,7 @@ class Membership(models.Model):
     total_contributed = models.DecimalField(max_digits=14, decimal_places=0, default=0, verbose_name="Total cotisé (FCFA)")
     total_received    = models.DecimalField(max_digits=14, decimal_places=0, default=0, verbose_name="Total reçu — mains (FCFA)")
     total_penalties   = models.DecimalField(max_digits=12, decimal_places=0, default=0, verbose_name="Total pénalités payées (FCFA)")
+    base_fund_balance = models.DecimalField(max_digits=14, decimal_places=0, default=0, verbose_name="Solde du fond de caisse (FCFA)")
 
     # Score de fiabilité (0-100), mis à jour automatiquement
     reliability_score = models.PositiveSmallIntegerField(
@@ -272,17 +273,17 @@ class Membership(models.Model):
         required = self.group.base_fund_required
         if not required:
             return 0
-        return max(0, int(required) - int(self.active_deposit_balance))
+        return max(0, int(required) - int(self.base_fund_balance))
 
     @property
     def wallet_balance(self):
-        """Avoirs totaux : dépôts + intérêts cumulés."""
+        """Avoirs totaux : dépôts + fond de caisse + intérêts cumulés."""
         from django.db.models import Sum
         from njangi.models.wallet import MemberMonthlyStatement
         cumul = MemberMonthlyStatement.objects.filter(
             membership=self
         ).aggregate(total=Sum("interest_earned"))
-        return int(self.active_deposit_balance) + int(cumul["total"] or 0)
+        return int(self.active_deposit_balance) + int(self.base_fund_balance) + int(cumul["total"] or 0)
 
     @property
     def total_interest_earned(self):

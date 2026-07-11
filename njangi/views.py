@@ -474,6 +474,8 @@ class SessionDetailView(BureauRequiredMixin, TemplateView):
         ctx["session_repayments"] = session.repayments_made
         ctx["session_deposits"] = session.deposits.select_related("membership__user").all()
         ctx["session_beneficiaries"] = session.session_beneficiaries.select_related("membership__user").all()
+        ctx["session_base_funds"] = session.base_fund_deposits.select_related("membership__user").all()
+        ctx["session_base_funds_total"] = sum(bf.amount for bf in ctx["session_base_funds"])
         return ctx
 
 
@@ -1370,6 +1372,7 @@ class SessionReportPDFView(BureauRequiredMixin, View):
         loans_disbursed = session.loans_granted.select_related("membership__user").all()
         deposits = session.deposits.select_related("membership__user").all()
         session_beneficiaries = session.session_beneficiaries.select_related("membership__user").all()
+        base_funds = session.base_fund_deposits.select_related("membership__user").all()
 
         buffer = BytesIO()
         doc = SimpleDocTemplate(
@@ -1439,6 +1442,28 @@ class SessionReportPDFView(BureauRequiredMixin, View):
                 ("PADDING", (0, 0), (-1, -1), 5),
             ]))
             story.append(t_dep)
+            story.append(Spacer(1, 0.5*cm))
+
+        if base_funds.exists():
+            story.append(Paragraph("Versements au fond de caisse (Fonds de base)", styles["Heading2"]))
+            story.append(Spacer(1, 0.2*cm))
+            bf_data = [["Membre", "Montant versé"]]
+            for bf in base_funds:
+                bf_data.append([
+                    bf.membership.user.get_full_name() or bf.membership.user.username,
+                    f"{int(bf.amount):,} FCFA",
+                ])
+            t_bf = Table(bf_data, colWidths=[9*cm, 8*cm])
+            t_bf.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("PADDING", (0, 0), (-1, -1), 5),
+            ]))
+            story.append(t_bf)
             story.append(Spacer(1, 0.5*cm))
 
         if contributions.exists():
@@ -1712,4 +1737,52 @@ class SessionRemoveLoanView(BureauRequiredMixin, View):
             loan.delete()
             
         messages.success(request, "Prêt direct retiré.")
+        return redirect("njangi:session_detail", slug=slug, pk=session_pk)
+
+
+class SessionAddBaseFundView(BureauRequiredMixin, View):
+    def post(self, request, slug, session_pk):
+        from decimal import Decimal
+        from django.db import transaction
+        from njangi.models.session import Session
+        from njangi.models.group import Membership
+        from njangi.models.fund import BaseFundDeposit
+
+        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        membership_pk = request.POST.get("membership_pk")
+        amount_str = request.POST.get("amount")
+
+        if not (membership_pk and amount_str):
+            messages.error(request, "Veuillez remplir tous les champs.")
+            return redirect("njangi:session_detail", slug=slug, pk=session_pk)
+
+        try:
+            membership = get_object_or_404(Membership, pk=membership_pk, group=self.group)
+            amount = Decimal(amount_str)
+
+            with transaction.atomic():
+                BaseFundDeposit.objects.create(
+                    session=session,
+                    membership=membership,
+                    amount=amount,
+                )
+            messages.success(request, f"Versement au fond de caisse de {amount:,} FCFA enregistré pour {membership.user.get_full_name() or membership.user.username}.")
+        except Exception as e:
+            messages.error(request, f"Erreur : {str(e)}")
+
+        return redirect("njangi:session_detail", slug=slug, pk=session_pk)
+
+
+class SessionRemoveBaseFundView(BureauRequiredMixin, View):
+    def post(self, request, slug, session_pk, base_fund_pk):
+        from njangi.models.session import Session
+        from njangi.models.fund import BaseFundDeposit
+        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        deposit = get_object_or_404(BaseFundDeposit, pk=base_fund_pk, session=session)
+        
+        from django.db import transaction
+        with transaction.atomic():
+            deposit.delete()
+            
+        messages.success(request, "Versement de fond de caisse retiré.")
         return redirect("njangi:session_detail", slug=slug, pk=session_pk)

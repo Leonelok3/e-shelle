@@ -344,6 +344,41 @@ class InterestCalculationServiceTest(TestCase):
         self.assertEqual(session.hand_amount, 0)
         self.assertEqual(session.session_beneficiaries.count(), 0)
 
+    def test_base_fund_deposit_and_removal(self):
+        """Teste l'ajout et le retrait de versements au fond de caisse."""
+        group = self.group
+        m_bob = make_membership(make_user("bob_base"), group, hand_order=2)
+        
+        session = Session.objects.create(
+            group=group,
+            session_number=1,
+            cycle=1,
+            date=self.today,
+            status="in_progress",
+            created_by=self.president,
+        )
+        
+        self.client.force_login(self.president)
+        
+        # 1. Ajouter un versement fond de caisse
+        url_add = reverse("njangi:session_add_base_fund", kwargs={"slug": group.slug, "session_pk": session.pk})
+        res = self.client.post(url_add, {"membership_pk": m_bob.pk, "amount": "25000"})
+        self.assertEqual(res.status_code, 302)
+        
+        m_bob.refresh_from_db()
+        self.assertEqual(m_bob.base_fund_balance, 25000)
+        self.assertEqual(session.base_fund_deposits.count(), 1)
+        
+        # 2. Retirer le versement
+        bf = session.base_fund_deposits.first()
+        url_rem = reverse("njangi:session_remove_base_fund", kwargs={"slug": group.slug, "session_pk": session.pk, "base_fund_pk": bf.pk})
+        res = self.client.post(url_rem)
+        self.assertEqual(res.status_code, 302)
+        
+        m_bob.refresh_from_db()
+        self.assertEqual(m_bob.base_fund_balance, 0)
+        self.assertEqual(session.base_fund_deposits.count(), 0)
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SUITE 2 — DistributionCalculator
