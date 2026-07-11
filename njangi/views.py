@@ -473,6 +473,7 @@ class SessionDetailView(BureauRequiredMixin, TemplateView):
         ctx["session_penalties"] = session.contributions.filter(penalty_amount__gt=0).select_related("membership__user")
         ctx["session_repayments"] = session.repayments_made
         ctx["session_deposits"] = session.deposits.select_related("membership__user").all()
+        ctx["session_beneficiaries"] = session.session_beneficiaries.select_related("membership__user").all()
         return ctx
 
 
@@ -822,6 +823,7 @@ class HtmxBureauRepaymentView(BureauRequiredMixin, View):
                     # On cree le remboursement
                     LoanRepayment.objects.create(
                         loan=loan,
+                        session=session,
                         amount_paid=amount,
                         payment_method="cash",
                         transaction_ref=f"Validé séance #{session.session_number}",
@@ -1367,6 +1369,7 @@ class SessionReportPDFView(BureauRequiredMixin, View):
         repayments = session.repayments_made
         loans_disbursed = session.loans_granted.select_related("membership__user").all()
         deposits = session.deposits.select_related("membership__user").all()
+        session_beneficiaries = session.session_beneficiaries.select_related("membership__user").all()
 
         buffer = BytesIO()
         doc = SimpleDocTemplate(
@@ -1385,8 +1388,9 @@ class SessionReportPDFView(BureauRequiredMixin, View):
             f"Groupe : <b>{self.group.name}</b> | Date : <b>{session.date.strftime('%d/%m/%Y')}</b> | Cycle : <b>{session.cycle}</b>",
             styles["Normal"],
         ))
+        beneficiary_names = ", ".join(b.membership.user.get_full_name() or b.membership.user.username for b in session_beneficiaries) or "—"
         story.append(Paragraph(
-            f"Bénéficiaire de la séance : <b>{session.beneficiary.user.get_full_name() or session.beneficiary.user.username if session.beneficiary else '—'}</b> (Montant : <b>{int(session.hand_amount):,} FCFA</b>)",
+            f"Bénéficiaire(s) de la séance : <b>{beneficiary_names}</b> (Montant total : <b>{int(session.hand_amount):,} FCFA</b>)",
             styles["Normal"],
         ))
         story.append(Paragraph(f"Statut : <b>{session.get_status_display()}</b>", styles["Normal"]))
@@ -1604,3 +1608,108 @@ class AuditTrailView(BureauRequiredMixin, TemplateView):
         from njangi.models.audit import AuditLog as AL
         ctx["action_choices"] = AL.ACTION_CHOICES
         return ctx
+
+
+class SessionAddBeneficiaryView(BureauRequiredMixin, View):
+    def post(self, request, slug, session_pk):
+        from decimal import Decimal
+        from django.db import transaction
+        from njangi.models.session import Session, SessionBeneficiary
+        from njangi.models.group import Membership
+
+        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        membership_pk = request.POST.get("membership_pk")
+        amount_str = request.POST.get("amount")
+
+        if not (membership_pk and amount_str):
+            messages.error(request, "Veuillez remplir tous les champs pour le bénéficiaire.")
+            return redirect("njangi:session_detail", slug=slug, pk=session_pk)
+
+        try:
+            membership = get_object_or_404(Membership, pk=membership_pk, group=self.group)
+            amount = Decimal(amount_str)
+
+            with transaction.atomic():
+                SessionBeneficiary.objects.create(
+                    session=session,
+                    membership=membership,
+                    amount=amount,
+                )
+            messages.success(request, f"Bénéficiaire {membership.user.get_full_name() or membership.user.username} enregistré avec {amount:,} FCFA.")
+        except Exception as e:
+            messages.error(request, f"Erreur lors de l'enregistrement du bénéficiaire : {str(e)}")
+
+        return redirect("njangi:session_detail", slug=slug, pk=session_pk)
+
+
+class SessionRemoveBeneficiaryView(BureauRequiredMixin, View):
+    def post(self, request, slug, session_pk, beneficiary_pk):
+        from njangi.models.session import Session, SessionBeneficiary
+        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        beneficiary = get_object_or_404(SessionBeneficiary, pk=beneficiary_pk, session=session)
+        beneficiary.delete()
+        messages.success(request, "Bénéficiaire retiré de la séance.")
+        return redirect("njangi:session_detail", slug=slug, pk=session_pk)
+
+
+class SessionRemoveDepositView(BureauRequiredMixin, View):
+    def post(self, request, slug, session_pk, deposit_pk):
+        from njangi.models.fund import FundDeposit, FundTransaction
+        from njangi.models.session import Session
+        from django.db import transaction
+        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        deposit = get_object_or_404(FundDeposit, pk=deposit_pk, session=session)
+        
+        with transaction.atomic():
+            FundTransaction.objects.filter(reference_deposit=deposit).delete()
+            deposit.delete()
+            
+        messages.success(request, "Dépôt de main levée retiré.")
+        return redirect("njangi:session_detail", slug=slug, pk=session_pk)
+
+
+class SessionRemoveRepaymentView(BureauRequiredMixin, View):
+    def post(self, request, slug, session_pk, repayment_pk):
+        from njangi.models.loan import LoanRepayment
+        from njangi.models.fund import FundTransaction
+        from njangi.models.session import Session
+        from django.db import transaction
+        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        repayment = get_object_or_404(LoanRepayment, pk=repayment_pk, session=session)
+        
+        with transaction.atomic():
+            # Mettre à jour le montant remboursé du prêt d'abord
+            loan = repayment.loan
+            loan.total_repaid = max(0, loan.total_repaid - repayment.amount_paid)
+            loan.status = "active"  # Au cas où il était complété
+            loan.completed_at = None
+            loan.save()
+            
+            # Supprimer les transactions liées
+            FundTransaction.objects.filter(
+                group=self.group,
+                type__in=["repayment", "interest_in"],
+                reference_loan=loan,
+                reference_session=session
+            ).delete()
+            repayment.delete()
+            
+        messages.success(request, "Remboursement retiré.")
+        return redirect("njangi:session_detail", slug=slug, pk=session_pk)
+
+
+class SessionRemoveLoanView(BureauRequiredMixin, View):
+    def post(self, request, slug, session_pk, loan_pk):
+        from njangi.models.loan import Loan
+        from njangi.models.fund import FundTransaction
+        from njangi.models.session import Session
+        from django.db import transaction
+        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        loan = get_object_or_404(Loan, pk=loan_pk, session=session)
+        
+        with transaction.atomic():
+            FundTransaction.objects.filter(reference_loan=loan).delete()
+            loan.delete()
+            
+        messages.success(request, "Prêt direct retiré.")
+        return redirect("njangi:session_detail", slug=slug, pk=session_pk)

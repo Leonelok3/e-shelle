@@ -157,11 +157,13 @@ class Session(models.Model):
     @property
     def repayments_made(self):
         from njangi.models.loan import LoanRepayment
-
-        return LoanRepayment.objects.filter(
-            loan__membership__group=self.group,
-            paid_at__date=self.date,
-        ).select_related("loan__membership__user")
+        qs = self.repayments.all().select_related("loan__membership__user")
+        if not qs.exists():
+            return LoanRepayment.objects.filter(
+                loan__membership__group=self.group,
+                paid_at__date=self.date,
+            ).select_related("loan__membership__user")
+        return qs
 
     @property
     def repayment_members_list(self):
@@ -298,3 +300,30 @@ class Contribution(models.Model):
     @property
     def formatted_amount_due(self):
         return f"{int(self.amount_due):,}".replace(",", " ") + " FCFA"
+
+
+class SessionBeneficiary(models.Model):
+    """Enregistre un bénéficiaire et le montant de la main versée lors d'une séance."""
+    session    = models.ForeignKey(Session, on_delete=models.CASCADE, related_name="session_beneficiaries")
+    membership = models.ForeignKey("njangi.Membership", on_delete=models.CASCADE, related_name="beneficiary_shares")
+    amount     = models.DecimalField(max_digits=14, decimal_places=0, verbose_name="Montant de la main (FCFA)")
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = "Bénéficiaire de séance"
+        verbose_name_plural = "Bénéficiaires de séances"
+        unique_together = ("session", "membership")
+
+    def __str__(self):
+        return f"{self.membership.user.username} - {self.amount} FCFA"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.session.hand_amount = sum(b.amount for b in self.session.session_beneficiaries.all())
+        self.session.save(update_fields=["hand_amount"])
+
+    def delete(self, *args, **kwargs):
+        session = self.session
+        super().delete(*args, **kwargs)
+        session.hand_amount = sum(b.amount for b in session.session_beneficiaries.all())
+        session.save(update_fields=["hand_amount"])

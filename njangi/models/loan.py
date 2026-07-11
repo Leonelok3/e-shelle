@@ -167,6 +167,7 @@ class LoanRepayment(models.Model):
     ]
 
     loan           = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name="repayments")
+    session        = models.ForeignKey("njangi.Session", on_delete=models.SET_NULL, null=True, blank=True, related_name="repayments")
     amount_paid    = models.DecimalField(max_digits=14, decimal_places=0, verbose_name="Montant payé (FCFA)")
     principal_part = models.DecimalField(max_digits=14, decimal_places=0, default=0, verbose_name="Part capital (FCFA)")
     interest_part  = models.DecimalField(max_digits=12, decimal_places=0, default=0, verbose_name="Part intérêts (FCFA)")
@@ -219,6 +220,7 @@ class LoanRepayment(models.Model):
                 amount=self.amount_paid,
                 description=f"Remboursement prêt — {self.loan.membership.user}",
                 reference_loan=self.loan,
+                reference_session=self.session,
                 created_by=self.recorded_by,
             )
             if self.interest_part > 0:
@@ -228,5 +230,6 @@ class LoanRepayment(models.Model):
                     amount=self.interest_part,
                     description=f"Intérêts prêt — {self.loan.membership.user}",
                     reference_loan=self.loan,
+                    reference_session=self.session,
                     created_by=self.recorded_by,
                 )

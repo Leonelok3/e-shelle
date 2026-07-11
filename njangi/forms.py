@@ -120,7 +120,6 @@ class SessionFinancialForm(forms.ModelForm):
     class Meta:
         model = Session
         fields = [
-            "beneficiary",
             "notes",
             "loan_fund_available",
             "loan_interest_rate",
@@ -128,9 +127,6 @@ class SessionFinancialForm(forms.ModelForm):
             "cash_returned_manual",
         ]
         widgets = {
-            "beneficiary": forms.Select(attrs={
-                "class": "w-full rounded-xl border border-gray-200 px-3 py-2 bg-white",
-            }),
             "notes": forms.Textarea(attrs={
                 "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
                 "rows": 3,
@@ -157,9 +153,3 @@ class SessionFinancialForm(forms.ModelForm):
 
     def __init__(self, *args, group=None, **kwargs):
         super().__init__(*args, **kwargs)
-        if group:
-            self.fields["beneficiary"].queryset = Membership.objects.filter(
-                group=group, is_active=True
-            ).select_related("user").order_by("user__first_name", "user__username")
-            self.fields["beneficiary"].required = False
-            self.fields["beneficiary"].label_from_instance = lambda m: m.user.get_full_name() or m.user.username

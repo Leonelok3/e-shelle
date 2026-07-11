@@ -311,6 +311,39 @@ class InterestCalculationServiceTest(TestCase):
         self.assertContains(response, loan.membership.user.get_full_name() or loan.membership.user.username)
         self.assertContains(response, "100 000 FCFA")
 
+    def test_multiple_beneficiaries_and_removals(self):
+        """Teste l'ajout et le retrait de bénéficiaires multiples et d'autres mouvements."""
+        group = self.group
+        m_bob = make_membership(make_user("bob_benef"), group, hand_order=2)
+        
+        session = Session.objects.create(
+            group=group,
+            session_number=1,
+            cycle=1,
+            date=self.today,
+            status="in_progress",
+            created_by=self.president,
+        )
+        
+        self.client.force_login(self.president)
+        
+        # 1. Ajouter un bénéficiaire
+        url_add_b = reverse("njangi:session_add_beneficiary", kwargs={"slug": group.slug, "session_pk": session.pk})
+        res = self.client.post(url_add_b, {"membership_pk": m_bob.pk, "amount": "60000"})
+        self.assertEqual(res.status_code, 302)
+        session.refresh_from_db()
+        self.assertEqual(session.hand_amount, 60000)
+        self.assertEqual(session.session_beneficiaries.count(), 1)
+        
+        # 2. Retirer le bénéficiaire
+        b = session.session_beneficiaries.first()
+        url_rem_b = reverse("njangi:session_remove_beneficiary", kwargs={"slug": group.slug, "session_pk": session.pk, "beneficiary_pk": b.pk})
+        res = self.client.post(url_rem_b)
+        self.assertEqual(res.status_code, 302)
+        session.refresh_from_db()
+        self.assertEqual(session.hand_amount, 0)
+        self.assertEqual(session.session_beneficiaries.count(), 0)
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SUITE 2 — DistributionCalculator
