@@ -465,6 +465,13 @@ class SessionDetailView(BureauRequiredMixin, TemplateView):
         ctx["pending_loans_session"] = Loan.objects.filter(membership__group=self.group, status="pending").select_related("membership__user")
         ctx["approved_loans_session"] = Loan.objects.filter(membership__group=self.group, status="approved").select_related("membership__user")
         ctx["financial_form"] = SessionFinancialForm(instance=session, group=self.group)
+
+        # Passer les éléments riches pour le rapport / affichage
+        ctx["group_members"] = self.group.memberships.filter(is_active=True).select_related("user").order_by("user__first_name", "user__username")
+        ctx["loans_disbursed_session"] = session.loans_granted.select_related("membership__user").all()
+        ctx["session_absentees"] = session.contributions.filter(presence="absent").select_related("membership__user")
+        ctx["session_penalties"] = session.contributions.filter(penalty_amount__gt=0).select_related("membership__user")
+        ctx["session_repayments"] = session.repayments_made
         return ctx
 
 
@@ -478,6 +485,63 @@ class SessionFinancialUpdateView(BureauRequiredMixin, View):
         else:
             messages.error(request, "Veuillez corriger les erreurs du formulaire de finances de la séance.")
         return redirect("njangi:session_detail", slug=slug, pk=pk)
+
+
+class SessionDirectLoanView(BureauRequiredMixin, View):
+    def post(self, request, slug, session_pk):
+        from decimal import Decimal
+        from datetime import datetime
+        from django.db import transaction
+        from njangi.models.loan import Loan
+        from njangi.models.session import Session
+        from njangi.models.group import Membership
+
+        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        membership_pk = request.POST.get("membership_pk")
+        amount_str = request.POST.get("amount")
+        total_due_str = request.POST.get("total_due")
+        due_date_str = request.POST.get("due_date")
+
+        if not (membership_pk and amount_str and total_due_str and due_date_str):
+            messages.error(request, "Veuillez remplir tous les champs du prêt accordé.")
+            return redirect("njangi:session_detail", slug=slug, pk=session_pk)
+
+        try:
+            membership = get_object_or_404(Membership, pk=membership_pk, group=self.group)
+            amount = Decimal(amount_str)
+            total_due = Decimal(total_due_str)
+            due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+            total_interest = total_due - amount
+
+            with transaction.atomic():
+                # Calculer la durée en mois estimée
+                duration_months = max(1, (due_date - session.date).days // 30)
+
+                # Créer le prêt approuvé
+                loan = Loan.objects.create(
+                    membership=membership,
+                    session=session,
+                    amount_requested=amount,
+                    amount_approved=amount,
+                    interest_rate=self.group.fund_loan_rate,
+                    duration_months=duration_months,
+                    total_interest=total_interest,
+                    total_due=total_due,
+                    status="approved",
+                )
+                
+                # Décaisser le prêt (crée le mouvement FundTransaction lié à cette séance)
+                loan.disburse(user=request.user)
+                
+                # Forcer la date butoire exacte sélectionnée par le bureau
+                loan.due_date = due_date
+                loan.save()
+
+            messages.success(request, f"Prêt de {loan.formatted_amount} accordé et décaissé à {membership.user.get_full_name() or membership.user.username}.")
+        except Exception as e:
+            messages.error(request, f"Erreur lors de l'enregistrement du prêt : {str(e)}")
+
+        return redirect("njangi:session_detail", slug=slug, pk=session_pk)
 
 
 class SessionOpenView(BureauRequiredMixin, View):
@@ -1248,7 +1312,10 @@ class SessionReportPDFView(BureauRequiredMixin, View):
             return redirect("njangi:session_detail", slug=slug, pk=pk)
 
         contributions = session.contributions.select_related("membership__user").order_by("membership__hand_order")
+        absentees = session.contributions.filter(presence="absent").select_related("membership__user")
+        penalties = session.contributions.filter(penalty_amount__gt=0).select_related("membership__user")
         repayments = session.repayments_made
+        loans_disbursed = session.loans_granted.select_related("membership__user").all()
 
         buffer = BytesIO()
         doc = SimpleDocTemplate(
@@ -1268,10 +1335,10 @@ class SessionReportPDFView(BureauRequiredMixin, View):
             styles["Normal"],
         ))
         story.append(Paragraph(
-            f"Bénéficiaire : <b>{session.beneficiary.user.get_full_name() or session.beneficiary.user.username if session.beneficiary else '—'}</b>",
+            f"Bénéficiaire de la main : <b>{session.beneficiary.user.get_full_name() or session.beneficiary.user.username if session.beneficiary else '—'}</b> (Montant : <b>{int(session.hand_amount):,} FCFA</b>)",
             styles["Normal"],
         ))
-        story.append(Paragraph(f"Statut : <b>{session.get_status_display}</b>", styles["Normal"]))
+        story.append(Paragraph(f"Statut : <b>{session.get_status_display()}</b>", styles["Normal"]))
         story.append(Spacer(1, 0.4*cm))
 
         overview_data = [
@@ -1304,16 +1371,17 @@ class SessionReportPDFView(BureauRequiredMixin, View):
         if contributions.exists():
             story.append(Paragraph("Détail des cotisations", styles["Heading2"]))
             story.append(Spacer(1, 0.2*cm))
-            contrib_data = [["Membre", "Dû", "Payé", "Statut", "Méthode"]]
+            contrib_data = [["Membre", "Dû", "Payé", "Statut", "Présence", "Méthode"]]
             for c in contributions:
                 contrib_data.append([
                     c.membership.user.get_full_name() or c.membership.user.username,
                     f"{int(c.amount_due):,} FCFA",
                     f"{int(c.amount_paid):,} FCFA",
                     c.get_status_display(),
+                    c.get_presence_display(),
                     c.payment_method or "—",
                 ])
-            t_contrib = Table(contrib_data, colWidths=[6*cm, 3*cm, 3*cm, 3*cm, 2*cm])
+            t_contrib = Table(contrib_data, colWidths=[5*cm, 2.5*cm, 2.5*cm, 2.5*cm, 2.5*cm, 2*cm])
             t_contrib.setStyle(TableStyle([
                 ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
                 ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
@@ -1324,6 +1392,51 @@ class SessionReportPDFView(BureauRequiredMixin, View):
                 ("PADDING", (0, 0), (-1, -1), 5),
             ]))
             story.append(t_contrib)
+            story.append(Spacer(1, 0.5*cm))
+
+        if absentees.exists():
+            story.append(Paragraph("Membres absents", styles["Heading2"]))
+            story.append(Spacer(1, 0.2*cm))
+            absent_data = [["Membre", "Statut présence"]]
+            for a in absentees:
+                absent_data.append([
+                    a.membership.user.get_full_name() or a.membership.user.username,
+                    a.get_presence_display(),
+                ])
+            t_absent = Table(absent_data, colWidths=[9*cm, 8*cm])
+            t_absent.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("PADDING", (0, 0), (-1, -1), 5),
+            ]))
+            story.append(t_absent)
+            story.append(Spacer(1, 0.5*cm))
+
+        if penalties.exists():
+            story.append(Paragraph("Pénalités appliquées", styles["Heading2"]))
+            story.append(Spacer(1, 0.2*cm))
+            penalty_data = [["Membre", "Montant pénalité", "Statut paiement"]]
+            for p in penalties:
+                penalty_data.append([
+                    p.membership.user.get_full_name() or p.membership.user.username,
+                    f"{int(p.penalty_amount):,} FCFA",
+                    "Payée" if p.penalty_paid else "Non payée",
+                ])
+            t_penalty = Table(penalty_data, colWidths=[7*cm, 5*cm, 5*cm])
+            t_penalty.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("PADDING", (0, 0), (-1, -1), 5),
+            ]))
+            story.append(t_penalty)
             story.append(Spacer(1, 0.5*cm))
 
         if repayments.exists():
@@ -1347,6 +1460,30 @@ class SessionReportPDFView(BureauRequiredMixin, View):
                 ("PADDING", (0, 0), (-1, -1), 5),
             ]))
             story.append(t_repay)
+            story.append(Spacer(1, 0.5*cm))
+
+        if loans_disbursed.exists():
+            story.append(Paragraph("Prêts accordés durant la séance", styles["Heading2"]))
+            story.append(Spacer(1, 0.2*cm))
+            loan_data = [["Emprunteur", "Montant accordé", "Date butoire", "Total à rembourser"]]
+            for l in loans_disbursed:
+                loan_data.append([
+                    l.membership.user.get_full_name() or l.membership.user.username,
+                    f"{int(l.amount_approved):,} FCFA",
+                    l.due_date.strftime("%d/%m/%Y") if l.due_date else "—",
+                    f"{int(l.total_due):,} FCFA",
+                ])
+            t_loan = Table(loan_data, colWidths=[5*cm, 4*cm, 4*cm, 4*cm])
+            t_loan.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("PADDING", (0, 0), (-1, -1), 5),
+            ]))
+            story.append(t_loan)
             story.append(Spacer(1, 0.5*cm))
 
         story.append(Paragraph(

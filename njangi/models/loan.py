@@ -18,6 +18,7 @@ class Loan(models.Model):
     ]
 
     membership        = models.ForeignKey("njangi.Membership", on_delete=models.CASCADE, related_name="loans")
+    session           = models.ForeignKey("njangi.Session", on_delete=models.SET_NULL, null=True, blank=True, related_name="loans_granted")
     guarantor         = models.ForeignKey(
         "njangi.Membership", on_delete=models.SET_NULL, null=True, blank=True,
         related_name="guaranteed_loans", verbose_name="Garant"
@@ -112,10 +113,16 @@ class Loan(models.Model):
         """Décaisse le prêt : met à jour le fond commun."""
         from dateutil.relativedelta import relativedelta
         from njangi.models.fund import FundTransaction
+        from njangi.models.session import Session
 
         self.disbursed_at = timezone.now()
         self.due_date     = (self.disbursed_at + relativedelta(months=self.duration_months)).date()
         self.status       = "active"
+        
+        current_session = Session.objects.filter(group=self.membership.group, status="in_progress").first()
+        if current_session:
+            self.session = current_session
+
         self.save()
 
         FundTransaction.objects.create(
@@ -124,6 +131,7 @@ class Loan(models.Model):
             amount=self.amount_approved,
             description=f"Prêt décaissé — {self.membership.user}",
             reference_loan=self,
+            reference_session=self.session,
             created_by=user,
         )
 

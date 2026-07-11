@@ -33,6 +33,7 @@ urlpatterns = [
     path("bureau/<slug:slug>/seances/<int:pk>/ouvrir/", views.SessionOpenView.as_view(),        name="session_open"),
     path("bureau/<slug:slug>/seances/<int:pk>/cloturer/", views.SessionCloseView.as_view(),    name="session_close"),
     path("bureau/<slug:slug>/seances/<int:pk>/finances/", views.SessionFinancialUpdateView.as_view(), name="session_financial_update"),
+    path("bureau/<slug:slug>/seances/<int:session_pk>/accorder-pret/", views.SessionDirectLoanView.as_view(), name="session_direct_loan"),
     path("bureau/<slug:slug>/seances/<int:pk>/rapport-pdf/", views.SessionReportPDFView.as_view(), name="session_report_pdf"),
     path("bureau/<slug:slug>/seances/<int:session_pk>/prets/<int:loan_pk>/rembourser/", views.HtmxBureauRepaymentView.as_view(), name="bureau_loan_repay"),
     path("bureau/<slug:slug>/seances/<int:session_pk>/rembourser-pret/", views.HtmxBureauRepaymentView.as_view(), name="bureau_loan_repay_quick"),

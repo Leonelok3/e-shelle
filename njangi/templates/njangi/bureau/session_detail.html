@@ -97,7 +97,7 @@
   <div class="grid gap-6 lg:grid-cols-2 p-5">
     <div class="bg-gray-50 rounded-2xl p-5">
       <h4 class="font-semibold text-gray-700 mb-4">Montants saisis manuellement</h4>
-      <form method="post" action="{% url 'njangi:session_financial_update' slug=group.slug pk=session.pk %}" class="space-y-4">
+      <form id="financial-form" method="post" action="{% url 'njangi:session_financial_update' slug=group.slug pk=session.pk %}" class="space-y-4">
         {% csrf_token %}
         <div class="grid gap-4">
           <label class="text-sm text-gray-600">Montant remboursements (FCFA)</label>
@@ -232,11 +232,47 @@
             {% endif %}
           </div>
         </div>
-
-        <button type="submit" class="w-full py-3 rounded-xl text-white font-semibold bg-blue-600 hover:bg-blue-700 transition">
-          Enregistrer la saisie financière
-        </button>
       </form>
+
+      <!-- Formulaire d'attribution de prêt direct (hors demande) -->
+      <div class="border-t border-gray-200/80 pt-4 mt-6">
+        <h5 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+          <span>➕ Accorder un prêt direct</span>
+        </h5>
+        <form id="direct-loan-form" method="post" action="{% url 'njangi:session_direct_loan' slug=group.slug session_pk=session.pk %}" class="space-y-3 bg-gray-50 border border-gray-100 rounded-xl p-3.5 mb-6">
+          {% csrf_token %}
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Membre emprunteur</label>
+            <select name="membership_pk" required class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs bg-white">
+              <option value="">Sélectionner un membre...</option>
+              {% for m in group_members %}
+                <option value="{{ m.pk }}">{{ m.user.get_full_name|default:m.user.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Montant prêté (FCFA)</label>
+              <input type="number" name="amount" min="1" required placeholder="Ex: 50000" class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Somme totale à rembourser (FCFA)</label>
+              <input type="number" name="total_due" min="1" required placeholder="Ex: 55000" class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs bg-white" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Date butoire de remboursement</label>
+            <input type="date" name="due_date" required class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs bg-white" />
+          </div>
+          <button type="submit" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
+            Enregistrer et décaisser ce prêt
+          </button>
+        </form>
+      </div>
+
+      <button type="submit" form="financial-form" class="w-full py-3 rounded-xl text-white font-semibold bg-blue-600 hover:bg-blue-700 transition">
+        Enregistrer la saisie financière
+      </button>
     </div>
 
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
@@ -274,6 +310,19 @@
         </div>
       </div>
 
+      {% if session.beneficiary %}
+      <div class="rounded-2xl bg-sky-50 p-4 mt-4 border border-sky-100 flex justify-between items-center">
+        <div>
+          <p class="text-xs text-sky-600 uppercase tracking-wide font-semibold">Bénéficiaire de la main levée</p>
+          <p class="mt-1 font-extrabold text-sky-950 text-base">{{ session.beneficiary.user.get_full_name|default:session.beneficiary.user.username }}</p>
+        </div>
+        <div class="text-right">
+          <span class="text-xs bg-sky-200 text-sky-800 px-2 py-0.5 rounded-full font-bold">Main versée</span>
+          <p class="mt-1.5 font-bold text-sky-950 text-sm">{{ session.hand_amount|floatformat:0 }} FCFA</p>
+        </div>
+      </div>
+      {% endif %}
+
       {% if loan_depositors %}
       <div class="mt-6 rounded-2xl bg-slate-50 p-5 border border-gray-100">
         <h5 class="text-sm font-semibold text-gray-700 mb-3">Membres ayant mis des fonds à disposition pour prêt</h5>
@@ -300,33 +349,100 @@
       </div>
       {% endif %}
 
-      {% if borrowers %}
-      <div class="mt-6 rounded-2xl bg-slate-50 p-5 border border-gray-100">
-        <h5 class="text-sm font-semibold text-gray-700 mb-3">Membres ayant emprunté</h5>
-        <div class="space-y-2 text-sm text-gray-700">
-          {% for loan in borrowers %}
-          <div class="flex items-center justify-between rounded-xl bg-white border border-gray-100 px-4 py-3">
-            <span>{{ loan.membership.user.get_full_name|default:loan.membership.user.username }}</span>
-            <span class="font-semibold">{{ loan.formatted_amount }}</span>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-
-      <div class="mt-6">
-        <h5 class="text-sm font-semibold text-gray-700 mb-3">Remboursements enregistrés</h5>
-        {% if session.repayments_made %}
+      <!-- Prêts accordés durant la séance -->
+      <div class="mt-6 border-t border-gray-100 pt-5">
+        <h5 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-1.5">
+          <span>💸 Prêts accordés durant la séance</span>
+          <span class="text-xs text-gray-400">({{ loans_disbursed_session|length }})</span>
+        </h5>
+        {% if loans_disbursed_session %}
           <div class="space-y-2">
-            {% for r in session.repayments_made %}
-              <div class="rounded-xl border border-gray-100 bg-gray-50 p-3 flex items-center justify-between gap-3">
-                <span class="text-sm text-gray-700 truncate">{{ r.loan.membership.user.get_full_name|default:r.loan.membership.user.username }}</span>
-                <span class="text-sm font-semibold text-gray-900">{{ r.amount_paid|floatformat:0 }} FCFA</span>
+            {% for l in loans_disbursed_session %}
+              <div class="rounded-xl border border-indigo-100 bg-indigo-50/20 p-3 flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-bold text-indigo-950">{{ l.membership.user.get_full_name|default:l.membership.user.username }}</p>
+                  <p class="text-xs text-gray-500">Échéance : {{ l.due_date|date:"d/m/Y" }} | Taux : {{ l.interest_rate }}%</p>
+                </div>
+                <div class="text-right">
+                  <span class="text-sm font-extrabold text-indigo-900">{{ l.amount_approved|floatformat:0 }} FCFA</span>
+                  <p class="text-[10px] text-gray-500 font-medium">À rembourser : {{ l.total_due|floatformat:0 }} FCFA</p>
+                </div>
               </div>
             {% endfor %}
           </div>
         {% else %}
-          <p class="text-xs text-gray-400 italic">Aucun remboursement saisi pour cette séance.</p>
+          <p class="text-xs text-gray-400 italic text-center py-2 bg-gray-50 rounded-xl border border-gray-100">Aucun prêt accordé durant cette séance.</p>
+        {% endif %}
+      </div>
+
+      <!-- Membres absents -->
+      <div class="mt-6 border-t border-gray-100 pt-5">
+        <h5 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-1.5">
+          <span>🚫 Membres absents</span>
+          <span class="text-xs text-gray-400">({{ session_absentees|length }})</span>
+        </h5>
+        {% if session_absentees %}
+          <div class="space-y-2">
+            {% for a in session_absentees %}
+              <div class="rounded-xl border border-red-100 bg-red-50/20 p-3 flex items-center justify-between">
+                <span class="text-sm font-semibold text-red-950">{{ a.membership.user.get_full_name|default:a.membership.user.username }}</span>
+                <span class="text-xs bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full font-bold">{{ a.get_presence_display }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-xs text-gray-400 italic text-center py-2 bg-gray-50 rounded-xl border border-gray-100">Aucun absent à cette séance.</p>
+        {% endif %}
+      </div>
+
+      <!-- Pénalités de la séance -->
+      <div class="mt-6 border-t border-gray-100 pt-5">
+        <h5 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-1.5">
+          <span>⚠️ Pénalités de la séance</span>
+          <span class="text-xs text-gray-400">({{ session_penalties|length }})</span>
+        </h5>
+        {% if session_penalties %}
+          <div class="space-y-2">
+            {% for p in session_penalties %}
+              <div class="rounded-xl border border-yellow-100 bg-yellow-50/20 p-3 flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-semibold text-yellow-950">{{ p.membership.user.get_full_name|default:p.membership.user.username }}</p>
+                  <p class="text-[10px] text-gray-400">Motif : Retard / Absence</p>
+                </div>
+                <div class="text-right">
+                  <span class="text-sm font-extrabold text-yellow-900">{{ p.penalty_amount|floatformat:0 }} FCFA</span>
+                  <p class="text-[10px] {% if p.penalty_paid %}text-green-600{% else %}text-red-500{% endif %} font-bold">
+                    {% if p.penalty_paid %}Payée{% else %}Non payée{% endif %}
+                  </p>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-xs text-gray-400 italic text-center py-2 bg-gray-50 rounded-xl border border-gray-100">Aucune pénalité appliquée à cette séance.</p>
+        {% endif %}
+      </div>
+
+      <!-- Remboursements enregistrés -->
+      <div class="mt-6 border-t border-gray-100 pt-5">
+        <h5 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-1.5">
+          <span>📥 Remboursements enregistrés</span>
+          <span class="text-xs text-gray-400">({{ session_repayments|length }})</span>
+        </h5>
+        {% if session_repayments %}
+          <div class="space-y-2">
+            {% for r in session_repayments %}
+              <div class="rounded-xl border border-green-100 bg-green-50/20 p-3 flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-bold text-green-950">{{ r.loan.membership.user.get_full_name|default:r.loan.membership.user.username }}</p>
+                  <p class="text-[10px] text-gray-500">Date : {{ r.paid_at|date:"d/m/Y" }}</p>
+                </div>
+                <span class="text-sm font-extrabold text-green-900">{{ r.amount_paid|floatformat:0 }} FCFA</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-xs text-gray-400 italic text-center py-2 bg-gray-50 rounded-xl border border-gray-100">Aucun remboursement pour cette séance.</p>
         {% endif %}
       </div>
 
