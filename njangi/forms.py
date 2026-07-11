@@ -36,20 +36,15 @@ class SessionCreateForm(forms.ModelForm):
     class Meta:
         model = Session
         fields = [
-            "session_number", "date", "beneficiary", "notes",
+            "session_number", "date",
         ]
         widgets = {
             "date": forms.DateInput(attrs={"type": "date"}),
-            "notes": forms.Textarea(attrs={"rows": 3}),
         }
 
     def __init__(self, *args, group=None, **kwargs):
         super().__init__(*args, **kwargs)
         if group:
-            self.fields["beneficiary"].queryset = Membership.objects.filter(
-                group=group, is_active=True
-            ).select_related("user")
-            self.fields["beneficiary"].required = False
             # Pré-remplir le numéro de séance
             last = group.sessions.order_by("-session_number").first()
             self.fields["session_number"].initial = (last.session_number + 1) if last else 1
@@ -125,12 +120,22 @@ class SessionFinancialForm(forms.ModelForm):
     class Meta:
         model = Session
         fields = [
+            "beneficiary",
+            "notes",
             "loan_fund_available",
             "loan_interest_rate",
             "loan_due_date",
             "cash_returned_manual",
         ]
         widgets = {
+            "beneficiary": forms.Select(attrs={
+                "class": "w-full rounded-xl border border-gray-200 px-3 py-2 bg-white",
+            }),
+            "notes": forms.Textarea(attrs={
+                "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
+                "rows": 3,
+                "placeholder": "Notes ou procès-verbal de la séance...",
+            }),
             "loan_fund_available": forms.NumberInput(attrs={
                 "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
                 "min": "0",
@@ -152,3 +157,9 @@ class SessionFinancialForm(forms.ModelForm):
 
     def __init__(self, *args, group=None, **kwargs):
         super().__init__(*args, **kwargs)
+        if group:
+            self.fields["beneficiary"].queryset = Membership.objects.filter(
+                group=group, is_active=True
+            ).select_related("user").order_by("user__first_name", "user__username")
+            self.fields["beneficiary"].required = False
+            self.fields["beneficiary"].label_from_instance = lambda m: m.user.get_full_name() or m.user.username
