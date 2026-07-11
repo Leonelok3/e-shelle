@@ -37,12 +37,10 @@ class SessionCreateForm(forms.ModelForm):
         model = Session
         fields = [
             "session_number", "date", "beneficiary", "notes",
-            "repayment_amount_manual", "repayment_members_manual", "main_raised_amount", "loan_fund_available", "loan_interest_rate", "loan_due_date", "cash_returned_manual",
         ]
         widgets = {
             "date": forms.DateInput(attrs={"type": "date"}),
             "notes": forms.Textarea(attrs={"rows": 3}),
-            "loan_due_date": forms.DateInput(attrs={"type": "date"}),
         }
 
     def __init__(self, *args, group=None, **kwargs):
@@ -123,21 +121,10 @@ class RepaymentForm(forms.Form):
 
 
 class SessionFinancialForm(forms.ModelForm):
-    repayment_members_manual = forms.ModelMultipleChoiceField(
-        queryset=Membership.objects.none(),
-        required=False,
-        widget=forms.SelectMultiple(attrs={
-            "class": "w-full rounded-xl border border-gray-200 px-3 py-2 h-40",
-            "size": "6",
-        }),
-        label="Membres remboursant",
-    )
 
     class Meta:
         model = Session
         fields = [
-            "repayment_amount_manual",
-            "repayment_members_manual",
             "main_raised_amount",
             "loan_fund_available",
             "loan_interest_rate",
@@ -150,10 +137,6 @@ class SessionFinancialForm(forms.ModelForm):
                 "min": "0",
             }),
             "loan_fund_available": forms.NumberInput(attrs={
-                "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
-                "min": "0",
-            }),
-            "repayment_amount_manual": forms.NumberInput(attrs={
                 "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
                 "min": "0",
             }),
@@ -174,23 +157,3 @@ class SessionFinancialForm(forms.ModelForm):
 
     def __init__(self, *args, group=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["repayment_members_manual"].label_from_instance = lambda m: m.user.get_full_name() or m.user.username
-        if group:
-            self.fields["repayment_members_manual"].queryset = Membership.objects.filter(
-                group=group,
-                is_active=True,
-            ).select_related("user").order_by("hand_order")
-            if self.instance and self.instance.repayment_members_manual:
-                names = [name.strip() for name in self.instance.repayment_members_manual.split(",") if name.strip()]
-                members = list(self.fields["repayment_members_manual"].queryset)
-                selected = [m.pk for m in members if (m.user.get_full_name() or m.user.username) in names or m.user.username in names]
-                if selected:
-                    self.initial["repayment_members_manual"] = selected
-
-    def clean_repayment_members_manual(self):
-        members = self.cleaned_data.get("repayment_members_manual")
-        if members:
-            return ", ".join(
-                m.user.get_full_name() or m.user.username for m in members
-            )
-        return ""

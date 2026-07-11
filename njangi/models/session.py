@@ -148,7 +148,7 @@ class Session(models.Model):
 
     @property
     def total_loan_resources(self):
-        return self.main_raised_amount + self.repayment_amount_manual
+        return self.main_raised_amount + self.total_repayments
 
     @property
     def repayments_made(self):
