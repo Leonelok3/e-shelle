@@ -202,3 +202,49 @@ class BaseFundDeposit(models.Model):
             reference_session=self.session,
         ).delete()
         super().delete(*args, **kwargs)
+
+
+class BaseFundWithdrawal(models.Model):
+    """Enregistre un retrait sur le fond de caisse d'un membre pour un motif d'événement."""
+    membership    = models.ForeignKey("njangi.Membership", on_delete=models.CASCADE, related_name="base_fund_withdrawals")
+    amount        = models.DecimalField(max_digits=14, decimal_places=0, verbose_name="Montant retiré (FCFA)")
+    motif         = models.CharField(max_length=200, verbose_name="Motif du retrait (événement)")
+    withdrawn_at  = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = "Retrait fond de caisse"
+        verbose_name_plural = "Retraits fond de caisse"
+        ordering = ["-withdrawn_at"]
+
+    def __str__(self):
+        return f"Retrait {self.amount} FCFA — {self.membership.user} ({self.motif})"
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        if is_new:
+            # Mettre à jour le solde sur le membership
+            self.membership.base_fund_balance = max(0, self.membership.base_fund_balance - self.amount)
+            self.membership.save(update_fields=["base_fund_balance"])
+
+            # Créer la transaction de fonds (sortie du fond de caisse)
+            FundTransaction.objects.create(
+                group=self.membership.group,
+                type="base_fund_out",
+                amount=self.amount,
+                description=f"Retrait fond de caisse ({self.motif}) — {self.membership.user}",
+            )
+
+    def delete(self, *args, **kwargs):
+        # Restaurer le solde
+        self.membership.base_fund_balance += self.amount
+        self.membership.save(update_fields=["base_fund_balance"])
+        
+        # Supprimer la transaction liée
+        FundTransaction.objects.filter(
+            group=self.membership.group,
+            type="base_fund_out",
+            amount=self.amount,
+            description__contains=self.motif,
+        ).delete()
+        super().delete(*args, **kwargs)

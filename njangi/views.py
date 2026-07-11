@@ -1786,3 +1786,80 @@ class SessionRemoveBaseFundView(BureauRequiredMixin, View):
             
         messages.success(request, "Versement de fond de caisse retiré.")
         return redirect("njangi:session_detail", slug=slug, pk=session_pk)
+
+
+class BureauBaseFundsView(BureauRequiredMixin, TemplateView):
+    template_name = "njangi/bureau/base_funds.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["memberships"] = self.group.memberships.filter(is_active=True).select_related("user").prefetch_related("base_fund_withdrawals")
+        for m in ctx["memberships"]:
+            m.total_withdrawn = sum(w.amount for w in m.base_fund_withdrawals.all())
+            m.initial_total = m.base_fund_balance + m.total_withdrawn
+        ctx["total_cotise"] = sum(m.initial_total for m in ctx["memberships"])
+        ctx["total_retire"] = sum(m.total_withdrawn for m in ctx["memberships"])
+        ctx["total_restant"] = sum(m.base_fund_balance for m in ctx["memberships"])
+        
+        from njangi.models.fund import BaseFundWithdrawal
+        ctx["withdrawals"] = BaseFundWithdrawal.objects.filter(membership__group=self.group).select_related("membership__user").order_by("-withdrawn_at")
+        
+        # Passer la liste des membres actifs pour le formulaire de retrait individuel
+        ctx["group_members"] = self.group.memberships.filter(is_active=True).select_related("user").order_by("user__first_name", "user__username")
+        return ctx
+
+    def post(self, request, slug):
+        from decimal import Decimal
+        from django.db import transaction
+        from njangi.models.fund import BaseFundWithdrawal
+        from njangi.models.group import Membership
+
+        target_type = request.POST.get("target_type")
+        amount_str = request.POST.get("amount")
+        motif = request.POST.get("motif")
+
+        if not (target_type and amount_str and motif):
+            messages.error(request, "Veuillez remplir tous les champs.")
+            return redirect("njangi:bureau_base_funds", slug=slug)
+
+        try:
+            amount = Decimal(amount_str)
+            if amount <= 0:
+                raise ValueError("Le montant doit être supérieur à 0.")
+
+            with transaction.atomic():
+                if target_type == "all":
+                    active_members = self.group.memberships.filter(is_active=True)
+                    for m in active_members:
+                        BaseFundWithdrawal.objects.create(
+                            membership=m,
+                            amount=amount,
+                            motif=motif
+                        )
+                    messages.success(request, f"Retrait collectif de {amount:,} FCFA effectué pour tous les membres. Motif : {motif}")
+                else:
+                    membership_pk = request.POST.get("membership_pk")
+                    m = get_object_or_404(Membership, pk=membership_pk, group=self.group)
+                    BaseFundWithdrawal.objects.create(
+                        membership=m,
+                        amount=amount,
+                        motif=motif
+                    )
+                    messages.success(request, f"Retrait de {amount:,} FCFA effectué pour {m.user.get_full_name() or m.user.username}. Motif : {motif}")
+        except Exception as e:
+            messages.error(request, f"Erreur lors du retrait : {str(e)}")
+
+        return redirect("njangi:bureau_base_funds", slug=slug)
+
+
+class BureauBaseFundRemoveWithdrawalView(BureauRequiredMixin, View):
+    def post(self, request, slug, withdrawal_pk):
+        from njangi.models.fund import BaseFundWithdrawal
+        withdrawal = get_object_or_404(BaseFundWithdrawal, pk=withdrawal_pk, membership__group=self.group)
+        
+        from django.db import transaction
+        with transaction.atomic():
+            withdrawal.delete()
+            
+        messages.success(request, "Retrait du fond de caisse annulé avec succès.")
+        return redirect("njangi:bureau_base_funds", slug=slug)

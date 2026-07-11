@@ -79,4 +79,8 @@ urlpatterns = [
 
     # ── Audit trail ───────────────────────────────────────────────────────────
     path("bureau/<slug:slug>/audit/",          views.AuditTrailView.as_view(),          name="audit_trail"),
+
+    # ── Fond de caisse ────────────────────────────────────────────────────────
+    path("bureau/<slug:slug>/fond-de-caisse/", views.BureauBaseFundsView.as_view(), name="bureau_base_funds"),
+    path("bureau/<slug:slug>/fond-de-caisse/retrait/<int:withdrawal_pk>/annuler/", views.BureauBaseFundRemoveWithdrawalView.as_view(), name="bureau_base_fund_remove_withdrawal"),
 ]

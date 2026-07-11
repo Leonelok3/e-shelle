@@ -379,6 +379,61 @@ class InterestCalculationServiceTest(TestCase):
         self.assertEqual(m_bob.base_fund_balance, 0)
         self.assertEqual(session.base_fund_deposits.count(), 0)
 
+    def test_base_fund_withdrawals_and_cancellations(self):
+        """Teste la gestion des retraits (individuels & collectifs) sur le fond de caisse."""
+        group = self.group
+        m_bob = make_membership(make_user("bob_w"), group, hand_order=2)
+        m_alice = make_membership(make_user("alice_w"), group, hand_order=3)
+        
+        # Mettre de l'argent dans le fond de caisse
+        m_bob.base_fund_balance = 50000
+        m_bob.save()
+        m_alice.base_fund_balance = 50000
+        m_alice.save()
+        
+        self.client.force_login(self.president)
+        
+        # 1. Tester un retrait individuel
+        url_withdraw = reverse("njangi:bureau_base_funds", kwargs={"slug": group.slug})
+        res = self.client.post(url_withdraw, {
+            "target_type": "single",
+            "membership_pk": m_bob.pk,
+            "amount": "10000",
+            "motif": "Evénement Bob"
+        })
+        self.assertEqual(res.status_code, 302)
+        
+        m_bob.refresh_from_db()
+        m_alice.refresh_from_db()
+        self.assertEqual(m_bob.base_fund_balance, 40000)
+        self.assertEqual(m_alice.base_fund_balance, 50000)
+        
+        # 2. Tester un retrait collectif
+        res = self.client.post(url_withdraw, {
+            "target_type": "all",
+            "amount": "5000",
+            "motif": "Evénement de groupe"
+        })
+        self.assertEqual(res.status_code, 302)
+        
+        m_bob.refresh_from_db()
+        m_alice.refresh_from_db()
+        # Bob: 40000 - 5000 = 35000
+        # Alice: 50000 - 5000 = 45000
+        self.assertEqual(m_bob.base_fund_balance, 35000)
+        self.assertEqual(m_alice.base_fund_balance, 45000)
+        
+        # 3. Tester l'annulation d'un retrait
+        from njangi.models.fund import BaseFundWithdrawal
+        w = BaseFundWithdrawal.objects.filter(membership=m_bob, motif="Evénement Bob").first()
+        url_cancel = reverse("njangi:bureau_base_fund_remove_withdrawal", kwargs={"slug": group.slug, "withdrawal_pk": w.pk})
+        res = self.client.post(url_cancel)
+        self.assertEqual(res.status_code, 302)
+        
+        m_bob.refresh_from_db()
+        # Bob doit récupérer ses 10000: 35000 + 10000 = 45000
+        self.assertEqual(m_bob.base_fund_balance, 45000)
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SUITE 2 — DistributionCalculator
