@@ -107,6 +107,7 @@ class GroupDetailView(DetailView):
         group = self.object
         ctx["members"] = group.memberships.filter(is_active=True).select_related("user")
         ctx["recent_sessions"] = group.sessions.order_by("-date")[:5]
+        ctx["active_loans"] = Loan.objects.filter(membership__group=group, status="active").select_related("membership__user")
         if self.request.user.is_authenticated:
             ctx["my_membership"] = Membership.objects.filter(
                 group=group, user=self.request.user, is_active=True
@@ -180,6 +181,9 @@ class MemberDashboardView(LoginRequiredMixin, TemplateView):
             membership.latest_monthly_statement = latest_statements.get(membership.id)
 
         ctx["memberships"] = memberships
+        ctx["my_active_loans"] = Loan.objects.filter(
+            membership__in=memberships, status="active"
+        ).select_related("membership__group")
         ctx["unread_count"] = Notification.objects.filter(
             membership__user=self.request.user, is_read=False
         ).count()

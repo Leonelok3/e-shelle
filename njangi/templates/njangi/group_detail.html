@@ -108,6 +108,36 @@
       </div>
     </div>
 
+    <!-- Prêts en cours dans le groupe -->
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-6">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h2 class="font-semibold text-gray-700">Prêts en cours ({{ active_loans|length }})</h2>
+      </div>
+      <div class="divide-y divide-gray-50">
+        {% for loan in active_loans %}
+        <div class="flex items-center justify-between px-6 py-4">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center text-red-500 text-sm font-bold flex-shrink-0">
+              🤝
+            </div>
+            <div>
+              <p class="font-medium text-gray-800">
+                {{ loan.membership.user.get_full_name|default:loan.membership.user.username }}
+              </p>
+              <p class="text-xs text-gray-400">Échéance : {{ loan.due_date|date:"d/m/Y" }}</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="font-bold text-red-600">{{ loan.amount_approved|floatformat:0 }} FCFA</p>
+            <p class="text-xs text-gray-400">Reste : {{ loan.balance_remaining|floatformat:0 }} FCFA</p>
+          </div>
+        </div>
+        {% empty %}
+        <div class="px-6 py-8 text-center text-gray-400 text-sm">Aucun prêt en cours dans ce groupe.</div>
+        {% endfor %}
+      </div>
+    </div>
+
     <!-- Séances récentes & infos -->
     <div class="space-y-4">
 
