@@ -362,16 +362,9 @@
     </div>
     
     <div class="p-6">
-      <p class="text-xs text-gray-400 mb-6">Générez ou visualisez une courte vidéo commerciale de 8 secondes basée sur la photo du produit à l'aide de Google Veo.</p>
+      <p class="text-xs text-gray-400 mb-6">Générez ou visualisez une vidéo commerciale de 10 secondes basée sur la photo du produit à l'aide de Google Veo.</p>
       
       {% if campaign.photo_url %}
-        <!-- Zone de saisie de la voix-off en français -->
-        <div class="mb-4">
-          <label for="custom-ad-video-voiceover" class="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-2">🎙 Texte parlé de la Voix-Off (Français, max 8 secondes de lecture / ~20 mots) :</label>
-          <textarea id="custom-ad-video-voiceover" rows="2" class="w-full text-sm rounded-xl border border-purple-200 p-3 bg-purple-50/30 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition font-medium" placeholder="Saisissez le texte court qui sera parlé par la voix-off... (ex: Découvrez le nouveau {{ campaign.nom_produit }} !)">{{ content.voice_over|default:campaign.description|slice:":120" }}</textarea>
-          <p class="text-xxs text-gray-400 mt-1">Le système générera automatiquement l'audio de cette voix-off et l'intègrera à la vidéo finale.</p>
-        </div>
-
         <!-- Zone de saisie du scénario visuel pour l'IA en anglais -->
         <div class="mb-4">
           <label for="custom-ad-video-prompt" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">🎬 Scénario visuel d'animation pour l'IA (Anglais, pas de texte ni logo sur la vidéo) :</label>
@@ -380,8 +373,8 @@
         </div>
 
         <div id="ad-video-actions" class="flex flex-wrap gap-3 mb-6">
-          <button id="btn-generate-ad-video" onclick="startAdVideoGen(8)" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white shadow-md hover:opacity-90 transition bg-gradient-to-r from-purple-600 to-indigo-600">
-            🎥 Générer la vidéo avec Voix-Off (8s)
+          <button id="btn-generate-ad-video" onclick="startAdVideoGen(10)" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white shadow-md hover:opacity-90 transition bg-gradient-to-r from-purple-600 to-indigo-600">
+            🎥 Générer la vidéo (10s)
           </button>
         </div>
 
@@ -458,17 +451,15 @@
     }
   });
 
-  async function startAdVideoGen(duration = 8) {
+  async function startAdVideoGen(duration = 10) {
     const btn = document.getElementById("btn-generate-ad-video");
     const wrapper = document.getElementById("ad-video-wrapper");
     const promptInput = document.getElementById("custom-ad-video-prompt");
-    const voiceoverInput = document.getElementById("custom-ad-video-voiceover");
     
-    if (!btn || !wrapper || !promptInput || !voiceoverInput) return;
+    if (!btn || !wrapper || !promptInput) return;
  
     btn.disabled = true;
     promptInput.disabled = true;
-    voiceoverInput.disabled = true;
  
     const originalHtml = btn.innerHTML;
     btn.innerHTML = `
@@ -478,7 +469,7 @@
       </svg>
       Génération en cours...
     `;
-
+ 
     try {
       const resp = await fetch("{% url 'adgen:api_generate_video_start' pk=campaign.pk %}", {
         method: "POST",
@@ -488,21 +479,19 @@
         },
         body: JSON.stringify({
           prompt: promptInput.value,
-          voiceover_text: voiceoverInput.value,
           duration: duration
         })
       });
       const data = await resp.json();
-
+ 
       if (!resp.ok || data.error) {
         alert("⚠️ " + (data.error || "Impossible de démarrer la génération."));
         btn.disabled = false;
         promptInput.disabled = false;
-        voiceoverInput.disabled = false;
         btn.innerHTML = originalHtml;
         return;
       }
-
+ 
       // Remplacer le contenu par le loader de polling
       wrapper.innerHTML = `
         <div class="flex items-center gap-4 bg-gradient-to-r from-purple-50 to-white border border-purple-100 rounded-2xl p-6" style="max-width: 500px;">
@@ -515,22 +504,21 @@
           </div>
         </div>
       `;
-
-      pollAdVideoStatus(data.operation_name, data.prompt, btn, promptInput, voiceoverInput, originalHtml);
-
+ 
+      pollAdVideoStatus(data.operation_name, data.prompt, btn, promptInput, originalHtml);
+ 
     } catch (err) {
       console.error(err);
       btn.disabled = false;
       promptInput.disabled = false;
-      voiceoverInput.disabled = false;
       btn.innerHTML = originalHtml;
     }
   }
-
-  function pollAdVideoStatus(operationName, promptText, btn, promptInput, voiceoverInput, originalHtml) {
+ 
+  function pollAdVideoStatus(operationName, promptText, btn, promptInput, originalHtml) {
     const wrapper = document.getElementById("ad-video-wrapper");
     const pollUrl = "{% url 'adgen:api_generate_video_poll' pk=campaign.pk %}?operation_name=" + encodeURIComponent(operationName) + "&prompt=" + encodeURIComponent(promptText);
-
+ 
     let attempts = 0;
     const maxAttempts = 75; // 75 * 4s = 300s
     
@@ -545,7 +533,6 @@
         `;
         btn.disabled = false;
         promptInput.disabled = false;
-        voiceoverInput.disabled = false;
         btn.innerHTML = originalHtml;
         return;
       }
@@ -563,7 +550,6 @@
           `;
           btn.disabled = false;
           promptInput.disabled = false;
-          voiceoverInput.disabled = false;
           btn.innerHTML = originalHtml;
           return;
         }
@@ -580,7 +566,6 @@
           `;
           btn.disabled = false;
           promptInput.disabled = false;
-          voiceoverInput.disabled = false;
           btn.innerHTML = originalHtml;
         }
       } catch (err) {

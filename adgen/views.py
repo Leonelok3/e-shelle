@@ -247,18 +247,88 @@ import os
 import requests
 import subprocess
 import urllib.parse
+import struct
+import wave
+import math
+
+def generate_ad_music(output_filepath, duration=10.0):
+    """
+    Génère un fond sonore synthétique haut de gamme (mélodie d'accords plucks piano/guitare)
+    de 10 secondes pour accompagner la publicité.
+    """
+    sample_rate = 44100
+    num_samples = int(sample_rate * duration)
+    
+    # Fréquences des notes
+    notes = {
+        'C3': 130.81, 'E3': 164.81, 'G3': 196.00, 'B3': 246.94,
+        'A3': 220.00, 'C4': 261.63, 'E4': 329.63, 'G4': 392.00,
+        'F3': 174.61, 'A4': 440.00, 'B4': 493.88, 'D4': 293.66,
+        'G3_low': 196.00
+    }
+    
+    # Progression d'accords : 4 accords, chacun durant 2.5 secondes
+    chords = [
+        # Cmaj7 (C3, E3, G3, B3, C4, E4)
+        [('C3', 0.0, 0.4), ('E3', 0.25, 0.3), ('G3', 0.5, 0.3), ('B3', 0.75, 0.3), ('C4', 1.0, 0.2), ('E4', 1.25, 0.2)],
+        # Amin7 (A3, C4, E4, G4, A4)
+        [('A3', 0.0, 0.4), ('C4', 0.25, 0.3), ('E4', 0.5, 0.3), ('G4', 0.75, 0.3), ('A4', 1.0, 0.2), ('E4', 1.25, 0.2)],
+        # Fmaj7 (F3, A4, C4, E4)
+        [('F3', 0.0, 0.4), ('A4', 0.25, 0.3), ('C4', 0.5, 0.3), ('E4', 0.75, 0.3), ('F3', 1.0, 0.2), ('A4', 1.25, 0.2)],
+        # G7 (G3_low, B4, D4, G4)
+        [('G3_low', 0.0, 0.4), ('B4', 0.25, 0.3), ('D4', 0.5, 0.3), ('G4', 0.75, 0.3), ('B4', 1.0, 0.2), ('D4', 1.25, 0.2)],
+    ]
+    
+    samples = [0.0] * num_samples
+    
+    for chord_idx, plucks in enumerate(chords):
+        chord_start_time = chord_idx * 2.5
+        for note_name, delay, base_vol in plucks:
+            freq = notes.get(note_name, 440.0)
+            pluck_time = chord_start_time + delay
+            start_sample = int(pluck_time * sample_rate)
+            
+            # Durée de résonance de la note (1.5s)
+            note_duration = 1.5
+            note_samples = int(note_duration * sample_rate)
+            
+            for i in range(note_samples):
+                idx = start_sample + i
+                if idx >= num_samples:
+                    break
+                t = i / sample_rate
+                # Enveloppe : attaque de 10ms puis décroissance exponentielle
+                if t < 0.01:
+                    envelope = (t / 0.01) * base_vol
+                else:
+                    envelope = math.exp(-(t - 0.01) * 2.0) * base_vol
+                
+                # Synthèse avec harmoniques douces
+                val = math.sin(2 * math.pi * freq * t) + 0.3 * math.sin(2 * math.pi * 2 * freq * t)
+                samples[idx] += val * envelope * 0.15
+                
+    # Ecrire le fichier WAV
+    with wave.open(output_filepath, 'wb') as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(sample_rate)
+        
+        frames = bytearray()
+        for s in samples:
+            s = max(-1.0, min(1.0, s))
+            int_val = int(s * 32767)
+            frames.extend(struct.pack('<h', int_val))
+        wav.writeframes(bytes(frames))
+
 
 def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
     """
-    Télécharge la vidéo muette (ou la lit localement si déjà sur le disque),
-    génère une voix-off MP3 via Google Translate TTS,
-    mélange les deux avec ffmpeg et retourne l'URL locale du fichier final.
+    Télécharge ou lit la vidéo muette de 8 secondes, génère un fond musical 
+    professionnel de 10 secondes (guitare/piano plucks), étire la vidéo 
+    à 10 secondes (setpts=1.25) et assemble les deux.
     """
-    if not text or not text.strip():
-        return video_url
-        
     try:
-        logger.info(f"[AdGen Audio Merge] Démarrage fusion voix-off pour campagne #{campaign_id}...")
+        logger.info(f"[AdGen Video Processing] Démarrage de l'étirement à 10s et mixage audio pour la campagne #{campaign_id}...")
         
         temp_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "temp")
         os.makedirs(temp_dir, exist_ok=True)
@@ -266,21 +336,19 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
         is_local = False
         silent_video_path = ""
         
-        # 1. Résolution du chemin de la vidéo muette
+        # 1. Résolution du chemin de la vidéo muette (8s)
         if video_url.startswith(settings.MEDIA_URL):
             relative_path = video_url[len(settings.MEDIA_URL):]
-            # Retirer tout slash de début éventuel
             if relative_path.startswith("/"):
                 relative_path = relative_path[1:]
             local_path = os.path.join(settings.MEDIA_ROOT, relative_path)
             if os.path.exists(local_path):
                 silent_video_path = local_path
                 is_local = True
-                logger.info(f"[AdGen Audio Merge] Fichier vidéo muet local trouvé à : {silent_video_path}")
+                logger.info(f"[AdGen Video Processing] Vidéo muette locale trouvée à : {silent_video_path}")
                 
         if not is_local:
-            # Télécharger la vidéo muette temporairement si c'est une URL distante
-            logger.info(f"[AdGen Audio Merge] Téléchargement de la vidéo muette depuis : {video_url}")
+            logger.info(f"[AdGen Video Processing] Téléchargement de la vidéo muette depuis : {video_url}")
             video_resp = requests.get(video_url, timeout=30)
             video_resp.raise_for_status()
             
@@ -288,19 +356,12 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
             with open(silent_video_path, "wb") as f:
                 f.write(video_resp.content)
             
-        # 2. Générer le fichier voix-off MP3 via l'API libre Google Translate TTS
-        encoded_text = urllib.parse.quote(text.strip()[:200]) # Limité à 200 caractères pour TTS stable
-        tts_url = f"https://translate.google.com/translate_tts?ie=UTF-8&tl=fr&client=tw-ob&q={encoded_text}"
-        
-        logger.info(f"[AdGen Audio Merge] Appel API TTS pour le texte : {text.strip()[:60]}...")
-        tts_resp = requests.get(tts_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
-        tts_resp.raise_for_status()
-        
-        audio_path = os.path.join(temp_dir, f"voice_{campaign_id}.mp3")
-        with open(audio_path, "wb") as f:
-            f.write(tts_resp.content)
+        # 2. Générer le fond musical de 10 secondes (arpeggio piano/guitare)
+        audio_path = os.path.join(temp_dir, f"music_{campaign_id}.wav")
+        generate_ad_music(audio_path, duration=10.0)
+        logger.info(f"[AdGen Video Processing] Fond musical généré à : {audio_path}")
             
-        # 3. Fusionner avec ffmpeg
+        # 3. Fusionner et étirer la vidéo de 8s à 10s (setpts=1.25*PTS) avec ffmpeg
         output_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "videos")
         os.makedirs(output_dir, exist_ok=True)
         output_filename = f"ad_video_{campaign_id}.mp4"
@@ -311,18 +372,21 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
             "-y",
             "-i", silent_video_path,
             "-i", audio_path,
+            "-filter:v", "setpts=1.25*PTS",
             "-map", "0:v",
             "-map", "1:a",
-            "-c:v", "copy",
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-crf", "22",
             "-c:a", "aac",
             "-shortest",
             output_filepath
         ]
         
-        logger.info(f"[AdGen Audio Merge] Lancement ffmpeg: {' '.join(cmd)}")
+        logger.info(f"[AdGen Video Processing] Lancement ffmpeg: {' '.join(cmd)}")
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
-            logger.error(f"[AdGen Audio Merge] ffmpeg a échoué: {res.stderr}")
+            logger.error(f"[AdGen Video Processing] ffmpeg a échoué: {res.stderr}")
             raise RuntimeError(f"ffmpeg error: {res.stderr}")
             
         # Nettoyer les fichiers temporaires
@@ -333,16 +397,14 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
         except Exception:
             pass
             
-        # URL publique relative
         media_url_base = settings.MEDIA_URL
         if not media_url_base.endswith("/"):
             media_url_base += "/"
         final_url = f"{media_url_base}adgen/videos/{output_filename}"
-        logger.info(f"[AdGen Audio Merge] Succès ! Vidéo générée avec voix-off : {final_url}")
+        logger.info(f"[AdGen Video Processing] Succès ! Vidéo finale de 10s générée : {final_url}")
         return final_url
     except Exception as e:
-        logger.error(f"[AdGen Audio Merge] Échec de la fusion de la voix-off: {e}")
-        # En cas d'erreur, retourner l'URL muette d'origine pour ne pas bloquer l'utilisateur
+        logger.error(f"[AdGen Video Processing] Échec de l'étirement ou du mixage: {e}")
         return video_url
 
 def clean_video_prompt(prompt: str, campaign) -> str:
@@ -471,9 +533,8 @@ class PollAdVideoView(LoginRequiredMixin, View):
         # Vidéo terminée avec succès !
         video_url = result["video_url"]
         
-        # Si une voix-off est demandée, générer l'audio et le fusionner à la vidéo
-        if content.voice_over:
-            video_url = add_voiceover_to_video(video_url, content.voice_over, campaign.pk)
+        # Générer le fond sonore publicitaire de 10s et étirer la vidéo à 10s
+        video_url = add_voiceover_to_video(video_url, "bg_music", campaign.pk)
             
         content.ad_video_url = video_url
         content.save(update_fields=["ad_video_url"])
