@@ -136,8 +136,11 @@ class CampaignDetailView(LoginRequiredMixin, DetailView):
 
 # ── Génération IA (redirige vers detail après) ────────────────────────────────
 
+import threading
+from django.db import connection
+
 class GenerateView(LoginRequiredMixin, UsageLimitMixin, View):
-    """Déclenche la génération IA de façon synchrone puis redirige."""
+    """Déclenche la génération IA de façon asynchrone (thread arrière-plan) puis redirige immédiatement."""
 
     def get(self, request, pk):
         campaign = get_object_or_404(AdCampaign, pk=pk, user=request.user)
@@ -149,15 +152,40 @@ class GenerateView(LoginRequiredMixin, UsageLimitMixin, View):
             messages.info(request, "Génération déjà en cours...")
             return redirect("adgen:detail", pk=pk)
 
-        try:
-            from .services.module_engine import ModuleEngine
-            engine = ModuleEngine(campaign)
-            engine.run()
-            messages.success(request, "Contenu généré avec succès !")
-        except Exception as e:
-            logger.error(f"[AdGen] Erreur génération #{pk}: {e}")
-            messages.error(request, f"Erreur lors de la génération : {e}")
+        if not self.check_daily_limit(request.user):
+            messages.error(request, "Vous avez atteint votre limite journalière de générations (10/jour).")
+            return redirect("adgen:detail", pk=pk)
 
+        # Passer le statut à "processing" immédiatement
+        campaign.status = "processing"
+        campaign.save(update_fields=["status", "updated_at"])
+
+        # Lancer le traitement lourd dans un thread d'arrière-plan
+        def bg_run(campaign_id):
+            # Fermer la connexion actuelle pour que le thread en ouvre une nouvelle propre
+            connection.close()
+            try:
+                from .services.module_engine import ModuleEngine
+                # Recharger l'instance dans ce thread pour éviter les conflits d'état Django
+                t_campaign = AdCampaign.objects.get(pk=campaign_id)
+                engine = ModuleEngine(t_campaign)
+                engine.run()
+            except Exception as e:
+                logger.error(f"[AdGen Background Thread] Échec de la génération #{campaign_id}: {e}")
+                try:
+                    t_campaign = AdCampaign.objects.get(pk=campaign_id)
+                    t_campaign.status = "failed"
+                    t_campaign.save(update_fields=["status", "updated_at"])
+                except Exception:
+                    pass
+            finally:
+                connection.close()
+
+        thread = threading.Thread(target=bg_run, args=(campaign.pk,))
+        thread.daemon = True
+        thread.start()
+
+        messages.info(request, "Génération de votre campagne lancée en arrière-plan...")
         return redirect("adgen:detail", pk=pk)
 
 
