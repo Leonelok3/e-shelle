@@ -141,9 +141,15 @@
     </div>
     {% if content %}
       {% if content.tokens_used == 0 %}
-      <span class="mode-badge">Mode test local</span>
+      <span class="mode-badge" style="background:#f3f4f6;color:#374151">Mode test local</span>
       {% else %}
-      <span class="mode-badge">Generation IA</span>
+        {% if "Gemini" in content.raw_json.generation_model %}
+        <span class="mode-badge" style="background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(147,51,234,0.1));color:#6b21a8;border:1px solid rgba(168,85,247,0.3)">
+          ✨ {{ content.raw_json.generation_model }}
+        </span>
+        {% else %}
+        <span class="mode-badge">Génération IA ({{ content.raw_json.generation_model|default:"Claude" }})</span>
+        {% endif %}
       {% endif %}
     {% endif %}
   </div>
