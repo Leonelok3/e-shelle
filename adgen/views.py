@@ -288,8 +288,8 @@ class StartAdVideoView(LoginRequiredMixin, View):
             )
         
         prompt = prompt[:1200]
-        if duration not in [5, 10]:
-            duration = 5
+        # Veo reference_to_video ne supporte QUE 8 secondes
+        duration = 8
 
         # Encodage de l'image du produit si présente
         image_b64 = None

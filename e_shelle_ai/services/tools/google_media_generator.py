@@ -159,6 +159,10 @@ def start_google_video(prompt: str, aspect_ratio: str = "16:9", resolution: str 
     if resolution not in ["720p", "1080p"]:
         resolution = "720p"
 
+    # Veo reference_to_video ne supporte QUE 8 secondes
+    if image_b64:
+        duration = 8
+
     # Essai d'authentification avec Vertex AI SDK
     client, _ = get_vertex_client()
     if client:

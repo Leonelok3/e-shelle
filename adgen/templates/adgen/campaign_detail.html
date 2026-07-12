@@ -362,7 +362,7 @@
     </div>
     
     <div class="p-6">
-      <p class="text-xs text-gray-400 mb-6">Générez ou visualisez une courte vidéo commerciale de 5 ou 10 secondes basée sur la photo du produit à l'aide de Google Veo.</p>
+      <p class="text-xs text-gray-400 mb-6">Générez ou visualisez une courte vidéo commerciale de 8 secondes basée sur la photo du produit à l'aide de Google Veo.</p>
       
       {% if campaign.photo_url %}
         <!-- Zone de saisie du texte personnalisé -->
@@ -373,11 +373,8 @@
         </div>
 
         <div id="ad-video-actions" class="flex flex-wrap gap-3 mb-6">
-          <button id="btn-generate-ad-video" onclick="startAdVideoGen(5)" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm hover:opacity-90 transition bg-gradient-to-r from-purple-600 to-indigo-600">
-            🎥 Générer vidéo (5s)
-          </button>
-          <button id="btn-generate-ad-video-10" onclick="startAdVideoGen(10)" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-purple-700 border-2 border-purple-300 shadow-sm hover:bg-purple-50 transition bg-white">
-            🎥 Générer vidéo Pro (10s)
+          <button id="btn-generate-ad-video" onclick="startAdVideoGen(8)" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white shadow-md hover:opacity-90 transition bg-gradient-to-r from-purple-600 to-indigo-600">
+            🎥 Générer la vidéo (8s)
           </button>
         </div>
 
@@ -454,23 +451,18 @@
     }
   });
 
-  async function startAdVideoGen(duration = 5) {
-    const btn5 = document.getElementById("btn-generate-ad-video");
-    const btn10 = document.getElementById("btn-generate-ad-video-10");
+  async function startAdVideoGen(duration = 8) {
+    const btn = document.getElementById("btn-generate-ad-video");
     const wrapper = document.getElementById("ad-video-wrapper");
     const promptInput = document.getElementById("custom-ad-video-prompt");
     
-    const activeBtn = duration === 10 ? btn10 : btn5;
-    const inactiveBtn = duration === 10 ? btn5 : btn10;
-    
-    if (!activeBtn || !wrapper || !promptInput) return;
-
-    activeBtn.disabled = true;
-    if (inactiveBtn) inactiveBtn.disabled = true;
+    if (!btn || !wrapper || !promptInput) return;
+ 
+    btn.disabled = true;
     promptInput.disabled = true;
-
-    const originalHtml = activeBtn.innerHTML;
-    activeBtn.innerHTML = `
+ 
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = `
       <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle; width: 16px; height: 16px; margin-right: 6px;">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -494,10 +486,9 @@
 
       if (!resp.ok || data.error) {
         alert("⚠️ " + (data.error || "Impossible de démarrer la génération."));
-        activeBtn.disabled = false;
-        if (inactiveBtn) inactiveBtn.disabled = false;
+        btn.disabled = false;
         promptInput.disabled = false;
-        activeBtn.innerHTML = originalHtml;
+        btn.innerHTML = originalHtml;
         return;
       }
 
@@ -514,19 +505,15 @@
         </div>
       `;
 
-      pollAdVideoStatus(data.operation_name, data.prompt, activeBtn, inactiveBtn, promptInput, originalHtml);
+      pollAdVideoStatus(data.operation_name, data.prompt, btn, promptInput, originalHtml);
 
     } catch (err) {
       console.error(err);
-      alert("Erreur réseau.");
-      activeBtn.disabled = false;
-      if (inactiveBtn) inactiveBtn.disabled = false;
-      promptInput.disabled = false;
-      activeBtn.innerHTML = originalHtml;
+      btn.innerHTML = originalHtml;
     }
   }
 
-  function pollAdVideoStatus(operationName, promptText, activeBtn, inactiveBtn, promptInput, originalHtml) {
+  function pollAdVideoStatus(operationName, promptText, btn, promptInput, originalHtml) {
     const wrapper = document.getElementById("ad-video-wrapper");
     const pollUrl = "{% url 'adgen:api_generate_video_poll' pk=campaign.pk %}?operation_name=" + encodeURIComponent(operationName) + "&prompt=" + encodeURIComponent(promptText);
 
@@ -542,10 +529,9 @@
             ⚠️ <strong>Délai dépassé :</strong> La génération prend plus de temps que prévu. Veuillez actualiser la page plus tard pour voir le résultat.
           </div>
         `;
-        activeBtn.disabled = false;
-        if (inactiveBtn) inactiveBtn.disabled = false;
+        btn.disabled = false;
         promptInput.disabled = false;
-        activeBtn.innerHTML = originalHtml;
+        btn.innerHTML = originalHtml;
         return;
       }
 
@@ -560,10 +546,9 @@
               ⚠️ <strong>Échec de la génération :</strong> ${data.error}
             </div>
           `;
-          activeBtn.disabled = false;
-          if (inactiveBtn) inactiveBtn.disabled = false;
+          btn.disabled = false;
           promptInput.disabled = false;
-          activeBtn.innerHTML = originalHtml;
+          btn.innerHTML = originalHtml;
           return;
         }
 
@@ -577,10 +562,9 @@
               </a>
             </div>
           `;
-          activeBtn.disabled = false;
-          if (inactiveBtn) inactiveBtn.disabled = false;
+          btn.disabled = false;
           promptInput.disabled = false;
-          activeBtn.innerHTML = originalHtml;
+          btn.innerHTML = originalHtml;
         }
       } catch (err) {
         console.error("Error polling video status:", err);
