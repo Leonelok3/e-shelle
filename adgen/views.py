@@ -250,7 +250,8 @@ import urllib.parse
 
 def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
     """
-    Télécharge la vidéo muette, génère une voix-off MP3 via Google Translate TTS,
+    Télécharge la vidéo muette (ou la lit localement si déjà sur le disque),
+    génère une voix-off MP3 via Google Translate TTS,
     mélange les deux avec ffmpeg et retourne l'URL locale du fichier final.
     """
     if not text or not text.strip():
@@ -259,21 +260,39 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
     try:
         logger.info(f"[AdGen Audio Merge] Démarrage fusion voix-off pour campagne #{campaign_id}...")
         
-        # 1. Télécharger la vidéo muette temporairement
-        video_resp = requests.get(video_url, timeout=30)
-        video_resp.raise_for_status()
-        
         temp_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "temp")
         os.makedirs(temp_dir, exist_ok=True)
         
-        silent_video_path = os.path.join(temp_dir, f"silent_{campaign_id}.mp4")
-        with open(silent_video_path, "wb") as f:
-            f.write(video_resp.content)
+        is_local = False
+        silent_video_path = ""
+        
+        # 1. Résolution du chemin de la vidéo muette
+        if video_url.startswith(settings.MEDIA_URL):
+            relative_path = video_url[len(settings.MEDIA_URL):]
+            # Retirer tout slash de début éventuel
+            if relative_path.startswith("/"):
+                relative_path = relative_path[1:]
+            local_path = os.path.join(settings.MEDIA_ROOT, relative_path)
+            if os.path.exists(local_path):
+                silent_video_path = local_path
+                is_local = True
+                logger.info(f"[AdGen Audio Merge] Fichier vidéo muet local trouvé à : {silent_video_path}")
+                
+        if not is_local:
+            # Télécharger la vidéo muette temporairement si c'est une URL distante
+            logger.info(f"[AdGen Audio Merge] Téléchargement de la vidéo muette depuis : {video_url}")
+            video_resp = requests.get(video_url, timeout=30)
+            video_resp.raise_for_status()
+            
+            silent_video_path = os.path.join(temp_dir, f"silent_{campaign_id}.mp4")
+            with open(silent_video_path, "wb") as f:
+                f.write(video_resp.content)
             
         # 2. Générer le fichier voix-off MP3 via l'API libre Google Translate TTS
         encoded_text = urllib.parse.quote(text.strip()[:200]) # Limité à 200 caractères pour TTS stable
         tts_url = f"https://translate.google.com/translate_tts?ie=UTF-8&tl=fr&client=tw-ob&q={encoded_text}"
         
+        logger.info(f"[AdGen Audio Merge] Appel API TTS pour le texte : {text.strip()[:60]}...")
         tts_resp = requests.get(tts_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
         tts_resp.raise_for_status()
         
@@ -308,7 +327,8 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
             
         # Nettoyer les fichiers temporaires
         try:
-            os.remove(silent_video_path)
+            if not is_local:
+                os.remove(silent_video_path)
             os.remove(audio_path)
         except Exception:
             pass
@@ -317,7 +337,9 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
         media_url_base = settings.MEDIA_URL
         if not media_url_base.endswith("/"):
             media_url_base += "/"
-        return f"{media_url_base}adgen/videos/{output_filename}"
+        final_url = f"{media_url_base}adgen/videos/{output_filename}"
+        logger.info(f"[AdGen Audio Merge] Succès ! Vidéo générée avec voix-off : {final_url}")
+        return final_url
     except Exception as e:
         logger.error(f"[AdGen Audio Merge] Échec de la fusion de la voix-off: {e}")
         # En cas d'erreur, retourner l'URL muette d'origine pour ne pas bloquer l'utilisateur
