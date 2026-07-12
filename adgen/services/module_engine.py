@@ -69,7 +69,7 @@ class ModuleEngine:
                     "whatsapp_message":      result.get("whatsapp", ""),
                     "hashtags":              result.get("hashtags", []),
                     "tiktok_script":         result.get("video_script", ""),
-                    "voice_over":            result.get("video_prompt", ""),
+                    "voice_over":            result.get("voice_over_text", ""),
                     "chatbot_reply":         result.get("chatbot_reply", ""),
                     "raw_json":              result,
                     "tokens_used":           tokens,

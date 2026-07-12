@@ -365,16 +365,23 @@
       <p class="text-xs text-gray-400 mb-6">Générez ou visualisez une courte vidéo commerciale de 8 secondes basée sur la photo du produit à l'aide de Google Veo.</p>
       
       {% if campaign.photo_url %}
-        <!-- Zone de saisie du texte personnalisé -->
+        <!-- Zone de saisie de la voix-off en français -->
         <div class="mb-4">
-          <label for="custom-ad-video-prompt" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Texte de la voix off / Script vidéo :</label>
-          <textarea id="custom-ad-video-prompt" rows="3" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition" placeholder="Saisissez ici le script ou le texte qui guidera la vidéo...">{{ content.voice_over|default:content.tiktok_script|default:campaign.description }}</textarea>
-          <p class="text-xxs text-gray-400 mt-1">Vous pouvez personnaliser ce texte pour ajuster la voix off ou le scénario de la vidéo générée.</p>
+          <label for="custom-ad-video-voiceover" class="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-2">🎙 Texte parlé de la Voix-Off (Français, max 8 secondes de lecture / ~20 mots) :</label>
+          <textarea id="custom-ad-video-voiceover" rows="2" class="w-full text-sm rounded-xl border border-purple-200 p-3 bg-purple-50/30 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition font-medium" placeholder="Saisissez le texte court qui sera parlé par la voix-off... (ex: Découvrez le nouveau {{ campaign.nom_produit }} !)">{{ content.voice_over|default:campaign.description|slice:":120" }}</textarea>
+          <p class="text-xxs text-gray-400 mt-1">Le système générera automatiquement l'audio de cette voix-off et l'intègrera à la vidéo finale.</p>
+        </div>
+
+        <!-- Zone de saisie du scénario visuel pour l'IA en anglais -->
+        <div class="mb-4">
+          <label for="custom-ad-video-prompt" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">🎬 Scénario visuel d'animation pour l'IA (Anglais, pas de texte ni logo sur la vidéo) :</label>
+          <textarea id="custom-ad-video-prompt" rows="2" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition" placeholder="Instructions visuelles pour l'animation (ex: Cinematic slow zoom on the product...)">{% if content.raw_json.video_prompt %}{{ content.raw_json.video_prompt }}{% else %}A professional product commercial video showcasing '{{ campaign.nom_produit }}'. Animate the product from the image with realistic motion, smooth camera pan, cinematic lighting, and studio background. High-end advertising aesthetic, 4k, crisp, no text on screen, no logo, no watermark, no writing.{% endif %}</textarea>
+          <p class="text-xxs text-gray-400 mt-1">Ce prompt guide les mouvements de caméra et l'ambiance de l'animation vidéo générée par Google Veo.</p>
         </div>
 
         <div id="ad-video-actions" class="flex flex-wrap gap-3 mb-6">
           <button id="btn-generate-ad-video" onclick="startAdVideoGen(8)" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white shadow-md hover:opacity-90 transition bg-gradient-to-r from-purple-600 to-indigo-600">
-            🎥 Générer la vidéo (8s)
+            🎥 Générer la vidéo avec Voix-Off (8s)
           </button>
         </div>
 
@@ -455,11 +462,13 @@
     const btn = document.getElementById("btn-generate-ad-video");
     const wrapper = document.getElementById("ad-video-wrapper");
     const promptInput = document.getElementById("custom-ad-video-prompt");
+    const voiceoverInput = document.getElementById("custom-ad-video-voiceover");
     
-    if (!btn || !wrapper || !promptInput) return;
+    if (!btn || !wrapper || !promptInput || !voiceoverInput) return;
  
     btn.disabled = true;
     promptInput.disabled = true;
+    voiceoverInput.disabled = true;
  
     const originalHtml = btn.innerHTML;
     btn.innerHTML = `
@@ -479,6 +488,7 @@
         },
         body: JSON.stringify({
           prompt: promptInput.value,
+          voiceover_text: voiceoverInput.value,
           duration: duration
         })
       });
@@ -488,6 +498,7 @@
         alert("⚠️ " + (data.error || "Impossible de démarrer la génération."));
         btn.disabled = false;
         promptInput.disabled = false;
+        voiceoverInput.disabled = false;
         btn.innerHTML = originalHtml;
         return;
       }
@@ -505,15 +516,18 @@
         </div>
       `;
 
-      pollAdVideoStatus(data.operation_name, data.prompt, btn, promptInput, originalHtml);
+      pollAdVideoStatus(data.operation_name, data.prompt, btn, promptInput, voiceoverInput, originalHtml);
 
     } catch (err) {
       console.error(err);
+      btn.disabled = false;
+      promptInput.disabled = false;
+      voiceoverInput.disabled = false;
       btn.innerHTML = originalHtml;
     }
   }
 
-  function pollAdVideoStatus(operationName, promptText, btn, promptInput, originalHtml) {
+  function pollAdVideoStatus(operationName, promptText, btn, promptInput, voiceoverInput, originalHtml) {
     const wrapper = document.getElementById("ad-video-wrapper");
     const pollUrl = "{% url 'adgen:api_generate_video_poll' pk=campaign.pk %}?operation_name=" + encodeURIComponent(operationName) + "&prompt=" + encodeURIComponent(promptText);
 
@@ -531,6 +545,7 @@
         `;
         btn.disabled = false;
         promptInput.disabled = false;
+        voiceoverInput.disabled = false;
         btn.innerHTML = originalHtml;
         return;
       }
@@ -548,6 +563,7 @@
           `;
           btn.disabled = false;
           promptInput.disabled = false;
+          voiceoverInput.disabled = false;
           btn.innerHTML = originalHtml;
           return;
         }
@@ -564,6 +580,7 @@
           `;
           btn.disabled = false;
           promptInput.disabled = false;
+          voiceoverInput.disabled = false;
           btn.innerHTML = originalHtml;
         }
       } catch (err) {

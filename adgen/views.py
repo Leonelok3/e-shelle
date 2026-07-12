@@ -243,6 +243,85 @@ class ExportContentView(LoginRequiredMixin, View):
 from e_shelle_ai.services.tools.google_media_generator import start_google_video, check_google_video_status
 from e_shelle_ai.services.quota_service import QuotaService
 import base64
+import os
+import requests
+import subprocess
+import urllib.parse
+
+def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
+    """
+    Télécharge la vidéo muette, génère une voix-off MP3 via Google Translate TTS,
+    mélange les deux avec ffmpeg et retourne l'URL locale du fichier final.
+    """
+    if not text or not text.strip():
+        return video_url
+        
+    try:
+        logger.info(f"[AdGen Audio Merge] Démarrage fusion voix-off pour campagne #{campaign_id}...")
+        
+        # 1. Télécharger la vidéo muette temporairement
+        video_resp = requests.get(video_url, timeout=30)
+        video_resp.raise_for_status()
+        
+        temp_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "temp")
+        os.makedirs(temp_dir, exist_ok=True)
+        
+        silent_video_path = os.path.join(temp_dir, f"silent_{campaign_id}.mp4")
+        with open(silent_video_path, "wb") as f:
+            f.write(video_resp.content)
+            
+        # 2. Générer le fichier voix-off MP3 via l'API libre Google Translate TTS
+        encoded_text = urllib.parse.quote(text.strip()[:200]) # Limité à 200 caractères pour TTS stable
+        tts_url = f"https://translate.google.com/translate_tts?ie=UTF-8&tl=fr&client=tw-ob&q={encoded_text}"
+        
+        tts_resp = requests.get(tts_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
+        tts_resp.raise_for_status()
+        
+        audio_path = os.path.join(temp_dir, f"voice_{campaign_id}.mp3")
+        with open(audio_path, "wb") as f:
+            f.write(tts_resp.content)
+            
+        # 3. Fusionner avec ffmpeg
+        output_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "videos")
+        os.makedirs(output_dir, exist_ok=True)
+        output_filename = f"ad_video_{campaign_id}.mp4"
+        output_filepath = os.path.join(output_dir, output_filename)
+        
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-i", silent_video_path,
+            "-i", audio_path,
+            "-map", "0:v",
+            "-map", "1:a",
+            "-c:v", "copy",
+            "-c:a", "aac",
+            "-shortest",
+            output_filepath
+        ]
+        
+        logger.info(f"[AdGen Audio Merge] Lancement ffmpeg: {' '.join(cmd)}")
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        if res.returncode != 0:
+            logger.error(f"[AdGen Audio Merge] ffmpeg a échoué: {res.stderr}")
+            raise RuntimeError(f"ffmpeg error: {res.stderr}")
+            
+        # Nettoyer les fichiers temporaires
+        try:
+            os.remove(silent_video_path)
+            os.remove(audio_path)
+        except Exception:
+            pass
+            
+        # URL publique relative
+        media_url_base = settings.MEDIA_URL
+        if not media_url_base.endswith("/"):
+            media_url_base += "/"
+        return f"{media_url_base}adgen/videos/{output_filename}"
+    except Exception as e:
+        logger.error(f"[AdGen Audio Merge] Échec de la fusion de la voix-off: {e}")
+        # En cas d'erreur, retourner l'URL muette d'origine pour ne pas bloquer l'utilisateur
+        return video_url
 
 def clean_video_prompt(prompt: str, campaign) -> str:
     """
@@ -255,14 +334,15 @@ def clean_video_prompt(prompt: str, campaign) -> str:
     if any(marker in p for marker in ["0-3", "4-12", "13-17", "18-20", "s:", "Texte:", "CTA:", "Voice-over:"]):
         desc_clean = campaign.description.replace("\n", " ").strip()
         p = (
-            f"A professional commercial video showcasing '{campaign.nom_produit}'. "
+            f"A professional product commercial video showcasing '{campaign.nom_produit}'. "
             f"Animate the product from the image with realistic motion, smooth camera pan, "
             f"cinematic lighting, and studio background. Highlights: {desc_clean[:200]}. "
-            f"High-end advertising aesthetic, 4k, crisp, no text on screen."
+            f"High-end advertising aesthetic, 4k, crisp, no text on screen, no logo, no watermark, no writing."
         )
-    # Éviter que l'IA tente d'écrire du texte à l'écran (qui ressort déformé)
-    if "no text" not in p.lower() and "text" in p.lower():
-        p += ", no text on screen"
+    # Éviter que l'IA tente d'écrire du texte/logo à l'écran (qui ressort déformé)
+    for forbidden in ["text", "logo", "watermark", "branding", "title", "writing"]:
+        if forbidden not in p.lower():
+            p += f", no {forbidden}"
     return p
 
 class StartAdVideoView(LoginRequiredMixin, View):
@@ -283,19 +363,27 @@ class StartAdVideoView(LoginRequiredMixin, View):
             upgrade_msg = quota_service.get_upgrade_message(request.user, "image")
             return JsonResponse({"error": upgrade_msg, "quota_exceeded": True}, status=402)
 
-        # Lire le prompt personnalisé et la durée s'ils sont fournis
+        # Lire le prompt personnalisé, la voix-off et la durée s'ils sont fournis
         custom_prompt = None
+        voiceover_text = None
         duration = 8
         if request.content_type == "application/json" or request.body.startswith(b"{"):
             try:
                 data = json.loads(request.body)
                 custom_prompt = data.get("prompt")
+                voiceover_text = data.get("voiceover_text")
                 duration = int(data.get("duration", 8))
             except Exception:
                 pass
         else:
             custom_prompt = request.POST.get("prompt")
+            voiceover_text = request.POST.get("voiceover_text")
             duration = int(request.POST.get("duration", 8))
+
+        # Enregistrer le texte de la voix-off en base pour la récupérer à la fin de la génération
+        if voiceover_text is not None:
+            content.voice_over = voiceover_text.strip()
+            content.save(update_fields=["voice_over"])
 
         if custom_prompt:
             prompt = custom_prompt.strip()
@@ -360,6 +448,11 @@ class PollAdVideoView(LoginRequiredMixin, View):
 
         # Vidéo terminée avec succès !
         video_url = result["video_url"]
+        
+        # Si une voix-off est demandée, générer l'audio et le fusionner à la vidéo
+        if content.voice_over:
+            video_url = add_voiceover_to_video(video_url, content.voice_over, campaign.pk)
+            
         content.ad_video_url = video_url
         content.save(update_fields=["ad_video_url"])
 
