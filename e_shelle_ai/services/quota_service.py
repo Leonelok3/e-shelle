@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 # Limites par plan
 PLAN_LIMITS = {
-    "free":       {"messages": 30,    "images": 3},
-    "starter":    {"messages": 30,    "images": 3},
+    "free":       {"messages": 200,   "images": 50},
+    "starter":    {"messages": 200,   "images": 50},
     "pro":        {"messages": 500,   "images": 50},
     "enterprise": {"messages": 99999, "images": 9999},
 }
@@ -57,8 +57,10 @@ class QuotaService:
         )
 
         if not created:
-            # Synchroniser le plan si changé
-            if quota.plan != ai_plan:
+            # Synchroniser le plan ou les limites si configurés différemment
+            if (quota.plan != ai_plan or 
+                quota.messages_limit != limits["messages"] or 
+                quota.images_limit != limits["images"]):
                 quota.plan           = ai_plan
                 quota.messages_limit = limits["messages"]
                 quota.images_limit   = limits["images"]
