@@ -9,6 +9,10 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
+
+logger = logging.getLogger(__name__)
+
+
 class ModuleEngine:
     """Orchestre la génération complète d'une campagne."""
 
@@ -23,6 +27,7 @@ class ModuleEngine:
         """
         from adgen.models import AdContent, AdUsageStat
         from adgen.services.ai_service import AdGenAIService
+        from django.utils import timezone
 
         # Passer le statut à "processing"
         self.campaign.status = "processing"
@@ -64,6 +69,7 @@ class ModuleEngine:
                     "whatsapp_message":      result.get("whatsapp", ""),
                     "hashtags":              result.get("hashtags", []),
                     "tiktok_script":         result.get("video_script", ""),
+                    "voice_over":            result.get("video_prompt", ""),
                     "chatbot_reply":         result.get("chatbot_reply", ""),
                     "raw_json":              result,
                     "tokens_used":           tokens,

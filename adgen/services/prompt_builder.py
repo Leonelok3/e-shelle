@@ -8,7 +8,7 @@ MODULES_INSTRUCTIONS = {
     "titres": 'Génère "titles": [liste de 3 titres accrocheurs et vendeurs]',
     "description": 'Génère "description": "texte de vente 3-4 phrases" et "benefits": [liste de 5 bénéfices clients concrets]',
     "social": 'Génère "facebook": "post Facebook engageant", "instagram": "légende Instagram avec emojis", "whatsapp": "message WhatsApp direct et humain", "hashtags": [liste de 10 hashtags pertinents]',
-    "tiktok": 'Génère "video_script": "script TikTok 20 secondes : hook 3s + présentation 10s + CTA 7s"',
+    "tiktok": 'Génère "video_script": "script TikTok 20 secondes : hook 3s + présentation 10s + CTA 7s" et "video_prompt": "description visuelle en anglais pour Google Veo : animation fluide de la photo du produit, mouvement de caméra cinématographique (pan, zoom), éclairage studio, pas de texte généré à l\'écran, style publicitaire haut de gamme, sans texte"',
     "chatbot": 'Génère "chatbot_reply": "réponse naturelle d\'un vendeur à la question \'c\'est quoi ce produit ?\', orientée achat, max 4 phrases"',
 }
 

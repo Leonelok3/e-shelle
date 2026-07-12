@@ -244,6 +244,27 @@ from e_shelle_ai.services.tools.google_media_generator import start_google_video
 from e_shelle_ai.services.quota_service import QuotaService
 import base64
 
+def clean_video_prompt(prompt: str, campaign) -> str:
+    """
+    S'assure que le prompt de vidéo ne contient pas de marqueurs temporels ou de texte
+    qui gâcheraient le rendu de l'IA (comme 0-3s, Texte:, etc.).
+    Si c'est un script brut, génère un prompt d'animation professionnel à la place.
+    """
+    p = prompt.strip()
+    # Si le prompt contient des marqueurs de temps ou des mots-clés de script
+    if any(marker in p for marker in ["0-3", "4-12", "13-17", "18-20", "s:", "Texte:", "CTA:", "Voice-over:"]):
+        desc_clean = campaign.description.replace("\n", " ").strip()
+        p = (
+            f"A professional commercial video showcasing '{campaign.nom_produit}'. "
+            f"Animate the product from the image with realistic motion, smooth camera pan, "
+            f"cinematic lighting, and studio background. Highlights: {desc_clean[:200]}. "
+            f"High-end advertising aesthetic, 4k, crisp, no text on screen."
+        )
+    # Éviter que l'IA tente d'écrire du texte à l'écran (qui ressort déformé)
+    if "no text" not in p.lower() and "text" in p.lower():
+        p += ", no text on screen"
+    return p
+
 class StartAdVideoView(LoginRequiredMixin, View):
     """
     POST /pub/api/campaign/<pk>/generate-video/start/
@@ -264,17 +285,17 @@ class StartAdVideoView(LoginRequiredMixin, View):
 
         # Lire le prompt personnalisé et la durée s'ils sont fournis
         custom_prompt = None
-        duration = 5
+        duration = 8
         if request.content_type == "application/json" or request.body.startswith(b"{"):
             try:
                 data = json.loads(request.body)
                 custom_prompt = data.get("prompt")
-                duration = int(data.get("duration", 5))
+                duration = int(data.get("duration", 8))
             except Exception:
                 pass
         else:
             custom_prompt = request.POST.get("prompt")
-            duration = int(request.POST.get("duration", 5))
+            duration = int(request.POST.get("duration", 8))
 
         if custom_prompt:
             prompt = custom_prompt.strip()
@@ -287,6 +308,7 @@ class StartAdVideoView(LoginRequiredMixin, View):
                 f"High-end advertising aesthetic, 4k, crisp details."
             )
         
+        prompt = clean_video_prompt(prompt, campaign)
         prompt = prompt[:1200]
         # Veo reference_to_video ne supporte QUE 8 secondes
         duration = 8
