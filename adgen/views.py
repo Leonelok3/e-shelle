@@ -279,7 +279,13 @@ class StartAdVideoView(LoginRequiredMixin, View):
         if custom_prompt:
             prompt = custom_prompt.strip()
         else:
-            prompt = content.tiktok_script or f"A commercial for {campaign.nom_produit}. {campaign.description}"
+            desc_clean = campaign.description.replace("\n", " ").strip()
+            prompt = (
+                f"A professional, high-quality commercial video showcasing '{campaign.nom_produit}'. "
+                f"Based on the product image, naturally animate the scene with realistic motion, "
+                f"smooth camera panning, and elegant studio lighting. The video highlights: {desc_clean[:250]}. "
+                f"High-end advertising aesthetic, 4k, crisp details."
+            )
         
         prompt = prompt[:1200]
         if duration not in [5, 10]:

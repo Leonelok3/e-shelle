@@ -169,7 +169,20 @@ def start_google_video(prompt: str, aspect_ratio: str = "16:9", resolution: str 
                 "aspect_ratio": aspect_ratio,
                 "duration_seconds": duration
             }
-            
+            if image_b64:
+                try:
+                    import base64
+                    image_bytes = base64.b64decode(image_b64)
+                    config_params["reference_images"] = [
+                        types.VideoGenerationReferenceImage(
+                            image=types.Image(imageBytes=image_bytes, mimeType="image/png"),
+                            referenceType="FIRST_FRAME"
+                        )
+                    ]
+                except Exception as ex_img:
+                    logger.warning(f"Error parsing reference image for Vertex: {ex_img}")
+
+            logger.info(f"Starting Vertex AI video generation with model {model}...")
             operation = client.models.generate_videos(
                 model=model,
                 prompt=prompt,
@@ -181,10 +194,26 @@ def start_google_video(prompt: str, aspect_ratio: str = "16:9", resolution: str 
                 "error": None
             }
         except Exception as e:
-            logger.exception("Error starting video generation via Vertex AI SDK")
+            logger.warning(f"Error starting video generation via Vertex AI SDK (model {model}): {e}. Trying fallback model...")
             try:
                 fallback_model = "veo-3.1-fast-generate-preview"
-                logger.info(f"Retrying video generation with fallback model via Vertex AI SDK: {fallback_model}")
+                config_params = {
+                    "aspect_ratio": aspect_ratio,
+                    "duration_seconds": duration
+                }
+                if image_b64:
+                    try:
+                        import base64
+                        image_bytes = base64.b64decode(image_b64)
+                        config_params["reference_images"] = [
+                            types.VideoGenerationReferenceImage(
+                                image=types.Image(imageBytes=image_bytes, mimeType="image/png"),
+                                referenceType="FIRST_FRAME"
+                            )
+                        ]
+                    except Exception as ex_img2:
+                        logger.warning(f"Error parsing reference image for Vertex fallback: {ex_img2}")
+
                 operation = client.models.generate_videos(
                     model=fallback_model,
                     prompt=prompt,
@@ -195,8 +224,7 @@ def start_google_video(prompt: str, aspect_ratio: str = "16:9", resolution: str 
                     "error": None
                 }
             except Exception as e2:
-                logger.exception("Error during fallback video generation via Vertex AI SDK")
-                return {"error": f"Erreur Vertex AI: {str(e2)}"}
+                logger.warning(f"Error during fallback video generation via Vertex AI SDK: {e2}. Falling back to AI Studio REST API...")
 
     # Fallback vers l'API REST AI Studio
     api_key = getattr(settings, "GOOGLE_API_KEY", "")
@@ -209,7 +237,15 @@ def start_google_video(prompt: str, aspect_ratio: str = "16:9", resolution: str 
 
     instance = {"prompt": prompt}
     if image_b64:
-        instance["image"] = {"bytesBase64Encoded": image_b64}
+        instance["referenceImages"] = [
+            {
+                "image": {
+                    "bytesBase64Encoded": image_b64,
+                    "mimeType": "image/png"
+                },
+                "referenceType": "FIRST_FRAME"
+            }
+        ]
 
     payload = {
         "instances": [instance],
@@ -222,6 +258,7 @@ def start_google_video(prompt: str, aspect_ratio: str = "16:9", resolution: str 
     }
 
     try:
+        logger.info(f"Starting AI Studio REST video generation with model {model}...")
         response = requests.post(url, headers=headers, json=payload, timeout=60)
         response_data = response.json()
 
@@ -250,7 +287,7 @@ def start_google_video(prompt: str, aspect_ratio: str = "16:9", resolution: str 
             "error": None
         }
     except Exception as e:
-        logger.error(f"Error starting Veo video generation: {e}")
+        logger.error(f"Error starting Veo video generation via REST API: {e}")
         return {"error": str(e)}
 
 
