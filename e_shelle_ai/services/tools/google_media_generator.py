@@ -176,7 +176,7 @@ def start_google_video(prompt: str, aspect_ratio: str = "16:9", resolution: str 
                     config_params["reference_images"] = [
                         types.VideoGenerationReferenceImage(
                             image=types.Image(imageBytes=image_bytes, mimeType="image/png"),
-                            referenceType="FIRST_FRAME"
+                            referenceType="ASSET"
                         )
                     ]
                 except Exception as ex_img:
@@ -208,7 +208,7 @@ def start_google_video(prompt: str, aspect_ratio: str = "16:9", resolution: str 
                         config_params["reference_images"] = [
                             types.VideoGenerationReferenceImage(
                                 image=types.Image(imageBytes=image_bytes, mimeType="image/png"),
-                                referenceType="FIRST_FRAME"
+                                referenceType="ASSET"
                             )
                         ]
                     except Exception as ex_img2:
@@ -243,7 +243,7 @@ def start_google_video(prompt: str, aspect_ratio: str = "16:9", resolution: str 
                     "bytesBase64Encoded": image_b64,
                     "mimeType": "image/png"
                 },
-                "referenceType": "FIRST_FRAME"
+                "referenceType": "ASSET"
             }
         ]
 
