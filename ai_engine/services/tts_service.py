@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 def generate_audio(text: str, language: str = "de", output_dir: str = "audio/german") -> str:
     """
     Génère un fichier audio MP3 à partir d'un texte allemand (ou autre langue)
-    en utilisant l'API Google Translate TTS gratuite.
+    en utilisant la bibliothèque gTTS qui gère automatiquement les longs textes sans troncature.
     Sauvegarde le fichier dans MEDIA_ROOT / output_dir et retourne le chemin relatif.
     """
     logger.info(f"[TTS] Génération audio ({language}) pour : {text[:60]}...")
@@ -31,17 +31,11 @@ def generate_audio(text: str, language: str = "de", output_dir: str = "audio/ger
         return relative_path
         
     try:
-        encoded_text = urllib.parse.quote(text.strip()[:200]) # Google TTS limite à 200 car.
-        tts_url = f"https://translate.google.com/translate_tts?ie=UTF-8&tl={language}&client=tw-ob&q={encoded_text}"
-        
-        resp = requests.get(tts_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
-        resp.raise_for_status()
-        
-        with open(full_path, "wb") as f:
-            f.write(resp.content)
-            
-        logger.info(f"[TTS] Succès de la génération : {relative_path}")
+        from gtts import gTTS
+        tts = gTTS(text=text.strip(), lang=language)
+        tts.save(full_path)
+        logger.info(f"[TTS] Succès de la génération gTTS : {relative_path}")
         return relative_path
     except Exception as e:
-        logger.error(f"[TTS] Échec de la génération audio : {e}")
+        logger.error(f"[TTS] Échec de la génération audio gTTS : {e}")
         raise

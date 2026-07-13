@@ -24,21 +24,81 @@ logger = logging.getLogger(__name__)
 AUDIO_OUTPUT_DIR = "audio/german"
 
 
+FRENCH_WORDS = {
+    'le', 'la', 'les', 'un', 'une', 'des', 'du', 'de', 'en', 'et', 'pour', 'avec', 
+    'dans', 'sur', 'par', 'pas', 'vous', 'nous', 'je', 'tu', 'il', 'elle', 'on', 
+    'ils', 'elles', 'est', 'sont', 'ont', 'avez', 'votre', 'notre', 'ce', 'cette', 
+    'ces', 'mais', 'ou', 'donc', 'car', 'qui', 'que', 'quoi', 'dont', 'où', 'comme',
+    'se', 'sa', 'son', 'ses', 'mes', 'tes', 'nos', 'vos', 'leurs', 'leur', 'aux', 'au'
+}
+
+def is_french(text: str) -> bool:
+    # 1. Vérifier la présence d'accents typiquement français
+    if re.search(r'[éèàçùâêîôûëïœæ]', text, re.IGNORECASE):
+        return True
+    # 2. Vérifier la présence de mots-outils français
+    words = re.findall(r'\b\w+\b', text.lower())
+    if any(w in FRENCH_WORDS for w in words):
+        return True
+    return False
+
 def _extract_audio_text(lesson: GermanLesson) -> str:
     """
-    Extrait le texte à lire depuis le contenu de la leçon HÖREN.
-    Prend l'intro + les 500 premiers caractères du content (sans HTML).
+    Extrait uniquement le contenu allemand du texte de la leçon,
+    en excluant les explications et traductions en français.
     """
-    # Nettoyer les balises HTML
-    raw = (lesson.intro or "") + "\n\n" + (lesson.content or "")
-    clean = re.sub(r"<[^>]+>", " ", raw)
-    clean = re.sub(r"\s+", " ", clean).strip()
+    html = lesson.content or ""
+    # Séparer les listes en repérant <li> et </li>
+    items = re.findall(r'<li[^>]*>(.*?)</li>', html, re.DOTALL | re.IGNORECASE)
+    german_parts = []
+    
+    for item in items:
+        # 1. Si présence de "Traduction" ou "traduction", on exclut ce qui suit
+        if re.search(r'traduction', item, re.IGNORECASE):
+            item = re.split(r'traduction', item, flags=re.IGNORECASE)[0]
+            
+        # 2. Chercher du texte entre guillemets doubles (typique des répliques de dialogue allemand)
+        quotes = re.findall(r'"([^"]+)"', item)
+        if quotes:
+            for q in quotes:
+                cleaned_q = q.strip().strip('"').strip()
+                if cleaned_q and not is_french(cleaned_q):
+                    german_parts.append(cleaned_q)
+            continue
+            
+        # 3. Chercher le texte dans les balises strong (vocabulaire)
+        strongs = re.findall(r'<strong[^>]*>(.*?)</strong>', item, re.DOTALL | re.IGNORECASE)
+        if strongs:
+            for s in strongs:
+                s_clean = re.sub(r'<[^>]+>', ' ', s)
+                s_clean = re.sub(r'\.\.\.$', '', s_clean.strip()).strip()
+                if s_clean and not is_french(s_clean):
+                    german_parts.append(s_clean)
+            continue
+            
+        # 4. Fallback : prendre le texte brut avant parenthèse ou tiret
+        clean_text = re.sub(r'<[^>]+>', ' ', item)
+        clean_text = re.split(r'[\(\-\:]', clean_text)[0].strip()
+        if clean_text and not is_french(clean_text):
+            german_parts.append(clean_text)
 
-    # Limiter à 1500 caractères (environ 2 min de lecture)
-    if len(clean) > 1500:
-        clean = clean[:1500].rsplit(" ", 1)[0]
-
-    return clean
+    # Si aucune liste trouvée, fallback sur les paragraphes p
+    if not german_parts:
+        paras = re.findall(r'<p[^>]*>(.*?)</p>', html, re.DOTALL | re.IGNORECASE)
+        for p in paras:
+            p_clean = re.sub(r'<[^>]+>', ' ', p)
+            p_clean = re.split(r'[\(\-\:]', p_clean)[0].strip()
+            if p_clean and not is_french(p_clean):
+                german_parts.append(p_clean)
+            
+    # Nettoyage final des doublons consécutifs et des lignes vides
+    final_parts = []
+    for part in german_parts:
+        part = part.strip()
+        if part and part not in final_parts:
+            final_parts.append(part)
+            
+    return " ".join(final_parts)
 
 
 class Command(BaseCommand):
