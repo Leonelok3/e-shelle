@@ -2,6 +2,7 @@
 Views pour le module Lebenslauf (CV allemand genere par IA).
 """
 import logging
+from html.parser import HTMLParser
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
