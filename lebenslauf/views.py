@@ -3,6 +3,8 @@ Views pour le module Lebenslauf (CV allemand genere par IA).
 """
 import logging
 from html.parser import HTMLParser
+from docx import Document
+from docx.shared import Pt, Inches, RGBColor
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -304,9 +306,6 @@ def download_lebenslauf_docx(request, pk):
     """Téléchargement du CV et de la Lettre de motivation au format Word (.docx)."""
     import io
     import re
-    from docx import Document
-    from docx.shared import Pt, Inches, RGBColor
-    from html.parser import HTMLParser
 
     lv = get_object_or_404(GeneratedLebenslauf, pk=pk, user=request.user)
     
