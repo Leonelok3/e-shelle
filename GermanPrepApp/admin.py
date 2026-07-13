@@ -9,6 +9,7 @@ from .models import (
     GermanUserAnswer,
     GermanUserProfile,
     GermanCompetencyTag,
+    GermanPastExam,
 )
 
 
@@ -82,3 +83,11 @@ class GermanCompetencyTagAdmin(admin.ModelAdmin):
     def exercises_count(self, obj):
         return obj.exercises.count()
     exercises_count.short_description = "Exercices liés"
+
+
+@admin.register(GermanPastExam)
+class GermanPastExamAdmin(admin.ModelAdmin):
+    list_display = ("title", "exam", "is_active", "created_at")
+    list_filter = ("exam", "is_active")
+    search_fields = ("title", "url")
+

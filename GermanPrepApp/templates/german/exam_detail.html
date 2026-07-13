@@ -89,6 +89,9 @@
       <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-amber">⚡ Lancer une simulation</a>
       <a href="{% url 'germanprep:exam_learning_path' exam.slug %}" class="ep-btn-outline">📚 Parcours de cours</a>
       <a href="{% url 'germanprep:ai_coach' %}" class="ep-btn-outline">🤖 S'entraîner avec le Coach IA</a>
+      {% if past_exams %}
+      <a href="#past-exams-section" class="ep-btn-outline">📄 Annales & Sujets</a>
+      {% endif %}
       <a href="{% url 'germanprep:home' %}#levels" class="ep-btn-outline">← Niveaux</a>
     </div>
   </div>
@@ -140,6 +143,32 @@
         </h3>
         {% if r.description %}<p>{{ r.description }}</p>{% endif %}
         <a href="{% if r.file %}{{ r.file.url }}{% else %}{{ r.url }}{% endif %}" target="_blank" rel="noopener noreferrer" class="ep-btn-resource">🔗 Ouvrir la ressource</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Annales & Sujets d'Examens -->
+  {% if past_exams %}
+  <div id="past-exams-section" class="ep-card">
+    <p class="ep-card-title">Annales & Derniers Sujets d'Examens</p>
+    <p class="ep-card-sub">Entraîne-toi sur les modellsatz et sujets officiels pour ce niveau.</p>
+    <div class="ep-resource-list">
+      {% for p in past_exams %}
+      <div class="ep-resource-item" style="border-left: 4px solid #F59E0B; background: #fffdf9;">
+        <h3 style="margin-bottom: .25rem;">{{ p.title }}</h3>
+        <div style="display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .65rem;">
+          {% if p.file %}
+          <a href="{{ p.file.url }}" target="_blank" rel="noopener noreferrer" class="ep-btn-resource">📄 Télécharger le sujet (PDF)</a>
+          {% endif %}
+          {% if p.audio_file %}
+          <a href="{{ p.audio_file.url }}" target="_blank" rel="noopener noreferrer" class="ep-btn-resource">🔊 Fichier Audio (MP3)</a>
+          {% endif %}
+          {% if p.url %}
+          <a href="{{ p.url }}" target="_blank" rel="noopener noreferrer" class="ep-btn-resource">🔗 Lien officiel</a>
+          {% endif %}
+        </div>
       </div>
       {% endfor %}
     </div>

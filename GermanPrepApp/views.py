@@ -218,6 +218,7 @@ def exam_detail(request, exam_slug):
 
     lessons = exam.lessons.all()
     exam_resources = exam.resources.filter(lesson__isnull=True)
+    past_exams = exam.past_exams.filter(is_active=True)
 
     profile = None
     last_session = None
@@ -234,6 +235,7 @@ def exam_detail(request, exam_slug):
         "exam": exam,
         "lessons": lessons,
         "exam_resources": exam_resources,
+        "past_exams": past_exams,
         "profile": profile,
         "last_session": last_session,
     }

@@ -195,6 +195,49 @@ class GermanResource(models.Model):
         return f"{self.title} ({self.resource_type})"
 
 
+class GermanPastExam(models.Model):
+    """
+    Sujets officiels ou annales d'examens d'allemand (Goethe-Zertifikat A1-C2, telc, etc.).
+    """
+    exam = models.ForeignKey(
+        GermanExam,
+        on_delete=models.CASCADE,
+        related_name="past_exams",
+        help_text="L'examen associé (ex: Goethe-Zertifikat A1).",
+    )
+    title = models.CharField(
+        max_length=255,
+        help_text="ex: 'Modellsatz 1' ou 'Sujet Officiel 2025'",
+    )
+    file = models.FileField(
+        upload_to="german_past_exams/",
+        blank=True,
+        null=True,
+        help_text="Fichier PDF ou archive du sujet d'examen.",
+    )
+    audio_file = models.FileField(
+        upload_to="german_past_exams/audio/",
+        blank=True,
+        null=True,
+        help_text="Optionnel. Fichier audio MP3 pour la CO.",
+    )
+    url = models.URLField(
+        blank=True,
+        null=True,
+        help_text="Optionnel. Lien externe vers le sujet (ex: site officiel du Goethe-Institut).",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Annales / Sujet d'Examen"
+        verbose_name_plural = "Annales / Sujets d'Examens"
+        ordering = ["exam", "-created_at"]
+
+    def __str__(self):
+        return f"{self.exam.title} – {self.title}"
+
+
 class GermanPlacementQuestion(models.Model):
     """
     Questions du test de niveau d’entrée (placement test).
