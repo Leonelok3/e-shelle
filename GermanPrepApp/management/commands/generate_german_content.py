@@ -211,15 +211,55 @@ def _build_user_prompt(
     exam_label = EXAM_TYPE_LABELS.get(exam_type, exam_type)
     level_desc = LEVEL_DESCRIPTIONS.get(level, level)
 
-    return (
+    prompt = (
         f"Génère la leçon n°{lesson_order} pour le niveau {level} ({level_desc}).\n"
         f"Compétence : {skill_label}.\n"
         f"Examen cible : {exam_label}.\n"
         f"Nombre d'exercices QCM à inclure : {exercises_count}.\n\n"
-        f"Choisis un sujet pertinent et non répétitif pour ce niveau et cette compétence. "
-        f"La leçon doit être pédagogique, bien structurée et directement utile "
-        f"pour préparer l'{exam_label} {level}."
     )
+
+    if skill == "LESEN":
+        prompt += (
+            "Règles strictes de calibrage CECR pour la compréhension écrite (Lesen) :\n"
+        )
+        if level == "A1":
+            prompt += (
+                "- Type de document : panneaux publics, messages SMS/WhatsApp très courts, étiquettes, fiches d'inscription simples.\n"
+                "- Difficulté : phrases très courtes et simples, vocabulaire concret, du quotidien immédiat.\n"
+            )
+        elif level == "A2":
+            prompt += (
+                "- Type de document : petites annonces, e-mails ou lettres courts, programmes d'événements, consignes d'utilisation simples.\n"
+                "- Difficulté : phrases courtes reliées par des connecteurs simples ('und', 'aber', 'weil', 'oder').\n"
+            )
+        elif level == "B1":
+            prompt += (
+                "- Type de document : articles de journaux simples, courriels formels/professionnels courts, lettres personnelles plus longues, textes narratifs simples.\n"
+                "- Difficulté : vocabulaire de base élargi, expressions d'opinions simples, structures avec subordonnées.\n"
+            )
+        elif level == "B2":
+            prompt += (
+                "- Type de document : articles de presse d'actualité, textes argumentatifs, correspondance professionnelle nuancée.\n"
+                "- Difficulté : textes denses, expressions idiomatiques courantes, argumentation détaillée, points de vue implicites.\n"
+            )
+        
+        prompt += (
+            "\nStructure obligatoire du HTML dans 'content' :\n"
+            "1. <h3>1. Einführung</h3> : Courte introduction pédagogique en français.\n"
+            "2. <h3>2. Wichtiger Wortschatz</h3> : Liste de vocabulaire en allemand (strong) avec sa traduction en français entre parenthèses, ex: '<li><strong>der Ausgang</strong> (la sortie)</li>'.\n"
+            "3. <h3>3. Die Dokumente</h3> : Le document ou texte en allemand à lire (placé dans un bloc '<div class=\"reading-box\">...</div>'). Aucun mot français dans ce texte de lecture allemand.\n"
+            "4. <h3>4. Lesetipps</h3> : Conseils pratiques en français pour la lecture.\n\n"
+            "Les questions des exercices ('question_text') doivent porter directement sur la compréhension des textes/documents présentés dans 'Die Dokumente'.\n"
+            "Chaque exercice doit proposer 4 choix, et avoir une explication claire rédigée en français.\n"
+        )
+    else:
+        prompt += (
+            f"Choisis un sujet pertinent et non répétitif pour ce niveau et cette compétence. "
+            f"La leçon doit être pédagogique, bien structurée et directement utile "
+            f"pour préparer l'{exam_label} {level}."
+        )
+
+    return prompt
 
 
 # ---------------------------------------------------------------------------
