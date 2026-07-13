@@ -288,6 +288,43 @@ def _build_user_prompt(
             "4. <h3>4. Conseils pour l'examen oral</h3> : Conseils de prononciation et de stratégie en français.\n\n"
             "RÈGLE CRITIQUE : Les réponses-modèles en allemand doivent être écrites en allemand pur. Pas de traduction en français mélangée dans les phrases de réponse-modèle allemandes.\n"
         )
+    elif skill == "SCHREIBEN":
+        prompt += (
+            "Règles strictes de calibrage CECR pour l'expression écrite (Schreiben) :\n"
+        )
+        if level == "A1":
+            prompt += (
+                "- Thème : remplir un formulaire d'inscription simple, carte postale de vacances, e-mail amical d'invitation/excuse.\n"
+                "- Difficulté : phrases courtes et coordonnées simples, salutations informelles élémentaires, longueur attendue d'environ 30 mots.\n"
+            )
+        elif level == "A2":
+            prompt += (
+                "- Thème : courriel d'excuse ou d'invitation détaillé, liste de courses annotée, court message de demande d'aide.\n"
+                "- Difficulté : phrases reliées par des connecteurs simples ('und', 'aber', 'weil'), longueur d'environ 50-60 mots.\n"
+            )
+        elif level == "B1":
+            prompt += (
+                "- Thème : lettre personnelle décrivant un projet/expérience, courriel formel de réclamation ou demande d'information.\n"
+                "- Difficulté : structuration en paragraphes, connecteurs logiques de base, expressions d'avis motivé, longueur de 80-100 mots.\n"
+            )
+        elif level == "B2":
+            prompt += (
+                "- Thème : lettre formelle/professionnelle, texte argumentatif sur un débat d'actualité nuancé.\n"
+                "- Difficulté : registres soignés, connecteurs logiques de cause et concession variés, argumentation structurée, longueur de 150-180 mots.\n"
+            )
+            
+        prompt += (
+            "\nStructure obligatoire du HTML dans 'content' :\n"
+            "1. <h3>1. Contexte de rédaction</h3> : Présentation du contexte et de la consigne en français.\n"
+            "2. <h3>2. Mots-clés et expressions utiles (Wortschatz & Redemittel)</h3> : Liste d'expressions clés en allemand (strong) avec leur traduction française entre parenthèses, ex: '<li><strong>Ich lade dich ein.</strong> (Je t'invite.)</li>'.\n"
+            "3. <h3>3. Exercices pratiques de rédaction progressive</h3> : Liste ordonnée de 5 exercices. Pour chaque exercice, inclure :\n"
+            "   - Le titre de l'exercice (ex: '<h4>Exercice 1 : ...</h4>')\n"
+            "   - La consigne en français ('<strong>Consigne :</strong> ...')\n"
+            "   - Le texte-modèle en allemand ('<strong>Texte-modèle en allemand :</strong> ...') dans une boîte '<span style=\"color: #102B4E; font-family: monospace; display: block; background: #f1f5f9; padding: .75rem; border-radius: 6px; margin: .5rem 0;\">...</span>'\n"
+            "   - Une courte grille d'évaluation en français ('<strong>Grille d'évaluation :</strong> ...')\n"
+            "4. <h3>4. Conseils pour l'épreuve écrite</h3> : Conseils d'orthographe, de grammaire et de stratégie en français.\n\n"
+            "RÈGLE CRITIQUE : Les textes-modèles en allemand doivent être écrits en allemand pur. Pas de traduction en français mélangée dans les textes-modèles.\n"
+        )
     else:
         prompt += (
             f"Choisis un sujet pertinent et non répétitif pour ce niveau et cette compétence. "
