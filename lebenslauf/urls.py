@@ -14,4 +14,5 @@ urlpatterns = [
     path("generer/<int:offer_pk>/",       views.generate_lebenslauf, name="generate_for_offer"),
     path("voir/<int:pk>/",               views.view_lebenslauf,     name="view_lebenslauf"),
     path("telecharger/<int:pk>/",        views.download_lebenslauf, name="download"),
+    path("telecharger/<int:pk>/docx/",   views.download_lebenslauf_docx, name="download_docx"),
 ]
