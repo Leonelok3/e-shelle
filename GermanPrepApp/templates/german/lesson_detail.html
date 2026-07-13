@@ -42,14 +42,23 @@
   .ep-btn-resource { display: inline-flex; align-items: center; gap: .35rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: .4rem .85rem; font-size: .78rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s; }
   .ep-btn-resource:hover { border-color: #F59E0B; }
 
-  .ep-q-list { display: flex; flex-direction: column; gap: .75rem; }
-  .ep-q-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; }
-  .ep-q-text { font-size: .9rem; font-weight: 600; color: #102B4E !important; margin: 0 0 .6rem; }
-  .ep-options { display: flex; flex-direction: column; gap: .3rem; font-size: .85rem; color: #475569; padding-left: .5rem; }
-  .ep-options li { list-style: none; padding: .2rem 0; }
-  .ep-q-expl { font-size: .8rem; color: #475569; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: .5rem .75rem; margin-top: .6rem; }
+  .ep-q-list { display: flex; flex-direction: column; gap: 1rem; }
+  .ep-q-item { background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; transition: border-color 0.2s; }
+  .ep-q-text { font-size: .95rem; font-weight: 700; color: #102B4E !important; margin: 0 0 .75rem; }
+  .ep-options-list { display: flex; flex-direction: column; gap: .5rem; margin-top: .75rem; }
+  .ep-interactive-option { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: .65rem .95rem; cursor: pointer; font-size: .85rem; color: #475569; transition: all .2s; }
+  .ep-interactive-option:hover { border-color: #F59E0B; background: #FFFBEB; }
+  .ep-interactive-option.selected-correct { background: #F0FDF4 !important; border-color: #22c55e !important; color: #15803d !important; font-weight: 700; }
+  .ep-interactive-option.selected-incorrect { background: #FEF2F2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+  .ep-interactive-option.should-have-selected { background: #F0FDF4 !important; border-color: #22c55e !important; color: #15803d !important; }
+  
+  .ep-q-feedback { display: none; margin-top: 1rem; font-size: .85rem; padding: .9rem 1.10rem; border-radius: 10px; line-height: 1.55; }
+  .ep-q-feedback.correct-feedback { background: #F0FDF4; border: 1.5px solid #bbf7d0; color: #15803d; }
+  .ep-q-feedback.incorrect-feedback { background: #FEF2F2; border: 1.5px solid #fca5a5; color: #b91c1c; }
 
   .ep-empty { font-size: .85rem; color: #94a3b8; font-style: italic; }
+  
+  .ep-consigne-box { background: #ffffff; border: 1.5px solid #bbf7d0; border-radius: 12px; padding: 1.15rem; margin-bottom: 1.25rem; font-size: .85rem; color: #1f2937; line-height: 1.6; }
 
   /* EO / EE */
   .ep-eo-block, .ep-ee-block { background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 12px; padding: 1rem 1.1rem; margin-top: .85rem; }
@@ -134,21 +143,19 @@
   <!-- Exercices -->
   <div class="ep-card">
     <p class="ep-card-title">Exercices liés à cette leçon</p>
-    <p class="ep-card-sub">Utilise ces questions comme entraînement libre. Pour une simulation notée, utilise le bouton « Simulation type examen » dans l'espace de cours.</p>
+    <p class="ep-card-sub">Clique sur la bonne réponse pour valider chaque question. L'application te donnera directement le résultat et l'explication.</p>
     {% if exercises %}
     <div class="ep-q-list">
       {% for ex in exercises %}
-      <div class="ep-q-item">
+      <div class="ep-q-item" data-correct="{{ ex.correct_option }}" data-explanation="{{ ex.explanation }}">
         <p class="ep-q-text">{{ forloop.counter }}. {{ ex.question_text }}</p>
-        <ul class="ep-options">
-          <li>A. {{ ex.option_a }}</li>
-          <li>B. {{ ex.option_b }}</li>
-          {% if ex.option_c %}<li>C. {{ ex.option_c }}</li>{% endif %}
-          {% if ex.option_d %}<li>D. {{ ex.option_d }}</li>{% endif %}
-        </ul>
-        {% if ex.explanation %}
-        <div class="ep-q-expl">💡 <strong>Correction :</strong> {{ ex.explanation }}</div>
-        {% endif %}
+        <div class="ep-options-list">
+          <div class="ep-interactive-option" data-val="A"><strong>A.</strong> {{ ex.option_a }}</div>
+          <div class="ep-interactive-option" data-val="B"><strong>B.</strong> {{ ex.option_b }}</div>
+          {% if ex.option_c %}<div class="ep-interactive-option" data-val="C"><strong>C.</strong> {{ ex.option_c }}</div>{% endif %}
+          {% if ex.option_d %}<div class="ep-interactive-option" data-val="D"><strong>D.</strong> {{ ex.option_d }}</div>{% endif %}
+        </div>
+        <div class="ep-q-feedback"></div>
       </div>
       {% endfor %}
     </div>
@@ -163,7 +170,13 @@
     <p class="ep-card-title">🎤 Sprechen — Expression orale</p>
     <div class="ep-eo-block" data-lesson-id="{{ lesson.id }}">
       <div class="ep-eo-title">Enregistre ta réponse en allemand</div>
-      <p>{{ lesson.intro|default:lesson.title }}</p>
+      {% if consigne %}
+        <div class="ep-consigne-box">
+          {{ consigne|safe }}
+        </div>
+      {% else %}
+        <p>{{ lesson.intro|default:lesson.title }}</p>
+      {% endif %}
       <div class="ep-recorder-controls">
         <button class="ep-record-btn" type="button">🎤 Commencer</button>
         <span class="ep-record-timer" style="display:none;font-size:.8rem;color:#64748b;margin-left:.5rem;"></span>
@@ -181,7 +194,13 @@
     <p class="ep-card-title">✍️ Schreiben — Expression écrite</p>
     <div class="ep-ee-block" data-lesson-id="{{ lesson.id }}">
       <div class="ep-ee-title">Rédige ta réponse en allemand</div>
-      <p>{{ lesson.intro|default:lesson.title }}</p>
+      {% if consigne %}
+        <div class="ep-consigne-box">
+          {{ consigne|safe }}
+        </div>
+      {% else %}
+        <p>{{ lesson.intro|default:lesson.title }}</p>
+      {% endif %}
       <textarea class="ep-ee-textarea" rows="8" placeholder="Schreiben Sie Ihre Antwort auf Deutsch…"></textarea>
       <div class="ep-word-counter"><span class="ep-word-count">0</span> mot(s)</div>
       <button class="ep-submit-ee ep-btn-submit" type="button">✅ Soumettre pour correction IA</button>
@@ -297,6 +316,40 @@ document.querySelectorAll('.ep-ee-block').forEach(block => {
         submitBtn.disabled = false; submitBtn.textContent = '✅ Réessayer';
       }
     } catch(e) { submitBtn.disabled = false; submitBtn.textContent = '✅ Réessayer'; }
+  });
+});
+
+// ── Interactive QCM clicks ──
+document.querySelectorAll('.ep-q-item').forEach(item => {
+  const correctOption = item.dataset.correct;
+  const options = item.querySelectorAll('.ep-interactive-option');
+  const feedbackDiv = item.querySelector('.ep-q-feedback');
+  const explanation = item.dataset.explanation || "";
+
+  options.forEach(opt => {
+    opt.addEventListener('click', () => {
+      // Prevent multiple clicks
+      if (item.classList.contains('answered')) return;
+      item.classList.add('answered');
+
+      const selectedVal = opt.dataset.val;
+      if (selectedVal === correctOption) {
+        opt.classList.add('selected-correct');
+        feedbackDiv.className = 'ep-q-feedback correct-feedback';
+        feedbackDiv.innerHTML = `🎉 <strong>Félicitations ! C'est la bonne réponse.</strong><br><br>💡 <strong>Explication :</strong> ${explanation}`;
+      } else {
+        opt.classList.add('selected-incorrect');
+        // Highlight correct option
+        options.forEach(o => {
+          if (o.dataset.val === correctOption) {
+            o.classList.add('should-have-selected');
+          }
+        });
+        feedbackDiv.className = 'ep-q-feedback incorrect-feedback';
+        feedbackDiv.innerHTML = `❌ <strong>Mauvaise réponse.</strong> La bonne réponse était la option <strong>${correctOption}</strong>.<br><br>💡 <strong>Explication :</strong> ${explanation}`;
+      }
+      feedbackDiv.style.display = 'block';
+    });
   });
 });
 </script>

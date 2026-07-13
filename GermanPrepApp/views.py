@@ -227,6 +227,65 @@ def exam_detail(request, exam_slug):
 #  PAGE D'UNE LEÇON
 # =========================
 
+def get_lesson_prompt(lesson) -> str:
+    """
+    Retourne la consigne spécifique pour les exercices d'expression orale/écrite.
+    """
+    prompts = {
+        # A1
+        "Sich vorstellen und einfache Fragen stellen (A1)": (
+            "<strong>Consigne :</strong> Enregistrez un message oral en allemand d'environ 30 secondes pour vous présenter. "
+            "Indiquez votre nom, votre âge, votre pays d'origine, votre ville actuelle, votre profession et vos loisirs. "
+            "Posez également une question simple à votre interlocuteur."
+        ),
+        "Sich vorstellen und einfache Informationen geben": (
+            "<strong>Consigne :</strong> Rédigez un court texte en allemand (30 à 40 mots) pour vous présenter. "
+            "Indiquez votre nom, votre âge, votre pays d'origine, votre ville actuelle, votre profession et vos loisirs."
+        ),
+        # A2
+        "Gemeinsam planen: Vorschläge machen und darauf reagieren": (
+            "<strong>Consigne :</strong> Enregistrez un message oral en allemand (40 à 60 secondes). Vous devez planifier une fête d'anniversaire "
+            "avec un ami. Faites au moins 3 propositions concrètes (lieu, nourriture, musique) et imaginez ses réponses."
+        ),
+        "Eine E-Mail schreiben: Einladung und Absage": (
+            "<strong>Consigne :</strong> Rédigez un e-mail formel ou amical en allemand (50 à 60 mots) pour inviter un ami "
+            "ou un collègue à un événement, ou pour vous excuser de ne pas pouvoir venir à une invitation."
+        ),
+        # B1
+        "Gemeinsam planen und Meinungen äußern (Goethe-Zertifikat B1 Sprechen)": (
+            "<strong>Consigne :</strong> Enregistrez une présentation orale en allemand (1 à 2 minutes) sur un thème de votre choix. "
+            "Exprimez votre opinion personnelle, présentez la situation dans votre pays d'origine, puis donnez les avantages et les inconvénients."
+        ),
+        "Texte strukturieren: Konnektoren für flüssiges Schreiben": (
+            "<strong>Consigne :</strong> Rédigez une lettre ou un courriel formel en allemand (80 à 100 mots) pour exprimer votre mécontentement "
+            "ou faire une réclamation concernant un produit ou un service défectueux. Utilisez des connecteurs logiques."
+        ),
+        # B2
+        "Argumentation und Stellungnahme im schriftlichen Ausdruck (Goethe-Zertifikat B2)": (
+            "<strong>Consigne :</strong> Rédigez une argumentation structurée en allemand (150 à 180 mots) sur un sujet de société d'actualité "
+            "(par exemple : le télétravail ou l'impact des réseaux sociaux). Donnez votre avis motivé et étayez vos arguments."
+        ),
+        # C1
+        "Überzeugend argumentieren und diskutieren auf C1-Niveau": (
+            "<strong>Consigne :</strong> Enregistrez un exposé oral structuré en allemand (3 à 4 minutes) sur un sujet complexe "
+            "(par exemple : l'avenir des énergies renouvelables). Présentez l'introduction, le développement de 3 arguments principaux, "
+            "et une conclusion claire."
+        ),
+        "Argumentieren und Erörtern auf C1-Niveau: Struktur, Stil und Konnektoren": (
+            "<strong>Consigne :</strong> Rédigez un texte argumentatif et structuré en allemand (200 à 250 mots) traitant d'un sujet académique "
+            "ou professionnel. Analysez la problématique, présentez différents points de vue et formulez une conclusion rigoureuse."
+        ),
+        # C2
+        "Meistern der schriftlichen Argumentation: Rhetorik und Stil auf C2-Niveau": (
+            "<strong>Consigne :</strong> Rédigez un essai stylistique approfondi en allemand (300 à 350 mots) analysant un sujet philosophique "
+            "ou littéraire complexe. Utilisez un registre soutenu, des figures de style appropriées et une structure irréprochable."
+        )
+    }
+    return prompts.get(lesson.title, (
+        "<strong>Consigne :</strong> Rédigez ou enregistrez une réponse structurée en allemand sur le sujet de cette leçon. "
+        "Respectez le niveau attendu et essayez d'utiliser le vocabulaire et les tournures présentés dans le cours."
+    ))
+
 def lesson_detail(request, exam_slug, lesson_id):
     exam = get_object_or_404(GermanExam, slug=exam_slug, is_active=True)
     lesson = get_object_or_404(GermanLesson, id=lesson_id, exam=exam)
@@ -234,11 +293,16 @@ def lesson_detail(request, exam_slug, lesson_id):
     resources = lesson.resources.all()
     exercises = lesson.exercises.all()
 
+    consigne = None
+    if lesson.skill in ("SPRECHEN", "SCHREIBEN"):
+        consigne = get_lesson_prompt(lesson)
+
     context = {
         "exam": exam,
         "lesson": lesson,
         "resources": resources,
         "exercises": exercises,
+        "consigne": consigne,
     }
     return render(request, "german/lesson_detail.html", context)
 
@@ -1155,10 +1219,11 @@ def german_submit_eo(request):
     try:
         from ai_engine.services.eval_service import evaluate_eo
         level = lesson.exam.level if lesson.exam_id else "B1"
+        consigne_text = get_lesson_prompt(lesson)
         result = evaluate_eo(
             transcript=transcript,
             topic=lesson.title,
-            instructions=lesson.intro or "",
+            instructions=consigne_text,
             level=level,
             expected_points=[],
         )
@@ -1213,10 +1278,11 @@ def german_submit_ee(request):
     try:
         from ai_engine.services.eval_service import evaluate_ee
         level = lesson.exam.level if lesson.exam_id else "B1"
+        consigne_text = get_lesson_prompt(lesson)
         result = evaluate_ee(
             text=text,
             topic=lesson.title,
-            instructions=lesson.intro or "",
+            instructions=consigne_text,
             level=level,
         )
     except Exception as e:
