@@ -105,62 +105,64 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
       
       <!-- Carte Leçon -->
-      <div class="ep-card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between; border-left: 5px solid #ffce00;">
+      <div class="ep-card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between; border-left: 5px solid #ffce00; background: #ffffff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
         <div>
-          <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #ffce00; background: rgba(255, 206, 0, 0.1); padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block; margin-bottom: 0.75rem;">
+          <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #b45309; background: #fef3c7; padding: 0.25rem 0.6rem; border-radius: 6px; display: inline-block; margin-bottom: 1rem;">
             📖 Leçon recommandée
           </span>
-          <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin: 0 0 0.5rem;">
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 0.75rem; line-height: 1.3;">
             {{ lesson_of_the_day.title }}
           </h3>
-          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 1rem;">
-            {{ lesson_of_the_day.intro|default:"Découvre cette leçon clé pour progresser dans ta préparation d'examen allemand."|truncatechars:120 }}
+          <p style="color: #475569; font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem;">
+            {{ lesson_of_the_day.intro|default:"Découvre cette leçon clé pour progresser dans ta préparation d'examen allemand."|truncatechars:140 }}
           </p>
         </div>
-        <a href="{% url 'germanprep:lesson_detail' exam.slug lesson_of_the_day.id %}" class="ep-btn-amber" style="text-align: center; text-decoration: none; width: fit-content; padding: 0.5rem 1rem; font-size: 0.85rem;">
+        <a href="{% url 'germanprep:lesson_detail' exam.slug lesson_of_the_day.id %}" class="ep-btn-amber" style="text-align: center; text-decoration: none; width: fit-content; padding: 0.6rem 1.25rem; font-size: 0.88rem; font-weight: 700; border-radius: 8px;">
           Commencer la leçon →
         </a>
       </div>
 
       <!-- Carte Exercice -->
-      <div class="ep-card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between; border-left: 5px solid #E3000F;">
+      <div class="ep-card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between; border-left: 5px solid #E3000F; background: #ffffff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
         {% if exercise_of_the_day %}
-        <div id="daily-exercise-box">
-          <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #E3000F; background: rgba(227, 0, 15, 0.1); padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block; margin-bottom: 0.75rem;">
-            ⚡ Exercice d'application
-          </span>
-          <p style="color: #fff; font-weight: 600; font-size: 0.95rem; margin: 0 0 1rem; line-height: 1.4;">
-            {{ exercise_of_the_day.question_text }}
-          </p>
-          
-          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
-            <button class="exercise-opt-btn" onclick="checkDailyAnswer(this, 'A', '{{ exercise_of_the_day.correct_option }}', '{{ exercise_of_the_day.explanation|escapejs }}')" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 0.6rem 1rem; border-radius: 8px; text-align: left; cursor: pointer; transition: 0.2s; font-size: 0.85rem;">
-              A. {{ exercise_of_the_day.option_a }}
-            </button>
-            <button class="exercise-opt-btn" onclick="checkDailyAnswer(this, 'B', '{{ exercise_of_the_day.correct_option }}', '{{ exercise_of_the_day.explanation|escapejs }}')" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 0.6rem 1rem; border-radius: 8px; text-align: left; cursor: pointer; transition: 0.2s; font-size: 0.85rem;">
-              B. {{ exercise_of_the_day.option_b }}
-            </button>
-            {% if exercise_of_the_day.option_c %}
-            <button class="exercise-opt-btn" onclick="checkDailyAnswer(this, 'C', '{{ exercise_of_the_day.correct_option }}', '{{ exercise_of_the_day.explanation|escapejs }}')" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 0.6rem 1rem; border-radius: 8px; text-align: left; cursor: pointer; transition: 0.2s; font-size: 0.85rem;">
-              C. {{ exercise_of_the_day.option_c }}
-            </button>
-            {% endif %}
-            {% if exercise_of_the_day.option_d %}
-            <button class="exercise-opt-btn" onclick="checkDailyAnswer(this, 'D', '{{ exercise_of_the_day.correct_option }}', '{{ exercise_of_the_day.explanation|escapejs }}')" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 0.6rem 1rem; border-radius: 8px; text-align: left; cursor: pointer; transition: 0.2s; font-size: 0.85rem;">
-              D. {{ exercise_of_the_day.option_d }}
-            </button>
-            {% endif %}
+        <div id="daily-exercise-box" style="display: flex; flex-direction: column; height: 100%; justify-content: space-between;">
+          <div>
+            <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #b91c1c; background: #fee2e2; padding: 0.25rem 0.6rem; border-radius: 6px; display: inline-block; margin-bottom: 1rem;">
+              ⚡ Exercice d'application
+            </span>
+            <p style="color: #0f172a; font-weight: 700; font-size: 1rem; margin: 0 0 1.25rem; line-height: 1.5;">
+              {{ exercise_of_the_day.question_text }}
+            </p>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem;">
+              <button class="exercise-opt-btn-new" onclick="checkDailyAnswer(this, 'A', '{{ exercise_of_the_day.correct_option }}', '{{ exercise_of_the_day.explanation|escapejs }}')" style="background: #f8fafc; color: #1e293b; border: 1px solid #cbd5e1; padding: 0.75rem 1.25rem; border-radius: 8px; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; font-weight: 600; width: 100%;">
+                A. {{ exercise_of_the_day.option_a }}
+              </button>
+              <button class="exercise-opt-btn-new" onclick="checkDailyAnswer(this, 'B', '{{ exercise_of_the_day.correct_option }}', '{{ exercise_of_the_day.explanation|escapejs }}')" style="background: #f8fafc; color: #1e293b; border: 1px solid #cbd5e1; padding: 0.75rem 1.25rem; border-radius: 8px; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; font-weight: 600; width: 100%;">
+                B. {{ exercise_of_the_day.option_b }}
+              </button>
+              {% if exercise_of_the_day.option_c %}
+              <button class="exercise-opt-btn-new" onclick="checkDailyAnswer(this, 'C', '{{ exercise_of_the_day.correct_option }}', '{{ exercise_of_the_day.explanation|escapejs }}')" style="background: #f8fafc; color: #1e293b; border: 1px solid #cbd5e1; padding: 0.75rem 1.25rem; border-radius: 8px; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; font-weight: 600; width: 100%;">
+                C. {{ exercise_of_the_day.option_c }}
+              </button>
+              {% endif %}
+              {% if exercise_of_the_day.option_d %}
+              <button class="exercise-opt-btn-new" onclick="checkDailyAnswer(this, 'D', '{{ exercise_of_the_day.correct_option }}', '{{ exercise_of_the_day.explanation|escapejs }}')" style="background: #f8fafc; color: #1e293b; border: 1px solid #cbd5e1; padding: 0.75rem 1.25rem; border-radius: 8px; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; font-weight: 600; width: 100%;">
+                D. {{ exercise_of_the_day.option_d }}
+              </button>
+              {% endif %}
+            </div>
           </div>
           
-          <div id="daily-exercise-result" style="display: none; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-top: 0.5rem; line-height: 1.4;"></div>
+          <div id="daily-exercise-result" style="display: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; margin-top: 0.75rem; line-height: 1.5; font-weight: 500;"></div>
         </div>
         {% else %}
         <div>
-          <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #E3000F; background: rgba(227, 0, 15, 0.1); padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block; margin-bottom: 0.75rem;">
+          <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #b91c1c; background: #fee2e2; padding: 0.25rem 0.6rem; border-radius: 6px; display: inline-block; margin-bottom: 1rem;">
             ⚡ Exercice d'application
           </span>
-          <p style="color: #94a3b8; font-size: 0.85rem; font-style: italic;">
-            Aucun exercice n'est disponible pour cette leçon aujourd'hui.
+          <p style="color: #475569; font-size: 0.95rem; font-style: italic; margin-top: 1rem; line-height: 1.5;">
+            Aucun exercice QCM n'est encore disponible pour cette leçon aujourd'hui. Profitez-en pour lire le cours en cliquant sur le bouton de gauche !
           </p>
         </div>
         {% endif %}
@@ -170,19 +172,19 @@
   </div>
 
   <style>
-    .exercise-opt-btn:hover {
-      background: rgba(255, 255, 255, 0.15) !important;
-      border-color: rgba(255, 255, 255, 0.3) !important;
+    .exercise-opt-btn-new:hover {
+      background: #f1f5f9 !important;
+      border-color: #94a3b8 !important;
     }
   </style>
 
   <script>
     function checkDailyAnswer(btn, choice, correctOption, explanation) {
       const box = btn.closest('#daily-exercise-box');
-      const buttons = box.querySelectorAll('.exercise-opt-btn');
+      const buttons = box.querySelectorAll('.exercise-opt-btn-new');
       buttons.forEach(b => {
         b.disabled = true;
-        b.style.opacity = '0.6';
+        b.style.opacity = '0.5';
         b.style.cursor = 'default';
       });
       
@@ -192,25 +194,28 @@
       resultDiv.style.display = 'block';
       
       if (choice === correctOption) {
-        btn.style.background = '#059669';
-        btn.style.borderColor = '#34d399';
-        resultDiv.style.background = 'rgba(5, 150, 105, 0.1)';
-        resultDiv.style.color = '#34d399';
+        btn.style.background = '#10b981';
+        btn.style.borderColor = '#059669';
+        btn.style.color = '#ffffff';
+        resultDiv.style.background = '#d1fae5';
+        resultDiv.style.color = '#065f46';
         resultDiv.innerHTML = '<strong>🎉 Richtig! (Correct)</strong><br>' + (explanation || "Bravo, c'est la bonne réponse !");
       } else {
-        btn.style.background = '#dc2626';
-        btn.style.borderColor = '#f87171';
+        btn.style.background = '#ef4444';
+        btn.style.borderColor = '#dc2626';
+        btn.style.color = '#ffffff';
         
         buttons.forEach(b => {
           if (b.innerText.trim().startsWith(correctOption + '.')) {
-            b.style.background = '#059669';
-            b.style.borderColor = '#34d399';
+            b.style.background = '#10b981';
+            b.style.borderColor = '#059669';
+            b.style.color = '#ffffff';
             b.style.opacity = '1';
           }
         });
         
-        resultDiv.style.background = 'rgba(220, 38, 38, 0.1)';
-        resultDiv.style.color = '#f87171';
+        resultDiv.style.background = '#fee2e2';
+        resultDiv.style.color = '#991b1b';
         resultDiv.innerHTML = '<strong>❌ Falsch. (Incorrect)</strong><br>' + (explanation || "La bonne réponse était l'option " + correctOption);
       }
     }
