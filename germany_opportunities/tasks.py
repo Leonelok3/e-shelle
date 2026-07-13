@@ -15,8 +15,8 @@ from django.utils import timezone
 log = logging.getLogger(__name__)
 
 # ── Constantes API Bundesagentur ──────────────────────────────────────────────
-BA_BASE_URL  = "https://rest.arbeitsagentur.de/infosysbub/absuche/pc/v1/ausbildungssuche"
-BA_API_KEY   = "infosysbub-absuche"
+BA_BASE_URL  = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs"
+BA_API_KEY   = "jobboerse-jobsuche"
 
 # Secteurs prioritaires pour le public africain en quete d'Ausbildung
 SECTORS_QUERY = [
@@ -97,9 +97,9 @@ def fetch_ausbildung_offers(self):
 
     for keyword in SECTORS_QUERY:
         params = {
-            "suchbegriffe": keyword,
+            "was":          keyword,
             "angebotsart":  4,            # 4 = Ausbildung
-            "page":         0,
+            "page":         1,
             "size":         50,
         }
         try:
@@ -148,7 +148,7 @@ def fetch_ausbildung_offers(self):
                         except Exception:
                             pass
 
-                    url_apply = _safe_text(item.get("url") or item.get("applyUrl") or item.get("link"))
+                    url_apply = _safe_text(item.get("externeUrl") or item.get("url") or item.get("applyUrl") or item.get("link"))
                     if not url_apply:
                         url_apply = f"https://www.arbeitsagentur.de/jobsuche/jobdetail/{ref_nr}"
 
