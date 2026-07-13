@@ -1064,18 +1064,24 @@ def german_ai_coach_api(request):
             status=500,
         )
 
-    # Convert chat history to Gemini format
+    # Convert chat history to Gemini format, preventing consecutive duplicate roles
     contents = []
     for item in history:
         role = item.get("role")
         content = item.get("content")
         if role == "user":
+            # If the last content was already 'user', skip to prevent duplication
+            if contents and contents[-1].role == "user":
+                continue
             contents.append(types.Content(role="user", parts=[types.Part.from_text(text=content)]))
         elif role in ("assistant", "model"):
+            if contents and contents[-1].role == "model":
+                continue
             contents.append(types.Content(role="model", parts=[types.Part.from_text(text=content)]))
 
-    # Add new user message
-    contents.append(types.Content(role="user", parts=[types.Part.from_text(text=user_message)]))
+    # Add new user message only if the last content is not already a user message
+    if not contents or contents[-1].role != "user":
+        contents.append(types.Content(role="user", parts=[types.Part.from_text(text=user_message)]))
 
     try:
         response = client.models.generate_content(
