@@ -27,6 +27,11 @@
   .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1rem; }
   .ep-card-sub { font-size: .82rem; color: #64748b; margin: -.5rem 0 1rem; }
 
+  .ep-filter-tabs { display: flex; gap: .5rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .ep-tab-btn { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 20px; padding: .45rem 1rem; font-size: .8rem; font-weight: 600; color: #475569; cursor: pointer; transition: all .2s; }
+  .ep-tab-btn:hover { border-color: #F59E0B; background: #FFFBEB; }
+  .ep-tab-btn.active { background: #102B4E; border-color: #102B4E; color: #fff; }
+
   .ep-lesson-list { display: flex; flex-direction: column; gap: .65rem; }
   .ep-lesson-item { display: flex; align-items: center; gap: .85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: .85rem 1rem; transition: border-color .2s; }
   .ep-lesson-item:hover { border-color: #F59E0B; }
@@ -90,12 +95,22 @@
   <!-- Leçons -->
   <div class="ep-card">
     <p class="ep-card-title">Parcours de cours & leçons</p>
-    <p class="ep-card-sub">Suis les leçons dans l'ordre pour construire une base solide, puis utilise les simulations pour vérifier ton niveau.</p>
+    <p class="ep-card-sub">Suis les leçons dans l'ordre pour construire une base solide, ou filtre par compétence spécifique.</p>
+    
     {% if lessons %}
+    <div class="ep-filter-tabs">
+      <button class="ep-tab-btn active" data-filter="all">🌟 Tous</button>
+      <button class="ep-tab-btn" data-filter="HOREN">🎧 Compréhension Orale (Hören)</button>
+      <button class="ep-tab-btn" data-filter="LESEN">📖 Compréhension Écrite (Lesen)</button>
+      <button class="ep-tab-btn" data-filter="SPRECHEN">🎤 Expression Orale (Sprechen)</button>
+      <button class="ep-tab-btn" data-filter="SCHREIBEN">✍️ Expression Écrite (Schreiben)</button>
+      <button class="ep-tab-btn" data-filter="GRAMMATIK_WORTSCHATZ">📝 Grammaire & Vocabulaire</button>
+    </div>
+
     <div class="ep-lesson-list">
       {% for lesson in lessons %}
-      <div class="ep-lesson-item">
-        <div class="ep-lesson-num">{{ lesson.order }}</div>
+      <div class="ep-lesson-item" data-skill="{{ lesson.skill }}">
+        <div class="ep-lesson-num">{{ forloop.counter }}</div>
         <div class="ep-lesson-body">
           <strong>{{ lesson.title }}</strong>
           <span>{{ lesson.get_skill_display }}</span>
@@ -104,6 +119,7 @@
         <a href="{% url 'germanprep:lesson_detail' exam.slug lesson.id %}" class="ep-btn-open">Ouvrir →</a>
       </div>
       {% endfor %}
+      <p class="ep-filter-empty" style="display: none; font-size: .85rem; color: #94a3b8; font-style: italic; padding: .5rem 0; text-align: center;">Aucune leçon ne correspond à cette compétence pour le moment.</p>
     </div>
     {% else %}
     <p class="ep-empty">Aucune leçon n'a encore été ajoutée pour cet examen.</p>
@@ -143,4 +159,46 @@
   {% endif %}
 
 </div>
+
+<script>
+document.querySelectorAll('.ep-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ep-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const filter = btn.dataset.filter;
+    const items = document.querySelectorAll('.ep-lesson-item');
+    const filterEmpty = document.querySelector('.ep-filter-empty');
+    let visibleCount = 0;
+    
+    items.forEach(item => {
+      const skill = item.dataset.skill;
+      if (filter === 'all') {
+        item.style.display = 'flex';
+        visibleCount++;
+      } else if (filter === 'GRAMMATIK_WORTSCHATZ') {
+        if (skill === 'GRAMMATIK' || skill === 'WORTSCHATZ') {
+          item.style.display = 'flex';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      } else {
+        if (skill === filter) {
+          item.style.display = 'flex';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      }
+    });
+    
+    if (visibleCount === 0) {
+      if (filterEmpty) filterEmpty.style.display = 'block';
+    } else {
+      if (filterEmpty) filterEmpty.style.display = 'none';
+    }
+  });
+});
+</script>
 {% endblock %}
