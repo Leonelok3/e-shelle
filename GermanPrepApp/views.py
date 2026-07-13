@@ -32,6 +32,23 @@ OPENAI_API_KEY = getattr(settings, "OPENAI_API_KEY", None)
 german_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 
+def check_user_has_paid_edu_subscription(user) -> bool:
+    """
+    Vérifie si l'utilisateur possède un abonnement Premium actif (non gratuit) pour l'application 'edu'.
+    Les superutilisateurs et membres du staff sont automatiquement autorisés.
+    """
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    
+    from accounts.models import AppSubscription
+    sub = AppSubscription.get_active_for_user(user, "edu")
+    if sub and sub.is_active and not sub.plan.is_free:
+        return True
+    return False
+
+
 def _get_or_create_profile(user) -> GermanUserProfile:
     profile, _ = GermanUserProfile.objects.get_or_create(user=user)
     return profile
@@ -313,9 +330,15 @@ def lesson_detail(request, exam_slug, lesson_id):
 
 def take_practice_test(request, exam_id):
     """
-    Simulation type examen (accessible sans connexion).
-    Si connecté : sauvegarde en DB + XP. Sinon : résultat en session Django.
+    Simulation type examen (réservé aux abonnés Premium).
     """
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    from django.urls import reverse
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "Les simulations d'examen allemand sont réservées aux abonnés Premium d'EduCam Pro.")
+        return redirect(reverse("accounts:upgrade") + "?app=edu")
+
     from .models import (
         GermanExam,
         GermanExercise,
@@ -1001,6 +1024,13 @@ def german_ai_coach_page(request):
     Il récupère le profil d'allemand + la dernière session pour personnaliser le coaching.
     Accepte un paramètre GET ?preset= pour pré-remplir la zone de texte.
     """
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    from django.urls import reverse
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "L'accès au Coach IA d'allemand est réservé aux abonnés Premium d'EduCam Pro.")
+        return redirect(reverse("accounts:upgrade") + "?app=edu")
+
     from .models import GermanTestSession
 
     profile = _get_or_create_profile(request.user)
@@ -1047,6 +1077,15 @@ def german_ai_coach_api(request):
     Reçoit : { "message": "...", "history": [ {role, content}, ... ] }
     Retourne : { "reply": "..." }
     """
+    if not check_user_has_paid_edu_subscription(request.user):
+        return JsonResponse(
+            {
+                "error": "subscription_required",
+                "reply": "L'accès au Coach IA allemand est réservé aux membres Premium d'EduCam Pro. Veuillez vous abonner pour discuter avec le coach.",
+            },
+            status=403,
+        )
+
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
 
@@ -1176,6 +1215,9 @@ def german_ai_coach_api(request):
 @csrf_exempt
 @login_required
 def german_submit_eo(request):
+    if not check_user_has_paid_edu_subscription(request.user):
+        return JsonResponse({"ok": False, "error": "L'évaluation IA de l'expression orale est réservée aux abonnés Premium d'EduCam Pro."}, status=403)
+
     if request.method != "POST":
         return JsonResponse({"ok": False, "error": "method_not_allowed"}, status=405)
 
@@ -1257,6 +1299,9 @@ def german_submit_eo(request):
 @csrf_exempt
 @login_required
 def german_submit_ee(request):
+    if not check_user_has_paid_edu_subscription(request.user):
+        return JsonResponse({"ok": False, "error": "L'évaluation IA de l'expression écrite est réservée aux abonnés Premium d'EduCam Pro."}, status=403)
+
     if request.method != "POST":
         return JsonResponse({"ok": False, "error": "method_not_allowed"}, status=405)
 
