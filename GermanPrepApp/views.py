@@ -221,8 +221,19 @@ def exam_detail(request, exam_slug):
     past_exams = exam.past_exams.filter(is_active=True)
 
     import datetime
+    from django.utils import timezone
     from .models import GermanExercise
-    day_of_year = datetime.date.today().timetuple().tm_yday
+    
+    # Obtenir l'heure locale selon le TIME_ZONE configuré (Africa/Douala)
+    local_now = timezone.localtime(timezone.now())
+    
+    # Si l'heure locale est avant 07:00, on utilise la date de la veille
+    if local_now.hour < 7:
+        target_date = local_now.date() - datetime.timedelta(days=1)
+    else:
+        target_date = local_now.date()
+        
+    day_of_year = target_date.timetuple().tm_yday
     
     lesson_of_the_day = None
     exercise_of_the_day = None
