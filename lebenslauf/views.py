@@ -253,6 +253,115 @@ def download_lebenslauf(request, pk):
     return response
 
 
+class DocxHTMLParser(HTMLParser):
+    def __init__(self, doc):
+        super().__init__()
+        self.doc = doc
+        self.current_tag = None
+        self.current_paragraph = None
+        
+    def handle_starttag(self, tag, attrs):
+        self.current_tag = tag
+        if tag in ('h1', 'h2', 'h3', 'h4'):
+            self.current_paragraph = self.doc.add_paragraph()
+            self.current_paragraph.paragraph_format.space_before = Pt(12)
+            self.current_paragraph.paragraph_format.space_after = Pt(6)
+        elif tag in ('p', 'div'):
+            self.current_paragraph = self.doc.add_paragraph()
+            self.current_paragraph.paragraph_format.space_after = Pt(6)
+        elif tag == 'li':
+            self.current_paragraph = self.doc.add_paragraph(style='List Bullet')
+            self.current_paragraph.paragraph_format.space_after = Pt(3)
+        elif tag == 'br':
+            if self.current_paragraph:
+                self.current_paragraph.add_run('\n')
+                
+    def handle_endtag(self, tag):
+        self.current_tag = None
+        
+    def handle_data(self, data):
+        text = data.strip()
+        if not text:
+            return
+        if self.current_tag in ('h1', 'h2', 'h3', 'h4'):
+            run = self.current_paragraph.add_run(text)
+            run.bold = True
+            if self.current_tag == 'h1':
+                run.font.size = Pt(18)
+                run.font.color.rgb = RGBColor(45, 55, 72)  # Slate Gray
+            elif self.current_tag == 'h2':
+                run.font.size = Pt(13)
+                run.font.color.rgb = RGBColor(227, 0, 15)  # German Red
+            else:
+                run.font.size = Pt(11)
+        elif self.current_paragraph:
+            self.current_paragraph.add_run(" " + text if self.current_paragraph.runs else text)
+
+
+@login_required
+def download_lebenslauf_docx(request, pk):
+    """Téléchargement du CV et de la Lettre de motivation au format Word (.docx)."""
+    import io
+    import re
+    from docx import Document
+    from docx.shared import Pt, Inches, RGBColor
+    from html.parser import HTMLParser
+
+    lv = get_object_or_404(GeneratedLebenslauf, pk=pk, user=request.user)
+    
+    doc = Document()
+    
+    # Page setup
+    for section in doc.sections:
+        section.top_margin = Inches(1)
+        section.bottom_margin = Inches(1)
+        section.left_margin = Inches(1)
+        section.right_margin = Inches(1)
+
+    # 1. Add Cover Letter (Anschreiben) if it exists
+    if lv.ai_cover_letter:
+        p_title = doc.add_paragraph()
+        run_title = p_title.add_run("BEWERBUNGSSCHREIBEN (ANSCHREIBEN)")
+        run_title.bold = True
+        run_title.font.size = Pt(14)
+        p_title.paragraph_format.space_after = Pt(12)
+        
+        # Add the body of the cover letter
+        for line in lv.ai_cover_letter.split('\n'):
+            cleaned_line = line.strip()
+            p = doc.add_paragraph(cleaned_line)
+            p.paragraph_format.space_after = Pt(6)
+            
+        doc.add_page_break()
+
+    # 2. Add CV (Lebenslauf) HTML
+    p_cv_title = doc.add_paragraph()
+    run_cv_title = p_cv_title.add_run("LEBENSLAUF")
+    run_cv_title.bold = True
+    run_cv_title.font.size = Pt(14)
+    p_cv_title.paragraph_format.space_after = Pt(12)
+
+    # Strip style and script tags to prevent parsing errors
+    clean_html = re.sub(r'<style[^>]*>.*?</style>', '', lv.content_html, flags=re.DOTALL)
+    clean_html = re.sub(r'<script[^>]*>.*?</script>', '', clean_html, flags=re.DOTALL)
+
+    parser = DocxHTMLParser(doc)
+    parser.feed(clean_html)
+
+    # Save to memory stream
+    file_stream = io.BytesIO()
+    doc.save(file_stream)
+    file_stream.seek(0)
+
+    filename = f"bewerbung_{pk}.docx"
+    response = HttpResponse(
+        file_stream.read(),
+        content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _build_candidate_context(profile, experiences, educations, languages):
