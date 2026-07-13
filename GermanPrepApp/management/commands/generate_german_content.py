@@ -252,6 +252,42 @@ def _build_user_prompt(
             "Les questions des exercices ('question_text') doivent porter directement sur la compréhension des textes/documents présentés dans 'Die Dokumente'.\n"
             "Chaque exercice doit proposer 4 choix, et avoir une explication claire rédigée en français.\n"
         )
+    elif skill == "SPRECHEN":
+        prompt += (
+            "Règles strictes de calibrage CECR pour l'expression orale (Sprechen) :\n"
+        )
+        if level == "A1":
+            prompt += (
+                "- Thème : se présenter, commander dans un café/restaurant, demander son chemin, faire des courses simples.\n"
+                "- Difficulté : phrases courtes et isolées, expressions idiomatiques de politesse simples, temps présent.\n"
+            )
+        elif level == "A2":
+            prompt += (
+                "- Thème : décrire son quotidien, proposer et réagir à des suggestions d'amis, planifier un événement simple.\n"
+                "- Difficulté : connecteurs temporels simples ('dann', 'danach'), questions directes et indirectes simples, Perfekt.\n"
+            )
+        elif level == "B1":
+            prompt += (
+                "- Thème : raconter une expérience de vie détaillée, justifier une opinion personnelle simple, faire une réclamation simple.\n"
+                "- Difficulté : discours continu et relié, utilisation de subordonnées ('dass', 'weil', 'obwohl'), Konjunktiv II.\n"
+            )
+        elif level == "B2":
+            prompt += (
+                "- Thème : argumenter de façon structurée sur un débat de société complexe, présenter les avantages/inconvénients, nuancer.\n"
+                "- Difficulté : structures complexes, vocabulaire abstrait élargi, connecteurs logiques de contraste et cause fins.\n"
+            )
+            
+        prompt += (
+            "\nStructure obligatoire du HTML dans 'content' :\n"
+            "1. <h3>1. Situation de communication</h3> : Présentation du contexte en français.\n"
+            "2. <h3>2. Expressions clés pour s'exprimer (Wortschatz & Redemittel)</h3> : Liste d'expressions clés en allemand (strong) avec leur traduction française entre parenthèses, ex: '<li><strong>Ich möchte...</strong> (Je voudrais...)</li>'.\n"
+            "3. <h3>3. Exercices pratiques de production orale</h3> : Liste ordonnée de 5 exercices. Pour chaque exercice, inclure :\n"
+            "   - Le titre de l'exercice (ex: '<h4>Exercice 1 : ...</h4>')\n"
+            "   - La consigne en français ('<strong>Consigne :</strong> ...')\n"
+            "   - Une réponse-modèle en allemand ('<strong>Réponse modèle en allemand :</strong> ...')\n"
+            "4. <h3>4. Conseils pour l'examen oral</h3> : Conseils de prononciation et de stratégie en français.\n\n"
+            "RÈGLE CRITIQUE : Les réponses-modèles en allemand doivent être écrites en allemand pur. Pas de traduction en français mélangée dans les phrases de réponse-modèle allemandes.\n"
+        )
     else:
         prompt += (
             f"Choisis un sujet pertinent et non répétitif pour ce niveau et cette compétence. "
