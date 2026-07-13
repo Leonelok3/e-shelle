@@ -215,7 +215,7 @@ def generate_lebenslauf(request, offer_pk=None):
         else:
             offer_context = "Candidature spontanee dans le secteur : " + profile.target_sector
 
-        html_content = _call_ai_generate(candidate_context, offer_context)
+        html_content, cover_letter = _call_ai_generate(candidate_context, offer_context)
 
         if html_content:
             generated = GeneratedLebenslauf.objects.create(
@@ -224,6 +224,7 @@ def generate_lebenslauf(request, offer_pk=None):
                 custom_offer_title=custom_offer_title,
                 custom_offer_company=custom_offer_company,
                 content_html=html_content,
+                ai_cover_letter=cover_letter,
             )
             return redirect("lebenslauf:view_lebenslauf", pk=generated.pk)
         else:
@@ -289,29 +290,68 @@ def _build_candidate_context(profile, experiences, educations, languages):
     return "\n".join(lines)
 
 
-def _call_ai_generate(candidate_context: str, offer_context: str) -> str:
-    """Appelle GPT-4o pour generer le Lebenslauf en HTML."""
-    api_key = getattr(settings, "OPENAI_API_KEY", None)
-    if not api_key:
-        log.warning("OPENAI_API_KEY manquant — Lebenslauf non genere")
-        return ""
+def _call_ai_generate(candidate_context: str, offer_context: str) -> tuple[str, str]:
+    """
+    Appelle Gemini pour générer le Lebenslauf en HTML et la lettre de motivation (Anschreiben).
+    Retourne (content_html, ai_cover_letter).
+    """
+    from ai_engine.services.llm_service import call_llm
+
+    # 1. Génération du Lebenslauf HTML
+    system_prompt_cv = (
+        "Du bist ein renommierter deutscher HR-Experte, spezialisiert auf das deutsche Bewerbungsverfahren. "
+        "Deine Aufgabe ist es, einen professionellen, modernen Lebenslauf (CV) im deutschen Format (zwei Spalten) "
+        "zu erstellen. Übersetze alle Informationen des Kandidaten auf fehlerfreies, professionelles Deutsch. "
+        "Wenn die Erfahrungen des Kandidaten in einem anderen Bereich liegen (z.B. Handel in Kamerun) und er sich für "
+        "eine Ausbildung bewirbt (z.B. Pflegefachkraft), formuliere die Aufgabenbeschreibung so um, dass die übertragbaren "
+        "Kompetenzen (Pünktlichkeit, Empathie, Kundenkontakt, Organisation) klar im Vordergrund stehen.\n\n"
+        "REGLEN FÜR DAS HTML-LAYOUT:\n"
+        "- Generiere einen Container mit zwei Spalten: linke Spalte dunkelgrau (#2D3748) für persönliche Daten & Sprachen, "
+        "rechte Spalte weiß für Lebenslauf, Berufserfahrung, Ausbildung, Kenntnisse.\n"
+        "- Verwende Flexbox/Grid mit Inlinestilen.\n"
+        "- Nutze das deutsche Datumsformat (MM.YYYY oder DD.MM.YYYY).\n"
+        "- Antworte AUSSCHLIESSLICH mit dem fertigen HTML-Code des Containers. Kein Markdown (kein ```html)."
+    )
+
+    user_prompt_cv = (
+        f"KANDIDATENPROFIL:\n{candidate_context}\n\n"
+        f"ZIELSTELLENANGEBOT:\n{offer_context}\n\n"
+        "Erstelle jetzt den perfekten Lebenslauf in professionellem Deutsch als HTML."
+    )
+
+    # 2. Génération de la lettre de motivation (Anschreiben)
+    system_prompt_cover = (
+        "Du bist ein renommierter deutscher HR-Experte. "
+        "Schreibe ein erstklassiges, überzeugendes Anschreiben (Bewerbungsschreiben) auf Deutsch für eine Ausbildung. "
+        "Folge dem formalen Aufbau nach DIN 5008 (Absender, Empfänger, Datum, Betreff, Anrede, Einleitung, Hauptteil, "
+        "Schluss, Grußformel).\n"
+        "Verbinde die Erfahrungen des Kandidaten geschickt mit den Anforderungen des Angebots. "
+        "Erkläre, warum der Kandidat nach Deutschland kommen möchte, warum er hochmotiviert ist und wie seine "
+        "bisherigen Erfahrungen ihm helfen werden, in dieser Ausbildung erfolgreich zu sein. "
+        "Schreibe in einem professionellen, höflichen und entschlossenen Ton."
+    )
+
+    user_prompt_cover = (
+        f"KANDIDATENPROFIL:\n{candidate_context}\n\n"
+        f"ZIELSTELLENANGEBOT:\n{offer_context}\n\n"
+        "Schreibe das Anschreiben auf Deutsch."
+    )
+
+    html_content = ""
+    cover_letter = ""
+
     try:
-        from openai import OpenAI
-        client = OpenAI(api_key=api_key)
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": LEBENSLAUF_SYSTEM_PROMPT},
-                {"role": "user", "content": (
-                    f"PROFIL CANDIDAT :\n{candidate_context}\n\n"
-                    f"OFFRE CIBLEE :\n{offer_context}\n\n"
-                    "Genere le Lebenslauf complet en HTML structure avec les classes CSS mentionnees."
-                )},
-            ],
-            temperature=0.3,
-            max_tokens=3000,
-        )
-        return response.choices[0].message.content.strip()
+        html_content = call_llm(system_prompt_cv, user_prompt_cv)
+        if html_content:
+            html_content = html_content.replace("```html", "").replace("```", "").strip()
     except Exception as exc:
-        log.error(f"Lebenslauf AI generation error: {exc}")
-        return ""
+        log.error(f"Lebenslauf CV generation error: {exc}")
+
+    try:
+        cover_letter = call_llm(system_prompt_cover, user_prompt_cover)
+        if cover_letter:
+            cover_letter = cover_letter.strip()
+    except Exception as exc:
+        log.error(f"Lebenslauf Cover Letter generation error: {exc}")
+
+    return html_content, cover_letter
