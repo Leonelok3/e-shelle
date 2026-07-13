@@ -198,24 +198,17 @@ def fetch_ausbildung_offers(self):
 def enrich_offers_with_ai():
     """
     Enrichit les nouvelles offres Ausbildung sans resume IA avec un resume
-    en francais genere par GPT-4o-mini, adapte au public africain.
+    en francais genere par Gemini, adapte au public africain.
     """
-    from django.conf import settings
     from .models import AusbildungOffer
-
-    api_key = getattr(settings, "OPENAI_API_KEY", None)
-    if not api_key:
-        log.warning("enrich_offers_with_ai: OPENAI_API_KEY manquant")
-        return
-
-    try:
-        from openai import OpenAI
-        client = OpenAI(api_key=api_key)
-    except ImportError:
-        return
+    from ai_engine.services.llm_service import call_llm
 
     # Traiter les 20 dernieres offres sans resume
     offers = AusbildungOffer.objects.filter(ai_summary_fr="", is_active=True).order_by("-fetched_at")[:20]
+    
+    if not offers.exists():
+        log.info("enrich_offers_with_ai: aucune offre à enrichir.")
+        return
 
     SYSTEM = (
         "Tu es un conseiller en immigration en Allemagne pour des candidats africains "
@@ -225,6 +218,7 @@ def enrich_offers_with_ai():
         "pour quelqu'un venant d'Afrique. Ajoute 2 conseils de candidature specifiques a ce metier."
     )
 
+    enriched_count = 0
     for offer in offers:
         user_msg = (
             f"Offre : {offer.title}\n"
@@ -232,22 +226,16 @@ def enrich_offers_with_ai():
             f"Ville : {offer.city} ({offer.region})\n"
             f"Secteur : {offer.get_sector_display()}\n"
             f"Salaire : {offer.salary_display}\n"
-            f"Description : {offer.description[:800]}"
+            f"Description : {offer.description[:1000]}"
         )
         try:
-            resp = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": SYSTEM},
-                    {"role": "user", "content": user_msg},
-                ],
-                temperature=0.5,
-                max_tokens=400,
-            )
-            summary = resp.choices[0].message.content.strip()
-            offer.ai_summary_fr = summary
-            offer.save(update_fields=["ai_summary_fr"])
+            summary = call_llm(SYSTEM, user_msg)
+            if summary:
+                offer.ai_summary_fr = summary.strip()
+                offer.save(update_fields=["ai_summary_fr"])
+                enriched_count += 1
         except Exception as exc:
             log.warning(f"AI enrichment failed for offer {offer.ref_nr}: {exc}")
 
-    log.info(f"enrich_offers_with_ai: {offers.count()} offres enrichies")
+    log.info(f"enrich_offers_with_ai: {enriched_count} offres enrichies avec succès.")
+    return enriched_count
