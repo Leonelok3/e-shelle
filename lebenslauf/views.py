@@ -312,7 +312,7 @@ class DocxHTMLParser(HTMLParser):
 
 @login_required
 def download_lebenslauf_docx(request, pk):
-    """Téléchargement du CV et de la Lettre de motivation au format Word (.docx)."""
+    """Téléchargement du CV (Lebenslauf) uniquement au format Word (.docx) avec layout 2 colonnes."""
     import io
     import re
     from docx import Document
@@ -326,10 +326,10 @@ def download_lebenslauf_docx(request, pk):
     
     # Page setup
     for section in doc.sections:
-        section.top_margin = Inches(0.8)
-        section.bottom_margin = Inches(0.8)
-        section.left_margin = Inches(0.8)
-        section.right_margin = Inches(0.8)
+        section.top_margin = Inches(0.6)
+        section.bottom_margin = Inches(0.6)
+        section.left_margin = Inches(0.6)
+        section.right_margin = Inches(0.6)
 
     # Helper function to shade cells
     def shade_cell(cell, fill_hex):
@@ -337,13 +337,89 @@ def download_lebenslauf_docx(request, pk):
         shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
         tcPr.append(shd)
 
-    # Helper function to set cell padding (in dxa: 20 dxa = 1 point)
+    # Helper function to set cell padding
     def set_cell_padding(cell, top=200, bottom=200, left=300, right=300):
         tcPr = cell._tc.get_or_add_tcPr()
         tcMar = parse_xml(f'<w:tcMar {nsdecls("w")}><w:top w:w="{top}" w:type="dxa"/><w:bottom w:w="{bottom}" w:type="dxa"/><w:left w:w="{left}" w:type="dxa"/><w:right w:w="{right}" w:type="dxa"/></w:tcMar>')
         tcPr.append(tcMar)
 
-    # 1. Add Cover Letter (Anschreiben) if it exists
+    # Add CV (Lebenslauf) 2-column Table
+    table = doc.add_table(rows=1, cols=2)
+    table.columns[0].width = Inches(2.3)
+    table.columns[1].width = Inches(4.7)
+    
+    left_cell = table.cell(0, 0)
+    right_cell = table.cell(0, 1)
+    
+    shade_cell(left_cell, "2D3748")
+    set_cell_padding(left_cell, top=300, bottom=300, left=250, right=250)
+    
+    shade_cell(right_cell, "FFFFFF")
+    set_cell_padding(right_cell, top=300, bottom=300, left=250, right=250)
+
+    clean_html = re.sub(r'<style[^>]*>.*?</style>', '', lv.content_html, flags=re.DOTALL)
+    clean_html = re.sub(r'<script[^>]*>.*?</script>', '', clean_html, flags=re.DOTALL)
+
+    left_html = ""
+    right_html = ""
+    if "<!-- Rechte Spalte" in clean_html:
+        parts = clean_html.split("<!-- Rechte Spalte")
+        left_html = parts[0].strip()
+        right_html = parts[1].split("-->", 1)[1].strip()
+    else:
+        left_html = clean_html
+        right_html = ""
+
+    left_parser = DocxHTMLParser(
+        left_cell,
+        default_text_color=RGBColor(247, 250, 252),
+        heading_color=RGBColor(104, 211, 145),
+        accent_color=RGBColor(255, 206, 0)
+    )
+    left_parser.feed(left_html)
+
+    if right_html:
+        right_parser = DocxHTMLParser(
+            right_cell,
+            default_text_color=RGBColor(45, 55, 72),
+            heading_color=RGBColor(45, 55, 72),
+            accent_color=RGBColor(227, 0, 15)
+        )
+        right_parser.feed(right_html)
+
+    # Save to memory stream
+    file_stream = io.BytesIO()
+    doc.save(file_stream)
+    file_stream.seek(0)
+
+    filename = f"lebenslauf_{pk}.docx"
+    response = HttpResponse(
+        file_stream.read(),
+        content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+@login_required
+def download_anschreiben_docx(request, pk):
+    """Téléchargement de la Lettre de motivation (Anschreiben) uniquement au format Word (.docx)."""
+    import io
+    import re
+    from docx import Document
+    from docx.shared import Pt, Inches, RGBColor
+
+    lv = get_object_or_404(GeneratedLebenslauf, pk=pk, user=request.user)
+    
+    doc = Document()
+    
+    # Page setup
+    for section in doc.sections:
+        section.top_margin = Inches(1.0)
+        section.bottom_margin = Inches(1.0)
+        section.left_margin = Inches(1.0)
+        section.right_margin = Inches(1.0)
+
     if lv.ai_cover_letter:
         months = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
         
@@ -373,66 +449,12 @@ def download_lebenslauf_docx(request, pk):
                         run.bold = True
                     else:
                         p.add_run(part)
-            
-        doc.add_page_break()
 
-    # 2. Add CV (Lebenslauf) 2-column Table
-    table = doc.add_table(rows=1, cols=2)
-    # Ensure column widths
-    table.columns[0].width = Inches(2.3)
-    table.columns[1].width = Inches(4.7)
-    
-    left_cell = table.cell(0, 0)
-    right_cell = table.cell(0, 1)
-    
-    # Design Left Spalte (Sidebar)
-    shade_cell(left_cell, "2D3748")  # Dark slate gray
-    set_cell_padding(left_cell, top=300, bottom=300, left=250, right=250)
-    
-    # Design Right Spalte (Main)
-    shade_cell(right_cell, "FFFFFF")
-    set_cell_padding(right_cell, top=300, bottom=300, left=250, right=250)
-
-    # Clean HTML from style/script tags
-    clean_html = re.sub(r'<style[^>]*>.*?</style>', '', lv.content_html, flags=re.DOTALL)
-    clean_html = re.sub(r'<script[^>]*>.*?</script>', '', clean_html, flags=re.DOTALL)
-
-    # Parse and split columns
-    left_html = ""
-    right_html = ""
-    if "<!-- Rechte Spalte" in clean_html:
-        parts = clean_html.split("<!-- Rechte Spalte")
-        left_html = parts[0].strip()
-        right_html = parts[1].split("-->", 1)[1].strip()
-    else:
-        left_html = clean_html
-        right_html = ""
-
-    # Parse Left Column
-    left_parser = DocxHTMLParser(
-        left_cell,
-        default_text_color=RGBColor(247, 250, 252),  # Light gray text
-        heading_color=RGBColor(104, 211, 145),       # Mint Green #68D391
-        accent_color=RGBColor(255, 206, 0)           # Gold/Yellow
-    )
-    left_parser.feed(left_html)
-
-    # Parse Right Column
-    if right_html:
-        right_parser = DocxHTMLParser(
-            right_cell,
-            default_text_color=RGBColor(45, 55, 72),     # Dark slate text
-            heading_color=RGBColor(45, 55, 72),
-            accent_color=RGBColor(227, 0, 15)            # German Red
-        )
-        right_parser.feed(right_html)
-
-    # Save to memory stream
     file_stream = io.BytesIO()
     doc.save(file_stream)
     file_stream.seek(0)
 
-    filename = f"bewerbung_{pk}.docx"
+    filename = f"anschreiben_{pk}.docx"
     response = HttpResponse(
         file_stream.read(),
         content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"

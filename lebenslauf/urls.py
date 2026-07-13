@@ -15,4 +15,5 @@ urlpatterns = [
     path("voir/<int:pk>/",               views.view_lebenslauf,     name="view_lebenslauf"),
     path("telecharger/<int:pk>/",        views.download_lebenslauf, name="download"),
     path("telecharger/<int:pk>/docx/",   views.download_lebenslauf_docx, name="download_docx"),
+    path("telecharger/<int:pk>/anschreiben/", views.download_anschreiben_docx, name="download_anschreiben_docx"),
 ]
