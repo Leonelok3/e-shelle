@@ -5,6 +5,7 @@ import logging
 from html.parser import HTMLParser
 from docx import Document
 from docx.shared import Pt, Inches, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -344,19 +345,34 @@ def download_lebenslauf_docx(request, pk):
 
     # 1. Add Cover Letter (Anschreiben) if it exists
     if lv.ai_cover_letter:
-        p_title = doc.add_paragraph()
-        run_title = p_title.add_run("BEWERBUNGSSCHREIBEN (ANSCHREIBEN)")
-        run_title.bold = True
-        run_title.font.size = Pt(14)
-        run_title.font.color.rgb = RGBColor(45, 55, 72)
-        p_title.paragraph_format.space_after = Pt(12)
+        months = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
         
-        # Add the body of the cover letter
         for line in lv.ai_cover_letter.split('\n'):
             cleaned_line = line.strip()
-            p = doc.add_paragraph(cleaned_line)
+            if not cleaned_line:
+                p = doc.add_paragraph()
+                p.paragraph_format.space_after = Pt(4)
+                continue
+                
+            is_date_line = False
+            if any(m in cleaned_line for m in months) and re.search(r'\d{4}', cleaned_line) and len(cleaned_line) < 50:
+                is_date_line = True
+                
+            p = doc.add_paragraph()
             p.paragraph_format.space_after = Pt(6)
             p.paragraph_format.line_spacing = 1.15
+            
+            if is_date_line:
+                p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                p.add_run(cleaned_line)
+            else:
+                parts = re.split(r'(\*\*.*?\*\*)', cleaned_line)
+                for part in parts:
+                    if part.startswith('**') and part.endswith('**'):
+                        run = p.add_run(part[2:-2])
+                        run.bold = True
+                    else:
+                        p.add_run(part)
             
         doc.add_page_break()
 
@@ -467,13 +483,21 @@ def _call_ai_generate(candidate_context: str, offer_context: str) -> tuple[str, 
     Appelle Gemini pour générer à la fois le Lebenslauf en HTML et la lettre de motivation (Anschreiben)
     en un seul appel pour des raisons de performance et pour éviter le timeout.
     """
+    import datetime
     from ai_engine.services.llm_service import call_llm
+
+    now = datetime.datetime.now()
+    months_de = {
+        1: "Januar", 2: "Februar", 3: "März", 4: "April", 5: "Mai", 6: "Juni",
+        7: "Juli", 8: "August", 9: "September", 10: "Oktober", 11: "November", 12: "Dezember"
+    }
+    today_german = f"{now.day}. {months_de[now.month]} {now.year}"
 
     system_prompt = (
         "Du bist ein renommierter deutscher HR-Experte, spezialisiert auf das deutsche Bewerbungsverfahren.\n"
         "Deine Aufgabe ist es, für den Kandidaten zwei Dokumente in fehlerfreiem, professionellem Deutsch zu erstellen:\n"
         "1. Einen modernen, professionellen Lebenslauf (CV) im zweiseitigen/zweispaltigen Tabellen-Layout (HTML).\n"
-        "2. Ein überzeugendes Anschreiben (Bewerbungsschreiben) nach DIN 5008 (Text).\n\n"
+        f"2. Ein überzeugendes Anschreiben (Bewerbungsschreiben) auf den heutigen Tag ({today_german}) datiert (Text).\n\n"
         "Übersetze alle Informationen des Kandidaten auf Deutsch und formuliere seine Erfahrungen so um, dass die "
         "übertragbaren Kompetenzen (Pünktlichkeit, Organisation, Empathie) für das Ziel-Ausbildungsangebot im Vordergrund stehen.\n\n"
         "REGLEN FÜR DAS HTML-LAYOUT DES LEBENSLAUFS:\n"
@@ -481,9 +505,11 @@ def _call_ai_generate(candidate_context: str, offer_context: str) -> tuple[str, 
         "rechte Spalte weiß für Lebenslauf, Berufserfahrung, Ausbildung, Kenntnisse.\n"
         "- Verwende Flexbox/Grid mit Inlinestilen.\n"
         "- Nutze das deutsche Datumsformat (MM.YYYY).\n\n"
-        "REGLEN FÜR DAS ANSCHREIBEN:\n"
-        "- Formale Struktur nach DIN 5008 (Absender, Empfänger, Datum, Betreff, Anrede, Einleitung, Hauptteil, Schluss, Grußformel).\n"
-        "- Verbinde die Erfahrungen des Kandidaten mit dem Angebot. Zeige seine Motivation, nach Deutschland zu kommen.\n\n"
+        "REGLEN FÜR DAS ANSCHREIBEN (UNBEDINGT EINHALTEN):\n"
+        f"- Verwende als Ort und Datum genau dieses Format auf einer eigenen Zeile: '[Stadt des Kandidaten], {today_german}'.\n"
+        "- Die Betreffzeile (z.B. 'Bewerbung um einen Ausbildungsplatz als...') MUSS fett gedruckt sein unter Verwendung von Markdown ** (z.B. **Bewerbung um einen Ausbildungsplatz als...**).\n"
+        "- Das gesamte Anschreiben MUSS auf genau eine einzige DIN-A4-Seite passen (maximal 200 bis 230 Wörter für den Hauptteil). Sei präzise und komm direkt auf den Punkt. Längere Briefe werden in Deutschland abgelehnt.\n"
+        "- Beende das Anschreiben immer mit der Grußformel 'Mit freundlichen Grüßen' und darunter dem Namen des Kandidaten als Unterschrift.\n\n"
         "FORMATIERUNG DER ANTWORT:\n"
         "Gib zuerst den reinen HTML-Code des Lebenslaufs aus. Kein Markdown (kein ```html).\n"
         "Füge danach die genaue Trennzeile ein:\n"
