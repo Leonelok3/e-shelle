@@ -220,6 +220,19 @@ def exam_detail(request, exam_slug):
     exam_resources = exam.resources.filter(lesson__isnull=True)
     past_exams = exam.past_exams.filter(is_active=True)
 
+    import datetime
+    from .models import GermanExercise
+    day_of_year = datetime.date.today().timetuple().tm_yday
+    
+    lesson_of_the_day = None
+    exercise_of_the_day = None
+    
+    if lessons.exists():
+        lesson_of_the_day = lessons[day_of_year % lessons.count()]
+        exercise_of_the_day = lesson_of_the_day.exercises.first()
+        if not exercise_of_the_day:
+            exercise_of_the_day = GermanExercise.objects.filter(lesson__exam=exam).first()
+
     profile = None
     last_session = None
     if request.user.is_authenticated:
@@ -238,6 +251,8 @@ def exam_detail(request, exam_slug):
         "past_exams": past_exams,
         "profile": profile,
         "last_session": last_session,
+        "lesson_of_the_day": lesson_of_the_day,
+        "exercise_of_the_day": exercise_of_the_day,
     }
     return render(request, "german/exam_detail.html", context)
 
