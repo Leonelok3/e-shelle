@@ -14,8 +14,8 @@
   </div>
 
   <!-- HEADER OFFRE -->
-  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:1.25rem;padding:2rem;margin-bottom:1.5rem">
-    <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--primary-light,#a5b4fc);margin-bottom:.5rem">
+  <div style="background:#0a0a0a;border:1px solid rgba(220,38,38,0.5);border-radius:1.25rem;padding:2rem;margin-bottom:1.5rem;box-shadow:0 4px 20px rgba(0,0,0,0.5)">
+    <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#ffce00;margin-bottom:.5rem">
       {{ offer.get_sector_display }}
     </div>
     <h1 style="font-size:1.6rem;font-weight:800;color:#fff;margin:0 0 .75rem">{{ offer.title }}</h1>
@@ -31,16 +31,16 @@
     <!-- ACTIONS -->
     <div style="display:flex;gap:1rem;flex-wrap:wrap">
       <a href="{{ offer.url_apply }}" target="_blank" rel="noopener"
-         style="display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.5rem;background:#22c55e;color:#fff;border-radius:.75rem;text-decoration:none;font-weight:700;font-size:.9rem">
+         style="display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.5rem;background:#22c55e;color:#fff;border-radius:.75rem;text-decoration:none;font-weight:700;font-size:.9rem;transition:background-color .2s" onmouseover="this.style.backgroundColor='#1ea44e'" onmouseout="this.style.backgroundColor='#22c55e'">
         Postuler sur Bundesagentur →
       </a>
       {% if user.is_authenticated %}
       <a href="{% url 'lebenslauf:generate_for_offer' offer.pk %}"
-         style="display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.5rem;background:var(--primary,#4f46e5);color:#fff;border-radius:.75rem;text-decoration:none;font-weight:700;font-size:.9rem">
+         style="display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.5rem;background:#dc2626;color:#fff;border-radius:.75rem;text-decoration:none;font-weight:700;font-size:.9rem;transition:background-color .2s" onmouseover="this.style.backgroundColor='#b91c1c'" onmouseout="this.style.backgroundColor='#dc2626'">
         📄 Generer mon Lebenslauf pour cette offre
       </a>
       <button id="bookmark-btn" onclick="toggleBookmark({{ offer.pk }}, this)"
-        style="padding:.7rem 1.25rem;border-radius:.75rem;border:1px solid rgba(255,255,255,.15);background:transparent;color:{% if is_bookmarked %}#ffce00{% else %}rgba(255,255,255,.6){% endif %};cursor:pointer;font-size:.9rem;transition:all .2s">
+        style="padding:.7rem 1.25rem;border-radius:.75rem;border:1px solid rgba(220,38,38,0.4);background:transparent;color:{% if is_bookmarked %}#ffce00{% else %}rgba(255,255,255,.6){% endif %};cursor:pointer;font-size:.9rem;transition:all .2s">
         {% if is_bookmarked %}★ Sauvegarde{% else %}☆ Sauvegarder{% endif %}
       </button>
       {% endif %}
@@ -49,15 +49,15 @@
 
   <!-- RESUME IA -->
   {% if offer.ai_summary_fr %}
-  <div style="background:rgba(99,179,237,.06);border:1px solid rgba(99,179,237,.2);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem">
-    <h2 style="font-size:1rem;font-weight:700;margin:0 0 .75rem;color:#63b3ed">🤖 Analyse IA pour les candidats africains</h2>
+  <div style="background:rgba(0,0,0,0.5);border:1px solid rgba(220,38,38,0.45);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 4px 15px rgba(0,0,0,0.3)">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 .75rem;color:#ffce00">🤖 Analyse IA pour les candidats africains</h2>
     <p style="font-size:.9rem;color:rgba(255,255,255,.8);line-height:1.65;margin:0">{{ offer.ai_summary_fr }}</p>
   </div>
   {% endif %}
 
   <!-- DESCRIPTION OFFICIELLE -->
   {% if offer.description %}
-  <div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem">
+  <div style="background:#0a0a0a;border:1px solid rgba(255,255,255,.06);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem">
     <h2 style="font-size:1rem;font-weight:700;margin:0 0 .75rem">Description du poste</h2>
     <div style="font-size:.88rem;color:rgba(255,255,255,.75);line-height:1.7;white-space:pre-wrap">{{ offer.description }}</div>
   </div>

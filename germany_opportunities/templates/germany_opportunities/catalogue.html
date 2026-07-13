@@ -20,15 +20,15 @@
   </div>
 
   <!-- FILTRES -->
-  <form method="get" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:1rem;padding:1.25rem;margin-bottom:1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;align-items:end">
+  <form method="get" style="background:#0a0a0a;border:1px solid #dc2626;border-radius:1rem;padding:1.25rem;margin-bottom:1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;align-items:end;box-shadow:0 4px 20px rgba(0,0,0,0.5)">
     <div>
       <label style="font-size:.75rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:.35rem">RECHERCHE</label>
       <input type="text" name="q" value="{{ search_q }}" placeholder="Metier, entreprise..."
-        style="width:100%;padding:.55rem .85rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:.9rem">
+        style="width:100%;padding:.55rem .85rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:#121212;color:#fff;font-size:.9rem">
     </div>
     <div>
       <label style="font-size:.75rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:.35rem">SECTEUR</label>
-      <select name="sector" style="width:100%;padding:.55rem .85rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:#1a1f2e;color:#fff;font-size:.9rem">
+      <select name="sector" style="width:100%;padding:.55rem .85rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:#121212;color:#fff;font-size:.9rem">
         <option value="">Tous les secteurs</option>
         {% for val, label in sector_choices %}
           <option value="{{ val }}" {% if active_sector == val %}selected{% endif %}>{{ label }}</option>
@@ -63,7 +63,7 @@
       </select>
     </div>
     <div>
-      <button type="submit" style="width:100%;padding:.6rem 1rem;background:var(--primary,#4f46e5);color:#fff;border:none;border-radius:.6rem;font-weight:600;cursor:pointer;font-size:.9rem">
+      <button type="submit" style="width:100%;padding:.6rem 1rem;background:#22c55e;color:#fff;border:none;border-radius:.6rem;font-weight:600;cursor:pointer;font-size:.9rem;transition:background-color .2s" onmouseover="this.style.backgroundColor='#1ea44e'" onmouseout="this.style.backgroundColor='#22c55e'">
         Filtrer
       </button>
     </div>
@@ -94,14 +94,14 @@
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem;margin-bottom:3rem">
     {% for offer in offers %}
     <div class="offer-card {% if offer.is_new %}offer-card--new{% endif %}"
-         style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:1rem;padding:1.5rem;display:flex;flex-direction:column;gap:.75rem;position:relative;transition:transform .2s,border-color .2s">
+         style="background:#0a0a0a;border:1px solid rgba(220,38,38,0.4);border-radius:1rem;padding:1.5rem;display:flex;flex-direction:column;gap:.75rem;position:relative;transition:transform .2s,border-color .2s,box-shadow .2s;box-shadow:0 4px 15px rgba(0,0,0,0.4)">
 
       {% if offer.is_new %}
       <span style="position:absolute;top:.75rem;right:.75rem;background:#22c55e;color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:20px;letter-spacing:.06em">NOUVEAU</span>
       {% endif %}
 
       <!-- Badge secteur -->
-      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--primary-light,#a5b4fc)">
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#ffce00">
         {{ offer.get_sector_display }}
       </div>
 
@@ -119,21 +119,21 @@
       </div>
 
       {% if offer.ai_summary_fr %}
-      <p style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.55;margin:0;border-top:1px solid rgba(255,255,255,.06);padding-top:.75rem">
+      <p style="font-size:.82rem;color:rgba(255,255,255,.7);line-height:1.55;margin:0;border-top:1px solid rgba(220,38,38,0.3);padding-top:.75rem">
         {{ offer.ai_summary_fr|truncatewords:30 }}
       </p>
       {% endif %}
 
       <!-- Niveau langue requis -->
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-        <span style="font-size:.72rem;padding:.2rem .65rem;border-radius:20px;background:rgba(99,179,237,.15);color:#63b3ed;border:1px solid rgba(99,179,237,.25)">
+        <span style="font-size:.72rem;padding:.2rem .65rem;border-radius:20px;background:rgba(220,38,38,0.1);color:#ff4d4d;border:1px solid rgba(220,38,38,0.3)">
           🇩🇪 {{ offer.language_req }} requis
         </span>
       </div>
 
       <div style="display:flex;gap:.75rem;margin-top:auto;padding-top:.5rem">
         <a href="{% url 'germany_opportunities:offer_detail' offer.pk %}"
-           style="flex:1;text-align:center;padding:.55rem .75rem;border-radius:.6rem;background:var(--primary,#4f46e5);color:#fff;text-decoration:none;font-size:.83rem;font-weight:600">
+           style="flex:1;text-align:center;padding:.55rem .75rem;border-radius:.6rem;background:#22c55e;color:#fff;text-decoration:none;font-size:.83rem;font-weight:600;transition:background-color .2s" onmouseover="this.style.backgroundColor='#1ea44e'" onmouseout="this.style.backgroundColor='#22c55e'">
           Voir le detail
         </a>
         {% if user.is_authenticated %}
@@ -219,11 +219,13 @@ document.querySelectorAll('.bookmark-btn').forEach(function(btn) {
 document.querySelectorAll('.offer-card').forEach(function(card) {
   card.addEventListener('mouseenter', function() {
     this.style.transform = 'translateY(-4px)';
-    this.style.borderColor = 'rgba(79,70,229,.4)';
+    this.style.borderColor = '#dc2626';
+    this.style.boxShadow = '0 6px 20px rgba(220,38,38,0.25)';
   });
   card.addEventListener('mouseleave', function() {
     this.style.transform = '';
-    this.style.borderColor = 'rgba(255,255,255,.08)';
+    this.style.borderColor = 'rgba(220,38,38,0.4)';
+    this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.4)';
   });
 });
 </script>

@@ -168,17 +168,19 @@ def generate_pdf(output_path):
     # Page 3: Espace Membre
     story.append(Paragraph("2. Fonctionnalités de l'Espace Membre", h1_style))
     story.append(Paragraph(
-        "Chaque membre de tontine dispose d'un tableau de bord personnalisé sécurisé lui offrant une autonomie totale et une visibilité en temps réel sur ses avoirs :",
+        "Chaque membre de tontine dispose d'un tableau de bord personnalisé sécurisé lui offrant une visibilité en temps réel sur ses avoirs. "
+        "Pour s'adapter à la réalité des réunions physiques et éviter les erreurs de saisie, les membres ont un accès consultatif "
+        "tandis que le bureau enregistre toutes les écritures :",
         body_style
     ))
     
     member_feats = [
         ["Fonctionnalité", "Description & Valeur Ajoutée"],
-        ["💵 Cotisations en ligne", "Suivi et paiement direct des cotisations associées aux séances de réunion. Plus besoin de se déplacer avec des espèces."],
-        ["💰 Épargne & Dépôts", "Possibilité de déposer des fonds dans le fond de réserve de la tontine et de suivre les intérêts capitalisés mensuellement."],
-        ["📝 Demande de Prêt", "Soumission de demandes de prêts directement depuis l'espace membre, avec choix du garant et calcul automatique de l'échéancier et des mensualités."],
-        ["💼 Portefeuille digital", "Suivi des transactions de crédit/débit, solde disponible, et retraits faciles."],
-        ["📄 Relevés PDF", "Génération en un clic du relevé mensuel détaillant les dépôts actifs, la part du membre dans le pool d'intérêts, et le cumul de ses avoirs."]
+        ["💳 Suivi des cotisations", "Visualisation de l'historique et de l'état de ses cotisations (payées, partielles, en retard ou excusées)."],
+        ["💰 Épargne & Dépôts", "Consultation de ses dépôts actifs au fond commun et des intérêts capitalisés générés mensuellement."],
+        ["📋 Carnet de prêts", "Visualisation claire de ses prêts en cours, des échéanciers, du reste à rembourser et du score de fiabilité."],
+        ["💼 Portefeuille digital", "Suivi synthétique de ses avoirs totaux (épargne + fond de caisse) et de son éventuel déficit en fonds de base."],
+        ["📄 Relevés PDF", "Génération en un clic du relevé mensuel détaillant les dépôts actifs, la part dans le pool d'intérêts, et le cumul de ses avoirs."]
     ]
     
     t_member = Table(member_feats, colWidths=[5*cm, 12*cm])
@@ -205,11 +207,13 @@ def generate_pdf(output_path):
     
     bureau_feats = [
         ["Fonctionnalité", "Description & Usage pour le Bureau"],
-        ["📅 Gestion des séances", "Planification, ouverture et clôture des séances de réunion. Le système génère automatiquement les fiches de présence et de cotisation."],
-        ["🔍 Suivi des prêts", "Interface d'approbation/rejet des demandes de prêts. Suivi en temps réel des remboursements et alertes en cas de défaut ou de retard."],
-        ["🧮 Calculateur d'intérêts", "Distribution mensuelle automatique des intérêts générés par les prêts vers le portefeuille des membres au prorata de leur épargne."],
-        ["🤝 Gestion des membres", "Invitation de nouveaux membres via code unique, définition des rôles (Président, Trésorier, Secrétaire, Membre simple)."],
-        ["📊 Réconciliation financière", "Module de réconciliation pour comparer la balance théorique de la tontine avec les liquidités réelles en banque ou caisse mobile."]
+        ["📅 Gestion des séances", "Planification, ouverture et clôture des séances. Enregistrement rapide des présences et génération des cotisations dues."],
+        ["🏆 Bénéficiaires multiples", "Attribution de la main levée à un ou plusieurs membres bénéficiaires durant la même séance avec calcul automatique."],
+        ["💼 Fond de caisse", "Suivi du fond de base obligatoire. Saisie des dépôts en séance et des retraits (individuels ou collectifs pour événements)."],
+        ["👥 Membres virtuels", "Création et administration de membres virtuels n'ayant pas de compte e-shelle (ex: les mamans)."],
+        ["🔍 Suivi des prêts", "Interface d'approbation et octroi direct des prêts. Calcul automatique des intérêts totaux à rembourser selon le taux du groupe."],
+        ["🧮 Calculateur d'intérêts", "Distribution mensuelle automatique des intérêts du pool vers les portefeuilles des membres au prorata de leur épargne."],
+        ["📊 Réconciliation & Audit", "Module de réconciliation financière et journal d'audit complet retraçant chaque action administrative."]
     ]
     
     t_bureau = Table(bureau_feats, colWidths=[5*cm, 12*cm])

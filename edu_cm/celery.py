@@ -189,4 +189,15 @@ app.conf.beat_schedule = {
         "task": "njangi.tasks.update_reliability_scores",
         "schedule": crontab(hour=3, minute=0, day_of_week=0),
     },
+
+    # ── Germany Opportunities — Recherche quotidien d'Ausbildung ──────────────
+    "germany-fetch-ausbildung": {
+        "task": "germany_opportunities.tasks.fetch_ausbildung_offers",
+        "schedule": crontab(hour=6, minute=0),
+    },
+    "germany-enrich-offers-ai": {
+        "task": "germany_opportunities.tasks.enrich_offers_with_ai",
+        "schedule": crontab(hour=6, minute=30),
+    },
 }
+
