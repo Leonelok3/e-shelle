@@ -179,8 +179,16 @@ class GermanResource(models.Model):
     resource_type = models.CharField(max_length=10, choices=RESOURCE_TYPES, default="PDF")
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    file = models.FileField(
+        upload_to="german_resources/",
+        blank=True,
+        null=True,
+        help_text="Optionnel. Uploadez un fichier (PDF, MP3, etc.) ou laissez vide si vous utilisez un lien externe.",
+    )
     url = models.URLField(
-        help_text="Lien vers le PDF / vidéo / ressource (Drive, YouTube, site externe...)."
+        blank=True,
+        null=True,
+        help_text="Optionnel. Lien vers le PDF / vidéo / ressource (Drive, YouTube, site externe...).",
     )
 
     def __str__(self):
