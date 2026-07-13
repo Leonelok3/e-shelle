@@ -257,24 +257,27 @@ def download_lebenslauf(request, pk):
 
 
 class DocxHTMLParser(HTMLParser):
-    def __init__(self, doc):
+    def __init__(self, cell_or_doc, default_text_color, heading_color, accent_color=None):
         super().__init__()
-        self.doc = doc
+        self.container = cell_or_doc
+        self.default_text_color = default_text_color
+        self.heading_color = heading_color
+        self.accent_color = accent_color or heading_color
         self.current_tag = None
         self.current_paragraph = None
         
     def handle_starttag(self, tag, attrs):
         self.current_tag = tag
         if tag in ('h1', 'h2', 'h3', 'h4'):
-            self.current_paragraph = self.doc.add_paragraph()
-            self.current_paragraph.paragraph_format.space_before = Pt(12)
-            self.current_paragraph.paragraph_format.space_after = Pt(6)
+            self.current_paragraph = self.container.add_paragraph()
+            self.current_paragraph.paragraph_format.space_before = Pt(8)
+            self.current_paragraph.paragraph_format.space_after = Pt(4)
         elif tag in ('p', 'div'):
-            self.current_paragraph = self.doc.add_paragraph()
-            self.current_paragraph.paragraph_format.space_after = Pt(6)
+            self.current_paragraph = self.container.add_paragraph()
+            self.current_paragraph.paragraph_format.space_after = Pt(4)
         elif tag == 'li':
-            self.current_paragraph = self.doc.add_paragraph(style='List Bullet')
-            self.current_paragraph.paragraph_format.space_after = Pt(3)
+            self.current_paragraph = self.container.add_paragraph(style='List Bullet')
+            self.current_paragraph.paragraph_format.space_after = Pt(2)
         elif tag == 'br':
             if self.current_paragraph:
                 self.current_paragraph.add_run('\n')
@@ -290,15 +293,20 @@ class DocxHTMLParser(HTMLParser):
             run = self.current_paragraph.add_run(text)
             run.bold = True
             if self.current_tag == 'h1':
-                run.font.size = Pt(18)
-                run.font.color.rgb = RGBColor(45, 55, 72)  # Slate Gray
+                run.font.size = Pt(15)
+                run.font.color.rgb = self.heading_color
             elif self.current_tag == 'h2':
-                run.font.size = Pt(13)
-                run.font.color.rgb = RGBColor(227, 0, 15)  # German Red
+                run.font.size = Pt(11.5)
+                run.font.color.rgb = self.accent_color
             else:
-                run.font.size = Pt(11)
+                run.font.size = Pt(10)
+                run.font.color.rgb = self.default_text_color
         elif self.current_paragraph:
-            self.current_paragraph.add_run(" " + text if self.current_paragraph.runs else text)
+            run = self.current_paragraph.add_run(" " + text if self.current_paragraph.runs else text)
+            run.font.size = Pt(9.5)
+            run.font.color.rgb = self.default_text_color
+            if self.current_tag == 'strong':
+                run.bold = True
 
 
 @login_required
@@ -306,6 +314,10 @@ def download_lebenslauf_docx(request, pk):
     """Téléchargement du CV et de la Lettre de motivation au format Word (.docx)."""
     import io
     import re
+    from docx import Document
+    from docx.shared import Pt, Inches, RGBColor
+    from docx.oxml import parse_xml
+    from docx.oxml.ns import nsdecls
 
     lv = get_object_or_404(GeneratedLebenslauf, pk=pk, user=request.user)
     
@@ -313,10 +325,22 @@ def download_lebenslauf_docx(request, pk):
     
     # Page setup
     for section in doc.sections:
-        section.top_margin = Inches(1)
-        section.bottom_margin = Inches(1)
-        section.left_margin = Inches(1)
-        section.right_margin = Inches(1)
+        section.top_margin = Inches(0.8)
+        section.bottom_margin = Inches(0.8)
+        section.left_margin = Inches(0.8)
+        section.right_margin = Inches(0.8)
+
+    # Helper function to shade cells
+    def shade_cell(cell, fill_hex):
+        tcPr = cell._tc.get_or_add_tcPr()
+        shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
+        tcPr.append(shd)
+
+    # Helper function to set cell padding (in dxa: 20 dxa = 1 point)
+    def set_cell_padding(cell, top=200, bottom=200, left=300, right=300):
+        tcPr = cell._tc.get_or_add_tcPr()
+        tcMar = parse_xml(f'<w:tcMar {nsdecls("w")}><w:top w:w="{top}" w:type="dxa"/><w:bottom w:w="{bottom}" w:type="dxa"/><w:left w:w="{left}" w:type="dxa"/><w:right w:w="{right}" w:type="dxa"/></w:tcMar>')
+        tcPr.append(tcMar)
 
     # 1. Add Cover Letter (Anschreiben) if it exists
     if lv.ai_cover_letter:
@@ -324,6 +348,7 @@ def download_lebenslauf_docx(request, pk):
         run_title = p_title.add_run("BEWERBUNGSSCHREIBEN (ANSCHREIBEN)")
         run_title.bold = True
         run_title.font.size = Pt(14)
+        run_title.font.color.rgb = RGBColor(45, 55, 72)
         p_title.paragraph_format.space_after = Pt(12)
         
         # Add the body of the cover letter
@@ -331,22 +356,60 @@ def download_lebenslauf_docx(request, pk):
             cleaned_line = line.strip()
             p = doc.add_paragraph(cleaned_line)
             p.paragraph_format.space_after = Pt(6)
+            p.paragraph_format.line_spacing = 1.15
             
         doc.add_page_break()
 
-    # 2. Add CV (Lebenslauf) HTML
-    p_cv_title = doc.add_paragraph()
-    run_cv_title = p_cv_title.add_run("LEBENSLAUF")
-    run_cv_title.bold = True
-    run_cv_title.font.size = Pt(14)
-    p_cv_title.paragraph_format.space_after = Pt(12)
+    # 2. Add CV (Lebenslauf) 2-column Table
+    table = doc.add_table(rows=1, cols=2)
+    # Ensure column widths
+    table.columns[0].width = Inches(2.3)
+    table.columns[1].width = Inches(4.7)
+    
+    left_cell = table.cell(0, 0)
+    right_cell = table.cell(0, 1)
+    
+    # Design Left Spalte (Sidebar)
+    shade_cell(left_cell, "2D3748")  # Dark slate gray
+    set_cell_padding(left_cell, top=300, bottom=300, left=250, right=250)
+    
+    # Design Right Spalte (Main)
+    shade_cell(right_cell, "FFFFFF")
+    set_cell_padding(right_cell, top=300, bottom=300, left=250, right=250)
 
-    # Strip style and script tags to prevent parsing errors
+    # Clean HTML from style/script tags
     clean_html = re.sub(r'<style[^>]*>.*?</style>', '', lv.content_html, flags=re.DOTALL)
     clean_html = re.sub(r'<script[^>]*>.*?</script>', '', clean_html, flags=re.DOTALL)
 
-    parser = DocxHTMLParser(doc)
-    parser.feed(clean_html)
+    # Parse and split columns
+    left_html = ""
+    right_html = ""
+    if "<!-- Rechte Spalte" in clean_html:
+        parts = clean_html.split("<!-- Rechte Spalte")
+        left_html = parts[0].strip()
+        right_html = parts[1].split("-->", 1)[1].strip()
+    else:
+        left_html = clean_html
+        right_html = ""
+
+    # Parse Left Column
+    left_parser = DocxHTMLParser(
+        left_cell,
+        default_text_color=RGBColor(247, 250, 252),  # Light gray text
+        heading_color=RGBColor(104, 211, 145),       # Mint Green #68D391
+        accent_color=RGBColor(255, 206, 0)           # Gold/Yellow
+    )
+    left_parser.feed(left_html)
+
+    # Parse Right Column
+    if right_html:
+        right_parser = DocxHTMLParser(
+            right_cell,
+            default_text_color=RGBColor(45, 55, 72),     # Dark slate text
+            heading_color=RGBColor(45, 55, 72),
+            accent_color=RGBColor(227, 0, 15)            # German Red
+        )
+        right_parser.feed(right_html)
 
     # Save to memory stream
     file_stream = io.BytesIO()
