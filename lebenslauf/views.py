@@ -292,66 +292,57 @@ def _build_candidate_context(profile, experiences, educations, languages):
 
 def _call_ai_generate(candidate_context: str, offer_context: str) -> tuple[str, str]:
     """
-    Appelle Gemini pour générer le Lebenslauf en HTML et la lettre de motivation (Anschreiben).
-    Retourne (content_html, ai_cover_letter).
+    Appelle Gemini pour générer à la fois le Lebenslauf en HTML et la lettre de motivation (Anschreiben)
+    en un seul appel pour des raisons de performance et pour éviter le timeout.
     """
     from ai_engine.services.llm_service import call_llm
 
-    # 1. Génération du Lebenslauf HTML
-    system_prompt_cv = (
-        "Du bist ein renommierter deutscher HR-Experte, spezialisiert auf das deutsche Bewerbungsverfahren. "
-        "Deine Aufgabe ist es, einen professionellen, modernen Lebenslauf (CV) im deutschen Format (zwei Spalten) "
-        "zu erstellen. Übersetze alle Informationen des Kandidaten auf fehlerfreies, professionelles Deutsch. "
-        "Wenn die Erfahrungen des Kandidaten in einem anderen Bereich liegen (z.B. Handel in Kamerun) und er sich für "
-        "eine Ausbildung bewirbt (z.B. Pflegefachkraft), formuliere die Aufgabenbeschreibung so um, dass die übertragbaren "
-        "Kompetenzen (Pünktlichkeit, Empathie, Kundenkontakt, Organisation) klar im Vordergrund stehen.\n\n"
-        "REGLEN FÜR DAS HTML-LAYOUT:\n"
+    system_prompt = (
+        "Du bist ein renommierter deutscher HR-Experte, spezialisiert auf das deutsche Bewerbungsverfahren.\n"
+        "Deine Aufgabe ist es, für den Kandidaten zwei Dokumente in fehlerfreiem, professionellem Deutsch zu erstellen:\n"
+        "1. Einen modernen, professionellen Lebenslauf (CV) im zweiseitigen/zweispaltigen Tabellen-Layout (HTML).\n"
+        "2. Ein überzeugendes Anschreiben (Bewerbungsschreiben) nach DIN 5008 (Text).\n\n"
+        "Übersetze alle Informationen des Kandidaten auf Deutsch und formuliere seine Erfahrungen so um, dass die "
+        "übertragbaren Kompetenzen (Pünktlichkeit, Organisation, Empathie) für das Ziel-Ausbildungsangebot im Vordergrund stehen.\n\n"
+        "REGLEN FÜR DAS HTML-LAYOUT DES LEBENSLAUFS:\n"
         "- Generiere einen Container mit zwei Spalten: linke Spalte dunkelgrau (#2D3748) für persönliche Daten & Sprachen, "
         "rechte Spalte weiß für Lebenslauf, Berufserfahrung, Ausbildung, Kenntnisse.\n"
         "- Verwende Flexbox/Grid mit Inlinestilen.\n"
-        "- Nutze das deutsche Datumsformat (MM.YYYY oder DD.MM.YYYY).\n"
-        "- Antworte AUSSCHLIESSLICH mit dem fertigen HTML-Code des Containers. Kein Markdown (kein ```html)."
+        "- Nutze das deutsche Datumsformat (MM.YYYY).\n\n"
+        "REGLEN FÜR DAS ANSCHREIBEN:\n"
+        "- Formale Struktur nach DIN 5008 (Absender, Empfänger, Datum, Betreff, Anrede, Einleitung, Hauptteil, Schluss, Grußformel).\n"
+        "- Verbinde die Erfahrungen des Kandidaten mit dem Angebot. Zeige seine Motivation, nach Deutschland zu kommen.\n\n"
+        "FORMATIERUNG DER ANTWORT:\n"
+        "Gib zuerst den reinen HTML-Code des Lebenslaufs aus. Kein Markdown (kein ```html).\n"
+        "Füge danach die genaue Trennzeile ein:\n"
+        "=== ANSCHREIBEN_START ===\n"
+        "Gib danach den reinen Text des Anschreibens aus."
     )
 
-    user_prompt_cv = (
+    user_prompt = (
         f"KANDIDATENPROFIL:\n{candidate_context}\n\n"
         f"ZIELSTELLENANGEBOT:\n{offer_context}\n\n"
-        "Erstelle jetzt den perfekten Lebenslauf in professionellem Deutsch als HTML."
+        "Erstelle jetzt den Lebenslauf (HTML) und das Anschreiben (Text)."
     )
-
-    # 2. Génération de la lettre de motivation (Anschreiben)
-    system_prompt_cover = (
-        "Du bist ein renommierter deutscher HR-Experte. "
-        "Schreibe ein erstklassiges, überzeugendes Anschreiben (Bewerbungsschreiben) auf Deutsch für eine Ausbildung. "
-        "Folge dem formalen Aufbau nach DIN 5008 (Absender, Empfänger, Datum, Betreff, Anrede, Einleitung, Hauptteil, "
-        "Schluss, Grußformel).\n"
-        "Verbinde die Erfahrungen des Kandidaten geschickt mit den Anforderungen des Angebots. "
-        "Erkläre, warum der Kandidat nach Deutschland kommen möchte, warum er hochmotiviert ist und wie seine "
-        "bisherigen Erfahrungen ihm helfen werden, in dieser Ausbildung erfolgreich zu sein. "
-        "Schreibe in einem professionellen, höflichen und entschlossenen Ton."
-    )
-
-    user_prompt_cover = (
-        f"KANDIDATENPROFIL:\n{candidate_context}\n\n"
-        f"ZIELSTELLENANGEBOT:\n{offer_context}\n\n"
-        "Schreibe das Anschreiben auf Deutsch."
-    )
-
-    html_content = ""
-    cover_letter = ""
 
     try:
-        html_content = call_llm(system_prompt_cv, user_prompt_cv)
-        if html_content:
-            html_content = html_content.replace("```html", "").replace("```", "").strip()
-    except Exception as exc:
-        log.error(f"Lebenslauf CV generation error: {exc}")
+        response = call_llm(system_prompt, user_prompt)
+        if not response:
+            return "", ""
 
-    try:
-        cover_letter = call_llm(system_prompt_cover, user_prompt_cover)
-        if cover_letter:
-            cover_letter = cover_letter.strip()
-    except Exception as exc:
-        log.error(f"Lebenslauf Cover Letter generation error: {exc}")
+        # Clean markdown code blocks if any
+        response = response.replace("```html", "").replace("```", "").strip()
 
-    return html_content, cover_letter
+        if "=== ANSCHREIBEN_START ===" in response:
+            parts = response.split("=== ANSCHREIBEN_START ===")
+            html_content = parts[0].strip()
+            cover_letter = parts[1].strip()
+        else:
+            # Fallback if delimiter not found
+            html_content = response
+            cover_letter = ""
+
+        return html_content, cover_letter
+    except Exception as exc:
+        log.error(f"Lebenslauf AI generation error: {exc}")
+        return "", ""
