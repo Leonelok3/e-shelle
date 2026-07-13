@@ -986,15 +986,6 @@ def german_ai_coach_api(request):
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
 
-    if german_client is None:
-        return JsonResponse(
-            {
-                "error": "API key manquante",
-                "reply": "La clé OPENAI_API_KEY n'est pas configurée sur le serveur.",
-            },
-            status=500,
-        )
-
     try:
         data = json.loads(request.body.decode("utf-8"))
     except json.JSONDecodeError:
@@ -1060,26 +1051,43 @@ def german_ai_coach_api(request):
         "et son niveau cible (ex: B1 pour visa, B2/C1 pour études)."
     )
 
-    messages = [{"role": "system", "content": system_prompt}]
+    from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
+    from google.genai import types
+    
+    client, err = get_vertex_client()
+    if err or not client:
+        return JsonResponse(
+            {
+                "error": "Vertex AI error",
+                "reply": f"Impossible d'initialiser le client Vertex AI: {err or 'Client vide'}",
+            },
+            status=500,
+        )
 
-    # Historique précédent (pour garder une conversation fluide)
+    # Convert chat history to Gemini format
+    contents = []
     for item in history:
         role = item.get("role")
         content = item.get("content")
-        if role in ("user", "assistant") and content:
-            messages.append({"role": role, "content": content})
+        if role == "user":
+            contents.append(types.Content(role="user", parts=[types.Part.from_text(text=content)]))
+        elif role in ("assistant", "model"):
+            contents.append(types.Content(role="model", parts=[types.Part.from_text(text=content)]))
 
-    # Nouveau message utilisateur
-    messages.append({"role": "user", "content": user_message})
+    # Add new user message
+    contents.append(types.Content(role="user", parts=[types.Part.from_text(text=user_message)]))
 
     try:
-        completion = german_client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=messages,
-            temperature=0.4,
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                temperature=0.4,
+            )
         )
-        reply_text = completion.choices[0].message.content
-    except OpenAIError as e:
+        reply_text = response.text
+    except Exception as e:
         return JsonResponse(
             {
                 "error": "IA error",
