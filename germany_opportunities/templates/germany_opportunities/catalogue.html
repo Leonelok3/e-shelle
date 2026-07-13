@@ -94,57 +94,57 @@
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem;margin-bottom:3rem">
     {% for offer in offers %}
     <div class="offer-card {% if offer.is_new %}offer-card--new{% endif %}"
-         style="background:#0a0a0a;border:1px solid rgba(220,38,38,0.4);border-radius:1rem;padding:1.5rem;display:flex;flex-direction:column;gap:.75rem;position:relative;transition:transform .2s,border-color .2s,box-shadow .2s;box-shadow:0 4px 15px rgba(0,0,0,0.4)">
+         style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:1.5rem;display:flex;flex-direction:column;gap:.75rem;position:relative;transition:all .2s;box-shadow:0 4px 15px rgba(0,0,0,0.06)">
 
       {% if offer.is_new %}
       <span style="position:absolute;top:.75rem;right:.75rem;background:#22c55e;color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:20px;letter-spacing:.06em">NOUVEAU</span>
       {% endif %}
 
       <!-- Badge secteur -->
-      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#ffce00">
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#e0a800">
         {{ offer.get_sector_display }}
       </div>
 
-      <h3 style="margin:0;font-size:1rem;font-weight:700;color:#fff;line-height:1.35">
+      <h3 style="margin:0;font-size:1rem;font-weight:800;color:#000000;line-height:1.35">
         {{ offer.title }}
       </h3>
 
-      <div style="font-size:.85rem;color:rgba(255,255,255,.65);display:flex;flex-direction:column;gap:.2rem">
+      <div style="font-size:.85rem;color:#374151;display:flex;flex-direction:column;gap:.2rem">
         <span>🏢 {{ offer.company }}</span>
         <span>📍 {{ offer.city }}{% if offer.region %}, {{ offer.region }}{% endif %}</span>
         {% if offer.start_date %}
         <span>📅 Debut : {{ offer.start_date|date:"d.m.Y" }}</span>
         {% endif %}
-        <span style="color:#ffce00">💶 {{ offer.salary_display }}</span>
+        <span style="color:#e0a800;font-weight:700">💶 {{ offer.salary_display }}</span>
       </div>
 
       {% if offer.ai_summary_fr %}
-      <p style="font-size:.82rem;color:rgba(255,255,255,.7);line-height:1.55;margin:0;border-top:1px solid rgba(220,38,38,0.3);padding-top:.75rem">
+      <p style="font-size:.82rem;color:#4b5563;line-height:1.55;margin:0;border-top:1px solid #f3f4f6;padding-top:.75rem">
         {{ offer.ai_summary_fr|truncatewords:30 }}
       </p>
       {% endif %}
 
       <!-- Niveau langue requis -->
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-        <span style="font-size:.72rem;padding:.2rem .65rem;border-radius:20px;background:rgba(220,38,38,0.1);color:#ff4d4d;border:1px solid rgba(220,38,38,0.3)">
+        <span style="font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:20px;background:rgba(227,0,15,0.06);color:#E3000F;border:1px solid rgba(227,0,15,0.25)">
           🇩🇪 {{ offer.language_req }} requis
         </span>
       </div>
 
       <div style="display:flex;gap:.75rem;margin-top:auto;padding-top:.5rem">
         <a href="{% url 'germany_opportunities:offer_detail' offer.pk %}"
-           style="flex:1;text-align:center;padding:.55rem .75rem;border-radius:.6rem;background:#22c55e;color:#fff;text-decoration:none;font-size:.83rem;font-weight:600;transition:background-color .2s" onmouseover="this.style.backgroundColor='#1ea44e'" onmouseout="this.style.backgroundColor='#22c55e'">
+           style="flex:1;text-align:center;padding:.55rem .75rem;border-radius:.6rem;background:#E3000F;color:#fff;text-decoration:none;font-size:.83rem;font-weight:700;transition:background-color .2s" onmouseover="this.style.backgroundColor='#b91c1c'" onmouseout="this.style.backgroundColor='#E3000F'">
           Voir le detail
         </a>
         {% if user.is_authenticated %}
         {% if offer.pk in bookmarked_ids %}
         <button class="bookmark-btn" data-pk="{{ offer.pk }}" data-bookmarked="true"
-          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid rgba(255,255,255,.15);color:#ffce00;cursor:pointer;font-size:1rem;transition:all .2s" aria-label="Retirer des favoris">
+          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid #d1d5db;color:#e0a800;cursor:pointer;font-size:1rem;transition:all .2s" onmouseover="this.style.borderColor='#e0a800'" onmouseout="this.style.borderColor='#d1d5db'" aria-label="Retirer des favoris">
           ★
         </button>
         {% else %}
         <button class="bookmark-btn" data-pk="{{ offer.pk }}" data-bookmarked="false"
-          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);cursor:pointer;font-size:1rem;transition:all .2s" aria-label="Ajouter aux favoris">
+          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid #d1d5db;color:#9ca3af;cursor:pointer;font-size:1rem;transition:all .2s" onmouseover="this.style.borderColor='#9ca3af'" onmouseout="this.style.borderColor='#d1d5db'" aria-label="Ajouter aux favoris">
           ☆
         </button>
         {% endif %}
@@ -168,19 +168,19 @@
 
   <!-- BOURSES -->
   {% if scholarships %}
-  <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:2.5rem">
+  <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:2.5rem">
     <h2 style="font-size:1.3rem;font-weight:700;margin:0 0 1.5rem">🎓 Bourses disponibles</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
       {% for s in scholarships %}
       <a href="{{ s.url }}" target="_blank" rel="noopener"
-         style="background:rgba(72,199,142,.05);border:1px solid rgba(72,199,142,.2);border-radius:.875rem;padding:1.25rem;text-decoration:none;color:inherit;display:block;transition:transform .2s,border-color .2s">
-        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#48c78e;margin-bottom:.4rem">{{ s.provider }}</div>
-        <div style="font-size:.95rem;font-weight:600;color:#fff;margin-bottom:.4rem">{{ s.title }}</div>
+         style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:.875rem;padding:1.25rem;text-decoration:none;color:#1a1a1a;display:block;transition:all .2s;box-shadow:0 2px 10px rgba(0,0,0,0.04)" onmouseover="this.style.borderColor='#e0a800'" onmouseout="this.style.borderColor='#e2e8f0'">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#e0a800;margin-bottom:.4rem">{{ s.provider }}</div>
+        <div style="font-size:.95rem;font-weight:700;color:#000000;margin-bottom:.4rem">{{ s.title }}</div>
         {% if s.deadline %}
-        <div style="font-size:.78rem;color:rgba(255,255,255,.5)">Date limite : {{ s.deadline|date:"d.m.Y" }}</div>
+        <div style="font-size:.78rem;color:#4b5563">Date limite : {{ s.deadline|date:"d.m.Y" }}</div>
         {% endif %}
         {% if s.amount %}
-        <div style="font-size:.78rem;color:#48c78e;margin-top:.3rem">{{ s.amount }}</div>
+        <div style="font-size:.78rem;color:#E3000F;font-weight:700;margin-top:.3rem">{{ s.amount }}</div>
         {% endif %}
       </a>
       {% endfor %}
