@@ -676,3 +676,28 @@ def _calculate_crs(age, education, experience, french_level, has_lmia):
     return score
 
 
+def programs_hub(request):
+    """Page d'accueil présentant tous les programmes d'immigration Canada (SEO Hub)."""
+    return render(request, "canada_resume/programs_hub.html")
+
+
+def program_ee(request):
+    """Page explicative sur le programme Entrée Express (SEO)."""
+    return render(request, "canada_resume/program_ee.html")
+
+
+def program_arrima(request):
+    """Page explicative sur le programme Arrima / Québec (SEO)."""
+    return render(request, "canada_resume/program_arrima.html")
+
+
+def program_pnp(request):
+    """Page explicative sur le programme des Candidats des Provinces - PCP (SEO)."""
+    return render(request, "canada_resume/program_pnp.html")
+
+
+def program_others(request):
+    """Page explicative sur les autres programmes d'immigration - AIP, RNIP, etc. (SEO)."""
+    return render(request, "canada_resume/program_others.html")
+
+

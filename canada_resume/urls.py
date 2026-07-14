@@ -19,4 +19,9 @@ urlpatterns = [
     path("telecharger/<int:pk>/lettre/", views.download_cover_letter_docx, name="download_lettre_docx"),
     path("api/ameliorer-description/", views.improve_description_api, name="improve_description_api"),
     path("diagnostic/", views.immigration_diagnostic, name="diagnostic"),
+    path("programmes/", views.programs_hub, name="programs_hub"),
+    path("programmes/entree-express/", views.program_ee, name="program_ee"),
+    path("programmes/arrima/", views.program_arrima, name="program_arrima"),
+    path("programmes/candidats-provinces/", views.program_pnp, name="program_pnp"),
+    path("programmes/autres/", views.program_others, name="program_others"),
 ]
