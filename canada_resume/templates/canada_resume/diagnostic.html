@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Diagnostic Éligibilité Canada & Score CRS | E-Shelle{% endblock %}
+
+{% block content %}
+<div style="max-width:900px;margin:0 auto;padding:2rem 1rem 4rem;font-family:'Outfit',sans-serif;">
+  
+  <a href="{% url 'canada_resume:dashboard' %}" style="font-size:.85rem;color:#64748b;text-decoration:none;font-weight:600;">← Tableau de bord</a>
+
+  <h1 style="font-size:1.85rem;font-weight:800;margin:1rem 0 .5rem;color:#102B4E;">🍁 Consultant Virtuel Canada : Éligibilité & Score CRS</h1>
+  <p style="color:#64748b;margin:0 0 2rem;font-size:.95rem;line-height:1.5;">
+    Simulez votre score officiel du Système de Classement Global (CRS) Express Entry et obtenez votre plan d'action personnalisé par l'IA.
+  </p>
+
+  <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:2rem;align-items:flex-start;">
+    
+    <!-- COLONNE GAUCHE: FORMULAIRE -->
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:2rem;box-shadow:0 4px 15px rgba(0,0,0,0.025);">
+      <h2 style="font-size:1.15rem;font-weight:800;color:#102B4E;margin:0 0 1.25rem;border-bottom:1px solid #f1f5f9;padding-bottom:.5rem;">📋 Mon Profil Express Entry</h2>
+      
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div style="margin-bottom:1.25rem;">
+          <label for="{{ field.id_for_label }}" style="display:block;font-size:.8rem;font-weight:700;color:#102B4E;margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em;">
+            {{ field.label }}
+          </label>
+          {{ field }}
+          {% if field.help_text %}
+            <p style="font-size:.75rem;color:#64748b;margin:.35rem 0 0;line-height:1.4;">{{ field.help_text }}</p>
+          {% endif %}
+          {% for err in field.errors %}
+            <p style="font-size:.8rem;color:#ef4444;margin:.25rem 0 0;font-weight:600;">{{ err }}</p>
+          {% endfor %}
+        </div>
+        {% endfor %}
+
+        <button type="submit" style="width:100%;padding:.85rem;background:#E3000F;color:#fff;border:none;border-radius:.75rem;font-weight:700;cursor:pointer;font-size:.95rem;transition:background-color .2s;text-transform:uppercase;letter-spacing:.05em;box-shadow:0 4px 12px rgba(227,0,15,0.2);" onmouseover="this.style.backgroundColor='#b9000a'" onmouseout="this.style.backgroundColor='#E3000F'">
+          🍁 Calculer & Diagnostiquer
+        </button>
+      </form>
+    </div>
+
+    <!-- COLONNE DROITE: SCORE & FEUILLE DE ROUTE -->
+    <div style="display:flex;flex-direction:column;gap:1.5rem;">
+      
+      <!-- CARD SCORE -->
+      <div style="background:#102B4E;color:#fff;border-radius:1rem;padding:2rem;text-align:center;box-shadow:0 10px 25px rgba(16,43,78,0.15);position:relative;overflow:hidden;">
+        <!-- background maple leaf pattern or glow -->
+        <div style="position:absolute;right:-20px;bottom:-20px;font-size:8rem;opacity:0.07;pointer-events:none;transform:rotate(15deg);">🍁</div>
+        
+        <h3 style="font-size:1.05rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:0 0 1rem;color:rgba(255,255,255,0.85);">
+          Votre Score CRS Estimé
+        </h3>
+        
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.1);border:3px solid #E3000F;font-size:2.5rem;font-weight:800;color:#fff;margin-bottom:1rem;box-shadow:0 0 20px rgba(227,0,15,0.3);">
+          {{ profile.crs_score }}
+        </div>
+        
+        <p style="font-size:.85rem;color:rgba(255,255,255,0.75);margin:0 auto;max-width:320px;line-height:1.45;">
+          Les seuils d'invitation (cut-offs) se situent généralement entre <strong>460 et 510 points</strong> pour les tirages généraux, mais descendent fortement pour les candidats francophones.
+        </p>
+      </div>
+
+      <!-- ROADMAP IA -->
+      {% if profile.ai_roadmap %}
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:2rem;box-shadow:0 4px 15px rgba(0,0,0,0.025);">
+        <h3 style="font-size:1.15rem;font-weight:800;color:#102B4E;margin:0 0 1rem;border-bottom:1px solid #f1f5f9;padding-bottom:.5rem;display:flex;align-items:center;gap:.35rem;">
+          🤖 Feuille de route IA personnalisée
+        </h3>
+        <div style="font-size:.9rem;color:#334155;line-height:1.6;white-space:pre-wrap;">
+          {{ profile.ai_roadmap }}
+        </div>
+        
+        <!-- CALL TO ACTION TCF -->
+        <div style="margin-top:1.5rem;padding:1rem;background:rgba(227,0,15,0.04);border:1px solid rgba(227,0,15,0.15);border-radius:8px;text-align:center;">
+          <strong style="font-size:.85rem;color:#102B4E;display:block;margin-bottom:.5rem;">🎯 Prêt à booster votre score CRS ?</strong>
+          <a href="{% url 'preparation_tests:tcf_hub' %}" style="display:inline-block;padding:.45rem 1rem;background:#E3000F;color:#fff;text-decoration:none;font-weight:700;font-size:.8rem;border-radius:6px;">
+            🎓 S'entraîner au TCF (Niveau C1/C2)
+          </a>
+        </div>
+      </div>
+      {% else %}
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:2.5rem 2rem;text-align:center;box-shadow:0 4px 15px rgba(0,0,0,0.025);color:#64748b;">
+        <span style="font-size:2.5rem;display:block;margin-bottom:1rem;">🤖</span>
+        <strong style="color:#102B4E;display:block;margin-bottom:.35rem;">Plan d'action Express Entry par l'IA</strong>
+        <p style="font-size:.82rem;line-height:1.45;margin:0;">
+          Remplissez le formulaire de diagnostic à gauche pour générer votre feuille de route d'immigration sur-mesure.
+        </p>
+      </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+
+</div>
+
+<style>
+input[type=number], select {
+  width: 100% !important;
+  padding: .65rem .95rem !important;
+  border-radius: .6rem !important;
+  border: 1.5px solid #cbd5e1 !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
+  font-size: .9rem !important;
+  box-sizing: border-box !important;
+  outline: none !important;
+}
+input[type=checkbox]{
+  width: auto !important;
+  margin-right: .5rem !important;
+}
+input[type=number]:focus, select:focus {
+  border-color: #102B4E !important;
+}
+</style>
+{% endblock %}

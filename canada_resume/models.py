@@ -176,3 +176,53 @@ class GeneratedCanadaResume(models.Model):
         if self.offer:
             return self.offer.title
         return self.custom_offer_title or "Candidature spontanée"
+
+
+class CanadaImmigrationProfile(models.Model):
+    """
+    Profil d'immigration pour le calcul du score CRS Express Entry et diagnostic d'éligibilité.
+    """
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name="canada_immigration_profile"
+    )
+    age = models.IntegerField(default=25)
+    education_level = models.CharField(
+        max_length=50,
+        choices=[
+            ("doctorate", "Doctorat / Doctorate (PhD)"),
+            ("master", "Maîtrise / Master's degree"),
+            ("two_degrees", "Deux diplômes ou plus (dont un de 3 ans) / Two or more degrees"),
+            ("bachelor", "Baccalauréat (3 ans et +) / Bachelor's degree (3+ years)"),
+            ("two_year", "Diplôme de 2 ans / Two-year program"),
+            ("one_year", "Diplôme de 1 an / One-year program"),
+            ("high_school", "Études secondaires / High school"),
+        ],
+        default="bachelor"
+    )
+    work_experience_years = models.IntegerField(default=3)
+    tcf_level = models.CharField(
+        max_length=10,
+        choices=[
+            ("C2", "C2 (CLB 10+)"),
+            ("C1", "C1 (CLB 9)"),
+            ("B2", "B2 (CLB 7-8)"),
+            ("B1", "B1 (CLB 5-6)"),
+            ("A2", "A2 (CLB 4)"),
+            ("A1", "A1 (CLB 1-3)"),
+        ],
+        default="B2"
+    )
+    has_lmia_job = models.BooleanField(default=False)
+    crs_score = models.IntegerField(default=0)
+    ai_roadmap = models.TextField(blank=True, help_text="Feuille de route générée par l'IA")
+    
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Profil d'immigration Canada"
+        verbose_name_plural = "Profils d'immigration Canada"
+
+    def __str__(self):
+        return f"Diagnostic Canada {self.user} - Score: {self.crs_score}"
+

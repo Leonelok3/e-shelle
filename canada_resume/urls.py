@@ -18,4 +18,5 @@ urlpatterns = [
     path("telecharger/<int:pk>/docx/", views.download_resume_docx, name="download_docx"),
     path("telecharger/<int:pk>/lettre/", views.download_cover_letter_docx, name="download_lettre_docx"),
     path("api/ameliorer-description/", views.improve_description_api, name="improve_description_api"),
+    path("diagnostic/", views.immigration_diagnostic, name="diagnostic"),
 ]

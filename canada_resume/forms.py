@@ -1,5 +1,25 @@
 from django import forms
-from .models import CanadaCVProfile, CanadaCVExperience, CanadaCVEducation, CanadaCVLanguage
+from .models import CanadaCVProfile, CanadaCVExperience, CanadaCVEducation, CanadaCVLanguage, CanadaImmigrationProfile
+
+class CanadaImmigrationProfileForm(forms.ModelForm):
+    class Meta:
+        model = CanadaImmigrationProfile
+        fields = ["age", "education_level", "work_experience_years", "tcf_level", "has_lmia_job"]
+        labels = {
+            "age": "Âge / Age",
+            "education_level": "Plus haut niveau d'études / Highest Education Level",
+            "work_experience_years": "Années d'expérience professionnelle (hors Canada) / Years of Foreign Experience",
+            "tcf_level": "Niveau estimé ou réel au TCF (Français) / French Language Level (TCF)",
+            "has_lmia_job": "Avez-vous une offre d'emploi validée par l'EIMT ? / Do you have an LMIA-supported Job Offer?",
+        }
+        widgets = {
+            "age": forms.NumberInput(attrs={"class": "form-control", "min": 18, "max": 100, "placeholder": "Ex: 28"}),
+            "education_level": forms.Select(attrs={"class": "form-select"}),
+            "work_experience_years": forms.NumberInput(attrs={"class": "form-control", "min": 0, "max": 15, "placeholder": "Ex: 3"}),
+            "tcf_level": forms.Select(attrs={"class": "form-select"}),
+            "has_lmia_job": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
 
 class CanadaCVProfileForm(forms.ModelForm):
     class Meta:

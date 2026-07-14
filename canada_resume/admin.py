@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import CanadaCVProfile, CanadaCVExperience, CanadaCVEducation, CanadaCVLanguage, GeneratedCanadaResume
+from .models import CanadaCVProfile, CanadaCVExperience, CanadaCVEducation, CanadaCVLanguage, GeneratedCanadaResume, CanadaImmigrationProfile
+
+@admin.register(CanadaImmigrationProfile)
+class CanadaImmigrationProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "age", "education_level", "work_experience_years", "tcf_level", "crs_score", "updated_at")
+    list_filter = ("education_level", "tcf_level")
+    search_fields = ("user__email", "user__username")
+
 
 @admin.register(CanadaCVProfile)
 class CanadaCVProfileAdmin(admin.ModelAdmin):

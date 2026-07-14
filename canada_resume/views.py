@@ -10,8 +10,8 @@ from docx import Document
 from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
-from .models import CanadaCVProfile, CanadaCVExperience, CanadaCVEducation, CanadaCVLanguage, GeneratedCanadaResume
-from .forms import CanadaCVProfileForm, CanadaCVExperienceForm, CanadaCVEducationForm, CanadaCVLanguageForm
+from .models import CanadaCVProfile, CanadaCVExperience, CanadaCVEducation, CanadaCVLanguage, GeneratedCanadaResume, CanadaImmigrationProfile
+from .forms import CanadaCVProfileForm, CanadaCVExperienceForm, CanadaCVEducationForm, CanadaCVLanguageForm, CanadaImmigrationProfileForm
 from jobs.models import CanadaJobOffer
 
 log = logging.getLogger(__name__)
@@ -527,4 +527,152 @@ def improve_description_api(request):
     except Exception as e:
         log.error(f"Error in improve_description_api: {e}")
         return JsonResponse({"success": False, "error": str(e)})
+
+
+@login_required
+def immigration_diagnostic(request):
+    """
+    Diagnostic Express Entry : Calcule le score CRS et fournit une feuille de route
+    personnalisée rédigée par l'IA (Gemini) en tant que consultant en immigration virtuelle.
+    """
+    profile, created = CanadaImmigrationProfile.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        form = CanadaImmigrationProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            p = form.save(commit=False)
+            
+            # Calcul du score CRS
+            p.crs_score = _calculate_crs(
+                p.age,
+                p.education_level,
+                p.work_experience_years,
+                p.tcf_level,
+                p.has_lmia_job
+            )
+            
+            # Appel IA pour la feuille de route
+            from ai_engine.services.llm_service import call_llm
+            system_prompt = (
+                "Tu es un consultant agréé en immigration pour le Canada (CRIC), bienveillant, rigoureux et stratégique.\n"
+                "Analyse le profil du candidat, son score CRS obtenu sur l'Entrée Express et rédige une feuille de route "
+                "sur mesure en français. Sois très constructif.\n"
+                "RÈGLES DE CONSEIL :\n"
+                "- Si le candidat n'a pas atteint le niveau C1/C2 (CLB 9+) en français (TCF), insiste sur le fait qu'il s'agit du levier le plus important : obtenir un C1/C2 lui donne un bonus massif de points (le bonus francophone Hors-Québec de 50 points + points de compétences transférables).\n"
+                "- Encourage-le à s'entraîner sérieusement grâce aux leçons et examens blancs du TCF de notre plateforme.\n"
+                "- Explique comment optimiser son profil (obtenir une EIMT via nos offres d'emploi Canada, passer l'anglais IELTS, etc.).\n"
+                "Rends le texte clair et structuré en rubriques."
+            )
+            
+            candidate_details = (
+                f"Âge : {p.age} ans\n"
+                f"Niveau d'études : {p.get_education_level_display()}\n"
+                f"Expérience de travail à l'étranger : {p.work_experience_years} ans\n"
+                f"Niveau de Français (TCF) : {p.get_tcf_level_display()}\n"
+                f"Offre d'emploi approuvée par EIMT : {'Oui' if p.has_lmia_job else 'Non'}\n"
+                f"Score CRS (Express Entry) calculé : {p.crs_score} points"
+            )
+            
+            try:
+                p.ai_roadmap = call_llm(system_prompt, candidate_details)
+            except Exception as e:
+                log.error(f"Error calling LLM for CRS roadmap: {e}")
+                p.ai_roadmap = "Impossible de générer la feuille de route IA pour le moment. Veuillez réessayer."
+                
+            p.save()
+            messages.success(request, "Votre diagnostic Express Entry IA a été mis à jour avec succès !")
+            return redirect("canada_resume:diagnostic")
+    else:
+        form = CanadaImmigrationProfileForm(instance=profile)
+
+    return render(request, "canada_resume/diagnostic.html", {
+        "profile": profile,
+        "form": form,
+    })
+
+
+def _calculate_crs(age, education, experience, french_level, has_lmia):
+    score = 0
+    
+    # 1. Âge (maximum 110 points de 20 à 29 ans)
+    if 20 <= age <= 29:
+        score += 110
+    elif age == 18:
+        score += 99
+    elif age == 19:
+        score += 105
+    elif age == 30:
+        score += 105
+    elif age == 31:
+        score += 99
+    elif age == 32:
+        score += 94
+    elif age == 33:
+        score += 88
+    elif age == 34:
+        score += 83
+    elif age == 35:
+        score += 77
+    elif age == 36:
+        score += 72
+    elif age == 37:
+        score += 66
+    elif age == 38:
+        score += 61
+    elif age == 39:
+        score += 55
+    elif age == 40:
+        score += 50
+    elif age == 41:
+        score += 35
+    elif age == 42:
+        score += 25
+    elif age == 43:
+        score += 15
+    elif age == 44:
+        score += 5
+    else:
+        score += 0
+
+    # 2. Scolarité (maximum 150 points)
+    edu_points = {
+        "doctorate": 150,
+        "master": 135,
+        "two_degrees": 128,
+        "bachelor": 120,
+        "two_year": 98,
+        "one_year": 90,
+        "high_school": 30,
+    }
+    score += edu_points.get(education, 30)
+
+    # 3. Expérience professionnelle à l'étranger (maximum 25 points)
+    if experience >= 3:
+        score += 25
+    elif experience == 2:
+        score += 23
+    elif experience == 1:
+        score += 15
+    else:
+        score += 0
+
+    # 4. Compétences linguistiques en Français (1ère langue officielle) + Bonus francophone
+    # C1/C2 = CLB 9+. Donne de gros points de langue de base + bonus CRS Express Entry de 50 points.
+    if french_level in ("C1", "C2"):
+        score += 124  # Langue de base CLB 9/10
+        score += 50   # Bonus francophone hors Québec
+    elif french_level == "B2":
+        score += 88   # Langue de base CLB 7/8
+        score += 25   # Bonus partiel
+    elif french_level == "B1":
+        score += 48
+    else:
+        score += 0
+
+    # 5. Offre d'emploi reservée EIMT
+    if has_lmia:
+        score += 50
+
+    return score
+
 
