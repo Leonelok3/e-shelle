@@ -199,5 +199,11 @@ app.conf.beat_schedule = {
         "task": "germany_opportunities.tasks.enrich_offers_with_ai",
         "schedule": crontab(hour=6, minute=30),
     },
+
+    # ── Canada Opportunities — Recherche quotidien d'emplois ──────────────────
+    "canada-fetch-jobs": {
+        "task": "jobs.tasks.fetch_canada_jobs_task",
+        "schedule": crontab(hour=5, minute=0),
+    },
 }
 

@@ -8,4 +8,5 @@ urlpatterns = [
     path("offres/", views.catalogue, name="catalogue"),
     path("publier/", views.publier, name="publier"),
     path("offre/<slug:slug>/", views.detail, name="detail"),
+    path("canada/", views.canada_jobs, name="canada_jobs"),
 ]

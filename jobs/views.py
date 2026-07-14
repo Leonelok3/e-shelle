@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import CandidatureJobForm, OffreJobForm
-from .models import OffreJob, SecteurJob, VilleJob
+from .models import OffreJob, SecteurJob, VilleJob, CanadaJobOffer
 
 
 def accueil(request):
@@ -90,3 +90,36 @@ def publier(request):
     else:
         form = OffreJobForm()
     return render(request, "jobs/publier.html", {"form": form})
+
+
+def canada_jobs(request):
+    offres = CanadaJobOffer.objects.filter(is_active=True)
+    q = request.GET.get("q", "").strip()
+    province = request.GET.get("province", "").strip()
+    city = request.GET.get("city", "").strip()
+
+    if q:
+        offres = offres.filter(
+            Q(title__icontains=q) |
+            Q(company__icontains=q) |
+            Q(description__icontains=q)
+        )
+    if province:
+        offres = offres.filter(province__icontains=province)
+    if city:
+        offres = offres.filter(city__icontains=city)
+
+    # Obtenir la liste des provinces uniques pour le filtre
+    provinces = CanadaJobOffer.objects.filter(is_active=True).values_list("province", flat=True).distinct()
+    provinces = sorted(list({p.strip() for p in provinces if p}))
+
+    context = {
+        "offres": offres,
+        "q": q,
+        "province": province,
+        "city": city,
+        "provinces": provinces,
+        "total_offers": offres.count(),
+    }
+    return render(request, "jobs/canada_jobs.html", context)
+

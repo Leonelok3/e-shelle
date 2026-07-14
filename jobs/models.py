@@ -155,3 +155,47 @@ class CandidatureJob(models.Model):
 
     def __str__(self):
         return f"{self.nom} -> {self.offre.titre}"
+
+
+class CanadaJobOffer(models.Model):
+    """
+    Offres d'emploi d'employeurs canadiens qui recrutent à l'étranger.
+    Recherchées globalement et enrichies par l'IA.
+    """
+    ref_nr = models.CharField(max_length=100, unique=True, db_index=True)
+    title = models.CharField(max_length=300)
+    company = models.CharField(max_length=200)
+    city = models.CharField(max_length=100, blank=True)
+    province = models.CharField(max_length=100, blank=True)
+    
+    lmia_status = models.CharField(
+        max_length=50, 
+        default="Non précisé",
+        help_text="EIMT approuvé, EIMT en cours, exempté ou non précisé"
+    )
+    
+    salary = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
+    url_apply = models.URLField(max_length=500)
+    
+    # Enrichissement IA
+    ai_summary_fr = models.TextField(blank=True, help_text="Résumé de l'offre par l'IA")
+    
+    is_active = models.BooleanField(default=True, db_index=True)
+    fetched_at = models.DateTimeField(auto_now_add=True)
+    last_seen = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-fetched_at"]
+        verbose_name = "Offre Canada"
+        verbose_name_plural = "Offres Canada"
+
+    def __str__(self):
+        return f"{self.title} — {self.company} ({self.city}, {self.province})"
+
+    @property
+    def is_new(self):
+        from django.utils import timezone
+        import datetime
+        return (timezone.now() - self.fetched_at) < datetime.timedelta(hours=48)
+
