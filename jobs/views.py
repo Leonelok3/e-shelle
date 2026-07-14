@@ -156,3 +156,35 @@ def canada_scholarships(request):
     return render(request, "jobs/canada_scholarships.html", context)
 
 
+def canada_visitor_opps(request):
+    """
+    Affiche la liste des opportunités de visa visiteur Canada (conférences, séminaires, etc.).
+    """
+    from .models import CanadaVisitorOpportunity
+    opps = CanadaVisitorOpportunity.objects.filter(is_active=True)
+    q = request.GET.get("q", "").strip()
+    location = request.GET.get("location", "").strip()
+
+    if q:
+        opps = opps.filter(
+            Q(title__icontains=q) |
+            Q(organizer__icontains=q) |
+            Q(description__icontains=q)
+        )
+    if location:
+        opps = opps.filter(location__icontains=location)
+
+    locations = CanadaVisitorOpportunity.objects.filter(is_active=True).values_list("location", flat=True).distinct()
+    locations = sorted(list({loc.strip() for loc in locations if loc}))
+
+    context = {
+        "opps": opps,
+        "q": q,
+        "location": location,
+        "locations": locations,
+        "total_opps": opps.count(),
+    }
+    return render(request, "jobs/canada_visitor_opps.html", context)
+
+
+

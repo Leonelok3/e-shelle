@@ -233,3 +233,37 @@ class CanadaScholarship(models.Model):
         return (timezone.now() - self.fetched_at) < datetime.timedelta(hours=48)
 
 
+class CanadaVisitorOpportunity(models.Model):
+    """
+    Opportunités facilitant l'obtention d'un visa de tourisme (visiteur) au Canada :
+    Conférences, Sommets, Certifications professionnelles, Séminaires, etc.
+    """
+    ref_nr = models.CharField(max_length=100, unique=True, db_index=True)
+    title = models.CharField(max_length=350)
+    organizer = models.CharField(max_length=250, help_text="Organisme ou Association hôte")
+    event_date = models.CharField(max_length=150, blank=True, help_text="Date de déroulement de l'événement")
+    location = models.CharField(max_length=200, help_text="Ville et province au Canada")
+    deadline = models.CharField(max_length=100, blank=True, help_text="Date limite d'inscription")
+    description = models.TextField(blank=True)
+    url_apply = models.URLField(max_length=500)
+
+    is_active = models.BooleanField(default=True, db_index=True)
+    fetched_at = models.DateTimeField(auto_now_add=True)
+    last_seen = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-fetched_at"]
+        verbose_name = "Opportunité Visa Visiteur"
+        verbose_name_plural = "Opportunités Visa Visiteur"
+
+    def __str__(self):
+        return f"{self.title} — {self.organizer} ({self.location})"
+
+    @property
+    def is_new(self):
+        from django.utils import timezone
+        import datetime
+        return (timezone.now() - self.fetched_at) < datetime.timedelta(hours=48)
+
+
+

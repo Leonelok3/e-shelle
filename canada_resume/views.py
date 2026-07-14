@@ -706,3 +706,8 @@ def program_study(request):
     return render(request, "canada_resume/program_study.html")
 
 
+def program_visit(request):
+    """Page explicative sur la procédure de visa tourisme/visiteur au Canada (SEO)."""
+    return render(request, "canada_resume/program_visit.html")
+
+

@@ -10,4 +10,5 @@ urlpatterns = [
     path("offre/<slug:slug>/", views.detail, name="detail"),
     path("canada/", views.canada_jobs, name="canada_jobs"),
     path("canada/bourses/", views.canada_scholarships, name="canada_scholarships"),
+    path("canada/visitor-opportunites/", views.canada_visitor_opps, name="canada_visitor_opps"),
 ]

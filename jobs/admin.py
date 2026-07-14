@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import CandidatureJob, OffreJob, SecteurJob, VilleJob, CanadaJobOffer, CanadaScholarship
+from .models import CandidatureJob, OffreJob, SecteurJob, VilleJob, CanadaJobOffer, CanadaScholarship, CanadaVisitorOpportunity
 
 
 @admin.register(SecteurJob)
@@ -78,4 +78,12 @@ class CanadaScholarshipAdmin(admin.ModelAdmin):
     list_display = ("title", "provider", "amount", "deadline", "is_active", "fetched_at")
     list_filter = ("is_active", "provider")
     search_fields = ("title", "provider", "description", "eligibility")
+    date_hierarchy = "fetched_at"
+
+
+@admin.register(CanadaVisitorOpportunity)
+class CanadaVisitorOpportunityAdmin(admin.ModelAdmin):
+    list_display = ("title", "organizer", "event_date", "location", "deadline", "is_active", "fetched_at")
+    list_filter = ("is_active", "location")
+    search_fields = ("title", "organizer", "description", "location")
     date_hierarchy = "fetched_at"

@@ -31,3 +31,18 @@ def fetch_canada_scholarships_task():
     except Exception as e:
         log.error(f"fetch_canada_scholarships_task: Erreur lors de la recherche : {e}")
 
+
+@shared_task
+def fetch_canada_visitor_opps_task():
+    """
+    Tâche Celery quotidienne pour récupérer les opportunités facilitant l'obtention
+    d'un visa de tourisme (visiteur) au Canada (conférences, séminaires, etc.).
+    """
+    log.info("fetch_canada_visitor_opps_task: Démarrage de la recherche d'opportunités visa visiteur...")
+    try:
+        call_command("fetch_canada_visitor_opps")
+        log.info("fetch_canada_visitor_opps_task: Recherche terminée avec succès.")
+    except Exception as e:
+        log.error(f"fetch_canada_visitor_opps_task: Erreur lors de la recherche : {e}")
+
+

@@ -25,4 +25,5 @@ urlpatterns = [
     path("programmes/candidats-provinces/", views.program_pnp, name="program_pnp"),
     path("programmes/autres/", views.program_others, name="program_others"),
     path("programmes/etudier/", views.program_study, name="program_study"),
+    path("programmes/visiter/", views.program_visit, name="program_visit"),
 ]
