@@ -701,3 +701,8 @@ def program_others(request):
     return render(request, "canada_resume/program_others.html")
 
 
+def program_study(request):
+    """Page explicative sur la procédure d'études au Canada, DLI et Bourses (SEO)."""
+    return render(request, "canada_resume/program_study.html")
+
+
