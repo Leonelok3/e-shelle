@@ -25,10 +25,12 @@ class Command(BaseCommand):
         # Pass 1: Google Search Grounding to find actual job links and details
         search_prompt = (
             "Recherche sur le web des offres d'emploi réelles et récentes (publiées il y a moins de 30 jours) d'employeurs canadiens "
-            "qui recrutent activement des travailleurs étrangers hors du Canada, spécifiquement avec une EIMT (Étude d'Impact sur le Marché du Travail) approuvée ou en cours. "
-            "Trouve au moins 5 à 10 offres d'emploi différentes dans divers secteurs (Santé, IT, Agriculture, Restauration, Construction, etc.). "
-            "Pour chaque offre, tu dois obligatoirement trouver : le titre exact du poste, le nom de l'entreprise, la ville, la province, le statut EIMT, le salaire, "
-            "une description brève et le lien URL source direct du poste (sur le Guichet-Emplois ou site d'origine)."
+            "qui recrutent activement des travailleurs étrangers hors du Canada. Recherche spécifiquement des postes avec une EIMT "
+            "(Étude d'Impact sur le Marché du Travail) déjà approuvée, des postes avec EIMT en cours, ou des postes recrutant dans le cadre "
+            "de la Mobilité Francophone (dispense d'EIMT pour les francophones hors Québec). "
+            "Trouve au moins 5 à 10 offres d'emploi différentes dans divers secteurs (Santé, IT, Agriculture, Restauration, Transport, Construction, etc.). "
+            "Pour chaque offre, tu dois obligatoirement trouver : le titre exact du poste, le nom de l'entreprise, la ville, la province, le statut exact de l'EIMT ou Mobilité Francophone, le salaire, "
+            "une description brève et le lien URL source direct du poste."
         )
 
         try:
@@ -51,10 +53,10 @@ class Command(BaseCommand):
                 "- title: le titre de l'emploi en français (ex: Ouvrier Agricole)\n"
                 "- company: le nom de l'entreprise\n"
                 "- city: la ville canadienne\n"
-                "- province: la province (ex: Québec, Alberta)\n"
-                "- lmia_status: le statut de l'EIMT (ex: 'EIMT approuvé', 'EIMT en cours', 'Exempté')\n"
+                "- province: la province (ex: Québec, Alberta, Ontario)\n"
+                "- lmia_status: le statut réglementaire exact (obligatoirement l'une de ces valeurs exactes : 'EIMT approuvé', 'EIMT en cours', 'Mobilité Francophone', 'Exempté' ou 'Non précisé')\n"
                 "- salary: le salaire (ex: 20 $/heure) ou 'Non précisé'\n"
-                "- description: une explication concise (2-3 phrases) en français du rôle et pourquoi c'est idéal pour un candidat étranger\n"
+                "- description: une explication concise (2-3 sentences) en français du rôle et pourquoi c'est idéal pour un candidat étranger\n"
                 "- url_apply: le vrai lien web direct pour postuler\n\n"
                 f"Offres brutes :\n{search_results}"
             )

@@ -74,17 +74,25 @@
               <span style="font-size:.82rem;background:#f1f5f9;color:#475569;padding:.2rem .6rem;border-radius:6px;font-weight:500;">
                 📍 {{ offer.city }}, {{ offer.province }}
               </span>
-              {% if "approuvé" in offer.lmia_status.lower %}
-                <span style="font-size:.82rem;background:#dcfce7;color:#15803d;padding:.2rem .6rem;border-radius:6px;font-weight:700;border:1px solid #bbf7d0;">
-                  ✅ {{ offer.lmia_status }}
+              {% if "approuvé" in offer.lmia_status.lower or "approuve" in offer.lmia_status.lower %}
+                <span style="font-size:.78rem;background:#dcfce7;color:#15803d;padding:.25rem .65rem;border-radius:6px;font-weight:700;border:1px solid #bbf7d0;display:inline-flex;align-items:center;gap:.25rem;" title="L'employeur détient une EIMT validée pour embaucher à l'étranger.">
+                  ✅ Cet employeur a déjà obtenu une EIMT
                 </span>
               {% elif "en cours" in offer.lmia_status.lower %}
-                <span style="font-size:.82rem;background:#fef9c3;color:#a16207;padding:.2rem .6rem;border-radius:6px;font-weight:700;border:1px solid #fef08a;">
-                  ⚡ {{ offer.lmia_status }}
+                <span style="font-size:.78rem;background:#fff7ed;color:#c2410c;padding:.25rem .65rem;border-radius:6px;font-weight:700;border:1px solid #ffedd5;display:inline-flex;align-items:center;gap:.25rem;" title="La demande d'EIMT est actuellement en cours de traitement par le gouvernement canadien.">
+                  ⏳ Cet employeur a déposé la demande EIMT
+                </span>
+              {% elif "francophone" in offer.lmia_status.lower or "francophonie" in offer.lmia_status.lower or "mobilité" in offer.lmia_status.lower or "mobilite" in offer.lmia_status.lower %}
+                <span style="font-size:.78rem;background:#f0f7ff;color:#1d4ed8;padding:.25rem .65rem;border-radius:6px;font-weight:700;border:1px solid #dbeafe;display:inline-flex;align-items:center;gap:.25rem;" title="Le poste est exempté d'EIMT dans le cadre de la dispense pour candidats francophones hors Québec (Mobilité Francophone).">
+                  ⚜️ Cet employeur recrute dans le cadre de la mobilité francophone
+                </span>
+              {% elif "exempté" in offer.lmia_status.lower or "exempte" in offer.lmia_status.lower %}
+                <span style="font-size:.78rem;background:#f3e8ff;color:#6b21a8;padding:.25rem .65rem;border-radius:6px;font-weight:700;border:1px solid #e9d5ff;display:inline-flex;align-items:center;gap:.25rem;">
+                  🛡️ Cet employeur recrute hors EIMT (Exempté)
                 </span>
               {% else %}
-                <span style="font-size:.82rem;background:#f1f5f9;color:#475569;padding:.2rem .6rem;border-radius:6px;font-weight:600;">
-                  📄 {{ offer.lmia_status }}
+                <span style="font-size:.78rem;background:#f1f5f9;color:#475569;padding:.25rem .65rem;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:.25rem;">
+                  📄 EIMT : {{ offer.lmia_status }}
                 </span>
               {% endif %}
             </div>
