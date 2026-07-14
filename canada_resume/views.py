@@ -4,7 +4,7 @@ import re
 import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from docx import Document
 from docx.shared import Pt, Inches, RGBColor
@@ -482,3 +482,42 @@ def _call_ai_generate_canada(candidate_context: str, offer_context: str, lang_ch
     except Exception as exc:
         log.error(f"Canada CV generation error: {exc}")
         return "", ""
+
+
+@login_required
+def improve_description_api(request):
+    """
+    Appelle Gemini pour réécrire la description de poste brute saisie par l'utilisateur
+    au format canadien professionnel compatible ATS (verbes d'action, puces).
+    """
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Méthode non autorisée."})
+
+    import json
+    try:
+        data = json.loads(request.body)
+        raw_text = data.get("text", "").strip()
+    except Exception:
+        raw_text = request.POST.get("text", "").strip()
+
+    if not raw_text:
+        return JsonResponse({"success": False, "error": "Veuillez saisir une description à améliorer."})
+
+    from ai_engine.services.llm_service import call_llm
+
+    system_prompt = (
+        "Tu es un expert RH canadien. Transforme la description de tâche brute fournie "
+        "en une liste à puces (bullet points) professionnelle de 3 à 5 éléments, en commençant par des verbes d'action à l'infinitif "
+        "(ex: 'Gérer...', 'Assurer...', 'Collaborer...', 'Optimiser...'). Rends le contenu extrêmement professionnel "
+        "et adapté pour passer les filtres ATS. Ne mets aucune introduction, salutation ou conclusion, commence directement par les puces."
+    )
+
+    try:
+        improved_text = call_llm(system_prompt, f"Description brute :\n{raw_text}")
+        if improved_text:
+            return JsonResponse({"success": True, "improved_text": improved_text.strip()})
+        return JsonResponse({"success": False, "error": "L'IA a retourné une réponse vide."})
+    except Exception as e:
+        log.error(f"Error in improve_description_api: {e}")
+        return JsonResponse({"success": False, "error": str(e)})
+

@@ -12,7 +12,7 @@
     <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:2rem;box-shadow:0 4px 15px rgba(0,0,0,0.025);">
       <h2 style="font-size:1.15rem;font-weight:800;color:#102B4E;margin:0 0 1.25rem;border-bottom:1px solid #f1f5f9;padding-bottom:.4rem;">➕ Ajouter une expérience</h2>
       
-      <form method="post">
+      <form method="post" id="experienceForm">
         {% csrf_token %}
         {% for field in form %}
         <div style="margin-bottom:1.25rem;">
@@ -21,7 +21,33 @@
             {% if field.field.required %}<span style="color:#ef4444;">*</span>{% endif %}
           </label>
           {{ field }}
-          {% if field.help_text %}
+
+          {% if field.name == 'description' %}
+            <!-- Bouton Améliorer par l'IA -->
+            <div style="margin-top: .5rem; display: flex; justify-content: flex-end;">
+              <button type="button" id="improveDescBtn" style="padding: .45rem 1.2rem; background: #102B4E !important; color: #ffffff !important; border: none; border-radius: 6px; font-weight: 700; font-size: .8rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem;">
+                <span id="btnIcon">✨</span> <span id="btnText">Optimiser ma description par l'IA (ATS-friendly)</span>
+              </button>
+            </div>
+
+            <!-- Guide canadien et mots-clés -->
+            <div style="margin-top: .85rem; padding: 1rem; border: 1.5px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; font-size: .82rem; color: #475569; line-height: 1.5;">
+              <div style="font-weight: 800; color: #102B4E; margin-bottom: .4rem; text-transform: uppercase; letter-spacing: 0.02em;">
+                🍁 Format Canadien : Guide & Mots-clés / Resume Guide & Keywords
+              </div>
+              <p style="margin: 0 0 .5rem;">
+                <strong>Mots-clés recommandés :</strong> Gérer (Manage), Optimiser (Optimize), Collaborer (Collaborate), Assurer (Ensure), Coordonner (Coordinate), Superviser (Supervise).
+              </p>
+              <div style="border-top: 1px solid #e2e8f0; padding-top: .5rem;">
+                <strong>Exemple de description conforme ATS :</strong><br>
+                <code style="display: block; background: #ffffff; border: 1px solid #cbd5e1; padding: .5rem; border-radius: 4px; margin-top: .25rem; font-family: monospace; font-size: .78rem; color: #0f172a; white-space: pre-wrap;">- Gérer la maintenance préventive et corrective de la flotte de camions.
+- Coordonner les chargements avec l'équipe logistique pour optimiser les livraisons.
+- Assurer le respect strict des normes de sécurité et de transport en vigueur.</code>
+              </div>
+            </div>
+          {% endif %}
+
+          {% if field.help_text and field.name != 'description' %}
             <p style="font-size:.78rem;color:#64748b;margin:.35rem 0 0;line-height:1.45;">{{ field.help_text }}</p>
           {% endif %}
           {% for err in field.errors %}
@@ -57,24 +83,75 @@
   </div>
 </div>
 
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const improveBtn = document.getElementById("improveDescBtn");
+  if (improveBtn) {
+    improveBtn.addEventListener("click", function() {
+      const textarea = document.querySelector("textarea[name='description']");
+      if (!textarea) return;
+      
+      const rawText = textarea.value.trim();
+      if (!rawText) {
+        alert("Veuillez d'abord saisir quelques tâches ou mots-clés dans la description pour que l'IA puisse les optimiser.");
+        return;
+      }
+      
+      const btnText = document.getElementById("btnText");
+      const btnIcon = document.getElementById("btnIcon");
+      
+      btnText.innerText = "Optimisation par l'IA en cours...";
+      improveBtn.disabled = true;
+      improveBtn.style.opacity = "0.7";
+      
+      fetch("{% url 'canada_resume:improve_description_api' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ text: rawText })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          textarea.value = data.improved_text;
+        } else {
+          alert("Erreur : " + data.error);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Une erreur technique s'est produite lors de l'appel IA.");
+      })
+      .finally(() => {
+        btnText.innerText = "Optimiser ma description par l'IA (ATS-friendly)";
+        improveBtn.disabled = false;
+        improveBtn.style.opacity = "1";
+      });
+    });
+  }
+});
+</script>
+
 <style>
 input[type=text], input[type=date], select, textarea {
-  width: 100%;
-  padding: .65rem .95rem;
-  border-radius: .6rem;
-  border: 1.5px solid #cbd5e1;
-  background: #fff;
-  color: #1e293b;
-  font-size: .9rem;
-  box-sizing: border-box;
-  outline: none;
+  width: 100% !important;
+  padding: .65rem .95rem !important;
+  border-radius: .6rem !important;
+  border: 1.5px solid #cbd5e1 !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
+  font-size: .9rem !important;
+  box-sizing: border-box !important;
+  outline: none !important;
 }
 input[type=checkbox]{
-  width: auto;
-  margin-right: .5rem;
+  width: auto !important;
+  margin-right: .5rem !important;
 }
 input[type=text]:focus, input[type=date]:focus, select:focus, textarea:focus {
-  border-color: #102B4E;
+  border-color: #102B4E !important;
 }
 </style>
 {% endblock %}
