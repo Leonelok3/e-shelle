@@ -1339,10 +1339,13 @@ def french_ai_coach_page(request):
 
     # Si aucun preset envoyé, on peut pré-remplir avec quelque chose d’utile
     if not preset:
+        user_level = "B1"
+        if hasattr(request.user, "profile") and request.user.profile:
+            user_level = request.user.profile.level or "B1"
         preset = (
             "Je prépare le test TCF (Test de Connaissance du Français).\n"
             "Voici mon profil d'apprentissage :\n"
-            f"- Niveau visé: {request.user.profile.level if hasattr(request.user, 'profile') else 'B1'}\n"
+            f"- Niveau visé: {user_level}\n"
             "\nPropose-moi un plan d'étude concret pour m'entraîner aux différentes compétences du TCF (Compréhension Orale, Compréhension Écrite, Expression Écrite, Expression Orale)."
         )
 
@@ -1400,7 +1403,9 @@ def french_ai_coach_api(request):
         return JsonResponse({"error": "Empty message"}, status=400)
 
     # Contexte profil
-    user_level = request.user.profile.level if hasattr(request.user, "profile") else "B1"
+    user_level = "B1"
+    if hasattr(request.user, "profile") and request.user.profile:
+        user_level = request.user.profile.level or "B1"
     profile_text = f"Niveau cible de l'utilisateur : {user_level}."
 
     system_prompt = (
