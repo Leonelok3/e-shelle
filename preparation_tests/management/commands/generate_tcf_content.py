@@ -95,50 +95,93 @@ def _validate_lesson(data: dict, exercises_count: int) -> None:
             )
 
 
-def _build_user_prompt(level: str, exercises_count: int, lesson_order: int) -> str:
+def _build_user_prompt(level: str, section: str, exercises_count: int, lesson_order: int) -> str:
     level_desc = LEVEL_DESCRIPTIONS.get(level, level)
+    section_label = "Compréhension Orale" if section == "co" else "Compréhension Écrite"
 
     prompt = (
-        f"Génère la leçon de Compréhension Orale TCF n°{lesson_order} pour le niveau {level} ({level_desc}).\n"
+        f"Génère la leçon de {section_label} TCF n°{lesson_order} pour le niveau {level} ({level_desc}).\n"
         f"Nombre d'exercices QCM à inclure : {exercises_count}.\n\n"
-        "Règles strictes de calibrage CECR pour la compréhension orale (CO) du TCF :\n"
     )
 
-    if level == "A1":
-        prompt += (
-            "- Situations : messages très courts de la vie quotidienne, salutations simples, prix, heures, indications de direction basiques.\n"
-            "- Texte audio ('audio_text') : 1 ou 2 phrases très lentes, vocabulaire basique de survie.\n"
-        )
-    elif level == "A2":
-        prompt += (
-            "- Situations : messages sur répondeur téléphonique, annonces en gare ou aéroport simples, dialogues familiers très courts.\n"
-            "- Texte audio ('audio_text') : 3 à 4 phrases claires avec connecteurs simples, débit modéré.\n"
-        )
-    elif level == "B1":
-        prompt += (
-            "- Situations : dialogues au travail, conversations courantes, instructions simples, reportages radio courts sur des sujets familiers.\n"
-            "- Texte audio ('audio_text') : débit normal, structures avec subordonnées, idées principales explicites.\n"
-        )
-    elif level == "B2":
-        prompt += (
-            "- Situations : débats d'actualité, exposés courts, conférences, actualités radio complexes.\n"
-            "- Texte audio ('audio_text') : débit naturel rapide, opinions nuancées, expressions idiomatiques courantes.\n"
-        )
-    elif level == "C1":
-        prompt += (
-            "- Situations : conférences académiques, interviews politiques ou philosophiques denses, reportages radio complexes.\n"
-            "- Texte audio ('audio_text') : débit soutenu, argumentation complexe, implicite fort, connecteurs fins.\n"
-        )
-    elif level == "C2":
-        prompt += (
-            "- Situations : extraits de pièces littéraires lues, débats scientifiques de pointe, jeux de mots et ironie fine.\n"
-            "- Texte audio ('audio_text') : structure hautement littéraire ou très rapide, expressions idiomatiques rares, nuances de ton et de registre.\n"
-        )
+    if section == "co":
+        prompt += "Règles strictes de calibrage CECR pour la compréhension orale (CO) du TCF :\n"
+        if level == "A1":
+            prompt += (
+                "- Situations : messages très courts de la vie quotidienne, salutations simples, prix, heures, indications de direction basiques.\n"
+                "- Texte audio ('audio_text') : 1 ou 2 phrases très lentes, vocabulaire basique de survie.\n"
+            )
+        elif level == "A2":
+            prompt += (
+                "- Situations : messages sur répondeur téléphonique, annonces en gare ou aéroport simples, dialogues familiers très courts.\n"
+                "- Texte audio ('audio_text') : 3 à 4 phrases claires avec connecteurs simples, débit modéré.\n"
+            )
+        elif level == "B1":
+            prompt += (
+                "- Situations : dialogues au travail, conversations courantes, instructions simples, reportages radio courts sur des sujets familiers.\n"
+                "- Texte audio ('audio_text') : débit normal, structures avec subordonnées, idées principales explicites.\n"
+            )
+        elif level == "B2":
+            prompt += (
+                "- Situations : débats d'actualité, exposés courts, conférences, actualités radio complexes.\n"
+                "- Texte audio ('audio_text') : débit naturel rapide, opinions nuancées, expressions idiomatiques courantes.\n"
+            )
+        elif level == "C1":
+            prompt += (
+                "- Situations : conférences académiques, interviews politiques ou philosophiques denses, reportages radio complexes.\n"
+                "- Texte audio ('audio_text') : débit soutenu, argumentation complexe, implicite fort, connecteurs fins.\n"
+            )
+        elif level == "C2":
+            prompt += (
+                "- Situations : extraits de pièces littéraires lues, débats scientifiques de pointe, jeux de mots et ironie fine.\n"
+                "- Texte audio ('audio_text') : structure hautement littéraire ou très rapide, expressions idiomatiques rares, nuances de ton et de registre.\n"
+            )
 
-    prompt += (
-        "\nIMPORTANT : Le champ 'audio_text' de chaque exercice DOIT contenir uniquement le script du dialogue/annonce à lire "
-        "en français pour la synthèse vocale, sans consignes ni traductions.\n"
-    )
+        prompt += (
+            "\nIMPORTANT : Le champ 'audio_text' de chaque exercice DOIT contenir uniquement le script du dialogue/annonce à lire "
+            "en français pour la synthèse vocale, sans consignes ni traductions.\n"
+        )
+    else:
+        prompt += "Règles strictes de calibrage CECR pour la compréhension écrite (CE) du TCF :\n"
+        if level == "A1":
+            prompt += (
+                "- Type de document : panneaux publics simples, courts messages amicaux (SMS), étiquettes de prix, formulaires très basiques.\n"
+                "- Difficulté : vocabulaire de base du quotidien immédiat, phrases extrêmement courtes.\n"
+            )
+        elif level == "A2":
+            prompt += (
+                "- Type de document : petites annonces, menus de restaurant, horaires de transports, e-mails amicaux simples de quelques lignes.\n"
+                "- Difficulté : connecteurs logiques de base, temps du présent et passé composé.\n"
+            )
+        elif level == "B1":
+            prompt += (
+                "- Type de document : articles de journaux d'actualité simple, courriels professionnels informatifs, prospectus touristiques.\n"
+                "- Difficulté : vocabulaire standard élargi, structures de phrases complexes (subordonnées relâchées).\n"
+            )
+        elif level == "B2":
+            prompt += (
+                "- Type de document : articles d'opinion, éditoriaux de presse, rapports techniques généraux sur des thèmes d'actualité.\n"
+                "- Difficulté : argumentation articulée, points de vue implicites, expressions courantes nuancées.\n"
+            )
+        elif level == "C1":
+            prompt += (
+                "- Type de document : extraits de textes littéraires modernes, articles scientifiques vulgarisés, correspondances administratives denses.\n"
+                "- Difficulté : style soutenu, vocabulaire abstrait étendu, structures syntaxiques complexes.\n"
+            )
+        elif level == "C2":
+            prompt += (
+                "- Type de document : textes littéraires classiques, articles de recherche hautement spécialisés, textes juridiques ou réglementaires denses.\n"
+                "- Difficulté : vocabulaire très rare ou archaïque, figures de style complexes, nuances de registre extrêmes.\n"
+            )
+
+        prompt += (
+            "\nStructure obligatoire du HTML dans 'content' (Leçon de Lecture) :\n"
+            "1. <h3>1. Introduction</h3> : Présentation du thème en français.\n"
+            "2. <h3>2. Vocabulaire essentiel</h3> : Liste de mots clés en français (strong) avec leur définition courte entre parenthèses.\n"
+            "3. <h3>3. Documents de lecture</h3> : Les documents ou courts textes en français à lire (placés dans des blocs '<div class=\"reading-box\">...</div>'). Aucun mot anglais ou de traduction dans ces textes.\n"
+            "4. <h3>4. Conseils pour l'épreuve</h3> : Stratégies de lecture rapide et d'élimination de distracteurs.\n\n"
+            "IMPORTANT : Le champ 'audio_text' de chaque exercice doit simplement contenir le court extrait de texte spécifique (issu des Documents de lecture) sur lequel porte la question.\n"
+        )
 
     return prompt
 
@@ -186,6 +229,13 @@ class Command(BaseCommand):
             help="Niveau CECR : A1, A2, B1, B2, C1, C2. Si absent, génère pour tous.",
         )
         parser.add_argument(
+            "--section",
+            type=str,
+            default="co",
+            choices=["co", "ce"],
+            help="Section à générer : co (Compréhension Orale), ce (Compréhension Écrite)",
+        )
+        parser.add_argument(
             "--lessons",
             type=int,
             default=5,
@@ -211,6 +261,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         level_arg = options["level"]
+        section = (options["section"] or "co").lower()
         total_lessons = options["lessons"]
         exercises_count = options["exercises"]
         sleep_sec = options["sleep"]
@@ -233,15 +284,15 @@ class Command(BaseCommand):
                 self.stderr.write(f"Niveau inconnu : '{level}'. Ignoré.")
                 continue
 
-            existing_count = CourseLesson.objects.filter(exams=tcf_exam, section="co", level=level).count()
+            existing_count = CourseLesson.objects.filter(exams=tcf_exam, section=section, level=level).count()
             needed = total_lessons - existing_count
             if needed <= 0:
-                self.stdout.write(self.style.SUCCESS(f"▶ Niveau {level} : déjà {existing_count} leçons. Passage au niveau suivant."))
+                self.stdout.write(self.style.SUCCESS(f"▶ Niveau {level} ({section.upper()}) : déjà {existing_count} leçons. Passage au niveau suivant."))
                 continue
 
             self.stdout.write(
                 self.style.MIGRATE_HEADING(
-                    f"\n▶ Génération TCF niveau {level} ({needed} leçons nécessaires, {exercises_count} exos/leçon)"
+                    f"\n▶ Génération TCF {section.upper()} niveau {level} ({needed} leçons nécessaires, {exercises_count} exos/leçon)"
                 )
             )
 
@@ -259,6 +310,7 @@ class Command(BaseCommand):
 
                 user_prompt = _build_user_prompt(
                     level=level,
+                    section=section,
                     exercises_count=exercises_count,
                     lesson_order=lesson_order,
                 )
@@ -285,7 +337,7 @@ class Command(BaseCommand):
                     _validate_lesson(data, exercises_count)
 
                     # Création de la leçon
-                    base_slug = slugify(f"tcf-co-{level}-{lesson_order}").lower()
+                    base_slug = slugify(f"tcf-{section}-{level}-{lesson_order}").lower()
                     slug = base_slug
                     counter = 1
                     while CourseLesson.objects.filter(slug=slug).exists():
@@ -295,7 +347,7 @@ class Command(BaseCommand):
                     lesson = CourseLesson.objects.create(
                         title=data["title"][:255],
                         slug=slug,
-                        section="co",
+                        section=section,
                         level=level,
                         content_html=data["content"],
                         order=lesson_order,
@@ -305,20 +357,27 @@ class Command(BaseCommand):
 
                     exo_list = data["exercises"][:exercises_count]
                     for idx, exo_data in enumerate(exo_list):
-                        # Génération audio TTS en français
-                        audio_text = exo_data["audio_text"]
-                        
-                        try:
-                            rel_audio = generate_audio(audio_text, language="fr", output_dir="assets")
-                            asset = _build_asset(rel_audio, language="fr", title=f"Audio TCF CO {level} L{lesson_order} Ex{idx+1}")
-                        except Exception as tts_err:
-                            self.stdout.write(self.style.WARNING(f"TTS Fail: {tts_err}"))
-                            asset = None
+                        asset = None
+                        if section == "co":
+                            # Génération audio TTS en français
+                            audio_text = exo_data["audio_text"]
+                            try:
+                                rel_audio = generate_audio(audio_text, language="fr", output_dir="assets")
+                                asset = _build_asset(rel_audio, language="fr", title=f"Audio TCF CO {level} L{lesson_order} Ex{idx+1}")
+                            except Exception as tts_err:
+                                self.stdout.write(self.style.WARNING(f"TTS Fail: {tts_err}"))
+                                asset = None
+
+                        instruction = (
+                            "Écoutez le document sonore et répondez à la question."
+                            if section == "co"
+                            else "Lisez le document et répondez à la question."
+                        )
 
                         CourseExercise.objects.create(
                             lesson=lesson,
                             title=f"Question {idx+1}",
-                            instruction="Écoutez le document sonore et répondez à la question.",
+                            instruction=instruction,
                             question_text=exo_data["question_text"],
                             audio=asset,
                             option_a=exo_data["option_a"][:255],
