@@ -28,6 +28,11 @@ def _allemagne_hub(request):
     return render(request, "allemagne/hub.html", {"total_offers": total_offers})
 
 
+def _allemagne_contrat_ausbildung(request):
+    """Page d'information sur le contrat de formation Ausbildung."""
+    return render(request, "allemagne/contrat_ausbildung.html")
+
+
 
 def home_view(request):
     ctx = {}
@@ -512,6 +517,7 @@ urlpatterns = [
     # ── E-Shelle Allemagne — Hub immigration / Ausbildung / Lebenslauf ──
     path("allemagne/opportunites/", include("germany_opportunities.urls", namespace="germany_opportunities")),
     path("allemagne/mon-cv/",       include("lebenslauf.urls",            namespace="lebenslauf")),
+    path("allemagne/contrat-ausbildung/", _allemagne_contrat_ausbildung,  name="allemagne_contrat_ausbildung"),
     path("allemagne/",              _allemagne_hub,                       name="allemagne_hub"),
 
     # Immobilier Cameroun

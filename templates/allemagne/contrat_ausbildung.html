@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Le Contrat de Formation (Ausbildung) en Allemagne – E-Shelle{% endblock %}
+
+{% block extra_css %}
+<style>
+  .au-wrap { max-width: 1000px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .au-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .au-bc a { color: var(--gold-german, #e0a800); text-decoration: none; font-weight: 500; }
+
+  /* Hero Section */
+  .au-hero {
+    background: linear-gradient(135deg, #080A0F 0%, #111827 100%);
+    border: 1px solid rgba(227, 0, 15, 0.3);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    color: #fff;
+    margin-bottom: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .au-hero::before {
+    content: "🇩🇪";
+    font-size: 10rem;
+    position: absolute;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: .12;
+    pointer-events: none;
+  }
+  .au-hero-eyebrow {
+    font-size: .75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+    color: var(--gold-german, #e0a800);
+    margin-bottom: .75rem;
+  }
+  .au-hero h1 {
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    font-weight: 900;
+    margin: 0 0 1rem;
+    line-height: 1.2;
+  }
+  .au-hero p {
+    font-size: 1rem;
+    line-height: 1.6;
+    opacity: .9;
+    max-width: 720px;
+    margin-bottom: 2rem;
+  }
+
+  /* Stats grid */
+  .au-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    padding-top: 1.5rem;
+  }
+  .au-stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .au-stat-val {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--gold-german, #e0a800);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  .au-stat-lbl {
+    font-size: 0.78rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* Light theme content blocks */
+  .au-content-card {
+    background: #ffffff !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    padding: 2.25rem !important;
+    color: #1f2937 !important;
+    margin-bottom: 2rem !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  }
+  .au-content-card h2 {
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+    margin-bottom: 1.5rem !important;
+    border-bottom: 2px solid #E3000F !important;
+    padding-bottom: 0.5rem !important;
+    display: inline-block !important;
+  }
+  .au-content-card p {
+    font-size: 0.95rem !important;
+    line-height: 1.7 !important;
+    color: #374151 !important;
+  }
+  .au-content-card ul, .au-content-card ol {
+    margin-bottom: 1.5rem;
+  }
+  .au-content-card li {
+    font-size: 0.95rem !important;
+    line-height: 1.7 !important;
+    color: #374151 !important;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Conditions Grid */
+  .conditions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+  .condition-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+  .condition-item h3 {
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+    padding-left: 2rem;
+    border-left: 3px solid #e2e8f0;
+    margin-left: 0.5rem;
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+  }
+  .timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -2.35rem;
+    top: 0.25rem;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #E3000F;
+    border: 3px solid #ffffff;
+  }
+  .timeline-num {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #E3000F;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+  .timeline-title {
+    font-size: 1.1rem !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Checklist styling */
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .checklist-item input[type="checkbox"] {
+    margin-top: 0.25rem;
+    accent-color: #E3000F;
+  }
+
+  /* Links section */
+  .link-card {
+    display: block;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    color: #1f2937 !important;
+    text-decoration: none !important;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s;
+  }
+  .link-card:hover {
+    border-color: #E3000F;
+    background: rgba(227,0,15,0.02);
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 600px) {
+    .au-hero::before { display: none; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="au-wrap">
+  <nav class="au-bc">
+    <a href="{% url 'germanprep:home' %}">Allemand</a>
+    <span>›</span>
+    <a href="{% url 'allemagne_hub' %}">Allemagne</a>
+    <span>›</span>
+    <span>Contrat de formation (Ausbildung)</span>
+  </nav>
+
+  <!-- HERO -->
+  <div class="au-hero">
+    <div class="au-hero-eyebrow">DE GOETHE-INSTITUT · AGENCE FÉDÉRALE POUR L'EMPLOI (BUNDESAGENTUR FÜR ARBEIT)</div>
+    <h1>Le contrat de formation (Ausbildung)</h1>
+    <p>
+      Formation professionnelle en alternance, rémunérée dès le premier jour. Vous travaillez
+      3 à 4 jours par semaine en entreprise et suivez 1 à 2 jours d'école professionnelle
+      (Berufsschule). C'est la voie la plus stable et la plus accessible pour s'installer
+      durablement en Allemagne, avec un vrai métier à la clé.
+    </p>
+
+    <!-- Stats -->
+    <div class="au-stats">
+      <div class="au-stat-card">
+        <span class="au-stat-val">2–3 ans</span>
+        <span class="au-stat-lbl">Durée de la formation</span>
+      </div>
+      <div class="au-stat-card">
+        <span class="au-stat-val">B1</span>
+        <span class="au-stat-lbl">Niveau d'allemand requis</span>
+      </div>
+      <div class="au-stat-card">
+        <span class="au-stat-val">950–1490 €</span>
+        <span class="au-stat-lbl">Salaire mensuel brut</span>
+      </div>
+      <div class="au-stat-card">
+        <span class="au-stat-val">10–18 mois</span>
+        <span class="au-stat-lbl">Délai total moyen</span>
+      </div>
+    </div>
+
+    <div>
+      <a href="{% url 'germanprep:placement_test' %}" class="ep-btn-amber" style="padding: 0.8rem 1.6rem; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(255,206,0,0.35); text-decoration: none;">
+        Tester mon niveau B1 gratuitement →
+      </a>
+    </div>
+  </div>
+
+  <!-- SECTION 1 — En bref -->
+  <div class="au-content-card">
+    <h2>L'Ausbildung en bref</h2>
+    <p>
+      L'Ausbildung est encadrée par l'<strong>article 16a de la loi allemande sur le séjour des étrangers (AufenthG)</strong>. Concrètement :
+    </p>
+    <ul style="padding-left: 1.25rem; margin-top: 1rem;">
+      <li>Vous signez un <strong>Ausbildungsvertrag</strong> (contrat de formation) avec une entreprise allemande accréditée par une Chambre de commerce (IHK) ou une Chambre des métiers (HWK).</li>
+      <li>Vous demandez ensuite un <strong>visa national D</strong> pour entrer en Allemagne.</li>
+      <li>Vous êtes payé dès le premier jour — ce n'est pas un stage, c'est un vrai contrat de travail en formation.</li>
+      <li>À la fin, vous obtenez une qualification reconnue dans toute l'Allemagne, ce qui ouvre la voie à un permis de séjour de travail stable, puis à la résidence permanente.</li>
+    </ul>
+    <p style="margin-top: 1rem; font-weight: 700; background: #fef2f2; border-left: 4px solid #E3000F; padding: 0.75rem 1rem; border-radius: 0 8px 8px 0;">
+      📍 Secteurs en pénurie recherchant le plus de candidats internationaux : soins infirmiers (Pflege), IT, électrotechnique/mécatronique, hôtellerie-restauration, logistique.
+    </p>
+  </div>
+
+  <!-- SECTION 2 — Conditions à remplir -->
+  <div class="au-content-card">
+    <h2>Conditions à remplir</h2>
+    <div class="conditions-grid" style="margin-top: 1rem;">
+      <div class="condition-item">
+        <h3>🇩🇪 Niveau de langue</h3>
+        <p style="font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          Allemand niveau B1 (CEFR) généralement exigé. Certains métiers techniques acceptent A2 au démarrage ; la santé et les métiers en contact avec le public demandent plutôt B1-B2. Vérifiez toujours l'exigence exacte de l'annonce.
+        </p>
+      </div>
+
+      <div class="condition-item">
+        <h3>📄 Contrat signé (Ausbildungsvertrag)</h3>
+        <p style="font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          Un contrat valide avec une entreprise reconnue IHK ou HWK, incluant un plan de formation (Ausbildungsplan) structuré sur toute la durée du programme (2 à 3 ans).
+        </p>
+      </div>
+
+      <div class="condition-item">
+        <h3>💶 Ressources financières / salaire</h3>
+        <p style="font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          Le salaire de formation (souvent 950 € à 1490 € brut/mois) couvre normalement le minimum vital. Si le montant est jugé insuffisant, une déclaration de l'employeur (Verpflichtungserklärung) ou un compte bloqué peut être demandé.
+        </p>
+      </div>
+
+      <div class="condition-item">
+        <h3>🏥 Assurance maladie</h3>
+        <p style="font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          Obligatoire dès l'arrivée, généralement prise en charge ou facilitée par l'employeur.
+        </p>
+      </div>
+
+      <div class="condition-item">
+        <h3>🎂 Âge et diplôme</h3>
+        <p style="font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          En général 16 à 35 ans (jusqu'à 40 ans dans les métiers en pénurie). Un certificat de fin d'études secondaires (Baccalauréat ou équivalent) est requis.
+        </p>
+      </div>
+
+      <div class="condition-item">
+        <h3>🛂 Documents divers</h3>
+        <p style="font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          Passeport en cours de validité et photos d'identité aux normes diplomatiques requises.
+        </p>
+      </div>
+
+      <div class="condition-item" style="grid-column: 1 / -1;">
+        <h3>👨‍👩‍👧 Regroupement familial</h3>
+        <p style="font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          Possible pour le conjoint et les enfants mineurs une fois le contrat et le logement confirmés, sous réserve de revenus suffisants pour les personnes à charge.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 — Le parcours en 4 étapes (timeline) -->
+  <div class="au-content-card">
+    <h2>Le parcours en 4 étapes</h2>
+    <div class="timeline" style="margin-top: 1.5rem;">
+      
+      <div class="timeline-item">
+        <span class="timeline-num">Étape 1 · 4 à 6 mois</span>
+        <h3 class="timeline-title">Certification B1</h3>
+        <p style="margin-bottom: 0.75rem;">Préparation intensive avec nos cours et simulations d'examen Goethe A1 à B1.</p>
+        <a href="{% url 'germanprep:exam_hub' %}" class="btn btn-primary btn-sm" style="background:#E3000F; border-color:#E3000F;">
+          Commencer ma préparation B1 →
+        </a>
+      </div>
+
+      <div class="timeline-item">
+        <span class="timeline-num">Étape 2 · 1 à 2 mois</span>
+        <h3 class="timeline-title">Trouver un employeur et signer le contrat</h3>
+        <p style="margin-bottom: 0.75rem;">Recherche d'une entreprise accréditée IHK/HWK, candidature, entretiens, signature de l'Ausbildungsvertrag.</p>
+        <a href="{% url 'germany_opportunities:catalogue' %}" class="btn btn-outline btn-sm" style="color:#E3000F; border-color:#E3000F;">
+          Voir les offres Ausbildung actives →
+        </a>
+      </div>
+
+      <div class="timeline-item">
+        <span class="timeline-num">Étape 3 · 4 à 8 semaines</span>
+        <h3 class="timeline-title">Demande de visa national D</h3>
+        <p style="margin-bottom: 0.75rem;">Dépôt du dossier à l'ambassade ou au consulat d'Allemagne de votre pays. L'accord préalable de l'Agence fédérale pour l'emploi (ZAV) est souvent requis.</p>
+        <div style="font-size: 0.8rem; font-weight: 700; color: #b91c1c; background: #fee2e2; padding: 0.5rem 0.75rem; border-radius: 6px; display: inline-block;">
+          ⚠️ Ne réservez jamais votre billet d'avion avant d'avoir le visa en main.
+        </div>
+      </div>
+
+      <div class="timeline-item" style="margin-bottom: 0;">
+        <span class="timeline-num">Étape 4 · Jour 1</span>
+        <h3 class="timeline-title">Arrivée et début de la formation</h3>
+        <p>Installation, ouverture de compte bancaire, inscription à l'assurance maladie, début de l'alternance entreprise/école.</p>
+      </div>
+    </div>
+    <p style="margin-top: 1.5rem; text-align: center; font-weight: 700; color: #000;">
+      ⏱️ Durée totale réaliste : 10 à 18 mois, de la décision initiale à l'arrivée en Allemagne.
+    </p>
+  </div>
+
+  <!-- SECTION 4 — Documents à préparer (checklist) -->
+  <div class="au-content-card">
+    <h2>Documents à préparer (checklist)</h2>
+    <div style="margin-top: 1rem;">
+      <div class="checklist-item">
+        <input type="checkbox" id="doc1">
+        <label for="doc1" style="font-weight: 600; cursor: pointer;">Passeport valide + photos d'identité aux normes</label>
+      </div>
+      <div class="checklist-item">
+        <input type="checkbox" id="doc2">
+        <label for="doc2" style="font-weight: 600; cursor: pointer;">Ausbildungsvertrag signé (contrat de formation)</label>
+      </div>
+      <div class="checklist-item">
+        <input type="checkbox" id="doc3">
+        <label for="doc3" style="font-weight: 600; cursor: pointer;">Certificat de langue allemande (B1 minimum, Goethe-Zertifikat recommandé)</label>
+      </div>
+      <div class="checklist-item">
+        <input type="checkbox" id="doc4">
+        <label for="doc4" style="font-weight: 600; cursor: pointer;">CV au format allemand (Lebenslauf)</label>
+      </div>
+      <div class="checklist-item">
+        <input type="checkbox" id="doc5">
+        <label for="doc5" style="font-weight: 600; cursor: pointer;">Lettre de motivation (Bewerbungsschreiben / Motivationsschreiben)</label>
+      </div>
+      <div class="checklist-item">
+        <input type="checkbox" id="doc6">
+        <label for="doc6" style="font-weight: 600; cursor: pointer;">Diplômes traduits et certifiés conformes</label>
+      </div>
+      <div class="checklist-item">
+        <input type="checkbox" id="doc7">
+        <label for="doc7" style="font-weight: 600; cursor: pointer;">Preuve d'assurance maladie valide dès l'entrée</label>
+      </div>
+      <div class="checklist-item">
+        <input type="checkbox" id="doc8">
+        <label for="doc8" style="font-weight: 600; cursor: pointer;">Justificatif de ressources complémentaires (si demandé par l'ambassade)</label>
+      </div>
+      <div class="checklist-item" style="border-bottom: none;">
+        <input type="checkbox" id="doc9">
+        <label for="doc9" style="font-weight: 600; cursor: pointer;">Formulaire officiel de demande de visa complété</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5 — Liens officiels du gouvernement allemand -->
+  <div class="au-content-card">
+    <h2>Sources & Liens officiels</h2>
+    <p style="margin-bottom: 1.25rem;">Consultez les portails gouvernementaux officiels pour valider vos démarches :</p>
+    <div style="display: flex; flex-direction: column;">
+      <a href="https://www.make-it-in-germany.com/en/looking-for-foreign-professionals/entering/vocational-training-visa-germany" target="_blank" class="link-card">
+        🌐 Make it in Germany — Portail Officiel Ausbildung ↗
+      </a>
+      <a href="https://www.arbeitsagentur.de/en/international-placement-services" target="_blank" class="link-card">
+        🏢 Agence fédérale pour l'emploi (ZAV) — Placement international ↗
+      </a>
+      <a href="https://www.anerkennung-in-deutschland.de" target="_blank" class="link-card">
+        📄 Portail de reconnaissance des diplômes étrangers (Anerkennung) ↗
+      </a>
+      <a href="https://www.auswaertiges-amt.de/en/visa-service" target="_blank" class="link-card">
+        🛂 Office fédéral des Affaires étrangères — Procédure de visa ↗
+      </a>
+      <a href="https://www.ihk.de" target="_blank" class="link-card">
+        🏫 Chambres de commerce et d'industrie allemandes (IHK) ↗
+      </a>
+    </div>
+    <p style="margin-top: 1rem; font-size: 0.85rem; font-style: italic; color: #6b7280; text-align: center;">
+      Note : Référez-vous toujours aux directives consulaires de l'Ambassade d'Allemagne dans votre pays d'origine.
+    </p>
+  </div>
+
+  <!-- SECTION 6 — Bloc CTA final -->
+  <div style="background: linear-gradient(135deg, #080A0F, #1e293b); border: 1.5px solid rgba(227, 0, 15, 0.4); border-radius: 20px; padding: 3rem 2.25rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin-bottom: 2rem;">
+    <h2 style="font-size: 1.75rem; font-weight: 900; color: #ffffff; margin-bottom: 0.75rem;">Prêt à décrocher votre contrat de formation ?</h2>
+    <p style="color: #cbd5e1; font-size: 1rem; line-height: 1.6; max-width: 680px; margin: 0 auto 2rem;">
+      Testez votre niveau, préparez votre B1 et simulez vos examens Goethe avant de candidater aux entreprises allemandes.
+    </p>
+    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+      <a href="{% url 'germanprep:exam_hub' %}" class="ep-btn-amber" style="background:#E3000F; color:#ffffff; border:1.5px solid #E3000F; font-size:0.9rem; padding:0.75rem 1.5rem; box-shadow: 0 4px 15px rgba(227, 0, 15, 0.35); text-decoration: none;">
+        Voir les cours Goethe A1–C2 →
+      </a>
+      <a href="{% url 'lebenslauf:dashboard' %}" class="ep-quick-link" style="font-size:0.9rem; padding:0.75rem 1.5rem;">
+        Générer mon CV allemand →
+      </a>
+      <a href="{% url 'germany_opportunities:catalogue' %}" class="ep-quick-link" style="font-size:0.9rem; padding:0.75rem 1.5rem;">
+        Voir les offres Ausbildung actives →
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
