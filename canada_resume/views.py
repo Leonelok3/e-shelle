@@ -252,16 +252,19 @@ def download_resume_docx(request, pk):
     resume = get_object_or_404(GeneratedCanadaResume, pk=pk, user=request.user)
     doc = Document()
 
-    # Configuration des marges
+    # Configuration des marges (Format canadien compact 0.5 in)
     for section in doc.sections:
-        section.top_margin = Inches(0.8)
-        section.bottom_margin = Inches(0.8)
-        section.left_margin = Inches(0.8)
-        section.right_margin = Inches(0.8)
+        section.top_margin = Inches(0.5)
+        section.bottom_margin = Inches(0.5)
+        section.left_margin = Inches(0.5)
+        section.right_margin = Inches(0.5)
 
-    # Nettoyage et extraction de texte depuis HTML généré pour le CV
+    # Nettoyage de l'HTML (Sanitisation des sauts de ligne excessifs et paragraphes vides)
     clean_html = re.sub(r'<style[^>]*>.*?</style>', '', resume.content_html, flags=re.DOTALL)
     clean_html = re.sub(r'<script[^>]*>.*?</script>', '', clean_html, flags=re.DOTALL)
+    clean_html = re.sub(r'(?:<br\s*/?>\s*){2,}', '<br/>', clean_html)
+    clean_html = re.sub(r'<p\b[^>]*>\s*(?:&nbsp;|<br\s*/?>|\s)*</p>', '', clean_html)
+    clean_html = re.sub(r'<div\b[^>]*>\s*(?:&nbsp;|<br\s*/?>|\s)*</div>', '', clean_html)
     
     # Remplacement simple des balises HTML pour docx
     from html.parser import HTMLParser
@@ -277,15 +280,17 @@ def download_resume_docx(request, pk):
             self.current_tag = tag
             if tag in ('h1', 'h2', 'h3'):
                 self.current_paragraph = self.doc.add_paragraph()
-                self.current_paragraph.paragraph_format.space_before = Pt(12)
-                self.current_paragraph.paragraph_format.space_after = Pt(4)
+                self.current_paragraph.paragraph_format.space_before = Pt(8)
+                self.current_paragraph.paragraph_format.space_after = Pt(2)
                 self.current_paragraph.paragraph_format.keep_with_next = True
             elif tag in ('p', 'div'):
                 self.current_paragraph = self.doc.add_paragraph()
-                self.current_paragraph.paragraph_format.space_after = Pt(6)
+                self.current_paragraph.paragraph_format.space_before = Pt(0)
+                self.current_paragraph.paragraph_format.space_after = Pt(2)
             elif tag == 'li':
                 self.current_paragraph = self.doc.add_paragraph(style='List Bullet')
-                self.current_paragraph.paragraph_format.space_after = Pt(2)
+                self.current_paragraph.paragraph_format.space_before = Pt(0)
+                self.current_paragraph.paragraph_format.space_after = Pt(1)
                 self.current_paragraph.paragraph_format.left_indent = Inches(0.25)
             elif tag == 'br':
                 if self.current_paragraph:
@@ -430,6 +435,7 @@ def _call_ai_generate_canada(candidate_context: str, offer_context: str, lang_ch
             "- NO birth date, age, marital status, gender, or nationality. Including these is illegal in Canada and causes ATS rejection.\n"
             "- Focus on quantitative accomplishments, action verbs, and transferable skills matched to the target job description.\n"
             "- Use clean single-column format for the HTML layout with standard headings: SUMMARY, EXPERIENCE, EDUCATION, SKILLS.\n"
+            "- CONCISENESS & SPACING: Keep the HTML resume extremely compact. Do not insert empty paragraphs, consecutive <br> tags, or large margin/padding styles. It should be formatted tightly to fit easily on one page.\n"
             "- The Cover Letter must start with candidate coordinates, date, employer details (or general hiring team), subject line in bold (using **), body text, and closing (Sincerely, [Candidate Name]).\n\n"
             "RESPONSE FORMAT:\n"
             "Output the raw HTML for the resume first. Do not wrap in ```html block.\n"
@@ -447,6 +453,7 @@ def _call_ai_generate_canada(candidate_context: str, offer_context: str, lang_ch
             "- AUCUNE photo. Ne jamais inclure de photo ni de zone réservée pour une photo.\n"
             "- AUCUNE mention de l'âge, date de naissance, genre, statut marital ou nationalité (Interdit par les lois canadiennes sur les droits de la personne).\n"
             "- CV rédigé en colonne simple, propre et lisible avec des rubriques standards : PROFIL, EXPÉRIENCE PROFESSIONNELLE, FORMATION, COMPÉTENCES.\n"
+            "- CONSIGNES DE CONCISION : Évite absolument les espaces vides géants, les paragraphes vides ou les sauts de ligne multiples consécutifs (<br><br>). Le CV doit être très dense et compact pour tenir idéalement sur une seule page.\n"
             "- Valorise les compétences transférables, utilise des verbes d'action et présente des réalisations chiffrées/concrètes.\n"
             "- La Lettre de Motivation doit débuter par les coordonnées, la date, l'adresse de l'employeur (ou recrutement), la ligne d'objet en gras (avec **), le corps du texte et la formule de politesse finale (Cordialement, [Nom du Candidat]).\n\n"
             "FORMAT DE LA RÉPONSE :\n"
