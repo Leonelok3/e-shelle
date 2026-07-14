@@ -14,8 +14,31 @@ from django.conf import settings
 
 from .models import GermanCVProfile, CVExperience, CVEducation, CVLanguage, GeneratedLebenslauf
 from .forms import CVProfileForm, CVExperienceForm, CVEducationForm, CVLanguageForm
-
 log = logging.getLogger(__name__)
+
+
+def check_user_has_paid_edu_subscription(user) -> bool:
+    """
+    Vérifie si l'utilisateur possède un abonnement Premium actif pour l'application 'edu'.
+    Les superutilisateurs et membres du staff sont automatiquement autorisés.
+    """
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    
+    # Vérification optionnelle du plan général de l'utilisateur
+    if hasattr(user, "profile") and user.profile.plan in ["pro", "enterprise"]:
+        return True
+
+    try:
+        from accounts.models import AppSubscription
+        sub = AppSubscription.get_active_for_user(user, "edu")
+        if sub and sub.is_active and not sub.plan.is_free:
+            return True
+    except Exception:
+        pass
+    return False
 
 
 # ── Prompt systeme IA ─────────────────────────────────────────────────────────
@@ -71,6 +94,7 @@ def dashboard(request):
         "languages":        languages,
         "generated":        generated,
         "profile_complete": profile_complete,
+        "is_pro":           check_user_has_paid_edu_subscription(request.user),
     }
     return render(request, "lebenslauf/dashboard.html", context)
 
@@ -245,12 +269,19 @@ def generate_lebenslauf(request, offer_pk=None):
 def view_lebenslauf(request, pk):
     """Apercu du Lebenslauf genere."""
     lv = get_object_or_404(GeneratedLebenslauf, pk=pk, user=request.user)
-    return render(request, "lebenslauf/view_lebenslauf.html", {"lebenslauf": lv})
+    return render(request, "lebenslauf/view_lebenslauf.html", {
+        "lebenslauf": lv,
+        "is_pro": check_user_has_paid_edu_subscription(request.user),
+    })
 
 
 @login_required
 def download_lebenslauf(request, pk):
     """Telechargement du Lebenslauf en HTML (imprimable)."""
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "Le téléchargement du Lebenslauf (CV allemand) est réservé aux abonnés Premium.")
+        return redirect("lebenslauf:dashboard")
+
     lv = get_object_or_404(GeneratedLebenslauf, pk=pk, user=request.user)
     response = HttpResponse(lv.content_html, content_type="text/html; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="lebenslauf_{pk}.html"'
@@ -313,6 +344,10 @@ class DocxHTMLParser(HTMLParser):
 @login_required
 def download_lebenslauf_docx(request, pk):
     """Téléchargement du CV (Lebenslauf) uniquement au format Word (.docx) avec layout 2 colonnes."""
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "Le téléchargement du Lebenslauf au format Word (.docx) est réservé aux abonnés Premium.")
+        return redirect("lebenslauf:dashboard")
+
     import io
     import re
     from docx import Document
@@ -321,7 +356,6 @@ def download_lebenslauf_docx(request, pk):
     from docx.oxml.ns import nsdecls
 
     lv = get_object_or_404(GeneratedLebenslauf, pk=pk, user=request.user)
-    
     doc = Document()
     
     # Page setup
@@ -404,13 +438,16 @@ def download_lebenslauf_docx(request, pk):
 @login_required
 def download_anschreiben_docx(request, pk):
     """Téléchargement de la Lettre de motivation (Anschreiben) uniquement au format Word (.docx)."""
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "Le téléchargement de la lettre de motivation (Anschreiben) est réservé aux abonnés Premium.")
+        return redirect("lebenslauf:dashboard")
+
     import io
     import re
     from docx import Document
     from docx.shared import Pt, Inches, RGBColor
 
     lv = get_object_or_404(GeneratedLebenslauf, pk=pk, user=request.user)
-    
     doc = Document()
     
     # Page setup

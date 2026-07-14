@@ -110,14 +110,22 @@
     <!-- Droite : chat -->
     <div class="ep-chat-card">
       <p class="ep-card-title" style="margin-bottom:.75rem;">Chat avec le coach</p>
+      
+      {% if not is_pro %}
+        <div style="background: rgba(255, 206, 0, 0.1); border: 1.5px solid #F59E0B; border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.85rem; color: #78350f; margin-bottom: 1.25rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <span>⚡ Version gratuite : il vous reste <strong>{{ messages_left }}</strong> messages gratuits aujourd'hui.</span>
+          <a href="{% url 'accounts:upgrade' %}?app=edu" style="font-size: 0.78rem; font-weight: 700; color: #fff; background: #E3000F; padding: 0.35rem 0.75rem; text-decoration: none; border-radius: 6px; display: inline-block;">Passer Premium</a>
+        </div>
+      {% endif %}
+
       <div class="ep-chat-box" id="chat-box">
         <div class="ep-msg assistant">
           <div class="ep-msg-content">Hallo 👋 Je suis ton coach IA d'allemand sur E-Shelle. Explique-moi ton objectif (visa, études, travail…) et ton niveau actuel, et je te propose un plan sur mesure.</div>
         </div>
       </div>
       <div class="ep-chat-input-area">
-        <textarea id="user-input" class="ep-chat-textarea" rows="3" placeholder="Écris ton message ici...">{{ preset }}</textarea>
-        <button id="send-btn" class="ep-btn-send">▶ Envoyer</button>
+        <textarea id="user-input" class="ep-chat-textarea" rows="3" placeholder="Écris ton message ici..." {% if not is_pro and messages_left <= 0 %}disabled placeholder="Limite journalière atteinte. Abonnez-vous pour continuer."{% endif %}>{{ preset }}</textarea>
+        <button id="send-btn" class="ep-btn-send" {% if not is_pro and messages_left <= 0 %}disabled{% endif %}>▶ Envoyer</button>
       </div>
     </div>
 
@@ -160,8 +168,17 @@
       if (data.reply) {
         appendMessage('assistant', data.reply);
         history.push({role: 'assistant', content: data.reply});
+        // Si l'utilisateur n'est pas pro, recharger la page pour mettre à jour le compteur restant
+        {% if not is_pro %}
+        setTimeout(() => { window.location.reload(); }, 1500);
+        {% endif %}
+      } else if (data.error === "subscription_required") {
+        appendMessage('assistant', "⚠️ Limite atteinte : " + data.reply);
+        userInput.disabled = true;
+        userInput.placeholder = "Abonnez-vous pour continuer à chatter avec le coach IA.";
+        sendBtn.disabled = true;
       } else if (data.error) {
-        appendMessage('assistant', "Erreur : " + data.error);
+        appendMessage('assistant', "Erreur : " + (data.reply || data.error));
       }
     } catch (e) {
       appendMessage('assistant', "Une erreur est survenue lors de l'appel au coach IA.");

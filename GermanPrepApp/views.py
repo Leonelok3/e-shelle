@@ -10,6 +10,7 @@ from openai import OpenAI, OpenAIError
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+from django.urls import reverse
 
 from .models import (
     GERMAN_LEVEL_CHOICES,
@@ -360,13 +361,6 @@ def take_practice_test(request, exam_id):
     """
     Simulation type examen (réservé aux abonnés Premium).
     """
-    from django.contrib import messages
-    from django.shortcuts import redirect
-    from django.urls import reverse
-    if not check_user_has_paid_edu_subscription(request.user):
-        messages.warning(request, "Les simulations d'examen allemand sont réservées aux abonnés Premium d'EduCam Pro.")
-        return redirect(reverse("accounts:upgrade") + "?app=edu")
-
     from .models import (
         GermanExam,
         GermanExercise,
@@ -375,6 +369,12 @@ def take_practice_test(request, exam_id):
     )
 
     exam = get_object_or_404(GermanExam, id=exam_id, is_active=True)
+
+    # Autoriser A1 et A2 gratuitement. Bloquer B1, B2, C1, C2 pour les non-abonnés.
+    if exam.level in ["B1", "B2", "C1", "C2"] and not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, f"Les simulations d'examen allemand pour le niveau {exam.level} sont réservées aux abonnés Premium.")
+        return redirect(reverse("accounts:upgrade") + "?app=edu")
+
     exercises = GermanExercise.objects.filter(lesson__exam=exam).order_by("id")
 
     if request.method == "POST":
@@ -1052,12 +1052,17 @@ def german_ai_coach_page(request):
     Il récupère le profil d'allemand + la dernière session pour personnaliser le coaching.
     Accepte un paramètre GET ?preset= pour pré-remplir la zone de texte.
     """
-    from django.contrib import messages
-    from django.shortcuts import redirect
-    from django.urls import reverse
-    if not check_user_has_paid_edu_subscription(request.user):
-        messages.warning(request, "L'accès au Coach IA d'allemand est réservé aux abonnés Premium d'EduCam Pro.")
-        return redirect(reverse("accounts:upgrade") + "?app=edu")
+    is_pro = check_user_has_paid_edu_subscription(request.user)
+
+    # Suivi des messages restants aujourd'hui pour les utilisateurs gratuits
+    import datetime
+    today_str = datetime.date.today().isoformat()
+    session_date = request.session.get("german_coach_limit_date")
+    if session_date != today_str:
+        request.session["german_coach_limit_date"] = today_str
+        request.session["german_coach_message_count"] = 0
+
+    messages_left = max(0, 5 - request.session.get("german_coach_message_count", 0))
 
     from .models import GermanTestSession
 
@@ -1094,6 +1099,8 @@ def german_ai_coach_page(request):
         "profile": profile,
         "last_session": last_session,
         "preset": preset,
+        "is_pro": is_pro,
+        "messages_left": messages_left,
     }
     return render(request, "german/german/ai_coach.html", context)
 
@@ -1105,14 +1112,28 @@ def german_ai_coach_api(request):
     Reçoit : { "message": "...", "history": [ {role, content}, ... ] }
     Retourne : { "reply": "..." }
     """
-    if not check_user_has_paid_edu_subscription(request.user):
-        return JsonResponse(
-            {
-                "error": "subscription_required",
-                "reply": "L'accès au Coach IA allemand est réservé aux membres Premium d'EduCam Pro. Veuillez vous abonner pour discuter avec le coach.",
-            },
-            status=403,
-        )
+    is_pro = check_user_has_paid_edu_subscription(request.user)
+    
+    # Vérifier le quota quotidien pour les comptes gratuits
+    if not is_pro:
+        import datetime
+        today_str = datetime.date.today().isoformat()
+        session_date = request.session.get("german_coach_limit_date")
+        message_count = request.session.get("german_coach_message_count", 0)
+        
+        if session_date != today_str:
+            request.session["german_coach_limit_date"] = today_str
+            message_count = 0
+            request.session["german_coach_message_count"] = 0
+            
+        if message_count >= 5:
+            return JsonResponse(
+                {
+                    "error": "subscription_required",
+                    "reply": "Vous avez atteint votre limite gratuite de 5 messages par jour pour le Coach IA allemand. Veuillez vous abonner à E-Shelle Premium pour discuter en illimité !",
+                },
+                status=403,
+            )
 
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
@@ -1233,6 +1254,11 @@ def german_ai_coach_api(request):
             },
             status=500,
         )
+
+    # Incrémenter le quota
+    if not is_pro:
+        current_count = request.session.get("german_coach_message_count", 0)
+        request.session["german_coach_message_count"] = current_count + 1
 
     return JsonResponse({"reply": reply_text})
 
