@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Mes Compétences Linguistiques – Canada | E-Shelle{% endblock %}
+
+{% block content %}
+<div style="max-width:700px;margin:0 auto;padding:2rem 1rem 4rem;font-family:'Outfit',sans-serif;">
+  <a href="{% url 'canada_resume:dashboard' %}" style="font-size:.85rem;color:#64748b;text-decoration:none;font-weight:600;">← Tableau de bord</a>
+
+  <h1 style="font-size:1.75rem;font-weight:800;margin:1rem 0 2rem;color:#102B4E;">🗣 Gérer mes Compétences Linguistiques</h1>
+
+  <div style="display:grid;grid-template-columns:1fr;gap:2rem;">
+    <!-- AJOUT -->
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:2rem;box-shadow:0 4px 15px rgba(0,0,0,0.025);">
+      <h2 style="font-size:1.15rem;font-weight:800;color:#102B4E;margin:0 0 1.25rem;border-bottom:1px solid #f1f5f9;padding-bottom:.4rem;">➕ Ajouter une langue</h2>
+      
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div style="margin-bottom:1.25rem;">
+          <label for="{{ field.id_for_label }}" style="display:block;font-size:.8rem;font-weight:700;color:#102B4E;margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em;">
+            {{ field.label }}
+            {% if field.field.required %}<span style="color:#ef4444;">*</span>{% endif %}
+          </label>
+          {{ field }}
+          {% if field.help_text %}
+            <p style="font-size:.78rem;color:#64748b;margin:.35rem 0 0;line-height:1.45;">{{ field.help_text }}</p>
+          {% endif %}
+          {% for err in field.errors %}
+            <p style="font-size:.8rem;color:#ef4444;margin:.25rem 0 0;font-weight:600;">{{ err }}</p>
+          {% endfor %}
+        </div>
+        {% endfor %}
+
+        <button type="submit" style="padding:.75rem 2rem;background:#E3000F;color:#fff;border:none;border-radius:.75rem;font-weight:700;cursor:pointer;font-size:.95rem;transition:background-color .2s;text-transform:uppercase;letter-spacing:.05em;" onmouseover="this.style.backgroundColor='#b9000a'" onmouseout="this.style.backgroundColor='#E3000F'">
+          Ajouter la langue
+        </button>
+      </form>
+    </div>
+
+    <!-- LISTE -->
+    {% if languages %}
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:2rem;box-shadow:0 4px 15px rgba(0,0,0,0.025);">
+      <h2 style="font-size:1.15rem;font-weight:800;color:#102B4E;margin:0 0 1.25rem;border-bottom:1px solid #f1f5f9;padding-bottom:.4rem;">📋 Langues enregistrées</h2>
+      {% for lang in languages %}
+      <div style="padding:1rem;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:flex-start;background:#f8fafc;">
+        <div>
+          <strong style="color:#102B4E;font-size:.95rem;">{{ lang.language }}</strong> — 
+          <span style="font-size:.85rem;color:#475569;font-weight:600;">{{ lang.proficiency }}</span>
+          {% if lang.certificate %}
+            <div style="font-size:.8rem;color:#E3000F;font-weight:700;margin-top:.25rem;">📜 {{ lang.certificate }}</div>
+          {% endif %}
+        </div>
+        <a href="{% url 'canada_resume:delete_language' lang.pk %}" style="padding:.35rem .6rem;background:#fef2f2;color:#ef4444;border:1px solid #fee2e2;border-radius:6px;text-decoration:none;font-size:.78rem;font-weight:700;" onclick="return confirm('Supprimer cette langue ?');">
+          Supprimer
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+input[type=text], select {
+  width: 100%;
+  padding: .65rem .95rem;
+  border-radius: .6rem;
+  border: 1.5px solid #cbd5e1;
+  background: #fff;
+  color: #1e293b;
+  font-size: .9rem;
+  box-sizing: border-box;
+  outline: none;
+}
+input[type=text]:focus, select:focus {
+  border-color: #102B4E;
+}
+</style>
+{% endblock %}

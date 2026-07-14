@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Générer mon CV & Lettre de Motivation Canada | E-Shelle{% endblock %}
+
+{% block content %}
+<div style="max-width:680px;margin:0 auto;padding:2rem 1rem 4rem;font-family:'Outfit',sans-serif;">
+  <a href="{% url 'canada_resume:dashboard' %}" style="font-size:.85rem;color:#64748b;text-decoration:none;font-weight:600;">← Tableau de bord</a>
+
+  <h1 style="font-size:1.75rem;font-weight:800;margin:1rem 0 2rem;color:#102B4E;">🤖 Personnalisation IA du Dossier Canada</h1>
+
+  <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:2rem;box-shadow:0 4px 15px rgba(0,0,0,0.025);">
+    <h2 style="font-size:1.2rem;font-weight:800;color:#102B4E;margin:0 0 1.25rem;border-bottom:1px solid #f1f5f9;padding-bottom:.5rem;">⚙️ Paramètres de génération</h2>
+    
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- LANGUE DE GÉNÉRATION -->
+      <div style="margin-bottom:1.5rem;">
+        <label style="display:block;font-size:.8rem;font-weight:700;color:#102B4E;margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em;">
+          Langue des documents
+        </label>
+        <select name="language" style="width:100%;padding:.65rem .95rem;border-radius:.6rem;border:1.5px solid #cbd5e1;background:#fff;color:#1e293b;font-size:.9rem;outline:none;">
+          <option value="fr">Français (CV & Lettre en Français canadien)</option>
+          <option value="en">Anglais / English (CV & Cover Letter in English)</option>
+        </select>
+        <p style="font-size:.78rem;color:#64748b;margin:.35rem 0 0;line-height:1.4;">
+          Le traducteur IA traduira automatiquement tout votre historique de profil vers la langue choisie.
+        </p>
+      </div>
+
+      <!-- INFOS OFFRE CIBLE -->
+      {% if offer %}
+        <div style="background:rgba(16,43,78,0.03);border:1px solid rgba(16,43,78,0.1);border-radius:10px;padding:1.15rem;margin-bottom:1.5rem;">
+          <div style="font-size:.72rem;font-weight:700;color:#E3000F;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.35rem;">Offre ciblée</div>
+          <strong style="color:#102B4E;font-size:.95rem;">{{ offer.title }}</strong><br>
+          <span style="font-size:.85rem;color:#475569;font-weight:600;">{{ offer.company }} — {{ offer.city }}, {{ offer.province }}</span>
+          <p style="font-size:.78rem;color:#64748b;margin:.5rem 0 0;line-height:1.45;">
+            L'IA va adapter les termes clés de votre CV pour qu'ils matchent avec la description de ce poste (EIMT/LMIA friendly).
+          </p>
+        </div>
+      {% else %}
+        <div style="border-top:1px solid #f1f5f9;margin-top:1.5rem;padding-top:1.5rem;margin-bottom:1.5rem;">
+          <label style="display:block;font-size:.8rem;font-weight:700;color:#102B4E;margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em;">
+            Candidature spontanée ou offre externe
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+            <div>
+              <label style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.3rem;">Poste ciblé</label>
+              <input type="text" name="custom_offer_title" placeholder="Ex: Chauffeur de camion, Infirmier"
+                style="width:100%;padding:.65rem .95rem;border-radius:.6rem;border:1.5px solid #cbd5e1;background:#fff;color:#1e293b;font-size:.9rem;outline:none;">
+            </div>
+            <div>
+              <label style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.3rem;">Entreprise (Optionnel)</label>
+              <input type="text" name="custom_offer_company" placeholder="Ex: Trans-Canada Logistics"
+                style="width:100%;padding:.65rem .95rem;border-radius:.6rem;border:1.5px solid #cbd5e1;background:#fff;color:#1e293b;font-size:.9rem;outline:none;">
+            </div>
+          </div>
+          <p style="font-size:.78rem;color:#64748b;margin:0;line-height:1.4;">
+            Laissez vide pour générer un dossier de candidature spontanée axé sur le secteur de votre profil.
+          </p>
+        </div>
+      {% endif %}
+
+      <div style="margin-top:2rem;text-align:center;">
+        <button type="submit" style="padding:.85rem 2.5rem;background:#E3000F;color:#fff;border:none;border-radius:.75rem;font-weight:700;cursor:pointer;font-size:.95rem;transition:background-color .2s;text-transform:uppercase;letter-spacing:.06em;box-shadow:0 4px 12px rgba(227,0,15,0.25);" onmouseover="this.style.backgroundColor='#b9000a'" onmouseout="this.style.backgroundColor='#E3000F'">
+          🚀 Générer les documents par IA
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

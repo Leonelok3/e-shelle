@@ -190,6 +190,7 @@ INSTALLED_APPS = [
     # ── E-Shelle Allemagne — Immigrations / Ausbildung / Lebenslauf ─
     "germany_opportunities.apps.GermanyOpportunitiesConfig",
     "lebenslauf.apps.LebenslaufConfig",
+    "canada_resume.apps.CanadaResumeConfig",
 ]
 
 # ── E-Shelle AI — Configuration ─────────────────────────────────────

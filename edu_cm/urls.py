@@ -526,6 +526,9 @@ urlpatterns = [
     path("allemagne/contrat-ausbildung/", _allemagne_contrat_ausbildung,  name="allemagne_contrat_ausbildung"),
     path("allemagne/",              _allemagne_hub,                       name="allemagne_hub"),
 
+    # ── E-Shelle Canada — Hub immigration / Offres / CV Canadien ───────
+    path("canada/mon-cv/",          include("canada_resume.urls",         namespace="canada_resume")),
+
     # Immobilier Cameroun
     path("immobilier/", include("immobilier_cameroun.urls", namespace="immobilier")),
 

@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Mon CV Canadien – E-Shelle Canada{% endblock %}
+
+{% block content %}
+<div style="max-width:950px;margin:0 auto;padding:2rem 1rem 4rem;font-family:'Outfit',sans-serif;">
+
+  <!-- HEADER -->
+  <div style="margin-bottom:2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+    <div>
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;">
+        <span style="font-size:1.1rem;">🇨🇦</span>
+        <span style="font-size:.78rem;font-weight:700;color:#E3000F;text-transform:uppercase;letter-spacing:.08em;">Format Canadien Officiel</span>
+      </div>
+      <h1 style="font-size:1.85rem;font-weight:800;margin:0 0 .35rem;color:#102B4E;">📄 Mon CV & Lettre Canada</h1>
+      <p style="color:#64748b;margin:0;font-size:.95rem;">Créez votre dossier de candidature (CV ATS-friendly + Lettre de motivation) en français ou en anglais.</p>
+    </div>
+    <div>
+      <a href="{% url 'jobs:canada_jobs' %}" style="display:inline-block;padding:.6rem 1.25rem;background:#102B4E;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:.88rem;transition:background-color .2s;" onmouseover="this.style.backgroundColor='#1a3d6b'" onmouseout="this.style.backgroundColor='#102B4E'">
+        💼 Voir les offres d'emploi
+      </a>
+    </div>
+  </div>
+
+  <!-- STATUT PROFIL / ALERTE -->
+  {% if not profile_complete %}
+  <div style="background:rgba(227,0,15,0.05);border:1px solid rgba(227,0,15,0.18);border-radius:1rem;padding:1.25rem 1.5rem;margin-bottom:2rem;display:flex;gap:1.1rem;align-items:flex-start;">
+    <span style="font-size:1.5rem;">⚠️</span>
+    <div>
+      <strong style="color:#E3000F;font-size:1rem;">Complétez d'abord vos informations</strong><br>
+      <span style="font-size:.875rem;color:#475569;display:block;margin-top:.25rem;">
+        Pour générer un CV au format canadien, vous devez renseigner vos coordonnées de profil et ajouter au moins une expérience de travail.
+      </span>
+      <div style="margin-top:.85rem;display:flex;gap:.75rem;flex-wrap:wrap;">
+        <a href="{% url 'canada_resume:edit_profile' %}" style="padding:.5rem 1.2rem;background:#E3000F;color:#fff;border-radius:.5rem;text-decoration:none;font-size:.83rem;font-weight:700;transition:background-color .2s;" onmouseover="this.style.backgroundColor='#b9000a'" onmouseout="this.style.backgroundColor='#E3000F'">
+          Saisir mon profil candidat
+        </a>
+        <a href="{% url 'canada_resume:manage_experiences' %}" style="padding:.5rem 1.2rem;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:.5rem;text-decoration:none;font-size:.83rem;font-weight:600;">
+          + Ajouter une expérience
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- BLOCS INFORMATIONS DE BASE -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:2rem;">
+
+    <!-- PROFIL -->
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:1.5rem;box-shadow:0 4px 12px rgba(16,43,78,0.02);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;border-bottom:1px solid #f1f5f9;padding-bottom:.5rem;">
+        <h2 style="font-size:1.05rem;font-weight:800;color:#102B4E;margin:0;">👤 Profil personnel</h2>
+        <a href="{% url 'canada_resume:edit_profile' %}" style="font-size:.82rem;color:#E3000F;text-decoration:none;font-weight:700;">Modifier</a>
+      </div>
+      {% if profile %}
+      <div style="font-size:.88rem;color:#475569;display:flex;flex-direction:column;gap:.4rem;">
+        <div style="font-weight:700;color:#102B4E;font-size:.95rem;">{{ profile.full_name }}</div>
+        <div>📧 {{ profile.email }}</div>
+        {% if profile.phone %}<div>📞 {{ profile.phone }}</div>{% endif %}
+        {% if profile.address %}<div>📍 {{ profile.address }}</div>{% endif %}
+        {% if profile.target_sector %}
+          <div style="margin-top:.4rem;font-size:.82rem;background:#f8fafc;padding:.4rem;border-radius:6px;">
+            🎯 Secteur : <strong>{{ profile.target_sector }}</strong>
+          </div>
+        {% endif %}
+      </div>
+      {% else %}
+        <p style="font-size:.85rem;color:#64748b;margin:0;">Aucun profil saisi. <a href="{% url 'canada_resume:edit_profile' %}" style="color:#E3000F;font-weight:600;">Créer mon profil</a></p>
+      {% endif %}
+    </div>
+
+    <!-- EXPÉRIENCES -->
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:1.5rem;box-shadow:0 4px 12px rgba(16,43,78,0.02);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;border-bottom:1px solid #f1f5f9;padding-bottom:.5rem;">
+        <h2 style="font-size:1.05rem;font-weight:800;color:#102B4E;margin:0;">💼 Expériences ({{ experiences|length }})</h2>
+        <a href="{% url 'canada_resume:manage_experiences' %}" style="font-size:.82rem;color:#E3000F;text-decoration:none;font-weight:700;">+ Ajouter</a>
+      </div>
+      {% for exp in experiences|slice:":3" %}
+      <div style="margin-bottom:.8rem;font-size:.88rem;display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-weight:700;color:#102B4E;">{{ exp.title }}</div>
+          <div style="color:#64748b;font-size:.82rem;">{{ exp.company }} — {{ exp.period_display_fr }}</div>
+        </div>
+        <a href="{% url 'canada_resume:delete_experience' exp.pk %}" style="font-size:.8rem;color:#ef4444;text-decoration:none;" onclick="return confirm('Supprimer cette expérience ?');">🗑</a>
+      </div>
+      {% empty %}
+        <p style="font-size:.85rem;color:#64748b;margin:0;">Aucune expérience ajoutée. <a href="{% url 'canada_resume:manage_experiences' %}" style="color:#E3000F;font-weight:600;">Ajouter maintenant</a></p>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:2.5rem;">
+
+    <!-- FORMATIONS -->
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:1.5rem;box-shadow:0 4px 12px rgba(16,43,78,0.02);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;border-bottom:1px solid #f1f5f9;padding-bottom:.5rem;">
+        <h2 style="font-size:1.05rem;font-weight:800;color:#102B4E;margin:0;">🎓 Formations ({{ educations|length }})</h2>
+        <a href="{% url 'canada_resume:manage_education' %}" style="font-size:.82rem;color:#E3000F;text-decoration:none;font-weight:700;">+ Ajouter</a>
+      </div>
+      {% for edu in educations|slice:":3" %}
+      <div style="margin-bottom:.8rem;font-size:.88rem;display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-weight:700;color:#102B4E;">{{ edu.degree }}</div>
+          <div style="color:#64748b;font-size:.82rem;">{{ edu.school }} — {{ edu.start_year }} - {{ edu.end_year|default:"Présent" }}</div>
+        </div>
+        <a href="{% url 'canada_resume:delete_education' edu.pk %}" style="font-size:.8rem;color:#ef4444;text-decoration:none;" onclick="return confirm('Supprimer cette formation ?');">🗑</a>
+      </div>
+      {% empty %}
+        <p style="font-size:.85rem;color:#64748b;margin:0;">Aucune formation. <a href="{% url 'canada_resume:manage_education' %}" style="color:#E3000F;font-weight:600;">Ajouter maintenant</a></p>
+      {% endfor %}
+    </div>
+
+    <!-- LANGUES -->
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:1.5rem;box-shadow:0 4px 12px rgba(16,43,78,0.02);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;border-bottom:1px solid #f1f5f9;padding-bottom:.5rem;">
+        <h2 style="font-size:1.05rem;font-weight:800;color:#102B4E;margin:0;">🗣 Langues ({{ languages|length }})</h2>
+        <a href="{% url 'canada_resume:manage_languages' %}" style="font-size:.82rem;color:#E3000F;text-decoration:none;font-weight:700;">+ Ajouter</a>
+      </div>
+      {% for lang in languages %}
+      <div style="margin-bottom:.8rem;font-size:.88rem;display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <span style="font-weight:700;color:#102B4E;">{{ lang.language }}</span>
+          <span style="color:#64748b;font-size:.82rem;margin-left:.5rem;">({{ lang.proficiency }})</span>
+          {% if lang.certificate %}
+            <div style="font-size:.78rem;color:#E3000F;font-weight:600;">📜 {{ lang.certificate }}</div>
+          {% endif %}
+        </div>
+        <a href="{% url 'canada_resume:delete_language' lang.pk %}" style="font-size:.8rem;color:#ef4444;text-decoration:none;" onclick="return confirm('Supprimer cette langue ?');">🗑</a>
+      </div>
+      {% empty %}
+        <p style="font-size:.85rem;color:#64748b;margin:0;">Aucune langue. <a href="{% url 'canada_resume:manage_languages' %}" style="color:#E3000F;font-weight:600;">Ajouter maintenant</a></p>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <!-- BLOC D'ACTION GÉNERATION IA -->
+  {% if profile_complete %}
+  <div style="background:linear-gradient(135deg,rgba(16,43,78,0.04),rgba(227,0,15,0.02));border:1.5px solid rgba(16,43,78,0.12);border-radius:1.25rem;padding:2.25rem 2rem;margin-bottom:3rem;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.015);">
+    <div style="font-size:2.2rem;margin-bottom:.5rem;">🤖</div>
+    <h2 style="font-size:1.35rem;font-weight:800;color:#102B4E;margin:0 0 .5rem;">Générateur de CV Canada IA</h2>
+    <p style="color:#475569;font-size:.95rem;max-width:550px;margin:0 auto 1.5rem;line-height:1.5;">
+      L'IA rédige votre CV canadien 100% ATS-friendly et votre lettre de motivation ciblée en français ou en anglais.
+    </p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a href="{% url 'jobs:canada_jobs' %}" style="padding:.75rem 1.6rem;background:#E3000F;color:#fff;border-radius:.6rem;text-decoration:none;font-weight:700;font-size:.9rem;transition:background-color .2s;" onmouseover="this.style.backgroundColor='#b9000a'" onmouseout="this.style.backgroundColor='#E3000F'">
+        Adapter à une offre d'emploi Canada
+      </a>
+      <a href="{% url 'canada_resume:generate' %}" style="padding:.75rem 1.6rem;background:#102B4E;color:#fff;border-radius:.6rem;text-decoration:none;font-weight:700;font-size:.9rem;transition:background-color .2s;" onmouseover="this.style.backgroundColor='#1a3d6b'" onmouseout="this.style.backgroundColor='#102B4E'">
+        Candidature spontanée / libre
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- HISTORIQUE CV CANADIENS GÉNÉRÉS -->
+  {% if generated %}
+  <div>
+    <h2 style="font-size:1.2rem;font-weight:800;color:#102B4E;margin:0 0 1rem;border-bottom:2px solid #102B4E;padding-bottom:.4rem;display:inline-block;">📂 Mes documents générés</h2>
+    
+    <div style="display:flex;flex-direction:column;gap:.85rem;">
+      {% for item in generated %}
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:1.15rem 1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;box-shadow:0 3px 10px rgba(0,0,0,0.015);">
+        <div>
+          <div style="font-weight:700;color:#102B4E;font-size:.95rem;">
+            🎯 {{ item.offer_title }}
+          </div>
+          <div style="font-size:.8rem;color:#64748b;margin-top:.25rem;font-weight:500;">
+            Créé le {{ item.created_at|date:"d M Y à H:i" }} | Langue : <strong style="text-transform:uppercase;color:#E3000F;">{{ item.language }}</strong>
+          </div>
+        </div>
+        <div style="display:flex;gap:.75rem;align-items:center;">
+          <a href="{% url 'canada_resume:view_resume' item.pk %}" style="padding:.45rem 1rem;background:#f1f5f9;color:#102B4E;border:1px solid #cbd5e1;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:700;transition:all .2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+            👁 Voir & Télécharger
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
