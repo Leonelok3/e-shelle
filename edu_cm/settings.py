@@ -244,6 +244,7 @@ TEMPLATES = [
                 # ── Abonnements globaux (injecte user_subs dans tous les templates)
                 "accounts.context_processors.subscription_context",
                 "accounts.context_processors.social_login_context",
+                "accounts.context_processors.german_profile_context",
                 # allauth context processor — non requis pour social login
             ],
         },

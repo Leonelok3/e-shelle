@@ -100,9 +100,93 @@ def social_login_context(request):
     except Exception:
         return {
             "social_google_enabled": False,
-            "social_facebook_enabled": False,
+             "social_facebook_enabled": False,
             "social_next_url": "/",
             "SITE_URL": "https://e-shelle.com",
             "user_has_business": False,
+        }
+
+
+def german_profile_context(request):
+    """
+    Injecte le profil d'allemand de l'utilisateur, sa progression (%),
+    et des conseils d'amélioration personnalisés dans tous les templates.
+    """
+    if not hasattr(request, "user") or not request.user.is_authenticated:
+        return {
+            "german_profile": None,
+            "german_level_progress": 0,
+            "german_evolution_tips": [],
+            "is_german_space": False,
+        }
+
+    path = request.path
+    is_german_space = "/allemand/" in path or "/allemagne/" in path or "/lebenslauf/" in path
+
+    try:
+        from GermanPrepApp.models import GermanUserProfile
+        
+        # Récupérer ou créer le profil allemand
+        profile, created = GermanUserProfile.objects.get_or_create(user=request.user)
+        
+        # Calculer le pourcentage de progression vers le niveau suivant
+        lvl = profile.level
+        xp = profile.xp
+        
+        # Seuils de niveau définis dans compute_level
+        thresholds = {
+            1: (0, 100),
+            2: (100, 250),
+            3: (250, 500),
+            4: (500, 900),
+            5: (900, 1400),
+        }
+        
+        if lvl in thresholds:
+            low, high = thresholds[lvl]
+        else:
+            low = 1400 + (lvl - 6) * 400
+            high = low + 400
+            
+        range_xp = high - low
+        user_xp_in_level = xp - low
+        
+        progress = 0
+        if range_xp > 0:
+            progress = min(max(int((user_xp_in_level / range_xp) * 100), 0), 100)
+            
+        # Conseils dynamiques d'amélioration
+        tips = []
+        if not profile.placement_level:
+            tips.append("🎯 Évalue ton niveau de départ en faisant le test de niveau d'allemand.")
+        else:
+            tips.append(f"💪 Niveau conseillé : {profile.placement_level}. Entraîne-toi sur ce niveau.")
+            
+        if profile.best_score < 50:
+            tips.append("📚 Prends le temps de bien lire les fiches de cours (Vocabulaire et Grammaire) avant les simulations.")
+        elif profile.best_score < 80:
+            tips.append("✍️ Revois tes erreurs fréquentes après chaque examen blanc pour cibler tes faiblesses.")
+        else:
+            tips.append("🚀 Excellent score ! Essaie de passer au niveau supérieur ou d'accélérer ta vitesse de lecture.")
+            
+        if profile.total_tests < 3:
+            tips.append("⏱️ Fais au moins 3 simulations complètes pour débloquer ton analyse de compétences par le coach.")
+        else:
+            tips.append("🤖 Consulte tes recommandations détaillées du Coach IA dans ton espace progression.")
+            
+        tips.append("📅 Conseil clé : 20 minutes d'entraînement par jour valent mieux qu'une seule longue session.")
+
+        return {
+            "german_profile": profile,
+            "german_level_progress": progress,
+            "german_evolution_tips": tips[:3],  # Top 3 tips
+            "is_german_space": is_german_space,
+        }
+    except Exception:
+        return {
+            "german_profile": None,
+            "german_level_progress": 0,
+            "german_evolution_tips": [],
+            "is_german_space": is_german_space,
         }
 
