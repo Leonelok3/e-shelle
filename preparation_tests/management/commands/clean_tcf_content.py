@@ -53,20 +53,21 @@ class Command(BaseCommand):
                     ).order_by("id")
                 )
 
-                if len(lessons) > 5:
-                    to_delete = lessons[5:]
+                limit = 10 if level in ("C1", "C2") else 5
+                if len(lessons) > limit:
+                    to_delete = lessons[limit:]
                     self.stdout.write(
                         self.style.WARNING(
-                            f"Niveau {level} ({section.upper()}) : {len(lessons)} leçons. Garde 5, suppression de {len(to_delete)} doublons..."
+                            f"Niveau {level} ({section.upper()}) : {len(lessons)} leçons. Garde {limit}, suppression de {len(to_delete)} doublons..."
                         )
                     )
                     for l in to_delete:
                         l.exercises.all().delete()
                         l.delete()
                 else:
-                    missing = 5 - len(lessons)
+                    missing = limit - len(lessons)
                     self.stdout.write(
                         self.style.SUCCESS(
-                            f"Niveau {level} ({section.upper()}) : {len(lessons)}/5 leçons. (Manquant : {missing})"
+                            f"Niveau {level} ({section.upper()}) : {len(lessons)}/{limit} leçons. (Manquant : {missing})"
                         )
                     )

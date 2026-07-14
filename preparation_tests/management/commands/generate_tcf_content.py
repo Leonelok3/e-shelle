@@ -380,10 +380,13 @@ class Command(BaseCommand):
                 self.stderr.write(f"Niveau inconnu : '{level}'. Ignoré.")
                 continue
 
+            # Cible dynamique : 10 leçons pour C1/C2 et 5 pour les autres par défaut (sauf si --lessons a été explicitement spécifié)
+            level_target = total_lessons if total_lessons != 5 else (10 if level in ("C1", "C2") else 5)
+
             existing_count = CourseLesson.objects.filter(exams=tcf_exam, section=section, level=level).count()
-            needed = total_lessons - existing_count
+            needed = level_target - existing_count
             if needed <= 0:
-                self.stdout.write(self.style.SUCCESS(f"▶ Niveau {level} ({section.upper()}) : déjà {existing_count} leçons. Passage au niveau suivant."))
+                self.stdout.write(self.style.SUCCESS(f"▶ Niveau {level} ({section.upper()}) : déjà {existing_count}/{level_target} leçons. Passage au niveau suivant."))
                 continue
 
             self.stdout.write(
