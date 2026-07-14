@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}La Chancenkarte (Carte d'opportunités) en Allemagne – E-Shelle{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ch-wrap { max-width: 1000px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ch-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ch-bc a { color: var(--gold-german, #e0a800); text-decoration: none; font-weight: 500; }
+
+  /* Hero Section */
+  .ch-hero {
+    background: linear-gradient(135deg, #080A0F 0%, #111827 100%);
+    border: 1px solid rgba(227, 0, 15, 0.3);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    color: #fff;
+    margin-bottom: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .ch-hero::before {
+    content: "🇩🇪";
+    font-size: 10rem;
+    position: absolute;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: .12;
+    pointer-events: none;
+  }
+  .ch-hero-eyebrow {
+    font-size: .75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+    color: var(--gold-german, #e0a800);
+    margin-bottom: .75rem;
+  }
+  .ch-hero h1 {
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    font-weight: 900;
+    margin: 0 0 1rem;
+    line-height: 1.2;
+  }
+  .ch-hero p {
+    font-size: 1rem;
+    line-height: 1.6;
+    opacity: .9;
+    max-width: 720px;
+    margin-bottom: 2rem;
+  }
+
+  /* Stats grid */
+  .ch-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    padding-top: 1.5rem;
+  }
+  .ch-stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .ch-stat-val {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--gold-german, #e0a800);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  .ch-stat-lbl {
+    font-size: 0.78rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* Light theme content blocks */
+  .ch-content-card {
+    background: #ffffff !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    padding: 2.25rem !important;
+    color: #1f2937 !important;
+    margin-bottom: 2rem !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  }
+  .ch-content-card h2 {
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+    margin-bottom: 1.5rem !important;
+    border-bottom: 2px solid #E3000F !important;
+    padding-bottom: 0.5rem !important;
+    display: inline-block !important;
+  }
+  .ch-content-card p {
+    font-size: 0.95rem !important;
+    line-height: 1.7 !important;
+    color: #374151 !important;
+  }
+  .ch-content-card ul, .ch-content-card ol {
+    margin-bottom: 1.5rem;
+  }
+  .ch-content-card li {
+    font-size: 0.95rem !important;
+    line-height: 1.7 !important;
+    color: #374151 !important;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Ways to qualify - 2 cards side by side */
+  .qualify-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+  .qualify-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .qualify-card:hover {
+    border-color: #E3000F;
+  }
+  .qualify-card h3 {
+    font-size: 1.15rem !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+    margin-bottom: 0.75rem !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Conditions Grid */
+  .conditions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+  .condition-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+  .condition-item h3 {
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+    padding-left: 2rem;
+    border-left: 3px solid #e2e8f0;
+    margin-left: 0.5rem;
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+  }
+  .timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -2.35rem;
+    top: 0.25rem;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #E3000F;
+    border: 3px solid #ffffff;
+  }
+  .timeline-num {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #E3000F;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+  .timeline-title {
+    font-size: 1.1rem !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Links section */
+  .link-card {
+    display: block;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    color: #1f2937 !important;
+    text-decoration: none !important;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s;
+  }
+  .link-card:hover {
+    border-color: #E3000F;
+    background: rgba(227,0,15,0.02);
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 600px) {
+    .ch-hero::before { display: none; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ch-wrap">
+  <nav class="ch-bc">
+    <a href="{% url 'germanprep:home' %}">Allemand</a>
+    <span>›</span>
+    <a href="{% url 'allemagne_hub' %}">Allemagne</a>
+    <span>›</span>
+    <span>Chancenkarte (Carte d'opportunités)</span>
+  </nav>
+
+  <!-- HERO -->
+  <div class="ch-hero">
+    <div class="ch-hero-eyebrow">§20a AUFENTHG · EN VIGUEUR DEPUIS JUIN 2024</div>
+    <h1>La Chancenkarte (carte d'opportunités)</h1>
+    <p>
+      Entrez en Allemagne sans avoir besoin d'une offre d'emploi signée à l'avance. Cherchez un
+      poste qui correspond réellement à vos qualifications, avec le droit de travailler
+      pendant votre recherche. La voie la plus flexible pour les professionnels qualifiés.
+    </p>
+
+    <!-- Stats -->
+    <div class="ch-stats">
+      <div class="ch-stat-card">
+        <span class="ch-stat-val">12 mois</span>
+        <span class="ch-stat-lbl">Durée initiale (extensible 2 ans)</span>
+      </div>
+      <div class="ch-stat-card">
+        <span class="ch-stat-val">6 points</span>
+        <span class="ch-stat-lbl">Minimum requis</span>
+      </div>
+      <div class="ch-stat-card">
+        <span class="ch-stat-val">A1 ou B2</span>
+        <span class="ch-stat-lbl">Allemand ou anglais</span>
+      </div>
+      <div class="ch-stat-card">
+        <span class="ch-stat-val">1091 €/mois</span>
+        <span class="ch-stat-lbl">Ressources requises (2026)</span>
+      </div>
+    </div>
+
+    <div>
+      <a href="https://www.make-it-in-germany.com/en/visa-residence/types/opportunity-card/points-calculator" target="_blank" class="ep-btn-amber" style="padding: 0.8rem 1.6rem; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(255,206,0,0.35); text-decoration: none;">
+        Calculer mes points Chancenkarte →
+      </a>
+    </div>
+  </div>
+
+  <!-- SECTION 1 — En bref -->
+  <div class="ch-content-card">
+    <h2>La Chancenkarte en bref</h2>
+    <p>
+      La Chancenkarte, lancée en <strong>juin 2024</strong> sous l'<strong>article 20a de l'AufenthG</strong>, remplace la majorité des cas d'usage de l'ancien "visa de recherche d'emploi" (Jobsuchendenvisum).
+    </p>
+    <ul style="padding-left: 1.25rem; margin-top: 1rem;">
+      <li>Vous obtenez un titre de séjour d'<strong>un an</strong> pour chercher un emploi qualifié en Allemagne.</li>
+      <li><strong>Aucun contrat de travail nécessaire</strong> au moment de la demande.</li>
+      <li>Vous pouvez travailler jusqu'à <strong>20h/semaine</strong> pendant la recherche, dans un domaine lié à vos qualifications.</li>
+      <li>Frais de dossier : <strong>75 €</strong>.</li>
+      <li>Dès que vous trouvez un poste qualifié, vous basculez vers un titre de travail durable (Carte bleue européenne ou §18a/18b AufenthG).</li>
+    </ul>
+    <p style="margin-top: 1.25rem; font-size: 0.9rem; background: #f8fafc; border-left: 4px solid #64748b; padding: 0.75rem 1rem; border-radius: 0 8px 8px 0; color: #4b5563;">
+      ℹ️ <strong>Bon à savoir :</strong> une ancienne formule, le Jobsuchendenvisum (§20.1), existe encore pour certains cas — 6 mois, sans condition de points, mais <strong>sans droit de travailler du tout</strong>, pas même à temps partiel. Pour la quasi-totalité des candidats en 2026, la Chancenkarte reste le choix le plus avantageux.
+    </p>
+  </div>
+
+  <!-- SECTION 2 — Deux façons de qualifier -->
+  <div class="ch-content-card">
+    <h2>Deux façons de vous qualifier</h2>
+    <p style="margin-bottom: 1.5rem;">Selon votre profil académique et professionnel, vous pouvez accéder au visa via l'un des deux parcours :</p>
+    
+    <div class="qualify-grid">
+      <div class="qualify-card">
+        <h3>🎓 VOIE DIRECTE</h3>
+        <p style="font-weight: 700; color: #000; font-size: 0.9rem; margin-bottom: 0.5rem;">Diplôme reconnu</p>
+        <p style="font-size: 0.88rem; line-height: 1.5; color: #4b5563; margin: 0;">
+          Vous détenez un diplôme de formation professionnelle (au moins 2 ans) ou un diplôme universitaire, reconnu officiellement dans le pays où il a été délivré. Il n'a pas besoin d'être déjà reconnu en Allemagne pour obtenir la Chancenkarte — mais une reconnaissance préalable ouvre un chemin plus direct vers l'emploi qualifié une fois sur place.
+        </p>
+      </div>
+
+      <div class="qualify-card">
+        <h3>📊 SYSTÈME DE POINTS</h3>
+        <p style="font-weight: 700; color: #000; font-size: 0.9rem; margin-bottom: 0.5rem;">Au moins 6 points requis</p>
+        <p style="font-size: 0.88rem; line-height: 1.5; color: #4b5563; margin: 0;">
+          Si vous n'avez pas de diplôme directement reconnu, vous pouvez qualifier via un barème de points calculé sur : qualifications professionnelles, expérience de travail, niveau de langue (allemand/anglais), âge, et liens antérieurs avec l'Allemagne.
+        </p>
+      </div>
+    </div>
+
+    <div style="margin-top: 2rem; text-align: center;">
+      <a href="https://www.make-it-in-germany.com/en/visa-residence/types/opportunity-card/points-calculator" target="_blank" class="btn btn-primary" style="background:#E3000F; border-color:#E3000F; font-size: 0.9rem; padding: 0.6rem 1.25rem;">
+        Faire le test de points maintenant →
+      </a>
+    </div>
+  </div>
+
+  <!-- SECTION 3 — Conditions communes aux deux voies -->
+  <div class="ch-content-card">
+    <h2>Conditions communes aux deux voies</h2>
+    <div class="conditions-grid" style="margin-top: 1rem;">
+      <div class="condition-item">
+        <h3>🗣️ Langue</h3>
+        <p style="font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          Allemand niveau A1 <strong>ou</strong> anglais niveau B2 — un seul des deux suffit pour être éligible. Posséder les deux rapporte des points supplémentaires et facilite grandement la recherche d'emploi sur place.
+        </p>
+      </div>
+
+      <div class="condition-item">
+        <h3>💶 Moyens financiers</h3>
+        <p style="font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          Environ <strong>1091 €/mois</strong> (barème 2026) à justifier via un compte bloqué (Sperrkonto), une déclaration de prise en charge (Verpflichtungserklärung), une bourse ou des revenus vérifiables (travail à temps partiel autorisé).
+        </p>
+      </div>
+
+      <div class="condition-item">
+        <h3>💼 Droit de travail</h3>
+        <p style="font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          Autorisé jusqu'à 20h/semaine dans un secteur en lien avec vos qualifications professionnelles pendant toute la durée de la recherche.
+        </p>
+      </div>
+
+      <div class="condition-item">
+        <h3>💰 Frais de dossier</h3>
+        <p style="font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          75 € pour la demande de visa de base auprès des autorités consulaires.
+        </p>
+      </div>
+
+      <div class="condition-item" style="grid-column: 1 / -1;">
+        <h3>🛂 Documents de base à préparer</h3>
+        <p style="font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          Passeport valide, CV allemand (Lebenslauf), diplômes certifiés et traduits, preuve de niveau de langue requis (allemand/anglais), justificatif financier et assurance maladie valide à l'arrivée.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4 — Le parcours en étapes -->
+  <div class="ch-content-card">
+    <h2>Votre parcours vers l'Allemagne</h2>
+    <div class="timeline" style="margin-top: 1.5rem;">
+      
+      <div class="timeline-item">
+        <span class="timeline-num">Étape 1 · Immédiat</span>
+        <h3 class="timeline-title">Évaluer son éligibilité</h3>
+        <p>Vérifiez si vous avez un diplôme reconnu ou testez votre score sur le barème de points officiel Chancenkarte.</p>
+      </div>
+
+      <div class="timeline-item">
+        <span class="timeline-num">Étape 2 · Variable</span>
+        <h3 class="timeline-title">Réunir les preuves de langue</h3>
+        <p style="margin-bottom: 0.75rem;">Obtenez une certification A1 en allemand ou un niveau B2 en anglais.</p>
+        <a href="{% url 'germanprep:exam_hub' %}" class="btn btn-outline btn-sm" style="color:#E3000F; border-color:#E3000F;">
+          Voir nos cours de langue →
+        </a>
+      </div>
+
+      <div class="timeline-item">
+        <span class="timeline-num">Étape 3 · 2 à 4 semaines</span>
+        <h3 class="timeline-title">Ouvrir un compte bloqué</h3>
+        <p>Constituez le justificatif financier de ~1091 €/mois pour 12 mois (environ 13 000 € sur un Sperrkonto) ou obtenez une prise en charge.</p>
+      </div>
+
+      <div class="timeline-item">
+        <span class="timeline-num">Étape 4 · Plusieurs semaines</span>
+        <h3 class="timeline-title">Déposer la demande de visa</h3>
+        <p>Prenez rendez-vous et déposez votre dossier complet à l'ambassade ou au consulat d'Allemagne de votre pays.</p>
+      </div>
+
+      <div class="timeline-item">
+        <span class="timeline-num">Étape 5 · Jusqu'à 12 mois</span>
+        <h3 class="timeline-title">Arrivée et recherche active</h3>
+        <p>Candidatures, entretiens en entreprise, et travail à temps partiel autorisé (jusqu'à 20 heures par semaine).</p>
+      </div>
+
+      <div class="timeline-item" style="margin-bottom: 0;">
+        <span class="timeline-num">Étape 6 · Dès l'embauche</span>
+        <h3 class="timeline-title">Bascule vers un titre de travail</h3>
+        <p>Dès la signature du contrat qualifié, vous passez directement à la Carte bleue européenne ou à un permis de travail classique (§18a/18b).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5 — Et si je ne trouve pas d'emploi à temps ? -->
+  <div class="ch-content-card">
+    <h2>Et si je ne trouve pas d'emploi à temps ?</h2>
+    <p>
+      Si après 12 mois vous avez trouvé un emploi correspondant à votre profil mais qu'il manque encore une reconnaissance de diplôme, ou que le salaire proposé n'atteint pas encore le seuil requis pour un titre de travail classique, une <strong>Chancenkarte de suivi</strong> peut être accordée pour <strong>2 années supplémentaires</strong>. Ce n'est pas un renouvellement automatique de la phase de recherche, mais un pont vers la régularisation complète.
+    </p>
+    <p style="margin-top: 1rem; font-weight: 700; background: #fee2e2; border-left: 4px solid #b91c1c; padding: 0.75rem 1rem; border-radius: 0 8px 8px 0; color: #b91c1c;">
+      ⚠️ Important : Si vous déposez la demande de renouvellement avant l'expiration de votre carte, la continuité est assurée sans interruption. Si la carte a déjà expiré, une Fiktionsbescheinigung (attestation provisoire) est généralement nécessaire pour continuer à travailler entre-temps.
+    </p>
+  </div>
+
+  <!-- SECTION 6 — Liens officiels du gouvernement allemand -->
+  <div class="ch-content-card">
+    <h2>Sources & Liens officiels</h2>
+    <p style="margin-bottom: 1.25rem;">Accédez directement aux ressources et simulateurs officiels du gouvernement fédéral allemand :</p>
+    <div style="display: flex; flex-direction: column;">
+      <a href="https://www.make-it-in-germany.com/en/visa-residence/opportunity-card" target="_blank" class="link-card">
+        🌐 Make it in Germany — Portail Officiel Chancenkarte ↗
+      </a>
+      <a href="https://www.make-it-in-germany.com/en/visa-residence/types/opportunity-card/points-calculator" target="_blank" class="link-card">
+        📊 Calculateur de points officiel Chancenkarte ↗
+      </a>
+      <a href="https://www.auswaertiges-amt.de/en/visa-service" target="_blank" class="link-card">
+        🛂 Office fédéral des Affaires étrangères — Services visa ↗
+      </a>
+      <a href="https://www.anerkennung-in-deutschland.de" target="_blank" class="link-card">
+        📄 Portail de reconnaissance des diplômes étrangers (Anerkennung) ↗
+      </a>
+      <a href="https://www.arbeitsagentur.de/en/international-placement-services" target="_blank" class="link-card">
+        🏢 Agence fédérale pour l'emploi (ZAV) — Placement international ↗
+      </a>
+    </div>
+  </div>
+
+  <!-- SECTION 7 — Bloc CTA final -->
+  <div style="background: linear-gradient(135deg, #080A0F, #1e293b); border: 1.5px solid rgba(227, 0, 15, 0.4); border-radius: 20px; padding: 3rem 2.25rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin-bottom: 2rem;">
+    <h2 style="font-size: 1.75rem; font-weight: 900; color: #ffffff; margin-bottom: 0.75rem;">Calculez vos points et lancez votre recherche</h2>
+    <p style="color: #cbd5e1; font-size: 1rem; line-height: 1.6; max-width: 680px; margin: 0 auto 2rem;">
+      Découvrez en 2 minutes si vous êtes éligible à la Chancenkarte, puis générez votre CV allemand pour candidater dès votre arrivée.
+    </p>
+    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+      <a href="https://www.make-it-in-germany.com/en/visa-residence/types/opportunity-card/points-calculator" target="_blank" class="ep-btn-amber" style="background:#E3000F; color:#ffffff; border:1.5px solid #E3000F; font-size:0.9rem; padding:0.75rem 1.5rem; box-shadow: 0 4px 15px rgba(227, 0, 15, 0.35); text-decoration: none;">
+        Faire le test de points →
+      </a>
+      <a href="{% url 'lebenslauf:dashboard' %}" class="ep-quick-link" style="font-size:0.9rem; padding:0.75rem 1.5rem;">
+        Créer mon Lebenslauf →
+      </a>
+      <a href="{% url 'germany_opportunities:catalogue' %}" class="ep-quick-link" style="font-size:0.9rem; padding:0.75rem 1.5rem;">
+        Voir les offres qualifiées en Allemagne →
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

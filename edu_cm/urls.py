@@ -33,6 +33,11 @@ def _allemagne_contrat_ausbildung(request):
     return render(request, "allemagne/contrat_ausbildung.html")
 
 
+def _allemagne_chancenkarte(request):
+    """Page d'information sur la Chancenkarte (carte d'opportunités)."""
+    return render(request, "allemagne/chancenkarte.html")
+
+
 
 def home_view(request):
     ctx = {}
@@ -517,6 +522,7 @@ urlpatterns = [
     # ── E-Shelle Allemagne — Hub immigration / Ausbildung / Lebenslauf ──
     path("allemagne/opportunites/", include("germany_opportunities.urls", namespace="germany_opportunities")),
     path("allemagne/mon-cv/",       include("lebenslauf.urls",            namespace="lebenslauf")),
+    path("allemagne/chancenkarte/", _allemagne_chancenkarte,              name="allemagne_chancenkarte"),
     path("allemagne/contrat-ausbildung/", _allemagne_contrat_ausbildung,  name="allemagne_contrat_ausbildung"),
     path("allemagne/",              _allemagne_hub,                       name="allemagne_hub"),
 
