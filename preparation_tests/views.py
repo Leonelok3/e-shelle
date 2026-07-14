@@ -1408,6 +1408,32 @@ def french_ai_coach_api(request):
         user_level = request.user.profile.level or "B1"
     profile_text = f"Niveau cible de l'utilisateur : {user_level}."
 
+    # Charger la leçon et les exercices du jour depuis le plan d'étude
+    from preparation_tests.services.study_plan import build_study_plan
+    day_text = ""
+    try:
+        plan = build_study_plan(user=request.user, exam_code="tcf")
+        if plan and "days" in plan:
+            current_day_data = None
+            for d in plan["days"]:
+                if d.get("is_current") and d.get("lesson"):
+                    current_day_data = d
+                    break
+            
+            if current_day_data:
+                lesson = current_day_data["lesson"]
+                exs = list(lesson.exercises.filter(is_active=True))
+                exs_text = "\n".join([f"- Exercice {i+1} : {ex.question_text}" for i, ex in enumerate(exs)])
+                day_text = (
+                    f"Aujourd'hui (Jour {current_day_data['day']}), l'utilisateur étudie la leçon : '{lesson.title}' "
+                    f"dans la section {lesson.section.upper()} (Niveau {lesson.level}).\n"
+                    f"Voici les exercices associés :\n{exs_text}\n"
+                )
+            else:
+                day_text = "Aujourd'hui est un jour de révision ou de repos actif dans son plan d'étude."
+    except Exception as e:
+        day_text = f"Erreur lors de la récupération du plan : {str(e)}"
+
     system_prompt = (
         "Tu es le Coach IA TCF numéro 1 mondial, un examinateur et préparateur certifié de l'épreuve officielle TCF Canada "
         "(Test de Connaissance du Français pour l'immigration et l'accès à la citoyenneté canadienne).\n"
@@ -1425,6 +1451,8 @@ def french_ai_coach_api(request):
         "- Si l'utilisateur te pose une question générale, réponds avec un niveau de précision académique en donnant toujours des exemples de phrases types réutilisables à l'examen.\n"
         "- Si l'utilisateur te demande de l'entraînement, propose-lui un sujet officiel de Tâche 1, 2 ou 3 du TCF Canada adapté à son niveau cible.\n\n"
         f"Profil d'apprentissage de l'utilisateur : {profile_text} (Niveau visé : {user_level}).\n"
+        f"Planning d'étude d'aujourd'hui :\n{day_text}\n\n"
+        "- Si l'utilisateur te demande son programme du jour, explique-lui quel est le thème de sa leçon du jour, et donne-lui un mini-exercice ou un conseil basé sur cette leçon.\n"
         "Tu réponds toujours de manière professionnelle, motivante, structurée et rédigée dans un français impeccable."
     )
 
