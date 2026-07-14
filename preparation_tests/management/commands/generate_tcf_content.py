@@ -97,11 +97,19 @@ def _validate_lesson(data: dict, exercises_count: int) -> None:
 
 def _build_user_prompt(level: str, section: str, exercises_count: int, lesson_order: int) -> str:
     level_desc = LEVEL_DESCRIPTIONS.get(level, level)
-    section_label = "Compréhension Orale" if section == "co" else "Compréhension Écrite"
+    
+    if section == "co":
+        section_label = "Compréhension Orale"
+    elif section == "ce":
+        section_label = "Compréhension Écrite"
+    elif section == "ee":
+        section_label = "Expression Écrite"
+    else:
+        section_label = "Expression Orale"
 
     prompt = (
         f"Génère la leçon de {section_label} TCF n°{lesson_order} pour le niveau {level} ({level_desc}).\n"
-        f"Nombre d'exercices QCM à inclure : {exercises_count}.\n\n"
+        f"Nombre d'exercices à inclure : {exercises_count}.\n\n"
     )
 
     if section == "co":
@@ -141,7 +149,7 @@ def _build_user_prompt(level: str, section: str, exercises_count: int, lesson_or
             "\nIMPORTANT : Le champ 'audio_text' de chaque exercice DOIT contenir uniquement le script du dialogue/annonce à lire "
             "en français pour la synthèse vocale, sans consignes ni traductions.\n"
         )
-    else:
+    elif section == "ce":
         prompt += "Règles strictes de calibrage CECR pour la compréhension écrite (CE) du TCF :\n"
         if level == "A1":
             prompt += (
@@ -181,6 +189,94 @@ def _build_user_prompt(level: str, section: str, exercises_count: int, lesson_or
             "3. <h3>3. Documents de lecture</h3> : Les documents ou courts textes en français à lire (placés dans des blocs '<div class=\"reading-box\">...</div>'). Aucun mot anglais ou de traduction dans ces textes.\n"
             "4. <h3>4. Conseils pour l'épreuve</h3> : Stratégies de lecture rapide et d'élimination de distracteurs.\n\n"
             "IMPORTANT : Le champ 'audio_text' de chaque exercice doit simplement contenir le court extrait de texte spécifique (issu des Documents de lecture) sur lequel porte la question.\n"
+        )
+    elif section == "ee":
+        prompt += "Règles strictes de calibrage CECR pour l'expression écrite (EE) du TCF :\n"
+        if level == "A1":
+            prompt += (
+                "- Sujets : écrire un message amical très simple, décrire un objet de tous les jours, donner des informations personnelles basiques.\n"
+                "- Longueur : 40 à 60 mots.\n"
+            )
+        elif level == "A2":
+            prompt += (
+                "- Sujets : inviter quelqu'hui, s'excuser dans un court message, raconter une journée simple au passé.\n"
+                "- Longueur : 60 à 80 mots.\n"
+            )
+        elif level == "B1":
+            prompt += (
+                "- Sujets : rédiger une lettre personnelle décrivant un projet, un courriel formel de demande d'information simple.\n"
+                "- Longueur : 80 à 120 mots.\n"
+            )
+        elif level == "B2":
+            prompt += (
+                "- Sujets : lettre formelle de réclamation, texte argumentatif structuré défendant un point de vue sur un sujet de société.\n"
+                "- Longueur : 120 à 180 mots.\n"
+            )
+        elif level == "C1":
+            prompt += (
+                "- Sujets : synthèse de documents contradictoires, essai argumentatif complexe sur un thème abstrait.\n"
+                "- Longueur : 180 à 250 mots.\n"
+            )
+        elif level == "C2":
+            prompt += (
+                "- Sujets : critique d'une œuvre littéraire ou scientifique, tribune d'opinion extrêmement raffinée avec figures de style.\n"
+                "- Longueur : 250 mots ou plus.\n"
+            )
+
+        prompt += (
+            "\nStructure obligatoire du HTML dans 'content' (Leçon d'Écriture) :\n"
+            "1. <h3>1. Introduction</h3> : Présentation des objectifs de rédaction.\n"
+            "2. <h3>2. Vocabulaire et Connecteurs</h3> : Liste d'expressions et connecteurs logiques de transition en français (strong).\n"
+            "3. <h3>3. Modèles de rédaction</h3> : Exemples de textes rédigés avec annotations structurelles.\n"
+            "4. <h3>4. Stratégie et Méthode</h3> : Astuces pour structurer le texte et éviter les fautes d'accord.\n\n"
+            "IMPORTANT : Chaque exercice de 'exercises' doit proposer un sujet de rédaction complet.\n"
+            "- option_a, option_b, option_c, option_d doivent être des chaînes vides (\"\").\n"
+            "- correct_option doit être défini à \"A\".\n"
+            "- explanation doit contenir une grille d'évaluation indicative et des points à respecter.\n"
+        )
+    elif section == "eo":
+        prompt += "Règles strictes de calibrage CECR pour l'expression orale (EO) du TCF :\n"
+        if level == "A1":
+            prompt += (
+                "- Sujets : se présenter simplement, épeler son nom, donner son numéro de téléphone ou parler de ses goûts immédiats.\n"
+                "- Durée recommandée : 1 à 1.5 minute.\n"
+            )
+        elif level == "A2":
+            prompt += (
+                "- Sujets : décrire son lieu de vie, présenter ses loisirs favoris, raconter un voyage passé simple.\n"
+                "- Durée recommandée : 1.5 à 2 minutes.\n"
+            )
+        elif level == "B1":
+            prompt += (
+                "- Sujets : donner son avis sur un sujet du quotidien (travail, transports), justifier un choix personnel ou professionnel.\n"
+                "- Durée recommandée : 2 à 3 minutes.\n"
+            )
+        elif level == "B2":
+            prompt += (
+                "- Sujets : débattre avec l'examinateur sur un thème d'actualité, poser des questions et argumenter.\n"
+                "- Durée recommandée : 3 à 4 minutes.\n"
+            )
+        elif level == "C1":
+            prompt += (
+                "- Sujets : monologue soutenu sur un problème abstrait ou de société, réponse structurée à une contradiction de l'examinateur.\n"
+                "- Durée recommandée : 4 à 5 minutes.\n"
+            )
+        elif level == "C2":
+            prompt += (
+                "- Sujets : débat d'experts, discours de persuasion raffiné utilisant l'ironie ou des métaphores sur des thèmes philosophiques.\n"
+                "- Durée recommandée : 5 minutes ou plus.\n"
+            )
+
+        prompt += (
+            "\nStructure obligatoire du HTML dans 'content' (Leçon d'Oral) :\n"
+            "1. <h3>1. Introduction</h3> : Présentation des objectifs de prise de parole.\n"
+            "2. <h3>2. Vocabulaire et Expressions clés</h3> : Formules pour structurer son discours, exprimer son accord/désaccord, nuancer.\n"
+            "3. <h3>3. Exemples transcrits</h3> : Modèles de réponses orales transcrites avec commentaires pédagogiques.\n"
+            "4. <h3>4. Conseils de communication</h3> : Gestion du débit, de l'intonation, et de l'interaction avec l'examinateur.\n\n"
+            "IMPORTANT : Chaque exercice de 'exercises' doit proposer un sujet d'expression orale individuel.\n"
+            "- option_a, option_b, option_c, option_d doivent être des chaînes vides (\"\").\n"
+            "- correct_option doit être défini à \"A\".\n"
+            "- explanation doit contenir des suggestions de points à aborder et des structures de phrases recommandées.\n"
         )
 
     return prompt
