@@ -144,6 +144,16 @@ def level_mock_exam(request, level: str):
     if level not in VALID_LEVELS:
         raise Http404(f"Niveau invalide : {level}")
 
+    # Vérification abonnement pour les niveaux avancés (B1-C2)
+    if level in ["B1", "B2", "C1", "C2"]:
+        from billing.services import has_active_access, has_session_access
+        if not (has_active_access(request.user) or has_session_access(request)):
+            from django.contrib import messages
+            from django.urls import reverse
+            from django.shortcuts import redirect
+            messages.error(request, f"🔒 Les examens blancs par niveau {level} sont réservés aux abonnés Premium. Activez un pass pour continuer.")
+            return redirect(f"{reverse('billing:access')}?next={request.get_full_path()}")
+
     # ── POST : correction ────────────────────────────────────
     if request.method == "POST":
         # Reconstruire les exercices depuis les IDs cachés

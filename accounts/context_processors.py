@@ -190,3 +190,60 @@ def german_profile_context(request):
             "is_german_space": is_german_space,
         }
 
+
+def french_profile_context(request):
+    """
+    Injecte le profil de français (TCF) de l'utilisateur, sa progression (%),
+    et des conseils d'amélioration personnalisés dans tous les templates.
+    """
+    if not hasattr(request, "user") or not request.user.is_authenticated:
+        return {
+            "french_level": "B1",
+            "french_level_progress": 0,
+            "french_evolution_tips": [],
+            "is_french_space": False,
+        }
+
+    path = request.path
+    is_french_space = "/prep/" in path and not ("/allemand/" in path or "/allemagne/" in path or "/lebenslauf/" in path)
+
+    try:
+        from preparation_tests.models import UserExerciseProgress, CourseExercise
+        
+        # Progression sur les exercices de français
+        total_exs = CourseExercise.objects.filter(is_active=True).count()
+        completed_exs = UserExerciseProgress.objects.filter(user=request.user, is_completed=True).count()
+        
+        progress = 0
+        if total_exs > 0:
+            progress = min(max(int((completed_exs / total_exs) * 100), 0), 100)
+            
+        level = "B1"
+        if hasattr(request.user, "profile") and request.user.profile.level:
+            level = request.user.profile.level
+            
+        tips = []
+        tips.append("🎯 Conseil clé : Le TCF Canada exige un score minimum dans les 4 compétences. Prépare-toi de façon homogène.")
+        
+        if completed_exs < 5:
+            tips.append("✍️ Fais tes premiers exercices corrigés en Compréhension Écrite ou Orale pour lancer ton évaluation.")
+        else:
+            tips.append("⏱️ Teste tes conditions réelles avec un examen blanc officiel TCF.")
+            
+        tips.append("🤖 Discute avec le Coach IA pour recevoir des conseils et des corrections personnalisés sur l'Expression Écrite.")
+        tips.append("📅 Conseil clé : 20 minutes d'entraînement par jour valent mieux qu'une seule longue session.")
+
+        return {
+            "french_level": level,
+            "french_level_progress": progress,
+            "french_evolution_tips": tips[:3],  # Top 3 tips
+            "is_french_space": is_french_space,
+        }
+    except Exception:
+        return {
+            "french_level": "B1",
+            "french_level_progress": 0,
+            "french_evolution_tips": [],
+            "is_french_space": is_french_space,
+        }
+

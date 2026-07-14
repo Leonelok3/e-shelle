@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Coach IA – TCF – E-Shelle{% endblock %}
+
+{% block meta %}
+<meta name="description" content="Ton coach IA de français sur E-Shelle : plan de travail personnalisé, exercices TCF, explication de grammaire et préparation officielle TCF Canada.">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 1000px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: var(--gold-german, #F59E0B); text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, #102B4E 0%, #1a3d6b 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
+  .ep-hero::before { content: "🤖"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; margin: 0 0 .4rem; }
+  .ep-hero h1 span { color: var(--gold-german, #F59E0B); }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0; max-width: 560px; }
+
+  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.75rem; }
+  .ep-quick-link { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: .5rem 1rem; font-size: .82rem; font-weight: 600; color: #102B4E; text-decoration: none; transition: border-color .2s, box-shadow .2s; display: flex; align-items: center; gap: .4rem; }
+  .ep-quick-link:hover { border-color: var(--gold-german, #F59E0B); box-shadow: 0 2px 8px rgba(245,158,11,.15); }
+
+  .ep-layout { display: grid; grid-template-columns: 260px 1fr; gap: 1.25rem; align-items: start; }
+
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+  .ep-card:last-child { margin-bottom: 0; }
+  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: .85rem; }
+  .ep-profile-stat { display: flex; justify-content: space-between; padding: .4rem 0; border-bottom: 1px solid #f1f5f9; font-size: .82rem; color: #475569; }
+  .ep-profile-stat:last-child { border-bottom: none; }
+  .ep-profile-stat strong { color: #102B4E; font-weight: 700; }
+
+  .ep-preset-btn { display: flex; width: 100%; align-items: center; gap: .5rem; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: .6rem .9rem; font-size: .8rem; font-weight: 600; color: #102B4E; text-align: left; cursor: pointer; transition: border-color .2s; margin-bottom: .4rem; }
+  .ep-preset-btn:hover { border-color: var(--gold-german, #F59E0B); background: rgba(255, 206, 0, 0.08); }
+
+  .ep-chat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; }
+  .ep-chat-box { min-height: 300px; max-height: 480px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; background: #f8fafc; display: flex; flex-direction: column; gap: .65rem; margin-bottom: 1rem; }
+  .ep-msg { max-width: 90%; }
+  .ep-msg.assistant { align-self: flex-start; }
+  .ep-msg.user { align-self: flex-end; }
+  .ep-msg-content { padding: .65rem .9rem; border-radius: 14px; font-size: .88rem; line-height: 1.55; white-space: pre-wrap; }
+  .ep-msg.assistant .ep-msg-content { background: #fff; border: 1px solid #e2e8f0; color: #334155; border-radius: 4px 14px 14px 14px; }
+  .ep-msg.user .ep-msg-content { background: #102B4E; color: #fff; border-radius: 14px 4px 14px 14px; }
+  .ep-chat-input-area { display: flex; gap: .75rem; align-items: flex-end; }
+  .ep-chat-textarea { flex: 1; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: .75rem 1rem; font-size: .88rem; color: #1e293b; background: #fff; resize: vertical; min-height: 72px; font-family: inherit; outline: none; transition: border-color .2s; }
+  .ep-chat-textarea:focus { border-color: var(--gold-german, #F59E0B); }
+  .ep-chat-textarea::placeholder { color: #94a3b8; }
+  .ep-btn-send { display: inline-flex; align-items: center; gap: .4rem; background: var(--gold-german, #F59E0B); color: #102B4E; border: none; border-radius: 10px; padding: .75rem 1.25rem; font-size: .88rem; font-weight: 700; cursor: pointer; transition: background .2s; white-space: nowrap; flex-shrink: 0; }
+  .ep-btn-send:hover { background: #d97706; color: #fff; }
+  .ep-btn-send:disabled { opacity: .6; cursor: not-allowed; }
+
+  @media (max-width: 800px) {
+    .ep-layout { grid-template-columns: 1fr; }
+    .ep-hero::before { display: none; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ep-wrap">
+
+  <nav class="ep-bc">
+    <a href="{% url 'preparation_tests:home' %}">Français</a>
+    <span>›</span>
+    <a href="{% url 'preparation_tests:tcf_hub' %}">TCF</a>
+    <span>›</span>
+    <span>Coach IA TCF</span>
+  </nav>
+
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">E-Shelle · TCF · Coach IA</p>
+    <h1>Ton coach <span>IA de Français (TCF)</span></h1>
+    <p>Pose tes questions, demande un plan de travail personnalisé, des exercices TCF, des explications de grammaire, de vocabulaire ou des conseils pour les épreuves de l'examen officiel TCF.</p>
+  </div>
+
+  <div class="ep-quick">
+    <a href="{% url 'preparation_tests:tcf_hub' %}" class="ep-quick-link">🏠 Hub TCF</a>
+    <a href="{% url 'preparation_tests:dashboard_global' %}" class="ep-quick-link">📊 Progression</a>
+  </div>
+
+  <div class="ep-layout">
+
+    <!-- Gauche : suggestions -->
+    <div>
+      <div class="ep-card">
+        <p class="ep-card-title">Profil & Niveau</p>
+        <div class="ep-profile-stat"><span>Niveau visé</span><strong>{{ user.profile.level|default:"B1" }}</strong></div>
+        <div class="ep-profile-stat"><span>Statut</span><strong>{% if is_pro %}Premium{% else %}Gratuit{% endif %}</strong></div>
+      </div>
+
+      <div class="ep-card">
+        <p class="ep-card-title">Sujets rapides TCF</p>
+        <button class="ep-preset-btn" onclick="setPreset('Génère-moi un plan d\'étude structuré sur 15 jours pour me préparer aux épreuves de compréhension écrite et orale du TCF.')">📅 Plan d'étude TCF</button>
+        <button class="ep-preset-btn" onclick="setPreset('Explique-moi les règles de concordance des temps au subjonctif et à l\'indicatif souvent testées dans le TCF.')">📖 Grammaire / Conjugaison</button>
+        <button class="ep-preset-btn" onclick="setPreset('Donne-moi 5 exemples de sujets d\'expression écrite TCF (Tâche 1, 2 et 3) avec des conseils de rédaction.')">✍️ Sujets d'Expression Écrite</button>
+        <button class="ep-preset-btn" onclick="setPreset('Comment structurer mon discours pour la Tâche 2 de l\'épreuve d\'Expression Orale du TCF (jeu de rôle interactif) ?')">🗣 Expression Orale TCF</button>
+      </div>
+    </div>
+
+    <!-- Droite : chat -->
+    <div class="ep-chat-card">
+      <p class="ep-card-title" style="margin-bottom:.75rem;">Chat avec le coach</p>
+      
+      {% if not is_pro %}
+        <div style="background: rgba(255, 206, 0, 0.1); border: 1.5px solid #F59E0B; border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.85rem; color: #78350f; margin-bottom: 1.25rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <span>⚡ Version gratuite : il vous reste <strong>{{ messages_left }}</strong> messages gratuits aujourd'hui.</span>
+          <a href="{% url 'billing:access' %}" style="font-size: 0.78rem; font-weight: 700; color: #fff; background: #E3000F; padding: 0.35rem 0.75rem; text-decoration: none; border-radius: 6px; display: inline-block;">Passer Premium</a>
+        </div>
+      {% endif %}
+
+      <div class="ep-chat-box" id="chat-box">
+        <div class="ep-msg assistant">
+          <div class="ep-msg-content">Bonjour 👋 Je suis ton coach IA de français spécialisé dans la préparation du TCF. Explique-moi tes objectifs (immigration Canada, études, etc.) et pose-moi toutes tes questions !</div>
+        </div>
+      </div>
+      <div class="ep-chat-input-area">
+        <textarea id="user-input" class="ep-chat-textarea" rows="3" placeholder="Écris ton message ici..." {% if not is_pro and messages_left <= 0 %}disabled placeholder="Limite journalière de messages gratuite atteinte. Abonnez-vous pour continuer."{% endif %}>{{ preset }}</textarea>
+        <button id="send-btn" class="ep-btn-send" {% if not is_pro and messages_left <= 0 %}disabled{% endif %}>▶ Envoyer</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  const chatBox = document.getElementById('chat-box');
+  const userInput = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+  let history = [];
+
+  function appendMessage(role, text) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ep-msg ' + role;
+    const content = document.createElement('div');
+    content.className = 'ep-msg-content';
+    content.innerText = text;
+    wrapper.appendChild(content);
+    chatBox.appendChild(wrapper);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
+    appendMessage('user', text);
+    history.push({role: 'user', content: text});
+    userInput.value = '';
+    sendBtn.disabled = true;
+    sendBtn.innerText = 'Envoi…';
+    try {
+      const response = await fetch("{% url 'preparation_tests:ai_coach_api' %}", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({message: text, history: history})
+      });
+      const data = await response.json();
+      if (data.reply) {
+        appendMessage('assistant', data.reply);
+        history.push({role: 'assistant', content: data.reply});
+        {% if not is_pro %}
+        setTimeout(() => { window.location.reload(); }, 1500);
+        {% endif %}
+      } else if (data.error === "subscription_required") {
+        appendMessage('assistant', "⚠️ Limite atteinte : " + data.reply);
+        userInput.disabled = true;
+        userInput.placeholder = "Abonnez-vous pour continuer à chatter avec le coach IA.";
+        sendBtn.disabled = true;
+      } else if (data.error) {
+        appendMessage('assistant', "Erreur : " + (data.reply || data.error));
+      }
+    } catch (e) {
+      appendMessage('assistant', "Une erreur est survenue lors de l'appel au coach IA.");
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.innerText = '▶ Envoyer';
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  userInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  window.setPreset = function(text) {
+    userInput.value = text;
+    userInput.focus();
+  };
+})();
+</script>
+{% endblock %}

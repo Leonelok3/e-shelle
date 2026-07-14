@@ -21,6 +21,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.conf import settings
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 
 # =========================================================
 # 📦 MODELS
@@ -67,6 +68,29 @@ from preparation_tests.services.ai_coach.coach_global import AICoachGlobal
 # 🔧 CORE
 # =========================================================
 from core.constants import LEVEL_ORDER
+
+
+def check_user_has_french_premium(user) -> bool:
+    """
+    Vérifie si l'utilisateur possède un abonnement premium actif (non gratuit).
+    Les superutilisateurs et membres du staff sont automatiquement autorisés.
+    """
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    
+    # Vérification optionnelle du plan général de l'utilisateur
+    if hasattr(user, "profile") and user.profile.plan in ["pro", "enterprise"]:
+        return True
+        
+    try:
+        from billing.utils import user_has_premium
+        return user_has_premium(user)
+    except Exception:
+        pass
+        
+    return False
 
 
 # =========================================================
@@ -118,7 +142,7 @@ def home(request):
 
 
 def french_exams(request):
-    return render(request, "preparation_tests/french_exams.html")
+    return redirect("preparation_tests:tcf_hub")
 
 
 def tef_hub(request):
@@ -228,6 +252,12 @@ def lesson_session(request, exam_code, section, lesson_id):
     Affiche une leçon avec ses exercices.
     """
     lesson = get_object_or_404(CourseLesson, id=lesson_id)
+    
+    # Bloquer les niveaux avancés pour les non-abonnés
+    if lesson.level in ["B1", "B2", "C1", "C2"] and not check_user_has_french_premium(request.user):
+        messages.warning(request, f"Les leçons et exercices de niveau {lesson.level} sont réservés aux abonnés Premium.")
+        return redirect(f"{reverse('billing:access')}?next={request.get_full_path()}")
+
     user = request.user if request.user.is_authenticated else None
 
     raw_exercises = CourseExercise.objects.filter(
@@ -1286,3 +1316,160 @@ def submit_ee(request):
         "percent": percent,
         "is_completed": lesson_done,
     })
+
+
+@login_required
+def french_ai_coach_page(request):
+    """
+    Page principale du coach IA pour le français (TCF).
+    """
+    is_pro = check_user_has_french_premium(request.user)
+
+    # Suivi des messages restants aujourd'hui pour les utilisateurs gratuits
+    import datetime
+    today_str = datetime.date.today().isoformat()
+    session_date = request.session.get("french_coach_limit_date")
+    if session_date != today_str:
+        request.session["french_coach_limit_date"] = today_str
+        request.session["french_coach_message_count"] = 0
+
+    messages_left = max(0, 5 - request.session.get("french_coach_message_count", 0))
+
+    preset = (request.GET.get("preset") or "").strip()
+
+    # Si aucun preset envoyé, on peut pré-remplir avec quelque chose d’utile
+    if not preset:
+        preset = (
+            "Je prépare le test TCF (Test de Connaissance du Français).\n"
+            "Voici mon profil d'apprentissage :\n"
+            f"- Niveau visé: {request.user.profile.level if hasattr(request.user, 'profile') else 'B1'}\n"
+            "\nPropose-moi un plan d'étude concret pour m'entraîner aux différentes compétences du TCF (Compréhension Orale, Compréhension Écrite, Expression Écrite, Expression Orale)."
+        )
+
+    context = {
+        "is_pro": is_pro,
+        "messages_left": messages_left,
+        "preset": preset,
+    }
+    return render(request, "preparation_tests/ai_coach.html", context)
+
+
+@csrf_exempt
+@login_required
+def french_ai_coach_api(request):
+    """
+    Endpoint JSON pour le chat IA français (TCF).
+    Reçoit : { "message": "...", "history": [ {role, content}, ... ] }
+    Retourne : { "reply": "..." }
+    """
+    is_pro = check_user_has_french_premium(request.user)
+    
+    # Vérifier le quota quotidien pour les comptes gratuits
+    if not is_pro:
+        import datetime
+        today_str = datetime.date.today().isoformat()
+        session_date = request.session.get("french_coach_limit_date")
+        message_count = request.session.get("french_coach_message_count", 0)
+        
+        if session_date != today_str:
+            request.session["french_coach_limit_date"] = today_str
+            message_count = 0
+            request.session["french_coach_message_count"] = 0
+            
+        if message_count >= 5:
+            return JsonResponse(
+                {
+                    "error": "subscription_required",
+                    "reply": "Vous avez atteint votre limite gratuite de 5 messages par jour pour le Coach IA français. Veuillez vous abonner à E-Shelle Premium pour discuter en illimité !",
+                },
+                status=403,
+            )
+
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    user_message = (data.get("message") or "").strip()
+    history = data.get("history") or []
+
+    if not user_message:
+        return JsonResponse({"error": "Empty message"}, status=400)
+
+    # Contexte profil
+    user_level = request.user.profile.level if hasattr(request.user, "profile") else "B1"
+    profile_text = f"Niveau cible de l'utilisateur : {user_level}."
+
+    system_prompt = (
+        "Tu es un coach de français personnalisé pour la plateforme E-Shelle. "
+        "Tu parles à un utilisateur francophone qui prépare spécifiquement le TCF (Test de Connaissance du Français) "
+        "notamment pour l'immigration Canada (TCF Canada) ou le travail/études à l'international.\n"
+        "Tu réponds et expliques les subtilités de la langue de façon claire, bienveillante, avec des exemples.\n"
+        "Tu peux proposer des mini-exercices adaptés, expliquer la structure des épreuves (CO, CE, EE, EO) et "
+        "partager des astuces de grammaire ou de vocabulaire.\n\n"
+        "Toujours :\n"
+        f"- t'adapter au niveau cible indiqué ({user_level}),\n"
+        "- focaliser tes conseils sur les contraintes et spécificités de l'examen officiel TCF,\n"
+        "- terminer souvent tes réponses par une petite action pratique ou une question d'entraînement.\n\n"
+        f"Profil utilisateur: {profile_text}"
+    )
+
+    from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
+    from google.genai import types
+    
+    client, err = get_vertex_client()
+    if err or not client:
+        return JsonResponse(
+            {
+                "error": "Vertex AI error",
+                "reply": f"Impossible d'initialiser le client Vertex AI: {err or 'Client vide'}",
+            },
+            status=500,
+        )
+
+    # Convert chat history to Gemini format, preventing consecutive duplicate roles
+    contents = []
+    for item in history:
+        role = item.get("role")
+        content = item.get("content")
+        if role == "user":
+            if contents and contents[-1].role == "user":
+                continue
+            contents.append(types.Content(role="user", parts=[types.Part.from_text(text=content)]))
+        elif role in ("assistant", "model"):
+            if contents and contents[-1].role == "model":
+                continue
+            contents.append(types.Content(role="model", parts=[types.Part.from_text(text=content)]))
+
+    if not contents or contents[-1].role != "user":
+        contents.append(types.Content(role="user", parts=[types.Part.from_text(text=user_message)]))
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                temperature=0.4,
+            )
+        )
+        reply_text = response.text
+    except Exception as e:
+        return JsonResponse(
+            {
+                "error": "IA error",
+                "details": str(e),
+                "reply": "Désolé, une erreur s'est produite côté IA (coach de français).",
+            },
+            status=500,
+        )
+
+    # Incrémenter le quota
+    if not is_pro:
+        current_count = request.session.get("french_coach_message_count", 0)
+        request.session["french_coach_message_count"] = current_count + 1
+
+    return JsonResponse({"reply": reply_text})

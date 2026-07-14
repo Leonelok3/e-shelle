@@ -137,6 +137,8 @@ urlpatterns = [
     path("coach/history/", views.coach_ai_history, name="coach_ai_history"),
     path("coach/pdf/<int:report_id>/", views.coach_ai_pdf, name="coach_ai_pdf"),
     path("review/", views.session_review, name="session_review"),
+    path("fr/coach/", views.french_ai_coach_page, name="ai_coach"),
+    path("fr/coach/api/", views.french_ai_coach_api, name="ai_coach_api"),
 
     # =====================================================
     # 📅 PLAN D'ÉTUDE

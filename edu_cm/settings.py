@@ -245,6 +245,7 @@ TEMPLATES = [
                 "accounts.context_processors.subscription_context",
                 "accounts.context_processors.social_login_context",
                 "accounts.context_processors.german_profile_context",
+                "accounts.context_processors.french_profile_context",
                 # allauth context processor — non requis pour social login
             ],
         },
