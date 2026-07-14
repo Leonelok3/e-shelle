@@ -123,3 +123,36 @@ def canada_jobs(request):
     }
     return render(request, "jobs/canada_jobs.html", context)
 
+
+def canada_scholarships(request):
+    """
+    Affiche la liste des bourses d'études au Canada trouvées par l'IA.
+    """
+    from .models import CanadaScholarship
+    scholarships = CanadaScholarship.objects.filter(is_active=True)
+    q = request.GET.get("q", "").strip()
+    provider = request.GET.get("provider", "").strip()
+
+    if q:
+        scholarships = scholarships.filter(
+            Q(title__icontains=q) |
+            Q(provider__icontains=q) |
+            Q(description__icontains=q) |
+            Q(eligibility__icontains=q)
+        )
+    if provider:
+        scholarships = scholarships.filter(provider__icontains=provider)
+
+    providers = CanadaScholarship.objects.filter(is_active=True).values_list("provider", flat=True).distinct()
+    providers = sorted(list({p.strip() for p in providers if p}))
+
+    context = {
+        "scholarships": scholarships,
+        "q": q,
+        "provider": provider,
+        "providers": providers,
+        "total_scholarships": scholarships.count(),
+    }
+    return render(request, "jobs/canada_scholarships.html", context)
+
+

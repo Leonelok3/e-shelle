@@ -199,3 +199,37 @@ class CanadaJobOffer(models.Model):
         import datetime
         return (timezone.now() - self.fetched_at) < datetime.timedelta(hours=48)
 
+
+class CanadaScholarship(models.Model):
+    """
+    Bourses d'études au Canada pour les étudiants internationaux.
+    Récupérées quotidiennement par l'IA.
+    """
+    ref_nr = models.CharField(max_length=100, unique=True, db_index=True)
+    title = models.CharField(max_length=300)
+    provider = models.CharField(max_length=200, help_text="Organisme ou Université émettrice")
+    amount = models.CharField(max_length=100, blank=True, help_text="Valeur de la bourse")
+    eligibility = models.TextField(blank=True, help_text="Critères d'éligibilité")
+    deadline = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
+    url_apply = models.URLField(max_length=500)
+
+    is_active = models.BooleanField(default=True, db_index=True)
+    fetched_at = models.DateTimeField(auto_now_add=True)
+    last_seen = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-fetched_at"]
+        verbose_name = "Bourse Canada"
+        verbose_name_plural = "Bourses Canada"
+
+    def __str__(self):
+        return f"{self.title} — {self.provider}"
+
+    @property
+    def is_new(self):
+        from django.utils import timezone
+        import datetime
+        return (timezone.now() - self.fetched_at) < datetime.timedelta(hours=48)
+
+

@@ -9,4 +9,5 @@ urlpatterns = [
     path("publier/", views.publier, name="publier"),
     path("offre/<slug:slug>/", views.detail, name="detail"),
     path("canada/", views.canada_jobs, name="canada_jobs"),
+    path("canada/bourses/", views.canada_scholarships, name="canada_scholarships"),
 ]
