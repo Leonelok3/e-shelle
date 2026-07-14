@@ -233,22 +233,27 @@ class Command(BaseCommand):
                 self.stderr.write(f"Niveau inconnu : '{level}'. Ignoré.")
                 continue
 
+            existing_count = CourseLesson.objects.filter(exams=tcf_exam, section="co", level=level).count()
+            needed = total_lessons - existing_count
+            if needed <= 0:
+                self.stdout.write(self.style.SUCCESS(f"▶ Niveau {level} : déjà {existing_count} leçons. Passage au niveau suivant."))
+                continue
+
             self.stdout.write(
                 self.style.MIGRATE_HEADING(
-                    f"\n▶ Génération TCF niveau {level} ({total_lessons} leçons, {exercises_count} exos/leçon)"
+                    f"\n▶ Génération TCF niveau {level} ({needed} leçons nécessaires, {exercises_count} exos/leçon)"
                 )
             )
 
             # Ordre de départ
-            existing_count = CourseLesson.objects.filter(exams=tcf_exam, section="co", level=level).count()
             lesson_order = existing_count + 1
 
             generated = 0
             failed = 0
 
-            for i in range(1, total_lessons + 1):
+            for i in range(1, needed + 1):
                 self.stdout.write(
-                    f"    [{lesson_order}] Génération leçon {i}/{total_lessons}…", ending=" "
+                    f"    [{lesson_order}] Génération leçon {i}/{needed}…", ending=" "
                 )
                 self.stdout.flush()
 
