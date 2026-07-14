@@ -24,27 +24,27 @@ Tu génères du contenu pédagogique de haute qualité pour la préparation au t
 Tu retournes UNIQUEMENT un objet JSON valide (sans texte avant ou après, sans balise markdown), avec la structure exacte suivante :
 
 {
-  "title": "Titre de la leçon de Compréhension Orale en français",
-  "intro": "Courte introduction (2-3 phrases) en français expliquant les objectifs de la leçon de compréhension orale",
-  "content": "Contenu pédagogique complet en HTML simple (<h3>, <p>, <ul>, <li>, <strong>, <em>) expliquant la méthodologie, le vocabulaire thématique et les pièges classiques pour cette thématique de compréhension orale.",
+  "title": "Titre de la leçon en français",
+  "intro": "Courte introduction (2-3 phrases) en français expliquant les objectifs de la leçon",
+  "content": "Contenu pédagogique complet en HTML simple (<h3>, <p>, <ul>, <li>, <strong>, <em>) expliquant la méthodologie, le vocabulaire thématique, les structures grammaticales clés et les pièges classiques.",
   "exercises": [
     {
-      "audio_text": "Le texte oral (dialogue, annonce publique, message répondeur, conversation) en français qui sera lu par la synthèse vocale (TTS). Ce texte doit être réaliste, calibré pour le niveau requis, et d'une longueur appropriée.",
-      "question_text": "La question posée sur ce document audio (en français).",
-      "option_a": "Option A",
-      "option_b": "Option B",
-      "option_c": "Option C",
-      "option_d": "Option D",
-      "correct_option": "A",
-      "explanation": "Explication de la bonne réponse en français, en expliquant pourquoi les autres options sont incorrectes ou des distracteurs."
+      "audio_text": "Le texte oral pour la CO, OU le court texte/document à lire pour la CE, OU le contexte/sujet court pour la EE/EO.",
+      "question_text": "La question posée (pour CO/CE) OU le sujet/consigne de rédaction/prise de parole (pour EE/EO).",
+      "option_a": "Option A (laisser vide pour EE/EO)",
+      "option_b": "Option B (laisser vide pour EE/EO)",
+      "option_c": "Option C (laisser vide pour EE/EO)",
+      "option_d": "Option D (laisser vide pour EE/EO)",
+      "correct_option": "A (toujours laisser à A pour EE/EO)",
+      "explanation": "Explication de la bonne réponse (pour CO/CE) OU grille d'évaluation, attentes et suggestions de points à aborder (pour EE/EO)."
     }
   ]
 }
 
 Règles impératives :
 - Adapter rigoureusement au niveau CECR indiqué (du niveau A1 débutant très simple au niveau C2 très complexe).
-- 4 options par exercice (A, B, C, D), une seule correcte. Option C et D doivent être remplies obligatoirement.
-- correct_option = "A", "B", "C" ou "D" uniquement.
+- Pour CO/CE : les 4 options (A, B, C, D) et correct_option ("A", "B", "C" ou "D") sont obligatoires.
+- Pour EE/EO : les options (option_a, option_b, option_c, option_d) doivent être des chaînes vides (""). correct_option doit impérativement être la lettre "A".
 - Contenu HTML sans balises <html>, <head>, <body>.
 - JSON strict, pas de commentaires, pas de texte autour.
 """
@@ -232,8 +232,8 @@ class Command(BaseCommand):
             "--section",
             type=str,
             default="co",
-            choices=["co", "ce"],
-            help="Section à générer : co (Compréhension Orale), ce (Compréhension Écrite)",
+            choices=["co", "ce", "ee", "eo"],
+            help="Section à générer : co (Compréhension Orale), ce (Compréhension Écrite), ee (Expression Écrite), eo (Expression Orale)",
         )
         parser.add_argument(
             "--lessons",

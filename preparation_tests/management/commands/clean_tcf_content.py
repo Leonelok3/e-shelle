@@ -12,7 +12,7 @@ class Command(BaseCommand):
             self.stdout.write("Aucun examen TCF trouvé.")
             return
 
-        sections = ["co", "ce"]
+        sections = ["co", "ce", "ee", "eo"]
         levels = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
         for section in sections:
