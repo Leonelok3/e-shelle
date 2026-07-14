@@ -260,6 +260,7 @@ class Command(BaseCommand):
 
                 try:
                     # Appel direct Gemini avec garantie JSON
+                    from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
                     client, err = get_vertex_client()
                     if err or not client:
                         raise RuntimeError(f"Vertex AI Client init error: {err}")
