@@ -259,8 +259,22 @@ class Command(BaseCommand):
                 )
 
                 try:
-                    # Appel LLM
-                    raw = call_llm(SYSTEM_PROMPT, user_prompt)
+                    # Appel direct Gemini avec garantie JSON
+                    client, err = get_vertex_client()
+                    if err or not client:
+                        raise RuntimeError(f"Vertex AI Client init error: {err}")
+                    
+                    from google.genai import types
+                    response = client.models.generate_content(
+                        model="gemini-2.5-flash",
+                        contents=user_prompt,
+                        config=types.GenerateContentConfig(
+                            system_instruction=SYSTEM_PROMPT,
+                            temperature=0.5,
+                            response_mime_type="application/json"
+                        )
+                    )
+                    raw = response.text
                     data = _extract_json(raw)
                     _validate_lesson(data, exercises_count)
 
