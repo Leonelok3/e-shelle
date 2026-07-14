@@ -285,9 +285,16 @@ class Command(BaseCommand):
                     _validate_lesson(data, exercises_count)
 
                     # Création de la leçon
+                    base_slug = slugify(f"tcf-co-{level}-{lesson_order}").lower()
+                    slug = base_slug
+                    counter = 1
+                    while CourseLesson.objects.filter(slug=slug).exists():
+                        slug = f"{base_slug}-{counter}"
+                        counter += 1
+
                     lesson = CourseLesson.objects.create(
                         title=data["title"][:255],
-                        slug=slugify(f"tcf-co-{level}-{lesson_order}").lower(),
+                        slug=slug,
                         section="co",
                         level=level,
                         content_html=data["content"],
