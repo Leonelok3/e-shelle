@@ -1,81 +1,144 @@
 /* ============================================================
    preparation_tests.css — E-Shelle 2026
+   Thème « Canada Blanc » 🇨🇦
    Leçons & exercices Français (TEF/TCF/DELF/DALF)
+   Palette : Rouge drapeau · Bleu nuit · Blanc · Feuille d'érable
    ============================================================ */
 
-/* ─── Animations ─────────────────────────────────────────── */
+/* ─── Variables Canada — Rouge · Blanc · Noir ─────────── */
+:root {
+  --ca-red:        #D52B1E;   /* Rouge drapeau Canada */
+  --ca-red-dark:   #A41E1E;   /* Rouge profond (hover) */
+  --ca-red-soft:   #FDE8E6;   /* Rouge très clair (fonds) */
+  --ca-black:      #0A0A0A;   /* Noir profond (titres, texte fort) */
+  --ca-ink:        #1f2937;   /* Noir adouci (corps de texte) */
+  --ca-muted:      #64748b;   /* Gris (texte secondaire) */
+  --ca-white:      #FFFFFF;
+  --ca-snow:       #F8FAFC;   /* Gris neige (sections alternées) */
+  --ca-border:     #E2E8F0;   /* Bordure subtile */
+  --ca-maple:      #E8820E;   /* Orange feuille d'érable (accent) */
+  --ca-shadow:     0 4px 16px rgba(10, 10, 10, .08);
+  --ca-shadow-md:  0 8px 28px rgba(10, 10, 10, .14);
+  --ca-shadow-red: 0 4px 16px rgba(213, 43, 30, .25);
+}
+
+/* ─── Fond blanc forcé sur l'app ───────────────────────── */
+body.preparation-tests,
+body.preparation-tests #main-content {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: var(--ca-ink) !important;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
 @keyframes pt-fade-up {
   from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes pt-maple-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
 .pt-fade-up { animation: pt-fade-up .45s cubic-bezier(.22,1,.36,1) both; }
 
-/* ─── Container ─────────────────────────────────────────── */
+/* ============================================================
+   CONTAINER
+   ============================================================ */
 .container {
   max-width: 1060px;
   margin: 0 auto;
   padding: 0 1.25rem;
 }
 
-/* ─── Hero section ───────────────────────────────────────── */
+/* ============================================================
+   HERO SECTION
+   ============================================================ */
 .pt-hero {
-  background: linear-gradient(135deg,
-    rgba(46,125,50,.22) 0%,
-    rgba(10,10,10,.9) 100%);
-  border-bottom: 1px solid rgba(76,175,80,.18);
-  padding: 2.5rem 0 2rem;
+  background:
+    linear-gradient(135deg, #ffffff 0%, var(--ca-red-soft) 100%);
+  border-bottom: 4px solid var(--ca-black);
+  box-shadow: inset 0 -4px 0 0 var(--ca-red);
+  padding: 3rem 0 2.5rem;
   margin-top: 4.5rem;
+  position: relative;
+  overflow: hidden;
 }
-.pt-hero--lesson {
-  padding-bottom: 1.5rem;
+/* Feuille d'érable décorative (subtile) */
+.pt-hero::after {
+  content: '🍁';
+  position: absolute;
+  right: 3rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 8rem;
+  opacity: .06;
+  pointer-events: none;
 }
-.pt-hero--session {
-  padding: 1.5rem 0 1.25rem;
-}
+.pt-hero--lesson { padding-bottom: 1.5rem; }
+.pt-hero--session { padding: 1.5rem 0 1.25rem; }
+.pt-hero--session::after { display: none; }
 
-/* Badge (TEF · CE · A2) */
+/* Badge hero (rouge drapeau) */
 .pt-badge {
   display: inline-flex;
   align-items: center;
   gap: .4rem;
-  background: rgba(76,175,80,.15);
-  border: 1px solid rgba(76,175,80,.3);
-  color: #4CAF50;
+  background: var(--ca-red);
+  border: none;
+  color: #fff;
   font-size: .72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .1em;
-  padding: .3rem .85rem;
+  padding: .35rem .9rem;
   border-radius: 999px;
-  margin-bottom: .85rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--ca-shadow-red);
+}
+/* Badge soft (gris clair, contour noir) */
+.pt-badge--soft {
+  background: #ffffff;
+  border: 1px solid #0A0A0A;
+  color: #0A0A0A;
+  box-shadow: none;
+  font-weight: 700;
 }
 
-/* Titre principal */
+/* Titre principal (bleu nuit) */
 .pt-title {
-  font-size: clamp(1.3rem, 4vw, 2rem);
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
   font-weight: 800;
-  color: #e8f5e9;
+  color: var(--ca-black);
   letter-spacing: -.025em;
-  line-height: 1.25;
+  line-height: 1.2;
   margin: 0 0 .75rem;
+}
+/* Gradient sur le mot TCF/TEF (rouge Canada) */
+.pt-gradient-primary {
+  background: linear-gradient(135deg, var(--ca-red), var(--ca-red-dark));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Lead text */
 .pt-lead {
-  font-size: .92rem;
-  color: rgba(255,255,255,.6);
-  line-height: 1.65;
+  font-size: .95rem;
+  color: #475569;
+  line-height: 1.7;
   margin: .75rem 0 0;
   max-width: 680px;
 }
-.pt-lead strong { color: #e8f5e9; }
+.pt-lead strong { color: var(--ca-black); font-weight: 700; }
 
 /* Mode tag */
 .pt-mode-tag {
   display: inline-block;
-  background: rgba(255,152,0,.12);
-  border: 1px solid rgba(255,152,0,.25);
-  color: #FF9800;
+  background: #FEF3C7;
+  border: 1px solid #FCD34D;
+  color: #92400E;
   font-size: .72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -85,21 +148,31 @@
   margin-bottom: .75rem;
 }
 
+/* Avantages badges */
+.pt-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: 1.25rem;
+}
+
 /* Stats row */
 .pt-stats-row {
   display: flex;
   gap: 1.5rem;
   flex-wrap: wrap;
   font-size: .82rem;
-  color: rgba(255,255,255,.5);
+  color: #64748b;
   margin-top: .5rem;
 }
-.pt-stats-row strong { color: #4CAF50; font-weight: 700; }
+.pt-stats-row strong { color: var(--ca-red); font-weight: 700; }
 
-/* ─── Progress bar ───────────────────────────────────────── */
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
 .pt-progress-wrap {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.08);
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
   border-radius: 12px;
   padding: 1rem 1.25rem;
   margin: 1rem 0;
@@ -114,15 +187,15 @@
 .pt-progress-label {
   font-size: .78rem;
   font-weight: 600;
-  color: rgba(255,255,255,.5);
+  color: #64748b;
 }
 .pt-progress-stats {
   font-size: .78rem;
   font-weight: 700;
-  color: #4CAF50;
+  color: var(--ca-red);
 }
 .pt-progress-bar {
-  background: rgba(255,255,255,.08);
+  background: #e2e8f0;
   border-radius: 999px;
   height: 8px;
   overflow: hidden;
@@ -130,28 +203,33 @@
 .pt-progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #2E7D32, #4CAF50);
+  background: linear-gradient(90deg, var(--ca-red-dark), var(--ca-red));
   transition: width .5s ease;
 }
 .pt-progress-hint {
   font-size: .72rem;
-  color: rgba(255,255,255,.3);
+  color: #94a3b8;
   margin: .4rem 0 0;
 }
 
-/* ─── Sections ───────────────────────────────────────────── */
+/* ============================================================
+   SECTIONS
+   ============================================================ */
 .pt-section {
-  padding: 1.75rem 0;
+  padding: 2rem 0;
+  background: #ffffff;
 }
 
-/* ─── Grid layout (main + sidebar) ──────────────────────── */
+/* ============================================================
+   GRID LAYOUT (main + sidebar)
+   ============================================================ */
 .pt-grid-layout {
   display: grid;
   gap: 1.5rem;
 }
 @media (min-width: 840px) {
   .pt-grid-layout {
-    grid-template-columns: 1fr 260px;
+    grid-template-columns: 1fr 280px;
   }
   .pt-side {
     align-self: start;
@@ -160,39 +238,124 @@
   }
 }
 
-/* ─── Cards ──────────────────────────────────────────────── */
+/* ============================================================
+   CARDS — cœur du design Canada
+   ============================================================ */
 .pt-card {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.08);
+  background: #ffffff;
+  border: 1px solid var(--ca-border);
   border-radius: 16px;
   padding: 1.6rem 1.75rem;
-  box-shadow: 0 4px 24px rgba(0,0,0,.4);
-  color: #e8f5e9;
+  box-shadow: var(--ca-shadow);
+  color: #1f2937;
   margin-bottom: 1.25rem;
+  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
 }
-.pt-card--premium-cta {
-  background: rgba(255,152,0,.08);
-  border-color: rgba(255,152,0,.25);
+.pt-card:hover {
+  box-shadow: var(--ca-shadow-md);
+  border-color: #cbd5e1;
 }
-.pt-card--premium-cta strong { color: #FF9800; }
-.pt-card--premium-cta p { color: rgba(255,255,255,.6); font-size: .88rem; }
+.pt-card h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--ca-black);
+  margin: 0 0 .75rem;
+}
+.pt-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ca-black);
+  margin: 0 0 .5rem;
+}
 
+/* Carte premium (orange feuille d'érable) */
+.pt-card--premium-cta {
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+.pt-card--premium-cta strong { color: #92400E; }
+.pt-card--premium-cta p { color: #78350f; font-size: .88rem; }
+
+/* Carte question */
 .pt-card--question {
   padding: 1.75rem 2rem;
 }
+
+/* Carte sidebar */
 .pt-card--side {
   padding: 1.25rem 1.4rem;
+  background: var(--ca-snow);
 }
 .pt-card--side h3 {
-  font-size: .85rem;
-  font-weight: 700;
+  font-size: .8rem;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: .08em;
-  color: rgba(255,255,255,.45);
+  color: var(--ca-black);
   margin: 0 0 .85rem;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
 }
 
-/* ─── Question header ────────────────────────────────────── */
+/* Carte module (CO/CE/EE/EO) */
+.pt-card--module {
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+}
+/* Liseré rouge à gauche */
+.pt-card--module::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--ca-red), var(--ca-red-dark));
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.pt-card--module:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--ca-shadow-md);
+  border-color: rgba(213, 43, 30, .3);
+}
+.pt-card--module:hover::before { opacity: 1; }
+.pt-card--module h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ca-black);
+}
+
+/* Métadonnée / description carte */
+.pt-card-meta {
+  font-size: .85rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 .85rem;
+}
+.pt-card-meta strong { color: var(--ca-black); font-weight: 700; }
+
+/* Carte actions (examen blanc / coach IA) */
+.pt-card--actions {
+  border-left: 4px solid var(--ca-red);
+}
+
+/* ============================================================
+   GRILLE DE MODULES (2 colonnes desktop)
+   ============================================================ */
+.pt-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: .5rem;
+}
+@media (max-width: 640px) {
+  .pt-modules-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   QUESTION HEADER
+   ============================================================ */
 .pt-question-header {
   display: flex;
   justify-content: space-between;
@@ -201,38 +364,43 @@
   gap: .5rem;
   margin-bottom: 1.25rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255,255,255,.07);
+  border-bottom: 1px solid var(--ca-border);
 }
 .pt-question-scope {
   font-size: .95rem;
   font-weight: 700;
-  color: #4CAF50;
+  color: var(--ca-red);
   margin: 0;
 }
 .pt-question-time {
   font-size: .75rem;
-  color: rgba(255,255,255,.35);
-  background: rgba(255,255,255,.05);
+  color: #64748b;
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
   border-radius: 999px;
   padding: .2rem .65rem;
 }
 
-/* ─── Question stem ──────────────────────────────────────── */
+/* ============================================================
+   QUESTION STEM
+   ============================================================ */
 .pt-question-stem {
   font-size: .95rem;
-  color: rgba(255,255,255,.75);
+  color: #334155;
   line-height: 1.7;
   margin-bottom: 1.25rem;
   padding: 1rem 1.1rem;
-  background: rgba(255,255,255,.03);
-  border-left: 3px solid rgba(76,175,80,.4);
+  background: var(--ca-snow);
+  border-left: 3px solid var(--ca-red);
   border-radius: 0 8px 8px 0;
 }
 
-/* ─── Audio block ────────────────────────────────────────── */
+/* ============================================================
+   AUDIO BLOCK
+   ============================================================ */
 .pt-audio-box {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.08);
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
   border-radius: 10px;
   padding: 1rem 1.25rem;
   margin-bottom: 1.25rem;
@@ -245,10 +413,11 @@
   flex: 1;
   border-radius: 8px;
   height: 38px;
-  filter: invert(1) hue-rotate(100deg) brightness(.85);
 }
 
-/* ─── Choices (QCM) ──────────────────────────────────────── */
+/* ============================================================
+   CHOICES (QCM)
+   ============================================================ */
 .pt-choices {
   display: flex;
   flex-direction: column;
@@ -260,55 +429,61 @@
   align-items: center;
   gap: .85rem;
   padding: .85rem 1.1rem;
-  border: 1.5px solid rgba(255,255,255,.08);
+  border: 1.5px solid var(--ca-border);
   border-radius: 10px;
   cursor: pointer;
   font-size: .9rem;
-  color: rgba(255,255,255,.72);
-  background: transparent;
-  transition: border-color .15s, background .15s, transform .1s;
+  color: #334155;
+  background: #ffffff;
+  transition: border-color .15s, background .15s, transform .1s, box-shadow .15s;
   user-select: none;
 }
 .pt-choice:hover {
-  border-color: rgba(76,175,80,.4);
-  background: rgba(76,175,80,.06);
+  border-color: var(--ca-red);
+  background: var(--ca-red-soft);
   transform: translateX(2px);
 }
 .pt-choice input[type=radio] {
-  accent-color: #4CAF50;
+  accent-color: var(--ca-red);
   width: 16px; height: 16px;
   flex-shrink: 0;
 }
 .pt-choice:has(input:checked) {
-  border-color: #4CAF50;
-  background: rgba(76,175,80,.1);
-  color: #e8f5e9;
+  border-color: var(--ca-red);
+  background: var(--ca-red-soft);
+  color: var(--ca-black);
+  font-weight: 600;
+  box-shadow: 0 0 0 3px rgba(213, 43, 30, .1);
 }
 
-/* ─── Open text (EE/EO) ──────────────────────────────────── */
+/* ============================================================
+   OPEN TEXT (EE/EO)
+   ============================================================ */
 .pt-open-text textarea {
   width: 100%;
   min-height: 160px;
-  background: rgba(255,255,255,.04);
-  border: 1.5px solid rgba(255,255,255,.1);
+  background: #ffffff;
+  border: 1.5px solid var(--ca-border);
   border-radius: 10px;
-  color: #e8f5e9;
+  color: #1f2937;
   font-family: inherit;
   font-size: .93rem;
   line-height: 1.65;
   padding: .85rem 1.1rem;
   resize: vertical;
   outline: none;
-  transition: border-color .2s;
+  transition: border-color .2s, box-shadow .2s;
   box-sizing: border-box;
 }
 .pt-open-text textarea:focus {
-  border-color: #4CAF50;
-  background: rgba(76,175,80,.04);
+  border-color: var(--ca-red);
+  box-shadow: 0 0 0 3px rgba(213, 43, 30, .1);
 }
-.pt-open-text textarea::placeholder { color: rgba(255,255,255,.25); }
+.pt-open-text textarea::placeholder { color: #94a3b8; }
 
-/* ─── Card footer ────────────────────────────────────────── */
+/* ============================================================
+   CARD FOOTER
+   ============================================================ */
 .pt-card-footer {
   display: flex;
   align-items: center;
@@ -316,43 +491,189 @@
   flex-wrap: wrap;
   padding-top: 1.1rem;
   margin-top: 1rem;
-  border-top: 1px solid rgba(255,255,255,.07);
+  border-top: 1px solid var(--ca-border);
 }
 
-/* ─── Buttons ────────────────────────────────────────────── */
+/* ============================================================
+   BUTTONS — identité Canada
+   ============================================================ */
+
+/* Groupe CTA */
+.pt-cta-group {
+  display: flex;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin-top: .25rem;
+}
+.pt-cta-group .pt-btn-primary,
+.pt-cta-group .pt-btn-secondary,
+.pt-cta-group .pt-btn-ghost {
+  flex: 1;
+  min-width: 140px;
+  justify-content: center;
+}
+
+/* Primaire — rouge Canada */
 .pt-btn-primary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: .5rem;
-  background: linear-gradient(135deg, #2E7D32, #4CAF50);
-  color: #fff;
+  background: linear-gradient(135deg, var(--ca-red), var(--ca-red-dark));
+  color: #fff !important;
   border: none;
   border-radius: 10px;
-  padding: .8rem 1.75rem;
-  font-size: .9rem;
+  padding: .7rem 1.4rem;
+  font-size: .85rem;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
   text-decoration: none;
-  transition: opacity .2s, transform .1s, box-shadow .2s;
-  box-shadow: 0 4px 16px rgba(46,125,50,.35);
+  transition: opacity .2s, transform .15s, box-shadow .2s;
+  box-shadow: var(--ca-shadow-red);
 }
 .pt-btn-primary:hover {
-  opacity: .9;
+  opacity: .92;
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(46,125,50,.5);
-  color: #fff;
+  box-shadow: 0 6px 22px rgba(213, 43, 30, .4);
+  color: #fff !important;
+}
+.pt-btn-primary:active { transform: translateY(0); }
+
+/* Secondaire — contour rouge sur blanc */
+.pt-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  background: #ffffff;
+  color: var(--ca-red) !important;
+  border: 1.5px solid var(--ca-red);
+  border-radius: 10px;
+  padding: .7rem 1.4rem;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  transition: background .15s, transform .15s, box-shadow .15s;
+}
+.pt-btn-secondary:hover {
+  background: var(--ca-red-soft);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(213, 43, 30, .15);
+  color: var(--ca-red-dark) !important;
 }
 
+/* Ghost — contour noir (très Canada) */
+.pt-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  background: transparent;
+  color: var(--ca-black) !important;
+  border: 1.5px solid var(--ca-black);
+  border-radius: 10px;
+  padding: .7rem 1.4rem;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  transition: background .15s, border-color .15s, transform .15s;
+}
+.pt-btn-ghost:hover {
+  background: var(--ca-black);
+  color: #fff !important;
+  transform: translateY(-1px);
+}
+
+/* Lien muted */
 .pt-link-muted {
   font-size: .83rem;
-  color: rgba(255,255,255,.4);
+  color: #94a3b8;
   text-decoration: none;
   transition: color .15s;
 }
-.pt-link-muted:hover { color: rgba(255,255,255,.7); }
+.pt-link-muted:hover { color: var(--ca-red); }
 
-/* ─── Sidebar list ───────────────────────────────────────── */
+/* Back link wrapper */
+.pt-back-link {
+  margin-top: 1rem;
+}
+
+/* ============================================================
+   SIDEBAR — Recrutement Canada
+   ============================================================ */
+
+/* Carte Recrutement Canada — identité forte 🍁 */
+.pt-card--side.pt-canada-card {
+  background: linear-gradient(160deg, #ffffff 0%, var(--ca-red-soft) 100%);
+  border: 1.5px solid rgba(213, 43, 30, .3);
+}
+.pt-canada-card h3 {
+  color: var(--ca-red) !important;
+  font-size: .95rem !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+/* Conteneur boutons sidebar */
+.pt-canada-links {
+  margin-top: .85rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.pt-canada-links a {
+  text-decoration: none;
+  padding: .55rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: .82rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  text-align: center;
+  justify-content: center;
+  transition: transform .15s, box-shadow .15s, background .15s;
+  border: 1.5px solid transparent;
+}
+.pt-canada-links a:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .08);
+}
+
+/* Variante : bouton plein rouge */
+.pt-canada-links .ca-link--primary {
+  background: var(--ca-red);
+  color: #fff;
+}
+.pt-canada-links .ca-link--primary:hover {
+  background: var(--ca-red-dark);
+}
+
+/* Variante : bouton contour coloré sur blanc */
+.pt-canada-links .ca-link--outline-red    { border-color: var(--ca-red);    color: var(--ca-red);    background: #fff; }
+.pt-canada-links .ca-link--outline-navy   { border-color: var(--ca-black);   color: var(--ca-black);   background: #fff; }
+.pt-canada-links .ca-link--outline-slate  { border-color: #475569;          color: #475569;          background: #fff; }
+.pt-canada-links .ca-link--outline-amber  { border-color: #854d0e;          color: #854d0e;          background: #fff; }
+.pt-canada-links .ca-link--outline-green  { border-color: #15803d;          color: #15803d;          background: #fff; }
+.pt-canada-links .ca-link--outline-blue   { border-color: #0369a1;          color: #0369a1;          background: #fff; }
+.pt-canada-links .ca-link--outline-indigo { border-color: #4f46e5;          color: #4f46e5;          background: #fff; }
+
+.pt-canada-links .ca-link--outline-red:hover    { background: var(--ca-red-soft); }
+.pt-canada-links .ca-link--outline-navy:hover   { background: #f1f5f9; }
+.pt-canada-links .ca-link--outline-slate:hover  { background: #f1f5f9; }
+.pt-canada-links .ca-link--outline-amber:hover  { background: #fef3c7; }
+.pt-canada-links .ca-link--outline-green:hover  { background: #dcfce7; }
+.pt-canada-links .ca-link--outline-blue:hover   { background: #dbeafe; }
+.pt-canada-links .ca-link--outline-indigo:hover { background: #e0e7ff; }
+
+/* ============================================================
+   SIDEBAR LIST — puces feuille d'érable 🍁
+   ============================================================ */
 .pt-side-list {
   list-style: none;
   padding: 0;
@@ -360,25 +681,29 @@
 }
 .pt-side-list li {
   font-size: .82rem;
-  color: rgba(255,255,255,.55);
+  color: #475569;
   line-height: 1.55;
-  padding: .35rem 0;
-  border-bottom: 1px solid rgba(255,255,255,.05);
-  padding-left: 1.1rem;
+  padding: .4rem 0 .4rem 1.4rem;
+  border-bottom: 1px solid var(--ca-border);
   position: relative;
 }
 .pt-side-list li::before {
-  content: '→';
+  content: '🍁';
   position: absolute;
   left: 0;
-  color: #4CAF50;
-  font-weight: 700;
-  font-size: .75rem;
+  font-size: .7rem;
+  top: .55rem;
 }
 .pt-side-list li:last-child { border-bottom: none; }
-.pt-side-list li em { color: rgba(255,152,0,.85); font-style: italic; }
+.pt-side-list li em {
+  color: var(--ca-maple);
+  font-style: italic;
+  font-weight: 600;
+}
 
-/* ─── Banner retry ────────────────────────────────────────── */
+/* ============================================================
+   BANNER RETRY
+   ============================================================ */
 .pt-banner {
   padding: .75rem 1.25rem;
   font-size: .85rem;
@@ -386,29 +711,31 @@
   text-align: center;
 }
 .pt-banner--retry {
-  background: rgba(255,152,0,.1);
-  border-bottom: 1px solid rgba(255,152,0,.25);
-  color: #FF9800;
+  background: #FEF3C7;
+  border-bottom: 1px solid #FCD34D;
+  color: #92400E;
 }
 
-/* ─── Lesson content (.pt-lesson-content) ────────────────── */
+/* ============================================================
+   LESSON CONTENT
+   ============================================================ */
 .pt-lesson-content {
   font-size: .95rem;
-  color: rgba(255,255,255,.72);
+  color: #334155;
   line-height: 1.75;
 }
 .pt-lesson-content h2 {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #4CAF50;
+  color: var(--ca-red);
   margin: 1.75rem 0 .75rem;
   padding-bottom: .5rem;
-  border-bottom: 1px solid rgba(76,175,80,.2);
+  border-bottom: 2px solid var(--ca-red-soft);
 }
 .pt-lesson-content h3 {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #e8f5e9;
+  color: var(--ca-black);
   margin: 1.4rem 0 .6rem;
 }
 .pt-lesson-content p { margin: .75rem 0; }
@@ -417,69 +744,71 @@
   margin: .75rem 0;
 }
 .pt-lesson-content li { margin: .4rem 0; }
-.pt-lesson-content strong { color: #e8f5e9; }
-.pt-lesson-content em { color: #FF9800; }
+.pt-lesson-content strong { color: var(--ca-black); font-weight: 700; }
+.pt-lesson-content em { color: var(--ca-maple); font-style: italic; }
 .pt-lesson-content blockquote {
-  border-left: 3px solid #FF9800;
-  background: rgba(255,152,0,.07);
+  border-left: 3px solid var(--ca-maple);
+  background: #fff7ed;
   margin: 1rem 0;
   padding: .85rem 1.25rem;
   border-radius: 0 8px 8px 0;
   font-style: italic;
-  color: rgba(255,152,0,.85);
+  color: #9a3412;
 }
 
 /* EE sample answer */
 .ee-instructions {
-  background: rgba(76,175,80,.07);
-  border: 1px solid rgba(76,175,80,.2);
+  background: var(--ca-red-soft);
+  border: 1px solid rgba(213, 43, 30, .2);
   border-radius: 8px;
   padding: .85rem 1.1rem;
   margin: .75rem 0;
   font-size: .9rem;
-  color: rgba(255,255,255,.7);
+  color: #475569;
 }
 .ee-minwords {
   font-size: .85rem;
-  color: rgba(255,255,255,.5);
+  color: #64748b;
 }
 .ee-sample {
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(255,255,255,.07);
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
   border-radius: 8px;
   margin: .75rem 0;
   padding: .85rem 1.1rem;
 }
 .ee-sample summary {
   cursor: pointer;
-  color: #4CAF50;
+  color: var(--ca-red);
   font-size: .85rem;
   font-weight: 600;
 }
-.ee-sample p { font-size: .88rem; color: rgba(255,255,255,.6); margin: .5rem 0 0; }
+.ee-sample p { font-size: .88rem; color: #475569; margin: .5rem 0 0; }
 
 /* EO expected points */
 .eo-instructions {
-  background: rgba(255,152,0,.07);
-  border: 1px solid rgba(255,152,0,.2);
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
   border-radius: 8px;
   padding: .85rem 1.1rem;
   margin: .75rem 0;
   font-size: .9rem;
-  color: rgba(255,255,255,.7);
+  color: #475569;
 }
 .eo-points {
   margin: .75rem 0;
   padding-left: 1.4rem;
 }
 .eo-points li {
-  color: rgba(255,255,255,.65);
+  color: #475569;
   font-size: .9rem;
   line-height: 1.65;
   margin: .4rem 0;
 }
 
-/* ─── CEFR bar ────────────────────────────────────────────── */
+/* ============================================================
+   CEFR BAR
+   ============================================================ */
 .pt-cefr-bar {
   display: flex;
   gap: .35rem;
@@ -498,44 +827,47 @@
   display: flex; align-items: center; justify-content: center;
   font-size: .72rem;
   font-weight: 800;
-  border: 2px solid rgba(255,255,255,.15);
-  color: rgba(255,255,255,.4);
-  background: rgba(255,255,255,.04);
+  border: 2px solid var(--ca-border);
+  color: #94a3b8;
+  background: #ffffff;
   transition: all .2s;
 }
 .pt-cefr-item.active .pt-cefr-bubble {
-  background: linear-gradient(135deg, #2E7D32, #4CAF50);
-  border-color: #4CAF50;
+  background: linear-gradient(135deg, var(--ca-red), var(--ca-red-dark));
+  border-color: var(--ca-red);
   color: #fff;
-  box-shadow: 0 0 0 3px rgba(76,175,80,.25);
+  box-shadow: 0 0 0 3px rgba(213, 43, 30, .15);
 }
 .pt-cefr-item.done .pt-cefr-bubble {
-  background: rgba(76,175,80,.2);
-  border-color: rgba(76,175,80,.4);
-  color: #4CAF50;
+  background: var(--ca-red-soft);
+  border-color: rgba(213, 43, 30, .3);
+  color: var(--ca-red);
 }
 .pt-cefr-label {
   font-size: .62rem;
-  color: rgba(255,255,255,.3);
+  color: #94a3b8;
   font-weight: 600;
 }
-.pt-cefr-item.active .pt-cefr-label { color: #4CAF50; }
+.pt-cefr-item.active .pt-cefr-label { color: var(--ca-red); }
 
-/* ─── Responsive ─────────────────────────────────────────── */
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 640px) {
   .container { padding: 0 .85rem; }
 
   /* Hero */
-  .pt-hero { padding: 1.5rem 0 1rem; margin-top: 3.5rem; }
-  .pt-title { font-size: 1.15rem; }
-  .pt-lead { font-size: .86rem; }
+  .pt-hero { padding: 2rem 0 1.5rem; margin-top: 3.5rem; }
+  .pt-hero::after { font-size: 5rem; right: 1rem; }
+  .pt-title { font-size: 1.3rem; }
+  .pt-lead { font-size: .88rem; }
   .pt-stats-row { gap: .75rem; font-size: .78rem; }
 
   /* Grid — single column */
   .pt-grid-layout { grid-template-columns: 1fr; gap: 1rem; }
 
   /* Cards */
-  .pt-card { padding: 1rem 1rem; border-radius: 12px; }
+  .pt-card { padding: 1.1rem 1.1rem; border-radius: 12px; }
   .pt-card--question { padding: 1rem; }
   .pt-card--side { padding: .9rem 1rem; }
 
@@ -562,7 +894,15 @@
   /* Question stem */
   .pt-question-stem { font-size: .88rem; padding: .75rem .85rem; }
 
-  /* Section heading */
+  /* Lesson content */
   .pt-lesson-content h2 { font-size: 1rem; }
   .pt-lesson-content p, .pt-lesson-content li { font-size: .88rem; }
+
+  /* CTA group stack on mobile */
+  .pt-cta-group { flex-direction: column; }
+  .pt-cta-group .pt-btn-primary,
+  .pt-cta-group .pt-btn-secondary,
+  .pt-cta-group .pt-btn-ghost {
+    width: 100%;
+  }
 }

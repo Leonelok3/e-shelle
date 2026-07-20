@@ -524,6 +524,7 @@ urlpatterns = [
     path("allemagne/mon-cv/",       include("lebenslauf.urls",            namespace="lebenslauf")),
     path("allemagne/chancenkarte/", _allemagne_chancenkarte,              name="allemagne_chancenkarte"),
     path("allemagne/contrat-ausbildung/", _allemagne_contrat_ausbildung,  name="allemagne_contrat_ausbildung"),
+    path("allemagne/sw.js",         TemplateView.as_view(template_name="allemagne/sw.js", content_type="application/javascript"), name="allemagne_sw_js"),
     path("allemagne/",              _allemagne_hub,                       name="allemagne_hub"),
 
     # ── E-Shelle Canada — Hub immigration / Offres / CV Canadien ───────
