@@ -11,6 +11,7 @@ urlpatterns = [
     path("mes-favoris/",           views.my_bookmarks,    name="my_bookmarks"),
     path("candidats/",             views.candidate_profiles, name="candidate_profiles"),
     path("entreprises/",           views.top_companies,   name="top_companies"),
+    path("premium/",               views.premium_pricing, name="premium_pricing"),
     path("simulation/",            views.interview_simulator_hub, name="interview_simulator_hub"),
     path("simulation/demarrer/",   views.start_interview_simulation, name="start_interview_simulation"),
     path("simulation/<int:pk>/",   views.interview_simulation_detail, name="interview_simulation_detail"),

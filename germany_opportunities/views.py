@@ -394,6 +394,12 @@ def top_companies(request):
     return render(request, "germany_opportunities/top_companies.html", context)
 
 
+def premium_pricing(request):
+    """Page de tarification premium Allemagne (SaaS landing page)."""
+    return render(request, "germany_opportunities/premium_pricing.html")
+
+
+
 def check_user_has_paid_edu_subscription(user) -> bool:
     """Helper local pour vérifier l'abonnement premium edu d'un candidat."""
     if not user.is_authenticated:
