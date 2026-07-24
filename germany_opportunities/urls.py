@@ -9,4 +9,6 @@ urlpatterns = [
     path("offre/<int:pk>/bookmark/", views.toggle_bookmark, name="toggle_bookmark"),
     path("offre/<int:pk>/applied/",  views.mark_applied,    name="mark_applied"),
     path("mes-favoris/",           views.my_bookmarks,    name="my_bookmarks"),
+    path("candidats/",             views.candidate_profiles, name="candidate_profiles"),
+    path("entreprises/",           views.top_companies,   name="top_companies"),
 ]

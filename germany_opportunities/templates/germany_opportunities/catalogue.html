@@ -85,7 +85,7 @@
   {% if offers %}
   <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
     <div style="font-size:.9rem;color:var(--text-muted)">
-      {{ offers|length }} offre{{ offers|length|pluralize }} affichée{{ offers|length|pluralize }}
+      Page {{ offers.number }} sur {{ offers.paginator.num_pages }} — {{ total_offers }} offre{{ total_offers|pluralize }} active{{ total_offers|pluralize }}
     </div>
     <div style="font-size:.8rem;color:rgba(255,255,255,.55)">
       Les nouvelles opportunités apparaissent en haut de la liste.
@@ -153,6 +153,47 @@
     </div>
     {% endfor %}
   </div>
+
+  <!-- PAGINATION -->
+  {% if offers.has_other_pages %}
+  <div style="display:flex;justify-content:center;align-items:center;gap:0.5rem;margin:2rem 0 3rem;flex-wrap:wrap">
+    
+    {% if offers.has_previous %}
+      <a href="?page={{ offers.previous_page_number }}{% if active_sector %}&sector={{ active_sector }}{% endif %}{% if active_level %}&level={{ active_level }}{% endif %}{% if city_q %}&city={{ city_q }}{% endif %}{% if active_region %}&region={{ active_region }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}{% if active_sort %}&sort={{ active_sort }}{% endif %}"
+         style="padding:0.6rem 1rem;background:#0a0a0a;border:1px solid rgba(255,255,255,0.15);border-radius:0.5rem;color:#fff;text-decoration:none;font-size:0.85rem;font-weight:700;transition:all 0.2s"
+         onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(255,206,0,0.5)'"
+         onmouseout="this.style.background='#0a0a0a'; this.style.borderColor='rgba(255,255,255,0.15)'">
+        &laquo; Précédent
+      </a>
+    {% endif %}
+
+    {% for i in offers.paginator.page_range %}
+      {% if offers.number == i %}
+        <span style="padding:0.6rem 1.1rem;background:#ffce00;color:#000;border:1px solid #ffce00;border-radius:0.5rem;font-size:0.85rem;font-weight:800">
+          {{ i }}
+        </span>
+      {% elif i > offers.number|add:-3 and i < offers.number|add:3 %}
+        <a href="?page={{ i }}{% if active_sector %}&sector={{ active_sector }}{% endif %}{% if active_level %}&level={{ active_level }}{% endif %}{% if city_q %}&city={{ city_q }}{% endif %}{% if active_region %}&region={{ active_region }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}{% if active_sort %}&sort={{ active_sort }}{% endif %}"
+           style="padding:0.6rem 1.1rem;background:#0a0a0a;border:1px solid rgba(255,255,255,0.1);border-radius:0.5rem;color:#cbd5e0;text-decoration:none;font-size:0.85rem;font-weight:700;transition:all 0.2s"
+           onmouseover="this.style.background='rgba(255,255,255,0.06)'; this.style.color='#fff'; this.style.borderColor='rgba(255,255,255,0.2)'"
+           onmouseout="this.style.background='#0a0a0a'; this.style.color='#cbd5e0'; this.style.borderColor='rgba(255,255,255,0.1)'">
+          {{ i }}
+        </a>
+      {% endif %}
+    {% endfor %}
+
+    {% if offers.has_next %}
+      <a href="?page={{ offers.next_page_number }}{% if active_sector %}&sector={{ active_sector }}{% endif %}{% if active_level %}&level={{ active_level }}{% endif %}{% if city_q %}&city={{ city_q }}{% endif %}{% if active_region %}&region={{ active_region }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}{% if active_sort %}&sort={{ active_sort }}{% endif %}"
+         style="padding:0.6rem 1rem;background:#0a0a0a;border:1px solid rgba(255,255,255,0.15);border-radius:0.5rem;color:#fff;text-decoration:none;font-size:0.85rem;font-weight:700;transition:all 0.2s"
+         onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(255,206,0,0.5)'"
+         onmouseout="this.style.background='#0a0a0a'; this.style.borderColor='rgba(255,255,255,0.15)'">
+        Suivant &raquo;
+      </a>
+    {% endif %}
+
+  </div>
+  {% endif %}
+
   {% else %}
   <div style="text-align:center;padding:4rem 2rem;color:var(--text-muted)">
     <div style="font-size:3rem;margin-bottom:1rem">🔍</div>

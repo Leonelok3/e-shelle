@@ -184,13 +184,19 @@ def fetch_ausbildung_offers(self):
         last_seen__lt=stale_cutoff, is_active=True
     ).update(is_active=False)
 
+    # Supprimer les offres dont la date de debut (start_date) est depassee
+    from datetime import date as dt_date
+    deleted_expired, _ = AusbildungOffer.objects.filter(
+        start_date__lt=dt_date.today()
+    ).delete()
+
     log.info(
         f"fetch_ausbildung_offers: +{created_count} new, {updated_count} updated, "
-        f"{deactivated} deactivated, {errors} errors"
+        f"{deactivated} deactivated, {deleted_expired} deleted (expired), {errors} errors"
     )
     return {
         "created": created_count, "updated": updated_count,
-        "deactivated": deactivated, "errors": errors
+        "deactivated": deactivated, "deleted_expired": deleted_expired, "errors": errors
     }
 
 

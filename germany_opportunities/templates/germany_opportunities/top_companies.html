@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Top 100 Entreprises d'Ausbildung — Allemagne | E-Shelle{% endblock %}
+
+{% block content %}
+<div style="max-width:1200px;margin:0 auto;padding:2rem 1rem 4rem;color:#fff">
+
+  <!-- HEADER -->
+  <div style="margin-bottom:2.5rem">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">
+      <a href="{% url 'allemagne_hub' %}" style="color:#a0aec0;font-size:.85rem;text-decoration:none">🇩🇪 Votre chemin</a>
+      <span style="color:#a0aec0">/</span>
+      <span style="font-size:.85rem;color:#e2e8f0">Top 100 Entreprises</span>
+    </div>
+    <h1 style="font-size:2rem;font-weight:800;margin:0 0 .5rem;color:#fff;display:flex;align-items:center;gap:.5rem">
+      🏢 Les 100 Meilleures Entreprises d'Ausbildung
+    </h1>
+    <p style="color:#a0aec0;margin:0;font-size:0.95rem">
+      Consultez les plus grands employeurs proposant des contrats de formation professionnelle rémunérée en Allemagne.
+    </p>
+  </div>
+
+  <!-- FILTRES -->
+  <form method="get" style="background:#0f111a;border:1px solid rgba(255, 206, 0, 0.3);border-radius:1rem;padding:1.25rem;margin-bottom:2rem;display:flex;gap:1rem;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,0.5)">
+    <div style="flex:1">
+      <input type="text" name="q" value="{{ search_q }}" placeholder="Rechercher par nom d'entreprise, ville (Munich, Berlin...) ou secteur..."
+        style="width:100%;padding:.75rem 1rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.12);background:#1a1d29;color:#fff;font-size:.95rem">
+    </div>
+    <button type="submit" style="padding:.75rem 1.75rem;background:#ffce00;color:#000;border:none;border-radius:.6rem;font-weight:800;cursor:pointer;font-size:.95rem;transition:all 0.2s" onmouseover="this.style.backgroundColor='#e0a800'; this.style.transform='translateY(-1px)'" onmouseout="this.style.backgroundColor='#ffce00'; this.style.transform='translateY(0)'">
+      Rechercher
+    </button>
+    {% if search_q %}
+      <a href="?" style="padding:.75rem 1.25rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:.6rem;color:#fff;text-decoration:none;font-size:.95rem;font-weight:600;transition:all 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+        Réinitialiser
+      </a>
+    {% endif %}
+  </form>
+
+  <!-- GRILLE DES ENTREPRISES -->
+  {% if companies %}
+    <div style="font-size:0.95rem;color:#cbd5e0;margin-bottom:1.5rem">
+      Affichage de <strong style="color:#ffce00;font-size:1.05rem">{{ total_companies }}</strong> entreprise{{ total_companies|pluralize }} correspondante{{ total_companies|pluralize }}
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(340px, 1fr));gap:1.5rem">
+      {% for company in companies %}
+        <div class="company-card" style="background:#0f111a;border:1px solid rgba(255,255,255,0.08);border-radius:1rem;padding:1.5rem;display:flex;flex-direction:column;justify-content:space-between;position:relative;transition:all 0.3s ease;box-shadow:0 8px 24px rgba(0,0,0,0.2)" onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='rgba(255,206,0,0.4)'; this.style.boxShadow='0 12px 30px rgba(0,0,0,0.35)'" onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255,255,255,0.08)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.2)'">
+          
+          <div>
+            <!-- Header avec initiales de l'entreprise -->
+            <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem">
+              <div style="width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg, #1f2937 0%, #111827 100%);border:1.5px solid rgba(255,206,0,0.2);color:#ffce00;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.25rem">
+                {{ company.name|slice:":2"|upper }}
+              </div>
+              <div>
+                <h3 style="margin:0;font-size:1.15rem;font-weight:800;color:#fff">{{ company.name }}</h3>
+                <span style="display:inline-block;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#cbd5e0;font-size:0.72rem;font-weight:700;padding:0.15rem 0.45rem;border-radius:4px;margin-top:0.25rem">
+                  {{ company.sector }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Villes clés -->
+            <div style="font-size:0.85rem;color:#cbd5e0;margin-bottom:1rem;line-height:1.45">
+              <strong style="color:#a0aec0;display:block;margin-bottom:0.15rem;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.04em">Présence en Allemagne</strong>
+              📍 {{ company.cities }}
+            </div>
+          </div>
+
+          <!-- Footer carte avec statut d'offre active -->
+          <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:1rem;margin-top:auto;display:flex;align-items:center;justify-content:space-between">
+            {% if company.count > 0 %}
+              <div style="display:flex;align-items:center;gap:0.35rem">
+                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e"></span>
+                <span style="font-size:0.8rem;color:#22c55e;font-weight:700">{{ company.count }} offre{{ company.count|pluralize }} active{{ company.count|pluralize }}</span>
+              </div>
+              <a href="{% url 'germany_opportunities:catalogue' %}?q={{ company.name }}" style="padding:0.45rem 0.95rem;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:0.5rem;color:#85e3b2;font-weight:700;font-size:0.8rem;text-decoration:none;transition:all 0.2s" onmouseover="this.style.background='rgba(34,197,94,0.35)'; this.style.color='#fff'" onmouseout="this.style.background='rgba(34,197,94,0.15)'; this.style.color='#85e3b2'">
+                Voir les offres →
+              </a>
+            {% else %}
+              <span style="font-size:0.8rem;color:#a0aec0;font-style:italic">Aucune offre active en ce moment</span>
+              <a href="{% url 'germany_opportunities:catalogue' %}?q={{ company.name }}" style="padding:0.45rem 0.95rem;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:0.5rem;color:#cbd5e0;font-weight:700;font-size:0.8rem;text-decoration:none;transition:all 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,0.04)'; this.style.color='#cbd5e0'">
+                Rechercher offres
+              </a>
+            {% endif %}
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <!-- AUCUN RÉSULTAT -->
+    <div style="background:#0f111a;border:1px solid rgba(255,255,255,0.06);border-radius:1rem;padding:4rem 2rem;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.3)">
+      <span style="font-size:3.5rem">🔍</span>
+      <h3 style="font-size:1.5rem;font-weight:800;color:#fff;margin:1.5rem 0 0.5rem">Aucune entreprise ne correspond</h3>
+      <p style="color:#cbd5e0;max-width:500px;margin:0 auto 1.5rem;line-height:1.6">
+        Ajustez vos filtres de recherche pour découvrir de grands employeurs proposant des contrats d'Ausbildung.
+      </p>
+      <a href="?" style="display:inline-block;padding:0.65rem 1.5rem;background:#ffce00;color:#000;text-decoration:none;border-radius:0.5rem;font-weight:700;transition:background 0.2s" onmouseover="this.style.background='#e0a800'" onmouseout="this.style.background='#ffce00'">
+        Réinitialiser la recherche
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
