@@ -274,9 +274,7 @@ def mon_compte(request):
     # Apps disponibles avec leur état
     apps_info = []
     for key, label in AppKey.choices:
-        # Pour l'allemand et le français (prep), l'abonnement réel en BDD est 'edu'
-        sub_key = "edu" if key in ["allemand", "prep"] else key
-        sub = active_subs.get(sub_key)
+        sub = active_subs.get(key)
         
         # Déterminer l'URL d'ouverture
         url = f"/{key}/"
