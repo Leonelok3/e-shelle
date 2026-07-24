@@ -393,3 +393,236 @@ def top_companies(request):
     }
     return render(request, "germany_opportunities/top_companies.html", context)
 
+
+def check_user_has_paid_edu_subscription(user) -> bool:
+    """Helper local pour vérifier l'abonnement premium edu d'un candidat."""
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    if hasattr(user, "profile") and user.profile.plan in ["pro", "enterprise"]:
+        return True
+    try:
+        from accounts.models import AppSubscription
+        sub = AppSubscription.get_active_for_user(user, "edu")
+        if sub and sub.is_active and not sub.plan.is_free:
+            return True
+    except Exception:
+        pass
+    return False
+
+
+@login_required
+def interview_simulator_hub(request):
+    """Affiche la liste des simulations de l'utilisateur et permet d'en lancer une nouvelle."""
+    from .models import AusbildungInterviewSimulation
+    from django.contrib import messages
+
+    is_premium = check_user_has_paid_edu_subscription(request.user)
+    simulations = AusbildungInterviewSimulation.objects.filter(user=request.user).order_by("-created_at")
+
+    # Secteurs d'activité possibles
+    SECTOR_CHOICES = list(AusbildungOffer.SECTOR_CHOICES) + [("autre", "Autre / Candidature Spontanée")]
+
+    context = {
+        "simulations":    simulations,
+        "sector_choices": SECTOR_CHOICES,
+        "is_premium":      is_premium,
+    }
+    return render(request, "germany_opportunities/interview_simulator_hub.html", context)
+
+
+@login_required
+@require_POST
+def start_interview_simulation(request):
+    """Démarre une nouvelle simulation d'entretien."""
+    from .models import AusbildungInterviewSimulation
+    from ai_engine.services.llm_service import call_llm
+    from django.contrib import messages
+
+    sector = request.POST.get("sector", "autre").strip()
+    is_premium = check_user_has_paid_edu_subscription(request.user)
+
+    # Restriction Premium
+    if not is_premium and sector != "autre":
+        messages.warning(request, "L'accès aux simulations par secteur d'activité est réservé aux abonnés Premium. Vous pouvez essayer le mode d'essai gratuit.")
+        return redirect("germany_opportunities:interview_simulator_hub")
+
+    # Création de la simulation
+    sim = AusbildungInterviewSimulation.objects.create(
+        user=request.user,
+        sector=sector,
+        messages=[]
+    )
+
+    # Premier appel Gemini pour la question d'intro
+    sector_display = dict(list(AusbildungOffer.SECTOR_CHOICES) + [("autre", "Autre / Candidature Spontanée")]).get(sector, sector)
+    system_prompt = (
+        "Du bist Herr Schmidt, un directeur des ressources humaines (DRH) allemand très expérimenté "
+        f"qui recrute pour une Ausbildung dans le secteur : {sector_display}.\n"
+        "Tu mènes un entretien en ALLEMAND avec un candidat international.\n"
+        "Présente-toi brièvement et poliment en allemand, souhaite la bienvenue au candidat, "
+        "et pose-lui la première question classique (ex: lui demander de se présenter brièvement "
+        "et d'expliquer pourquoi il s'intéresse à ce métier).\n"
+        "Parle UNIQUEMENT en allemand professionnel. Ne mets aucune traduction."
+    )
+
+    try:
+        first_question = call_llm(system_prompt, "Démarrer l'entretien.")
+    except Exception:
+        first_question = ""
+
+    if not first_question:
+        first_question = "Guten Tag. Ich bin Herr Schmidt. Herzlich willkommen zu unserem Gespräch. Bitte stellen Sie sich kurz vor und erklären Sie, warum Sie sich für diese Ausbildung interessieren."
+
+    sim.messages = [{"role": "assistant", "content": first_question}]
+    sim.save()
+
+    return redirect("germany_opportunities:interview_simulation_detail", pk=sim.pk)
+
+
+@login_required
+def interview_simulation_detail(request, pk):
+    """Salle de simulation d'entretien interactif (chat)."""
+    from .models import AusbildungInterviewSimulation
+    sim = get_object_or_404(AusbildungInterviewSimulation, pk=pk, user=request.user)
+    
+    sector_display = dict(list(AusbildungOffer.SECTOR_CHOICES) + [("autre", "Autre / Candidature Spontanée")]).get(sim.sector, sim.sector)
+
+    # Rendu du feedback structuré s'il est déjà évalué
+    feedback_structured = {}
+    if sim.is_completed and sim.feedback:
+        raw = sim.feedback
+        for key in ["SCORE", "CORRECTIONS", "VOCABULAIRE", "RECOMMANDATIONS"]:
+            marker = f"=== {key} ==="
+            if marker in raw:
+                try:
+                    parts = raw.split(marker)[1]
+                    if "===" in parts:
+                        parts = parts.split("===")[0]
+                    feedback_structured[key.lower()] = parts.strip()
+                except Exception:
+                    pass
+
+    context = {
+        "simulation": sim,
+        "sector_display": sector_display,
+        "feedback_structured": feedback_structured,
+    }
+    return render(request, "germany_opportunities/interview_simulator_detail.html", context)
+
+
+@login_required
+@require_POST
+def interview_simulation_message(request, pk):
+    """Réception d'un message du candidat et relance en allemand par Herr Schmidt."""
+    from .models import AusbildungInterviewSimulation
+    from ai_engine.services.llm_service import call_llm
+
+    sim = get_object_or_404(AusbildungInterviewSimulation, pk=pk, user=request.user)
+    if sim.is_completed:
+        return JsonResponse({"status": "error", "message": "Cet entretien est déjà terminé."})
+
+    message = request.POST.get("message", "").strip()
+    if not message:
+        return JsonResponse({"status": "error", "message": "Message vide."})
+
+    # Ajouter le message utilisateur
+    sim.messages.append({"role": "user", "content": message})
+    sim.save(update_fields=["messages"])
+
+    # Reconstruire le fil de discussion pour l'IA
+    history_str = ""
+    for m in sim.messages:
+        role_name = "Recruteur (Herr Schmidt)" if m["role"] == "assistant" else "Candidat"
+        history_str += f"{role_name} : {m['content']}\n\n"
+
+    sector_display = dict(list(AusbildungOffer.SECTOR_CHOICES) + [("autre", "Autre / Candidature Spontanée")]).get(sim.sector, sim.sector)
+    system_prompt = (
+        "Du bist Herr Schmidt, un recruteur allemand expérimenté qui mène un entretien d'embauche "
+        f"en ALLEMAND dans le secteur : {sector_display}.\n"
+        "Voici l'historique de notre conversation actuelle. Réagis brièvement à la dernière réponse "
+        "du candidat, puis pose-lui la question suivante dans l'ordre d'un entretien classique "
+        "(par exemple, sur ses motivations, son expérience d'équipe, ou son adaptation en Allemagne).\n"
+        "Parle UNIQUEMENT en allemand professionnel. Ne pose JAMAIS deux questions à la fois. "
+        "Pas de traductions ou de remarques hors rôle."
+    )
+
+    try:
+        ai_response = call_llm(system_prompt, history_str)
+    except Exception:
+        ai_response = ""
+
+    if not ai_response:
+        ai_response = "Ich verstehe. Können Sie mir bitte erklären, wie Sie in stressigen Situationen die Ruhe bewahren?"
+
+    # Enregistrer la question du recruteur
+    sim.messages.append({"role": "assistant", "content": ai_response})
+    sim.save(update_fields=["messages"])
+
+    return JsonResponse({"status": "success", "ai_response": ai_response})
+
+
+@login_required
+@require_POST
+def interview_simulation_evaluate(request, pk):
+    """Clôture de l'entretien et appel à Gemini pour le rapport final (Score + Corrections en FR)."""
+    from .models import AusbildungInterviewSimulation
+    from ai_engine.services.llm_service import call_llm
+    import re
+
+    sim = get_object_or_404(AusbildungInterviewSimulation, pk=pk, user=request.user)
+    if sim.is_completed:
+        return JsonResponse({"status": "error", "message": "Déjà évalué."})
+
+    # Reconstruire le fil de discussion
+    history_str = ""
+    for m in sim.messages:
+        role_name = "Recruteur (Herr Schmidt)" if m["role"] == "assistant" else "Candidat"
+        history_str += f"{role_name} : {m['content']}\n\n"
+
+    sector_display = dict(list(AusbildungOffer.SECTOR_CHOICES) + [("autre", "Autre / Candidature Spontanée")]).get(sim.sector, sim.sector)
+    system_prompt = (
+        "Tu es un expert RH allemand et un coach de langue spécialisé dans le recrutement de candidats "
+        f"internationaux pour des Ausbildung en Allemagne dans le secteur : {sector_display}.\n"
+        "Tu analyses l'historique complet d'un entretien d'embauche simulé.\n"
+        "Fournis une évaluation rigoureuse, constructive et rédigée EN FRANÇAIS.\n\n"
+        "Format impératif (respecte exactement ces balises et ne renvoie rien d'autre) :\n\n"
+        "=== SCORE ===\n"
+        "[Un nombre entier entre 0 et 100 uniquement représentant le niveau global du candidat]\n\n"
+        "=== CORRECTIONS ===\n"
+        "[Phrases originales erronées ou maladroites en allemand -> corrections en allemand : explications détaillées en français]\n\n"
+        "=== VOCABULAIRE ===\n"
+        "[Mots et expressions d'allemand professionnel utiles pour ce secteur d'activité]\n\n"
+        "=== RECOMMANDATIONS ===\n"
+        "[Conseils stratégiques généraux en français pour s'améliorer]"
+    )
+
+    try:
+        evaluation_text = call_llm(system_prompt, history_str)
+    except Exception as exc:
+        evaluation_text = f"=== SCORE ===\n50\n\n=== CORRECTIONS ===\nErreur lors de la génération : {exc}\n\n=== VOCABULAIRE ===\nNon disponible\n\n=== RECOMMANDATIONS ===\nRéessayez ultérieurement."
+
+    # Parser le score
+    score = 65
+    if "=== SCORE ===" in evaluation_text:
+        try:
+            score_part = evaluation_text.split("=== SCORE ===")[1].split("===")[0].strip()
+            digits = re.findall(r'\d+', score_part)
+            if digits:
+                score = int(digits[0])
+        except Exception:
+            pass
+
+    sim.score = score
+    sim.feedback = evaluation_text
+    sim.is_completed = True
+    sim.save()
+
+    return JsonResponse({
+        "status": "success",
+        "score": score,
+        "feedback": evaluation_text
+    })
+
+

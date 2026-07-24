@@ -162,3 +162,27 @@ class UserOpportunityBookmark(models.Model):
     def __str__(self):
         item = self.offer or self.scholarship
         return f"{self.user} → {item}"
+
+
+class AusbildungInterviewSimulation(models.Model):
+    """
+    Simulation d'entretien d'embauche pour une Ausbildung.
+    Le candidat s'entraîne avec l'IA (Herr Schmidt).
+    """
+    user         = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ausbildung_simulations")
+    sector       = models.CharField(max_length=50)  # ex: gesundheit, it, elektro, etc.
+    messages     = models.JSONField(default=list, help_text="Historique de chat [{\"role\": \"...\", \"content\": \"...\"}]")
+    score        = models.IntegerField(null=True, blank=True, help_text="Note finale (0-100)")
+    feedback     = models.TextField(blank=True, help_text="Rapport d'évaluation de l'IA en français")
+    is_completed = models.BooleanField(default=False)
+    created_at   = models.DateTimeField(auto_now_add=True)
+    updated_at   = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Simulation Entretien"
+        verbose_name_plural = "Simulations Entretiens"
+
+    def __str__(self):
+        return f"Simulation {self.sector} — {self.user} ({'Évalué' if self.is_completed else 'En cours'})"
+
