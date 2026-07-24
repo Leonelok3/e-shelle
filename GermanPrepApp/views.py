@@ -35,7 +35,7 @@ german_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 def check_user_has_paid_edu_subscription(user) -> bool:
     """
-    Vérifie si l'utilisateur possède un abonnement Premium actif (non gratuit) pour l'application 'edu'.
+    Vérifie si l'utilisateur possède un abonnement Premium actif (non gratuit) pour l'application 'allemand'.
     Les superutilisateurs et membres du staff sont automatiquement autorisés.
     """
     if not user.is_authenticated:
@@ -44,7 +44,7 @@ def check_user_has_paid_edu_subscription(user) -> bool:
         return True
     
     from accounts.models import AppSubscription
-    sub = AppSubscription.get_active_for_user(user, "edu")
+    sub = AppSubscription.get_active_for_user(user, "allemand")
     if sub and sub.is_active and not sub.plan.is_free:
         return True
     return False

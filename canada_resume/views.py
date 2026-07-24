@@ -25,7 +25,7 @@ def check_user_has_paid_edu_subscription(user) -> bool:
         return True
     try:
         from accounts.models import AppSubscription
-        sub = AppSubscription.get_active_for_user(user, "edu")
+        sub = AppSubscription.get_active_for_user(user, "prep")
         if sub and sub.is_active and not sub.plan.is_free:
             return True
     except Exception:

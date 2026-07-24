@@ -85,6 +85,14 @@ def check_user_has_french_premium(user) -> bool:
         return True
         
     try:
+        from accounts.models import AppSubscription
+        sub = AppSubscription.get_active_for_user(user, "prep")
+        if sub and sub.is_active and not sub.plan.is_free:
+            return True
+    except Exception:
+        pass
+
+    try:
         from billing.utils import user_has_premium
         return user_has_premium(user)
     except Exception:

@@ -401,7 +401,7 @@ def premium_pricing(request):
 
 
 def check_user_has_paid_edu_subscription(user) -> bool:
-    """Helper local pour vérifier l'abonnement premium edu d'un candidat."""
+    """Helper local pour vérifier l'abonnement premium allemand d'un candidat."""
     if not user.is_authenticated:
         return False
     if user.is_superuser or user.is_staff:
@@ -410,7 +410,7 @@ def check_user_has_paid_edu_subscription(user) -> bool:
         return True
     try:
         from accounts.models import AppSubscription
-        sub = AppSubscription.get_active_for_user(user, "edu")
+        sub = AppSubscription.get_active_for_user(user, "allemand")
         if sub and sub.is_active and not sub.plan.is_free:
             return True
     except Exception:
