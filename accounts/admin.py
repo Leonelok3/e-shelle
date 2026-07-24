@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from .models import (
     CustomUser, UserProfile, StudentProfile,
     AppPlan, AppSubscription, PaymentHistory, GlobalAccessCode,
@@ -219,15 +220,15 @@ class GlobalAccessCodeAdmin(admin.ModelAdmin):
     @admin.display(description="Statut")
     def status_badge(self, obj):
         if not obj.is_active:
-            return format_html('<span style="background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:700">Désactivé</span>')
+            return mark_safe('<span style="background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:700">Désactivé</span>')
         if obj.is_used:
-            return format_html('<span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:700">Utilisé ✓</span>')
-        return format_html('<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:700">Disponible</span>')
+            return mark_safe('<span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:700">Utilisé ✓</span>')
+        return mark_safe('<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:700">Disponible</span>')
 
     @admin.display(description="Prix")
     def price_badge(self, obj):
         if obj.price_xaf == 0:
-            return format_html('<span style="color:#10b981;font-weight:600">Offert</span>')
+            return mark_safe('<span style="color:#10b981;font-weight:600">Offert</span>')
         return format_html('<strong style="color:#1B6534">{}</strong>', obj.price_formatted)
 
     @admin.display(description="Applications")
