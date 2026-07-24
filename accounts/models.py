@@ -14,6 +14,8 @@ class AppKey(models.TextChoices):
     RENCONTRES = "rencontres", "E-Shelle Love"
     NJANGI     = "njangi",     "Njangi Digital"
     EDU        = "edu",        "EduCam Pro"
+    ALLEMAND   = "allemand",   "E-Shelle Allemand (Ausbildung & Goethe)"
+    FRANCAIS   = "prep",       "Préparation Français (TEF/TCF)"
     FORMATIONS = "formations", "Formations"
     BOUTIQUE   = "boutique",   "Boutique"
     AGRO       = "agro",       "E-Shelle Agro"
@@ -25,6 +27,8 @@ APP_ICONS = {
     "rencontres": "❤️",
     "njangi":     "🤝",
     "edu":        "🎓",
+    "allemand":   "🇩🇪",
+    "prep":       "✍️",
     "formations": "📚",
     "boutique":   "🛒",
     "agro":       "🌿",
@@ -37,6 +41,8 @@ APP_COLORS = {
     "rencontres": "#E8436A",
     "njangi":     "#1B6CA8",
     "edu":        "#0EA5E9",
+    "allemand":   "#ffce00",
+    "prep":       "#0055A5",
     "formations": "#8B5CF6",
     "boutique":   "#10B981",
     "agro":       "#84CC16",

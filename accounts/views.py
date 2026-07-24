@@ -274,7 +274,21 @@ def mon_compte(request):
     # Apps disponibles avec leur état
     apps_info = []
     for key, label in AppKey.choices:
-        sub = active_subs.get(key)
+        # Pour l'allemand et le français (prep), l'abonnement réel en BDD est 'edu'
+        sub_key = "edu" if key in ["allemand", "prep"] else key
+        sub = active_subs.get(sub_key)
+        
+        # Déterminer l'URL d'ouverture
+        url = f"/{key}/"
+        if key == "allemand":
+            url = "/allemand/"
+        elif key == "prep":
+            url = "/prep/"
+        elif key == "adgen":
+            url = "/pub/"
+        elif key == "rencontres":
+            url = "/rencontres/"
+
         apps_info.append({
             "key":    key,
             "label":  label,
@@ -282,6 +296,7 @@ def mon_compte(request):
             "color":  APP_COLORS.get(key, "#6B7280"),
             "sub":    sub,
             "active": sub is not None,
+            "url":    url,
         })
 
     # Stats rapides
