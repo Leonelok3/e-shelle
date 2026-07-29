@@ -148,7 +148,11 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
       {% endif %}
     </h2>
 
-    <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+    <input type="hidden" id="csrf-token" value="{{ csrf_token }}"
+           data-progress-url="{% url 'preparation_tests:exercise_progress' %}"
+           data-submit-eo-url="{% url 'preparation_tests:submit_eo' %}"
+           data-submit-ee-url="{% url 'preparation_tests:submit_ee' %}"
+           data-authenticated="{{ request.user.is_authenticated|yesno:'1,0' }}">
 
     <div class="pt-exercises-grid">
 
@@ -179,7 +183,7 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
         {% if exercise.summary %}
           <div class="pt-eo-expected">
             <strong>🎯 Points à aborder :</strong>
-            <p class="pt-eo-points-hint">{{ exercise.summary }}</p>
+            <div class="pt-eo-points-hint">{{ exercise.summary|safe }}</div>
           </div>
         {% endif %}
 
@@ -227,7 +231,7 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
         <div class="pt-ee-editor">
           <textarea
             class="pt-ee-textarea"
-            rows="8"
+            rows="11"
             placeholder="Rédigez votre réponse ici..."
           ></textarea>
           <div class="pt-word-counter">

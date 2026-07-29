@@ -1141,7 +1141,7 @@ def submit_eo(request):
             tmp_path = tmp.name
 
         try:
-            transcript = transcribe_audio(tmp_path)
+            transcript = transcribe_audio(tmp_path, language="fr")
         except Exception as _transcribe_err:
             import logging as _log
             _log.getLogger(__name__).error("submit_eo transcription error: %s", _transcribe_err)
@@ -1172,6 +1172,7 @@ def submit_eo(request):
         instructions=exercise.instruction,
         level=lesson.level,
         expected_points=expected_points,
+        language="fr",
     )
 
     score = float(result.get("score", 0))
@@ -1269,6 +1270,7 @@ def submit_ee(request):
         topic=exercise.question_text,
         instructions=exercise.instruction,
         level=lesson.level,
+        language="fr",
     )
 
     score = float(result.get("score", 0))

@@ -201,9 +201,16 @@ app.conf.beat_schedule = {
     },
 
     # ── Canada Opportunities — Recherche quotidien d'emplois ──────────────────
+    # 3h30 (heure Douala/Cameroun) : les offres sont prêtes avant le départ au travail
     "canada-fetch-jobs": {
         "task": "jobs.tasks.fetch_canada_jobs_task",
-        "schedule": crontab(hour=5, minute=0),
+        "schedule": crontab(hour=3, minute=30),
+    },
+
+    # Bourses d'études Canada — recherche quotidienne à 6h45
+    "canada-fetch-scholarships": {
+        "task": "jobs.tasks.fetch_canada_scholarships_task",
+        "schedule": crontab(hour=6, minute=45),
     },
 }
 

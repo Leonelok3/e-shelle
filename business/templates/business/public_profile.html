@@ -102,7 +102,7 @@
         {% if items %}
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,260px));gap:1rem;align-items:start">
             {% for item in items %}
-              <article style="overflow:hidden;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.045)">
+              <article style="overflow:hidden;border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;box-shadow:0 4px 16px rgba(0,0,0,.06)">
                 <div onclick="openProductModal({{ forloop.counter0 }})" style="display:block;aspect-ratio:1/1;background:linear-gradient(135deg,rgba(20,184,166,.45),rgba(30,41,59,.9));text-decoration:none;overflow:hidden;cursor:pointer;">
                   {% if item.image %}
                     <img src="{{ item.image }}" alt="{{ item.title }}" style="width:100%;height:100%;object-fit:cover;display:block">
@@ -112,25 +112,25 @@
                 </div>
                 <div style="padding:1rem">
                   <div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.55rem">
-                    <span style="color:#86efac;font-size:.72rem;font-weight:900;text-transform:uppercase">{{ item.type }}</span>
-                    {% if item.meta %}<span style="color:rgba(255,255,255,.45);font-size:.72rem;font-weight:750">{{ item.meta }}</span>{% endif %}
+                    <span style="color:#16a34a;font-size:.72rem;font-weight:900;text-transform:uppercase">{{ item.type }}</span>
+                    {% if item.meta %}<span style="color:#64748b;font-size:.72rem;font-weight:750">{{ item.meta }}</span>{% endif %}
                   </div>
-                  <h3 onclick="openProductModal({{ forloop.counter0 }})" style="margin:0 0 .45rem;color:#fff;font-family:var(--font-display);font-size:1.05rem;line-height:1.18;cursor:pointer;">{{ item.title }}</h3>
-                  <p style="min-height:44px;margin:0 0 .8rem;color:rgba(255,255,255,.58);font-size:.86rem;line-height:1.5">{{ item.description|truncatechars:100|default:"Disponible sur E-Shelle." }}</p>
-                  <strong style="display:block;margin-bottom:.9rem;color:#facc15">{{ item.price|default:"Prix a discuter" }}</strong>
+                  <h3 onclick="openProductModal({{ forloop.counter0 }})" style="margin:0 0 .45rem;color:#0f172a;font-family:var(--font-display);font-size:1.05rem;line-height:1.18;cursor:pointer;">{{ item.title }}</h3>
+                  <p style="min-height:44px;margin:0 0 .8rem;color:#475569;font-size:.86rem;line-height:1.5">{{ item.description|truncatechars:100|default:"Disponible sur E-Shelle." }}</p>
+                  <strong style="display:block;margin-bottom:.9rem;color:#b45309">{{ item.price|default:"Prix a discuter" }}</strong>
                   <div style="display:flex;gap:.55rem;flex-wrap:wrap">
                     {% if item.contact_url %}
                       <a href="{{ item.contact_url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;background:#7dec6c;color:#06120a;font-size:.82rem;font-weight:900">WhatsApp</a>
                     {% endif %}
-                    <button type="button" onclick="openProductModal({{ forloop.counter0 }})" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:transparent;color:#fff;font-size:.82rem;font-weight:850;cursor:pointer">Détails</button>
+                    <button type="button" onclick="openProductModal({{ forloop.counter0 }})" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;font-size:.82rem;font-weight:850;cursor:pointer">Détails</button>
                   </div>
                   {% if user.is_authenticated and business.owner == user and item.id %}
-                    <div style="display:flex;gap:.45rem;margin-top:.75rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.1)">
-                      <a href="{% url 'business:catalog_item_edit' business.id item.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 .75rem;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:#fff;font-size:.78rem;font-weight:800;text-decoration:none">Modifier</a>
+                    <div style="display:flex;gap:.45rem;margin-top:.75rem;padding-top:.75rem;border-top:1px solid #e5e7eb">
+                      <a href="{% url 'business:catalog_item_edit' business.id item.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 .75rem;border-radius:8px;border:1px solid #cbd5e1;background:#f8fafc;color:#0f172a;font-size:.78rem;font-weight:800;text-decoration:none">Modifier</a>
                       <form method="post" action="{% url 'business:catalog_item_action' business.id item.id %}" style="display:inline-block;margin:0" onsubmit="return confirm('Supprimer ce produit/service ?');">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="delete">
-                        <button type="submit" style="display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 .75rem;border-radius:8px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:#fecaca;font-size:.78rem;font-weight:800;cursor:pointer">Supprimer</button>
+                        <button type="submit" style="display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 .75rem;border-radius:8px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.08);color:#b91c1c;font-size:.78rem;font-weight:800;cursor:pointer">Supprimer</button>
                       </form>
                     </div>
                   {% endif %}

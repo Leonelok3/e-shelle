@@ -1,4 +1,12 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260226">
+{% endblock %}
+
 {% block title %}Emplois au Canada – Recrutement à l'étranger (EIMT) | E-Shelle{% endblock %}
 
 {% block content %}
@@ -14,7 +22,7 @@
       💼 Offres d'Emploi Canada (EIMT / LMIA)
     </h1>
     <p style="color:#64748b;font-size:1rem;max-width:650px;margin:0 auto;">
-      Découvrez les postes d'employeurs canadiens qui recrutent activement des profils internationaux à l'étranger avec ou sans EIMT. Mise à jour automatique chaque matin à 5h.
+      Découvrez les postes d'employeurs canadiens qui recrutent activement des profils internationaux à l'étranger avec ou sans EIMT. Mise à jour automatique chaque matin à 3h30.
     </p>
   </div>
 
@@ -98,8 +106,15 @@
             </div>
           </div>
 
-          <div style="font-size:.82rem;color:#475569;background:#f8fafc;padding:.4rem .8rem;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:.35rem;">
-            💰 Salaire : <span style="color:#102B4E;font-weight:800;">{{ offer.salary }}</span>
+          <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+            <div style="font-size:.82rem;color:#475569;background:#f8fafc;padding:.4rem .8rem;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:.35rem;">
+              💰 Salaire : <span style="color:#102B4E;font-weight:800;">{{ offer.salary }}</span>
+            </div>
+            {% if offer.deadline and offer.deadline != "Non précisé" %}
+              <div style="font-size:.82rem;color:#c2410c;background:#fff7ed;border:1px solid #ffedd5;padding:.4rem .8rem;border-radius:8px;font-weight:700;display:inline-flex;align-items:center;gap:.35rem;">
+                ⏳ Limite : {{ offer.deadline }}
+              </div>
+            {% endif %}
           </div>
 
           <p style="font-size:.88rem;color:#475569;line-height:1.5;margin:0;flex:1;">

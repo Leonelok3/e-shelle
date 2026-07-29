@@ -4,6 +4,7 @@ Permet de créer et gérer cours, leçons, quiz directement depuis /admin/
 """
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from .models import (
     Categorie, Formation, Chapitre, Lecon, Quiz, Question,
     ResultatQuiz, Inscription, Progression, AvisFormation, Certificat
@@ -68,7 +69,7 @@ class FormationAdmin(admin.ModelAdmin):
 
     def prix_affiche(self, obj):
         if obj.est_gratuite:
-            return format_html('<span style="color:#4CAF50;font-weight:600">Gratuit</span>')
+            return mark_safe('<span style="color:#4CAF50;font-weight:600">Gratuit</span>')
         return format_html('{} FCFA', int(obj.prix))
     prix_affiche.short_description = "Prix"
 

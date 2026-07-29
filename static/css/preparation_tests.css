@@ -604,6 +604,283 @@ body.preparation-tests #main-content {
 }
 
 /* ============================================================
+   EXERCICES QCM — CE / CO (une réponse par ligne)
+   ============================================================ */
+.pt-exercise-form {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin-top: 1rem;
+}
+.pt-option {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid var(--ca-border);
+  border-radius: 10px;
+  padding: .65rem .85rem;
+  font-size: .9rem;
+  line-height: 1.4;
+  color: var(--ca-ink);
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.pt-option:hover {
+  border-color: var(--ca-red);
+  background: var(--ca-red-soft);
+}
+.pt-option input[type="radio"] {
+  margin-top: .2rem;
+  accent-color: var(--ca-red);
+  flex-shrink: 0;
+}
+.pt-option span {
+  font-weight: 700;
+  color: var(--ca-black);
+  margin-right: .15rem;
+}
+.pt-option.is-correct {
+  border-color: #16a34a;
+  background: #f0fdf4;
+}
+.pt-option.is-incorrect {
+  border-color: var(--ca-red);
+  background: var(--ca-red-soft);
+}
+
+.pt-feedback {
+  margin: .35rem 0 0;
+  font-size: .85rem;
+  font-weight: 700;
+  padding: .55rem .8rem;
+  border-radius: 8px;
+}
+.pt-feedback.is-correct {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+.pt-feedback.is-incorrect {
+  background: var(--ca-red-soft);
+  color: var(--ca-red-dark);
+  border: 1px solid rgba(213, 43, 30, .3);
+}
+.pt-feedback.is-warning {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+/* ============================================================
+   EXERCICES EO / EE — Structure commune
+   ============================================================ */
+.pt-exercise-header h3 {
+  margin: 0 0 .6rem;
+}
+.pt-exercise-question {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--ca-black);
+  line-height: 1.55;
+  margin-bottom: .9rem;
+}
+.pt-exercise-instruction {
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
+  border-radius: 10px;
+  padding: .75rem .95rem;
+  margin-bottom: .9rem;
+  font-size: .85rem;
+  color: #475569;
+}
+.pt-exercise-instruction strong {
+  color: var(--ca-black);
+}
+.pt-exercise-instruction p {
+  margin: .3rem 0 0;
+}
+
+/* Points à aborder (EO) */
+.pt-eo-expected {
+  background: var(--ca-red-soft);
+  border: 1px solid rgba(213, 43, 30, .25);
+  border-radius: 10px;
+  padding: .75rem .95rem;
+  margin-bottom: 1rem;
+  font-size: .85rem;
+}
+.pt-eo-expected strong {
+  color: var(--ca-red-dark);
+}
+.pt-eo-points-hint {
+  margin-top: .4rem;
+  color: #475569;
+  font-size: .85rem;
+  line-height: 1.6;
+}
+.pt-eo-points-hint ul {
+  margin: .3rem 0;
+  padding-left: 1.1rem;
+}
+.pt-eo-points-hint li {
+  margin-bottom: .25rem;
+}
+.pt-eo-points-hint em {
+  color: var(--ca-red-dark);
+  font-style: italic;
+}
+
+/* ============================================================
+   🎤 EO — Enregistreur audio
+   ============================================================ */
+.pt-recorder {
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  margin-bottom: .5rem;
+}
+.pt-recorder-controls {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  flex-wrap: wrap;
+}
+.pt-record-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  background: linear-gradient(135deg, var(--ca-red), var(--ca-red-dark));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: .65rem 1.25rem;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity .2s, transform .15s;
+}
+.pt-record-btn:hover { opacity: .92; transform: translateY(-1px); }
+.pt-record-btn.is-recording {
+  background: var(--ca-black);
+  animation: pt-record-pulse 1.4s ease-in-out infinite;
+}
+.pt-record-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  transform: none;
+}
+@keyframes pt-record-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(213, 43, 30, .4); }
+  50% { box-shadow: 0 0 0 8px rgba(213, 43, 30, 0); }
+}
+.pt-record-timer {
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--ca-black);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   ✍️ EE — Zone de rédaction
+   ============================================================ */
+.pt-ee-editor {
+  margin-bottom: .5rem;
+}
+.pt-ee-textarea {
+  width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  border: 1.5px solid var(--ca-border);
+  border-radius: 10px;
+  padding: .9rem 1rem;
+  font-family: inherit;
+  font-size: .92rem;
+  line-height: 1.6;
+  color: var(--ca-ink);
+  background: #fff;
+  transition: border-color .15s, box-shadow .15s;
+}
+.pt-ee-textarea:focus {
+  outline: none;
+  border-color: var(--ca-red);
+  box-shadow: 0 0 0 3px rgba(213, 43, 30, .1);
+}
+.pt-word-counter {
+  text-align: right;
+  font-size: .78rem;
+  color: #94a3b8;
+  margin-top: .4rem;
+  font-weight: 600;
+}
+
+/* ============================================================
+   🤖 RÉSULTATS IA — EO / EE
+   ============================================================ */
+.pt-eo-result,
+.pt-ee-result {
+  margin-top: 1rem;
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+}
+.pt-result-score {
+  display: inline-block;
+  font-size: .95rem;
+  font-weight: 800;
+  padding: .35rem .9rem;
+  border-radius: 999px;
+  margin-bottom: .75rem;
+}
+.pt-result-score.is-correct {
+  background: #dcfce7;
+  color: #15803d;
+}
+.pt-result-score.is-incorrect {
+  background: var(--ca-red-soft);
+  color: var(--ca-red-dark);
+}
+.pt-result-feedback {
+  font-size: .88rem;
+  color: #334155;
+  line-height: 1.65;
+  margin: 0 0 .75rem;
+}
+.pt-result-subtitle {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--ca-black);
+  margin: .75rem 0 .35rem;
+}
+.pt-result-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: .85rem;
+  color: #475569;
+  line-height: 1.6;
+}
+.pt-result-list li { margin-bottom: .3rem; }
+.pt-result-list s { color: #94a3b8; }
+.pt-result-details {
+  margin-top: .85rem;
+  font-size: .85rem;
+  color: #475569;
+}
+.pt-result-details summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--ca-red-dark);
+}
+.pt-result-details p {
+  margin: .5rem 0 0;
+  line-height: 1.6;
+}
+
+/* ============================================================
    SIDEBAR — Recrutement Canada
    ============================================================ */
 

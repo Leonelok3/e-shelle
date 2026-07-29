@@ -37,6 +37,25 @@ def get_vertex_client() -> tuple[genai.Client | None, str | None]:
         return None, str(e)
 
 
+def get_genai_studio_client() -> tuple[genai.Client | None, str | None]:
+    """
+    Initialise le client Google GenAI en mode "Developer API" (Google AI Studio),
+    via une simple clé API — sans passer par Vertex AI et donc sans nécessiter
+    de facturation GCP active. Palier gratuit avec quota généreux.
+    Retourne (client, error_message).
+    """
+    api_key = getattr(settings, "GEMINI_SEARCH_API_KEY", "") or getattr(settings, "GOOGLE_API_KEY", "")
+    if not api_key:
+        return None, "Aucune clé API Gemini (GEMINI_SEARCH_API_KEY / GOOGLE_API_KEY) configurée."
+
+    try:
+        client = genai.Client(api_key=api_key)
+        return client, None
+    except Exception as e:
+        logger.exception("Exception initializing Gemini Developer API Client")
+        return None, str(e)
+
+
 def generate_google_image(prompt: str, context: str = "general") -> dict:
     """
     Génère une image avec Google Imagen 3 (via Vertex AI SDK si configuré, sinon API REST AI Studio).

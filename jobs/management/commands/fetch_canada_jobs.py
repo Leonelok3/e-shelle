@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import re
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from google.genai import types
@@ -9,6 +11,48 @@ from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
 from jobs.models import CanadaJobOffer
 
 logger = logging.getLogger(__name__)
+
+_FR_MONTHS = {
+    "janvier": "january", "février": "february", "fevrier": "february",
+    "mars": "march", "avril": "april", "mai": "may", "juin": "june",
+    "juillet": "july", "août": "august", "aout": "august",
+    "septembre": "september", "octobre": "october",
+    "novembre": "november", "décembre": "december", "decembre": "december",
+}
+
+
+def _stable_ref_nr(company: str, title: str, city: str) -> str:
+    """
+    Identifiant stable basé sur (company, title, city) plutôt que sur l'ID
+    fourni par l'IA (qui change d'un run à l'autre, ex: 'ca-job-1' à chaque
+    exécution) — indispensable pour que update_or_create() reconnaisse une
+    offre déjà vue la veille au lieu de créer un doublon chaque matin.
+    """
+    raw = f"{company.strip().lower()}|{title.strip().lower()}|{city.strip().lower()}"
+    return "ca-job-" + hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def _parse_deadline(deadline_str: str):
+    """
+    Essaie de convertir une date limite en français (ex: '31 mars 2026') en objet date.
+    Retourne None si la date est absente, non précisée ou non interprétable.
+    """
+    if not deadline_str:
+        return None
+    text = deadline_str.strip().lower()
+    if not text or "précisé" in text or "precise" in text or "non " in text:
+        return None
+
+    for fr, en in _FR_MONTHS.items():
+        text = re.sub(rf"\b{fr}\b", en, text)
+
+    try:
+        from dateutil import parser as date_parser
+        parsed = date_parser.parse(text, dayfirst=True, fuzzy=True)
+        return parsed.date()
+    except (ValueError, OverflowError, TypeError):
+        return None
+
 
 class Command(BaseCommand):
     help = "Cherche et importe les nouvelles offres d'emploi d'employeurs canadiens qui recrutent à l'étranger (EIMT/LMIA)"
@@ -21,16 +65,24 @@ class Command(BaseCommand):
             return
 
         self.stdout.write("Recherche globale des offres d'emploi Canada avec EIMT...")
-        
+
         # Pass 1: Google Search Grounding to find actual job links and details
         search_prompt = (
-            "Recherche sur le web des offres d'emploi réelles et récentes (publiées il y a moins de 30 jours) d'employeurs canadiens "
-            "qui recrutent activement des travailleurs étrangers hors du Canada. Recherche spécifiquement des postes avec une EIMT "
-            "(Étude d'Impact sur le Marché du Travail) déjà approuvée, des postes avec EIMT en cours, ou des postes recrutant dans le cadre "
-            "de la Mobilité Francophone (dispense d'EIMT pour les francophones hors Québec). "
+            "Recherche sur le web des offres d'emploi réelles, vérifiables et récentes (publiées il y a moins de 30 jours) "
+            "d'employeurs canadiens qui recrutent activement des travailleurs à l'étranger (candidats qui ne sont PAS "
+            "déjà au Canada), en particulier des candidats francophones d'Afrique (Cameroun, Côte d'Ivoire, Sénégal, etc.). "
+            "IMPORTANT — n'utilise que des sources vérifiées : le Guichet-Emplois officiel du gouvernement du Canada "
+            "(guichet-emplois.gc.ca / jobbank.gc.ca), les pages carrières officielles des employeurs, ou des cabinets de "
+            "recrutement canadiens agréés. Ignore les blogs et agrégateurs non officiels qui ne font que relayer une offre. "
+            "EXCLUS impérativement toute offre réservée aux résidents/citoyens canadiens déjà sur le territoire ou sans "
+            "aucune mention de parrainage/EIMT/mobilité — ne garde QUE les postes recrutant explicitement hors du Canada : "
+            "EIMT (Étude d'Impact sur le Marché du Travail) déjà approuvée, EIMT en cours de traitement, postes exemptés "
+            "d'EIMT, ou dans le cadre de la Mobilité Francophone (dispense d'EIMT pour les candidats francophones "
+            "recrutés hors Québec). "
             "Trouve au moins 5 à 10 offres d'emploi différentes dans divers secteurs (Santé, IT, Agriculture, Restauration, Transport, Construction, etc.). "
-            "Pour chaque offre, tu dois obligatoirement trouver : le titre exact du poste, le nom de l'entreprise, la ville, la province, le statut exact de l'EIMT ou Mobilité Francophone, le salaire, "
-            "une description brève et le lien URL source direct du poste."
+            "Pour chaque offre, tu dois obligatoirement trouver : le titre exact du poste, le nom de l'entreprise, la ville, la province, "
+            "le statut exact de l'EIMT ou Mobilité Francophone, le salaire, la date limite de candidature si elle est publiée "
+            "(sinon 'Non précisé'), une description brève et le lien URL source direct du poste."
         )
 
         try:
@@ -48,14 +100,16 @@ class Command(BaseCommand):
             # Pass 2: Controlled JSON extraction
             json_prompt = (
                 "Analyse les offres d'emploi récupérées ci-dessous et convertis-les en une liste JSON valide.\n"
-                "Ne génère rien d'autre que du JSON. Chaque objet de la liste doit avoir ces clés exactes :\n"
-                "- ref_nr: un identifiant unique basé sur le poste et l'entreprise (ex: ca-job-1)\n"
+                "N'inclus QUE des offres accessibles à des candidats situés à l'étranger (EIMT approuvé, EIMT en cours, "
+                "Mobilité Francophone ou exemption explicite). Exclus toute offre destinée uniquement aux candidats déjà "
+                "au Canada. Ne génère rien d'autre que du JSON. Chaque objet de la liste doit avoir ces clés exactes :\n"
                 "- title: le titre de l'emploi en français (ex: Ouvrier Agricole)\n"
                 "- company: le nom de l'entreprise\n"
                 "- city: la ville canadienne\n"
                 "- province: la province (ex: Québec, Alberta, Ontario)\n"
                 "- lmia_status: le statut réglementaire exact (obligatoirement l'une de ces valeurs exactes : 'EIMT approuvé', 'EIMT en cours', 'Mobilité Francophone', 'Exempté' ou 'Non précisé')\n"
                 "- salary: le salaire (ex: 20 $/heure) ou 'Non précisé'\n"
+                "- deadline: la date limite de candidature (ex: 31 mars 2026) ou 'Non précisé'\n"
                 "- description: une explication concise (2-3 sentences) en français du rôle et pourquoi c'est idéal pour un candidat étranger\n"
                 "- url_apply: le vrai lien web direct pour postuler\n\n"
                 f"Offres brutes :\n{search_results}"
@@ -82,28 +136,39 @@ class Command(BaseCommand):
 
             created_count = 0
             updated_count = 0
-            seen_refs = []
 
             for job in jobs_list:
-                ref_nr = job.get("ref_nr", "").strip()
                 title = job.get("title", "").strip()
                 company = job.get("company", "").strip()
+                city = job.get("city", "").strip()
                 url_apply = job.get("url_apply", "").strip()
+                lmia_status = job.get("lmia_status", "Non précisé").strip()
 
-                if not ref_nr or not title or not company or not url_apply:
+                if not title or not company or not url_apply:
                     continue
 
-                seen_refs.append(ref_nr)
+                # Filet de sécurité supplémentaire : on n'affiche que les offres
+                # explicitement ouvertes aux candidats étrangers.
+                allowed_status = (
+                    "eimt" in lmia_status.lower()
+                    or "francophone" in lmia_status.lower()
+                    or "exempt" in lmia_status.lower()
+                )
+                if not allowed_status:
+                    continue
+
+                ref_nr = _stable_ref_nr(company, title, city)
 
                 offer, created = CanadaJobOffer.objects.update_or_create(
                     ref_nr=ref_nr,
                     defaults={
                         "title": title,
                         "company": company,
-                        "city": job.get("city", "").strip(),
+                        "city": city,
                         "province": job.get("province", "").strip(),
-                        "lmia_status": job.get("lmia_status", "Non précisé").strip(),
+                        "lmia_status": lmia_status,
                         "salary": job.get("salary", "Non précisé").strip(),
+                        "deadline": job.get("deadline", "Non précisé").strip(),
                         "description": job.get("description", "").strip(),
                         "url_apply": url_apply,
                         "is_active": True,
@@ -115,16 +180,26 @@ class Command(BaseCommand):
                 else:
                     updated_count += 1
 
-            # Désactiver les anciennes offres qui ne sont plus d'actualité après 15 jours
-            cutoff = timezone.now() - timezone.timedelta(days=15)
-            deactivated_count = CanadaJobOffer.objects.filter(
-                last_seen__lt=cutoff, is_active=True
-            ).update(is_active=False)
+            # Supprimer définitivement les offres dont la date limite est dépassée
+            expired_count = 0
+            for offer in CanadaJobOffer.objects.filter(is_active=True).exclude(deadline=""):
+                deadline_date = _parse_deadline(offer.deadline)
+                if deadline_date and deadline_date < timezone.localdate():
+                    offer.delete()
+                    expired_count += 1
+
+            # Supprimer définitivement les offres non revues depuis 14 jours
+            # (l'IA ne les retrouve plus sur le web => probablement pourvues/retirées)
+            cutoff = timezone.now() - timezone.timedelta(days=14)
+            stale_qs = CanadaJobOffer.objects.filter(last_seen__lt=cutoff)
+            stale_count = stale_qs.count()
+            stale_qs.delete()
 
             self.stdout.write(
                 self.style.SUCCESS(
                     f"Importation terminée ! +{created_count} nouvelles offres, "
-                    f"{updated_count} mises à jour, {deactivated_count} désactivées."
+                    f"{updated_count} mises à jour, {expired_count} supprimées (date limite dépassée), "
+                    f"{stale_count} supprimées (non revues depuis 14 jours)."
                 )
             )
 

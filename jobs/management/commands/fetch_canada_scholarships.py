@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from django.core.management.base import BaseCommand
@@ -9,6 +10,18 @@ from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
 from jobs.models import CanadaScholarship
 
 logger = logging.getLogger(__name__)
+
+
+def _stable_ref_nr(provider: str, title: str) -> str:
+    """
+    Identifiant stable basé sur (provider, title) plutôt que sur l'ID
+    fourni par l'IA (qui change d'un run à l'autre, ex: 'ca-scholarship-1'
+    à chaque exécution) — indispensable pour que update_or_create()
+    reconnaisse une bourse déjà vue la veille au lieu de l'écraser
+    avec une autre bourse portant le même numéro générique.
+    """
+    raw = f"{provider.strip().lower()}|{title.strip().lower()}"
+    return "ca-scholarship-" + hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
 
 class Command(BaseCommand):
     help = "Cherche et importe par IA les bourses d'études au Canada actives pour les étudiants internationaux"
@@ -26,11 +39,18 @@ class Command(BaseCommand):
         search_prompt = (
             "Recherche sur le web des bourses d'études réelles, officielles et actuellement ouvertes ou annoncées "
             "pour l'année universitaire 2026/2027 au Canada, destinées aux étudiants internationaux (Afrique, Europe, Asie, etc.). "
+            "IMPORTANT — n'utilise QUE des sources vérifiées et officielles : sites gouvernementaux (canada.ca, educanada.ca, "
+            "gouv.qc.ca), sites officiels des universités et collèges canadiens (domaines .ca / .edu des établissements : "
+            "umontreal.ca, uottawa.ca, ulaval.ca, uqam.ca, mcgill.ca, utoronto.ca, ubc.ca, etc.), ou organismes reconnus "
+            "(Bourses d'études Canada, Fondation Vanier, CRSNG, CRSH, IRSC). Ignore totalement les blogs, agrégateurs non "
+            "officiels, forums ou sites d'immigration tiers non gouvernementaux qui ne font que relayer l'information — "
+            "remonte toujours à la page officielle source. "
             "Trouve au moins 5 à 8 bourses d'études valides (exemples: bourses Vanier, bourses d'excellence de l'Université de Montréal, "
             "bourses d'exemptions de droits de scolarité de l'Université d'Ottawa, bourses de l'Université Laval, bourses de l'UQAM, bourses de McGill, etc.). "
             "Pour chaque bourse, tu dois impérativement trouver : le titre exact de la bourse, l'université ou l'organisme émetteur, "
-            "la valeur financière de la bourse, les critères d'éligibilité simplifiés, la date limite de candidature estimée ou réelle, "
-            "une description brève et le lien URL source direct pour postuler."
+            "la valeur financière de la bourse, les critères d'éligibilité simplifiés, et surtout la date limite de candidature exacte "
+            "(jour/mois/année si elle est publiée — ne mets 'Non précisé' qu'en dernier recours si aucune date n'est trouvée nulle part), "
+            "une description brève et le lien URL source officiel direct pour postuler."
         )
 
         try:
@@ -49,7 +69,6 @@ class Command(BaseCommand):
             json_prompt = (
                 "Analyse les bourses d'études canadiennes récupérées ci-dessous et convertis-les en une liste JSON valide.\n"
                 "Ne génère rien d'autre que du JSON. Chaque objet de la liste doit avoir ces clés exactes :\n"
-                "- ref_nr: un identifiant unique (ex: ca-scholarship-1)\n"
                 "- title: le nom officiel de la bourse en français (ex: Bourse d'exemption de l'Université d'Ottawa)\n"
                 "- provider: le nom de l'université ou de l'organisme (ex: Université d'Ottawa)\n"
                 "- amount: la valeur de la bourse (ex: Exemption partielle, 10 000 $/an, Entière)\n"
@@ -83,13 +102,14 @@ class Command(BaseCommand):
             updated_count = 0
 
             for sc in scholarships_list:
-                ref_nr = sc.get("ref_nr", "").strip()
                 title = sc.get("title", "").strip()
                 provider = sc.get("provider", "").strip()
                 url_apply = sc.get("url_apply", "").strip()
 
-                if not ref_nr or not title or not provider or not url_apply:
+                if not title or not provider or not url_apply:
                     continue
+
+                ref_nr = _stable_ref_nr(provider, title)
 
                 offer, created = CanadaScholarship.objects.update_or_create(
                     ref_nr=ref_nr,

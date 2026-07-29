@@ -175,9 +175,10 @@ class CanadaJobOffer(models.Model):
     )
     
     salary = models.CharField(max_length=100, blank=True)
+    deadline = models.CharField(max_length=100, blank=True, help_text="Date limite pour postuler, si connue")
     description = models.TextField(blank=True)
     url_apply = models.URLField(max_length=500)
-    
+
     # Enrichissement IA
     ai_summary_fr = models.TextField(blank=True, help_text="Résumé de l'offre par l'IA")
     
