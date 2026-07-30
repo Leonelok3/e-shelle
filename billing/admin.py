@@ -137,6 +137,12 @@ class ReceiptAdmin(admin.ModelAdmin):
     search_fields = ("receipt_number", "client_full_name", "client_email", "client_phone", "transaction_id")
     list_filter = ("status", "currency", "issued_at")
     readonly_fields = ("receipt_number", "created_at")
+    fieldsets = (
+        ("Client", {"fields": ("client_full_name", "client_email", "client_phone")}),
+        ("Service / Produit", {"fields": ("service_name", "service_description")}),
+        ("Paiement", {"fields": ("amount", "currency", "payment_method", "transaction_id", "status", "issued_at")}),
+        ("Reçu", {"fields": ("receipt_number", "created_at"), "classes": ("collapse",)}),
+    )
 
     def pdf_link(self, obj: Receipt):
         url = f"/admin/billing/receipt/{obj.id}/pdf/"

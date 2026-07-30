@@ -6,6 +6,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.utils import timezone
 
+from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
@@ -15,6 +16,7 @@ from reportlab.pdfgen import canvas
 WHATSAPP_NUMBER = "+237 680625082"
 WEBSITE = "www.e-shelle.com"
 SUPPORT_EMAIL = "e.shelleltd@gmail.com"
+BRAND_GREEN = HexColor("#16a34a")
 
 
 def _money(amount) -> str:
@@ -51,6 +53,11 @@ def render_receipt_pdf(receipt, response: HttpResponse) -> None:
     p = canvas.Canvas(response, pagesize=A4)
     width, height = A4
 
+    # ====== Bandeau de marque (haut de page)
+    p.setFillColor(BRAND_GREEN)
+    p.rect(0, height - 4 * mm, width, 4 * mm, stroke=0, fill=1)
+    p.setFillColor(HexColor("#000000"))
+
     # ====== Marges
     left = 20 * mm
     right = width - 20 * mm
@@ -68,7 +75,7 @@ def render_receipt_pdf(receipt, response: HttpResponse) -> None:
 
     logo_path = None
     try:
-        logo_path = settings.BASE_DIR / "static" / "img" / "LOGOIMM97.png"
+        logo_path = settings.BASE_DIR / "static" / "img" / "logo.png"
     except Exception:
         logo_path = None
 
@@ -93,7 +100,9 @@ def render_receipt_pdf(receipt, response: HttpResponse) -> None:
     title_y = top - 7 * mm
 
     p.setFont("Helvetica-Bold", 16)
+    p.setFillColor(BRAND_GREEN)
     p.drawString(text_x, title_y, "E-SHELLE")
+    p.setFillColor(HexColor("#000000"))
 
     p.setFont("Helvetica", 10)
     p.drawString(text_x, title_y - 6 * mm, f"Plateforme digitale et IA — {WEBSITE}")
@@ -170,8 +179,10 @@ def render_receipt_pdf(receipt, response: HttpResponse) -> None:
     p.drawString(left, y_total_line - 10 * mm, "TOTAL")
 
     p.setFont("Helvetica-Bold", 14)
+    p.setFillColor(BRAND_GREEN)
     total_str = f"{_money(receipt.amount)} {receipt.currency}"
     p.drawRightString(right, y_total_line - 10 * mm, total_str)
+    p.setFillColor(HexColor("#000000"))
 
     # ====== Footer
     p.setFont("Helvetica", 9)

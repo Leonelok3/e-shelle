@@ -39,5 +39,5 @@ class Receipt(models.Model):
         if not self.receipt_number:
             stamp = timezone.now().strftime("%Y%m%d")
             short = str(uuid.uuid4()).split("-")[0].upper()
-            self.receipt_number = f"IMM97-{stamp}-{short}"
+            self.receipt_number = f"ESH-{stamp}-{short}"
         super().save(*args, **kwargs)
