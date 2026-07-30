@@ -8,6 +8,7 @@ from django.db.models import Count, F, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
@@ -22,6 +23,7 @@ from .models import (
     AppCommission,
     BusinessKeyAccount,
     BusinessKeyPaymentRequest,
+    BusinessActivationCode,
     BusinessCatalogItem,
     BusinessCatalogItemImage,
     BusinessLeadEvent,
@@ -2295,6 +2297,35 @@ def track_item_view(request, item_id):
         return JsonResponse({"ok": False}, status=404)
     views_count = BusinessCatalogItem.objects.filter(pk=item_id).values_list("views_count", flat=True).first()
     return JsonResponse({"ok": True, "views": views_count})
+
+
+@login_required
+@require_POST
+def redeem_activation_code(request):
+    """Le client entre le code recu par WhatsApp pour activer sa fiche business."""
+    referer = request.META.get("HTTP_REFERER") or reverse("business:dashboard")
+    code_value = request.POST.get("code", "").strip().upper()
+
+    if not code_value:
+        messages.error(request, "Merci de saisir un code d'activation.")
+        return redirect(referer)
+
+    code_obj = BusinessActivationCode.objects.filter(code=code_value).select_related("business", "plan").first()
+    if not code_obj:
+        messages.error(request, "Code d'activation introuvable. Verifiez et reessayez.")
+        return redirect(referer)
+
+    try:
+        code_obj.redeem(request.user)
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return redirect(referer)
+
+    messages.success(
+        request,
+        f"Fiche « {code_obj.business.name} » activee sur le plan {code_obj.plan.name} !",
+    )
+    return redirect(f"{reverse('business:dashboard')}?business={code_obj.business.id}")
 
 
 @login_required

@@ -91,8 +91,15 @@
 
       <aside style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem;color:rgba(255,255,255,.74)">
         <h3 style="color:#fff;margin-bottom:.75rem">Paiement adapté local</h3>
-        <p>Vous pouvez demander une activation et payer à la réception, par Mobile Money manuel ou avec un code d’accès.</p>
-        <p style="margin-top:.75rem;color:rgba(255,255,255,.55)">L'équipe E-Shelle confirme ensuite votre abonnement.</p>
+        <p>Contactez E-Shelle sur WhatsApp pour payer (Mobile Money, cash...). Vous recevrez en retour un code d'activation à entrer ci-dessous.</p>
+
+        <form method="post" action="{% url 'business:redeem_activation_code' %}" style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
+          {% csrf_token %}
+          <input type="text" name="code" placeholder="Ex: ESH-AB12CD34" required
+                 style="flex:1;min-width:160px;background:#101c33;border:1px solid rgba(255,255,255,.16);border-radius:10px;color:#fff;padding:.65rem .85rem;text-transform:uppercase">
+          <button type="submit" class="btn btn-primary">Activer avec un code</button>
+        </form>
+
         {% if public_url %}
           <div style="margin-top:1rem;padding:.8rem;border-radius:12px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08)">
             <strong style="display:block;color:#fff;margin-bottom:.35rem">Lien public</strong>

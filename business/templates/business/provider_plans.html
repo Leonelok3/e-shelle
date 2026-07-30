@@ -37,7 +37,11 @@
           <li>{{ plan.included_boost_days }} jours de boost inclus</li>
           <li>{{ plan.included_ai_credits }} crédits IA</li>
         </ul>
-        <a href="{% url 'business:onboarding' %}?plan={{ plan.code }}" class="btn btn-primary">Choisir ce plan</a>
+        {% if plan.monthly_price_xaf > 0 %}
+          <a href="{{ plan.whatsapp_activation_url }}" target="_blank" rel="noopener" class="btn btn-primary">Choisir ce plan</a>
+        {% else %}
+          <a href="{% url 'business:onboarding' %}?plan={{ plan.code }}" class="btn btn-primary">Commencer</a>
+        {% endif %}
       </article>
       {% endfor %}
     </div>

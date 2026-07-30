@@ -381,6 +381,15 @@ class ProviderPlan(models.Model):
     def __str__(self):
         return f"{self.name} - {self.monthly_price_xaf:,} FCFA".replace(",", " ")
 
+    @property
+    def whatsapp_activation_url(self):
+        """Lien WhatsApp pre-rempli pour demander l'activation de ce plan."""
+        text = (
+            f"Bonjour E-Shelle, je veux activer le plan {self.name} "
+            f"({self.monthly_price_xaf:,} FCFA/mois) pour ma fiche business.".replace(",", " ")
+        )
+        return f"https://wa.me/237680625082?text={urllib.parse.quote(text)}"
+
 
 class HomeAdSlide(models.Model):
     """Slide publicitaire visible sur la page d'accueil."""
@@ -623,6 +632,116 @@ class PaymentRequest(models.Model):
             self.business.activation_status = BusinessProfile.ActivationStatus.ACTIVE
             self.business.save(update_fields=["activation_status", "updated_at"])
         return tx
+
+
+class BusinessActivationCode(models.Model):
+    """
+    Code d'activation manuel : le proprietaire E-Shelle discute le paiement par
+    WhatsApp avec un prestataire, cree ce code pour SA fiche et SON plan precis,
+    puis le lui transmet. Le client entre le code sur E-Shelle pour activer
+    instantanement le plan et les credits IA correspondants.
+    """
+
+    class PaymentMethod(models.TextChoices):
+        ORANGE_MONEY = "orange_money", "Orange Money"
+        MTN_MOMO = "mtn_momo", "MTN Mobile Money"
+        CASH = "cash", "Especes"
+        VIREMENT = "virement", "Virement bancaire"
+        AUTRE = "autre", "Autre"
+
+    code = models.CharField(max_length=20, unique=True, editable=False)
+    business = models.ForeignKey(
+        BusinessProfile,
+        on_delete=models.CASCADE,
+        related_name="activation_codes",
+    )
+    plan = models.ForeignKey(
+        ProviderPlan,
+        on_delete=models.PROTECT,
+        related_name="activation_codes",
+    )
+    amount_paid_xaf = models.PositiveIntegerField(
+        default=0,
+        help_text="Laisser a 0 pour reprendre automatiquement le prix du plan.",
+    )
+    payment_method = models.CharField(
+        max_length=20, choices=PaymentMethod.choices, default=PaymentMethod.MTN_MOMO,
+    )
+    notes = models.TextField(blank=True, help_text="Reference de transaction, remarques...")
+
+    is_used = models.BooleanField(default=False)
+    used_at = models.DateTimeField(null=True, blank=True)
+    used_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Code d'activation business"
+        verbose_name_plural = "Codes d'activation business"
+
+    def __str__(self):
+        return f"{self.code} - {self.business.name} - {self.plan.name}"
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = self._generate_unique_code()
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(days=14)
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def _generate_unique_code():
+        import random
+        import string
+
+        while True:
+            candidate = "ESH-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            if not BusinessActivationCode.objects.filter(code=candidate).exists():
+                return candidate
+
+    @property
+    def is_expired(self):
+        return bool(self.expires_at and self.expires_at < timezone.now())
+
+    def redeem(self, user):
+        """Active le plan sur la fiche liee. Leve ValueError si le code est invalide."""
+        from .services import record_provider_plan_payment
+
+        if self.is_used:
+            raise ValueError("Ce code a deja ete utilise.")
+        if self.is_expired:
+            raise ValueError("Ce code a expire. Contactez E-Shelle sur WhatsApp pour un nouveau code.")
+        if self.business.owner_id != user.id:
+            raise ValueError("Ce code est lie a une autre fiche business que la votre.")
+
+        amount = self.amount_paid_xaf or self.plan.monthly_price_xaf
+        record_provider_plan_payment(
+            business=self.business,
+            plan=self.plan,
+            paid_by=user,
+            amount_xaf=amount,
+            payment_method="CODE",
+        )
+        self.is_used = True
+        self.used_at = timezone.now()
+        self.used_by = user
+        self.save(update_fields=["is_used", "used_at", "used_by"])
+        if self.business.activation_status != BusinessProfile.ActivationStatus.ACTIVE:
+            self.business.activation_status = BusinessProfile.ActivationStatus.ACTIVE
+            self.business.save(update_fields=["activation_status", "updated_at"])
 
 
 class BusinessKeyAccount(models.Model):
