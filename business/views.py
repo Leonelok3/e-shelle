@@ -2347,7 +2347,7 @@ def ai_delivery_kit(request, business_id):
     if request.method == "POST":
         extra_brief = request.POST.get("extra_brief", "")
         kit = generate_client_ai_kit(business, user=request.user, extra_brief=extra_brief)
-        messages.success(request, "Kit IA client genere. Vous pouvez maintenant vendre/livrer ce pack.")
+        messages.success(request, "Kit IA client généré. Vous pouvez maintenant vendre/livrer ce pack.")
         return redirect("business:ai_delivery_kit", business_id=business.id)
 
     if not kit:

@@ -15,25 +15,32 @@
       <div class="ai-kit-actions">
         <form method="post">
           {% csrf_token %}
-          <textarea name="extra_brief" rows="3" placeholder="Ajoutez une note client: cible, objectif, ton, offre speciale, contrainte...">{{ kit.client_brief.note_client }}</textarea>
-          <button class="btn btn-primary" type="submit">Generer / mettre a jour</button>
+          <p class="ai-kit-note-help">
+            Une info par ligne, avec ces mots-clés exacts pour orienter la génération :<br>
+            <code>Cible:</code> · <code>Ton:</code> · <code>Offre:</code> · <code>Contrainte:</code>
+          </p>
+          <textarea name="extra_brief" rows="5" placeholder="Cible: cliniques et laboratoires (B2B)
+Ton: professionnel et technique
+Offre: -10% sur la première commande de gros
+Contrainte: ne jamais donner de conseil médical">{{ kit.client_brief.note_client }}</textarea>
+          <button class="btn btn-primary" type="submit">Générer / mettre à jour</button>
         </form>
         {% if whatsapp_url %}
-          <a class="btn btn-outline-white" target="_blank" rel="noopener" href="{{ whatsapp_url }}">Partager resume WhatsApp</a>
+          <a class="btn btn-outline-white" target="_blank" rel="noopener" href="{{ whatsapp_url }}">Partager résumé WhatsApp</a>
         {% endif %}
       </div>
     </div>
 
     <div class="ai-kit-status">
       <div><span>Statut</span><strong>{{ kit.get_status_display }}</strong></div>
-      <div><span>Derniere generation</span><strong>{% if kit.generated_at %}{{ kit.generated_at|date:"d/m/Y H:i" }}{% else %}A generer{% endif %}</strong></div>
+      <div><span>Dernière génération</span><strong>{% if kit.generated_at %}{{ kit.generated_at|date:"d/m/Y H:i" }}{% else %}À générer{% endif %}</strong></div>
       <div><span>Fiche publique</span><strong><a href="{{ business.get_absolute_url }}" target="_blank" rel="noopener">ouvrir</a></strong></div>
     </div>
 
     {% if not kit.generated_at %}
       <article class="ai-kit-empty">
-        <h2>Le kit n'est pas encore genere</h2>
-        <p>Ajoutez une note si besoin, puis cliquez sur "Generer / mettre a jour". E-Shelle preparera tous les livrables exploitables pour ce client.</p>
+        <h2>Le kit n'est pas encore généré</h2>
+        <p>Ajoutez une note si besoin, puis cliquez sur "Générer / mettre à jour". E-Shelle préparera tous les livrables exploitables pour ce client.</p>
       </article>
     {% else %}
       <div class="ai-kit-grid ai-kit-grid--two">
@@ -44,12 +51,14 @@
             <div><dt>Zone</dt><dd>{{ kit.client_brief.zone }}</dd></div>
             <div><dt>Cible</dt><dd>{{ kit.client_brief.cible }}</dd></div>
             <div><dt>Promesse</dt><dd>{{ kit.client_brief.promesse }}</dd></div>
+            <div><dt>Ton</dt><dd>{{ kit.client_brief.ton }}</dd></div>
+            <div><dt>Contrainte</dt><dd>{{ kit.client_brief.contrainte }}</dd></div>
             <div><dt>Action</dt><dd>{{ kit.client_brief.action_principale }}</dd></div>
           </dl>
         </article>
 
         <article class="ai-kit-panel">
-          <h2>Agents a utiliser</h2>
+          <h2>Agents à utiliser</h2>
           {% for agent in kit.recommended_agents %}
             <div class="ai-kit-row">
               <strong>{{ agent.agent }}</strong>
@@ -78,7 +87,7 @@
         </article>
 
         <article class="ai-kit-panel">
-          <h2>Contenus prets</h2>
+          <h2>Contenus prêts</h2>
           <label>Post Facebook</label>
           <textarea readonly>{{ kit.content_pack.facebook_post }}</textarea>
           <label>Statut WhatsApp</label>
@@ -112,7 +121,7 @@
         </article>
 
         <article class="ai-kit-panel">
-          <h2>Video IA</h2>
+          <h2>Vidéo IA</h2>
           <p><strong>{{ kit.video_plan.format }}</strong></p>
           <p>{{ kit.video_plan.hook }}</p>
           <ol>
@@ -139,10 +148,10 @@
         </article>
 
         <article class="ai-kit-panel">
-          <h2>Checklist qualite</h2>
+          <h2>Checklist qualité</h2>
           {% for row in kit.qa_checklist %}
             <div class="ai-kit-check {% if row.done %}ok{% endif %}">
-              <span>{% if row.done %}OK{% else %}A faire{% endif %}</span>
+              <span>{% if row.done %}OK{% else %}À faire{% endif %}</span>
               <p>{{ row.item }}</p>
             </div>
           {% endfor %}
@@ -159,6 +168,8 @@
 .ai-kit-head h1{color:#fff;margin:.45rem 0}
 .ai-kit-head p{color:rgba(255,255,255,.62);margin:0}
 .ai-kit-actions form{display:grid;gap:.7rem}
+.ai-kit-note-help{margin:0;font-size:.76rem;line-height:1.5;color:rgba(255,255,255,.55)}
+.ai-kit-note-help code{background:rgba(142,230,160,.14);color:#b8f7c4;border-radius:5px;padding:.1rem .35rem;font-size:.72rem}
 .ai-kit-actions textarea,.ai-kit-panel textarea{width:100%;background:#102017;color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:.75rem;resize:vertical}
 .ai-kit-status{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-bottom:1rem}
 .ai-kit-status div,.ai-kit-panel,.ai-kit-empty{background:rgba(255,255,255,.052);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:1rem}

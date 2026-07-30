@@ -867,13 +867,13 @@ class PartnerCRMLead(models.Model):
 
 
 class ClientAIKit(models.Model):
-    """Kit de livraison IA reutilisable pour personnaliser E-Shelle a un client."""
+    """Kit de livraison IA réutilisable pour personnaliser E-Shelle à un client."""
 
     class Status(models.TextChoices):
         DRAFT = "draft", "Brouillon"
-        READY = "ready", "Pret a vendre"
-        DELIVERED = "delivered", "Livre"
-        ARCHIVED = "archived", "Archive"
+        READY = "ready", "Prêt à vendre"
+        DELIVERED = "delivered", "Livré"
+        ARCHIVED = "archived", "Archivé"
 
     business = models.OneToOneField(
         BusinessProfile,

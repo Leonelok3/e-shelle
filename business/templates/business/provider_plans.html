@@ -25,6 +25,23 @@
 
 <section class="section" style="background:#08111d">
   <div class="container">
+    <div class="biz-plan-grid">
+      {% for plan in plans %}
+      <article class="biz-plan-card {% if plan.plan_level == 'business' or plan.plan_level == 'premium' %}biz-plan-card--hot{% endif %}">
+        <span>{{ plan.get_plan_level_display }}</span>
+        <h2>{{ plan.name }}</h2>
+        <strong>{{ plan.monthly_price_xaf }} FCFA</strong>
+        <p>{{ plan.description|default:"Une offre pour rendre votre business plus visible sur E-Shelle." }}</p>
+        <ul>
+          <li>{{ plan.duration_days }} jours d'activation</li>
+          <li>{{ plan.included_boost_days }} jours de boost inclus</li>
+          <li>{{ plan.included_ai_credits }} crédits IA</li>
+        </ul>
+        <a href="{% url 'business:onboarding' %}?plan={{ plan.code }}" class="btn btn-primary">Choisir ce plan</a>
+      </article>
+      {% endfor %}
+    </div>
+
     <div class="biz-benefits">
       <article><strong>1</strong><h2>Visibilité immédiate</h2><p>Vos offres peuvent apparaître sur la page d'accueil, dans les blocs premium et dans les réponses de E-Shelle AI.</p></article>
       <article><strong>2</strong><h2>Contacts mesurables</h2><p>Vous suivez les vues, clics WhatsApp, appels, demandes et performances depuis votre dashboard.</p></article>
@@ -49,23 +66,6 @@
       <div><span>2</span><strong>Choisir Business/Premium</strong><p>Activation locale avec paiement adapté.</p></div>
       <div><span>3</span><strong>Ajouter vos visuels</strong><p>Slides, offres, carrousel et accroches commerciales.</p></div>
       <div><span>4</span><strong>Recevoir des clients</strong><p>E-Shelle AI, page d'accueil, WhatsApp et rapports.</p></div>
-    </div>
-
-    <div class="biz-plan-grid">
-      {% for plan in plans %}
-      <article class="biz-plan-card {% if plan.plan_level == 'business' or plan.plan_level == 'premium' %}biz-plan-card--hot{% endif %}">
-        <span>{{ plan.get_plan_level_display }}</span>
-        <h2>{{ plan.name }}</h2>
-        <strong>{{ plan.monthly_price_xaf }} FCFA</strong>
-        <p>{{ plan.description|default:"Une offre pour rendre votre business plus visible sur E-Shelle." }}</p>
-        <ul>
-          <li>{{ plan.duration_days }} jours d'activation</li>
-          <li>{{ plan.included_boost_days }} jours de boost inclus</li>
-          <li>{{ plan.included_ai_credits }} crédits IA</li>
-        </ul>
-        <a href="{% url 'business:onboarding' %}?plan={{ plan.code }}" class="btn btn-primary">Choisir ce plan</a>
-      </article>
-      {% endfor %}
     </div>
   </div>
 </section>
