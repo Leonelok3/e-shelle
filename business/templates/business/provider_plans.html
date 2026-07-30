@@ -23,6 +23,31 @@
   </div>
 </section>
 
+{% if comparison %}
+<section class="section" style="background:#061019">
+  <div class="container">
+    <div class="biz-compare">
+      <h2>Votre fiche gratuite vs une fiche Business/Premium</h2>
+      <p class="biz-compare-sub">Moyenne réelle des prestataires Business/Premium actifs sur E-Shelle, comparée à votre fiche actuelle.</p>
+      <div class="biz-compare-grid">
+        <div class="biz-compare-col">
+          <span>Votre fiche (Gratuit)</span>
+          <div><strong>{{ comparison.my_views }}</strong><small>Vues</small></div>
+          <div><strong>{{ comparison.my_whatsapp_clicks }}</strong><small>Clics WhatsApp</small></div>
+          <div><strong>{{ comparison.my_leads }}</strong><small>Demandes clients</small></div>
+        </div>
+        <div class="biz-compare-col biz-compare-col--hot">
+          <span>Moyenne Business/Premium</span>
+          <div><strong>{{ comparison.avg_views }}</strong><small>Vues</small></div>
+          <div><strong>{{ comparison.avg_whatsapp_clicks }}</strong><small>Clics WhatsApp</small></div>
+          <div><strong>{{ comparison.avg_leads }}</strong><small>Demandes clients</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <section class="section" style="background:#08111d">
   <div class="container">
     <div class="biz-plan-grid">
@@ -36,6 +61,7 @@
           <li>{{ plan.duration_days }} jours d'activation</li>
           <li>{{ plan.included_boost_days }} jours de boost inclus</li>
           <li>{{ plan.included_ai_credits }} crédits IA</li>
+          {% if plan.monthly_price_xaf > 0 %}<li>&#10003; Vérification E-Shelle incluse</li>{% endif %}
         </ul>
         {% if plan.monthly_price_xaf > 0 %}
           <a href="{{ plan.whatsapp_activation_url }}" target="_blank" rel="noopener" class="btn btn-primary">Choisir ce plan</a>
@@ -97,6 +123,16 @@
 .biz-launch-pack span{color:#7cf66c;font-weight:900;text-transform:uppercase;font-size:.78rem}
 .biz-launch-pack h2{color:#fff;margin:.55rem 0 0;font-size:1.6rem;line-height:1.12}
 .biz-launch-pack ul{margin:0;padding-left:1.2rem;color:rgba(255,255,255,.72);line-height:1.9}
+.biz-compare h2{color:#fff;font-size:1.6rem;margin:0 0 .4rem;text-align:center}
+.biz-compare-sub{color:rgba(255,255,255,.6);text-align:center;max-width:640px;margin:0 auto 1.5rem}
+.biz-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.2rem;max-width:760px;margin:0 auto}
+.biz-compare-col{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:1.4rem;text-align:center}
+.biz-compare-col--hot{border-color:rgba(124,246,108,.5);background:rgba(124,246,108,.08)}
+.biz-compare-col>span{display:block;color:rgba(255,255,255,.55);font-weight:800;font-size:.82rem;text-transform:uppercase;margin-bottom:.8rem}
+.biz-compare-col div{margin:.6rem 0}
+.biz-compare-col strong{display:block;color:#fff;font-size:1.8rem}
+.biz-compare-col--hot strong{color:#7cf66c}
+.biz-compare-col small{color:rgba(255,255,255,.55);font-size:.8rem}
 .biz-plan-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
 .biz-plan-card span{color:#7cf66c;font-weight:900;font-size:.78rem;text-transform:uppercase}
 .biz-plan-card strong{display:block;color:#fff;font-size:1.8rem;margin:.6rem 0}

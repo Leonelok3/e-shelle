@@ -4,7 +4,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import models
-from django.db.models import Count, F, Sum
+from django.db.models import Avg, Count, F, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
@@ -661,7 +661,29 @@ def provider_plans(request):
         "views": BusinessProfile.objects.aggregate(total=Sum("views_count"))["total"] or 0,
         "leads": BusinessProfile.objects.aggregate(total=Sum("leads_count"))["total"] or 0,
     }
-    return render(request, "business/provider_plans.html", {"plans": plans, "proof": proof})
+
+    comparison = None
+    if request.user.is_authenticated:
+        my_business = BusinessProfile.objects.filter(owner=request.user).order_by("-updated_at").first()
+        if my_business and my_business.plan == BusinessProfile.Plan.FREE:
+            premium_avg = BusinessProfile.objects.filter(
+                is_active=True,
+                plan__in=[BusinessProfile.Plan.BUSINESS, BusinessProfile.Plan.PREMIUM],
+            ).exclude(pk=my_business.pk).aggregate(
+                views=Avg("views_count"),
+                whatsapp_clicks=Avg("whatsapp_clicks"),
+                leads=Avg("leads_count"),
+            )
+            comparison = {
+                "my_views": my_business.views_count,
+                "my_whatsapp_clicks": my_business.whatsapp_clicks,
+                "my_leads": my_business.leads_count,
+                "avg_views": round(premium_avg["views"] or 0),
+                "avg_whatsapp_clicks": round(premium_avg["whatsapp_clicks"] or 0),
+                "avg_leads": round(premium_avg["leads"] or 0),
+            }
+
+    return render(request, "business/provider_plans.html", {"plans": plans, "proof": proof, "comparison": comparison})
 
 
 def solutions(request):
@@ -2096,9 +2118,19 @@ def onboarding(request):
                 plan=BusinessProfile.Plan.FREE,
                 is_active=True,
             )
+            # Essai Business gratuit de 7 jours a l'inscription : le prestataire
+            # goute a la vraie visibilite premium avant de decider de payer.
+            business.activate_plan(BusinessProfile.Plan.BUSINESS, days=7)
+            business.is_trial = True
+            business.save(update_fields=["is_trial", "updated_at"])
+
             request.session["current_business_id"] = business.id
             request.session.modified = True
-            messages.success(request, "Votre fiche business a ete creee. Choisissez maintenant comment activer votre plan.")
+            messages.success(
+                request,
+                "Votre fiche business a ete creee, avec 7 jours d'essai Business offerts ! "
+                "Profitez-en pour tester la visibilite premium.",
+            )
             if plan and plan.code != "free":
                 return redirect(f"/business/payment/request/{business.id}/?plan={plan.code}")
             return redirect("business:dashboard")

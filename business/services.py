@@ -550,7 +550,13 @@ def record_provider_plan_payment(
     business.ai_credits += plan.included_ai_credits
     if plan.included_boost_days:
         business.activate_boost(plan.included_boost_days)
-    business.save(update_fields=["ai_credits", "updated_at"])
+    update_fields = ["ai_credits", "updated_at"]
+    if plan.monthly_price_xaf > 0:
+        # Un vrai paiement confirme -> badge Verifie, ce n'est plus un essai gratuit.
+        business.is_verified = True
+        business.is_trial = False
+        update_fields += ["is_verified", "is_trial"]
+    business.save(update_fields=update_fields)
     create_commission_for_transaction(tx)
     return tx
 

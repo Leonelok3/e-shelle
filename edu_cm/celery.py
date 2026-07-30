@@ -212,5 +212,17 @@ app.conf.beat_schedule = {
         "task": "jobs.tasks.fetch_canada_scholarships_task",
         "schedule": crontab(hour=6, minute=45),
     },
+
+    # ── Business — Cycle de vie abonnement/essai ───────────────────────────
+    # Rappel avant expiration (essai ou abonnement) — chaque jour à 8h
+    "business-remind-expiring": {
+        "task": "business.tasks.remind_expiring_businesses",
+        "schedule": crontab(hour=8, minute=0),
+    },
+    # Retour en Gratuit des fiches expirées — chaque jour à 8h15
+    "business-downgrade-expired": {
+        "task": "business.tasks.downgrade_expired_businesses",
+        "schedule": crontab(hour=8, minute=15),
+    },
 }
 

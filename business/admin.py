@@ -1,4 +1,7 @@
+import urllib.parse
+
 from django.contrib import admin
+from django.utils import timezone
 from django.utils.html import format_html
 
 from .models import (
@@ -37,9 +40,9 @@ class BusinessCatalogItemInline(admin.TabularInline):
 class BusinessProfileAdmin(admin.ModelAdmin):
     inlines = (BusinessCatalogItemInline,)
     list_display = (
-        "name", "module", "public_slug", "plan", "subscription_status", "boost_status",
-        "ai_credits", "views_count", "whatsapp_clicks", "phone_clicks", "leads_count",
-        "is_active", "is_verified",
+        "name", "module", "public_slug", "plan", "subscription_status", "days_left",
+        "boost_status", "ai_credits", "views_count", "whatsapp_clicks", "phone_clicks",
+        "leads_count", "is_active", "is_verified", "whatsapp_contact",
     )
     list_filter = ("module", "plan", "is_active", "is_verified")
     search_fields = ("name", "slug", "public_slug", "city", "district", "phone", "whatsapp", "promo_headline")
@@ -79,6 +82,29 @@ class BusinessProfileAdmin(admin.ModelAdmin):
     @admin.display(description="Boost")
     def boost_status(self, obj):
         return "Actif" if obj.boost_active else "-"
+
+    @admin.display(description="Jours restants")
+    def days_left(self, obj):
+        if not obj.subscription_expires_at:
+            return "-"
+        delta = obj.subscription_expires_at - timezone.now()
+        if delta.days < 0:
+            return "Expire"
+        label = "Essai" if obj.is_trial else "Abo"
+        return f"{delta.days}j ({label})"
+
+    @admin.display(description="WhatsApp")
+    def whatsapp_contact(self, obj):
+        number = (obj.whatsapp or obj.phone or "").replace("+", "").replace(" ", "").replace("-", "")
+        if not number:
+            return "-"
+        if not number.startswith("237"):
+            number = f"237{number}"
+        text = f"Bonjour, ici E-Shelle au sujet de votre fiche {obj.name}."
+        return format_html(
+            '<a href="https://wa.me/{}?text={}" target="_blank">Contacter</a>',
+            number, urllib.parse.quote(text),
+        )
 
     @admin.action(description="Activer Pro 30 jours")
     def activate_pro_30_days(self, request, queryset):
@@ -243,7 +269,6 @@ class PaymentRequestAdmin(admin.ModelAdmin):
             f"Bonjour, votre demande E-Shelle #{obj.pk} pour {obj.business.name} "
             f"({obj.plan.name}, {obj.amount_xaf} FCFA) a ete recue."
         )
-        import urllib.parse
         return format_html('<a href="https://wa.me/{}?text={}" target="_blank">Contacter</a>', number, urllib.parse.quote(text))
 
     @admin.action(description="Confirmer et activer les abonnements")
@@ -298,7 +323,6 @@ class BusinessActivationCodeAdmin(admin.ModelAdmin):
             f"Voici votre code d'activation du plan {obj.plan.name} : {obj.code}. "
             "Entrez-le dans votre tableau de bord E-Shelle (section \"Activer avec un code\") pour activer votre fiche."
         )
-        import urllib.parse
         return format_html('<a href="https://wa.me/{}?text={}" target="_blank">Envoyer</a>', number, urllib.parse.quote(text))
 
 

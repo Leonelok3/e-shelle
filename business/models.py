@@ -111,7 +111,9 @@ class BusinessProfile(models.Model):
     boost_expires_at = models.DateTimeField(null=True, blank=True)
     ai_credits = models.PositiveIntegerField(default=0)
 
-    is_verified = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False, help_text="Badge Vérifié — active automatiquement au premier paiement confirme.")
+    is_trial = models.BooleanField(default=False, help_text="Essai Business gratuit de 7 jours en cours (pas un vrai paiement).")
+    expiry_reminder_sent_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     views_count = models.PositiveIntegerField(default=0)
@@ -220,13 +222,17 @@ class BusinessProfile(models.Model):
         self.activation_status = self.ActivationStatus.ACTIVE
         base = self.subscription_expires_at if self.subscription_active else timezone.now()
         self.subscription_expires_at = base + timedelta(days=days)
+        self.expiry_reminder_sent_at = None
         if plan == self.Plan.PRO:
             self.ai_credits += 5
         elif plan == self.Plan.BUSINESS:
             self.ai_credits += 20
         elif plan == self.Plan.PREMIUM:
             self.ai_credits += 50
-        self.save(update_fields=["plan", "activation_status", "subscription_expires_at", "ai_credits", "updated_at"])
+        self.save(update_fields=[
+            "plan", "activation_status", "subscription_expires_at",
+            "expiry_reminder_sent_at", "ai_credits", "updated_at",
+        ])
 
     def activate_boost(self, days: int = 7):
         base = self.boost_expires_at if self.boost_active else timezone.now()
