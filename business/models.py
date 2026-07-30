@@ -202,6 +202,19 @@ class BusinessProfile(models.Model):
             score += 80
         return score
 
+    @property
+    def approved_reviews(self):
+        return self.reviews.filter(is_approved=True)
+
+    @property
+    def average_rating(self):
+        avg = self.approved_reviews.aggregate(avg=models.Avg("rating"))["avg"]
+        return round(avg, 1) if avg else 0
+
+    @property
+    def reviews_count(self):
+        return self.approved_reviews.count()
+
     def activate_plan(self, plan: str, days: int = 30):
         self.plan = plan
         self.activation_status = self.ActivationStatus.ACTIVE
@@ -241,8 +254,10 @@ class BusinessCatalogItem(models.Model):
     description = models.TextField(blank=True)
     price_label = models.CharField(max_length=80, blank=True, help_text="Ex: 2 500 FCFA, Prix a discuter.")
     image = models.ImageField(upload_to="business/catalogue/", blank=True, null=True)
+
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
+    views_count = models.PositiveIntegerField(default=0, help_text="Nombre de fois que ce produit/service precis a ete consulte.")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -295,6 +310,7 @@ class BusinessCatalogItem(models.Model):
                 f"Bonjour {self.business.name}, je suis interesse par {self.title} vu sur E-Shelle."
             ),
             "meta": self.business.district or self.business.city,
+            "views": self.views_count,
         }
 
 
@@ -315,6 +331,32 @@ class BusinessCatalogItemImage(models.Model):
 
     def __str__(self):
         return f"Photo pour {self.item.title}"
+
+
+class BusinessReview(models.Model):
+    """Avis client public sur une fiche business (pas de compte requis)."""
+
+    business = models.ForeignKey(
+        BusinessProfile,
+        on_delete=models.CASCADE,
+        related_name="reviews",
+    )
+    author_name = models.CharField(max_length=100)
+    rating = models.PositiveSmallIntegerField(
+        choices=[(i, str(i)) for i in range(1, 6)],
+        help_text="Note de 1 a 5.",
+    )
+    comment = models.TextField(blank=True)
+    is_approved = models.BooleanField(default=True, help_text="Decoche pour masquer cet avis de la fiche publique.")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Avis client"
+        verbose_name_plural = "Avis clients"
+
+    def __str__(self):
+        return f"{self.rating}/5 - {self.author_name} ({self.business.name})"
 
 
 class ProviderPlan(models.Model):

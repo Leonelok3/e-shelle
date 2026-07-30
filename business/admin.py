@@ -12,6 +12,7 @@ from .models import (
     BusinessCatalogItemImage,
     BusinessLeadEvent,
     BusinessProfile,
+    BusinessReview,
     ClientAIKit,
     HomeAdSlide,
     PartnerCRMLead,
@@ -107,10 +108,22 @@ class BusinessCatalogItemImageInline(admin.TabularInline):
 @admin.register(BusinessCatalogItem)
 class BusinessCatalogItemAdmin(admin.ModelAdmin):
     inlines = (BusinessCatalogItemImageInline,)
-    list_display = ("title", "business", "item_type", "price_label", "is_active", "order", "updated_at")
+    list_display = (
+        "title", "business", "item_type", "price_label",
+        "views_count", "is_active", "order", "updated_at",
+    )
     list_filter = ("item_type", "is_active", "business__module")
     search_fields = ("title", "description", "business__name", "price_label")
     list_editable = ("is_active", "order")
+    autocomplete_fields = ("business",)
+
+
+@admin.register(BusinessReview)
+class BusinessReviewAdmin(admin.ModelAdmin):
+    list_display = ("business", "author_name", "rating", "is_approved", "created_at")
+    list_filter = ("rating", "is_approved", "business__module")
+    search_fields = ("author_name", "comment", "business__name")
+    list_editable = ("is_approved",)
     autocomplete_fields = ("business",)
 
 

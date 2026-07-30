@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.db.models import Count, F, Sum
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.utils import timezone
@@ -26,6 +26,7 @@ from .models import (
     BusinessCatalogItemImage,
     BusinessLeadEvent,
     BusinessProfile,
+    BusinessReview,
     ClientAIKit,
     HomeAdSlide,
     PaymentRequest,
@@ -627,6 +628,8 @@ def public_profile(request, public_slug):
     public_url = request.build_absolute_uri(business.get_absolute_url())
     share_text = f"Decouvrez {business.name} sur E-Shelle: {public_url}"
     whatsapp_url = business.whatsapp_url(f"Bonjour {business.name}, je viens de votre boutique E-Shelle: {public_url}")
+    is_owner = request.user.is_authenticated and business.owner == request.user
+    reviews = business.reviews.all() if is_owner else business.approved_reviews
     return render(
         request,
         "business/public_profile.html",
@@ -639,6 +642,8 @@ def public_profile(request, public_slug):
             "share_text": share_text,
             "share_whatsapp_url": f"https://wa.me/?text={urllib.parse.quote(share_text)}",
             "whatsapp_url": whatsapp_url,
+            "reviews": reviews,
+            "review_stars": range(1, 6),
         },
     )
 
@@ -2155,6 +2160,14 @@ def dashboard(request):
     )
 
 
+def _positive_int_simple(value):
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        return None
+    return n if n > 0 else None
+
+
 @login_required
 def catalog_manage(request, business_id):
     """Gestion rapide des produits/services visibles sur la fiche publique."""
@@ -2223,6 +2236,65 @@ def catalog_item_action(request, business_id, item_id):
     if referer:
         return redirect(referer)
     return redirect("business:catalog_manage", business_id=business.id)
+
+
+@require_POST
+def submit_review(request, business_id):
+    """Depot d'un avis client public sur une fiche business (pas de compte requis)."""
+    business = get_object_or_404(BusinessProfile, pk=business_id, is_active=True)
+
+    author_name = request.POST.get("author_name", "").strip()
+    comment = request.POST.get("comment", "").strip()
+    rating = _positive_int_simple(request.POST.get("rating"))
+
+    if not author_name:
+        messages.error(request, "Indique ton nom pour laisser un avis.")
+    elif not rating or rating < 1 or rating > 5:
+        messages.error(request, "Choisis une note de 1 a 5 etoiles.")
+    else:
+        BusinessReview.objects.create(
+            business=business,
+            author_name=author_name[:100],
+            rating=rating,
+            comment=comment,
+        )
+        messages.success(request, "Merci pour ton avis !")
+
+    return redirect(business.get_absolute_url())
+
+
+@login_required
+@require_POST
+def review_action(request, business_id, review_id):
+    business = get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
+    review = get_object_or_404(BusinessReview, pk=review_id, business=business)
+    action = request.POST.get("action")
+    if action == "toggle":
+        review.is_approved = not review.is_approved
+        review.save(update_fields=["is_approved"])
+        messages.success(request, "Visibilite de l'avis mise a jour.")
+    elif action == "delete":
+        review.delete()
+        messages.success(request, "Avis supprime.")
+    else:
+        messages.error(request, "Action avis inconnue.")
+    return redirect(business.get_absolute_url())
+
+
+@require_POST
+def track_item_view(request, item_id):
+    """
+    Incremente le compteur de vues d'UN produit/service precis (pas celui de
+    toute la boutique) — appele en JS quand un visiteur ouvre reellement les
+    details d'un produit, pas seulement quand il tombe sur la fiche business.
+    """
+    updated = BusinessCatalogItem.objects.filter(pk=item_id, is_active=True).update(
+        views_count=F("views_count") + 1
+    )
+    if not updated:
+        return JsonResponse({"ok": False}, status=404)
+    views_count = BusinessCatalogItem.objects.filter(pk=item_id).values_list("views_count", flat=True).first()
+    return JsonResponse({"ok": True, "views": views_count})
 
 
 @login_required

@@ -97,9 +97,9 @@ def home_view(request):
                     "price": item.formatted_price,
                     "image": item.image_url,
                     "initial": item.title[:1],
-                    "url": business.get_absolute_url(),
+                    "url": f"{business.get_absolute_url()}?produit={item.id}",
                     "contact_url": item.to_public_item().get("contact_url") or business.get_absolute_url(),
-                    "views": business.views_count,
+                    "views": item.views_count,
                     "leads": business.leads_count,
                 }
             )

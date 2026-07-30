@@ -149,10 +149,91 @@
           </div>
         {% endif %}
       </section>
+
+      <section style="margin-top:1.5rem">
+        <div style="display:flex;align-items:end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
+          <div>
+            <p style="margin:0 0 .35rem;color:#86efac;font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em">Avis clients</p>
+            <h2 style="margin:0;font-family:var(--font-display);font-size:clamp(1.7rem,3vw,2.4rem)">
+              {% if business.reviews_count %}
+                {{ business.average_rating }}/5
+                <span style="font-size:1rem;color:rgba(255,255,255,.5);font-weight:600">({{ business.reviews_count }} avis)</span>
+              {% else %}
+                Avis clients
+              {% endif %}
+            </h2>
+          </div>
+        </div>
+
+        {% if reviews %}
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:1.5rem">
+            {% for review in reviews %}
+              <article style="border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;padding:1rem">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.4rem">
+                  <strong style="color:#0f172a;font-size:.92rem">{{ review.author_name }}</strong>
+                  <span style="color:#f59e0b;font-size:.85rem;letter-spacing:1px">
+                    {% for i in review_stars %}{% if i <= review.rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}
+                  </span>
+                </div>
+                {% if review.comment %}
+                  <p style="margin:0 0 .5rem;color:#475569;font-size:.86rem;line-height:1.5">{{ review.comment }}</p>
+                {% endif %}
+                <span style="color:#94a3b8;font-size:.72rem">
+                  {{ review.created_at|date:"d M Y" }}{% if not review.is_approved %} &middot; <span style="color:#b91c1c;font-weight:800">Masqu&eacute;</span>{% endif %}
+                </span>
+                {% if user.is_authenticated and business.owner == user %}
+                  <div style="display:flex;gap:.4rem;margin-top:.6rem;padding-top:.6rem;border-top:1px solid #e5e7eb">
+                    <form method="post" action="{% url 'business:review_action' business.id review.id %}" style="margin:0">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="toggle">
+                      <button type="submit" style="min-height:30px;padding:0 .6rem;border-radius:8px;border:1px solid #cbd5e1;background:#f8fafc;color:#0f172a;font-size:.72rem;font-weight:800;cursor:pointer">{% if review.is_approved %}Masquer{% else %}Afficher{% endif %}</button>
+                    </form>
+                    <form method="post" action="{% url 'business:review_action' business.id review.id %}" style="margin:0" onsubmit="return confirm('Supprimer cet avis ?');">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="delete">
+                      <button type="submit" style="min-height:30px;padding:0 .6rem;border-radius:8px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.08);color:#b91c1c;font-size:.72rem;font-weight:800;cursor:pointer">Supprimer</button>
+                    </form>
+                  </div>
+                {% endif %}
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="color:rgba(255,255,255,.6);margin-bottom:1.5rem">Aucun avis pour le moment. Soyez le premier &agrave; partager votre exp&eacute;rience !</p>
+        {% endif %}
+
+        <div style="border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.05);padding:1.25rem;max-width:520px">
+          <h3 style="margin:0 0 .8rem;color:#fff;font-family:var(--font-display);font-size:1.15rem">Laisser un avis</h3>
+          <form method="post" action="{% url 'business:submit_review' business.id %}">
+            {% csrf_token %}
+            <label style="display:block;margin-bottom:.7rem">
+              <span style="display:block;margin-bottom:.3rem;color:rgba(255,255,255,.7);font-size:.82rem;font-weight:700">Votre nom</span>
+              <input type="text" name="author_name" maxlength="100" required placeholder="Ex: Jean K." style="width:100%;padding:.65rem .8rem;border-radius:8px;border:1px solid rgba(255,255,255,.16);background:#101c33;color:#fff;box-sizing:border-box">
+            </label>
+            <label style="display:block;margin-bottom:.7rem">
+              <span style="display:block;margin-bottom:.3rem;color:rgba(255,255,255,.7);font-size:.82rem;font-weight:700">Note</span>
+              <select name="rating" required style="width:100%;padding:.65rem .8rem;border-radius:8px;border:1px solid rgba(255,255,255,.16);background:#101c33;color:#fff;box-sizing:border-box">
+                <option value="">Choisir...</option>
+                <option value="5">&#9733;&#9733;&#9733;&#9733;&#9733; Excellent</option>
+                <option value="4">&#9733;&#9733;&#9733;&#9733;&#9734; Tres bien</option>
+                <option value="3">&#9733;&#9733;&#9733;&#9734;&#9734; Correct</option>
+                <option value="2">&#9733;&#9733;&#9734;&#9734;&#9734; Moyen</option>
+                <option value="1">&#9733;&#9734;&#9734;&#9734;&#9734; Insuffisant</option>
+              </select>
+            </label>
+            <label style="display:block;margin-bottom:1rem">
+              <span style="display:block;margin-bottom:.3rem;color:rgba(255,255,255,.7);font-size:.82rem;font-weight:700">Commentaire (optionnel)</span>
+              <textarea name="comment" rows="3" placeholder="Votre experience avec ce vendeur..." style="width:100%;padding:.65rem .8rem;border-radius:8px;border:1px solid rgba(255,255,255,.16);background:#101c33;color:#fff;resize:vertical;box-sizing:border-box"></textarea>
+            </label>
+            <button type="submit" style="width:100%;min-height:44px;border-radius:10px;border:0;background:#7dec6c;color:#06120a;font-weight:900;cursor:pointer">Envoyer mon avis</button>
+          </form>
+        </div>
+      </section>
     </div>
   </div>
 </section>
 {{ items|json_script:"items-data" }}
+<span id="track-view-url-template" data-url="{% url 'business:track_item_view' item_id=0 %}" style="display:none"></span>
 
 <!-- Modal Details Produit -->
 <div id="productModal" class="modal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;overflow:auto;background-color:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;">
@@ -207,6 +288,23 @@
 </style>
 
 <script>
+function getCookie(name) {
+  var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : '';
+}
+
+function trackItemView(itemId) {
+  if (!itemId) return;
+  var tpl = document.getElementById('track-view-url-template');
+  if (!tpl) return;
+  var url = tpl.getAttribute('data-url').replace(/\/0\/vue\/$/, '/' + itemId + '/vue/');
+  fetch(url, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+  }).catch(function () { /* le suivi de vue est accessoire, on ignore les erreurs reseau */ });
+}
+
 document.querySelectorAll('[data-copy-link]').forEach(function(button){
   button.addEventListener('click', function(){
     var link = button.getAttribute('data-copy-link');
@@ -225,7 +323,9 @@ function openProductModal(index) {
   document.getElementById('modal-item-type').textContent = item.type;
   document.getElementById('modal-item-price').textContent = item.price;
   document.getElementById('modal-item-description').textContent = item.description || "Disponible sur E-Shelle.";
-  
+
+  trackItemView(item.id);
+
   const orderBtn = document.getElementById('modal-order-btn');
   if (item.contact_url) {
     orderBtn.href = item.contact_url;
@@ -302,6 +402,16 @@ window.addEventListener('click', function(event) {
   if (event.target === modal) {
     closeProductModal();
   }
+});
+
+// Ouvre directement le produit vise si on arrive via ?produit=<id> (ex: depuis la vitrine d'accueil)
+document.addEventListener('DOMContentLoaded', function () {
+  var params = new URLSearchParams(window.location.search);
+  var produitId = params.get('produit');
+  if (!produitId) return;
+  var items = JSON.parse(document.getElementById('items-data').textContent);
+  var index = items.findIndex(function (it) { return String(it.id) === String(produitId); });
+  if (index >= 0) openProductModal(index);
 });
 </script>
 {% endblock %}
