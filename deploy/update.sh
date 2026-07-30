@@ -27,6 +27,7 @@ echo "→ Données de départ E-Shelle Jobs..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" seed_jobs || true
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" seed_transport || true
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" seed_sante || true
+sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" seed_business_plans || true
 
 echo "→ Collecte des statiques Simplo..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput --settings=simplo.core.settings
