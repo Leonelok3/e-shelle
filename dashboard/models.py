@@ -43,8 +43,8 @@ class ParametrePlateforme(models.Model):
     couleur_primaire = models.CharField(max_length=10, default="#2E7D32")
     couleur_accent  = models.CharField(max_length=10, default="#F57C00")
     email_contact   = models.EmailField(default="contact@e-shelle.com")
-    telephone       = models.CharField(max_length=25, default="+237 000 000 000")
-    whatsapp        = models.CharField(max_length=25, default="+237000000000")
+    telephone       = models.CharField(max_length=25, default="+237 680 625 082")
+    whatsapp        = models.CharField(max_length=25, default="+237680625082")
     adresse         = models.TextField(blank=True)
     # Réseaux sociaux
     lien_facebook   = models.URLField(blank=True)
