@@ -113,6 +113,10 @@ INSTALLED_APPS = [
 
     # ── E-Shelle Agro — Marketplace Agroalimentaire Africaine ───────
     "agro.apps.AgroConfig",
+    "salonhub.apps.SalonhubConfig",
+    "salonhub.salons.apps.SalonsConfig",
+    "salonhub.bookings.apps.BookingsConfig",
+    "salonhub.dashboard.apps.DashboardConfig",
 
     # ── EduCam Pro — Plateforme E-Learning ───────────────────────
     "edu_platform.apps.EduPlatformConfig",
@@ -487,6 +491,7 @@ ANNONCES_PUBLIC_URL = os.getenv("ANNONCES_PUBLIC_URL", "/annonces/")
 MARKET_PUBLIC_URL = os.getenv("MARKET_PUBLIC_URL", ANNONCES_PUBLIC_URL)
 LOVE_PUBLIC_URL = os.getenv("LOVE_PUBLIC_URL", "/rencontres/")
 AGRO_PUBLIC_URL = os.getenv("AGRO_PUBLIC_URL", "/agro/")
+SALONHUB_PUBLIC_URL = os.getenv("SALONHUB_PUBLIC_URL", "/salons/")
 RESTO_PUBLIC_URL = os.getenv("RESTO_PUBLIC_URL", "/resto/")
 NJANGI_PUBLIC_URL = os.getenv("NJANGI_PUBLIC_URL", "/njangi/")
 ADGEN_PUBLIC_URL = os.getenv("ADGEN_PUBLIC_URL", "/pub/")

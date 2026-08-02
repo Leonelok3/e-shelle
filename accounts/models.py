@@ -83,6 +83,10 @@ class CustomUser(AbstractUser):
     def is_client(self):
         return self.role == Role.CLIENT
 
+    @property
+    def is_owner(self):
+        return self.role in (Role.VENDOR, Role.CLIENT) or self.is_admin
+
 
 def avatar_upload_path(instance, filename):
     return f"avatars/{instance.user.id}/{filename}"

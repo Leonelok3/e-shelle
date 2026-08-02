@@ -553,6 +553,10 @@ urlpatterns = [
 
     # ── Njangi Digital — Tontine & Fond commun numérique ─────────────
     path("njangi/", include("njangi.urls", namespace="njangi")),
+    # ── SalonHub — Gestion de salons & rendez-vous ───────────────────
+    path("salons/", include("salonhub.salons.urls", namespace="salons")),
+    path("salonhub/dashboard/", include("salonhub.dashboard.urls", namespace="salonhub_dashboard")),
+    path("salonhub/accounts/", include("salonhub.accounts.urls", namespace="salonhub_accounts")),
 
     # ── AdGen — Générateur de publicités IA ──────────────────────────
     path("pub/", include("adgen.urls", namespace="adgen")),

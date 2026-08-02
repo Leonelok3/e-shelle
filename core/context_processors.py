@@ -33,4 +33,5 @@ def eshelle_public_urls(request):
         "SIMPLO_PUBLIC_URL": getattr(settings, "SIMPLO_PUBLIC_URL", "http://127.0.0.1:8020/"),
         "MAPEX_PUBLIC_URL": getattr(settings, "MAPEX_PUBLIC_URL", "/edu/"),
         "EXPROD_PUBLIC_URL": getattr(settings, "EXPROD_PUBLIC_URL", "/lebelage-importer/"),
+        "SALONHUB_PUBLIC_URL": getattr(settings, "SALONHUB_PUBLIC_URL", "/salons/"),
     }

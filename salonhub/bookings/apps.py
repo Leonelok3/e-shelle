@@ -1,0 +1,6 @@
+from django.apps import AppConfig
+
+
+class BookingsConfig(AppConfig):
+    name = 'salonhub.bookings'
+    label = 'salonhub_bookings'

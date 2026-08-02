@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ salon.name }} — {{ salon.city }} | SalonHub{% endblock %}
+
+{% block content %}
+
+<section class="salon-hero">
+  {% if salon.cover_image %}<img src="{{ salon.cover_image.url }}" alt="{{ salon.name }}">{% endif %}
+</section>
+
+<div class="container">
+  <div class="salon-identity">
+    <div class="salon-logo">
+      {% if salon.logo %}<img src="{{ salon.logo.url }}" alt="Logo {{ salon.name }}">{% endif %}
+    </div>
+    <div class="salon-title-block">
+      <p class="eyebrow" style="color:var(--gold-light);">{{ salon.get_kind_display }}{% if salon.is_verified %} · ✓ Vérifié{% endif %}</p>
+      <h1>{{ salon.name }}</h1>
+      <p class="loc">📍 {{ salon.address|default:salon.district }}, {{ salon.city }}</p>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div>
+      {% if salon.description %}
+      <div class="section" style="padding-top:20px;">
+        <p class="eyebrow">À propos</p>
+        <p style="margin-top:10px; max-width:640px;">{{ salon.description }}</p>
+      </div>
+      {% endif %}
+
+      <div class="section" style="padding-top:10px;">
+        <div class="section-head"><div><p class="eyebrow">Prestations</p><h2>Que souhaitez-vous réserver ?</h2></div></div>
+        <div>
+          {% for service in services %}
+          <div class="service-row" data-service-id="{{ service.id }}" data-service-name="{{ service.name }}" data-duration="{{ service.duration_minutes }}">
+            <div class="info">
+              <h4>{{ service.name }}</h4>
+              {% if service.description %}<p>{{ service.description }}</p>{% endif %}
+            </div>
+            <div class="meta">
+              <span class="price">{{ service.price|floatformat:0 }} FCFA</span>
+              <span class="dur">{{ service.duration_minutes }} min</span>
+            </div>
+          </div>
+          {% empty %}
+          <p class="muted">Ce prestataire n'a pas encore renseigné ses prestations.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="section" style="padding-top:10px;">
+        <p class="eyebrow">Horaires</p>
+        <ul class="hours-list" style="margin-top:14px; max-width:340px;">
+          {% for h in opening_hours_ordered %}
+            <li class="{% if h.weekday == today_weekday %}today{% endif %}">
+              <span>{{ h.get_weekday_display }}</span>
+              <span>{% if h.is_closed %}Fermé{% else %}{{ h.start_time|time:"H:i" }} – {{ h.end_time|time:"H:i" }}{% endif %}</span>
+            </li>
+          {% empty %}
+            <li>Horaires non renseignés — contactez l'établissement.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="booking-panel">
+        <p class="eyebrow" style="color:var(--gold-light);">Prendre rendez-vous</p>
+        <h3 id="selected-service-label" style="margin-top:6px;">Choisissez une prestation ci-contre</h3>
+
+        <div class="day-strip" id="day-strip">
+          {% for day in next_days %}
+            <button type="button" class="day-pill" data-date="{{ day|date:'Y-m-d' }}">
+              {{ day|date:"D"|slice:":3" }}<span class="num">{{ day|date:"d" }}</span>
+            </button>
+          {% endfor %}
+        </div>
+
+        <div class="slots-grid" id="slots-grid">
+          <p class="slots-empty">Sélectionnez une prestation puis une date pour voir les créneaux disponibles.</p>
+        </div>
+
+        <form id="booking-form" class="booking-form" method="post" action="{% url 'bookings:create_appointment' salon.slug %}">
+          {% csrf_token %}
+          <input type="hidden" name="service" id="id_service" value="">
+          <input type="hidden" name="date" id="id_date" value="">
+          <input type="hidden" name="time" id="id_time" value="">
+          <input type="text" name="client_name" placeholder="Votre nom complet" required>
+          <input type="tel" name="client_phone" placeholder="Votre numéro (ex: 690 00 00 00)" required>
+          <textarea name="note" rows="2" placeholder="Précisions éventuelles (optionnel)"></textarea>
+          <button type="submit" class="btn btn-wa btn-block">
+            Confirmer sur WhatsApp
+          </button>
+          <p style="font-size:.75rem; color:rgba(251,244,232,.6); text-align:center; margin:0;">
+            Vous serez redirigé(e) vers WhatsApp pour finaliser votre rendez-vous avec {{ salon.name }}.
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const salonSlug = "{{ salon.slug }}";
+  const slotsUrl = "{% url 'bookings:available_slots' salon.slug %}";
+
+  let selectedServiceId = "";
+  let selectedDate = "";
+  let selectedTime = "";
+
+  const serviceRows = document.querySelectorAll(".service-row");
+  const dayPills = document.querySelectorAll(".day-pill");
+  const slotsGrid = document.getElementById("slots-grid");
+  const bookingForm = document.getElementById("booking-form");
+  const label = document.getElementById("selected-service-label");
+
+  serviceRows.forEach(row => {
+    row.addEventListener("click", () => {
+      serviceRows.forEach(r => r.classList.remove("selected"));
+      row.classList.add("selected");
+      selectedServiceId = row.dataset.serviceId;
+      label.textContent = row.dataset.serviceName;
+      document.getElementById("id_service").value = selectedServiceId;
+      if (selectedDate) fetchSlots();
+    });
+  });
+
+  dayPills.forEach(pill => {
+    pill.addEventListener("click", () => {
+      dayPills.forEach(p => p.classList.remove("active"));
+      pill.classList.add("active");
+      selectedDate = pill.dataset.date;
+      document.getElementById("id_date").value = selectedDate;
+      fetchSlots();
+    });
+  });
+
+  function fetchSlots(){
+    bookingForm.classList.remove("open");
+    slotsGrid.innerHTML = '<p class="slots-empty">Chargement des créneaux…</p>';
+    let url = slotsUrl + "?date=" + selectedDate;
+    if (selectedServiceId) url += "&service=" + selectedServiceId;
+
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        slotsGrid.innerHTML = "";
+        if (!data.slots || data.slots.length === 0){
+          slotsGrid.innerHTML = '<p class="slots-empty">Aucun créneau disponible ce jour-là. Essayez une autre date.</p>';
+          return;
+        }
+        data.slots.forEach(time => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "slot-btn";
+          btn.textContent = time;
+          btn.addEventListener("click", () => {
+            document.querySelectorAll(".slot-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            selectedTime = time;
+            document.getElementById("id_time").value = selectedTime;
+            bookingForm.classList.add("open");
+          });
+          slotsGrid.appendChild(btn);
+        });
+      });
+  }
+})();
+</script>
+
+{% endblock %}

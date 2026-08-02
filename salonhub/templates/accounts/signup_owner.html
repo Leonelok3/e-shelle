@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-wrap">
+  <p class="eyebrow">Rejoindre SalonHub</p>
+  <h1 style="margin-top:6px;">Créez votre espace pro</h1>
+  <p class="muted" style="margin-top:8px;">Inscrivez votre salon ou institut de beauté et recevez vos premiers rendez-vous en ligne dès aujourd'hui.</p>
+  <form method="post" style="margin-top:24px;">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="field">
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<p class="helptext">{{ field.help_text }}</p>{% endif %}
+        {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-gold btn-block">Créer mon compte</button>
+  </form>
+  <p style="margin-top:18px; font-size:.9rem;" class="muted">Déjà inscrit ? <a href="{% url 'accounts:login' %}" style="color:var(--wine); font-weight:700;">Se connecter</a></p>
+</div>
+{% endblock %}

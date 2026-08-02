@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Mon espace pro | SalonHub{% endblock %}
+{% block content %}
+<div class="dash-shell">
+  <aside class="dash-side">
+    <p class="eyebrow" style="color:var(--gold-light); margin-bottom:16px;">Espace pro</p>
+    <a href="{% url 'dashboard:home' %}">📊 Tableau de bord</a>
+    <a href="/admin/salons/salon/" target="_blank">🏠 Mes établissements</a>
+    <a href="/admin/salons/service/" target="_blank">💇 Prestations</a>
+    <a href="/admin/bookings/appointment/" target="_blank">📅 Tous les rendez-vous</a>
+    <a href="{% url 'salons:home' %}">← Retour au site</a>
+  </aside>
+
+  <div class="dash-main">
+    <p class="eyebrow">Bonjour {{ request.user.first_name|default:request.user.username }}</p>
+    <h1 style="margin-top:6px;">Tableau de bord</h1>
+
+    <div class="stat-grid" style="margin-top:28px;">
+      <div class="stat-card"><div class="num">{{ stats.total_salons }}</div><div class="label">Établissement{{ stats.total_salons|pluralize }}</div></div>
+      <div class="stat-card"><div class="num">{{ stats.today_count }}</div><div class="label">Rendez-vous aujourd'hui</div></div>
+      <div class="stat-card"><div class="num">{{ stats.week_count }}</div><div class="label">Rendez-vous cette semaine</div></div>
+      <div class="stat-card"><div class="num">{{ stats.pending_count }}</div><div class="label">En attente de confirmation</div></div>
+    </div>
+
+    {% if not salons %}
+      <div class="stat-card" style="padding:30px;">
+        <h3>Aucun établissement pour le moment</h3>
+        <p class="muted" style="margin-top:8px;">Ajoutez votre salon depuis l'administration pour apparaître sur SalonHub.</p>
+        <a href="/admin/salons/salon/add/" class="btn btn-gold" style="margin-top:16px;" target="_blank">Ajouter mon établissement</a>
+      </div>
+    {% endif %}
+
+    <h2 style="margin-top:36px; font-size:1.3rem;">Derniers rendez-vous</h2>
+    <div style="overflow-x:auto; margin-top:16px;">
+      <table class="appt-table">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Établissement</th>
+            <th>Prestation</th>
+            <th>Date</th>
+            <th>Heure</th>
+            <th>Statut</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for appt in appointments %}
+          <tr>
+            <td>{{ appt.client_name }}<br><span class="muted" style="font-size:.78rem;">{{ appt.client_phone }}</span></td>
+            <td>{{ appt.salon.name }}</td>
+            <td>{{ appt.service.name|default:"—" }}</td>
+            <td>{{ appt.date|date:"d/m/Y" }}</td>
+            <td>{{ appt.time|time:"H:i" }}</td>
+            <td><span class="badge badge-{{ appt.status }}">{{ appt.get_status_display }}</span></td>
+            <td>
+              <form class="status-form" method="post" action="{% url 'dashboard:update_appointment_status' appt.id %}">
+                {% csrf_token %}
+                <select name="status" onchange="this.form.submit()">
+                  {% for value, display in appt.Status.choices %}
+                    <option value="{{ value }}" {% if value == appt.status %}selected{% endif %}>{{ display }}</option>
+                  {% endfor %}
+                </select>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="muted">Aucun rendez-vous pour le moment.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

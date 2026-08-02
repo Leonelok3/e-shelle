@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-wrap">
+  <p class="eyebrow">Bon retour</p>
+  <h1 style="margin-top:6px;">Connexion</h1>
+  <form method="post" style="margin-top:24px;">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="field">
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+    {% endfor %}
+    {% if form.non_field_errors %}<div class="alert alert-error">{{ form.non_field_errors }}</div>{% endif %}
+    <button type="submit" class="btn btn-gold btn-block">Se connecter</button>
+  </form>
+  <p style="margin-top:18px; font-size:.9rem;" class="muted">Pas encore de compte prestataire ? <a href="{% url 'salonhub_accounts:signup_owner' %}" style="color:var(--wine); font-weight:700;">Créer mon salon</a></p>
+</div>
+{% endblock %}

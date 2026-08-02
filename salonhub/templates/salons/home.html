@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<section class="hero">
+  <div class="container">
+    <p class="eyebrow">Beauté &amp; coiffure — près de chez vous</p>
+    <h1>Le salon parfait vous attend.<br><em>Réservez-le en un message.</em></h1>
+    <p class="lead">Comparez les salons de coiffure et instituts de beauté de votre ville, choisissez un créneau libre, et confirmez votre rendez-vous directement sur WhatsApp — sans appel, sans attente.</p>
+
+    <form method="get" class="search-card">
+      <input type="text" name="q" placeholder="Nom du salon, quartier…" value="{{ q }}">
+      <select name="city">
+        <option value="">Toutes les villes</option>
+        {% for city in cities %}
+          <option value="{{ city }}" {% if city == selected_city %}selected{% endif %}>{{ city }}</option>
+        {% endfor %}
+      </select>
+      <select name="category">
+        <option value="">Toutes les prestations</option>
+        {% for cat in categories %}
+          <option value="{{ cat.slug }}" {% if cat.slug == selected_category %}selected{% endif %}>{{ cat.icon }} {{ cat.name }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-gold">Rechercher</button>
+    </form>
+
+    <div class="categories-row">
+      <a href="{% url 'salons:home' %}" class="chip {% if not selected_category %}active{% endif %}">Tout voir</a>
+      {% for cat in categories %}
+        <a href="?category={{ cat.slug }}" class="chip {% if cat.slug == selected_category %}active{% endif %}">{{ cat.icon }} {{ cat.name }}</a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ salons.paginator.count }} établissement{{ salons.paginator.count|pluralize }}</p>
+        <h2>À découvrir près de vous</h2>
+      </div>
+    </div>
+
+    {% if salons %}
+    <div class="grid">
+      {% for salon in salons %}
+      <a href="{{ salon.get_absolute_url }}" class="ticket">
+        <div class="cover">
+          {% if salon.cover_image %}<img src="{{ salon.cover_image.url }}" alt="{{ salon.name }}">{% endif %}
+          <span class="kind-badge">{{ salon.get_kind_display }}</span>
+          {% if salon.is_verified %}<span class="verified">✓ Vérifié</span>{% endif %}
+        </div>
+        <div class="body">
+          <h3>{{ salon.name }}</h3>
+          <p class="loc">📍 {{ salon.district }}{% if salon.district %}, {% endif %}{{ salon.city }}</p>
+        </div>
+        <div class="stub">
+          <span class="price">
+            {% with first_service=salon.services.first %}
+              {% if first_service %}dès {{ first_service.price|floatformat:0 }} FCFA{% else %}Voir les prestations{% endif %}
+            {% endwith %}
+          </span>
+          <span>Voir &amp; réserver →</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+      <p class="muted">Aucun établissement ne correspond à votre recherche pour le moment.</p>
+    {% endif %}
+
+    {% if is_paginated %}
+    <div style="display:flex; gap:10px; justify-content:center; margin-top:40px;">
+      {% if page_obj.has_previous %}<a class="btn btn-outline" href="?page={{ page_obj.previous_page_number }}">← Précédent</a>{% endif %}
+      {% if page_obj.has_next %}<a class="btn btn-outline" href="?page={{ page_obj.next_page_number }}">Suivant →</a>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section" style="background:var(--ink); color:var(--cream); border-radius:28px; margin:0 24px 60px;">
+  <div class="container" style="text-align:center;">
+    <p class="eyebrow" style="color:var(--gold-light);">Vous êtes prestataire ?</p>
+    <h2 style="color:var(--cream); margin-top:10px;">Créez la vitrine digitale de votre salon en 5 minutes</h2>
+    <p style="max-width:520px; margin:16px auto 26px; color:rgba(251,244,232,.75);">Recevez vos demandes de rendez-vous directement sur WhatsApp, gérez vos horaires et vos prestations depuis votre espace pro.</p>
+    <a href="{% url 'salonhub_accounts:signup_owner' %}" class="btn btn-gold">Ajouter mon établissement</a>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SalonHub — Trouvez et réservez votre salon de coiffure ou institut de beauté{% endblock %}</title>
+  <meta name="description" content="Trouvez les meilleurs salons de coiffure et instituts de beauté près de chez vous et réservez votre rendez-vous directement sur WhatsApp.">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="row container">
+      <a href="{% url 'salons:home' %}" class="brand"><span class="dot"></span> SalonHub</a>
+      <nav class="nav-links">
+        <a href="{% url 'salons:home' %}">Découvrir</a>
+        {% if request.user.is_authenticated %}
+          {% if request.user.is_owner %}
+            <a href="{% url 'dashboard:home' %}">Mon espace pro</a>
+          {% endif %}
+          <a href="{% url 'accounts:logout' %}">Déconnexion</a>
+        {% else %}
+          <a href="{% url 'accounts:login' %}">Connexion</a>
+          <a href="{% url 'accounts:signup_owner' %}" class="btn btn-gold">Ajouter mon salon</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  {% if messages %}
+    <div class="container" style="padding-top:20px;">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'error' }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="brand"><span class="dot"></span> SalonHub</div>
+          <p style="max-width:280px; margin-top:12px; font-size:.9rem;">La vitrine digitale des salons de coiffure et instituts de beauté. Trouvez, comparez, réservez — en un clic sur WhatsApp.</p>
+        </div>
+        <div>
+          <p class="eyebrow" style="color:var(--gold-light);">Clients</p>
+          <p style="margin-top:10px;"><a href="{% url 'salons:home' %}">Trouver un salon</a></p>
+        </div>
+        <div>
+          <p class="eyebrow" style="color:var(--gold-light);">Prestataires</p>
+          <p style="margin-top:10px;"><a href="{% url 'accounts:signup_owner' %}">Inscrire mon établissement</a></p>
+          <p style="margin-top:6px;"><a href="{% url 'accounts:login' %}">Espace pro</a></p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; {% now "Y" %} SalonHub — un service e-shelle.com</span>
+        <span>Conçu avec soin pour les artisans de la beauté</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
