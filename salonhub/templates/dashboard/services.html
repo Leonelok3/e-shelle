@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Prestations de {{ salon.name }} | SalonHub Espace Pro{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.0">
+{% endblock %}
+{% block content %}
+<div class="dash-shell">
+  <aside class="dash-side">
+    <p class="eyebrow" style="color:var(--gold-light); margin-bottom:16px;">Espace pro</p>
+    <a href="{% url 'dashboard:home' %}">📊 Tableau de bord</a>
+    <a href="{% url 'dashboard:salon_create' %}">➕ Ajouter un salon</a>
+    <a href="{% url 'salons:home' %}">← Retour au site</a>
+  </aside>
+
+  <div class="dash-main">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
+      <div>
+        <h1 style="color:#fff; margin:0;">Prestations</h1>
+        <p class="muted" style="margin:4px 0 0;">Gérez les soins et les tarifs de <strong>{{ salon.name }}</strong></p>
+      </div>
+      <a href="{% url 'dashboard:home' %}" class="btn btn-outline">← Retour au tableau de bord</a>
+    </div>
+
+    <div class="detail-grid">
+      <!-- Liste des prestations -->
+      <div>
+        <div class="booking-panel" style="position:static; padding:24px;">
+          <h3 style="color:#fff; margin-bottom:20px;">Prestations enregistrées ({{ services.count }})</h3>
+          
+          {% if not services %}
+            <p class="muted" style="text-align:center; padding:30px 0;">Aucune prestation enregistrée. Utilisez le formulaire pour ajouter votre premier soin !</p>
+          {% else %}
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              {% for service in services %}
+                <div class="service-row" style="padding:16px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,0.01);">
+                  <div class="info">
+                    <h4 style="color:#fff; font-size:1.05rem; margin:0;">{{ service.name }}</h4>
+                    {% if service.description %}
+                      <p class="muted" style="margin:4px 0 0; font-size:.85rem;">{{ service.description }}</p>
+                    {% endif %}
+                  </div>
+                  <div class="meta" style="display:flex; align-items:center; gap:20px;">
+                    <div style="text-align:right;">
+                      <span class="price" style="color:var(--gold); font-weight:700; font-size:1.05rem;">{{ service.price }} FCFA</span>
+                      <span class="dur" style="display:block; font-size:.78rem; color:var(--ink-soft); margin-top:2px;">⏱️ {{ service.duration_minutes }} min</span>
+                    </div>
+                    <a href="{% url 'dashboard:service_delete' service.id %}" 
+                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette prestation ?');" 
+                       class="btn btn-outline" 
+                       style="padding:6px 12px; font-size:.8rem; border-color:rgba(239,68,68,0.3); color:#FCA5A5; background:rgba(239,68,68,0.05);">
+                      🗑️
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Formulaire d'ajout -->
+      <div>
+        <div class="booking-panel" style="position:sticky; top:96px; padding:24px;">
+          <h3 style="color:#fff; margin-bottom:20px;">➕ Ajouter une prestation</h3>
+          <form method="post" style="display:flex; flex-direction:column; gap:16px;">
+            {% csrf_token %}
+            {% for field in form %}
+              <div class="field" style="margin:0;">
+                <label>{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<p class="helptext">{{ field.help_text }}</p>{% endif %}
+                {% if field.errors %}
+                  <ul class="errorlist">
+                    {% for error in field.errors %}
+                      <li>{{ error }}</li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+              </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-gold btn-block" style="margin-top:10px;">Enregistrer la prestation</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

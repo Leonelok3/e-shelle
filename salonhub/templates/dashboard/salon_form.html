@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ title }} | SalonHub Espace Pro{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.0">
+{% endblock %}
+{% block content %}
+<div class="dash-shell">
+  <aside class="dash-side">
+    <p class="eyebrow" style="color:var(--gold-light); margin-bottom:16px;">Espace pro</p>
+    <a href="{% url 'dashboard:home' %}">📊 Tableau de bord</a>
+    <a href="{% url 'dashboard:salon_create' %}" class="active">➕ Ajouter un salon</a>
+    <a href="{% url 'salons:home' %}">← Retour au site</a>
+  </aside>
+
+  <div class="dash-main">
+    <h1 style="color:#fff; margin-bottom:8px;">{{ title }}</h1>
+    <p class="muted">Renseignez les détails de votre salon ou institut de beauté. Ces informations seront affichées sur l'application SalonHub.</p>
+
+    <div class="auth-wrap" style="max-width:100%; margin: 30px 0; padding: 30px;">
+      <form method="post" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:20px;">
+        {% csrf_token %}
+        
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:20px;">
+          {% for field in form %}
+            <div class="field">
+              <label>{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}<p class="helptext">{{ field.help_text }}</p>{% endif %}
+              {% if field.errors %}
+                <ul class="errorlist">
+                  {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:20px;">
+          <button type="submit" class="btn btn-gold">💾 Enregistrer l'établissement</button>
+          <a href="{% url 'dashboard:home' %}" class="btn btn-outline">Annuler</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
