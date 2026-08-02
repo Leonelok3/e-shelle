@@ -60,7 +60,7 @@ def salon_create(request):
                 )
 
             messages.success(request, f"L'établissement \"{salon.name}\" a été créé avec succès !")
-            return redirect("dashboard:salon_services", salon_id=salon.id)
+            return redirect("salonhub_dashboard:salon_services", salon_id=salon.id)
     else:
         form = SalonForm()
 
@@ -82,7 +82,7 @@ def salon_edit(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, f"L'établissement \"{salon.name}\" a été mis à jour.")
-            return redirect("dashboard:home")
+            return redirect("salonhub_dashboard:home")
     else:
         form = SalonForm(instance=salon)
 
@@ -108,7 +108,7 @@ def salon_services(request, salon_id):
             service.salon = salon
             service.save()
             messages.success(request, f"La prestation \"{service.name}\" a été ajoutée.")
-            return redirect("dashboard:salon_services", salon_id=salon.id)
+            return redirect("salonhub_dashboard:salon_services", salon_id=salon.id)
     else:
         form = ServiceForm()
 
@@ -129,7 +129,7 @@ def service_delete(request, pk):
     name = service.name
     service.delete()
     messages.success(request, f"La prestation \"{name}\" a été supprimée.")
-    return redirect("dashboard:salon_services", salon_id=salon_id)
+    return redirect("salonhub_dashboard:salon_services", salon_id=salon_id)
 
 
 @login_required
@@ -141,4 +141,4 @@ def update_appointment_status(request, pk):
         appointment.status = new_status
         appointment.save(update_fields=["status"])
         messages.success(request, "Statut du rendez-vous mis à jour.")
-    return redirect("dashboard:home")
+    return redirect("salonhub_dashboard:home")

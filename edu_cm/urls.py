@@ -557,6 +557,7 @@ urlpatterns = [
     path("salons/", include("salonhub.salons.urls", namespace="salons")),
     path("salonhub/dashboard/", include("salonhub.dashboard.urls", namespace="salonhub_dashboard")),
     path("salonhub/accounts/", include("salonhub.accounts.urls", namespace="salonhub_accounts")),
+    path("salonhub/rdv/", include("salonhub.bookings.urls", namespace="bookings")),
 
     # ── AdGen — Générateur de publicités IA ──────────────────────────
     path("pub/", include("adgen.urls", namespace="adgen")),
