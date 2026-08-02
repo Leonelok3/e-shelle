@@ -23,7 +23,7 @@ class OwnerSignUpView(View):
 
         # Upgrade existing user to VENDOR/partner role
         user = request.user
-        user.role = "vendor"
+        user.role = "VENDOR"
         user.save(update_fields=["role"])
         messages.success(
             request,
