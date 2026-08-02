@@ -62,7 +62,7 @@ class ProduitAdmin(admin.ModelAdmin):
 
     def prix_affiche(self, obj):
         if obj.is_gratuit or obj.prix == 0:
-            return format_html('<span style="color:#4CAF50;font-weight:600">Gratuit</span>')
+            return format_html('<span style="color:#4CAF50;font-weight:600">{}</span>', 'Gratuit')
         return f"{int(obj.prix):,} FCFA".replace(",", " ")
     prix_affiche.short_description = "Prix"
 
@@ -97,8 +97,8 @@ class TelechargementAdmin(admin.ModelAdmin):
 
     def est_valide_display(self, obj):
         if obj.est_valide:
-            return format_html('<span style="color:#4CAF50">✓ Valide</span>')
-        return format_html('<span style="color:#EF5350">✗ Expiré</span>')
+            return format_html('<span style="color:#4CAF50">{}</span>', '✓ Valide')
+        return format_html('<span style="color:#EF5350">{}</span>', '✗ Expiré')
     est_valide_display.short_description = "Statut"
 
 

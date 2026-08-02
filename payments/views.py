@@ -128,19 +128,29 @@ def _activer_premium_module(user, module, plan_slug):
 def initier(request, commande_id):
     """Page d'initiation du paiement Mobile Money."""
     commande = get_object_or_404(Commande, pk=commande_id, utilisateur=request.user)
-    whatsapp_payment_url = payment_request_url(
-        service=f"Commande boutique #{commande.reference}",
-        amount=f"{commande.montant_total} FCFA",
-        user=request.user,
-        details="Achat boutique E-Shelle",
+    
+    # Construire la liste des articles commandés
+    articles = []
+    for ligne in commande.lignes.select_related('produit').all():
+        articles.append(f"- {ligne.produit.titre} ({ligne.prix_unit|floatformat:0} FCFA)")
+    articles_str = "\n".join(articles)
+    
+    message = (
+        f"Bonjour E-Shelle 👋,\n\n"
+        f"Je souhaite régler ma commande sur la Boutique Digitale :\n\n"
+        f"Référence de commande : {commande.reference}\n"
+        f"Articles :\n{articles_str}\n"
+        f"Montant total : {commande.montant_total|floatformat:0} FCFA\n\n"
+        f"Client : {request.user.get_full_name() or request.user.username} ({request.user.email})\n"
+        f"Téléphone : {commande.telephone or 'Non renseigné'}\n\n"
+        f"Merci de m'envoyer les instructions de paiement et mon code d'accès après réception du paiement 🙏"
     )
-
-    if request.method == "POST":
-        messages.info(request, "Contactez E-Shelle sur WhatsApp pour finaliser le paiement et recevoir votre accès.")
-        return redirect(whatsapp_payment_url)
-
-    context = {"commande": commande, "whatsapp_payment_url": whatsapp_payment_url}
-    return render(request, "payments/initier.html", context)
+    
+    from core.whatsapp import whatsapp_url
+    whatsapp_payment_url = whatsapp_url(message)
+    
+    messages.success(request, "Redirection vers WhatsApp pour finaliser votre commande...")
+    return redirect(whatsapp_payment_url)
 
 
 @login_required
@@ -204,21 +214,20 @@ def payer_formation(request, formation_id):
         messages.info(request, "Vous êtes déjà inscrit à cette formation.")
         return redirect("formations:detail", slug=formation.slug)
 
-    whatsapp_payment_url = payment_request_url(
-        service=f"Formation - {formation.titre}",
-        amount=f"{formation.prix} FCFA",
-        user=request.user,
-        details=f"Formation #{formation.pk}",
+    message = (
+        f"Bonjour E-Shelle 👋,\n\n"
+        f"Je souhaite m'inscrire à la formation suivante :\n\n"
+        f"Formation : {formation.titre}\n"
+        f"Prix : {formation.prix|floatformat:0} FCFA\n\n"
+        f"Client : {request.user.get_full_name() or request.user.username} ({request.user.email})\n\n"
+        f"Merci de m'envoyer les instructions de paiement et mon lien d'accès à la formation après réception du paiement 🙏"
     )
 
-    if request.method == "POST":
-        messages.info(request, "Contactez E-Shelle sur WhatsApp pour finaliser l'inscription.")
-        return redirect(whatsapp_payment_url)
+    from core.whatsapp import whatsapp_url
+    whatsapp_payment_url = whatsapp_url(message)
 
-    return render(request, "payments/payer_formation.html", {
-        "formation": formation,
-        "whatsapp_payment_url": whatsapp_payment_url,
-    })
+    messages.success(request, "Redirection vers WhatsApp pour finaliser votre inscription...")
+    return redirect(whatsapp_payment_url)
 
 
 # ─── PACKS PREMIUM MARKETPLACE ───────────────────────────────────
@@ -276,26 +285,22 @@ def payer_premium(request, module, plan_slug):
 
     plan = plans[plan_slug]
     module_label = MODULES_LABEL.get(module, module)
-    module_icon = MODULES_ICON.get(module, "⭐")
-    whatsapp_payment_url = payment_request_url(
-        service=f"{module_label} - Pack {plan['nom']}",
-        amount=f"{plan['prix']} FCFA",
-        user=request.user,
-        details=f"Module {module}, plan {plan_slug}, duree {plan['duree_jours']} jours",
+    
+    message = (
+        f"Bonjour E-Shelle 👋,\n\n"
+        f"Je souhaite activer le Pack Premium suivant :\n\n"
+        f"Module : {module_label}\n"
+        f"Pack : {plan['nom']} ({plan['duree_jours']} jours)\n"
+        f"Prix : {plan['prix']} FCFA\n\n"
+        f"Client : {request.user.get_full_name() or request.user.username} ({request.user.email})\n\n"
+        f"Merci de valider mon accès Premium après réception du paiement 🙏"
     )
 
-    if request.method == "POST":
-        messages.info(request, "Contactez E-Shelle sur WhatsApp pour finaliser le premium et recevoir votre code.")
-        return redirect(whatsapp_payment_url)
+    from core.whatsapp import whatsapp_url
+    whatsapp_payment_url = whatsapp_url(message)
 
-    return render(request, "payments/payer_premium.html", {
-        "module":       module,
-        "module_label": module_label,
-        "module_icon":  module_icon,
-        "plan":         plan,
-        "plan_slug":    plan_slug,
-        "whatsapp_payment_url": whatsapp_payment_url,
-    })
+    messages.success(request, "Redirection vers WhatsApp pour finaliser votre abonnement Premium...")
+    return redirect(whatsapp_payment_url)
 
 
 @login_required
@@ -331,25 +336,19 @@ def booster_annonce(request, annonce_id, type_boost):
         return redirect("annonces:mes_annonces")
 
     boost_info = BOOSTS_ANNONCE[type_boost]
-    tous_boosts = {}
-    for key, value in BOOSTS_ANNONCE.items():
-        info = value.copy()
-        info["whatsapp_url"] = payment_request_url(
-            service=f"Boost annonce - {info['nom']}",
-            amount=f"{info['prix']} FCFA",
-            user=request.user,
-            details=f"Annonce #{annonce.pk}: {annonce.titre}",
-        )
-        tous_boosts[key] = info
-    boost_info = tous_boosts[type_boost]
+    
+    message = (
+        f"Bonjour E-Shelle 👋,\n\n"
+        f"Je souhaite booster mon annonce suivante :\n\n"
+        f"Annonce : {annonce.titre} (ID #{annonce.pk})\n"
+        f"Option de boost : {boost_info['nom']}\n"
+        f"Prix : {boost_info['prix']} FCFA\n\n"
+        f"Vendeur : {request.user.get_full_name() or request.user.username} ({request.user.email})\n\n"
+        f"Merci d'activer le boost après réception du paiement 🙏"
+    )
 
-    if request.method == "POST":
-        messages.info(request, "Contactez E-Shelle sur WhatsApp pour finaliser le boost.")
-        return redirect(boost_info["whatsapp_url"])
+    from core.whatsapp import whatsapp_url
+    whatsapp_payment_url = whatsapp_url(message)
 
-    return render(request, "payments/booster_annonce.html", {
-        "annonce":     annonce,
-        "boost_info":  boost_info,
-        "type_boost":  type_boost,
-        "tous_boosts": tous_boosts,
-    })
+    messages.success(request, "Redirection vers WhatsApp pour finaliser le boost de votre annonce...")
+    return redirect(whatsapp_payment_url)
