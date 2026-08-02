@@ -1,0 +1,337 @@
+{# billing/templates/billing/buy_plan.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Paiement Sécurisé {{ plan.name }} - Abonnement E-Shelle Premium | E-Shelle{% endblock %}
+
+{% block meta_description %}Finalisez votre abonnement {{ plan.name }} pour accéder aux outils premium d'e-shelle premium. Paiement sécurisé 100% par Mobile Money Afrique (Orange, MTN, Moov, Wave) et Carte Bancaire Internationale. Activation instantanée.{% endblock %}
+
+{% block body_class %}billing{% endblock %}
+{% block app_scope %}billing{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'billing/billing.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Schema.org pour SEO e-commerce -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CheckoutPage",
+  "name": "Paiement Sécurisé {{ plan.name }}",
+  "description": "Finalisez votre abonnement premium E-Shelle",
+  "provider": {
+    "@type": "Organization",
+    "name": "E-Shelle"
+  },
+  "paymentAccepted": ["Mobile Money", "Visa", "Mastercard"],
+  "priceRange": "{{ plan.price_usd }} USD"
+}
+</script>
+
+<div class="checkout-container">
+    <!-- NAVIGATION RETOUR -->
+    <nav class="checkout-nav">
+        <a href="{% url 'billing:pricing' %}" class="back-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Retour aux plans d'abonnement</span>
+        </a>
+    </nav>
+
+    <div class="checkout-layout">
+        <!-- COLONNE GAUCHE: RÉCAPITULATIF PLAN -->
+        <aside class="plan-summary">
+            <div class="summary-sticky">
+                <div class="plan-badge">⚡ Activation instantanée</div>
+
+                <h1 class="plan-title">{{ plan.name }}</h1>
+                <p class="plan-subtitle">
+                    Abonnement premium e-shelle premium
+                </p>
+
+                <!-- PRIX PRINCIPAL -->
+                <div class="price-display">
+                    <div class="price-main">
+                        <span class="currency">$</span>
+                        <span class="amount">{{ plan.price_usd }}</span>
+                        <span class="unit">USD</span>
+                    </div>
+
+                    <div class="price-local">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 6v6l4 2"></path>
+                        </svg>
+                        Environ {{ plan.price_xaf|floatformat:0 }} FCFA
+                    </div>
+
+                    <p class="duration-badge">
+                        ⏱️ Accès complet {{ plan.get_duration_display }}
+                    </p>
+                </div>
+
+                <!-- CE QUI EST INCLUS -->
+                <div class="included-features">
+                    <h3 class="features-title">✅ Inclus dans votre abonnement</h3>
+                    <ul class="features-list">
+                        <li>🎯 Création de Documents Professionnels</li>
+                        <li>📸 Assistant Photo Professionnelle</li>
+                        <li>📚 Boutique & Resto en Ligne (WhatsApp) complets</li>
+                        <li>🚀 Guides & Modèles de document Premium</li>
+                        <li>🧮 Calculateurs et outils de productivité</li>
+                        <li>💬 Support prioritaire 24/7</li>
+                        <li>📊 Suivi de projet & Fiches business</li>
+                        {% if plan.duration_days >= 365 %}
+                        <li>⭐ Consultation gratuite incluse</li>
+                        <li>🎁 Mises à jour exclusives</li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <!-- GARANTIES -->
+                <div class="guarantees">
+                    <div class="guarantee-item">
+                        <span class="guarantee-icon">🔒</span>
+                        <div>
+                            <strong>Paiement 100% sécurisé</strong>
+                            <p>Cryptage SSL 256-bit</p>
+                        </div>
+                    </div>
+                    <div class="guarantee-item">
+                        <span class="guarantee-icon">⚡</span>
+                        <div>
+                            <strong>Accès immédiat</strong>
+                            <p>Activé en moins de 2 minutes</p>
+                        </div>
+                    </div>
+                    <div class="guarantee-item">
+                        <span class="guarantee-icon">💯</span>
+                        <div>
+                            <strong>Satisfait ou remboursé</strong>
+                            <p>Garantie 30 jours</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- COLONNE DROITE: FORMULAIRE PAIEMENT -->
+        <main class="payment-section">
+            <form method="POST" action="{% url 'billing:initiate_payment' transaction.id %}" class="payment-form">
+                {% csrf_token %}
+
+                {# IMPORTANT: conserver next #}
+                <input type="hidden" name="next" value="{{ next|default:'' }}">
+
+                <!-- HEADER SÉCURITÉ -->
+                <div class="security-header">
+                    <h2 class="section-title">Finaliser mon abonnement</h2>
+                    <div class="secure-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                        Paiement sécurisé SSL
+                    </div>
+                </div>
+
+                <!-- MÉTHODES DE PAIEMENT -->
+                <div class="payment-methods">
+                    <h3 class="methods-title">Choisissez votre mode de paiement</h3>
+
+                    {% if cinetpay_available %}
+                    <label class="payment-method">
+                        <input type="radio" name="payment_method" value="MOBILE_MONEY" required>
+                        <div class="method-card">
+                            <div class="method-header">
+                                <span class="method-icon">📱</span>
+                                <div class="method-info">
+                                    <h4 class="method-name">Mobile Money Afrique</h4>
+                                    <p class="method-desc">Orange Money, MTN, Moov, Wave, Airtel Money</p>
+                                </div>
+                            </div>
+                            <div class="method-badge">Recommandé</div>
+                            <div class="radio-check"></div>
+                        </div>
+                        <div class="method-details">
+                            <div class="detail-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                <span>Paiement instantané depuis votre téléphone</span>
+                            </div>
+                            <div class="detail-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                <span>Disponible dans toute l'Afrique francophone</span>
+                            </div>
+                        </div>
+                    </label>
+                    {% endif %}
+
+                    {% if stripe_available %}
+                    <label class="payment-method">
+                        <input type="radio" name="payment_method" value="CARD" required>
+                        <div class="method-card">
+                            <div class="method-header">
+                                <span class="method-icon">💳</span>
+                                <div class="method-info">
+                                    <h4 class="method-name">Carte Bancaire</h4>
+                                    <p class="method-desc">Visa, Mastercard, American Express</p>
+                                </div>
+                            </div>
+                            <div class="method-badge method-badge--international">International</div>
+                            <div class="radio-check"></div>
+                        </div>
+                        <div class="method-details">
+                            <div class="detail-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                <span>Accepté partout dans le monde</span>
+                            </div>
+                            <div class="detail-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                <span>Protection 3D Secure incluse</span>
+                            </div>
+                        </div>
+                    </label>
+                    {% endif %}
+
+                    {% if not cinetpay_available and not stripe_available %}
+                    <div class="maintenance-alert">
+                        <div class="alert-icon">⚠️</div>
+                        <div class="alert-content">
+                            <h4>Maintenance temporaire</h4>
+                            <p>Nos passerelles de paiement sont momentanément indisponibles.</p>
+                            <a href="{% url 'billing:redeem' %}?next={{ next|urlencode }}" class="btn btn-secondary">
+                                Utiliser un code d'activation →
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- ACTIONS -->
+                {% if cinetpay_available or stripe_available %}
+                <div class="checkout-actions">
+                    <button type="submit" class="btn-checkout-primary">
+                        <span class="btn-text">Confirmer et Payer</span>
+                        <span class="btn-icon">🔒</span>
+                    </button>
+
+                    <p class="checkout-notice">
+                        En cliquant sur "Confirmer et Payer", vous acceptez nos
+                        <a href="/terms/" target="_blank">conditions d'utilisation</a> et
+                        <a href="/privacy/" target="_blank">politique de confidentialité</a>.
+                    </p>
+
+                    <div class="trust-badges">
+                        <div class="trust-badge">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            <span>Activation instantanée</span>
+                        </div>
+                        <div class="trust-badge">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            <span>Facture automatique</span>
+                        </div>
+                        <div class="trust-badge">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            <span>Support dédié</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </form>
+
+            <!-- SECTION FAQ RAPIDE -->
+            <div class="checkout-faq">
+                <h3 class="faq-title">❓ Questions fréquentes</h3>
+
+                <details class="faq-item">
+                    <summary>Quand aurais-je accès à mon abonnement ?</summary>
+                    <p>Votre accès est activé <strong>immédiatement</strong> après confirmation du paiement. Vous recevrez un email et pourrez utiliser tous les outils premium dans les 2 minutes.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Le paiement Mobile Money est-il sécurisé ?</summary>
+                    <p>Oui, 100% sécurisé. Nous utilisons une passerelle certifiée, avec cryptage SSL. Vos données bancaires ne transitent jamais par nos serveurs.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Puis-je obtenir une facture ?</summary>
+                    <p>Oui, une facture peut être générée et disponible dans votre espace membre (selon votre intégration).</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Que se passe-t-il si le paiement échoue ?</summary>
+                    <p>Vous pourrez réessayer ou choisir une autre méthode. Aucun frais ne sera débité si le paiement n’est pas validé.</p>
+                </details>
+            </div>
+
+            <!-- SECTION SÉCURITÉ -->
+            <div class="security-footer">
+                <h4 class="security-title">🔐 Votre sécurité, notre priorité</h4>
+                <div class="security-grid">
+                    <div class="security-item">
+                        <span class="security-icon">🛡️</span>
+                        <p>Cryptage SSL</p>
+                    </div>
+                    <div class="security-item">
+                        <span class="security-icon">🏦</span>
+                        <p>Paiement certifié</p>
+                    </div>
+                    <div class="security-item">
+                        <span class="security-icon">✅</span>
+                        <p>Conformité RGPD</p>
+                    </div>
+                    <div class="security-item">
+                        <span class="security-icon">🌍</span>
+                        <p>Standard international</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animation radio buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const radioInputs = document.querySelectorAll('.payment-method input[type="radio"]');
+
+    radioInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            document.querySelectorAll('.payment-method').forEach(label => {
+                label.classList.remove('is-selected');
+            });
+
+            if (this.checked) {
+                this.closest('.payment-method').classList.add('is-selected');
+            }
+        });
+    });
+
+    // Sélectionner la première option par défaut
+    const firstRadio = document.querySelector('.payment-method input[type="radio"]');
+    if (firstRadio) {
+        firstRadio.checked = true;
+        firstRadio.closest('.payment-method').classList.add('is-selected');
+    }
+});
+</script>
+{% endblock %}

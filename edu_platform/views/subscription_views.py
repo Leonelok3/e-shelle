@@ -13,6 +13,7 @@ from django.utils import timezone
 from edu_platform.models import SubscriptionPlan, PaymentTransaction, AccessCode
 from edu_platform.forms.subscription_forms import PaymentInitForm
 from edu_platform.services.payment_service import MobileMoneyService, PaymentError
+from core.whatsapp import payment_request_url
 
 logger = logging.getLogger('edu_platform')
 
@@ -65,28 +66,17 @@ class PaymentView(EduLoginRequiredMixin, View):
                 status='pending',
             )
 
-            service = MobileMoneyService()
-            try:
-                if cd['provider'] == 'orange_money':
-                    resp = service.initiate_orange_money_payment(transaction_obj)
-                    # Orange Money redirige vers une page de paiement externe
-                    pay_url = resp.get('payment_url') or resp.get('notif_url', '')
-                    if pay_url:
-                        return redirect(pay_url)
-                else:
-                    resp = service.initiate_mtn_momo_payment(transaction_obj)
-
-                messages.info(
-                    request,
-                    f"Paiement initié ! Veuillez confirmer sur votre téléphone ({cd['phone_number']})."
-                )
-                return redirect('edu:payment_pending', tx_id=str(transaction_obj.transaction_id))
-
-            except PaymentError as e:
-                transaction_obj.status = 'failed'
-                transaction_obj.save(update_fields=['status'])
-                messages.error(request, f"Erreur de paiement : {e}")
-                logger.error('Erreur paiement user %s: %s', request.user.username, e)
+            whatsapp_url = payment_request_url(
+                service=f"EduCam Pro - {plan.name}",
+                amount=f"{plan.price_xaf} FCFA",
+                user=request.user,
+                details=f"Paiement abonnement EduCam Pro | {cd['provider']} | {cd['phone_number']}",
+            )
+            messages.info(
+                request,
+                "Contactez E-Shelle sur WhatsApp pour confirmer votre abonnement et recevoir votre code d'accès après validation."
+            )
+            return redirect(whatsapp_url)
 
         return render(request, self.template_name, {'plan': plan, 'form': form})
 

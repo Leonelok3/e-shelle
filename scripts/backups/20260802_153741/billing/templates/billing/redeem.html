@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Activation de Licence Premium | E-Shelle{% endblock %}
+
+{% block meta_description %}
+Activez votre code d'accès E-Shelle. Débloquez instantanément vos outils IA : rédaction pro, création de boutiques et menus en ligne, fiches business et outils d'intelligence artificielle.
+{% endblock %}
+
+{% block body_class %}billing{% endblock %}
+{% block app_scope %}billing redeem-flow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'billing/billing.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ================= HERO ================= -->
+<div class="billing-redeem-hero">
+  <div class="billing-redeem-hero__icon">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="m12 2 10 5-10 5-10-5z"/>
+      <path d="m2 17 10 5 10-5"/>
+      <path d="m2 12 10 5 10-5"/>
+    </svg>
+  </div>
+
+  <h1 class="billing-redeem-hero__title">
+    Activer votre Pass Premium
+  </h1>
+
+  <p class="billing-redeem-hero__subtitle">
+    Saisissez le code d'activation reçu par SMS ou Email pour débloquer instantanément
+    l'accès complet aux outils et services premium E-Shelle.
+  </p>
+</div>
+
+<!-- ================= MESSAGES ================= -->
+{% if messages %}
+<div class="billing-redeem-messages" aria-live="polite" aria-atomic="true">
+  {% for message in messages %}
+    {% if 'success' in message.tags %}
+      {% with alert_type='success' %}
+      <div class="billing-redeem-alert billing-redeem-alert--{{ alert_type }}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span>{{ message }}</span>
+      </div>
+      {% endwith %}
+
+    {% elif 'error' in message.tags or 'danger' in message.tags %}
+      {% with alert_type='error' %}
+      <div class="billing-redeem-alert billing-redeem-alert--{{ alert_type }}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+        <span>{{ message }}</span>
+      </div>
+      {% endwith %}
+
+    {% else %}
+      {% with alert_type='info' %}
+      <div class="billing-redeem-alert billing-redeem-alert--{{ alert_type }}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 16v-4M12 8h.01"/>
+        </svg>
+        <span>{{ message }}</span>
+      </div>
+      {% endwith %}
+    {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ================= CARD ================= -->
+<div class="billing-redeem-card">
+
+  <div class="billing-redeem-card__header">
+    <div class="billing-redeem-card__icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+      </svg>
+    </div>
+    <div>
+      <h2 class="billing-redeem-card__title">Code d'Activation</h2>
+      <p class="billing-redeem-card__desc">Entrez votre clé unique ci-dessous</p>
+    </div>
+  </div>
+
+  <!-- ================= FORM ================= -->
+  <form method="post" class="billing-redeem-form">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+
+    <div class="billing-redeem-form__group">
+      <label for="id_code" class="billing-redeem-form__label">
+        Clé d'activation unique
+      </label>
+
+      <div class="billing-redeem-form__input-wrapper">
+        <svg class="billing-redeem-form__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <input
+          type="text"
+          id="id_code"
+          name="code"
+          placeholder="ESH-XXXX-XXXX"
+          required
+          class="billing-redeem-form__input"
+          autocomplete="off"
+          spellcheck="false"
+        >
+      </div>
+
+      <small class="billing-redeem-form__hint">
+        Format attendu : <strong>ESH-XXXX-XXXX</strong>
+      </small>
+    </div>
+
+    <button type="submit" class="billing-redeem-form__submit">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
+      </svg>
+      <span>Débloquer mon accès Premium</span>
+    </button>
+  </form>
+
+</div>
+
+<!-- ================= SECURITY ================= -->
+<div class="billing-redeem-security">
+  <div class="billing-redeem-security__icon">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  </div>
+  <div>
+    <h3 class="billing-redeem-security__title">Sécurité & Confidentialité</h3>
+    <p class="billing-redeem-security__desc">
+      Chaque code est unique et à usage unique. Chiffrement SSL 256 bits. Conformité RGPD.
+    </p>
+  </div>
+</div>
+
+{% endblock %}

@@ -12,6 +12,7 @@ from .models import (
     AppPlan, AppSubscription, PaymentHistory, GlobalAccessCode,
     AppKey, APP_ICONS, APP_COLORS,
 )
+from core.whatsapp import payment_request_url
 
 
 class AppLoginView(LoginView):
@@ -366,6 +367,12 @@ def upgrade(request):
     # Grouper les plans par app si vue globale
     plans_by_app = {}
     for plan in plans_qs:
+        plan.whatsapp_payment_url = payment_request_url(
+            service=f"{plan.get_app_key_display()} - {plan.name}",
+            amount=plan.price_xaf_formatted,
+            user=request.user,
+            details=f"Plan {plan.get_level_display()} pour {plan.duration_days} jours",
+        )
         k = plan.app_key
         if k not in plans_by_app:
             plans_by_app[k] = {

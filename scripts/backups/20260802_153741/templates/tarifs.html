@@ -1,0 +1,784 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tarifs de Création de Site Internet & Solutions IA au Cameroun | E-Shelle{% endblock %}
+{% block meta_description %}Choisissez le plan idéal pour votre commerce local ou devenez partenaire avec l'E-Shelle Business Key. Des tarifs clairs et un accompagnement professionnel à Douala, Yaoundé et partout au Cameroun.{% endblock %}
+
+{% block nav_tarifs %}active{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap');
+
+  :root {
+    --color-bg-dark: #05100c; /* Premium dark forest green matching Capture 3 */
+    --color-primary-light: #7dec6c;
+    --color-primary: #22c55e;
+    --color-secondary: #f59e0b;
+    --color-accent-blue: #3b82f6;
+    --color-card-bg: #ffffff;
+    --color-border: rgba(0, 0, 0, 0.06);
+    --color-text-white: #ffffff;
+    --color-text-gray: #cbd5e1;
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .tarifs-page {
+    min-height: 100vh;
+    background: 
+      radial-gradient(circle at 80% 10%, rgba(34, 197, 94, 0.15), transparent 50%),
+      radial-gradient(circle at 15% 45%, rgba(245, 158, 11, 0.1), transparent 45%),
+      radial-gradient(circle at 50% 85%, rgba(34, 197, 94, 0.12), transparent 50%),
+      var(--color-bg-dark);
+    color: var(--color-text-white);
+    font-family: var(--font-body);
+    padding: 9rem 0 6rem;
+    overflow-x: hidden;
+  }
+
+  .tarifs-container {
+    width: min(1200px, calc(100% - 40px));
+    margin: 0 auto;
+  }
+
+  .tarifs-hero {
+    text-align: center;
+    margin-bottom: 5rem;
+    position: relative;
+  }
+
+  .tarifs-hero h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 900;
+    line-height: 1.15;
+    margin-bottom: 1.25rem;
+    letter-spacing: -0.02em;
+  }
+
+  .tarifs-hero h1 span {
+    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .tarifs-hero p {
+    color: var(--color-text-gray);
+    font-size: clamp(1rem, 1.2vw, 1.2rem);
+    max-width: 780px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  .tarifs-section-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    color: var(--color-text-white);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .tarifs-section-subtitle {
+    color: var(--color-text-gray);
+    font-size: 0.98rem;
+    margin-bottom: 2.5rem;
+    max-width: 650px;
+    line-height: 1.6;
+  }
+
+  /* Grid layouts */
+  .plans-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 6rem;
+  }
+
+  @keyframes sheen {
+    0% { transform: rotate(45deg) translateX(-150%); }
+    100% { transform: rotate(45deg) translateX(150%); }
+  }
+
+  /* Pricing Cards */
+  .plan-card {
+    border: 1px solid rgba(46, 125, 50, 0.08);
+    border-radius: 24px;
+    background: var(--color-card-bg);
+    padding: 2.75rem 2rem;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(11, 29, 18, 0.04);
+    color: #1e293b;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+
+  .plan-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #15803d, #f59e0b);
+    opacity: 0;
+    transition: var(--transition-smooth);
+    z-index: 2;
+  }
+
+  .plan-card::after {
+    content: "";
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(45deg) translateX(-150%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .plan-card:hover::after {
+    animation: sheen 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .plan-card:hover {
+    transform: translateY(-8px) rotateX(1deg) rotateY(0.5deg);
+    border-color: rgba(34, 197, 94, 0.25);
+    box-shadow: 0 25px 50px rgba(11, 29, 18, 0.1);
+  }
+
+  .plan-card:hover::before {
+    opacity: 1;
+  }
+
+  .plan-badge {
+    align-self: flex-start;
+    padding: 0.4rem 0.9rem;
+    border-radius: 100px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Custom badge colors */
+  .plan-card:nth-of-type(1) .plan-badge {
+    background: rgba(34, 197, 94, 0.08);
+    color: #15803d;
+    border: 1px solid rgba(34, 197, 94, 0.15);
+  }
+  .plan-card:nth-of-type(2) .plan-badge {
+    background: rgba(245, 158, 11, 0.08);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.18);
+  }
+  .plan-card:nth-of-type(3) .plan-badge {
+    background: rgba(34, 197, 94, 0.08);
+    color: #15803d;
+    border: 1px solid rgba(34, 197, 94, 0.15);
+  }
+  .plan-card:nth-of-type(4) .plan-badge {
+    background: rgba(245, 158, 11, 0.08);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.18);
+  }
+
+  .plan-card.featured {
+    border: 2px solid #16a34a;
+    background: #ffffff;
+    box-shadow: 0 20px 45px rgba(34, 197, 94, 0.12);
+  }
+
+  .plan-card.featured::before {
+    opacity: 1;
+    background: linear-gradient(90deg, #16a34a, #f59e0b);
+  }
+
+  .plan-card.featured::after {
+    background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.4) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
+
+  .plan-card.featured:hover {
+    transform: translateY(-10px) rotateX(1.5deg) rotateY(0.75deg);
+    border-color: #f59e0b;
+    box-shadow: 0 30px 60px rgba(34, 197, 94, 0.18);
+  }
+
+  .plan-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1.45rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    color: #0c2419; /* Deep forest black-green */
+    letter-spacing: -0.01em;
+  }
+
+  .plan-price {
+    margin: 1rem 0 1.25rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+  }
+
+  .plan-price strong {
+    font-family: var(--font-heading);
+    font-size: 2.3rem;
+    font-weight: 900;
+    color: #0a1d12; /* Deep black-green */
+  }
+
+  .plan-price span {
+    font-size: 0.88rem;
+    color: #ea580c; /* Orange for "/ mois" */
+    font-weight: 700;
+  }
+
+  .plan-desc {
+    color: #475569;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin-bottom: 2rem;
+    min-height: 50px;
+  }
+
+  .plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2.5rem;
+    display: grid;
+    gap: 0.85rem;
+    margin-top: auto;
+  }
+
+  .plan-features li {
+    font-size: 0.88rem;
+    color: #1a2e22; /* Dark green-grey */
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    line-height: 1.45;
+  }
+
+  /* Premium checkmark color mixing */
+  .plan-features li svg {
+    color: #16a34a; /* Default rich green check */
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+
+  .plan-features li:has(strong) svg {
+    color: #f59e0b; /* Orange check for key/boosted features */
+  }
+
+  .plan-features li strong {
+    color: #ea580c; /* Orange for important texts */
+    font-weight: 700;
+  }
+
+  .btn-plan {
+    width: 100%;
+    height: 48px;
+    border-radius: 999px; /* Pill shaped buttons like Capture 2 */
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+    border: none;
+    background: linear-gradient(135deg, #15803d 0%, #f59e0b 100%);
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.2);
+  }
+
+  .btn-plan:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 124, 0, 0.35);
+    background: linear-gradient(135deg, #1b9c4c 0%, #ff9800 100%);
+    color: #ffffff !important;
+  }
+
+  /* Custom styling helpers */
+  .text-green {
+    color: #7dec6c !important;
+    font-weight: 700;
+  }
+
+  .text-orange {
+    color: #f9c332 !important;
+    font-weight: 700;
+  }
+
+  /* Partner Row / Business Key styling */
+  .bk-section {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 24px;
+    background: #ffffff;
+    padding: 3.5rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    color: #1e293b;
+  }
+
+  .bk-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .bk-info h3 {
+    font-family: var(--font-heading);
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    color: #0f172a;
+  }
+
+  .bk-info h3 span {
+    background: linear-gradient(135deg, #f9c332 0%, #f59e0b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .bk-info p {
+    color: #475569;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    margin-bottom: 2.25rem;
+  }
+
+  .bk-price-badge {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    padding: 0.6rem 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+  }
+
+  .bk-price-badge strong {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    color: var(--color-secondary);
+    font-weight: 900;
+  }
+
+  .bk-price-badge span {
+    font-size: 0.82rem;
+    color: #475569;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .bk-features-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2.5rem;
+  }
+
+  .bk-features-list li {
+    font-size: 0.88rem;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .bk-features-list li svg {
+    color: var(--color-secondary);
+    flex-shrink: 0;
+  }
+
+  .btn-bk {
+    height: 52px;
+    padding: 0 2.5rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f9c332, #f59e0b);
+    color: #070e17;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25);
+    text-decoration: none;
+    transition: var(--transition-smooth);
+    cursor: pointer;
+  }
+
+  .btn-bk:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(245, 158, 11, 0.4);
+    color: #070e17;
+  }
+
+  .bk-stats-card {
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 20px;
+    background: #ffffff;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+    color: #1e293b;
+  }
+
+  .bk-stat-item {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    padding-bottom: 1.5rem;
+  }
+
+  .bk-stat-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .bk-stat-item strong {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--color-secondary);
+    margin-bottom: 0.15rem;
+  }
+
+  .bk-stat-item span {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #475569;
+  }
+
+  .bk-stat-item p {
+    font-size: 0.88rem;
+    color: #334155;
+    margin: 0.35rem 0 0;
+    line-height: 1.4;
+  }
+
+  .tarifs-divider {
+    height: 1px;
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 80%);
+    margin: 6rem 0;
+  }
+
+  /* Responsive styling */
+  @media (max-width: 1024px) {
+    .plans-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    .bk-grid {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .plans-grid {
+      grid-template-columns: 1fr;
+    }
+    .bk-section {
+      padding: 2rem 1.5rem;
+    }
+    .bk-features-list {
+      grid-template-columns: 1fr;
+    }
+    .tarifs-hero h1 {
+      font-size: 1.85rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="tarifs-page">
+  <div class="tarifs-container">
+
+    <!-- Hero Header -->
+    <header class="tarifs-hero">
+      <span class="pres-pill">Tarifs & Opportunités</span>
+      <h1>Des plans sur mesure pour <span>propulser</span> vos <span>revenus</span></h1>
+      <p>Que vous soyez une entreprise cherchant à attirer des clients en continu ou un partenaire souhaitant distribuer des solutions web & IA, E-Shelle vous garantit le meilleur ROI du marché.</p>
+    </header>
+
+    <!-- SECTION A: PRESTATAIRES (COMMERCES & ARTISANS) -->
+    <section aria-labelledby="merchant-plans-title">
+      <h2 id="merchant-plans-title" class="tarifs-section-title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-briefcase"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        Pour les <span class="text-green">Prestataires</span> &amp; <span class="text-orange">Commerces</span>
+      </h2>
+      <p class="tarifs-section-subtitle">
+        Activez votre <span class="text-green">fiche publique</span>, présentez vos produits, connectez votre bouton <span class="text-orange">WhatsApp</span> et apparaissez en priorité sur les résultats de recherche et les réponses de <span class="text-green">E-Shelle AI</span>.
+      </p>
+
+      <div class="plans-grid">
+        <!-- 1. GRATUIT -->
+        <article class="plan-card">
+          <span class="plan-badge">Aperçu</span>
+          <h3>Gratuit</h3>
+          <div class="plan-price">
+            <strong>0 FCFA</strong>
+            <span>/ mois</span>
+          </div>
+          <p class="plan-desc">Découvrez la plateforme et testez l'interface avec vos premières fiches de test.</p>
+          <ul class="plan-features">
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Fiche de base
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Visibilité limitée
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Lien de contact WhatsApp
+            </li>
+          </ul>
+          {% if user.is_authenticated %}
+          <a href="{% url 'business:onboarding' %}?plan=free" class="btn-plan">Commencer &rarr;</a>
+          {% else %}
+          <a href="/accounts/register/?next={% url 'business:onboarding' %}%3Fplan%3Dfree" class="btn-plan">S'inscrire &rarr;</a>
+          {% endif %}
+        </article>
+
+        <!-- 2. FICHE BUSINESS PREMIUM (5000 FCFA) - MIS EN AVANT -->
+        <article class="plan-card featured">
+          <span class="plan-badge">Recommandé</span>
+          <h3>Fiche Business Premium</h3>
+          <div class="plan-price">
+            <strong>5 000 FCFA</strong>
+            <span>/ mois</span>
+          </div>
+          <p class="plan-desc">La présence et l'activation complètes de votre fiche sur E-Shelle pour capter les prospects.</p>
+          <ul class="plan-features">
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <strong>Fiche publique activée 30j</strong>
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Catalogue de produits/services
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Bouton WhatsApp direct
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Référencement Google local
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <strong>Présence sur E-Shelle AI</strong>
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              5 crédits IA par mois
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <strong>Vérification E-Shelle incluse</strong>
+            </li>
+          </ul>
+          <a href="https://wa.me/237680625082?text={{ "Bonjour E-Shelle, je veux activer le plan Fiche Business Premium (5 000 FCFA/mois) pour ma fiche business."|urlencode }}" target="_blank" rel="noopener" class="btn-plan">Choisir ce plan &rarr;</a>
+        </article>
+
+        <!-- 3. BUSINESS -->
+        <article class="plan-card">
+          <span class="plan-badge">Vitesse Supérieure</span>
+          <h3>Plan Business</h3>
+          <div class="plan-price">
+            <strong>10 000 FCFA</strong>
+            <span>/ mois</span>
+          </div>
+          <p class="plan-desc">Idéal pour les entreprises qui veulent attirer activement plus de prospects chaque semaine.</p>
+          <ul class="plan-features">
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Tous les avantages Premium
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <strong>7 jours de Boost local inclus</strong>
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Accès aux opportunités clients
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Meilleur positionnement IA
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              20 crédits IA par mois
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <strong>Vérification E-Shelle incluse</strong>
+            </li>
+          </ul>
+          <a href="https://wa.me/237680625082?text={{ "Bonjour E-Shelle, je veux activer le Plan Business (10 000 FCFA/mois) pour ma fiche business."|urlencode }}" target="_blank" rel="noopener" class="btn-plan">Choisir ce plan &rarr;</a>
+        </article>
+
+        <!-- 4. PREMIUM -->
+        <article class="plan-card">
+          <span class="plan-badge">Performance Maximale</span>
+          <h3>Plan Premium</h3>
+          <div class="plan-price">
+            <strong>25 000 FCFA</strong>
+            <span>/ mois</span>
+          </div>
+          <p class="plan-desc">Dominance totale de votre secteur d'activité, visuels d'accueil et accompagnement marketing dédié.</p>
+          <ul class="plan-features">
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Tous les avantages Business
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <strong>15 jours de Boost local inclus</strong>
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Flyers & Carrousel Page d'accueil
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Top résultats de recherche & AI
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              50 crédits IA par mois
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <strong>Vérification E-Shelle incluse</strong>
+            </li>
+          </ul>
+          <a href="https://wa.me/237680625082?text={{ "Bonjour E-Shelle, je veux activer le Plan Premium (25 000 FCFA/mois) pour ma fiche business."|urlencode }}" target="_blank" rel="noopener" class="btn-plan">Choisir ce plan &rarr;</a>
+        </article>
+      </div>
+    </section>
+
+    <!-- Visual divider -->
+    <div class="tarifs-divider" role="presentation"></div>
+
+    <!-- SECTION B: PARTENAIRES (BUSINESS KEY) -->
+    <section aria-labelledby="partner-section-title">
+      <div class="bk-section">
+        <div class="bk-grid">
+          
+          <div class="bk-info">
+            <span class="pres-pill" style="color:var(--color-secondary);border-color:rgba(245, 158, 11, 0.3);background:rgba(245, 158, 11, 0.05)">Programme Partenaires</span>
+            <h2 id="partner-section-title" style="display:none">Pour les Partenaires Apporteurs d'affaires</h2>
+            <h3>Gagnez de l'argent avec la <span>E-Shelle Business Key</span></h3>
+            <p>La Business Key est une clé d'activation unique conçue pour les commerciaux indépendants, les consultants et les créateurs. Elle vous donne un accès complet aux outils marketing IA de pointe d'E-Shelle pour prospecter, vendre et encaisser des commissions récurrentes.</p>
+            
+            <div class="bk-price-badge">
+              <strong>9 900 FCFA</strong>
+              <span>Prix unique d'activation</span>
+            </div>
+
+            <ul class="bk-features-list">
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Lien partenaire personnel
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Dashboard Commissions
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                CRM de prospects
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Créateur de fiches prestataires
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Agent Commercial IA
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Campagnes & SMS WhatsApp
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Phone OCR local
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Agent SEO IA & AdGen
+              </li>
+            </ul>
+
+            <a href="{% url 'business:business_key_packs' %}" class="btn-bk">
+              Activer ma Business Key →
+            </a>
+          </div>
+
+          <div class="bk-stats-card">
+            <div class="bk-stat-item">
+              <strong>50%</strong>
+              <span>Commission Partenaire</span>
+              <p>Touchez 50% de commission immédiate chaque fois que vous vendez ou faites activer une nouvelle Business Key via votre lien.</p>
+            </div>
+            
+            <div class="bk-stat-item">
+              <strong>30%</strong>
+              <span>Commission Prestataire</span>
+              <p>Touchez 30% de commission récurrente sur les fiches et abonnements payés par les prestataires que vous enregistrez sur la plateforme.</p>
+            </div>
+
+            <div class="bk-stat-item">
+              <strong>14+</strong>
+              <span>Outils IA & Matériel Inclus</span>
+              <p>Accédez à un arsenal complet comprenant l'Audio Studio, l'AdGen de publicités et des formations quotidiennes sur le terrain.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+{% endblock %}

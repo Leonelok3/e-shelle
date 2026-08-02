@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Solutions E-Shelle - Clients, ventes, IA et gestion{% endblock %}
+
+{% block content %}
+<section class="solutions-hero">
+  <div class="container solutions-hero__grid">
+    <div class="solutions-hero__copy">
+      <span class="solutions-pill">Solutions E-Shelle</span>
+      <h1>Une seule plateforme pour trouver des clients, vendre et gérer votre activité.</h1>
+      <p>
+        E-Shelle rassemble marketplace, publicité IA, vitrines premium, santé, immobilier, auto,
+        artisans, Njangi et collecte terrain pour aider les business locaux à vendre plus vite.
+      </p>
+      <div class="solutions-actions">
+        <a class="btn btn-primary btn-lg" href="{% url 'business:provider_plans' %}">Devenir Premium</a>
+        <a class="btn btn-outline-white btn-lg" href="/chat/?q=je%20veux%20vendre%20sur%20e-shelle">Parler à E-Shelle AI</a>
+      </div>
+    </div>
+
+    <aside class="solutions-proof">
+      <div>
+        <span>Prestataires premium</span>
+        <strong>{{ proof.premium_businesses }}</strong>
+      </div>
+      <div>
+        <span>Vues générées</span>
+        <strong>{{ proof.views }}</strong>
+      </div>
+      <div>
+        <span>Demandes clients</span>
+        <strong>{{ proof.leads }}</strong>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="solutions-section">
+  <div class="container">
+    <div class="solutions-heading">
+      <span class="solutions-pill solutions-pill--light">Choisir selon votre besoin</span>
+      <h2>Que voulez-vous faire avec E-Shelle ?</h2>
+    </div>
+
+    <div class="solutions-grid">
+      {% for item in solutions %}
+      <article class="solution-card" style="--accent: {{ item.accent }}">
+        <span>{{ item.tag }}</span>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.desc }}</p>
+        <a href="{{ item.url }}">{{ item.cta }} <b>→</b></a>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="solutions-section solutions-section--soft">
+  <div class="container">
+    <div class="solutions-heading">
+      <span class="solutions-pill solutions-pill--light">Démos locales</span>
+      <h2>Voir les applications déjà prêtes</h2>
+    </div>
+
+    <div class="demo-grid">
+      {% for name, url, desc in demos %}
+      <a class="demo-card" href="{{ url }}">
+        <strong>{{ name }}</strong>
+        <span>{{ desc }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="solutions-cta">
+  <div class="container solutions-cta__box">
+    <div>
+      <span class="solutions-pill">Premium & Business</span>
+      <h2>Transformez votre visibilité en vrais contacts WhatsApp.</h2>
+      <p>Votre fiche, vos produits, vos slides premium et vos campagnes IA peuvent travailler ensemble pour attirer plus de clients.</p>
+    </div>
+    <a class="btn btn-primary btn-lg" href="{% url 'business:provider_plans' %}">Voir les offres Premium</a>
+  </div>
+</section>
+
+<style>
+.solutions-hero{padding:8rem 0 4.5rem;background:radial-gradient(circle at 82% 20%,rgba(242,138,25,.2),transparent 32%),radial-gradient(circle at 18% 10%,rgba(34,197,94,.24),transparent 34%),#061019;color:#fff}
+.solutions-hero__grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:2rem;align-items:center}
+.solutions-pill{display:inline-flex;align-items:center;gap:.5rem;border:1px solid rgba(126,229,111,.35);background:rgba(34,197,94,.12);color:#7ee56f;border-radius:999px;padding:.48rem .9rem;font-weight:900;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+.solutions-pill:before{content:"";width:8px;height:8px;border-radius:999px;background:currentColor;box-shadow:0 0 18px currentColor}
+.solutions-pill--light{background:#eafff0;border-color:#b8f5c5;color:#0d7a38}
+.solutions-hero h1{font-size:clamp(2.35rem,5.8vw,5.6rem);line-height:.94;max-width:920px;margin:1rem 0}
+.solutions-hero p{max-width:760px;color:rgba(255,255,255,.7);font-size:1.08rem;line-height:1.75}
+.solutions-actions{display:flex;gap:.85rem;flex-wrap:wrap;margin-top:1.5rem}
+.solutions-proof{display:grid;gap:1rem}
+.solutions-proof div{border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.06);border-radius:18px;padding:1.25rem;box-shadow:0 24px 70px rgba(0,0,0,.18)}
+.solutions-proof span{display:block;color:rgba(255,255,255,.58);font-weight:800;font-size:.82rem}
+.solutions-proof strong{display:block;margin-top:.3rem;font-size:2.6rem}
+.solutions-section{padding:4.5rem 0;background:#f8fbfa;color:#08111d}
+.solutions-section--soft{background:#fff}
+.solutions-heading{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:1.3rem}
+.solutions-heading h2{font-size:clamp(1.8rem,3vw,3rem);line-height:1.05;margin:0;max-width:780px}
+.solutions-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.solution-card{position:relative;overflow:hidden;min-height:240px;border:1px solid #d8e9dd;background:#fff;border-radius:18px;padding:1.25rem;box-shadow:0 18px 50px rgba(15,23,42,.06)}
+.solution-card:before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#22c55e,var(--accent),#f28a19)}
+.solution-card span{display:inline-flex;color:#063f24;background:color-mix(in srgb,var(--accent) 18%,#fff);border:1px solid color-mix(in srgb,var(--accent) 35%,#fff);border-radius:999px;padding:.35rem .65rem;font-weight:900;font-size:.76rem}
+.solution-card h3{font-size:1.35rem;line-height:1.1;margin:1.1rem 0 .55rem}
+.solution-card p{color:#536279;line-height:1.65;margin:0 0 1.2rem}
+.solution-card a{position:absolute;left:1.25rem;bottom:1.25rem;color:#064e2b;font-weight:950;text-decoration:none}
+.demo-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
+.demo-card{display:block;border:1px solid #d8e9dd;border-radius:16px;background:#fff;padding:1rem;text-decoration:none;color:#08111d;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.demo-card:hover{transform:translateY(-3px);border-color:#22c55e;box-shadow:0 18px 45px rgba(34,197,94,.12)}
+.demo-card strong{display:block;font-size:1.05rem;margin-bottom:.35rem}
+.demo-card span{color:#5f6b7a;line-height:1.55}
+.solutions-cta{padding:4rem 0;background:#061019;color:#fff}
+.solutions-cta__box{display:flex;align-items:center;justify-content:space-between;gap:2rem;border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:2rem;background:linear-gradient(135deg,rgba(34,197,94,.12),rgba(242,138,25,.12))}
+.solutions-cta h2{font-size:clamp(1.8rem,3vw,3rem);line-height:1.05;margin:1rem 0 .55rem;max-width:720px}
+.solutions-cta p{color:rgba(255,255,255,.68);max-width:720px;line-height:1.7}
+@media(max-width:980px){.solutions-hero__grid,.solutions-grid,.demo-grid{grid-template-columns:1fr}.solutions-heading,.solutions-cta__box{display:block}.solutions-cta__box .btn{margin-top:1rem}}
+</style>
+{% endblock %}

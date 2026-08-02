@@ -18,6 +18,7 @@ from billing.affiliates import (
     get_affiliate_by_code,
     get_or_create_affiliate_profile,
 )
+from core.whatsapp import payment_request_url
 
 from .models import (
     AppCommission,
@@ -1818,7 +1819,7 @@ def business_key_payment_request(request):
         return redirect("business:business_key_packs")
 
     pack = BUSINESS_KEY_PACKS[tier]
-    BusinessKeyPaymentRequest.objects.create(
+    payment_request = BusinessKeyPaymentRequest.objects.create(
         user=request.user,
         tier=tier,
         amount_xaf=pack["price"],
@@ -1826,11 +1827,17 @@ def business_key_payment_request(request):
         proof=request.FILES.get("proof"),
         note=request.POST.get("note", "").strip(),
     )
-    messages.success(
-        request,
-        "Demande recue. Un administrateur verifiera le paiement Mobile Money et activera ta Business Key.",
+    whatsapp_url = payment_request_url(
+        service=f"Business Key - {pack['name']}",
+        amount=f"{pack['price']} FCFA",
+        user=request.user,
+        details=f"Demande Business Key #{payment_request.pk} | {payment_request.note}",
     )
-    return redirect("business:partner_dashboard")
+    messages.info(
+        request,
+        "Contactez E-Shelle sur WhatsApp pour confirmer votre demande et recevoir votre accès après validation.",
+    )
+    return redirect(whatsapp_url)
 
 
 @staff_member_required
@@ -2503,8 +2510,14 @@ def payment_request(request, business_id):
         )
         business.activation_status = BusinessProfile.ActivationStatus.PENDING
         business.save(update_fields=["activation_status", "updated_at"])
-        messages.success(request, "Demande envoyee. L'equipe E-Shelle vous contactera pour confirmer le paiement.")
-        return redirect("business:payment_success", pk=payment.pk)
+        whatsapp_url = payment_request_url(
+            service=f"Activation Business - {business.name} ({plan.name})",
+            amount=f"{plan.monthly_price_xaf} FCFA",
+            user=request.user,
+            details=f"Demande #{payment.pk} | {note or 'Activation business'}",
+        )
+        messages.info(request, "Contactez E-Shelle sur WhatsApp pour confirmer votre demande et recevoir votre accès après validation.")
+        return redirect(whatsapp_url)
 
     return render(
         request,

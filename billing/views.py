@@ -19,6 +19,7 @@ from .services import (
     grant_session_access,
     has_session_access,
 )
+from core.whatsapp import payment_request_url
 
 # ✅ Parrainage / Commissions (affiliate)
 # Si ce fichier n'existe pas encore, crée-le (je peux te le renvoyer).
@@ -56,6 +57,13 @@ def rate_limit_redeem(request, limit=5, window_seconds=60):
 def pricing(request):
     plans = SubscriptionPlan.objects.filter(is_active=True).order_by("order", "duration_days")
     has_active_sub = request.user.is_authenticated and has_active_access(request.user)
+    for plan in plans:
+        plan.whatsapp_payment_url = payment_request_url(
+            service=f"Abonnement E-Shelle Premium - {plan.name}",
+            amount=f"{plan.price_xaf} FCFA",
+            user=request.user,
+            details=f"Plan {plan.slug}, {plan.get_duration_display()}",
+        )
 
     return render(request, "billing/pricing.html", {
         "plans": plans,
@@ -81,6 +89,13 @@ def access(request):
 
     session_active = has_session_access(request)
     plans = SubscriptionPlan.objects.filter(is_active=True).order_by("price_usd")
+    for plan in plans:
+        plan.whatsapp_payment_url = payment_request_url(
+            service=f"Abonnement E-Shelle Premium - {plan.name}",
+            amount=f"{plan.price_xaf} FCFA",
+            user=request.user,
+            details=f"Plan {plan.slug}, {plan.get_duration_display()}",
+        )
 
     return render(request, "billing/access.html", {
         "expires": expires,
@@ -97,10 +112,24 @@ def access(request):
 
 def buy(request):
     plans = SubscriptionPlan.objects.filter(is_active=True).order_by("price_usd")
+    for plan in plans:
+        plan.whatsapp_payment_url = payment_request_url(
+            service=f"Code d'acces E-Shelle Premium - {plan.name}",
+            amount=f"{plan.price_xaf} FCFA",
+            user=request.user,
+            details=f"Plan {plan.slug}, {plan.get_duration_display()}",
+        )
     if request.method == "POST":
-        grant_session_access(request, minutes=30)
-        messages.success(request, "✅ Accès activé pendant 30 minutes (DEMO).")
-        return _redirect_next_or(reverse("billing:access"), request)
+        plan = SubscriptionPlan.objects.filter(pk=request.POST.get("plan_id"), is_active=True).first()
+        service = f"Code d'acces E-Shelle Premium - {plan.name}" if plan else "Code d'acces E-Shelle Premium"
+        amount = f"{plan.price_xaf} FCFA" if plan else ""
+        messages.info(request, "Contactez E-Shelle sur WhatsApp pour recevoir votre code d'accès après validation.")
+        return redirect(payment_request_url(
+            service=service,
+            amount=amount,
+            user=request.user,
+            details="Demande depuis la page acheter un code",
+        ))
 
     return render(request, "billing/buy.html", {
         "plans": plans,
@@ -287,25 +316,13 @@ def wallet_dashboard(request):
 @login_required
 def buy_plan(request, plan_slug):
     plan = get_object_or_404(SubscriptionPlan, slug=plan_slug, is_active=True)
-
-    tx = Transaction.objects.create(
+    messages.info(request, "Contactez E-Shelle sur WhatsApp pour choisir le bon plan et recevoir votre code d'accès.")
+    return redirect(payment_request_url(
+        service=f"Abonnement E-Shelle Premium - {plan.name}",
+        amount=f"{plan.price_xaf} FCFA",
         user=request.user,
-        plan=plan,
-        amount=plan.price_usd,
-        currency="USD",
-        type="CREDIT",
-        status="PENDING",
-        description=f"Achat {plan.name}",
-        payment_method="OTHER",
-    )
-
-    return render(request, "billing/buy_plan.html", {
-        "plan": plan,
-        "transaction": tx,
-        "cinetpay_available": False,
-        "stripe_available": False,
-        "next": request.GET.get("next", ""),
-    })
+        details=f"Plan {plan.slug}, {plan.get_duration_display()}",
+    ))
 
 
 @login_required
@@ -317,21 +334,13 @@ def initiate_payment(request, transaction_id):
         return redirect("billing:wallet")
 
     if request.method == "POST":
-        payment_method = request.POST.get("payment_method") or "OTHER"
-        tx.payment_method = payment_method
-        tx.save(update_fields=["payment_method"])
-
-        # ⚠️ Ici tu feras le redirect vers CinetPay/Stripe.
-        # Quand tu recevras la confirmation (webhook), tu feras:
-        # tx.status = "COMPLETED"; tx.save(); create_commission_for_transaction(tx)
-
-        messages.info(
-            request,
-            f"Paiement {payment_method} sélectionné. "
-            "L'intégration des paiements sera activée prochainement. "
-            "Utilisez un code prépayé pour le moment."
-        )
-        return redirect("billing:redeem")
+        messages.info(request, "Contactez E-Shelle sur WhatsApp pour finaliser cette demande.")
+        return redirect(payment_request_url(
+            service=f"Abonnement E-Shelle Premium - {tx.plan.name if tx.plan else tx.description}",
+            amount=f"{tx.amount} {tx.currency}",
+            user=request.user,
+            details=f"Transaction #{tx.pk}",
+        ))
 
     return redirect("billing:buy_plan", plan_slug=tx.plan.slug)
 

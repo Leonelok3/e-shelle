@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Communication E-Shelle{% endblock %}
+
+{% block content %}
+<section class="launch-page">
+  <div class="launch-container">
+    <div class="launch-hero">
+      <div>
+        <a class="launch-back" href="{% url 'home' %}">Retour accueil</a>
+        <p class="launch-kicker">Plan terrain E-Shelle</p>
+        <h1>{{ promise }}</h1>
+        <p>
+          La communication doit vendre une promesse simple: le client cherche, E-Shelle verifie sa base,
+          propose des pistes externes si besoin et transforme les recherches non satisfaites en demandes
+          visibles pour les partenaires et prestataires.
+        </p>
+      </div>
+      <div class="launch-proof">
+        <article><span>Fiches actives</span><strong>{{ proof.businesses }}</strong></article>
+        <article><span>Demandes captees</span><strong>{{ proof.requests }}</strong></article>
+        <article><span>Premium</span><strong>{{ proof.premium }}</strong></article>
+      </div>
+    </div>
+
+    <div class="launch-actions">
+      {% for label, url in quick_links %}
+      <a href="{{ url }}">{{ label }}</a>
+      {% endfor %}
+    </div>
+
+    <div class="launch-grid">
+      <section class="launch-card wide">
+        <div class="launch-head">
+          <p class="launch-kicker">Scripts prets a poster</p>
+          <h2>Une seule phrase, plusieurs canaux</h2>
+        </div>
+        <div class="script-grid">
+          {% for script in scripts %}
+          <article>
+            <span>{{ script.channel }}</span>
+            <h3>{{ script.title }}</h3>
+            <p>{{ script.text }}</p>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="launch-card">
+        <div class="launch-head">
+          <p class="launch-kicker">Routine 7 jours</p>
+          <h2>Ce qu'il faut executer</h2>
+        </div>
+        <ol class="launch-checklist">
+          {% for item in checklist %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ol>
+      </section>
+    </div>
+
+    <section class="launch-card">
+      <div class="launch-head">
+        <p class="launch-kicker">Niches test</p>
+        <h2>Commencer petit, mesurer vite, recruter les manquants</h2>
+      </div>
+      <div class="niche-grid">
+        {% for niche in niches %}
+        <article>
+          <h3>{{ niche.name }}</h3>
+          <p><strong>Objectif:</strong> {{ niche.goal }}</p>
+          <p><strong>Mission:</strong> {{ niche.mission }}</p>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+
+<style>
+.launch-page{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
+.launch-container{width:min(1180px,92vw);margin:0 auto}
+.launch-hero{display:grid;grid-template-columns:1.45fr .55fr;gap:1rem;align-items:end;background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px;padding:1.2rem;margin-bottom:1rem}
+.launch-back,.launch-actions a{color:#78ff97;text-decoration:none;font-weight:900}
+.launch-kicker{margin:0 0 .6rem;color:#78ff97;font-weight:900;text-transform:uppercase;font-size:.75rem}
+.launch-hero h1{font-size:clamp(2.35rem,5.6vw,5.2rem);line-height:.9;color:#fffbe8;margin:.4rem 0 1rem;letter-spacing:0}
+.launch-hero p,.launch-card p,.launch-checklist li{color:#c8ead0;line-height:1.55}
+.launch-proof{display:grid;gap:.75rem}
+.launch-proof article,.launch-card,.script-grid article,.niche-grid article{background:#06170f;border:1px solid rgba(114,255,146,.16);border-radius:8px;padding:1rem}
+.launch-proof span,.script-grid span{display:block;color:#9fd7ac;text-transform:uppercase;font-weight:900;font-size:.72rem}
+.launch-proof strong{display:block;color:#ffd51f;font-size:2rem;margin-top:.2rem}
+.launch-actions{display:flex;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem}
+.launch-actions a{background:linear-gradient(135deg,#35b257,#d49618);color:#fff;border-radius:8px;padding:.85rem 1rem}
+.launch-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:1rem;margin-bottom:1rem}
+.launch-card.wide{min-width:0}
+.launch-head h2{margin:.1rem 0 1rem;color:#ffd51f;font-size:clamp(1.5rem,2.8vw,2.4rem)}
+.script-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.script-grid h3,.niche-grid h3{margin:.25rem 0 .5rem;color:#fff}
+.launch-checklist{display:grid;gap:.65rem;margin:0;padding-left:1.25rem}
+.launch-checklist li::marker{color:#ffd51f;font-weight:900}
+.niche-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem}
+.niche-grid strong{color:#ffd51f}
+@media(max-width:1000px){.launch-hero,.launch-grid{grid-template-columns:1fr}.script-grid,.niche-grid{grid-template-columns:1fr}.launch-actions{display:grid}.launch-actions a{text-align:center}}
+</style>
+{% endblock %}

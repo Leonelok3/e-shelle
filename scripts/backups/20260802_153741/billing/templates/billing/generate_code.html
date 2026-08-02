@@ -1,0 +1,236 @@
+{# billing/templates/billing/generate_code.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Générateur de Licence Premium | E-Shelle{% endblock %}
+
+{% block meta_description %}
+Créez des clés d'activation pour accéder aux outils premium E-Shelle : fiches business, boutique, resto et assistant IA. Générateur administrateur E-Shelle.
+{% endblock %}
+
+{% block body_class %}billing{% endblock %}
+{% block app_scope %}billing generate-flow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'billing/billing.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="billing-hero">
+  <div class="billing-hero__badge">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+      <path d="M2 17l10 5 10-5"/>
+      <path d="M2 12l10 5 10-5"/>
+    </svg>
+    Espace Administrateur
+  </div>
+
+  <h1 class="billing-hero__title">
+    Générateur de Licence Premium
+  </h1>
+
+  <p class="billing-hero__subtitle">
+    Créez une clé d'activation unique pour débloquer l'accès aux outils premium E-Shelle (fiches business, boutique, resto et assistant IA).
+  </p>
+</div>
+
+<div class="billing-generate">
+  <div class="billing-card">
+
+    <!-- Header Card -->
+    <div class="billing-card__header">
+      <div class="billing-card__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="billing-card__title">Nouvelle Clé d'Activation</h2>
+        <p class="billing-card__desc">Configurez la validité et le plan associé avant génération.</p>
+      </div>
+    </div>
+
+    {# =========================
+       LISTE DES CODES GÉNÉRÉS
+       (ta vue renvoie "codes")
+       ========================= #}
+    {% if codes %}
+      <div class="billing-card__body" style="margin-bottom: 18px;">
+        <div class="billing-alert billing-alert--success" role="status" aria-live="polite">
+          ✅ <strong>{{ codes|length }}</strong> code(s) généré(s) avec succès.
+        </div>
+
+        <div class="billing-generated">
+          <h3 class="billing-generated__title">Codes générés</h3>
+
+          <div class="billing-generated__list">
+            {% for c in codes %}
+              <div class="billing-generated__item">
+                <div class="billing-generated__code">{{ c.code }}</div>
+                <div class="billing-generated__meta">
+                  Plan : <strong>{{ c.plan.name }}</strong> · Expiration : {{ c.expiration_date|date:"d/m/Y H:i" }}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="billing-generated__actions" style="margin-top: 10px;">
+            <a class="billing-form__submit" href="{% url 'billing:generate_code' %}">
+              Générer d'autres codes
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="post" action="{% url 'billing:generate_code' %}" class="billing-form">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next|default:'' }}">
+
+      <!-- Champ 1 : Validité (UI) -->
+      <div class="billing-form__group">
+        <label for="validity" class="billing-form__label">
+          Type de Pass (Validité)
+        </label>
+        <div class="billing-form__input-wrapper">
+          <svg class="billing-form__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <select name="validity" id="validity" class="billing-form__select" required>
+            <option value="24h">🚀 Accès Rapide — 24 heures</option>
+            <option value="30j" selected>💎 Pack Premium — 30 jours</option>
+          </select>
+        </div>
+        <small class="billing-form__hint">
+          Ce champ est informatif côté UI. Le code est associé au <strong>plan</strong> choisi ci-dessous (plan 1 jour, 7 jours, 30 jours, etc.).
+        </small>
+      </div>
+
+      <!-- Champ 2 : Plan (IMPORTANT: correspond à ta vue -> name="plan") -->
+      <div class="billing-form__group">
+        <label for="plan" class="billing-form__label">
+          Associer à un Plan Premium
+        </label>
+        <div class="billing-form__input-wrapper">
+          <svg class="billing-form__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+
+          <select name="plan" id="plan" class="billing-form__select" required>
+            {% for plan in plans %}
+              <option
+                value="{{ plan.slug }}"
+                data-duration="{{ plan.duration_days }}"
+              >
+                {{ plan.name }} — {{ plan.price_usd }} USD · {{ plan.duration_days }} jour{% if plan.duration_days > 1 %}s{% endif %}
+              </option>
+            {% empty %}
+              <option disabled selected>Aucun plan actif configuré</option>
+            {% endfor %}
+          </select>
+        </div>
+        <small class="billing-form__hint">
+          Le code héritera des privilèges et fonctionnalités du plan choisi.
+        </small>
+      </div>
+
+      {# Champ 3 : Quantité (IMPORTANT: correspond à ta vue -> name="quantity") #}
+      <div class="billing-form__group">
+        <label for="quantity" class="billing-form__label">
+          Quantité de codes à générer
+        </label>
+        <div class="billing-form__input-wrapper">
+          <svg class="billing-form__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3h18v18H3z"/>
+            <path d="M7 7h10M7 12h10M7 17h10"/>
+          </svg>
+          <input
+            type="number"
+            name="quantity"
+            id="quantity"
+            class="billing-form__select"
+            value="1"
+            min="1"
+            max="500"
+            required
+          >
+        </div>
+        <small class="billing-form__hint">
+          Exemple : 10 pour générer 10 codes d’un coup.
+        </small>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="billing-form__submit">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+        </svg>
+        <span>Générer la Clé d'Activation</span>
+      </button>
+    </form>
+
+    <!-- Footer Card -->
+    <div class="billing-card__footer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 16v-4M12 8h.01"/>
+      </svg>
+      <p>
+        Besoin d'activer un code existant ?
+        <a href="{% url 'billing:redeem' %}?next={{ next|urlencode }}" class="billing-card__link">
+          Passer à l'activation
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!-- Section Info Premium (SEO + Conversion) -->
+<div class="billing-info">
+  <div class="billing-info__grid">
+
+    <div class="billing-info__card">
+      <div class="billing-info__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <h3>Plans Flexibles</h3>
+      <p>Choisissez le plan (1 jour, 7 jours, 30 jours, 1 an…) selon vos besoins.</p>
+    </div>
+
+    <div class="billing-info__card">
+      <div class="billing-info__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <h3>Activation Instantanée</h3>
+      <p>Codes valides immédiatement après génération (et utilisables via la page d'activation).</p>
+    </div>
+
+    <div class="billing-info__card">
+      <div class="billing-info__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h3>Sécurité Maximale</h3>
+      <p>Clés uniques. Utilisation contrôlée par <strong>max_uses / uses_count</strong> côté serveur.</p>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

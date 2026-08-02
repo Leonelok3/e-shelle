@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ exam.title }} – Espace de cours allemand – E-Shelle{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ep-wrap { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: var(--gold-german, #F59E0B); text-decoration: none; font-weight: 500; }
+
+  .ep-hero { background: linear-gradient(135deg, var(--primary-german, #102B4E) 0%, var(--accent-german, #1a3d6b) 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
+  .ep-hero::before { content: "🎓"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .07; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .6; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.3rem, 4vw, 1.9rem); font-weight: 800; margin: 0 0 .4rem; }
+  .ep-hero h1 span { color: var(--gold-german, #F59E0B); }
+  .ep-hero p { font-size: .88rem; opacity: .8; margin: 0 0 .6rem; }
+  .ep-hero-meta { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.25rem; }
+  .ep-hero-tag { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25); border-radius: 20px; padding: .2rem .75rem; font-size: .72rem; font-weight: 600; opacity: .9; }
+  .ep-hero-cta { display: flex; flex-wrap: wrap; gap: .6rem; }
+  .ep-btn-amber { display: inline-flex; align-items: center; gap: .4rem; background: var(--gold-german, #F59E0B); color: var(--primary-german, #102B4E); border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 700; text-decoration: none; transition: background .2s; }
+  .ep-btn-amber:hover { background: var(--gold-dark-german, #d97706); color: #fff; }
+  .ep-btn-outline { display: inline-flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.12); color: #fff; border: 1.5px solid rgba(255,255,255,.3); border-radius: 10px; padding: .65rem 1.25rem; font-size: .85rem; font-weight: 600; text-decoration: none; transition: background .2s; }
+  .ep-btn-outline:hover { background: rgba(255,255,255,.22); }
+
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .ep-card-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1rem; }
+  .ep-card-sub { font-size: .82rem; color: #64748b; margin: -.5rem 0 1rem; }
+
+  .ep-filter-tabs { display: flex; gap: .5rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .ep-tab-btn { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 20px; padding: .45rem 1rem; font-size: .8rem; font-weight: 600; color: #475569; cursor: pointer; transition: all .2s; }
+  .ep-tab-btn:hover { border-color: var(--gold-german, #F59E0B); background: rgba(255, 206, 0, 0.08); }
+  .ep-tab-btn.active { background: var(--primary-german, #102B4E); border-color: var(--primary-german, #102B4E); color: #fff; }
+
+  .ep-lesson-list { display: flex; flex-direction: column; gap: .65rem; }
+  .ep-lesson-item { display: flex; align-items: center; gap: .85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: .85rem 1rem; transition: border-color .2s; }
+  .ep-lesson-item:hover { border-color: var(--gold-german, #F59E0B); }
+  .ep-lesson-num { width: 32px; height: 32px; background: var(--primary-german, #102B4E); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .78rem; font-weight: 700; flex-shrink: 0; }
+  .ep-lesson-body { flex: 1; min-width: 0; }
+  .ep-lesson-body strong { display: block; font-size: .9rem; font-weight: 700; color: var(--primary-german, #102B4E); }
+  .ep-lesson-body span { font-size: .75rem; color: #64748b; }
+  .ep-btn-open { background: var(--primary-german, #102B4E); color: #fff; border-radius: 8px; padding: .4rem .85rem; font-size: .8rem; font-weight: 700; text-decoration: none; white-space: nowrap; flex-shrink: 0; transition: background .2s; }
+  .ep-btn-open:hover { background: var(--accent-german, #1a3d6b); }
+
+  .ep-resource-list { display: flex; flex-direction: column; gap: .65rem; }
+  .ep-resource-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .85rem 1rem; }
+  .ep-resource-item h3 { font-size: .88rem; font-weight: 700; color: var(--primary-german, #102B4E); margin: 0 0 .25rem; display: flex; align-items: center; gap: .5rem; }
+  .ep-resource-badge { background: #EFF6FF; color: #1d4ed8; border-radius: 20px; padding: .1rem .55rem; font-size: .65rem; font-weight: 700; }
+  .ep-resource-item p { font-size: .78rem; color: #64748b; margin: 0 0 .5rem; }
+  .ep-btn-resource { display: inline-flex; align-items: center; gap: .35rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: .4rem .85rem; font-size: .78rem; font-weight: 600; color: var(--primary-german, #102B4E); text-decoration: none; transition: border-color .2s; }
+  .ep-btn-resource:hover { border-color: var(--gold-german, #F59E0B); }
+
+  .ep-last-session { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .85rem 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+  .ep-last-session p { font-size: .85rem; color: #475569; margin: 0; }
+  .ep-score-badge { border-radius: 20px; padding: .25rem .75rem; font-weight: 700; font-size: .85rem; }
+  .ep-score-g { background: #F0FDF4; color: #15803d; }
+  .ep-score-m { background: #FEF3C7; color: #92400e; }
+  .ep-score-r { background: #FEF2F2; color: #b91c1c; }
+
+  .ep-empty { font-size: .85rem; color: #94a3b8; font-style: italic; padding: .5rem 0; }
+
+  @media (max-width: 600px) {
+    .ep-hero::before { display: none; }
+    .ep-lesson-item { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ep-wrap">
+
+  <nav class="ep-bc">
+    <a href="{% url 'germanprep:home' %}">Allemand</a>
+    <span>›</span>
+    <a href="{% url 'germanprep:exam_hub' %}">Examens</a>
+    <span>›</span>
+    <span>{{ exam.title }}</span>
+  </nav>
+
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">E-Shelle · Allemand · Niveau {{ exam.level }}</p>
+    <h1>{{ exam.title }}</h1>
+    <p>{{ exam.description|default:exam.short_description }}</p>
+    <div class="ep-hero-meta">
+      <span class="ep-hero-tag">{{ exam.get_exam_type_display }}</span>
+      <span class="ep-hero-tag">Niveau {{ exam.level }}</span>
+    </div>
+    <div class="ep-hero-cta">
+      <a href="{% url 'germanprep:take_practice_test' exam.id %}" class="ep-btn-amber">⚡ Lancer une simulation</a>
+      <a href="{% url 'germanprep:exam_learning_path' exam.slug %}" class="ep-btn-outline">📚 Parcours de cours</a>
+      <a href="{% url 'germanprep:ai_coach' %}" class="ep-btn-outline" style="background: #000000; color: #ffffff; border-color: #000000;">🤖 S'entraîner avec le Coach IA</a>
+      {% if past_exams %}
+      <a href="#past-exams-section" class="ep-btn-outline">📄 Annales & Sujets</a>
+      {% endif %}
+      <a href="{% url 'germanprep:home' %}#levels" class="ep-btn-outline">← Niveaux</a>
+    </div>
+  </div>
+
+  <!-- Leçon & Exercice du jour -->
+  {% if lesson_of_the_day %}
+  <div style="margin-bottom: 2rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+      📅 Leçon & Exercice du jour
+    </h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+      
+      <!-- Carte Leçon -->
+      <div class="ep-card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between; border-left: 5px solid #ffce00; background: #ffffff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <div>
+          <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #b45309; background: #fef3c7; padding: 0.25rem 0.6rem; border-radius: 6px; display: inline-block; margin-bottom: 1rem;">
+            📖 Leçon recommandée
+          </span>
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 0.75rem; line-height: 1.3;">
+            {{ lesson_of_the_day.title }}
+          </h3>
+          <p style="color: #475569; font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem;">
+            {{ lesson_of_the_day.intro|default:"Découvre cette leçon clé pour progresser dans ta préparation d'examen allemand."|truncatechars:140 }}
+          </p>
+        </div>
+        <a href="{% url 'germanprep:lesson_detail' exam.slug lesson_of_the_day.id %}" class="ep-btn-amber" style="text-align: center; text-decoration: none; width: fit-content; padding: 0.6rem 1.25rem; font-size: 0.88rem; font-weight: 700; border-radius: 8px;">
+          Commencer la leçon →
+        </a>
+      </div>
+
+      <!-- Carte Exercice -->
+      <div class="ep-card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between; border-left: 5px solid #E3000F; background: #ffffff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        {% if exercise_of_the_day %}
+        <div id="daily-exercise-box" style="display: flex; flex-direction: column; height: 100%; justify-content: space-between;">
+          <div>
+            <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #b91c1c; background: #fee2e2; padding: 0.25rem 0.6rem; border-radius: 6px; display: inline-block; margin-bottom: 1rem;">
+              ⚡ Exercice d'application
+            </span>
+            <p style="color: #0f172a; font-weight: 700; font-size: 1rem; margin: 0 0 1.25rem; line-height: 1.5;">
+              {{ exercise_of_the_day.question_text }}
+            </p>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem;">
+              <button class="exercise-opt-btn-new" onclick="checkDailyAnswer(this, 'A', '{{ exercise_of_the_day.correct_option }}', '{{ exercise_of_the_day.explanation|escapejs }}')" style="background: #f8fafc; color: #1e293b; border: 1px solid #cbd5e1; padding: 0.75rem 1.25rem; border-radius: 8px; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; font-weight: 600; width: 100%;">
+                A. {{ exercise_of_the_day.option_a }}
+              </button>
+              <button class="exercise-opt-btn-new" onclick="checkDailyAnswer(this, 'B', '{{ exercise_of_the_day.correct_option }}', '{{ exercise_of_the_day.explanation|escapejs }}')" style="background: #f8fafc; color: #1e293b; border: 1px solid #cbd5e1; padding: 0.75rem 1.25rem; border-radius: 8px; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; font-weight: 600; width: 100%;">
+                B. {{ exercise_of_the_day.option_b }}
+              </button>
+              {% if exercise_of_the_day.option_c %}
+              <button class="exercise-opt-btn-new" onclick="checkDailyAnswer(this, 'C', '{{ exercise_of_the_day.correct_option }}', '{{ exercise_of_the_day.explanation|escapejs }}')" style="background: #f8fafc; color: #1e293b; border: 1px solid #cbd5e1; padding: 0.75rem 1.25rem; border-radius: 8px; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; font-weight: 600; width: 100%;">
+                C. {{ exercise_of_the_day.option_c }}
+              </button>
+              {% endif %}
+              {% if exercise_of_the_day.option_d %}
+              <button class="exercise-opt-btn-new" onclick="checkDailyAnswer(this, 'D', '{{ exercise_of_the_day.correct_option }}', '{{ exercise_of_the_day.explanation|escapejs }}')" style="background: #f8fafc; color: #1e293b; border: 1px solid #cbd5e1; padding: 0.75rem 1.25rem; border-radius: 8px; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; font-weight: 600; width: 100%;">
+                D. {{ exercise_of_the_day.option_d }}
+              </button>
+              {% endif %}
+            </div>
+          </div>
+          
+          <div id="daily-exercise-result" style="display: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; margin-top: 0.75rem; line-height: 1.5; font-weight: 500;"></div>
+        </div>
+        {% else %}
+        <div>
+          <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #b91c1c; background: #fee2e2; padding: 0.25rem 0.6rem; border-radius: 6px; display: inline-block; margin-bottom: 1rem;">
+            ⚡ Exercice d'application
+          </span>
+          <p style="color: #475569; font-size: 0.95rem; font-style: italic; margin-top: 1rem; line-height: 1.5;">
+            Aucun exercice QCM n'est encore disponible pour cette leçon aujourd'hui. Profitez-en pour lire le cours en cliquant sur le bouton de gauche !
+          </p>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <style>
+    .exercise-opt-btn-new:hover {
+      background: #f1f5f9 !important;
+      border-color: #94a3b8 !important;
+    }
+  </style>
+
+  <script>
+    function checkDailyAnswer(btn, choice, correctOption, explanation) {
+      const box = btn.closest('#daily-exercise-box');
+      const buttons = box.querySelectorAll('.exercise-opt-btn-new');
+      buttons.forEach(b => {
+        b.disabled = true;
+        b.style.opacity = '0.5';
+        b.style.cursor = 'default';
+      });
+      
+      btn.style.opacity = '1';
+      
+      const resultDiv = box.querySelector('#daily-exercise-result');
+      resultDiv.style.display = 'block';
+      
+      if (choice === correctOption) {
+        btn.style.background = '#10b981';
+        btn.style.borderColor = '#059669';
+        btn.style.color = '#ffffff';
+        resultDiv.style.background = '#d1fae5';
+        resultDiv.style.color = '#065f46';
+        resultDiv.innerHTML = '<strong>🎉 Richtig! (Correct)</strong><br>' + (explanation || "Bravo, c'est la bonne réponse !");
+      } else {
+        btn.style.background = '#ef4444';
+        btn.style.borderColor = '#dc2626';
+        btn.style.color = '#ffffff';
+        
+        buttons.forEach(b => {
+          if (b.innerText.trim().startsWith(correctOption + '.')) {
+            b.style.background = '#10b981';
+            b.style.borderColor = '#059669';
+            b.style.color = '#ffffff';
+            b.style.opacity = '1';
+          }
+        });
+        
+        resultDiv.style.background = '#fee2e2';
+        resultDiv.style.color = '#991b1b';
+        resultDiv.innerHTML = '<strong>❌ Falsch. (Incorrect)</strong><br>' + (explanation || "La bonne réponse était l'option " + correctOption);
+      }
+    }
+  </script>
+  {% endif %}
+
+  <!-- Leçons -->
+  <div class="ep-card">
+    <p class="ep-card-title">Parcours de cours & leçons</p>
+    <p class="ep-card-sub">Suis les leçons dans l'ordre pour construire une base solide, ou filtre par compétence spécifique.</p>
+    
+    {% if lessons %}
+    <div class="ep-filter-tabs">
+      <button class="ep-tab-btn active" data-filter="all">🌟 Tous</button>
+      <button class="ep-tab-btn" data-filter="HOREN">🎧 Compréhension Orale (Hören)</button>
+      <button class="ep-tab-btn" data-filter="LESEN">📖 Compréhension Écrite (Lesen)</button>
+      <button class="ep-tab-btn" data-filter="SPRECHEN">🎤 Expression Orale (Sprechen)</button>
+      <button class="ep-tab-btn" data-filter="SCHREIBEN">✍️ Expression Écrite (Schreiben)</button>
+      <button class="ep-tab-btn" data-filter="GRAMMATIK_WORTSCHATZ">📝 Grammaire & Vocabulaire</button>
+    </div>
+
+    <div class="ep-lesson-list">
+      {% for lesson in lessons %}
+      <div class="ep-lesson-item" data-skill="{{ lesson.skill }}">
+        <div class="ep-lesson-num">{{ forloop.counter }}</div>
+        <div class="ep-lesson-body">
+          <strong>{{ lesson.title }}</strong>
+          <span>{{ lesson.get_skill_display }}</span>
+          {% if lesson.intro %}<span> · {{ lesson.intro|truncatechars:80 }}</span>{% endif %}
+        </div>
+        <a href="{% url 'germanprep:lesson_detail' exam.slug lesson.id %}" class="ep-btn-open">Ouvrir →</a>
+      </div>
+      {% endfor %}
+      <p class="ep-filter-empty" style="display: none; font-size: .85rem; color: #94a3b8; font-style: italic; padding: .5rem 0; text-align: center;">Aucune leçon ne correspond à cette compétence pour le moment.</p>
+    </div>
+    {% else %}
+    <p class="ep-empty">Aucune leçon n'a encore été ajoutée pour cet examen.</p>
+    {% endif %}
+  </div>
+
+  <!-- Ressources -->
+  {% if exam_resources %}
+  <div class="ep-card">
+    <p class="ep-card-title">Ressources complètes pour ce niveau</p>
+    <p class="ep-card-sub">PDFs, fiches de cours, séries d'exercices corrigés et vidéos recommandées.</p>
+    <div class="ep-resource-list">
+      {% for r in exam_resources %}
+      <div class="ep-resource-item">
+        <h3>{{ r.title }}
+          <span class="ep-resource-badge">{% if r.resource_type == "PDF" %}PDF{% elif r.resource_type == "VIDEO" %}Vidéo{% elif r.resource_type == "LINK" %}Lien{% else %}Ressource{% endif %}</span>
+        </h3>
+        {% if r.description %}<p>{{ r.description }}</p>{% endif %}
+        <a href="{% if r.file %}{{ r.file.url }}{% else %}{{ r.url }}{% endif %}" target="_blank" rel="noopener noreferrer" class="ep-btn-resource">🔗 Ouvrir la ressource</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Annales & Sujets d'Examens -->
+  {% if past_exams %}
+  <div id="past-exams-section" class="ep-card">
+    <p class="ep-card-title">Annales & Derniers Sujets d'Examens</p>
+    <p class="ep-card-sub">Entraîne-toi sur les modellsatz et sujets officiels pour ce niveau.</p>
+    <div class="ep-resource-list">
+      {% for p in past_exams %}
+      <div class="ep-resource-item" style="border-left: 4px solid var(--gold-german, #F59E0B); background: #fffdf9;">
+        <h3 style="margin-bottom: .25rem;">{{ p.title }}</h3>
+        <div style="display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .65rem;">
+          {% if p.file %}
+          <a href="{{ p.file.url }}" target="_blank" rel="noopener noreferrer" class="ep-btn-resource">📄 Télécharger le sujet (PDF)</a>
+          {% endif %}
+          {% if p.audio_file %}
+          <a href="{{ p.audio_file.url }}" target="_blank" rel="noopener noreferrer" class="ep-btn-resource">🔊 Fichier Audio (MP3)</a>
+          {% endif %}
+          {% if p.url %}
+          <a href="{{ p.url }}" target="_blank" rel="noopener noreferrer" class="ep-btn-resource">🔗 Lien officiel</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Dernière session -->
+  {% if last_session %}
+  <div class="ep-card">
+    <p class="ep-card-title">Ta dernière simulation sur cet examen</p>
+    <div class="ep-last-session">
+      <p>{{ last_session.started_at|date:"d/m/Y H:i" }}</p>
+      <span class="ep-score-badge {% if last_session.score >= 80 %}ep-score-g{% elif last_session.score >= 50 %}ep-score-m{% else %}ep-score-r{% endif %}">{{ last_session.score|default:0 }} %</span>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+document.querySelectorAll('.ep-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ep-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const filter = btn.dataset.filter;
+    const items = document.querySelectorAll('.ep-lesson-item');
+    const filterEmpty = document.querySelector('.ep-filter-empty');
+    let visibleCount = 0;
+    
+    items.forEach(item => {
+      const skill = item.dataset.skill;
+      if (filter === 'all') {
+        item.style.display = 'flex';
+        visibleCount++;
+      } else if (filter === 'GRAMMATIK_WORTSCHATZ') {
+        if (skill === 'GRAMMATIK' || skill === 'WORTSCHATZ') {
+          item.style.display = 'flex';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      } else {
+        if (skill === filter) {
+          item.style.display = 'flex';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      }
+    });
+    
+    if (visibleCount === 0) {
+      if (filterEmpty) filterEmpty.style.display = 'block';
+    } else {
+      if (filterEmpty) filterEmpty.style.display = 'none';
+    }
+  });
+});
+</script>
+{% endblock %}

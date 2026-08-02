@@ -1,0 +1,564 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}E-Shelle - Super-app IA africaine{% endblock %}
+{% block meta_description %}Trouvez vite des produits, services, prestataires et solutions premium au Cameroun avec E-Shelle IA.{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="esh-home">
+  {# 1. Section de recherche IA et Showcase #}
+  <section class="esh-hero">
+    <div class="esh-shell esh-hero-grid">
+      <div class="esh-showcase">
+        <div class="esh-feature-top">
+          <span>Produits et services de nos prestataires</span>
+          <span>Défilement intelligent</span>
+        </div>
+        <div class="esh-feature-slider" aria-label="Produits et services premium en defilement">
+          <div class="esh-feature-track">
+            {% for item in premium_showcase_items|slice:":8" %}
+              <article class="esh-feature-card">
+                <div class="esh-feature-media">
+                  {% if item.image %}
+                    <img src="{{ item.image }}" alt="{{ item.title }}">
+                  {% else %}
+                    <span class="esh-initial">{{ item.initial }}</span>
+                  {% endif %}
+                  <span class="esh-tag">{{ item.tag }}</span>
+                </div>
+                <div class="esh-feature-body">
+                  <h2 class="esh-feature-title">{{ item.title }}</h2>
+                  <div class="esh-meta-row">
+                    <span class="esh-meta">{{ item.kind }}</span>
+                    {% if item.price %}<span class="esh-meta">{{ item.price }}</span>{% endif %}
+                    <span class="esh-meta">{{ item.views }} vues</span>
+                    <a class="esh-order" href="{{ item.url }}">Voir -></a>
+                  </div>
+                </div>
+              </article>
+            {% empty %}
+              <div class="esh-empty-showcase" style="grid-column: 1/-1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px; width: 100%; min-height: 200px; box-sizing: border-box;">
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;">✨</span>
+                <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: #fff; margin: 0 0 0.25rem;">Nouveaux produits à venir</h3>
+                <p style="font-size: 0.8rem; color: rgba(255,255,255,0.5); margin: 0; max-width: 240px; line-height: 1.4; font-family: 'Plus Jakarta Sans', sans-serif;">Découvrez bientôt les vitrines exclusives de nos prestataires locaux.</p>
+              </div>
+            {% endfor %}
+            {% for item in premium_showcase_items|slice:":8" %}
+              <article class="esh-feature-card" aria-hidden="true">
+                <div class="esh-feature-media">
+                  {% if item.image %}
+                    <img src="{{ item.image }}" alt="">
+                  {% else %}
+                    <span class="esh-initial">{{ item.initial }}</span>
+                  {% endif %}
+                  <span class="esh-tag">{{ item.tag }}</span>
+                </div>
+                <div class="esh-feature-body">
+                  <h2 class="esh-feature-title">{{ item.title }}</h2>
+                  <div class="esh-meta-row">
+                    <span class="esh-meta">{{ item.kind }}</span>
+                    {% if item.price %}<span class="esh-meta">{{ item.price }}</span>{% endif %}
+                    <span class="esh-meta">{{ item.views }} vues</span>
+                    <a class="esh-order" href="{{ item.url }}">Voir -></a>
+                  </div>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="esh-hero-copy">
+        <div class="esh-pill">MARKETPLACE IA · VITRINES PREMIUM</div>
+        <h1 class="esh-hero-title">
+          <span class="esh-title-line esh-animated-gradient-text">Vous cherchez au Cameroun ?</span>
+          <span class="esh-title-line" style="color: #f59e0b;">E-Shelle trouve.</span>
+        </h1>
+        <p class="esh-lead">
+          Décrivez votre besoin. Notre <span style="color: #7dec6c; font-weight: 700;">intelligence artificielle</span> trouve instantanément le <span style="color: #f59e0b; font-weight: 700;">bon prestataire</span> ou sollicite notre réseau pour vous répondre.
+        </p>
+        <form class="esh-ai-search" action="/chat/" method="get">
+          <input name="q" type="search" placeholder="Ex : Je cherche un appartement à Douala, une pharmacie proche…" aria-label="Votre besoin">
+          <input type="hidden" name="source" value="home_hero">
+          <button type="submit">Rechercher avec l'IA <span style="display:inline-block;margin-left:4px;transition:transform .2s ease;">→</span></button>
+        </form>
+        <div class="esh-chip-row" aria-label="Recherches rapides">
+          <a class="esh-chip" href="/chat/?q=Gaz%20proche">Gaz proche</a>
+          <a class="esh-chip" href="/chat/?q=Resto%20premium">Resto premium</a>
+          <a class="esh-chip" href="/chat/?q=Pharmacie%20proche">Pharmacie proche</a>
+          <a class="esh-chip" href="/chat/?q=Appartement%20a%20louer">Immobilier</a>
+          <a class="esh-chip" href="/chat/?q=Voiture%20a%20vendre">Auto</a>
+          <a class="esh-chip" href="/chat/?q=Produits%20agroalimentaires">Agroalimentaire</a>
+          <a class="esh-chip" href="/chat/?q=Service%20%C3%A0%20Douala">Service à Douala</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Booster Google Spot 1 / Slider Promotionnel E-Shelle -->
+  <section style="padding: 2.2rem 0 1.2rem; background: transparent; position: relative; z-index: 10;">
+    <div class="esh-shell">
+      {% if app_promo_slides %}
+        <div class="esh-promo-slider-container" style="position: relative; width: 100%; border-radius: 16px; overflow: hidden; background: #07130c; border: 1px solid rgba(125,236,108,0.22); box-shadow: 0 16px 45px rgba(0,0,0,0.4);">
+          <!-- Slide Track -->
+          <div class="esh-promo-slides-wrapper" style="position: relative; width: 100%; aspect-ratio: 3/1; min-height: 240px; overflow: hidden;">
+            {% for slide in app_promo_slides %}
+              <div class="esh-promo-slide {% if forloop.first %}active{% endif %}" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in-out; display: flex; flex-direction: column; z-index: 1;">
+                <!-- Affiche Canva -->
+                <div style="width: 100%; height: 100%; overflow: hidden; position: relative;">
+                  {% if slide.cta_url %}
+                    <a href="{{ slide.cta_url }}" target="_blank" style="display: block; width: 100%; height: 100%; pointer-events: auto;">
+                      <img src="{{ slide.image.url }}" alt="{{ slide.title }}" style="width: 100%; height: 100%; object-fit: cover; display: block; border-bottom: 1px solid rgba(125,236,108,0.12);">
+                    </a>
+                  {% else %}
+                    <img src="{{ slide.image.url }}" alt="{{ slide.title }}" style="width: 100%; height: 100%; object-fit: cover; display: block; border-bottom: 1px solid rgba(125,236,108,0.12);">
+                  {% endif %}
+                </div>
+                
+                <!-- Lien de l'application sous l'affiche -->
+                {% if slide.cta_url %}
+                  <div style="background: rgba(11,29,18,0.92); padding: 0.9rem 1.5rem; display: flex; align-items: center; justify-content: center; gap: 0.8rem; pointer-events: auto; border-top: 1px solid rgba(125,236,108,0.15);">
+                    <a href="{{ slide.cta_url }}" target="_blank" class="esh-btn-primary" style="font-family: 'Plus Jakarta Sans', sans-serif; text-decoration: none; padding: 0.55rem 1.6rem; min-height: auto; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.88rem; font-weight: 700; box-shadow: 0 0 15px rgba(125,236,108,0.15); transition: all 0.25s ease;">
+                      <span>{{ slide.cta_label|default:"Accéder à l'application" }}</span>
+                      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.2s ease;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </a>
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Overlay flash pour l'effet flash photo professionnel -->
+          <div class="esh-promo-flash-overlay" style="position: absolute; inset: 0; background: transparent; opacity: 0; pointer-events: none; z-index: 10;"></div>
+
+          <!-- Progress bar green/gold en bas -->
+          <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.06); z-index: 15;">
+            <div class="esh-promo-progress-fill" style="height: 100%; width: 0%; background: linear-gradient(90deg, #7dec6c, #f9c332); box-shadow: 0 0 8px rgba(125,236,108,0.5); transition: width 8000ms linear;"></div>
+          </div>
+
+          <!-- Flèches directionnelles de navigation gauche/droite -->
+          {% if app_promo_slides|length > 1 %}
+            <button onclick="prevPromoSlide()" aria-label="Affiche précédente" style="position: absolute; top: 40%; left: 1rem; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(7, 19, 12, 0.65); border: 1px solid rgba(255,255,255,0.12); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 20; transition: all 0.25s ease; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <button onclick="nextPromoSlide()" aria-label="Affiche suivante" style="position: absolute; top: 40%; right: 1rem; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(7, 19, 12, 0.65); border: 1px solid rgba(255,255,255,0.12); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 20; transition: all 0.25s ease; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          {% endif %}
+        </div>
+
+        <!-- Styles CSS internes pour la gestion des animations et transitions -->
+        <style>
+          .esh-promo-slide.active {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            z-index: 5 !important;
+          }
+          
+          /* Animation Flash Photo Professionnel */
+          @keyframes eshCameraFlash {
+            0% {
+              opacity: 0;
+              background-color: transparent;
+            }
+            10% {
+              opacity: 0.95;
+              background-color: #ffffff;
+            }
+            100% {
+              opacity: 0;
+              background-color: transparent;
+            }
+          }
+          
+          .esh-promo-flash-overlay.flash {
+            animation: eshCameraFlash 0.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+          }
+
+          /* Hover actions pour boutons de navigation */
+          .esh-promo-slider-container button:hover {
+            background: rgba(125,236,108,0.9) !important;
+            color: #07130c !important;
+            border-color: #7dec6c !important;
+            box-shadow: 0 0 15px rgba(125,236,108,0.4);
+            transform: translateY(-50%) scale(1.08);
+          }
+          
+          /* Hover effect on slide CTA button */
+          .esh-promo-slide .esh-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(125,236,108,0.4) !important;
+          }
+          .esh-promo-slide .esh-btn-primary:hover svg {
+            transform: translateX(4px);
+          }
+        </style>
+
+        <!-- Javascript de contrôle du Slider avec Autoplay à 8 secondes et transition Flash -->
+        {% if app_promo_slides|length > 1 %}
+          <script>
+            let currentPromoSlide = 0;
+            const slides = document.querySelectorAll('.esh-promo-slide');
+            let promoAutoplayTimer = null;
+
+            function triggerFlashEffect() {
+              const overlay = document.querySelector('.esh-promo-flash-overlay');
+              if (!overlay) return;
+              overlay.classList.remove('flash');
+              void overlay.offsetWidth; // Force reflow
+              overlay.classList.add('flash');
+            }
+
+            function resetPromoProgressBar() {
+              const fill = document.querySelector('.esh-promo-progress-fill');
+              if (!fill) return;
+              fill.style.transition = 'none';
+              fill.style.width = '0%';
+              void fill.offsetWidth; // Force reflow
+              fill.style.transition = 'width 8000ms linear';
+              fill.style.width = '100%';
+            }
+
+            function showPromoSlide(index) {
+              if (slides.length === 0) return;
+              
+              // Déclencher le flash photo
+              triggerFlashEffect();
+              
+              // Au milieu du flash (après 80ms), effectuer la transition de slide
+              setTimeout(() => {
+                slides.forEach((slide, i) => {
+                  slide.classList.toggle('active', i === index);
+                });
+                resetPromoProgressBar();
+              }, 80);
+            }
+
+            function nextPromoSlide() {
+              currentPromoSlide = (currentPromoSlide + 1) % slides.length;
+              showPromoSlide(currentPromoSlide);
+              resetPromoAutoplay();
+            }
+
+            function prevPromoSlide() {
+              currentPromoSlide = (currentPromoSlide - 1 + slides.length) % slides.length;
+              showPromoSlide(currentPromoSlide);
+              resetPromoAutoplay();
+            }
+
+            // Démarrage initial de l'autoplay
+            function startPromoAutoplay() {
+              if (slides.length > 1) {
+                resetPromoProgressBar();
+                promoAutoplayTimer = setInterval(() => {
+                  currentPromoSlide = (currentPromoSlide + 1) % slides.length;
+                  showPromoSlide(currentPromoSlide);
+                }, 8000);
+              }
+            }
+
+            function resetPromoAutoplay() {
+              if (promoAutoplayTimer) {
+                clearInterval(promoAutoplayTimer);
+                startPromoAutoplay();
+              }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+              startPromoAutoplay();
+            });
+          </script>
+        {% endif %}
+      {% else %}
+        <!-- Fallback original si aucun slide n'est configuré -->
+        <div class="esh-cta-card" style="padding: 1.6rem 2rem; max-width: 100%; border: 1px solid rgba(125,236,108,.25);">
+          <div class="esh-banner-cta">
+            <div style="flex: 2; min-width: 280px;">
+              <div class="esh-pill" style="min-height: auto; padding: 0.25rem 0.65rem; font-size: 0.68rem; margin-bottom: 0.5rem; background: rgba(125,236,108,.1); border-color: rgba(125,236,108,.3);">Référencement Booster Google</div>
+              <div class="esh-banner-text">
+                <h3 style="font-family: 'Outfit', sans-serif; font-size: clamp(1.15rem, 1.8vw, 1.45rem); font-weight: 800; color: #fff; margin: 0.4rem 0 0.3rem; line-height: 1.2;">
+                  🚀 <span class="esh-highlight-green">Boostez</span> votre <span class="esh-highlight-orange">visibilité</span> sur <span class="esh-highlight-green">Google</span> avec <span class="esh-highlight-orange">E-Shelle</span>
+                </h3>
+                <p style="color: rgba(255,255,255,0.85); font-size: 0.88rem; margin: 0; line-height: 1.45; font-family: 'Plus Jakarta Sans', sans-serif;">
+                  Laissez nos agents IA et nos optimisations de recherche propulser vos offres au sommet de <span class="esh-highlight-green">Google</span> pour capter des milliers de <span class="esh-highlight-orange">clients locaux</span>.
+                </p>
+              </div>
+            </div>
+            <div class="esh-banner-btn-container">
+              <a class="esh-btn-primary" href="/business/onboarding/" style="text-decoration: none; padding: 0.65rem 1.4rem; min-height: auto; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                Inscrire mon business →
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  {# 2. Zone publicitaire / Affiches sponsorisées #}
+  {% if home_ad_slides %}
+  <section class="esh-ad-zone" aria-label="Publicites sponsorisees E-Shelle">
+    <div class="esh-shell">
+      <div class="esh-ad-board">
+        <div class="esh-ad-head">
+          <div>
+            <div class="esh-pill">Espace publicitaire</div>
+            <h2>Affiches, offres et videos sponsorisees</h2>
+            <p>Une zone premium pour mettre en avant une ecole, un plat, un produit, un service ou une campagne speciale.</p>
+          </div>
+          <a class="esh-outline-btn" href="/business/onboarding/">Créer ma fiche</a>
+        </div>
+        <div class="esh-ad-rail">
+          {% for slide in home_ad_slides %}
+            <a class="esh-ad-card" href="{% url 'business:go_slide' slide.id %}">
+              <div class="esh-ad-media">
+                {% if slide.media_type == "video" and slide.video %}
+                  <video muted loop playsinline autoplay preload="metadata" poster="{% if slide.image %}{{ slide.image.url }}{% endif %}">
+                    <source src="{{ slide.video.url }}">
+                  </video>
+                {% elif slide.media_type == "video" and slide.video_url %}
+                  <video muted loop playsinline autoplay preload="metadata" poster="{% if slide.image %}{{ slide.image.url }}{% endif %}">
+                    <source src="{{ slide.video_url }}">
+                  </video>
+                {% elif slide.image %}
+                  <img src="{{ slide.image.url }}" alt="{{ slide.title }}">
+                {% else %}
+                  <span class="esh-initial">{{ slide.title|first }}</span>
+                {% endif %}
+              </div>
+              <div class="esh-ad-overlay">
+                {% if slide.badge %}<span class="esh-tag">{{ slide.badge }}</span>{% endif %}
+                <h3 class="esh-ad-title">{{ slide.title }}</h3>
+                {% if slide.subtitle %}<p class="esh-ad-subtitle">{{ slide.subtitle }}</p>{% endif %}
+                <div class="esh-ad-bottom">
+                  <span class="esh-ad-cta">{{ slide.cta_label|default:"Voir l'offre" }} -></span>
+                  <span class="esh-ad-city">{{ slide.city|default:"E-Shelle" }}</span>
+                </div>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# 3. Vitrine des produits et services premium des prestataires #}
+  <section class="esh-section esh-section-vitrine">
+    <div class="esh-shell">
+      <div class="esh-section-head">
+        <div>
+          <div class="esh-pill">Vitrine des prestataires</div>
+          <h2 class="esh-section-title">Découvrez les derniers <span style="color: #f59e0b;">produits</span> &amp; <span style="color: #f59e0b;">services</span> de nos <span style="color: #f59e0b;">prestataires</span></h2>
+        </div>
+        <a class="esh-btn-grad-green-orange" href="/business/onboarding/">Inscrire mon business</a>
+      </div>
+
+      {% if premium_showcase_items %}
+        <div class="esh-business-grid">
+          {% for item in premium_showcase_items %}
+            <a class="esh-business-card" href="{{ item.url }}">
+              <div class="esh-card-media">
+                {% if item.image %}
+                  <img src="{{ item.image }}" alt="{{ item.title }}">
+                {% else %}
+                  <span class="esh-initial">{{ item.initial }}</span>
+                {% endif %}
+              </div>
+              <div class="esh-card-body">
+                <div>
+                  <span class="esh-tag" style="min-height:22px;padding:.15rem .45rem;font-size:.65rem;">{{ item.tag }}</span>
+                </div>
+                <div class="esh-card-kind">{{ item.kind }}</div>
+                <h3 class="esh-card-title">{{ item.title }}</h3>
+                {% if item.description %}
+                  <p class="esh-card-description">{{ item.description|truncatechars:75 }}</p>
+                {% else %}
+                  <p class="esh-card-description" style="opacity: 0.35;">Aucune description disponible.</p>
+                {% endif %}
+                {% if item.price %}
+                  <div class="esh-card-price">{{ item.price }}</div>
+                {% endif %}
+                <div class="esh-card-action">Voir les détails →</div>
+                <div class="esh-card-foot">
+                  <span>{{ item.views }} vues</span>
+                  <span>📍 {{ item.meta }}</span>
+                </div>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+
+        {% if premium_showcase_items.has_other_pages %}
+          <div class="esh-pagination" style="display:flex;justify-content:center;align-items:center;gap:0.5rem;margin-top:2.5rem;margin-bottom:1.5rem;">
+            {% if premium_showcase_items.has_previous %}
+              <a href="?page={{ premium_showcase_items.previous_page_number }}" class="esh-page-btn" style="display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:#fff;text-decoration:none;font-weight:bold;">&laquo;</a>
+            {% endif %}
+            
+            {% for num in premium_showcase_items.paginator.page_range %}
+              {% if premium_showcase_items.number == num %}
+                <span class="esh-page-btn active" style="display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#7dec6c,#f59e0b);color:#06120a;font-weight:900;">{{ num }}</span>
+              {% elif num > premium_showcase_items.number|add:'-3' and num < premium_showcase_items.number|add:'3' %}
+                <a href="?page={{ num }}" class="esh-page-btn" style="display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:#fff;text-decoration:none;font-weight:bold;">{{ num }}</a>
+              {% endif %}
+            {% endfor %}
+
+            {% if premium_showcase_items.has_next %}
+              <a href="?page={{ premium_showcase_items.next_page_number }}" class="esh-page-btn" style="display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:#fff;text-decoration:none;font-weight:bold;">&raquo;</a>
+            {% endif %}
+          </div>
+        {% endif %}
+      {% else %}
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4rem 2rem; background: rgba(15,23,42,0.02); border: 1px dashed rgba(15,23,42,0.15); border-radius: 16px; margin: 2rem 0;">
+          <span style="font-size: 3rem; margin-bottom: 1rem;">🛒</span>
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; color: #0f172a; margin: 0 0 0.5rem; font-weight: 700;">Aucun prestataire enregistré pour le moment</h3>
+          <p style="font-size: 0.95rem; color: #475569; margin: 0 0 1.5rem; max-width: 400px; font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.5;">Soyez le premier à ajouter vos produits ou services sur E-Shelle et boostez votre visibilité locale.</p>
+          <a class="esh-btn-primary" href="/business/onboarding/" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 10px; padding: 0.75rem 1.6rem; font-family: 'Outfit', sans-serif;">Inscrire mon business →</a>
+        </div>
+      {% endif %}
+
+      <!-- CTA Booster Google Spot 2 -->
+      <div class="esh-cta-card esh-cta-card-centered" style="margin-top: 3.5rem; border: 1px solid rgba(125,236,108,.3); padding: 2.5rem 1.5rem; background: radial-gradient(circle at 50% 50%, rgba(6, 31, 17, 0.4), rgba(3, 11, 18, 0.9));">
+        <div class="esh-pill" style="margin-bottom: 1rem; background: rgba(125,236,108,.15); border-color: rgba(125,236,108,.4); font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; color: #7dec6c;">Boost Google SEO</div>
+        <h2 class="esh-animated-gradient-text" style="font-family: 'Outfit', sans-serif; font-size: clamp(1.6rem, 2.5vw, 2.3rem); margin: 0.5rem 0 1rem; font-weight: 900; line-height: 1.15;">Laissez E-Shelle booster votre visibilité sur Google</h2>
+        <p class="esh-muted" style="max-width: 680px; margin: 0 auto 2.2rem; font-size: 1.08rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; color: rgba(255, 255, 255, 0.9);">
+          Ne restez plus invisible. <span style="color: #f59e0b; font-weight: 700;">Inscrivez votre business</span> en quelques instants, laissez nos <span style="color: #7dec6c; font-weight: 700;">agents IA</span> rédiger votre profil et maximisez votre <span style="color: #f59e0b; font-weight: 700;">référencement Google</span>.
+        </p>
+        <a class="esh-btn-primary" href="/business/onboarding/" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 999px; padding: 0.75rem 2.2rem; font-weight: 800; box-shadow: 0 8px 24px rgba(34, 197, 94, 0.25);">
+          Inscrire mon business 🚀
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {# 4. Tout l'écosystème E-Shelle tout en bas #}
+  <section class="esh-section alt">
+    <div class="esh-shell">
+      <div style="text-align:center;max-width:760px;margin:0 auto">
+        <div class="esh-pill">20+ applications</div>
+        <h2 class="esh-section-title">Tout l'écosystème <span style="color:var(--esh-gold)">E-Shelle</span></h2>
+        <p style="font-size: 1rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; color: #f3f4f6; margin: 1.5rem auto 0; background: #030712; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1rem 1.5rem; max-width: 680px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);">
+          Une seule plateforme, des <span style="color: #7dec6c; font-weight: 700;">applications utiles</span> pour transformer votre quotidien au <span style="color: #f59e0b; font-weight: 700;">Cameroun</span> et en <span style="color: #f59e0b; font-weight: 700;">Afrique</span>.
+        </p>
+      </div>
+      <div class="esh-app-grid">
+        <a class="esh-app-tile" style="--app-color:#8b5cf6" href="/formations/"><span class="esh-app-icon">📚</span><strong>Formations</strong><span>IA, Marketing, Anglais</span></a>
+        <a class="esh-app-tile" style="--app-color:#f59e0b" href="/boutique/"><span class="esh-app-icon">🛒</span><strong>Boutique</strong><span>Templates, ebooks, outils</span></a>
+        <a class="esh-app-tile" style="--app-color:#3b82f6" href="/services/"><span class="esh-app-icon">🌐</span><strong>Services Web</strong><span>Sites, e-commerce, IA</span></a>
+        <a class="esh-app-tile" style="--app-color:#00d4aa" href="/chat/"><span class="esh-app-icon">🤖</span><strong>E-Shelle AI</strong><span>GPT-4o · DALL-E 3</span></a>
+        <a class="esh-app-tile" style="--app-color:#ff6b00" href="{{ GAZ_PUBLIC_URL|default:'/gaz/' }}"><span class="esh-app-icon">🔥</span><strong>E-Shelle Gaz</strong><span>Livraison domicile</span></a>
+        <a class="esh-app-tile" style="--app-color:#10b981" href="{{ PHARMA_PUBLIC_URL|default:'/pharma/' }}"><span class="esh-app-icon">💊</span><strong>Pharma</strong><span>Medicaments, prix, dispo</span></a>
+        <a class="esh-app-tile" style="--app-color:#8b5cf6" href="{{ SANTE_PUBLIC_URL|default:'/sante/' }}"><span class="esh-app-icon">➕</span><strong>Sante</strong><span>Produits & soins</span></a>
+        <a class="esh-app-tile" style="--app-color:#6366f1" href="{{ PRESSING_PUBLIC_URL|default:'/pressing/' }}"><span class="esh-app-icon">👔</span><strong>Pressing</strong><span>Nettoyage, livraison</span></a>
+        <a class="esh-app-tile" style="--app-color:#e85d26" href="{{ RESTO_PUBLIC_URL|default:'/resto/' }}"><span class="esh-app-icon">🍽️</span><strong>Resto</strong><span>Restaurants Cameroun</span></a>
+        <a class="esh-app-tile" style="--app-color:#0ea5e9" href="/immobilier/"><span class="esh-app-icon">🏠</span><strong>Immobilier</strong><span>Vente, location, terrain</span></a>
+        <a class="esh-app-tile" style="--app-color:#ef4444" href="/auto/"><span class="esh-app-icon">🚗</span><strong>Auto</strong><span>Vehicules, pieces</span></a>
+        <a class="esh-app-tile" style="--app-color:#f97316" href="{{ MARKET_PUBLIC_URL|default:'/annonces/' }}"><span class="esh-app-icon">📢</span><strong>Market</strong><span>Acheter & vendre</span></a>
+        <a class="esh-app-tile" style="--app-color:#2d6a4f" href="/agro/"><span class="esh-app-icon">🌿</span><strong>Agro</strong><span>Marche B2B/B2C</span></a>
+        <a class="esh-app-tile" style="--app-color:#e8436a" href="/rencontres/"><span class="esh-app-icon">❤️</span><strong>E-Shelle Love</strong><span>Rencontres serieuses</span></a>
+        <a class="esh-app-tile" style="--app-color:#6c3fe8" href="/pub/"><span class="esh-app-icon">✨</span><strong>AdGen</strong><span>Pubs IA en 20 sec</span></a>
+        <a class="esh-app-tile" style="--app-color:#d97706" href="/avatar/"><span class="esh-app-icon">🎬</span><strong>Avatar IA</strong><span>Vidéos d'avatars parlants</span></a>
+
+        <a class="esh-app-tile" style="--app-color:#3b82f6" href="{{ MAPEX_PUBLIC_URL|default:'/edu/' }}"><span class="esh-app-icon">🎓</span><strong>EduCam Pro</strong><span>Examens camerounais</span></a>
+        <a class="esh-app-tile" style="--app-color:#16a34a" href="{{ EXPROD_PUBLIC_URL|default:'/lebelage-importer/' }}"><span class="esh-app-icon">📦</span><strong>ExProd</strong><span>Importer & exporter des produits</span></a>
+        <a class="esh-app-tile" style="--app-color:#1b6ca8" href="{{ NJANGI_PUBLIC_URL|default:'/njangi/' }}"><span class="esh-app-icon">💰</span><strong>Njangi</strong><span>Tontine digitale</span></a>
+        <a class="esh-app-tile" style="--app-color:#0fa36b" href="{{ TCHASLUCPAY_PUBLIC_URL|default:'/tchaslucpay/' }}"><span class="esh-app-icon">💳</span><strong>Tchaslucpay</strong><span>Microfinance digitale</span></a>
+        <a class="esh-app-tile" style="--app-color:#f59e0b" href="{{ SIMPLO_PUBLIC_URL|default:'/simplo/' }}"><span class="esh-app-icon">🏍️</span><strong>Simplo</strong><span>Transport & courses</span></a>
+        <a class="esh-app-tile" style="--app-color:#0ea5e9" href="{{ TRANSPORT_PUBLIC_URL|default:'/transport/' }}"><span class="esh-app-icon">🚌</span><strong>Transport</strong><span>Covoiturage & bus</span></a>
+        <a class="esh-app-tile" style="--app-color:#2563eb" href="{{ JOBS_PUBLIC_URL|default:'/jobs/' }}"><span class="esh-app-icon">💼</span><strong>Jobs</strong><span>Emplois & missions</span></a>
+        <a class="esh-app-tile esh-app-tile-key" style="--app-color:#f3c332" href="/business/partner/"><span class="esh-app-icon">🔑</span><strong>Business Key</strong><span>Gagner avec E-Shelle</span></a>
+        <a class="esh-app-tile" style="--app-color:#7dec6c" href="/business/arsenal-ia/"><span class="esh-app-icon">🤖</span><strong>Arsenal IA</strong><span>Piloter les agents</span></a>
+        <a class="esh-app-tile" style="--app-color:#35b257" href="/business/communication/"><span class="esh-app-icon">📣</span><strong>Communication</strong><span>Lancer E-Shelle terrain</span></a>
+        <a class="esh-app-tile" style="--app-color:#1b6534" href="/dashboard/"><span class="esh-app-icon">📊</span><strong>Mon Espace</strong><span>Tableau de bord</span></a>
+      </div>
+      <div class="esh-cta-actions">
+        <a class="esh-btn-primary" href="/chat/">Commencer gratuitement</a>
+        <a class="esh-outline-btn" href="/dashboard/">Accéder à mon espace</a>
+      </div>
+    </div>
+  </section>
+
+  {# 5. Section Référencement, Copywriting & Géo-Visibilité (SEO-Booster) #}
+  <section class="esh-section esh-seo-booster-section" style="padding: 5rem 0; background: #ffffff; border-top: 1px solid rgba(0, 0, 0, 0.06); position: relative; overflow: hidden;">
+    <!-- Décorations lumineuses en arrière-plan -->
+    <div style="position: absolute; top: 10%; left: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(22, 163, 74, 0.03) 0%, transparent 70%); pointer-events: none;"></div>
+    <div style="position: absolute; bottom: 10%; right: -10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(217, 119, 6, 0.02) 0%, transparent 70%); pointer-events: none;"></div>
+
+    <div class="esh-shell">
+      <div style="text-align: center; max-width: 800px; margin: 0 auto 4rem;">
+        <div class="esh-pill" style="background: rgba(22, 163, 74, 0.08); border-color: rgba(22, 163, 74, 0.25); color: #16a34a; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700;">Technologie SEO & Acquisition Client</div>
+        <h2 class="esh-section-title" style="font-size: clamp(1.8rem, 3.2vw, 2.6rem); font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; color: #07130c; margin-top: 0.8rem; line-height: 1.15;">
+          Comment <span style="color: #d97706;">E-Shelle</span> propulse vos offres en <span style="color: #16a34a;">première page Google</span>
+        </h2>
+        <p style="font-size: 1.1rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; color: #e2fbf0; margin-top: 1.5rem; background: #061f11; border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 12px; padding: 1.2rem 1.8rem; box-shadow: 0 8px 24px rgba(6, 31, 17, 0.2);">
+          Grâce à notre <span style="color: #7dec6c; font-weight: 700;">infrastructure de référencement de pointe</span> combinée à <span style="color: #f59e0b; font-weight: 700;">l'intelligence artificielle</span>, chaque fiche produit et service devient un <span style="color: #f59e0b; font-weight: 700;">aimant à prospects qualifiés</span>.
+        </p>
+      </div>
+
+      <div class="esh-seo-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+        <!-- Carte 1 : Géo-Référencement -->
+        <div class="esh-seo-card" style="background: #f0fdf4; border: 1px solid rgba(22, 163, 74, 0.25); border-radius: 20px; padding: 2.2rem; transition: all 0.3s ease; display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 10px 30px rgba(22, 163, 74, 0.04);">
+          <div style="width: 50px; height: 50px; background: rgba(22, 163, 74, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #16a34a;">📍</div>
+          <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.3rem; font-weight: 800; color: #07130c; margin: 0;">Géo-Référencement Local</h3>
+          <p style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.92rem; line-height: 1.6; color: #475569; margin: 0;">
+            Ciblez directement vos clients à <strong style="color: #0f172a;">Douala, Yaoundé, Bafoussam, Garoua</strong> et partout au Cameroun. Nos pages s'adaptent automatiquement aux recherches géolocalisées pour vous positionner en tête auprès des clients de proximité.
+          </p>
+        </div>
+
+        <!-- Carte 2 : Copywriting IA -->
+        <div class="esh-seo-card" style="background: #fdfdfd; border: 1px solid rgba(22, 163, 74, 0.15); border-radius: 20px; padding: 2.2rem; transition: all 0.3s ease; display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);">
+          <div style="width: 50px; height: 50px; background: rgba(217, 119, 6, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #d97706;">✍️</div>
+          <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.3rem; font-weight: 800; color: #07130c; margin: 0;">Copywriting Vendeur IA</h3>
+          <p style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.92rem; line-height: 1.6; color: #475569; margin: 0;">
+            Nos agents de rédaction automatisés structurent vos descriptions avec les meilleures techniques de <strong style="color: #0f172a;">persuasion psychologique</strong>. Un contenu riche, captivant et optimisé pour le référencement sémantique naturel.
+          </p>
+        </div>
+
+        <!-- Carte 3 : Appels à l'Action (CTA) -->
+        <div class="esh-seo-card" style="background: #f0fdf4; border: 1px solid rgba(22, 163, 74, 0.25); border-radius: 20px; padding: 2.2rem; transition: all 0.3s ease; display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 10px 30px rgba(22, 163, 74, 0.04);">
+          <div style="width: 50px; height: 50px; background: rgba(22, 163, 74, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #16a34a;">⚡</div>
+          <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.3rem; font-weight: 800; color: #07130c; margin: 0;">Appels à l'Action (CTA) Premium</h3>
+          <p style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.92rem; line-height: 1.6; color: #475569; margin: 0;">
+            Ne perdez plus aucun clic. Nos boutons de conversion ultra-stylisés intègrent des <strong style="color: #0f172a;">micro-animations réactives</strong> et des boutons ovales bicolores de type SaaS 2027 qui guident naturellement le client vers le contact direct.
+          </p>
+        </div>
+
+        <!-- Carte 4 : Technique SEO Avancée -->
+        <div class="esh-seo-card" style="background: #fdfdfd; border: 1px solid rgba(22, 163, 74, 0.15); border-radius: 20px; padding: 2.2rem; transition: all 0.3s ease; display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);">
+          <div style="width: 50px; height: 50px; background: rgba(217, 119, 6, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #d97706;">📈</div>
+          <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.3rem; font-weight: 800; color: #07130c; margin: 0;">Optimisations Techniques</h3>
+          <p style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.92rem; line-height: 1.6; color: #475569; margin: 0;">
+            Génération automatique de métadonnées JSON-LD (Rich Snippets), balises Title et Description uniques, sitemaps dynamiques et un temps de chargement ultra-court. Tout est conçu pour plaire aux robots de Google.
+          </p>
+        </div>
+      </div>
+      
+      <!-- Hover effect style -->
+      <style>
+        .esh-seo-card:hover {
+          transform: translateY(-5px);
+          background: #ffffff !important;
+          border-color: rgba(22, 163, 74, 0.35) !important;
+          box-shadow: 0 15px 35px rgba(22, 163, 74, 0.08) !important;
+        }
+      </style>
+    </div>
+  </section>
+</div>
+<script>
+document.querySelectorAll('.esh-hero-copy .esh-chip').forEach(function(chip) {
+  chip.addEventListener('click', function(event) {
+    var input = document.querySelector('.esh-hero-copy .esh-ai-search input[name="q"]');
+    if (!input) return;
+    event.preventDefault();
+    input.value = chip.textContent.trim();
+    input.focus();
+  });
+});
+</script>
+{% endblock content %}

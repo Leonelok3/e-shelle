@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Mon Portefeuille Prépayé | E-Shelle{% endblock %}
+{% block content %}
+<div class="container" style="max-width: 700px; margin: 40px auto; padding: 0 16px; font-family: 'Outfit', sans-serif; color: #fff;">
+  
+  <div style="margin-bottom: 30px;">
+    <h1 style="font-size: 28px; font-weight: 700; margin: 0 0 4px 0;">Portefeuille Prépayé</h1>
+    <p style="color: rgba(255, 255, 255, 0.6); font-size: 14px; margin: 0;">Rechargez et gérez vos cautions de commissions.</p>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+    {% for message in messages %}
+      <div style="background: {% if message.tags == 'success' %}rgba(16, 185, 129, 0.15){% else %}rgba(239, 68, 68, 0.15){% endif %}; border: 1px solid {% if message.tags == 'success' %}rgba(16, 185, 129, 0.3){% else %}rgba(239, 68, 68, 0.3){% endif %}; color: {% if message.tags == 'success' %}#10b981{% else %}#ef4444{% endif %}; padding: 12px 16px; border-radius: 10px; margin-bottom: 24px; font-size: 14px;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    
+    <!-- Wallets Balances -->
+    {% for wallet in wallets %}
+      <div style="background: rgba(14, 20, 28, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 15px; padding: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <span style="color: rgba(255, 255, 255, 0.5); font-size: 13px; text-transform: uppercase;">Fiche : {{ wallet.business.name }}</span>
+          <div style="font-size: 32px; font-weight: 800; color: #10b981; margin: 8px 0 4px 0;">{{ wallet.balance|floatformat:0 }} <span style="font-size: 18px; font-weight: 600;">FCFA</span></div>
+          <small style="color: rgba(255, 255, 255, 0.4);">Ce solde sert à payer les commissions de revente.</small>
+        </div>
+        
+        <!-- Quick Recharge Form -->
+        <form method="POST" style="background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 10px; display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 280px;">
+          {% csrf_token %}
+          <input type="hidden" name="business_id" value="{{ wallet.business.id }}">
+          <div>
+            <label for="amount_{{ wallet.id }}" style="display: block; color: rgba(255, 255, 255, 0.7); font-size: 12px; margin-bottom: 6px;">Montant de recharge (FCFA)</label>
+            <input type="number" id="amount_{{ wallet.id }}" name="amount" min="1000" step="500" value="5000" required style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.3); color: #fff; font-size: 14px;">
+          </div>
+          <button type="submit" style="width: 100%; padding: 10px; border-radius: 6px; border: none; background: #10b981; color: #000; font-size: 14px; font-weight: 700; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#059669'" onmouseout="this.style.backgroundColor='#10b981'">
+            Recharger par Mobile Money
+          </button>
+        </form>
+      </div>
+    {% endfor %}
+
+    <!-- Instructions / Explanations -->
+    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 24px; line-height: 1.6;">
+      <h3 style="font-size: 18px; margin: 0 0 12px 0; color: #10b981;">💡 Comment fonctionnent les recharges ?</h3>
+      <p style="margin: 0 0 12px 0; font-size: 14px; color: rgba(255,255,255,0.8);">
+        Pour recevoir des commandes en **Paiement à la livraison** via le réseau de revente E-Shelle, votre portefeuille doit disposer d'un solde suffisant pour couvrir la commission du revendeur + les frais de service de la plateforme.
+      </p>
+      <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.8);">
+        Si votre solde est trop bas, vos offres d'affiliation apparaîtront temporairement indisponibles pour les clients afin de protéger vos commissions. Rechargez à tout moment via MTN Mobile Money ou Orange Money.
+      </p>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

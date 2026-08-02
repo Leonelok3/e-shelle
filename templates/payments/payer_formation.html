@@ -20,64 +20,16 @@
       </div>
     </div>
 
-    <form method="post">
-      {% csrf_token %}
-      <div class="mb-3">
-        <label class="form-label fw-semibold small">Méthode de paiement</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:1.5rem;">
-          <label style="cursor:pointer;">
-            <input type="radio" name="methode" value="mtn_momo" checked style="display:none;" class="payment-radio">
-            <div class="payment-method-card" data-method="mtn_momo" style="border:2px solid var(--primary-light);border-radius:var(--radius-md);padding:.85rem;text-align:center;background:rgba(46,125,50,.08);">
-              <div style="font-size:1.5rem;">📱</div>
-              <div style="font-size:.75rem;font-weight:600;margin-top:.25rem;">MTN MoMo</div>
-            </div>
-          </label>
-          <label style="cursor:pointer;">
-            <input type="radio" name="methode" value="airtel" style="display:none;" class="payment-radio">
-            <div class="payment-method-card" data-method="airtel" style="border:2px solid rgba(255,255,255,.1);border-radius:var(--radius-md);padding:.85rem;text-align:center;">
-              <div style="font-size:1.5rem;">📱</div>
-              <div style="font-size:.75rem;font-weight:600;margin-top:.25rem;">Airtel</div>
-            </div>
-          </label>
-          <label style="cursor:pointer;">
-            <input type="radio" name="methode" value="orange" style="display:none;" class="payment-radio">
-            <div class="payment-method-card" data-method="orange" style="border:2px solid rgba(255,255,255,.1);border-radius:var(--radius-md);padding:.85rem;text-align:center;">
-              <div style="font-size:1.5rem;">📱</div>
-              <div style="font-size:.75rem;font-weight:600;margin-top:.25rem;">Orange</div>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold small">Numéro de téléphone Mobile Money</label>
-        <input type="tel" name="telephone" class="form-control"
-               placeholder="6XXXXXXXX" pattern="[0-9]{9}" required
-               style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:#fff;padding:.85rem 1rem;border-radius:var(--radius-md);">
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-block" style="width:100%;padding:1rem;font-size:1rem;margin-top:1rem;">
-        Payer {{ formation.prix }} FCFA →
-      </button>
-    </form>
+    <a href="{{ whatsapp_payment_url }}"
+       target="_blank" rel="noopener noreferrer"
+       class="btn btn-primary btn-block"
+       style="width:100%;display:block;padding:1rem;font-size:1rem;margin-top:1rem;text-align:center;">
+      Contacter sur WhatsApp →
+    </a>
 
     <p style="text-align:center;color:var(--text-muted);font-size:.78rem;margin-top:1rem;">
-      🔒 Paiement sécurisé · Accès immédiat après confirmation
+      E-Shelle confirme votre besoin sur WhatsApp avant de créer votre accès.
     </p>
   </div>
 </div>
-
-<script>
-document.querySelectorAll('.payment-radio').forEach(radio => {
-  radio.addEventListener('change', () => {
-    document.querySelectorAll('.payment-method-card').forEach(card => {
-      card.style.border = '2px solid rgba(255,255,255,.1)';
-      card.style.background = 'transparent';
-    });
-    const selected = radio.nextElementSibling;
-    selected.style.border = '2px solid var(--primary-light)';
-    selected.style.background = 'rgba(46,125,50,.08)';
-  });
-});
-</script>
 {% endblock %}

@@ -1,0 +1,372 @@
+{% extends "auto_cameroun/base_auto.html" %}
+{% load static %}
+
+{% block title %}{{ vehicule.marque }} {{ vehicule.modele }} {{ vehicule.annee }} — {{ vehicule.prix_formate }} | Auto Cameroun{% endblock %}
+{% block meta_description %}{{ vehicule.meta_description|default:vehicule.description|truncatechars:160 }}{% endblock %}
+{% block og_title %}{{ vehicule.marque }} {{ vehicule.modele }} {{ vehicule.annee }} — {{ vehicule.prix_formate }}{% endblock %}
+{% block og_description %}{{ vehicule.get_type_transaction_display }} · {{ vehicule.get_type_carrosserie_display }} · {{ vehicule.ville }}{% if vehicule.kilometrage %} · {{ vehicule.kilometrage }} km{% endif %}{% endblock %}
+{% block og_image %}{% with photo=vehicule.photo_principale %}{% if photo and photo.image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ photo.image.url }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">{% endif %}{% endwith %}{% endblock %}
+{% block twitter_image %}{% with photo=vehicule.photo_principale %}{% if photo and photo.image %}<meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ photo.image.url }}">{% endif %}{% endwith %}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item active">{{ vehicule.marque }} {{ vehicule.modele }} {{ vehicule.annee }}</li>
+{% endblock %}
+
+{% block auto_content %}
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- Colonne principale -->
+    <div class="col-lg-8">
+
+      <!-- Badges statut -->
+      <div class="auto-detail__badges mb-3">
+        <span class="auto-badge auto-badge--{{ vehicule.statut|lower }} auto-badge--lg">
+          {% if vehicule.statut == 'PUBLIE' %}✅ Disponible
+          {% elif vehicule.statut == 'RESERVE' %}🔒 Réservé
+          {% elif vehicule.statut == 'VENDU_LOUE' %}✔️ Vendu / Loué
+          {% endif %}
+        </span>
+        <span class="auto-badge auto-badge--{{ vehicule.type_transaction|lower }} auto-badge--lg">
+          {{ vehicule.get_type_transaction_display }}
+        </span>
+        {% if vehicule.est_coup_de_coeur %}
+          <span class="auto-badge auto-badge--coeur auto-badge--lg">❤️ Coup de cœur</span>
+        {% endif %}
+        {% if vehicule.est_mis_en_avant %}
+          <span class="auto-badge auto-badge--premium auto-badge--lg">⭐ Premium</span>
+        {% endif %}
+      </div>
+
+      <h1 class="auto-detail__titre">{{ vehicule.marque }} {{ vehicule.modele }} {{ vehicule.annee }}</h1>
+      {% if vehicule.version %}
+        <p class="auto-detail__version">{{ vehicule.version }}</p>
+      {% endif %}
+      <p class="auto-detail__localisation">
+        <i class="fa-solid fa-location-dot text-accent"></i>
+        {{ vehicule.ville }}{% if vehicule.quartier %}, {{ vehicule.quartier }}{% endif %}
+      </p>
+
+      <!-- ── GALERIE PHOTOS ── -->
+      <div class="auto-galerie mb-4">
+        {% if photos %}
+          <div class="swiper auto-swiper-main">
+            <div class="swiper-wrapper">
+              {% for photo in photos %}
+                <div class="swiper-slide">
+                  <a href="{{ photo.image.url }}" class="glightbox auto-galerie__lien"
+                     data-gallery="vehicule-{{ vehicule.pk }}"
+                     data-description="{{ photo.legende|default:vehicule.marque }}">
+                    <img src="{{ photo.image.url }}"
+                         alt="{{ photo.legende|default:vehicule.marque }}"
+                         class="auto-galerie__main-img"
+                         loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                  </a>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+          </div>
+          <div class="swiper auto-swiper-thumbs mt-2">
+            <div class="swiper-wrapper">
+              {% for photo in photos %}
+                <div class="swiper-slide">
+                  <img src="{{ photo.image.url }}" alt="{{ photo.legende|default:'' }}" class="auto-galerie__thumb" loading="lazy">
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% else %}
+          <div class="auto-galerie__placeholder">
+            <i class="fa-solid fa-car fa-4x"></i>
+            <p>Aucune photo disponible</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- ── PRIX ── -->
+      <div class="auto-detail__prix-bloc">
+        <span class="auto-detail__prix">{{ vehicule.prix_formate }}</span>
+        {% if vehicule.type_transaction == 'LOCATION' %}
+          <span class="auto-detail__periode">
+            / {% if vehicule.periode_prix == 'PAR_MOIS' %}mois{% elif vehicule.periode_prix == 'PAR_JOUR' %}jour{% endif %}
+          </span>
+        {% endif %}
+        {% if vehicule.prix_negociable %}
+          <span class="auto-badge auto-badge--nego ms-2">Négociable</span>
+        {% endif %}
+      </div>
+
+      <!-- ── FICHE TECHNIQUE ── -->
+      <div class="auto-detail__section">
+        <h2 class="auto-detail__section-titre"><i class="fa-solid fa-list-check"></i> Fiche technique</h2>
+        <div class="auto-fiche">
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-car-side"></i> Carrosserie</span>
+            <span class="auto-fiche__val">{{ vehicule.get_type_carrosserie_display }}</span>
+          </div>
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-calendar"></i> Année</span>
+            <span class="auto-fiche__val">{{ vehicule.annee }}</span>
+          </div>
+          {% if vehicule.kilometrage %}
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-gauge-high"></i> Kilométrage</span>
+            <span class="auto-fiche__val">{{ vehicule.kilometrage|floatformat:0 }} km</span>
+          </div>
+          {% endif %}
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-gas-pump"></i> Carburant</span>
+            <span class="auto-fiche__val">{{ vehicule.get_carburant_display }}</span>
+          </div>
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-gears"></i> Boîte</span>
+            <span class="auto-fiche__val">{{ vehicule.get_boite_display }}</span>
+          </div>
+          {% if vehicule.puissance_cv %}
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-bolt"></i> Puissance</span>
+            <span class="auto-fiche__val">{{ vehicule.puissance_cv }} CV</span>
+          </div>
+          {% endif %}
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-users"></i> Places</span>
+            <span class="auto-fiche__val">{{ vehicule.nombre_places }}</span>
+          </div>
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-door-open"></i> Portes</span>
+            <span class="auto-fiche__val">{{ vehicule.nombre_portes }}</span>
+          </div>
+          {% if vehicule.couleur %}
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-palette"></i> Couleur</span>
+            <span class="auto-fiche__val">{{ vehicule.couleur }}</span>
+          </div>
+          {% endif %}
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-steering-wheel"></i> Volant</span>
+            <span class="auto-fiche__val">{{ vehicule.get_conduite_display }}</span>
+          </div>
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-star"></i> État</span>
+            <span class="auto-fiche__val">{{ vehicule.get_etat_display }}</span>
+          </div>
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-file-check"></i> Dédouané</span>
+            <span class="auto-fiche__val">{% if vehicule.est_dedouane %}✅ Oui{% else %}❌ Non{% endif %}</span>
+          </div>
+          {% if vehicule.premiere_main %}
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-hand"></i> 1ère main</span>
+            <span class="auto-fiche__val">✅ Oui</span>
+          </div>
+          {% endif %}
+          {% if vehicule.garantie %}
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-shield-check"></i> Garantie</span>
+            <span class="auto-fiche__val">{{ vehicule.garantie }}</span>
+          </div>
+          {% endif %}
+          <div class="auto-fiche__item">
+            <span class="auto-fiche__label"><i class="fa-solid fa-eye"></i> Vues</span>
+            <span class="auto-fiche__val">{{ vehicule.vues }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DESCRIPTION ── -->
+      <div class="auto-detail__section">
+        <h2 class="auto-detail__section-titre"><i class="fa-solid fa-align-left"></i> Description</h2>
+        <div class="auto-detail__description">{{ vehicule.description|linebreaks }}</div>
+      </div>
+
+      <!-- ── OPTIONS & ÉQUIPEMENTS ── -->
+      {% if vehicule.options_equipements %}
+        <div class="auto-detail__section">
+          <h2 class="auto-detail__section-titre"><i class="fa-solid fa-list"></i> Options & équipements</h2>
+          <div class="auto-detail__description">{{ vehicule.options_equipements|linebreaks }}</div>
+        </div>
+      {% endif %}
+
+      <!-- ── PARTAGE ── -->
+      <div class="auto-detail__section">
+        <h2 class="auto-detail__section-titre"><i class="fa-solid fa-share-nodes"></i> Partager cette annonce</h2>
+        {% include "auto_cameroun/partials/_partage_social.html" with vehicule=vehicule %}
+      </div>
+
+      <!-- ── SIMILAIRES ── -->
+      {% if similaires %}
+        <div class="auto-detail__section">
+          <h2 class="auto-detail__section-titre"><i class="fa-solid fa-car-on"></i> Véhicules similaires</h2>
+          <div class="auto-grid auto-grid--3">
+            {% for s in similaires %}
+              {% include "auto_cameroun/partials/_card_vehicule.html" with vehicule=s %}
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+
+    <!-- ── SIDEBAR ── -->
+    <div class="col-lg-4">
+      <div class="auto-detail__sidebar">
+
+        <!-- Actions -->
+        <div class="auto-detail__actions">
+          <!-- WhatsApp -->
+          <a href="{{ vehicule.get_whatsapp_url }}" target="_blank" rel="noopener"
+             class="auto-btn auto-btn--whatsapp auto-btn--full">
+            <i class="fa-brands fa-whatsapp"></i> Contacter sur WhatsApp
+          </a>
+
+          <!-- Favori -->
+          {% if user.is_authenticated %}
+            <button
+              class="auto-btn auto-btn--full mt-2 btn-toggle-favori {% if est_favori %}auto-btn--favori-actif{% else %}auto-btn--outline{% endif %}"
+              data-vehicule-id="{{ vehicule.pk }}">
+              <i class="fa-{% if est_favori %}solid{% else %}regular{% endif %} fa-heart"></i>
+              {% if est_favori %}Retirer des favoris{% else %}Ajouter aux favoris{% endif %}
+            </button>
+          {% else %}
+            <a href="{% url 'accounts:login' %}?next={{ request.path }}"
+               class="auto-btn auto-btn--outline auto-btn--full mt-2">
+              <i class="fa-regular fa-heart"></i> Ajouter aux favoris
+            </a>
+          {% endif %}
+
+          <!-- Marquer réservé (propriétaire) -->
+          {% if user == vehicule.proprietaire or user.is_superuser %}
+            {% if vehicule.statut == 'PUBLIE' %}
+              <button class="auto-btn auto-btn--warning auto-btn--full mt-2"
+                      id="btn-marquer-reserve"
+                      data-slug="{{ vehicule.slug }}">
+                <i class="fa-solid fa-lock"></i> Marquer comme Réservé
+              </button>
+            {% endif %}
+          {% endif %}
+        </div>
+
+        <!-- Formulaire essai -->
+        {% if vehicule.statut == 'PUBLIE' %}
+          <div class="auto-detail__essai-form mt-4">
+            <h3 class="auto-detail__essai-form__titre">
+              <i class="fa-solid fa-key"></i> Demander un essai
+            </h3>
+            <form method="post" action="{% url 'auto:detail_vehicule' slug=vehicule.slug %}">
+              {% csrf_token %}
+              {% for field in essai_form %}
+                <div class="mb-3">
+                  <label class="auto-form-label" for="{{ field.id_for_label }}">
+                    {{ field.label }}{% if field.field.required %} *{% endif %}
+                  </label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="auto-form-error">{{ field.errors.0 }}</div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+              <button type="submit" class="auto-btn auto-btn--primary auto-btn--full">
+                <i class="fa-solid fa-paper-plane"></i> Envoyer ma demande
+              </button>
+            </form>
+          </div>
+        {% endif %}
+
+        <!-- Infos vendeur -->
+        <div class="auto-detail__vendeur mt-4">
+          <h3 class="auto-detail__vendeur__titre">
+            <i class="fa-solid fa-user-tie"></i> Vendeur
+          </h3>
+          <div class="auto-detail__vendeur__card">
+            {% with profil=vehicule.proprietaire.profil_auto %}
+              {% if profil and profil.photo_profil %}
+                <img src="{{ profil.photo_profil.url }}" alt="{{ vehicule.proprietaire.get_full_name }}" class="auto-detail__vendeur__avatar">
+              {% else %}
+                <div class="auto-detail__vendeur__avatar auto-detail__vendeur__avatar--placeholder">
+                  <i class="fa-solid fa-user fa-2x"></i>
+                </div>
+              {% endif %}
+              <div class="auto-detail__vendeur__info">
+                <strong>{{ vehicule.proprietaire.get_full_name|default:vehicule.proprietaire.username }}</strong>
+                {% if profil %}
+                  <span>{{ profil.get_role_display }}</span>
+                  {% if profil.est_verifie %}
+                    <span class="auto-badge auto-badge--verifie">✅ Vérifié</span>
+                  {% endif %}
+                {% endif %}
+              </div>
+            {% endwith %}
+          </div>
+          <a href="{% url 'auto:espace_vendeur' username=vehicule.proprietaire.username %}"
+             class="auto-btn auto-btn--outline auto-btn--full mt-3">
+            <i class="fa-solid fa-store"></i> Voir tout son parc auto
+          </a>
+        </div>
+
+        <!-- Signaler -->
+        <div class="mt-3 text-center">
+          <a href="{% url 'auto:signaler_vehicule' vehicule_id=vehicule.pk %}" class="auto-lien-signaler">
+            <i class="fa-solid fa-flag"></i> Signaler cette annonce
+          </a>
+        </div>
+
+        <!-- Stats (propriétaire) -->
+        {% if user == vehicule.proprietaire or user.is_superuser %}
+          <div class="auto-detail__stats mt-4">
+            <h3 class="auto-detail__section-titre"><i class="fa-solid fa-chart-simple"></i> Statistiques</h3>
+            <ul class="auto-stats-list">
+              <li><i class="fa-solid fa-eye"></i> {{ stats.vues }} vue{{ stats.vues|pluralize }}</li>
+              <li><i class="fa-solid fa-heart"></i> {{ stats.favoris_count }} favori{{ stats.favoris_count|pluralize }}</li>
+              <li><i class="fa-solid fa-key"></i> {{ stats.essais_count }} demande{{ stats.essais_count|pluralize }} d'essai</li>
+            </ul>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block auto_extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Swiper
+  const swiperThumbs = new Swiper(".auto-swiper-thumbs", {
+    slidesPerView: 4, spaceBetween: 8,
+    freeMode: true, watchSlidesProgress: true,
+  });
+  new Swiper(".auto-swiper-main", {
+    slidesPerView: 1, spaceBetween: 0,
+    navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
+    pagination: { el: ".swiper-pagination", clickable: true },
+    thumbs: { swiper: swiperThumbs },
+  });
+
+  // GLightbox
+  GLightbox({ selector: ".glightbox", touchNavigation: true, loop: true });
+
+  // Marquer réservé
+  const btnReserve = document.getElementById("btn-marquer-reserve");
+  if (btnReserve) {
+    btnReserve.addEventListener("click", async () => {
+      const slug = btnReserve.dataset.slug;
+      const resp = await fetch(`/auto/ajax/reserver/${slug}/`, {
+        method: "POST",
+        headers: { "X-CSRFToken": getCookie("csrftoken") },
+      });
+      if (resp.ok) {
+        btnReserve.textContent = "🔒 Réservé";
+        btnReserve.disabled = true;
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

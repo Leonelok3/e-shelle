@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Demo express - {{ lead.business_name }}{% endblock %}
+
+{% block content %}
+<section class="demo-page">
+  <div class="demo-container">
+    <div class="demo-hero">
+      <a href="{% url 'business:business_key_crm' %}">Retour CRM</a>
+      <span>Demo Client Express</span>
+      <h1>{{ lead.business_name }}</h1>
+      <p>{{ lead.get_sector_display }}{% if lead.city %} · {{ lead.city }}{% endif %}{% if lead.district %} · {{ lead.district }}{% endif %}</p>
+      <div class="demo-actions">
+        {% if whatsapp_url %}<a href="{{ whatsapp_url }}" target="_blank" rel="noopener">Envoyer la demo WhatsApp</a>{% endif %}
+        <a href="{{ activation_url }}" target="_blank" rel="noopener">Activer maintenant</a>
+      </div>
+    </div>
+
+    <div class="demo-grid">
+      <article>
+        <h2>Probleme client</h2>
+        <p>{{ card.problem }}</p>
+      </article>
+      <article>
+        <h2>Solution E-Shelle</h2>
+        <p>{{ card.solution }}</p>
+      </article>
+      <article>
+        <h2>Prix propose</h2>
+        <strong>{{ price }}</strong>
+        <p>{{ card.offer }}</p>
+      </article>
+    </div>
+
+    <section class="demo-preview">
+      <div>
+        <span>Fiche demo</span>
+        <h2>{{ lead.business_name }}</h2>
+        <p>{{ card.solution }}</p>
+        <div class="demo-badges">
+          <em>{{ lead.get_sector_display }}</em>
+          {% if lead.city %}<em>{{ lead.city }}</em>{% endif %}
+          <em>WhatsApp direct</em>
+        </div>
+      </div>
+      <div class="phone-card">
+        <strong>Message WhatsApp</strong>
+        <p>{{ first_script }}</p>
+      </div>
+    </section>
+
+    <section class="demo-grid">
+      <article>
+        <h2>Objection probable</h2>
+        <p>{{ card.objection }}</p>
+      </article>
+      <article>
+        <h2>Reponse</h2>
+        <p>{{ card.answer }}</p>
+      </article>
+      <article>
+        <h2>Prochaine action</h2>
+        <p>Faire confirmer le besoin, creer la fiche business puis demander l'activation du plan.</p>
+      </article>
+    </section>
+  </div>
+</section>
+
+<style>
+.demo-page{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
+.demo-container{width:min(1120px,92vw);margin:0 auto}
+.demo-hero,.demo-grid article,.demo-preview{background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px;padding:1rem;margin-bottom:1rem}
+.demo-hero a{color:#78ff97;text-decoration:none;font-weight:900}
+.demo-hero span{display:inline-flex;margin-top:1rem;border:1px solid rgba(114,255,146,.32);border-radius:999px;padding:.45rem .75rem;color:#78ff97;font-weight:900;text-transform:uppercase}
+.demo-hero h1{font-size:clamp(2.5rem,7vw,5.6rem);line-height:.86;color:#fffbe8;margin:.8rem 0}
+.demo-hero p,.demo-grid p,.demo-preview p{color:#b9ddc3;line-height:1.58}
+.demo-actions{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1rem}
+.demo-actions a{background:linear-gradient(135deg,#35b257,#d49618);border-radius:8px;color:#fff;text-decoration:none;font-weight:900;padding:.85rem 1rem}
+.demo-actions a+ a{background:#06170f;border:1px solid rgba(114,255,146,.3)}
+.demo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.demo-grid h2,.demo-preview h2{color:#ffd51f;margin:0 0 .6rem}
+.demo-grid strong{color:#fff;font-size:1.5rem}
+.demo-preview{display:grid;grid-template-columns:1fr .9fr;gap:1rem;align-items:stretch}
+.demo-preview span{color:#78ff97;font-weight:900;text-transform:uppercase}
+.demo-badges{display:flex;gap:.5rem;flex-wrap:wrap}
+.demo-badges em{font-style:normal;background:#06170f;border:1px solid rgba(114,255,146,.18);border-radius:999px;padding:.35rem .55rem}
+.phone-card{background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:1rem}
+.phone-card strong{color:#fff}
+@media(max-width:900px){.demo-grid,.demo-preview{grid-template-columns:1fr}}
+</style>
+{% endblock %}

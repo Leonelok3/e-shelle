@@ -1,0 +1,309 @@
+{# billing/templates/billing/pricing.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tarifs & Abonnements Premium | E-Shelle{% endblock %}
+
+{% block meta_description %}
+Choisissez votre forfait E-Shelle : accès aux outils IA de productivité, création de boutiques et menus en ligne, création de fiches business et assistance 24/7. Paiement mobile money disponible.
+{% endblock %}
+
+{% block body_class %}billing{% endblock %}
+{% block app_scope %}billing pricing-flow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'billing/billing.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="billing-pricing-hero">
+  <div class="billing-pricing-hero__badge">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+      <path d="M2 17l10 5 10-5"/>
+      <path d="M2 12l10 5 10-5"/>
+    </svg>
+    Tarifs 2026
+  </div>
+
+  <h1 class="billing-pricing-hero__title">
+    Débloquez votre potentiel digital
+  </h1>
+
+  <p class="billing-pricing-hero__subtitle">
+    Choisissez le plan adapté à vos ambitions. Accès immédiat aux outils d'analyse IA, au Boutique & Resto en Ligne (WhatsApp) et aux services de création de fiches business.
+  </p>
+</div>
+
+<!-- Plans Grid -->
+<div id="plans" class="billing-pricing-grid">
+  {% for p in plans %}
+  <article class="billing-pricing-card {% if p.is_popular %}is-featured{% endif %}"
+           itemscope
+           itemtype="https://schema.org/Product">
+
+    <!-- Badge Popular -->
+    {% if p.is_popular %}
+    <div class="billing-pricing-card__badge">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+      Plus Populaire
+    </div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="billing-pricing-card__header">
+      <div class="billing-pricing-card__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          {% if forloop.first %}
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          {% elif forloop.last %}
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          {% else %}
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+          {% endif %}
+        </svg>
+      </div>
+
+      <h3 class="billing-pricing-card__name" itemprop="name">{{ p.name }}</h3>
+    </div>
+
+    {# ---------
+       PÉRIODE (safe)
+       --------- #}
+    {% with d=p.duration_days %}
+      {% if d == 1 %}
+        {% with period_label=" / 24h" %}{% endwith %}
+      {% elif d == 7 %}
+        {% with period_label=" / semaine" %}{% endwith %}
+      {% elif d == 30 %}
+        {% with period_label=" / mois" %}{% endwith %}
+      {% elif d == 365 %}
+        {% with period_label=" / an" %}{% endwith %}
+      {% else %}
+        {% with period_label=" / " %}{% endwith %}
+      {% endif %}
+
+      <!-- Price -->
+      <div class="billing-pricing-card__price"
+           itemprop="offers"
+           itemscope
+           itemtype="https://schema.org/Offer">
+
+        <meta itemprop="priceCurrency" content="USD">
+        <meta itemprop="availability" content="https://schema.org/InStock">
+
+        <div class="billing-pricing-card__amount">
+          <span class="currency">$</span>
+          <span class="value" itemprop="price" content="{{ p.price_usd }}">{{ p.price_usd }}</span>
+        </div>
+
+        <span class="billing-pricing-card__period">
+          {% if d == 1 %}/ 24h
+          {% elif d == 7 %}/ semaine
+          {% elif d == 30 %}/ mois
+          {% elif d == 365 %}/ an
+          {% else %}/ {{ d }} jours{% endif %}
+        </span>
+
+        {# url de l'offre #}
+        <meta itemprop="url" content="{% url 'billing:buy_plan' p.slug %}">
+      </div>
+    {% endwith %}
+
+    <!-- Description (safe : p.description peut ne pas exister) -->
+    <p class="billing-pricing-card__desc" itemprop="description">
+      {{ p.description|default:"Accès complet à l'écosystème E-Shelle pour réussir vos objectifs." }}
+    </p>
+
+    <!-- Features List -->
+    <ul class="billing-pricing-card__features">
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Boutique & Resto en Ligne (WhatsApp)</span>
+      </li>
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Création de Documents Professionnels</span>
+      </li>
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Création de Fiche Business & Boutique</span>
+      </li>
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Accès complet aux Agents IA E-Shelle</span>
+      </li>
+      <li>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Support prioritaire 24/7</span>
+      </li>
+    </ul>
+
+    <!-- CTA Button -->
+    <a href="{% url 'billing:buy_plan' p.slug %}?next={{ next|default:''|urlencode }}"
+       class="billing-pricing-card__cta">
+      <span>Démarrer l'accès Premium</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </a>
+
+  </article>
+  {% empty %}
+  <div class="billing-pricing-empty">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 16v-4M12 8h.01"/>
+    </svg>
+    <h3>Plans temporairement indisponibles</h3>
+    <p>Nos services sont actuellement en cours de mise à jour. Revenez bientôt.</p>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Trust Section -->
+<div class="billing-pricing-trust">
+  <h2 class="billing-pricing-trust__title">Pourquoi choisir E-Shelle ?</h2>
+
+  <div class="billing-pricing-trust__grid">
+
+    <div class="billing-pricing-trust__card">
+      <div class="billing-pricing-trust__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+          <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+      </div>
+      <h3>Paiement Local Sécurisé</h3>
+      <p>Compatible Orange Money, MTN, Moov et Wave. Processus 100% sécurisé.</p>
+    </div>
+
+    <div class="billing-pricing-trust__card">
+      <div class="billing-pricing-trust__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h3>Protection SSL 256 bits</h3>
+      <p>Vos données personnelles et financières sont protégées par cryptage.</p>
+    </div>
+
+    <div class="billing-pricing-trust__card">
+      <div class="billing-pricing-trust__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      </div>
+      <h3>Activation Instantanée</h3>
+      <p>Votre espace premium se débloque automatiquement dès confirmation du paiement.</p>
+    </div>
+
+    <div class="billing-pricing-trust__card">
+      <div class="billing-pricing-trust__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <h3>Garantie 100% Satisfaction</h3>
+      <p>Outils IA validés et mis à jour régulièrement pour une expérience optimale.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- FAQ Section (SEO Boost) -->
+<div class="billing-pricing-faq">
+  <h2 class="billing-pricing-faq__title">Questions Fréquentes</h2>
+
+  <div class="billing-pricing-faq__list">
+
+    <details class="billing-pricing-faq__item">
+      <summary>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <span>Quels moyens de paiement acceptez-vous ?</span>
+      </summary>
+      <div class="billing-pricing-faq__content">
+        <p>Nous acceptons les paiements par mobile money (Orange Money, MTN, Moov, Wave) ainsi que les cartes bancaires internationales (Visa, Mastercard). Le paiement est 100% sécurisé via notre partenaire agréé.</p>
+      </div>
+    </details>
+
+    <details class="billing-pricing-faq__item">
+      <summary>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <span>Comment fonctionne l'activation de mon compte ?</span>
+      </summary>
+      <div class="billing-pricing-faq__content">
+        <p>Dès validation de votre paiement, votre compte premium est automatiquement activé. Vous recevez un e-mail de confirmation avec vos accès complets aux outils E-Shelle.</p>
+      </div>
+    </details>
+
+    <details class="billing-pricing-faq__item">
+      <summary>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <span>Puis-je annuler mon abonnement à tout moment ?</span>
+      </summary>
+      <div class="billing-pricing-faq__content">
+        <p>Oui, vous pouvez annuler votre abonnement à tout moment depuis votre espace personnel. L'accès reste actif jusqu'à la fin de la période payée.</p>
+      </div>
+    </details>
+
+    <details class="billing-pricing-faq__item">
+      <summary>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <span>Les outils d'apprentissage sont-ils efficaces ?</span>
+      </summary>
+      <div class="billing-pricing-faq__content">
+        <p>Absolument. Nos simulateurs de préparation linguistique et outils d'assistance IA ont été conçus pour offrir un apprentissage interactif, dynamique et conforme aux normes académiques et professionnelles.</p>
+      </div>
+    </details>
+
+  </div>
+</div>
+
+<!-- CTA Final -->
+<div class="billing-pricing-cta">
+  <h2>Prêt à transformer votre parcours digital ?</h2>
+  <p>Rejoignez des milliers d'utilisateurs qui font confiance à E-Shelle pour leurs projets et apprentissages.</p>
+  <a href="#plans" class="billing-pricing-cta__btn">
+    <span>Choisir mon plan maintenant</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
+  </a>
+</div>
+
+{% endblock %}

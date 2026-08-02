@@ -7,6 +7,7 @@ from datetime import timedelta
 from rencontres.models import PlanPremiumRencontre, AbonnementRencontre, Like, Match
 from rencontres.utils.notifications import get_stats_notifications
 from rencontres.views.profile_views import profil_requis
+from core.whatsapp import payment_request_url
 
 
 @profil_requis
@@ -69,12 +70,17 @@ def souscrire_premium(request, plan):
                 payment_reference=str(tx.reference),
             )
 
-            messages.success(
-                request,
-                "Demande reçue. Votre abonnement sera activé manuellement après "
-                "vérification du paiement."
+            whatsapp_url = payment_request_url(
+                service=f"Rencontres Premium - {plan_obj.nom}",
+                amount=f"{montant} FCFA",
+                user=request.user,
+                details=f"Souscription rencontres premium | {telephone} | {reference_client}",
             )
-            return redirect('rencontres:premium')
+            messages.info(
+                request,
+                "Contactez E-Shelle sur WhatsApp pour confirmer votre abonnement et recevoir votre accès après validation."
+            )
+            return redirect(whatsapp_url)
 
         except Exception as e:
             messages.error(request, f"Erreur lors du paiement : {e}")

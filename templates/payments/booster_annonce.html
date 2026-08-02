@@ -45,13 +45,14 @@
 
     <!-- Lien dynamique pour acheter le boost sélectionné -->
     <a id="boost-link"
-       href="{% url 'payments:booster_annonce' annonce_id=annonce.pk type_boost=type_boost %}"
+       href="{{ boost_info.whatsapp_url }}"
+       target="_blank" rel="noopener noreferrer"
        class="btn btn-primary" style="width:100%;display:block;padding:1rem;text-align:center;font-size:1rem;">
-      Booster pour <span id="boost-prix">{{ boost_info.prix }}</span> FCFA →
+      WhatsApp pour <span id="boost-prix">{{ boost_info.prix }}</span> FCFA →
     </a>
 
     <p style="text-align:center;color:var(--text-muted);font-size:.75rem;margin-top:1rem;">
-      🔒 Paiement sécurisé · Activation immédiate
+      Validation manuelle via WhatsApp avant activation du boost.
     </p>
   </div>
 </div>
@@ -59,7 +60,7 @@
 <script>
 const boosts = {
   {% for key, b in tous_boosts.items %}
-  "{{ key }}": { prix: {{ b.prix }}, url: "{% url 'payments:booster_annonce' annonce_id=annonce.pk type_boost=key %}" },
+  "{{ key }}": { prix: {{ b.prix }}, url: "{{ b.whatsapp_url|escapejs }}" },
   {% endfor %}
 };
 document.querySelectorAll('.boost-option input[type=radio]').forEach(radio => {

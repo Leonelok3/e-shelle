@@ -12,6 +12,7 @@ import json
 
 from .models import Transaction
 from boutique.models import Commande
+from core.whatsapp import payment_request_url
 
 # ─── Définitions des plans et boosts ─────────────────────────────
 
@@ -127,47 +128,18 @@ def _activer_premium_module(user, module, plan_slug):
 def initier(request, commande_id):
     """Page d'initiation du paiement Mobile Money."""
     commande = get_object_or_404(Commande, pk=commande_id, utilisateur=request.user)
+    whatsapp_payment_url = payment_request_url(
+        service=f"Commande boutique #{commande.reference}",
+        amount=f"{commande.montant_total} FCFA",
+        user=request.user,
+        details="Achat boutique E-Shelle",
+    )
 
     if request.method == "POST":
-        methode   = request.POST.get("methode", "mtn_momo")
-        telephone = request.POST.get("telephone", "")
+        messages.info(request, "Contactez E-Shelle sur WhatsApp pour finaliser le paiement et recevoir votre accès.")
+        return redirect(whatsapp_payment_url)
 
-        tx = Transaction.objects.create(
-            utilisateur=request.user,
-            type_tx="achat_produit",
-            methode=methode,
-            montant=commande.montant_total,
-            telephone=telephone,
-            commande=commande,
-        )
-        # TODO: Intégrer l'API MTN/Airtel ici
-        # Pour l'instant, simulation : on passe directement en "succes"
-        tx.statut = "succes"
-        tx.save()
-
-        commande.statut = "payee"
-        commande.save(update_fields=["statut"])
-
-        # Créer les liens de téléchargement pour chaque produit digital
-        from boutique.models import Telechargement
-        from datetime import timedelta
-        from django.utils import timezone
-
-        for ligne in commande.lignes.all():
-            if ligne.produit.fichier or ligne.produit.url_externe:
-                Telechargement.objects.create(
-                    utilisateur=request.user,
-                    produit=ligne.produit,
-                    commande=commande,
-                    expire_at=timezone.now() + timedelta(days=30),
-                )
-                ligne.produit.nb_ventes += 1
-                ligne.produit.save(update_fields=["nb_ventes"])
-
-        messages.success(request, "Paiement confirmé ! Vos fichiers sont prêts à télécharger.")
-        return redirect("payments:confirmation", tx_id=tx.pk)
-
-    context = {"commande": commande}
+    context = {"commande": commande, "whatsapp_payment_url": whatsapp_payment_url}
     return render(request, "payments/initier.html", context)
 
 
@@ -232,34 +204,21 @@ def payer_formation(request, formation_id):
         messages.info(request, "Vous êtes déjà inscrit à cette formation.")
         return redirect("formations:detail", slug=formation.slug)
 
+    whatsapp_payment_url = payment_request_url(
+        service=f"Formation - {formation.titre}",
+        amount=f"{formation.prix} FCFA",
+        user=request.user,
+        details=f"Formation #{formation.pk}",
+    )
+
     if request.method == "POST":
-        methode   = request.POST.get("methode", "mtn_momo")
-        telephone = request.POST.get("telephone", "")
+        messages.info(request, "Contactez E-Shelle sur WhatsApp pour finaliser l'inscription.")
+        return redirect(whatsapp_payment_url)
 
-        tx = Transaction.objects.create(
-            utilisateur=request.user,
-            type_tx="achat_cours",
-            methode=methode,
-            montant=formation.prix,
-            telephone=telephone,
-            metadata={"formation_id": formation.pk, "formation_titre": formation.titre},
-        )
-        # TODO: Intégrer API MTN/Airtel — pour l'instant simulation
-        tx.statut = "succes"
-        tx.save()
-
-        # Créer l'inscription
-        _, created = Inscription.objects.get_or_create(
-            utilisateur=request.user, formation=formation
-        )
-        if created:
-            formation.nb_inscrits += 1
-            formation.save(update_fields=["nb_inscrits"])
-
-        messages.success(request, f"Paiement confirmé ! Vous êtes inscrit à « {formation.titre} ».")
-        return redirect("formations:detail", slug=formation.slug)
-
-    return render(request, "payments/payer_formation.html", {"formation": formation})
+    return render(request, "payments/payer_formation.html", {
+        "formation": formation,
+        "whatsapp_payment_url": whatsapp_payment_url,
+    })
 
 
 # ─── PACKS PREMIUM MARKETPLACE ───────────────────────────────────
@@ -292,6 +251,13 @@ def premium_marketplace(request, module):
         messages.error(request, "Module invalide.")
         return redirect("home")
     plans = _get_plans_for_module(module)
+    for slug, plan in plans.items():
+        plan["whatsapp_url"] = payment_request_url(
+            service=f"{all_modules[module]} - Pack {plan['nom']}",
+            amount=f"{plan['prix']} FCFA",
+            user=request.user,
+            details=f"Module {module}, plan {slug}, duree {plan['duree_jours']} jours",
+        )
     return render(request, "payments/premium_marketplace.html", {
         "module":       module,
         "module_label": all_modules[module],
@@ -302,49 +268,33 @@ def premium_marketplace(request, module):
 
 @login_required
 def payer_premium(request, module, plan_slug):
-    """Paiement du pack premium via Mobile Money + activation immédiate."""
+    """Redirige les demandes premium vers WhatsApp pour validation manuelle."""
     plans = _get_plans_for_module(module)
     if plan_slug not in plans:
         messages.error(request, "Paramètres invalides.")
         return redirect("home")
 
     plan = plans[plan_slug]
+    module_label = MODULES_LABEL.get(module, module)
+    module_icon = MODULES_ICON.get(module, "⭐")
+    whatsapp_payment_url = payment_request_url(
+        service=f"{module_label} - Pack {plan['nom']}",
+        amount=f"{plan['prix']} FCFA",
+        user=request.user,
+        details=f"Module {module}, plan {plan_slug}, duree {plan['duree_jours']} jours",
+    )
 
     if request.method == "POST":
-        methode   = request.POST.get("methode", "mtn_momo")
-        telephone = request.POST.get("telephone", "")
-
-        tx = Transaction.objects.create(
-            utilisateur=request.user,
-            type_tx="premium_marketplac",
-            methode=methode,
-            montant=plan["prix"],
-            telephone=telephone,
-            metadata={
-                "module":      module,
-                "plan":        plan_slug,
-                "plan_nom":    plan["nom"],
-                "duree_jours": plan["duree_jours"],
-            },
-        )
-        # TODO: Intégrer API MTN/Airtel — simulation
-        tx.statut = "succes"
-        tx.save()
-
-        _activer_premium_module(request.user, module, plan_slug)
-
-        messages.success(
-            request,
-            f"✅ Pack {plan['nom']} activé ! Votre compte {MODULES_LABEL[module]} est maintenant Premium pour {plan['duree_jours']} jours."
-        )
-        return redirect("payments:confirmation_premium", tx_id=tx.pk)
+        messages.info(request, "Contactez E-Shelle sur WhatsApp pour finaliser le premium et recevoir votre code.")
+        return redirect(whatsapp_payment_url)
 
     return render(request, "payments/payer_premium.html", {
         "module":       module,
-        "module_label": MODULES_LABEL[module],
-        "module_icon":  MODULES_ICON[module],
+        "module_label": module_label,
+        "module_icon":  module_icon,
         "plan":         plan,
         "plan_slug":    plan_slug,
+        "whatsapp_payment_url": whatsapp_payment_url,
     })
 
 
@@ -381,53 +331,25 @@ def booster_annonce(request, annonce_id, type_boost):
         return redirect("annonces:mes_annonces")
 
     boost_info = BOOSTS_ANNONCE[type_boost]
+    tous_boosts = {}
+    for key, value in BOOSTS_ANNONCE.items():
+        info = value.copy()
+        info["whatsapp_url"] = payment_request_url(
+            service=f"Boost annonce - {info['nom']}",
+            amount=f"{info['prix']} FCFA",
+            user=request.user,
+            details=f"Annonce #{annonce.pk}: {annonce.titre}",
+        )
+        tous_boosts[key] = info
+    boost_info = tous_boosts[type_boost]
 
     if request.method == "POST":
-        methode   = request.POST.get("methode", "mtn_momo")
-        telephone = request.POST.get("telephone", "")
-
-        tx = Transaction.objects.create(
-            utilisateur=request.user,
-            type_tx="boost_annonce",
-            methode=methode,
-            montant=boost_info["prix"],
-            telephone=telephone,
-            metadata={
-                "annonce_id":    annonce.pk,
-                "annonce_titre": annonce.titre,
-                "type_boost":    type_boost,
-            },
-        )
-        tx.statut = "succes"
-        tx.save()
-
-        date_fin = timezone.now() + timedelta(days=boost_info["duree_jours"])
-        BoostAnnonce.objects.create(
-            annonce=annonce,
-            type_boost=type_boost,
-            prix_paye=boost_info["prix"],
-            date_fin=date_fin,
-            est_actif=True,
-            reference_paiement=str(tx.pk),
-        )
-
-        # Mettre à jour les flags visibilité
-        update_fields = []
-        if type_boost in ("MISE_EN_AVANT_7J", "MISE_EN_AVANT_30J", "PACK_COMPLET"):
-            annonce.est_mise_en_avant = True
-            update_fields.append("est_mise_en_avant")
-        if type_boost in ("BADGE_URGENT", "PACK_COMPLET"):
-            annonce.est_urgente = True
-            update_fields.append("est_urgente")
-        if update_fields:
-            annonce.save(update_fields=update_fields)
-
-        messages.success(request, f"✅ {boost_info['emoji']} {boost_info['nom']} activé sur « {annonce.titre[:40]} » !")
-        return redirect("annonces:detail_annonce", slug=annonce.slug)
+        messages.info(request, "Contactez E-Shelle sur WhatsApp pour finaliser le boost.")
+        return redirect(boost_info["whatsapp_url"])
 
     return render(request, "payments/booster_annonce.html", {
         "annonce":     annonce,
         "boost_info":  boost_info,
         "type_boost":  type_boost,
-        "tous_boosts": BOOSTS_ANNONCE,
+        "tous_boosts": tous_boosts,
     })

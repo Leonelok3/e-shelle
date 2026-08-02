@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}{{ prospect.nom }} - Agent commercial{% endblock %}
+
+{% block content %}
+<style>
+  .ca-shell{min-height:100vh;background:#06110b;color:#eefcf4;padding:112px 16px 44px}
+  .ca-wrap{max-width:1120px;margin:0 auto}
+  .ca-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}
+  .ca-title{font-size:clamp(1.6rem,3vw,2.35rem)!important;margin:0!important;line-height:1.05!important}
+  .ca-link{color:#86efac;font-weight:800;text-decoration:none}
+  .ca-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:16px}
+  .ca-panel{background:#0d1f16;border:1px solid #1d3d2c;border-radius:8px;padding:16px}
+  .ca-panel h2{font-size:1rem;color:#facc15;margin:0 0 12px}
+  .ca-muted{color:#9fb3a8}
+  .ca-stat{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+  .ca-stat div{background:#07120d;border:1px solid #1d3d2c;border-radius:8px;padding:12px}
+  .ca-stat span{display:block;color:#9fb3a8;font-size:.78rem;font-weight:800}.ca-stat strong{color:#fff;font-size:1.35rem}
+  .ca-message{width:100%;min-height:170px;background:#07120d;color:#e8f5ee;border:1px solid #315641;border-radius:8px;padding:12px;line-height:1.55}
+  .ca-btn{border:0;border-radius:8px;background:#16a34a;color:#fff;font-weight:800;padding:10px 14px;text-decoration:none;cursor:pointer;display:inline-flex;margin-top:10px}
+  .ca-btn.ghost{background:#10291c;border:1px solid #2f6b47}
+  .ca-btn.gold{background:#ca8a04}
+  .ca-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .ca-input{background:#07120d;color:#e8f5ee;border:1px solid #315641;border-radius:8px;padding:10px 12px}
+  .ca-relance{background:#07120d;border:1px solid #1d3d2c;border-radius:8px;padding:11px;margin-top:10px}
+  @media(max-width:880px){.ca-top,.ca-grid{grid-template-columns:1fr;flex-direction:column}}
+</style>
+
+<main class="ca-shell">
+  <div class="ca-wrap">
+    <div class="ca-top">
+      <div>
+        <a class="ca-link" href="{% url 'commercial_agent:prospect_list' %}">Retour prospects</a>
+        <h1 class="ca-title">{{ prospect.nom }}</h1>
+        <p class="ca-muted">{{ prospect.get_statut_display }} - {{ prospect.module|default:"General" }} - {{ prospect.ville|default:"Ville non renseignee" }}</p>
+      </div>
+      <form method="post" action="{% url 'commercial_agent:update_status' prospect.pk %}">
+        {% csrf_token %}
+        <select class="ca-input" name="statut">
+          {% for value,label in statuts %}
+          <option value="{{ value }}" {% if prospect.statut == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button class="ca-btn ghost" type="submit">Mettre a jour</button>
+      </form>
+    </div>
+
+    <section class="ca-grid">
+      <aside class="ca-panel">
+        <h2>Analyse IA</h2>
+        <div class="ca-stat">
+          <div><span>Score</span><strong>{{ prospect.score }}/100</strong></div>
+          <div><span>Plan conseille</span><strong>{{ prospect.plan_recommande|default:"pro" }}</strong></div>
+          <div><span>Potentiel</span><strong>{{ prospect.montant_potentiel_xaf }} FCFA</strong></div>
+          <div><span>Priorite</span><strong>{{ prospect.get_priorite_display }}</strong></div>
+        </div>
+        <p class="ca-muted">Contact: {{ prospect.contact_whatsapp|default:"Aucun WhatsApp" }}</p>
+        <p class="ca-muted">Quartier: {{ prospect.quartier|default:"-" }}</p>
+        <p class="ca-muted">{{ prospect.description|default:"Aucune description." }}</p>
+        {% if prospect.business_profile %}
+        <a class="ca-link" href="{{ prospect.business_profile.get_absolute_url }}" target="_blank">Voir fiche business</a>
+        {% endif %}
+      </aside>
+
+      <article class="ca-panel">
+        <h2>Message commercial IA</h2>
+        <form method="post" action="{% url 'commercial_agent:create_relance' prospect.pk %}">
+          {% csrf_token %}
+          <textarea class="ca-message" name="message">{{ message }}</textarea>
+          <div class="ca-actions">
+            <button class="ca-btn" type="submit">Enregistrer et ouvrir WhatsApp</button>
+            {% if whatsapp_url %}<a class="ca-btn gold" href="{{ whatsapp_url }}" target="_blank" rel="noopener">Ouvrir WhatsApp</a>{% endif %}
+          </div>
+        </form>
+        <form method="post" action="{% url 'commercial_agent:generate_message' prospect.pk %}" style="margin-top:12px">
+          {% csrf_token %}
+          <input class="ca-input" name="contexte" placeholder="Contexte special: promo, urgence, quartier...">
+          <button class="ca-btn ghost" type="submit">Regenerer avec l'IA</button>
+        </form>
+      </article>
+    </section>
+
+    <section class="ca-panel" style="margin-top:16px">
+      <h2>Historique des relances</h2>
+      {% for relance in relances %}
+      <div class="ca-relance">
+        <strong>{{ relance.get_type_action_display }} - {{ relance.get_resultat_display }}</strong>
+        <p class="ca-muted">{{ relance.cree_le|date:"d/m/Y H:i" }}{% if relance.prochaine_relance %} - prochaine: {{ relance.prochaine_relance|date:"d/m/Y" }}{% endif %}</p>
+        <p>{{ relance.message }}</p>
+      </div>
+      {% empty %}
+      <p class="ca-muted">Aucune relance enregistree.</p>
+      {% endfor %}
+    </section>
+  </div>
+</main>
+{% endblock %}

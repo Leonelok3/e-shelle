@@ -14,7 +14,7 @@
         Pack {{ plan.nom }} · {{ module_icon }} {{ module_label }}
       </h1>
       <p style="color:var(--text-secondary);font-size:.88rem;">
-        {{ plan.duree_jours }} jours · Activation immédiate
+        {{ plan.duree_jours }} jours · Validation par WhatsApp
       </p>
     </div>
 
@@ -36,48 +36,12 @@
       </div>
     </div>
 
-    <!-- Formulaire paiement -->
-    <form method="post">
-      {% csrf_token %}
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold small">Méthode de paiement</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:1.5rem;">
-          <label style="cursor:pointer;">
-            <input type="radio" name="methode" value="mtn_momo" checked style="display:none;" class="payment-radio">
-            <div class="payment-method-card" style="border:2px solid var(--primary-light);border-radius:var(--radius-md);padding:.85rem;text-align:center;background:rgba(46,125,50,.08);">
-              <div style="font-size:1.4rem;">📱</div>
-              <div style="font-size:.72rem;font-weight:600;margin-top:.2rem;">MTN MoMo</div>
-            </div>
-          </label>
-          <label style="cursor:pointer;">
-            <input type="radio" name="methode" value="airtel" style="display:none;" class="payment-radio">
-            <div class="payment-method-card" style="border:2px solid rgba(255,255,255,.1);border-radius:var(--radius-md);padding:.85rem;text-align:center;">
-              <div style="font-size:1.4rem;">📱</div>
-              <div style="font-size:.72rem;font-weight:600;margin-top:.2rem;">Airtel</div>
-            </div>
-          </label>
-          <label style="cursor:pointer;">
-            <input type="radio" name="methode" value="orange" style="display:none;" class="payment-radio">
-            <div class="payment-method-card" style="border:2px solid rgba(255,255,255,.1);border-radius:var(--radius-md);padding:.85rem;text-align:center;">
-              <div style="font-size:1.4rem;">📱</div>
-              <div style="font-size:.72rem;font-weight:600;margin-top:.2rem;">Orange</div>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold small">Numéro Mobile Money</label>
-        <input type="tel" name="telephone" class="form-control"
-               placeholder="6XXXXXXXX" pattern="[0-9]{9}" required
-               style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:#fff;padding:.85rem 1rem;border-radius:var(--radius-md);">
-      </div>
-
-      <button type="submit" class="btn btn-primary" style="width:100%;padding:1rem;font-size:1rem;margin-top:.5rem;">
-        Payer {{ plan.prix|floatformat:"0" }} FCFA →
-      </button>
-    </form>
+    <a href="{{ whatsapp_payment_url }}"
+       target="_blank" rel="noopener noreferrer"
+       class="btn btn-primary"
+       style="width:100%;display:block;padding:1rem;font-size:1rem;margin-top:.5rem;text-align:center;">
+      Contacter sur WhatsApp →
+    </a>
 
     <div style="text-align:center;margin-top:1rem;">
       <a href="{% url 'payments:premium_marketplace' module=module %}"
@@ -85,21 +49,8 @@
     </div>
 
     <p style="text-align:center;color:var(--text-muted);font-size:.75rem;margin-top:1rem;">
-      🔒 Paiement sécurisé · Activation immédiate après confirmation
+      Vous échangez avec E-Shelle sur WhatsApp, puis votre code d'accès est créé après validation.
     </p>
   </div>
 </div>
-
-<script>
-document.querySelectorAll('.payment-radio').forEach(r => {
-  r.addEventListener('change', () => {
-    document.querySelectorAll('.payment-method-card').forEach(c => {
-      c.style.border = '2px solid rgba(255,255,255,.1)';
-      c.style.background = 'transparent';
-    });
-    r.nextElementSibling.style.border = '2px solid var(--primary-light)';
-    r.nextElementSibling.style.background = 'rgba(46,125,50,.08)';
-  });
-});
-</script>
 {% endblock %}

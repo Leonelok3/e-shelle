@@ -40,67 +40,14 @@
         </div>
       </div>
 
-      {# Formulaire paiement #}
-      <form method="post">
-        {% csrf_token %}
-        <div class="glass-card" style="margin-bottom:1.5rem">
-          <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1.25rem">Choisissez votre méthode de paiement</h3>
-          <div style="display:flex;flex-direction:column;gap:.75rem" id="payment-methods">
-            <label class="payment-method selected" onclick="selectPayment(this)">
-              <input type="radio" name="methode" value="mtn_momo" checked>
-              <div style="width:44px;height:44px;border-radius:var(--radius-sm);background:#FFCC00;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">📱</div>
-              <div>
-                <div style="font-weight:700;font-size:.92rem">MTN Mobile Money</div>
-                <div style="font-size:.78rem;color:var(--text-muted)">Paiement instantané via MTN MoMo</div>
-              </div>
-            </label>
-            <label class="payment-method" onclick="selectPayment(this)">
-              <input type="radio" name="methode" value="airtel_money">
-              <div style="width:44px;height:44px;border-radius:var(--radius-sm);background:#E4002B;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;color:#fff">📡</div>
-              <div>
-                <div style="font-weight:700;font-size:.92rem">Airtel Money</div>
-                <div style="font-size:.78rem;color:var(--text-muted)">Paiement via Airtel Money</div>
-              </div>
-            </label>
-            <label class="payment-method" onclick="selectPayment(this)">
-              <input type="radio" name="methode" value="orange_money">
-              <div style="width:44px;height:44px;border-radius:var(--radius-sm);background:#FF7900;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🍊</div>
-              <div>
-                <div style="font-weight:700;font-size:.92rem">Orange Money</div>
-                <div style="font-size:.78rem;color:var(--text-muted)">Paiement via Orange Money</div>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <div class="glass-card" style="margin-bottom:1.5rem">
-          <div class="form-group" style="margin:0">
-            <label class="form-label">Numéro de téléphone Mobile Money *</label>
-            <input type="tel" name="telephone" class="form-control" placeholder="+237 6XX XXX XXX" required value="{{ commande.telephone }}">
-            <div style="font-size:.75rem;color:var(--text-muted);margin-top:.35rem">Entrez le numéro associé à votre compte Mobile Money.</div>
-          </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-pay">
-          🔒 Payer {{ commande.montant_total|floatformat:0 }} FCFA →
-        </button>
-        <div style="text-align:center;margin-top:1rem;font-size:.78rem;color:var(--text-muted)">
-          🔐 Transaction sécurisée · Téléchargement instantané après confirmation
-        </div>
-      </form>
+      <a href="{{ whatsapp_payment_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-block btn-lg">
+        Contacter E-Shelle sur WhatsApp →
+      </a>
+      <div style="text-align:center;margin-top:1rem;font-size:.78rem;color:var(--text-muted)">
+        E-Shelle confirme votre besoin sur WhatsApp avant validation et création de l'accès.
+      </div>
     </div>
   </section>
 </div>
 
-<script>
-function selectPayment(label) {
-  document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
-  label.classList.add('selected');
-}
-document.querySelector('form').addEventListener('submit', function() {
-  const btn = document.getElementById('btn-pay');
-  btn.disabled = true;
-  btn.textContent = '⏳ Traitement en cours…';
-});
-</script>
 {% endblock %}

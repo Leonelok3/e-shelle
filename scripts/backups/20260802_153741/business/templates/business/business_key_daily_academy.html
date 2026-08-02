@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Formation quotidienne Business Key{% endblock %}
+
+{% block content %}
+<section class="daily-page">
+  <div class="daily-container">
+    <div class="daily-hero">
+      <a href="{% url 'business:business_key_academy' %}">Retour Academy</a>
+      <span>Formation quotidienne</span>
+      <h1>Une mission par jour pour vendre mieux.</h1>
+      <p>
+        Prix unique {{ business_key_price }} FCFA, acces complet, {{ partner_recruit_rate }}% sur partenaires
+        et {{ provider_rate }}% sur prestataires. Chaque jour: une lecon, un script, une mission, une preuve.
+      </p>
+      <div class="daily-actions">
+        <a href="{% url 'business:business_key_kit' %}">Kit commercial</a>
+        <a href="{% url 'business:business_key_crm' %}">CRM prospects</a>
+        <a href="/business/onboarding/?plan=free">Creer une fiche</a>
+      </div>
+    </div>
+
+    <div class="daily-grid">
+      <section class="daily-card daily-main">
+        <div class="daily-card-head">
+          <div>
+            <span>Jour {{ lesson.day }}</span>
+            <h2>{{ lesson.title }}</h2>
+          </div>
+          <strong>{{ completed_count }}/7</strong>
+        </div>
+        <p>{{ lesson.lesson }}</p>
+        <div class="daily-script">
+          <div>
+            <strong>Script du jour</strong>
+            <button type="button" data-copy="{{ lesson.script }}">Copier</button>
+          </div>
+          <p>{{ lesson.script }}</p>
+        </div>
+        <div class="mission-box">
+          <strong>Mission</strong>
+          <p>{{ lesson.mission }}</p>
+          <small>Preuve attendue: {{ lesson.proof }}</small>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" class="daily-btn">Marquer cette lecon terminee</button>
+        </form>
+      </section>
+
+      <aside class="daily-card">
+        <h2>Certification</h2>
+        {% if certification %}
+        <div class="score-ring">
+          <strong>{{ certification.score }}%</strong>
+          <span>{% if certification.is_certified %}Certifie{% else %}En progression{% endif %}</span>
+        </div>
+        <div class="check-list">
+          {% for label, value, target in certification.criteria %}
+          <div>
+            <span>{% if value >= target %}OK{% else %}--{% endif %}</span>
+            <p>{{ label }} <small>{{ value }}/{{ target }}</small></p>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p>Connecte-toi pour suivre ta certification partenaire.</p>
+        {% endif %}
+      </aside>
+    </div>
+
+    <section class="daily-card">
+      <h2>Choisir une lecon</h2>
+      <div class="lesson-tabs">
+        {% for item in lessons %}
+        <a class="{% if item.day == selected_day %}active{% endif %}" href="?jour={{ item.day }}">
+          <strong>Jour {{ item.day }}</strong>
+          <span>{{ item.title }}</span>
+          {% if item.day|stringformat:"s" in completed %}<em>Terminee</em>{% endif %}
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="daily-card">
+      <div class="daily-card-head">
+        <div>
+          <span>Qualite fiche prestataire</span>
+          <h2>{% if latest_business %}{{ latest_business.name }}{% else %}Checklist avant partage{% endif %}</h2>
+        </div>
+        <strong>{{ quality.score }}%</strong>
+      </div>
+      <div class="check-grid">
+        {% for label, ok in quality.checks %}
+        <article class="{% if ok %}done{% endif %}">
+          <span>{% if ok %}OK{% else %}A faire{% endif %}</span>
+          <strong>{{ label }}</strong>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+
+<script>
+document.addEventListener("click", function (event) {
+  const button = event.target.closest("[data-copy]");
+  if (!button) return;
+  navigator.clipboard.writeText(button.dataset.copy || "");
+  const oldText = button.textContent;
+  button.textContent = "Copie";
+  setTimeout(function () { button.textContent = oldText; }, 1200);
+});
+</script>
+
+<style>
+.daily-page{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
+.daily-container{width:min(1180px,92vw);margin:0 auto}
+.daily-hero,.daily-card{background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px;padding:1rem;margin-bottom:1rem}
+.daily-hero a{color:#78ff97;text-decoration:none;font-weight:900}
+.daily-hero span,.daily-card-head span{display:inline-flex;color:#78ff97;font-weight:900;text-transform:uppercase;font-size:.78rem}
+.daily-hero h1{font-size:clamp(2.4rem,6vw,5.2rem);line-height:.86;color:#fffbe8;margin:.7rem 0}
+.daily-hero p,.daily-card p{color:#b9ddc3;line-height:1.58}
+.daily-actions{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1rem}
+.daily-actions a,.daily-btn{background:linear-gradient(135deg,#35b257,#d49618);border:0;border-radius:8px;color:#fff;text-decoration:none;font-weight:900;padding:.85rem 1rem;cursor:pointer}
+.daily-actions a+ a{background:#06170f;border:1px solid rgba(114,255,146,.28)}
+.daily-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:1rem}
+.daily-card h2{color:#ffd51f;margin:.25rem 0 .7rem}
+.daily-card-head{display:flex;justify-content:space-between;gap:1rem;align-items:center;border-bottom:1px solid rgba(114,255,146,.14);padding-bottom:.8rem;margin-bottom:.8rem}
+.daily-card-head strong{color:#ffd51f;font-size:2rem}
+.daily-script,.mission-box{background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.9rem;margin:.8rem 0}
+.daily-script div{display:flex;justify-content:space-between;gap:.7rem;align-items:center}
+.daily-script button{background:#35b257;color:#fff;border:0;border-radius:8px;padding:.6rem .8rem;font-weight:900;cursor:pointer}
+.daily-script strong,.mission-box strong{color:#fff}.mission-box small{color:#78ff97;font-weight:800}
+.score-ring{background:#06170f;border:1px solid rgba(255,213,31,.25);border-radius:8px;padding:1rem;text-align:center;margin-bottom:.8rem}
+.score-ring strong{display:block;color:#ffd51f;font-size:3rem;line-height:1}.score-ring span{color:#b9ddc3}
+.check-list{display:grid;gap:.55rem}
+.check-list div{display:grid;grid-template-columns:44px 1fr;gap:.6rem;align-items:center;background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.65rem}
+.check-list span{color:#78ff97;font-weight:900}.check-list p{margin:0}.check-list small{display:block;color:#a8d5b7}
+.lesson-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.7rem}
+.lesson-tabs a{background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.8rem;color:#eefdf0;text-decoration:none;display:grid;gap:.25rem}
+.lesson-tabs a.active{border-color:#ffd51f;background:#17331f}
+.lesson-tabs strong{color:#ffd51f}.lesson-tabs span{color:#b9ddc3}.lesson-tabs em{font-style:normal;color:#78ff97;font-weight:900}
+.check-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem}
+.check-grid article{background:#06170f;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.8rem}
+.check-grid article.done{border-color:rgba(120,255,151,.45);background:#0f2f1d}
+.check-grid span{color:#78ff97;font-weight:900}.check-grid strong{display:block;color:#fff;margin-top:.3rem}
+@media(max-width:980px){.daily-grid,.lesson-tabs,.check-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}

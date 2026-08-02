@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Arsenal IA E-Shelle{% endblock %}
+
+{% block content %}
+<section class="arsenal-page">
+  <div class="arsenal-container">
+    <div class="arsenal-hero">
+      <div>
+        <a class="arsenal-back" href="{% url 'home' %}">Retour accueil</a>
+        <p class="arsenal-kicker">Cockpit agents IA</p>
+        <h1>Arsenal IA E-Shelle</h1>
+        <p>
+          Tous les agents utiles pour transformer E-Shelle en moteur local assiste par IA:
+          recherche, prospection, marketing, fidelisation, opportunites, SEO, WhatsApp, video et e-commerce.
+        </p>
+      </div>
+      <div class="arsenal-stats">
+        <article><span>Agents</span><strong>{{ stats.agents }}</strong></article>
+        <article><span>Fiches actives</span><strong>{{ stats.businesses }}</strong></article>
+        <article><span>Premium/Business</span><strong>{{ stats.premium }}</strong></article>
+        <article><span>Demandes ouvertes</span><strong>{{ stats.open_requests }}</strong></article>
+        <article><span>Demandes chaudes</span><strong>{{ stats.hot_requests }}</strong></article>
+        <article><span>Contacts recents</span><strong>{{ stats.recent_contacts }}</strong></article>
+      </div>
+    </div>
+
+    <div class="arsenal-actions">
+      <a href="{% url 'business:eshelle_command_center' %}">Command Center</a>
+      <a href="{% url 'business:eshelle_communication' %}">Plan communication</a>
+      <a href="{% url 'business:unmet_search_opportunities' %}">Pipeline opportunites</a>
+      <a href="/commercial-agent/">Agent prospection</a>
+      <a href="/pub/">AdGen</a>
+      <a href="/whatsapp/campagnes/">WhatsApp</a>
+    </div>
+
+    <form class="arsenal-filter" method="get">
+      <label>Periode d'analyse</label>
+      <select name="days">
+        <option value="7" {% if days == 7 %}selected{% endif %}>7 jours</option>
+        <option value="14" {% if days == 14 %}selected{% endif %}>14 jours</option>
+        <option value="30" {% if days == 30 %}selected{% endif %}>30 jours</option>
+      </select>
+      <button type="submit">Actualiser</button>
+    </form>
+
+    <section class="arsenal-card">
+      <div class="arsenal-head">
+        <p class="arsenal-kicker">Inventaire operationnel</p>
+        <h2>Tous les agents IA E-Shelle</h2>
+      </div>
+      <div class="agent-grid">
+        {% for agent in agents %}
+        <article class="agent-card {{ agent.level }}">
+          <div class="agent-top">
+            <h3>{{ agent.name }}</h3>
+            <span>{{ agent.status }}</span>
+          </div>
+          <p>{{ agent.role }}</p>
+          <div class="agent-missing">
+            <strong>Ce qui manque</strong>
+            <span>{{ agent.missing }}</span>
+          </div>
+          <a href="{{ agent.url }}">Ouvrir l'agent</a>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="arsenal-card">
+      <div class="arsenal-head">
+        <p class="arsenal-kicker">Actions rapides</p>
+        <h2>Declencher les agents depuis un seul endroit</h2>
+      </div>
+      <div class="quick-action-grid">
+        <form method="post" action="{% url 'business:ai_arsenal_action' %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="create_prospect_campaign">
+          <strong>Campagne prospection</strong>
+          <span>Regroupe les prospects a relancer dans l'Agent Commercial.</span>
+          <button type="submit">Creer campagne</button>
+        </form>
+        <form method="post" action="{% url 'business:ai_arsenal_action' %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="create_whatsapp_campaign">
+          <input type="hidden" name="limit" value="50">
+          <strong>Campagne WhatsApp</strong>
+          <span>Cree une campagne WhatsApp brouillon/validee avec messages IA a verifier.</span>
+          <button type="submit">Creer WhatsApp</button>
+        </form>
+        <a class="quick-action-link" href="/pub/create/?source=arsenal_ia">
+          <strong>Campagne AdGen</strong>
+          <span>Ouvre AdGen pour produire posts, titres, WhatsApp et script video.</span>
+          <em>Ouvrir AdGen</em>
+        </a>
+      </div>
+    </section>
+
+    <div class="arsenal-grid">
+      <section class="arsenal-card" id="agent-fidelisation">
+        <div class="arsenal-head">
+          <p class="arsenal-kicker">Agent ajoute</p>
+          <h2>Agent Fidelisation</h2>
+          <p>Il repere les prestataires qui ont eu des contacts recents et propose une relance utile.</p>
+        </div>
+        <div class="arsenal-list">
+          {% for row in fidelisation_rows %}
+          <article>
+            <div>
+              <strong>{{ row.business.name }}</strong>
+              <span>{{ row.business.get_module_display }} · {{ row.business.city|default:"zone" }} · {{ row.contacts }} contact(s) · priorite {{ row.priority }}</span>
+              <small>{{ row.message }}</small>
+            </div>
+            <div class="row-actions">
+              <form method="post" action="{% url 'business:ai_arsenal_action' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="generate_relance">
+                <input type="hidden" name="business_id" value="{{ row.business.id }}">
+                <button type="submit">Generer relance</button>
+              </form>
+              <a href="{{ row.adgen_url }}">AdGen</a>
+              <a href="{{ row.action_url }}">Voir fiche</a>
+            </div>
+          </article>
+          {% empty %}
+          <p>Aucun contact recent a fideliser pour cette periode. Lance une campagne ou teste les fiches premium.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="arsenal-card" id="agent-opportunites">
+        <div class="arsenal-head">
+          <p class="arsenal-kicker">Agent ajoute</p>
+          <h2>Agent Opportunites</h2>
+          <p>Il transforme les recherches non satisfaites en missions de recrutement et de vente.</p>
+        </div>
+        <div class="arsenal-list">
+          {% for row in opportunity_rows %}
+          <article>
+            <div>
+              <strong>{{ row.label }} · {{ row.city }}{% if row.district %} · {{ row.district }}{% endif %}</strong>
+              <span>{{ row.total }} demande(s) · {{ row.hot }} chaude(s) · {{ row.providers }} prestataire(s) · {{ row.value }} XAF estimes</span>
+              <small>{{ row.mission }}</small>
+            </div>
+            <div class="row-actions">
+              <form method="post" action="{% url 'business:ai_arsenal_action' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="assign_opportunities">
+                <input type="hidden" name="module" value="{{ row.module }}">
+                <input type="hidden" name="city" value="{{ row.city }}">
+                <input type="hidden" name="district" value="{{ row.district }}">
+                <button type="submit">M'assigner</button>
+              </form>
+              <form method="post" action="{% url 'business:ai_arsenal_action' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_whatsapp_campaign">
+                <input type="hidden" name="module" value="{{ row.module }}">
+                <input type="hidden" name="city" value="{{ row.city }}">
+                <input type="hidden" name="limit" value="50">
+                <button type="submit">WhatsApp</button>
+              </form>
+              <a href="{{ row.adgen_url }}">AdGen</a>
+              <a href="{% url 'business:unmet_search_opportunities' %}">Traiter</a>
+            </div>
+          </article>
+          {% empty %}
+          <p>Aucune opportunite ouverte. Le moteur attend de nouvelles demandes non satisfaites.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<style>
+.arsenal-page{background:#03130c;color:#eefdf0;min-height:100vh;padding:7.5rem 0 4rem}
+.arsenal-container{width:min(1320px,92vw);margin:0 auto}
+.arsenal-hero{display:grid;grid-template-columns:1.25fr .75fr;gap:1rem;align-items:end;background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px;padding:1.2rem;margin-bottom:1rem}
+.arsenal-back,.arsenal-actions a,.agent-card>a,.arsenal-list article>a{color:#78ff97;text-decoration:none;font-weight:900}
+.arsenal-kicker{margin:0 0 .6rem;color:#78ff97;font-weight:900;text-transform:uppercase;font-size:.75rem}
+.arsenal-hero h1{font-size:clamp(2.4rem,6vw,5.4rem);line-height:.88;color:#fffbe8;margin:.35rem 0 1rem;letter-spacing:0}
+.arsenal-hero p,.arsenal-head p,.agent-card p,.agent-missing span,.arsenal-list span,.arsenal-list small,.arsenal-list>p{color:#c8ead0;line-height:1.55}
+.arsenal-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.arsenal-stats article,.arsenal-card,.agent-card{background:#06170f;border:1px solid rgba(114,255,146,.16);border-radius:8px;padding:1rem}
+.arsenal-stats span{display:block;color:#9fd7ac;text-transform:uppercase;font-weight:900;font-size:.72rem}
+.arsenal-stats strong{display:block;color:#ffd51f;font-size:1.7rem;margin-top:.2rem}
+.arsenal-actions,.arsenal-filter{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
+.arsenal-actions a,.arsenal-filter button,.arsenal-list article>a,.quick-action-grid button,.row-actions button,.row-actions a,.quick-action-link em{background:linear-gradient(135deg,#35b257,#d49618);color:#fff;border-radius:8px;padding:.85rem 1rem;border:0;text-decoration:none;font-weight:900}
+.arsenal-filter{background:#0b2518;border:1px solid rgba(114,255,146,.18);border-radius:8px;padding:.8rem}
+.arsenal-filter label{font-weight:900;color:#ffd51f}.arsenal-filter select{background:#06170f;border:1px solid rgba(114,255,146,.25);border-radius:8px;color:#fff;padding:.75rem}
+.arsenal-card{margin-bottom:1rem}.arsenal-head h2{margin:.1rem 0 1rem;color:#ffd51f;font-size:clamp(1.5rem,2.8vw,2.4rem)}
+.agent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+.agent-card{display:grid;gap:.7rem;align-content:start}.agent-top{display:flex;justify-content:space-between;gap:.7rem;align-items:flex-start}
+.agent-top h3{margin:0;color:#fff}.agent-top span{background:#0d321e;border:1px solid rgba(114,255,146,.26);color:#78ff97;border-radius:999px;padding:.25rem .55rem;font-size:.72rem;font-weight:900;white-space:nowrap}
+.agent-missing{background:#0b2518;border:1px solid rgba(255,213,31,.14);border-radius:8px;padding:.7rem}.agent-missing strong{display:block;color:#ffd51f;margin-bottom:.25rem}
+.agent-card>a{justify-self:start;background:#0b2518;border:1px solid rgba(114,255,146,.22);border-radius:8px;padding:.65rem .85rem}
+.quick-action-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+.quick-action-grid form,.quick-action-link{display:grid;gap:.65rem;align-content:start;background:#0b2518;border:1px solid rgba(114,255,146,.16);border-radius:8px;padding:1rem;text-decoration:none}
+.quick-action-grid strong{color:#fff;font-size:1.05rem}.quick-action-grid span{color:#c8ead0;line-height:1.5}.quick-action-grid button,.quick-action-link em{justify-self:start;cursor:pointer;font-style:normal}
+.arsenal-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.arsenal-list{display:grid;gap:.75rem}
+.arsenal-list article{display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center;background:#0b2518;border:1px solid rgba(114,255,146,.14);border-radius:8px;padding:.85rem}
+.arsenal-list strong,.arsenal-list span,.arsenal-list small{display:block}.arsenal-list strong{color:#fff}.arsenal-list small{margin-top:.35rem}
+.row-actions{display:flex;gap:.45rem;flex-wrap:wrap;justify-content:flex-end}.row-actions form{margin:0}.row-actions button,.row-actions a{padding:.65rem .8rem;cursor:pointer}
+@media(max-width:1080px){.arsenal-hero,.arsenal-grid{grid-template-columns:1fr}.agent-grid,.quick-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.agent-grid,.arsenal-stats,.quick-action-grid{grid-template-columns:1fr}.arsenal-actions,.arsenal-filter{display:grid}.arsenal-list article{grid-template-columns:1fr}.arsenal-actions a,.arsenal-filter button,.arsenal-list article>a,.row-actions button,.row-actions a{text-align:center;width:100%}.row-actions{display:grid;justify-content:stretch}}
+</style>
+{% endblock %}

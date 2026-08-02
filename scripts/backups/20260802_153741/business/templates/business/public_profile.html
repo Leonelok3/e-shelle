@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+
+{% block title %}{{ business.name }} - Vitrine E-Shelle{% endblock %}
+{% block meta_description %}Decouvrez {{ business.name }} sur E-Shelle et contactez directement par WhatsApp.{% endblock %}
+
+{% block content %}
+<section style="min-height:100vh;padding:8rem 0 4rem;background:radial-gradient(circle at 75% 15%,rgba(34,197,94,.16),transparent 30%),#050910;color:#fff">
+  <div class="container" style="max-width:1040px">
+    {% if user.is_authenticated and business.owner == user %}
+      <!-- Admin Bar -->
+      <div style="margin-bottom: 2rem; padding: 1.25rem; border-radius: 16px; background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.25); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 10px; height: 10px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 10px #4ade80; animation: pulse 2s infinite;"></div>
+          <div>
+            <h4 style="margin: 0; color: #fff; font-size: 1.05rem; font-weight: 800;">Mode Administration</h4>
+            <p style="margin: 0; color: rgba(255, 255, 255, 0.7); font-size: 0.85rem;">Vous êtes le propriétaire de cette fiche. Utilisez les boutons pour la gérer en direct.</p>
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <a href="{% url 'business:business_edit' business.id %}" style="display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0.5rem 1.2rem; border-radius: 10px; background: #ffd91f; color: #000; font-weight: 900; text-decoration: none; font-size: 0.9rem; transition: transform 0.2s;">
+            Modifier la fiche
+          </a>
+          <a href="{% url 'business:catalog_manage' business.id %}" style="display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0.5rem 1.2rem; border-radius: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; font-weight: 850; text-decoration: none; font-size: 0.9rem; transition: transform 0.2s;">
+            Ajouter un produit / service
+          </a>
+          <a href="{% url 'business:dashboard' %}?business={{ business.id }}" style="display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0.5rem 1.2rem; border-radius: 10px; background: #22c55e; color: #fff; font-weight: 900; text-decoration: none; font-size: 0.9rem; transition: transform 0.2s;">
+            Tableau de bord
+          </a>
+        </div>
+      </div>
+      
+      <style>
+        @keyframes pulse {
+          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+          70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+      </style>
+    {% endif %}
+
+    <div style="display:grid;grid-template-columns:1fr;gap:1.5rem">
+      <div style="border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(255,255,255,.05);padding:clamp(1.4rem,4vw,2.5rem)">
+        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem">
+          <span style="display:inline-flex;padding:.38rem .75rem;border-radius:999px;background:rgba(34,197,94,.14);color:#86efac;font-weight:800;font-size:.78rem;text-transform:uppercase">{{ business.get_module_display }}</span>
+          {% if business.is_verified %}<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.38rem .75rem;border-radius:999px;background:rgba(59,130,246,.16);color:#93c5fd;font-weight:800;font-size:.78rem">&#10003; Verifie E-Shelle</span>{% endif %}
+          {% if business.plan != "free" %}<span style="color:#facc15;font-weight:800;font-size:.85rem">{{ business.get_plan_display }}</span>{% endif %}
+          <span style="color:{% if business.activation_status == 'active' %}#86efac{% elif business.activation_status == 'pending' %}#fde68a{% else %}#cbd5e1{% endif %};font-weight:900;font-size:.85rem">{{ business.get_activation_status_display }}</span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:1.2rem;margin-bottom:1rem;flex-wrap:wrap;">
+          {% if business.logo %}
+            <img src="{{ business.logo.url }}" alt="Logo {{ business.name }}" style="width:72px;height:72px;border-radius:14px;object-fit:cover;border:2px solid rgba(255,255,255,.15);background:#fff">
+          {% endif %}
+          <div>
+            {% if business.promo_headline %}
+              <p style="margin:0 0 .45rem;color:#facc15;font-size:.86rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em">{{ business.promo_headline }}</p>
+            {% endif %}
+            <h1 style="font-family:var(--font-display);font-size:clamp(2.2rem,6vw,4.8rem);line-height:.95;margin:0">{{ business.name }}</h1>
+          </div>
+        </div>
+        <p style="max-width:700px;color:rgba(255,255,255,.7);font-size:1.05rem;line-height:1.75">
+          {{ business.description|default:business.promo_offer|default:"Cette activite est presente sur E-Shelle. Contactez directement le vendeur ou prestataire pour plus d'informations." }}
+        </p>
+        {% if business.promo_offer %}
+          <div style="margin-top:1rem;display:inline-flex;max-width:780px;padding:.85rem 1rem;border-radius:14px;background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.22);color:#fffbe8;font-weight:850;line-height:1.45">
+            {{ business.promo_offer }}
+          </div>
+        {% endif %}
+
+        <div style="display:flex;flex-wrap:wrap;gap:.65rem;margin:1.5rem 0;color:rgba(255,255,255,.7);font-weight:700">
+          {% if business.city %}<span style="padding:.45rem .7rem;border-radius:999px;background:rgba(255,255,255,.08)">{{ business.city }}</span>{% endif %}
+          {% if business.district %}<span style="padding:.45rem .7rem;border-radius:999px;background:rgba(255,255,255,.08)">{{ business.district }}</span>{% endif %}
+          <span style="padding:.45rem .7rem;border-radius:999px;background:rgba(255,255,255,.08)">{{ business.views_count }} vues</span>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.7rem">
+          {% if whatsapp_url %}
+            <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border-radius:12px;background:#7dec6c;color:#06120a;font-weight:900">Contacter WhatsApp</a>
+          {% endif %}
+          <a href="{{ share_whatsapp_url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border-radius:12px;background:linear-gradient(135deg,#7dec6c,#f59e0b);color:#06120a;font-weight:900">Partager ma boutique</a>
+          <button type="button" data-copy-link="{{ public_url }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#fff;font-weight:850">Copier le lien</button>
+          {% if business.phone %}
+            <a href="tel:{{ business.phone }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,.18);font-weight:850">Appeler</a>
+          {% endif %}
+          {% if source_url %}
+            <a href="{{ source_url }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,.18);font-weight:850">Voir la page complete</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <section style="margin-top:1.5rem">
+        <div style="display:flex;align-items:end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
+          <div>
+            <p style="margin:0 0 .35rem;color:#86efac;font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em">Catalogue</p>
+            <h2 style="margin:0;font-family:var(--font-display);font-size:clamp(1.7rem,3vw,2.4rem)">Produits et services disponibles</h2>
+          </div>
+          {% if source_url %}
+            <a href="{{ source_url }}" style="color:#86efac;font-weight:850">Voir la page complete</a>
+          {% endif %}
+        </div>
+
+        {% if items %}
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,260px));gap:1rem;align-items:start">
+            {% for item in items %}
+              <article style="overflow:hidden;border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;box-shadow:0 4px 16px rgba(0,0,0,.06)">
+                <div onclick="openProductModal({{ forloop.counter0 }})" style="display:block;aspect-ratio:1/1;background:linear-gradient(135deg,rgba(20,184,166,.45),rgba(30,41,59,.9));text-decoration:none;overflow:hidden;cursor:pointer;">
+                  {% if item.image %}
+                    <img src="{{ item.image }}" alt="{{ item.title }}" style="width:100%;height:100%;object-fit:cover;display:block">
+                  {% else %}
+                    <div style="height:100%;display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-size:2.6rem;font-weight:900">{{ item.title|slice:":1" }}</div>
+                  {% endif %}
+                </div>
+                <div style="padding:1rem">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.55rem">
+                    <span style="color:#16a34a;font-size:.72rem;font-weight:900;text-transform:uppercase">{{ item.type }}</span>
+                    {% if item.meta %}<span style="color:#64748b;font-size:.72rem;font-weight:750">{{ item.meta }}</span>{% endif %}
+                  </div>
+                  <h3 onclick="openProductModal({{ forloop.counter0 }})" style="margin:0 0 .45rem;color:#0f172a;font-family:var(--font-display);font-size:1.05rem;line-height:1.18;cursor:pointer;">{{ item.title }}</h3>
+                  <p style="min-height:44px;margin:0 0 .8rem;color:#475569;font-size:.86rem;line-height:1.5">{{ item.description|truncatechars:100|default:"Disponible sur E-Shelle." }}</p>
+                  <strong style="display:block;margin-bottom:.9rem;color:#b45309">{{ item.price|default:"Prix a discuter" }}</strong>
+                  <div style="display:flex;gap:.55rem;flex-wrap:wrap">
+                    {% if item.contact_url %}
+                      <a href="{{ item.contact_url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;background:#7dec6c;color:#06120a;font-size:.82rem;font-weight:900">WhatsApp</a>
+                    {% endif %}
+                    <button type="button" onclick="openProductModal({{ forloop.counter0 }})" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;font-size:.82rem;font-weight:850;cursor:pointer">Détails</button>
+                  </div>
+                  {% if user.is_authenticated and business.owner == user and item.id %}
+                    <div style="display:flex;gap:.45rem;margin-top:.75rem;padding-top:.75rem;border-top:1px solid #e5e7eb">
+                      <a href="{% url 'business:catalog_item_edit' business.id item.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 .75rem;border-radius:8px;border:1px solid #cbd5e1;background:#f8fafc;color:#0f172a;font-size:.78rem;font-weight:800;text-decoration:none">Modifier</a>
+                      <form method="post" action="{% url 'business:catalog_item_action' business.id item.id %}" style="display:inline-block;margin:0" onsubmit="return confirm('Supprimer ce produit/service ?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" style="display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 .75rem;border-radius:8px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.08);color:#b91c1c;font-size:.78rem;font-weight:800;cursor:pointer">Supprimer</button>
+                      </form>
+                    </div>
+                  {% endif %}
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="border:1px dashed rgba(255,255,255,.16);border-radius:12px;background:rgba(255,255,255,.035);padding:2rem;text-align:center;color:rgba(255,255,255,.65)">
+            <p style="margin:0 0 .5rem">Aucun produit ou service public n'est encore associe a cette vitrine.</p>
+            {% if user.is_authenticated and business.owner == user %}
+              <div style="margin-top:1rem">
+                <a href="{% url 'business:catalog_manage' business.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 1.5rem;border-radius:10px;background:#7dec6c;color:#06120a;font-weight:900;text-decoration:none">Ajouter mon premier produit</a>
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+      </section>
+
+      <section style="margin-top:1.5rem">
+        <div style="display:flex;align-items:end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
+          <div>
+            <p style="margin:0 0 .35rem;color:#86efac;font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em">Avis clients</p>
+            <h2 style="margin:0;font-family:var(--font-display);font-size:clamp(1.7rem,3vw,2.4rem)">
+              {% if business.reviews_count %}
+                {{ business.average_rating }}/5
+                <span style="font-size:1rem;color:rgba(255,255,255,.5);font-weight:600">({{ business.reviews_count }} avis)</span>
+              {% else %}
+                Avis clients
+              {% endif %}
+            </h2>
+          </div>
+        </div>
+
+        {% if reviews %}
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:1.5rem">
+            {% for review in reviews %}
+              <article style="border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;padding:1rem">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.4rem">
+                  <strong style="color:#0f172a;font-size:.92rem">{{ review.author_name }}</strong>
+                  <span style="color:#f59e0b;font-size:.85rem;letter-spacing:1px">
+                    {% for i in review_stars %}{% if i <= review.rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}
+                  </span>
+                </div>
+                {% if review.comment %}
+                  <p style="margin:0 0 .5rem;color:#475569;font-size:.86rem;line-height:1.5">{{ review.comment }}</p>
+                {% endif %}
+                <span style="color:#94a3b8;font-size:.72rem">
+                  {{ review.created_at|date:"d M Y" }}{% if not review.is_approved %} &middot; <span style="color:#b91c1c;font-weight:800">Masqu&eacute;</span>{% endif %}
+                </span>
+                {% if user.is_authenticated and business.owner == user %}
+                  <div style="display:flex;gap:.4rem;margin-top:.6rem;padding-top:.6rem;border-top:1px solid #e5e7eb">
+                    <form method="post" action="{% url 'business:review_action' business.id review.id %}" style="margin:0">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="toggle">
+                      <button type="submit" style="min-height:30px;padding:0 .6rem;border-radius:8px;border:1px solid #cbd5e1;background:#f8fafc;color:#0f172a;font-size:.72rem;font-weight:800;cursor:pointer">{% if review.is_approved %}Masquer{% else %}Afficher{% endif %}</button>
+                    </form>
+                    <form method="post" action="{% url 'business:review_action' business.id review.id %}" style="margin:0" onsubmit="return confirm('Supprimer cet avis ?');">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="delete">
+                      <button type="submit" style="min-height:30px;padding:0 .6rem;border-radius:8px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.08);color:#b91c1c;font-size:.72rem;font-weight:800;cursor:pointer">Supprimer</button>
+                    </form>
+                  </div>
+                {% endif %}
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="color:rgba(255,255,255,.6);margin-bottom:1.5rem">Aucun avis pour le moment. Soyez le premier &agrave; partager votre exp&eacute;rience !</p>
+        {% endif %}
+
+        <div style="border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.05);padding:1.25rem;max-width:520px">
+          <h3 style="margin:0 0 .8rem;color:#fff;font-family:var(--font-display);font-size:1.15rem">Laisser un avis</h3>
+          <form method="post" action="{% url 'business:submit_review' business.id %}">
+            {% csrf_token %}
+            <label style="display:block;margin-bottom:.7rem">
+              <span style="display:block;margin-bottom:.3rem;color:rgba(255,255,255,.7);font-size:.82rem;font-weight:700">Votre nom</span>
+              <input type="text" name="author_name" maxlength="100" required placeholder="Ex: Jean K." style="width:100%;padding:.65rem .8rem;border-radius:8px;border:1px solid rgba(255,255,255,.16);background:#101c33;color:#fff;box-sizing:border-box">
+            </label>
+            <label style="display:block;margin-bottom:.7rem">
+              <span style="display:block;margin-bottom:.3rem;color:rgba(255,255,255,.7);font-size:.82rem;font-weight:700">Note</span>
+              <select name="rating" required style="width:100%;padding:.65rem .8rem;border-radius:8px;border:1px solid rgba(255,255,255,.16);background:#101c33;color:#fff;box-sizing:border-box">
+                <option value="">Choisir...</option>
+                <option value="5">&#9733;&#9733;&#9733;&#9733;&#9733; Excellent</option>
+                <option value="4">&#9733;&#9733;&#9733;&#9733;&#9734; Tres bien</option>
+                <option value="3">&#9733;&#9733;&#9733;&#9734;&#9734; Correct</option>
+                <option value="2">&#9733;&#9733;&#9734;&#9734;&#9734; Moyen</option>
+                <option value="1">&#9733;&#9734;&#9734;&#9734;&#9734; Insuffisant</option>
+              </select>
+            </label>
+            <label style="display:block;margin-bottom:1rem">
+              <span style="display:block;margin-bottom:.3rem;color:rgba(255,255,255,.7);font-size:.82rem;font-weight:700">Commentaire (optionnel)</span>
+              <textarea name="comment" rows="3" placeholder="Votre experience avec ce vendeur..." style="width:100%;padding:.65rem .8rem;border-radius:8px;border:1px solid rgba(255,255,255,.16);background:#101c33;color:#fff;resize:vertical;box-sizing:border-box"></textarea>
+            </label>
+            <button type="submit" style="width:100%;min-height:44px;border-radius:10px;border:0;background:#7dec6c;color:#06120a;font-weight:900;cursor:pointer">Envoyer mon avis</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+{{ items|json_script:"items-data" }}
+<span id="track-view-url-template" data-url="{% url 'business:track_item_view' item_id=0 %}" style="display:none"></span>
+
+<!-- Modal Details Produit -->
+<div id="productModal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;overflow:auto;background-color:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;">
+  <div class="modal-content" style="background:#091424;border:1px solid rgba(255,255,255,0.12);border-radius:18px;max-width:800px;width:100%;color:#fff;position:relative;overflow:hidden;box-shadow:0 24px 50px rgba(0,0,0,0.5);">
+    <span class="close-modal" onclick="closeProductModal()" style="position:absolute;right:1.2rem;top:0.8rem;color:rgba(255,255,255,0.6);font-size:2rem;font-weight:bold;cursor:pointer;z-index:10;">&times;</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.8rem;padding:2.2rem;" class="modal-body-grid">
+      <!-- Zone Images -->
+      <div>
+        <div style="aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#050910;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;position:relative;" id="modal-img-container">
+          <img id="modal-main-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+        </div>
+        <div id="modal-thumbnails" style="display:flex;gap:0.5rem;margin-top:0.8rem;overflow-x:auto;padding-bottom:0.3rem;">
+          <!-- Les vignettes seront insérées ici en JS -->
+        </div>
+      </div>
+      <!-- Zone Infos -->
+      <div style="display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <span id="modal-item-type" style="display:inline-block;color:#86efac;font-size:0.75rem;font-weight:900;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;"></span>
+          <h2 id="modal-item-title" style="margin:0 0 0.6rem;font-family:var(--font-display);font-size:1.8rem;line-height:1.2;color:#fff;"></h2>
+          <strong id="modal-item-price" style="display:block;color:#facc15;font-size:1.3rem;margin-bottom:1rem;"></strong>
+          <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:1rem;">
+            <p id="modal-item-description" style="color:rgba(255,255,255,0.72);font-size:0.95rem;line-height:1.6;margin:0;white-space:pre-line;max-height:220px;overflow-y:auto;"></p>
+          </div>
+        </div>
+        <div style="margin-top:1.5rem;display:flex;gap:0.8rem;">
+          <a id="modal-order-btn" href="" target="_blank" rel="noopener" style="display:flex;flex:1;align-items:center;justify-content:center;min-height:48px;padding:0.75rem 1rem;border-radius:12px;background:#7dec6c;color:#06120a;font-weight:900;text-decoration:none;text-align:center;box-shadow: 0 4px 14px rgba(125,236,108,0.3);">Commander sur WhatsApp</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@media (max-width: 640px) {
+  .modal-body-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.2rem !important;
+    padding: 1.5rem 1.2rem 1.2rem !important;
+  }
+  #productModal {
+    padding: 0.5rem !important;
+  }
+}
+#modal-thumbnails::-webkit-scrollbar {
+  height: 4px;
+}
+#modal-thumbnails::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+</style>
+
+<script>
+function getCookie(name) {
+  var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : '';
+}
+
+function trackItemView(itemId) {
+  if (!itemId) return;
+  var tpl = document.getElementById('track-view-url-template');
+  if (!tpl) return;
+  var url = tpl.getAttribute('data-url').replace(/\/0\/vue\/$/, '/' + itemId + '/vue/');
+  fetch(url, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+  }).catch(function () { /* le suivi de vue est accessoire, on ignore les erreurs reseau */ });
+}
+
+document.querySelectorAll('[data-copy-link]').forEach(function(button){
+  button.addEventListener('click', function(){
+    var link = button.getAttribute('data-copy-link');
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(link).then(function(){ button.textContent = 'Lien copie'; });
+    }
+  });
+});
+
+function openProductModal(index) {
+  const items = JSON.parse(document.getElementById('items-data').textContent);
+  const item = items[index];
+  if (!item) return;
+
+  document.getElementById('modal-item-title').textContent = item.title;
+  document.getElementById('modal-item-type').textContent = item.type;
+  document.getElementById('modal-item-price').textContent = item.price;
+  document.getElementById('modal-item-description').textContent = item.description || "Disponible sur E-Shelle.";
+
+  trackItemView(item.id);
+
+  const orderBtn = document.getElementById('modal-order-btn');
+  if (item.contact_url) {
+    orderBtn.href = item.contact_url;
+    orderBtn.style.display = 'flex';
+  } else {
+    orderBtn.style.display = 'none';
+  }
+
+  // Setup images
+  const mainImg = document.getElementById('modal-main-img');
+  const imgContainer = document.getElementById('modal-img-container');
+  const thumbsContainer = document.getElementById('modal-thumbnails');
+  thumbsContainer.innerHTML = '';
+
+  // Clean old text placeholder if any
+  const oldPlaceholder = imgContainer.querySelector('.text-placeholder');
+  if (oldPlaceholder) {
+    oldPlaceholder.remove();
+  }
+
+  if (item.images && item.images.length > 0) {
+    mainImg.src = item.images[0];
+    mainImg.style.display = 'block';
+
+    item.images.forEach((imgUrl, i) => {
+      const thumb = document.createElement('div');
+      thumb.style.width = '55px';
+      thumb.style.height = '55px';
+      thumb.style.borderRadius = '8px';
+      thumb.style.overflow = 'hidden';
+      thumb.style.cursor = 'pointer';
+      thumb.style.border = i === 0 ? '2px solid #7dec6c' : '1px solid rgba(255,255,255,0.2)';
+      thumb.style.background = '#050910';
+      thumb.style.flexShrink = '0';
+      thumb.innerHTML = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+      
+      thumb.addEventListener('click', function() {
+        mainImg.src = imgUrl;
+        Array.from(thumbsContainer.children).forEach(child => {
+          child.style.border = '1px solid rgba(255,255,255,0.2)';
+        });
+        thumb.style.border = '2px solid #7dec6c';
+      });
+
+      thumbsContainer.appendChild(thumb);
+    });
+  } else {
+    mainImg.style.display = 'none';
+    const placeholder = document.createElement('div');
+    placeholder.className = 'text-placeholder';
+    placeholder.style.height = '100%';
+    placeholder.style.width = '100%';
+    placeholder.style.display = 'grid';
+    placeholder.style.placeItems = 'center';
+    placeholder.style.color = '#fff';
+    placeholder.style.fontFamily = 'var(--font-display)';
+    placeholder.style.fontSize = '4.5rem';
+    placeholder.style.fontWeight = '900';
+    placeholder.textContent = item.title.charAt(0);
+    imgContainer.appendChild(placeholder);
+  }
+
+  const modal = document.getElementById('productModal');
+  modal.style.display = 'flex';
+}
+
+function closeProductModal() {
+  document.getElementById('productModal').style.display = 'none';
+}
+
+// Close when clicking outside modal-content
+window.addEventListener('click', function(event) {
+  const modal = document.getElementById('productModal');
+  if (event.target === modal) {
+    closeProductModal();
+  }
+});
+
+// Ouvre directement le produit vise si on arrive via ?produit=<id> (ex: depuis la vitrine d'accueil)
+document.addEventListener('DOMContentLoaded', function () {
+  var params = new URLSearchParams(window.location.search);
+  var produitId = params.get('produit');
+  if (!produitId) return;
+  var items = JSON.parse(document.getElementById('items-data').textContent);
+  var index = items.findIndex(function (it) { return String(it.id) === String(produitId); });
+  if (index >= 0) openProductModal(index);
+});
+</script>
+{% endblock %}
