@@ -786,3 +786,249 @@ def program_visit(request):
     return render(request, "canada_resume/program_visit.html")
 
 
+from django.views.decorators.csrf import csrf_exempt
+
+@login_required
+def immigration_coach(request):
+    """
+    Page principale du coach IA pour l'immigration Canada.
+    """
+    is_pro = check_user_has_paid_edu_subscription(request.user)
+    
+    # Suivi des messages restants aujourd'hui pour les utilisateurs gratuits
+    import datetime
+    today_str = datetime.date.today().isoformat()
+    session_date = request.session.get("canada_coach_limit_date")
+    if session_date != today_str:
+        request.session["canada_coach_limit_date"] = today_str
+        request.session["canada_coach_message_count"] = 0
+        
+    messages_left = max(0, 5 - request.session.get("canada_coach_message_count", 0))
+    
+    return render(
+        request,
+        "canada_resume/immigration_coach.html",
+        {
+            "is_pro": is_pro,
+            "messages_left": messages_left,
+        }
+    )
+
+
+@login_required
+@csrf_exempt
+def immigration_coach_api(request):
+    """
+    API pour dialoguer avec le coach IA Immigration Canada.
+    """
+    is_pro = check_user_has_paid_edu_subscription(request.user)
+    
+    # Vérifier le quota quotidien pour les comptes gratuits
+    if not is_pro:
+        import datetime
+        today_str = datetime.date.today().isoformat()
+        session_date = request.session.get("canada_coach_limit_date")
+        message_count = request.session.get("canada_coach_message_count", 0)
+        
+        if session_date != today_str:
+            request.session["canada_coach_limit_date"] = today_str
+            message_count = 0
+            request.session["canada_coach_message_count"] = 0
+            
+        if message_count >= 5:
+            return JsonResponse(
+                {
+                    "error": "subscription_required",
+                    "reply": "Vous avez atteint votre limite gratuite de 5 messages par jour pour le Coach IA Immigration Canada. Veuillez vous abonner à E-Shelle Premium pour discuter en illimité !",
+                },
+                status=403,
+            )
+            
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+        
+    try:
+        import json
+        data = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+        
+    user_message = (data.get("message") or "").strip()
+    history = data.get("history") or []
+    
+    if not user_message:
+        return JsonResponse({"error": "Empty message"}, status=400)
+        
+    # Increment message count for free users
+    if not is_pro:
+        request.session["canada_coach_message_count"] = request.session.get("canada_coach_message_count", 0) + 1
+        
+    # Call LLM
+    from ai_engine.services.llm_service import call_llm
+    
+    system_prompt = (
+        "Tu es l'expert en immigration du Canada d'E-Shelle. Ton rôle est de conseiller "
+        "les candidats à l'immigration sur toutes les procédures officielles basées sur le site "
+        "du gouvernement du Canada (Canada.ca / IRCC). Réponds de façon précise, chaleureuse, professionnelle et structurée (utilises du gras et listes si besoin). "
+        "Mentionne les programmes officiels : Entrée Express (FSTP, FSWP, CEC), Arrima (Québec), PNP (Candidats des Provinces), "
+        "Permis d'études, PVT, ou Visa visiteur. Conseille toujours de faire évaluer son éligibilité avec "
+        "notre Calculateur CRS E-Shelle."
+    )
+    
+    # Format convo history
+    prompt_builder = []
+    for msg in history[-8:]: # last 8 messages
+        role_label = "Candidat" if msg.get("role") == "user" else "Expert"
+        prompt_builder.append(f"{role_label}: {msg.get('content')}")
+    prompt_builder.append(f"Candidat: {user_message}\nExpert:")
+    
+    user_prompt = "\n".join(prompt_builder)
+    
+    try:
+        reply = call_llm(system_prompt, user_prompt)
+        return JsonResponse({"reply": reply.strip()})
+    except Exception as e:
+        return JsonResponse({"error": f"LLM error: {e}"}, status=500)
+
+
+@login_required
+def interview_simulation(request):
+    """
+    Page principale pour la simulation d'entretien canadien par IA.
+    """
+    is_pro = check_user_has_paid_edu_subscription(request.user)
+    
+    # Suivi des messages restants aujourd'hui pour les utilisateurs gratuits
+    import datetime
+    today_str = datetime.date.today().isoformat()
+    session_date = request.session.get("canada_interview_limit_date")
+    if session_date != today_str:
+        request.session["canada_interview_limit_date"] = today_str
+        request.session["canada_interview_message_count"] = 0
+        
+    messages_left = max(0, 5 - request.session.get("canada_interview_message_count", 0))
+    
+    return render(
+        request,
+        "canada_resume/interview_simulation.html",
+        {
+            "is_pro": is_pro,
+            "messages_left": messages_left,
+        }
+    )
+
+
+@login_required
+@csrf_exempt
+def interview_simulation_api(request):
+    """
+    API pour dialoguer avec l'interviewer IA (simulation d'entretien).
+    """
+    is_pro = check_user_has_paid_edu_subscription(request.user)
+    
+    # Vérifier le quota quotidien pour les comptes gratuits
+    if not is_pro:
+        import datetime
+        today_str = datetime.date.today().isoformat()
+        session_date = request.session.get("canada_interview_limit_date")
+        message_count = request.session.get("canada_interview_message_count", 0)
+        
+        if session_date != today_str:
+            request.session["canada_interview_limit_date"] = today_str
+            message_count = 0
+            request.session["canada_interview_message_count"] = 0
+            
+        if message_count >= 5:
+            return JsonResponse(
+                {
+                    "error": "subscription_required",
+                    "reply": "Vous avez atteint votre limite gratuite de 5 messages par jour pour la simulation d'entretien. Veuillez vous abonner à E-Shelle Premium pour vous entraîner en illimité !",
+                },
+                status=403,
+            )
+            
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+        
+    try:
+        import json
+        data = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+        
+    user_message = (data.get("message") or "").strip()
+    history = data.get("history") or []
+    sector = (data.get("sector") or "Général").strip()
+    
+    if not user_message and len(history) > 0:
+        return JsonResponse({"error": "Empty message"}, status=400)
+        
+    # Increment message count for free users
+    if not is_pro and user_message:
+        request.session["canada_interview_message_count"] = request.session.get("canada_interview_message_count", 0) + 1
+        
+    from ai_engine.services.llm_service import call_llm
+    
+    system_prompt = (
+        f"Tu es un recruteur de ressources humaines (RH) pour une entreprise canadienne qui mène un entretien d'embauche pour le secteur : '{sector}'.\n"
+        "RÈGLES CRITIQUES DE L'ENTRETIEN CANADIEN :\n"
+        "- Ton but est d'évaluer le candidat de façon constructive et de lui poser des questions de recrutement standard (comportementales ou techniques).\n"
+        "- Pour CHAQUE réponse envoyée par le candidat, fournis d'abord une courte ÉVALUATION constructive de sa réponse (ex: 'Bonne réponse, mais vous devriez quantifier vos résultats', ou 'Excellente utilisation de la méthode STAR') puis pose la QUESTION SUIVANTE.\n"
+        "- Pose UNE SEULE question à la fois.\n"
+        "- Reste professionnel, courtois, encourageant et formule tes retours selon les standards RH canadiens."
+    )
+    
+    if not user_message and len(history) == 0:
+        # First message: initiate interview
+        try:
+            reply = call_llm(
+                system_prompt, 
+                f"Débute l'entretien pour le secteur {sector}. Salue chaleureusement le candidat et pose la première question."
+            )
+            return JsonResponse({"reply": reply.strip()})
+        except Exception as e:
+            return JsonResponse({"error": f"LLM error: {e}"}, status=500)
+            
+    # Format convo history
+    prompt_builder = []
+    for msg in history[-8:]:
+        role_label = "Candidat" if msg.get("role") == "user" else "Recruteur"
+        prompt_builder.append(f"{role_label}: {msg.get('content')}")
+    prompt_builder.append(f"Candidat: {user_message}\nRecruteur:")
+    
+    user_prompt = "\n".join(prompt_builder)
+    
+    try:
+        reply = call_llm(system_prompt, user_prompt)
+        return JsonResponse({"reply": reply.strip()})
+    except Exception as e:
+        return JsonResponse({"error": f"LLM error: {e}"}, status=500)
+
+
+def talents_directory(request):
+    """
+    Annuaire public des profils de talents / candidats Canada pour les employeurs.
+    """
+    # Récupérer tous les profils de candidats complets
+    talents = CanadaCVProfile.objects.exclude(first_name="").order_by("-updated_at")
+    
+    # Filtrer par secteur si spécifié
+    sector = request.GET.get("sector", "").strip()
+    if sector:
+        talents = talents.filter(target_sector__icontains=sector)
+        
+    # Liste des secteurs pour le filtre
+    sectors = CanadaCVProfile.objects.exclude(target_sector="").values_list("target_sector", flat=True).distinct()
+    
+    return render(
+        request,
+        "canada_resume/talents.html",
+        {
+            "talents": talents,
+            "sectors": sectors,
+            "selected_sector": sector,
+            "is_pro": check_user_has_paid_edu_subscription(request.user) if request.user.is_authenticated else False,
+        }
+    )
+
+

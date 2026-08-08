@@ -26,4 +26,9 @@ urlpatterns = [
     path("programmes/autres/", views.program_others, name="program_others"),
     path("programmes/etudier/", views.program_study, name="program_study"),
     path("programmes/visiter/", views.program_visit, name="program_visit"),
+    path("immigration-coach/", views.immigration_coach, name="immigration_coach"),
+    path("immigration-coach/api/", views.immigration_coach_api, name="immigration_coach_api"),
+    path("simulation-entretien/", views.interview_simulation, name="interview_simulation"),
+    path("simulation-entretien/api/", views.interview_simulation_api, name="interview_simulation_api"),
+    path("talents/", views.talents_directory, name="talents_directory"),
 ]

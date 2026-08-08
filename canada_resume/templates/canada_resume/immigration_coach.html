@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+
+{% block title %}Coach IA Immigration Canada – E-Shelle{% endblock %}
+
+{% block meta %}
+<meta name="description" content="Votre conseiller en immigration Canada assisté par IA. Posez vos questions sur Entrée Express, Arrima, EIMT, bourses, permis d'études et de travail.">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ─── Thème Canada · Rouge · Blanc · Noir 🇨🇦 ─── */
+  .ep-wrap { max-width: 1000px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ep-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .ep-bc a { color: #C8102E; text-decoration: none; font-weight: 600; }
+  .ep-bc a:hover { text-decoration: underline; }
+
+  /* Hero rouge → noir */
+  .ep-hero { background: linear-gradient(135deg, #C8102E 0%, #0A0A0A 100%); border-radius: 20px; border-bottom: 4px solid #0A0A0A; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; box-shadow: 0 8px 28px rgba(200, 16, 46, .2); }
+  .ep-hero::before { content: "🍁"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .15; pointer-events: none; }
+  .ep-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .8; margin-bottom: .5rem; }
+  .ep-hero h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; margin: 0 0 .4rem; }
+  .ep-hero h1 span { color: #ffce00; }
+  .ep-hero p { font-size: .88rem; opacity: .9; margin: 0; max-width: 580px; }
+
+  .ep-quick { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.75rem; }
+  .ep-quick-link { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: .5rem 1rem; font-size: .82rem; font-weight: 700; color: #0A0A0A; text-decoration: none; transition: border-color .2s, box-shadow .2s, transform .15s; display: flex; align-items: center; gap: .4rem; }
+  .ep-quick-link:hover { border-color: #C8102E; color: #C8102E; box-shadow: 0 2px 8px rgba(200, 16, 46, .15); transform: translateY(-1px); }
+
+  .ep-layout { display: grid; grid-template-columns: 280px 1fr; gap: 1.25rem; align-items: start; }
+
+  .ep-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; transition: box-shadow .2s, border-color .2s; }
+  .ep-card:last-child { margin-bottom: 0; }
+  .ep-card:hover { box-shadow: 0 4px 16px rgba(10, 10, 10, .08); }
+  .ep-card-title { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: #C8102E; margin-bottom: .85rem; }
+  
+  /* Boutons presets — contour rouge au hover */
+  .ep-preset-btn { display: flex; width: 100%; align-items: center; gap: .5rem; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: .6rem .9rem; font-size: .8rem; font-weight: 600; color: #0A0A0A; text-align: left; cursor: pointer; transition: border-color .2s, background .2s, transform .15s; margin-bottom: .4rem; }
+  .ep-preset-btn:hover { border-color: #C8102E; background: #FDE8E6; color: #C8102E; transform: translateX(2px); }
+
+  .ep-chat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; }
+  .ep-chat-box { min-height: 320px; max-height: 480px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; background: #f8fafc; display: flex; flex-direction: column; gap: .65rem; margin-bottom: 1rem; }
+  .ep-msg { max-width: 90%; }
+  .ep-msg.assistant { align-self: flex-start; }
+  .ep-msg.user { align-self: flex-end; }
+  .ep-msg-content { padding: .65rem .9rem; border-radius: 14px; font-size: .88rem; line-height: 1.55; white-space: pre-wrap; }
+  /* Bulle assistant — blanche */
+  .ep-msg.assistant .ep-msg-content { background: #fff; border: 1px solid #e2e8f0; color: #334155; border-radius: 4px 14px 14px 14px; }
+  /* Bulle utilisateur — rouge Canada */
+  .ep-msg.user .ep-msg-content { background: #C8102E; color: #fff; border-radius: 14px 4px 14px 14px; }
+  
+  .ep-chat-input-area { display: flex; gap: .75rem; align-items: flex-end; }
+  .ep-chat-textarea { flex: 1; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: .75rem 1rem; font-size: .88rem; color: #1e293b; background: #fff; resize: vertical; min-height: 72px; font-family: inherit; outline: none; transition: border-color .2s, box-shadow .2s; }
+  .ep-chat-textarea:focus { border-color: #C8102E; box-shadow: 0 0 0 3px rgba(200, 16, 46, .12); }
+  .ep-chat-textarea::placeholder { color: #94a3b8; }
+  
+  /* Bouton envoyer — rouge Canada */
+  .ep-btn-send { display: inline-flex; align-items: center; gap: .4rem; background: linear-gradient(135deg, #C8102E, #960c22); color: #fff; border: none; border-radius: 10px; padding: .75rem 1.25rem; font-size: .88rem; font-weight: 700; cursor: pointer; transition: opacity .2s, transform .15s, box-shadow .2s; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 12px rgba(200, 16, 46, .3); }
+  .ep-btn-send:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(200, 16, 46, .4); }
+  .ep-btn-send:disabled { opacity: .6; cursor: not-allowed; }
+
+  /* Premium alert banner */
+  .premium-banner { background: #FFF5F5; border: 1.5px dashed #C8102E; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; text-align: center; }
+  .premium-banner p { margin: 0 0 .5rem; font-size: .85rem; color: #7f1d1d; font-weight: 600; }
+  .premium-banner a { display: inline-block; background: #C8102E; color: #fff; text-decoration: none; padding: .4rem 1rem; border-radius: 6px; font-size: .8rem; font-weight: 700; }
+
+  @media (max-width: 800px) {
+    .ep-layout { grid-template-columns: 1fr; }
+    .ep-hero::before { display: none; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ep-wrap">
+
+  <nav class="ep-bc">
+    <a href="{% url 'canada_resume:dashboard' %}">Canada</a>
+    <span>›</span>
+    <span>Coach IA Immigration</span>
+  </nav>
+
+  <div class="ep-hero">
+    <p class="ep-hero-kicker">E-Shelle · Canada · Coach IA</p>
+    <h1>Coach IA <span>Immigration Canada</span></h1>
+    <p>Votre conseiller virtuel expert de l'immigration. Posez vos questions sur Entrée Express, Arrima, les bourses, le permis de travail ou l'EIMT.</p>
+  </div>
+
+  <div class="ep-quick">
+    <a href="{% url 'canada_resume:dashboard' %}" class="ep-quick-link">📄 Mon CV Canada</a>
+    <a href="{% url 'canada_resume:diagnostic' %}" class="ep-quick-link">🍁 Calculateur CRS</a>
+  </div>
+
+  {% if not is_pro %}
+  <div class="premium-banner">
+    <p>🍁 Version Gratuite : Il vous reste <strong>{{ messages_left }}</strong> messages gratuits aujourd'hui.</p>
+    <a href="{% url 'accounts:upgrade' %}?app=prep">Débloquer l'accès Premium Illimité</a>
+  </div>
+  {% endif %}
+
+  <div class="ep-layout">
+
+    <!-- Gauche : questions fréquentes -->
+    <div>
+      <div class="ep-card">
+        <p class="ep-card-title">Questions fréquentes</p>
+        <button class="ep-preset-btn" onclick="sendPreset('Comment fonctionne Entrée Express ?')">🍁 Entrée Express</button>
+        <button class="ep-preset-btn" onclick="sendPreset('Comment s\'inscrire sur la plateforme Arrima pour le Québec ?')">⚜️ Québec / Arrima</button>
+        <button class="ep-preset-btn" onclick="sendPreset('Qu\'est-ce qu\'une EIMT et comment trouver un employeur ?')">💼 EIMT / Recrutement</button>
+        <button class="ep-preset-btn" onclick="sendPreset('Quels sont les frais de visa visiteur et délais ?')">✈️ Visa de Tourisme</button>
+        <button class="ep-preset-btn" onclick="sendPreset('Comment postuler à une bourse d\'études au Canada ?')">🎓 Bourses d'études</button>
+      </div>
+      
+      <div class="ep-card" style="background: #FFF9E6; border-color: #FFE082;">
+        <p class="ep-card-title" style="color: #B78103;">⚠️ Avertissement</p>
+        <p style="font-size: .78rem; color: #6d4c00; margin: 0; line-height: 1.4;">
+          Cette IA fournit des conseils informatifs basés sur les critères officiels de l'IRCC. Elle ne remplace pas un conseiller agréé en immigration (CRIC).
+        </p>
+      </div>
+    </div>
+
+    <!-- Droite : interface de discussion -->
+    <div class="ep-chat-card">
+      <div class="ep-chat-box" id="chatBox">
+        <div class="ep-msg assistant">
+          <div class="ep-msg-content">Bonjour ! Je suis votre conseiller IA E-Shelle spécialisé en immigration au Canada. 
+Comment puis-je vous aider aujourd'hui dans vos démarches d'immigration, de permis de travail ou de bourses d'études ? 🍁</div>
+        </div>
+      </div>
+
+      <div class="ep-chat-input-area">
+        <textarea class="ep-chat-textarea" id="chatInput" placeholder="Saisissez votre question sur l'immigration Canada ici..." onkeydown="handleKey(event)"></textarea>
+        <button class="ep-btn-send" id="btnSend" onclick="sendMessage()">
+          Envoyer 🚀
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const chatBox = document.getElementById('chatBox');
+  const chatInput = document.getElementById('chatInput');
+  const btnSend = document.getElementById('btnSend');
+  let chatHistory = [];
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function appendMessage(role, content) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `ep-msg ${role}`;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'ep-msg-content';
+    
+    // Parse simple markdown/bold in reply
+    if (role === 'assistant') {
+      contentDiv.innerHTML = formatReply(content);
+    } else {
+      contentDiv.textContent = content;
+    }
+    
+    msgDiv.appendChild(contentDiv);
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    
+    chatHistory.push({ role: role === 'user' ? 'user' : 'model', content: content });
+  }
+
+  function formatReply(text) {
+    // Escape HTML first
+    let escaped = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    
+    // Bold translation
+    escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // bullet list translation
+    escaped = escaped.replace(/^\*\s(.*)$/gm, '• $1');
+    return escaped;
+  }
+
+  function sendPreset(text) {
+    chatInput.value = text;
+    sendMessage();
+  }
+
+  async function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    chatInput.value = '';
+    chatInput.disabled = true;
+    btnSend.disabled = true;
+
+    appendMessage('user', text);
+
+    // Show dynamic loader
+    const loaderDiv = document.createElement('div');
+    loaderDiv.className = 'ep-msg assistant';
+    loaderDiv.id = 'temp-loader';
+    loaderDiv.innerHTML = '<div class="ep-msg-content" style="font-style:italic;color:#64748b;">Réflexion de l\'IA E-Shelle en cours...</div>';
+    chatBox.appendChild(loaderDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try {
+      const response = await fetch("{% url 'canada_resume:immigration_coach_api' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({
+          message: text,
+          history: chatHistory.slice(0, -1) // exclude the one we just added
+        })
+      });
+
+      const tempLoader = document.getElementById('temp-loader');
+      if (tempLoader) tempLoader.remove();
+
+      const data = await response.json();
+
+      if (response.status === 403 && data.error === 'subscription_required') {
+        appendMessage('assistant', data.reply);
+        // Show upgrade box
+        setTimeout(() => {
+          window.location.href = "{% url 'accounts:upgrade' %}?app=prep";
+        }, 3000);
+      } else if (response.ok && data.reply) {
+        appendMessage('assistant', data.reply);
+      } else {
+        appendMessage('assistant', "Une erreur s'est produite lors de la connexion au conseiller E-Shelle. Veuillez réessayer.");
+      }
+    } catch (err) {
+      const tempLoader = document.getElementById('temp-loader');
+      if (tempLoader) tempLoader.remove();
+      appendMessage('assistant', "Impossible de joindre le serveur. Vérifiez votre connexion internet.");
+    } finally {
+      chatInput.disabled = false;
+      btnSend.disabled = false;
+      chatInput.focus();
+    }
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+
+{% block title %}Annuaire des Talents Canada – E-Shelle{% endblock %}
+
+{% block meta %}
+<meta name="description" content="Recrutez des talents internationaux qualifiés pour le Canada. Parcourez les profils, secteurs d'activité et contactez directement les candidats.">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .talents-wrap { max-width: 1200px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .talents-bc { font-size: .82rem; color: #64748b; margin: 1.5rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .talents-bc a { color: #C8102E; text-decoration: none; font-weight: 600; }
+  .talents-bc a:hover { text-decoration: underline; }
+
+  /* Hero header */
+  .talents-hero { background: linear-gradient(135deg, #102B4E 0%, #0A0A0A 100%); border-radius: 20px; padding: 2.25rem 2rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; box-shadow: 0 8px 28px rgba(16, 43, 78, .15); }
+  .talents-hero::before { content: "👥"; font-size: 8rem; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); opacity: .12; pointer-events: none; }
+  .talents-hero-kicker { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; opacity: .8; margin-bottom: .5rem; }
+  .talents-hero h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; margin: 0 0 .4rem; }
+  .talents-hero h1 span { color: #C8102E; }
+  .talents-hero p { font-size: .88rem; opacity: .9; margin: 0; max-width: 600px; }
+
+  /* Filters */
+  .filter-bar { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+  .filter-title { font-size: .85rem; font-weight: 700; color: #1e293b; margin: 0; }
+  .filter-form { display: flex; gap: .75rem; flex: 1; flex-wrap: wrap; }
+  .filter-select { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: .5rem .75rem; font-size: .82rem; font-weight: 600; outline: none; min-width: 200px; }
+  .filter-select:focus { border-color: #C8102E; }
+  .filter-btn { background: #C8102E; color: #fff; border: none; border-radius: 8px; padding: .5rem 1.25rem; font-size: .82rem; font-weight: 700; cursor: pointer; transition: background .2s; }
+  .filter-btn:hover { background: #960c22; }
+  .filter-reset { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; padding: .5rem 1.25rem; font-size: .82rem; font-weight: 600; text-decoration: none; text-align: center; }
+  .filter-reset:hover { background: #e2e8f0; }
+
+  /* Grid of cards */
+  .talents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; }
+  .talent-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; position: relative; display: flex; flex-direction: column; justify-content: space-between; transition: box-shadow .25s, transform .2s, border-color .2s; }
+  .talent-card:hover { transform: translateY(-2px); border-color: #cbd5e1; box-shadow: 0 8px 24px rgba(0, 0, 0, .06); }
+  
+  .talent-header { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.25rem; }
+  .talent-avatar { width: 52px; height: 52px; border-radius: 50%; background: #FDE8E6; color: #C8102E; font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .talent-meta { flex: 1; min-width: 0; }
+  .talent-name { font-size: 1.05rem; font-weight: 800; color: #1e293b; margin: 0 0 .2rem; }
+  .talent-sector { font-size: .72rem; font-weight: 800; text-transform: uppercase; color: #C8102E; display: inline-block; background: #FFF5F5; padding: .2rem .6rem; border-radius: 4px; margin-bottom: .25rem; }
+  .talent-loc { font-size: .8rem; color: #64748b; margin: 0; display: flex; align-items: center; gap: .25rem; }
+
+  .talent-body { flex: 1; border-top: 1px solid #f1f5f9; padding-top: 1rem; margin-bottom: 1.25rem; font-size: .85rem; color: #475569; }
+  .talent-section-title { font-size: .75rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: .05em; margin: 0 0 .5rem; }
+  .talent-list { list-style: none; padding: 0; margin: 0 0 1rem; }
+  .talent-list li { position: relative; padding-left: .85rem; margin-bottom: .35rem; line-height: 1.4; font-size: .82rem; }
+  .talent-list li::before { content: "▪"; position: absolute; left: 0; color: #C8102E; font-size: .7rem; top: 0; }
+
+  .talent-footer { border-top: 1px solid #f1f5f9; padding-top: 1rem; display: flex; justify-content: space-between; align-items: center; }
+  
+  .btn-contact { background: #102B4E; color: #fff; border: none; border-radius: 8px; padding: .55rem 1rem; font-size: .82rem; font-weight: 700; cursor: pointer; transition: background .2s; display: inline-flex; align-items: center; gap: .35rem; }
+  .btn-contact:hover { background: #1a4276; }
+
+  /* Modal contact styling */
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+  .modal-box { background: #fff; border-radius: 16px; max-width: 500px; width: 100%; padding: 2rem; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.25); transform: translateY(-20px); transition: transform 0.3s; }
+  .modal-close { position: absolute; top: 1.25rem; right: 1.25rem; background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; }
+  .modal-close:hover { color: #64748b; }
+  .modal-title { font-size: 1.25rem; font-weight: 800; color: #102B4E; margin: 0 0 1.25rem; display: flex; align-items: center; gap: .5rem; }
+  .modal-contact-row { display: flex; align-items: center; gap: .75rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .85rem 1rem; margin-bottom: .75rem; text-decoration: none; color: #334155; font-size: .88rem; font-weight: 600; transition: border-color .2s, background .2s; }
+  .modal-contact-row:hover { border-color: #C8102E; background: #FFF5F5; color: #C8102E; }
+  .modal-contact-icon { font-size: 1.2rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="talents-wrap">
+
+  <nav class="talents-bc">
+    <a href="{% url 'canada_resume:dashboard' %}">Canada</a>
+    <span>›</span>
+    <span>Annuaire des Candidats</span>
+  </nav>
+
+  <div class="talents-hero">
+    <p class="talents-hero-kicker">E-Shelle · Recrutement International</p>
+    <h1>Annuaire des <span>Talents Canada</span></h1>
+    <p>Trouvez des profils qualifiés formés aux exigences du marché de l'emploi canadien. Consultez leurs expériences et contactez-les directement.</p>
+  </div>
+
+  <!-- Barre de filtres -->
+  <div class="filter-bar">
+    <span class="filter-title">Filtrer les profils :</span>
+    <form class="filter-form" method="GET" action=".">
+      <select class="filter-select" name="sector">
+        <option value="">Tous les secteurs d'activité</option>
+        {% for s in sectors %}
+          <option value="{{ s }}" {% if selected_sector == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <button class="filter-btn" type="submit">Rechercher</button>
+      {% if selected_sector %}
+        <a class="filter-reset" href="{% url 'canada_resume:talents_directory' %}">Réinitialiser</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Grille des profils -->
+  {% if talents %}
+    <div class="talents-grid">
+      {% for talent in talents %}
+        <div class="talent-card">
+          <div>
+            <div class="talent-header">
+              <div class="talent-avatar">
+                {{ talent.first_name|slice:":1" }}{{ talent.last_name|slice:":1" }}
+              </div>
+              <div class="talent-meta">
+                <span class="talent-sector">{{ talent.target_sector|default:"Général" }}</span>
+                <h3 class="talent-name">{{ talent.first_name }} {{ talent.last_name }}</h3>
+                <p class="talent-loc">📍 {{ talent.address|default:"Non renseigné" }}</p>
+              </div>
+            </div>
+
+            <div class="talent-body">
+              <!-- Expériences -->
+              <p class="talent-section-title">Expériences clés</p>
+              <ul class="talent-list">
+                {% for exp in talent.user.canada_cv_experiences.all|slice:":2" %}
+                  <li><strong>{{ exp.title }}</strong> chez {{ exp.company }} ({{ exp.period_display_fr }})</li>
+                {% empty %}
+                  <li style="color:#94a3b8;font-style:italic;list-style:none;padding-left:0;">Aucune expérience renseignée</li>
+                {% endfor %}
+              </ul>
+
+              <!-- Études -->
+              <p class="talent-section-title">Formation / Diplômes</p>
+              <ul class="talent-list" style="margin-bottom:0;">
+                {% for edu in talent.user.canada_cv_educations.all|slice:":1" %}
+                  <li><strong>{{ edu.degree }}</strong> — {{ edu.school }} ({{ edu.start_year }}-{{ edu.end_year|default:"Présent" }})</li>
+                {% empty %}
+                  <li style="color:#94a3b8;font-style:italic;list-style:none;padding-left:0;">Aucune formation renseignée</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+
+          <div class="talent-footer">
+            <span style="font-size:.78rem;color:#94a3b8;">Mis à jour : {{ talent.updated_at|date:"d/m/Y" }}</span>
+            <button class="btn-contact" onclick="openContactModal('{{ talent.full_name|escapejs }}', '{{ talent.email|escapejs }}', '{{ talent.phone|escapejs }}', '{{ talent.linkedin|escapejs }}')">
+              Contacter ✉️
+            </button>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="text-align:center;padding:4rem 1rem;background:#fff;border-radius:14px;border:1px solid #e2e8f0;color:#64748b;">
+      <p style="font-size:1.1rem;font-weight:700;margin:0 0 .5rem;">Aucun candidat trouvé</p>
+      <p style="font-size:.88rem;margin:0;">Essayez de réinitialiser les filtres pour afficher tous les profils de candidats.</p>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- Modal Contact -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeContactModal()">&times;</button>
+    <h3 class="modal-title" id="modalTitle">Contacter le Candidat</h3>
+    
+    <div id="modalLinks">
+      <!-- Rempli dynamiquement par JS -->
+    </div>
+  </div>
+</div>
+
+<script>
+  const contactModal = document.getElementById('contactModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalLinks = document.getElementById('modalLinks');
+
+  function openContactModal(name, email, phone, linkedin) {
+    modalTitle.textContent = `Contacter ${name} 🍁`;
+    modalLinks.innerHTML = '';
+
+    // Bouton Email
+    if (email) {
+      const emailLink = document.createElement('a');
+      emailLink.className = 'modal-contact-row';
+      emailLink.href = `mailto:${email}`;
+      emailLink.innerHTML = `<span class="modal-contact-icon">✉️</span> <span>Envoyer un e-mail : ${email}</span>`;
+      modalLinks.appendChild(emailLink);
+    }
+
+    // Bouton Téléphone
+    if (phone) {
+      const phoneLink = document.createElement('a');
+      phoneLink.className = 'modal-contact-row';
+      phoneLink.href = `tel:${phone}`;
+      phoneLink.innerHTML = `<span class="modal-contact-icon">📞</span> <span>Appeler / WhatsApp : ${phone}</span>`;
+      modalLinks.appendChild(phoneLink);
+    }
+
+    // Bouton LinkedIn
+    if (linkedin) {
+      const liLink = document.createElement('a');
+      liLink.className = 'modal-contact-row';
+      liLink.href = linkedin;
+      liLink.target = '_blank';
+      liLink.innerHTML = `<span class="modal-contact-icon">🔗</span> <span>Profil LinkedIn professionnel</span>`;
+      modalLinks.appendChild(liLink);
+    }
+
+    if (!email && !phone && !linkedin) {
+      modalLinks.innerHTML = '<p style="color:#64748b;font-style:italic;font-size:.85rem;margin:0;">Le candidat n\'a pas renseigné de coordonnées de contact publiques.</p>';
+    }
+
+    contactModal.style.display = 'flex';
+  }
+
+  function closeContactModal() {
+    contactModal.style.display = 'none';
+  }
+
+  // Close when clicking outside box
+  window.onclick = function(event) {
+    if (event.target === contactModal) {
+      closeContactModal();
+    }
+  }
+</script>
+{% endblock %}
