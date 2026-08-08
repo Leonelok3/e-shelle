@@ -11,4 +11,5 @@ urlpatterns = [
     path("canada/", views.canada_jobs, name="canada_jobs"),
     path("canada/bourses/", views.canada_scholarships, name="canada_scholarships"),
     path("canada/visitor-opportunites/", views.canada_visitor_opps, name="canada_visitor_opps"),
+    path("canada/actualites/", views.canada_news, name="canada_news"),
 ]

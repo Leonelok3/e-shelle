@@ -81,9 +81,20 @@ class CanadaScholarshipAdmin(admin.ModelAdmin):
     date_hierarchy = "fetched_at"
 
 
+from .models import CandidatureJob, OffreJob, SecteurJob, VilleJob, CanadaJobOffer, CanadaScholarship, CanadaVisitorOpportunity, CanadaNews
+
+
 @admin.register(CanadaVisitorOpportunity)
 class CanadaVisitorOpportunityAdmin(admin.ModelAdmin):
     list_display = ("title", "organizer", "event_date", "location", "deadline", "is_active", "fetched_at")
     list_filter = ("is_active", "location")
     search_fields = ("title", "organizer", "description", "location")
+    date_hierarchy = "fetched_at"
+
+
+@admin.register(CanadaNews)
+class CanadaNewsAdmin(admin.ModelAdmin):
+    list_display = ("title", "category", "published_date", "is_active", "fetched_at")
+    list_filter = ("is_active", "category")
+    search_fields = ("title", "category", "summary", "url_source")
     date_hierarchy = "fetched_at"

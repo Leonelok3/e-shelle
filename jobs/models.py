@@ -267,4 +267,36 @@ class CanadaVisitorOpportunity(models.Model):
         return (timezone.now() - self.fetched_at) < datetime.timedelta(hours=48)
 
 
+class CanadaNews(models.Model):
+    """
+    Actualités, communiqués, lois sur l'immigration et tirages (Express Entry/Arrima)
+    concernant le Canada. Mis à jour quotidiennement par agent IA.
+    """
+    ref_nr = models.CharField(max_length=100, unique=True, db_index=True)
+    title = models.CharField(max_length=350)
+    category = models.CharField(max_length=100, help_text="Ex: Tirage, Loi d'immigration, Opportunité, Communiqué")
+    published_date = models.CharField(max_length=100, blank=True, help_text="Date de publication de l'information")
+    summary = models.TextField(help_text="Résumé détaillé de l'actualité en français")
+    url_source = models.URLField(max_length=500, help_text="Lien officiel source vérifié (Canada.ca / IRCC)")
+
+    is_active = models.BooleanField(default=True, db_index=True)
+    fetched_at = models.DateTimeField(auto_now_add=True)
+    last_seen = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-fetched_at"]
+        verbose_name = "Actualité Canada"
+        verbose_name_plural = "Actualités Canada"
+
+    def __str__(self):
+        return f"[{self.category}] {self.title}"
+
+    @property
+    def is_new(self):
+        from django.utils import timezone
+        import datetime
+        return (timezone.now() - self.fetched_at) < datetime.timedelta(hours=48)
+
+
+
 

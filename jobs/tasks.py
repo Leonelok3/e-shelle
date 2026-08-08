@@ -46,3 +46,17 @@ def fetch_canada_visitor_opps_task():
         log.error(f"fetch_canada_visitor_opps_task: Erreur lors de la recherche : {e}")
 
 
+@shared_task
+def fetch_canada_news_task():
+    """
+    Tâche Celery quotidienne pour récupérer les actualités d'immigration Canada.
+    """
+    log.info("fetch_canada_news_task: Démarrage de la recherche d'actualités...")
+    try:
+        call_command("fetch_canada_news")
+        log.info("fetch_canada_news_task: Recherche d'actualités terminée avec succès.")
+    except Exception as e:
+        log.error(f"fetch_canada_news_task: Erreur lors de la recherche : {e}")
+
+
+

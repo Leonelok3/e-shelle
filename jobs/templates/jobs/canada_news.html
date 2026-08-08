@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260226">
+{% endblock %}
+
+{% block title %}Actualités & Tirages Immigration Canada | E-Shelle{% endblock %}
+
+{% block content %}
+<div style="max-width:1100px;margin:0 auto;padding:2rem 1rem 4rem;font-family:'Outfit',sans-serif;">
+  
+  <!-- BREADCRUMBS -->
+  <div style="margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+    <a href="{% url 'canada_resume:programs_hub' %}" style="font-size:.85rem;color:#64748b;text-decoration:none;font-weight:600;">← Guide des Programmes</a>
+    <span style="font-size:.78rem;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:#f1f5f9;padding:.3rem .8rem;border-radius:20px;display:flex;align-items:center;gap:.3rem;">
+      🍁 Agent IA : Journal du Canada
+    </span>
+  </div>
+
+  <!-- HERO BANNER -->
+  <div style="background:linear-gradient(135deg,#C8102E,#0A0A0A);color:#fff;border-radius:1rem;padding:2.5rem;margin-bottom:2.5rem;position:relative;overflow:hidden;box-shadow:0 10px 25px rgba(200,16,46,0.15);">
+    <div style="position:absolute;right:-20px;bottom:-20px;font-size:7rem;opacity:0.1;pointer-events:none;transform:rotate(10deg);">🍁</div>
+    <h1 style="font-size:1.85rem;font-weight:800;margin:0 0 .5rem;">🍁 Journal & Actualités Immigration Canada</h1>
+    <p style="color:rgba(255,255,255,0.9);margin:0;font-size:.95rem;max-width:680px;line-height:1.5;">
+      Suivez au jour le jour les dernières actualités officielles d'immigration, les nouveaux tirages (Express Entry & Arrima) ainsi que les modifications législatives du gouvernement canadien.
+    </p>
+  </div>
+
+  <!-- FILTRES -->
+  <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:1.5rem;margin-bottom:2rem;box-shadow:0 4px 15px rgba(0,0,0,0.015);">
+    <form method="get" style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:1rem;align-items:flex-end;flex-wrap:wrap;">
+      
+      <!-- Keyword -->
+      <div>
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#C8102E;margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.05em;">Rechercher un sujet</label>
+        <input type="text" name="q" value="{{ q }}" placeholder="Ex: Tirage, Entrée Express, Loi, IRCC..."
+               style="width:100%;padding:.6rem .9rem;border-radius:.5rem;border:1.5px solid #cbd5e1;background:#fff;color:#1e293b;font-size:.9rem;outline:none;box-sizing:border-box;">
+      </div>
+
+      <!-- Category -->
+      <div>
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#C8102E;margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.05em;">Catégorie</label>
+        <select name="category" style="width:100%;padding:.6rem .9rem;border-radius:.5rem;border:1.5px solid #cbd5e1;background:#fff;color:#1e293b;font-size:.9rem;outline:none;box-sizing:border-box;">
+          <option value="">Toutes les catégories</option>
+          {% for cat in categories %}
+            <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Buttons -->
+      <div style="display:flex;gap:.5rem;">
+        <button type="submit" style="padding:.65rem 1.5rem;background:#C8102E;color:#fff;border:none;border-radius:.5rem;font-weight:700;cursor:pointer;font-size:.9rem;">
+          Filtrer
+        </button>
+        {% if q or category %}
+          <a href="?" style="padding:.65rem 1.2rem;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:.5rem;text-decoration:none;font-weight:600;font-size:.9rem;display:inline-flex;align-items:center;">
+            Effacer
+          </a>
+        {% endif %}
+      </div>
+
+    </form>
+  </div>
+
+  <!-- COMPTEUR -->
+  <div style="margin-bottom:1.5rem;font-size:.85rem;color:#64748b;font-weight:600;">
+    📰 {{ total_news }} actualité{{ total_news|pluralize }} officielle{{ total_news|pluralize }} trouvée{{ total_news|pluralize }}
+  </div>
+
+  <!-- LISTE DES ACTUALITES -->
+  {% if news_list %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.5rem;">
+      {% for ns in news_list %}
+        <!-- Card -->
+        <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;position:relative;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 12px rgba(200,16,46,0.03);"
+             onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(200,16,46,0.08)';"
+             onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 12px rgba(200,16,46,0.03)';">
+          
+          {% if ns.is_new %}
+            <span style="position:absolute;top:.75rem;right:.75rem;background:#22c55e;color:#fff;font-size:.65rem;font-weight:800;padding:.25rem .75rem;border-radius:20px;letter-spacing:.05em;text-transform:uppercase;">Nouveau</span>
+          {% endif %}
+
+          <div>
+            <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;color:#C8102E;display:inline-block;background:#FFF5F5;padding:.2rem .6rem;border-radius:4px;margin-bottom:.5rem;">
+              {{ ns.category }}
+            </span>
+            <h3 style="font-size:1.15rem;font-weight:800;color:#102B4E;margin:0 0 .35rem;line-height:1.3;padding-right:4.5rem;">
+              {{ ns.title }}
+            </h3>
+            <div style="font-size:.82rem;color:#64748b;font-weight:700;margin-bottom:.5rem;">
+              📅 Publié le : {{ ns.published_date }}
+            </div>
+            <p style="font-size:.88rem;color:#475569;line-height:1.5;margin:0;">
+              {{ ns.summary }}
+            </p>
+          </div>
+
+          <div style="margin-top:auto;border-top:1px solid #f1f5f9;padding-top:1rem;display:flex;justify-content:space-between;align-items:center;">
+            {% if has_premium %}
+              <a href="{{ ns.url_source }}" target="_blank"
+                 style="font-size:.85rem;color:#C8102E;text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:.3rem;">
+                Consulter la source officielle 🔗
+              </a>
+            {% else %}
+              <a href="{% url 'accounts:upgrade' %}?app=prep"
+                 style="font-size:.85rem;color:#64748b;text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:.3rem;opacity:0.75;"
+                 onclick="alert('L\'accès aux liens officiels sources des tirages et actualités requiert un compte E-Shelle Canada Premium. Vous allez être redirigé vers les tarifs.');">
+                🔒 Source Premium (S'abonner)
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="text-align:center;padding:4rem 1rem;background:#fff;border-radius:1rem;border:1px solid #cbd5e1;">
+      <p style="font-size:1.1rem;font-weight:700;color:#102B4E;margin:0 0 .5rem;">Aucune actualité disponible</p>
+      <p style="color:#64748b;font-size:.9rem;margin:0;">Modifiez vos critères ou revenez plus tard pour voir les nouveautés quotidiennes.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

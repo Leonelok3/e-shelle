@@ -210,4 +210,39 @@ def canada_visitor_opps(request):
     return render(request, "jobs/canada_visitor_opps.html", context)
 
 
+def canada_news(request):
+    """
+    Actualités, communiqués officiels, lois sur l'immigration et tirages (Express Entry/Arrima) concernant le Canada.
+    """
+    has_premium = check_user_has_french_premium(request.user)
+    from .models import CanadaNews
+    
+    news_list = CanadaNews.objects.filter(is_active=True).order_by("-fetched_at")
+    
+    category = request.GET.get("category", "").strip()
+    q = request.GET.get("q", "").strip()
+    
+    if category:
+        news_list = news_list.filter(category=category)
+    if q:
+        news_list = news_list.filter(
+            Q(title__icontains=q) |
+            Q(summary__icontains=q)
+        )
+        
+    categories = CanadaNews.objects.filter(is_active=True).values_list("category", flat=True).distinct()
+    categories = sorted(list({c.strip() for c in categories if c}))
+    
+    context = {
+        "news_list": news_list,
+        "q": q,
+        "category": category,
+        "categories": categories,
+        "total_news": news_list.count(),
+        "has_premium": has_premium,
+    }
+    return render(request, "jobs/canada_news.html", context)
+
+
+
 
