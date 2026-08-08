@@ -387,6 +387,10 @@ PLANS = [
             "Derniers sujets d'examens réels avec correction complète",
             "Accès illimité : Toutes les offres d'emploi Canada",
             "Accès illimité : Bourses d'études & opportunités de visa Canada",
+            "Vérification de l'éligibilité (Calculateur CRS)",
+            "Accès à la liste exclusive des employeurs canadiens (EIMT)",
+            "Préparation intensive aux entretiens d'embauche",
+            "Coach IA pour l'immigration Canada",
         ],
     },
 ]
