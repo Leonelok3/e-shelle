@@ -153,7 +153,7 @@ class GeneratedCanadaResume(models.Model):
     
     language = models.CharField(
         max_length=5, 
-        choices=[("fr", "Français"), ("en", "Anglais")], 
+        choices=[("fr", "Français"), ("en", "Anglais"), ("bi", "Bilingue")], 
         default="fr"
     )
     
