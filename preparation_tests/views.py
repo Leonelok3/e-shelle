@@ -529,25 +529,24 @@ def verify_certificate(request, public_id):
 # =========================================================
 @login_required
 def start_mock_exam(request, exam_code, section_code):
-    exam = get_object_or_404(Exam, code=exam_code)
-    section = get_object_or_404(ExamSection, exam=exam, code=section_code)
+    exam_code = exam_code.upper()
+    
+    # Get user's level (default to A1)
+    user_level = "A1"
+    if hasattr(request.user, "profile") and request.user.profile and request.user.profile.level:
+        user_level = request.user.profile.level.upper()
+    if user_level not in ["A1", "A2", "B1", "B2", "C1", "C2"]:
+        user_level = "A1"
 
-    session = Session.objects.create(
-        user=request.user,
-        exam=exam,
-        section=section,
-        mode="mock",
-    )
-
-    Attempt.objects.create(
-        session=session,
-        section=section,
-    )
-
-    return redirect("preparation_tests:mock_exam_session", session_id=session.id)
-
-
-@login_required
+    if exam_code == "CECR":
+        # Redirect to the level-specific CECR mock exam (which generates using CourseLesson & CourseExercise)
+        return redirect("preparation_tests:level_mock_exam", level=user_level)
+    elif exam_code in ["TEF", "TCF", "DELF", "DALF"]:
+        # Redirect to the level-specific official mock exam (which generates using CourseLesson & CourseExercise)
+        return redirect("preparation_tests:exam_format_exam", exam_code=exam_code.lower(), level=user_level)
+    else:
+        # Fallback to level mock hub
+        return redirect("preparation_tests:level_mock_hub")
 def mock_exam_session(request, session_id):
     session = get_object_or_404(
         Session,
