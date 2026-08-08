@@ -36,10 +36,6 @@ def check_user_has_paid_edu_subscription(user) -> bool:
 
 @login_required
 def dashboard(request):
-    if not check_user_has_paid_edu_subscription(request.user):
-        messages.warning(request, "Le constructeur de CV aux normes canadiennes est réservé aux abonnés Premium.")
-        return redirect(reverse("accounts:upgrade") + f"?app=prep&next={request.get_full_path()}")
-
     try:
         profile = CanadaCVProfile.objects.get(user=request.user)
     except CanadaCVProfile.DoesNotExist:
@@ -180,9 +176,6 @@ def delete_language(request, pk):
 
 @login_required
 def generate_resume(request, offer_pk=None):
-    if not check_user_has_paid_edu_subscription(request.user):
-        messages.warning(request, "La génération de CV aux normes canadiennes est réservée aux abonnés Premium.")
-        return redirect(reverse("accounts:upgrade") + f"?app=prep&next={request.get_full_path()}")
     offer = None
     if offer_pk:
         offer = get_object_or_404(CanadaJobOffer, pk=offer_pk)
@@ -270,9 +263,12 @@ def download_resume_docx(request, pk):
     # Nettoyage de l'HTML (Sanitisation des sauts de ligne excessifs et paragraphes vides)
     clean_html = re.sub(r'<style[^>]*>.*?</style>', '', resume.content_html, flags=re.DOTALL)
     clean_html = re.sub(r'<script[^>]*>.*?</script>', '', clean_html, flags=re.DOTALL)
-    clean_html = re.sub(r'(?:<br\s*/?>\s*){2,}', '<br/>', clean_html)
+    clean_html = re.sub(r'(?:<br\s*/?>\s*)+', '<br/>', clean_html)
+    
+    # Strip layout divs entirely so we only rely on p/ul/li/h tags for paragraphs, preventing extra spacing
+    clean_html = re.sub(r'</?div[^>]*>', '', clean_html)
+    
     clean_html = re.sub(r'<p\b[^>]*>\s*(?:&nbsp;|<br\s*/?>|\s)*</p>', '', clean_html)
-    clean_html = re.sub(r'<div\b[^>]*>\s*(?:&nbsp;|<br\s*/?>|\s)*</div>', '', clean_html)
     
     # Remplacement simple des balises HTML pour docx
     from html.parser import HTMLParser
@@ -438,13 +434,21 @@ def _call_ai_generate_canada(candidate_context: str, offer_context: str, lang_ch
             "Your task is to generate two professional documents in English for the candidate:\n"
             "1. An ATS-friendly Canadian resume (HTML format).\n"
             "2. A compelling Canadian cover letter (Text format).\n\n"
-            "CRITICAL CANADIAN RESUME AND COVER LETTER RULES:\n"
+            "CRITICAL CANADIAN RESUME RULES:\n"
             "- NO photo. Never include or leave a placeholder for a photo.\n"
             "- NO birth date, age, marital status, gender, or nationality. Including these is illegal in Canada and causes ATS rejection.\n"
-            "- Focus on quantitative accomplishments, action verbs, and transferable skills matched to the target job description.\n"
             "- Use clean single-column format for the HTML layout with standard headings: SUMMARY, EXPERIENCE, EDUCATION, SKILLS.\n"
-            "- CONCISENESS & SPACING: Keep the HTML resume extremely compact. Do not insert empty paragraphs, consecutive <br> tags, or large margin/padding styles. It should be formatted tightly to fit easily on one page.\n"
-            "- The Cover Letter must start with candidate coordinates, date, employer details (or general hiring team), subject line in bold (using **), body text, and closing (Sincerely, [Candidate Name]).\n\n"
+            "- ATS-FRIENDLY & COMPACT STYLE RULES:\n"
+            "  * Wrap the entire resume in: <div style=\"font-family:'Calibri', 'Arial', sans-serif; line-height:1.25; font-size:10.5pt; color:#1e293b; max-width:800px; margin:0 auto; padding:0;\">\n"
+            "  * Name Header: Use <h1 style=\"text-align:center; font-size:18pt; font-weight:bold; color:#102B4E; margin:0 0 4px 0; padding:0;\">[Full Name]</h1>\n"
+            "  * Contact Info: Use <p style=\"text-align:center; font-size:9.5pt; color:#475569; margin:0 0 12px 0; padding:0;\">[Email] | [Phone] | [Address] | [LinkedIn]</p>\n"
+            "  * Section Headings (SUMMARY, EXPERIENCE, etc.): Use <h2 style=\"font-size:12pt; font-weight:bold; color:#102B4E; border-bottom:1.5px solid #102B4E; margin:14px 0 6px 0; padding:0 0 2px 0; text-transform:uppercase;\">[Heading]</h2>\n"
+            "  * Job Title / Degree entries: Use <div style=\"display:flex; justify-content:space-between; font-weight:bold; font-size:10pt; color:#1e293b; margin:6px 0 2px 0;\"><span>[Title/Degree] at [Company/School]</span><span>[Period/Years]</span></div>\n"
+            "  * Location: Use <p style=\"font-style:italic; font-size:9.5pt; color:#475569; margin:0 0 4px 0;\">[City, Province/Country]</p>\n"
+            "  * Achievements list: Use <ul style=\"padding-left:16px; margin:2px 0 6px 0;\"> and <li style=\"margin-bottom:2px; font-size:9.5pt; color:#334155;\">[Bullet]</li>\n"
+            "  * Prohibited: Do NOT use consecutive <br> tags, empty paragraphs like <p>&nbsp;</p> or large blank margin/padding. Keep everything compact so it fits beautifully on 1 page.\n\n"
+            "CRITICAL COVER LETTER RULES:\n"
+            "- The Cover Letter must start with candidate coordinates, date, employer details, subject line in bold (using **), body text, and closing (Sincerely, [Candidate Name]).\n\n"
             "RESPONSE FORMAT:\n"
             "Output the raw HTML for the resume first. Do not wrap in ```html block.\n"
             "Then output the divider exactly:\n"
@@ -457,13 +461,21 @@ def _call_ai_generate_canada(candidate_context: str, offer_context: str, lang_ch
             "Ta tâche est de générer deux documents professionnels en Français canadien pour le candidat :\n"
             "1. Un CV au format canadien compatible ATS (format HTML).\n"
             "2. Une lettre de présentation / motivation convaincante (format Texte).\n\n"
-            "RÈGLES CRITIQUES DU FORMAT CANADIEN :\n"
+            "RÈGLES CRITIQUES DU CV CANADIEN :\n"
             "- AUCUNE photo. Ne jamais inclure de photo ni de zone réservée pour une photo.\n"
-            "- AUCUNE mention de l'âge, date de naissance, genre, statut marital ou nationalité (Interdit par les lois canadiennes sur les droits de la personne).\n"
-            "- CV rédigé en colonne simple, propre et lisible avec des rubriques standards : PROFIL, EXPÉRIENCE PROFESSIONNELLE, FORMATION, COMPÉTENCES.\n"
-            "- CONSIGNES DE CONCISION : Évite absolument les espaces vides géants, les paragraphes vides ou les sauts de ligne multiples consécutifs (<br><br>). Le CV doit être très dense et compact pour tenir idéalement sur une seule page.\n"
-            "- Valorise les compétences transférables, utilise des verbes d'action et présente des réalisations chiffrées/concrètes.\n"
-            "- La Lettre de Motivation doit débuter par les coordonnées, la date, l'adresse de l'employeur (ou recrutement), la ligne d'objet en gras (avec **), le corps du texte et la formule de politesse finale (Cordialement, [Nom du Candidat]).\n\n"
+            "- AUCUNE mention de l'âge, date de naissance, genre, statut marital ou nationalité (Interdit par la loi).\n"
+            "- CV rédigé en colonne simple avec des rubriques standards : PROFIL, EXPÉRIENCE PROFESSIONNELLE, FORMATION, COMPÉTENCES.\n"
+            "- RÈGLES DE STYLE ATS COMPACT ET PROFESSIONNEL :\n"
+            "  * Enveloppe tout le CV dans : <div style=\"font-family:'Calibri', 'Arial', sans-serif; line-height:1.25; font-size:10.5pt; color:#1e293b; max-width:800px; margin:0 auto; padding:0;\">\n"
+            "  * En-tête Nom : Utilise <h1 style=\"text-align:center; font-size:18pt; font-weight:bold; color:#102B4E; margin:0 0 4px 0; padding:0;\">[Nom Complet]</h1>\n"
+            "  * Coordonnées : Utilise <p style=\"text-align:center; font-size:9.5pt; color:#475569; margin:0 0 12px 0; padding:0;\">[Email] | [Téléphone] | [Adresse] | [LinkedIn]</p>\n"
+            "  * Titres de sections (PROFIL, EXPÉRIENCE PROFESSIONNELLE, etc.) : Utilise <h2 style=\"font-size:12pt; font-weight:bold; color:#102B4E; border-bottom:1.5px solid #102B4E; margin:14px 0 6px 0; padding:0 0 2px 0; text-transform:uppercase;\">[Titre]</h2>\n"
+            "  * Postes / Diplômes : Utilise <div style=\"display:flex; justify-content:space-between; font-weight:bold; font-size:10pt; color:#1e293b; margin:6px 0 2px 0;\"><span>[Poste/Diplôme] chez [Entreprise/École]</span><span>[Période/Années]</span></div>\n"
+            "  * Ville et Pays : Utilise <p style=\"font-style:italic; font-size:9.5pt; color:#475569; margin:0 0 4px 0;\">[Ville, Province/Pays]</p>\n"
+            "  * Listes à puces : Utilise <ul style=\"padding-left:16px; margin:2px 0 6px 0;\"> et <li style=\"margin-bottom:2px; font-size:9.5pt; color:#334155;\">[Puce]</li>\n"
+            "  * Interdictions : Ne pas utiliser de balises <br> consécutives, de paragraphes vides comme <p>&nbsp;</p> ou de marges géantes. Le CV doit être compact pour tenir sur 1 seule page.\n\n"
+            "RÈGLES DE LA LETTRE DE MOTIVATION :\n"
+            "- La Lettre doit débuter par les coordonnées du candidat, la date, l'adresse de l'employeur, l'objet en gras (avec **), le corps du texte et la salutation (Cordialement, [Nom du Candidat]).\n\n"
             "FORMAT DE LA RÉPONSE :\n"
             "Génère d'abord le code HTML brut du CV. Pas de bloc ```html.\n"
             "Insère ensuite exactement le délimiteur :\n"
