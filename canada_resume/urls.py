@@ -34,4 +34,6 @@ urlpatterns = [
     path("talents/<int:pk>/", views.talent_detail, name="talent_detail"),
     path("portfolio/", views.manage_projects, name="manage_projects"),
     path("portfolio/<int:pk>/supprimer/", views.delete_project, name="delete_project"),
+    path("ressources/", views.canada_resources, name="canada_resources"),
+    path("ressources/<int:pk>/telecharger/", views.download_resource, name="download_resource"),
 ]

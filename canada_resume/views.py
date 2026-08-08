@@ -11,7 +11,7 @@ from docx import Document
 from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
-from .models import CanadaCVProfile, CanadaCVExperience, CanadaCVEducation, CanadaCVLanguage, GeneratedCanadaResume, CanadaImmigrationProfile, CanadaCVProject
+from .models import CanadaCVProfile, CanadaCVExperience, CanadaCVEducation, CanadaCVLanguage, GeneratedCanadaResume, CanadaImmigrationProfile, CanadaCVProject, CanadaResource
 from .forms import CanadaCVProfileForm, CanadaCVExperienceForm, CanadaCVEducationForm, CanadaCVLanguageForm, CanadaImmigrationProfileForm, CanadaCVProjectForm
 from jobs.models import CanadaJobOffer
 
@@ -1086,5 +1086,63 @@ def talent_detail(request, pk):
             "is_pro": is_pro,
         }
     )
+
+
+def canada_resources(request):
+    """
+    Liste des ressources d'immigration Canada (PDF, Vidéos, Excel).
+    """
+    is_pro = check_user_has_paid_edu_subscription(request.user) if request.user.is_authenticated else False
+    
+    resources = CanadaResource.objects.filter(is_active=True)
+    
+    # Filtre par type
+    rtype = request.GET.get("type", "").strip()
+    if rtype:
+        resources = resources.filter(resource_type=rtype)
+        
+    # Recherche
+    q = request.GET.get("q", "").strip()
+    if q:
+        from django.db.models import Q
+        resources = resources.filter(
+            Q(title__icontains=q) |
+            Q(description__icontains=q)
+        )
+        
+    return render(
+        request,
+        "canada_resume/resources.html",
+        {
+            "resources": resources,
+            "selected_type": rtype,
+            "q": q,
+            "is_pro": is_pro,
+        }
+    )
+
+
+@login_required
+def download_resource(request, pk):
+    """
+    Télécharge ou visionne une ressource avec vérification Premium.
+    """
+    res = get_object_or_404(CanadaResource, pk=pk, is_active=True)
+    is_pro = check_user_has_paid_edu_subscription(request.user)
+    
+    if res.is_premium and not is_pro:
+        messages.warning(request, "Cette ressource est réservée aux membres Canada Premium. Veuillez souscrire à un abonnement.")
+        return redirect(reverse("accounts:upgrade") + "?app=prep")
+        
+    # Incrémenter le compteur
+    CanadaResource.objects.filter(pk=res.pk).update(downloads_count=res.downloads_count + 1)
+    
+    if res.resource_type == "video" and res.video_url:
+        return redirect(res.video_url)
+    elif res.file:
+        return redirect(res.file.url)
+        
+    messages.error(request, "Fichier ou lien vidéo non trouvé pour cette ressource.")
+    return redirect("canada_resume:canada_resources")
 
 

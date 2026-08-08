@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+
+{% block title %}Guides & Ressources Officielles Canada | E-Shelle{% endblock %}
+
+{% block content %}
+<div style="max-width:1100px;margin:0 auto;padding:2rem 1rem 4rem;font-family:'Outfit',sans-serif;">
+
+  <!-- TABS NAVIGATION -->
+  {% include "canada_resume/partials/canada_nav.html" %}
+
+  <!-- HERO BANNER -->
+  <div style="background:linear-gradient(135deg,#102B4E,#0f172a);color:#fff;border-radius:1rem;padding:2.5rem;margin-bottom:2.5rem;position:relative;overflow:hidden;box-shadow:0 10px 25px rgba(16,43,78,0.15);">
+    <div style="position:absolute;right:-20px;bottom:-20px;font-size:7rem;opacity:0.07;pointer-events:none;transform:rotate(10deg);">📚</div>
+    <h1 style="font-size:1.85rem;font-weight:800;margin:0 0 .5rem;">📚 Guides, Vidéos & Outils d'Immigration</h1>
+    <p style="color:rgba(255,255,255,0.85);margin:0;font-size:.95rem;max-width:680px;line-height:1.5;">
+      Téléchargez nos guides d'explications PDF, regardez nos vidéos d'aide pour remplir les formulaires de demande de visa, ou téléchargez nos fichiers Excel exclusifs d'employeurs.
+    </p>
+  </div>
+
+  <!-- FILTRES -->
+  <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:2rem;box-shadow:0 4px 15px rgba(0,0,0,0.015);">
+    <form method="get" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+      
+      <!-- Types Filtre -->
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+        <a href="?" 
+           style="padding:.5rem 1rem;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:700;transition:all .2s;
+           {% if not selected_type %}background:#102B4E;color:#fff;{% else %}background:#f1f5f9;color:#475569;{% endif %}">
+          Tous
+        </a>
+        <a href="?type=pdf" 
+           style="padding:.5rem 1rem;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:700;transition:all .2s;
+           {% if selected_type == 'pdf' %}background:#102B4E;color:#fff;{% else %}background:#f1f5f9;color:#475569;{% endif %}">
+          📄 Guides PDF
+        </a>
+        <a href="?type=video" 
+           style="padding:.5rem 1rem;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:700;transition:all .2s;
+           {% if selected_type == 'video' %}background:#102B4E;color:#fff;{% else %}background:#f1f5f9;color:#475569;{% endif %}">
+          🎥 Vidéos & Démos
+        </a>
+        <a href="?type=excel" 
+           style="padding:.5rem 1rem;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:700;transition:all .2s;
+           {% if selected_type == 'excel' %}background:#102B4E;color:#fff;{% else %}background:#f1f5f9;color:#475569;{% endif %}">
+          📊 Fichiers Excel
+        </a>
+      </div>
+
+      <!-- Recherche -->
+      <div style="display:flex;gap:.5rem;width:100%;max-width:320px;">
+        <input type="text" name="q" value="{{ q }}" placeholder="Rechercher une ressource..."
+               style="flex:1;padding:.5rem .75rem;border-radius:8px;border:1.5px solid #cbd5e1;font-size:.85rem;outline:none;">
+        <button type="submit" style="padding:.5rem 1.25rem;background:#102B4E;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.85rem;cursor:pointer;">
+          Rechercher
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- GRILLE DES RESSOURCES -->
+  {% if resources %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem;">
+      {% for r in resources %}
+        <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;position:relative;transition:all .2s;box-shadow:0 4px 12px rgba(16,43,78,0.02);"
+             onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(16,43,78,0.07)';"
+             onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 12px rgba(16,43,78,0.02)';">
+          
+          <!-- Icon & Type Badge -->
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:2.2rem;">
+              {% if r.resource_type == 'pdf' %}📄
+              {% elif r.resource_type == 'video' %}🎥
+              {% elif r.resource_type == 'excel' %}📊
+              {% else %}📦
+              {% endif %}
+            </div>
+            <div>
+              {% if r.is_premium %}
+                <span style="font-size:.7rem;font-weight:800;color:#C8102E;background:#FFF5F5;padding:.25rem .65rem;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:.25rem;">
+                  🔒 Premium
+                </span>
+              {% else %}
+                <span style="font-size:.7rem;font-weight:800;color:#22c55e;background:#F0FDF4;padding:.25rem .65rem;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:.25rem;">
+                  ✅ Gratuit
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Card Header & Description -->
+          <div>
+            <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.25rem;">
+              {{ r.get_resource_type_display }}
+            </span>
+            <h3 style="font-size:1.1rem;font-weight:800;color:#102B4E;margin:0 0 .5rem;line-height:1.35;">
+              {{ r.title }}
+            </h3>
+            <p style="font-size:.85rem;color:#475569;line-height:1.5;margin:0;">
+              {{ r.description }}
+            </p>
+          </div>
+
+          <!-- Card Footer & Action -->
+          <div style="margin-top:auto;border-top:1px solid #f1f5f9;padding-top:1rem;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:.75rem;color:#94a3b8;font-weight:600;">
+              {{ r.downloads_count }} vue{{ r.downloads_count|pluralize }}
+            </span>
+
+            {% if r.is_premium and not is_pro %}
+              <a href="{% url 'accounts:upgrade' %}?app=prep" 
+                 style="font-size:.82rem;background:#C8102E;color:#fff;text-decoration:none;font-weight:700;padding:.45rem 1rem;border-radius:8px;display:inline-flex;align-items:center;gap:.35rem;"
+                 onclick="return confirm('Cette ressource est réservée aux abonnés Premium. Vous allez être redirigé vers les offres.');">
+                🔒 Débloquer (Premium)
+              </a>
+            {% else %}
+              <a href="{% url 'canada_resume:download_resource' r.pk %}" 
+                 style="font-size:.82rem;background:#102B4E;color:#fff;text-decoration:none;font-weight:700;padding:.45rem 1rem;border-radius:8px;display:inline-flex;align-items:center;gap:.35rem;">
+                {% if r.resource_type == 'video' %}
+                  Regarder 🎥
+                {% else %}
+                  Télécharger 📥
+                {% endif %}
+              </a>
+            {% endif %}
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="text-align:center;padding:4rem 1rem;background:#fff;border-radius:1rem;border:1px solid #e2e8f0;color:#64748b;">
+      <p style="font-size:1.1rem;font-weight:700;margin:0 0 .5rem;">Aucune ressource disponible</p>
+      <p style="font-size:.88rem;margin:0;">Modifier vos filtres ou revenez plus tard.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -249,3 +249,57 @@ class CanadaCVProject(models.Model):
         return self.title
 
 
+class CanadaResource(models.Model):
+    """Ressources officielles d'immigration Canada (PDFs, Vidéos, Fichiers Excel, etc.)."""
+    RESOURCE_TYPES = [
+        ("pdf", "Guide PDF"),
+        ("video", "Tutoriel Vidéo"),
+        ("excel", "Fichier Excel"),
+        ("other", "Autre Ressource"),
+    ]
+    
+    title = models.CharField(max_length=200, verbose_name="Titre")
+    description = models.TextField(blank=True, verbose_name="Description / Résumé")
+    resource_type = models.CharField(
+        max_length=20,
+        choices=RESOURCE_TYPES,
+        default="pdf",
+        verbose_name="Type de ressource"
+    )
+    file = models.FileField(
+        upload_to="canada/resources/",
+        blank=True,
+        null=True,
+        verbose_name="Fichier joint (PDF, Excel...)"
+    )
+    video_url = models.URLField(
+        blank=True,
+        verbose_name="Lien URL de la vidéo (YouTube, Vimeo, etc.)"
+    )
+    is_premium = models.BooleanField(
+        default=True,
+        verbose_name="Contenu payant (Premium uniquement)"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Actif"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Date d'ajout"
+    )
+    downloads_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Nombre de téléchargements / vues"
+    )
+
+    class Meta:
+        verbose_name = "Ressource Canada"
+        verbose_name_plural = "Ressources Canada"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"[{self.get_resource_type_display()}] {self.title}"
+
+
+

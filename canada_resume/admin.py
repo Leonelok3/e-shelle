@@ -34,6 +34,16 @@ class CanadaCVLanguageAdmin(admin.ModelAdmin):
     search_fields = ("language", "user__email")
 
 
+from .models import CanadaCVProfile, CanadaCVExperience, CanadaCVEducation, CanadaCVLanguage, GeneratedCanadaResume, CanadaImmigrationProfile, CanadaResource
+
+@admin.register(CanadaResource)
+class CanadaResourceAdmin(admin.ModelAdmin):
+    list_display = ("title", "resource_type", "is_premium", "is_active", "downloads_count", "created_at")
+    list_filter = ("resource_type", "is_premium", "is_active", "created_at")
+    search_fields = ("title", "description")
+    ordering = ("-created_at",)
+
+
 @admin.register(GeneratedCanadaResume)
 class GeneratedCanadaResumeAdmin(admin.ModelAdmin):
     list_display = ("user", "offer_title", "language", "created_at")
