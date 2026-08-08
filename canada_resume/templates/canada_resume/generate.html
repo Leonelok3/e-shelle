@@ -18,7 +18,7 @@
   <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:2rem;box-shadow:0 4px 15px rgba(0,0,0,0.025);">
     <h2 style="font-size:1.2rem;font-weight:800;color:#102B4E;margin:0 0 1.25rem;border-bottom:1px solid #f1f5f9;padding-bottom:.5rem;">⚙️ Paramètres de génération</h2>
     
-    <form method="post">
+    <form method="post" onsubmit="handleFormSubmit(this)">
       {% csrf_token %}
 
       <!-- LANGUE DE GÉNÉRATION -->
@@ -95,4 +95,16 @@ input[type=text]:focus, select:focus {
   border-color: #102B4E !important;
 }
 </style>
+<script>
+function handleFormSubmit(form) {
+  const button = form.querySelector('button[type="submit"]');
+  if (button) {
+    button.disabled = true;
+    button.style.background = '#64748b';
+    button.style.cursor = 'not-allowed';
+    button.style.boxShadow = 'none';
+    button.innerHTML = '⏳ Génération en cours... Patientez quelques instants';
+  }
+}
+</script>
 {% endblock %}
