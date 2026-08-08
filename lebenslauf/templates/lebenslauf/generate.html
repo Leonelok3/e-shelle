@@ -49,12 +49,70 @@
     </button>
   </form>
 </div>
+<!-- MODAL OVERLAY DE GÉNÉRATION PREMIUM -->
+<div id="loading-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:9999; align-items:center; justify-content:center; flex-direction:column; color:#fff; font-family:'Outfit', 'Arial', sans-serif;">
+  <div style="background:#1e293b; border:1px solid #334155; padding:2.5rem; border-radius:1.5rem; max-width:450px; width:90%; text-align:center; box-shadow:0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+    <div style="font-size:3.5rem; margin-bottom:1rem; display:inline-block; animation: pulse 1.8s infinite ease-in-out;">🤖</div>
+    <h3 style="font-size:1.4rem; font-weight:800; margin:0 0 0.5rem 0; color:#fff;">Génération IA en cours...</h3>
+    <p style="font-size:0.9rem; color:#94a3b8; margin:0 0 1.75rem 0; line-height:1.5;">Wir passen Ihren Lebenslauf und Ihr Anschreiben nach deutschen Standards an.</p>
+    
+    <div style="background:#334155; border-radius:9999px; height:12px; width:100%; overflow:hidden; margin-bottom:0.75rem; border: 1px solid rgba(255,255,255,0.05);">
+      <div id="loading-progress-bar" style="background:linear-gradient(90deg, #4f46e5, #7c3aed); height:100%; width:0%; border-radius:9999px; transition:width 0.4s ease;"></div>
+    </div>
+    
+    <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#94a3b8; font-weight:500;">
+      <span id="loading-status-text">Analysiere Berufsdaten...</span>
+      <span id="loading-pct-text">0%</span>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(79, 70, 229, 0)); }
+  50% { transform: scale(1.15); filter: drop-shadow(0 0 15px rgba(79, 70, 229, 0.6)); }
+}
+</style>
+
 <script>
 document.querySelector('form').addEventListener('submit', function() {
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+  }
   var btn = document.getElementById('gen-btn');
   btn.textContent = '⏳ Generation en cours...';
   btn.disabled = true;
   btn.style.opacity = '.6';
+  
+  const bar = document.getElementById('loading-progress-bar');
+  const pctText = document.getElementById('loading-pct-text');
+  const statusText = document.getElementById('loading-status-text');
+  
+  const statuses = [
+    { limit: 15, text: "Lese Profildaten..." },
+    { limit: 35, text: "Analysiere Stellenbeschreibung..." },
+    { limit: 55, text: "Übersetzung und Anpassung..." },
+    { limit: 75, text: "Strukturierung des Lebenslaufs..." },
+    { limit: 92, text: "Erstellung des Anschreibens..." },
+    { limit: 98, text: "Dateien werden finalisiert..." }
+  ];
+  
+  let progress = 0;
+  const interval = setInterval(() => {
+    if (progress < 40) {
+      progress += Math.floor(Math.random() * 3) + 2;
+    } else if (progress < 75) {
+      progress += Math.floor(Math.random() * 2) + 1;
+    } else if (progress < 98) {
+      progress += 1;
+    }
+    if (progress > 98) progress = 98;
+    if (bar) bar.style.width = progress + '%';
+    if (pctText) pctText.innerText = progress + '%';
+    const currentStatus = statuses.find(s => progress <= s.limit) || statuses[statuses.length - 1];
+    if (statusText) statusText.innerText = currentStatus.text;
+  }, 250);
 });
 </script>
 {% endblock %}

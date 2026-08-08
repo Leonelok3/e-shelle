@@ -95,16 +95,91 @@ input[type=text]:focus, select:focus {
   border-color: #102B4E !important;
 }
 </style>
+
+<!-- MODAL OVERLAY DE GÉNÉRATION PREMIUM -->
+<div id="loading-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:9999; align-items:center; justify-content:center; flex-direction:column; color:#fff; font-family:'Outfit', 'Arial', sans-serif;">
+  <div style="background:#1e293b; border:1px solid #334155; padding:2.5rem; border-radius:1.5rem; max-width:450px; width:90%; text-align:center; box-shadow:0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+    <!-- Robot / IA Icon animate -->
+    <div style="font-size:3.5rem; margin-bottom:1rem; display:inline-block; animation: pulse 1.8s infinite ease-in-out;">🤖</div>
+    
+    <h3 style="font-size:1.4rem; font-weight:800; margin:0 0 0.5rem 0; color:#fff;">Génération IA en cours...</h3>
+    <p style="font-size:0.9rem; color:#94a3b8; margin:0 0 1.75rem 0; line-height:1.5;">Nous adaptons votre CV et rédigeons votre lettre de motivation selon les normes canadiennes (ATS-friendly).</p>
+    
+    <!-- Progress Bar Container -->
+    <div style="background:#334155; border-radius:9999px; height:12px; width:100%; overflow:hidden; margin-bottom:0.75rem; border: 1px solid rgba(255,255,255,0.05);">
+      <div id="loading-progress-bar" style="background:linear-gradient(90deg, #E3000F, #ff5e62); height:100%; width:0%; border-radius:9999px; transition:width 0.4s ease;"></div>
+    </div>
+    
+    <!-- Progress Details -->
+    <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#94a3b8; font-weight:500;">
+      <span id="loading-status-text">Initialisation des modules...</span>
+      <span id="loading-pct-text">0%</span>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(227, 0, 15, 0)); }
+  50% { transform: scale(1.15); filter: drop-shadow(0 0 15px rgba(227, 0, 15, 0.6)); }
+}
+</style>
+
 <script>
 function handleFormSubmit(form) {
+  // Afficher l'overlay de chargement
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+  }
+  
+  // Désactiver le bouton d'envoi principal
   const button = form.querySelector('button[type="submit"]');
   if (button) {
     button.disabled = true;
-    button.style.background = '#64748b';
+    button.style.background = '#475569';
     button.style.cursor = 'not-allowed';
     button.style.boxShadow = 'none';
-    button.innerHTML = '⏳ Génération en cours... Patientez quelques instants';
+    button.innerHTML = '⏳ Génération en cours...';
   }
+  
+  // Animer la barre de progression simulée sur ~15-20 secondes
+  const bar = document.getElementById('loading-progress-bar');
+  const pctText = document.getElementById('loading-pct-text');
+  const statusText = document.getElementById('loading-status-text');
+  
+  const statuses = [
+    { limit: 15, text: "Lecture de l'historique professionnel..." },
+    { limit: 35, text: "Analyse de la description de l'offre d'emploi..." },
+    { limit: 55, text: "Traduction et alignement ATS canadien..." },
+    { limit: 75, text: "Optimisation stratégique des mots-clés..." },
+    { limit: 92, text: "Rédaction de la lettre de présentation..." },
+    { limit: 98, text: "Finalisation et assemblage des fichiers..." }
+  ];
+  
+  let progress = 0;
+  const interval = setInterval(() => {
+    // Progression irrégulière pour paraître naturelle et organique
+    if (progress < 40) {
+      progress += Math.floor(Math.random() * 3) + 2;
+    } else if (progress < 75) {
+      progress += Math.floor(Math.random() * 2) + 1;
+    } else if (progress < 98) {
+      progress += 1;
+    }
+    
+    if (progress > 98) {
+      progress = 98;
+    }
+    
+    // Mettre à jour l'affichage
+    if (bar) bar.style.width = progress + '%';
+    if (pctText) pctText.innerText = progress + '%';
+    
+    // Mettre à jour le texte d'étape actuel
+    const currentStatus = statuses.find(s => progress <= s.limit) || statuses[statuses.length - 1];
+    if (statusText) statusText.innerText = currentStatus.text;
+  }, 250);
 }
 </script>
 {% endblock %}
