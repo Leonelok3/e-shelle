@@ -58,6 +58,9 @@
   .btn-contact { background: #102B4E; color: #fff; border: none; border-radius: 8px; padding: .55rem 1rem; font-size: .82rem; font-weight: 700; cursor: pointer; transition: background .2s; display: inline-flex; align-items: center; gap: .35rem; }
   .btn-contact:hover { background: #1a4276; }
 
+  .btn-profile { background: #fff; color: #C8102E; border: 1.5px solid #C8102E; border-radius: 8px; padding: .5rem .85rem; font-size: .82rem; font-weight: 700; cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; gap: .35rem; text-decoration: none; }
+  .btn-profile:hover { background: #FFF5F5; }
+
   /* Modal contact styling */
   .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
   .modal-box { background: #fff; border-radius: 16px; max-width: 500px; width: 100%; padding: 2rem; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.25); transform: translateY(-20px); transition: transform 0.3s; }
@@ -73,11 +76,8 @@
 {% block content %}
 <div class="talents-wrap">
 
-  <nav class="talents-bc">
-    <a href="{% url 'canada_resume:dashboard' %}">Canada</a>
-    <span>›</span>
-    <span>Annuaire des Candidats</span>
-  </nav>
+  <!-- NAVIGATION TABS -->
+  {% include "canada_resume/partials/canada_nav.html" %}
 
   <div class="talents-hero">
     <p class="talents-hero-kicker">E-Shelle · Recrutement International</p>
@@ -144,9 +144,14 @@
 
           <div class="talent-footer">
             <span style="font-size:.78rem;color:#94a3b8;">Mis à jour : {{ talent.updated_at|date:"d/m/Y" }}</span>
-            <button class="btn-contact" onclick="openContactModal('{{ talent.full_name|escapejs }}', '{{ talent.email|escapejs }}', '{{ talent.phone|escapejs }}', '{{ talent.linkedin|escapejs }}')">
-              Contacter ✉️
-            </button>
+            <div style="display:flex;gap:.35rem;">
+              <a class="btn-profile" href="{% url 'canada_resume:talent_detail' talent.pk %}">
+                Profil 👁️
+              </a>
+              <button class="btn-contact" onclick="openContactModal('{{ talent.full_name|escapejs }}', '{{ talent.email|escapejs }}', '{{ talent.phone|escapejs }}', '{{ talent.linkedin|escapejs }}')">
+                Contacter ✉️
+              </button>
+            </div>
           </div>
         </div>
       {% endfor %}

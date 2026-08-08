@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+
+{% block title %}Profil de {{ talent.full_name }} | E-Shelle Canada{% endblock %}
+
+{% block meta %}
+<meta name="description" content="Découvrez le profil professionnel de {{ talent.full_name }}, candidat qualifié pour le Canada en {{ talent.target_sector }}. Visionnez son portfolio de réalisations.">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 4rem; font-family:'Outfit',sans-serif; }
+  
+  /* Profile Header */
+  .profile-header-card { background:#fff; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; box-shadow: 0 4px 15px rgba(0,0,0,0.015); }
+  .profile-avatar-big { width: 80px; height: 80px; border-radius: 50%; background: #FDE8E6; color: #C8102E; font-weight: 800; font-size: 2rem; display: flex; align-items: center; justify-content: center; }
+  .profile-info { flex: 1; min-width: 250px; }
+  .profile-name { font-size: 1.55rem; font-weight: 800; color: #102B4E; margin: 0 0 .35rem; }
+  .profile-tagline { font-size: .8rem; font-weight: 800; text-transform: uppercase; color: #C8102E; display: inline-block; background: #FFF5F5; padding: .25rem .75rem; border-radius: 6px; margin-bottom: .5rem; }
+  .profile-loc { font-size: .9rem; color: #64748b; margin: 0; }
+  
+  /* Contact card */
+  .contact-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; min-width: 300px; }
+  .contact-panel-title { font-size: .78rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; margin: 0 0 .75rem; }
+  .contact-link { display: flex; align-items: center; gap: .5rem; font-size: .88rem; color: #475569; text-decoration: none; margin-bottom: .5rem; font-weight: 600; }
+  .contact-link:hover { color: #C8102E; }
+  .contact-link:last-child { margin-bottom: 0; }
+
+  /* 2 Columns layout */
+  .profile-layout { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start; }
+  .section-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.50rem; margin-bottom: 1.5rem; }
+  .section-title { font-size: 1.15rem; font-weight: 800; color: #102B4E; margin: 0 0 1.25rem; border-bottom: 1.5px solid #f1f5f9; padding-bottom: .5rem; display: flex; align-items: center; gap: .5rem; }
+  
+  /* Timeline styling */
+  .timeline { position: relative; border-left: 2px solid #e2e8f0; padding-left: 1.25rem; margin-left: .5rem; }
+  .timeline-item { position: relative; margin-bottom: 1.50rem; }
+  .timeline-item:last-child { margin-bottom: 0; }
+  .timeline-marker { position: absolute; left: -25px; top: 3px; width: 8px; height: 8px; border-radius: 50%; background: #C8102E; border: 4px solid #fff; box-shadow: 0 0 0 2px #e2e8f0; }
+  .timeline-date { font-size: .8rem; font-weight: 700; color: #94a3b8; margin-bottom: .25rem; }
+  .timeline-title { font-size: .95rem; font-weight: 800; color: #1e293b; margin: 0 0 .2rem; }
+  .timeline-sub { font-size: .85rem; font-weight: 600; color: #475569; margin: 0 0 .5rem; }
+  .timeline-desc { font-size: .85rem; color: #64748b; margin: 0; line-height: 1.45; }
+
+  /* Portfolio grid */
+  .portfolio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
+  .project-card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; overflow: hidden; display: flex; flex-direction: column; transition: transform .2s, box-shadow .2s; }
+  .project-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.04); }
+  .project-img { width: 100%; height: 160px; object-fit: cover; border-bottom: 1px solid #e2e8f0; }
+  .project-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+  .project-title { font-size: .95rem; font-weight: 800; color: #1e293b; margin: 0 0 .4rem; }
+  .project-desc { font-size: .82rem; color: #64748b; line-height: 1.45; margin: 0 0 1rem; }
+  
+  .btn-demo { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; border-radius: 6px; padding: .45rem .85rem; font-size: .78rem; font-weight: 700; text-decoration: none; text-align: center; }
+  .btn-demo-primary { background: #C8102E; color: #fff; }
+  .btn-demo-primary:hover { background: #960c22; }
+  .btn-demo-secondary { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+  .btn-demo-secondary:hover { background: #e2e8f0; }
+
+  @media (max-width: 800px) {
+    .profile-layout { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-wrap">
+
+  <!-- NAVIGATION TABS -->
+  {% include "canada_resume/partials/canada_nav.html" %}
+
+  <div style="margin-bottom:1.5rem;">
+    <a href="{% url 'canada_resume:talents_directory' %}" style="font-size:.85rem;color:#64748b;text-decoration:none;font-weight:700;">← Retour à l'annuaire des candidats</a>
+  </div>
+
+  <!-- Header Card -->
+  <div class="profile-header-card">
+    <div class="profile-avatar-big">
+      {{ talent.first_name|slice:":1" }}{{ talent.last_name|slice:":1" }}
+    </div>
+    <div class="profile-info">
+      <span class="profile-tagline">{{ talent.target_sector|default:"Général" }}</span>
+      <h1 class="profile-name">{{ talent.first_name }} {{ talent.last_name }}</h1>
+      <p class="profile-loc">📍 Actuellement à : {{ talent.address|default:"Non renseigné" }}</p>
+      {% if talent.target_provinces %}
+        <p style="font-size:.82rem;color:#475569;margin:.4rem 0 0;">Provinces cibles au Canada : <strong>{{ talent.target_provinces }}</strong></p>
+      {% endif %}
+    </div>
+    
+    <!-- Contact Details Box -->
+    <div class="contact-panel">
+      <p class="contact-panel-title">Coordonnées professionnelles</p>
+      {% if is_pro %}
+        <a class="contact-link" href="mailto:{{ talent.email }}">✉️ {{ talent.email }}</a>
+        {% if talent.phone %}
+          <a class="contact-link" href="tel:{{ talent.phone }}">📞 {{ talent.phone }}</a>
+        {% endif %}
+        {% if talent.linkedin %}
+          <a class="contact-link" href="{{ talent.linkedin }}" target="_blank">🔗 Profil LinkedIn</a>
+        {% endif %}
+      {% else %}
+        <p style="font-size:.78rem;color:#64748b;margin:0 0 .5rem;line-height:1.4;">Les informations de contact direct des candidats sont réservées aux membres Premium.</p>
+        <a href="{% url 'accounts:upgrade' %}?app=prep" style="display:inline-block;background:#C8102E;color:#fff;text-decoration:none;font-size:.78rem;font-weight:700;padding:.4rem 1rem;border-radius:6px;">Voir les coordonnées (Premium)</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="profile-layout">
+    
+    <!-- Left Column : Experiences and Educations -->
+    <div>
+      
+      <!-- Experiences -->
+      <div class="section-card">
+        <h2 class="section-title">💼 Expériences professionnelles</h2>
+        {% if experiences %}
+          <div class="timeline">
+            {% for exp in experiences %}
+              <div class="timeline-item">
+                <span class="timeline-marker"></span>
+                <div class="timeline-date">{{ exp.period_display_fr }}</div>
+                <h3 class="timeline-title">{{ exp.title }}</h3>
+                <div class="timeline-sub">{{ exp.company }} — {{ exp.city }} ({{ exp.province_country }})</div>
+                {% if exp.description %}
+                  <p class="timeline-desc">{{ exp.description }}</p>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="font-size:.85rem;color:#64748b;margin:0;font-style:italic;">Aucune expérience professionnelle renseignée.</p>
+        {% endif %}
+      </div>
+
+      <!-- Educations -->
+      <div class="section-card">
+        <h2 class="section-title">🎓 Formations & Diplômes</h2>
+        {% if educations %}
+          <div class="timeline" style="border-left-color:#e2e8f0;">
+            {% for edu in educations %}
+              <div class="timeline-item">
+                <span class="timeline-marker" style="background:#102B4E;"></span>
+                <div class="timeline-date">{{ edu.start_year }} – {{ edu.end_year|default:"Présent" }}</div>
+                <h3 class="timeline-title">{{ edu.degree }}</h3>
+                <div class="timeline-sub">{{ edu.school }} — {{ edu.city }} ({{ edu.province_country }})</div>
+                {% if edu.description %}
+                  <p class="timeline-desc">{{ edu.description }}</p>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="font-size:.85rem;color:#64748b;margin:0;font-style:italic;">Aucun diplôme ou formation renseignée.</p>
+        {% endif %}
+      </div>
+
+      <!-- Portfolio Section -->
+      <div class="section-card" style="grid-column: 1 / -1;">
+        <h2 class="section-title">🛠️ Portfolio & Réalisations du Candidat</h2>
+        {% if projects %}
+          <div class="portfolio-grid">
+            {% for p in projects %}
+              <div class="project-card">
+                {% if p.image %}
+                  <img class="project-img" src="{{ p.image.url }}" alt="{{ p.title }}">
+                {% else %}
+                  <div style="width:100%;height:160px;background:#f8fafc;display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:2.5rem;border-bottom:1px solid #e2e8f0;">
+                    🛠️
+                  </div>
+                {% endif %}
+                <div class="project-body">
+                  <div>
+                    <h3 class="project-title">{{ p.title }}</h3>
+                    <p class="project-desc">{{ p.description }}</p>
+                  </div>
+                  <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+                    {% if p.project_url %}
+                      <a class="btn-demo btn-demo-primary" href="{{ p.project_url }}" target="_blank">Voir le projet 🔗</a>
+                    {% endif %}
+                    {% if p.video_url %}
+                      <a class="btn-demo btn-demo-secondary" href="{{ p.video_url }}" target="_blank">🎥 Vidéo Démo</a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="font-size:.85rem;color:#64748b;margin:0;font-style:italic;">Le candidat n'a pas encore ajouté de réalisations à son portfolio.</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Right Column : Languages skills -->
+    <div>
+      <div class="section-card">
+        <h2 class="section-title">🗣️ Langues maîtrises</h2>
+        {% if languages %}
+          <div style="display:flex;flex-direction:column;gap:.75rem;">
+            {% for lang in languages %}
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:.75rem 1rem;">
+                <div style="font-size:.9rem;font-weight:800;color:#1e293b;margin-bottom:.2rem;">{{ lang.language }}</div>
+                <div style="font-size:.82rem;color:#475569;display:flex;justify-content:space-between;">
+                  <span>Niveau : <strong>{{ lang.proficiency }}</strong></span>
+                  {% if lang.certificate %}
+                    <span style="color:#C8102E;font-weight:700;">🏆 {{ lang.certificate }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="font-size:.85rem;color:#64748b;margin:0;font-style:italic;">Aucune compétence linguistique renseignée.</p>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

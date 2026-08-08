@@ -226,3 +226,26 @@ class CanadaImmigrationProfile(models.Model):
     def __str__(self):
         return f"Diagnostic Canada {self.user} - Score: {self.crs_score}"
 
+
+class CanadaCVProject(models.Model):
+    """Portfolio de réalisations du candidat."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name="canada_cv_projects"
+    )
+    title = models.CharField(max_length=200, help_text="Titre du projet ou de la réalisation")
+    description = models.TextField(help_text="Description de la réalisation, objectifs et résultats obtenus")
+    project_url = models.URLField(blank=True, help_text="Lien vers la réalisation (site web, démo, GitHub)")
+    image = models.ImageField(upload_to="canada/portfolio/", blank=True, null=True, help_text="Photo ou capture d'écran de la réalisation")
+    video_url = models.URLField(blank=True, help_text="Lien vidéo (YouTube, Vimeo, etc.) de présentation")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Réalisation / Projet"
+        verbose_name_plural = "Réalisations / Projets"
+        
+    def __str__(self):
+        return self.title
+
+

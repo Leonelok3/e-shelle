@@ -12,6 +12,9 @@
 {% block content %}
 <div style="max-width:950px;margin:0 auto;padding:2rem 1rem 4rem;font-family:'Outfit',sans-serif;">
 
+  <!-- NAVIGATION TABS -->
+  {% include "canada_resume/partials/canada_nav.html" %}
+
   <!-- HEADER -->
   <div style="margin-bottom:2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
     <div>
@@ -154,6 +157,25 @@
       </div>
       {% empty %}
         <p style="font-size:.85rem;color:#64748b;margin:0;">Aucune langue. <a href="{% url 'canada_resume:manage_languages' %}" style="color:#E3000F;font-weight:600;">Ajouter maintenant</a></p>
+      {% endfor %}
+    </div>
+
+    <!-- PORTFOLIO / REALISATIONS -->
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:1.5rem;box-shadow:0 4px 12px rgba(16,43,78,0.02);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;border-bottom:1px solid #f1f5f9;padding-bottom:.5rem;">
+        <h2 style="font-size:1.05rem;font-weight:800;color:#102B4E;margin:0;">🛠️ Portfolio ({{ projects|length }})</h2>
+        <a href="{% url 'canada_resume:manage_projects' %}" style="font-size:.82rem;color:#E3000F;text-decoration:none;font-weight:700;">+ Gérer</a>
+      </div>
+      {% for p in projects|slice:":3" %}
+      <div style="margin-bottom:.8rem;font-size:.88rem;display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-weight:700;color:#102B4E;">{{ p.title }}</div>
+          <div style="color:#64748b;font-size:.82rem;">{{ p.description|truncatewords:8 }}</div>
+        </div>
+        <a href="{% url 'canada_resume:delete_project' p.pk %}" style="font-size:.8rem;color:#ef4444;text-decoration:none;" onclick="return confirm('Supprimer ce projet du portfolio ?');">🗑</a>
+      </div>
+      {% empty %}
+        <p style="font-size:.85rem;color:#64748b;margin:0;">Aucune réalisation. <a href="{% url 'canada_resume:manage_projects' %}" style="color:#E3000F;font-weight:600;">Ajouter maintenant</a></p>
       {% endfor %}
     </div>
 

@@ -31,4 +31,7 @@ urlpatterns = [
     path("simulation-entretien/", views.interview_simulation, name="interview_simulation"),
     path("simulation-entretien/api/", views.interview_simulation_api, name="interview_simulation_api"),
     path("talents/", views.talents_directory, name="talents_directory"),
+    path("talents/<int:pk>/", views.talent_detail, name="talent_detail"),
+    path("portfolio/", views.manage_projects, name="manage_projects"),
+    path("portfolio/<int:pk>/supprimer/", views.delete_project, name="delete_project"),
 ]

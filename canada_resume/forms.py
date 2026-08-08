@@ -108,6 +108,9 @@ class CanadaCVEducationForm(forms.ModelForm):
         }
 
 
+from .models import CanadaCVProfile, CanadaCVExperience, CanadaCVEducation, CanadaCVLanguage, CanadaImmigrationProfile, CanadaCVProject
+
+
 class CanadaCVLanguageForm(forms.ModelForm):
     class Meta:
         model = CanadaCVLanguage
@@ -121,4 +124,24 @@ class CanadaCVLanguageForm(forms.ModelForm):
             "language": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: Français, Anglais"}),
             "proficiency": forms.Select(attrs={"class": "form-select"}),
             "certificate": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: TEF Canada CLB 9, IELTS 7.0"}),
+        }
+
+
+class CanadaCVProjectForm(forms.ModelForm):
+    class Meta:
+        model = CanadaCVProject
+        fields = ["title", "description", "project_url", "image", "video_url"]
+        labels = {
+            "title": "Titre du projet / Project Title",
+            "description": "Description de la réalisation / Description of achievement",
+            "project_url": "Lien vers la réalisation / Project URL Link",
+            "image": "Photo / Capture d'écran (Optionnel) / Screenshot (Optional)",
+            "video_url": "Lien vidéo de présentation (Optionnel) / Presentation Video Link (Optional)",
+        }
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: Application Mobile de Livraison, Site E-Commerce, Plan de Bâtiment"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4, "placeholder": "Expliquez les objectifs, défis et résultats concrets de cette réalisation..."}),
+            "project_url": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://github.com/... ou https://portfolio.com/mon-projet"}),
+            "image": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "video_url": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://youtube.com/watch?v=... ou Vimeo"}),
         }

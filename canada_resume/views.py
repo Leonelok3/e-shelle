@@ -11,8 +11,8 @@ from docx import Document
 from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
-from .models import CanadaCVProfile, CanadaCVExperience, CanadaCVEducation, CanadaCVLanguage, GeneratedCanadaResume, CanadaImmigrationProfile
-from .forms import CanadaCVProfileForm, CanadaCVExperienceForm, CanadaCVEducationForm, CanadaCVLanguageForm, CanadaImmigrationProfileForm
+from .models import CanadaCVProfile, CanadaCVExperience, CanadaCVEducation, CanadaCVLanguage, GeneratedCanadaResume, CanadaImmigrationProfile, CanadaCVProject
+from .forms import CanadaCVProfileForm, CanadaCVExperienceForm, CanadaCVEducationForm, CanadaCVLanguageForm, CanadaImmigrationProfileForm, CanadaCVProjectForm
 from jobs.models import CanadaJobOffer
 
 log = logging.getLogger(__name__)
@@ -44,6 +44,7 @@ def dashboard(request):
     experiences = CanadaCVExperience.objects.filter(user=request.user)
     educations = CanadaCVEducation.objects.filter(user=request.user)
     languages = CanadaCVLanguage.objects.filter(user=request.user)
+    projects = CanadaCVProject.objects.filter(user=request.user)
     generated = GeneratedCanadaResume.objects.filter(user=request.user)[:5]
 
     profile_complete = (
@@ -57,6 +58,7 @@ def dashboard(request):
         "experiences": experiences,
         "educations": educations,
         "languages": languages,
+        "projects": projects,
         "generated": generated,
         "profile_complete": profile_complete,
         "is_pro": check_user_has_paid_edu_subscription(request.user),
@@ -1028,6 +1030,60 @@ def talents_directory(request):
             "sectors": sectors,
             "selected_sector": sector,
             "is_pro": check_user_has_paid_edu_subscription(request.user) if request.user.is_authenticated else False,
+        }
+    )
+
+
+@login_required
+def manage_projects(request):
+    if request.method == "POST":
+        form = CanadaCVProjectForm(request.POST, request.FILES)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.user = request.user
+            obj.save()
+            messages.success(request, "Projet / Réalisation ajouté(e) au portfolio !")
+            return redirect("canada_resume:dashboard")
+    else:
+        form = CanadaCVProjectForm()
+
+    projects = CanadaCVProject.objects.filter(user=request.user)
+    return render(request, "canada_resume/manage_projects.html", {
+        "form": form, "projects": projects
+    })
+
+
+@login_required
+def delete_project(request, pk):
+    project = get_object_or_404(CanadaCVProject, pk=pk, user=request.user)
+    project.delete()
+    messages.success(request, "Réalisation supprimée du portfolio.")
+    return redirect("canada_resume:dashboard")
+
+
+def talent_detail(request, pk):
+    """
+    Fiche détaillée publique d'un candidat pour les recruteurs.
+    """
+    talent = get_object_or_404(CanadaCVProfile, pk=pk)
+    # Fetch all details for this candidate
+    experiences = CanadaCVExperience.objects.filter(user=talent.user)
+    educations = CanadaCVEducation.objects.filter(user=talent.user)
+    languages = CanadaCVLanguage.objects.filter(user=talent.user)
+    projects = CanadaCVProject.objects.filter(user=talent.user)
+    
+    is_pro = check_user_has_paid_edu_subscription(request.user) if request.user.is_authenticated else False
+    
+    return render(
+        request,
+        "canada_resume/talent_detail.html",
+        {
+            "talent": talent,
+            "experiences": experiences,
+            "educations": educations,
+            "languages": languages,
+            "projects": projects,
+            "is_pro": is_pro,
         }
     )
 

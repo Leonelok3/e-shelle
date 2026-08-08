@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}preparation-tests{% endblock %}
+
+{% block title %}Ajouter un projet à mon portfolio | E-Shelle Canada{% endblock %}
+
+{% block content %}
+<div style="max-width:700px;margin:0 auto;padding:2rem 1rem 4rem;font-family:'Outfit',sans-serif;">
+
+  <!-- TABS NAVIGATION -->
+  {% include "canada_resume/partials/canada_nav.html" %}
+
+  <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:2rem;box-shadow:0 10px 30px rgba(0,0,0,0.025);">
+    
+    <div style="margin-bottom:1.5rem;border-bottom:1.5px solid #f1f5f9;padding-bottom:1rem;">
+      <h2 style="font-size:1.45rem;font-weight:800;color:#102B4E;margin:0 0 .35rem;">🛠️ Mon Portfolio de Réalisations</h2>
+      <p style="color:#64748b;margin:0;font-size:.88rem;">Ajoutez des photos, des projets, des vidéos et des plans de travail pour séduire les employeurs canadiens.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      {% if form.errors %}
+        <div style="background:#FFF5F5;border:1px solid #FEB2B2;color:#C53030;padding:1rem;border-radius:8px;margin-bottom:1.5rem;font-size:.88rem;">
+          Veuillez corriger les erreurs ci-dessous.
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block;font-size:.82rem;font-weight:700;color:#1e293b;margin-bottom:.4rem;">
+            {{ field.label }}
+          </label>
+          {{ field }}
+          {% if field.help_text %}
+            <span style="display:block;font-size:.75rem;color:#64748b;margin-top:.25rem;line-height:1.4;">
+              {{ field.help_text }}
+            </span>
+          {% endif %}
+          {% for error in field.errors %}
+            <span style="display:block;font-size:.75rem;color:#E53E3E;margin-top:.2rem;font-weight:600;">
+              {{ error }}
+            </span>
+          {% endfor %}
+        </div>
+      {% endfor %}
+
+      <div style="margin-top:2rem;display:flex;gap:1rem;justify-content:flex-end;">
+        <a href="{% url 'canada_resume:dashboard' %}" 
+           style="padding:.65rem 1.5rem;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:10px;text-decoration:none;font-weight:700;font-size:.88rem;text-align:center;">
+          Annuler
+        </a>
+        <button type="submit" 
+                style="padding:.65rem 2rem;background:#C8102E;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:background-color .2s;"
+                onmouseover="this.style.backgroundColor='#960c22'"
+                onmouseout="this.style.backgroundColor='#C8102E'">
+          Enregistrer Réalisation ✨
+        </button>
+      </div>
+    </form>
+
+  </div>
+
+</div>
+{% endblock %}
