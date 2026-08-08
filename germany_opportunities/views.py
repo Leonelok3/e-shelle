@@ -3,8 +3,25 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.db.models import Q, Case, When, Value, IntegerField
+from django.contrib import messages
+from django.urls import reverse
 
 from .models import AusbildungOffer, ScholarshipOpportunity, UserOpportunityBookmark
+
+
+def check_user_has_germany_premium(user) -> bool:
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    try:
+        from accounts.models import AppSubscription
+        sub = AppSubscription.get_active_for_user(user, "allemand")
+        if sub and sub.is_active and not sub.plan.is_free:
+            return True
+    except Exception:
+        pass
+    return False
 
 
 SECTOR_LABELS = {
@@ -22,6 +39,7 @@ SECTOR_LABELS = {
 
 def catalogue(request):
     """Page principale des opportunites : filtres + grille d'offres."""
+    has_premium = check_user_has_germany_premium(request.user)
     sector    = request.GET.get("sector", "")
     level     = request.GET.get("level", "")
     city_q    = request.GET.get("city", "")
@@ -103,12 +121,17 @@ def catalogue(request):
         "sector_choices": AusbildungOffer.SECTOR_CHOICES,
         "level_choices":  AusbildungOffer.LANGUAGE_CHOICES,
         "has_active_filters": has_active_filters,
+        "has_premium": has_premium,
     }
     return render(request, "germany_opportunities/catalogue.html", context)
 
 
 def offer_detail(request, pk):
     """Detail d'une offre Ausbildung."""
+    has_premium = check_user_has_germany_premium(request.user)
+    if not has_premium:
+        messages.warning(request, "L'accès aux détails des opportunités est réservé aux abonnés Premium.")
+        return redirect(f"{reverse('accounts:upgrade')}?app=allemand&next={request.get_full_path()}")
     offer = get_object_or_404(AusbildungOffer, pk=pk, is_active=True)
     is_bookmarked = False
     if request.user.is_authenticated:

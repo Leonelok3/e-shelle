@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from django.conf import settings
+from django.urls import reverse
 
 from .models import GermanCVProfile, CVExperience, CVEducation, CVLanguage, GeneratedLebenslauf
 from .forms import CVProfileForm, CVExperienceForm, CVEducationForm, CVLanguageForm
@@ -71,6 +72,10 @@ utilisant des classes CSS : .lebenslauf, .section-title, .entry, .entry-date,
 @login_required
 def dashboard(request):
     """Hub personnel : profil, CV generes, liens rapides."""
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "Le constructeur de CV aux normes allemandes (Lebenslauf) est réservé aux abonnés Premium.")
+        return redirect(reverse("accounts:upgrade") + f"?app=allemand&next={request.get_full_path()}")
+
     try:
         profile = GermanCVProfile.objects.get(user=request.user)
     except GermanCVProfile.DoesNotExist:
@@ -201,6 +206,9 @@ def generate_lebenslauf(request, offer_pk=None):
     Genere un Lebenslauf adapte a une offre specifique (ou candidature spontanee).
     Appelle GPT-4o et sauvegarde le HTML.
     """
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "La génération de CV aux normes allemandes (Lebenslauf) est réservée aux abonnés Premium.")
+        return redirect(reverse("accounts:upgrade") + f"?app=allemand&next={request.get_full_path()}")
     from germany_opportunities.models import AusbildungOffer
 
     offer = None

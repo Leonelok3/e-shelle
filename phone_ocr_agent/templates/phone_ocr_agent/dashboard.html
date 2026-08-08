@@ -41,23 +41,69 @@
 
     <div class="ocr-alert">Utilise cet outil uniquement avec l'autorisation du proprietaire des contacts. Les images sont traitees localement par Django.</div>
     {% if error %}<div class="ocr-alert danger">{{ error }}</div>{% endif %}
+    {% if success %}
+      <div class="ocr-alert">
+        {{ success }}
+        {% if campaign_detail_url %}
+          <div style="margin-top:8px">
+            <a class="ocr-btn ghost" href="{{ campaign_detail_url }}">Voir la campagne</a>
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
 
     <section class="ocr-layout">
       <form class="ocr-panel" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <h2>Charger une capture</h2>
+        <h2>Charger une ou plusieurs captures</h2>
         <div class="ocr-field">
-          <label class="ocr-label" for="image">Image PNG/JPG/JPEG</label>
-          <input id="image" class="ocr-input" name="image" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" required>
+          <label class="ocr-label" for="media">Images ou vidéos</label>
+          <input id="media" class="ocr-input" name="media" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg,.mp4,.mov,.webm,.avi,.mkv,video/*" multiple required>
         </div>
-        <button class="ocr-btn" type="submit">Extraire les numeros</button>
-        <p class="ocr-muted" style="margin-top:14px">Si Tesseract n'est pas installe, l'outil affichera les instructions au lieu de planter.</p>
+        <div class="ocr-field">
+          <label class="ocr-label" for="groupe">Groupe / source</label>
+          <input id="groupe" class="ocr-input" name="groupe" value="{{ groupe }}" placeholder="Prospects campagne, resto, salon...">
+        </div>
+        <div class="ocr-field">
+          <label class="ocr-label" for="note">Note</label>
+          <input id="note" class="ocr-input" name="note" value="{{ note }}" placeholder="Prospects chauds, justification, origine...">
+        </div>
+        <div class="ocr-field">
+          <label class="ocr-label" for="module">Module commercial</label>
+          <input id="module" class="ocr-input" name="module" value="{{ module }}" placeholder="services, resto, auto...">
+        </div>
+        <label class="ocr-check">
+          <input type="checkbox" name="consentement" {% if consentement %}checked{% endif %}>
+          Je confirme que ces contacts sont autorises a etre contactes par WhatsApp.
+        </label>
+        <label class="ocr-check">
+          <input type="checkbox" name="sync_commercial" {% if sync_commercial %}checked{% endif %}>
+          Synchroniser avec l'Agent Commercial IA apres l'import.
+        </label>
+        <label class="ocr-check">
+          <input type="checkbox" name="new_only" {% if only_new %}checked{% endif %}>
+          Importer uniquement les nouveaux contacts existants.
+        </label>
+        <div class="ocr-field">
+          <label class="ocr-label" for="campaign_name">Nom de la campagne WhatsApp</label>
+          <input id="campaign_name" class="ocr-input" name="campaign_name" value="{{ campaign_name }}" placeholder="Campagne OCR - Offre spéciale">
+        </div>
+        <div class="ocr-field">
+          <label class="ocr-label" for="campaign_message">Message de la campagne</label>
+          <textarea id="campaign_message" class="ocr-textarea" name="campaign_message" placeholder="Bonjour {% templatetag openvariable %}prenom{% templatetag closevariable %}, voici une offre spéciale...">{{ campaign_message }}</textarea>
+        </div>
+        <div class="ocr-actions" style="margin-top:12px">
+          <button class="ocr-btn" type="submit" name="action" value="extract">Extraire les numéros</button>
+          <button class="ocr-btn gold" type="submit" name="action" value="import" {% if not numbers %}disabled{% endif %}>Importer dans le carnet WhatsApp</button>
+          <button class="ocr-btn blue" type="submit" name="action" value="create_campaign" {% if not numbers %}disabled{% endif %}>Créer campagne WhatsApp</button>
+        </div>
+        <p class="ocr-muted" style="margin-top:14px">Si Tesseract ou MoviePy/ffmpeg n'est pas installé, l'outil affichera une erreur utile au lieu de planter.</p>
       </form>
 
       <div class="ocr-panel">
-        <h2>Resultats copiables</h2>
+        <h2>Numéros WhatsApp valides</h2>
         <div class="ocr-stat">
-          <span>Numeros trouves</span>
+          <span>Numéros prêts à coller</span>
           <strong>{{ numbers|length }}</strong>
         </div>
         <textarea id="numbersBox" class="ocr-textarea" readonly>{% for number in numbers %}{{ number }}
@@ -89,6 +135,36 @@
       <textarea class="ocr-textarea" readonly>{{ raw_text }}</textarea>
     </section>
     {% endif %}
+
+    <section class="ocr-panel" style="margin-top:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+        <h2 style="margin:0">Historique des derniers imports</h2>
+        <form method="get" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:800;color:#d5eadf">
+            Filtrer par groupe:
+            <input class="ocr-input" name="history_groupe" value="{{ history_groupe }}" placeholder="OCR repertoire">
+          </label>
+          <button class="ocr-btn gold" type="submit">Filtrer</button>
+        </form>
+      </div>
+      <table class="ocr-table">
+        <thead>
+          <tr><th>Numero</th><th>Groupe</th><th>Note</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          {% for contact in recent_imports %}
+          <tr>
+            <td>{{ contact.numero }}</td>
+            <td>{{ contact.groupe|default:'-' }}</td>
+            <td>{{ contact.note|truncatechars:30|default:'-' }}</td>
+            <td>{{ contact.cree_le|date:'d/m H:i' }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="ocr-muted">Aucun import recemment enregistre.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
   </div>
 </main>
 

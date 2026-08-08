@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{ school.name }} — Auto-école{% endblock %}
+
+{% block content %}
+<div class="wrap" style="padding:2rem 1rem">
+  <h1>{{ school.name }}</h1>
+  <p>{{ school.description }}</p>
+  <div style="margin-top:16px">
+    <h3>Cours disponibles</h3>
+    {% for c in courses %}
+    <div style="padding:12px;border:1px solid #eee;border-radius:8px;margin-bottom:8px">
+      <a href="{{ c.get_absolute_url }}"><strong>{{ c.title }}</strong></a>
+      <p>{{ c.summary|truncatechars:200 }}</p>
+    </div>
+    {% empty %}
+    <p>Aucun cours publié.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

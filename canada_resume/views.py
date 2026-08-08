@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
+from django.urls import reverse
 from docx import Document
 from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -35,6 +36,10 @@ def check_user_has_paid_edu_subscription(user) -> bool:
 
 @login_required
 def dashboard(request):
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "Le constructeur de CV aux normes canadiennes est réservé aux abonnés Premium.")
+        return redirect(reverse("accounts:upgrade") + f"?app=prep&next={request.get_full_path()}")
+
     try:
         profile = CanadaCVProfile.objects.get(user=request.user)
     except CanadaCVProfile.DoesNotExist:
@@ -175,6 +180,9 @@ def delete_language(request, pk):
 
 @login_required
 def generate_resume(request, offer_pk=None):
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "La génération de CV aux normes canadiennes est réservée aux abonnés Premium.")
+        return redirect(reverse("accounts:upgrade") + f"?app=prep&next={request.get_full_path()}")
     offer = None
     if offer_pk:
         offer = get_object_or_404(CanadaJobOffer, pk=offer_pk)

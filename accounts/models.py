@@ -20,6 +20,8 @@ class AppKey(models.TextChoices):
     BOUTIQUE   = "boutique",   "Boutique"
     AGRO       = "agro",       "E-Shelle Agro"
     GAZ        = "gaz",        "E-Shelle Gaz"
+    AUTO       = "auto",       "Auto"
+    AUTO_ECOLE = "autoecole",  "Auto-école"
 
 APP_ICONS = {
     "adgen":      "✨",
@@ -33,6 +35,8 @@ APP_ICONS = {
     "boutique":   "🛒",
     "agro":       "🌿",
     "gaz":        "🔥",
+    "auto":       "🚗",
+    "autoecole":  "🎓",
 }
 
 APP_COLORS = {
@@ -47,6 +51,8 @@ APP_COLORS = {
     "boutique":   "#10B981",
     "agro":       "#84CC16",
     "gaz":        "#FF6B00",
+    "auto":       "#EF4444",
+    "autoecole":  "#2563EB",
 }
 
 

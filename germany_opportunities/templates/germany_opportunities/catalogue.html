@@ -88,69 +88,114 @@
       Page {{ offers.number }} sur {{ offers.paginator.num_pages }} — {{ total_offers }} offre{{ total_offers|pluralize }} active{{ total_offers|pluralize }}
     </div>
     <div style="font-size:.8rem;color:rgba(255,255,255,.55)">
-      Les nouvelles opportunités apparaissent en haut de la liste.
-    </div>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem;margin-bottom:3rem">
+      Les nouvelles opportunités apparaissent e  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem;margin-bottom:3rem">
     {% for offer in offers %}
-    <div class="offer-card {% if offer.is_new %}offer-card--new{% endif %}"
-         style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:1.5rem;display:flex;flex-direction:column;gap:.75rem;position:relative;transition:all .2s;box-shadow:0 4px 15px rgba(0,0,0,0.06)">
+      {% if not has_premium and forloop.counter0 >= 2 %}
+        <!-- Blurred Card for SEO & Teaser -->
+        <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:1.5rem;display:flex;flex-direction:column;gap:.75rem;position:relative;filter:blur(4px);opacity:0.35;pointer-events:none;user-select:none;">
+          <div>
+            <h3 style="margin:0;font-size:1rem;font-weight:800;color:#000000;">{{ offer.title }}</h3>
+            <div style="font-size:.85rem;color:#374151;">🏢 {{ offer.company }}</div>
+          </div>
+          <p style="font-size:.82rem;color:#4b5563;line-height:1.55;margin:0;">{{ offer.ai_summary_fr|truncatewords:20 }}</p>
+        </div>
+      {% else %}
+        <!-- Regular / Premium Card -->
+        <div class="offer-card {% if offer.is_new %}offer-card--new{% endif %}"
+             style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:1rem;padding:1.5rem;display:flex;flex-direction:column;gap:.75rem;position:relative;transition:all .2s;box-shadow:0 4px 15px rgba(0,0,0,0.06)">
 
-      {% if offer.is_new %}
-      <span style="position:absolute;top:.75rem;right:.75rem;background:#22c55e;color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:20px;letter-spacing:.06em">NOUVEAU</span>
+          {% if offer.is_new %}
+          <span style="position:absolute;top:.75rem;right:.75rem;background:#22c55e;color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:20px;letter-spacing:.06em">NOUVEAU</span>
+          {% endif %}
+
+          <!-- Badge secteur -->
+          <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#e0a800">
+            {{ offer.get_sector_display }}
+          </div>
+
+          <h3 style="margin:0;font-size:1rem;font-weight:800;color:#000000;line-height:1.35">
+            {{ offer.title }}
+          </h3>
+
+          <div style="font-size:.85rem;color:#374151;display:flex;flex-direction:column;gap:.2rem">
+            <span>🏢 {{ offer.company }}</span>
+            <span>📍 {{ offer.city }}{% if offer.region %}, {{ offer.region }}{% endif %}</span>
+            {% if offer.start_date %}
+            <span>📅 Debut : {{ offer.start_date|date:"d.m.Y" }}</span>
+            {% endif %}
+            <span style="color:#e0a800;font-weight:700">💶 {{ offer.salary_display }}</span>
+          </div>
+
+          {% if offer.ai_summary_fr %}
+          <p style="font-size:.82rem;color:#4b5563;line-height:1.55;margin:0;border-top:1px solid #f3f4f6;padding-top:.75rem">
+            {{ offer.ai_summary_fr|truncatewords:30 }}
+          </p>
+          {% endif %}
+
+          <!-- Niveau langue requis -->
+          <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+            <span style="font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:20px;background:rgba(227,0,15,0.06);color:#E3000F;border:1px solid rgba(227,0,15,0.25)">
+              🇩🇪 {{ offer.language_req }} requis
+            </span>
+          </div>
+
+          <div style="display:flex;gap:.75rem;margin-top:auto;padding-top:.5rem">
+            {% if has_premium %}
+              <a href="{% url 'germany_opportunities:offer_detail' offer.pk %}"
+                 style="flex:1;text-align:center;padding:.55rem .75rem;border-radius:.6rem;background:#E3000F;color:#fff;text-decoration:none;font-size:.83rem;font-weight:700;transition:background-color .2s" onmouseover="this.style.backgroundColor='#b91c1c'" onmouseout="this.style.backgroundColor='#E3000F'">
+                Voir le detail
+              </a>
+              {% if user.is_authenticated %}
+                {% if offer.pk in bookmarked_ids %}
+                <button class="bookmark-btn" data-pk="{{ offer.pk }}" data-bookmarked="true"
+                  style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid #d1d5db;color:#e0a800;cursor:pointer;font-size:1rem;transition:all .2s" onmouseover="this.style.borderColor='#e0a800'" onmouseout="this.style.borderColor='#d1d5db'" aria-label="Retirer des favoris">
+                  ★
+                </button>
+                {% else %}
+                <button class="bookmark-btn" data-pk="{{ offer.pk }}" data-bookmarked="false"
+                  style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid #d1d5db;color:#9ca3af;cursor:pointer;font-size:1rem;transition:all .2s" onmouseover="this.style.borderColor='#9ca3af'" onmouseout="this.style.borderColor='#d1d5db'" aria-label="Ajouter aux favoris">
+                  ☆
+                </button>
+                {% endif %}
+              {% endif %}
+            {% else %}
+              <a href="{% url 'accounts:upgrade' %}?app=allemand&next={% url 'germany_opportunities:catalogue' %}"
+                 style="flex:1;text-align:center;padding:.65rem .75rem;border-radius:.6rem;background:linear-gradient(135deg, #E3000F, #ffce00);color:#000;text-decoration:none;font-size:.83rem;font-weight:800;box-shadow:0 4px 10px rgba(227,0,15,0.2);">
+                🔒 Débloquer l'offre
+              </a>
+            {% endif %}
+          </div>
+
+        </div>
       {% endif %}
 
-      <!-- Badge secteur -->
-      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#e0a800">
-        {{ offer.get_sector_display }}
-      </div>
+      {% if not has_premium and forloop.counter0 == 1 %}
+        <!-- High-Converting Paywall Call-to-Action Banner inside the grid -->
+        <div style="grid-column: 1 / -1; background:linear-gradient(135deg, #1f1f1f 0%, #111 50%, #000 100%); border-radius:24px; padding:3rem 2rem; text-align:center; position:relative; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,0.3); border:2px solid rgba(255,206,0,0.25); margin:1.5rem 0; z-index:10;">
+          <!-- Flag Accent -->
+          <div style="position:absolute;top:0;left:0;width:100%;height:6px;background:linear-gradient(90deg, #000000 33%, #dd0000 33%, #dd0000 66%, #ffcc00 66%);"></div>
+          
+          <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:1.25rem;align-items:center;z-index:2;position:relative;">
+            <span style="font-size:2.5rem;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.15));">🇩🇪</span>
+            <h2 style="font-size:clamp(1.5rem, 4vw, 2.2rem);font-weight:900;color:#ffffff;line-height:1.2;margin:0;letter-spacing:-0.02em;">
+              Débloquez toutes les opportunités d'hôtels, BTP & informatique sous contrat <span style="color:#ffce00;">Ausbildung rémunéré</span> !
+            </h2>
+            <p style="color:rgba(255,255,255,0.85);font-size:1.05rem;line-height:1.6;margin:0;">
+              L'Allemagne recherche activement de jeunes profils. Trouvez l'entreprise qui vous convient, postulez avec des dossiers impeccables et commencez à gagner entre 800€ et 1 200€ par mois dès votre formation !
+            </p>
 
-      <h3 style="margin:0;font-size:1rem;font-weight:800;color:#000000;line-height:1.35">
-        {{ offer.title }}
-      </h3>
-
-      <div style="font-size:.85rem;color:#374151;display:flex;flex-direction:column;gap:.2rem">
-        <span>🏢 {{ offer.company }}</span>
-        <span>📍 {{ offer.city }}{% if offer.region %}, {{ offer.region }}{% endif %}</span>
-        {% if offer.start_date %}
-        <span>📅 Debut : {{ offer.start_date|date:"d.m.Y" }}</span>
-        {% endif %}
-        <span style="color:#e0a800;font-weight:700">💶 {{ offer.salary_display }}</span>
-      </div>
-
-      {% if offer.ai_summary_fr %}
-      <p style="font-size:.82rem;color:#4b5563;line-height:1.55;margin:0;border-top:1px solid #f3f4f6;padding-top:.75rem">
-        {{ offer.ai_summary_fr|truncatewords:30 }}
-      </p>
+            <a href="{% url 'accounts:upgrade' %}?app=allemand&next={% url 'germany_opportunities:catalogue' %}"
+               style="background:linear-gradient(135deg, #ffce00, #e0a800);color:#000;text-decoration:none;font-weight:900;font-size:1.1rem;padding:1rem 2.5rem;border-radius:14px;box-shadow:0 10px 25px rgba(255,206,0,0.3);transition:transform .2s, box-shadow .2s;text-transform:uppercase;letter-spacing:.05em;"
+               onmouseover="this.style.transform='scale(1.03)';"
+               onmouseout="this.style.transform='none';">
+              Activer mon accès Premium (3 000 FCFA) 🚀
+            </a>
+            <span style="color:rgba(255,255,255,0.5);font-size:.78rem;font-weight:500;">
+              Paiement par WhatsApp & Code d'activation (Orange Money / MTN Mobile Money)
+            </span>
+          </div>
+        </div>
       {% endif %}
-
-      <!-- Niveau langue requis -->
-      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-        <span style="font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:20px;background:rgba(227,0,15,0.06);color:#E3000F;border:1px solid rgba(227,0,15,0.25)">
-          🇩🇪 {{ offer.language_req }} requis
-        </span>
-      </div>
-
-      <div style="display:flex;gap:.75rem;margin-top:auto;padding-top:.5rem">
-        <a href="{% url 'germany_opportunities:offer_detail' offer.pk %}"
-           style="flex:1;text-align:center;padding:.55rem .75rem;border-radius:.6rem;background:#E3000F;color:#fff;text-decoration:none;font-size:.83rem;font-weight:700;transition:background-color .2s" onmouseover="this.style.backgroundColor='#b91c1c'" onmouseout="this.style.backgroundColor='#E3000F'">
-          Voir le detail
-        </a>
-        {% if user.is_authenticated %}
-        {% if offer.pk in bookmarked_ids %}
-        <button class="bookmark-btn" data-pk="{{ offer.pk }}" data-bookmarked="true"
-          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid #d1d5db;color:#e0a800;cursor:pointer;font-size:1rem;transition:all .2s" onmouseover="this.style.borderColor='#e0a800'" onmouseout="this.style.borderColor='#d1d5db'" aria-label="Retirer des favoris">
-          ★
-        </button>
-        {% else %}
-        <button class="bookmark-btn" data-pk="{{ offer.pk }}" data-bookmarked="false"
-          style="padding:.55rem .9rem;border-radius:.6rem;background:transparent;border:1px solid #d1d5db;color:#9ca3af;cursor:pointer;font-size:1rem;transition:all .2s" onmouseover="this.style.borderColor='#9ca3af'" onmouseout="this.style.borderColor='#d1d5db'" aria-label="Ajouter aux favoris">
-          ☆
-        </button>
-        {% endif %}
-        {% endif %}
-      </div>
-    </div>
     {% endfor %}
   </div>
 

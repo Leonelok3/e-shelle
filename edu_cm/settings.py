@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     "preparation_tests.apps.PreparationTestsConfig",
     "immobilier_cameroun.apps.ImmobilierCamerounConfig",
     "auto_cameroun.apps.AutoCamerounConfig",
+    "auto_ecole.apps.AutoEcoleConfig",
     "annonces_cam.apps.AnnoncesCamConfig",
 
     # Sites framework (utilisé pour les URLs absolues de partage)

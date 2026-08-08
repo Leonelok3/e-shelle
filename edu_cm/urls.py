@@ -535,6 +535,7 @@ urlpatterns = [
 
     # Auto Cameroun
     path("auto/", include("auto_cameroun.urls", namespace="auto")),
+    path("auto-ecole/", include("auto_ecole.urls", namespace="auto_ecole")),
 
     # Annonces Cam (marketplace généraliste)
     path("annonces/", include("annonces_cam.urls", namespace="annonces")),

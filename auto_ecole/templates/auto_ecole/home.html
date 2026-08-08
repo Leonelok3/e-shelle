@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Auto-école - E-Shelle{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'auto_ecole/css/auto_ecole.css' %}">
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-sA+e2HZZ7Z6kH2kYF+3x9E1bZbqQY6o3b23s3b5p94c=" crossorigin=""/>
+
+<div class="ae-wrap">
+  <header class="ae-hero">
+    <div class="ae-hero-inner">
+      <h1>Auto-école</h1>
+      <p class="ae-lead">Découvre des auto-écoles locales et accède gratuitement aux cours théoriques.</p>
+    </div>
+  </header>
+
+  <div class="ae-grid">
+    <main class="ae-main">
+      <h3 class="section-title">Cours théoriques mis en avant</h3>
+      <div class="ae-courses">
+        {% for course in featured_courses %}
+        <article class="ae-card">
+          <div class="ae-card-media">
+            <img class="ae-thumb" src="{% static 'auto_ecole/img/placeholder-school.svg' %}" alt="{{ course.title }}">
+          </div>
+          <div class="ae-card-body">
+            <h4 class="ae-course-title"><a href="{{ course.get_absolute_url }}">{{ course.title }}</a></h4>
+            <div class="ae-course-meta">{{ course.school.name }}</div>
+            <p class="ae-course-summary">{{ course.summary|truncatechars:200 }}</p>
+          </div>
+          <div class="ae-card-footer">
+            <a class="ae-btn" href="{{ course.get_absolute_url }}">Voir</a>
+          </div>
+        </article>
+        {% empty %}
+        <p>Aucun cours pour le moment.</p>
+        {% endfor %}
+      </div>
+    </main>
+
+    <aside class="ae-aside">
+      <div class="ae-panel">
+        <div id="ae-map" style="height:220px;border-radius:8px;margin-bottom:12px;overflow:hidden"></div>
+        <div class="ae-search">
+          <input id="ae-search-input" placeholder="Rechercher une école, ville..." aria-label="Rechercher une école" />
+        </div>
+        <h3 class="section-title">Auto-écoles</h3>
+        <div class="ae-list">
+          {% for school in schools %}
+          <a class="ae-school" href="{{ school.get_absolute_url }}" data-lat="{{ school.latitude|default_if_none:'' }}" data-lon="{{ school.longitude|default_if_none:'' }}">
+            <div class="ae-school-info">
+              <strong>{{ school.name }}</strong>
+              <span class="ae-school-city">{{ school.city }}</span>
+            </div>
+            <span class="ae-chevron">›</span>
+          </a>
+          {% empty %}
+          <p>Aucune auto-école enregistrée pour le moment.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-o9N1jRk2P+0S1b0i6wZ6e6b6Y9w9k1l9QBDk3aV+0+M=" crossorigin=""></script>
+<script src="{% static 'auto_ecole/js/auto_ecole.js' %}"></script>
+{% endblock %}

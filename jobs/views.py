@@ -1,9 +1,26 @@
 from django.contrib import messages
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 
 from .forms import CandidatureJobForm, OffreJobForm
 from .models import OffreJob, SecteurJob, VilleJob, CanadaJobOffer
+
+
+def check_user_has_french_premium(user) -> bool:
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    try:
+        from accounts.models import AppSubscription
+        sub = AppSubscription.get_active_for_user(user, "prep")
+        if sub and sub.is_active and not sub.plan.is_free:
+            return True
+    except Exception:
+        pass
+    return False
 
 
 def accueil(request):
@@ -93,6 +110,7 @@ def publier(request):
 
 
 def canada_jobs(request):
+    has_premium = check_user_has_french_premium(request.user)
     offres = CanadaJobOffer.objects.filter(is_active=True)
     q = request.GET.get("q", "").strip()
     province = request.GET.get("province", "").strip()
@@ -120,6 +138,7 @@ def canada_jobs(request):
         "city": city,
         "provinces": provinces,
         "total_offers": offres.count(),
+        "has_premium": has_premium,
     }
     return render(request, "jobs/canada_jobs.html", context)
 
@@ -128,6 +147,7 @@ def canada_scholarships(request):
     """
     Affiche la liste des bourses d'études au Canada trouvées par l'IA.
     """
+    has_premium = check_user_has_french_premium(request.user)
     from .models import CanadaScholarship
     scholarships = CanadaScholarship.objects.filter(is_active=True)
     q = request.GET.get("q", "").strip()
@@ -152,6 +172,7 @@ def canada_scholarships(request):
         "provider": provider,
         "providers": providers,
         "total_scholarships": scholarships.count(),
+        "has_premium": has_premium,
     }
     return render(request, "jobs/canada_scholarships.html", context)
 
@@ -160,6 +181,7 @@ def canada_visitor_opps(request):
     """
     Affiche la liste des opportunités de visa visiteur Canada (conférences, séminaires, etc.).
     """
+    has_premium = check_user_has_french_premium(request.user)
     from .models import CanadaVisitorOpportunity
     opps = CanadaVisitorOpportunity.objects.filter(is_active=True)
     q = request.GET.get("q", "").strip()
@@ -183,6 +205,7 @@ def canada_visitor_opps(request):
         "location": location,
         "locations": locations,
         "total_opps": opps.count(),
+        "has_premium": has_premium,
     }
     return render(request, "jobs/canada_visitor_opps.html", context)
 

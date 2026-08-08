@@ -261,11 +261,6 @@ def lesson_session(request, exam_code, section, lesson_id):
     """
     lesson = get_object_or_404(CourseLesson, id=lesson_id)
     
-    # Bloquer les niveaux avancés pour les non-abonnés
-    if lesson.level in ["B1", "B2", "C1", "C2"] and not check_user_has_french_premium(request.user):
-        messages.warning(request, f"Les leçons et exercices de niveau {lesson.level} sont réservés aux abonnés Premium.")
-        return redirect(f"{reverse('accounts:upgrade')}?app=prep&next={request.get_full_path()}")
-
     user = request.user if request.user.is_authenticated else None
 
     raw_exercises = CourseExercise.objects.filter(

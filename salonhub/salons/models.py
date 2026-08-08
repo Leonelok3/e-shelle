@@ -26,8 +26,20 @@ class Category(models.Model):
 
 class Salon(models.Model):
     class Kind(models.TextChoices):
-        SALON = "salon", "Salon de coiffure"
-        INSTITUT = "institut", "Institut de beauté"
+        COIFFURE = "coiffure", "Coiffure & Esthétique"
+        BEAUTE = "beaute", "Institut de Beauté & Spa"
+        ELECTRICITE = "elec", "Électricité & Énergie"
+        PLOMBERIE = "plomb", "Plomberie & Sanitaire"
+        MECANIQUE = "meca", "Mécanique & Auto"
+        BATIMENT = "batiment", "Maçonnerie & Bâtiment"
+        COUTURE = "couture", "Couture & Mode"
+        MENUISERIE = "menuis", "Menuiserie & Ameublement"
+        PEINTURE = "peinture", "Peinture & Décoration"
+        AUTRE = "autre", "Autre Service"
+
+        # Compatibilité
+        SALON = "salon", "Coiffure & Esthétique"
+        INSTITUT = "institut", "Institut de Beauté & Spa"
         SPA = "spa", "Spa & bien-être"
         BARBIER = "barbier", "Barbershop"
 
@@ -35,8 +47,8 @@ class Salon(models.Model):
                                related_name="salons")
     name = models.CharField("Nom de l'établissement", max_length=150)
     slug = models.SlugField(unique=True, blank=True)
-    kind = models.CharField("Type d'établissement", max_length=10,
-                             choices=Kind.choices, default=Kind.SALON)
+    kind = models.CharField("Secteur d'activité", max_length=10,
+                             choices=Kind.choices, default=Kind.COIFFURE)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL,
                                   null=True, blank=True, related_name="salons")
     description = models.TextField("Description", blank=True)
