@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import requests
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from google.genai import types
@@ -9,6 +10,29 @@ from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
 from jobs.models import CanadaVisitorOpportunity
 
 logger = logging.getLogger(__name__)
+
+
+def _is_url_active(url: str) -> bool:
+    if not url or not url.startswith("http"):
+        return False
+    if "example.com" in url or "localhost" in url:
+        return False
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        resp = requests.head(url, headers=headers, timeout=5, allow_redirects=True)
+        if resp.status_code in [404, 410]:
+            return False
+        if resp.status_code < 400 or resp.status_code == 403:
+            return True
+        resp = requests.get(url, headers=headers, timeout=5, allow_redirects=True, stream=True)
+        if resp.status_code in [404, 410]:
+            return False
+        return resp.status_code < 400
+    except Exception:
+        return False
+
 
 class Command(BaseCommand):
     help = "Cherche et importe par IA les opportunités de visa visiteur/tourisme au Canada (conférences, séminaires, certifications)"
@@ -29,7 +53,9 @@ class Command(BaseCommand):
 
         # Pass 1: Google Search Grounding to find actual upcoming conferences, summits & events in Canada
         search_prompt = (
-            "Recherche sur le web des conférences internationales, sommets, séminaires ou formations professionnelles se déroulant au Canada en 2026/2027 qui acceptent les participants internationaux et facilitent l'obtention d'une lettre d'invitation pour visa visiteur. Trouve au moins 6 événements réels et récents avec : le nom de l'événement, l'organisateur, la date de l'événement, la ville, la province, la date limite d'inscription et le lien URL officiel pour s'inscrire."
+            "Recherche sur le web des conférences internationales, sommets, séminaires ou formations professionnelles se déroulant au Canada en 2026/2027 qui acceptent les participants internationaux et facilitent l'obtention d'une lettre d'invitation pour visa visiteur. Trouve au moins 6 événements réels et récents avec : le nom de l'événement, l'organisateur, la date de l'événement, la ville, la province, la date limite d'inscription et le lien URL officiel pour s'inscrire.\n"
+            "EXCLUDE expired, closed, or deactivated offers. Verify that the conference/event is active and accepting registrations.\n"
+            "Crucial: The URL ('url_apply') MUST be the exact, specific direct web page link of the event registration or official announcement. Do NOT use generic parent URLs or guess/hallucinate URLs. If you cannot find the direct, exact, working URL for the event, DO NOT include that event."
         )
 
         try:
@@ -92,6 +118,11 @@ class Command(BaseCommand):
                 url_apply = opp.get("url_apply", "").strip()
 
                 if not ref_nr or not title or not organizer or not url_apply:
+                    continue
+
+                # Check if the url_apply is active (returns 200/300 status code, not 404 or 410)
+                if not _is_url_active(url_apply):
+                    self.stdout.write(f"Opportunité ignorée car le lien url_apply est inactif ou renvoie un 404 : {url_apply}")
                     continue
 
                 obj, created = CanadaVisitorOpportunity.objects.update_or_create(

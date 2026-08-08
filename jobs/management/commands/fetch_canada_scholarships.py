@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import requests
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from google.genai import types
@@ -10,6 +11,28 @@ from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
 from jobs.models import CanadaScholarship
 
 logger = logging.getLogger(__name__)
+
+
+def _is_url_active(url: str) -> bool:
+    if not url or not url.startswith("http"):
+        return False
+    if "example.com" in url or "localhost" in url:
+        return False
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        resp = requests.head(url, headers=headers, timeout=5, allow_redirects=True)
+        if resp.status_code in [404, 410]:
+            return False
+        if resp.status_code < 400 or resp.status_code == 403:
+            return True
+        resp = requests.get(url, headers=headers, timeout=5, allow_redirects=True, stream=True)
+        if resp.status_code in [404, 410]:
+            return False
+        return resp.status_code < 400
+    except Exception:
+        return False
 
 
 def _stable_ref_nr(provider: str, title: str) -> str:
@@ -42,7 +65,9 @@ class Command(BaseCommand):
         
         # Pass 1: Google Search Grounding to find actual active scholarships
         search_prompt = (
-            "Recherche sur le web des bourses d'études réelles et officielles actives ou annoncées pour les étudiants internationaux au Canada pour 2026/2027. Cible en priorité les sites officiels d'universités canadiennes (umontreal.ca, uottawa.ca, ulaval.ca, mcgill.ca, etc.) ou gouvernementaux (canada.ca, educanada.ca). Liste au moins 6 bourses valides avec : le titre de la bourse, l'université ou organisme émetteur, la valeur, les critères d'éligibilité, la date limite de candidature et le lien URL officiel direct pour postuler."
+            "Recherche sur le web des bourses d'études réelles et officielles actives ou annoncées pour les étudiants internationaux au Canada pour 2026/2027. Cible en priorité les sites officiels d'universités canadiennes (umontreal.ca, uottawa.ca, ulaval.ca, mcgill.ca, etc.) ou gouvernementaux (canada.ca, educanada.ca). Liste au moins 6 bourses valides avec : le titre de la bourse, l'université ou organisme émetteur, la valeur, les critères d'éligibilité, la date limite de candidature et le lien URL officiel direct pour postuler.\n"
+            "EXCLUDE expired, closed, or deactivated offers. Verify that the scholarship is active.\n"
+            "Crucial: The URL ('url_apply') MUST be the exact, specific direct web page link of the scholarship offer. Do NOT use generic parent URLs (like 'https://www.ulaval.ca') or guess/hallucinate URLs. If you cannot find the direct, exact, working URL for the scholarship, DO NOT include that scholarship."
         )
 
         try:
@@ -103,6 +128,11 @@ class Command(BaseCommand):
                 url_apply = sc.get("url_apply", "").strip()
 
                 if not title or not provider or not url_apply:
+                    continue
+
+                # Check if the url_apply is active (returns 200/300 status code, not 404 or 410)
+                if not _is_url_active(url_apply):
+                    self.stdout.write(f"Bourse ignorée car le lien url_apply est inactif ou renvoie un 404 : {url_apply}")
                     continue
 
                 ref_nr = _stable_ref_nr(provider, title)

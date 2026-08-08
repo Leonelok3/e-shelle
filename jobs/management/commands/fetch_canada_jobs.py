@@ -4,6 +4,7 @@ import hashlib
 import json
 import logging
 import re
+import requests
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from google.genai import types
@@ -19,6 +20,28 @@ _FR_MONTHS = {
     "septembre": "september", "octobre": "october",
     "novembre": "november", "décembre": "december", "decembre": "december",
 }
+
+
+def _is_url_active(url: str) -> bool:
+    if not url or not url.startswith("http"):
+        return False
+    if "example.com" in url or "localhost" in url:
+        return False
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        resp = requests.head(url, headers=headers, timeout=5, allow_redirects=True)
+        if resp.status_code in [404, 410]:
+            return False
+        if resp.status_code < 400 or resp.status_code == 403:
+            return True
+        resp = requests.get(url, headers=headers, timeout=5, allow_redirects=True, stream=True)
+        if resp.status_code in [404, 410]:
+            return False
+        return resp.status_code < 400
+    except Exception:
+        return False
 
 
 def _stable_ref_nr(company: str, title: str, city: str) -> str:
@@ -73,7 +96,9 @@ class Command(BaseCommand):
 
         # Pass 1: Google Search Grounding to find actual job links and details
         search_prompt = (
-            "Recherche sur le web (notamment sur guichet-emplois.gc.ca / jobbank.gc.ca ou sites d'employeurs) des offres d'emploi réelles et récentes au Canada ouvertes aux candidats internationaux hors du Canada (recrutement international, EIMT / LMIA approuvé ou en cours, ou exemption Mobilité Francophone). Trouve des postes dans l'agriculture, la santé, l'informatique, le transport, la construction ou la restauration. Liste au moins 8 offres d'emploi avec : le titre du poste, l'entreprise, la ville, la province, le statut de l'EIMT ou Mobilité Francophone, le salaire et l'URL source directe pour postuler."
+            "Recherche sur le web (notamment sur guichet-emplois.gc.ca / jobbank.gc.ca ou sites d'employeurs) des offres d'emploi réelles et récentes au Canada ouvertes aux candidats internationaux hors du Canada (recrutement international, EIMT / LMIA approuvé ou en cours, ou exemption Mobilité Francophone). Trouve des postes dans l'agriculture, la santé, l'informatique, le transport, la construction ou la restauration. Liste au moins 8 offres d'emploi avec : le titre du poste, l'entreprise, la ville, la province, le statut de l'EIMT ou Mobilité Francophone, le salaire et l'URL source directe pour postuler.\n"
+            "EXCLUDE expired, closed, or deactivated offers. Verify that the recruitment/job is active.\n"
+            "Crucial: The URL ('url_apply') MUST be the exact, specific direct web page link of the job posting (e.g. 'https://www.jobbank.gc.ca/jobsearch/jobposting/41982736'). Do NOT use generic parent URLs or guess/hallucinate URLs. If you cannot find the direct, exact, working URL for the job, DO NOT include that job."
         )
 
         try:
@@ -141,6 +166,11 @@ class Command(BaseCommand):
 
                 if not title or not company or not url_apply:
                     self.stdout.write(f"Offre ignorée car champs obligatoires manquants : {job}")
+                    continue
+
+                # Check if the url_apply is active (returns 200/300 status code, not 404 or 410)
+                if not _is_url_active(url_apply):
+                    self.stdout.write(f"Offre ignorée car le lien url_apply est inactif ou renvoie un 404 : {url_apply}")
                     continue
 
                 # Filet de sécurité supplémentaire : on n'affiche que les offres
