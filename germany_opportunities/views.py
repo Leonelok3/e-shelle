@@ -128,10 +128,6 @@ def catalogue(request):
 
 def offer_detail(request, pk):
     """Detail d'une offre Ausbildung."""
-    has_premium = check_user_has_germany_premium(request.user)
-    if not has_premium:
-        messages.warning(request, "L'accès aux détails des opportunités est réservé aux abonnés Premium.")
-        return redirect(f"{reverse('accounts:upgrade')}?app=allemand&next={request.get_full_path()}")
     offer = get_object_or_404(AusbildungOffer, pk=pk, is_active=True)
     is_bookmarked = False
     if request.user.is_authenticated:
