@@ -287,6 +287,8 @@ def mon_compte(request):
             url = "/pub/"
         elif key == "rencontres":
             url = "/rencontres/"
+        elif key == "autoecole":
+            url = "/auto-ecole/"
 
         apps_info.append({
             "key":    key,
@@ -391,6 +393,7 @@ def upgrade(request):
         "plans":       list(plans_qs),
         "plans_by_app": plans_by_app,
         "current_sub": current_sub,
+        "next":        request.GET.get("next", ""),
     }
     return render(request, "accounts/upgrade.html", context)
 

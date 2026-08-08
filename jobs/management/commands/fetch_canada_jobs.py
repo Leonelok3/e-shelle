@@ -58,31 +58,22 @@ class Command(BaseCommand):
     help = "Cherche et importe les nouvelles offres d'emploi d'employeurs canadiens qui recrutent à l'étranger (EIMT/LMIA)"
 
     def handle(self, *args, **options):
-        self.stdout.write("Initialisation du client Vertex AI...")
+        self.stdout.write("Initialisation du client GenAI...")
         client, err = get_vertex_client()
         if err or not client:
-            self.stderr.write(f"Erreur d'initialisation du client Vertex AI : {err}")
+            self.stdout.write(f"Vertex AI non disponible ou erreur : {err}. Tentative avec Gemini Developer API...")
+            from e_shelle_ai.services.tools.google_media_generator import get_genai_studio_client
+            client, err = get_genai_studio_client()
+
+        if err or not client:
+            self.stderr.write(f"Erreur d'initialisation du client GenAI : {err}")
             return
 
         self.stdout.write("Recherche globale des offres d'emploi Canada avec EIMT...")
 
         # Pass 1: Google Search Grounding to find actual job links and details
         search_prompt = (
-            "Recherche sur le web des offres d'emploi réelles, vérifiables et récentes (publiées il y a moins de 30 jours) "
-            "d'employeurs canadiens qui recrutent activement des travailleurs à l'étranger (candidats qui ne sont PAS "
-            "déjà au Canada), en particulier des candidats francophones d'Afrique (Cameroun, Côte d'Ivoire, Sénégal, etc.). "
-            "IMPORTANT — n'utilise que des sources vérifiées : le Guichet-Emplois officiel du gouvernement du Canada "
-            "(guichet-emplois.gc.ca / jobbank.gc.ca), les pages carrières officielles des employeurs, ou des cabinets de "
-            "recrutement canadiens agréés. Ignore les blogs et agrégateurs non officiels qui ne font que relayer une offre. "
-            "EXCLUS impérativement toute offre réservée aux résidents/citoyens canadiens déjà sur le territoire ou sans "
-            "aucune mention de parrainage/EIMT/mobilité — ne garde QUE les postes recrutant explicitement hors du Canada : "
-            "EIMT (Étude d'Impact sur le Marché du Travail) déjà approuvée, EIMT en cours de traitement, postes exemptés "
-            "d'EIMT, ou dans le cadre de la Mobilité Francophone (dispense d'EIMT pour les candidats francophones "
-            "recrutés hors Québec). "
-            "Trouve au moins 5 à 10 offres d'emploi différentes dans divers secteurs (Santé, IT, Agriculture, Restauration, Transport, Construction, etc.). "
-            "Pour chaque offre, tu dois obligatoirement trouver : le titre exact du poste, le nom de l'entreprise, la ville, la province, "
-            "le statut exact de l'EIMT ou Mobilité Francophone, le salaire, la date limite de candidature si elle est publiée "
-            "(sinon 'Non précisé'), une description brève et le lien URL source direct du poste."
+            "Recherche sur le web (notamment sur guichet-emplois.gc.ca / jobbank.gc.ca ou sites d'employeurs) des offres d'emploi réelles et récentes au Canada ouvertes aux candidats internationaux hors du Canada (recrutement international, EIMT / LMIA approuvé ou en cours, ou exemption Mobilité Francophone). Trouve des postes dans l'agriculture, la santé, l'informatique, le transport, la construction ou la restauration. Liste au moins 8 offres d'emploi avec : le titre du poste, l'entreprise, la ville, la province, le statut de l'EIMT ou Mobilité Francophone, le salaire et l'URL source directe pour postuler."
         )
 
         try:
@@ -95,7 +86,7 @@ class Command(BaseCommand):
                 )
             )
             search_results = response_search.text
-            self.stdout.write("Résultats de recherche récupérés. Conversion en JSON...")
+            self.stdout.write(f"Résultats de recherche récupérés (taille={len(search_results)}). Conversion en JSON...")
 
             # Pass 2: Controlled JSON extraction
             json_prompt = (
@@ -124,6 +115,8 @@ class Command(BaseCommand):
                 )
             )
 
+            self.stdout.write(f"JSON brut reçu de l'IA (taille={len(response_json.text)})")
+
             try:
                 jobs_list = json.loads(response_json.text)
             except json.JSONDecodeError as je:
@@ -133,6 +126,8 @@ class Command(BaseCommand):
             if not isinstance(jobs_list, list):
                 self.stderr.write("L'IA n'a pas retourné une liste d'offres.")
                 return
+
+            self.stdout.write(f"Nombre d'offres extraites par l'IA : {len(jobs_list)}")
 
             created_count = 0
             updated_count = 0
@@ -145,6 +140,7 @@ class Command(BaseCommand):
                 lmia_status = job.get("lmia_status", "Non précisé").strip()
 
                 if not title or not company or not url_apply:
+                    self.stdout.write(f"Offre ignorée car champs obligatoires manquants : {job}")
                     continue
 
                 # Filet de sécurité supplémentaire : on n'affiche que les offres
@@ -155,6 +151,7 @@ class Command(BaseCommand):
                     or "exempt" in lmia_status.lower()
                 )
                 if not allowed_status:
+                    self.stdout.write(f"Offre ignorée car statut LMIA '{lmia_status}' non autorisé : {title} ({company})")
                     continue
 
                 ref_nr = _stable_ref_nr(company, title, city)

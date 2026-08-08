@@ -14,24 +14,22 @@ class Command(BaseCommand):
     help = "Cherche et importe par IA les opportunités de visa visiteur/tourisme au Canada (conférences, séminaires, certifications)"
 
     def handle(self, *args, **options):
-        self.stdout.write("Initialisation du client Vertex AI...")
+        self.stdout.write("Initialisation du client GenAI...")
         client, err = get_vertex_client()
         if err or not client:
-            self.stderr.write(f"Erreur d'initialisation du client Vertex AI : {err}")
+            self.stdout.write(f"Vertex AI non disponible ou erreur : {err}. Tentative avec Gemini Developer API...")
+            from e_shelle_ai.services.tools.google_media_generator import get_genai_studio_client
+            client, err = get_genai_studio_client()
+
+        if err or not client:
+            self.stderr.write(f"Erreur d'initialisation du client GenAI : {err}")
             return
 
         self.stdout.write("Recherche globale des opportunités de visa visiteur...")
 
         # Pass 1: Google Search Grounding to find actual upcoming conferences, summits & events in Canada
         search_prompt = (
-            "Recherche sur le web des conférences internationales, sommets mondiaux, séminaires professionnels et "
-            "certifications en présentiel se déroulant au Canada pour l'année 2026/2027, qui acceptent et invitent des participants internationaux "
-            "et qui fournissent une lettre d'invitation officielle pour l'obtention d'un visa de résident temporaire (visa visiteur / tourisme). "
-            "Trouve au moins 5 à 8 événements réels avec des dates de déroulement précises (exemples: conférences en technologies de l'information, "
-            "sommets en santé, forums d'affaires, formations certifiantes d'organismes reconnus à Montréal, Toronto, Vancouver, Calgary, etc.). "
-            "Pour chaque événement, tu dois obligatoirement trouver : le nom exact de l'événement, l'organisation ou l'association hôte, "
-            "la date de déroulement de l'événement, la ville et la province d'accueil, la date limite d'inscription, "
-            "une description brève et le lien URL source direct pour s'inscrire."
+            "Recherche sur le web des conférences internationales, sommets, séminaires ou formations professionnelles se déroulant au Canada en 2026/2027 qui acceptent les participants internationaux et facilitent l'obtention d'une lettre d'invitation pour visa visiteur. Trouve au moins 6 événements réels et récents avec : le nom de l'événement, l'organisateur, la date de l'événement, la ville, la province, la date limite d'inscription et le lien URL officiel pour s'inscrire."
         )
 
         try:
@@ -44,7 +42,7 @@ class Command(BaseCommand):
                 )
             )
             search_results = response_search.text
-            self.stdout.write("Résultats de recherche récupérés. Extraction JSON...")
+            self.stdout.write(f"Résultats de recherche récupérés (taille={len(search_results)}). Extraction JSON...")
 
             # Pass 2: Controlled JSON extraction
             json_prompt = (
@@ -70,6 +68,8 @@ class Command(BaseCommand):
                 )
             )
 
+            self.stdout.write(f"JSON brut reçu de l'IA (taille={len(response_json.text)})")
+
             try:
                 opps_list = json.loads(response_json.text)
             except json.JSONDecodeError as je:
@@ -79,6 +79,8 @@ class Command(BaseCommand):
             if not isinstance(opps_list, list):
                 self.stderr.write("L'IA n'a pas retourné une liste d'opportunités.")
                 return
+
+            self.stdout.write(f"Nombre d'opportunités extraites par l'IA : {len(opps_list)}")
 
             created_count = 0
             updated_count = 0

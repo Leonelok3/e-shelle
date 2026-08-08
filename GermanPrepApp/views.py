@@ -373,7 +373,7 @@ def take_practice_test(request, exam_id):
     # Autoriser A1 et A2 gratuitement. Bloquer B1, B2, C1, C2 pour les non-abonnés.
     if exam.level in ["B1", "B2", "C1", "C2"] and not check_user_has_paid_edu_subscription(request.user):
         messages.warning(request, f"Les simulations d'examen allemand pour le niveau {exam.level} sont réservées aux abonnés Premium.")
-        return redirect(reverse("accounts:upgrade") + "?app=edu")
+        return redirect(reverse("accounts:upgrade") + f"?app=allemand&next={request.get_full_path()}")
 
     exercises = GermanExercise.objects.filter(lesson__exam=exam).order_by("id")
 
@@ -1270,7 +1270,7 @@ def german_ai_coach_api(request):
 @login_required
 def german_submit_eo(request):
     if not check_user_has_paid_edu_subscription(request.user):
-        return JsonResponse({"ok": False, "error": "L'évaluation IA de l'expression orale est réservée aux abonnés Premium d'EduCam Pro."}, status=403)
+        return JsonResponse({"ok": False, "error": "L'évaluation IA de l'expression orale est réservée aux abonnés Premium de E-Shelle Allemand."}, status=403)
 
     if request.method != "POST":
         return JsonResponse({"ok": False, "error": "method_not_allowed"}, status=405)
@@ -1354,7 +1354,7 @@ def german_submit_eo(request):
 @login_required
 def german_submit_ee(request):
     if not check_user_has_paid_edu_subscription(request.user):
-        return JsonResponse({"ok": False, "error": "L'évaluation IA de l'expression écrite est réservée aux abonnés Premium d'EduCam Pro."}, status=403)
+        return JsonResponse({"ok": False, "error": "L'évaluation IA de l'expression écrite est réservée aux abonnés Premium de E-Shelle Allemand."}, status=403)
 
     if request.method != "POST":
         return JsonResponse({"ok": False, "error": "method_not_allowed"}, status=405)

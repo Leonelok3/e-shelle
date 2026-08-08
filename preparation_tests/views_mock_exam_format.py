@@ -321,13 +321,13 @@ def exam_format_exam(request, exam_code: str, level: str):
 
     # Bloquer uniquement les niveaux avancés (B1-C2) si pas d'abonnement
     if level in ["B1", "B2", "C1", "C2"]:
-        from billing.services import has_active_access, has_session_access
+        from .views import check_user_has_french_premium
         from django.contrib import messages
         from django.urls import reverse
         from django.shortcuts import redirect
-        if not (has_active_access(request.user) or has_session_access(request)):
+        if not check_user_has_french_premium(request.user):
             messages.error(request, f"🔒 Les examens blancs officiels de niveau {level} sont réservés aux abonnés Premium. Activez un pass pour continuer.")
-            return redirect(f"{reverse('billing:access')}?next={request.get_full_path()}")
+            return redirect(f"{reverse('accounts:upgrade')}?app=prep&next={request.get_full_path()}")
 
     cfg = _cfg_for_level(exam_code, level)
 

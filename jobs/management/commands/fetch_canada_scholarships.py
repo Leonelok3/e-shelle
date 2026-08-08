@@ -27,30 +27,22 @@ class Command(BaseCommand):
     help = "Cherche et importe par IA les bourses d'études au Canada actives pour les étudiants internationaux"
 
     def handle(self, *args, **options):
-        self.stdout.write("Initialisation du client Vertex AI...")
+        self.stdout.write("Initialisation du client GenAI...")
         client, err = get_vertex_client()
         if err or not client:
-            self.stderr.write(f"Erreur d'initialisation du client Vertex AI : {err}")
+            self.stdout.write(f"Vertex AI non disponible ou erreur : {err}. Tentative avec Gemini Developer API...")
+            from e_shelle_ai.services.tools.google_media_generator import get_genai_studio_client
+            client, err = get_genai_studio_client()
+
+        if err or not client:
+            self.stderr.write(f"Erreur d'initialisation du client GenAI : {err}")
             return
 
         self.stdout.write("Recherche globale des bourses d'études au Canada...")
         
         # Pass 1: Google Search Grounding to find actual active scholarships
         search_prompt = (
-            "Recherche sur le web des bourses d'études réelles, officielles et actuellement ouvertes ou annoncées "
-            "pour l'année universitaire 2026/2027 au Canada, destinées aux étudiants internationaux (Afrique, Europe, Asie, etc.). "
-            "IMPORTANT — n'utilise QUE des sources vérifiées et officielles : sites gouvernementaux (canada.ca, educanada.ca, "
-            "gouv.qc.ca), sites officiels des universités et collèges canadiens (domaines .ca / .edu des établissements : "
-            "umontreal.ca, uottawa.ca, ulaval.ca, uqam.ca, mcgill.ca, utoronto.ca, ubc.ca, etc.), ou organismes reconnus "
-            "(Bourses d'études Canada, Fondation Vanier, CRSNG, CRSH, IRSC). Ignore totalement les blogs, agrégateurs non "
-            "officiels, forums ou sites d'immigration tiers non gouvernementaux qui ne font que relayer l'information — "
-            "remonte toujours à la page officielle source. "
-            "Trouve au moins 5 à 8 bourses d'études valides (exemples: bourses Vanier, bourses d'excellence de l'Université de Montréal, "
-            "bourses d'exemptions de droits de scolarité de l'Université d'Ottawa, bourses de l'Université Laval, bourses de l'UQAM, bourses de McGill, etc.). "
-            "Pour chaque bourse, tu dois impérativement trouver : le titre exact de la bourse, l'université ou l'organisme émetteur, "
-            "la valeur financière de la bourse, les critères d'éligibilité simplifiés, et surtout la date limite de candidature exacte "
-            "(jour/mois/année si elle est publiée — ne mets 'Non précisé' qu'en dernier recours si aucune date n'est trouvée nulle part), "
-            "une description brève et le lien URL source officiel direct pour postuler."
+            "Recherche sur le web des bourses d'études réelles et officielles actives ou annoncées pour les étudiants internationaux au Canada pour 2026/2027. Cible en priorité les sites officiels d'universités canadiennes (umontreal.ca, uottawa.ca, ulaval.ca, mcgill.ca, etc.) ou gouvernementaux (canada.ca, educanada.ca). Liste au moins 6 bourses valides avec : le titre de la bourse, l'université ou organisme émetteur, la valeur, les critères d'éligibilité, la date limite de candidature et le lien URL officiel direct pour postuler."
         )
 
         try:
@@ -63,7 +55,7 @@ class Command(BaseCommand):
                 )
             )
             search_results = response_search.text
-            self.stdout.write("Résultats de recherche récupérés. Extraction JSON...")
+            self.stdout.write(f"Résultats de recherche récupérés (taille={len(search_results)}). Extraction JSON...")
 
             # Pass 2: Controlled JSON extraction
             json_prompt = (
@@ -88,6 +80,8 @@ class Command(BaseCommand):
                 )
             )
 
+            self.stdout.write(f"JSON brut reçu de l'IA (taille={len(response_json.text)})")
+
             try:
                 scholarships_list = json.loads(response_json.text)
             except json.JSONDecodeError as je:
@@ -97,6 +91,8 @@ class Command(BaseCommand):
             if not isinstance(scholarships_list, list):
                 self.stderr.write("L'IA n'a pas retourné une liste de bourses.")
                 return
+
+            self.stdout.write(f"Nombre de bourses extraites par l'IA : {len(scholarships_list)}")
 
             created_count = 0
             updated_count = 0
