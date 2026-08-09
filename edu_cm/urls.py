@@ -38,6 +38,16 @@ def _allemagne_chancenkarte(request):
     return render(request, "allemagne/chancenkarte.html")
 
 
+def _canada_landing(request):
+    """Landing page premium de E-Shelle Canada."""
+    try:
+        from jobs.models import CanadaJobOffer
+        job_count = CanadaJobOffer.objects.filter(is_active=True).count()
+    except Exception:
+        job_count = 145  # Fallback si pas encore migré
+    return render(request, "canada/landing.html", {"job_count": job_count})
+
+
 
 def home_view(request):
     ctx = {}
@@ -529,6 +539,7 @@ urlpatterns = [
 
     # ── E-Shelle Canada — Hub immigration / Offres / CV Canadien ───────
     path("canada/mon-cv/",          include("canada_resume.urls",         namespace="canada_resume")),
+    path("canada/",                 _canada_landing,                      name="canada_landing"),
 
     # Immobilier Cameroun
     path("immobilier/", include("immobilier_cameroun.urls", namespace="immobilier")),

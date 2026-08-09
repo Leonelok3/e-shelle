@@ -1,0 +1,1204 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}🍁 E-Shelle Canada — Immigrer au Canada par soi-même{% endblock %}
+
+{% block meta_description %}
+La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : préparation TCF, diagnostic CRS, offres d'emploi EIMT, CV canadien, simulations IA et guides officiels.
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── DESIGN SYSTEM CANADA PREMIUM ── */
+  :root {
+    --ca-red: #D80621;
+    --ca-red-hover: #b3041a;
+    --ca-red-glow: rgba(216, 6, 33, 0.2);
+    --ca-dark: #0A0A0C;
+    --ca-dark-card: #121216;
+    --ca-border: rgba(255, 255, 255, 0.08);
+    --ca-border-light: #e2e8f0;
+    --ca-text-muted: #94a3b8;
+  }
+
+  /* Reset local styles */
+  .ca-body {
+    background-color: var(--ca-dark) !important;
+    color: #f8fafc !important;
+    font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ── SECTION HERO ── */
+  .ca-hero {
+    position: relative;
+    padding: 8rem 0 5rem;
+    background: radial-gradient(circle at top right, rgba(216, 6, 33, 0.08), transparent 45%),
+                radial-gradient(circle at bottom left, rgba(15, 23, 42, 0.8), var(--ca-dark));
+    overflow: hidden;
+  }
+
+  .ca-hero::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 5%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(216, 6, 33, 0.05), transparent 70%);
+    filter: blur(50px);
+    pointer-events: none;
+  }
+
+  .ca-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .ca-hero-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  @media (max-width: 968px) {
+    .ca-hero-grid {
+      grid-template-columns: 1fr;
+      text-align: center;
+      gap: 2rem;
+    }
+  }
+
+  .ca-badge-ircc {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(216, 6, 33, 0.1);
+    border: 1px solid rgba(216, 6, 33, 0.25);
+    color: #ff8a93;
+    padding: 0.4rem 1rem;
+    border-radius: 30px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.03em;
+  }
+
+  .ca-hero-title {
+    font-family: 'Syne', 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 800;
+    line-height: 1.15;
+    color: #ffffff;
+    margin-bottom: 1.25rem;
+  }
+
+  .ca-hero-title span.accent-red {
+    background: linear-gradient(135deg, #ff4d5e 0%, #D80621 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .ca-hero-subtitle {
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    color: var(--ca-text-muted);
+    line-height: 1.6;
+    margin-bottom: 2.25rem;
+    max-width: 650px;
+  }
+
+  @media (max-width: 968px) {
+    .ca-hero-subtitle {
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  .ca-cta-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  @media (max-width: 968px) {
+    .ca-cta-group {
+      justify-content: center;
+    }
+  }
+
+  .ca-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 2rem;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+
+  .ca-btn-primary {
+    background: var(--ca-red);
+    color: #ffffff !important;
+    box-shadow: 0 4px 20px var(--ca-red-glow);
+  }
+
+  .ca-btn-primary:hover {
+    background: var(--ca-red-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(216, 6, 33, 0.35);
+  }
+
+  .ca-btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff !important;
+  }
+
+  .ca-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+  }
+
+  /* Stats Block */
+  .ca-hero-stats {
+    display: flex;
+    gap: 2.5rem;
+    border-top: 1px solid var(--ca-border);
+    padding-top: 2rem;
+  }
+
+  @media (max-width: 968px) {
+    .ca-hero-stats {
+      justify-content: center;
+      gap: 1.5rem;
+    }
+  }
+
+  .ca-stat-item h4 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 0.25rem;
+  }
+
+  .ca-stat-item p {
+    font-size: 0.78rem;
+    color: var(--ca-text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin: 0;
+  }
+
+  /* Mockup Container */
+  .ca-mockup-wrapper {
+    position: relative;
+    perspective: 1000px;
+  }
+
+  .ca-browser-mockup {
+    background: #1e1e24;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    transform: rotateY(-10deg) rotateX(5deg);
+    transition: transform 0.5s ease;
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .ca-mockup-wrapper:hover .ca-browser-mockup {
+    transform: rotateY(0deg) rotateX(0deg) scale(1.02);
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotateY(-10deg) rotateX(5deg); }
+    50% { transform: translateY(-10px) rotateY(-8deg) rotateX(4deg); }
+  }
+
+  .ca-browser-header {
+    background: #121216;
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .ca-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  .ca-dot.red { background: #ef4444; }
+  .ca-dot.yellow { background: #f59e0b; }
+  .ca-dot.green { background: #10b981; }
+
+  .ca-browser-address {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    color: var(--ca-text-muted);
+    padding: 0.2rem 1.5rem;
+    margin-left: 1rem;
+    flex-grow: 1;
+    max-width: 300px;
+    text-align: center;
+    position: relative;
+  }
+
+  .ca-browser-body {
+    padding: 1.5rem;
+    min-height: 250px;
+    background: #0f0f13;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* ── 3. MARQUEE CONFANCE ── */
+  .ca-trust-marquee {
+    background: #121216;
+    border-top: 1px solid var(--ca-border);
+    border-bottom: 1px solid var(--ca-border);
+    padding: 1.25rem 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .ca-marquee-content {
+    display: inline-flex;
+    gap: 4rem;
+    animation: marquee 25s linear infinite;
+  }
+
+  .ca-marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    letter-spacing: 0.03em;
+  }
+
+  .ca-marquee-item span.maple {
+    color: var(--ca-red);
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ── 4. BENTO GRID DE FONCTIONNALITÉS ── */
+  .ca-section {
+    padding: 6rem 0;
+  }
+
+  .ca-section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+
+  .ca-section-tag {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ca-red);
+    margin-bottom: 0.75rem;
+    display: inline-block;
+  }
+
+  .ca-section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 3.5vw, 2.75rem);
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  .ca-section-subtitle {
+    color: var(--ca-text-muted);
+    max-width: 600px;
+    margin: 0.75rem auto 0;
+    line-height: 1.5;
+    font-size: 0.98rem;
+  }
+
+  /* Bento Layout */
+  .ca-bento-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: minmax(280px, auto);
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 1024px) {
+    .ca-bento-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .ca-bento-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .ca-bento-card {
+    background: var(--ca-dark-card);
+    border: 1px solid var(--ca-border);
+    border-radius: 18px;
+    padding: 2.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ca-bento-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top left, rgba(216, 6, 33, 0.06), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .ca-bento-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(216, 6, 33, 0.3);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  }
+
+  .ca-bento-card:hover::before {
+    opacity: 1;
+  }
+
+  .ca-bento-icon {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .ca-bento-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .ca-bento-text {
+    font-size: 0.88rem;
+    color: var(--ca-text-muted);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+    flex-grow: 1;
+  }
+
+  .ca-bento-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    font-size: 0.72rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 30px;
+    font-weight: 700;
+    align-self: flex-start;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Bento Span Patterns */
+  .ca-span-2 {
+    grid-column: span 2;
+  }
+
+  @media (max-width: 1024px) {
+    .ca-span-2 {
+      grid-column: span 1;
+    }
+  }
+
+  /* ── 5. TIMELINE "COMMENT CA MARCHE" ── */
+  .ca-timeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    position: relative;
+    margin-top: 3rem;
+  }
+
+  @media (max-width: 968px) {
+    .ca-timeline {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+  }
+
+  .ca-timeline-step {
+    position: relative;
+    background: var(--ca-dark-card);
+    border: 1px solid var(--ca-border);
+    padding: 2rem 1.5rem;
+    border-radius: 16px;
+    text-align: center;
+  }
+
+  .ca-timeline-num {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    background: var(--ca-red);
+    border: 4px solid var(--ca-dark);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: #ffffff;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px var(--ca-red-glow);
+  }
+
+  .ca-timeline-step h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0.75rem 0 0.5rem;
+  }
+
+  .ca-timeline-step p {
+    font-size: 0.82rem;
+    color: var(--ca-text-muted);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  /* ── 6. TABLEAU COMPARATIF DÉCHIRANT ── */
+  .ca-table-wrapper {
+    background: var(--ca-dark-card);
+    border: 1px solid var(--ca-border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-top: 3rem;
+  }
+
+  .ca-comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .ca-comp-table th, .ca-comp-table td {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--ca-border);
+  }
+
+  .ca-comp-table th {
+    background: rgba(255, 255, 255, 0.02);
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .ca-comp-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .ca-check-yes {
+    color: #22c55e;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .ca-check-no {
+    color: #ef4444;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  /* ── 7. GRILLE DE TARIFS ── */
+  .ca-pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 800px;
+    margin: 3rem auto 0;
+    gap: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .ca-pricing-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .ca-price-card {
+    background: var(--ca-dark-card);
+    border: 1px solid var(--ca-border);
+    border-radius: 20px;
+    padding: 3rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .ca-price-card.popular {
+    border-color: var(--ca-red);
+    box-shadow: 0 8px 30px rgba(216, 6, 33, 0.12);
+  }
+
+  .ca-price-popular-badge {
+    position: absolute;
+    top: -12px;
+    right: 30px;
+    background: var(--ca-red);
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.25rem 0.75rem;
+    border-radius: 30px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .ca-price-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 0.5rem;
+  }
+
+  .ca-price-header p {
+    font-size: 0.82rem;
+    color: var(--ca-text-muted);
+    margin: 0 0 1.5rem;
+  }
+
+  .ca-price-amount {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.75rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: baseline;
+  }
+
+  .ca-price-amount span.period {
+    font-size: 0.95rem;
+    color: var(--ca-text-muted);
+    font-weight: 400;
+  }
+
+  .ca-price-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .ca-price-features li {
+    font-size: 0.88rem;
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .ca-price-features li span.icon {
+    color: #22c55e;
+  }
+
+  .ca-price-features li.disabled {
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  .ca-price-features li.disabled span.icon {
+    color: rgba(255, 255, 255, 0.25);
+  }
+
+  /* ── 8. FAQ ACCORDEON ── */
+  .ca-faq-wrapper {
+    max-width: 800px;
+    margin: 3rem auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .ca-faq-item {
+    background: var(--ca-dark-card);
+    border: 1px solid var(--ca-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .ca-faq-question {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 1.5rem;
+    text-align: left;
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .ca-faq-answer {
+    padding: 0 1.5rem 1.5rem;
+    color: var(--ca-text-muted);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    display: none;
+  }
+
+  .ca-faq-chevron {
+    transition: transform 0.25s ease;
+    color: var(--ca-text-muted);
+  }
+
+  .ca-faq-item.active .ca-faq-chevron {
+    transform: rotate(180deg);
+    color: var(--ca-red);
+  }
+
+  /* ── 9. CTA FINAL IMPACTANT ── */
+  .ca-cta-final {
+    background: radial-gradient(circle at center, rgba(216, 6, 33, 0.15) 0%, transparent 70%), var(--ca-dark-card);
+    border: 1px solid var(--ca-border);
+    border-radius: 24px;
+    padding: 5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 4rem;
+  }
+
+  .ca-cta-final h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 1rem;
+  }
+
+  .ca-cta-final p {
+    font-size: 1.05rem;
+    color: var(--ca-text-muted);
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.6;
+  }
+</style>
+{% endblock %}
+
+{% block body_class %}ca-body{% endblock %}
+
+{% block content %}
+<div class="ca-body">
+
+  <!-- ==========================================
+       SECTION HERO
+       ========================================== -->
+  <header class="ca-hero">
+    <div class="ca-container ca-hero-grid">
+      <div class="ca-hero-left">
+        <span class="ca-badge-ircc">
+          🍁 Conforme aux exigences IRCC 2026
+        </span>
+        <h1 class="ca-hero-title">
+          Immigre au Canada<br>
+          <span class="accent-red">par toi-même.</span><br>
+          Sans intermédiaire.
+        </h1>
+        <p class="ca-hero-subtitle">
+          La première plateforme complète et intelligente pour préparer le TCF Canada, 
+          estimer votre score CRS, adapter votre CV, postuler à des emplois EIMT 
+          et simuler vos entretiens avec l'IA.
+        </p>
+
+        <div class="ca-cta-group">
+          <a href="/accounts/register/" class="ca-btn ca-btn-primary">
+            Commencer gratuitement
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+          <a href="#how-it-works" class="ca-btn ca-btn-secondary">
+            Voir comment ça marche
+          </a>
+        </div>
+
+        <div class="ca-hero-stats">
+          <div class="ca-stat-item">
+            <h4>{{ job_count }}+</h4>
+            <p>Offres EIMT actives</p>
+          </div>
+          <div class="ca-stat-item">
+            <h4>94%</h4>
+            <p>Réussite TCF</p>
+          </div>
+          <div class="ca-stat-item">
+            <h4>2.5k+</h4>
+            <p>Candidats guidés</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="ca-hero-right">
+        <div class="ca-mockup-wrapper">
+          <div class="ca-browser-mockup">
+            <div class="ca-browser-header">
+              <span class="ca-dot red"></span>
+              <span class="ca-dot yellow"></span>
+              <span class="ca-dot green"></span>
+              <div class="ca-browser-address">e-shelle.com/canada/dashboard</div>
+            </div>
+            <div class="ca-browser-body">
+              <div style="background: rgba(216, 6, 33, 0.08); border-left:3px solid var(--ca-red); padding:1rem; border-radius:6px;">
+                <p style="font-size:0.75rem; color:#ff8a93; margin:0 0 0.25rem; font-weight:700;">🤖 Coach IA Immigration</p>
+                <p style="font-size:0.8rem; color:#ffffff; margin:0; line-height:1.4;">"Votre score CRS actuel est estimé à 458 points. Améliorer votre note de TCF en expression écrite de B2 à C1 pourrait vous faire gagner 12 points additionnels."</p>
+              </div>
+              <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding:1rem; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <p style="font-size:0.75rem; color:var(--ca-text-muted); margin:0;">Offre active Canada EIMT</p>
+                  <p style="font-size:0.82rem; color:#ffffff; margin:0; font-weight:700;">Charpentier-Menuisier - Halifax, NS</p>
+                </div>
+                <span style="font-size:0.7rem; background:#10b981; color:#ffffff; padding:0.25rem 0.5rem; border-radius:4px; font-weight:800;">EIMT Approuvé</span>
+              </div>
+              <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding:1rem; border-radius:6px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:0.75rem;">
+                  <span style="color:#ffffff;">Progression TCF</span>
+                  <span style="color:var(--ca-red); font-weight:700;">80%</span>
+                </div>
+                <div style="width:100%; height:6px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden;">
+                  <div style="width:80%; height:100%; background:var(--ca-red);"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================
+       SECTION MARQUEE
+       ========================================== -->
+  <section class="ca-trust-marquee">
+    <div class="ca-marquee-content">
+      <div class="ca-marquee-item"><span class="maple">🍁</span> Critères Officiels IRCC 2026</div>
+      <div class="ca-marquee-item"><span class="maple">🍁</span> Base de données d'emplois certifiés EIMT</div>
+      <div class="ca-marquee-item"><span class="maple">🍁</span> Barème Officiel France Éducation International</div>
+      <div class="ca-marquee-item"><span class="maple">🍁</span> Économies d'Honoraires d'Agence</div>
+      <div class="ca-marquee-item"><span class="maple">🍁</span> Outils IA d'immigration 24h/7</div>
+      <!-- Duplicate content to ensure smooth scrolling marquee loop -->
+      <div class="ca-marquee-item"><span class="maple">🍁</span> Critères Officiels IRCC 2026</div>
+      <div class="ca-marquee-item"><span class="maple">🍁</span> Base de données d'emplois certifiés EIMT</div>
+      <div class="ca-marquee-item"><span class="maple">🍁</span> Barème Officiel France Éducation International</div>
+      <div class="ca-marquee-item"><span class="maple">🍁</span> Économies d'Honoraires d'Agence</div>
+      <div class="ca-marquee-item"><span class="maple">🍁</span> Outils IA d'immigration 24h/7</div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SECTION BENTO FEATURES
+       ========================================== -->
+  <section class="ca-section" id="features">
+    <div class="ca-container">
+      <div class="ca-section-header">
+        <span class="ca-section-tag">Une suite d'outils complète</span>
+        <h2 class="ca-section-title">Tout pour immigrer en autonomie</h2>
+        <p class="ca-section-subtitle">
+          E-Shelle regroupe les fonctionnalités clés qui remplacent les intermédiaires 
+          et sécurisent votre dossier.
+        </p>
+      </div>
+
+      <div class="ca-bento-grid">
+        <!-- TCF -->
+        <div class="ca-bento-card ca-span-2">
+          <div>
+            <div class="ca-bento-icon">📝</div>
+            <h3 class="ca-bento-title">Préparation TCF Canada Ultra Complète</h3>
+            <p class="ca-bento-text">
+              Entraînez-vous avec des leçons détaillées et des examens blancs chronométrés conformes aux barèmes officiels de France Éducation International. 29 épreuves de compréhension écrite et 29 épreuves de compréhension orale incluses pour décrocher un niveau C1/C2 indispensable pour votre score CRS.
+            </p>
+          </div>
+          <span class="ca-bento-pill">58 examens blancs chronométrés</span>
+        </div>
+
+        <!-- Coach IA -->
+        <div class="ca-bento-card">
+          <div>
+            <div class="ca-bento-icon">🤖</div>
+            <h3 class="ca-bento-title">Coach IA Canada 24/7</h3>
+            <p class="ca-bento-text">
+              Posez toutes vos questions à notre intelligence artificielle entraînée sur les critères et guides d'immigration officiels d'IRCC.
+            </p>
+          </div>
+          <span class="ca-bento-pill">Assistant personnel instantané</span>
+        </div>
+
+        <!-- Calculateur CRS -->
+        <div class="ca-bento-card">
+          <div>
+            <div class="ca-bento-icon">📊</div>
+            <h3 class="ca-bento-title">Calculateur CRS & Diagnostic</h3>
+            <p class="ca-bento-text">
+              Estimez précisément votre score pour le bassin Entrée Express et découvrez les recommandations intelligentes de notre IA pour augmenter vos points.
+            </p>
+          </div>
+          <span class="ca-bento-pill">Simulation instantanée</span>
+        </div>
+
+        <!-- Emplois EIMT -->
+        <div class="ca-bento-card ca-span-2">
+          <div>
+            <div class="ca-bento-icon">💼</div>
+            <h3 class="ca-bento-title">Moteur d'offres d'emploi EIMT/LMIA</h3>
+            <p class="ca-bento-text">
+              Recherchez des opportunités de recrutement auprès d'employeurs canadiens disposant d'une EIMT favorable (Étude d'Impact sur le Marché du Travail) autorisant l'embauche de travailleurs internationaux. Notre base de données est enrichie de façon quotidienne.
+            </p>
+          </div>
+          <span class="ca-bento-pill">Filtres Province / Ville / Métier</span>
+        </div>
+
+        <!-- CV Canada -->
+        <div class="ca-bento-card">
+          <div>
+            <div class="ca-bento-icon">📄</div>
+            <h3 class="ca-bento-title">CV & Lettre de Motivation Canada</h3>
+            <p class="ca-bento-text">
+              Générez et téléchargez votre CV au format canadien bilingue validé par les recruteurs locaux et optimisé pour le passage des filtres de recrutement automatisés (ATS).
+            </p>
+          </div>
+          <span class="ca-bento-pill">Générateur de CV bilingue</span>
+        </div>
+
+        <!-- Entretien IA -->
+        <div class="ca-bento-card">
+          <div>
+            <div class="ca-bento-icon">🎙️</div>
+            <h3 class="ca-bento-title">Simulation d'entretien IA</h3>
+            <p class="ca-bento-text">
+              Préparez-vous à vos entretiens d'embauche avec des recruteurs canadiens ou vos entrevues d'immigration grâce à notre simulateur interactif par IA.
+            </p>
+          </div>
+          <span class="ca-bento-pill">Correction & Débriefing IA</span>
+        </div>
+
+        <!-- Annuaire Talents -->
+        <div class="ca-bento-card">
+          <div>
+            <div class="ca-bento-icon">🤝</div>
+            <h3 class="ca-bento-title">Visibilité Recruteurs</h3>
+            <p class="ca-bento-text">
+              Enregistrez votre CV dans notre annuaire des talents visible directement par nos recruteurs et employeurs partenaires basés au Canada.
+            </p>
+          </div>
+          <span class="ca-bento-pill">Mise en avant de profils</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SECTION COMMENT CA MARCHE
+       ========================================== -->
+  <section class="ca-section" id="how-it-works" style="background: rgba(255, 255, 255, 0.01); border-top: 1px solid var(--ca-border); border-bottom: 1px solid var(--ca-border);">
+    <div class="ca-container">
+      <div class="ca-section-header">
+        <span class="ca-section-tag">Une méthodologie éprouvée</span>
+        <h2 class="ca-section-title">Comment fonctionne E-Shelle ?</h2>
+        <p class="ca-section-subtitle">
+          Suivez notre parcours étape par étape pour construire un dossier irréprochable 
+          sans jamais dépendre d'une agence tierce.
+        </p>
+      </div>
+
+      <div class="ca-timeline">
+        <div class="ca-timeline-step">
+          <div class="ca-timeline-num">1</div>
+          <h3>Création de profil</h3>
+          <p>Renseignez vos diplômes, votre niveau initial et vos antécédents professionnels.</p>
+        </div>
+        <div class="ca-timeline-step">
+          <div class="ca-timeline-num">2</div>
+          <h3>Diagnostic & Score</h3>
+          <p>Estimez votre score CRS pour Entrée Express et identifiez vos leviers de progression.</p>
+        </div>
+        <div class="ca-timeline-step">
+          <div class="ca-timeline-num">3</div>
+          <h3>Préparation Intelligente</h3>
+          <p>Entraînez-vous au TCF, générez votre CV canadien et simulez des entretiens avec l'IA.</p>
+        </div>
+        <div class="ca-timeline-step">
+          <div class="ca-timeline-num">4</div>
+          <h3>Candidatures Directes</h3>
+          <p>Postulez directement aux offres d'emploi EIMT et intégrez l'annuaire des talents.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SECTION COMPARATIF IMPACTANTE
+       ========================================== -->
+  <section class="ca-section" id="comparison">
+    <div class="ca-container">
+      <div class="ca-section-header">
+        <span class="ca-section-tag">Transparence économique</span>
+        <h2 class="ca-section-title">Agence classique vs E-Shelle</h2>
+        <p class="ca-section-subtitle">
+          Pourquoi dépenser des millions en honoraires d'agence alors que vous pouvez 
+          gérer vous-même votre destin avec de meilleurs outils ?
+        </p>
+      </div>
+
+      <div class="ca-table-wrapper">
+        <table class="ca-comp-table">
+          <thead>
+            <tr>
+              <th>Critère d'évaluation</th>
+              <th style="color:var(--ca-red);">Agence d'immigration classique</th>
+              <th style="color:#22c55e;">E-Shelle Canada</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Coûts d'accompagnement</strong></td>
+              <td class="ca-check-no">❌ 1 500 € à 4 000 € (Millions FCFA)</td>
+              <td class="ca-check-yes">✅ Commencer à 0 € / Accès Premium ultra abordable</td>
+            </tr>
+            <tr>
+              <td><strong>Transparence des données</strong></td>
+              <td class="ca-check-no">❌ Suivi opaque, documents retenus</td>
+              <td class="ca-check-yes">✅ Données 100% officielles IRCC en temps réel</td>
+            </tr>
+            <tr>
+              <td><strong>Préparation TCF</strong></td>
+              <td class="ca-check-no">❌ Souvent inexistante ou payante en sus</td>
+              <td class="ca-check-yes">✅ 58 Examens blancs complets intégrés</td>
+            </tr>
+            <tr>
+              <td><strong>Disponibilité de l'assistance</strong></td>
+              <td class="ca-check-no">❌ Sur rendez-vous uniquement en semaine</td>
+              <td class="ca-check-yes">✅ Coach IA disponible 24h/24 et 7j/7</td>
+            </tr>
+            <tr>
+              <td><strong>Recherche d'emploi EIMT</strong></td>
+              <td class="ca-check-no">❌ Option payante et non garantie</td>
+              <td class="ca-check-yes">✅ Accès direct et quotidien à l'annuaire d'offres</td>
+            </tr>
+            <tr>
+              <td><strong>Contrôle de votre dossier</strong></td>
+              <td class="ca-check-no">❌ Dépendant des délais de l'agent d'immigration</td>
+              <td class="ca-check-yes">✅ Vous êtes maître à 100% de vos soumissions</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SECTION TARIFS
+       ========================================== -->
+  <section class="ca-section" id="pricing" style="background: rgba(255, 255, 255, 0.01); border-top: 1px solid var(--ca-border); border-bottom: 1px solid var(--ca-border);">
+    <div class="ca-container">
+      <div class="ca-section-header">
+        <span class="ca-section-tag">Une tarification claire</span>
+        <h2 class="ca-section-title">Commencez dès aujourd'hui</h2>
+        <p class="ca-section-subtitle">
+          Découvrez la plateforme gratuitement, puis passez au premium pour accélérer 
+          votre démarche d'immigration.
+        </p>
+      </div>
+
+      <div class="ca-pricing-grid">
+        <!-- Plan Gratuit -->
+        <div class="ca-price-card">
+          <div class="ca-price-header">
+            <h3>Offre Découverte</h3>
+            <p>Pour faire un premier point sur votre dossier.</p>
+          </div>
+          <div class="ca-price-amount">
+            0 € <span class="period">/ gratuit</span>
+          </div>
+          <ul class="ca-price-features">
+            <li><span class="icon">✓</span> Calculateur CRS de base</li>
+            <li><span class="icon">✓</span> 3 requêtes quotidiennes au Coach IA</li>
+            <li><span class="icon">✓</span> Accès restreint aux leçons TCF</li>
+            <li class="disabled"><span class="icon">✗</span> Examens blancs chronométrés</li>
+            <li class="disabled"><span class="icon">✗</span> Détail des offres d'emploi EIMT</li>
+            <li class="disabled"><span class="icon">✗</span> Génération et export de CV Canada</li>
+            <li class="disabled"><span class="icon">✗</span> Simulation d'entretien IA</li>
+          </ul>
+          <a href="/accounts/register/" class="ca-btn ca-btn-secondary" style="text-align:center; justify-content:center;">
+            Démarrer gratuitement
+          </a>
+        </div>
+
+        <!-- Plan Premium -->
+        <div class="ca-price-card popular">
+          <div class="ca-price-popular-badge">Le plus populaire</div>
+          <div class="ca-price-header">
+            <h3>Accès Premium</h3>
+            <p>Pour maximiser vos points et postuler en direct.</p>
+          </div>
+          <div class="ca-price-amount">
+            19.99 € <span class="period">/ mois (Sans engagement)</span>
+          </div>
+          <ul class="ca-price-features">
+            <li><span class="icon">✓</span> <strong>Tous les calculateurs CRS & Diagnostic</strong></li>
+            <li><span class="icon">✓</span> <strong>Coach IA Canada Illimité 24/7</strong></li>
+            <li><span class="icon">✓</span> <strong>58 Examens blancs TCF complets</strong></li>
+            <li><span class="icon">✓</span> <strong>Accès complet aux offres d'emploi EIMT</strong></li>
+            <li><span class="icon">✓</span> <strong>Générateur de CV & Lettres illimité</strong></li>
+            <li><span class="icon">✓</span> <strong>Simulation d'entretiens IA illimitée</strong></li>
+            <li><span class="icon">✓</span> <strong>Inscription prioritaire Annuaire des Talents</strong></li>
+          </ul>
+          <a href="{% url 'billing:access' %}" class="ca-btn ca-btn-primary" style="text-align:center; justify-content:center;">
+            Devenir Premium
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SECTION FAQ
+       ========================================== -->
+  <section class="ca-section" id="faq">
+    <div class="ca-container">
+      <div class="ca-section-header">
+        <span class="ca-section-tag">Des réponses à vos questions</span>
+        <h2 class="ca-section-title">Foire aux questions</h2>
+        <p class="ca-section-subtitle">
+          Vous hésitez encore ? Découvrez les réponses aux questions les plus fréquentes sur nos services.
+        </p>
+      </div>
+
+      <div class="ca-faq-wrapper">
+        <div class="ca-faq-item">
+          <button class="ca-faq-question" onclick="toggleFaq(this)">
+            E-Shelle remplace-t-il un consultant ou un avocat en immigration ?
+            <span class="ca-faq-chevron">▼</span>
+          </button>
+          <div class="ca-faq-answer">
+            E-Shelle est une plateforme d'outils et d'aide à la préparation. Nous fournissons des diagnostics basés sur les critères officiels d'IRCC et des entraînements linguistiques, mais nous ne donnons pas de conseil juridique formel. Si votre dossier présente une complexité juridique extrême, le recours à un avocat agréé reste recommandé, mais pour 90% des démarches classiques (Entrée Express, Arrima, Études), E-Shelle vous offre l'autonomie totale nécessaire pour économiser les frais d'agence.
+          </div>
+        </div>
+
+        <div class="ca-faq-item">
+          <button class="ca-faq-question" onclick="toggleFaq(this)">
+            Les examens blancs TCF sont-ils conformes à l'examen réel ?
+            <span class="ca-faq-chevron">▼</span>
+          </button>
+          <div class="ca-faq-answer">
+            Oui, absolument. Nos 58 épreuves blanches (Compréhension Écrite et Orale) respectent scrupuleusement la structure, les durées, le nombre de questions et la grille d'évaluation officielle de France Éducation International. C'est l'entraînement parfait pour valider votre niveau C1 ou C2 et maximiser vos chances.
+          </div>
+        </div>
+
+        <div class="ca-faq-item">
+          <button class="ca-faq-question" onclick="toggleFaq(this)">
+            Où E-Shelle trouve-t-il les offres d'emploi EIMT ?
+            <span class="ca-faq-chevron">▼</span>
+          </button>
+          <div class="ca-faq-answer">
+            Notre moteur de recherche aspire, trie et met à jour de façon quotidienne les offres d'emploi d'employeurs canadiens ayant obtenu une Étude d'Impact sur le Marché du Travail (EIMT) approuvée pour embaucher à l'étranger. Nous filtrons ces offres pour éliminer les fausses annonces et nous concentrer uniquement sur les recruteurs ouverts aux candidats internationaux.
+          </div>
+        </div>
+
+        <div class="ca-faq-item">
+          <button class="ca-faq-question" onclick="toggleFaq(this)">
+            Puis-je arrêter mon abonnement Premium quand je le souhaite ?
+            <span class="ca-faq-chevron">▼</span>
+          </button>
+          <div class="ca-faq-answer">
+            Oui, notre abonnement Premium est totalement sans engagement. Vous pouvez l'annuler en un clic depuis votre espace facturation dès que vous avez obtenu votre TCF ou décroché votre contrat de travail.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SECTION FINAL CTA
+       ========================================== -->
+  <section class="ca-container" style="margin-top:2rem;">
+    <div class="ca-cta-final">
+      <h2>Prêt à concrétiser votre projet canadien ?</h2>
+      <p>
+        Rejoignez les milliers de candidats qui préparent activement leur immigration 
+        sur E-Shelle en toute autonomie.
+      </p>
+      <a href="/accounts/register/" class="ca-btn ca-btn-primary ca-btn-lg">
+        Créer mon compte et démarrer
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  function toggleFaq(button) {
+    const item = button.parentElement;
+    const answer = button.nextElementSibling;
+    const isActive = item.classList.contains('active');
+    
+    // Close other items
+    document.querySelectorAll('.ca-faq-item').forEach(i => {
+      i.classList.remove('active');
+      i.querySelector('.ca-faq-answer').style.display = 'none';
+    });
+
+    if (!isActive) {
+      item.classList.add('active');
+      answer.style.display = 'block';
+    }
+  }
+</script>
+{% endblock %}
