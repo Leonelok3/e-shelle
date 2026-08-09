@@ -14,27 +14,28 @@ logger = logging.getLogger(__name__)
 def get_vertex_client() -> tuple[genai.Client | None, str | None]:
     """
     Initialise le client Google GenAI avec Vertex AI si configuré.
+    En cas d'échec ou de clé absente, bascule automatiquement sur Google AI Studio en fallback.
     Retourne (client, error_message).
     """
     key_path = getattr(settings, "GCP_VERTEX_KEY_PATH", "")
-    if not key_path or not os.path.exists(key_path):
-        return None, "Fichier de clé de compte de service introuvable."
+    if key_path and os.path.exists(key_path):
+        try:
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
+            with open(key_path, 'r', encoding='utf-8') as f:
+                key_data = json.load(f)
+            project_id = key_data.get("project_id", "e-shelle")
+            
+            client = genai.Client(
+                vertexai=True,
+                project=project_id,
+                location="us-central1"
+            )
+            return client, None
+        except Exception as e:
+            logger.warning(f"Vertex AI initialization failed: {e}. Falling back to AI Studio...")
     
-    try:
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
-        with open(key_path, 'r', encoding='utf-8') as f:
-            key_data = json.load(f)
-        project_id = key_data.get("project_id", "e-shelle")
-        
-        client = genai.Client(
-            vertexai=True,
-            project=project_id,
-            location="us-central1"
-        )
-        return client, None
-    except Exception as e:
-        logger.exception("Exception initializing Vertex Client")
-        return None, str(e)
+    # Bascule automatique en mode Developer API (AI Studio)
+    return get_genai_studio_client()
 
 
 def get_genai_studio_client() -> tuple[genai.Client | None, str | None]:
@@ -45,6 +46,9 @@ def get_genai_studio_client() -> tuple[genai.Client | None, str | None]:
     Retourne (client, error_message).
     """
     api_key = getattr(settings, "GEMINI_SEARCH_API_KEY", "") or getattr(settings, "GOOGLE_API_KEY", "")
+    if not api_key:
+        api_key = os.getenv("GEMINI_SEARCH_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "")
+        
     if not api_key:
         return None, "Aucune clé API Gemini (GEMINI_SEARCH_API_KEY / GOOGLE_API_KEY) configurée."
 
