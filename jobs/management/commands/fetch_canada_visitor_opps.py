@@ -17,6 +17,17 @@ def _is_url_active(url: str) -> bool:
         return False
     if "example.com" in url or "localhost" in url:
         return False
+        
+    # Liste de domaines de confiance à ne jamais rejeter par erreur de connexion
+    trusted_domains = [
+        "gc.ca", "canada.ca", "quebec.ca", "mcgill.ca", "ubc.ca", 
+        "umontreal.ca", "ulaval.ca", "uottawa.ca", "alberta.ca",
+        "utoronto.ca", "jobbank.gc.ca", "guichet-emplois.gc.ca",
+        "vertexaisearch.cloud.google.com"
+    ]
+    if any(domain in url.lower() for domain in trusted_domains):
+        return True
+
     try:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -24,14 +35,15 @@ def _is_url_active(url: str) -> bool:
         resp = requests.head(url, headers=headers, timeout=5, allow_redirects=True)
         if resp.status_code in [404, 410]:
             return False
-        if resp.status_code < 400 or resp.status_code == 403:
+        if resp.status_code < 400 or resp.status_code in [401, 403, 503]:
             return True
         resp = requests.get(url, headers=headers, timeout=5, allow_redirects=True, stream=True)
         if resp.status_code in [404, 410]:
             return False
         return resp.status_code < 400
     except Exception:
-        return False
+        # En cas d'erreur de connexion ou de SSL (ex: geoblocking du serveur), on garde l'offre
+        return True
 
 
 class Command(BaseCommand):
