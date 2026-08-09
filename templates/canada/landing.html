@@ -9,15 +9,17 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
 
 {% block extra_css %}
 <style>
-  /* ── DESIGN SYSTEM CANADA PREMIUM (THÈME CLAIR DÉCORÉ) ── */
+  /* ── DESIGN SYSTEM CANADA PREMIUM CLAIR & COULEURS AGENCÉES ── */
   :root {
     --ca-red: #D80621;
     --ca-red-hover: #b3041a;
-    --ca-red-glow: rgba(216, 6, 33, 0.12);
-    --ca-bg-light: #f8fafc;
-    --ca-card-bg: #ffffff;
-    --ca-border: #e2e8f0;
-    --ca-border-light: #cbd5e1;
+    --ca-red-glow: rgba(216, 6, 33, 0.15);
+    --ca-bg-light: #ffffff;
+    --ca-bg-gray: #f8fafc;
+    --ca-bg-dark: #0f172a;       /* Navy Sombre pour casser les sections */
+    --ca-card-bg-dark: #1e293b;  /* Lighter Navy pour les cartes sombres */
+    --ca-border-light: #e2e8f0;
+    --ca-border-dark: rgba(255, 255, 255, 0.08);
     --ca-text-dark: #0f172a;
     --ca-text-muted: #64748b;
   }
@@ -29,113 +31,17 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
     overflow-x: hidden;
   }
 
-  /* ── SECTION HERO ── */
-  .ca-hero {
-    position: relative;
-    padding: 8rem 0 5rem;
-    background: radial-gradient(circle at top right, rgba(216, 6, 33, 0.05), transparent 45%),
-                radial-gradient(circle at bottom left, rgba(241, 245, 249, 0.6), #ffffff);
-    overflow: hidden;
-    border-bottom: 1px solid var(--ca-border);
-  }
-
-  .ca-hero::before {
-    content: '';
-    position: absolute;
-    top: 10%;
-    left: 5%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(216, 6, 33, 0.03), transparent 70%);
-    filter: blur(50px);
-    pointer-events: none;
-  }
-
   .ca-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 1.5rem;
   }
 
-  .ca-hero-grid {
-    display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
-    gap: 3rem;
-    align-items: center;
-  }
-
-  @media (max-width: 968px) {
-    .ca-hero-grid {
-      grid-template-columns: 1fr;
-      text-align: center;
-      gap: 2rem;
-    }
-  }
-
-  .ca-badge-ircc {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: #fef2f2;
-    border: 1px solid #fee2e2;
-    color: var(--ca-red);
-    padding: 0.4rem 1rem;
-    border-radius: 30px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    letter-spacing: 0.03em;
-    box-shadow: 0 2px 4px rgba(216, 6, 33, 0.04);
-  }
-
-  .ca-hero-title {
-    font-family: 'Syne', 'Plus Jakarta Sans', sans-serif;
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    font-weight: 800;
-    line-height: 1.15;
-    color: var(--ca-text-dark);
-    margin-bottom: 1.25rem;
-  }
-
-  .ca-hero-title span.accent-red {
-    background: linear-gradient(135deg, #ff4d5e 0%, #D80621 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .ca-hero-subtitle {
-    font-size: clamp(1rem, 2vw, 1.15rem);
-    color: var(--ca-text-muted);
-    line-height: 1.6;
-    margin-bottom: 2.25rem;
-    max-width: 650px;
-  }
-
-  @media (max-width: 968px) {
-    .ca-hero-subtitle {
-      margin-left: auto;
-      margin-right: auto;
-    }
-  }
-
-  .ca-cta-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 3rem;
-  }
-
-  @media (max-width: 968px) {
-    .ca-cta-group {
-      justify-content: center;
-    }
-  }
-
   .ca-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 0.85rem 2rem;
+    padding: 0.85rem 2.2rem;
     border-radius: 50px;
     font-size: 0.95rem;
     font-weight: 700;
@@ -165,22 +71,91 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
 
   .ca-btn-secondary:hover {
     background: #f1f5f9;
-    border-color: var(--ca-border-light);
     transform: translateY(-2px);
   }
 
-  /* Stats Block */
+  /* ── 1. SECTION HERO (LIGHT GRADIANT) ── */
+  .ca-hero {
+    position: relative;
+    padding: 8rem 0 5rem;
+    background: radial-gradient(circle at top right, rgba(216, 6, 33, 0.05), transparent 45%),
+                radial-gradient(circle at bottom left, rgba(241, 245, 249, 0.6), #ffffff);
+    overflow: hidden;
+    border-bottom: 1px solid var(--ca-border-light);
+  }
+
+  .ca-badge-ircc {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    color: var(--ca-red);
+    padding: 0.4rem 1rem;
+    border-radius: 30px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(216, 6, 33, 0.02);
+  }
+
+  .ca-hero-title {
+    font-family: 'Syne', 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--ca-text-dark);
+    margin-bottom: 1.25rem;
+  }
+
+  .ca-hero-title span.accent-red {
+    background: linear-gradient(135deg, #ff4d5e 0%, #D80621 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .ca-hero-subtitle {
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    color: var(--ca-text-muted);
+    line-height: 1.6;
+    margin-bottom: 2.25rem;
+    max-width: 650px;
+  }
+
+  .ca-cta-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  @media (max-width: 968px) {
+    .ca-cta-group {
+      justify-content: center;
+    }
+    .ca-hero-grid {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+  }
+
+  .ca-hero-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
   .ca-hero-stats {
     display: flex;
     gap: 2.5rem;
-    border-top: 1px solid var(--ca-border);
+    border-top: 1px solid var(--ca-border-light);
     padding-top: 2rem;
   }
 
   @media (max-width: 968px) {
     .ca-hero-stats {
       justify-content: center;
-      gap: 1.5rem;
     }
   }
 
@@ -196,11 +171,10 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
     color: var(--ca-text-muted);
     text-transform: uppercase;
     font-weight: 600;
-    letter-spacing: 0.05em;
     margin: 0;
   }
 
-  /* Mockup Container */
+  /* Mockup */
   .ca-mockup-wrapper {
     position: relative;
     perspective: 1000px;
@@ -210,15 +184,10 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
     background: #1e1e24;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
     overflow: hidden;
     transform: rotateY(-10deg) rotateX(5deg);
-    transition: transform 0.5s ease;
     animation: float 6s ease-in-out infinite;
-  }
-
-  .ca-mockup-wrapper:hover .ca-browser-mockup {
-    transform: rotateY(0deg) rotateX(0deg) scale(1.02);
   }
 
   @keyframes float {
@@ -239,7 +208,7 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
     width: 8px;
     height: 8px;
     border-radius: 50px;
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.2);
   }
 
   .ca-dot.red { background: #ef4444; }
@@ -256,7 +225,6 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
     flex-grow: 1;
     max-width: 300px;
     text-align: center;
-    position: relative;
   }
 
   .ca-browser-body {
@@ -268,11 +236,11 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
     gap: 1rem;
   }
 
-  /* ── 3. MARQUEE DE CONFIANCE ── */
+  /* ── 2. TRUST MARQUEE ── */
   .ca-trust-marquee {
     background: #ffffff;
-    border-top: 1px solid var(--ca-border);
-    border-bottom: 1px solid var(--ca-border);
+    border-top: 1px solid var(--ca-border-light);
+    border-bottom: 1px solid var(--ca-border-light);
     padding: 1.25rem 0;
     overflow: hidden;
     white-space: nowrap;
@@ -291,7 +259,6 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
     font-size: 0.88rem;
     font-weight: 700;
     color: var(--ca-text-dark);
-    letter-spacing: 0.03em;
   }
 
   .ca-marquee-item span.maple {
@@ -303,15 +270,139 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
     100% { transform: translateX(-50%); }
   }
 
-  /* ── 4. BENTO GRID DE FONCTIONNALITÉS ── */
-  .ca-section {
+  /* ── 3. SECTION BENTO (DARK BLUE/NAVY - POUR CASSER LE BLANC) ── */
+  .ca-section-dark {
+    background-color: var(--ca-bg-dark) !important;
+    color: #f8fafc !important;
     padding: 6rem 0;
-    border-bottom: 1px solid var(--ca-border);
   }
 
-  .ca-section-header {
-    text-align: center;
-    margin-bottom: 4rem;
+  .ca-section-dark .ca-section-tag {
+    color: #ff4d5e;
+  }
+
+  .ca-section-dark .ca-section-title {
+    color: #ffffff;
+  }
+
+  .ca-section-dark .ca-section-subtitle {
+    color: #94a3b8;
+  }
+
+  .ca-bento-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: minmax(280px, auto);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  @media (max-width: 1024px) {
+    .ca-bento-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .ca-bento-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .ca-bento-card {
+    background: var(--ca-card-bg-dark);
+    border: 1px solid var(--ca-border-dark);
+    border-radius: 18px;
+    padding: 2.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ca-bento-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top left, rgba(216, 6, 33, 0.08), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .ca-bento-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(216, 6, 33, 0.4);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .ca-bento-card:hover::before {
+    opacity: 1;
+  }
+
+  .ca-bento-icon {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--ca-border-dark);
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .ca-bento-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .ca-bento-text {
+    font-size: 0.88rem;
+    color: #94a3b8;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+    flex-grow: 1;
+  }
+
+  .ca-bento-pill {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--ca-border-dark);
+    color: #ffffff;
+    font-size: 0.72rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 30px;
+    font-weight: 700;
+    align-self: flex-start;
+    position: relative;
+    z-index: 1;
+  }
+
+  .ca-span-2 {
+    grid-column: span 2;
+  }
+
+  @media (max-width: 1024px) {
+    .ca-span-2 {
+      grid-column: span 1;
+    }
+  }
+
+  /* ── 4. SECTION TIMELINE & DIAGNOSTIC CALLOUT (LIGHT) ── */
+  .ca-section-light {
+    background-color: var(--ca-bg-light) !important;
+    color: var(--ca-text-dark) !important;
+    padding: 6rem 0;
   }
 
   .ca-section-tag {
@@ -340,124 +431,12 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
     font-size: 0.98rem;
   }
 
-  /* Bento Layout */
-  .ca-bento-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-auto-rows: minmax(280px, auto);
-    gap: 1.5rem;
-  }
-
-  @media (max-width: 1024px) {
-    .ca-bento-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (max-width: 768px) {
-    .ca-bento-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .ca-bento-card {
-    background: var(--ca-card-bg);
-    border: 1px solid var(--ca-border);
-    border-radius: 18px;
-    padding: 2.25rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.015);
-  }
-
-  .ca-bento-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at top left, rgba(216, 6, 33, 0.03), transparent 60%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .ca-bento-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(216, 6, 33, 0.2);
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
-  }
-
-  .ca-bento-card:hover::before {
-    opacity: 1;
-  }
-
-  .ca-bento-icon {
-    font-size: 2rem;
-    margin-bottom: 1.5rem;
-    background: #f8fafc;
-    border: 1px solid var(--ca-border);
-    width: 56px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .ca-bento-title {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--ca-text-dark);
-    margin-bottom: 0.5rem;
-    position: relative;
-    z-index: 1;
-  }
-
-  .ca-bento-text {
-    font-size: 0.88rem;
-    color: var(--ca-text-muted);
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
-    position: relative;
-    z-index: 1;
-    flex-grow: 1;
-  }
-
-  .ca-bento-pill {
-    background: #f1f5f9;
-    border: 1px solid var(--ca-border);
-    color: var(--ca-text-dark);
-    font-size: 0.72rem;
-    padding: 0.3rem 0.75rem;
-    border-radius: 30px;
-    font-weight: 700;
-    align-self: flex-start;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Bento Span Patterns */
-  .ca-span-2 {
-    grid-column: span 2;
-  }
-
-  @media (max-width: 1024px) {
-    .ca-span-2 {
-      grid-column: span 1;
-    }
-  }
-
-  /* ── 5. TIMELINE "COMMENT CA MARCHE" ── */
   .ca-timeline {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 2rem;
     position: relative;
-    margin-top: 3rem;
+    margin-top: 4rem;
   }
 
   @media (max-width: 968px) {
@@ -469,12 +448,11 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
 
   .ca-timeline-step {
     position: relative;
-    background: var(--ca-card-bg);
-    border: 1px solid var(--ca-border);
+    background: var(--ca-bg-gray);
+    border: 1px solid var(--ca-border-light);
     padding: 2.25rem 1.5rem;
     border-radius: 16px;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.01);
   }
 
   .ca-timeline-num {
@@ -510,14 +488,109 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
     margin: 0;
   }
 
-  /* ── 6. TABLEAU COMPARATIF ── */
+  /* ── 5. CRS DIAGNOSTIC CALLOUT (DARK BLUE ACCENT CARD - CAPTURE 2) ── */
+  .ca-diag-callout {
+    background: #0e1e38;  /* Deep dark navy block for CRS matching Capture 2 */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 3rem;
+    margin: 5rem 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 3rem;
+    box-shadow: 0 15px 40px rgba(15, 23, 42, 0.15);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ca-diag-callout::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -100px;
+    transform: translateY(-50%);
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(216, 6, 33, 0.15), transparent 70%);
+    pointer-events: none;
+  }
+
+  @media (max-width: 868px) {
+    .ca-diag-callout {
+      flex-direction: column;
+      text-align: center;
+      padding: 2.5rem 1.5rem;
+      gap: 1.5rem;
+    }
+  }
+
+  .ca-diag-callout-left {
+    flex-grow: 1;
+    z-index: 1;
+  }
+
+  .ca-diag-callout-tag {
+    color: #ff4d5e;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .ca-diag-callout-title {
+    color: #ffffff;
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    font-weight: 800;
+    line-height: 1.25;
+    margin: 0 0 0.5rem;
+  }
+
+  .ca-diag-callout-text {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+    max-width: 650px;
+  }
+
+  .ca-btn-diagnostic {
+    background: var(--ca-red);
+    color: #ffffff !important;
+    border: none;
+    box-shadow: 0 4px 15px var(--ca-red-glow);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    z-index: 1;
+  }
+
+  .ca-btn-diagnostic:hover {
+    background: var(--ca-red-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(216, 6, 33, 0.3);
+  }
+
+  /* ── 6. COMPARISON TABLE SECTION (GRAY BACKGROUND) ── */
+  .ca-section-gray {
+    background-color: var(--ca-bg-gray) !important;
+    color: var(--ca-text-dark) !important;
+    padding: 6rem 0;
+    border-top: 1px solid var(--ca-border-light);
+    border-bottom: 1px solid var(--ca-border-light);
+  }
+
   .ca-table-wrapper {
-    background: var(--ca-card-bg);
-    border: 1px solid var(--ca-border);
+    background: #ffffff;
+    border: 1px solid var(--ca-border-light);
     border-radius: 16px;
     overflow: hidden;
     margin-top: 3rem;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.015);
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
   }
 
   .ca-comp-table {
@@ -528,11 +601,11 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
 
   .ca-comp-table th, .ca-comp-table td {
     padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--ca-border);
+    border-bottom: 1px solid var(--ca-border-light);
   }
 
   .ca-comp-table th {
-    background: #f8fafc;
+    background: #f1f5f9;
     font-weight: 700;
     color: var(--ca-text-dark);
   }
@@ -544,25 +617,19 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
   .ca-check-yes {
     color: #15803d;
     font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
   }
 
   .ca-check-no {
     color: #b91c1c;
     font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
   }
 
-  /* ── 7. GRILLE DE TARIFS ── */
+  /* ── 7. PRICING GRID (LIGHT) ── */
   .ca-pricing-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    max-width: 800px;
-    margin: 3rem auto 0;
+    max-width: 850px;
+    margin: 3.5rem auto 0;
     gap: 2rem;
   }
 
@@ -573,19 +640,39 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
   }
 
   .ca-price-card {
-    background: var(--ca-card-bg);
-    border: 1px solid var(--ca-border);
+    background: #ffffff;
+    border: 1px solid var(--ca-border-light);
     border-radius: 20px;
     padding: 3rem 2.5rem;
     display: flex;
     flex-direction: column;
     position: relative;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.015);
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.01);
+    transition: transform 0.3s ease;
   }
 
+  /* Premium Card stand out in Navy Sombre to create amazing premium contrast */
   .ca-price-card.popular {
+    background: var(--ca-bg-dark);
+    color: #ffffff;
     border: 2px solid var(--ca-red);
-    box-shadow: 0 8px 30px rgba(216, 6, 33, 0.06);
+    box-shadow: 0 15px 40px rgba(15, 23, 42, 0.15);
+  }
+
+  .ca-price-card.popular .ca-price-header h3 {
+    color: #ffffff;
+  }
+
+  .ca-price-card.popular .ca-price-header p {
+    color: #94a3b8;
+  }
+
+  .ca-price-card.popular .ca-price-amount {
+    color: #ffffff;
+  }
+
+  .ca-price-card.popular .ca-price-features li {
+    color: #e2e8f0;
   }
 
   .ca-price-popular-badge {
@@ -617,7 +704,7 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
 
   .ca-price-amount {
     font-family: 'Syne', sans-serif;
-    font-size: 2.75rem;
+    font-size: 2.5rem;
     font-weight: 800;
     color: var(--ca-text-dark);
     margin-bottom: 2rem;
@@ -626,9 +713,14 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
   }
 
   .ca-price-amount span.period {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--ca-text-muted);
     font-weight: 400;
+    margin-left: 0.35rem;
+  }
+
+  .ca-price-card.popular .ca-price-amount span.period {
+    color: #94a3b8;
   }
 
   .ca-price-features {
@@ -650,15 +742,19 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
   }
 
   .ca-price-features li span.icon {
-    color: #16803d;
+    color: #15803d;
+  }
+
+  .ca-price-card.popular .ca-price-features li span.icon {
+    color: #4ade80;
   }
 
   .ca-price-features li.disabled {
-    color: rgba(15, 23, 42, 0.4);
+    color: rgba(15, 23, 42, 0.35);
   }
 
   .ca-price-features li.disabled span.icon {
-    color: rgba(15, 23, 42, 0.25);
+    color: rgba(15, 23, 42, 0.2);
   }
 
   /* ── 8. FAQ ACCORDEON ── */
@@ -671,11 +767,10 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
   }
 
   .ca-faq-item {
-    background: var(--ca-card-bg);
-    border: 1px solid var(--ca-border);
+    background: #ffffff;
+    border: 1px solid var(--ca-border-light);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.01);
   }
 
   .ca-faq-question {
@@ -712,10 +807,10 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
     color: var(--ca-red);
   }
 
-  /* ── 9. CTA FINAL IMPACTANT ── */
+  /* ── 9. CTA FINAL IMPACTANT ROUGE (CAPTURE 3) ── */
   .ca-cta-final {
-    background: linear-gradient(135deg, var(--ca-red) 0%, #a80418 100%);
-    padding: 5rem 2rem;
+    background: linear-gradient(135deg, var(--ca-red) 0%, #b3041a 100%);
+    padding: 5.5rem 2rem;
     border-radius: 24px;
     text-align: center;
     position: relative;
@@ -730,6 +825,7 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
     font-weight: 800;
     color: #ffffff;
     margin-bottom: 1rem;
+    letter-spacing: -0.02em;
   }
 
   .ca-cta-final p {
@@ -759,7 +855,7 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
 <div class="ca-body">
 
   <!-- ==========================================
-       SECTION HERO
+       1. SECTION HERO (LIGHT GRADIANT)
        ========================================== -->
   <header class="ca-hero">
     <div class="ca-container ca-hero-grid">
@@ -785,8 +881,8 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </a>
-          <a href="#how-it-works" class="ca-btn ca-btn-secondary">
-            Voir comment ça marche
+          <a href="#features" class="ca-btn ca-btn-secondary">
+            Découvrir les modules
           </a>
         </div>
 
@@ -844,7 +940,7 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
   </header>
 
   <!-- ==========================================
-       SECTION MARQUEE
+       2. TRUST MARQUEE
        ========================================== -->
   <section class="ca-trust-marquee">
     <div class="ca-marquee-content">
@@ -853,7 +949,7 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
       <div class="ca-marquee-item"><span class="maple">🍁</span> Barème Officiel France Éducation International</div>
       <div class="ca-marquee-item"><span class="maple">🍁</span> Économies d'Honoraires d'Agence</div>
       <div class="ca-marquee-item"><span class="maple">🍁</span> Outils IA d'immigration 24h/7</div>
-      <!-- Duplicate content to ensure smooth scrolling marquee loop -->
+      <!-- Duplicate content for marquee loop -->
       <div class="ca-marquee-item"><span class="maple">🍁</span> Critères Officiels IRCC 2026</div>
       <div class="ca-marquee-item"><span class="maple">🍁</span> Base de données d'emplois certifiés EIMT</div>
       <div class="ca-marquee-item"><span class="maple">🍁</span> Barème Officiel France Éducation International</div>
@@ -863,9 +959,9 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
   </section>
 
   <!-- ==========================================
-       SECTION BENTO FEATURES
+       3. SECTION BENTO (DARK BLUE/NAVY - POUR CASSER LE VISUEL)
        ========================================== -->
-  <section class="ca-section" id="features">
+  <section class="ca-section-dark" id="features">
     <div class="ca-container">
       <div class="ca-section-header">
         <span class="ca-section-tag">Une suite d'outils complète</span>
@@ -965,9 +1061,9 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
   </section>
 
   <!-- ==========================================
-       SECTION COMMENT CA MARCHE
+       4. SECTION TIMELINE (LIGHT)
        ========================================== -->
-  <section class="ca-section" id="how-it-works" style="background: #ffffff;">
+  <section class="ca-section-light" id="how-it-works">
     <div class="ca-container">
       <div class="ca-section-header">
         <span class="ca-section-tag">Une méthodologie éprouvée</span>
@@ -1000,13 +1096,32 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
           <p>Postulez directement aux offres d'emploi EIMT et intégrez l'annuaire des talents.</p>
         </div>
       </div>
+
+      <!-- ==========================================
+           5. CRS DIAGNOSTIC CALLOUT (NAVY BLUE ACCENT CARD - CAPTURE 2)
+           ========================================== -->
+      <div class="ca-diag-callout">
+        <div class="ca-diag-callout-left">
+          <div class="ca-diag-callout-tag">
+            🍁 CONSULTANT VIRTUEL CANADA
+          </div>
+          <h3 class="ca-diag-callout-title">Simulez votre Éligibilité & Score CRS Express Entry</h3>
+          <p class="ca-diag-callout-text">
+            Calculez vos points d'immigration officiels et découvrez comment les optimiser grâce au TCF et à nos outils IA.
+          </p>
+        </div>
+        <a href="{% url 'canada_resume:dashboard' %}" class="ca-btn ca-btn-diagnostic">
+          FAIRE MON DIAGNOSTIC ✨
+        </a>
+      </div>
+
     </div>
   </section>
 
   <!-- ==========================================
-       SECTION COMPARATIF IMPACTANTE
+       6. SECTION COMPARATIF (GRAY BACKGROUND)
        ========================================== -->
-  <section class="ca-section" id="comparison">
+  <section class="ca-section-gray" id="comparison">
     <div class="ca-container">
       <div class="ca-section-header">
         <span class="ca-section-tag">Transparence économique</span>
@@ -1064,9 +1179,9 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
   </section>
 
   <!-- ==========================================
-       SECTION TARIFS
+       7. SECTION TARIFS (LIGHT BACKGROUND)
        ========================================== -->
-  <section class="ca-section" id="pricing" style="background: #ffffff;">
+  <section class="ca-section-light" id="pricing">
     <div class="ca-container">
       <div class="ca-section-header">
         <span class="ca-section-tag">Une tarification claire</span>
@@ -1129,9 +1244,9 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
   </section>
 
   <!-- ==========================================
-       SECTION FAQ
+       8. SECTION FAQ (GRAY BACKGROUND)
        ========================================== -->
-  <section class="ca-section" id="faq">
+  <section class="ca-section-gray" id="faq">
     <div class="ca-container">
       <div class="ca-section-header">
         <span class="ca-section-tag">Des réponses à vos questions</span>
@@ -1186,9 +1301,9 @@ La plateforme tout-en-un pour gérer votre parcours d'immigration au Canada : pr
   </section>
 
   <!-- ==========================================
-       SECTION FINAL CTA
+       9. CTA FINAL IMPACTANT ROUGE (CAPTURE 3)
        ========================================== -->
-  <section class="ca-container" style="margin-top:2rem;">
+  <section class="ca-container" style="margin-top:4rem; padding-bottom: 2rem;">
     <div class="ca-cta-final">
       <h2>Prêt à concrétiser votre projet canadien ?</h2>
       <p>
