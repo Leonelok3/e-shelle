@@ -33,6 +33,8 @@ def _is_url_active(url: str) -> bool:
         "gc.ca", "canada.ca", "quebec.ca", "mcgill.ca", "ubc.ca", 
         "umontreal.ca", "ulaval.ca", "uottawa.ca", "alberta.ca",
         "utoronto.ca", "jobbank.gc.ca", "guichet-emplois.gc.ca",
+        "indeed.ca", "workopolis.com", "randstad.ca", "jobillico.com",
+        "monster.ca", "emploisquebec.gouv.qc.ca", "linkedin.com",
         "vertexaisearch.cloud.google.com"
     ]
     if any(domain in url.lower() for domain in trusted_domains):
@@ -108,9 +110,9 @@ class Command(BaseCommand):
 
         # Pass 1: Google Search Grounding to find actual job links and details
         search_prompt = (
-            "Recherche sur le web (notamment sur guichet-emplois.gc.ca / jobbank.gc.ca ou sites d'employeurs) des offres d'emploi réelles et récentes au Canada ouvertes aux candidats internationaux hors du Canada (recrutement international, EIMT / LMIA approuvé ou en cours, ou exemption Mobilité Francophone). Trouve des postes dans l'agriculture, la santé, l'informatique, le transport, la construction ou la restauration. Liste au moins 8 offres d'emploi avec : le titre du poste, l'entreprise, la ville, la province, le statut de l'EIMT ou Mobilité Francophone, le salaire et l'URL source directe pour postuler.\n"
+            "Recherche sur le web (sur guichet-emplois.gc.ca, indeed.ca, workopolis.com, randstad.ca, jobillico.com, ou directement sur les sites carrières d'employeurs canadiens) des offres d'emploi réelles et récentes au Canada ouvertes aux candidats internationaux hors du Canada (recrutement international, EIMT / LMIA approuvé ou en cours, ou exemption Mobilité Francophone). Trouve des postes diversifiés dans l'agriculture, la santé, l'informatique, le transport, la construction ou la restauration. Liste au moins 8 offres d'emploi avec : le titre du poste, l'entreprise, la ville, la province, le statut de l'EIMT ou Mobilité Francophone, le salaire et l'URL source directe pour postuler.\n"
             "EXCLUDE expired, closed, or deactivated offers. Verify that the recruitment/job is active.\n"
-            "Crucial: The URL ('url_apply') MUST be the exact, specific direct web page link of the job posting (e.g. 'https://www.jobbank.gc.ca/jobsearch/jobposting/41982736'). Do NOT use generic parent URLs or guess/hallucinate URLs. If you cannot find the direct, exact, working URL for the job, DO NOT include that job."
+            "Crucial: The URL ('url_apply') MUST be the exact, specific direct web page link of the job posting (e.g. Indeed job link or Job Bank link). Do NOT use generic parent URLs or guess/hallucinate URLs. If you cannot find the direct, exact, working URL for the job, DO NOT include that job."
         )
 
         try:
