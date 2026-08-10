@@ -24,32 +24,41 @@ def _is_url_active(url: str) -> bool:
     if "example.com" in url or "localhost" in url:
         return False
         
-    # Liste de domaines de confiance à ne jamais rejeter par erreur de connexion
+    # Liste de domaines de confiance pour tolérer les erreurs de connexion temporaires (timeouts/WAF)
     trusted_domains = [
         "gc.ca", "canada.ca", "quebec.ca", "mcgill.ca", "ubc.ca", 
         "umontreal.ca", "ulaval.ca", "uottawa.ca", "alberta.ca",
         "utoronto.ca", "jobbank.gc.ca", "guichet-emplois.gc.ca",
-        "vertexaisearch.cloud.google.com"
+        "indeed.ca", "workopolis.com", "randstad.ca", "jobillico.com",
+        "monster.ca", "emploisquebec.gouv.qc.ca", "linkedin.com"
     ]
-    if any(domain in url.lower() for domain in trusted_domains):
-        return True
 
     try:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
-        resp = requests.head(url, headers=headers, timeout=5, allow_redirects=True)
+        # On utilise GET avec stream=True pour pouvoir suivre les redirections et analyser l'URL finale
+        resp = requests.get(url, headers=headers, timeout=5, allow_redirects=True, stream=True)
+        
+        # 1. Vérification du code d'erreur HTTP (ex: 404 de Google redirect)
         if resp.status_code in [404, 410]:
             return False
+            
+        # 2. Détection de redirection vers une page d'expiration (Job Bank redirect)
+        final_url = resp.url.lower()
+        if "jobpostingexpired" in final_url or "job-expired" in final_url:
+            return False
+            
+        # 3. Validation pour les codes valides ou d'accès restreint
         if resp.status_code < 400 or resp.status_code in [401, 403, 503]:
             return True
-        resp = requests.get(url, headers=headers, timeout=5, allow_redirects=True, stream=True)
-        if resp.status_code in [404, 410]:
-            return False
+            
         return resp.status_code < 400
     except Exception:
-        # En cas d'erreur de connexion ou de SSL (ex: geoblocking du serveur), on garde l'offre
-        return True
+        # En cas d'erreur de connexion, on tolère uniquement si le domaine est de confiance
+        if any(domain in url.lower() for domain in trusted_domains):
+            return True
+        return False
 
 
 def _parse_deadline(deadline_str: str):
