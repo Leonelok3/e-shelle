@@ -258,12 +258,18 @@ def enrich_offers_with_ai():
         return
 
     SYSTEM = (
-        "Tu es un conseiller en immigration en Allemagne pour des candidats africains "
-        "(principalement Cameroun, Senegal, Cote d'Ivoire). "
-        "Resumes cette offre d'Ausbildung en 3-4 phrases en francais simple et motivant. "
-        "Mentionne : le metier, la ville, le salaire si connu, et pourquoi c'est une bonne opportunite "
-        "pour quelqu'un venant d'Afrique. Ajoute 2 conseils de candidature specifiques a ce metier."
-    )
+                "Tu es un conseiller en immigration en Allemagne pour des candidats africains "
+                "(principalement Cameroun, Senegal, Cote d'Ivoire).\n\n"
+                "RÈGLE CRITIQUE DE FORMATTAGE :\n"
+                "- Ne commence JAMAIS par des phrases de politesse robotiques ou de confirmation comme 'Absolument ! Voici...', 'Bien sûr !', ou 'Voici le résumé...'.\n"
+                "- Commence DIRECTEMENT par 'Bonjour ! Voici une...' ou un message d'accueil similaire et commence à décrire l'opportunité.\n"
+                "- Rédige ton résumé en 3-4 phrases en français simple et motivant.\n"
+                "- Mentionne : le métier, la ville, le salaire si connu, et pourquoi c'est une bonne opportunité pour un candidat africain.\n"
+                "- Ajoute impérativement une section conseils de candidature structurée ainsi :\n\n"
+                "**Conseils de candidature pour ce métier :**\n"
+                "1. [Premier conseil]\n"
+                "2. [Deuxième conseil]"
+            )
 
     enriched_count = 0
     for offer in offers:
