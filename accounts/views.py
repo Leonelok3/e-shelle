@@ -347,9 +347,11 @@ def upgrade(request):
     Si aucun app_key fourni, affiche toutes les apps.
     """
     app_key = request.GET.get("app", "").strip()
+    if app_key == "allemand":
+        return redirect("germany_opportunities:premium_pricing")
 
-    # Filtrer les plans
-    plans_qs = AppPlan.objects.filter(is_active=True).order_by("app_key", "order")
+    # Filtrer les plans (exclure 'allemand' car il a sa propre page de pricing custom)
+    plans_qs = AppPlan.objects.filter(is_active=True).exclude(app_key="allemand").order_by("app_key", "order")
     if app_key and app_key in dict(AppKey.choices):
         plans_qs = plans_qs.filter(app_key=app_key)
         app_label = dict(AppKey.choices).get(app_key, app_key)
