@@ -370,10 +370,10 @@ def take_practice_test(request, exam_id):
 
     exam = get_object_or_404(GermanExam, id=exam_id, is_active=True)
 
-    # Autoriser A1 et A2 gratuitement. Bloquer B1, B2, C1, C2 pour les non-abonnés.
-    if exam.level in ["B1", "B2", "C1", "C2"] and not check_user_has_paid_edu_subscription(request.user):
-        messages.warning(request, f"Les simulations d'examen allemand pour le niveau {exam.level} sont réservées aux abonnés Premium.")
-        return redirect(reverse("accounts:upgrade") + f"?app=allemand&next={request.get_full_path()}")
+    # Bloquer toutes les simulations d'examens d'allemand pour les non-premium
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "Les simulations d'examen d'allemand sont réservées aux membres Premium.")
+        return redirect("germany_opportunities:premium_pricing")
 
     exercises = GermanExercise.objects.filter(lesson__exam=exam).order_by("id")
 
@@ -1052,17 +1052,12 @@ def german_ai_coach_page(request):
     Il récupère le profil d'allemand + la dernière session pour personnaliser le coaching.
     Accepte un paramètre GET ?preset= pour pré-remplir la zone de texte.
     """
-    is_pro = check_user_has_paid_edu_subscription(request.user)
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "L'accès au Coach IA d'allemand est réservé aux membres Premium.")
+        return redirect("germany_opportunities:premium_pricing")
 
-    # Suivi des messages restants aujourd'hui pour les utilisateurs gratuits
-    import datetime
-    today_str = datetime.date.today().isoformat()
-    session_date = request.session.get("german_coach_limit_date")
-    if session_date != today_str:
-        request.session["german_coach_limit_date"] = today_str
-        request.session["german_coach_message_count"] = 0
-
-    messages_left = max(0, 5 - request.session.get("german_coach_message_count", 0))
+    is_pro = True
+    messages_left = 9999
 
     from .models import GermanTestSession
 
@@ -1113,27 +1108,14 @@ def german_ai_coach_api(request):
     Retourne : { "reply": "..." }
     """
     is_pro = check_user_has_paid_edu_subscription(request.user)
-    
-    # Vérifier le quota quotidien pour les comptes gratuits
     if not is_pro:
-        import datetime
-        today_str = datetime.date.today().isoformat()
-        session_date = request.session.get("german_coach_limit_date")
-        message_count = request.session.get("german_coach_message_count", 0)
-        
-        if session_date != today_str:
-            request.session["german_coach_limit_date"] = today_str
-            message_count = 0
-            request.session["german_coach_message_count"] = 0
-            
-        if message_count >= 5:
-            return JsonResponse(
-                {
-                    "error": "subscription_required",
-                    "reply": "Vous avez atteint votre limite gratuite de 5 messages par jour pour le Coach IA allemand. Veuillez vous abonner à E-Shelle Premium pour discuter en illimité !",
-                },
-                status=403,
-            )
+        return JsonResponse(
+            {
+                "error": "subscription_required",
+                "reply": "L'utilisation du Coach IA d'allemand est réservée aux membres Premium.",
+            },
+            status=403,
+        )
 
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)

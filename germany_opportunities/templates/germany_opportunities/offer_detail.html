@@ -29,16 +29,35 @@
     </div>
 
     <!-- ACTIONS -->
-    <div style="display:flex;gap:1rem;flex-wrap:wrap">
-      <a href="{{ offer.url_apply }}" target="_blank" rel="noopener"
-         style="display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.5rem;background:#E3000F;color:#fff;border-radius:.75rem;text-decoration:none;font-weight:700;font-size:.9rem;transition:background-color .2s" onmouseover="this.style.backgroundColor='#b91c1c'" onmouseout="this.style.backgroundColor='#E3000F'">
-        Postuler sur Bundesagentur →
-      </a>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;width:100%">
+      {% if has_premium %}
+        <a href="{{ offer.url_apply }}" target="_blank" rel="noopener"
+           style="display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.5rem;background:#E3000F;color:#fff;border-radius:.75rem;text-decoration:none;font-weight:700;font-size:.9rem;transition:background-color .2s" onmouseover="this.style.backgroundColor='#b91c1c'" onmouseout="this.style.backgroundColor='#E3000F'">
+          Postuler sur Bundesagentur →
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'lebenslauf:generate_for_offer' offer.pk %}"
+           style="display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.5rem;background:#dc2626;color:#fff;border-radius:.75rem;text-decoration:none;font-weight:700;font-size:.9rem;transition:background-color .2s" onmouseover="this.style.backgroundColor='#b91c1c'" onmouseout="this.style.backgroundColor='#dc2626'">
+          📄 Generer mon Lebenslauf pour cette offre
+        </a>
+        {% endif %}
+      {% else %}
+        <div style="background:#fef2f2;border:1.5px solid #fee2e2;border-radius:.75rem;padding:1.25rem;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;width:100%;gap:1rem;box-sizing:border-box">
+          <div style="display:flex;align-items:center;gap:.75rem;text-align:left">
+            <span style="font-size:1.5rem">🔒</span>
+            <div>
+              <div style="font-weight:800;color:#991b1b;font-size:.95rem">Candidature & CV IA réservés aux membres Premium</div>
+              <div style="font-size:.82rem;color:#7f1d1d;margin-top:.1rem">Abonnez-vous à E-Shelle Premium à 9 900 FCFA/mois pour postuler directement et générer votre CV.</div>
+            </div>
+          </div>
+          <a href="{% url 'germany_opportunities:premium_pricing' %}"
+             style="display:inline-block;padding:.65rem 1.25rem;background:#E3000F;color:#fff;border-radius:.5rem;text-decoration:none;font-weight:700;font-size:.85rem;transition:background-color .2s" onmouseover="this.style.backgroundColor='#b91c1c'" onmouseout="this.style.backgroundColor='#E3000F'">
+            Devenir Premium →
+          </a>
+        </div>
+      {% endif %}
+
       {% if user.is_authenticated %}
-      <a href="{% url 'lebenslauf:generate_for_offer' offer.pk %}"
-         style="display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.5rem;background:#dc2626;color:#fff;border-radius:.75rem;text-decoration:none;font-weight:700;font-size:.9rem;transition:background-color .2s" onmouseover="this.style.backgroundColor='#b91c1c'" onmouseout="this.style.backgroundColor='#dc2626'">
-        📄 Generer mon Lebenslauf pour cette offre
-      </a>
       <button id="bookmark-btn" onclick="toggleBookmark({{ offer.pk }}, this)"
         style="padding:.7rem 1.25rem;border-radius:.75rem;border:1px solid #d1d5db;background:transparent;color:{% if is_bookmarked %}#e0a800{% else %}#4b5563{% endif %};cursor:pointer;font-size:.9rem;transition:all .2s" onmouseover="this.style.borderColor='#9ca3af'" onmouseout="this.style.borderColor='#d1d5db'">
         {% if is_bookmarked %}★ Sauvegarde{% else %}☆ Sauvegarder{% endif %}

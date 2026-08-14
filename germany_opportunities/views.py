@@ -128,10 +128,6 @@ def catalogue(request):
 
 def offer_detail(request, pk):
     """Detail d'une offre Ausbildung."""
-    if not check_user_has_germany_premium(request.user):
-        messages.warning(request, "L'accès aux détails des offres d'Ausbildung est réservé aux membres Premium.")
-        return redirect("germany_opportunities:premium_pricing")
-
     offer = get_object_or_404(AusbildungOffer, pk=pk, is_active=True)
     is_bookmarked = False
     if request.user.is_authenticated:
@@ -147,6 +143,7 @@ def offer_detail(request, pk):
         "offer":        offer,
         "is_bookmarked": is_bookmarked,
         "similar":      similar,
+        "has_premium":  check_user_has_paid_edu_subscription(request.user),
     }
     return render(request, "germany_opportunities/offer_detail.html", context)
 
@@ -447,6 +444,10 @@ def interview_simulator_hub(request):
     from .models import AusbildungInterviewSimulation
     from django.contrib import messages
 
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "Les simulations d'entretien avec l'IA sont réservées aux membres Premium.")
+        return redirect("germany_opportunities:premium_pricing")
+
     is_premium = check_user_has_paid_edu_subscription(request.user)
     simulations = AusbildungInterviewSimulation.objects.filter(user=request.user).order_by("-created_at")
 
@@ -469,13 +470,12 @@ def start_interview_simulation(request):
     from ai_engine.services.llm_service import call_llm
     from django.contrib import messages
 
-    sector = request.POST.get("sector", "autre").strip()
     is_premium = check_user_has_paid_edu_subscription(request.user)
+    if not is_premium:
+        messages.warning(request, "Les simulations d'entretien avec l'IA sont réservées aux membres Premium.")
+        return redirect("germany_opportunities:premium_pricing")
 
-    # Restriction Premium
-    if not is_premium and sector != "autre":
-        messages.warning(request, "L'accès aux simulations par secteur d'activité est réservé aux abonnés Premium. Vous pouvez essayer le mode d'essai gratuit.")
-        return redirect("germany_opportunities:interview_simulator_hub")
+    sector = request.POST.get("sector", "autre").strip()
 
     # Création de la simulation
     sim = AusbildungInterviewSimulation.objects.create(
@@ -514,6 +514,11 @@ def start_interview_simulation(request):
 def interview_simulation_detail(request, pk):
     """Salle de simulation d'entretien interactif (chat)."""
     from .models import AusbildungInterviewSimulation
+    
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "Les simulations d'entretien avec l'IA sont réservées aux membres Premium.")
+        return redirect("germany_opportunities:premium_pricing")
+
     sim = get_object_or_404(AusbildungInterviewSimulation, pk=pk, user=request.user)
     
     sector_display = dict(list(AusbildungOffer.SECTOR_CHOICES) + [("autre", "Autre / Candidature Spontanée")]).get(sim.sector, sim.sector)

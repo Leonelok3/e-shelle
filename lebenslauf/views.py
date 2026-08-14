@@ -202,6 +202,10 @@ def generate_lebenslauf(request, offer_pk=None):
     Genere un Lebenslauf adapte a une offre specifique (ou candidature spontanee).
     Appelle GPT-4o et sauvegarde le HTML.
     """
+    if not check_user_has_paid_edu_subscription(request.user):
+        messages.warning(request, "La génération et l'adaptation de CV (Lebenslauf) par l'IA sont réservées aux membres Premium.")
+        return redirect("germany_opportunities:premium_pricing")
+
     from germany_opportunities.models import AusbildungOffer
 
     offer = None
@@ -280,8 +284,8 @@ def view_lebenslauf(request, pk):
 def download_lebenslauf(request, pk):
     """Telechargement du Lebenslauf en HTML (imprimable)."""
     if not check_user_has_paid_edu_subscription(request.user):
-        messages.warning(request, "Le téléchargement du Lebenslauf (CV allemand) est réservé aux abonnés Premium.")
-        return redirect("lebenslauf:dashboard")
+        messages.warning(request, "Le téléchargement du Lebenslauf (CV allemand) est réservé aux membres Premium.")
+        return redirect("germany_opportunities:premium_pricing")
 
     lv = get_object_or_404(GeneratedLebenslauf, pk=pk, user=request.user)
     response = HttpResponse(lv.content_html, content_type="text/html; charset=utf-8")
@@ -346,8 +350,8 @@ class DocxHTMLParser(HTMLParser):
 def download_lebenslauf_docx(request, pk):
     """Téléchargement du CV (Lebenslauf) uniquement au format Word (.docx) avec layout 2 colonnes."""
     if not check_user_has_paid_edu_subscription(request.user):
-        messages.warning(request, "Le téléchargement du Lebenslauf au format Word (.docx) est réservé aux abonnés Premium.")
-        return redirect("lebenslauf:dashboard")
+        messages.warning(request, "Le téléchargement du Lebenslauf au format Word (.docx) est réservé aux membres Premium.")
+        return redirect("germany_opportunities:premium_pricing")
 
     import io
     import re
@@ -440,8 +444,8 @@ def download_lebenslauf_docx(request, pk):
 def download_anschreiben_docx(request, pk):
     """Téléchargement de la Lettre de motivation (Anschreiben) uniquement au format Word (.docx)."""
     if not check_user_has_paid_edu_subscription(request.user):
-        messages.warning(request, "Le téléchargement de la lettre de motivation (Anschreiben) est réservé aux abonnés Premium.")
-        return redirect("lebenslauf:dashboard")
+        messages.warning(request, "Le téléchargement de la lettre de motivation (Anschreiben) est réservé aux membres Premium.")
+        return redirect("germany_opportunities:premium_pricing")
 
     import io
     import re
