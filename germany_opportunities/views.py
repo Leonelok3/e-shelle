@@ -129,6 +129,33 @@ def catalogue(request):
 def offer_detail(request, pk):
     """Detail d'une offre Ausbildung."""
     offer = get_object_or_404(AusbildungOffer, pk=pk, is_active=True)
+
+    # Enrichissement automatique à la volée du résumé si manquant
+    if not offer.ai_summary_fr:
+        try:
+            from ai_engine.services.llm_service import call_llm
+            SYSTEM = (
+                "Tu es un conseiller en immigration en Allemagne pour des candidats africains "
+                "(principalement Cameroun, Senegal, Cote d'Ivoire). "
+                "Resumes cette offre d'Ausbildung en 3-4 phrases en francais simple et motivant. "
+                "Mentionne : le metier, la ville, le salaire si connu, et pourquoi c'est une bonne opportunite "
+                "pour quelqu'un venant d'Afrique. Ajoute 2 conseils de candidature specifiques a ce metier."
+            )
+            user_msg = (
+                f"Offre : {offer.title}\n"
+                f"Entreprise : {offer.company}\n"
+                f"Ville : {offer.city} ({offer.region})\n"
+                f"Secteur : {offer.get_sector_display()}\n"
+                f"Salaire : {offer.salary_display}\n"
+                f"Description : {offer.description[:1000]}"
+            )
+            summary = call_llm(SYSTEM, user_msg)
+            if summary:
+                offer.ai_summary_fr = summary.strip()
+                offer.save(update_fields=["ai_summary_fr"])
+        except Exception:
+            pass
+
     is_bookmarked = False
     if request.user.is_authenticated:
         is_bookmarked = UserOpportunityBookmark.objects.filter(
