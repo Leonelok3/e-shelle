@@ -15,7 +15,7 @@ from django.utils import timezone
 log = logging.getLogger(__name__)
 
 # ── Constantes API Bundesagentur ──────────────────────────────────────────────
-BA_BASE_URL  = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs"
+BA_BASE_URL  = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs"
 BA_API_KEY   = "jobboerse-jobsuche"
 
 # Secteurs prioritaires pour le public africain en quete d'Ausbildung
@@ -56,7 +56,7 @@ def _extract_offer_items(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
     if not isinstance(payload, dict):
         return []
 
-    for key in ("ausbildungsangebote", "stellenangebote", "offers", "items"):
+    for key in ("ausbildungsangebote", "stellenangebote", "offers", "items", "ergebnisliste"):
         items = payload.get(key)
         if isinstance(items, list):
             return items
@@ -117,29 +117,63 @@ def fetch_ausbildung_offers(self):
                     if not isinstance(item, dict):
                         continue
 
-                    ref_nr = _safe_text(item.get("refnr") or item.get("referenznummer") or item.get("id"))
+                    ref_nr = _safe_text(
+                        item.get("referenznummer") or 
+                        item.get("refnr") or 
+                        item.get("id")
+                    )
                     if not ref_nr or ref_nr in seen_refs:
                         continue
                     seen_refs.add(ref_nr)
 
-                    title = _safe_text(item.get("titel") or item.get("title") or item.get("beruf"))
-                    employer = item.get("arbeitgeber") or item.get("employer") or {}
-                    if isinstance(employer, dict):
-                        company = _safe_text(employer.get("name") or employer.get("company"))
+                    title = _safe_text(
+                        item.get("stellenangebotsTitel") or 
+                        item.get("titel") or 
+                        item.get("title") or 
+                        item.get("beruf")
+                    )
+                    
+                    # Company
+                    employer = item.get("arbeitgeber") or item.get("employer")
+                    if employer:
+                        if isinstance(employer, dict):
+                            company = _safe_text(employer.get("name") or employer.get("company"))
+                        else:
+                            company = _safe_text(employer)
                     else:
-                        company = _safe_text(employer)
+                        company = _safe_text(item.get("firma") or "")
 
+                    # Locations (Stellenlokationen for v6 vs Arbeitsort for v4)
+                    lokationen = item.get("stellenlokationen")
                     ort = item.get("arbeitsort") or item.get("location") or {}
-                    if isinstance(ort, dict):
-                        city = _safe_text(ort.get("ort") or ort.get("city"))
-                        plz = _safe_text(ort.get("plz") or ort.get("postalCode") or ort.get("postal_code"))
-                        region = _safe_text(ort.get("region") or ort.get("state") or ort.get("bundesland"))
+                    if isinstance(lokationen, list) and len(lokationen) > 0:
+                        first_loc = lokationen[0] or {}
+                        adr = first_loc.get("adresse") or {}
+                        city = _safe_text(adr.get("ort") or adr.get("city") or "")
+                        plz = _safe_text(adr.get("plz") or adr.get("postalCode") or adr.get("postal_code") or "")
+                        region = _safe_text(adr.get("region") or adr.get("state") or adr.get("bundesland") or "")
+                    elif ort:
+                        if isinstance(ort, dict):
+                            city = _safe_text(ort.get("ort") or ort.get("city") or "")
+                            plz = _safe_text(ort.get("plz") or ort.get("postalCode") or ort.get("postal_code") or "")
+                            region = _safe_text(ort.get("region") or ort.get("state") or ort.get("bundesland") or "")
+                        else:
+                            city = _safe_text(ort)
+                            plz = ""
+                            region = ""
                     else:
                         city = ""
                         plz = ""
                         region = ""
 
-                    beginn = item.get("ausbildungsbeginn") or item.get("eintrittsdatum") or item.get("startDate")
+                    # Start date
+                    eintrittszeitraum = item.get("eintrittszeitraum")
+                    beginn = None
+                    if isinstance(eintrittszeitraum, dict):
+                        beginn = eintrittszeitraum.get("von")
+                    if not beginn:
+                        beginn = item.get("ausbildungsbeginn") or item.get("eintrittsdatum") or item.get("startDate")
+                    
                     start = None
                     if beginn:
                         try:
@@ -148,7 +182,14 @@ def fetch_ausbildung_offers(self):
                         except Exception:
                             pass
 
-                    url_apply = _safe_text(item.get("externeUrl") or item.get("url") or item.get("applyUrl") or item.get("link"))
+                    # Apply URL
+                    url_apply = _safe_text(
+                        item.get("externeURL") or 
+                        item.get("externeUrl") or 
+                        item.get("url") or 
+                        item.get("applyUrl") or 
+                        item.get("link")
+                    )
                     if not url_apply:
                         url_apply = f"https://www.arbeitsagentur.de/jobsuche/jobdetail/{ref_nr}"
 
