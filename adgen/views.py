@@ -349,14 +349,47 @@ def generate_ad_music(output_filepath, duration=10.0):
         wav.writeframes(bytes(frames))
 
 
+def get_premium_font() -> str:
+    """
+    Télécharge ou localise la police premium Outfit-Bold.ttf
+    depuis Google Fonts et la stocke dans media/fonts/
+    """
+    import os
+    import urllib.request
+    from django.conf import settings
+    
+    font_dir = os.path.join(settings.MEDIA_ROOT, "fonts")
+    os.makedirs(font_dir, exist_ok=True)
+    font_path = os.path.join(font_dir, "Outfit-Bold.ttf")
+    
+    if not os.path.exists(font_path):
+        try:
+            url = "https://github.com/google/fonts/raw/main/ofl/outfit/static/Outfit-Bold.ttf"
+            logger.info(f"[AdGen] Téléchargement de la police premium depuis {url}...")
+            urllib.request.urlretrieve(url, font_path)
+            logger.info(f"[AdGen] Police premium téléchargée : {font_path}")
+        except Exception as e:
+            logger.warning(f"[AdGen] Échec du téléchargement de la police: {e}")
+            return ""
+            
+    return font_path
+
+
 def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
     """
     Télécharge ou lit la vidéo muette de 8 secondes, génère un fond musical 
     professionnel de 10 secondes (guitare/piano plucks), étire la vidéo 
-    à 10 secondes (setpts=1.25) et assemble les deux.
+    à 10 secondes (setpts=1.25) et incruste des textes animés premium 
+    (Titre, Prix, Contact) avant d'assembler le tout.
     """
+    import os
+    import subprocess
+    import requests
+    from django.conf import settings
+    from .models import AdCampaign
+    
     try:
-        logger.info(f"[AdGen Video Processing] Démarrage de l'étirement à 10s et mixage audio pour la campagne #{campaign_id}...")
+        logger.info(f"[AdGen Video Processing] Démarrage de l'étirement à 10s, incrustation de texte et mixage audio pour la campagne #{campaign_id}...")
         
         temp_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "temp")
         os.makedirs(temp_dir, exist_ok=True)
@@ -389,7 +422,48 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
         generate_ad_music(audio_path, duration=10.0)
         logger.info(f"[AdGen Video Processing] Fond musical généré à : {audio_path}")
             
-        # 3. Fusionner et étirer la vidéo de 8s à 10s (setpts=1.25*PTS) avec ffmpeg
+        # 3. Récupérer les informations de la campagne pour l'overlay de texte
+        campaign = AdCampaign.objects.get(pk=campaign_id)
+        clean_title = campaign.nom_produit.replace("'", " ").replace('"', " ").strip()
+        clean_price = campaign.prix.replace("'", " ").replace('"', " ").strip()
+        clean_city = (campaign.ville_label or campaign.ville or "").replace("'", " ").replace('"', " ").strip()
+        
+        try:
+            phone = campaign.user.profile.telephone.strip()
+        except Exception:
+            phone = ""
+            
+        if phone:
+            contact_text = f"WhatsApp: {phone} ({clean_city})"
+        else:
+            contact_text = f"Commander sur WhatsApp ({clean_city})"
+            
+        # 4. Construire les filtres d'incrustation de texte avec animations d'opacité
+        font_path = get_premium_font()
+        font_opt = f":fontfile='{font_path}'" if (font_path and os.path.exists(font_path)) else ""
+        
+        # Titre (haut de l'écran, apparition progressive à 0.5s, disparition progressive à 8.5s)
+        t_filter = (
+            f"drawtext=text='{clean_title}':x=(w-text_w)/2:y=h*0.15{font_opt}:fontsize=w*0.055:fontcolor=white:"
+            f"box=1:boxcolor=black@0.6:boxborderw=12:alpha='if(lt(t,0.5),0,if(lt(t,1.5),t-0.5,if(lt(t,8.5),1,if(lt(t,9.5),9.5-t,0))))'"
+        )
+        
+        # Prix (milieu de l'écran, couleur dorée, apparition progressive à 2.0s, disparition progressive à 8.5s)
+        p_filter = (
+            f"drawtext=text='{clean_price}':x=(w-text_w)/2:y=h*0.50{font_opt}:fontsize=w*0.070:fontcolor=0xffd91f:"
+            f"box=1:boxcolor=black@0.6:boxborderw=15:alpha='if(lt(t,2.0),0,if(lt(t,3.0),t-2.0,if(lt(t,8.5),1,if(lt(t,9.5),9.5-t,0))))'"
+        )
+        
+        # Contacts (bas de l'écran, couleur verte WhatsApp, apparition progressive à 4.5s)
+        c_filter = (
+            f"drawtext=text='{contact_text}':x=(w-text_w)/2:y=h*0.80{font_opt}:fontsize=w*0.048:fontcolor=white:"
+            f"box=1:boxcolor=0x14532d@0.75:boxborderw=12:alpha='if(lt(t,4.5),0,if(lt(t,5.5),t-4.5,1))'"
+        )
+        
+        # Enchaînement des filtres vidéo : étirement de vitesse puis les textes overlays
+        vf_chain = f"setpts=1.25*PTS,{t_filter},{p_filter},{c_filter}"
+        
+        # 5. Fusionner, étirer la vidéo de 8s à 10s et incruster les textes animés avec ffmpeg
         output_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "videos")
         os.makedirs(output_dir, exist_ok=True)
         output_filename = f"ad_video_{campaign_id}.mp4"
@@ -400,7 +474,7 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
             "-y",
             "-i", silent_video_path,
             "-i", audio_path,
-            "-filter:v", "setpts=1.25*PTS",
+            "-filter:v", vf_chain,
             "-map", "0:v",
             "-map", "1:a",
             "-c:v", "libx264",
@@ -411,7 +485,7 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
             output_filepath
         ]
         
-        logger.info(f"[AdGen Video Processing] Lancement ffmpeg: {' '.join(cmd)}")
+        logger.info(f"[AdGen Video Processing] Lancement ffmpeg avec overlays: {' '.join(cmd)}")
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
             logger.error(f"[AdGen Video Processing] ffmpeg a échoué: {res.stderr}")
@@ -429,10 +503,10 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
         if not media_url_base.endswith("/"):
             media_url_base += "/"
         final_url = f"{media_url_base}adgen/videos/{output_filename}"
-        logger.info(f"[AdGen Video Processing] Succès ! Vidéo finale de 10s générée : {final_url}")
+        logger.info(f"[AdGen Video Processing] Succès ! Vidéo finale animée de 10s générée : {final_url}")
         return final_url
     except Exception as e:
-        logger.error(f"[AdGen Video Processing] Échec de l'étirement ou du mixage: {e}")
+        logger.error(f"[AdGen Video Processing] Échec de l'étirement, de l'incrustation de texte ou du mixage: {e}")
         return video_url
 
 def clean_video_prompt(prompt: str, campaign) -> str:
