@@ -523,6 +523,7 @@ urlpatterns = [
     # Hub des langues
     path("langues/", TemplateView.as_view(template_name="langues/hub.html"), name="langues_hub"),
     path("cgu/", TemplateView.as_view(template_name="cgu.html"), name="cgu"),
+    path("terms/", TemplateView.as_view(template_name="cgu.html"), name="terms"),
 
     # Cours de langues
     path("anglais/",     include("EnglishPrepApp.urls",    namespace="englishprep")),
