@@ -501,8 +501,22 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
         # 3. Récupérer les informations de la campagne pour l'overlay de texte
         campaign = AdCampaign.objects.get(pk=campaign_id)
         clean_title = campaign.nom_produit.replace("'", " ").replace('"', " ").strip()
-        clean_price = campaign.prix.replace("'", " ").replace('"', " ").strip()
         clean_city = (campaign.ville_label or campaign.ville or "").replace("'", " ").replace('"', " ").strip()
+        
+        # Formatage intelligent du prix (ajout de XAF par défaut si numérique)
+        price_raw = campaign.prix.replace("'", " ").replace('"', " ").strip()
+        clean_digits = price_raw.replace(" ", "").replace(".", "").replace(",", "")
+        if clean_digits.isdigit():
+            clean_price = f"Prix: {price_raw} XAF"
+        else:
+            upper_price = price_raw.upper()
+            if not any(suffix in upper_price for suffix in ["XAF", "FCFA", "CFA", " F", "FRANC"]):
+                clean_price = f"Prix: {price_raw} XAF"
+            else:
+                if not upper_price.startswith("PRIX"):
+                    clean_price = f"Prix: {price_raw}"
+                else:
+                    clean_price = price_raw
         
         phone = campaign.cible.strip() # Cible correspond désormais au Numéro WhatsApp dans le formulaire
         if phone:
@@ -528,6 +542,11 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
         font_path = get_premium_font()
         font_opt = f":fontfile='{font_path}'" if (font_path and os.path.exists(font_path)) else ""
         
+        # Filigrane de marque E-SHELLE.COM (haut droit, discret et élégant)
+        w_filter = (
+            f"drawtext=text='E-SHELLE.COM':x=w-tw-w*0.06:y=h*0.04{font_opt}:fontsize=w*0.032:fontcolor=white:alpha=0.45"
+        )
+        
         # Titre (haut gauche, apparition progressive à 0.5s, disparition progressive à 13.5s)
         t_filter = (
             f"drawtext=textfile='{title_file}':x=w*0.06:y=h*0.12{font_opt}:fontsize=w*0.055:fontcolor=white:"
@@ -546,8 +565,8 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
             f"box=1:boxcolor=0x14532d@0.75:boxborderw=12:alpha='if(lt(t,7.0),0,if(lt(t,8.0),t-7.0,1))'"
         )
         
-        # Enchaînement des filtres vidéo : cropper de 16:9 à 9:16, puis étirer de vitesse à 15s (8 * 1.875 = 15) et enfin poser les overlays
-        vf_chain = f"crop=ih*9/16:ih,setpts=1.875*PTS,{t_filter},{p_filter},{c_filter}"
+        # Enchaînement des filtres vidéo : cropper de 16:9 à 9:16, puis étirer de vitesse à 15s (8 * 1.875 = 15) et enfin poser les filigranes/overlays
+        vf_chain = f"crop=ih*9/16:ih,setpts=1.875*PTS,{w_filter},{t_filter},{p_filter},{c_filter}"
         
         # 6. Fusionner, étirer la vidéo et incruster les textes animés avec ffmpeg
         output_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "videos")
