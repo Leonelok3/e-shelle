@@ -362,40 +362,117 @@
     </div>
     
     <div class="p-6">
-      <p class="text-xs text-gray-400 mb-6">Générez ou visualisez une vidéo commerciale de 15 secondes basée sur la photo du produit à l'aide de Google Veo.</p>
+      <p class="text-xs text-gray-400 mb-6">Personnalisez et générez une vidéo commerciale verticale (9:16) ultra-professionnelle pour TikTok, Instagram, Facebook Reels, Shorts et WhatsApp Status.</p>
       
       {% if campaign.photo_url %}
         <!-- Zone de saisie du scénario visuel pour l'IA en anglais -->
-        <div class="mb-4">
-          <label for="custom-ad-video-prompt" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">🎬 Scénario visuel d'animation pour l'IA (Anglais, pas de texte ni logo sur la vidéo) :</label>
-          <textarea id="custom-ad-video-prompt" rows="2" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition" placeholder="Instructions visuelles pour l'animation (ex: Cinematic slow zoom on the product...)">{% if content.raw_json.video_prompt %}{{ content.raw_json.video_prompt }}{% else %}A professional product commercial video showcasing '{{ campaign.nom_produit }}'. Animate the product from the image with realistic motion, smooth camera pan, cinematic lighting, and studio background. High-end advertising aesthetic, 4k, crisp, no text on screen, no logo, no watermark, no writing.{% endif %}</textarea>
-          <p class="text-xxs text-gray-400 mt-1">Ce prompt guide les mouvements de caméra et l'ambiance de l'animation vidéo générée par Google Veo.</p>
+        <div class="mb-5">
+          <label for="custom-ad-video-prompt" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">🎬 Scénario visuel d'animation pour l'IA (Anglais) :</label>
+          <textarea id="custom-ad-video-prompt" rows="2" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition" placeholder="Instructions visuelles pour l'animation (ex: Cinematic slow zoom on the product...)">{% if content.raw_json.video_prompt %}{{ content.raw_json.video_prompt }}{% else %}A professional product commercial video showcasing '{{ campaign.nom_produit }}'. Animate the product from the image with realistic motion, smooth camera pan, cinematic lighting, and studio background. High-end advertising aesthetic, 4k, no text, no logo, no watermark.{% endif %}</textarea>
+          <p class="text-xxs text-gray-400 mt-1">Ce prompt guide le moteur de génération d'images/vidéos Google Veo pour animer le produit.</p>
         </div>
 
-        <div id="ad-video-actions" class="flex flex-col gap-4 mb-6">
-          <div class="max-w-md">
-            <label for="ad-video-music-style" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">🎵 Style de musique de fond :</label>
-            <select id="ad-video-music-style" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition">
-              <option value="piano">🎹 Piano Plucks (Doux & Corporatif)</option>
-              <option value="acoustic">🎸 Guitare Acoustique (Chaleureux & Calme)</option>
-              <option value="synth">⚡ Synth Pop (Dynamique & Moderne)</option>
-              <option value="jazz">🎷 Lounge Jazz Rhodes (Premium & Relaxant)</option>
-            </select>
-          </div>
+        <!-- Paramètres Avancés de Personnalisation -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
           
-          <div>
-            <button id="btn-generate-ad-video" onclick="startAdVideoGen(15)" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white shadow-md hover:opacity-90 transition bg-gradient-to-r from-purple-600 to-indigo-600">
-              🎥 Générer la vidéo (15s)
-            </button>
+          <!-- Durée & Preset -->
+          <div class="space-y-4">
+            <div>
+              <label for="ad-video-duration" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">⏱ Durée de la publicité :</label>
+              <select id="ad-video-duration" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition">
+                <option value="30" selected>⏱ 30 secondes (Conseillé - TikTok/Reels)</option>
+                <option value="15">⏱ 15 secondes (Format court / WhatsApp Status)</option>
+                <option value="45">⏱ 45 secondes (Présentation détaillée)</option>
+                <option value="60">⏱ 60 secondes (Vidéo longue)</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="ad-video-style-preset" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">✨ Preset de Style Visuel :</label>
+              <select id="ad-video-style-preset" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition">
+                <option value="modern" selected>🎨 Moderne (Vibrant et dynamique)</option>
+                <option value="clean">⚪ Épuré (Minimaliste et élégant)</option>
+                <option value="premium">👑 Premium (Luxe, noir & accents dorés)</option>
+                <option value="bold">💥 Impact (Fort contraste & gros titres)</option>
+                <option value="social">📱 Social Media (Optimisé engagement)</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="ad-video-music-style" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">🎵 Musique de fond (DSP Synthesized) :</label>
+              <select id="ad-video-music-style" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition">
+                <option value="piano" {% if content.raw_json.music_style == 'piano' %}selected{% endif %}>🎹 Piano Plucks (Doux & Corporatif)</option>
+                <option value="acoustic" {% if content.raw_json.music_style == 'acoustic' %}selected{% endif %}>🎸 Guitare Acoustique (Chaleureux & Calme)</option>
+                <option value="synth" {% if content.raw_json.music_style == 'synth' %}selected{% endif %}>⚡ Synth Pop (Dynamique & Moderne)</option>
+                <option value="jazz" {% if content.raw_json.music_style == 'jazz' %}selected{% endif %}>🎷 Lounge Jazz Rhodes (Premium & Relaxant)</option>
+              </select>
+            </div>
           </div>
+
+          <!-- Configuration de l'Arrière-plan -->
+          <div class="space-y-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+            <div>
+              <label for="ad-video-bg-type" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">🖼 Style d'Arrière-plan :</label>
+              <select id="ad-video-bg-type" onchange="updateBgInputs()" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition">
+                <option value="color" selected>🎨 Couleur unie</option>
+                <option value="gradient">🌈 Dégradé de couleurs</option>
+                <option value="template">🎭 Template prédéfini</option>
+              </select>
+            </div>
+
+            <!-- Couleur Unie -->
+            <div id="bg-color-wrapper">
+              <label for="ad-video-bg-color" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-1.5">Couleur d'arrière-plan :</label>
+              <div class="flex items-center gap-2">
+                <input type="color" id="ad-video-bg-color" value="#050910" class="w-10 h-10 rounded-lg cursor-pointer border border-gray-200 p-0.5">
+                <span class="text-xs text-gray-500 font-mono">#050910 (Bleu Nuit E-Shelle)</span>
+              </div>
+            </div>
+
+            <!-- Dégradé -->
+            <div id="bg-gradient-wrapper" style="display:none;">
+              <label class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-1.5">Couleurs du dégradé (Linéaire horizontal) :</label>
+              <div class="flex items-center gap-3">
+                <div class="flex items-center gap-1.5">
+                  <input type="color" id="ad-video-bg-grad-1" value="#050910" class="w-8 h-8 rounded-lg cursor-pointer border border-gray-200 p-0.5">
+                  <span class="text-xxs text-gray-400">Début</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <input type="color" id="ad-video-bg-grad-2" value="#1e293b" class="w-8 h-8 rounded-lg cursor-pointer border border-gray-200 p-0.5">
+                  <span class="text-xxs text-gray-400">Fin</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Template -->
+            <div id="bg-template-wrapper" style="display:none;">
+              <label for="ad-video-bg-template" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-1.5">Sélectionner un template :</label>
+              <select id="ad-video-bg-template" class="w-full text-sm rounded-xl border border-gray-200 p-2.5 bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition">
+                <option value="dark" selected>🌌 Sombre classique (E-Shelle Dark)</option>
+                <option value="minimal">⚪ Minimaliste Chic (Gris & Blanc clairs)</option>
+                <option value="luxury">👑 Luxury Gold (Noir profond & Or impérial)</option>
+                <option value="tech">⚡ Cyber Tech (Bleu profond & Cyan futuriste)</option>
+                <option value="modern">🔮 Modern Purple (Dégradé Violet/Bleu dynamique)</option>
+                <option value="fashion">🌸 Soft Pastel (Rose poudré & Beige chaud)</option>
+                <option value="food">🍊 Food Spicy (Jaune-Orange gourmand)</option>
+                <option value="automotive">🏁 Carbon Sport (Carbone & Rayures subtiles)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <button id="btn-generate-ad-video" onclick="startAdVideoGen()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold text-white shadow-lg hover:opacity-95 transition bg-gradient-to-r from-purple-600 to-indigo-600">
+            🎥 Lancer la création de la publicité IA
+          </button>
         </div>
 
         <div id="ad-video-wrapper">
           {% if content.ad_video_url %}
             <div class="message-video-container">
-              <video src="{{ content.ad_video_url }}" controls class="w-full rounded-2xl border border-gray-200" style="max-width: 500px; display: block;"></video>
+              <video src="{{ content.ad_video_url }}" controls class="w-full rounded-2xl border border-gray-200" style="max-width: 480px; display: block;"></video>
               <a href="{{ content.ad_video_url }}" download class="inline-flex items-center gap-2 px-4 py-2 mt-3 rounded-xl text-sm font-semibold border border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100 transition" style="text-decoration:none;">
-                ⬇ Télécharger la vidéo
+                ⬇ Télécharger la vidéo publicitaire
               </a>
             </div>
           {% endif %}
@@ -444,35 +521,42 @@
         setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1800);
       }
       const toast = document.getElementById('copyToast');
-      toast.classList.remove('opacity-0');
-      toast.classList.add('opacity-100');
-      setTimeout(() => { toast.classList.add('opacity-0'); toast.classList.remove('opacity-100'); }, 2000);
+      if (toast) {
+        toast.classList.remove('opacity-0');
+        toast.classList.add('opacity-100');
+        setTimeout(() => { toast.classList.add('opacity-0'); toast.classList.remove('opacity-100'); }, 2000);
+      }
     });
   }
 
-  function copyAll() {
-    const el = document.getElementById('allTitles');
-    if (el) copyText(el.value, null);
+  function updateBgInputs() {
+    const bgType = document.getElementById("ad-video-bg-type").value;
+    document.getElementById("bg-color-wrapper").style.display = bgType === "color" ? "block" : "none";
+    document.getElementById("bg-gradient-wrapper").style.display = bgType === "gradient" ? "block" : "none";
+    document.getElementById("bg-template-wrapper").style.display = bgType === "template" ? "block" : "none";
   }
 
-  // Activer le premier onglet si aucun n'est actif
+  // Activer le premier onglet si aucun n'est actif et init les inputs
   document.addEventListener('DOMContentLoaded', () => {
     const firstBtn = document.querySelector('.tab-btn');
     if (firstBtn && !document.querySelector('.tab-btn.active')) {
       firstBtn.click();
     }
+    updateBgInputs();
   });
 
-  async function startAdVideoGen(duration = 10) {
+  async function startAdVideoGen() {
     const btn = document.getElementById("btn-generate-ad-video");
     const wrapper = document.getElementById("ad-video-wrapper");
     const promptInput = document.getElementById("custom-ad-video-prompt");
+    const durationInput = document.getElementById("ad-video-duration");
     
-    if (!btn || !wrapper || !promptInput) return;
+    if (!btn || !wrapper || !promptInput || !durationInput) return;
  
     btn.disabled = true;
     promptInput.disabled = true;
  
+    const duration = parseInt(durationInput.value) || 30;
     const originalHtml = btn.innerHTML;
     btn.innerHTML = `
       <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle; width: 16px; height: 16px; margin-right: 6px;">
@@ -492,7 +576,17 @@
         body: JSON.stringify({
           prompt: promptInput.value,
           duration: duration,
-          music_style: document.getElementById("ad-video-music-style").value
+          music_style: document.getElementById("ad-video-music-style").value,
+          style_preset: document.getElementById("ad-video-style-preset").value,
+          bg_config: {
+            bg_type: document.getElementById("ad-video-bg-type").value,
+            bg_color: document.getElementById("ad-video-bg-color").value,
+            bg_gradient: [
+              document.getElementById("ad-video-bg-grad-1").value,
+              document.getElementById("ad-video-bg-grad-2").value
+            ],
+            bg_template: document.getElementById("ad-video-bg-template").value
+          }
         })
       });
       const data = await resp.json();
@@ -518,7 +612,7 @@
         </div>
       `;
  
-      pollAdVideoStatus(data.operation_name, data.prompt, btn, promptInput, originalHtml);
+      pollAdVideoStatus(data.operation_name, data.prompt, btn, promptInput, originalHtml, duration);
  
     } catch (err) {
       console.error(err);
@@ -528,7 +622,7 @@
     }
   }
  
-  function pollAdVideoStatus(operationName, promptText, btn, promptInput, originalHtml) {
+  function pollAdVideoStatus(operationName, promptText, btn, promptInput, originalHtml, duration = 30) {
     const wrapper = document.getElementById("ad-video-wrapper");
     const pollUrl = "{% url 'adgen:api_generate_video_poll' pk=campaign.pk %}?operation_name=" + encodeURIComponent(operationName) + "&prompt=" + encodeURIComponent(promptText);
  
@@ -549,11 +643,11 @@
         btn.innerHTML = originalHtml;
         return;
       }
-
+ 
       try {
         const resp = await fetch(pollUrl);
         const data = await resp.json();
-
+ 
         if (data.error) {
           clearInterval(interval);
           wrapper.innerHTML = `
@@ -566,14 +660,14 @@
           btn.innerHTML = originalHtml;
           return;
         }
-
+ 
         if (data.done) {
           clearInterval(interval);
           wrapper.innerHTML = `
             <div class="message-video-container">
-              <video src="${data.video_url}" controls class="w-full rounded-2xl border border-gray-200" style="max-width: 500px; display: block;"></video>
+              <video src="${data.video_url}" controls class="w-full rounded-2xl border border-gray-200" style="max-width: 480px; display: block;"></video>
               <a href="${data.video_url}" download class="inline-flex items-center gap-2 px-4 py-2 mt-3 rounded-xl text-sm font-semibold border border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100 transition" style="text-decoration:none;">
-                ⬇ Télécharger la vidéo
+                ⬇ Télécharger la vidéo publicitaire
               </a>
             </div>
           `;
