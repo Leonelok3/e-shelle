@@ -337,7 +337,14 @@ def check_google_video_status(operation_name: str) -> dict:
                     return {"done": False}
                 
                 if operation.error:
-                    return {"error": operation.error.message}
+                    err_msg = ""
+                    if hasattr(operation.error, "message"):
+                        err_msg = operation.error.message
+                    elif isinstance(operation.error, dict):
+                        err_msg = operation.error.get("message", str(operation.error))
+                    else:
+                        err_msg = str(operation.error)
+                    return {"error": err_msg}
                 
                 # Succès ! Le résultat contient la vidéo
                 response_content = operation.response
