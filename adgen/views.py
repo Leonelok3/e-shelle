@@ -279,45 +279,98 @@ import struct
 import wave
 import math
 
-def generate_ad_music(output_filepath, duration=10.0):
+def generate_ad_music(output_filepath, duration=15.0, style="piano"):
     """
-    Génère un fond sonore synthétique haut de gamme (mélodie d'accords plucks piano/guitare)
-    de 10 secondes pour accompagner la publicité.
+    Génère un fond sonore synthétique haut de gamme de la durée demandée
+    avec plusieurs styles sélectionnables (piano, acoustic, synth, jazz).
     """
+    import math
+    import struct
+    import wave
+    
     sample_rate = 44100
     num_samples = int(sample_rate * duration)
-    
-    # Fréquences des notes
-    notes = {
-        'C3': 130.81, 'E3': 164.81, 'G3': 196.00, 'B3': 246.94,
-        'A3': 220.00, 'C4': 261.63, 'E4': 329.63, 'G4': 392.00,
-        'F3': 174.61, 'A4': 440.00, 'B4': 493.88, 'D4': 293.66,
-        'G3_low': 196.00
-    }
-    
-    # Progression d'accords : 4 accords, chacun durant 2.5 secondes
-    chords = [
-        # Cmaj7 (C3, E3, G3, B3, C4, E4)
-        [('C3', 0.0, 0.4), ('E3', 0.25, 0.3), ('G3', 0.5, 0.3), ('B3', 0.75, 0.3), ('C4', 1.0, 0.2), ('E4', 1.25, 0.2)],
-        # Amin7 (A3, C4, E4, G4, A4)
-        [('A3', 0.0, 0.4), ('C4', 0.25, 0.3), ('E4', 0.5, 0.3), ('G4', 0.75, 0.3), ('A4', 1.0, 0.2), ('E4', 1.25, 0.2)],
-        # Fmaj7 (F3, A4, C4, E4)
-        [('F3', 0.0, 0.4), ('A4', 0.25, 0.3), ('C4', 0.5, 0.3), ('E4', 0.75, 0.3), ('F3', 1.0, 0.2), ('A4', 1.25, 0.2)],
-        # G7 (G3_low, B4, D4, G4)
-        [('G3_low', 0.0, 0.4), ('B4', 0.25, 0.3), ('D4', 0.5, 0.3), ('G4', 0.75, 0.3), ('B4', 1.0, 0.2), ('D4', 1.25, 0.2)],
-    ]
-    
     samples = [0.0] * num_samples
     
+    # Dictionnaire global des notes
+    notes = {
+        # Basses
+        'E2': 82.41, 'G2': 98.00, 'A2': 110.00, 'C3': 130.81, 'D3': 146.83, 'E3': 164.81, 'F3': 174.61, 'G3': 196.00,
+        # Medium
+        'A3': 220.00, 'B3': 246.94, 'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23, 'G4': 392.00,
+        # Aigus
+        'A4': 440.00, 'B4': 493.88, 'C5': 523.25, 'D5': 587.33, 'E5': 659.25, 'F#4': 369.99, 'G5': 783.99, 'B4_high': 493.88
+    }
+    
+    if style == "acoustic":
+        # Progression Guitare Acoustique Gmaj7 -> Cadd9 -> Em7 -> D (durée par accord: 3.75s)
+        chords = [
+            # Gmaj7
+            [('G2', 0.0, 0.4), ('D3', 0.15, 0.3), ('G3', 0.3, 0.3), ('B3', 0.45, 0.3), ('F#4', 0.6, 0.25), ('B3', 1.0, 0.2), ('G3', 1.5, 0.2), ('D3', 2.0, 0.2)],
+            # Cadd9
+            [('C3', 0.0, 0.4), ('G3', 0.15, 0.3), ('C4', 0.3, 0.3), ('D4', 0.45, 0.3), ('E4', 0.6, 0.25), ('D4', 1.0, 0.2), ('C4', 1.5, 0.2), ('G3', 2.0, 0.2)],
+            # Em7
+            [('E2', 0.0, 0.4), ('B2', 0.15, 0.3), ('D3', 0.3, 0.3), ('G3', 0.45, 0.3), ('B3', 0.6, 0.25), ('G3', 1.0, 0.2), ('D3', 1.5, 0.2), ('B2', 2.0, 0.2)],
+            # D
+            [('D3', 0.0, 0.4), ('A3', 0.15, 0.3), ('D4', 0.3, 0.3), ('F#4', 0.45, 0.3), ('D4', 0.6, 0.25), ('A3', 1.0, 0.2), ('D3', 1.5, 0.2), ('A3', 2.0, 0.2)]
+        ]
+        chord_dur = 3.75 # 4 accords pour faire 15 secondes
+    
+    elif style == "synth":
+        # Progression Synth Pop Amin -> Fmaj -> Cmaj -> Gmaj avec arpégiateur rapide (1/8 de note)
+        arp_notes = [
+            # Amin
+            ['A2', 'E3', 'A3', 'C4', 'E4', 'C4', 'A3', 'E3'],
+            # Fmaj
+            ['F2', 'C3', 'F3', 'A3', 'C4', 'A3', 'F3', 'C3'],
+            # Cmaj
+            ['C2', 'G2', 'C3', 'E3', 'G3', 'E3', 'C3', 'G2'],
+            # Gmaj
+            ['G2', 'D3', 'G3', 'B3', 'D4', 'B3', 'G3', 'D3']
+        ]
+        # On va arpégier rapidement
+        chord_dur = 3.75
+        chords = []
+        for c_idx, notes_list in enumerate(arp_notes):
+            chord_chords = []
+            for note_idx in range(12): # 12 notes par accord (chacune dure 0.3s)
+                note_name = notes_list[note_idx % len(notes_list)]
+                chord_chords.append((note_name, note_idx * 0.3, 0.25))
+            chords.append(chord_chords)
+            
+    elif style == "jazz":
+        # Rhodes Jazz Lounge Am9 -> Dm9 -> G13 -> Cmaj9
+        chords = [
+            # Am9 (A2, C3, E3, G3, B3)
+            [('A2', 0.0, 0.4), ('C3', 0.3, 0.3), ('E3', 0.6, 0.3), ('G3', 0.9, 0.3), ('B3', 1.2, 0.25)],
+            # Dm9 (D3, F3, A3, C4, E4)
+            [('D3', 0.0, 0.4), ('F3', 0.3, 0.3), ('A3', 0.6, 0.3), ('C4', 0.9, 0.3), ('E4', 1.2, 0.25)],
+            # G13 (G2, B2, F3, A3, E4)
+            [('G2', 0.0, 0.4), ('B2', 0.3, 0.3), ('F3', 0.6, 0.3), ('A3', 0.9, 0.3), ('E4', 1.2, 0.25)],
+            # Cmaj9 (C3, E3, G3, B3, D4)
+            [('C3', 0.0, 0.4), ('E3', 0.3, 0.3), ('G3', 0.6, 0.3), ('B3', 0.9, 0.3), ('D4', 1.2, 0.25)]
+        ]
+        chord_dur = 3.75
+        
+    else:
+        # Piano plucks par défaut (Cmaj7 -> Amin7 -> Fmaj7 -> G7)
+        chords = [
+            [('C3', 0.0, 0.4), ('E3', 0.25, 0.3), ('G3', 0.5, 0.3), ('B3', 0.75, 0.3), ('C4', 1.0, 0.2), ('E4', 1.25, 0.2)],
+            [('A2', 0.0, 0.4), ('C3', 0.25, 0.3), ('E3', 0.5, 0.3), ('G3', 0.75, 0.3), ('A3', 1.0, 0.2), ('E3', 1.25, 0.2)],
+            [('F2', 0.0, 0.4), ('A3', 0.25, 0.3), ('C4', 0.5, 0.3), ('E4', 0.75, 0.3), ('F3', 1.0, 0.2), ('A3', 1.25, 0.2)],
+            [('G2', 0.0, 0.4), ('B4_high', 0.25, 0.3), ('D4', 0.5, 0.3), ('G4', 0.75, 0.3), ('B4_high', 1.0, 0.2), ('D3', 1.25, 0.2)],
+        ]
+        chord_dur = 3.75
+
     for chord_idx, plucks in enumerate(chords):
-        chord_start_time = chord_idx * 2.5
+        chord_start_time = chord_idx * chord_dur
         for note_name, delay, base_vol in plucks:
             freq = notes.get(note_name, 440.0)
             pluck_time = chord_start_time + delay
             start_sample = int(pluck_time * sample_rate)
             
-            # Durée de résonance de la note (1.5s)
-            note_duration = 1.5
+            # Durée de résonance (plus longue pour Rhodes/Guitar, plus courte pour Synth)
+            note_duration = 0.8 if style == "synth" else 2.2
             note_samples = int(note_duration * sample_rate)
             
             for i in range(note_samples):
@@ -325,15 +378,42 @@ def generate_ad_music(output_filepath, duration=10.0):
                 if idx >= num_samples:
                     break
                 t = i / sample_rate
-                # Enveloppe : attaque de 10ms puis décroissance exponentielle
-                if t < 0.01:
-                    envelope = (t / 0.01) * base_vol
-                else:
-                    envelope = math.exp(-(t - 0.01) * 2.0) * base_vol
                 
-                # Synthèse avec harmoniques douces
-                val = math.sin(2 * math.pi * freq * t) + 0.3 * math.sin(2 * math.pi * 2 * freq * t)
-                samples[idx] += val * envelope * 0.15
+                # Attaque et décroissance
+                if style == "synth":
+                    # Synth rapide : attaque ultra-rapide (5ms), decay rapide
+                    if t < 0.005:
+                        envelope = (t / 0.005) * base_vol
+                    else:
+                        envelope = math.exp(-(t - 0.005) * 5.0) * base_vol
+                else:
+                    # Instruments acoustiques : attaque 12ms, decay lent
+                    if t < 0.012:
+                        envelope = (t / 0.012) * base_vol
+                    else:
+                        decay_rate = 1.2 if style == "jazz" else 1.8
+                        envelope = math.exp(-(t - 0.012) * decay_rate) * base_vol
+                
+                # Synthèse sonore & modulation
+                if style == "synth":
+                    # Mélange de sinus et onde carrée douce pour le côté rétro
+                    val = math.sin(2 * math.pi * freq * t) + 0.3 * math.copysign(0.2, math.sin(2 * math.pi * 2 * freq * t))
+                    vol_factor = 0.12
+                elif style == "jazz":
+                    # Rhodes Tremolo (LFO à 4.5Hz)
+                    tremolo = 1.0 + 0.35 * math.sin(2 * math.pi * 4.5 * t)
+                    val = (math.sin(2 * math.pi * freq * t) + 0.25 * math.sin(2 * math.pi * 2 * freq * t)) * tremolo
+                    vol_factor = 0.16
+                elif style == "acoustic":
+                    # Guitare (harmoniques plus riches)
+                    val = math.sin(2 * math.pi * freq * t) + 0.4 * math.sin(2 * math.pi * 2 * freq * t) + 0.2 * math.sin(2 * math.pi * 3 * freq * t)
+                    vol_factor = 0.14
+                else:
+                    # Piano par défaut
+                    val = math.sin(2 * math.pi * freq * t) + 0.3 * math.sin(2 * math.pi * 2 * freq * t)
+                    vol_factor = 0.15
+                    
+                samples[idx] += val * envelope * vol_factor
                 
     # Ecrire le fichier WAV
     with wave.open(output_filepath, 'wb') as wav:
@@ -447,7 +527,7 @@ def prepare_image_for_veo(image_field) -> bytes:
     return out_buf.getvalue()
 
 
-def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
+def add_voiceover_to_video(video_url: str, text: str, campaign_id: int, music_style: str = "piano") -> str:
     """
     Télécharge ou lit la vidéo muette de 8 secondes, génère un fond musical 
     professionnel de 15 secondes (guitare/piano plucks), étire la vidéo 
@@ -465,7 +545,7 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
     contact_file = ""
     
     try:
-        logger.info(f"[AdGen Video Processing] Démarrage du cropping 9:16, de l'étirement à 15s, incrustation de texte à gauche et mixage audio pour la campagne #{campaign_id}...")
+        logger.info(f"[AdGen Video Processing] Démarrage du cropping 9:16, de l'étirement à 15s, incrustation de texte à gauche et mixage audio pour la campagne #{campaign_id} (Style: {music_style})...")
         
         temp_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "temp")
         os.makedirs(temp_dir, exist_ok=True)
@@ -493,10 +573,10 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
             with open(silent_video_path, "wb") as f:
                 f.write(video_resp.content)
             
-        # 2. Générer le fond musical de 15 secondes (arpeggio piano/guitare)
+        # 2. Générer le fond musical de 15 secondes (piano, guitare, synthé ou jazz)
         audio_path = os.path.join(temp_dir, f"music_{campaign_id}.wav")
-        generate_ad_music(audio_path, duration=15.0)
-        logger.info(f"[AdGen Video Processing] Fond musical de 15s généré à : {audio_path}")
+        generate_ad_music(audio_path, duration=15.0, style=music_style)
+        logger.info(f"[AdGen Video Processing] Fond musical de 15s ({music_style}) généré à : {audio_path}")
             
         # 3. Récupérer les informations de la campagne pour l'overlay de texte
         campaign = AdCampaign.objects.get(pk=campaign_id)
@@ -664,27 +744,34 @@ class StartAdVideoView(LoginRequiredMixin, View):
             upgrade_msg = quota_service.get_upgrade_message(request.user, "image")
             return JsonResponse({"error": upgrade_msg, "quota_exceeded": True}, status=402)
 
-        # Lire le prompt personnalisé, la voix-off et la durée s'ils sont fournis
+        # Lire le prompt personnalisé, la voix-off, la musique et la durée s'ils sont fournis
         custom_prompt = None
         voiceover_text = None
+        music_style = "piano"
         duration = 8
         if request.content_type == "application/json" or request.body.startswith(b"{"):
             try:
                 data = json.loads(request.body)
                 custom_prompt = data.get("prompt")
                 voiceover_text = data.get("voiceover_text")
+                music_style = data.get("music_style", "piano")
                 duration = int(data.get("duration", 8))
             except Exception:
                 pass
         else:
             custom_prompt = request.POST.get("prompt")
             voiceover_text = request.POST.get("voiceover_text")
+            music_style = request.POST.get("music_style", "piano")
             duration = int(request.POST.get("duration", 8))
 
-        # Enregistrer le texte de la voix-off en base pour la récupérer à la fin de la génération
+        # Enregistrer le texte de la voix-off et le style de musique en base
         if voiceover_text is not None:
             content.voice_over = voiceover_text.strip()
-            content.save(update_fields=["voice_over"])
+        
+        if not isinstance(content.raw_json, dict):
+            content.raw_json = {}
+        content.raw_json["music_style"] = music_style
+        content.save(update_fields=["voice_over", "raw_json"])
 
         if custom_prompt:
             prompt = custom_prompt.strip()
@@ -757,8 +844,13 @@ class PollAdVideoView(LoginRequiredMixin, View):
         # Vidéo terminée avec succès !
         video_url = result["video_url"]
         
-        # Générer le fond sonore publicitaire de 10s et étirer la vidéo à 10s
-        video_url = add_voiceover_to_video(video_url, "bg_music", campaign.pk)
+        # Récupérer le style de musique choisi
+        music_style = "piano"
+        if isinstance(content.raw_json, dict):
+            music_style = content.raw_json.get("music_style", "piano")
+        
+        # Générer le fond sonore publicitaire de 15s (avec style de musique choisi) et étirer/crop la vidéo
+        video_url = add_voiceover_to_video(video_url, "bg_music", campaign.pk, music_style=music_style)
             
         content.ad_video_url = video_url
         content.save(update_fields=["ad_video_url"])

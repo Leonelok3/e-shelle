@@ -372,10 +372,22 @@
           <p class="text-xxs text-gray-400 mt-1">Ce prompt guide les mouvements de caméra et l'ambiance de l'animation vidéo générée par Google Veo.</p>
         </div>
 
-        <div id="ad-video-actions" class="flex flex-wrap gap-3 mb-6">
-          <button id="btn-generate-ad-video" onclick="startAdVideoGen(15)" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white shadow-md hover:opacity-90 transition bg-gradient-to-r from-purple-600 to-indigo-600">
-            🎥 Générer la vidéo (15s)
-          </button>
+        <div id="ad-video-actions" class="flex flex-col gap-4 mb-6">
+          <div class="max-w-md">
+            <label for="ad-video-music-style" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">🎵 Style de musique de fond :</label>
+            <select id="ad-video-music-style" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition">
+              <option value="piano">🎹 Piano Plucks (Doux & Corporatif)</option>
+              <option value="acoustic">🎸 Guitare Acoustique (Chaleureux & Calme)</option>
+              <option value="synth">⚡ Synth Pop (Dynamique & Moderne)</option>
+              <option value="jazz">🎷 Lounge Jazz Rhodes (Premium & Relaxant)</option>
+            </select>
+          </div>
+          
+          <div>
+            <button id="btn-generate-ad-video" onclick="startAdVideoGen(15)" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white shadow-md hover:opacity-90 transition bg-gradient-to-r from-purple-600 to-indigo-600">
+              🎥 Générer la vidéo (15s)
+            </button>
+          </div>
         </div>
 
         <div id="ad-video-wrapper">
@@ -479,7 +491,8 @@
         },
         body: JSON.stringify({
           prompt: promptInput.value,
-          duration: duration
+          duration: duration,
+          music_style: document.getElementById("ad-video-music-style").value
         })
       });
       const data = await resp.json();
