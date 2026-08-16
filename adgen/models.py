@@ -77,6 +77,7 @@ class AdCampaign(models.Model):
     description      = models.TextField(verbose_name="Description du produit")
     photo_produit    = models.ImageField(upload_to="adgen/products/", blank=True, null=True, verbose_name="Photo du produit")
     prix             = models.CharField(max_length=50, verbose_name="Prix")
+    ancien_prix      = models.CharField(max_length=50, blank=True, null=True, verbose_name="Ancien prix")
     cible            = models.CharField(max_length=200, verbose_name="Cible / audience")
     pays             = models.CharField(max_length=5, choices=PAYS_CHOICES, default="cm", verbose_name="Pays cible")
     ville            = models.CharField(max_length=80, blank=True, verbose_name="Ville cible")

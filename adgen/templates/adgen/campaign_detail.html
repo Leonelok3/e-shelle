@@ -112,6 +112,9 @@
         <span class="text-xs font-semibold px-3 py-1 rounded-full" style="background:#f5f3ff;color:var(--adgen-primary)">{{ campaign.pays_label }}</span>
         <span class="text-xs font-semibold px-3 py-1 rounded-full" style="background:#eefdf5;color:#047857">{{ campaign.ville_label }}</span>
         <span class="text-xs font-semibold px-3 py-1 rounded-full" style="background:#f5f3ff;color:var(--adgen-primary)">{{ campaign.prix }}</span>
+        {% if campaign.ancien_prix %}
+        <span class="text-xs font-semibold px-3 py-1 rounded-full bg-red-100 text-red-600 line-through">{{ campaign.ancien_prix }}</span>
+        {% endif %}
         {% for m in campaign.modules_selected %}
         <span class="text-xs font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-600">{{ m }}</span>
         {% endfor %}
@@ -373,18 +376,19 @@
         </div>
 
         <!-- Paramètres Avancés de Personnalisation -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           
-          <!-- Durée & Preset -->
+          <!-- Durée & Preset & Musique -->
           <div class="space-y-4">
             <div>
-              <label for="ad-video-duration" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">⏱ Durée de la publicité :</label>
-              <select id="ad-video-duration" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition">
-                <option value="30" selected>⏱ 30 secondes (Conseillé - TikTok/Reels)</option>
-                <option value="15">⏱ 15 secondes (Format court / WhatsApp Status)</option>
-                <option value="45">⏱ 45 secondes (Présentation détaillée)</option>
-                <option value="60">⏱ 60 secondes (Vidéo longue)</option>
-              </select>
+              <label class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">⏱ Durée de la publicité :</label>
+              <div class="flex gap-2" id="duration-selector-container">
+                <button type="button" data-val="15" onclick="selectDuration(15, this)" class="duration-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold border-2 border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-all">15 s</button>
+                <button type="button" data-val="30" onclick="selectDuration(30, this)" class="duration-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold border-2 border-purple-600 text-white bg-purple-600 shadow-md transition-all">30 s</button>
+                <button type="button" data-val="45" onclick="selectDuration(45, this)" class="duration-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold border-2 border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-all">45 s</button>
+                <button type="button" data-val="60" onclick="selectDuration(60, this)" class="duration-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold border-2 border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-all">60 s</button>
+              </div>
+              <input type="hidden" id="ad-video-duration" value="30">
             </div>
 
             <div>
@@ -399,7 +403,7 @@
             </div>
             
             <div>
-              <label for="ad-video-music-style" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">🎵 Musique de fond (DSP Synthesized) :</label>
+              <label for="ad-video-music-style" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">🎵 Musique de fond (Synthétisée) :</label>
               <select id="ad-video-music-style" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition">
                 <option value="piano" {% if content.raw_json.music_style == 'piano' %}selected{% endif %}>🎹 Piano Plucks (Doux & Corporatif)</option>
                 <option value="acoustic" {% if content.raw_json.music_style == 'acoustic' %}selected{% endif %}>🎸 Guitare Acoustique (Chaleureux & Calme)</option>
@@ -412,52 +416,100 @@
           <!-- Configuration de l'Arrière-plan -->
           <div class="space-y-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
             <div>
-              <label for="ad-video-bg-type" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">🖼 Style d'Arrière-plan :</label>
-              <select id="ad-video-bg-type" onchange="updateBgInputs()" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition">
-                <option value="color" selected>🎨 Couleur unie</option>
-                <option value="gradient">🌈 Dégradé de couleurs</option>
-                <option value="template">🎭 Template prédéfini</option>
-              </select>
+              <label class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">🖼 Style d'Arrière-plan :</label>
+              <div class="flex border-b border-gray-200 mb-3 bg-white rounded-lg p-0.5 shadow-sm">
+                <button type="button" onclick="selectBgMode('color')" id="bg-tab-color" class="bg-mode-tab flex-1 py-1.5 px-2 text-center rounded-md font-bold text-xxs uppercase tracking-wider bg-purple-600 text-white shadow-sm transition-all">Couleur</button>
+                <button type="button" onclick="selectBgMode('gradient')" id="bg-tab-gradient" class="bg-mode-tab flex-1 py-1.5 px-2 text-center rounded-md font-semibold text-xxs uppercase tracking-wider text-gray-500 hover:text-gray-700 transition-all">Dégradé</button>
+                <button type="button" onclick="selectBgMode('template')" id="bg-tab-template" class="bg-mode-tab flex-1 py-1.5 px-2 text-center rounded-md font-semibold text-xxs uppercase tracking-wider text-gray-500 hover:text-gray-700 transition-all">Templates</button>
+              </div>
+              <input type="hidden" id="ad-video-bg-type" value="color">
             </div>
 
             <!-- Couleur Unie -->
-            <div id="bg-color-wrapper">
-              <label for="ad-video-bg-color" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-1.5">Couleur d'arrière-plan :</label>
-              <div class="flex items-center gap-2">
-                <input type="color" id="ad-video-bg-color" value="#050910" class="w-10 h-10 rounded-lg cursor-pointer border border-gray-200 p-0.5">
-                <span class="text-xs text-gray-500 font-mono">#050910 (Bleu Nuit E-Shelle)</span>
+            <div id="bg-color-wrapper" class="bg-mode-pane space-y-2">
+              <label for="ad-video-bg-color" class="block text-xxs font-bold text-gray-500 uppercase">Couleur d'arrière-plan :</label>
+              <div class="flex items-center gap-3">
+                <input type="color" id="ad-video-bg-color" value="#050910" oninput="updateBgColorHex(this.value)" class="w-10 h-10 rounded-xl cursor-pointer border border-gray-200 p-0.5 bg-white shadow-sm">
+                <div>
+                  <input type="text" id="ad-video-bg-color-hex" value="#050910" oninput="updateBgColorInput(this.value)" class="w-24 text-xs font-mono rounded-lg border border-gray-200 p-1.5 text-center focus:outline-none focus:border-purple-600 bg-white">
+                </div>
               </div>
             </div>
 
             <!-- Dégradé -->
-            <div id="bg-gradient-wrapper" style="display:none;">
-              <label class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-1.5">Couleurs du dégradé (Linéaire horizontal) :</label>
-              <div class="flex items-center gap-3">
-                <div class="flex items-center gap-1.5">
-                  <input type="color" id="ad-video-bg-grad-1" value="#050910" class="w-8 h-8 rounded-lg cursor-pointer border border-gray-200 p-0.5">
-                  <span class="text-xxs text-gray-400">Début</span>
+            <div id="bg-gradient-wrapper" class="bg-mode-pane space-y-3" style="display:none;">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xxs font-bold text-gray-500 uppercase mb-1">Début :</label>
+                  <div class="flex items-center gap-1.5">
+                    <input type="color" id="ad-video-bg-grad-1" value="#050910" oninput="updateBgPreview()" class="w-8 h-8 rounded-lg cursor-pointer border border-gray-200 p-0.5 bg-white">
+                  </div>
                 </div>
-                <div class="flex items-center gap-1.5">
-                  <input type="color" id="ad-video-bg-grad-2" value="#1e293b" class="w-8 h-8 rounded-lg cursor-pointer border border-gray-200 p-0.5">
-                  <span class="text-xxs text-gray-400">Fin</span>
+                <div>
+                  <label class="block text-xxs font-bold text-gray-500 uppercase mb-1">Fin :</label>
+                  <div class="flex items-center gap-1.5">
+                    <input type="color" id="ad-video-bg-grad-2" value="#1e293b" oninput="updateBgPreview()" class="w-8 h-8 rounded-lg cursor-pointer border border-gray-200 p-0.5 bg-white">
+                  </div>
                 </div>
+              </div>
+              <div>
+                <label for="ad-video-bg-grad-dir" class="block text-xxs font-bold text-gray-500 uppercase mb-1">Direction :</label>
+                <select id="ad-video-bg-grad-dir" onchange="updateBgPreview()" class="w-full text-xs rounded-xl border border-gray-200 p-2 bg-white focus:outline-none">
+                  <option value="horizontal" selected>Horizontal (Gauche → Droite)</option>
+                  <option value="vertical">Vertical (Haut → Bas)</option>
+                  <option value="diagonal">Diagonal (Haut-Gauche → Bas-Droite)</option>
+                </select>
               </div>
             </div>
 
             <!-- Template -->
-            <div id="bg-template-wrapper" style="display:none;">
-              <label for="ad-video-bg-template" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-1.5">Sélectionner un template :</label>
-              <select id="ad-video-bg-template" class="w-full text-sm rounded-xl border border-gray-200 p-2.5 bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition">
-                <option value="dark" selected>🌌 Sombre classique (E-Shelle Dark)</option>
-                <option value="minimal">⚪ Minimaliste Chic (Gris & Blanc clairs)</option>
-                <option value="luxury">👑 Luxury Gold (Noir profond & Or impérial)</option>
-                <option value="tech">⚡ Cyber Tech (Bleu profond & Cyan futuriste)</option>
-                <option value="modern">🔮 Modern Purple (Dégradé Violet/Bleu dynamique)</option>
-                <option value="fashion">🌸 Soft Pastel (Rose poudré & Beige chaud)</option>
-                <option value="food">🍊 Food Spicy (Jaune-Orange gourmand)</option>
-                <option value="automotive">🏁 Carbon Sport (Carbone & Rayures subtiles)</option>
-              </select>
+            <div id="bg-template-wrapper" class="bg-mode-pane space-y-2" style="display:none;">
+              <label class="block text-xxs font-bold text-gray-500 uppercase">Sélectionner un template :</label>
+              <div class="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto p-0.5" id="bg-template-cards-grid">
+                <div data-val="dark" onclick="selectTemplateCard('dark', this)" class="bg-template-card selected border-2 border-purple-600 rounded-lg p-1.5 cursor-pointer bg-white transition-all">
+                  <div class="h-6 w-full rounded-md flex items-center justify-center text-xxs font-bold text-white bg-slate-900 shadow-inner">🌌</div>
+                  <div class="text-[9px] font-black text-center text-gray-700 mt-1">Sombre classique</div>
+                </div>
+                <div data-val="minimal" onclick="selectTemplateCard('minimal', this)" class="bg-template-card border-2 border-gray-200 rounded-lg p-1.5 cursor-pointer bg-white transition-all">
+                  <div class="h-6 w-full rounded-md flex items-center justify-center text-xxs font-bold text-slate-800 bg-slate-100 shadow-inner">⚪</div>
+                  <div class="text-[9px] font-black text-center text-gray-700 mt-1">Minimal Chic</div>
+                </div>
+                <div data-val="luxury" onclick="selectTemplateCard('luxury', this)" class="bg-template-card border-2 border-gray-200 rounded-lg p-1.5 cursor-pointer bg-white transition-all">
+                  <div class="h-6 w-full rounded-md flex items-center justify-center text-xxs font-bold text-yellow-500 bg-neutral-950 shadow-inner border border-yellow-600">👑</div>
+                  <div class="text-[9px] font-black text-center text-gray-700 mt-1">Luxury Gold</div>
+                </div>
+                <div data-val="tech" onclick="selectTemplateCard('tech', this)" class="bg-template-card border-2 border-gray-200 rounded-lg p-1.5 cursor-pointer bg-white transition-all">
+                  <div class="h-6 w-full rounded-md flex items-center justify-center text-xxs font-bold text-cyan-400 bg-indigo-950 shadow-inner">⚡</div>
+                  <div class="text-[9px] font-black text-center text-gray-700 mt-1">Cyber Tech</div>
+                </div>
+                <div data-val="modern" onclick="selectTemplateCard('modern', this)" class="bg-template-card border-2 border-gray-200 rounded-lg p-1.5 cursor-pointer bg-white transition-all">
+                  <div class="h-6 w-full rounded-md flex items-center justify-center text-xxs font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 shadow-inner">🔮</div>
+                  <div class="text-[9px] font-black text-center text-gray-700 mt-1">Modern Purple</div>
+                </div>
+                <div data-val="fashion" onclick="selectTemplateCard('fashion', this)" class="bg-template-card border-2 border-gray-200 rounded-lg p-1.5 cursor-pointer bg-white transition-all">
+                  <div class="h-6 w-full rounded-md flex items-center justify-center text-xxs font-bold text-pink-700 bg-pink-100 shadow-inner">🌸</div>
+                  <div class="text-[9px] font-black text-center text-gray-700 mt-1">Soft Pastel</div>
+                </div>
+                <div data-val="food" onclick="selectTemplateCard('food', this)" class="bg-template-card border-2 border-gray-200 rounded-lg p-1.5 cursor-pointer bg-white transition-all">
+                  <div class="h-6 w-full rounded-md flex items-center justify-center text-xxs font-bold text-white bg-gradient-to-r from-amber-400 to-orange-500 shadow-inner">🍊</div>
+                  <div class="text-[9px] font-black text-center text-gray-700 mt-1">Food Spicy</div>
+                </div>
+                <div data-val="automotive" onclick="selectTemplateCard('automotive', this)" class="bg-template-card border-2 border-gray-200 rounded-lg p-1.5 cursor-pointer bg-white transition-all">
+                  <div class="h-6 w-full rounded-md flex items-center justify-center text-xxs font-bold text-red-500 bg-neutral-900 shadow-inner">🏁</div>
+                  <div class="text-[9px] font-black text-center text-gray-700 mt-1">Carbon Sport</div>
+                </div>
+              </div>
+              <input type="hidden" id="ad-video-bg-template" value="dark">
             </div>
+
+            <!-- Aperçu de l'Arrière-plan en temps réel -->
+            <div class="mt-2 p-2 bg-white rounded-xl border border-gray-200">
+              <label class="block text-[9px] font-extrabold text-gray-400 uppercase tracking-wider mb-1">Aperçu en temps réel :</label>
+              <div id="bg-live-preview" class="w-full h-12 rounded-lg flex items-center justify-center border border-gray-100 shadow-inner bg-slate-900 transition-all duration-300">
+                <span id="bg-live-preview-text" class="text-xs font-black tracking-wider text-white">PUBLICITÉ IA</span>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -529,11 +581,127 @@
     });
   }
 
-  function updateBgInputs() {
-    const bgType = document.getElementById("ad-video-bg-type").value;
-    document.getElementById("bg-color-wrapper").style.display = bgType === "color" ? "block" : "none";
-    document.getElementById("bg-gradient-wrapper").style.display = bgType === "gradient" ? "block" : "none";
-    document.getElementById("bg-template-wrapper").style.display = bgType === "template" ? "block" : "none";
+  function selectDuration(seconds, btn) {
+    document.querySelectorAll('.duration-btn').forEach(b => {
+      b.classList.remove('border-purple-600', 'text-white', 'bg-purple-600', 'shadow-md');
+      b.classList.add('border-gray-200', 'text-gray-600', 'bg-white');
+    });
+    btn.classList.remove('border-gray-200', 'text-gray-600', 'bg-white');
+    btn.classList.add('border-purple-600', 'text-white', 'bg-purple-600', 'shadow-md');
+    document.getElementById('ad-video-duration').value = seconds;
+  }
+
+  function selectBgMode(mode) {
+    document.getElementById('ad-video-bg-type').value = mode;
+    document.querySelectorAll('.bg-mode-tab').forEach(t => {
+      t.classList.remove('bg-purple-600', 'text-white', 'shadow-sm');
+      t.classList.add('text-gray-500', 'hover:text-gray-700');
+    });
+    const activeTab = document.getElementById('bg-tab-' + mode);
+    activeTab.classList.remove('text-gray-500', 'hover:text-gray-700');
+    activeTab.classList.add('bg-purple-600', 'text-white', 'shadow-sm');
+
+    document.querySelectorAll('.bg-mode-pane').forEach(p => p.style.display = 'none');
+    document.getElementById('bg-' + mode + '-wrapper').style.display = 'block';
+    
+    updateBgPreview();
+  }
+
+  function updateBgColorHex(val) {
+    document.getElementById('ad-video-bg-color-hex').value = val.toUpperCase();
+    updateBgPreview();
+  }
+
+  function updateBgColorInput(val) {
+    if (val.match(/^#[0-9A-F]{6}$/i)) {
+      document.getElementById('ad-video-bg-color').value = val;
+      updateBgPreview();
+    }
+  }
+
+  function selectTemplateCard(templateVal, card) {
+    document.querySelectorAll('.bg-template-card').forEach(c => {
+      c.classList.remove('border-purple-600');
+      c.classList.add('border-gray-200');
+    });
+    card.classList.remove('border-gray-200');
+    card.classList.add('border-purple-600');
+    document.getElementById('ad-video-bg-template').value = templateVal;
+    updateBgPreview();
+  }
+
+  function updateBgPreview() {
+    const preview = document.getElementById('bg-live-preview');
+    const text = document.getElementById('bg-live-preview-text');
+    const bgType = document.getElementById('ad-video-bg-type').value;
+
+    preview.style.background = '';
+    preview.style.backgroundImage = '';
+    preview.style.backgroundColor = '';
+    preview.style.border = '';
+    preview.style.borderBottom = '';
+    text.style.color = 'white';
+
+    if (bgType === 'color') {
+      const color = document.getElementById('ad-video-bg-color').value;
+      preview.style.backgroundColor = color;
+      
+      const hex = color.replace('#', '');
+      const r = parseInt(hex.substr(0,2), 16);
+      const g = parseInt(hex.substr(2,2), 16);
+      const b = parseInt(hex.substr(4,2), 16);
+      const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+      text.style.color = luma > 140 ? '#0f0723' : '#ffffff';
+
+    } else if (bgType === 'gradient') {
+      const col1 = document.getElementById('ad-video-bg-grad-1').value;
+      const col2 = document.getElementById('ad-video-bg-grad-2').value;
+      const dir = document.getElementById('ad-video-bg-grad-dir').value;
+      
+      let angle = 'to right';
+      if (dir === 'vertical') angle = 'to bottom';
+      if (dir === 'diagonal') angle = 'to bottom right';
+
+      preview.style.backgroundImage = `linear-gradient(${angle}, ${col1}, ${col2})`;
+      
+      const hex = col1.replace('#', '');
+      const r = parseInt(hex.substr(0,2), 16);
+      const g = parseInt(hex.substr(2,2), 16);
+      const b = parseInt(hex.substr(4,2), 16);
+      const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+      text.style.color = luma > 140 ? '#0f0723' : '#ffffff';
+
+    } else if (bgType === 'template') {
+      const template = document.getElementById('ad-video-bg-template').value;
+      if (template === 'minimal') {
+        preview.style.backgroundColor = '#f5f5f7';
+        text.style.color = '#0f0723';
+      } else if (template === 'luxury') {
+        preview.style.backgroundColor = '#0a0a0c';
+        preview.style.backgroundImage = 'linear-gradient(to right, #0a0a0c, #161619)';
+        preview.style.border = '2px solid #ffd91f';
+        text.style.color = '#ffd91f';
+      } else if (template === 'tech') {
+        preview.style.backgroundColor = '#0b132b';
+        text.style.color = '#22d3ee';
+      } else if (template === 'modern') {
+        preview.style.backgroundImage = 'linear-gradient(to right, #6c3fe8, #1e3a8a)';
+        text.style.color = '#ffd91f';
+      } else if (template === 'fashion') {
+        preview.style.backgroundImage = 'linear-gradient(to right, #f5dcdc, #e6c8c8)';
+        text.style.color = '#831843';
+      } else if (template === 'food') {
+        preview.style.backgroundImage = 'linear-gradient(to right, #fb923c, #ea580c)';
+        text.style.color = '#ffffff';
+      } else if (template === 'automotive') {
+        preview.style.backgroundColor = '#14181e';
+        preview.style.borderBottom = '4px solid #ef4444';
+        text.style.color = '#ef4444';
+      } else {
+        preview.style.backgroundColor = '#050910';
+        text.style.color = '#ffffff';
+      }
+    }
   }
 
   // Activer le premier onglet si aucun n'est actif et init les inputs
@@ -542,7 +710,7 @@
     if (firstBtn && !document.querySelector('.tab-btn.active')) {
       firstBtn.click();
     }
-    updateBgInputs();
+    updateBgPreview();
   });
 
   async function startAdVideoGen() {
@@ -585,6 +753,7 @@
               document.getElementById("ad-video-bg-grad-1").value,
               document.getElementById("ad-video-bg-grad-2").value
             ],
+            bg_grad_dir: document.getElementById("ad-video-bg-grad-dir").value,
             bg_template: document.getElementById("ad-video-bg-template").value
           }
         })
@@ -606,8 +775,8 @@
             <div class="w-12 h-12 rounded-full border-4 border-purple-100 border-t-purple-600 animate-spin"></div>
           </div>
           <div>
-            <div class="font-bold text-gray-800 text-sm">Génération de la vidéo (${duration}s) en cours...</div>
-            <div class="text-xs text-gray-400 mt-1">Google Veo assemble vos images et le script. Temps estimé : 60-120s</div>
+            <div class="font-bold text-gray-800 text-sm" id="polling-step-title">1. Préparation de la vidéo...</div>
+            <div class="text-xs text-gray-400 mt-1" id="polling-step-desc">Veo assemble vos images. Temps estimé : 60-120s</div>
           </div>
         </div>
       `;
@@ -631,6 +800,20 @@
     
     const interval = setInterval(async () => {
       attempts++;
+      
+      // Mettre à jour les étapes du polling de façon réaliste
+      const stepTitle = document.getElementById("polling-step-title");
+      const stepDesc = document.getElementById("polling-step-desc");
+      if (stepTitle && stepDesc) {
+        if (attempts > 35) {
+          stepTitle.innerText = "3. Composition finale et export...";
+          stepDesc.innerText = "FFmpeg intègre vos animations typographiques et le CTA.";
+        } else if (attempts > 12) {
+          stepTitle.innerText = "2. Génération audio et effets...";
+          stepDesc.innerText = "Synthèse sonore haute définition et transitions.";
+        }
+      }
+
       if (attempts > maxAttempts) {
         clearInterval(interval);
         wrapper.innerHTML = `

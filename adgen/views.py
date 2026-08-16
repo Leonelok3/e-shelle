@@ -568,12 +568,27 @@ def prepare_image_for_veo(image_field, bg_config: dict = None) -> bytes:
         r1, g1, b1 = int(hex1[0:2], 16), int(hex1[2:4], 16), int(hex1[4:6], 16)
         r2, g2, b2 = int(hex2[0:2], 16), int(hex2[2:4], 16), int(hex2[4:6], 16)
         
-        for x in range(canvas_w):
-            factor = x / canvas_w
-            r = int(r1 + (r2 - r1) * factor)
-            g = int(g1 + (g2 - g1) * factor)
-            b = int(b1 + (b2 - b1) * factor)
-            draw.line([(x, 0), (x, canvas_h)], fill=(r, g, b, 255))
+        direction = bg_config.get("bg_grad_dir", "horizontal")
+        if direction == "vertical":
+            grad = Image.new("RGB", (1, 2))
+            grad.putpixel((0, 0), (r1, g1, b1))
+            grad.putpixel((0, 1), (r2, g2, b2))
+            grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR)
+            bg.paste(grad_resized, (0, 0))
+        elif direction == "diagonal":
+            grad = Image.new("RGB", (2, 2))
+            grad.putpixel((0, 0), (r1, g1, b1))
+            grad.putpixel((1, 0), (int((r1+r2)/2), int((g1+g2)/2), int((b1+b2)/2)))
+            grad.putpixel((0, 1), (int((r1+r2)/2), int((g1+g2)/2), int((b1+b2)/2)))
+            grad.putpixel((1, 1), (r2, g2, b2))
+            grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR)
+            bg.paste(grad_resized, (0, 0))
+        else: # horizontal
+            grad = Image.new("RGB", (2, 1))
+            grad.putpixel((0, 0), (r1, g1, b1))
+            grad.putpixel((1, 0), (r2, g2, b2))
+            grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR)
+            bg.paste(grad_resized, (0, 0))
             
     elif bg_type == "template":
         template = bg_config.get("bg_template", "dark")
@@ -640,251 +655,26 @@ def prepare_image_for_veo(image_field, bg_config: dict = None) -> bytes:
 
 def add_voiceover_to_video(video_url: str, text: str, campaign_id: int, music_style: str = "piano", duration: float = 30.0) -> str:
     """
-    Télécharge la vidéo muette de 8s, génère le fond musical sur-mesure (piano, acoustic, etc.) 
-    répété selon la durée cible, étire la vidéo à la durée configurée, effectue un recadrage vertical 
-    dynamique (crop 9:16 + floating subtil + zoom lent), et applique une timeline d'incrustation 
-    d'overlays professionnels adaptés au contraste de l'arrière-plan.
+    Délègue l'assemblage et la composition vidéo verticale (9:16)
+    au VideoComposer.
     """
-    import os
-    import subprocess
-    import requests
-    from django.conf import settings
     from .models import AdCampaign
+    from .services.video_composer import VideoComposer
     
-    slogan_file = ""
-    price_file = ""
-    contact_file = ""
+    campaign = AdCampaign.objects.get(pk=campaign_id)
     
+    bg_config = {}
     try:
-        logger.info(f"[AdGen Video Processing] Démarrage du moteur de scènes {duration}s, crop vertical 9:16 et mixage audio pour la campagne #{campaign_id}...")
+        content = campaign.content
+        if isinstance(content.raw_json, dict):
+            bg_config = content.raw_json.get("bg_config", {})
+    except Exception:
+        pass
         
-        temp_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "temp")
-        os.makedirs(temp_dir, exist_ok=True)
-        
-        is_local = False
-        silent_video_path = ""
-        
-        # 1. Résolution du chemin de la vidéo muette
-        if video_url.startswith(settings.MEDIA_URL):
-            relative_path = video_url[len(settings.MEDIA_URL):]
-            if relative_path.startswith("/"):
-                relative_path = relative_path[1:]
-            local_path = os.path.join(settings.MEDIA_ROOT, relative_path)
-            if os.path.exists(local_path):
-                silent_video_path = local_path
-                is_local = True
-                logger.info(f"[AdGen Video Processing] Vidéo muette locale trouvée à : {silent_video_path}")
-                
-        if not is_local:
-            logger.info(f"[AdGen Video Processing] Téléchargement de la vidéo muette depuis : {video_url}")
-            video_resp = requests.get(video_url, timeout=30)
-            video_resp.raise_for_status()
-            
-            silent_video_path = os.path.join(temp_dir, f"silent_{campaign_id}.mp4")
-            with open(silent_video_path, "wb") as f:
-                f.write(video_resp.content)
-            
-        # 2. Générer le fond musical adapté à la durée demandée
-        audio_path = os.path.join(temp_dir, f"music_{campaign_id}.wav")
-        generate_ad_music(audio_path, duration=duration, style=music_style)
-        logger.info(f"[AdGen Video Processing] Fond musical de {duration}s ({music_style}) généré à : {audio_path}")
-            
-        # 3. Récupérer les informations de la campagne et les configurations du background
-        campaign = AdCampaign.objects.get(pk=campaign_id)
-        clean_title = campaign.nom_produit.replace("'", " ").replace('"', " ").strip()
-        clean_city = (campaign.ville_label or campaign.ville or "").replace("'", " ").replace('"', " ").strip()
-        
-        bg_config = {}
-        try:
-            content = campaign.content
-            if isinstance(content.raw_json, dict):
-                bg_config = content.raw_json.get("bg_config", {})
-        except Exception:
-            pass
-            
-        # Formatage intelligent du prix (ajout de XAF par défaut si numérique)
-        price_raw = campaign.prix.replace("'", " ").replace('"', " ").strip()
-        clean_digits = price_raw.replace(" ", "").replace(".", "").replace(",", "")
-        if clean_digits.isdigit():
-            clean_price = f"Prix: {price_raw} XAF"
-        else:
-            upper_price = price_raw.upper()
-            if not any(suffix in upper_price for suffix in ["XAF", "FCFA", "CFA", " F", "FRANC"]):
-                clean_price = f"Prix: {price_raw} XAF"
-            else:
-                if not upper_price.startswith("PRIX"):
-                    clean_price = f"Prix: {price_raw}"
-                else:
-                    clean_price = price_raw
-        
-        phone = campaign.cible.strip()
-        if phone:
-            contact_text = f"WhatsApp: {phone}\n({clean_city})"
-        else:
-            contact_text = f"Commander sur\nWhatsApp ({clean_city})"
-            
-        # Déterminer la coloration en fonction du contraste automatique du background
-        is_light = is_bg_light(bg_config)
-        if is_light:
-            text_color = "0x0a0a0a"       # Noir
-            accent_color = "0xc2410c"     # Orange foncé / brique
-            box_color = "white@0.85"       # Boîte claire très lisible
-            contact_box_color = "0xdcfce7@0.9" # Vert clair doux
-            contact_text_color = "0x14532d"
-        else:
-            text_color = "white"
-            accent_color = "0xffd91f"     # Doré / Jaune vif
-            box_color = "black@0.65"       # Boîte sombre protectrice
-            contact_box_color = "0x14532d@0.75" # Vert WhatsApp foncé
-            contact_text_color = "white"
-            
-        # 4. Écrire le prix et le contact dans des fichiers temporaires
-        price_file = os.path.join(temp_dir, f"price_{campaign_id}.txt").replace('\\', '/')
-        contact_file = os.path.join(temp_dir, f"contact_{campaign_id}.txt").replace('\\', '/')
-        
-        with open(price_file, "w", encoding="utf-8") as f:
-            f.write(wrap_text(clean_price, 15))
-            
-        with open(contact_file, "w", encoding="utf-8") as f:
-            f.write(wrap_text(contact_text, 22))
-            
-        # 5. Construire les filtres d'incrustation de texte et d'effets visuels
-        font_path = get_premium_font()
-        font_opt = f":fontfile='{font_path}'" if (font_path and os.path.exists(font_path)) else ""
-        
-        # Filigrane de marque E-SHELLE.COM (haut droit, discret et permanent)
-        w_filter = (
-            f"drawtext=text='E-SHELLE.COM':x=w-tw-w*0.06:y=h*0.04{font_opt}:fontsize=w*0.032:fontcolor=white:alpha=0.45"
-        )
-        
-        # Scène 1 [0s - 13s] : Titre (apparition lettre par lettre)
-        # Animation lettre par lettre (glissade depuis le haut avec léger décalage stagger)
-        title_filters = []
-        char_w = 26
-        if len(clean_title) > 18:
-            title_fontsize = "w*0.045"
-            char_w = 21
-        else:
-            title_fontsize = "w*0.055"
-            char_w = 26
-            
-        # Fond de boîte englobant le titre (s'affiche doucement à 0.5s et se retire à 13.5s)
-        box_w = len(clean_title) * char_w + 30
-        title_box_filter = (
-            f"drawbox=x=w*0.08-15:y=h*0.12-10:w={box_w}:h=w*0.065+20:color={box_color}:t=fill:"
-            f"alpha='if(lt(t,0.5),0,if(lt(t,1.5),t-0.5,if(lt(t,13.5),1,if(lt(t,14.5),14.5-t,0))))'"
-        )
-        title_filters.append(title_box_filter)
-        
-        start_t = 0.5
-        stagger = 0.08
-        char_duration = 0.4
-        
-        for i, char in enumerate(clean_title):
-            char_delay = start_t + (i * stagger)
-            x_pos = f"w*0.08 + {i * char_w}"
-            y_expr = f"h*0.12 - max(0, 50 * (1 - (t - {char_delay}) / {char_duration}))"
-            alpha_expr = f"if(lt(t,{char_delay}),0,if(lt(t,13.5),clip((t - {char_delay})/{char_duration},0,1),if(lt(t,14.5),14.5-t,0)))"
-            
-            safe_char = char.replace("'", "\\'").replace(":", "\\:")
-            title_filters.append(
-                f"drawtext=text='{safe_char}':x='{x_pos}':y='{y_expr}':alpha='{alpha_expr}'{font_opt}:"
-                f"fontsize={title_fontsize}:fontcolor={text_color}"
-            )
-            
-        # Scène 2 [9s - 18s] : Avantage / Message commercial (Slide montant depuis le bas)
-        slogan_file = os.path.join(temp_dir, f"slogan_{campaign_id}.txt").replace('\\', '/')
-        clean_desc = campaign.description.replace("'", " ").replace('"', " ").strip()
-        slogan_text = clean_desc[:45] + "..." if len(clean_desc) > 45 else clean_desc
-        with open(slogan_file, "w", encoding="utf-8") as f:
-            f.write(wrap_text(slogan_text, 22))
-            
-        s_filter = (
-            f"drawtext=textfile='{slogan_file}':x=w*0.08:y='h*0.35 + max(0, 50 * (1 - (t-9.0)/1.0))'{font_opt}:"
-            f"fontsize=w*0.048:fontcolor={text_color}:box=1:boxcolor={box_color}:boxborderw=10:"
-            f"alpha='if(lt(t,9.0),0,if(lt(t,10.0),t-9.0,if(lt(t,17.0),1,if(lt(t,18.0),18.0-t,0))))'"
-        )
-        
-        # Scène 3 [18s - 30s] : Prix (Slide rapide depuis la gauche avec léger overshoot)
-        p_filter = (
-            f"drawtext=textfile='{price_file}':x='if(lt(t,18.0),-w,w*0.08-max(0,w*(1-(t-18.0)/1.2)))':y=h*0.48{font_opt}:"
-            f"fontsize=w*0.070:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=15:"
-            f"alpha='if(lt(t,18.0),0,if(lt(t,19.0),t-18.0,if(lt(t,duration-1.0),1,duration-t)))'"
-        )
-        
-        # Contacts (Persistant de 0s à 30s, alignement fixe en zone basse sécurisée)
-        c_filter = (
-            f"drawtext=textfile='{contact_file}':x=w*0.08:y=h*0.84{font_opt}:fontsize=w*0.048:fontcolor={contact_text_color}:"
-            f"box=1:boxcolor={contact_box_color}:boxborderw=12:alpha='if(lt(t,0.2),0,if(lt(t,1.2),t-0.2,1))'"
-        )
-        
-        # Enchaînement des filtres vidéo :
-        # - setpts étire la vitesse temporelle de 8s de base à la durée cible
-        # - crop applique le recadrage 9:16 avec zoom lent de 8% et un floating de 8px
-        speed_ratio = duration / 8.0
-        crop_zoom_filter = (
-            f"setpts={speed_ratio}*PTS,"
-            f"crop=w='ih*9/16*(1-0.08*t/{duration})':h='ih*(1-0.08*t/{duration})':"
-            f"x='(in_w-out_w)/2':y='(in_h-out_h)/2 + 8*sin(2*PI*t/6)'"
-        )
-        
-        vf_chain = f"{crop_zoom_filter},{w_filter},{','.join(title_filters)},{s_filter},{p_filter},{c_filter}"
-        
-        # 6. Fusionner, étirer la vidéo et incruster les textes animés avec ffmpeg
-        output_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "videos")
-        os.makedirs(output_dir, exist_ok=True)
-        output_filename = f"ad_video_{campaign_id}.mp4"
-        output_filepath = os.path.join(output_dir, output_filename)
-        
-        cmd = [
-            "ffmpeg",
-            "-y",
-            "-i", silent_video_path,
-            "-i", audio_path,
-            "-filter:v", vf_chain,
-            "-map", "0:v",
-            "-map", "1:a",
-            "-c:v", "libx264",
-            "-preset", "fast",
-            "-crf", "22",
-            "-c:a", "aac",
-            "-shortest",
-            output_filepath
-        ]
-        
-        logger.info(f"[AdGen Video Processing] Lancement ffmpeg {duration}s: {' '.join(cmd)}")
-        res = subprocess.run(cmd, capture_output=True, text=True)
-        if res.returncode != 0:
-            logger.error(f"[AdGen Video Processing] ffmpeg a échoué: {res.stderr}")
-            raise RuntimeError(f"ffmpeg error: {res.stderr}")
-            
-        # Nettoyer les fichiers temporaires
-        try:
-            if not is_local:
-                os.remove(silent_video_path)
-            os.remove(audio_path)
-            if os.path.exists(price_file): os.remove(price_file)
-            if os.path.exists(contact_file): os.remove(contact_file)
-            if os.path.exists(slogan_file): os.remove(slogan_file)
-        except Exception:
-            pass
-            
-        media_url_base = settings.MEDIA_URL
-        if not media_url_base.endswith("/"):
-            media_url_base += "/"
-        final_url = f"{media_url_base}adgen/videos/{output_filename}"
-        logger.info(f"[AdGen Video Processing] Succès ! Vidéo finale de {duration}s générée : {final_url}")
-        return final_url
-    except Exception as e:
-        logger.error(f"[AdGen Video Processing] Échec de l'étirement, de l'incrustation de texte ou du mixage: {e}")
-        # Nettoyage en cas de crash
-        try:
-            if price_file and os.path.exists(price_file): os.remove(price_file)
-            if contact_file and os.path.exists(contact_file): os.remove(contact_file)
-            if slogan_file and os.path.exists(slogan_file): os.remove(slogan_file)
-        except Exception:
-            pass
-        return video_url
+    composer = VideoComposer(campaign, duration=duration, music_style=music_style, bg_config=bg_config)
+    return composer.compose(video_url)
+
+
 
 def clean_video_prompt(prompt: str, campaign) -> str:
     """
@@ -956,6 +746,7 @@ class StartAdVideoView(LoginRequiredMixin, View):
                 "bg_type": request.POST.get("bg_type", "color"),
                 "bg_color": request.POST.get("bg_color", "#050910"),
                 "bg_gradient": request.POST.getlist("bg_gradient") or [request.POST.get("bg_color_1", "#050910"), request.POST.get("bg_color_2", "#1e293b")],
+                "bg_grad_dir": request.POST.get("bg_grad_dir", "horizontal"),
                 "bg_template": request.POST.get("bg_template", "dark")
             }
 

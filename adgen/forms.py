@@ -15,7 +15,7 @@ class CampaignForm(forms.ModelForm):
 
     class Meta:
         model  = AdCampaign
-        fields = ["nom_produit", "description", "photo_produit", "prix", "cible", "pays", "ville"]
+        fields = ["nom_produit", "description", "photo_produit", "prix", "ancien_prix", "cible", "pays", "ville"]
         widgets = {
             "nom_produit": forms.TextInput(attrs={
                 "class": "form-control",
@@ -34,6 +34,10 @@ class CampaignForm(forms.ModelForm):
                 "class": "form-control",
                 "placeholder": "Ex: 2500 FCFA",
             }),
+            "ancien_prix": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ex: 3000 FCFA (facultatif)",
+            }),
             "cible": forms.TextInput(attrs={
                 "class": "form-control",
                 "placeholder": "Ex: +237 699 99 99 99",
@@ -46,6 +50,7 @@ class CampaignForm(forms.ModelForm):
             "description": "Description du produit",
             "photo_produit": "Photo du produit",
             "prix":        "Prix de vente",
+            "ancien_prix": "Ancien prix (facultatif)",
             "cible":       "Numéro WhatsApp",
             "pays":        "Pays cible",
             "ville":       "Ville cible",
