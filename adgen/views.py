@@ -375,12 +375,82 @@ def get_premium_font() -> str:
     return font_path
 
 
+def wrap_text(text: str, max_chars: int = 18) -> str:
+    """
+    Sépare le texte par des sauts de ligne pour éviter qu'il ne déborde de l'écran.
+    """
+    words = text.split()
+    lines = []
+    current_line = []
+    current_length = 0
+    for word in words:
+        if current_length + len(word) + 1 > max_chars:
+            if current_line:
+                lines.append(" ".join(current_line))
+            current_line = [word]
+            current_length = len(word)
+        else:
+            current_line.append(word)
+            current_length += len(word) + 1
+    if current_line:
+        lines.append(" ".join(current_line))
+    return "\n".join(lines)
+
+
+def prepare_image_for_9_16(image_field) -> bytes:
+    """
+    Lit l'image du produit, l'ajuste pour qu'elle s'intègre parfaitement
+    dans un cadre 9:16 sans être rognée, avec un fond sombre.
+    Retourne les octets de l'image ajustée sous forme de PNG.
+    """
+    from PIL import Image
+    import io
+    
+    img = Image.open(image_field)
+    img = img.convert("RGBA")
+    
+    w, h = img.size
+    current_ratio = w / h
+    target_ratio = 9 / 16
+    
+    if abs(current_ratio - target_ratio) < 0.01:
+        out_buf = io.BytesIO()
+        img.save(out_buf, format="PNG")
+        return out_buf.getvalue()
+        
+    if current_ratio > target_ratio:
+        # L'image est plus large (ex: paysage, carrée). On ajoute des bandes en haut et en bas.
+        new_w = w
+        new_h = int(w / target_ratio)
+        offset_x = 0
+        offset_y = (new_h - h) // 2
+    else:
+        # L'image est plus haute. On ajoute des bandes à gauche et à droite.
+        new_h = h
+        new_w = int(h * target_ratio)
+        offset_x = (new_w - w) // 2
+        offset_y = 0
+        
+    # Créer le fond sombre E-Shelle (0x05, 0x09, 0x10)
+    bg = Image.new("RGBA", (new_w, new_h), (5, 9, 16, 255))
+    
+    # Coller l'image au centre
+    bg.paste(img, (offset_x, offset_y), img)
+    
+    # Convertir en RGB pour enlever le canal alpha
+    final_img = bg.convert("RGB")
+    
+    out_buf = io.BytesIO()
+    final_img.save(out_buf, format="JPEG", quality=90)
+    return out_buf.getvalue()
+
+
 def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
     """
     Télécharge ou lit la vidéo muette de 8 secondes, génère un fond musical 
-    professionnel de 10 secondes (guitare/piano plucks), étire la vidéo 
-    à 10 secondes (setpts=1.25) et incruste des textes animés premium 
-    (Titre, Prix, Contact) avant d'assembler le tout.
+    professionnel de 15 secondes (guitare/piano plucks), étire la vidéo 
+    à 15 secondes (setpts=1.875) et incruste des textes animés premium 
+    (Titre, Prix, Contact) alignés à gauche pour ne pas cacher l'image.
     """
     import os
     import subprocess
@@ -388,8 +458,12 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
     from django.conf import settings
     from .models import AdCampaign
     
+    title_file = ""
+    price_file = ""
+    contact_file = ""
+    
     try:
-        logger.info(f"[AdGen Video Processing] Démarrage de l'étirement à 10s, incrustation de texte et mixage audio pour la campagne #{campaign_id}...")
+        logger.info(f"[AdGen Video Processing] Démarrage de l'étirement à 15s, incrustation de texte à gauche et mixage audio pour la campagne #{campaign_id}...")
         
         temp_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "temp")
         os.makedirs(temp_dir, exist_ok=True)
@@ -417,10 +491,10 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
             with open(silent_video_path, "wb") as f:
                 f.write(video_resp.content)
             
-        # 2. Générer le fond musical de 10 secondes (arpeggio piano/guitare)
+        # 2. Générer le fond musical de 15 secondes (arpeggio piano/guitare)
         audio_path = os.path.join(temp_dir, f"music_{campaign_id}.wav")
-        generate_ad_music(audio_path, duration=10.0)
-        logger.info(f"[AdGen Video Processing] Fond musical généré à : {audio_path}")
+        generate_ad_music(audio_path, duration=15.0)
+        logger.info(f"[AdGen Video Processing] Fond musical de 15s généré à : {audio_path}")
             
         # 3. Récupérer les informations de la campagne pour l'overlay de texte
         campaign = AdCampaign.objects.get(pk=campaign_id)
@@ -428,42 +502,52 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
         clean_price = campaign.prix.replace("'", " ").replace('"', " ").strip()
         clean_city = (campaign.ville_label or campaign.ville or "").replace("'", " ").replace('"', " ").strip()
         
-        try:
-            phone = campaign.user.profile.telephone.strip()
-        except Exception:
-            phone = ""
-            
+        phone = campaign.cible.strip() # Cible correspond désormais au Numéro WhatsApp dans le formulaire
         if phone:
-            contact_text = f"WhatsApp: {phone} ({clean_city})"
+            contact_text = f"WhatsApp: {phone}\n({clean_city})"
         else:
-            contact_text = f"Commander sur WhatsApp ({clean_city})"
+            contact_text = f"Commander sur\nWhatsApp ({clean_city})"
             
-        # 4. Construire les filtres d'incrustation de texte avec animations d'opacité
+        # 4. Écrire les textes dans des fichiers temporaires pour FFmpeg (évite les bugs d'encodage/caractères spéciaux)
+        title_file = os.path.join(temp_dir, f"title_{campaign_id}.txt").replace('\\', '/')
+        price_file = os.path.join(temp_dir, f"price_{campaign_id}.txt").replace('\\', '/')
+        contact_file = os.path.join(temp_dir, f"contact_{campaign_id}.txt").replace('\\', '/')
+        
+        with open(title_file, "w", encoding="utf-8") as f:
+            f.write(wrap_text(clean_title, 18))
+            
+        with open(price_file, "w", encoding="utf-8") as f:
+            f.write(wrap_text(clean_price, 15))
+            
+        with open(contact_file, "w", encoding="utf-8") as f:
+            f.write(wrap_text(contact_text, 22))
+            
+        # 5. Construire les filtres d'incrustation de texte avec animations d'opacité
         font_path = get_premium_font()
         font_opt = f":fontfile='{font_path}'" if (font_path and os.path.exists(font_path)) else ""
         
-        # Titre (haut de l'écran, apparition progressive à 0.5s, disparition progressive à 8.5s)
+        # Titre (haut gauche, apparition progressive à 0.5s, disparition progressive à 13.5s)
         t_filter = (
-            f"drawtext=text='{clean_title}':x=(w-text_w)/2:y=h*0.15{font_opt}:fontsize=w*0.055:fontcolor=white:"
-            f"box=1:boxcolor=black@0.6:boxborderw=12:alpha='if(lt(t,0.5),0,if(lt(t,1.5),t-0.5,if(lt(t,8.5),1,if(lt(t,9.5),9.5-t,0))))'"
+            f"drawtext=textfile='{title_file}':x=w*0.06:y=h*0.12{font_opt}:fontsize=w*0.055:fontcolor=white:"
+            f"box=1:boxcolor=black@0.65:boxborderw=12:alpha='if(lt(t,0.5),0,if(lt(t,1.5),t-0.5,if(lt(t,13.5),1,if(lt(t,14.5),14.5-t,0))))'"
         )
         
-        # Prix (milieu de l'écran, couleur dorée, apparition progressive à 2.0s, disparition progressive à 8.5s)
+        # Prix (milieu gauche, couleur dorée, apparition progressive à 3.0s, disparition progressive à 13.5s)
         p_filter = (
-            f"drawtext=text='{clean_price}':x=(w-text_w)/2:y=h*0.50{font_opt}:fontsize=w*0.070:fontcolor=0xffd91f:"
-            f"box=1:boxcolor=black@0.6:boxborderw=15:alpha='if(lt(t,2.0),0,if(lt(t,3.0),t-2.0,if(lt(t,8.5),1,if(lt(t,9.5),9.5-t,0))))'"
+            f"drawtext=textfile='{price_file}':x=w*0.06:y=h*0.48{font_opt}:fontsize=w*0.070:fontcolor=0xffd91f:"
+            f"box=1:boxcolor=black@0.65:boxborderw=15:alpha='if(lt(t,3.0),0,if(lt(t,4.0),t-3.0,if(lt(t,13.5),1,if(lt(t,14.5),14.5-t,0))))'"
         )
         
-        # Contacts (bas de l'écran, couleur verte WhatsApp, apparition progressive à 4.5s)
+        # Contacts (bas gauche, couleur verte WhatsApp, apparition progressive à 7.0s)
         c_filter = (
-            f"drawtext=text='{contact_text}':x=(w-text_w)/2:y=h*0.80{font_opt}:fontsize=w*0.048:fontcolor=white:"
-            f"box=1:boxcolor=0x14532d@0.75:boxborderw=12:alpha='if(lt(t,4.5),0,if(lt(t,5.5),t-4.5,1))'"
+            f"drawtext=textfile='{contact_file}':x=w*0.06:y=h*0.82{font_opt}:fontsize=w*0.048:fontcolor=white:"
+            f"box=1:boxcolor=0x14532d@0.75:boxborderw=12:alpha='if(lt(t,7.0),0,if(lt(t,8.0),t-7.0,1))'"
         )
         
-        # Enchaînement des filtres vidéo : étirement de vitesse puis les textes overlays
-        vf_chain = f"setpts=1.25*PTS,{t_filter},{p_filter},{c_filter}"
+        # Enchaînement des filtres vidéo : étirement de vitesse à 15s (8 * 1.875 = 15) puis les textes overlays
+        vf_chain = f"setpts=1.875*PTS,{t_filter},{p_filter},{c_filter}"
         
-        # 5. Fusionner, étirer la vidéo de 8s à 10s et incruster les textes animés avec ffmpeg
+        # 6. Fusionner, étirer la vidéo et incruster les textes animés avec ffmpeg
         output_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "videos")
         os.makedirs(output_dir, exist_ok=True)
         output_filename = f"ad_video_{campaign_id}.mp4"
@@ -485,7 +569,7 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
             output_filepath
         ]
         
-        logger.info(f"[AdGen Video Processing] Lancement ffmpeg avec overlays: {' '.join(cmd)}")
+        logger.info(f"[AdGen Video Processing] Lancement ffmpeg 15s avec overlays gauche: {' '.join(cmd)}")
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
             logger.error(f"[AdGen Video Processing] ffmpeg a échoué: {res.stderr}")
@@ -496,6 +580,9 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
             if not is_local:
                 os.remove(silent_video_path)
             os.remove(audio_path)
+            if os.path.exists(title_file): os.remove(title_file)
+            if os.path.exists(price_file): os.remove(price_file)
+            if os.path.exists(contact_file): os.remove(contact_file)
         except Exception:
             pass
             
@@ -503,10 +590,17 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
         if not media_url_base.endswith("/"):
             media_url_base += "/"
         final_url = f"{media_url_base}adgen/videos/{output_filename}"
-        logger.info(f"[AdGen Video Processing] Succès ! Vidéo finale animée de 10s générée : {final_url}")
+        logger.info(f"[AdGen Video Processing] Succès ! Vidéo finale animée de 15s générée : {final_url}")
         return final_url
     except Exception as e:
         logger.error(f"[AdGen Video Processing] Échec de l'étirement, de l'incrustation de texte ou du mixage: {e}")
+        # Nettoyage en cas de crash
+        try:
+            if title_file and os.path.exists(title_file): os.remove(title_file)
+            if price_file and os.path.exists(price_file): os.remove(price_file)
+            if contact_file and os.path.exists(contact_file): os.remove(contact_file)
+        except Exception:
+            pass
         return video_url
 
 def clean_video_prompt(prompt: str, campaign) -> str:
@@ -590,14 +684,21 @@ class StartAdVideoView(LoginRequiredMixin, View):
         # Encodage de l'image du produit si présente
         image_b64 = None
         if campaign.photo_produit:
+            import base64
             try:
-                with campaign.photo_produit.open("rb") as img_file:
-                    image_b64 = base64.b64encode(img_file.read()).decode("utf-8")
+                padded_image_bytes = prepare_image_for_9_16(campaign.photo_produit)
+                image_b64 = base64.b64encode(padded_image_bytes).decode("utf-8")
+                logger.info(f"[AdGen Video Generation] Image du produit re-cadrée en 9:16 avec succès pour Veo.")
             except Exception as e:
-                logger.warning(f"Failed to read campaign product image: {e}")
+                logger.warning(f"Failed to pad campaign product image, using fallback: {e}")
+                try:
+                    with campaign.photo_produit.open("rb") as img_file:
+                        image_b64 = base64.b64encode(img_file.read()).decode("utf-8")
+                except Exception:
+                    pass
 
-        # Lancer la génération
-        result = start_google_video(prompt, aspect_ratio="16:9", image_b64=image_b64, duration=duration)
+        # Lancer la génération au format portrait 9:16 (idéal réseaux sociaux)
+        result = start_google_video(prompt, aspect_ratio="9:16", image_b64=image_b64, duration=duration)
 
         if result.get("error"):
             return JsonResponse({"error": f"Impossible de démarrer la génération vidéo : {result['error']}"}, status=500)

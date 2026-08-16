@@ -2,7 +2,7 @@
 AdGen — Formulaires
 """
 from django import forms
-from .models import AdCampaign, AdModule, PAYS_CHOICES, VILLE_CHOICES
+from .models import AdCampaign, PAYS_CHOICES, VILLE_CHOICES
 
 
 class CampaignForm(forms.ModelForm):
@@ -36,7 +36,7 @@ class CampaignForm(forms.ModelForm):
             }),
             "cible": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "Ex: Femmes 25-45 ans, ménagères, revendeuses",
+                "placeholder": "Ex: +237 699 99 99 99",
             }),
             "pays": forms.Select(attrs={"class": "form-select"}),
             "ville": forms.Select(attrs={"class": "form-select"}),
@@ -46,7 +46,7 @@ class CampaignForm(forms.ModelForm):
             "description": "Description du produit",
             "photo_produit": "Photo du produit",
             "prix":        "Prix de vente",
-            "cible":       "Audience cible",
+            "cible":       "Numéro WhatsApp",
             "pays":        "Pays cible",
             "ville":       "Ville cible",
         }
