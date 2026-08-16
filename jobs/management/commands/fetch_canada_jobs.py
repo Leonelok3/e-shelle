@@ -98,6 +98,19 @@ def _parse_deadline(deadline_str: str):
         return None
 
 
+def _generate_content_with_retry(client, model, contents, config, retries=4, initial_delay=5):
+    import time
+    for i in range(retries):
+        try:
+            return client.models.generate_content(model=model, contents=contents, config=config)
+        except Exception as e:
+            if "429" in str(e) and i < retries - 1:
+                sleep_time = initial_delay * (2 ** i)
+                time.sleep(sleep_time)
+                continue
+            raise e
+
+
 class Command(BaseCommand):
     help = "Cherche et importe les nouvelles offres d'emploi d'employeurs canadiens qui recrutent à l'étranger (EIMT/LMIA)"
 
@@ -117,13 +130,13 @@ class Command(BaseCommand):
 
         # Pass 1: Google Search Grounding to find actual job links and details
         search_prompt = (
-            "Recherche sur le web (sur guichet-emplois.gc.ca, indeed.ca, workopolis.com, randstad.ca, jobillico.com, ou directement sur les sites carrières d'employeurs canadiens) des offres d'emploi réelles et récentes au Canada ouvertes aux candidats internationaux hors du Canada (recrutement international, EIMT / LMIA approuvé ou en cours, ou exemption Mobilité Francophone). Trouve des postes diversifiés dans l'agriculture, la santé, l'informatique, le transport, la construction ou la restauration. Liste au moins 8 offres d'emploi avec : le titre du poste, l'entreprise, la ville, la province, le statut de l'EIMT ou Mobilité Francophone, le salaire et l'URL source directe pour postuler.\n"
-            "EXCLUDE expired, closed, or deactivated offers. Verify that the recruitment/job is active.\n"
-            "Crucial: The URL ('url_apply') MUST be the exact, specific direct web page link of the job posting (e.g. Indeed job link or Job Bank link). Do NOT use generic parent URLs or guess/hallucinate URLs. If you cannot find the direct, exact, working URL for the job, DO NOT include that job."
+            "Recherche des offres d'emploi réelles et récentes au Canada publiées sur le site officiel du gouvernement du Canada : Guichet Emplois (guichetemplois.gc.ca) ou Job Bank (jobbank.gc.ca) qui recrutent à l'étranger (EIMT/LMIA demandée ou approuvée).\n"
+            "Liste au moins 8 offres d'emploi avec : le titre du poste, l'entreprise recruteuse, la ville, la province, le statut de l'EIMT/LMIA, le salaire et l'URL source directe exacte (ex: https://www.jobbank.gc.ca/jobsearch/jobposting/3646940)."
         )
 
         try:
-            response_search = client.models.generate_content(
+            response_search = _generate_content_with_retry(
+                client=client,
                 model="gemini-2.5-flash",
                 contents=search_prompt,
                 config=types.GenerateContentConfig(
@@ -137,22 +150,24 @@ class Command(BaseCommand):
             # Pass 2: Controlled JSON extraction
             json_prompt = (
                 "Analyse les offres d'emploi récupérées ci-dessous et convertis-les en une liste JSON valide.\n"
-                "N'inclus QUE des offres accessibles à des candidats situés à l'étranger (EIMT approuvé, EIMT en cours, "
+                "RÈGLES CRITIQUES : Exclus strictement toute offre dont l'URL 'url_apply' ne provient pas de guichetemplois.gc.ca ou jobbank.gc.ca.\n"
+                "N'inclus QUE des offres accessibles à des candidats situés à l'étranger (EIMT approuvé, EIMT en cours, EIMT demandée, "
                 "Mobilité Francophone ou exemption explicite). Exclus toute offre destinée uniquement aux candidats déjà "
                 "au Canada. Ne génère rien d'autre que du JSON. Chaque objet de la liste doit avoir ces clés exactes :\n"
                 "- title: le titre de l'emploi en français (ex: Ouvrier Agricole)\n"
                 "- company: le nom de l'entreprise\n"
                 "- city: la ville canadienne\n"
                 "- province: la province (ex: Québec, Alberta, Ontario)\n"
-                "- lmia_status: le statut réglementaire exact (obligatoirement l'une de ces valeurs exactes : 'EIMT approuvé', 'EIMT en cours', 'Mobilité Francophone', 'Exempté' ou 'Non précisé')\n"
+                "- lmia_status: le statut réglementaire (valeurs typiques : 'EIMT approuvé', 'EIMT en cours', 'EIMT demandée', 'Mobilité Francophone', 'Exempté' ou 'Non précisé')\n"
                 "- salary: le salaire (ex: 20 $/heure) ou 'Non précisé'\n"
                 "- deadline: la date limite de candidature (ex: 31 mars 2026) ou 'Non précisé'\n"
                 "- description: une explication concise (2-3 sentences) en français du rôle et pourquoi c'est idéal pour un candidat étranger\n"
-                "- url_apply: le vrai lien web direct pour postuler\n\n"
+                "- url_apply: le vrai lien web direct sur Guichet Emplois (commençant obligatoirement par https://www.guichetemplois.gc.ca/ ou https://www.jobbank.gc.ca/)\n\n"
                 f"Offres brutes :\n{search_results}"
             )
 
-            response_json = client.models.generate_content(
+            response_json = _generate_content_with_retry(
+                client=client,
                 model="gemini-2.5-flash",
                 contents=json_prompt,
                 config=types.GenerateContentConfig(
@@ -189,6 +204,12 @@ class Command(BaseCommand):
                     self.stdout.write(f"Offre ignorée car champs obligatoires manquants : {job}")
                     continue
 
+                # Vérification stricte du domaine de l'URL pour n'accepter que Guichet Emplois (Canada Job Bank)
+                url_lower = url_apply.lower()
+                if not ("guichetemplois.gc.ca" in url_lower or "jobbank.gc.ca" in url_lower):
+                    self.stdout.write(f"Offre ignorée car l'URL ne provient pas de Guichet Emplois : {url_apply}")
+                    continue
+
                 # Check if the url_apply is active (returns 200/300 status code, not 404 or 410)
                 if not _is_url_active(url_apply):
                     self.stdout.write(f"Offre ignorée car le lien url_apply est inactif ou renvoie un 404 : {url_apply}")
@@ -198,6 +219,7 @@ class Command(BaseCommand):
                 # explicitement ouvertes aux candidats étrangers.
                 allowed_status = (
                     "eimt" in lmia_status.lower()
+                    or "lmia" in lmia_status.lower()
                     or "francophone" in lmia_status.lower()
                     or "exempt" in lmia_status.lower()
                 )

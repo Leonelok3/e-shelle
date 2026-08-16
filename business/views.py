@@ -1,6 +1,7 @@
 import urllib.parse
 
 from django.contrib.admin.views.decorators import staff_member_required
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import models
@@ -2219,11 +2220,22 @@ def catalog_manage(request, business_id):
         item_type = request.POST.get("item_type", BusinessCatalogItem.ItemType.PRODUCT)
         description = request.POST.get("description", "").strip()
         price_label = request.POST.get("price_label", "").strip()
+        video_url = request.POST.get("video_url", "").strip()
         order = _positive_int(request.POST.get("order"), 0)
 
         if not title:
             messages.error(request, "Le nom du produit ou service est obligatoire.")
         else:
+            if business.plan == BusinessProfile.Plan.FREE:
+                existing_count = BusinessCatalogItem.objects.filter(business=business).count()
+                if existing_count >= 5:
+                    messages.error(
+                        request,
+                        "Désolé, votre formule gratuite est limitée à 5 produits ou services. Veuillez passer à une formule supérieure pour en ajouter plus."
+                    )
+                    return redirect("business:catalog_manage", business_id=business.id)
+                video_url = ""
+
             if item_type not in dict(BusinessCatalogItem.ItemType.choices):
                 item_type = BusinessCatalogItem.ItemType.PRODUCT
             item = BusinessCatalogItem.objects.create(
@@ -2233,6 +2245,7 @@ def catalog_manage(request, business_id):
                 description=description,
                 price_label=price_label,
                 image=request.FILES.get("image"),
+                video_url=video_url,
                 order=order,
                 is_active=True,
             )
@@ -2254,6 +2267,8 @@ def catalog_manage(request, business_id):
             "items": items,
             "public_url": public_url,
             "item_types": BusinessCatalogItem.ItemType.choices,
+            "cloudinary_cloud_name": settings.CLOUDINARY_CLOUD_NAME,
+            "cloudinary_upload_preset": settings.CLOUDINARY_UPLOAD_PRESET,
         },
     )
 
@@ -2612,6 +2627,7 @@ def catalog_item_edit(request, business_id, item_id):
         item_type = request.POST.get("item_type", BusinessCatalogItem.ItemType.PRODUCT)
         description = request.POST.get("description", "").strip()
         price_label = request.POST.get("price_label", "").strip()
+        video_url = request.POST.get("video_url", "").strip()
         order = _positive_int(request.POST.get("order"), 0)
 
         delete_images_ids = request.POST.getlist("delete_images")
@@ -2625,6 +2641,10 @@ def catalog_item_edit(request, business_id, item_id):
             item.item_type = item_type
             item.description = description
             item.price_label = price_label
+            if business.plan == BusinessProfile.Plan.FREE:
+                item.video_url = ""
+            else:
+                item.video_url = video_url
             item.order = order
 
             if "image" in request.FILES:
@@ -2651,6 +2671,8 @@ def catalog_item_edit(request, business_id, item_id):
             "business": business,
             "item": item,
             "item_types": BusinessCatalogItem.ItemType.choices,
+            "cloudinary_cloud_name": settings.CLOUDINARY_CLOUD_NAME,
+            "cloudinary_upload_preset": settings.CLOUDINARY_UPLOAD_PRESET,
         },
     )
 

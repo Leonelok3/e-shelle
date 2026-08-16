@@ -82,8 +82,80 @@
           </label>
         </div>
 
+        <!-- Section Vidéo -->
+        <div style="margin-top:1.5rem;border-top:1px solid rgba(255,255,255,0.08);padding-top:1.5rem">
+          <h3 style="color:#ffd91f;margin:0 0 0.5rem;font-size:1.1rem;font-weight:bold;">Vidéo du produit</h3>
+          <p style="color:rgba(255,255,255,.55);font-size:0.82rem;margin-bottom:1rem;">Permet aux clients de visionner une vidéo de démonstration du produit ou service.</p>
+
+          {% if business.plan == "free" %}
+            <label class="item-field">Lien de la vidéo
+              <input type="url" placeholder="🔒 Option Réservée aux Fiches Premium (YouTube, TikTok, Téléversement...)" style="width:100%; background: #0a101d; color: rgba(255,255,255,0.25); cursor: not-allowed;" readonly>
+            </label>
+            <div style="display:flex;gap:.5rem;align-items:center;margin-top:0.75rem;opacity:0.6;">
+              <button type="button" style="min-height:38px;padding:.5rem 1rem;background:#101c33;color:#858c99;border:1px dashed #4b5260;border-radius:8px;font-weight:700;cursor:not-allowed;" onclick="alert('🔒 L\'ajout de vidéo est réservé aux formules Premium (Business, Premium). Veuillez mettre à niveau votre compte pour utiliser cette fonctionnalité.')">
+                🎥 Téléverser une nouvelle vidéo (Premium)
+              </button>
+            </div>
+          {% else %}
+            <label class="item-field">Lien de la vidéo
+              <input type="url" name="video_url" id="id_video_url" value="{{ item.video_url|default:'' }}" placeholder="Collez un lien (TikTok, YouTube, Reels...) ou téléversez ci-dessous">
+            </label>
+
+            {% if cloudinary_cloud_name and cloudinary_upload_preset %}
+              <div style="display:flex;gap:.5rem;align-items:center;margin-top:0.75rem;">
+                <button type="button" id="cloudinary_upload_btn" style="min-height:38px;padding:.5rem 1rem;background:#101c33;color:#ffd91f;border:1px dashed #ffd91f;border-radius:8px;font-weight:700;cursor:pointer;flex-shrink:0;">
+                  🎥 Téléverser une nouvelle vidéo
+                </button>
+                <span id="video_upload_status" style="font-size:.78rem;color:rgba(255,255,255,0.5);">
+                  {% if item.video_url %}✅ Vidéo présente{% else %}Prêt{% endif %}
+                </span>
+              </div>
+            {% else %}
+              <div style="font-size:.72rem;color:rgba(255,255,255,0.48);margin-top:0.5rem;">
+                💡 Pour activer le téléversement direct de fichiers vidéo, configurez `CLOUDINARY_CLOUD_NAME` et `CLOUDINARY_UPLOAD_PRESET` dans le fichier `.env`.
+              </div>
+            {% endif %}
+          {% endif %}
+        </div>
+
         <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:2rem;background:linear-gradient(135deg,#3aae4e,#d49412);border:0;">Enregistrer les modifications</button>
       </form>
+
+      {% if cloudinary_cloud_name and cloudinary_upload_preset %}
+      <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+      <script type="text/javascript">
+        var myWidget = cloudinary.createUploadWidget({
+          cloudName: '{{ cloudinary_cloud_name }}', 
+          uploadPreset: '{{ cloudinary_upload_preset }}',
+          sources: ['local', 'url', 'camera'],
+          multiple: false,
+          resourceType: 'video',
+          maxFileSize: 25165824, // 24 MB max
+          clientAllowedFormats: ['mp4', 'mov', 'webm', 'ogg']
+        }, (error, result) => { 
+            if (!error && result && result.event === "success") { 
+              console.log('Success!', result.info); 
+              if (result.info.duration && result.info.duration > 30) {
+                alert("⚠️ La vidéo est trop longue (" + Math.round(result.info.duration) + "s). La limite est de 30 secondes pour les vidéos de produits.");
+                document.getElementById('id_video_url').value = "";
+                document.getElementById('video_upload_status').innerText = "❌ Vidéo trop longue (> 30s)";
+                document.getElementById('video_upload_status').style.color = "#ff4d4d";
+              } else {
+                document.getElementById('id_video_url').value = result.info.secure_url;
+                document.getElementById('video_upload_status').innerText = "✅ Chargée : " + result.info.original_filename;
+                document.getElementById('video_upload_status').style.color = "#76ff94";
+              }
+            }
+          }
+        );
+        var uploadBtn = document.getElementById("cloudinary_upload_btn");
+        if (uploadBtn) {
+            uploadBtn.addEventListener("click", function(){
+                myWidget.open();
+            }, false);
+        }
+      </script>
+      {% endif %}
     </div>
   </div>
 </section>

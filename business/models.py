@@ -260,6 +260,7 @@ class BusinessCatalogItem(models.Model):
     description = models.TextField(blank=True)
     price_label = models.CharField(max_length=80, blank=True, help_text="Ex: 2 500 FCFA, Prix a discuter.")
     image = models.ImageField(upload_to="business/catalogue/", blank=True, null=True)
+    video_url = models.URLField(max_length=500, blank=True, null=True, help_text="Lien de la vidéo (Cloudinary, YouTube, TikTok...)")
 
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
@@ -311,6 +312,7 @@ class BusinessCatalogItem(models.Model):
             "price": self.formatted_price,
             "image": self.image_url,
             "images": ([self.image.url] if self.image else []) + [img.image.url for img in self.images.all() if img.image],
+            "video": self.video_url,
             "url": "",
             "contact_url": self.business.whatsapp_url(
                 f"Bonjour {self.business.name}, je suis interesse par {self.title} vu sur E-Shelle."

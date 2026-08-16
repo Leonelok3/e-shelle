@@ -4,6 +4,63 @@
 {% block meta_description %}Decouvrez {{ business.name }} sur E-Shelle et contactez directement par WhatsApp.{% endblock %}
 
 {% block content %}
+<!-- Données Structurées Schema.org (SEO & IA) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "{{ business.name|escapejs }}",
+  "description": "{{ business.description|escapejs }}",
+  {% if business.logo %}
+  "image": "{{ request.scheme }}://{{ request.get_host }}{{ business.logo.url }}",
+  {% elif business.promo_image %}
+  "image": "{{ request.scheme }}://{{ request.get_host }}{{ business.promo_image.url }}",
+  {% endif %}
+  {% if business.phone %}
+  "telephone": "{{ business.phone|escapejs }}",
+  {% endif %}
+  "url": "{{ public_url }}",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "{{ business.city|escapejs }}",
+    "addressRegion": "{{ business.district|escapejs }}",
+    "addressCountry": "CM"
+  }
+  {% if business.reviews_count > 0 %}
+  ,"aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ business.average_rating }}",
+    "reviewCount": "{{ business.reviews_count }}"
+  }
+  {% endif %}
+  {% if items %}
+  ,"hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Catalogue de {{ business.name|escapejs }}",
+    "itemListElement": [
+      {% for item in items %}
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Product",
+          "name": "{{ item.title|escapejs }}",
+          "description": "{{ item.description|escapejs }}",
+          {% if item.image %}
+          "image": "{{ item.image }}",
+          {% endif %}
+          "offers": {
+            "@type": "Offer",
+            "price": "{{ item.price|escapejs }}"
+          }
+        }
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+  {% endif %}
+}
+</script>
+
 <section style="min-height:100vh;padding:8rem 0 4rem;background:radial-gradient(circle at 75% 15%,rgba(34,197,94,.16),transparent 30%),#050910;color:#fff">
   <div class="container" style="max-width:1040px">
     {% if user.is_authenticated and business.owner == user %}
@@ -103,11 +160,16 @@
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,260px));gap:1rem;align-items:start">
             {% for item in items %}
               <article style="overflow:hidden;border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;box-shadow:0 4px 16px rgba(0,0,0,.06)">
-                <div onclick="openProductModal({{ forloop.counter0 }})" style="display:block;aspect-ratio:1/1;background:linear-gradient(135deg,rgba(20,184,166,.45),rgba(30,41,59,.9));text-decoration:none;overflow:hidden;cursor:pointer;">
+                <div onclick="openProductModal({{ forloop.counter0 }})" style="display:block;aspect-ratio:1/1;background:linear-gradient(135deg,rgba(20,184,166,.45),rgba(30,41,59,.9));text-decoration:none;overflow:hidden;cursor:pointer;position:relative;">
                   {% if item.image %}
                     <img src="{{ item.image }}" alt="{{ item.title }}" style="width:100%;height:100%;object-fit:cover;display:block">
                   {% else %}
                     <div style="height:100%;display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-size:2.6rem;font-weight:900">{{ item.title|slice:":1" }}</div>
+                  {% endif %}
+                  {% if item.video %}
+                    <div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.65);color:#ffd91f;padding:4px 8px;border-radius:6px;font-size:0.75rem;font-weight:bold;display:flex;align-items:center;gap:4px;backdrop-filter:blur(4px);">
+                      🎥 Vidéo
+                    </div>
                   {% endif %}
                 </div>
                 <div style="padding:1rem">
@@ -244,6 +306,7 @@
       <div>
         <div style="aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#050910;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;position:relative;" id="modal-img-container">
           <img id="modal-main-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+          <video id="modal-main-video" controls style="width:100%;height:100%;object-fit:contain;display:none;"></video>
         </div>
         <div id="modal-thumbnails" style="display:flex;gap:0.5rem;margin-top:0.8rem;overflow-x:auto;padding-bottom:0.3rem;">
           <!-- Les vignettes seront insérées ici en JS -->
@@ -336,15 +399,26 @@ function openProductModal(index) {
 
   // Setup images
   const mainImg = document.getElementById('modal-main-img');
+  const mainVideo = document.getElementById('modal-main-video');
   const imgContainer = document.getElementById('modal-img-container');
   const thumbsContainer = document.getElementById('modal-thumbnails');
   thumbsContainer.innerHTML = '';
+
+  // Reset video player
+  if (mainVideo) {
+    mainVideo.pause();
+    mainVideo.src = '';
+    mainVideo.style.display = 'none';
+  }
+  mainImg.style.display = 'block';
 
   // Clean old text placeholder if any
   const oldPlaceholder = imgContainer.querySelector('.text-placeholder');
   if (oldPlaceholder) {
     oldPlaceholder.remove();
   }
+
+  let activeMedia = 'image';
 
   if (item.images && item.images.length > 0) {
     mainImg.src = item.images[0];
@@ -363,7 +437,12 @@ function openProductModal(index) {
       thumb.innerHTML = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
       
       thumb.addEventListener('click', function() {
+        if (mainVideo) {
+          mainVideo.pause();
+          mainVideo.style.display = 'none';
+        }
         mainImg.src = imgUrl;
+        mainImg.style.display = 'block';
         Array.from(thumbsContainer.children).forEach(child => {
           child.style.border = '1px solid rgba(255,255,255,0.2)';
         });
@@ -372,6 +451,14 @@ function openProductModal(index) {
 
       thumbsContainer.appendChild(thumb);
     });
+  } else if (item.video) {
+    // Only video is present
+    mainImg.style.display = 'none';
+    if (mainVideo) {
+      mainVideo.src = item.video;
+      mainVideo.style.display = 'block';
+    }
+    activeMedia = 'video';
   } else {
     mainImg.style.display = 'none';
     const placeholder = document.createElement('div');
@@ -388,11 +475,57 @@ function openProductModal(index) {
     imgContainer.appendChild(placeholder);
   }
 
+  // Setup video thumbnail if there is a video
+  if (item.video) {
+    const videoThumb = document.createElement('div');
+    videoThumb.style.width = '55px';
+    videoThumb.style.height = '55px';
+    videoThumb.style.borderRadius = '8px';
+    videoThumb.style.overflow = 'hidden';
+    videoThumb.style.cursor = 'pointer';
+    videoThumb.style.border = activeMedia === 'video' ? '2px solid #ffd91f' : '1px solid rgba(255,255,255,0.2)';
+    videoThumb.style.background = '#101c33';
+    videoThumb.style.display = 'flex';
+    videoThumb.style.alignItems = 'center';
+    videoThumb.style.justifyContent = 'center';
+    videoThumb.style.flexShrink = '0';
+    videoThumb.style.color = '#ffd91f';
+    videoThumb.style.fontSize = '1.3rem';
+    videoThumb.innerHTML = '🎥';
+
+    videoThumb.addEventListener('click', function() {
+      mainImg.style.display = 'none';
+      if (mainVideo) {
+        mainVideo.style.display = 'block';
+        if (mainVideo.src !== item.video) {
+          mainVideo.src = item.video;
+        }
+        mainVideo.play();
+      }
+      Array.from(thumbsContainer.children).forEach(child => {
+        child.style.border = '1px solid rgba(255,255,255,0.2)';
+      });
+      videoThumb.style.border = '2px solid #ffd91f';
+    });
+
+    // Insert first
+    if (thumbsContainer.firstChild) {
+      thumbsContainer.insertBefore(videoThumb, thumbsContainer.firstChild);
+    } else {
+      thumbsContainer.appendChild(videoThumb);
+    }
+  }
+
   const modal = document.getElementById('productModal');
   modal.style.display = 'flex';
 }
 
 function closeProductModal() {
+  const mainVideo = document.getElementById('modal-main-video');
+  if (mainVideo) {
+    mainVideo.pause();
+    mainVideo.src = '';
+  }
   document.getElementById('productModal').style.display = 'none';
 }
 

@@ -70,17 +70,35 @@ def article_marche_numerique(request):
 
 
 def robots_txt(request):
-    lines = [
-        "User-agent: *",
-        "Allow: /",
+    # Common disallowed directories to avoid indexing private/auth zones
+    disallowed = [
         "Disallow: /admin/",
         "Disallow: /accounts/",
         "Disallow: /dashboard/",
         "Disallow: /whatsapp/",
         "Disallow: /commercial-agent/",
         "Disallow: /phone-ocr/",
-        f"Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml",
     ]
+    
+    lines = []
+    
+    # Explicity allow major AI and LLM Search Bots
+    ai_bots = ["GPTBot", "ClaudeBot", "Google-Extended", "PerplexityBot"]
+    for bot in ai_bots:
+        lines.append(f"User-agent: {bot}")
+        lines.append("Allow: /")
+        lines.extend(disallowed)
+        lines.append("")
+        
+    # Rules for general search engines (Google, Bing, etc.)
+    lines.append("User-agent: *")
+    lines.append("Allow: /")
+    lines.extend(disallowed)
+    lines.append("")
+    
+    # Reference sitemap dynamically
+    lines.append(f"Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml")
+    
     return HttpResponse("\n".join(lines), content_type="text/plain; charset=utf-8")
 
 

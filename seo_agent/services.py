@@ -303,6 +303,17 @@ class SEOCorrectionAgent:
 def build_sitemap_entries(request):
     base = f"{request.scheme}://{request.get_host()}"
     entries = [{"loc": f"{base}{url}", "label": label, "kind": kind} for url, label, kind in PUBLIC_URLS]
-    for page in LocalSEOAgent().prioritized_pages(request=request, limit=30):
+    for page in LocalSEOAgent().prioritized_pages(request=request, limit=100):
         entries.append({"loc": page["url"], "label": page["title"], "kind": "GEO rentable"})
+
+    # Individual Business Profiles
+    try:
+        from business.models import BusinessProfile
+        for biz in BusinessProfile.objects.filter(is_active=True).exclude(public_slug=None).exclude(public_slug=""):
+            path = reverse("business:public_profile", kwargs={"public_slug": biz.public_slug})
+            url = f"{base}{path}"
+            entries.append({"loc": url, "label": biz.name, "kind": "Fiche client"})
+    except Exception:
+        pass
+
     return entries

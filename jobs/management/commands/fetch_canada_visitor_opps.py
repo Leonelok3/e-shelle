@@ -55,6 +55,19 @@ def _is_url_active(url: str) -> bool:
         return False
 
 
+def _generate_content_with_retry(client, model, contents, config, retries=4, initial_delay=5):
+    import time
+    for i in range(retries):
+        try:
+            return client.models.generate_content(model=model, contents=contents, config=config)
+        except Exception as e:
+            if "429" in str(e) and i < retries - 1:
+                sleep_time = initial_delay * (2 ** i)
+                time.sleep(sleep_time)
+                continue
+            raise e
+
+
 class Command(BaseCommand):
     help = "Cherche et importe par IA les opportunités de visa visiteur/tourisme au Canada (conférences, séminaires, certifications)"
 
@@ -80,7 +93,8 @@ class Command(BaseCommand):
         )
 
         try:
-            response_search = client.models.generate_content(
+            response_search = _generate_content_with_retry(
+                client=client,
                 model="gemini-2.5-flash",
                 contents=search_prompt,
                 config=types.GenerateContentConfig(
@@ -106,7 +120,8 @@ class Command(BaseCommand):
                 f"Opportunités brutes :\n{search_results}"
             )
 
-            response_json = client.models.generate_content(
+            response_json = _generate_content_with_retry(
+                client=client,
                 model="gemini-2.5-flash",
                 contents=json_prompt,
                 config=types.GenerateContentConfig(

@@ -67,6 +67,19 @@ def _stable_ref_nr(provider: str, title: str) -> str:
     raw = f"{provider.strip().lower()}|{title.strip().lower()}"
     return "ca-scholarship-" + hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
 
+def _generate_content_with_retry(client, model, contents, config, retries=4, initial_delay=5):
+    import time
+    for i in range(retries):
+        try:
+            return client.models.generate_content(model=model, contents=contents, config=config)
+        except Exception as e:
+            if "429" in str(e) and i < retries - 1:
+                sleep_time = initial_delay * (2 ** i)
+                time.sleep(sleep_time)
+                continue
+            raise e
+
+
 class Command(BaseCommand):
     help = "Cherche et importe par IA les bourses d'études au Canada actives pour les étudiants internationaux"
 
@@ -92,7 +105,8 @@ class Command(BaseCommand):
         )
 
         try:
-            response_search = client.models.generate_content(
+            response_search = _generate_content_with_retry(
+                client=client,
                 model="gemini-2.5-flash",
                 contents=search_prompt,
                 config=types.GenerateContentConfig(
@@ -117,7 +131,8 @@ class Command(BaseCommand):
                 f"Bourses brutes :\n{search_results}"
             )
 
-            response_json = client.models.generate_content(
+            response_json = _generate_content_with_retry(
+                client=client,
                 model="gemini-2.5-flash",
                 contents=json_prompt,
                 config=types.GenerateContentConfig(

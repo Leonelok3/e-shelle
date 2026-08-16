@@ -47,10 +47,74 @@
           </div>
         </div>
 
+        <div style="margin-top: 1rem; margin-bottom: 1rem;">
+          <label style="color:#ffd91f;">Vidéo du produit (Fichier ou Lien externe)</label>
+          <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.35rem;">
+            {% if business.plan == "free" %}
+              <input type="url" placeholder="🔒 Option Réservée aux Fiches Premium (YouTube, TikTok, Téléversement...)" style="width:100%; background: #1a1a1a; color: #666; cursor: not-allowed;" readonly>
+              <div style="display:flex;gap:.5rem;align-items:center;opacity:0.6;">
+                <button type="button" style="min-height:38px;padding:.5rem 1rem;background:#101c33;color:#858c99;border:1px dashed #4b5260;border-radius:8px;font-weight:700;cursor:not-allowed;" onclick="alert('🔒 L\'ajout de vidéo est réservé aux formules Premium (Business, Premium). Veuillez mettre à niveau votre compte pour utiliser cette fonctionnalité.')">
+                  🎥 Téléverser une vidéo (Premium)
+                </button>
+              </div>
+            {% else %}
+              <input type="url" name="video_url" id="id_video_url" placeholder="Collez un lien (TikTok, YouTube, Reels...) ou téléversez ci-dessous" style="width:100%;">
+              {% if cloudinary_cloud_name and cloudinary_upload_preset %}
+                <div style="display:flex;gap:.5rem;align-items:center;">
+                  <button type="button" id="cloudinary_upload_btn" style="min-height:38px;padding:.5rem 1rem;background:#03130c;color:#ffd91f;border:1px dashed #ffd91f;border-radius:8px;font-weight:700;cursor:pointer;flex-shrink:0;">
+                    🎥 Téléverser un fichier vidéo
+                  </button>
+                  <span id="video_upload_status" style="font-size:.78rem;color:#bdebd0;">Prêt</span>
+                </div>
+              {% else %}
+                <span style="font-size:.72rem;color:#bdebd0;opacity:0.75;">
+                  💡 Pour activer le téléversement direct de fichiers vidéo, configurez `CLOUDINARY_CLOUD_NAME` et `CLOUDINARY_UPLOAD_PRESET` dans le fichier `.env`.
+                </span>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+
         <label style="display:block;margin:.75rem 0 .35rem;color:#c8f7d7;font-weight:850">Photos secondaires (plusieurs)</label>
         <input type="file" name="images" accept="image/png,image/jpeg,image/jpg" multiple>
 
         <button type="submit">Ajouter au catalogue</button>
+
+        {% if cloudinary_cloud_name and cloudinary_upload_preset %}
+        <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+        <script type="text/javascript">
+          var myWidget = cloudinary.createUploadWidget({
+            cloudName: '{{ cloudinary_cloud_name }}', 
+            uploadPreset: '{{ cloudinary_upload_preset }}',
+            sources: ['local', 'url', 'camera'],
+            multiple: false,
+            resourceType: 'video',
+            maxFileSize: 25165824, // 24 MB max
+            clientAllowedFormats: ['mp4', 'mov', 'webm', 'ogg']
+          }, (error, result) => { 
+              if (!error && result && result.event === "success") { 
+                console.log('Success!', result.info); 
+                if (result.info.duration && result.info.duration > 30) {
+                  alert("⚠️ La vidéo est trop longue (" + Math.round(result.info.duration) + "s). La limite est de 30 secondes pour les vidéos de produits.");
+                  document.getElementById('id_video_url').value = "";
+                  document.getElementById('video_upload_status').innerText = "❌ Vidéo trop longue (> 30s)";
+                  document.getElementById('video_upload_status').style.color = "#ff4d4d";
+                } else {
+                  document.getElementById('id_video_url').value = result.info.secure_url;
+                  document.getElementById('video_upload_status').innerText = "✅ Chargée : " + result.info.original_filename;
+                  document.getElementById('video_upload_status').style.color = "#76ff94";
+                }
+              }
+            }
+          );
+          var uploadBtn = document.getElementById("cloudinary_upload_btn");
+          if (uploadBtn) {
+              uploadBtn.addEventListener("click", function(){
+                  myWidget.open();
+              }, false);
+          }
+        </script>
+        {% endif %}
       </form>
 
       <aside class="catalog-card catalog-guide">
