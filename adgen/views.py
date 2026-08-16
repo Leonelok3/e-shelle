@@ -397,11 +397,12 @@ def wrap_text(text: str, max_chars: int = 18) -> str:
     return "\n".join(lines)
 
 
-def prepare_image_for_9_16(image_field) -> bytes:
+def prepare_image_for_veo(image_field) -> bytes:
     """
-    Lit l'image du produit, l'ajuste pour qu'elle s'intègre parfaitement
-    dans un cadre 9:16 sans être rognée, avec un fond sombre.
-    Retourne les octets de l'image ajustée sous forme de PNG.
+    Crée une image de 1280x720 (16:9) avec l'image du produit ajustée au centre
+    dans un espace de 405x720 (9:16), sur fond sombre E-Shelle.
+    Cela permet à Google Veo d'accepter l'aspect ratio 16:9 tout en
+    préservant le cadrage portrait 9:16 que l'on va cropper ensuite.
     """
     from PIL import Image
     import io
@@ -409,37 +410,38 @@ def prepare_image_for_9_16(image_field) -> bytes:
     img = Image.open(image_field)
     img = img.convert("RGBA")
     
+    # Dimensions cibles
+    canvas_w = 1280
+    canvas_h = 720
+    center_w = 405  # 720 * 9 / 16
+    center_h = 720
+    
     w, h = img.size
-    current_ratio = w / h
-    target_ratio = 9 / 16
+    img_ratio = w / h
+    box_ratio = center_w / center_h
     
-    if abs(current_ratio - target_ratio) < 0.01:
-        out_buf = io.BytesIO()
-        img.save(out_buf, format="PNG")
-        return out_buf.getvalue()
-        
-    if current_ratio > target_ratio:
-        # L'image est plus large (ex: paysage, carrée). On ajoute des bandes en haut et en bas.
-        new_w = w
-        new_h = int(w / target_ratio)
-        offset_x = 0
-        offset_y = (new_h - h) // 2
+    # Redimensionnement de l'image pour loger dans la box centrale
+    if img_ratio > box_ratio:
+        # Plus large : ajuster sur la largeur de la box centrale
+        new_w = center_w
+        new_h = int(center_w / img_ratio)
     else:
-        # L'image est plus haute. On ajoute des bandes à gauche et à droite.
-        new_h = h
-        new_w = int(h * target_ratio)
-        offset_x = (new_w - w) // 2
-        offset_y = 0
+        # Plus haute : ajuster sur la hauteur de la box centrale
+        new_h = center_h
+        new_w = int(center_h * img_ratio)
         
-    # Créer le fond sombre E-Shelle (0x05, 0x09, 0x10)
-    bg = Image.new("RGBA", (new_w, new_h), (5, 9, 16, 255))
+    img_resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
     
-    # Coller l'image au centre
-    bg.paste(img, (offset_x, offset_y), img)
+    # Créer le canvas 1280x720 sur fond E-Shelle (0x05, 0x09, 0x10)
+    bg = Image.new("RGBA", (canvas_w, canvas_h), (5, 9, 16, 255))
     
-    # Convertir en RGB pour enlever le canal alpha
+    # Calcul des coordonnées de centrage
+    offset_x = (canvas_w - new_w) // 2
+    offset_y = (canvas_h - new_h) // 2
+    
+    bg.paste(img_resized, (offset_x, offset_y), img_resized)
+    
     final_img = bg.convert("RGB")
-    
     out_buf = io.BytesIO()
     final_img.save(out_buf, format="JPEG", quality=90)
     return out_buf.getvalue()
@@ -449,8 +451,8 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
     """
     Télécharge ou lit la vidéo muette de 8 secondes, génère un fond musical 
     professionnel de 15 secondes (guitare/piano plucks), étire la vidéo 
-    à 15 secondes (setpts=1.875) et incruste des textes animés premium 
-    (Titre, Prix, Contact) alignés à gauche pour ne pas cacher l'image.
+    à 15 secondes (setpts=1.875), croppe le format 16:9 au format 9:16 
+    et incruste des textes animés premium (Titre, Prix, Contact) alignés à gauche.
     """
     import os
     import subprocess
@@ -463,7 +465,7 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
     contact_file = ""
     
     try:
-        logger.info(f"[AdGen Video Processing] Démarrage de l'étirement à 15s, incrustation de texte à gauche et mixage audio pour la campagne #{campaign_id}...")
+        logger.info(f"[AdGen Video Processing] Démarrage du cropping 9:16, de l'étirement à 15s, incrustation de texte à gauche et mixage audio pour la campagne #{campaign_id}...")
         
         temp_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "temp")
         os.makedirs(temp_dir, exist_ok=True)
@@ -508,7 +510,7 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
         else:
             contact_text = f"Commander sur\nWhatsApp ({clean_city})"
             
-        # 4. Écrire les textes dans des fichiers temporaires pour FFmpeg (évite les bugs d'encodage/caractères spéciaux)
+        # 4. Écrire les textes dans des fichiers temporaires pour FFmpeg
         title_file = os.path.join(temp_dir, f"title_{campaign_id}.txt").replace('\\', '/')
         price_file = os.path.join(temp_dir, f"price_{campaign_id}.txt").replace('\\', '/')
         contact_file = os.path.join(temp_dir, f"contact_{campaign_id}.txt").replace('\\', '/')
@@ -544,8 +546,8 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int) -> str:
             f"box=1:boxcolor=0x14532d@0.75:boxborderw=12:alpha='if(lt(t,7.0),0,if(lt(t,8.0),t-7.0,1))'"
         )
         
-        # Enchaînement des filtres vidéo : étirement de vitesse à 15s (8 * 1.875 = 15) puis les textes overlays
-        vf_chain = f"setpts=1.875*PTS,{t_filter},{p_filter},{c_filter}"
+        # Enchaînement des filtres vidéo : cropper de 16:9 à 9:16, puis étirer de vitesse à 15s (8 * 1.875 = 15) et enfin poser les overlays
+        vf_chain = f"crop=ih*9/16:ih,setpts=1.875*PTS,{t_filter},{p_filter},{c_filter}"
         
         # 6. Fusionner, étirer la vidéo et incruster les textes animés avec ffmpeg
         output_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "videos")
@@ -686,9 +688,9 @@ class StartAdVideoView(LoginRequiredMixin, View):
         if campaign.photo_produit:
             import base64
             try:
-                padded_image_bytes = prepare_image_for_9_16(campaign.photo_produit)
+                padded_image_bytes = prepare_image_for_veo(campaign.photo_produit)
                 image_b64 = base64.b64encode(padded_image_bytes).decode("utf-8")
-                logger.info(f"[AdGen Video Generation] Image du produit re-cadrée en 9:16 avec succès pour Veo.")
+                logger.info(f"[AdGen Video Generation] Image du produit ajustée en 16:9 (cadrage central 9:16) avec succès pour Veo.")
             except Exception as e:
                 logger.warning(f"Failed to pad campaign product image, using fallback: {e}")
                 try:
@@ -697,8 +699,8 @@ class StartAdVideoView(LoginRequiredMixin, View):
                 except Exception:
                     pass
 
-        # Lancer la génération au format portrait 9:16 (idéal réseaux sociaux)
-        result = start_google_video(prompt, aspect_ratio="9:16", image_b64=image_b64, duration=duration)
+        # Lancer la génération au format paysage 16:9 (universellement supporté par Veo image-to-video)
+        result = start_google_video(prompt, aspect_ratio="16:9", image_b64=image_b64, duration=duration)
 
         if result.get("error"):
             return JsonResponse({"error": f"Impossible de démarrer la génération vidéo : {result['error']}"}, status=500)
