@@ -98,11 +98,13 @@ class FFmpegFilterGenerator:
         filters = []
 
         # --- 2. Placement de la vidéo au centre du fond vertical 9:16 ---
-        # Redimensionnement 16:9 à la largeur de 1080, puis superposition centrée sur le fond 1080x1920
+        # Recadrage 3:4 (540x720) et mise à l'échelle en 1080x1440 pour occuper 75% de la hauteur
         speed_ratio = duration / 8.0
-        overlay_y = (1920 - 608) // 2  # 656
+        overlay_y = (1920 - 1440) // 2  # 240
         crop_zoom = (
-            f"[0:v]setpts={speed_ratio}*PTS,scale=1080:608[vid];"
+            f"[0:v]setpts={speed_ratio}*PTS,"
+            f"crop=w=540:h=720:x='(in_w-540)/2 + 40*sin(2*PI*t/{duration})':y=0,"
+            f"scale=1080:1440[vid];"
             f"[2:v][vid]overlay=0:{overlay_y}"
         )
         filters.append(crop_zoom)
@@ -119,7 +121,7 @@ class FFmpegFilterGenerator:
             
             # Animation slideDown + ease-out (quadratic) + fadeIn/fadeOut
             alpha = self.get_alpha_expr(start, end)
-            y_expr = f"280 - 100 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
+            y_expr = f"120 - 50 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
             
             filters.append(
                 f"drawtext=textfile='{hook_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
@@ -207,7 +209,7 @@ class FFmpegFilterGenerator:
             alpha = self.get_alpha_expr(start, end)
             
             # Animation bounce/scale simulée avec slide
-            y_expr = f"920 - 100 * pow(1 - clip((t - {start}) / 0.7, 0, 1), 2)"
+            y_expr = f"1150 - 80 * pow(1 - clip((t - {start}) / 0.7, 0, 1), 2)"
 
             if ancien_prix:
                 # Si ancien prix disponible, on l'affiche barré / plus petit au dessus
@@ -215,8 +217,8 @@ class FFmpegFilterGenerator:
                 old_file = self.write_temp_text("old_price", old_text)
                 
                 filters.append(
-                    f"drawtext=textfile='{old_file}':x=(w-text_w)/2:y='{y_expr} - 120':alpha='{alpha}'{self.font_opt}:"
-                    f"fontsize=40:fontcolor=0xef4444:box=1:boxcolor={box_color}:boxborderw=12"
+                    f"drawtext=textfile='{old_file}':x=(w-text_w)/2:y='{y_expr} - 95':alpha='{alpha}'{self.font_opt}:"
+                    f"fontsize=44:fontcolor=0xef4444:box=1:boxcolor={box_color}:boxborderw=12"
                 )
                 
                 # Prix spécial en dessous
@@ -224,7 +226,7 @@ class FFmpegFilterGenerator:
                 new_file = self.write_temp_text("price", new_text)
                 filters.append(
                     f"drawtext=textfile='{new_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
-                    f"fontsize=72:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=20"
+                    f"fontsize=82:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=20"
                 )
             else:
                 # Prix unique dominant au centre
@@ -232,7 +234,7 @@ class FFmpegFilterGenerator:
                 new_file = self.write_temp_text("price", new_text)
                 filters.append(
                     f"drawtext=textfile='{new_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
-                    f"fontsize=76:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=20"
+                    f"fontsize=86:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=20"
                 )
 
         # --- 10. Scène : CTA / WhatsApp ---
@@ -244,12 +246,12 @@ class FFmpegFilterGenerator:
             # Titre CTA
             cta_file = self.write_temp_text("cta_title", "COMMANDER MAINTENANT")
             alpha = self.get_alpha_expr(start, end)
-            y_cta = f"1450 - 100 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
+            y_cta = f"1730 - 55 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
             
             filters.append(
-                f"drawtext=textfile='{cta_file}':x=(w-text_w)/2:y='{y_cta}':alpha='{alpha}'{self.font_opt}:"
-                f"fontsize=52:fontcolor=white:box=1:boxcolor=0x16a34a:boxborderw=22" # Bouton vert brillant
-            )
+                    f"drawtext=textfile='{cta_file}':x=(w-text_w)/2:y='{y_cta}':alpha='{alpha}'{self.font_opt}:"
+                    f"fontsize=56:fontcolor=white:box=1:boxcolor=0x16a34a:boxborderw=22" # Bouton vert brillant
+                )
 
             # WhatsApp + Ville en dessous (zone sécurisée)
             contact_str = f"WhatsApp: {whatsapp}"
@@ -257,10 +259,10 @@ class FFmpegFilterGenerator:
                 contact_str += f"\n({ville})"
             contact_file = self.write_temp_text("cta_contact", contact_str)
             
-            y_contact = f"{y_cta} + 180"
+            y_contact = f"{y_cta} + 95"
             filters.append(
                 f"drawtext=textfile='{contact_file}':x=(w-text_w)/2:y='{y_contact}':alpha='{alpha}'{self.font_opt}:"
-                f"fontsize=46:fontcolor={contact_text}:box=1:boxcolor={contact_box}:boxborderw=18"
+                f"fontsize=52:fontcolor={contact_text}:box=1:boxcolor={contact_box}:boxborderw=18"
             )
 
         return ",".join(filters) + "[outv]"

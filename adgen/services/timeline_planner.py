@@ -22,25 +22,25 @@ class TimelinePlanner:
             return {
                 "hook": (0.0, 5.0),
                 "price": (9.0, 12.0),
-                "cta": (12.0, 15.0)
+                "cta": (0.0, 15.0)
             }
         elif self.duration == 45:
             return {
                 "hook": (0.0, 15.0),
                 "price": (27.0, 36.0),
-                "cta": (36.0, 45.0)
+                "cta": (0.0, 45.0)
             }
         elif self.duration == 60:
             return {
                 "hook": (0.0, 20.0),
                 "price": (38.0, 48.0),
-                "cta": (48.0, 60.0)
+                "cta": (0.0, 60.0)
             }
         else: # 30 secondes par défaut
             return {
                 "hook": (0.0, 10.0),
                 "price": (18.0, 24.0),
-                "cta": (24.0, 30.0)
+                "cta": (0.0, 30.0)
             }
 
     def get_content_data(self) -> dict:
