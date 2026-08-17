@@ -208,8 +208,8 @@ class FFmpegFilterGenerator:
             ancien_prix = content_data["ancien_prix"]
             alpha = self.get_alpha_expr(start, end)
             
-            # Animation bounce/scale simulée avec slide
-            y_expr = f"1150 - 80 * pow(1 - clip((t - {start}) / 0.7, 0, 1), 2)"
+            # Positionné en haut sous le Hook (bande d'arrière-plan supérieure, au-dessus de la vidéo 3:4)
+            y_expr = f"180 - 30 * pow(1 - clip((t - {start}) / 0.7, 0, 1), 2)"
 
             if ancien_prix:
                 # Si ancien prix disponible, on l'affiche barré / plus petit au dessus
@@ -217,8 +217,8 @@ class FFmpegFilterGenerator:
                 old_file = self.write_temp_text("old_price", old_text)
                 
                 filters.append(
-                    f"drawtext=textfile='{old_file}':x=(w-text_w)/2:y='{y_expr} - 95':alpha='{alpha}'{self.font_opt}:"
-                    f"fontsize=44:fontcolor=0xef4444:box=1:boxcolor={box_color}:boxborderw=12"
+                    f"drawtext=textfile='{old_file}':x=(w-text_w)/2:y='{y_expr} - 70':alpha='{alpha}'{self.font_opt}:"
+                    f"fontsize=36:fontcolor=0xef4444:box=1:boxcolor={box_color}:boxborderw=10"
                 )
                 
                 # Prix spécial en dessous
@@ -226,7 +226,7 @@ class FFmpegFilterGenerator:
                 new_file = self.write_temp_text("price", new_text)
                 filters.append(
                     f"drawtext=textfile='{new_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
-                    f"fontsize=82:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=20"
+                    f"fontsize=64:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=16"
                 )
             else:
                 # Prix unique dominant au centre
@@ -234,7 +234,7 @@ class FFmpegFilterGenerator:
                 new_file = self.write_temp_text("price", new_text)
                 filters.append(
                     f"drawtext=textfile='{new_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
-                    f"fontsize=86:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=20"
+                    f"fontsize=68:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=16"
                 )
 
         # --- 10. Scène : CTA / WhatsApp ---
