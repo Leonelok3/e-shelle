@@ -846,7 +846,8 @@ class PollAdVideoView(LoginRequiredMixin, View):
 class DownloadVideoView(LoginRequiredMixin, View):
     """
     Télécharge le fichier de la vidéo finale générée pour la campagne.
-    Utilise FileResponse pour forcer le téléchargement avec le nom correct.
+    Redirige directement vers l'URL statique du fichier média pour libérer
+    les workers Django et laisser Nginx/le serveur web externe servir le fichier.
     """
     def get(self, request, pk):
         campaign = get_object_or_404(AdCampaign, pk=pk, user=request.user)
@@ -854,19 +855,7 @@ class DownloadVideoView(LoginRequiredMixin, View):
             content = campaign.content
             if not content.ad_video_url:
                 return HttpResponse("Aucune vidéo publicitaire disponible pour cette campagne.", status=404)
-            
-            video_url = content.ad_video_url
-            if video_url.startswith(settings.MEDIA_URL):
-                relative_path = video_url[len(settings.MEDIA_URL):]
-                if relative_path.startswith("/"):
-                    relative_path = relative_path[1:]
-                import os
-                local_path = os.path.join(settings.MEDIA_ROOT, relative_path)
-                if os.path.exists(local_path):
-                    response = FileResponse(open(local_path, 'rb'), as_attachment=True, filename=f"ad_video_{campaign.pk}.mp4")
-                    response['Content-Type'] = 'video/mp4'
-                    return response
-            return HttpResponse("Le fichier vidéo est introuvable sur le serveur.", status=404)
+            return redirect(content.ad_video_url)
         except Exception as e:
             logger.error(f"[DownloadVideoView] Erreur : {e}")
             return HttpResponse("Erreur lors de la tentative de téléchargement.", status=500)

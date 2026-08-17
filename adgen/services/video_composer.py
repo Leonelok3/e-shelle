@@ -103,6 +103,7 @@ class VideoComposer:
                 "-stream_loop", "-1",
                 "-i", silent_video_path,
                 "-i", audio_path,
+                "-loop", "1",
                 "-i", bg_image_rel,
                 "-filter_complex", vf_chain,
                 "-filter:a", f"afade=t=out:st={self.duration - 1.5}:d=1.5",

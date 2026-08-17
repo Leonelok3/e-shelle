@@ -111,7 +111,7 @@ class FFmpegFilterGenerator:
         filters.append(crop_zoom)
 
         # --- 3. Filigrane permanent ---
-        watermark = f"drawtext=text='E-SHELLE.COM':x=w-tw-w*0.06:y=h*0.04{self.font_opt}:fontsize=32:fontcolor=white:alpha=0.35"
+        watermark = f"drawtext=text='E-SHELLE.COM':x=w-tw-w*0.06:y=h*0.02{self.font_opt}:fontsize=32:fontcolor=white:alpha=0.35"
         filters.append(watermark)
 
         # --- 4. Scène : Hook ---
@@ -242,7 +242,7 @@ class FFmpegFilterGenerator:
             # Titre CTA
             cta_file = self.write_temp_text("cta_title", "COMMANDER MAINTENANT")
             alpha = self.get_alpha_expr(start, end)
-            y_cta = f"1730 - 55 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
+            y_cta = f"1610 - 55 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
             
             filters.append(
                     f"drawtext=textfile='{cta_file}':x=(w-text_w)/2:y='{y_cta}':alpha='{alpha}'{self.font_opt}:"
@@ -255,7 +255,7 @@ class FFmpegFilterGenerator:
                 contact_str += f"\n({ville})"
             contact_file = self.write_temp_text("cta_contact", contact_str)
             
-            y_contact = f"{y_cta} + 95"
+            y_contact = f"{y_cta} + 115"
             filters.append(
                 f"drawtext=textfile='{contact_file}':x=(w-text_w)/2:y='{y_contact}':alpha='{alpha}'{self.font_opt}:"
                 f"fontsize=52:fontcolor={contact_text}:box=1:boxcolor={contact_box}:boxborderw=18"
