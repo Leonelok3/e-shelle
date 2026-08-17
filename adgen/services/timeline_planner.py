@@ -16,40 +16,29 @@ class TimelinePlanner:
     def get_timeline(self) -> dict:
         """
         Retourne la répartition temporelle (début, fin) des scènes.
-        Conforme à la spécification de la Phase 5.
+        Version épurée contenant uniquement le Titre (Hook), le Prix et le CTA.
         """
         if self.duration == 15:
             return {
-                "hook": (0.0, 2.0),
-                "presentation": (2.0, 6.0),
-                "benefits": (6.0, 10.0),
-                "price": (10.0, 12.0),
+                "hook": (0.0, 5.0),
+                "price": (9.0, 12.0),
                 "cta": (12.0, 15.0)
             }
         elif self.duration == 45:
             return {
-                "hook": (0.0, 4.0),
-                "presentation": (4.0, 12.0),
-                "benefits": (12.0, 23.0),
-                "extra": (23.0, 32.0), # Présentation détaillée
-                "price": (32.0, 38.0),
-                "cta": (38.0, 45.0)
+                "hook": (0.0, 15.0),
+                "price": (27.0, 36.0),
+                "cta": (36.0, 45.0)
             }
         elif self.duration == 60:
             return {
-                "hook": (0.0, 5.0),
-                "presentation": (5.0, 15.0),
-                "benefits": (15.0, 28.0),
-                "extra": (28.0, 40.0), # Caractéristiques
-                "offer": (40.0, 48.0),  # Offre commerciale
-                "price": (48.0, 54.0),
-                "cta": (54.0, 60.0)
+                "hook": (0.0, 20.0),
+                "price": (38.0, 48.0),
+                "cta": (48.0, 60.0)
             }
         else: # 30 secondes par défaut
             return {
-                "hook": (0.0, 3.0),
-                "presentation": (3.0, 9.0),
-                "benefits": (9.0, 18.0),
+                "hook": (0.0, 10.0),
                 "price": (18.0, 24.0),
                 "cta": (24.0, 30.0)
             }

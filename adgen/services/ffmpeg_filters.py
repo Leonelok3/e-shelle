@@ -97,15 +97,13 @@ class FFmpegFilterGenerator:
 
         filters = []
 
-        # --- 2. Recadrage & Zoom (Ken Burns) + Mise à l'échelle ---
-        # Recadrage vertical 9:16 constant + scale à 1080x1920
-        # Mouvement de caméra panoramique oscillant (x) et flottement vertical (y)
+        # --- 2. Placement de la vidéo au centre du fond vertical 9:16 ---
+        # Redimensionnement 16:9 à la largeur de 1080, puis superposition centrée sur le fond 1080x1920
         speed_ratio = duration / 8.0
+        overlay_y = (1920 - 608) // 2  # 656
         crop_zoom = (
-            f"setpts={speed_ratio}*PTS,"
-            f"crop=w='ih*9/16':h='ih':"
-            f"x='(in_w-out_w)/2 + (in_w-out_w)*0.10*sin(2*PI*t/{duration})':y='(in_h-out_h)/2 + 12*cos(2*PI*t/6)',"
-            f"scale=1080:1920"
+            f"[0:v]setpts={speed_ratio}*PTS,scale=1080:608[vid];"
+            f"[2:v][vid]overlay=0:{overlay_y}"
         )
         filters.append(crop_zoom)
 
@@ -121,7 +119,7 @@ class FFmpegFilterGenerator:
             
             # Animation slideDown + ease-out (quadratic) + fadeIn/fadeOut
             alpha = self.get_alpha_expr(start, end)
-            y_expr = f"450 - 150 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
+            y_expr = f"280 - 100 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
             
             filters.append(
                 f"drawtext=textfile='{hook_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
@@ -209,7 +207,7 @@ class FFmpegFilterGenerator:
             alpha = self.get_alpha_expr(start, end)
             
             # Animation bounce/scale simulée avec slide
-            y_expr = f"800 - 150 * pow(1 - clip((t - {start}) / 0.7, 0, 1), 2)"
+            y_expr = f"920 - 100 * pow(1 - clip((t - {start}) / 0.7, 0, 1), 2)"
 
             if ancien_prix:
                 # Si ancien prix disponible, on l'affiche barré / plus petit au dessus
@@ -246,7 +244,7 @@ class FFmpegFilterGenerator:
             # Titre CTA
             cta_file = self.write_temp_text("cta_title", "COMMANDER MAINTENANT")
             alpha = self.get_alpha_expr(start, end)
-            y_cta = f"700 - 120 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
+            y_cta = f"1450 - 100 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
             
             filters.append(
                 f"drawtext=textfile='{cta_file}':x=(w-text_w)/2:y='{y_cta}':alpha='{alpha}'{self.font_opt}:"
@@ -265,4 +263,4 @@ class FFmpegFilterGenerator:
                 f"fontsize=46:fontcolor={contact_text}:box=1:boxcolor={contact_box}:boxborderw=18"
             )
 
-        return ",".join(filters)
+        return ",".join(filters) + "[outv]"

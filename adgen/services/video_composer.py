@@ -71,6 +71,19 @@ class VideoComposer:
             timeline = planner.get_timeline()
             content_data = planner.get_content_data()
 
+            # 3.5 Génération de l'image de fond 1080x1920 pour le format vertical
+            bg_image_path = os.path.join(self.temp_dir, f"bg_1080_1920_{self.campaign.pk}.jpg")
+            self.generate_background_image(bg_image_path)
+            logger.info(f"[VideoComposer] Fond vertical de 1080x1920 généré à : {bg_image_path}")
+
+            bg_image_rel = bg_image_path
+            if os.path.isabs(bg_image_rel):
+                try:
+                    bg_image_rel = os.path.relpath(bg_image_rel, os.getcwd())
+                except ValueError:
+                    pass
+            bg_image_rel = bg_image_rel.replace("\\", "/")
+
             # 4. Construction des filtres FFmpeg
             font_path = get_premium_font()
             filter_gen = FFmpegFilterGenerator(self.temp_dir, self.campaign.pk, font_path)
@@ -82,7 +95,7 @@ class VideoComposer:
 
             # 6. Exécution FFmpeg
             # -stream_loop -1 permet de boucler la vidéo source (qui fait 8s) indéfiniment.
-            # -shortest avec -map 1:a force l'arrêt dès que l'audio (qui fait exactement la durée configurée) s'arrête.
+            # -filter_complex permet d'incruster la vidéo 16:9 au centre de l'image de fond 1080x1920.
             # -af afade applique un fondu audio en sortie de 1.5 seconde.
             cmd = [
                 "ffmpeg",
@@ -90,9 +103,10 @@ class VideoComposer:
                 "-stream_loop", "-1",
                 "-i", silent_video_path,
                 "-i", audio_path,
-                "-filter:v", vf_chain,
+                "-i", bg_image_rel,
+                "-filter_complex", vf_chain,
                 "-filter:a", f"afade=t=out:st={self.duration - 1.5}:d=1.5",
-                "-map", "0:v",
+                "-map", "[outv]",
                 "-map", "1:a",
                 "-c:v", "libx264",
                 "-preset", "fast",
@@ -104,6 +118,13 @@ class VideoComposer:
 
             logger.info(f"[VideoComposer] Commande FFmpeg : {' '.join(cmd)}")
             res = subprocess.run(cmd, capture_output=True, text=True)
+            
+            # Nettoyage immédiat du fichier d'arrière-plan temporaire
+            try:
+                os.remove(bg_image_path)
+            except Exception:
+                pass
+
             if res.returncode != 0:
                 logger.error(f"[VideoComposer] Échec FFmpeg: {res.stderr}")
                 raise RuntimeError(f"FFmpeg error: {res.stderr}")
@@ -132,6 +153,11 @@ class VideoComposer:
             logger.error(f"[VideoComposer] Erreur de composition : {e}")
             # Nettoyage de sécurité en cas de crash
             try:
+                if 'bg_image_path' in locals() and os.path.exists(bg_image_path):
+                    os.remove(bg_image_path)
+            except Exception:
+                pass
+            try:
                 if audio_path and os.path.exists(audio_path):
                     os.remove(audio_path)
                 if not is_local and silent_video_path and os.path.exists(silent_video_path):
@@ -155,3 +181,101 @@ class VideoComposer:
                     os.remove(file_path)
                 except Exception:
                     pass
+
+    def generate_background_image(self, output_path: str):
+        """Génère l'image d'arrière-plan 1080x1920 (couleur, dégradé ou template)."""
+        from PIL import Image, ImageDraw
+        canvas_w = 1080
+        canvas_h = 1920
+        bg = Image.new("RGBA", (canvas_w, canvas_h))
+        draw = ImageDraw.Draw(bg)
+        
+        bg_config = self.bg_config
+        bg_type = "color"
+        if bg_config:
+            bg_type = bg_config.get("bg_type", "color")
+            
+        if bg_type == "color":
+            color_hex = bg_config.get("bg_color", "#050910")
+            hex_val = color_hex.lstrip('#')
+            r, g, b = int(hex_val[0:2], 16), int(hex_val[2:4], 16), int(hex_val[4:6], 16)
+            draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(r, g, b, 255))
+            
+        elif bg_type == "gradient":
+            colors_hex = bg_config.get("bg_gradient", ["#050910", "#1e293b"])
+            if len(colors_hex) < 2:
+                colors_hex.append("#1e293b")
+            hex1 = colors_hex[0].lstrip('#')
+            hex2 = colors_hex[1].lstrip('#')
+            r1, g1, b1 = int(hex1[0:2], 16), int(hex1[2:4], 16), int(hex1[4:6], 16)
+            r2, g2, b2 = int(hex2[0:2], 16), int(hex2[2:4], 16), int(hex2[4:6], 16)
+            
+            direction = bg_config.get("bg_grad_dir", "horizontal")
+            if direction == "vertical":
+                grad = Image.new("RGB", (1, 2))
+                grad.putpixel((0, 0), (r1, g1, b1))
+                grad.putpixel((0, 1), (r2, g2, b2))
+                grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR)
+                bg.paste(grad_resized, (0, 0))
+            elif direction == "diagonal":
+                grad = Image.new("RGB", (2, 2))
+                grad.putpixel((0, 0), (r1, g1, b1))
+                grad.putpixel((1, 0), (int((r1+r2)/2), int((g1+g2)/2), int((b1+b2)/2)))
+                grad.putpixel((0, 1), (int((r1+r2)/2), int((g1+g2)/2), int((b1+b2)/2)))
+                grad.putpixel((1, 1), (r2, g2, b2))
+                grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR)
+                bg.paste(grad_resized, (0, 0))
+            else: # horizontal
+                grad = Image.new("RGB", (2, 1))
+                grad.putpixel((0, 0), (r1, g1, b1))
+                grad.putpixel((1, 0), (r2, g2, b2))
+                grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR)
+                bg.paste(grad_resized, (0, 0))
+                
+        elif bg_type == "template":
+            template = bg_config.get("bg_template", "dark")
+            if template == "minimal":
+                draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(245, 245, 247, 255))
+            elif template == "luxury":
+                draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(10, 10, 12, 255))
+                draw.line([(0, 20), (canvas_w, 20)], fill=(212, 175, 55, 255), width=6)
+                draw.line([(0, canvas_h-20), (canvas_w, canvas_h-20)], fill=(212, 175, 55, 255), width=6)
+            elif template == "tech":
+                draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(11, 19, 43, 255))
+                draw.ellipse([(-100, -100), (400, 400)], outline=(0, 180, 216, 50), width=2)
+                draw.ellipse([(canvas_w-400, canvas_h-400), (canvas_w+100, canvas_h+100)], outline=(0, 180, 216, 50), width=2)
+            elif template == "modern":
+                # Dégradé vibrant violet vers bleu
+                for x in range(canvas_w):
+                    factor = x / canvas_w
+                    r = int(108 + (20 - 108) * factor)
+                    g = int(63 + (120 - 63) * factor)
+                    b = int(232 + (240 - 232) * factor)
+                    draw.line([(x, 0), (x, canvas_h)], fill=(r, g, b, 255))
+            elif template == "fashion":
+                # Dégradé rose poudré et beige chaleureux
+                for x in range(canvas_w):
+                    factor = x / canvas_w
+                    r = int(245 + (230 - 245) * factor)
+                    g = int(220 + (200 - 220) * factor)
+                    b = int(215 + (190 - 215) * factor)
+                    draw.line([(x, 0), (x, canvas_h)], fill=(r, g, b, 255))
+            elif template == "food":
+                # Dégradé jaune-orange chaleureux
+                for x in range(canvas_w):
+                    factor = x / canvas_w
+                    r = int(251 + (245 - 251) * factor)
+                    g = int(146 + (85 - 146) * factor)
+                    b = int(60 + (30 - 60) * factor)
+                    draw.line([(x, 0), (x, canvas_h)], fill=(r, g, b, 255))
+            elif template == "automotive":
+                draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(20, 24, 30, 255))
+                for y in range(0, canvas_h, 80):
+                    draw.line([(0, y), (canvas_w, y+240)], fill=(255, 255, 255, 6), width=4)
+            else:
+                draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(5, 9, 16, 255))
+        else:
+            draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(5, 9, 16, 255))
+            
+        final_img = bg.convert("RGB")
+        final_img.save(output_path, format="JPEG", quality=90)

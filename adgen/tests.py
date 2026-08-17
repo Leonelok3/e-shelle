@@ -32,9 +32,9 @@ class TimelinePlannerTests(TestCase):
         planner = TimelinePlanner(self.campaign, duration=30)
         timeline = planner.get_timeline()
         
-        # Verify 5 scenes are generated
-        self.assertEqual(len(timeline), 5)
-        self.assertEqual(timeline["hook"], (0.0, 3.0))
+        # Verify 3 scenes are generated (Hook, Price, CTA)
+        self.assertEqual(len(timeline), 3)
+        self.assertEqual(timeline["hook"], (0.0, 10.0))
         self.assertEqual(timeline["cta"], (24.0, 30.0))
         
         content = planner.get_content_data()
