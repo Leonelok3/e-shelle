@@ -16,30 +16,34 @@ class TimelinePlanner:
     def get_timeline(self) -> dict:
         """
         Retourne la répartition temporelle (début, fin) des scènes.
-        Version épurée contenant uniquement le Titre (Hook), le Prix et le CTA.
+        Scénario en 3 temps : Titre (Hook) -> Prix -> Avantage + CTA permanent.
         """
         if self.duration == 15:
             return {
                 "hook": (0.0, 5.0),
-                "price": (9.0, 12.0),
+                "price": (5.0, 10.0),
+                "avantage": (10.0, 15.0),
                 "cta": (0.0, 15.0)
             }
         elif self.duration == 45:
             return {
                 "hook": (0.0, 15.0),
-                "price": (27.0, 36.0),
+                "price": (15.0, 30.0),
+                "avantage": (30.0, 45.0),
                 "cta": (0.0, 45.0)
             }
         elif self.duration == 60:
             return {
                 "hook": (0.0, 20.0),
-                "price": (38.0, 48.0),
+                "price": (20.0, 40.0),
+                "avantage": (40.0, 60.0),
                 "cta": (0.0, 60.0)
             }
         else: # 30 secondes par défaut
             return {
                 "hook": (0.0, 10.0),
-                "price": (18.0, 24.0),
+                "price": (10.0, 20.0),
+                "avantage": (20.0, 30.0),
                 "cta": (0.0, 30.0)
             }
 
@@ -127,6 +131,7 @@ class TimelinePlanner:
             "benefits": clean_benefits,
             "prix": prix,
             "ancien_prix": ancien_prix,
+            "avantage": ancien_prix,  # Champ physique mappé à l'avantage produit
             "whatsapp": whatsapp,
             "ville": ville,
             "extra": extra_text,

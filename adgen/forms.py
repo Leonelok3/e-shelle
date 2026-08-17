@@ -36,7 +36,7 @@ class CampaignForm(forms.ModelForm):
             }),
             "ancien_prix": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "Ex: 3000 FCFA (facultatif)",
+                "placeholder": "Ex: Livraison Gratuite, Promo -50%, Satisfait ou Remboursé",
             }),
             "cible": forms.TextInput(attrs={
                 "class": "form-control",
@@ -50,7 +50,7 @@ class CampaignForm(forms.ModelForm):
             "description": "Description du produit",
             "photo_produit": "Photo du produit",
             "prix":        "Prix de vente",
-            "ancien_prix": "Ancien prix (facultatif)",
+            "ancien_prix": "Avantage / Accroche secondaire (facultatif)",
             "cible":       "Numéro WhatsApp",
             "pays":        "Pays cible",
             "ville":       "Ville cible",

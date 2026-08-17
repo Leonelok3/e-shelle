@@ -205,36 +205,31 @@ class FFmpegFilterGenerator:
         if "price" in timeline:
             start, end = timeline["price"]
             prix = content_data["prix"]
-            ancien_prix = content_data["ancien_prix"]
             alpha = self.get_alpha_expr(start, end)
             
             # Positionné en haut sous le Hook (bande d'arrière-plan supérieure, au-dessus de la vidéo 3:4)
             y_expr = f"180 - 30 * pow(1 - clip((t - {start}) / 0.7, 0, 1), 2)"
+            
+            new_text = f"PRIX: {prix}"
+            new_file = self.write_temp_text("price", new_text)
+            filters.append(
+                f"drawtext=textfile='{new_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
+                f"fontsize=68:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=16"
+            )
 
-            if ancien_prix:
-                # Si ancien prix disponible, on l'affiche barré / plus petit au dessus
-                old_text = f"Ancien Prix: {ancien_prix}"
-                old_file = self.write_temp_text("old_price", old_text)
+        # --- 9b. Scène : Avantage ---
+        if "avantage" in timeline:
+            start, end = timeline["avantage"]
+            avantage = content_data.get("avantage")
+            if avantage:
+                alpha = self.get_alpha_expr(start, end)
+                y_expr = f"180 - 30 * pow(1 - clip((t - {start}) / 0.7, 0, 1), 2)"
                 
+                av_text = avantage.upper()
+                av_file = self.write_temp_text("avantage_text", wrap_text(av_text, 18))
                 filters.append(
-                    f"drawtext=textfile='{old_file}':x=(w-text_w)/2:y='{y_expr} - 70':alpha='{alpha}'{self.font_opt}:"
-                    f"fontsize=36:fontcolor=0xef4444:box=1:boxcolor={box_color}:boxborderw=10"
-                )
-                
-                # Prix spécial en dessous
-                new_text = f"PRIX SPÉCIAL: {prix}"
-                new_file = self.write_temp_text("price", new_text)
-                filters.append(
-                    f"drawtext=textfile='{new_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
-                    f"fontsize=64:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=16"
-                )
-            else:
-                # Prix unique dominant au centre
-                new_text = f"PRIX: {prix}"
-                new_file = self.write_temp_text("price", new_text)
-                filters.append(
-                    f"drawtext=textfile='{new_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
-                    f"fontsize=68:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=16"
+                    f"drawtext=textfile='{av_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
+                    f"fontsize=56:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=16"
                 )
 
         # --- 10. Scène : CTA / WhatsApp ---
