@@ -130,6 +130,12 @@ class VideoComposer:
                 logger.error(f"[VideoComposer] Échec FFmpeg: {res.stderr}")
                 raise RuntimeError(f"FFmpeg error: {res.stderr}")
 
+            # Force les permissions de lecture pour s'assurer que Nginx/le serveur web puisse servir le fichier
+            try:
+                os.chmod(output_filepath, 0o644)
+            except Exception:
+                pass
+
             # 7. Nettoyage des fichiers temporaires du dossier temp
             self.cleanup_temp_files(content_data)
             if not is_local:
