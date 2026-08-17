@@ -1,0 +1,463 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Produits & Services — E-Shelle{% endblock %}
+{% block meta_description %}Parcourez les produits, services et prestataires premium au Cameroun.{% endblock %}
+{% block nav_products_services %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Base premium wrapper */
+  .esh-catalog-page {
+    padding-top: 5.5rem;
+    background: radial-gradient(circle at 50% 0%, rgba(34,197,94,0.06) 0%, #070a0e 70%);
+    min-height: 100vh;
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* Catalog Hero */
+  .esh-catalog-hero {
+    text-align: center;
+    max-width: 800px;
+    margin: 3rem auto 2.5rem;
+    padding: 0 1rem;
+  }
+  .esh-catalog-hero h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2rem, 4.5vw, 3.80rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+  .esh-catalog-hero p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: clamp(0.95rem, 1.8vw, 1.15rem);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+
+  /* Search & Filter Bar */
+  .esh-filter-bar {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1.2rem;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    margin-bottom: 3rem;
+  }
+
+  .esh-search-form {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  .esh-search-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.8rem 1.2rem;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .esh-search-input:focus {
+    border-color: rgba(125,236,108,0.5);
+    background: rgba(255, 255, 255, 0.07);
+  }
+  .esh-search-btn {
+    background: linear-gradient(135deg, #7dec6c, #16a34a);
+    color: #06120a;
+    border: none;
+    border-radius: 12px;
+    padding: 0 1.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+  .esh-search-btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.95;
+  }
+
+  .esh-category-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .esh-cat-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.75);
+    border-radius: 30px;
+    padding: 0.45rem 1.1rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .esh-cat-pill:hover, .esh-cat-pill.active {
+    background: rgba(125, 236, 108, 0.15);
+    border-color: #7dec6c;
+    color: #7dec6c;
+  }
+
+  /* Business Slider Styling */
+  .esh-showcase-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.2rem;
+  }
+  .esh-showcase-title-row h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+  }
+
+  /* Business Card custom enhancements */
+  .esh-feature-card {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    padding: 0.75rem !important;
+    flex-shrink: 0 !important;
+    width: 250px !important;
+  }
+  .esh-feature-media {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    height: 120px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.05) 100%) !important;
+  }
+  .esh-feature-media img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+  }
+  .esh-feature-body h2 {
+    font-size: 0.95rem !important;
+    font-weight: 800 !important;
+    margin: 0.6rem 0 0.4rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* Products Grid layout */
+  .esh-products-section {
+    margin-top: 3.5rem;
+  }
+  .esh-products-section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #7dec6c;
+    padding-left: 0.75rem;
+  }
+
+  /* Custom Light Background Business Cards to match home */
+  .esh-business-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+  }
+  .esh-business-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+    height: 460px;
+  }
+  .esh-business-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(125,236,108,0.3);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .esh-card-media {
+    position: relative;
+    height: 220px;
+    min-height: 220px;
+    overflow: hidden;
+    background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.2) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .esh-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .esh-business-card:hover .esh-card-media img {
+    transform: scale(1.05);
+  }
+  .esh-card-body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: space-between;
+  }
+  .esh-card-kind {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .esh-card-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    color: #fff;
+    font-weight: 800;
+    margin: 0.25rem 0 0.5rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 2.8rem;
+  }
+  .esh-card-description {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.4;
+    margin-bottom: 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .esh-card-price {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem;
+    color: #7dec6c;
+    font-weight: 900;
+    margin-bottom: 0.5rem;
+  }
+  .esh-card-action {
+    color: #7dec6c;
+    font-weight: 800;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+  }
+  .esh-card-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 0.75rem;
+    margin-top: auto;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 640px) {
+    .esh-business-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    .esh-business-card {
+      height: 380px;
+    }
+    .esh-card-media {
+      height: 160px;
+      min-height: 160px;
+    }
+    .esh-card-title {
+      font-size: 0.9rem;
+      height: 2.4rem;
+    }
+    .esh-card-description {
+      display: none;
+    }
+    .esh-card-price {
+      font-size: 1rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="esh-catalog-page">
+  <div class="container">
+    
+    {# 1. Hero Block #}
+    <div class="esh-catalog-hero">
+      <div class="esh-pill" style="margin: 0 auto 1rem;">Vitrine premium</div>
+      <h1 class="esh-animated-gradient-text">Découvrez nos prestataires</h1>
+      <p>Trouvez le produit ou service adapté à vos besoins parmi les meilleures vitrines du Cameroun.</p>
+    </div>
+
+    {# 2. Search and filter bar #}
+    <div class="esh-filter-bar">
+      <form class="esh-search-form" method="get" action="{% url 'products_services' %}">
+        <input type="text" name="q" value="{{ search_query|default:'' }}" class="esh-search-input" placeholder="Que recherchez-vous ? (Ex: Appartement, Riz, Coiffure...)">
+        {% if current_category %}
+          <input type="hidden" name="categorie" value="{{ current_category }}">
+        {% endif %}
+        <button type="submit" class="esh-search-btn">Rechercher</button>
+      </form>
+      
+      <div class="esh-category-pills">
+        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}" class="esh-cat-pill {% if not current_category %}active{% endif %}">Tout afficher</a>
+        <a href="?categorie=Produit{% if search_query %}&q={{ search_query }}{% endif %}" class="esh-cat-pill {% if current_category == 'Produit' %}active{% endif %}">🛍️ Produits</a>
+        <a href="?categorie=Service{% if search_query %}&q={{ search_query }}{% endif %}" class="esh-cat-pill {% if current_category == 'Service' %}active{% endif %}">💼 Services</a>
+        <a href="?categorie=Immobilier{% if search_query %}&q={{ search_query }}{% endif %}" class="esh-cat-pill {% if current_category == 'Immobilier' %}active{% endif %}">🏢 Immobilier</a>
+        <a href="?categorie=Plat{% if search_query %}&q={{ search_query }}{% endif %}" class="esh-cat-pill {% if current_category == 'Plat' %}active{% endif %}">🍳 Plats & Restos</a>
+      </div>
+    </div>
+
+    {# 3. Slider Section: Registered Businesses (Fiches Business) #}
+    {% if business_slides %}
+    <div class="esh-showcase-section">
+      <div class="esh-showcase-title-row">
+        <h2>Les prestataires à la une</h2>
+        <a href="{% url 'business:onboarding' %}" class="esh-btn-grad-green-orange" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Inscrire mon business</a>
+      </div>
+
+      <div class="esh-showcase" style="margin-bottom: 3rem;">
+        <div class="esh-feature-slider" aria-label="Prestataires premium en defilement">
+          <div class="esh-feature-track">
+            {% for item in business_slides %}
+              <article class="esh-feature-card">
+                <div class="esh-feature-media">
+                  {% if item.logo %}
+                    <img src="{{ item.logo }}" alt="{{ item.name }}">
+                  {% else %}
+                    <span class="esh-initial">{{ item.initial }}</span>
+                  {% endif %}
+                  <span class="esh-tag">{{ item.tag }}</span>
+                </div>
+                <div class="esh-feature-body">
+                  <h2 class="esh-feature-title">{{ item.name }}</h2>
+                  <div class="esh-meta-row">
+                    <span class="esh-meta">📍 {{ item.city }}</span>
+                    <a class="esh-order" href="{{ item.url }}">Visiter →</a>
+                  </div>
+                </div>
+              </article>
+            {% endfor %}
+            {# Duplicates for infinite scrolling loop #}
+            {% for item in business_slides_dup %}
+              <article class="esh-feature-card" aria-hidden="true">
+                <div class="esh-feature-media">
+                  {% if item.logo %}
+                    <img src="{{ item.logo }}" alt="">
+                  {% else %}
+                    <span class="esh-initial">{{ item.initial }}</span>
+                  {% endif %}
+                  <span class="esh-tag">{{ item.tag }}</span>
+                </div>
+                <div class="esh-feature-body">
+                  <h2 class="esh-feature-title">{{ item.name }}</h2>
+                  <div class="esh-meta-row">
+                    <span class="esh-meta">📍 {{ item.city }}</span>
+                    <a class="esh-order" href="{{ item.url }}">Visiter →</a>
+                  </div>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {# 4. Products list (grid) #}
+    <div class="esh-products-section">
+      <h2 class="esh-products-section-title">
+        {% if search_query %}
+          Résultats pour "{{ search_query }}"
+        {% elif current_category %}
+          Dernières annonces : {{ current_category }}s
+        {% else %}
+          Tous les produits & services de nos prestataires
+        {% endif %}
+      </h2>
+
+      {% if premium_showcase_items %}
+        <div class="esh-business-grid">
+          {% for item in premium_showcase_items %}
+            <a class="esh-business-card" href="{{ item.url }}">
+              <div class="esh-card-media">
+                {% if item.image %}
+                  <img src="{{ item.image }}" alt="{{ item.title }}">
+                {% else %}
+                  <span class="esh-initial">{{ item.initial }}</span>
+                {% endif %}
+              </div>
+              <div class="esh-card-body">
+                <div>
+                  <span class="esh-tag" style="min-height:22px;padding:.15rem .45rem;font-size:.65rem;">{{ item.tag }}</span>
+                </div>
+                <div class="esh-card-kind">{{ item.kind }}</div>
+                <h3 class="esh-card-title">{{ item.title }}</h3>
+                {% if item.description %}
+                  <p class="esh-card-description">{{ item.description|truncatechars:75 }}</p>
+                {% else %}
+                  <p class="esh-card-description" style="opacity: 0.35;">Aucune description disponible.</p>
+                {% endif %}
+                {% if item.price %}
+                  <div class="esh-card-price">{{ item.price }}</div>
+                {% endif %}
+                <div class="esh-card-action" style="color: #7dec6c; font-weight: 800; font-size: 0.85rem; margin-top: 0.5rem;">Voir les détails →</div>
+                <div class="esh-card-foot">
+                  <span>{{ item.views }} vues</span>
+                  <span>📍 {{ item.meta }}</span>
+                </div>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+
+        {# Pagination #}
+        {% if premium_showcase_items.has_other_pages %}
+          <div class="esh-pagination" style="display:flex;justify-content:center;align-items:center;gap:0.5rem;margin-top:3.5rem;margin-bottom:2.5rem;">
+            {% if premium_showcase_items.has_previous %}
+              <a href="?page={{ premium_showcase_items.previous_page_number }}{% if current_category %}&categorie={{ current_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="esh-page-btn" style="display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:#fff;text-decoration:none;font-weight:bold;">&laquo;</a>
+            {% endif %}
+            
+            {% for num in premium_showcase_items.paginator.page_range %}
+              {% if premium_showcase_items.number == num %}
+                <span class="esh-page-btn active" style="display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#7dec6c,#f59e0b);color:#06120a;font-weight:900;">{{ num }}</span>
+              {% elif num > premium_showcase_items.number|add:'-3' and num < premium_showcase_items.number|add:'3' %}
+                <a href="?page={{ num }}{% if current_category %}&categorie={{ current_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="esh-page-btn" style="display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:#fff;text-decoration:none;font-weight:bold;">{{ num }}</a>
+              {% endif %}
+            {% endfor %}
+
+            {% if premium_showcase_items.has_next %}
+              <a href="?page={{ premium_showcase_items.next_page_number }}{% if current_category %}&categorie={{ current_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="esh-page-btn" style="display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:#fff;text-decoration:none;font-weight:bold;">&raquo;</a>
+            {% endif %}
+          </div>
+        {% endif %}
+
+      {% else %}
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4rem 2rem; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px; margin: 2rem 0;">
+          <span style="font-size: 3rem; margin-bottom: 1rem;">🛒</span>
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; color: #fff; margin: 0 0 0.5rem; font-weight: 700;">Aucun produit ou service trouvé</h3>
+          <p style="font-size: 0.95rem; color: rgba(255,255,255,0.6); margin: 0 0 1.5rem; max-width: 400px; line-height: 1.5;">Soyez le premier à ajouter vos produits ou services sur E-Shelle.</p>
+          <a class="esh-btn-primary" href="/business/onboarding/" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 10px; padding: 0.75rem 1.6rem; font-family: 'Outfit', sans-serif;">Inscrire mon business →</a>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

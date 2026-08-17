@@ -69,116 +69,7 @@ def home_view(request):
                 plan__in=[BusinessProfile.Plan.PREMIUM, BusinessProfile.Plan.BUSINESS],
             ).order_by("-boost_expires_at", "-subscription_expires_at", "-leads_count", "-updated_at")[:12]
         )
-        recent_catalog_items = list(
-            BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True)
-            .select_related("business")
-            .order_by("-created_at")
-        )
-        try:
-            from immobilier_cameroun.models import Bien, StatutBien
-            recent_immo_items = list(
-                Bien.objects.filter(statut=StatutBien.PUBLIE)
-                .filter(Q(est_mis_en_avant=True) | Q(est_coup_de_coeur=True))
-                .prefetch_related("photos")
-                .order_by("-date_publication", "-updated_at")
-            )
-        except Exception:
-            recent_immo_items = []
-        try:
-            from resto.models import Dish
-            recent_dishes = list(
-                Dish.objects.filter(is_active=True, restaurant__is_approved=True, restaurant__is_active=True)
-                .select_related("restaurant", "restaurant__city", "restaurant__neighborhood")
-                .order_by("-id")[:30]
-            )
-        except Exception:
-            recent_dishes = []
         premium_showcase_items = []
-        for item in recent_catalog_items:
-            business = item.business
-            premium_showcase_items.append(
-                {
-                    "_rank": item.created_at,
-                    "tag": item.get_item_type_display(),
-                    "title": item.title,
-                    "description": item.description,
-                    "kind": f"{business.get_module_display()} · {business.city or 'Cameroun'}",
-                    "meta": business.district or business.city or "Proche",
-                    "price": item.formatted_price,
-                    "image": item.image_url,
-                    "initial": item.title[:1],
-                    "url": f"{business.get_absolute_url()}?produit={item.id}",
-                    "contact_url": item.to_public_item().get("contact_url") or business.get_absolute_url(),
-                    "views": item.views_count,
-                    "leads": business.leads_count,
-                }
-            )
-        for bien in recent_immo_items:
-            photo = getattr(bien, "photo_principale", None)
-            image = ""
-            if photo and getattr(photo, "image", None):
-                try:
-                    image = photo.image.url
-                except Exception:
-                    image = ""
-            try:
-                contact_url = bien.get_whatsapp_url()
-            except Exception:
-                contact_url = bien.get_absolute_url()
-            premium_showcase_items.append(
-                {
-                    "_rank": bien.date_publication or bien.updated_at,
-                    "tag": "Immobilier",
-                    "title": bien.titre,
-                    "description": bien.description,
-                    "kind": f"{bien.get_type_bien_display()} · {bien.ville}",
-                    "meta": bien.quartier or bien.ville or "Cameroun",
-                    "price": bien.prix_formate,
-                    "image": image,
-                    "initial": bien.titre[:1],
-                    "url": bien.get_absolute_url(),
-                    "contact_url": contact_url,
-                    "views": bien.vues,
-                    "leads": 0,
-                }
-            )
-        for dish in recent_dishes:
-            image_url = ""
-            if dish.image:
-                try:
-                    image_url = dish.image.url
-                except Exception:
-                    image_url = ""
-            contact_url = dish.restaurant.whatsapp_url(dish.name)
-            try:
-                from django.urls import reverse
-                detail_url = reverse("resto:restaurant_detail", kwargs={"slug": dish.restaurant.slug})
-            except Exception:
-                detail_url = f"/resto/restaurant/{dish.restaurant.slug}/"
-            premium_showcase_items.append(
-                {
-                    "_rank": dish.restaurant.created_at,
-                    "tag": "Plat",
-                    "title": dish.name,
-                    "description": dish.description,
-                    "kind": f"{dish.restaurant.name} · {dish.restaurant.city.name}",
-                    "meta": dish.restaurant.neighborhood.name if dish.restaurant.neighborhood else (dish.restaurant.address or dish.restaurant.city.name),
-                    "price": dish.formatted_price,
-                    "image": image_url,
-                    "initial": dish.name[:1],
-                    "url": detail_url,
-                    "contact_url": contact_url,
-                    "views": dish.restaurant.views_count,
-                    "leads": 0,
-                }
-            )
-        premium_showcase_items = sorted(
-            premium_showcase_items,
-            key=lambda entry: entry.get("_rank") or now,
-            reverse=True,
-        )
-        # Ne plus ajouter les fiches entreprises comme fallbacks dans la vitrine produits/services
-        pass
         home_ad_slides = list(
             HomeAdSlide.objects.filter(is_active=True)
             .filter(starts_at__isnull=True)
@@ -307,6 +198,190 @@ def tarifs_view(request):
         ctx["provider_rate"] = 30
 
     return render(request, "tarifs.html", ctx)
+
+
+def products_services_view(request):
+    ctx = {}
+    try:
+        from django.utils import timezone
+        from django.db.models import Q
+        from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+        from business.models import BusinessCatalogItem, BusinessProfile
+        now = timezone.now()
+
+        # 1. Slider Block: Business profiles (fiches business) with their logos.
+        active_businesses = list(
+            BusinessProfile.objects.filter(is_active=True)
+            .order_by("-updated_at")[:24]
+        )
+
+        business_slides = []
+        for b in active_businesses:
+            logo_url = ""
+            if b.logo:
+                try:
+                    logo_url = b.logo.url
+                except Exception:
+                    logo_url = ""
+            business_slides.append({
+                "name": b.name,
+                "logo": logo_url,
+                "initial": b.name[:1].upper() if b.name else "B",
+                "city": b.city or "Cameroun",
+                "district": b.district or "Proche",
+                "url": b.get_absolute_url(),
+                "tag": b.get_module_display(),
+                "description": b.description or "Aucune description disponible.",
+            })
+
+        # 2. Products Block: Individual products/services added by businesses.
+        recent_catalog_items = list(
+            BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True)
+            .select_related("business")
+            .order_by("-created_at")
+        )
+        try:
+            from immobilier_cameroun.models import Bien, StatutBien
+            recent_immo_items = list(
+                Bien.objects.filter(statut=StatutBien.PUBLIE)
+                .filter(Q(est_mis_en_avant=True) | Q(est_coup_de_coeur=True))
+                .prefetch_related("photos")
+                .order_by("-date_publication", "-updated_at")
+            )
+        except Exception:
+            recent_immo_items = []
+        try:
+            from resto.models import Dish
+            recent_dishes = list(
+                Dish.objects.filter(is_active=True, restaurant__is_approved=True, restaurant__is_active=True)
+                .select_related("restaurant", "restaurant__city", "restaurant__neighborhood")
+                .order_by("-id")[:30]
+            )
+        except Exception:
+            recent_dishes = []
+
+        premium_showcase_items = []
+        for item in recent_catalog_items:
+            business = item.business
+            premium_showcase_items.append(
+                {
+                    "_rank": item.created_at,
+                    "tag": item.get_item_type_display(),
+                    "title": item.title,
+                    "description": item.description,
+                    "kind": f"{business.get_module_display()} · {business.city or 'Cameroun'}",
+                    "meta": business.district or business.city or "Proche",
+                    "price": item.formatted_price,
+                    "image": item.image_url,
+                    "initial": item.title[:1],
+                    "url": f"{business.get_absolute_url()}?produit={item.id}",
+                    "contact_url": item.to_public_item().get("contact_url") or business.get_absolute_url(),
+                    "views": item.views_count,
+                    "leads": business.leads_count,
+                }
+            )
+        for bien in recent_immo_items:
+            photo = getattr(bien, "photo_principale", None)
+            image = ""
+            if photo and getattr(photo, "image", None):
+                try:
+                    image = photo.image.url
+                except Exception:
+                    image = ""
+            try:
+                contact_url = bien.get_whatsapp_url()
+            except Exception:
+                contact_url = bien.get_absolute_url()
+            premium_showcase_items.append(
+                {
+                    "_rank": bien.date_publication or bien.updated_at,
+                    "tag": "Immobilier",
+                    "title": bien.titre,
+                    "description": bien.description,
+                    "kind": f"{bien.get_type_bien_display()} · {bien.ville}",
+                    "meta": bien.quartier or bien.ville or "Cameroun",
+                    "price": bien.prix_formate,
+                    "image": image,
+                    "initial": bien.titre[:1],
+                    "url": bien.get_absolute_url(),
+                    "contact_url": contact_url,
+                    "views": bien.vues,
+                    "leads": 0,
+                }
+            )
+        for dish in recent_dishes:
+            image_url = ""
+            if dish.image:
+                try:
+                    image_url = dish.image.url
+                except Exception:
+                    image_url = ""
+            contact_url = dish.restaurant.whatsapp_url(dish.name)
+            try:
+                from django.urls import reverse
+                detail_url = reverse("resto:restaurant_detail", kwargs={"slug": dish.restaurant.slug})
+            except Exception:
+                detail_url = f"/resto/restaurant/{dish.restaurant.slug}/"
+            premium_showcase_items.append(
+                {
+                    "_rank": dish.restaurant.created_at,
+                    "tag": "Plat",
+                    "title": dish.name,
+                    "description": dish.description,
+                    "kind": f"{dish.restaurant.name} · {dish.restaurant.city.name}",
+                    "meta": dish.restaurant.neighborhood.name if dish.restaurant.neighborhood else (dish.restaurant.address or dish.restaurant.city.name),
+                    "price": dish.formatted_price,
+                    "image": image_url,
+                    "initial": dish.name[:1],
+                    "url": detail_url,
+                    "contact_url": contact_url,
+                    "views": dish.restaurant.views_count,
+                    "leads": 0,
+                }
+            )
+        premium_showcase_items = sorted(
+            premium_showcase_items,
+            key=lambda entry: entry.get("_rank") or now,
+            reverse=True,
+        )
+
+        # Filters by category
+        cat_filter = request.GET.get("categorie")
+        if cat_filter:
+            premium_showcase_items = [item for item in premium_showcase_items if cat_filter.lower() in item["tag"].lower()]
+
+        # Search filter
+        search_query = request.GET.get("q")
+        if search_query:
+            q_lower = search_query.lower()
+            premium_showcase_items = [
+                item for item in premium_showcase_items
+                if q_lower in item["title"].lower() or (item["description"] and q_lower in item["description"].lower())
+            ]
+
+        paginator = Paginator(premium_showcase_items, 30)
+        page_num = request.GET.get('page', 1)
+        try:
+            paginated_items = paginator.page(page_num)
+        except PageNotAnInteger:
+            paginated_items = paginator.page(1)
+        except EmptyPage:
+            paginated_items = paginator.page(paginator.num_pages)
+
+        ctx["business_slides"] = business_slides
+        # Double the list to ensure smooth continuous horizontal marquee
+        ctx["business_slides_dup"] = business_slides + business_slides
+        ctx["premium_showcase_items"] = paginated_items
+        ctx["current_category"] = cat_filter or ""
+        ctx["search_query"] = search_query or ""
+    except Exception as e:
+        ctx["business_slides"] = []
+        ctx["business_slides_dup"] = []
+        ctx["premium_showcase_items"] = []
+        ctx["current_category"] = ""
+        ctx["search_query"] = ""
+
+    return render(request, "produits_services.html", ctx)
 
 
 def commercial_pdf_view(request):
@@ -633,6 +708,7 @@ urlpatterns = [
 
     # Page d'accueil
     path("", home_view, name="home"),
+    path("produits-services/", products_services_view, name="products_services"),
     path("presentation/", presentation_view, name="presentation"),
     path("tarifs/", tarifs_view, name="tarifs"),
 ]
