@@ -109,6 +109,7 @@ class VideoComposer:
                 "-map", "[outv]",
                 "-map", "1:a",
                 "-c:v", "libx264",
+                "-pix_fmt", "yuv420p",
                 "-preset", "fast",
                 "-crf", "22",
                 "-c:a", "aac",
