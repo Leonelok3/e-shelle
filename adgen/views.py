@@ -7,7 +7,7 @@ from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, FileResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import ListView, DetailView, CreateView, View, TemplateView
 from django.utils import timezone
@@ -841,3 +841,32 @@ class PollAdVideoView(LoginRequiredMixin, View):
             "video_url": video_url,
             "quota": quota_service.get_remaining(request.user)
         })
+
+
+class DownloadVideoView(LoginRequiredMixin, View):
+    """
+    Télécharge le fichier de la vidéo finale générée pour la campagne.
+    Utilise FileResponse pour forcer le téléchargement avec le nom correct.
+    """
+    def get(self, request, pk):
+        campaign = get_object_or_404(AdCampaign, pk=pk, user=request.user)
+        try:
+            content = campaign.content
+            if not content.ad_video_url:
+                return HttpResponse("Aucune vidéo publicitaire disponible pour cette campagne.", status=404)
+            
+            video_url = content.ad_video_url
+            if video_url.startswith(settings.MEDIA_URL):
+                relative_path = video_url[len(settings.MEDIA_URL):]
+                if relative_path.startswith("/"):
+                    relative_path = relative_path[1:]
+                import os
+                local_path = os.path.join(settings.MEDIA_ROOT, relative_path)
+                if os.path.exists(local_path):
+                    response = FileResponse(open(local_path, 'rb'), as_attachment=True, filename=f"ad_video_{campaign.pk}.mp4")
+                    response['Content-Type'] = 'video/mp4'
+                    return response
+            return HttpResponse("Le fichier vidéo est introuvable sur le serveur.", status=404)
+        except Exception as e:
+            logger.error(f"[DownloadVideoView] Erreur : {e}")
+            return HttpResponse("Erreur lors de la tentative de téléchargement.", status=500)

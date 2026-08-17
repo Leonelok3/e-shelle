@@ -44,6 +44,7 @@ class FFmpegFilterGenerator:
                 except ValueError:
                     pass
             font_path = font_path.replace("\\", "/")
+            font_path = escape_ffmpeg_path(font_path)
             self.font_opt = f":fontfile='{font_path}'"
         else:
             self.font_opt = ""
@@ -102,7 +103,7 @@ class FFmpegFilterGenerator:
         speed_ratio = duration / 8.0
         overlay_y = (1920 - 1440) // 2  # 240
         crop_zoom = (
-            f"[0:v]setpts={speed_ratio}*PTS,"
+            f"[0:v]setpts=PTS,"
             f"crop=w=540:h=720:x='(in_w-540)/2 + 40*sin(2*PI*t/{duration})':y=0,"
             f"scale=1080:1440[vid];"
             f"[2:v][vid]overlay=0:{overlay_y}"
@@ -260,4 +261,4 @@ class FFmpegFilterGenerator:
                 f"fontsize=52:fontcolor={contact_text}:box=1:boxcolor={contact_box}:boxborderw=18"
             )
 
-        return ",".join(filters) + "[outv]"
+        return ",".join(filters) + ",format=yuv420p[outv]"
