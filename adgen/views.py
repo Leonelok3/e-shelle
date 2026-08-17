@@ -457,28 +457,6 @@ def get_premium_font() -> str:
     return font_path
 
 
-def wrap_text(text: str, max_chars: int = 18) -> str:
-    """
-    Sépare le texte par des sauts de ligne pour éviter qu'il ne déborde de l'écran.
-    """
-    words = text.split()
-    lines = []
-    current_line = []
-    current_length = 0
-    for word in words:
-        if current_length + len(word) + 1 > max_chars:
-            if current_line:
-                lines.append(" ".join(current_line))
-            current_line = [word]
-            current_length = len(word)
-        else:
-            current_line.append(word)
-            current_length += len(word) + 1
-    if current_line:
-        lines.append(" ".join(current_line))
-    return "\n".join(lines)
-
-
 def is_bg_light(bg_config: dict) -> bool:
     """
     Détermine si l'arrière-plan configuré est clair ou sombre.
@@ -518,11 +496,32 @@ def prepare_image_for_veo(image_field, bg_config: dict = None) -> bytes:
     """
     Crée une image de 1280x720 (16:9) avec l'image du produit ajustée au centre
     dans un espace de 405x720 (9:16), sur le fond configuré (couleur, gradient ou template).
+    Gère de façon robuste toutes les orientations (EXIF) et formats d'images mobiles.
     """
-    from PIL import Image, ImageDraw
+    from PIL import Image, ImageDraw, ImageOps
     import io
     
-    img = Image.open(image_field)
+    # 1. Lecture robuste du fichier image
+    if hasattr(image_field, 'open'):
+        try:
+            image_field.open("rb")
+        except Exception:
+            pass
+    if hasattr(image_field, 'seek'):
+        try:
+            image_field.seek(0)
+        except Exception:
+            pass
+            
+    if hasattr(image_field, 'read'):
+        img_data = image_field.read()
+    else:
+        img_data = image_field
+        
+    img = Image.open(io.BytesIO(img_data))
+    
+    # 2. Correction robuste de la rotation EXIF pour les photos prises sur mobile
+    img = ImageOps.exif_transpose(img)
     img = img.convert("RGBA")
     
     # Dimensions cibles
@@ -573,7 +572,7 @@ def prepare_image_for_veo(image_field, bg_config: dict = None) -> bytes:
             grad = Image.new("RGB", (1, 2))
             grad.putpixel((0, 0), (r1, g1, b1))
             grad.putpixel((0, 1), (r2, g2, b2))
-            grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR)
+            grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR).convert("RGBA")
             bg.paste(grad_resized, (0, 0))
         elif direction == "diagonal":
             grad = Image.new("RGB", (2, 2))
@@ -581,13 +580,13 @@ def prepare_image_for_veo(image_field, bg_config: dict = None) -> bytes:
             grad.putpixel((1, 0), (int((r1+r2)/2), int((g1+g2)/2), int((b1+b2)/2)))
             grad.putpixel((0, 1), (int((r1+r2)/2), int((g1+g2)/2), int((b1+b2)/2)))
             grad.putpixel((1, 1), (r2, g2, b2))
-            grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR)
+            grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR).convert("RGBA")
             bg.paste(grad_resized, (0, 0))
         else: # horizontal
             grad = Image.new("RGB", (2, 1))
             grad.putpixel((0, 0), (r1, g1, b1))
             grad.putpixel((1, 0), (r2, g2, b2))
-            grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR)
+            grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR).convert("RGBA")
             bg.paste(grad_resized, (0, 0))
             
     elif bg_type == "template":
@@ -596,49 +595,37 @@ def prepare_image_for_veo(image_field, bg_config: dict = None) -> bytes:
             draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(245, 245, 247, 255))
         elif template == "luxury":
             draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(10, 10, 12, 255))
-            # Fines lignes dorées décoratives
             draw.line([(0, 10), (canvas_w, 10)], fill=(212, 175, 55, 255), width=3)
             draw.line([(0, canvas_h-10), (canvas_w, canvas_h-10)], fill=(212, 175, 55, 255), width=3)
         elif template == "tech":
             draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(11, 19, 43, 255))
-            # Subtils cercles futuristes bleutés
             draw.ellipse([(-50, -50), (250, 250)], outline=(0, 180, 216, 50), width=1)
             draw.ellipse([(canvas_w-250, canvas_h-250), (canvas_w+50, canvas_h+50)], outline=(0, 180, 216, 50), width=1)
         elif template == "modern":
-            # Dégradé vibrant violet vers bleu
-            for x in range(canvas_w):
-                factor = x / canvas_w
-                r = int(108 + (20 - 108) * factor)
-                g = int(63 + (120 - 63) * factor)
-                b = int(232 + (240 - 232) * factor)
-                draw.line([(x, 0), (x, canvas_h)], fill=(r, g, b, 255))
+            grad = Image.new("RGB", (2, 1))
+            grad.putpixel((0, 0), (108, 63, 232))
+            grad.putpixel((1, 0), (20, 120, 240))
+            grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR).convert("RGBA")
+            bg.paste(grad_resized, (0, 0))
         elif template == "fashion":
-            # Dégradé rose poudré et beige chaleureux
-            for x in range(canvas_w):
-                factor = x / canvas_w
-                r = int(245 + (230 - 245) * factor)
-                g = int(220 + (200 - 220) * factor)
-                b = int(215 + (190 - 215) * factor)
-                draw.line([(x, 0), (x, canvas_h)], fill=(r, g, b, 255))
+            grad = Image.new("RGB", (2, 1))
+            grad.putpixel((0, 0), (245, 220, 215))
+            grad.putpixel((1, 0), (230, 200, 190))
+            grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR).convert("RGBA")
+            bg.paste(grad_resized, (0, 0))
         elif template == "food":
-            # Dégradé jaune-orange chaleureux
-            for x in range(canvas_w):
-                factor = x / canvas_w
-                r = int(251 + (245 - 251) * factor)
-                g = int(146 + (85 - 146) * factor)
-                b = int(60 + (30 - 60) * factor)
-                draw.line([(x, 0), (x, canvas_h)], fill=(r, g, b, 255))
+            grad = Image.new("RGB", (2, 1))
+            grad.putpixel((0, 0), (251, 146, 60))
+            grad.putpixel((1, 0), (245, 85, 30))
+            grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR).convert("RGBA")
+            bg.paste(grad_resized, (0, 0))
         elif template == "automotive":
-            # Fond texturé sombre gris carbone
             draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(20, 24, 30, 255))
             for y in range(0, canvas_h, 40):
                 draw.line([(0, y), (canvas_w, y+120)], fill=(255, 255, 255, 6), width=2)
         else:
-            # Dark / Fallback
             draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(5, 9, 16, 255))
-            
     else:
-        # Par défaut, fond sombre E-Shelle
         draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(5, 9, 16, 255))
         
     # Calcul des coordonnées de centrage pour la zone 9:16

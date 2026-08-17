@@ -245,29 +245,23 @@ class VideoComposer:
                 draw.ellipse([(-100, -100), (400, 400)], outline=(0, 180, 216, 50), width=2)
                 draw.ellipse([(canvas_w-400, canvas_h-400), (canvas_w+100, canvas_h+100)], outline=(0, 180, 216, 50), width=2)
             elif template == "modern":
-                # Dégradé vibrant violet vers bleu
-                for x in range(canvas_w):
-                    factor = x / canvas_w
-                    r = int(108 + (20 - 108) * factor)
-                    g = int(63 + (120 - 63) * factor)
-                    b = int(232 + (240 - 232) * factor)
-                    draw.line([(x, 0), (x, canvas_h)], fill=(r, g, b, 255))
+                grad = Image.new("RGB", (2, 1))
+                grad.putpixel((0, 0), (108, 63, 232))
+                grad.putpixel((1, 0), (20, 120, 240))
+                grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR).convert("RGBA")
+                bg.paste(grad_resized, (0, 0))
             elif template == "fashion":
-                # Dégradé rose poudré et beige chaleureux
-                for x in range(canvas_w):
-                    factor = x / canvas_w
-                    r = int(245 + (230 - 245) * factor)
-                    g = int(220 + (200 - 220) * factor)
-                    b = int(215 + (190 - 215) * factor)
-                    draw.line([(x, 0), (x, canvas_h)], fill=(r, g, b, 255))
+                grad = Image.new("RGB", (2, 1))
+                grad.putpixel((0, 0), (245, 220, 215))
+                grad.putpixel((1, 0), (230, 200, 190))
+                grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR).convert("RGBA")
+                bg.paste(grad_resized, (0, 0))
             elif template == "food":
-                # Dégradé jaune-orange chaleureux
-                for x in range(canvas_w):
-                    factor = x / canvas_w
-                    r = int(251 + (245 - 251) * factor)
-                    g = int(146 + (85 - 146) * factor)
-                    b = int(60 + (30 - 60) * factor)
-                    draw.line([(x, 0), (x, canvas_h)], fill=(r, g, b, 255))
+                grad = Image.new("RGB", (2, 1))
+                grad.putpixel((0, 0), (251, 146, 60))
+                grad.putpixel((1, 0), (245, 85, 30))
+                grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR).convert("RGBA")
+                bg.paste(grad_resized, (0, 0))
             elif template == "automotive":
                 draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(20, 24, 30, 255))
                 for y in range(0, canvas_h, 80):
