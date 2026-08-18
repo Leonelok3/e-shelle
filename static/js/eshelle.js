@@ -135,8 +135,10 @@ function initScrollNav() {
       navbar.classList.remove('scrolled');
     }
 
-    // Masquer la navbar en scrollant vers le bas, réafficher en remontant
-    if (scrollY > lastScroll && scrollY > 300) {
+    // Masquer la navbar en scrollant vers le bas, réafficher en remontant (désactivé sur Canada)
+    if (window.location.pathname.includes('/canada')) {
+      navbar.style.transform = 'translateY(0)';
+    } else if (scrollY > lastScroll && scrollY > 300) {
       navbar.style.transform = 'translateY(-100%)';
     } else {
       navbar.style.transform = 'translateY(0)';
