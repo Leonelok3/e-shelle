@@ -182,9 +182,27 @@ def _available_cities():
         .exclude(city="")
         .values("city")
         .annotate(total=Count("id"))
-        .order_by("-total", "city")
     )
-    return [{"name": row["city"], "slug": slugify(row["city"]), "total": row["total"]} for row in rows]
+    cities_map = {}
+    for row in rows:
+        raw_name = row["city"].strip()
+        # Nettoyer les suffixes comme ", Cameroon" ou ", Cameroun"
+        name = raw_name.split(",")[0].strip()
+        # Normaliser en Title Case (ex: "douala" ou "DOUALA" -> "Douala")
+        name = name.title()
+        if not name:
+            continue
+        slug = slugify(name)
+        if slug in cities_map:
+            cities_map[slug]["total"] += row["total"]
+        else:
+            cities_map[slug] = {
+                "name": name,
+                "slug": slug,
+                "total": row["total"]
+            }
+    # Trier par total décroissant, puis par ordre alphabétique
+    return sorted(cities_map.values(), key=lambda x: (-x["total"], x["name"]))
 
 
 def _city_name_from_slug(city_slug):
