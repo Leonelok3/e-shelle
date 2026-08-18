@@ -135,8 +135,8 @@ function initScrollNav() {
       navbar.classList.remove('scrolled');
     }
 
-    // Masquer la navbar en scrollant vers le bas, réafficher en remontant (désactivé sur Canada)
-    if (window.location.pathname.includes('/canada')) {
+    // Masquer la navbar en scrollant vers le bas, réafficher en remontant (désactivé sur Canada et Allemagne)
+    if (window.location.pathname.includes('/canada') || window.location.pathname.includes('/allemand') || window.location.pathname.includes('/allemagne')) {
       navbar.style.transform = 'translateY(0)';
     } else if (scrollY > lastScroll && scrollY > 300) {
       navbar.style.transform = 'translateY(-100%)';
