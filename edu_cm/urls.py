@@ -136,6 +136,16 @@ def home_view(request):
         ctx["home_ad_slides"] = merged_slides[:10]
         ctx["app_promo_slides"] = list(AppPromotionSlide.objects.filter(is_active=True).order_by("order", "-created_at"))
         ctx["hero_businesses"] = [item for item in premium_businesses if item.promo_image][:6] or premium_businesses[:6]
+        try:
+            from business.seo_geo import _available_cities, SEO_SERVICE_MAP
+            ctx["geo_cities"] = _available_cities()[:8]
+            ctx["geo_services"] = [
+                {"slug": slug, "plural": s["plural"].capitalize(), "intent": s["intent"]}
+                for slug, s in SEO_SERVICE_MAP.items()
+            ]
+        except Exception:
+            ctx["geo_cities"] = []
+            ctx["geo_services"] = []
     except Exception:
         ctx["premium_businesses"] = []
         ctx["premium_showcase_items"] = []
@@ -143,6 +153,8 @@ def home_view(request):
         ctx["hero_businesses"] = []
         ctx["live_needs"] = []
         ctx["top_verified_businesses"] = []
+        ctx["geo_cities"] = []
+        ctx["geo_services"] = []
         ctx["home_numbers"] = {"businesses": 0, "premium": 0, "products": 0, "leads": 0, "ads": 0, "events": 0}
     return render(request, "home.html", ctx)
 

@@ -1,12 +1,54 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}E-Shelle - Super-app IA africaine{% endblock %}
-{% block meta_description %}Trouvez vite des produits, services, prestataires et solutions premium au Cameroun avec E-Shelle IA.{% endblock %}
+{% block title %}E-Shelle — Super-App IA & Marketplace de Services au Cameroun{% endblock %}
+{% block meta_description %}Trouvez rapidement des prestataires qualifiés, restaurants, pressing, immobilier et livraison de gaz à Douala, Yaoundé et partout au Cameroun avec E-Shelle IA.{% endblock %}
+{% block og_title %}E-Shelle — Super-App IA & Annuaire de Services au Cameroun{% endblock %}
+{% block og_description %}La plateforme intelligente tout-en-un pour trouver des prestataires, commander du gaz, réserver un restaurant ou louer un appartement au Cameroun.{% endblock %}
 {% block nav_home %}active{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{# Balises GEO SEO et Indexation #}
+<meta name="geo.region" content="CM" />
+<meta name="geo.placename" content="Cameroun" />
+<meta name="geo.position" content="4.051056;9.767869" />
+<meta name="ICBM" content="4.051056, 9.767869" />
+
+{# JSON-LD Données structurées #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "E-Shelle",
+  "url": "{{ request.scheme }}://{{ request.get_host }}/",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "{{ request.scheme }}://{{ request.get_host }}/chat/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "E-Shelle",
+  "url": "{{ request.scheme }}://{{ request.get_host }}/",
+  "logo": "{{ request.scheme }}://{{ request.get_host }}/static/img/logo.png",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "telephone": "+237680625082",
+    "contactType": "customer service",
+    "areaServed": "CM",
+    "availableLanguage": "French"
+  },
+  "sameAs": [
+    "https://www.facebook.com/eshelle",
+    "https://twitter.com/eshelle"
+  ]
+}
+</script>
 {% endblock %}
 
 {% block content %}
@@ -289,8 +331,29 @@
     </div>
   </section>
   {% endif %}
-
-
+  {# 2.1. Répertoire Géo-Localisé (Index GEO Local très discret et compact pour le SEO) #}
+  {% if geo_cities and geo_services %}
+  <section class="esh-geo-footer-directory" aria-label="Index local de référencement" style="background: #030712; border-top: 1px solid rgba(255,255,255,0.06); padding: 3rem 0; font-family: 'Plus Jakarta Sans', sans-serif;">
+    <div class="esh-shell">
+      <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
+        <span style="color: #16a34a;">📍</span> Index des Services Locaux & Référencement Cameroun
+      </h3>
+      <div class="esh-geo-footer-grid" style="display: flex; flex-direction: column; gap: 1.25rem;">
+        {% for city in geo_cities %}
+          <div class="esh-geo-footer-row" style="display: flex; flex-wrap: wrap; gap: 0.5rem 0.8rem; align-items: baseline; border-bottom: 1px dashed rgba(255,255,255,0.04); padding-bottom: 0.85rem;">
+            <span style="font-weight: 700; color: #f59e0b; font-size: 0.85rem; min-width: 110px;">{{ city.name }} :</span>
+            <div class="esh-geo-footer-links" style="display: flex; flex-wrap: wrap; gap: 0.35rem 0.7rem; font-size: 0.82rem;">
+              {% for service in geo_services %}
+                <a href="/business/local/{{ city.slug }}/{{ service.slug }}/" style="color: #cbd5e1; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#7dec6c'" onmouseout="this.style.color='#cbd5e1'">{{ service.plural }}</a>
+                {% if not forloop.last %}<span style="color: rgba(255,255,255,0.15)">·</span>{% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
 
   {# 4. Tout l'écosystème E-Shelle tout en bas #}
   <section class="esh-section alt">
