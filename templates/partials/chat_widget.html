@@ -60,47 +60,100 @@
 </style>
 {% endif %}
 
+<!-- Central AI Interactive Floating Widget -->
 <div id="chat-float" class="es-chat-float">
-  <a href="{% url 'chat:home' %}" class="es-chat-float__link" aria-label="Ouvrir E-Shelle AI">
+  <button type="button" class="es-chat-float__link" onclick="toggleEshChatPanel()" aria-label="Ouvrir E-Shelle AI">
     <span class="es-chat-float__icon">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
       </svg>
       <span class="es-chat-float__ping"></span>
     </span>
     <span>E-Shelle AI</span>
-  </a>
+  </button>
+  
   <div class="es-chat-float__panel" aria-label="Raccourcis E-Shelle AI">
-    <a href="{% url 'chat:home' %}?q=je%20veux%20manger">Trouver un resto</a>
+    <button onclick="openChatWithQuery('je veux manger')">Trouver un resto</button>
     <a href="{% url 'adgen:dashboard' %}">Créer une pub</a>
-    <a href="{% url 'chat:home' %}?q=je%20veux%20vendre%20sur%20e-shelle">Inscrire un business</a>
+    <button onclick="openChatWithQuery('je veux vendre sur e-shelle')">Inscrire un business</button>
   </div>
 </div>
 
+<!-- E-Shelle Live Chat Window Overlay -->
+<div id="esh-chat-window" class="esh-chat-window">
+  <div class="esh-chat-header">
+    <div class="esh-chat-header-info">
+      <span class="esh-chat-avatar">🟢</span>
+      <div>
+        <p class="esh-chat-title">Assistant E-Shelle AI</p>
+        <p class="esh-chat-status">En ligne · Propulsé par IA</p>
+      </div>
+    </div>
+    <div class="esh-chat-header-actions">
+      <button onclick="clearEshChatHistory()" title="Effacer la conversation" class="esh-chat-action-btn">🗑️</button>
+      <button onclick="toggleEshChatPanel()" title="Fermer" class="esh-chat-action-btn">✕</button>
+    </div>
+  </div>
+
+  <div id="esh-chat-messages" class="esh-chat-messages">
+    <!-- Messages loaded dynamically -->
+    <div class="esh-msg esh-msg-assistant">
+      <div class="esh-msg-bubble">
+        Bonjour ! Je suis l'assistant intelligent d'E-Shelle 🇨🇲.<br><br>
+        Comment puis-je vous aider aujourd'hui ? Je peux vous aider à :
+        <ul style="margin: 0.5rem 0 0; padding-left: 1.2rem;">
+          <li>Trouver des commerces ou services à proximité.</li>
+          <li>Inscrire votre établissement sur la plateforme.</li>
+          <li>Créer des visuels et vidéos avec l'IA.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Typing Indicator -->
+  <div id="esh-chat-typing" class="esh-chat-typing" style="display: none;">
+    <span class="esh-typing-dots"><span></span><span></span><span></span></span> E-Shelle AI réfléchit...
+  </div>
+
+  <form id="esh-chat-form" class="esh-chat-input-area" onsubmit="sendEshChatMessage(event)">
+    <input id="esh-chat-input" type="text" placeholder="Décrivez votre besoin ici..." autocomplete="off" required>
+    <button type="submit" aria-label="Envoyer">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </form>
+</div>
+
 <style>
+/* Floating Button */
 .es-chat-float {
   position: fixed;
   left: 1.5rem;
   right: auto;
   bottom: 5.75rem;
   z-index: 1050;
+  display: flex;
+  flex-direction: column;
 }
 .es-chat-float__link {
   display: inline-flex;
   align-items: center;
   gap: .55rem;
-  padding: .85rem 1rem;
+  padding: .85rem 1.1rem;
   border-radius: 16px;
   color: #fff;
-  text-decoration: none;
+  border: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: .9rem;
   font-weight: 700;
   background: linear-gradient(135deg, #22c55e, #16a34a);
   box-shadow: 0 16px 36px rgba(0,0,0,.35), 0 8px 24px rgba(34,197,94,.24);
+  cursor: pointer;
   transition: transform .18s ease, box-shadow .18s ease;
 }
 .es-chat-float__link:hover {
-  color: #fff;
   transform: translateY(-2px);
   box-shadow: 0 20px 44px rgba(0,0,0,.42), 0 10px 30px rgba(34,197,94,.32);
 }
@@ -120,6 +173,7 @@
   transform: translateY(8px);
   transition: opacity .18s ease, transform .18s ease;
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 .es-chat-float:hover .es-chat-float__panel,
 .es-chat-float:focus-within .es-chat-float__panel {
@@ -127,16 +181,22 @@
   pointer-events: auto;
   transform: translateY(0);
 }
-.es-chat-float__panel a {
+.es-chat-float__panel button, .es-chat-float__panel a {
   display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
   padding: .7rem .75rem;
   border-radius: 12px;
   color: rgba(255,255,255,.86);
   text-decoration: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: .82rem;
   font-weight: 800;
+  cursor: pointer;
 }
-.es-chat-float__panel a:hover {
+.es-chat-float__panel button:hover, .es-chat-float__panel a:hover {
   color: #fff;
   background: rgba(34,197,94,.14);
 }
@@ -154,11 +214,371 @@
   background: #facc15;
   box-shadow: 0 0 0 4px rgba(250,204,21,.18);
 }
+
+/* Chat Window Container */
+.esh-chat-window {
+  position: fixed;
+  left: 1.5rem;
+  bottom: 10.5rem;
+  width: 380px;
+  height: 520px;
+  background: rgba(7, 19, 12, 0.96);
+  border: 1px solid rgba(34, 197, 94, 0.28);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 1060;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(15px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+.esh-chat-window.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* Header */
+.esh-chat-header {
+  padding: 1rem 1.4rem;
+  background: rgba(34, 197, 94, 0.1);
+  border-bottom: 1px solid rgba(34, 197, 94, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.esh-chat-header-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.esh-chat-avatar {
+  font-size: 1.2rem;
+}
+.esh-chat-title {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #ffffff;
+}
+.esh-chat-status {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.76rem;
+  color: #7dec6c;
+}
+.esh-chat-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.esh-chat-action-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.esh-chat-action-btn:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+}
+
+/* Messages Area */
+.esh-chat-messages {
+  flex: 1;
+  padding: 1.2rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  scroll-behavior: smooth;
+}
+.esh-chat-messages::-webkit-scrollbar {
+  width: 4px;
+}
+.esh-chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(34, 197, 94, 0.2);
+  border-radius: 4px;
+}
+
+.esh-msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 82%;
+}
+.esh-msg-user {
+  align-self: flex-end;
+}
+.esh-msg-assistant {
+  align-self: flex-start;
+}
+.esh-msg-bubble {
+  padding: 0.75rem 1rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  border-radius: 16px;
+}
+.esh-msg-user .esh-msg-bubble {
+  background: #16a34a;
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+.esh-msg-assistant .esh-msg-bubble {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+  border-bottom-left-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Redirection / CTA styling inside bubbles */
+.esh-chat-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  padding: 0.45rem 1rem;
+  background: linear-gradient(135deg, #7dec6c 0%, #f9c332 100%);
+  color: #07130c !important;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 0.8rem;
+  border-radius: 99px;
+  transition: opacity 0.2s;
+}
+.esh-chat-cta:hover {
+  opacity: 0.9;
+}
+
+/* Typing Indicator styling */
+.esh-chat-typing {
+  padding: 0.6rem 1.4rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.esh-typing-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+.esh-typing-dots span {
+  width: 5px;
+  height: 5px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 50%;
+  animation: eshTypingAnim 1.4s infinite both;
+}
+.esh-typing-dots span:nth-child(2) { animation-delay: .2s; }
+.esh-typing-dots span:nth-child(3) { animation-delay: .4s; }
+
+@keyframes eshTypingAnim {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* Input Area */
+.esh-chat-input-area {
+  padding: 0.8rem 1.2rem 1.2rem;
+  display: flex;
+  gap: 0.6rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(7, 19, 12, 0.99);
+}
+.esh-chat-input-area input {
+  flex: 1;
+  height: 42px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  color: #fff;
+  padding: 0 1rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.esh-chat-input-area input:focus {
+  border-color: rgba(34, 197, 94, 0.5);
+  background: rgba(255,255,255,0.07);
+}
+.esh-chat-input-area button {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.esh-chat-input-area button:hover {
+  background: #15803d;
+}
+
+/* Responsive adjustments */
 @media (max-width: 640px) {
-  .es-chat-float { left: 1rem; right: auto; bottom: 5rem; }
+  .es-chat-float { left: 1rem; bottom: 5rem; }
   .es-chat-float__link span:last-child { display: none; }
   .es-chat-float__link { width: 52px; height: 52px; justify-content: center; padding: 0; border-radius: 18px; }
   .es-chat-float__panel { display: none; }
+  
+  .esh-chat-window {
+    left: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
 }
 </style>
+
+<script>
+function toggleEshChatPanel() {
+  const panel = document.getElementById('esh-chat-window');
+  if (panel) {
+    panel.classList.toggle('active');
+    if (panel.classList.contains('active')) {
+      const input = document.getElementById('esh-chat-input');
+      if (input) input.focus();
+    }
+  }
+}
+
+function openChatWithQuery(query) {
+  toggleEshChatPanel();
+  const input = document.getElementById('esh-chat-input');
+  if (input) {
+    input.value = query;
+    document.getElementById('esh-chat-form').dispatchEvent(new Event('submit'));
+  }
+}
+
+function clearEshChatHistory() {
+  if (confirm("Voulez-vous effacer l'historique de cette conversation ?")) {
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+    
+    fetch('/chat/clear/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken
+      }
+    })
+    .then(response => response.json())
+    .then(() => {
+      const messagesContainer = document.getElementById('esh-chat-messages');
+      if (messagesContainer) {
+        messagesContainer.innerHTML = `
+          <div class="esh-msg esh-msg-assistant">
+            <div class="esh-msg-bubble">
+              Historique effacé. Comment puis-je vous aider aujourd'hui ? 🇨🇲
+            </div>
+          </div>
+        `;
+      }
+    })
+    .catch(error => console.error('Erreur:', error));
+  }
+}
+
+function sendEshChatMessage(event) {
+  event.preventDefault();
+  const input = document.getElementById('esh-chat-input');
+  if (!input) return;
+  const messageText = input.value.trim();
+  if (!messageText) return;
+  
+  // Clear input
+  input.value = '';
+  
+  // Append user message
+  appendEshChatMessage('user', messageText);
+  
+  // Show typing indicator
+  const typingIndicator = document.getElementById('esh-chat-typing');
+  if (typingIndicator) typingIndicator.style.display = 'flex';
+  
+  // Scroll to bottom
+  scrollToBottom();
+  
+  // Send message to server via AJAX
+  const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+  
+  fetch('/chat/send/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken
+    },
+    body: JSON.stringify({ message: messageText })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error("Erreur de communication avec le serveur.");
+    }
+    return response.json();
+  })
+  .then(data => {
+    // Hide typing
+    if (typingIndicator) typingIndicator.style.display = 'none';
+    
+    // Append assistant response
+    let finalHtml = data.message;
+    if (data.redirect_url) {
+      const label = data.redirect_label || "Visiter le lien";
+      finalHtml += `<br><a href="${data.redirect_url}" class="esh-chat-cta">🚀 ${label}</a>`;
+    }
+    appendEshChatMessage('assistant', finalHtml);
+    scrollToBottom();
+  })
+  .catch(error => {
+    if (typingIndicator) typingIndicator.style.display = 'none';
+    appendEshChatMessage('assistant', "⚠️ Désolé, une erreur est survenue lors de la communication avec l'assistant. Veuillez réessayer.");
+    scrollToBottom();
+    console.error('Erreur Chat:', error);
+  });
+}
+
+function appendEshChatMessage(role, htmlContent) {
+  const messagesContainer = document.getElementById('esh-chat-messages');
+  if (!messagesContainer) return;
+  
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `esh-msg esh-msg-${role}`;
+  
+  const bubbleDiv = document.createElement('div');
+  bubbleDiv.className = 'esh-msg-bubble';
+  bubbleDiv.innerHTML = htmlContent;
+  
+  msgDiv.appendChild(bubbleDiv);
+  messagesContainer.appendChild(msgDiv);
+}
+
+function scrollToBottom() {
+  const messagesContainer = document.getElementById('esh-chat-messages');
+  if (messagesContainer) {
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+}
+</script>
 {% endif %}
