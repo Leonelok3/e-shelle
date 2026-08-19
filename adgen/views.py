@@ -55,7 +55,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             "total": campaigns.count(),
             "done": campaigns.filter(status="done").count(),
             "failed": campaigns.filter(status="failed").count(),
-            "modules": AdModule.objects.filter(is_active=True),
+            "modules": AdModule.get_active_modules(),
         })
         return ctx
 
@@ -81,7 +81,7 @@ class CampaignCreateView(LoginRequiredMixin, UsageLimitMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["modules"] = AdModule.objects.filter(is_active=True).order_by("order")
+        ctx["modules"] = AdModule.get_active_modules()
         return ctx
 
     def form_valid(self, form):

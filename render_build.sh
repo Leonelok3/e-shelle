@@ -6,6 +6,7 @@ pip install -r requirements.txt
 
 python manage.py collectstatic --noinput
 python manage.py migrate --noinput
+python manage.py adgen_init_modules
 
 if [ "$RUN_RENDER_SEED" = "true" ]; then
   python manage.py seed_business_plans

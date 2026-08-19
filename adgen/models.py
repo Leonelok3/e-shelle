@@ -69,6 +69,18 @@ class AdModule(models.Model):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def get_active_modules(cls):
+        modules = cls.objects.filter(is_active=True).order_by("order")
+        if not modules.exists():
+            from django.core.management import call_command
+            try:
+                call_command("adgen_init_modules")
+                modules = cls.objects.filter(is_active=True).order_by("order")
+            except Exception:
+                pass
+        return modules
+
 
 class AdCampaign(models.Model):
     """Une campagne = un produit soumis pour génération."""
