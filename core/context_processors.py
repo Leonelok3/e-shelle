@@ -34,4 +34,6 @@ def eshelle_public_urls(request):
         "MAPEX_PUBLIC_URL": getattr(settings, "MAPEX_PUBLIC_URL", "/edu/"),
         "EXPROD_PUBLIC_URL": getattr(settings, "EXPROD_PUBLIC_URL", "/lebelage-importer/"),
         "SALONHUB_PUBLIC_URL": getattr(settings, "SALONHUB_PUBLIC_URL", "/salons/"),
+        "GOOGLE_SITE_VERIFICATION": getattr(settings, "GOOGLE_SITE_VERIFICATION", ""),
+        "GOOGLE_ANALYTICS_ID": getattr(settings, "GOOGLE_ANALYTICS_ID", ""),
     }

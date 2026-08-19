@@ -390,6 +390,8 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 GOOGLE_VIDEO_MODEL = os.getenv("GOOGLE_VIDEO_MODEL", "veo-2.0-generate-001")
 GCP_VERTEX_KEY_PATH = os.getenv("GCP_VERTEX_KEY_PATH", str(BASE_DIR / "gcp_vertex_key.json"))
 GEMINI_SEARCH_API_KEY = os.getenv("GEMINI_SEARCH_API_KEY", "")
+GOOGLE_SITE_VERIFICATION = os.getenv("GOOGLE_SITE_VERIFICATION", "")
+GOOGLE_ANALYTICS_ID = os.getenv("GOOGLE_ANALYTICS_ID", "")
 
 
 # Email (dev : console, prod : SMTP)
