@@ -611,6 +611,7 @@ urlpatterns = [
     path("langues/", TemplateView.as_view(template_name="langues/hub.html"), name="langues_hub"),
     path("cgu/", TemplateView.as_view(template_name="cgu.html"), name="cgu"),
     path("terms/", TemplateView.as_view(template_name="cgu.html"), name="terms"),
+    path("llms.txt", TemplateView.as_view(template_name="llms.txt", content_type="text/plain; charset=utf-8"), name="llms_txt"),
 
     # Cours de langues
     path("anglais/",     include("EnglishPrepApp.urls",    namespace="englishprep")),
