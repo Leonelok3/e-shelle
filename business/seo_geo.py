@@ -100,6 +100,46 @@ SEO_SERVICE_MAP = {
             ("Les artisans Premium sont-ils priorisés ?", "Oui, les fiches Business et Premium gagnent en visibilité locale."),
         ],
     },
+    "auto": {
+        "module": BusinessProfile.Module.AUTO,
+        "singular": "concessionnaire ou vendeur auto",
+        "plural": "véhicules et pièces auto",
+        "intent": "trouver un véhicule d'occasion, acheter des pièces auto ou un concessionnaire fiable",
+        "faq": [
+            ("Comment acheter un véhicule sur E-Shelle ?", "Consultez les offres auto locales ou contactez directement les vendeurs via WhatsApp."),
+            ("Puis-je vendre ma voiture ?", "Oui, enregistrez votre business auto sur la plateforme pour lister vos véhicules."),
+        ],
+    },
+    "auto-ecole": {
+        "module": BusinessProfile.Module.AUTO,
+        "singular": "auto-école",
+        "plural": "auto-écoles",
+        "intent": "trouver une auto-école, passer le permis de conduire ou suivre des cours de code de la route",
+        "faq": [
+            ("Comment s'inscrire dans une auto-école ?", "Contactez l'une des auto-écoles référencées sur la page de votre ville."),
+            ("Proposez-vous des cours théoriques ?", "Oui, découvrez les formations au code de la route disponibles sur E-Shelle."),
+        ],
+    },
+    "salons-coiffure": {
+        "module": BusinessProfile.Module.GENERAL,
+        "singular": "salon de coiffure ou beauté",
+        "plural": "salons de coiffure et beauté",
+        "intent": "trouver un salon de coiffure, faire une coiffure homme/femme, soins de beauté ou manucure",
+        "faq": [
+            ("Comment réserver dans un salon de coiffure ?", "Sélectionnez votre salon local et utilisez le contact WhatsApp direct pour réserver."),
+            ("Quels services de beauté sont listés ?", "Coiffure, esthétique, onglerie et soins du visage selon les prestataires."),
+        ],
+    },
+    "transport": {
+        "module": BusinessProfile.Module.TRANSPORT,
+        "singular": "agence de transport ou covoiturage",
+        "plural": "agences de transport et covoiturage",
+        "intent": "voyager en bus, trouver un trajet de covoiturage ou réserver un déplacement interurbain",
+        "faq": [
+            ("Comment réserver mon billet de bus ?", "Contactez directement les agences partenaires listées sur E-Shelle."),
+            ("Comment fonctionne le covoiturage ?", "Proposez ou recherchez des trajets réguliers entre les grandes villes du Cameroun."),
+        ],
+    },
 }
 
 
