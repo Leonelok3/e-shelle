@@ -244,5 +244,84 @@ def canada_news(request):
     return render(request, "jobs/canada_news.html", context)
 
 
+import threading
+import logging
+from django.core.management import call_command
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+def cron_webhook(request):
+    """
+    Webhook pour Cron-Job.org permettant de lancer l'importation et la mise à jour
+    quotidienne des opportunités d'emploi Canada et Allemagne en tâche de fond.
+    """
+    from django.http import JsonResponse
+    # Vérification sécurisée du jeton d'accès
+    secret_token = getattr(settings, "CRON_SECRET", "eshelle_secret_cron_2026")
+    token_received = request.GET.get("token")
+
+    if not token_received or token_received != secret_token:
+        return JsonResponse({"status": "error", "message": "Accès refusé. Jeton invalide."}, status=403)
+
+    def run_daily_imports_in_background():
+        logger.info("[CRON] Début du traitement en tâche de fond...")
+        
+        # 1. Canada - Offres d'emploi
+        try:
+            logger.info("[CRON] Lancement de fetch_canada_jobs...")
+            call_command("fetch_canada_jobs")
+        except Exception as e:
+            logger.error(f"[CRON] Erreur fetch_canada_jobs : {e}")
+
+        # 2. Canada - Bourses d'études
+        try:
+            logger.info("[CRON] Lancement de fetch_canada_scholarships...")
+            call_command("fetch_canada_scholarships")
+        except Exception as e:
+            logger.error(f"[CRON] Erreur fetch_canada_scholarships : {e}")
+
+        # 3. Canada - Opportunités Visiteur
+        try:
+            logger.info("[CRON] Lancement de fetch_canada_visitor_opps...")
+            call_command("fetch_canada_visitor_opps")
+        except Exception as e:
+            logger.error(f"[CRON] Erreur fetch_canada_visitor_opps : {e}")
+
+        # 4. Canada - Actualités
+        try:
+            logger.info("[CRON] Lancement de fetch_canada_news...")
+            call_command("fetch_canada_news")
+        except Exception as e:
+            logger.error(f"[CRON] Erreur fetch_canada_news : {e}")
+
+        # 5. Canada - Vérification des liens & expirations
+        try:
+            logger.info("[CRON] Lancement de verify_links_and_deadlines...")
+            call_command("verify_links_and_deadlines")
+        except Exception as e:
+            logger.error(f"[CRON] Erreur verify_links_and_deadlines : {e}")
+
+        # 6. Allemagne - Ausbildung & IA
+        try:
+            logger.info("[CRON] Lancement de fetch_ausbildung_offers...")
+            from germany_opportunities.tasks import fetch_ausbildung_offers, enrich_offers_with_ai
+            fetch_ausbildung_offers()
+            logger.info("[CRON] Lancement de enrich_offers_with_ai...")
+            enrich_offers_with_ai()
+        except Exception as e:
+            logger.error(f"[CRON] Erreur tasks Allemagne : {e}")
+
+        logger.info("[CRON] Fin de toutes les importations matinales.")
+
+    # Lancement dans un thread séparé pour répondre instantanément à Cron-Job.org et éviter un timeout
+    threading.Thread(target=run_daily_imports_in_background, daemon=True).start()
+
+    return JsonResponse({
+        "status": "success",
+        "message": "Importations quotidiennes d'opportunités (Canada et Allemagne) lancées en tâche de fond."
+    })
+
+
 
 

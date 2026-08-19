@@ -394,6 +394,7 @@ GCP_VERTEX_KEY_PATH = os.getenv("GCP_VERTEX_KEY_PATH", str(BASE_DIR / "gcp_verte
 GEMINI_SEARCH_API_KEY = os.getenv("GEMINI_SEARCH_API_KEY", "")
 GOOGLE_SITE_VERIFICATION = os.getenv("GOOGLE_SITE_VERIFICATION", "")
 GOOGLE_ANALYTICS_ID = os.getenv("GOOGLE_ANALYTICS_ID", "")
+CRON_SECRET = os.getenv("CRON_SECRET", "eshelle_secret_cron_2026")
 
 
 # Email (dev : console, prod : SMTP)
