@@ -2097,7 +2097,10 @@ def onboarding(request):
     if request.method == "POST":
         name = request.POST.get("name", "").strip()
         module = request.POST.get("module", BusinessProfile.Module.GENERAL)
+        country = request.POST.get("country", "Cameroun").strip()
         city = request.POST.get("city", "").strip()
+        if city == "Autre":
+            city = request.POST.get("city_custom", "").strip()
         district = request.POST.get("district", "").strip()
         phone = request.POST.get("phone", "").strip()
         whatsapp = request.POST.get("whatsapp", "").strip()
@@ -2115,6 +2118,7 @@ def onboarding(request):
                 owner=request.user,
                 module=module if module in dict(BusinessProfile.Module.choices) else BusinessProfile.Module.GENERAL,
                 name=name,
+                country=country,
                 city=city,
                 district=district,
                 phone=phone,

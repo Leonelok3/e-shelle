@@ -29,17 +29,38 @@
               {% endfor %}
             </select>
           </label>
-          <label class="biz-field">Ville
-            <input name="city" placeholder="Douala">
+          <label class="biz-field">Pays *
+            <select name="country" id="country-select" onchange="updateCities()">
+              <option value="Cameroun" selected>Cameroun</option>
+              <option value="Côte d'Ivoire">Côte d'Ivoire</option>
+              <option value="Sénégal">Sénégal</option>
+              <option value="Gabon">Gabon</option>
+              <option value="Congo (Brazzaville)">Congo (Brazzaville)</option>
+              <option value="Congo (RDC)">Congo (RDC)</option>
+              <option value="Bénin">Bénin</option>
+              <option value="Togo">Togo</option>
+              <option value="Burkina Faso">Burkina Faso</option>
+              <option value="Mali">Mali</option>
+              <option value="Guinée">Guinée</option>
+              <option value="Tchad">Tchad</option>
+              <option value="Niger">Niger</option>
+              <option value="Autre">Autre Pays</option>
+            </select>
+          </label>
+          <label class="biz-field">Ville *
+            <select name="city" id="city-select" onchange="checkCustomCity()">
+              <!-- Options dynamiques en JS -->
+            </select>
+            <input type="text" id="custom-city-input" name="city_custom" placeholder="Saisir la ville..." style="display:none; margin-top: 0.5rem;">
           </label>
           <label class="biz-field">Quartier
-            <input name="district" placeholder="Bonamoussadi">
+            <input name="district" placeholder="Ex: Bonamoussadi, Cocody, Médina...">
           </label>
           <label class="biz-field">Téléphone *
-            <input name="phone" required placeholder="+237 6XX XXX XXX">
+            <input name="phone" id="phone-input" required placeholder="+237 6XX XXX XXX">
           </label>
           <label class="biz-field">WhatsApp
-            <input name="whatsapp" placeholder="+237 6XX XXX XXX">
+            <input name="whatsapp" id="whatsapp-input" placeholder="+237 6XX XXX XXX">
           </label>
         </div>
 
@@ -85,4 +106,108 @@
 .biz-helper strong{color:#facc15}
 @media(max-width:700px){ form div[style*="grid-template-columns"]{grid-template-columns:1fr!important;} }
 </style>
+
+<script>
+const countryCities = {
+  "Cameroun": ["Douala", "Yaoundé", "Bafoussam", "Garoua", "Bamenda", "Maroua", "Ngaoundéré", "Kumba", "Buea", "Nkongsamba", "Limbe", "Ebolowa"],
+  "Côte d'Ivoire": ["Abidjan", "Bouaké", "Daloa", "Yamoussoukro", "San-Pédro", "Korhogo", "Man", "Divo", "Gagnoa", "Abengourou"],
+  "Sénégal": ["Dakar", "Thiès", "Kaolack", "Ziguinchor", "Saint-Louis", "Mbour", "Rufisque", "Diourbel", "Louga", "Touba"],
+  "Gabon": ["Libreville", "Port-Gentil", "Masuku (Franceville)", "Oyem", "Moanda", "Mouila", "Lambaréné"],
+  "Congo (Brazzaville)": ["Brazzaville", "Pointe-Noire", "Dolisie", "Nkayi", "Owando"],
+  "Congo (RDC)": ["Kinshasa", "Lubumbashi", "Mbuji-Mayi", "Kananga", "Kisangani", "Bukavu", "Goma", "Likasi", "Kolwezi", "Tshikapa"],
+  "Bénin": ["Cotonou", "Porto-Novo", "Parakou", "Djougou", "Bohicon", "Abomey-Calavi", "Kandi"],
+  "Togo": ["Lomé", "Sokodé", "Kara", "Kpalimé", "Atakpamé", "Bassar"],
+  "Burkina Faso": ["Ouagadougou", "Bobo-Dioulasso", "Koudougou", "Banfora", "Ouahigouya", "Kaya"],
+  "Mali": ["Bamako", "Sikasso", "Mopti", "Koutiala", "Kayes", "Ségou", "Gao"],
+  "Guinée": ["Conakry", "Nzérékoré", "Kankan", "Kindia", "Siguiri", "Labé"],
+  "Tchad": ["N'Djamena", "Moundou", "Sarh", "Abéché", "Kélo"],
+  "Niger": ["Niamey", "Zinder", "Maradi", "Tahoua", "Agadez"]
+};
+
+const countryDials = {
+  "Cameroun": "+237",
+  "Côte d'Ivoire": "+225",
+  "Sénégal": "+221",
+  "Gabon": "+241",
+  "Congo (Brazzaville)": "+242",
+  "Congo (RDC)": "+243",
+  "Bénin": "+229",
+  "Togo": "+228",
+  "Burkina Faso": "+226",
+  "Mali": "+223",
+  "Guinée": "+224",
+  "Tchad": "+235",
+  "Niger": "+227"
+};
+
+function updateCities() {
+  const countrySelect = document.getElementById("country-select");
+  const citySelect = document.getElementById("city-select");
+  const customCityInput = document.getElementById("custom-city-input");
+  const phoneInput = document.getElementById("phone-input");
+  const whatsappInput = document.getElementById("whatsapp-input");
+  
+  const selectedCountry = countrySelect.value;
+  
+  // Format dial codes
+  if (countryDials[selectedCountry]) {
+    const dial = countryDials[selectedCountry];
+    phoneInput.placeholder = dial + " XXX XXX XXX";
+    whatsappInput.placeholder = dial + " XXX XXX XXX";
+  } else {
+    phoneInput.placeholder = "+XXX XXX XXX";
+    whatsappInput.placeholder = "+XXX XXX XXX";
+  }
+
+  // Clear choices
+  citySelect.innerHTML = "";
+  
+  if (selectedCountry === "Autre" || !countryCities[selectedCountry]) {
+    customCityInput.style.display = "block";
+    customCityInput.required = true;
+    citySelect.style.display = "none";
+    
+    const opt = document.createElement("option");
+    opt.value = "Autre";
+    opt.text = "Saisie manuelle";
+    citySelect.appendChild(opt);
+  } else {
+    customCityInput.style.display = "none";
+    customCityInput.required = false;
+    customCityInput.value = "";
+    citySelect.style.display = "block";
+    
+    countryCities[selectedCountry].forEach(city => {
+      const opt = document.createElement("option");
+      opt.value = city;
+      opt.text = city;
+      citySelect.appendChild(opt);
+    });
+    
+    const optOther = document.createElement("option");
+    optOther.value = "Autre";
+    optOther.text = "Autre (Saisir...)";
+    citySelect.appendChild(optOther);
+  }
+}
+
+function checkCustomCity() {
+  const citySelect = document.getElementById("city-select");
+  const customCityInput = document.getElementById("custom-city-input");
+  
+  if (citySelect.value === "Autre") {
+    customCityInput.style.display = "block";
+    customCityInput.required = true;
+    customCityInput.focus();
+  } else {
+    customCityInput.style.display = "none";
+    customCityInput.required = false;
+    customCityInput.value = "";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  updateCities();
+});
+</script>
 {% endblock %}

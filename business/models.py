@@ -64,6 +64,7 @@ class BusinessProfile(models.Model):
         db_index=True,
         help_text="Slug public stable pour la vitrine E-Shelle, ex: /business/@ma-boutique/.",
     )
+    country = models.CharField(max_length=100, default="Cameroun", blank=True)
     city = models.CharField(max_length=100, blank=True)
     district = models.CharField(max_length=120, blank=True)
     phone = models.CharField(max_length=40, blank=True)
