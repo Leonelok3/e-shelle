@@ -9,6 +9,44 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
+<style>
+  /* Pulse Animation for Status Dots in Badges */
+  @keyframes eshLivePulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.35); opacity: 1; }
+  }
+  .esh-live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    animation: eshLivePulse 2s infinite ease-in-out;
+  }
+  /* Premium CTA Button Glow */
+  .esh-btn-premium-glow {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    transition: all 0.3s ease;
+  }
+  .esh-btn-premium-glow::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: all 0.6s ease;
+    z-index: -1;
+  }
+  .esh-btn-premium-glow:hover::before {
+    left: 100%;
+  }
+  .esh-btn-premium-glow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(125, 236, 108, 0.45) !important;
+  }
+</style>
 {# Balises GEO SEO et Indexation #}
 <meta name="geo.region" content="CM" />
 <meta name="geo.placename" content="Cameroun" />
@@ -260,24 +298,22 @@
         {% endif %}
       {% else %}
         <!-- Fallback original si aucun slide n'est configuré -->
-        <div class="esh-cta-card" style="padding: 1.6rem 2rem; max-width: 100%; border: 1px solid rgba(125,236,108,.25);">
-          <div class="esh-banner-cta">
-            <div style="flex: 2; min-width: 280px;">
-              <div class="esh-pill" style="min-height: auto; padding: 0.25rem 0.65rem; font-size: 0.68rem; margin-bottom: 0.5rem; background: rgba(125,236,108,.1); border-color: rgba(125,236,108,.3);">Référencement Booster Google</div>
-              <div class="esh-banner-text">
-                <h3 style="font-family: 'Outfit', sans-serif; font-size: clamp(1.15rem, 1.8vw, 1.45rem); font-weight: 800; color: #fff; margin: 0.4rem 0 0.3rem; line-height: 1.2;">
-                  🚀 <span class="esh-highlight-green">Boostez</span> votre <span class="esh-highlight-orange">visibilité</span> sur <span class="esh-highlight-green">Google</span> avec <span class="esh-highlight-orange">E-Shelle</span>
-                </h3>
-                <p style="color: rgba(255,255,255,0.85); font-size: 0.88rem; margin: 0; line-height: 1.45; font-family: 'Plus Jakarta Sans', sans-serif;">
-                  Laissez nos agents IA et nos optimisations de recherche propulser vos offres au sommet de <span class="esh-highlight-green">Google</span> pour capter des milliers de <span class="esh-highlight-orange">clients locaux</span>.
-                </p>
-              </div>
-            </div>
-            <div class="esh-banner-btn-container">
-              <a class="esh-btn-primary" href="/business/onboarding/" style="text-decoration: none; padding: 0.65rem 1.4rem; min-height: auto; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;">
-                Inscrire mon business →
-              </a>
-            </div>
+        <!-- Fallback original si aucun slide n'est configuré -->
+        <div class="esh-cta-card" style="padding: 2.5rem 2rem; max-width: 100%; border: 1px solid rgba(125,236,108,.25); background: linear-gradient(135deg, #07130c 0%, #030a06 100%); border-radius: 20px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); text-align: center;">
+          <div style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 30px; background: rgba(125, 236, 108, 0.08); border: 1px solid rgba(125, 236, 108, 0.2); margin-bottom: 1.25rem;">
+            <span class="esh-live-dot" style="background-color: #7dec6c; color: #7dec6c;"></span>
+            <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #7dec6c;">Référencement Booster Google</span>
+          </div>
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: clamp(1.4rem, 2.5vw, 1.85rem); font-weight: 900; color: #fff; margin: 0 auto 1rem; line-height: 1.25; max-width: 800px;">
+            🚀 Boostez votre <span style="background: linear-gradient(135deg, #7dec6c 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">visibilité sur Google</span> avec <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>
+          </h3>
+          <p style="color: rgba(255,255,255,0.85); font-size: 0.95rem; margin: 0 auto 1.8rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; max-width: 700px;">
+            Laissez nos agents IA et nos optimisations de recherche propulser vos offres au sommet de <span style="color: #7dec6c; font-weight: 700;">Google</span> pour capter des milliers de <span style="color: #f59e0b; font-weight: 700;">clients locaux</span>.
+          </p>
+          <div>
+            <a class="esh-btn-primary esh-btn-premium-glow" href="/business/onboarding/" style="text-decoration: none; padding: 0.85rem 2.2rem; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; font-weight: 700; font-size: 0.95rem; background: linear-gradient(135deg, #7dec6c 0%, #f59e0b 100%); color: #07130c; border: none; box-shadow: 0 4px 15px rgba(125,236,108,0.2);">
+              Inscrire mon business →
+            </a>
           </div>
         </div>
       {% endif %}
@@ -478,12 +514,19 @@
   {# 4. Tout l'écosystème E-Shelle tout en bas #}
   <section class="esh-section alt">
     <div class="esh-shell">
-      <div style="text-align:center;max-width:760px;margin:0 auto">
-        <div class="esh-pill">20+ applications</div>
-        <h2 class="esh-section-title">Tout l'écosystème <span style="color:var(--esh-gold)">E-Shelle</span></h2>
-        <p style="font-size: 1rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; color: #f3f4f6; margin: 1.5rem auto 0; background: #030712; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1rem 1.5rem; max-width: 680px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);">
-          Une seule plateforme, des <span style="color: #7dec6c; font-weight: 700;">applications utiles</span> pour transformer votre quotidien au <span style="color: #f59e0b; font-weight: 700;">Cameroun</span> et en <span style="color: #f59e0b; font-weight: 700;">Afrique</span>.
-        </p>
+      <div style="text-align:center;max-width:760px;margin:0 auto 3rem">
+        <div style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 30px; background: rgba(125, 236, 108, 0.08); border: 1px solid rgba(125, 236, 108, 0.2); margin-bottom: 1.25rem;">
+          <span class="esh-live-dot" style="background-color: #7dec6c; color: #7dec6c;"></span>
+          <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #7dec6c;">20+ applications</span>
+        </div>
+        <h2 class="esh-section-title" style="font-family: 'Outfit', sans-serif; font-size: clamp(2rem, 3.5vw, 2.8rem); font-weight: 900; color: #ffffff; margin-top: 0.5rem; line-height: 1.15;">
+          Tout l'écosystème <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>
+        </h2>
+        <div style="background: linear-gradient(135deg, #091322 0%, #030712 100%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 1.2rem 2rem; max-width: 680px; margin: 1.5rem auto 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);">
+          <p style="font-size: 1rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; color: #f3f4f6; margin: 0;">
+            Une seule plateforme, des <span style="color: #7dec6c; font-weight: 700;">applications utiles</span> pour transformer votre quotidien au <span style="color: #f59e0b; font-weight: 700;">Cameroun</span> et en <span style="color: #f59e0b; font-weight: 700;">Afrique</span>.
+          </p>
+        </div>
       </div>
       <div class="esh-app-grid">
         <a class="esh-app-tile" style="--app-color:#8b5cf6" href="/formations/"><span class="esh-app-icon">📚</span><strong>Formations</strong><span>IA, Marketing, Anglais</span></a>
@@ -533,9 +576,12 @@
 
     <div class="esh-shell">
       <div style="text-align: center; max-width: 800px; margin: 0 auto 3rem;">
-        <div class="esh-pill" style="background: rgba(22, 163, 74, 0.08); border-color: rgba(22, 163, 74, 0.25); color: #16a34a; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.5px; text-transform: uppercase;">Technologie SEO & Acquisition Client</div>
-        <h2 class="esh-section-title" style="font-family: 'Outfit', sans-serif; font-size: clamp(2rem, 3.5vw, 2.8rem); font-weight: 900; color: #0f172a; margin-top: 1rem; line-height: 1.15;">
-          Comment <span style="color: #d97706;">E-Shelle</span> propulse vos offres en <span style="color: #16a34a;">première page Google</span>
+        <div style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 30px; background: rgba(22, 163, 74, 0.08); border: 1px solid rgba(22, 163, 74, 0.2); margin-bottom: 1.25rem;">
+          <span class="esh-live-dot" style="background-color: #16a34a; color: #16a34a;"></span>
+          <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #16a34a;">Technologie SEO & Acquisition Client</span>
+        </div>
+        <h2 class="esh-section-title" style="font-family: 'Outfit', sans-serif; font-size: clamp(2rem, 3.5vw, 2.8rem); font-weight: 900; color: #0f172a; margin-top: 0.5rem; line-height: 1.15;">
+          Comment <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span> propulse vos offres en <span style="background: linear-gradient(135deg, #16a34a 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">première page Google</span>
         </h2>
       </div>
 
@@ -611,8 +657,13 @@
       <!-- FAQ Section for GEO / AIO Indexation -->
       <div class="esh-faq-container" style="max-width: 850px; margin: 0 auto; padding: 0 1rem; text-align: left;">
         <div style="text-align: center; margin-bottom: 3.5rem;">
-          <div class="esh-pill" style="background: rgba(217, 119, 6, 0.08); border-color: rgba(217, 119, 6, 0.25); color: #d97706; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.5px; text-transform: uppercase;">FAQ & Indexation Moteurs IA</div>
-          <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 900; color: #0f172a; margin-top: 0.8rem;">Questions Fréquentes sur E-Shelle</h2>
+          <div style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 30px; background: rgba(217, 119, 6, 0.08); border: 1px solid rgba(217, 119, 6, 0.25); margin-bottom: 1.25rem;">
+            <span class="esh-live-dot" style="background-color: #d97706; color: #d97706;"></span>
+            <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #d97706;">FAQ & Indexation Moteurs IA</span>
+          </div>
+          <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 900; color: #0f172a; margin-top: 0.5rem; line-height: 1.15;">
+            Questions Fréquentes sur <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>
+          </h2>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
