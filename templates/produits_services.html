@@ -303,25 +303,41 @@
     <div class="esh-catalog-hero">
       <div class="esh-pill" style="margin: 0 auto 1rem;">Vitrine premium</div>
       <h1 class="esh-animated-gradient-text">Découvrez nos prestataires</h1>
-      <p>Trouvez le produit ou service adapté à vos besoins parmi les meilleures vitrines du Cameroun.</p>
+      <p>Trouvez le produit ou service adapté à vos besoins parmi les meilleures vitrines d'Afrique Francophone.</p>
     </div>
 
     {# 2. Search and filter bar #}
-    <div class="esh-filter-bar">
+    <div class="esh-filter-bar" style="margin-bottom: 2rem;">
       <form class="esh-search-form" method="get" action="{% url 'products_services' %}">
         <input type="text" name="q" value="{{ search_query|default:'' }}" class="esh-search-input" placeholder="Que recherchez-vous ? (Ex: Appartement, Riz, Coiffure...)">
         {% if current_category %}
           <input type="hidden" name="categorie" value="{{ current_category }}">
         {% endif %}
+        {% if selected_country %}
+          <input type="hidden" name="pays" value="{{ selected_country }}">
+        {% endif %}
         <button type="submit" class="esh-search-btn">Rechercher</button>
       </form>
       
+      {% if available_countries %}
+      <!-- Sélecteur de pays panafricain -->
+      <div class="esh-country-pills" style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin: 1.25rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 1.25rem;">
+        <span style="color: rgba(255,255,255,0.5); font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; margin-right: 0.5rem;">🌍 Filtrer par Pays :</span>
+        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if current_category %}categorie={{ current_category }}&{% endif %}" class="esh-cat-pill {% if not selected_country %}active{% endif %}" style="font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; text-decoration: none;">Tout afficher</a>
+        {% for country in available_countries %}
+          <a href="?pays={{ country.name }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_category %}&categorie={{ current_category }}{% endif %}" class="esh-cat-pill {% if selected_country == country.name %}active{% endif %}" style="font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; text-decoration: none;">
+            {{ country.flag }} {{ country.name }}
+          </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
       <div class="esh-category-pills">
-        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}" class="esh-cat-pill {% if not current_category %}active{% endif %}">Tout afficher</a>
-        <a href="?categorie=Produit{% if search_query %}&q={{ search_query }}{% endif %}" class="esh-cat-pill {% if current_category == 'Produit' %}active{% endif %}">🛍️ Produits</a>
-        <a href="?categorie=Service{% if search_query %}&q={{ search_query }}{% endif %}" class="esh-cat-pill {% if current_category == 'Service' %}active{% endif %}">💼 Services</a>
-        <a href="?categorie=Immobilier{% if search_query %}&q={{ search_query }}{% endif %}" class="esh-cat-pill {% if current_category == 'Immobilier' %}active{% endif %}">🏢 Immobilier</a>
-        <a href="?categorie=Plat{% if search_query %}&q={{ search_query }}{% endif %}" class="esh-cat-pill {% if current_category == 'Plat' %}active{% endif %}">🍳 Plats & Restos</a>
+        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_country %}pays={{ selected_country }}&{% endif %}" class="esh-cat-pill {% if not current_category %}active{% endif %}">Tout afficher</a>
+        <a href="?categorie=Produit{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_country %}&pays={{ selected_country }}{% endif %}" class="esh-cat-pill {% if current_category == 'Produit' %}active{% endif %}">🛍️ Produits</a>
+        <a href="?categorie=Service{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_country %}&pays={{ selected_country }}{% endif %}" class="esh-cat-pill {% if current_category == 'Service' %}active{% endif %}">💼 Services</a>
+        <a href="?categorie=Immobilier{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_country %}&pays={{ selected_country }}{% endif %}" class="esh-cat-pill {% if current_category == 'Immobilier' %}active{% endif %}">🏢 Immobilier</a>
+        <a href="?categorie=Plat{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_country %}&pays={{ selected_country }}{% endif %}" class="esh-cat-pill {% if current_category == 'Plat' %}active{% endif %}">🍳 Plats & Restos</a>
       </div>
     </div>
 

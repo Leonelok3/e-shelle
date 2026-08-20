@@ -226,11 +226,46 @@ def products_services_view(request):
         from business.models import BusinessCatalogItem, BusinessProfile
         now = timezone.now()
 
-        # 1. Slider Block: Business profiles (fiches business) with their logos.
-        active_businesses = list(
+        # Récupération du paramètre de pays
+        country_filter = request.GET.get("pays") or request.GET.get("country")
+        if country_filter:
+            country_filter = country_filter.strip().title()
+
+        # Récupérer les pays actifs pour les filtres
+        active_countries = list(
             BusinessProfile.objects.filter(is_active=True)
-            .order_by("-updated_at")[:24]
+            .exclude(country="")
+            .values_list("country", flat=True)
+            .distinct()
         )
+        active_countries = [c.strip().title() for c in active_countries if c]
+        flags_map = {
+            "Cameroun": "🇨🇲",
+            "Côte D'Ivoire": "🇨🇮",
+            "Sénégal": "🇸🇳",
+            "Gabon": "🇬🇦",
+            "Congo (Brazzaville)": "🇨🇬",
+            "Congo (Rdc)": "🇨🇩",
+            "Bénin": "🇧🇯",
+            "Togo": "🇹🇬",
+            "Burkina Faso": "🇧🇫",
+            "Mali": "🇲🇱",
+            "Guinée": "🇬🇳",
+            "Tchad": "🇹🇩",
+            "Niger": "🇳🇪",
+        }
+        available_countries = []
+        for country in sorted(list(set(active_countries))):
+            available_countries.append({
+                "name": country,
+                "flag": flags_map.get(country, "🌍")
+            })
+
+        # 1. Slider Block: Business profiles (fiches business) with their logos.
+        businesses_qs = BusinessProfile.objects.filter(is_active=True)
+        if country_filter:
+            businesses_qs = businesses_qs.filter(country__iexact=country_filter)
+        active_businesses = list(businesses_qs.order_by("-updated_at")[:24])
 
         business_slides = []
         for b in active_businesses:
@@ -240,11 +275,12 @@ def products_services_view(request):
                     logo_url = b.logo.url
                 except Exception:
                     logo_url = ""
+            display_city = f"{b.city} ({b.country})" if b.city and b.country and b.country != "Cameroun" else (b.city or b.country or "Cameroun")
             business_slides.append({
                 "name": b.name,
                 "logo": logo_url,
                 "initial": b.name[:1].upper() if b.name else "B",
-                "city": b.city or "Cameroun",
+                "city": display_city,
                 "district": b.district or "Proche",
                 "url": b.get_absolute_url(),
                 "tag": b.get_module_display(),
@@ -252,30 +288,35 @@ def products_services_view(request):
             })
 
         # 2. Products Block: Individual products/services added by businesses.
-        recent_catalog_items = list(
-            BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True)
-            .select_related("business")
-            .order_by("-created_at")
-        )
-        try:
-            from immobilier_cameroun.models import Bien, StatutBien
-            recent_immo_items = list(
-                Bien.objects.filter(statut=StatutBien.PUBLIE)
-                .filter(Q(est_mis_en_avant=True) | Q(est_coup_de_coeur=True))
-                .prefetch_related("photos")
-                .order_by("-date_publication", "-updated_at")
-            )
-        except Exception:
-            recent_immo_items = []
-        try:
-            from resto.models import Dish
-            recent_dishes = list(
-                Dish.objects.filter(is_active=True, restaurant__is_approved=True, restaurant__is_active=True)
-                .select_related("restaurant", "restaurant__city", "restaurant__neighborhood")
-                .order_by("-id")[:30]
-            )
-        except Exception:
-            recent_dishes = []
+        catalog_items_qs = BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True)
+        if country_filter:
+            catalog_items_qs = catalog_items_qs.filter(business__country__iexact=country_filter)
+        recent_catalog_items = list(catalog_items_qs.select_related("business").order_by("-created_at"))
+
+        recent_immo_items = []
+        if not country_filter or country_filter == "Cameroun":
+            try:
+                from immobilier_cameroun.models import Bien, StatutBien
+                recent_immo_items = list(
+                    Bien.objects.filter(statut=StatutBien.PUBLIE)
+                    .filter(Q(est_mis_en_avant=True) | Q(est_coup_de_coeur=True))
+                    .prefetch_related("photos")
+                    .order_by("-date_publication", "-updated_at")
+                )
+            except Exception:
+                recent_immo_items = []
+
+        recent_dishes = []
+        if not country_filter or country_filter == "Cameroun":
+            try:
+                from resto.models import Dish
+                recent_dishes = list(
+                    Dish.objects.filter(is_active=True, restaurant__is_approved=True, restaurant__is_active=True)
+                    .select_related("restaurant", "restaurant__city", "restaurant__neighborhood")
+                    .order_by("-id")[:30]
+                )
+            except Exception:
+                recent_dishes = []
 
         premium_showcase_items = []
         for item in recent_catalog_items:
@@ -391,12 +432,16 @@ def products_services_view(request):
         ctx["premium_showcase_items"] = paginated_items
         ctx["current_category"] = cat_filter or ""
         ctx["search_query"] = search_query or ""
+        ctx["available_countries"] = available_countries
+        ctx["selected_country"] = country_filter or ""
     except Exception as e:
         ctx["business_slides"] = []
         ctx["business_slides_dup"] = []
         ctx["premium_showcase_items"] = []
         ctx["current_category"] = ""
         ctx["search_query"] = ""
+        ctx["available_countries"] = []
+        ctx["selected_country"] = ""
 
     return render(request, "produits_services.html", ctx)
 
