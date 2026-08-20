@@ -234,18 +234,38 @@ def _available_cities():
             continue
         country = row.get("country") or "Cameroun"
         country = country.strip().title()
-        slug = slugify(name)
-        if slug in cities_map:
-            cities_map[slug]["total"] += row["total"]
+        
+        # Clé unique combinant ville et pays pour éviter les doublons inter-pays
+        key = f"{slugify(name)}-{slugify(country)}"
+        if key in cities_map:
+            cities_map[key]["total"] += row["total"]
         else:
-            cities_map[slug] = {
+            cities_map[key] = {
                 "name": name,
-                "slug": slug,
+                "slug": slugify(name),
                 "country": country,
                 "total": row["total"]
             }
-    # Trier par total décroissant, puis par ordre alphabétique
-    return sorted(cities_map.values(), key=lambda x: (-x["total"], x["name"]))
+            
+    # Regrouper les villes par pays
+    by_country = {}
+    for city_info in cities_map.values():
+        c = city_info["country"]
+        if c not in by_country:
+            by_country[c] = []
+        by_country[c].append(city_info)
+        
+    # Trier les villes par total décroissant au sein de chaque pays
+    for c in by_country:
+        by_country[c] = sorted(by_country[c], key=lambda x: -x["total"])
+        
+    # Sélectionner au maximum 2 villes par pays
+    diverse_cities = []
+    for c in by_country:
+        diverse_cities.extend(by_country[c][:2])
+        
+    # Trier la liste finale par nombre total de fiches
+    return sorted(diverse_cities, key=lambda x: (-x["total"], x["name"]))
 
 
 def _city_name_from_slug(city_slug):
