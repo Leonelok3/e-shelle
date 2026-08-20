@@ -1235,3 +1235,23 @@ class AppPromotionSlide(models.Model):
     def __str__(self):
         return self.title
 
+
+class PartnerLogo(models.Model):
+    """Partenaire à afficher dans le défilement de la page d'accueil."""
+
+    name = models.CharField(max_length=100, verbose_name="Nom du partenaire")
+    logo = models.ImageField(upload_to="business/partners/", verbose_name="Logo du partenaire")
+    website_url = models.URLField(max_length=250, blank=True, verbose_name="Lien du site (optionnel)")
+    is_active = models.BooleanField(default=True, verbose_name="Actif")
+    order = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["order", "-created_at"]
+        verbose_name = "Partenaire E-Shelle"
+        verbose_name_plural = "Partenaires E-Shelle"
+
+    def __str__(self):
+        return self.name
+
+

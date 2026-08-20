@@ -764,8 +764,81 @@
           box-shadow: 0 20px 40px rgba(59, 130, 246, 0.08) !important;
         }
       </style>
+  </section>
+
+  <!-- Section Partenaires & Marques -->
+  <section class="esh-section esh-partners-section" style="padding: 3.5rem 0; background: #050a15; border-top: 1px solid rgba(255, 255, 255, 0.03); border-bottom: 1px solid rgba(255, 255, 255, 0.03); position: relative; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif;">
+    <div class="esh-shell" style="text-align: center;">
+      <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.75rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.8px; color: #64748b; margin: 0 0 1.8rem;">
+        Ils nous font confiance &amp; propulsent notre écosystème
+      </h3>
+      
+      <div class="esh-partners-wrapper" style="overflow: hidden; white-space: nowrap; width: 100%; position: relative;">
+        <!-- Overlays de dégradé pour adoucir les bords -->
+        <div style="position: absolute; top: 0; left: 0; bottom: 0; width: 150px; background: linear-gradient(to right, #050a15 0%, transparent 100%); z-index: 2; pointer-events: none;"></div>
+        <div style="position: absolute; top: 0; right: 0; bottom: 0; width: 150px; background: linear-gradient(to left, #050a15 0%, transparent 100%); z-index: 2; pointer-events: none;"></div>
+
+        <div class="esh-partners-track">
+          {% if partners %}
+            <!-- Premier passage pour le défilement -->
+            {% for partner in partners %}
+              <a {% if partner.website_url %}href="{{ partner.website_url }}" target="_blank"{% endif %} style="display: inline-flex; align-items: center; justify-content: center; opacity: 0.5; transition: all 0.3s; filter: grayscale(1) brightness(1.8); text-decoration: none;">
+                <img src="{{ partner.logo.url }}" alt="{{ partner.name }}" style="height: 34px; width: auto; max-width: 140px; object-fit: contain;" onmouseover="this.parentElement.style.opacity='1'; this.style.filter='none';" onmouseout="this.parentElement.style.opacity='0.5'; this.style.filter='grayscale(1) brightness(1.8)';" />
+              </a>
+            {% endfor %}
+            <!-- Second passage pour le raccord parfait -->
+            {% for partner in partners %}
+              <a {% if partner.website_url %}href="{{ partner.website_url }}" target="_blank"{% endif %} style="display: inline-flex; align-items: center; justify-content: center; opacity: 0.5; transition: all 0.3s; filter: grayscale(1) brightness(1.8); text-decoration: none;">
+                <img src="{{ partner.logo.url }}" alt="{{ partner.name }}" style="height: 34px; width: auto; max-width: 140px; object-fit: contain;" onmouseover="this.parentElement.style.opacity='1'; this.style.filter='none';" onmouseout="this.parentElement.style.opacity='0.5'; this.style.filter='grayscale(1) brightness(1.8)';" />
+              </a>
+            {% endfor %}
+          {% else %}
+            <!-- Logos factices premium de démonstration -->
+            {% for i in "12" %}
+              <div style="display: inline-flex; align-items: center; gap: 8px; color: #475569; font-size: 1.1rem; font-weight: 800; opacity: 0.45; letter-spacing: 1px; margin-right: 2rem; user-select: none;">
+                <span style="font-size: 1.4rem;">▲</span> VERCEL
+              </div>
+              <div style="display: inline-flex; align-items: center; gap: 8px; color: #475569; font-size: 1.1rem; font-weight: 800; opacity: 0.45; letter-spacing: 1px; margin-right: 2rem; user-select: none;">
+                <span style="font-size: 1.4rem;">⚡</span> GOOGLE CLOUD
+              </div>
+              <div style="display: inline-flex; align-items: center; gap: 8px; color: #475569; font-size: 1.1rem; font-weight: 800; opacity: 0.45; letter-spacing: 1px; margin-right: 2rem; user-select: none;">
+                <span style="font-size: 1.4rem;">💳</span> STRIPE
+              </div>
+              <div style="display: inline-flex; align-items: center; gap: 8px; color: #475569; font-size: 1.1rem; font-weight: 800; opacity: 0.45; letter-spacing: 1px; margin-right: 2rem; user-select: none;">
+                <span style="font-size: 1.4rem;">🐘</span> NEON DB
+              </div>
+              <div style="display: inline-flex; align-items: center; gap: 8px; color: #475569; font-size: 1.1rem; font-weight: 800; opacity: 0.45; letter-spacing: 1px; margin-right: 2rem; user-select: none;">
+                <span style="font-size: 1.4rem;">💬</span> WHATSAPP API
+              </div>
+              <div style="display: inline-flex; align-items: center; gap: 8px; color: #475569; font-size: 1.1rem; font-weight: 800; opacity: 0.45; letter-spacing: 1px; margin-right: 2rem; user-select: none;">
+                <span style="font-size: 1.4rem;">☁️</span> CLOUDINARY
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
     </div>
   </section>
+
+  <style>
+    @keyframes marquee-left-to-right {
+      0% {
+        transform: translateX(-50%);
+      }
+      100% {
+        transform: translateX(0);
+      }
+    }
+    .esh-partners-track {
+      display: inline-flex;
+      animation: marquee-left-to-right 28s linear infinite;
+      gap: 5rem;
+      align-items: center;
+    }
+    .esh-partners-track:hover {
+      animation-play-state: paused;
+    }
+  </style>
 
   <!-- Section FAQ sur fond sombre de E-Shelle -->
   <section class="esh-section" style="background: #030712; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 5.5rem 0; position: relative; overflow: hidden;">

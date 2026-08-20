@@ -135,6 +135,11 @@ def home_view(request):
         ctx["premium_showcase_items"] = paginated_items
         ctx["home_ad_slides"] = merged_slides[:10]
         ctx["app_promo_slides"] = list(AppPromotionSlide.objects.filter(is_active=True).order_by("order", "-created_at"))
+        try:
+            from business.models import PartnerLogo
+            ctx["partners"] = list(PartnerLogo.objects.filter(is_active=True).order_by("order", "-created_at"))
+        except Exception:
+            ctx["partners"] = []
         ctx["hero_businesses"] = [item for item in premium_businesses if item.promo_image][:6] or premium_businesses[:6]
         try:
             from business.seo_geo import _available_cities, SEO_SERVICE_MAP

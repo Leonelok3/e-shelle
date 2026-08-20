@@ -27,6 +27,7 @@ from .models import (
     ProviderPlan,
     UnmetSearchRequest,
     UnmetSearchResponse,
+    PartnerLogo,
 )
 
 
@@ -470,4 +471,23 @@ class AppPromotionSlideAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="width:100px;height:33px;object-fit:cover;border-radius:4px" />', obj.image.url)
         except Exception:
             return "-"
+
+
+@admin.register(PartnerLogo)
+class PartnerLogoAdmin(admin.ModelAdmin):
+    list_display = ("preview", "name", "website_url", "order", "is_active", "created_at")
+    list_filter = ("is_active", "created_at")
+    search_fields = ("name", "website_url")
+    list_editable = ("order", "is_active")
+    readonly_fields = ("preview", "created_at")
+
+    @admin.display(description="Aperçu")
+    def preview(self, obj):
+        if not obj.logo:
+            return "-"
+        try:
+            return format_html('<img src="{}" style="height:32px;width:auto;object-fit:contain;border-radius:4px" />', obj.logo.url)
+        except Exception:
+            return "-"
+
 
