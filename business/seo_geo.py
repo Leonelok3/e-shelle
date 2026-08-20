@@ -220,7 +220,7 @@ def _available_cities():
     rows = (
         BusinessProfile.objects.filter(is_active=True)
         .exclude(city="")
-        .values("city")
+        .values("city", "country")
         .annotate(total=Count("id"))
     )
     cities_map = {}
@@ -232,6 +232,8 @@ def _available_cities():
         name = name.title()
         if not name:
             continue
+        country = row.get("country") or "Cameroun"
+        country = country.strip().title()
         slug = slugify(name)
         if slug in cities_map:
             cities_map[slug]["total"] += row["total"]
@@ -239,6 +241,7 @@ def _available_cities():
             cities_map[slug] = {
                 "name": name,
                 "slug": slug,
+                "country": country,
                 "total": row["total"]
             }
     # Trier par total décroissant, puis par ordre alphabétique
