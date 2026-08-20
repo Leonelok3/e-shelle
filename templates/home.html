@@ -46,6 +46,25 @@
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(125, 236, 108, 0.45) !important;
   }
+  /* Split grid for merged CTA & services */
+  .esh-tech-split-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 2fr;
+    gap: 2.5rem;
+    margin-bottom: 4rem;
+    align-items: stretch;
+  }
+  .esh-services-subgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.75rem;
+  }
+  @media (max-width: 1024px) {
+    .esh-tech-split-grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
 </style>
 {# Balises GEO SEO et Indexation #}
 <meta name="geo.region" content="CM" />
@@ -123,9 +142,9 @@
   </section>
 
   <!-- CTA Booster Google Spot 1 / Slider Promotionnel E-Shelle -->
+  {% if app_promo_slides %}
   <section style="padding: 2.2rem 0 1.2rem; background: transparent; position: relative; z-index: 10;">
     <div class="esh-shell">
-      {% if app_promo_slides %}
         <div class="esh-promo-slider-container" style="position: relative; width: 100%; border-radius: 16px; overflow: hidden; background: #07130c; border: 1px solid rgba(125,236,108,0.22); box-shadow: 0 16px 45px rgba(0,0,0,0.4);">
           <!-- Slide Track -->
           <div class="esh-promo-slides-wrapper" style="position: relative; width: 100%; aspect-ratio: 3/1; min-height: 240px; overflow: hidden;">
@@ -296,29 +315,9 @@
             });
           </script>
         {% endif %}
-      {% else %}
-        <!-- Fallback original si aucun slide n'est configuré -->
-        <!-- Fallback original si aucun slide n'est configuré -->
-        <div class="esh-cta-card" style="padding: 2.5rem 2rem; max-width: 100%; border: 1px solid rgba(125,236,108,.25); background: linear-gradient(135deg, #07130c 0%, #030a06 100%); border-radius: 20px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); text-align: center;">
-          <div style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 30px; background: rgba(125, 236, 108, 0.08); border: 1px solid rgba(125, 236, 108, 0.2); margin-bottom: 1.25rem;">
-            <span class="esh-live-dot" style="background-color: #7dec6c; color: #7dec6c;"></span>
-            <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #7dec6c;">Référencement Booster Google</span>
-          </div>
-          <h3 style="font-family: 'Outfit', sans-serif; font-size: clamp(1.4rem, 2.5vw, 1.85rem); font-weight: 900; color: #fff; margin: 0 auto 1rem; line-height: 1.25; max-width: 800px;">
-            🚀 Boostez votre <span style="background: linear-gradient(135deg, #7dec6c 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">visibilité sur Google</span> avec <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>
-          </h3>
-          <p style="color: rgba(255,255,255,0.85); font-size: 0.95rem; margin: 0 auto 1.8rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; max-width: 700px;">
-            Laissez nos agents IA et nos optimisations de recherche propulser vos offres au sommet de <span style="color: #7dec6c; font-weight: 700;">Google</span> pour capter des milliers de <span style="color: #f59e0b; font-weight: 700;">clients locaux</span>.
-          </p>
-          <div>
-            <a class="esh-btn-primary esh-btn-premium-glow" href="/business/onboarding/" style="text-decoration: none; padding: 0.85rem 2.2rem; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; font-weight: 700; font-size: 0.95rem; background: linear-gradient(135deg, #7dec6c 0%, #f59e0b 100%); color: #07130c; border: none; box-shadow: 0 4px 15px rgba(125,236,108,0.2);">
-              Inscrire mon business →
-            </a>
-          </div>
-        </div>
-      {% endif %}
     </div>
   </section>
+  {% endif %}
 
   {# 2. Zone publicitaire / Affiches sponsorisées #}
   {% if home_ad_slides %}
@@ -384,62 +383,99 @@
         </p>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-bottom: 4rem;">
+      <div class="esh-tech-split-grid">
         
-        <!-- Carte 1: Création de Sites Web -->
-        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 2.2rem; display: flex; flex-direction: column; gap: 1.2rem; transition: transform 0.3s ease, border-color 0.3s ease;" 
-             onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='rgba(125, 236, 108, 0.3)'; this.style.background='rgba(255,255,255,0.03)';" 
-             onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.06)'; this.style.background='rgba(255, 255, 255, 0.02)';">
-          <div style="width: 50px; height: 50px; background: rgba(59, 130, 246, 0.1); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">🌐</div>
-          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; font-weight: 800; color: #ffffff; margin: 0;">Création de Sites Web & E-Commerce</h3>
-          <p style="color: #94a3b8; font-size: 0.92rem; line-height: 1.6; margin: 0;">
-            Conception de sites vitrines, landing pages et boutiques e-commerce ultra-rapides, adaptés aux mobiles et entièrement optimisés pour le référencement naturel Google.
+        <!-- Carte Highlights: Référencement Booster Google -->
+        <div style="background: linear-gradient(135deg, #092211 0%, #030d06 100%); border: 1px solid rgba(125,236,108,0.22); border-radius: 24px; padding: 2.5rem 2.2rem; display: flex; flex-direction: column; gap: 1.5rem; box-shadow: 0 15px 35px rgba(0,0,0,0.3); transition: all 0.3s ease; position: relative; overflow: hidden;"
+             onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='rgba(125, 236, 108, 0.45)';" 
+             onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(125,236,108,0.22)';">
+          <!-- Ambient overlay glow -->
+          <div style="position: absolute; bottom: -20%; right: -20%; width: 180px; height: 180px; background: radial-gradient(circle, rgba(125, 236, 108, 0.08) 0%, transparent 70%); pointer-events: none;"></div>
+
+          <div style="display: inline-flex; align-items: center; align-self: flex-start; padding: 6px 14px; border-radius: 30px; background: rgba(125, 236, 108, 0.08); border: 1px solid rgba(125, 236, 108, 0.2);">
+            <span class="esh-live-dot" style="background-color: #7dec6c; color: #7dec6c;"></span>
+            <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #7dec6c;">Référencement Booster Google</span>
+          </div>
+
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 900; color: #ffffff; margin: 0; line-height: 1.25;">
+            🚀 Boostez votre <span style="background: linear-gradient(135deg, #7dec6c 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">visibilité sur Google</span> avec E-Shelle
+          </h3>
+
+          <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.65; margin: 0;">
+            Inscrivez votre commerce local ou service en moins de 2 minutes. Notre robot d'indexation et nos agents IA propulsent automatiquement vos offres au sommet de <span style="color: #7dec6c; font-weight: 700;">Google</span> pour vous connecter directement à des milliers de clients locaux.
           </p>
-          <div style="margin-top: auto; font-size: 0.82rem; font-weight: 700; color: #3b82f6; display: flex; align-items: center; gap: 6px;">
-            <span>SaaS · Vitrines · E-Shops</span>
+
+          <div style="margin-top: auto; padding-top: 1rem;">
+            <a class="esh-btn-primary esh-btn-premium-glow" href="/business/onboarding/" 
+               style="text-decoration: none; padding: 0.9rem 2rem; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; font-weight: 700; font-size: 0.95rem; background: linear-gradient(135deg, #7dec6c 0%, #f59e0b 100%); color: #07130c; border: none; width: 100%; box-shadow: 0 4px 15px rgba(125,236,108,0.2);">
+              Inscrire mon business →
+            </a>
           </div>
         </div>
 
-        <!-- Carte 2: Intégration Agents IA -->
-        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 2.2rem; display: flex; flex-direction: column; gap: 1.2rem; transition: transform 0.3s ease, border-color 0.3s ease;" 
-             onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='rgba(125, 236, 108, 0.3)'; this.style.background='rgba(255,255,255,0.03)';" 
-             onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.06)'; this.style.background='rgba(255, 255, 255, 0.02)';">
-          <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.1); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">🤖</div>
-          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; font-weight: 800; color: #ffffff; margin: 0;">Intégration d'Agents IA sur-mesure</h3>
-          <p style="color: #94a3b8; font-size: 0.92rem; line-height: 1.6; margin: 0;">
-            Automatisez votre relation client 24h/24. Nos agents conversationnels intelligents répondent à vos prospects, guident les achats et s'intègrent directement sur votre site et WhatsApp.
-          </p>
-          <div style="margin-top: auto; font-size: 0.82rem; font-weight: 700; color: #10b981; display: flex; align-items: center; gap: 6px;">
-            <span>Chatbots · GPTs · WhatsApp Business</span>
+        <!-- Grille des 4 solutions sur-mesure (Droite) -->
+        <div class="esh-services-subgrid">
+          
+          <!-- Carte 1: Création de Sites Web -->
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 1.8rem; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.3s ease, border-color 0.3s ease;" 
+               onmouseover="this.style.transform='translateY(-5px)'; this.style.borderColor='rgba(59, 130, 246, 0.35)'; this.style.background='rgba(255,255,255,0.03)';" 
+               onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.06)'; this.style.background='rgba(255, 255, 255, 0.02)';"
+               title="Création de sites web sur-mesure">
+            <div style="width: 48px; height: 48px; background: rgba(59, 130, 246, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🌐</div>
+            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0;">Création de Sites Web & E-Commerce</h4>
+            <p style="color: #94a3b8; font-size: 0.88rem; line-height: 1.55; margin: 0;">
+              Conception de sites vitrines, landing pages et e-shops ultra-rapides, adaptés mobiles et 100% optimisés pour le référencement Google.
+            </p>
+            <div style="margin-top: auto; font-size: 0.78rem; font-weight: 700; color: #3b82f6;">
+              SaaS · Vitrines · E-Shops
+            </div>
           </div>
-        </div>
 
-        <!-- Carte 3: Automatisation de Business -->
-        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 2.2rem; display: flex; flex-direction: column; gap: 1.2rem; transition: transform 0.3s ease, border-color 0.3s ease;" 
-             onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='rgba(125, 236, 108, 0.3)'; this.style.background='rgba(255,255,255,0.03)';" 
-             onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.06)'; this.style.background='rgba(255, 255, 255, 0.02)';">
-          <div style="width: 50px; height: 50px; background: rgba(245, 158, 11, 0.1); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">⚡</div>
-          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; font-weight: 800; color: #ffffff; margin: 0;">Automatisation & Gain de Productivité</h3>
-          <p style="color: #94a3b8; font-size: 0.92rem; line-height: 1.6; margin: 0;">
-            Connectez vos outils métiers et éliminez les tâches répétitives. Synchronisation automatique des stocks, envois de mails transactionnels et facturation automatisée.
-          </p>
-          <div style="margin-top: auto; font-size: 0.82rem; font-weight: 700; color: #f59e0b; display: flex; align-items: center; gap: 6px;">
-            <span>Workflows · API Connecteurs · CRM</span>
+          <!-- Carte 2: Intégration Agents IA -->
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 1.8rem; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.3s ease, border-color 0.3s ease;" 
+               onmouseover="this.style.transform='translateY(-5px)'; this.style.borderColor='rgba(16, 185, 129, 0.35)'; this.style.background='rgba(255,255,255,0.03)';" 
+               onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.06)'; this.style.background='rgba(255, 255, 255, 0.02)';"
+               title="Intégration d'agents IA">
+            <div style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🤖</div>
+            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0;">Intégration d'Agents IA sur-mesure</h4>
+            <p style="color: #94a3b8; font-size: 0.88rem; line-height: 1.55; margin: 0;">
+              Automatisez votre relation client 24h/24. Nos agents IA répondent à vos prospects et s'intègrent directement sur votre site et WhatsApp.
+            </p>
+            <div style="margin-top: auto; font-size: 0.78rem; font-weight: 700; color: #10b981;">
+              Chatbots · GPTs · WhatsApp IA
+            </div>
           </div>
-        </div>
 
-        <!-- Carte 4: Formations Professionnelles -->
-        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 2.2rem; display: flex; flex-direction: column; gap: 1.2rem; transition: transform 0.3s ease, border-color 0.3s ease;" 
-             onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='rgba(125, 236, 108, 0.3)'; this.style.background='rgba(255,255,255,0.03)';" 
-             onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.06)'; this.style.background='rgba(255, 255, 255, 0.02)';">
-          <div style="width: 50px; height: 50px; background: rgba(139, 92, 246, 0.1); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">🎓</div>
-          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; font-weight: 800; color: #ffffff; margin: 0;">Formations en Ligne & Accompagnement</h3>
-          <p style="color: #94a3b8; font-size: 0.92rem; line-height: 1.6; margin: 0;">
-            Apprenez à maîtriser les outils d'IA (Prompt Engineering, automatisation) et le développement pour propulser votre carrière. Des cours certifiants adaptés au marché actuel.
-          </p>
-          <div style="margin-top: auto; font-size: 0.82rem; font-weight: 700; color: #8b5cf6; display: flex; align-items: center; gap: 6px;">
-            <span>Intelligence Artificielle · No-code · Dev</span>
+          <!-- Carte 3: Automatisation de Business -->
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 1.8rem; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.3s ease, border-color 0.3s ease;" 
+               onmouseover="this.style.transform='translateY(-5px)'; this.style.borderColor='rgba(245, 158, 11, 0.35)'; this.style.background='rgba(255,255,255,0.03)';" 
+               onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.06)'; this.style.background='rgba(255, 255, 255, 0.02)';"
+               title="Automatisation de processus">
+            <div style="width: 48px; height: 48px; background: rgba(245, 158, 11, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">⚡</div>
+            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0;">Automatisation & Productivité</h4>
+            <p style="color: #94a3b8; font-size: 0.88rem; line-height: 1.55; margin: 0;">
+              Éliminez les tâches répétitives. Synchronisation de stocks, facturation automatisée et envois de mails transactionnels.
+            </p>
+            <div style="margin-top: auto; font-size: 0.78rem; font-weight: 700; color: #f59e0b;">
+              Workflows · APIs · CRM
+            </div>
           </div>
+
+          <!-- Carte 4: Formations Professionnelles -->
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 1.8rem; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.3s ease, border-color 0.3s ease;" 
+               onmouseover="this.style.transform='translateY(-5px)'; this.style.borderColor='rgba(139, 92, 246, 0.35)'; this.style.background='rgba(255,255,255,0.03)';" 
+               onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.06)'; this.style.background='rgba(255, 255, 255, 0.02)';"
+               title="Formations IA et No-code">
+            <div style="width: 48px; height: 48px; background: rgba(139, 92, 246, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🎓</div>
+            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0;">Formations en Ligne & Académie</h4>
+            <p style="color: #94a3b8; font-size: 0.88rem; line-height: 1.55; margin: 0;">
+              Maîtrisez les outils d'IA (Prompt Engineering, automatisation) et le code pour propulser votre carrière avec nos cours certifiants.
+            </p>
+            <div style="margin-top: auto; font-size: 0.78rem; font-weight: 700; color: #8b5cf6;">
+              Intelligence Artificielle · No-code · Dev
+            </div>
+          </div>
+
         </div>
 
       </div>
