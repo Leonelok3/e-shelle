@@ -10,7 +10,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from google.genai import types
 from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
-from ai_engine.services.openai_adapter import call_openai, call_openai_json, search_duckduckgo
+from ai_engine.services.openai_adapter import call_openai, call_openai_json, call_openai_web, search_duckduckgo
 from jobs.models import CanadaJobOffer
 
 logger = logging.getLogger(__name__)
@@ -141,18 +141,23 @@ class Command(BaseCommand):
 
         try:
             if use_openai:
-                self.stdout.write("OpenAI actif. Recherche web via DuckDuckGo puis extraction IA...")
-                ddg_results = search_duckduckgo("site:jobbank.gc.ca jobposting LMIA Canada foreign workers", max_results=12)
-                if not ddg_results:
-                    ddg_results = search_duckduckgo("site:guichetemplois.gc.ca offre emploi EIMT travailleurs étrangers Canada", max_results=12)
-                if not ddg_results:
-                    self.stderr.write("Aucun résultat DuckDuckGo exploitable.")
-                    return
-                search_results = call_openai(
-                    "Tu es un analyste emploi Canada. Analyse les résultats web fournis et conserve uniquement les offres Job Bank/Guichet Emplois utiles.",
-                    f"{search_prompt}\n\nRésultats web:\n{ddg_results}",
-                    temperature=0.2,
-                )
+                self.stdout.write("OpenAI actif. Recherche web OpenAI puis extraction IA...")
+                try:
+                    search_results = call_openai_web(
+                        "Tu es un analyste emploi Canada. Utilise le web et privilégie les sources officielles Job Bank / Guichet Emplois.",
+                        search_prompt,
+                    )
+                except Exception as web_error:
+                    logger.warning("OpenAI web search indisponible: %s", web_error)
+                    ddg_results = search_duckduckgo("site:jobbank.gc.ca jobposting LMIA Canada foreign workers", max_results=12)
+                    if not ddg_results:
+                        ddg_results = search_duckduckgo("site:guichetemplois.gc.ca offre emploi EIMT travailleurs étrangers Canada", max_results=12)
+                    search_results = ddg_results or (
+                        "Source officielle principale: https://www.jobbank.gc.ca/landing-tfw-international.xhtml\n"
+                        "Cette page Job Bank regroupe les offres d'employeurs canadiens ayant obtenu ou demandé une LMIA/EIMT "
+                        "et souhaitant recruter des travailleurs étrangers temporaires. Ne crée pas de fausses offres; "
+                        "si tu ne peux pas identifier d'offres précises, retourne une liste JSON vide."
+                    )
             else:
                 try:
                     response_search = _generate_content_with_retry(

@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from google.genai import types
 from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
-from ai_engine.services.openai_adapter import call_openai, call_openai_json, search_duckduckgo
+from ai_engine.services.openai_adapter import call_openai, call_openai_json, call_openai_web, search_duckduckgo
 from jobs.models import CanadaScholarship
 
 logger = logging.getLogger(__name__)
@@ -111,18 +111,22 @@ class Command(BaseCommand):
 
         try:
             if use_openai:
-                self.stdout.write("OpenAI actif. Recherche web via DuckDuckGo puis extraction IA...")
-                ddg_results = search_duckduckgo("site:educanada.ca scholarships international students Canada 2026 2027", max_results=12)
-                if not ddg_results:
-                    ddg_results = search_duckduckgo("site:canada.ca bourses étudiants internationaux Canada 2026", max_results=12)
-                if not ddg_results:
-                    self.stderr.write("Aucun résultat DuckDuckGo exploitable.")
-                    return
-                search_results = call_openai(
-                    "Tu es un analyste de bourses canadiennes. Analyse les résultats web fournis et conserve uniquement les bourses officielles plausibles.",
-                    f"{search_prompt}\n\nRésultats web:\n{ddg_results}",
-                    temperature=0.2,
-                )
+                self.stdout.write("OpenAI actif. Recherche web OpenAI puis extraction IA...")
+                try:
+                    search_results = call_openai_web(
+                        "Tu es un analyste de bourses canadiennes. Utilise le web et privilégie EduCanada, Canada.ca et les universités officielles.",
+                        search_prompt,
+                    )
+                except Exception as web_error:
+                    logger.warning("OpenAI web search indisponible: %s", web_error)
+                    ddg_results = search_duckduckgo("site:educanada.ca scholarships international students Canada 2026 2027", max_results=12)
+                    if not ddg_results:
+                        ddg_results = search_duckduckgo("site:canada.ca bourses étudiants internationaux Canada 2026", max_results=12)
+                    search_results = ddg_results or (
+                        "Sources officielles: https://www.educanada.ca/scholarships-bourses/non_can/index.aspx?lang=eng\n"
+                        "https://www.educanada.ca/scholarships-bourses/app/apply-scholarships-postuler-bourses.aspx?lang=eng\n"
+                        "Si aucune bourse précise active n'est identifiable, retourne une liste JSON vide."
+                    )
             else:
                 response_search = _generate_content_with_retry(
                     client=client,

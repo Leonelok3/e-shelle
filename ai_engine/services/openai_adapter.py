@@ -58,6 +58,23 @@ def call_openai_json(system_prompt: str, user_prompt: str, *, temperature: float
         return json.loads(text[start:end + 1])
 
 
+def call_openai_web(system_prompt: str, user_prompt: str, *, search_context_size: str = "medium") -> str:
+    client = _client()
+    if not client:
+        raise RuntimeError("OPENAI_API_KEY n'est pas configurée.")
+
+    model = getattr(settings, "OPENAI_SEARCH_MODEL", "") or getattr(settings, "OPENAI_CHAT_MODEL", "gpt-4o")
+    response = client.responses.create(
+        model=model,
+        tools=[{"type": "web_search_preview", "search_context_size": search_context_size}],
+        input=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+    )
+    return (getattr(response, "output_text", "") or "").strip()
+
+
 def search_duckduckgo(query: str, max_results: int = 10) -> str:
     """
     Recherche web légère sans API payante, utilisée quand Gemini Search Grounding

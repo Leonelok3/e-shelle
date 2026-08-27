@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from google.genai import types
 from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
-from ai_engine.services.openai_adapter import call_openai, call_openai_json, search_duckduckgo
+from ai_engine.services.openai_adapter import call_openai, call_openai_json, call_openai_web, search_duckduckgo
 from jobs.models import CanadaNews
 
 logger = logging.getLogger(__name__)
@@ -114,18 +114,22 @@ class Command(BaseCommand):
 
         try:
             if use_openai:
-                self.stdout.write("OpenAI actif. Recherche web via DuckDuckGo puis extraction IA...")
-                ddg_results = search_duckduckgo("site:canada.ca IRCC Express Entry draw immigration Canada 2026", max_results=12)
-                if not ddg_results:
-                    ddg_results = search_duckduckgo("site:quebec.ca Arrima tirage immigration Quebec 2026", max_results=12)
-                if not ddg_results:
-                    self.stderr.write("Aucun résultat DuckDuckGo exploitable.")
-                    return
-                search_results = call_openai(
-                    "Tu es un analyste d'actualités immigration Canada. Analyse les résultats web fournis et conserve les informations officielles ou fiables.",
-                    f"{search_prompt}\n\nRésultats web:\n{ddg_results}",
-                    temperature=0.2,
-                )
+                self.stdout.write("OpenAI actif. Recherche web OpenAI puis extraction IA...")
+                try:
+                    search_results = call_openai_web(
+                        "Tu es un analyste d'actualités immigration Canada. Utilise le web et privilégie Canada.ca et Québec.ca.",
+                        search_prompt,
+                    )
+                except Exception as web_error:
+                    logger.warning("OpenAI web search indisponible: %s", web_error)
+                    ddg_results = search_duckduckgo("site:canada.ca IRCC Express Entry draw immigration Canada 2026", max_results=12)
+                    if not ddg_results:
+                        ddg_results = search_duckduckgo("site:quebec.ca Arrima tirage immigration Quebec 2026", max_results=12)
+                    search_results = ddg_results or (
+                        "Sources officielles: https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/rounds-invitations.html\n"
+                        "https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/ministerial-instructions/express-entry-rounds.html\n"
+                        "Si aucune actualité précise récente n'est identifiable, retourne une liste JSON vide."
+                    )
             else:
                 response_search = _generate_content_with_retry(
                     client=client,
