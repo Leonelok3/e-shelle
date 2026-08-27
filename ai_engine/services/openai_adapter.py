@@ -1,7 +1,10 @@
 import json
 import logging
+import re
+import urllib.parse
 
 from django.conf import settings
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -52,3 +55,30 @@ def call_openai_json(system_prompt: str, user_prompt: str, *, temperature: float
         if end <= start:
             raise
         return json.loads(text[start:end + 1])
+
+
+def search_duckduckgo(query: str, max_results: int = 10) -> str:
+    """
+    Recherche web légère sans API payante, utilisée quand Gemini Search Grounding
+    n'est pas disponible.
+    """
+    url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote(query)}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
+    response = requests.get(url, headers=headers, timeout=12)
+    response.raise_for_status()
+
+    blocks = re.findall(
+        r'<a rel="nofollow" class="result__a" href="(.*?)".*?>(.*?)</a>.*?'
+        r'<a class="result__snippet".*?>(.*?)</a>',
+        response.text,
+        re.DOTALL,
+    )
+    results = []
+    for link, title, snippet in blocks[:max_results]:
+        clean_title = re.sub(r"<.*?>", "", title).strip()
+        clean_snippet = re.sub(r"<.*?>", "", snippet).strip()
+        clean_link = urllib.parse.unquote(link)
+        results.append(f"Titre: {clean_title}\nURL: {clean_link}\nExtrait: {clean_snippet}")
+    return "\n\n".join(results)

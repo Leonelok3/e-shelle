@@ -8,8 +8,8 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from google.genai import types
-from e_shelle_ai.services.tools.google_media_generator import get_vertex_client, search_duckduckgo
-from ai_engine.services.openai_adapter import call_openai, call_openai_json
+from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
+from ai_engine.services.openai_adapter import call_openai, call_openai_json, search_duckduckgo
 from jobs.models import CanadaScholarship
 
 logger = logging.getLogger(__name__)
