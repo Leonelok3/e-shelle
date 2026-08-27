@@ -8,10 +8,15 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from google.genai import types
 from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
-from ai_engine.services.openai_adapter import call_openai, call_openai_json, search_duckduckgo
+from ai_engine.services.openai_adapter import call_openai, call_openai_json, call_openai_web, search_duckduckgo
 from jobs.models import CanadaVisitorOpportunity
 
 logger = logging.getLogger(__name__)
+
+
+def _truncate(value: str, max_length: int) -> str:
+    value = (value or "").strip()
+    return value[:max_length]
 
 
 def _is_url_active(url: str) -> bool:
@@ -99,16 +104,29 @@ class Command(BaseCommand):
 
         try:
             if use_openai:
-                self.stdout.write("OpenAI actif. Recherche web via DuckDuckGo puis extraction IA...")
-                ddg_results = search_duckduckgo("Canada conferences seminars 2026 invitation letter visa international participants registration", max_results=12)
-                if not ddg_results:
-                    self.stderr.write("Aucun résultat DuckDuckGo exploitable.")
-                    return
-                search_results = call_openai(
-                    "Tu es un analyste d'événements professionnels au Canada. Analyse les résultats web et conserve les événements plausibles pour visiteurs internationaux.",
-                    f"{search_prompt}\n\nRésultats web:\n{ddg_results}",
-                    temperature=0.2,
-                )
+                self.stdout.write("OpenAI actif. Recherche web OpenAI puis extraction IA...")
+                try:
+                    search_results = call_openai_web(
+                        "Tu es un analyste d'événements professionnels au Canada. Utilise le web et privilégie les pages officielles d'événements, conférences, salons et organismes reconnus.",
+                        search_prompt,
+                    )
+                except Exception as web_error:
+                    logger.warning("OpenAI web search indisponible: %s", web_error)
+                    ddg_results = search_duckduckgo(
+                        "Canada conferences seminars 2026 invitation letter visa international participants registration",
+                        max_results=12,
+                    )
+                    if not ddg_results:
+                        ddg_results = (
+                            "Sources de départ: https://www.destinationcanada.com/ et https://www.canada.ca/\n"
+                            "Cherche uniquement des conférences ou salons actifs avec page officielle et inscription ouverte. "
+                            "Si aucun événement précis et vérifiable n'est disponible, retourne une liste JSON vide."
+                        )
+                    search_results = call_openai(
+                        "Tu es un analyste d'événements professionnels au Canada. Analyse les résultats web et conserve les événements plausibles pour visiteurs internationaux.",
+                        f"{search_prompt}\n\nRésultats web:\n{ddg_results}",
+                        temperature=0.2,
+                    )
             else:
                 response_search = _generate_content_with_retry(
                     client=client,
@@ -189,11 +207,11 @@ class Command(BaseCommand):
                 obj, created = CanadaVisitorOpportunity.objects.update_or_create(
                     ref_nr=ref_nr,
                     defaults={
-                        "title": title,
-                        "organizer": organizer,
-                        "event_date": opp.get("event_date", "").strip(),
-                        "location": opp.get("location", "").strip(),
-                        "deadline": opp.get("deadline", "Non précisée").strip(),
+                        "title": _truncate(title, 350),
+                        "organizer": _truncate(organizer, 250),
+                        "event_date": _truncate(opp.get("event_date", ""), 150),
+                        "location": _truncate(opp.get("location", ""), 200),
+                        "deadline": _truncate(opp.get("deadline", "Non précisée"), 100),
                         "description": opp.get("description", "").strip(),
                         "url_apply": url_apply,
                         "is_active": True,
