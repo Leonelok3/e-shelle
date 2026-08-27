@@ -41,6 +41,8 @@ sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='eshelle_db'"
     sudo -u postgres psql -c "CREATE DATABASE eshelle_db OWNER eshelle_user;"
 sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='simplo_db'" | grep -q 1 || \
     sudo -u postgres psql -c "CREATE DATABASE simplo_db OWNER eshelle_user;"
+sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='tchaslucpay_db'" | grep -q 1 || \
+    sudo -u postgres psql -c "CREATE DATABASE tchaslucpay_db OWNER eshelle_user;"
 echo "✔  PostgreSQL configuré — mot de passe DB : $DB_PASSWORD"
 echo "    ⚠️  Notez ce mot de passe, il sera mis dans .env"
 
@@ -69,44 +71,57 @@ if [ ! -f "$APP_DIR/.env" ]; then
     cat > "$APP_DIR/.env" <<EOF
 DJANGO_SECRET_KEY=$SECRET_KEY
 DJANGO_DEBUG=False
-DJANGO_ALLOWED_HOSTS=$DOMAIN,www.$DOMAIN,mapex.$DOMAIN,njangi.$DOMAIN,resto.$DOMAIN,gaz.$DOMAIN,pharma.$DOMAIN,sante.$DOMAIN,pressing.$DOMAIN,agro.$DOMAIN,immobilier.$DOMAIN,auto.$DOMAIN,annonces.$DOMAIN,market.$DOMAIN,love.$DOMAIN,maths.$DOMAIN,formations.$DOMAIN,boutique.$DOMAIN,adgen.$DOMAIN,services.$DOMAIN,ai.$DOMAIN,jobs.$DOMAIN,transport.$DOMAIN,anglais.$DOMAIN,allemand.$DOMAIN,italien.$DOMAIN,prep.$DOMAIN,langues.$DOMAIN
-SIMPLO_PUBLIC_URL=https://simplo.$DOMAIN/
-MAPEX_PUBLIC_URL=https://mapex.$DOMAIN/edu/
-MAPEX_CSRF_TRUSTED_ORIGINS=https://mapex.$DOMAIN
-ESHELLE_SUBDOMAIN_CSRF_TRUSTED_ORIGINS=https://njangi.$DOMAIN,https://resto.$DOMAIN,https://gaz.$DOMAIN,https://pharma.$DOMAIN,https://sante.$DOMAIN,https://pressing.$DOMAIN,https://agro.$DOMAIN,https://immobilier.$DOMAIN,https://auto.$DOMAIN,https://annonces.$DOMAIN,https://market.$DOMAIN,https://love.$DOMAIN,https://maths.$DOMAIN,https://formations.$DOMAIN,https://boutique.$DOMAIN,https://adgen.$DOMAIN,https://services.$DOMAIN,https://ai.$DOMAIN,https://jobs.$DOMAIN,https://transport.$DOMAIN,https://anglais.$DOMAIN,https://allemand.$DOMAIN,https://italien.$DOMAIN,https://prep.$DOMAIN,https://langues.$DOMAIN
-FORMATIONS_PUBLIC_URL=https://formations.$DOMAIN/formations/
-BOUTIQUE_PUBLIC_URL=https://boutique.$DOMAIN/boutique/
-SERVICES_PUBLIC_URL=https://services.$DOMAIN/services/
-MATHS_PUBLIC_URL=https://maths.$DOMAIN/maths/
-LANGUES_PUBLIC_URL=https://langues.$DOMAIN/langues/
-ANGLAIS_PUBLIC_URL=https://anglais.$DOMAIN/anglais/
-ALLEMAND_PUBLIC_URL=https://allemand.$DOMAIN/allemand/
-ITALIEN_PUBLIC_URL=https://italien.$DOMAIN/italien/
-PREP_PUBLIC_URL=https://prep.$DOMAIN/prep/
-IMMOBILIER_PUBLIC_URL=https://immobilier.$DOMAIN/immobilier/
-AUTO_PUBLIC_URL=https://auto.$DOMAIN/auto/
-ANNONCES_PUBLIC_URL=https://annonces.$DOMAIN/annonces/
-MARKET_PUBLIC_URL=https://market.$DOMAIN/annonces/
-LOVE_PUBLIC_URL=https://love.$DOMAIN/rencontres/
-AGRO_PUBLIC_URL=https://agro.$DOMAIN/agro/
-RESTO_PUBLIC_URL=https://resto.$DOMAIN/resto/
-NJANGI_PUBLIC_URL=https://njangi.$DOMAIN/njangi/
-ADGEN_PUBLIC_URL=https://adgen.$DOMAIN/pub/
-GAZ_PUBLIC_URL=https://gaz.$DOMAIN/gaz/
-PHARMA_PUBLIC_URL=https://pharma.$DOMAIN/pharma/
-SANTE_PUBLIC_URL=https://sante.$DOMAIN/sante/
-PRESSING_PUBLIC_URL=https://pressing.$DOMAIN/pressing/
-AI_PUBLIC_URL=https://ai.$DOMAIN/ai/
-JOBS_PUBLIC_URL=https://jobs.$DOMAIN/jobs/
-TRANSPORT_PUBLIC_URL=https://transport.$DOMAIN/transport/
+DJANGO_ALLOWED_HOSTS=$DOMAIN,www.$DOMAIN
+SIMPLO_PUBLIC_URL=/simplo/
+MAPEX_PUBLIC_URL=/edu/
+MAPEX_CSRF_TRUSTED_ORIGINS=https://$DOMAIN,https://www.$DOMAIN
+ESHELLE_SUBDOMAIN_CSRF_TRUSTED_ORIGINS=
+FORMATIONS_PUBLIC_URL=/formations/
+BOUTIQUE_PUBLIC_URL=/boutique/
+SERVICES_PUBLIC_URL=/services/
+MATHS_PUBLIC_URL=/maths/
+LANGUES_PUBLIC_URL=/langues/
+ANGLAIS_PUBLIC_URL=/anglais/
+ALLEMAND_PUBLIC_URL=/allemand/
+ITALIEN_PUBLIC_URL=/italien/
+PREP_PUBLIC_URL=/prep/
+IMMOBILIER_PUBLIC_URL=/immobilier/
+AUTO_PUBLIC_URL=/auto/
+ANNONCES_PUBLIC_URL=/annonces/
+MARKET_PUBLIC_URL=/annonces/
+LOVE_PUBLIC_URL=/rencontres/
+AGRO_PUBLIC_URL=/agro/
+RESTO_PUBLIC_URL=/resto/
+NJANGI_PUBLIC_URL=/njangi/
+ADGEN_PUBLIC_URL=/pub/
+GAZ_PUBLIC_URL=/gaz/
+PHARMA_PUBLIC_URL=/pharma/
+SANTE_PUBLIC_URL=/sante/
+PRESSING_PUBLIC_URL=/pressing/
+AI_PUBLIC_URL=/ai/
+JOBS_PUBLIC_URL=/jobs/
+TRANSPORT_PUBLIC_URL=/transport/
+TCHASLUCPAY_PUBLIC_URL=/tchaslucpay/
 
 DATABASE_URL=postgres://eshelle_user:$DB_PASSWORD@localhost:5432/eshelle_db
 
 SIMPLO_SECRET_KEY=$(openssl rand -base64 50 | tr -d '\n/+=' | head -c 50)
 SIMPLO_DEBUG=False
-SIMPLO_ALLOWED_HOSTS=simplo.$DOMAIN,127.0.0.1,localhost
-SIMPLO_CSRF_TRUSTED_ORIGINS=https://simplo.$DOMAIN
+SIMPLO_ALLOWED_HOSTS=$DOMAIN,www.$DOMAIN,127.0.0.1,localhost
+SIMPLO_CSRF_TRUSTED_ORIGINS=https://$DOMAIN,https://www.$DOMAIN
+SIMPLO_FORCE_SCRIPT_NAME=/simplo
+SIMPLO_STATIC_URL=/simplo/static/
+SIMPLO_MEDIA_URL=/simplo/media/
 SIMPLO_DATABASE_URL=postgres://eshelle_user:$DB_PASSWORD@localhost:5432/simplo_db
+
+TCHASLUCPAY_SECRET_KEY=$(openssl rand -base64 50 | tr -d '\n/+=' | head -c 50)
+TCHASLUCPAY_DEBUG=False
+TCHASLUCPAY_ALLOWED_HOSTS=$DOMAIN,www.$DOMAIN,127.0.0.1,localhost
+TCHASLUCPAY_CSRF_TRUSTED_ORIGINS=https://$DOMAIN,https://www.$DOMAIN
+TCHASLUCPAY_FORCE_SCRIPT_NAME=/tchaslucpay
+TCHASLUCPAY_STATIC_URL=/tchaslucpay/static/
+TCHASLUCPAY_MEDIA_URL=/tchaslucpay/media/
+TCHASLUCPAY_DATABASE_URL=postgres://eshelle_user:$DB_PASSWORD@localhost:5432/tchaslucpay_db
 
 ANTHROPIC_API_KEY=sk-ant-REMPLACER_PAR_VOTRE_CLE
 OPENAI_API_KEY=sk-REMPLACER_PAR_VOTRE_CLE_OPENAI
@@ -140,6 +155,8 @@ mkdir -p /var/log/eshelle
 chown $APP_USER:www-data /var/log/eshelle
 mkdir -p /var/log/simplo
 chown $APP_USER:www-data /var/log/simplo
+mkdir -p /var/log/tchaslucpay
+chown $APP_USER:www-data /var/log/tchaslucpay
 
 # ── 7. Django : migrations + static ─────────────────────────────────────────
 echo "→ Migrations Django..."
@@ -148,8 +165,12 @@ sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" migrate --noi
 echo "→ Migrations Simplo..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" migrate --noinput --settings=simplo.core.settings
 
+echo "→ Migrations Tchaslucpay..."
+sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" migrate --noinput --settings=tchaslucpay.core.settings
+
 echo "→ Collecte des fichiers statiques..."
-sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput
+sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput --upload-unhashed-files
+sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/scripts/check_staticfiles.py"
 
 echo "→ Données de départ E-Shelle Jobs..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" seed_jobs || true
@@ -159,6 +180,9 @@ sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" seed_sante ||
 echo "→ Collecte des fichiers statiques Simplo..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput --settings=simplo.core.settings
 
+echo "→ Collecte des fichiers statiques Tchaslucpay..."
+sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput --settings=tchaslucpay.core.settings
+
 # Superuser
 echo "→ Superuser Django : à créer manuellement après déploiement si nécessaire."
 echo "   Commande : sudo -u $APP_USER $APP_DIR/.venv/bin/python $APP_DIR/manage.py createsuperuser"
@@ -167,20 +191,26 @@ echo "   Commande : sudo -u $APP_USER $APP_DIR/.venv/bin/python $APP_DIR/manage.
 # Ubuntu crée les home dirs en 700 → www-data (Nginx) ne peut pas lire
 chmod o+x /home/$APP_USER
 chmod o+x "$APP_DIR"
+chmod o+x "$APP_DIR/staticfiles/"
 chmod -R o+r "$APP_DIR/staticfiles/"
 chmod -R o+r "$APP_DIR/simplo/staticfiles/" 2>/dev/null || true
 chmod -R o+r "$APP_DIR/simplo/media/" 2>/dev/null || true
+chmod -R o+r "$APP_DIR/staticfiles_tchaslucpay/" 2>/dev/null || true
+chmod -R o+r "$APP_DIR/media_tchaslucpay/" 2>/dev/null || true
 echo "✔  Permissions staticfiles corrigées pour Nginx"
 
 # ── 9. Service systemd Gunicorn ─────────────────────────────────────────────
 echo "→ Installation du service systemd..."
 cp "$APP_DIR/deploy/eshelle.service" /etc/systemd/system/eshelle.service
 cp "$APP_DIR/deploy/simplo.service" /etc/systemd/system/simplo.service
+cp "$APP_DIR/deploy/tchaslucpay.service" /etc/systemd/system/tchaslucpay.service
 systemctl daemon-reload
 systemctl enable eshelle
 systemctl enable simplo
+systemctl enable tchaslucpay
 systemctl restart eshelle
 systemctl restart simplo
+systemctl restart tchaslucpay
 echo "✔  Service Gunicorn démarré"
 
 # ── 10. Nginx ───────────────────────────────────────────────────────────────
@@ -202,33 +232,6 @@ certbot --nginx \
     --email "contact@$DOMAIN" \
     -d "$DOMAIN" \
     -d "www.$DOMAIN" \
-    -d "mapex.$DOMAIN" \
-    -d "simplo.$DOMAIN" \
-    -d "njangi.$DOMAIN" \
-    -d "resto.$DOMAIN" \
-    -d "gaz.$DOMAIN" \
-    -d "pharma.$DOMAIN" \
-    -d "sante.$DOMAIN" \
-    -d "pressing.$DOMAIN" \
-    -d "agro.$DOMAIN" \
-    -d "immobilier.$DOMAIN" \
-    -d "auto.$DOMAIN" \
-    -d "annonces.$DOMAIN" \
-    -d "market.$DOMAIN" \
-    -d "love.$DOMAIN" \
-    -d "maths.$DOMAIN" \
-    -d "formations.$DOMAIN" \
-    -d "boutique.$DOMAIN" \
-    -d "adgen.$DOMAIN" \
-    -d "services.$DOMAIN" \
-    -d "ai.$DOMAIN" \
-    -d "jobs.$DOMAIN" \
-    -d "transport.$DOMAIN" \
-    -d "anglais.$DOMAIN" \
-    -d "allemand.$DOMAIN" \
-    -d "italien.$DOMAIN" \
-    -d "prep.$DOMAIN" \
-    -d "langues.$DOMAIN" \
     --redirect || echo "⚠️  Certbot : vérifiez que DNS pointe vers ce serveur"
 
 # Renouvellement auto

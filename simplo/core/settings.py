@@ -18,10 +18,12 @@ CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in os.getenv(
         "SIMPLO_CSRF_TRUSTED_ORIGINS",
-        "https://simplo.e-shelle.com",
+        "https://e-shelle.com,https://www.e-shelle.com",
     ).split(",")
     if origin.strip()
 ]
+
+FORCE_SCRIPT_NAME = os.getenv("SIMPLO_FORCE_SCRIPT_NAME", "").strip() or None
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -97,9 +99,9 @@ TIME_ZONE = "Africa/Douala"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "/static/"
+STATIC_URL = os.getenv("SIMPLO_STATIC_URL", "/static/")
 STATIC_ROOT = BASE_DIR / "staticfiles"
-MEDIA_URL = "/media/"
+MEDIA_URL = os.getenv("SIMPLO_MEDIA_URL", "/media/")
 MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

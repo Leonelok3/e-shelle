@@ -1,0 +1,39 @@
+# Systemd service - Gunicorn pour Tchaslucpay
+# Fichier a placer : /etc/systemd/system/tchaslucpay.service
+
+[Unit]
+Description=Tchaslucpay - Gunicorn WSGI Server
+After=network.target
+
+[Service]
+User=eshelle
+Group=www-data
+WorkingDirectory=/home/eshelle/app
+
+EnvironmentFile=/home/eshelle/app/.env
+
+RuntimeDirectory=tchaslucpay
+RuntimeDirectoryMode=0755
+
+ExecStart=/home/eshelle/app/.venv/bin/gunicorn \
+    --workers 2 \
+    --worker-class sync \
+    --bind unix:/run/tchaslucpay/gunicorn.sock \
+    --timeout 120 \
+    --keep-alive 5 \
+    --access-logfile /var/log/tchaslucpay/access.log \
+    --error-logfile  /var/log/tchaslucpay/error.log \
+    --log-level info \
+    tchaslucpay.core.wsgi:application
+
+ExecReload=/bin/kill -s HUP $MAINPID
+
+Restart=on-failure
+RestartSec=5s
+
+PrivateTmp=true
+ProtectSystem=full
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,7 +29,7 @@ DEFAULT_CSRF_ORIGINS += [
     origin.strip()
     for origin in os.getenv(
         "DJANGO_CSRF_TRUSTED_ORIGINS",
-        os.getenv("MAPEX_CSRF_TRUSTED_ORIGINS", "https://mapex.e-shelle.com")
+        os.getenv("MAPEX_CSRF_TRUSTED_ORIGINS", "")
     ).split(",")
     if origin.strip()
 ]
@@ -308,7 +309,20 @@ STATIC_URL = "/static/"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
+    },
+}
+STATICFILES_STORAGE = STORAGES["staticfiles"]["BACKEND"]
+WHITENOISE_MAX_AGE = 31536000 if not DEBUG else 0
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -481,37 +495,47 @@ EDU_PLATFORM = {
 }
 
 # URL de base pour les webhooks Mobile Money
+def _public_url(name, default, local_default=None):
+    value = os.getenv(name, default)
+    if not DEBUG:
+        return value
+    parsed = urlparse(value)
+    if parsed.netloc.endswith(".e-shelle.com"):
+        return local_default or parsed.path or "/"
+    return value
+
+
 SITE_URL = os.getenv('SITE_URL', 'https://e-shelle.com')
-FORMATIONS_PUBLIC_URL = os.getenv("FORMATIONS_PUBLIC_URL", "/formations/")
-BOUTIQUE_PUBLIC_URL = os.getenv("BOUTIQUE_PUBLIC_URL", "/boutique/")
-SERVICES_PUBLIC_URL = os.getenv("SERVICES_PUBLIC_URL", "/services/")
-MATHS_PUBLIC_URL = os.getenv("MATHS_PUBLIC_URL", "/maths/")
-LANGUES_PUBLIC_URL = os.getenv("LANGUES_PUBLIC_URL", "/langues/")
-ANGLAIS_PUBLIC_URL = os.getenv("ANGLAIS_PUBLIC_URL", "/anglais/")
-ALLEMAND_PUBLIC_URL = os.getenv("ALLEMAND_PUBLIC_URL", "/allemand/")
-ITALIEN_PUBLIC_URL = os.getenv("ITALIEN_PUBLIC_URL", "/italien/")
-PREP_PUBLIC_URL = os.getenv("PREP_PUBLIC_URL", "/prep/")
-IMMOBILIER_PUBLIC_URL = os.getenv("IMMOBILIER_PUBLIC_URL", "/immobilier/")
-AUTO_PUBLIC_URL = os.getenv("AUTO_PUBLIC_URL", "/auto/")
-ANNONCES_PUBLIC_URL = os.getenv("ANNONCES_PUBLIC_URL", "/annonces/")
-MARKET_PUBLIC_URL = os.getenv("MARKET_PUBLIC_URL", ANNONCES_PUBLIC_URL)
-LOVE_PUBLIC_URL = os.getenv("LOVE_PUBLIC_URL", "/rencontres/")
-AGRO_PUBLIC_URL = os.getenv("AGRO_PUBLIC_URL", "/agro/")
-SALONHUB_PUBLIC_URL = os.getenv("SALONHUB_PUBLIC_URL", "/salons/")
-RESTO_PUBLIC_URL = os.getenv("RESTO_PUBLIC_URL", "/resto/")
-NJANGI_PUBLIC_URL = os.getenv("NJANGI_PUBLIC_URL", "/njangi/")
-ADGEN_PUBLIC_URL = os.getenv("ADGEN_PUBLIC_URL", "/pub/")
-GAZ_PUBLIC_URL = os.getenv("GAZ_PUBLIC_URL", "/gaz/")
-PHARMA_PUBLIC_URL = os.getenv("PHARMA_PUBLIC_URL", "/pharma/")
-PRESSING_PUBLIC_URL = os.getenv("PRESSING_PUBLIC_URL", "/pressing/")
-AI_PUBLIC_URL = os.getenv("AI_PUBLIC_URL", "/ai/")
-JOBS_PUBLIC_URL = os.getenv("JOBS_PUBLIC_URL", "/jobs/")
-TRANSPORT_PUBLIC_URL = os.getenv("TRANSPORT_PUBLIC_URL", "/transport/")
-SANTE_PUBLIC_URL = os.getenv("SANTE_PUBLIC_URL", "/sante/")
-TCHASLUCPAY_PUBLIC_URL = os.getenv("TCHASLUCPAY_PUBLIC_URL", "http://127.0.0.1:8001/")
-SIMPLO_PUBLIC_URL = os.getenv("SIMPLO_PUBLIC_URL", "http://127.0.0.1:8020/")
-MAPEX_PUBLIC_URL = os.getenv("MAPEX_PUBLIC_URL", "http://127.0.0.1:8000/edu/")
-EXPROD_PUBLIC_URL = os.getenv("EXPROD_PUBLIC_URL", "/lebelage-importer/")
+FORMATIONS_PUBLIC_URL = _public_url("FORMATIONS_PUBLIC_URL", "/formations/")
+BOUTIQUE_PUBLIC_URL = _public_url("BOUTIQUE_PUBLIC_URL", "/boutique/")
+SERVICES_PUBLIC_URL = _public_url("SERVICES_PUBLIC_URL", "/services/")
+MATHS_PUBLIC_URL = _public_url("MATHS_PUBLIC_URL", "/maths/")
+LANGUES_PUBLIC_URL = _public_url("LANGUES_PUBLIC_URL", "/langues/")
+ANGLAIS_PUBLIC_URL = _public_url("ANGLAIS_PUBLIC_URL", "/anglais/")
+ALLEMAND_PUBLIC_URL = _public_url("ALLEMAND_PUBLIC_URL", "/allemand/")
+ITALIEN_PUBLIC_URL = _public_url("ITALIEN_PUBLIC_URL", "/italien/")
+PREP_PUBLIC_URL = _public_url("PREP_PUBLIC_URL", "/prep/")
+IMMOBILIER_PUBLIC_URL = _public_url("IMMOBILIER_PUBLIC_URL", "/immobilier/")
+AUTO_PUBLIC_URL = _public_url("AUTO_PUBLIC_URL", "/auto/")
+ANNONCES_PUBLIC_URL = _public_url("ANNONCES_PUBLIC_URL", "/annonces/")
+MARKET_PUBLIC_URL = _public_url("MARKET_PUBLIC_URL", ANNONCES_PUBLIC_URL, "/annonces/")
+LOVE_PUBLIC_URL = _public_url("LOVE_PUBLIC_URL", "/rencontres/")
+AGRO_PUBLIC_URL = _public_url("AGRO_PUBLIC_URL", "/agro/")
+SALONHUB_PUBLIC_URL = _public_url("SALONHUB_PUBLIC_URL", "/salons/")
+RESTO_PUBLIC_URL = _public_url("RESTO_PUBLIC_URL", "/resto/")
+NJANGI_PUBLIC_URL = _public_url("NJANGI_PUBLIC_URL", "/njangi/")
+ADGEN_PUBLIC_URL = _public_url("ADGEN_PUBLIC_URL", "/pub/")
+GAZ_PUBLIC_URL = _public_url("GAZ_PUBLIC_URL", "/gaz/")
+PHARMA_PUBLIC_URL = _public_url("PHARMA_PUBLIC_URL", "/pharma/")
+PRESSING_PUBLIC_URL = _public_url("PRESSING_PUBLIC_URL", "/pressing/")
+AI_PUBLIC_URL = _public_url("AI_PUBLIC_URL", "/ai/")
+JOBS_PUBLIC_URL = _public_url("JOBS_PUBLIC_URL", "/jobs/")
+TRANSPORT_PUBLIC_URL = _public_url("TRANSPORT_PUBLIC_URL", "/transport/")
+SANTE_PUBLIC_URL = _public_url("SANTE_PUBLIC_URL", "/sante/")
+TCHASLUCPAY_PUBLIC_URL = _public_url("TCHASLUCPAY_PUBLIC_URL", "/tchaslucpay/")
+SIMPLO_PUBLIC_URL = _public_url("SIMPLO_PUBLIC_URL", "/simplo/")
+MAPEX_PUBLIC_URL = _public_url("MAPEX_PUBLIC_URL", "/edu/")
+EXPROD_PUBLIC_URL = _public_url("EXPROD_PUBLIC_URL", "/lebelage-importer/")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

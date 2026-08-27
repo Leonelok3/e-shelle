@@ -20,8 +20,12 @@ sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" migrate --noi
 echo "→ Migrations Simplo..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" migrate --noinput --settings=simplo.core.settings
 
+echo "→ Migrations Tchaslucpay..."
+sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" migrate --noinput --settings=tchaslucpay.core.settings
+
 echo "→ Collecte des statiques..."
-sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput
+sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput --upload-unhashed-files
+sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/scripts/check_staticfiles.py"
 
 echo "→ Données de départ E-Shelle Jobs..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" seed_jobs || true
@@ -32,12 +36,18 @@ sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" seed_business
 echo "→ Collecte des statiques Simplo..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput --settings=simplo.core.settings
 
+echo "→ Collecte des statiques Tchaslucpay..."
+sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput --settings=tchaslucpay.core.settings
+
 echo "→ Correction permissions staticfiles..."
 PARENT_DIR="$(dirname "$APP_DIR")"
 chmod o+x "$PARENT_DIR" "$APP_DIR"
+chmod o+x "$APP_DIR/staticfiles/"
 chmod -R o+r "$APP_DIR/staticfiles/"
 chmod -R o+r "$APP_DIR/simplo/staticfiles/" 2>/dev/null || true
 chmod -R o+r "$APP_DIR/simplo/media/" 2>/dev/null || true
+chmod -R o+r "$APP_DIR/staticfiles_tchaslucpay/" 2>/dev/null || true
+chmod -R o+r "$APP_DIR/media_tchaslucpay/" 2>/dev/null || true
 
 echo "→ Rechargement Gunicorn (gracieux)..."
 systemctl reload e-shelle 2>/dev/null || systemctl restart e-shelle

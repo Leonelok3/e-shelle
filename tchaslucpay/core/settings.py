@@ -17,6 +17,8 @@ CSRF_TRUSTED_ORIGINS = [
 if RENDER_EXTERNAL_HOSTNAME:
     CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
 
+FORCE_SCRIPT_NAME = os.getenv("TCHASLUCPAY_FORCE_SCRIPT_NAME", "").strip() or None
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -60,7 +62,7 @@ TEMPLATES = [{
     },
 }]
 
-DATABASE_URL = os.getenv("DATABASE_URL", "")
+DATABASE_URL = os.getenv("TCHASLUCPAY_DATABASE_URL", os.getenv("DATABASE_URL", ""))
 if DATABASE_URL:
     import urllib.parse as _up
     _u = _up.urlparse(DATABASE_URL)
@@ -83,8 +85,10 @@ LANGUAGE_CODE = "fr"
 TIME_ZONE = "Africa/Douala"
 USE_I18N = True
 USE_TZ = True
-STATIC_URL = "static/"
+STATIC_URL = os.getenv("TCHASLUCPAY_STATIC_URL", "/static/")
 STATIC_ROOT = BASE_DIR.parent / "staticfiles_tchaslucpay"
+MEDIA_URL = os.getenv("TCHASLUCPAY_MEDIA_URL", "/media/")
+MEDIA_ROOT = BASE_DIR.parent / "media_tchaslucpay"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "tchaslucpay_accounts:login"
