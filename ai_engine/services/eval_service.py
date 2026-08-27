@@ -1,8 +1,10 @@
 import os
 import json
 import logging
+from django.conf import settings
 from google.genai import types
 from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
+from ai_engine.services.openai_adapter import call_openai_json
 
 logger = logging.getLogger(__name__)
 
@@ -40,16 +42,39 @@ def _language_key(language: str) -> str:
 
 def transcribe_audio(audio_path: str, language: str = "de") -> str:
     """
-    Transcrit un fichier audio en texte à l'aide de Gemini (via Vertex AI).
+    Transcrit un fichier audio. OpenAI est utilisé en priorité, Gemini en secours.
     """
     logger.info(f"[eval_service] Transcription audio ({language}) : {audio_path}...")
-    client, err = get_vertex_client()
-    if err or not client:
-        raise RuntimeError(f"Impossible d'initialiser le client Vertex AI: {err}")
 
     lang_key = _language_key(language)
     lang_adj_fem = _LANGUAGE_ADJ_FEM[lang_key]
     lang_adj_masc = _LANGUAGE_ADJ_MASC[lang_key]
+
+    if getattr(settings, "OPENAI_API_KEY", ""):
+        try:
+            from openai import OpenAI
+            openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+            transcription_kwargs = {
+                "model": getattr(settings, "OPENAI_TRANSCRIBE_MODEL", "whisper-1"),
+                "prompt": f"Transcription en langue {lang_adj_fem}. Ne traduis pas.",
+            }
+            if lang_key in {"fr", "en"}:
+                transcription_kwargs["language"] = lang_key
+            with open(audio_path, "rb") as audio_file:
+                response = openai_client.audio.transcriptions.create(
+                    file=audio_file,
+                    **transcription_kwargs,
+                )
+            transcript = (response.text or "").strip()
+            if transcript:
+                logger.info(f"[eval_service] Transcription OpenAI réussie : {transcript[:100]}...")
+                return transcript
+        except Exception as openai_error:
+            logger.warning(f"[eval_service] OpenAI transcription indisponible, tentative Gemini: {openai_error}")
+
+    client, err = get_vertex_client()
+    if err or not client:
+        raise RuntimeError(f"Impossible d'initialiser le client Vertex AI: {err}")
 
     # Récupérer l'extension du fichier pour le mime type
     _, ext = os.path.splitext(audio_path)
@@ -78,7 +103,7 @@ def transcribe_audio(audio_path: str, language: str = "de") -> str:
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=[
                 types.Part.from_bytes(data=audio_data, mime_type=mime_type),
                 f"Transcris cet audio {lang_adj_masc}."
@@ -101,9 +126,6 @@ def evaluate_eo(transcript: str, topic: str, instructions: str, level: str, expe
     Retourne un dictionnaire structuré contenant le score, le feedback et les suggestions.
     """
     logger.info(f"[eval_service] Évaluation Expression Orale ({language} · Niveau {level})...")
-    client, err = get_vertex_client()
-    if err or not client:
-        raise RuntimeError(f"Impossible d'initialiser le client Vertex AI: {err}")
 
     lang_key = _language_key(language)
     lang_phrase = _LANGUAGE_PHRASES[lang_key]
@@ -130,19 +152,24 @@ def evaluate_eo(transcript: str, topic: str, instructions: str, level: str, expe
     )
 
     try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=user_prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system_prompt,
-                response_mime_type="application/json",
-                temperature=0.2,
-            )
+        return call_openai_json(system_prompt, user_prompt, temperature=0.2)
+    except Exception as openai_error:
+        logger.warning(f"[eval_service] OpenAI EO indisponible, tentative Gemini: {openai_error}")
+
+    client, err = get_vertex_client()
+    if err or not client:
+        raise RuntimeError(f"Impossible d'initialiser le client Vertex AI: {err}")
+
+    response = client.models.generate_content(
+        model="gemini-3.6-flash",
+        contents=user_prompt,
+        config=types.GenerateContentConfig(
+            system_instruction=system_prompt,
+            response_mime_type="application/json",
+            temperature=0.2,
         )
-        return json.loads(response.text)
-    except Exception as e:
-        logger.error(f"[eval_service] Échec de l'évaluation EO : {e}")
-        raise
+    )
+    return json.loads(response.text)
 
 def evaluate_ee(text: str, topic: str, instructions: str, level: str, language: str = "de") -> dict:
     """
@@ -151,9 +178,6 @@ def evaluate_ee(text: str, topic: str, instructions: str, level: str, language: 
     la liste des erreurs identifiées avec corrections, et la version entièrement corrigée.
     """
     logger.info(f"[eval_service] Évaluation Expression Écrite ({language} · Niveau {level})...")
-    client, err = get_vertex_client()
-    if err or not client:
-        raise RuntimeError(f"Impossible d'initialiser le client Vertex AI: {err}")
 
     lang_key = _language_key(language)
     lang_phrase = _LANGUAGE_PHRASES[lang_key]
@@ -180,16 +204,21 @@ def evaluate_ee(text: str, topic: str, instructions: str, level: str, language: 
     )
 
     try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=user_prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system_prompt,
-                response_mime_type="application/json",
-                temperature=0.2,
-            )
+        return call_openai_json(system_prompt, user_prompt, temperature=0.2)
+    except Exception as openai_error:
+        logger.warning(f"[eval_service] OpenAI EE indisponible, tentative Gemini: {openai_error}")
+
+    client, err = get_vertex_client()
+    if err or not client:
+        raise RuntimeError(f"Impossible d'initialiser le client Vertex AI: {err}")
+
+    response = client.models.generate_content(
+        model="gemini-3.6-flash",
+        contents=user_prompt,
+        config=types.GenerateContentConfig(
+            system_instruction=system_prompt,
+            response_mime_type="application/json",
+            temperature=0.2,
         )
-        return json.loads(response.text)
-    except Exception as e:
-        logger.error(f"[eval_service] Échec de l'évaluation EE : {e}")
-        raise
+    )
+    return json.loads(response.text)

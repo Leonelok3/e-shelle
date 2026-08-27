@@ -415,24 +415,8 @@ class Command(BaseCommand):
                 )
 
                 try:
-                    # Appel direct Gemini avec garantie JSON
-                    from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
-                    client, err = get_vertex_client()
-                    if err or not client:
-                        raise RuntimeError(f"Vertex AI Client init error: {err}")
-                    
-                    from google.genai import types
-                    response = client.models.generate_content(
-                        model="gemini-2.5-flash",
-                        contents=user_prompt,
-                        config=types.GenerateContentConfig(
-                            system_instruction=SYSTEM_PROMPT,
-                            temperature=0.5,
-                            response_mime_type="application/json"
-                        )
-                    )
-                    raw = response.text
-                    data = _extract_json(raw)
+                    from ai_engine.services.openai_adapter import call_openai_json
+                    data = call_openai_json(SYSTEM_PROMPT, user_prompt, temperature=0.5)
                     _validate_lesson(data, exercises_count)
 
                     # Création de la leçon

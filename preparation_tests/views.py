@@ -1460,46 +1460,20 @@ def french_ai_coach_api(request):
         "Tu réponds toujours de manière professionnelle, motivante, structurée et rédigée dans un français impeccable."
     )
 
-    from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
-    from google.genai import types
-    
-    client, err = get_vertex_client()
-    if err or not client:
-        return JsonResponse(
-            {
-                "error": "Vertex AI error",
-                "reply": f"Impossible d'initialiser le client Vertex AI: {err or 'Client vide'}",
-            },
-            status=500,
-        )
-
-    # Convert chat history to Gemini format, preventing consecutive duplicate roles
-    contents = []
+    # Convert chat history to a compact text context usable by the configured LLM.
+    context_lines = []
     for item in history:
         role = item.get("role")
         content = item.get("content")
         if role == "user":
-            if contents and contents[-1].role == "user":
-                continue
-            contents.append(types.Content(role="user", parts=[types.Part.from_text(text=content)]))
+            context_lines.append(f"Élève: {content}")
         elif role in ("assistant", "model"):
-            if contents and contents[-1].role == "model":
-                continue
-            contents.append(types.Content(role="model", parts=[types.Part.from_text(text=content)]))
-
-    if not contents or contents[-1].role != "user":
-        contents.append(types.Content(role="user", parts=[types.Part.from_text(text=user_message)]))
+            context_lines.append(f"Coach IA: {content}")
+    context_lines.append(f"Élève: {user_message}")
 
     try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=contents,
-            config=types.GenerateContentConfig(
-                system_instruction=system_prompt,
-                temperature=0.4,
-            )
-        )
-        reply_text = response.text
+        from ai_engine.services.llm_service import call_llm
+        reply_text = call_llm(system_prompt, "\n".join(context_lines))
     except Exception as e:
         return JsonResponse(
             {

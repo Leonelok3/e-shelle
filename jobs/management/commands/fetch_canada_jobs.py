@@ -5,10 +5,12 @@ import json
 import logging
 import re
 import requests
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from google.genai import types
-from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
+from e_shelle_ai.services.tools.google_media_generator import get_vertex_client, search_duckduckgo
+from ai_engine.services.openai_adapter import call_openai, call_openai_json
 from jobs.models import CanadaJobOffer
 
 logger = logging.getLogger(__name__)
@@ -115,16 +117,19 @@ class Command(BaseCommand):
     help = "Cherche et importe les nouvelles offres d'emploi d'employeurs canadiens qui recrutent à l'étranger (EIMT/LMIA)"
 
     def handle(self, *args, **options):
+        use_openai = bool(getattr(settings, "OPENAI_API_KEY", ""))
         self.stdout.write("Initialisation du client GenAI...")
-        client, err = get_vertex_client()
-        if err or not client:
-            self.stdout.write(f"Vertex AI non disponible ou erreur : {err}. Tentative avec Gemini Developer API...")
-            from e_shelle_ai.services.tools.google_media_generator import get_genai_studio_client
-            client, err = get_genai_studio_client()
+        client = None
+        if not use_openai:
+            client, err = get_vertex_client()
+            if err or not client:
+                self.stdout.write(f"Vertex AI non disponible ou erreur : {err}. Tentative avec Gemini Developer API...")
+                from e_shelle_ai.services.tools.google_media_generator import get_genai_studio_client
+                client, err = get_genai_studio_client()
 
-        if err or not client:
-            self.stderr.write(f"Erreur d'initialisation du client GenAI : {err}")
-            return
+            if err or not client:
+                self.stderr.write(f"Erreur d'initialisation du client GenAI : {err}")
+                return
 
         self.stdout.write("Recherche globale des offres d'emploi Canada avec EIMT...")
 
@@ -135,16 +140,50 @@ class Command(BaseCommand):
         )
 
         try:
-            response_search = _generate_content_with_retry(
-                client=client,
-                model="gemini-2.5-flash",
-                contents=search_prompt,
-                config=types.GenerateContentConfig(
-                    tools=[types.Tool(google_search=types.GoogleSearch())],
+            if use_openai:
+                self.stdout.write("OpenAI actif. Recherche web via DuckDuckGo puis extraction IA...")
+                ddg_results = search_duckduckgo("site:jobbank.gc.ca OR site:guichetemplois.gc.ca EIMT LMIA Canada foreign workers jobs", max_results=12)
+                if not ddg_results:
+                    self.stderr.write("Aucun résultat DuckDuckGo exploitable.")
+                    return
+                search_results = call_openai(
+                    "Tu es un analyste emploi Canada. Analyse les résultats web fournis et conserve uniquement les offres Job Bank/Guichet Emplois utiles.",
+                    f"{search_prompt}\n\nRésultats web:\n{ddg_results}",
                     temperature=0.2,
                 )
-            )
-            search_results = response_search.text
+            else:
+                try:
+                    response_search = _generate_content_with_retry(
+                        client=client,
+                        model="gemini-3.6-flash",
+                        contents=search_prompt,
+                        config=types.GenerateContentConfig(
+                            tools=[types.Tool(google_search=types.GoogleSearch())],
+                            temperature=0.2,
+                        )
+                    )
+                    search_results = response_search.text
+                except Exception as se:
+                    err_str = str(se).lower()
+                    if "quota" not in err_str and "429" not in err_str and "billing" not in err_str and "limit" not in err_str and "permission" not in err_str:
+                        raise
+                    self.stdout.write("Google Search Grounding non disponible (quota/billing/limite). Bascule sur DuckDuckGo...")
+                    ddg_results = search_duckduckgo("site:jobbank.gc.ca EIMT LMIA recruiting foreign")
+                    if not ddg_results:
+                        raise
+                    fallback_prompt = (
+                        f"Voici les résultats de recherche web pour les offres d'emploi Canada EIMT :\n\n{ddg_results}\n\n"
+                        "Analyse ces résultats et liste au moins 8 offres d'emploi réelles et récentes avec : "
+                        "le titre du poste, l'entreprise recruteuse, la ville, la province, le statut de l'EIMT/LMIA (approuvé, en cours, etc.), le salaire et l'URL source directe exacte."
+                    )
+                response_search = _generate_content_with_retry(
+                    client=client,
+                    model="gemini-3.6-flash",
+                    contents=fallback_prompt,
+                    config=types.GenerateContentConfig(temperature=0.2)
+                )
+                search_results = response_search.text
+
             self.stdout.write(f"Résultats de recherche récupérés (taille={len(search_results)}). Conversion en JSON...")
 
             # Pass 2: Controlled JSON extraction
@@ -166,23 +205,31 @@ class Command(BaseCommand):
                 f"Offres brutes :\n{search_results}"
             )
 
-            response_json = _generate_content_with_retry(
-                client=client,
-                model="gemini-2.5-flash",
-                contents=json_prompt,
-                config=types.GenerateContentConfig(
+            if use_openai:
+                jobs_list = call_openai_json(
+                    "Tu es un extracteur JSON strict. Retourne uniquement une liste JSON valide, sans markdown.",
+                    json_prompt,
                     temperature=0.1,
-                    response_mime_type="application/json",
                 )
-            )
+                self.stdout.write(f"JSON reçu de l'IA (éléments={len(jobs_list) if isinstance(jobs_list, list) else 'non-liste'})")
+            else:
+                response_json = _generate_content_with_retry(
+                    client=client,
+                    model="gemini-3.6-flash",
+                    contents=json_prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.1,
+                        response_mime_type="application/json",
+                    )
+                )
 
-            self.stdout.write(f"JSON brut reçu de l'IA (taille={len(response_json.text)})")
+                self.stdout.write(f"JSON brut reçu de l'IA (taille={len(response_json.text)})")
 
-            try:
-                jobs_list = json.loads(response_json.text)
-            except json.JSONDecodeError as je:
-                self.stderr.write(f"Erreur de décodage JSON : {je}\nContenu brut : {response_json.text}")
-                return
+                try:
+                    jobs_list = json.loads(response_json.text)
+                except json.JSONDecodeError as je:
+                    self.stderr.write(f"Erreur de décodage JSON : {je}\nContenu brut : {response_json.text}")
+                    return
 
             if not isinstance(jobs_list, list):
                 self.stderr.write("L'IA n'a pas retourné une liste d'offres.")

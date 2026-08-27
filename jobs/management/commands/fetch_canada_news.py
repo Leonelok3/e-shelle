@@ -4,10 +4,12 @@ import hashlib
 import json
 import logging
 import requests
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from google.genai import types
-from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
+from e_shelle_ai.services.tools.google_media_generator import get_vertex_client, search_duckduckgo
+from ai_engine.services.openai_adapter import call_openai, call_openai_json
 from jobs.models import CanadaNews
 
 logger = logging.getLogger(__name__)
@@ -81,16 +83,19 @@ class Command(BaseCommand):
     help = "Cherche sur le web et importe par IA les actualités et tirages officiels sur l'immigration Canada"
 
     def handle(self, *args, **options):
+        use_openai = bool(getattr(settings, "OPENAI_API_KEY", ""))
         self.stdout.write("Initialisation du client GenAI...")
-        client, err = get_vertex_client()
-        if err or not client:
-            self.stdout.write(f"Vertex AI non disponible ou erreur : {err}. Tentative avec Gemini Developer API...")
-            from e_shelle_ai.services.tools.google_media_generator import get_genai_studio_client
-            client, err = get_genai_studio_client()
+        client = None
+        if not use_openai:
+            client, err = get_vertex_client()
+            if err or not client:
+                self.stdout.write(f"Vertex AI non disponible ou erreur : {err}. Tentative avec Gemini Developer API...")
+                from e_shelle_ai.services.tools.google_media_generator import get_genai_studio_client
+                client, err = get_genai_studio_client()
 
-        if err or not client:
-            self.stderr.write(f"Erreur d'initialisation du client GenAI : {err}")
-            return
+            if err or not client:
+                self.stderr.write(f"Erreur d'initialisation du client GenAI : {err}")
+                return
 
         self.stdout.write("Recherche globale des actualités d'immigration Canada...")
 
@@ -108,16 +113,28 @@ class Command(BaseCommand):
         )
 
         try:
-            response_search = _generate_content_with_retry(
-                client=client,
-                model="gemini-2.5-flash",
-                contents=search_prompt,
-                config=types.GenerateContentConfig(
-                    tools=[types.Tool(google_search=types.GoogleSearch())],
+            if use_openai:
+                self.stdout.write("OpenAI actif. Recherche web via DuckDuckGo puis extraction IA...")
+                ddg_results = search_duckduckgo("site:canada.ca IRCC Express Entry draw immigration news Canada 2026 OR site:quebec.ca Arrima tirage immigration", max_results=12)
+                if not ddg_results:
+                    self.stderr.write("Aucun résultat DuckDuckGo exploitable.")
+                    return
+                search_results = call_openai(
+                    "Tu es un analyste d'actualités immigration Canada. Analyse les résultats web fournis et conserve les informations officielles ou fiables.",
+                    f"{search_prompt}\n\nRésultats web:\n{ddg_results}",
                     temperature=0.2,
                 )
-            )
-            search_results = response_search.text
+            else:
+                response_search = _generate_content_with_retry(
+                    client=client,
+                    model="gemini-3.6-flash",
+                    contents=search_prompt,
+                    config=types.GenerateContentConfig(
+                        tools=[types.Tool(google_search=types.GoogleSearch())],
+                        temperature=0.2,
+                    )
+                )
+                search_results = response_search.text
             self.stdout.write(f"Résultats de recherche récupérés (taille={len(search_results)}). Extraction JSON...")
 
             # Pass 2: Controlled JSON extraction
@@ -132,23 +149,31 @@ class Command(BaseCommand):
                 f"Actualités brutes :\n{search_results}"
             )
 
-            response_json = _generate_content_with_retry(
-                client=client,
-                model="gemini-2.5-flash",
-                contents=json_prompt,
-                config=types.GenerateContentConfig(
+            if use_openai:
+                news_list = call_openai_json(
+                    "Tu es un extracteur JSON strict. Retourne uniquement une liste JSON valide, sans markdown.",
+                    json_prompt,
                     temperature=0.1,
-                    response_mime_type="application/json",
                 )
-            )
+                self.stdout.write(f"JSON reçu de l'IA (éléments={len(news_list) if isinstance(news_list, list) else 'non-liste'})")
+            else:
+                response_json = _generate_content_with_retry(
+                    client=client,
+                    model="gemini-3.6-flash",
+                    contents=json_prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.1,
+                        response_mime_type="application/json",
+                    )
+                )
 
-            self.stdout.write(f"JSON brut reçu de l'IA (taille={len(response_json.text)})")
+                self.stdout.write(f"JSON brut reçu de l'IA (taille={len(response_json.text)})")
 
-            try:
-                news_list = json.loads(response_json.text)
-            except json.JSONDecodeError as je:
-                self.stderr.write(f"Erreur de décodage JSON : {je}\nContenu brut : {response_json.text}")
-                return
+                try:
+                    news_list = json.loads(response_json.text)
+                except json.JSONDecodeError as je:
+                    self.stderr.write(f"Erreur de décodage JSON : {je}\nContenu brut : {response_json.text}")
+                    return
 
             if not isinstance(news_list, list):
                 self.stderr.write("L'IA n'a pas retourné une liste d'actualités.")
