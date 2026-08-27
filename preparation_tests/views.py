@@ -302,9 +302,13 @@ def lesson_session(request, exam_code, section, lesson_id):
 # 🕒 SESSIONS
 # =========================================================
 @login_required
-def start_session_generic(request, exam_code):
+def start_session_generic(request, exam_code, section_code=None):
     exam = get_object_or_404(Exam, code__iexact=exam_code)
-    section = exam.sections.order_by("order").first()
+    sections = exam.sections.order_by("order")
+    if section_code:
+        section = sections.filter(code__iexact=section_code).first()
+    else:
+        section = sections.first()
 
     if not section:
         messages.error(request, "Aucune section disponible.")
@@ -331,7 +335,7 @@ def start_session(request, exam_code):
 
 @login_required
 def start_session_with_section(request, exam_code, section):
-    return start_session_generic(request, exam_code=exam_code)
+    return start_session_generic(request, exam_code=exam_code, section_code=section)
 
 
 # =========================================================
@@ -558,7 +562,7 @@ def mock_exam_session(request, session_id):
     exam = session.exam
     section = session.section
 
-    questions = Question.objects.filter(section=section).order_by("?")[:25]
+    questions = Question.objects.filter(section=section).prefetch_related("choices").order_by("?")[:25]
 
     attempt, _ = Attempt.objects.get_or_create(
         session=session,
@@ -569,6 +573,47 @@ def mock_exam_session(request, session_id):
             "score_percent": 0,
         },
     )
+
+    if request.method == "POST":
+        posted_question_ids = []
+        raw_score = 0
+        attempt.answers.all().delete()
+
+        for key, value in request.POST.items():
+            if not key.startswith("q") or not value:
+                continue
+            try:
+                question_id = int(key[1:])
+                choice_id = int(value)
+            except (TypeError, ValueError):
+                continue
+
+            question = Question.objects.filter(id=question_id, section=section).first()
+            choice = Choice.objects.filter(id=choice_id, question=question).first() if question else None
+            if not question or not choice:
+                continue
+
+            is_correct = choice.is_correct
+            raw_score += int(is_correct)
+            posted_question_ids.append(question_id)
+            Answer.objects.create(
+                attempt=attempt,
+                question=question,
+                payload={"choice_id": choice_id},
+                is_correct=is_correct,
+            )
+
+        total_items = len(posted_question_ids)
+        attempt.total_items = total_items
+        attempt.raw_score = raw_score
+        attempt.score_percent = round((raw_score / total_items) * 100, 2) if total_items else 0
+        attempt.save()
+
+        session.total_score = attempt.score_percent
+        session.completed_at = timezone.now()
+        session.save()
+
+        return redirect("preparation_tests:session_result", session_id=session.id)
 
     cefr = get_cefr_progress(
         user=request.user,

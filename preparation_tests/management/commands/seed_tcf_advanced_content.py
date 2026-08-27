@@ -16,6 +16,12 @@ LEVEL_THEMES = {
         "mobilite urbaine durable",
         "sante communautaire",
         "participation citoyenne",
+        "services publics numeriques",
+        "entrepreneuriat immigrant",
+        "conciliation famille-travail",
+        "transport regional",
+        "benevolat et reseautage",
+        "securite alimentaire",
     ],
     "C1": [
         "reconnaissance des diplomes",
@@ -24,6 +30,12 @@ LEVEL_THEMES = {
         "transition ecologique",
         "universites et recherche appliquee",
         "sante publique et prevention",
+        "gouvernance des donnees",
+        "mediation interculturelle",
+        "emploi qualifie et productivite",
+        "logement abordable",
+        "financement de l'innovation",
+        "participation democratique",
     ],
     "C2": [
         "ethique algorithmique",
@@ -32,6 +44,12 @@ LEVEL_THEMES = {
         "justice sociale et institutions",
         "memoire collective",
         "innovation scientifique responsable",
+        "philosophie du droit",
+        "geopolitique de la francophonie",
+        "epistemologie des sciences",
+        "transmission culturelle",
+        "regulation economique",
+        "responsabilite environnementale",
     ],
 }
 
@@ -58,11 +76,18 @@ class Command(BaseCommand):
             default=6,
             help="Lessons to create per section and level. Default: 6.",
         )
+        parser.add_argument(
+            "--batch",
+            type=int,
+            default=1,
+            help="Batch number. Use 2, 3, ... to add new lessons without duplicating batch 1.",
+        )
 
     @transaction.atomic
     def handle(self, *args, **options):
         levels = [level.strip().upper() for level in options["levels"].split(",") if level.strip()]
         lessons_per_section = max(1, int(options["lessons_per_section"]))
+        batch = max(1, int(options["batch"]))
         exam = self._ensure_tcf_exam()
         self._attach_existing_french_lessons(exam)
 
@@ -78,8 +103,9 @@ class Command(BaseCommand):
                 continue
 
             for section in ["co", "ce", "ee", "eo"]:
-                for index, theme in enumerate(themes[:lessons_per_section], start=1):
-                    lesson, was_created = self._upsert_lesson(exam, level, section, index, theme)
+                selected_themes = self._themes_for_batch(themes, batch, lessons_per_section)
+                for index, theme in enumerate(selected_themes, start=1):
+                    lesson, was_created = self._upsert_lesson(exam, level, section, index, theme, batch)
                     created_lessons += int(was_created)
                     updated_lessons += int(not was_created)
 
@@ -124,9 +150,14 @@ class Command(BaseCommand):
         for lesson in lessons.iterator():
             lesson.exams.add(exam)
 
-    def _upsert_lesson(self, exam: Exam, level: str, section: str, index: int, theme: str):
+    def _themes_for_batch(self, themes: list[str], batch: int, lessons_per_section: int) -> list[str]:
+        offset = ((batch - 1) * lessons_per_section) % len(themes)
+        return [themes[(offset + idx) % len(themes)] for idx in range(lessons_per_section)]
+
+    def _upsert_lesson(self, exam: Exam, level: str, section: str, index: int, theme: str, batch: int):
         title_long, code = SECTION_META[section]
-        slug = f"tcf-advanced-{section}-{level.lower()}-{index}"
+        prefix = "tcf-advanced" if batch == 1 else f"tcf-advanced-batch{batch}"
+        slug = f"{prefix}-{section}-{level.lower()}-{index}"
         title = f"TCF {level} - {code} - {theme.title()}"
         content = self._lesson_content(level, section, theme)
         lesson, created = CourseLesson.objects.update_or_create(

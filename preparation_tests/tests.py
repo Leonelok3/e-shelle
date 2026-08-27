@@ -6,7 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import CourseExercise, CourseLesson, EESubmission, EOSubmission, Exam, ExamSection
+from .models import Answer, Choice, CourseExercise, CourseLesson, EESubmission, EOSubmission, Exam, ExamSection, Question, Session
 
 
 class FrenchTcfAgentsTests(TestCase):
@@ -133,3 +133,30 @@ class FrenchTcfAgentsTests(TestCase):
         self.assertContains(course_response, "TCF B2 CE")
         self.assertEqual(mock_response.status_code, 200)
         self.assertContains(mock_response, "TCF")
+
+    def test_legacy_section_start_and_mock_post_do_not_return_zero_questions(self):
+        co_section = self.exam.sections.get(code="co")
+        question = Question.objects.create(section=co_section, stem="[B2][CO] Question test")
+        good_choice = Choice.objects.create(question=question, text="Bonne réponse", is_correct=True)
+        Choice.objects.create(question=question, text="Mauvaise réponse", is_correct=False)
+
+        start_response = self.client.get(reverse("preparation_tests:start_session_with_section", args=["tcf", "co"]))
+        self.assertEqual(start_response.status_code, 302)
+        session = Session.objects.latest("id")
+        self.assertEqual(session.attempts.first().section.code, "co")
+
+        mock_session = Session.objects.create(
+            user=self.user,
+            exam=self.exam,
+            section=co_section,
+            mode="mock",
+        )
+        post_response = self.client.post(
+            reverse("preparation_tests:mock_exam_session", args=[mock_session.id]),
+            data={f"q{question.id}": str(good_choice.id)},
+        )
+        self.assertEqual(post_response.status_code, 302)
+        attempt = mock_session.attempts.first()
+        self.assertEqual(attempt.total_items, 1)
+        self.assertEqual(attempt.raw_score, 1)
+        self.assertEqual(Answer.objects.filter(attempt=attempt).count(), 1)
