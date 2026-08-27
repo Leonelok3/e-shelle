@@ -69,6 +69,11 @@ def _stable_ref_nr(provider: str, title: str) -> str:
     raw = f"{provider.strip().lower()}|{title.strip().lower()}"
     return "ca-scholarship-" + hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
 
+
+def _truncate(value: str, max_length: int) -> str:
+    value = (value or "").strip()
+    return value[:max_length]
+
 def _generate_content_with_retry(client, model, contents, config, retries=4, initial_delay=5):
     import time
     for i in range(retries):
@@ -207,11 +212,11 @@ class Command(BaseCommand):
                 offer, created = CanadaScholarship.objects.update_or_create(
                     ref_nr=ref_nr,
                     defaults={
-                        "title": title,
-                        "provider": provider,
-                        "amount": sc.get("amount", "Non précisé").strip(),
+                        "title": _truncate(title, 300),
+                        "provider": _truncate(provider, 200),
+                        "amount": _truncate(sc.get("amount", "Non précisé"), 100),
                         "eligibility": sc.get("eligibility", "").strip(),
-                        "deadline": sc.get("deadline", "Non précisé").strip(),
+                        "deadline": _truncate(sc.get("deadline", "Non précisé"), 100),
                         "description": sc.get("description", "").strip(),
                         "url_apply": url_apply,
                         "is_active": True,
