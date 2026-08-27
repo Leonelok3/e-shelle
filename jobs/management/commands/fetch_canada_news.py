@@ -115,7 +115,9 @@ class Command(BaseCommand):
         try:
             if use_openai:
                 self.stdout.write("OpenAI actif. Recherche web via DuckDuckGo puis extraction IA...")
-                ddg_results = search_duckduckgo("site:canada.ca IRCC Express Entry draw immigration news Canada 2026 OR site:quebec.ca Arrima tirage immigration", max_results=12)
+                ddg_results = search_duckduckgo("site:canada.ca IRCC Express Entry draw immigration Canada 2026", max_results=12)
+                if not ddg_results:
+                    ddg_results = search_duckduckgo("site:quebec.ca Arrima tirage immigration Quebec 2026", max_results=12)
                 if not ddg_results:
                     self.stderr.write("Aucun résultat DuckDuckGo exploitable.")
                     return

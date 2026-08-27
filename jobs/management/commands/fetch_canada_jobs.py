@@ -142,7 +142,9 @@ class Command(BaseCommand):
         try:
             if use_openai:
                 self.stdout.write("OpenAI actif. Recherche web via DuckDuckGo puis extraction IA...")
-                ddg_results = search_duckduckgo("site:jobbank.gc.ca OR site:guichetemplois.gc.ca EIMT LMIA Canada foreign workers jobs", max_results=12)
+                ddg_results = search_duckduckgo("site:jobbank.gc.ca jobposting LMIA Canada foreign workers", max_results=12)
+                if not ddg_results:
+                    ddg_results = search_duckduckgo("site:guichetemplois.gc.ca offre emploi EIMT travailleurs étrangers Canada", max_results=12)
                 if not ddg_results:
                     self.stderr.write("Aucun résultat DuckDuckGo exploitable.")
                     return

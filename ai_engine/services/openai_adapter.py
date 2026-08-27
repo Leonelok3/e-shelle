@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import urllib.parse
+from html import unescape
 
 from django.conf import settings
 import requests
@@ -69,16 +70,36 @@ def search_duckduckgo(query: str, max_results: int = 10) -> str:
     response = requests.get(url, headers=headers, timeout=12)
     response.raise_for_status()
 
+    def clean_html(value: str) -> str:
+        return unescape(re.sub(r"<.*?>", "", value or "")).strip()
+
+    def clean_link(value: str) -> str:
+        value = unescape(value or "").strip()
+        parsed = urllib.parse.urlparse(value)
+        query_params = urllib.parse.parse_qs(parsed.query)
+        if "uddg" in query_params:
+            return query_params["uddg"][0]
+        return value
+
     blocks = re.findall(
-        r'<a rel="nofollow" class="result__a" href="(.*?)".*?>(.*?)</a>.*?'
-        r'<a class="result__snippet".*?>(.*?)</a>',
+        r'<div class="result.*?">(.*?)</div>\s*</div>\s*</div>',
         response.text,
         re.DOTALL,
     )
     results = []
-    for link, title, snippet in blocks[:max_results]:
-        clean_title = re.sub(r"<.*?>", "", title).strip()
-        clean_snippet = re.sub(r"<.*?>", "", snippet).strip()
-        clean_link = urllib.parse.unquote(link)
-        results.append(f"Titre: {clean_title}\nURL: {clean_link}\nExtrait: {clean_snippet}")
+    for block in blocks:
+        link_match = re.search(r'class="result__a"[^>]+href="(.*?)"[^>]*>(.*?)</a>', block, re.DOTALL)
+        if not link_match:
+            continue
+        snippet_match = re.search(r'class="result__snippet"[^>]*>(.*?)</a>', block, re.DOTALL)
+        title = clean_html(link_match.group(2))
+        link = clean_link(link_match.group(1))
+        snippet = clean_html(snippet_match.group(1) if snippet_match else "")
+        if title and link:
+            results.append(f"Titre: {title}\nURL: {link}\nExtrait: {snippet}")
+        if len(results) >= max_results:
+            break
+
+    if not results:
+        logger.warning("DuckDuckGo n'a retourné aucun résultat parsable pour: %s", query)
     return "\n\n".join(results)

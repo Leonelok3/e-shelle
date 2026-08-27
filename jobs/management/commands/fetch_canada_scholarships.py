@@ -112,7 +112,9 @@ class Command(BaseCommand):
         try:
             if use_openai:
                 self.stdout.write("OpenAI actif. Recherche web via DuckDuckGo puis extraction IA...")
-                ddg_results = search_duckduckgo("Canada scholarships international students 2026 2027 site:canada.ca OR site:educanada.ca OR site:umontreal.ca OR site:uottawa.ca", max_results=12)
+                ddg_results = search_duckduckgo("site:educanada.ca scholarships international students Canada 2026 2027", max_results=12)
+                if not ddg_results:
+                    ddg_results = search_duckduckgo("site:canada.ca bourses étudiants internationaux Canada 2026", max_results=12)
                 if not ddg_results:
                     self.stderr.write("Aucun résultat DuckDuckGo exploitable.")
                     return
