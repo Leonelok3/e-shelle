@@ -62,15 +62,27 @@
         <span class="le-q-skill-badge
           {% if question.skill == 'READING' %}reading
           {% elif question.skill == 'LISTENING' %}listening
+          {% elif question.skill == 'WRITING' %}writing
+          {% elif question.skill == 'SPEAKING' %}speaking
           {% else %}grammar{% endif %}"
           data-skill="{{ question.skill }}">
           {% if question.skill == "READING" %}📖 Reading
           {% elif question.skill == "LISTENING" %}🎧 Listening
+          {% elif question.skill == "WRITING" %}✍️ Writing
+          {% elif question.skill == "SPEAKING" %}🗣️ Speaking
           {% else %}✏️ Grammar{% endif %}
         </span>
       </div>
 
       <p class="le-q-text">{{ question.question_text }}</p>
+      {% if question.audio_url %}
+      <div class="le-audio-prompt" style="margin:.75rem 0 1rem;padding:.85rem 1rem;border:1px solid var(--le-border);border-radius:var(--le-radius-sm);background:var(--le-glass)">
+        <audio controls preload="none" style="width:100%">
+          <source src="{{ question.audio_url }}">
+          Votre navigateur ne peut pas lire cet audio.
+        </audio>
+      </div>
+      {% endif %}
 
       <div class="le-options">
         {% if question.option_a %}

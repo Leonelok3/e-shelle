@@ -40,6 +40,8 @@ class EnglishQuestion(models.Model):
     SKILL_CHOICES = [
         ('READING', 'Reading'),
         ('LISTENING', 'Listening'),
+        ('WRITING', 'Writing'),
+        ('SPEAKING', 'Speaking'),
         ('USE_OF_ENGLISH', 'Grammar / Vocabulary'),
     ]
 

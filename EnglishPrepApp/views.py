@@ -241,6 +241,9 @@ def dashboard(request):
 
     skill_stats = {
         "READING": {"label": "Reading", "total": 0, "correct": 0},
+        "LISTENING": {"label": "Listening", "total": 0, "correct": 0},
+        "WRITING": {"label": "Writing", "total": 0, "correct": 0},
+        "SPEAKING": {"label": "Speaking", "total": 0, "correct": 0},
         "USE_OF_ENGLISH": {
             "label": "Grammaire / Vocabulaire",
             "total": 0,
@@ -669,53 +672,55 @@ def ai_coach_page(request):
 
     preset = (request.GET.get("preset") or "").strip()
 
+    ai_answer = None
+    error = None
+
+    if request.method == "POST":
+        question = (request.POST.get("question") or "").strip()
+        if not question:
+            error = "Pose une question au coach pour lancer l'analyse."
+        elif client is None:
+            error = "La clé OPENAI_API_KEY n'est pas configurée sur le serveur."
+        else:
+            try:
+                messages_for_ai = _build_ai_coach_messages(
+                    request.user,
+                    user_message=question,
+                    history=[],
+                    profile=profile,
+                    last_session=last_session,
+                )
+                completion = client.chat.completions.create(
+                    model="gpt-4.1-mini",
+                    messages=messages_for_ai,
+                    temperature=0.4,
+                )
+                ai_answer = completion.choices[0].message.content
+            except OpenAIError as e:
+                _log.error("ai_coach_page OpenAI error: %s", e)
+                error = "Désolé, une erreur s'est produite côté IA."
+
     context = {
         "profile": profile,
         "last_session": last_session,
         "preset": preset,
+        "ai_answer": ai_answer,
+        "error": error,
     }
     return render(request, "english/ai_coach.html", context)
 
 
-@csrf_exempt
-@login_required
-def ai_coach_api(request):
-    """
-    Endpoint JSON pour le chat IA.
-    Reçoit : { "message": "...", "history": [ {role, content}, ... ] }
-    Retourne : { "reply": "..." }
-    """
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST allowed"}, status=405)
-
-    if client is None:
-        return JsonResponse(
-            {
-                "error": "API key manquante",
-                "reply": "La clé OPENAI_API_KEY n'est pas configurée sur le serveur.",
-            },
-            status=500,
+def _build_ai_coach_messages(user, user_message, history=None, profile=None, last_session=None):
+    if profile is None:
+        profile = getattr(user, "english_profile", None)
+    if last_session is None:
+        last_session = (
+            UserTestSession.objects
+            .filter(user=user)
+            .select_related("test")
+            .order_by("-started_at")
+            .first()
         )
-
-    try:
-        data = json.loads(request.body.decode("utf-8"))
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
-
-    user_message = (data.get("message") or "").strip()
-    history = data.get("history") or []
-
-    if not user_message:
-        return JsonResponse({"error": "Empty message"}, status=400)
-
-    profile = getattr(request.user, "english_profile", None)
-    last_session = (
-        UserTestSession.objects
-        .filter(user=request.user)
-        .select_related("test")
-        .order_by("-started_at")
-        .first()
-    )
 
     profile_text = ""
     if profile:
@@ -751,14 +756,47 @@ def ai_coach_api(request):
     )
 
     messages = [{"role": "system", "content": system_prompt}]
-
-    for item in history:
+    for item in history or []:
         role = item.get("role")
         content = item.get("content")
         if role in ("user", "assistant") and content:
             messages.append({"role": role, "content": content})
-
     messages.append({"role": "user", "content": user_message})
+    return messages
+
+
+@csrf_exempt
+@login_required
+def ai_coach_api(request):
+    """
+    Endpoint JSON pour le chat IA.
+    Reçoit : { "message": "...", "history": [ {role, content}, ... ] }
+    Retourne : { "reply": "..." }
+    """
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+    if client is None:
+        return JsonResponse(
+            {
+                "error": "API key manquante",
+                "reply": "La clé OPENAI_API_KEY n'est pas configurée sur le serveur.",
+            },
+            status=500,
+        )
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    user_message = (data.get("message") or "").strip()
+    history = data.get("history") or []
+
+    if not user_message:
+        return JsonResponse({"error": "Empty message"}, status=400)
+
+    messages = _build_ai_coach_messages(request.user, user_message, history)
 
     try:
         completion = client.chat.completions.create(
