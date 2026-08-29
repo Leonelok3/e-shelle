@@ -23,6 +23,9 @@ sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" migrate --noi
 echo "→ Migrations Tchaslucpay..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" migrate --noinput --settings=tchaslucpay.core.settings
 
+echo "→ Migrations Avatar..."
+sudo -u $APP_USER bash -lc "cd '$APP_DIR/videostory_local_ai' && '$APP_DIR/.venv/bin/python' manage.py migrate --noinput"
+
 echo "→ Collecte des statiques..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput --upload-unhashed-files
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/scripts/check_staticfiles.py"
