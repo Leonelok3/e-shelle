@@ -5,6 +5,7 @@ from PIL import Image as PILImage
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
+load_dotenv(BASE_DIR.parent / '.env')
 
 # Pillow 10+ has moved ANTIALIAS under Resampling.
 if not hasattr(PILImage, 'ANTIALIAS'):
@@ -12,8 +13,15 @@ if not hasattr(PILImage, 'ANTIALIAS'):
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-local-secret-key')
 DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() == 'true'
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'e-shelle.com', 'www.e-shelle.com', 'video.e-shelle.com']
-FORCE_SCRIPT_NAME = os.getenv('FORCE_SCRIPT_NAME', None)
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv(
+        'AVATAR_ALLOWED_HOSTS',
+        '127.0.0.1,localhost,e-shelle.com,www.e-shelle.com,video.e-shelle.com',
+    ).split(',')
+    if host.strip()
+]
+FORCE_SCRIPT_NAME = os.getenv('AVATAR_FORCE_SCRIPT_NAME', os.getenv('FORCE_SCRIPT_NAME', '')).strip() or None
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -79,10 +87,10 @@ TIME_ZONE = 'Europe/Paris'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = os.getenv('AVATAR_STATIC_URL', 'static/')
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-MEDIA_URL = 'media/'
+MEDIA_URL = os.getenv('AVATAR_MEDIA_URL', 'media/')
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -105,4 +113,3 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 ELEVENLABS_API_KEY = os.getenv('ELEVENLABS_API_KEY', '')
 GCP_VERTEX_KEY_PATH = os.getenv('GCP_VERTEX_KEY_PATH', str(BASE_DIR / 'gcp_vertex_key.json'))
 GOOGLE_VIDEO_MODEL = os.getenv('GOOGLE_VIDEO_MODEL', 'veo-3.1-generate-preview')
-

@@ -32,7 +32,7 @@ def _localize_debug_url(url):
 def avatar_redirect(request):
     if settings.DEBUG:
         return redirect('http://127.0.0.1:8002/')
-    return redirect('https://e-shelle.com/avatar/')
+    return redirect('/')
 
 
 def _allemagne_hub(request):
@@ -111,6 +111,8 @@ def home_view(request):
             HomeAdSlide.objects.filter(pk__in=[slide.pk for slide in merged_slides[:10]]).update(
                 impressions_count=F("impressions_count") + 1
             )
+        for slide in merged_slides:
+            slide.cta_url = _localize_debug_url(getattr(slide, "cta_url", ""))
         active_businesses = BusinessProfile.objects.filter(is_active=True)
         top_verified_businesses = list(
             active_businesses.filter(is_verified=True)
@@ -199,7 +201,10 @@ def presentation_view(request):
             "leads": lead_total + whatsapp_total,
             "events": BusinessLeadEvent.objects.count(),
         }
-        ctx["slides"] = list(PresentationSlide.objects.filter(is_active=True).order_by("order", "-created_at"))
+        slides = list(PresentationSlide.objects.filter(is_active=True).order_by("order", "-created_at"))
+        for slide in slides:
+            slide.cta_url = _localize_debug_url(getattr(slide, "cta_url", ""))
+        ctx["slides"] = slides
     except Exception:
         ctx["home_numbers"] = {"businesses": 0, "premium": 0, "products": 0, "leads": 0, "events": 0}
         ctx["slides"] = []

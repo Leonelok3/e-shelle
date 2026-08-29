@@ -10,7 +10,10 @@ SECRET_KEY = os.getenv("SIMPLO_SECRET_KEY", "dev-simplo-change-me")
 DEBUG = os.getenv("SIMPLO_DEBUG", "True").lower() in {"1", "true", "yes"}
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv("SIMPLO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    for host in os.getenv(
+        "SIMPLO_ALLOWED_HOSTS",
+        "localhost,127.0.0.1,e-shelle.com,www.e-shelle.com",
+    ).split(",")
     if host.strip()
 ]
 

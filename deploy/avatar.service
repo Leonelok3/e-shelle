@@ -1,0 +1,25 @@
+# Systemd service - Gunicorn pour Avatar IA / VideoStory
+# Fichier a placer : /etc/systemd/system/avatar.service
+# Activer          : sudo systemctl enable avatar && sudo systemctl start avatar
+
+[Unit]
+Description=Avatar IA - Gunicorn WSGI Server
+After=network.target
+
+[Service]
+User=eshelle
+Group=www-data
+WorkingDirectory=/home/eshelle/app/videostory_local_ai
+EnvironmentFile=/home/eshelle/app/.env
+Environment=DJANGO_SETTINGS_MODULE=videostory_local_ai.settings
+ExecStart=/home/eshelle/app/.venv/bin/gunicorn \
+    --workers 2 \
+    --bind 127.0.0.1:8002 \
+    --access-logfile /var/log/avatar/access.log \
+    --error-logfile  /var/log/avatar/error.log \
+    videostory_local_ai.wsgi:application
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,17 +1,31 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parents[1]
+PROJECT_DIR = BASE_DIR.parent
+load_dotenv(PROJECT_DIR / ".env")
+
 SECRET_KEY = os.getenv("TCHASLUCPAY_SECRET_KEY", "dev-tchaslucpay-change-me")
 DEBUG = os.getenv("TCHASLUCPAY_DEBUG", "True").lower() in {"1", "true", "yes"}
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("TCHASLUCPAY_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.getenv(
+        "TCHASLUCPAY_ALLOWED_HOSTS",
+        "localhost,127.0.0.1,e-shelle.com,www.e-shelle.com",
+    ).split(",")
+    if h.strip()
+]
 RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME", "")
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
-    for origin in os.getenv("TCHASLUCPAY_CSRF_TRUSTED_ORIGINS", "").split(",")
+    for origin in os.getenv(
+        "TCHASLUCPAY_CSRF_TRUSTED_ORIGINS",
+        "https://e-shelle.com,https://www.e-shelle.com",
+    ).split(",")
     if origin.strip()
 ]
 if RENDER_EXTERNAL_HOSTNAME:
