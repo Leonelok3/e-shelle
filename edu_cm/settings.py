@@ -232,6 +232,7 @@ MIDDLEWARE = [
     # ── Allauth (social login) ────────────────────────────────────
     "allauth.account.middleware.AccountMiddleware",
     "apps.tibo.middleware.security.TiboSecurityHeadersMiddleware",
+     # test de francais 
 ]
 
 ROOT_URLCONF = "edu_cm.urls"
@@ -495,12 +496,48 @@ EDU_PLATFORM = {
 }
 
 # URL de base pour les webhooks Mobile Money
+ESHELLE_SUBDOMAIN_PUBLIC_PATHS = {
+    "adgen.e-shelle.com": "/pub/",
+    "agro.e-shelle.com": "/agro/",
+    "ai.e-shelle.com": "/ai/",
+    "allemand.e-shelle.com": "/allemand/",
+    "anglais.e-shelle.com": "/anglais/",
+    "annonces.e-shelle.com": "/annonces/",
+    "auto.e-shelle.com": "/auto/",
+    "boutique.e-shelle.com": "/boutique/",
+    "exprod.e-shelle.com": "/lebelage-importer/",
+    "formations.e-shelle.com": "/formations/",
+    "gaz.e-shelle.com": "/gaz/",
+    "immobilier.e-shelle.com": "/immobilier/",
+    "italien.e-shelle.com": "/italien/",
+    "jobs.e-shelle.com": "/jobs/",
+    "langues.e-shelle.com": "/langues/",
+    "love.e-shelle.com": "/rencontres/",
+    "mapex.e-shelle.com": "/edu/",
+    "market.e-shelle.com": "/annonces/",
+    "maths.e-shelle.com": "/maths/",
+    "njangi.e-shelle.com": "/njangi/",
+    "pharma.e-shelle.com": "/pharma/",
+    "prep.e-shelle.com": "/prep/",
+    "pressing.e-shelle.com": "/pressing/",
+    "resto.e-shelle.com": "/resto/",
+    "salonhub.e-shelle.com": "/salons/",
+    "sante.e-shelle.com": "/sante/",
+    "services.e-shelle.com": "/services/",
+    "simplo.e-shelle.com": "/simplo/",
+    "tchaslucpay.e-shelle.com": "/tchaslucpay/",
+    "transport.e-shelle.com": "/transport/",
+}
+
+
 def _public_url(name, default, local_default=None):
     value = os.getenv(name, default)
-    if not DEBUG:
-        return value
     parsed = urlparse(value)
-    if parsed.netloc.endswith(".e-shelle.com"):
+    host = (parsed.hostname or "").lower()
+    if host in ESHELLE_SUBDOMAIN_PUBLIC_PATHS:
+        public_path = ESHELLE_SUBDOMAIN_PUBLIC_PATHS[host]
+        return parsed.path if parsed.path.startswith(public_path) else public_path
+    if DEBUG and parsed.netloc.endswith(".e-shelle.com"):
         return local_default or parsed.path or "/"
     return value
 

@@ -12,6 +12,23 @@ from seo_agent import views as seo_views
 import urllib.parse
 
 
+def _localize_debug_url(url):
+    if not url:
+        return url
+    parsed = urllib.parse.urlparse(url)
+    host = (parsed.hostname or "").lower()
+    public_paths = getattr(settings, "ESHELLE_SUBDOMAIN_PUBLIC_PATHS", {})
+    if host in public_paths:
+        public_path = public_paths[host]
+        if settings.DEBUG:
+            if host == "tchaslucpay.e-shelle.com":
+                return "http://127.0.0.1:8001/"
+            if host == "simplo.e-shelle.com":
+                return "http://127.0.0.1:8020/"
+        return parsed.path if parsed.path.startswith(public_path) else public_path
+    return url
+
+
 def avatar_redirect(request):
     if settings.DEBUG:
         return redirect('http://127.0.0.1:8002/')
@@ -134,7 +151,10 @@ def home_view(request):
 
         ctx["premium_showcase_items"] = paginated_items
         ctx["home_ad_slides"] = merged_slides[:10]
-        ctx["app_promo_slides"] = list(AppPromotionSlide.objects.filter(is_active=True).order_by("order", "-created_at"))
+        app_promo_slides = list(AppPromotionSlide.objects.filter(is_active=True).order_by("order", "-created_at"))
+        for slide in app_promo_slides:
+            slide.cta_url = _localize_debug_url(slide.cta_url)
+        ctx["app_promo_slides"] = app_promo_slides
         try:
             from business.models import PartnerLogo
             ctx["partners"] = list(PartnerLogo.objects.filter(is_active=True).order_by("order", "-created_at"))
