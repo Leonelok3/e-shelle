@@ -721,12 +721,81 @@ def _start_ad_video(prompt: str, image_b64: str | None, duration: int) -> dict:
 
 def _check_ad_video_status(operation_name: str) -> dict:
     if operation_name.startswith("local:"):
-        return {"done": True, "video_url": "__photos__", "provider": "local"}
+        return {"done": False, "provider": "local"}
     if operation_name.startswith("openai:"):
         return check_openai_video_status(operation_name)
     if operation_name.startswith("google:"):
         return check_google_video_status(operation_name.removeprefix("google:"))
     return check_google_video_status(operation_name)
+
+
+def _run_local_video_render(campaign_id: int, user_id: int, operation_name: str) -> None:
+    """Compose la vidéo locale dans un thread unique pour éviter les rendus concurrents."""
+    lock_path = os.path.join(settings.MEDIA_ROOT, "adgen", "temp", f"campaign_{campaign_id}_video.lock")
+    os.makedirs(os.path.dirname(lock_path), exist_ok=True)
+    lock_fd = None
+    try:
+        lock_fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.write(lock_fd, str(timezone.now().isoformat()).encode("utf-8"))
+    except FileExistsError:
+        return
+    except Exception as exc:
+        logger.warning("[AdGen Local Video] Impossible de créer le verrou vidéo #%s: %s", campaign_id, exc)
+
+    try:
+        connection.close()
+        content = AdContent.objects.select_related("campaign", "campaign__user").get(campaign_id=campaign_id)
+        raw_json = content.raw_json if isinstance(content.raw_json, dict) else {}
+        if raw_json.get("video_operation_name") != operation_name and raw_json.get("video_operation_name"):
+            return
+
+        raw_json["video_local_status"] = "rendering"
+        raw_json.pop("video_local_error", None)
+        content.raw_json = raw_json
+        content.save(update_fields=["raw_json"])
+
+        music_style = raw_json.get("music_style", "piano")
+        video_url = add_voiceover_to_video("__photos__", "bg_music", campaign_id, music_style=music_style, duration=15.0)
+
+        raw_json = content.raw_json if isinstance(content.raw_json, dict) else {}
+        raw_json.pop("video_operation_name", None)
+        raw_json["video_local_status"] = "done"
+        raw_json["video_completed_at"] = timezone.now().isoformat()
+        content.ad_video_url = video_url
+        content.raw_json = raw_json
+        content.save(update_fields=["ad_video_url", "raw_json"])
+
+        quota_service = QuotaService()
+        quota_service.increment_usage(content.campaign.user, "image")
+    except Exception as exc:
+        logger.exception("[AdGen Local Video] Échec du rendu local #%s", campaign_id)
+        try:
+            content = AdContent.objects.get(campaign_id=campaign_id)
+            raw_json = content.raw_json if isinstance(content.raw_json, dict) else {}
+            raw_json["video_local_status"] = "failed"
+            raw_json["video_local_error"] = str(exc)
+            content.raw_json = raw_json
+            content.save(update_fields=["raw_json"])
+        except Exception:
+            pass
+    finally:
+        try:
+            if lock_fd is not None:
+                os.close(lock_fd)
+        except Exception:
+            pass
+        try:
+            if os.path.exists(lock_path):
+                os.remove(lock_path)
+        except Exception:
+            pass
+        connection.close()
+
+
+def _start_local_video_render(campaign_id: int, user_id: int, operation_name: str) -> None:
+    thread = threading.Thread(target=_run_local_video_render, args=(campaign_id, user_id, operation_name))
+    thread.daemon = True
+    thread.start()
 
 class StartAdVideoView(LoginRequiredMixin, View):
     """
@@ -833,11 +902,28 @@ class StartAdVideoView(LoginRequiredMixin, View):
 
         if not isinstance(content.raw_json, dict):
             content.raw_json = {}
+        if (
+            provider == "local"
+            and str(content.raw_json.get("video_operation_name", "")).startswith("local:")
+            and content.raw_json.get("video_local_status") in {"queued", "rendering"}
+        ):
+            return JsonResponse({
+                "operation_name": content.raw_json["video_operation_name"],
+                "prompt": content.raw_json.get("video_prompt", prompt),
+                "provider": "local",
+            })
+
         content.raw_json["video_operation_name"] = result["operation_name"]
         content.raw_json["video_provider"] = result.get("provider", provider)
         content.raw_json["video_prompt"] = prompt
         content.raw_json["video_started_at"] = timezone.now().isoformat()
-        content.save(update_fields=["raw_json"])
+        content.raw_json["video_local_status"] = "queued" if provider == "local" else ""
+        content.raw_json.pop("video_local_error", None)
+        content.ad_video_url = ""
+        content.save(update_fields=["ad_video_url", "raw_json"])
+
+        if provider == "local":
+            _start_local_video_render(campaign.pk, request.user.pk, result["operation_name"])
 
         return JsonResponse({
             "operation_name": result["operation_name"],
@@ -861,6 +947,21 @@ class PollAdVideoView(LoginRequiredMixin, View):
         operation_name = request.GET.get("operation_name")
         if not operation_name:
             return JsonResponse({"error": "Nom de l'opération manquant."}, status=400)
+
+        if operation_name.startswith("local:"):
+            raw_json = content.raw_json if isinstance(content.raw_json, dict) else {}
+            if content.ad_video_url:
+                return JsonResponse({"done": True, "video_url": content.ad_video_url})
+            if raw_json.get("video_local_status") == "failed":
+                return JsonResponse({"error": raw_json.get("video_local_error", "La composition vidéo a échoué.")}, status=500)
+            if raw_json.get("video_local_status") not in {"queued", "rendering"}:
+                raw_json["video_operation_name"] = operation_name
+                raw_json["video_local_status"] = "queued"
+                raw_json.pop("video_local_error", None)
+                content.raw_json = raw_json
+                content.save(update_fields=["raw_json"])
+                _start_local_video_render(campaign.pk, request.user.pk, operation_name)
+            return JsonResponse({"done": False, "status": raw_json.get("video_local_status", "queued")})
 
         result = _check_ad_video_status(operation_name)
 
