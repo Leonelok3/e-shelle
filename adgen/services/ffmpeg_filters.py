@@ -381,16 +381,19 @@ class FFmpegFilterGenerator:
 
         is_light = is_bg_light(bg_config)
         text_color = "0x111827" if is_light else "white"
-        accent_color = "0xc2410c" if is_light else "0xffd91f"
-        box_color = "white@0.88" if is_light else "0x080816@0.78"
-        contact_box = "0xdcfce7@0.92" if is_light else "0x14532d@0.90"
+        accent_color = "0xb45309" if is_light else "0xffd91f"
+        box_color = "white@0.92" if is_light else "0x060914@0.86"
+        contact_box = "0x047857@0.95"
         contact_text = "0x14532d" if is_light else "white"
         style = self.motion_text_style()
 
-        scene_h = int(height * 0.72)
-        scene_y = int(height * 0.14)
-        scaled_w = int(width * 1.04)
-        scaled_h = int(scene_h * 1.04)
+        top_safe_h = int(height * 0.17)
+        scene_h = int(height * 0.60)
+        scene_y = int(height * 0.20)
+        cta_y = int(height * 0.82)
+        contact_y = int(height * 0.885)
+        scaled_w = int(width * 1.05)
+        scaled_h = int(scene_h * 1.05)
         base_filters = [f"[1:v]scale={width}:{height},format=rgba[base0]"]
         text_filters = []
 
@@ -414,35 +417,39 @@ class FFmpegFilterGenerator:
             previous = mixed
 
         text_filters.append(
-            f"[{previous}]drawtext=text='E-SHELLE.COM':x=w-tw-36:y=28{style}:"
-            "fontsize=22:fontcolor=white:alpha=0.30"
+            f"[{previous}]drawbox=x=0:y=0:w=iw:h={top_safe_h}:color=0x000000@0.28:t=fill,"
+            f"drawbox=x=0:y={height - 250}:w=iw:h=250:color=0x000000@0.34:t=fill,"
+            f"drawtext=text='E-SHELLE.COM':x=w-tw-30:y=24{style}:"
+            "fontsize=20:fontcolor=white@0.55"
         )
 
         if "hook" in timeline:
             start, end = timeline["hook"]
-            hook_file = self.write_temp_text("hook", wrap_text(content_data["hook"].upper(), 17))
-            y = f"78-28*pow(1-clip((t-{start})/0.45,0,1),2)"
+            hook = content_data["hook"].upper()[:62]
+            hook_file = self.write_temp_text("hook", wrap_text(hook, 19))
+            y = f"54-20*pow(1-clip((t-{start})/0.40,0,1),2)"
             text_filters.append(
                 f"drawtext=textfile='{hook_file}':x=(w-text_w)/2:y='{y}':enable='between(t,{start},{end})'{style}:"
-                f"fontsize=42:fontcolor={text_color}:box=1:boxcolor={box_color}:boxborderw=14"
+                f"fontsize=34:fontcolor={text_color}:box=1:boxcolor={box_color}:boxborderw=12"
             )
 
         if "price" in timeline:
             start, end = timeline["price"]
             price_file = self.write_temp_text("price", f"PRIX: {content_data['prix']}")
-            y = f"98-22*pow(1-clip((t-{start})/0.35,0,1),2)"
+            y = f"70-20*pow(1-clip((t-{start})/0.35,0,1),2)"
             text_filters.append(
                 f"drawtext=textfile='{price_file}':x=(w-text_w)/2:y='{y}':enable='between(t,{start},{end})'{style}:"
-                f"fontsize=46:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=12"
+                f"fontsize=42:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=12"
             )
 
         if "avantage" in timeline and content_data.get("avantage"):
             start, end = timeline["avantage"]
-            av_file = self.write_temp_text("avantage_text", wrap_text(content_data["avantage"].upper(), 18))
-            y = f"98-22*pow(1-clip((t-{start})/0.35,0,1),2)"
+            avantage = content_data["avantage"].upper()[:58]
+            av_file = self.write_temp_text("avantage_text", wrap_text(avantage, 20))
+            y = f"64-18*pow(1-clip((t-{start})/0.35,0,1),2)"
             text_filters.append(
                 f"drawtext=textfile='{av_file}':x=(w-text_w)/2:y='{y}':enable='between(t,{start},{end})'{style}:"
-                f"fontsize=38:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=12"
+                f"fontsize=34:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=12"
             )
 
         if "cta" in timeline:
@@ -453,12 +460,12 @@ class FFmpegFilterGenerator:
                 contact += f"\n({content_data['ville']})"
             contact_file = self.write_temp_text("cta_contact", contact)
             text_filters.append(
-                f"drawtext=textfile='{cta_file}':x=(w-text_w)/2:y={height - 170}:enable='between(t,{start},{end})'{style}:"
-                "fontsize=36:fontcolor=white:box=1:boxcolor=0x16a34a@0.96:boxborderw=14"
+                f"drawtext=textfile='{cta_file}':x=(w-text_w)/2:y={cta_y}:enable='between(t,{start},{end})'{style}:"
+                f"fontsize=34:fontcolor=white:box=1:boxcolor={contact_box}:boxborderw=14"
             )
             text_filters.append(
-                f"drawtext=textfile='{contact_file}':x=(w-text_w)/2:y={height - 112}:enable='between(t,{start},{end})'{style}:"
-                f"fontsize=30:fontcolor={contact_text}:box=1:boxcolor={contact_box}:boxborderw=12"
+                f"drawtext=textfile='{contact_file}':x=(w-text_w)/2:y={contact_y}:enable='between(t,{start},{end})'{style}:"
+                f"fontsize=25:fontcolor={contact_text}:box=1:boxcolor=0x000000@0.42:boxborderw=10"
             )
 
         return ";".join(base_filters) + ";" + ",".join(text_filters) + f",fps=24,scale={width}:{height},format=yuv420p[outv]"

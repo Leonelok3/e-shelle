@@ -353,6 +353,12 @@ class VideoComposer:
             hex_val = color_hex.lstrip('#')
             r, g, b = int(hex_val[0:2], 16), int(hex_val[2:4], 16), int(hex_val[4:6], 16)
             draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(r, g, b, 255))
+            for y in range(canvas_h):
+                shade = int(22 * (y / max(canvas_h - 1, 1)))
+                draw.line(
+                    [(0, y), (canvas_w, y)],
+                    fill=(max(0, r - shade), max(0, g - shade), max(0, b - shade), 255),
+                )
             
         elif bg_type == "gradient":
             colors_hex = bg_config.get("bg_gradient", ["#050910", "#1e293b"])
@@ -411,10 +417,14 @@ class VideoComposer:
                 bg.paste(grad_resized, (0, 0))
             elif template == "food":
                 grad = Image.new("RGB", (2, 1))
-                grad.putpixel((0, 0), (251, 146, 60))
-                grad.putpixel((1, 0), (245, 85, 30))
+                grad.putpixel((0, 0), (255, 170, 64))
+                grad.putpixel((1, 0), (236, 72, 22))
                 grad_resized = grad.resize((canvas_w, canvas_h), Image.Resampling.BILINEAR).convert("RGBA")
                 bg.paste(grad_resized, (0, 0))
+                draw.rectangle([(0, 0), (canvas_w, int(canvas_h * 0.16))], fill=(12, 15, 18, 165))
+                draw.rectangle([(0, int(canvas_h * 0.78)), (canvas_w, canvas_h)], fill=(12, 15, 18, 185))
+                for x in range(-canvas_w, canvas_w, 90):
+                    draw.line([(x, 0), (x + canvas_h, canvas_h)], fill=(255, 255, 255, 13), width=3)
             elif template == "automotive":
                 draw.rectangle([(0, 0), (canvas_w, canvas_h)], fill=(20, 24, 30, 255))
                 for y in range(0, canvas_h, 80):
@@ -456,10 +466,10 @@ class VideoComposer:
                 bg = ImageOps.fit(img, (canvas_w, canvas_h), method=Image.Resampling.LANCZOS)
                 blur_radius = max(14, int(canvas_w * 0.024))
                 bg = bg.filter(ImageFilter.GaussianBlur(radius=blur_radius))
-                overlay = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 70))
+                overlay = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 78))
                 bg = Image.alpha_composite(bg.convert("RGBA"), overlay)
 
-                max_w, max_h = int(canvas_w * 0.86), int(canvas_h * 0.82)
+                max_w, max_h = int(canvas_w * 0.80), int(canvas_h * 0.76)
                 fg = img.copy()
                 fg.thumbnail((max_w, max_h), Image.Resampling.LANCZOS)
 
@@ -471,23 +481,31 @@ class VideoComposer:
                 draw.rounded_rectangle(
                     (0, 0, card_w - 1, card_h - 1),
                     radius=radius,
-                    fill=(255, 255, 255, 245),
-                    outline=(255, 255, 255, 200),
-                    width=3,
+                    fill=(248, 250, 252, 238),
+                    outline=(255, 255, 255, 225),
+                    width=2,
                 )
                 card.alpha_composite(fg.convert("RGBA"), (padding, padding))
 
                 x = (canvas_w - card_w) // 2
-                y = (canvas_h - card_h) // 2
+                y = max(24, (canvas_h - card_h) // 2)
                 shadow = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
                 shadow_draw = ImageDraw.Draw(shadow)
                 shadow_draw.rounded_rectangle(
-                    (x + padding, y + padding + 6, x + card_w + padding, y + card_h + padding + 6),
+                    (x + padding, y + padding + 12, x + card_w + padding, y + card_h + padding + 12),
                     radius=radius,
-                    fill=(0, 0, 0, 95),
+                    fill=(0, 0, 0, 120),
                 )
                 shadow = shadow.filter(ImageFilter.GaussianBlur(radius=max(12, int(canvas_w * 0.02))))
                 bg = Image.alpha_composite(bg, shadow)
+                glow = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
+                glow_draw = ImageDraw.Draw(glow)
+                glow_draw.ellipse(
+                    (x - 30, y - 24, x + card_w + 30, y + card_h + 52),
+                    fill=(255, 255, 255, 28),
+                )
+                glow = glow.filter(ImageFilter.GaussianBlur(radius=max(18, int(canvas_w * 0.035))))
+                bg = Image.alpha_composite(bg, glow)
                 bg.alpha_composite(card, (x, y))
 
                 scene_path = os.path.join(self.temp_dir, f"product_scene_{index}_{self.campaign.pk}.jpg")
