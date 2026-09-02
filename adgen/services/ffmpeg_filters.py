@@ -114,7 +114,14 @@ class FFmpegFilterGenerator:
                 pass
         return file_path.replace("\\", "/")
 
-    def build_vf_chain(self, timeline: dict, content_data: dict, bg_config: dict, duration: float) -> str:
+    def build_vf_chain(
+        self,
+        timeline: dict,
+        content_data: dict,
+        bg_config: dict,
+        duration: float,
+        product_scene_count: int = 0,
+    ) -> str:
         """
         Construit l'enchaînement complet des filtres vidéo :
         1. Recadrage vertical progressif + Floating (Ken Burns)
@@ -139,26 +146,46 @@ class FFmpegFilterGenerator:
             contact_box = "0x14532d@0.85"  # Vert WhatsApp foncé
             contact_text = "white"
 
-        filters = []
+        base_filters = []
+        text_filters = []
 
         # --- 2. Placement de la vidéo au centre du fond vertical 9:16 ---
         # Recadrage 3:4 (540x720) et mise à l'échelle en 1080x1440 pour occuper 75% de la hauteur
         overlay_y = (1920 - 1440) // 2  # 240
+        chain_label = "base0"
         crop_zoom = (
             f"[0:v]setpts=PTS,"
             f"crop=w=540:h=720:x='(in_w-540)/2 + 28*sin(2*PI*t/{max(duration, 1)})':y=0,"
             f"scale=w='1080+18*sin(2*PI*t/{max(duration, 1)})':h=-1:eval=frame,"
             f"crop=1080:1440[vid];"
-            f"[2:v][vid]overlay=0:{overlay_y}"
+            f"[2:v][vid]overlay=0:{overlay_y}[{chain_label}]"
         )
-        filters.append(crop_zoom)
+        base_filters.append(crop_zoom)
+
+        if product_scene_count:
+            photo_windows = self.get_photo_windows(timeline, duration, product_scene_count)
+            previous_label = chain_label
+            for i, (start, end) in enumerate(photo_windows):
+                input_idx = 3 + i
+                scene_label = f"scene{i}"
+                next_label = f"photo_mix{i}"
+                zoom = 1.08 if i % 2 == 0 else 1.06
+                pan = 16 if i % 2 == 0 else -16
+                base_filters.append(
+                    f"[{input_idx}:v]scale=w='1080*{zoom}':h='1440*{zoom}':force_original_aspect_ratio=increase,"
+                    f"crop=1080:1440:x='(in_w-1080)/2 + {pan}*sin(2*PI*t/{max(duration, 1)})':y=(in_h-1440)/2,"
+                    f"format=rgba,colorchannelmixer=aa='{self.get_alpha_expr(start, end, 0.55, 0.65)}'[{scene_label}];"
+                    f"[{previous_label}][{scene_label}]overlay=0:{overlay_y}:enable='between(t,{start},{end})'[{next_label}]"
+                )
+                previous_label = next_label
+            chain_label = previous_label
 
         # --- 3. Filigrane permanent ---
         watermark = (
-            f"drawtext=text='E-SHELLE.COM':x=w-tw-w*0.06:y=h*0.02{self.motion_text_style()}:"
+            f"[{chain_label}]drawtext=text='E-SHELLE.COM':x=w-tw-w*0.06:y=h*0.02{self.motion_text_style()}:"
             "fontsize=30:fontcolor=white:alpha=0.28"
         )
-        filters.append(watermark)
+        text_filters.append(watermark)
 
         # --- 4. Scène : Hook ---
         if "hook" in timeline:
@@ -167,7 +194,7 @@ class FFmpegFilterGenerator:
             
             y_expr = f"120 - 42 * pow(1 - clip((t - {start}) / 0.7, 0, 1), 2)"
             self.add_typewriter_text(
-                filters, "hook", hook_text, start, end, "(w-text_w)/2", y_expr,
+                text_filters, "hook", hook_text, start, end, "(w-text_w)/2", y_expr,
                 66, text_color, box_color, 22, reveal_duration=1.25, max_chars=52
             )
 
@@ -181,7 +208,7 @@ class FFmpegFilterGenerator:
             alpha = self.get_alpha_expr(start, end)
             y_expr = f"600 + 150 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
             
-            filters.append(
+            text_filters.append(
                 f"drawtext=textfile='{pres_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.motion_text_style()}:"
                 f"fontsize=48:fontcolor={text_color}:box=1:boxcolor={box_color}:boxborderw=20"
             )
@@ -194,7 +221,7 @@ class FFmpegFilterGenerator:
             title_file = self.write_temp_text("benefits_title", "POURQUOI CHOISIR ?")
             alpha_title = self.get_alpha_expr(start, end)
             title_y = f"350 - 35 * pow(1 - clip((t - {start}) / 0.65, 0, 1), 2)"
-            filters.append(
+            text_filters.append(
                 f"drawtext=textfile='{title_file}':x=(w-text_w)/2:y='{title_y}'{self.motion_text_style()}:"
                 f"fontsize=52:fontcolor={accent_color}:alpha='{alpha_title}':box=1:boxcolor={box_color}:boxborderw=15"
             )
@@ -211,13 +238,13 @@ class FFmpegFilterGenerator:
                 x_expr = f"120 - 100 * pow(1 - clip((t - {stagger_delay}) / 0.6, 0, 1), 2)"
                 
                 # Coche verte
-                filters.append(
+                text_filters.append(
                     f"drawtext=text='✓':x='{x_expr}':y={y_pos}{self.motion_text_style()}:"
                     f"fontsize=44:fontcolor=0x22c55e:alpha='{alpha_b}':box=1:boxcolor={box_color}:boxborderw=15"
                 )
                 
                 # Texte du bénéfice
-                filters.append(
+                text_filters.append(
                     f"drawtext=textfile='{b_file}':x='{x_expr} + 60':y={y_pos}{self.motion_text_style()}:"
                     f"fontsize=42:fontcolor={text_color}:alpha='{alpha_b}':box=1:boxcolor={box_color}:boxborderw=15"
                 )
@@ -228,7 +255,7 @@ class FFmpegFilterGenerator:
             ext_text = wrap_text(content_data["extra"], 20)
             ext_file = self.write_temp_text("extra", ext_text)
             alpha = self.get_alpha_expr(start, end)
-            filters.append(
+            text_filters.append(
                 f"drawtext=textfile='{ext_file}':x=(w-text_w)/2:y=650{self.motion_text_style()}:"
                 f"fontsize=46:fontcolor={text_color}:alpha='{alpha}':box=1:boxcolor={box_color}:boxborderw=20"
             )
@@ -240,7 +267,7 @@ class FFmpegFilterGenerator:
             off_file = self.write_temp_text("offer", off_text)
             alpha = self.get_alpha_expr(start, end)
             y_expr = f"600 - 100 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
-            filters.append(
+            text_filters.append(
                 f"drawtext=textfile='{off_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.motion_text_style()}:"
                 f"fontsize=50:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=20"
             )
@@ -256,7 +283,7 @@ class FFmpegFilterGenerator:
             
             new_text = f"PRIX: {prix}"
             self.add_typewriter_text(
-                filters, "price", new_text, start, end, "(w-text_w)/2", y_expr,
+                text_filters, "price", new_text, start, end, "(w-text_w)/2", y_expr,
                 68, accent_color, box_color, 16, reveal_duration=0.9, max_chars=30
             )
 
@@ -270,7 +297,7 @@ class FFmpegFilterGenerator:
                 
                 av_text = avantage.upper()
                 av_file = self.write_temp_text("avantage_text", wrap_text(av_text, 18))
-                filters.append(
+                text_filters.append(
                     f"drawtext=textfile='{av_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.motion_text_style()}:"
                     f"fontsize=56:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=16"
                 )
@@ -286,7 +313,7 @@ class FFmpegFilterGenerator:
             alpha = self.get_alpha_expr(start, end)
             y_cta = f"1610 - 55 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
             
-            filters.append(
+            text_filters.append(
                     f"drawtext=textfile='{cta_file}':x=(w-text_w)/2:y='{y_cta}':alpha='{alpha}'{self.motion_text_style()}:"
                     f"fontsize=56:fontcolor=white:box=1:boxcolor=0x16a34a:boxborderw=22" # Bouton vert brillant
                 )
@@ -298,9 +325,31 @@ class FFmpegFilterGenerator:
             contact_file = self.write_temp_text("cta_contact", contact_str)
             
             y_contact = f"{y_cta} + 115"
-            filters.append(
+            text_filters.append(
                 f"drawtext=textfile='{contact_file}':x=(w-text_w)/2:y='{y_contact}':alpha='{alpha}'{self.motion_text_style()}:"
                 f"fontsize=52:fontcolor={contact_text}:box=1:boxcolor={contact_box}:boxborderw=18"
             )
 
-        return ",".join(filters) + ",format=yuv420p[outv]"
+        return ";".join(base_filters) + ";" + ",".join(text_filters) + ",format=yuv420p[outv]"
+
+    def get_photo_windows(self, timeline: dict, duration: float, count: int) -> list[tuple[float, float]]:
+        """Répartit les plans photo aux moments les plus vendeurs de la vidéo."""
+        if count <= 0:
+            return []
+
+        candidates = []
+        if "price" in timeline:
+            start, end = timeline["price"]
+            candidates.append((start + 0.45, max(start + 1.6, end - 0.35)))
+        if "avantage" in timeline:
+            start, end = timeline["avantage"]
+            candidates.append((start + 0.35, max(start + 1.6, end - 0.35)))
+        if "hook" in timeline:
+            start, end = timeline["hook"]
+            candidates.append((start + 1.2, max(start + 2.2, min(end - 0.4, start + 4.2))))
+
+        if not candidates:
+            segment = max(duration / max(count, 1), 2.0)
+            candidates = [(i * segment, min(duration, (i + 1) * segment)) for i in range(count)]
+
+        return candidates[:count]

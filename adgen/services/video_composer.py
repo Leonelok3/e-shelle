@@ -39,6 +39,7 @@ class VideoComposer:
         is_local = False
         silent_video_path = ""
         audio_path = ""
+        product_scene_paths = []
 
         try:
             logger.info(f"[VideoComposer] Début composition pour la campagne #{self.campaign.pk} ({self.duration}s)")
@@ -85,10 +86,28 @@ class VideoComposer:
                     pass
             bg_image_rel = bg_image_rel.replace("\\", "/")
 
+            # 3.6 Plans studio depuis les photos additionnelles du produit
+            product_scene_paths = self.generate_product_scene_images()
+            product_scene_rels = []
+            for scene_path in product_scene_paths:
+                scene_rel = scene_path
+                if os.path.isabs(scene_rel):
+                    try:
+                        scene_rel = os.path.relpath(scene_rel, os.getcwd())
+                    except ValueError:
+                        pass
+                product_scene_rels.append(scene_rel.replace("\\", "/"))
+
             # 4. Construction des filtres FFmpeg
             font_path = get_premium_font()
             filter_gen = FFmpegFilterGenerator(self.temp_dir, self.campaign.pk, font_path)
-            vf_chain = filter_gen.build_vf_chain(timeline, content_data, self.bg_config, self.duration)
+            vf_chain = filter_gen.build_vf_chain(
+                timeline,
+                content_data,
+                self.bg_config,
+                self.duration,
+                product_scene_count=len(product_scene_rels),
+            )
 
             # 5. Fichier final de sortie
             output_filename = f"ad_video_{self.campaign.pk}.mp4"
@@ -106,6 +125,11 @@ class VideoComposer:
                 "-i", audio_path,
                 "-loop", "1",
                 "-i", bg_image_rel,
+            ]
+            for scene_rel in product_scene_rels:
+                cmd.extend(["-loop", "1", "-i", scene_rel])
+
+            cmd.extend([
                 "-filter_complex", vf_chain,
                 "-filter:a", f"afade=t=out:st={self.duration - 1.5}:d=1.5",
                 "-map", "[outv]",
@@ -117,7 +141,7 @@ class VideoComposer:
                 "-c:a", "aac",
                 "-t", str(self.duration),
                 output_filepath
-            ]
+            ])
 
             logger.info(f"[VideoComposer] Commande FFmpeg : {' '.join(cmd)}")
             res = subprocess.run(cmd, capture_output=True, text=True)
@@ -127,6 +151,11 @@ class VideoComposer:
                 os.remove(bg_image_path)
             except Exception:
                 pass
+            for scene_path in product_scene_paths:
+                try:
+                    os.remove(scene_path)
+                except Exception:
+                    pass
 
             if res.returncode != 0:
                 logger.error(f"[VideoComposer] Échec FFmpeg: {res.stderr}")
@@ -166,6 +195,12 @@ class VideoComposer:
                     os.remove(bg_image_path)
             except Exception:
                 pass
+            for scene_path in product_scene_paths:
+                try:
+                    if os.path.exists(scene_path):
+                        os.remove(scene_path)
+                except Exception:
+                    pass
             try:
                 if audio_path and os.path.exists(audio_path):
                     os.remove(audio_path)
@@ -275,3 +310,71 @@ class VideoComposer:
             
         final_img = bg.convert("RGB")
         final_img.save(output_path, format="JPEG", quality=90)
+
+    def generate_product_scene_images(self) -> list[str]:
+        """Prépare les photos produit en plans verticaux premium 1080x1440."""
+        from PIL import Image, ImageDraw, ImageFilter, ImageOps
+
+        scene_paths = []
+        photos = []
+        if hasattr(self.campaign, "product_photos"):
+            photos = self.campaign.product_photos()
+
+        for index, image_field in enumerate(photos[:3]):
+            try:
+                if hasattr(image_field, "open"):
+                    try:
+                        image_field.open("rb")
+                    except Exception:
+                        pass
+                if hasattr(image_field, "seek"):
+                    try:
+                        image_field.seek(0)
+                    except Exception:
+                        pass
+
+                img = Image.open(image_field).convert("RGB")
+                img = ImageOps.exif_transpose(img)
+
+                canvas_w, canvas_h = 1080, 1440
+                bg = ImageOps.fit(img, (canvas_w, canvas_h), method=Image.Resampling.LANCZOS)
+                bg = bg.filter(ImageFilter.GaussianBlur(radius=26))
+                overlay = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 70))
+                bg = Image.alpha_composite(bg.convert("RGBA"), overlay)
+
+                max_w, max_h = 930, 1180
+                fg = img.copy()
+                fg.thumbnail((max_w, max_h), Image.Resampling.LANCZOS)
+
+                card_w, card_h = fg.width + 36, fg.height + 36
+                card = Image.new("RGBA", (card_w, card_h), (255, 255, 255, 0))
+                draw = ImageDraw.Draw(card)
+                draw.rounded_rectangle(
+                    (0, 0, card_w - 1, card_h - 1),
+                    radius=34,
+                    fill=(255, 255, 255, 245),
+                    outline=(255, 255, 255, 200),
+                    width=3,
+                )
+                card.alpha_composite(fg.convert("RGBA"), (18, 18))
+
+                x = (canvas_w - card_w) // 2
+                y = (canvas_h - card_h) // 2
+                shadow = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
+                shadow_draw = ImageDraw.Draw(shadow)
+                shadow_draw.rounded_rectangle(
+                    (x + 18, y + 24, x + card_w + 18, y + card_h + 24),
+                    radius=34,
+                    fill=(0, 0, 0, 95),
+                )
+                shadow = shadow.filter(ImageFilter.GaussianBlur(radius=22))
+                bg = Image.alpha_composite(bg, shadow)
+                bg.alpha_composite(card, (x, y))
+
+                scene_path = os.path.join(self.temp_dir, f"product_scene_{index}_{self.campaign.pk}.jpg")
+                bg.convert("RGB").save(scene_path, format="JPEG", quality=92)
+                scene_paths.append(scene_path)
+            except Exception as exc:
+                logger.warning("[VideoComposer] Photo produit ignorée pendant la préparation du plan: %s", exc)
+
+        return scene_paths

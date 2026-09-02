@@ -15,7 +15,18 @@ class CampaignForm(forms.ModelForm):
 
     class Meta:
         model  = AdCampaign
-        fields = ["nom_produit", "description", "photo_produit", "prix", "ancien_prix", "cible", "pays", "ville"]
+        fields = [
+            "nom_produit",
+            "description",
+            "photo_produit",
+            "photo_produit_2",
+            "photo_produit_3",
+            "prix",
+            "ancien_prix",
+            "cible",
+            "pays",
+            "ville",
+        ]
         widgets = {
             "nom_produit": forms.TextInput(attrs={
                 "class": "form-control",
@@ -27,6 +38,14 @@ class CampaignForm(forms.ModelForm):
                 "placeholder": "Décrivez votre produit : composition, avantages, comment ça marche...",
             }),
             "photo_produit": forms.ClearableFileInput(attrs={
+                "class": "form-control",
+                "accept": "image/*",
+            }),
+            "photo_produit_2": forms.ClearableFileInput(attrs={
+                "class": "form-control",
+                "accept": "image/*",
+            }),
+            "photo_produit_3": forms.ClearableFileInput(attrs={
                 "class": "form-control",
                 "accept": "image/*",
             }),
@@ -48,7 +67,9 @@ class CampaignForm(forms.ModelForm):
         labels = {
             "nom_produit": "Nom du produit",
             "description": "Description du produit",
-            "photo_produit": "Photo du produit",
+            "photo_produit": "Photo principale du produit",
+            "photo_produit_2": "Photo secondaire du produit",
+            "photo_produit_3": "Troisième photo du produit",
             "prix":        "Prix de vente",
             "ancien_prix": "Avantage / Accroche secondaire (facultatif)",
             "cible":       "Numéro WhatsApp",

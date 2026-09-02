@@ -72,16 +72,36 @@
     background: linear-gradient(135deg,#faf7ff,#fff);
     padding: 1rem;
   }
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .75rem;
+  }
+  .photo-slot {
+    border: 1px solid #ede9fe;
+    border-radius: .875rem;
+    background: white;
+    padding: .75rem;
+  }
+  .photo-slot.featured {
+    border-color: #a78bfa;
+    box-shadow: 0 10px 24px rgba(108,63,232,.10);
+  }
+  .photo-slot input {
+    font-size: .78rem;
+    padding: .55rem;
+  }
   .photo-preview {
     display: none;
     margin-top: .85rem;
     width: 100%;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 4 / 5;
     border-radius: .875rem;
     object-fit: cover;
     border: 1px solid #ede9fe;
   }
   .photo-preview.active { display: block; }
+  @media(max-width:700px){.photo-grid{grid-template-columns:1fr}}
 </style>
 {% endblock %}
 
@@ -149,12 +169,33 @@
         </div>
 
         <div class="photo-upload">
-          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Photo du produit</label>
-          <input type="file" name="photo_produit" accept="image/*" class="form-field" id="photoInput">
-          <p class="text-xs text-gray-400 mt-1.5">Ajoutez une vraie photo pour mieux tester, presenter et partager la campagne.</p>
-          <img id="photoPreview" class="photo-preview" alt="Apercu photo produit">
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Photos du produit</label>
+          <p class="text-xs text-gray-400 mb-3">Ajoutez 1 à 3 photos : plan principal, détail, ambiance ou utilisation. AdGen les transforme en plans vidéo plus professionnels.</p>
+          <div class="photo-grid">
+            <div class="photo-slot featured">
+              <label class="block text-xs font-extrabold text-gray-600 uppercase mb-2">Photo principale</label>
+              <input type="file" name="photo_produit" accept="image/*" class="form-field photo-input" data-preview="photoPreview1">
+              <img id="photoPreview1" class="photo-preview" alt="Apercu photo principale">
+            </div>
+            <div class="photo-slot">
+              <label class="block text-xs font-extrabold text-gray-600 uppercase mb-2">Détail produit</label>
+              <input type="file" name="photo_produit_2" accept="image/*" class="form-field photo-input" data-preview="photoPreview2">
+              <img id="photoPreview2" class="photo-preview" alt="Apercu photo detail">
+            </div>
+            <div class="photo-slot">
+              <label class="block text-xs font-extrabold text-gray-600 uppercase mb-2">Ambiance / usage</label>
+              <input type="file" name="photo_produit_3" accept="image/*" class="form-field photo-input" data-preview="photoPreview3">
+              <img id="photoPreview3" class="photo-preview" alt="Apercu photo ambiance">
+            </div>
+          </div>
           {% if form.photo_produit.errors %}
           <p class="text-red-500 text-xs mt-1">{{ form.photo_produit.errors.0 }}</p>
+          {% endif %}
+          {% if form.photo_produit_2.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ form.photo_produit_2.errors.0 }}</p>
+          {% endif %}
+          {% if form.photo_produit_3.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ form.photo_produit_3.errors.0 }}</p>
           {% endif %}
         </div>
 
@@ -293,9 +334,9 @@
     document.getElementById('submitBtn').disabled = true;
   });
 
-  const photoInput = document.getElementById('photoInput');
-  const photoPreview = document.getElementById('photoPreview');
-  if (photoInput && photoPreview) {
+  document.querySelectorAll('.photo-input').forEach(photoInput => {
+    const photoPreview = document.getElementById(photoInput.dataset.preview);
+    if (!photoPreview) return;
     photoInput.addEventListener('change', function() {
       const file = this.files && this.files[0];
       if (!file) {
@@ -306,6 +347,6 @@
       photoPreview.src = URL.createObjectURL(file);
       photoPreview.classList.add('active');
     });
-  }
+  });
 </script>
 {% endblock %}

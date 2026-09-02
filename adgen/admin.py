@@ -23,7 +23,21 @@ class AdCampaignAdmin(admin.ModelAdmin):
     inlines        = [AdContentInline]
 
     fieldsets = (
-        ("Produit", {"fields": ("user", "nom_produit", "description", "photo_produit", "prix", "cible", "pays", "ville")}),
+        ("Produit", {
+            "fields": (
+                "user",
+                "nom_produit",
+                "description",
+                "photo_produit",
+                "photo_produit_2",
+                "photo_produit_3",
+                "prix",
+                "ancien_prix",
+                "cible",
+                "pays",
+                "ville",
+            )
+        }),
         ("Configuration", {"fields": ("modules_selected", "status")}),
         ("Méta", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
     )

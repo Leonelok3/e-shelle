@@ -88,6 +88,8 @@ class AdCampaign(models.Model):
     nom_produit      = models.CharField(max_length=200, verbose_name="Nom du produit")
     description      = models.TextField(verbose_name="Description du produit")
     photo_produit    = models.ImageField(upload_to="adgen/products/", blank=True, null=True, verbose_name="Photo du produit")
+    photo_produit_2  = models.ImageField(upload_to="adgen/products/", blank=True, null=True, verbose_name="Photo produit 2")
+    photo_produit_3  = models.ImageField(upload_to="adgen/products/", blank=True, null=True, verbose_name="Photo produit 3")
     prix             = models.CharField(max_length=50, verbose_name="Prix")
     ancien_prix      = models.CharField(max_length=50, blank=True, null=True, verbose_name="Ancien prix")
     cible            = models.CharField(max_length=200, verbose_name="Cible / audience")
@@ -128,6 +130,14 @@ class AdCampaign(models.Model):
             return self.photo_produit.url
         except Exception:
             return ""
+
+    def product_photos(self):
+        photos = []
+        for field_name in ("photo_produit", "photo_produit_2", "photo_produit_3"):
+            image = getattr(self, field_name, None)
+            if image:
+                photos.append(image)
+        return photos
 
 
 class AdContent(models.Model):
