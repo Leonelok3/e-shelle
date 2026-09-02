@@ -80,21 +80,25 @@ class FFmpegFilterGenerator:
         boxborderw: int,
         reveal_duration: float = 1.2,
         max_chars: int = 42,
+        step_chars: int = 2,
     ) -> None:
         """Ajoute un effet machine à écrire avec une succession de fragments de texte."""
         cleaned = text[:max_chars]
         if not cleaned:
             return
 
-        step = max(reveal_duration / max(len(cleaned), 1), 0.035)
+        frames = list(range(step_chars, len(cleaned) + step_chars, step_chars))
+        if frames[-1] != len(cleaned):
+            frames.append(len(cleaned))
+        step = max(reveal_duration / max(len(frames), 1), 0.05)
         fade_alpha = self.get_alpha_expr(start, end, fade_in=0.25, fade_out=0.45)
         style = self.motion_text_style()
 
-        for i in range(1, len(cleaned) + 1):
-            partial = cleaned[:i]
-            partial_file = self.write_temp_text(f"{name}_tw_{i}", partial)
-            reveal_start = start + (i - 1) * step
-            reveal_end = start + i * step if i < len(cleaned) else end
+        for frame_index, char_count in enumerate(frames, start=1):
+            partial = cleaned[:char_count]
+            partial_file = self.write_temp_text(f"{name}_tw_{frame_index}", partial)
+            reveal_start = start + (frame_index - 1) * step
+            reveal_end = start + frame_index * step if char_count < len(cleaned) else end
             filters.append(
                 f"drawtext=textfile='{partial_file}':x='{x_expr}':y='{y_expr}':"
                 f"enable='between(t,{reveal_start},{reveal_end})':alpha='{fade_alpha}'{style}:"
@@ -121,6 +125,9 @@ class FFmpegFilterGenerator:
         bg_config: dict,
         duration: float,
         product_scene_count: int = 0,
+        source_video: bool = True,
+        background_input_index: int = 2,
+        product_scene_input_start: int = 3,
     ) -> str:
         """
         Construit l'enchaînement complet des filtres vidéo :
@@ -153,20 +160,25 @@ class FFmpegFilterGenerator:
         # Recadrage 3:4 (540x720) et mise à l'échelle en 1080x1440 pour occuper 75% de la hauteur
         overlay_y = (1920 - 1440) // 2  # 240
         chain_label = "base0"
-        crop_zoom = (
-            f"[0:v]setpts=PTS,"
-            f"crop=w=540:h=720:x='(in_w-540)/2 + 28*sin(2*PI*t/{max(duration, 1)})':y=0,"
-            f"scale=w='1080+18*sin(2*PI*t/{max(duration, 1)})':h=-1:eval=frame,"
-            f"crop=1080:1440[vid];"
-            f"[2:v][vid]overlay=0:{overlay_y}[{chain_label}]"
-        )
-        base_filters.append(crop_zoom)
+        if source_video:
+            crop_zoom = (
+                f"[0:v]setpts=PTS,"
+                f"crop=w=540:h=720:x='(in_w-540)/2 + 28*sin(2*PI*t/{max(duration, 1)})':y=0,"
+                f"scale=w='1080+18*sin(2*PI*t/{max(duration, 1)})':h=-1:eval=frame,"
+                f"crop=1080:1440[vid];"
+                f"[{background_input_index}:v][vid]overlay=0:{overlay_y}[{chain_label}]"
+            )
+            base_filters.append(crop_zoom)
+        else:
+            base_filters.append(
+                f"[{background_input_index}:v]scale=1080:1920,format=rgba[{chain_label}]"
+            )
 
         if product_scene_count:
             photo_windows = self.get_photo_windows(timeline, duration, product_scene_count)
             previous_label = chain_label
             for i, (start, end) in enumerate(photo_windows):
-                input_idx = 3 + i
+                input_idx = product_scene_input_start + i
                 scene_label = f"scene{i}"
                 next_label = f"photo_mix{i}"
                 zoom = 1.08 if i % 2 == 0 else 1.06

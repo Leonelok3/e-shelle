@@ -210,6 +210,109 @@ class VideoComposer:
                 pass
             raise
 
+    def compose_from_photos(self) -> str:
+        """
+        Compose une publicité complète directement depuis les photos produit.
+        Mode rapide : pas d'attente Sora, uniquement motion design local + musique.
+        """
+        audio_path = ""
+        bg_image_path = ""
+        product_scene_paths = []
+
+        try:
+            logger.info(f"[VideoComposer] Début composition photo rapide pour la campagne #{self.campaign.pk} ({self.duration}s)")
+
+            audio_path = os.path.join(self.temp_dir, f"audio_{self.campaign.pk}.wav")
+            generate_ad_music(audio_path, duration=self.duration, style=self.music_style)
+
+            planner = TimelinePlanner(self.campaign, duration=int(self.duration))
+            timeline = planner.get_timeline()
+            content_data = planner.get_content_data()
+
+            bg_image_path = os.path.join(self.temp_dir, f"bg_1080_1920_{self.campaign.pk}.jpg")
+            self.generate_background_image(bg_image_path)
+            bg_image_rel = self._ffmpeg_relative_path(bg_image_path)
+
+            product_scene_paths = self.generate_product_scene_images()
+            if not product_scene_paths:
+                raise RuntimeError("Ajoutez au moins une photo du produit pour générer une vidéo rapide.")
+
+            product_scene_rels = [self._ffmpeg_relative_path(scene_path) for scene_path in product_scene_paths]
+
+            font_path = get_premium_font()
+            filter_gen = FFmpegFilterGenerator(self.temp_dir, self.campaign.pk, font_path)
+            vf_chain = filter_gen.build_vf_chain(
+                timeline,
+                content_data,
+                self.bg_config,
+                self.duration,
+                product_scene_count=len(product_scene_rels),
+                source_video=False,
+                background_input_index=1,
+                product_scene_input_start=2,
+            )
+
+            output_filename = f"ad_video_{self.campaign.pk}.mp4"
+            output_filepath = os.path.join(self.output_dir, output_filename)
+
+            cmd = [
+                "ffmpeg",
+                "-y",
+                "-i", audio_path,
+                "-loop", "1",
+                "-i", bg_image_rel,
+            ]
+            for scene_rel in product_scene_rels:
+                cmd.extend(["-loop", "1", "-i", scene_rel])
+
+            cmd.extend([
+                "-filter_complex", vf_chain,
+                "-filter:a", f"afade=t=out:st={self.duration - 1.5}:d=1.5",
+                "-map", "[outv]",
+                "-map", "0:a",
+                "-c:v", "libx264",
+                "-pix_fmt", "yuv420p",
+                "-preset", "veryfast",
+                "-crf", "23",
+                "-c:a", "aac",
+                "-t", str(self.duration),
+                "-shortest",
+                output_filepath,
+            ])
+
+            logger.info(f"[VideoComposer] Commande FFmpeg rapide : {' '.join(cmd)}")
+            res = subprocess.run(cmd, capture_output=True, text=True)
+            if res.returncode != 0:
+                logger.error(f"[VideoComposer] Échec FFmpeg rapide: {res.stderr}")
+                raise RuntimeError(f"FFmpeg error: {res.stderr}")
+
+            try:
+                os.chmod(output_filepath, 0o644)
+            except Exception:
+                pass
+
+            media_url_base = settings.MEDIA_URL
+            if not media_url_base.endswith("/"):
+                media_url_base += "/"
+
+            final_url = f"{media_url_base}adgen/videos/{output_filename}"
+            logger.info(f"[VideoComposer] Vidéo photo rapide disponible sur : {final_url}")
+            return final_url
+        except Exception as e:
+            logger.error(f"[VideoComposer] Erreur de composition photo rapide : {e}")
+            raise
+        finally:
+            for file_path in [audio_path, bg_image_path, *product_scene_paths]:
+                try:
+                    if file_path and os.path.exists(file_path):
+                        os.remove(file_path)
+                except Exception:
+                    pass
+            try:
+                self.cleanup_temp_files({})
+            except Exception:
+                pass
+
     def cleanup_temp_files(self, content_data: dict):
         """Supprime tous les fichiers texte temporaires écrits pour FFmpeg."""
         pattern = os.path.join(self.temp_dir, f"*_{self.campaign.pk}.txt")
@@ -218,6 +321,14 @@ class VideoComposer:
                 os.remove(file_path)
             except Exception:
                 pass
+
+    def _ffmpeg_relative_path(self, path: str) -> str:
+        if os.path.isabs(path):
+            try:
+                path = os.path.relpath(path, os.getcwd())
+            except ValueError:
+                pass
+        return path.replace("\\", "/")
 
     def generate_background_image(self, output_path: str):
         """Génère l'image d'arrière-plan 1080x1920 (couleur, dégradé ou template)."""

@@ -669,6 +669,8 @@ def add_voiceover_to_video(video_url: str, text: str, campaign_id: int, music_st
         pass
         
     composer = VideoComposer(campaign, duration=duration, music_style=music_style, bg_config=bg_config)
+    if video_url == "__photos__":
+        return composer.compose_from_photos()
     return composer.compose(video_url)
 
 
@@ -697,12 +699,16 @@ def clean_video_prompt(prompt: str, campaign) -> str:
 
 
 def _video_provider():
+    if getattr(settings, "ADGEN_VIDEO_FAST_MODE", True):
+        return "local"
     provider = getattr(settings, "VIDEO_PROVIDER", "google").lower()
-    return provider if provider in {"google", "openai"} else "google"
+    return provider if provider in {"google", "openai", "local"} else "google"
 
 
 def _start_ad_video(prompt: str, image_b64: str | None, duration: int) -> dict:
     provider = _video_provider()
+    if provider == "local":
+        return {"operation_name": f"local:{timezone.now().timestamp()}", "provider": "local", "error": None}
     if provider == "openai":
         result = start_openai_video(prompt, size="1280x720", image_b64=image_b64, seconds=duration)
     else:
@@ -714,6 +720,8 @@ def _start_ad_video(prompt: str, image_b64: str | None, duration: int) -> dict:
 
 
 def _check_ad_video_status(operation_name: str) -> dict:
+    if operation_name.startswith("local:"):
+        return {"done": True, "video_url": "__photos__", "provider": "local"}
     if operation_name.startswith("openai:"):
         return check_openai_video_status(operation_name)
     if operation_name.startswith("google:"):
