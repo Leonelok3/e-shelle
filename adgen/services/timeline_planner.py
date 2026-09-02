@@ -9,43 +9,21 @@ logger = logging.getLogger(__name__)
 class TimelinePlanner:
     """Calcule le timing précis de chaque scène et prépare les textes associés."""
 
-    def __init__(self, campaign, duration: int = 30):
+    def __init__(self, campaign, duration: int = 15):
         self.campaign = campaign
-        self.duration = duration if duration in [15, 30, 45, 60] else 30
+        self.duration = 15
 
     def get_timeline(self) -> dict:
         """
         Retourne la répartition temporelle (début, fin) des scènes.
         Scénario en 3 temps : Titre (Hook) -> Prix -> Avantage + CTA permanent.
         """
-        if self.duration == 15:
-            return {
-                "hook": (0.0, 5.0),
-                "price": (5.0, 10.0),
-                "avantage": (10.0, 15.0),
-                "cta": (0.0, 15.0)
-            }
-        elif self.duration == 45:
-            return {
-                "hook": (0.0, 15.0),
-                "price": (15.0, 30.0),
-                "avantage": (30.0, 45.0),
-                "cta": (0.0, 45.0)
-            }
-        elif self.duration == 60:
-            return {
-                "hook": (0.0, 20.0),
-                "price": (20.0, 40.0),
-                "avantage": (40.0, 60.0),
-                "cta": (0.0, 60.0)
-            }
-        else: # 30 secondes par défaut
-            return {
-                "hook": (0.0, 10.0),
-                "price": (10.0, 20.0),
-                "avantage": (20.0, 30.0),
-                "cta": (0.0, 30.0)
-            }
+        return {
+            "hook": (0.0, 5.0),
+            "price": (5.0, 10.0),
+            "avantage": (10.0, 15.0),
+            "cta": (0.0, 15.0)
+        }
 
     def get_content_data(self) -> dict:
         """

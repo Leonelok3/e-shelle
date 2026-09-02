@@ -742,7 +742,7 @@ class StartAdVideoView(LoginRequiredMixin, View):
         custom_prompt = None
         voiceover_text = None
         music_style = "piano"
-        duration = 30
+        duration = 15
         bg_config = {}
         style_preset = "modern"
         
@@ -752,7 +752,7 @@ class StartAdVideoView(LoginRequiredMixin, View):
                 custom_prompt = data.get("prompt")
                 voiceover_text = data.get("voiceover_text")
                 music_style = data.get("music_style", "piano")
-                duration = int(data.get("duration", 30))
+                duration = 15
                 bg_config = data.get("bg_config", {})
                 style_preset = data.get("style_preset", "modern")
             except Exception:
@@ -761,7 +761,7 @@ class StartAdVideoView(LoginRequiredMixin, View):
             custom_prompt = request.POST.get("prompt")
             voiceover_text = request.POST.get("voiceover_text")
             music_style = request.POST.get("music_style", "piano")
-            duration = int(request.POST.get("duration", 30))
+            duration = 15
             style_preset = request.POST.get("style_preset", "modern")
             # Reconstruire bg_config
             bg_config = {
@@ -867,10 +867,10 @@ class PollAdVideoView(LoginRequiredMixin, View):
         
         # Récupérer la durée, le style de musique et autres configurations
         music_style = "piano"
-        duration = 30.0
+        duration = 15.0
         if isinstance(content.raw_json, dict):
             music_style = content.raw_json.get("music_style", "piano")
-            duration = float(content.raw_json.get("duration", 30.0))
+            duration = 15.0
         video_url = add_voiceover_to_video(video_url, "bg_music", campaign.pk, music_style=music_style, duration=duration)
             
         content.ad_video_url = video_url

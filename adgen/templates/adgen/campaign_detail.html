@@ -383,12 +383,10 @@
             <div>
               <label class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">⏱ Durée de la publicité :</label>
               <div class="flex gap-2" id="duration-selector-container">
-                <button type="button" data-val="15" onclick="selectDuration(15, this)" class="duration-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold border-2 border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-all">15 s</button>
-                <button type="button" data-val="30" onclick="selectDuration(30, this)" class="duration-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold border-2 border-purple-600 text-white bg-purple-600 shadow-md transition-all">30 s</button>
-                <button type="button" data-val="45" onclick="selectDuration(45, this)" class="duration-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold border-2 border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-all">45 s</button>
-                <button type="button" data-val="60" onclick="selectDuration(60, this)" class="duration-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold border-2 border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-all">60 s</button>
+                <button type="button" data-val="15" onclick="selectDuration(15, this)" class="duration-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold border-2 border-purple-600 text-white bg-purple-600 shadow-md transition-all">15 s optimisé</button>
               </div>
-              <input type="hidden" id="ad-video-duration" value="30">
+              <input type="hidden" id="ad-video-duration" value="15">
+              <p class="text-xs text-gray-400 mt-1.5">Durée verrouillée pour accélérer la génération et réduire le coût.</p>
             </div>
 
             <div>
@@ -740,7 +738,7 @@
       btn,
       promptInput,
       "🎥 Lancer la création de la publicité IA",
-      {{ content.raw_json.duration|default:30 }}
+      15
     );
     {% endif %}
   });
@@ -756,7 +754,7 @@
     btn.disabled = true;
     promptInput.disabled = true;
  
-    const duration = parseInt(durationInput.value) || 30;
+    const duration = 15;
     const originalHtml = btn.innerHTML;
     btn.innerHTML = `
       <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle; width: 16px; height: 16px; margin-right: 6px;">
@@ -823,7 +821,7 @@
     }
   }
  
-  function pollAdVideoStatus(operationName, promptText, btn, promptInput, originalHtml, duration = 30) {
+  function pollAdVideoStatus(operationName, promptText, btn, promptInput, originalHtml, duration = 15) {
     const wrapper = document.getElementById("ad-video-wrapper");
     const pollUrl = "{% url 'adgen:api_generate_video_poll' pk=campaign.pk %}?operation_name=" + encodeURIComponent(operationName) + "&prompt=" + encodeURIComponent(promptText);
  

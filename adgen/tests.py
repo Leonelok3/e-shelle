@@ -28,15 +28,16 @@ class TimelinePlannerTests(TestCase):
             voice_over="Découvrez le Super Robot Mixeur ! Un mixeur ultra-rapide de 1000W."
         )
 
-    def test_timeline_timing_30s(self):
+    def test_timeline_forces_15s_for_30s_input(self):
         planner = TimelinePlanner(self.campaign, duration=30)
         timeline = planner.get_timeline()
         
         # Verify 4 scenes are generated (Hook, Price, Avantage, CTA)
         self.assertEqual(len(timeline), 4)
-        self.assertEqual(timeline["hook"], (0.0, 10.0))
-        self.assertEqual(timeline["avantage"], (20.0, 30.0))
-        self.assertEqual(timeline["cta"], (0.0, 30.0))
+        self.assertEqual(timeline["hook"], (0.0, 5.0))
+        self.assertEqual(timeline["price"], (5.0, 10.0))
+        self.assertEqual(timeline["avantage"], (10.0, 15.0))
+        self.assertEqual(timeline["cta"], (0.0, 15.0))
         
         content = planner.get_content_data()
         self.assertEqual(content["hook"], "Super Robot Mixeur")
@@ -50,12 +51,12 @@ class TimelinePlannerTests(TestCase):
         total_duration = max(val[1] for val in timeline.values())
         self.assertEqual(total_duration, 15)
 
-    def test_timeline_timing_60s(self):
+    def test_timeline_forces_15s_for_60s_input(self):
         planner = TimelinePlanner(self.campaign, duration=60)
         timeline = planner.get_timeline()
         
         total_duration = max(val[1] for val in timeline.values())
-        self.assertEqual(total_duration, 60)
+        self.assertEqual(total_duration, 15)
 
 
 class BackgroundRendererTests(TestCase):
