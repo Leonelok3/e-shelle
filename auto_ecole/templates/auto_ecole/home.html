@@ -1,75 +1,113 @@
-{% extends "base.html" %}
+{% extends "auto_ecole/base.html" %}
 {% load static %}
 
-{% block title %}Auto-école - E-Shelle{% endblock %}
+{% block title %}Auto-écoles au Cameroun | E-Shelle Auto-école{% endblock %}
+{% block meta_description %}Trouvez une auto-école à Douala, Yaoundé et partout au Cameroun. Les propriétaires peuvent inscrire leur centre pour être visibles sur E-Shelle et les moteurs de recherche.{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'auto_ecole/css/auto_ecole.css' %}">
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  integrity="sha256-sA+e2HZZ7Z6kH2kYF+3x9E1bZbqQY6o3b23s3b5p94c=" crossorigin=""/>
-
-<div class="ae-wrap">
-  <header class="ae-hero">
-    <div class="ae-hero-inner">
-      <h1>Auto-école</h1>
-      <p class="ae-lead">Découvre des auto-écoles locales et accède gratuitement aux cours théoriques.</p>
-    </div>
-  </header>
-
-  <div class="ae-grid">
-    <main class="ae-main">
-      <h3 class="section-title">Cours théoriques mis en avant</h3>
-      <div class="ae-courses">
-        {% for course in featured_courses %}
-        <article class="ae-card">
-          <div class="ae-card-media">
-            <img class="ae-thumb" src="{% static 'auto_ecole/img/placeholder-school.svg' %}" alt="{{ course.title }}">
-          </div>
-          <div class="ae-card-body">
-            <h4 class="ae-course-title"><a href="{{ course.get_absolute_url }}">{{ course.title }}</a></h4>
-            <div class="ae-course-meta">{{ course.school.name }}</div>
-            <p class="ae-course-summary">{{ course.summary|truncatechars:200 }}</p>
-          </div>
-          <div class="ae-card-footer">
-            <a class="ae-btn" href="{{ course.get_absolute_url }}">Voir</a>
-          </div>
-        </article>
-        {% empty %}
-        <p>Aucun cours pour le moment.</p>
+<section class="ae-hero">
+  <div class="ae-shell ae-hero-grid">
+    <div class="ae-hero-copy">
+      <span class="ae-kicker">Permis de conduire au Cameroun</span>
+      <h1>Trouvez une auto-école fiable près de chez vous.</h1>
+      <p>Comparez les centres, consultez les cours théoriques, puis contactez directement le promoteur par téléphone ou WhatsApp.</p>
+      <form class="ae-searchbar" method="get" action="{% url 'auto_ecole:home' %}">
+        <input name="q" value="{{ query }}" type="search" placeholder="Nom du centre, ville, quartier...">
+        <button type="submit">Rechercher</button>
+      </form>
+      <div class="ae-quick-cities">
+        <a href="{% url 'auto_ecole:home' %}">Toutes</a>
+        {% for city in cities %}
+        <a href="{% url 'auto_ecole:home' %}?ville={{ city|urlencode }}" class="{% if active_city == city %}is-active{% endif %}">{{ city }}</a>
         {% endfor %}
       </div>
-    </main>
-
-    <aside class="ae-aside">
-      <div class="ae-panel">
-        <div id="ae-map" style="height:220px;border-radius:8px;margin-bottom:12px;overflow:hidden"></div>
-        <div class="ae-search">
-          <input id="ae-search-input" placeholder="Rechercher une école, ville..." aria-label="Rechercher une école" />
-        </div>
-        <h3 class="section-title">Auto-écoles</h3>
-        <div class="ae-list">
-          {% for school in schools %}
-          <a class="ae-school" href="{{ school.get_absolute_url }}" data-lat="{{ school.latitude|default_if_none:'' }}" data-lon="{{ school.longitude|default_if_none:'' }}">
-            <div class="ae-school-info">
-              <strong>{{ school.name }}</strong>
-              <span class="ae-school-city">{{ school.city }}</span>
-            </div>
-            <span class="ae-chevron">›</span>
-          </a>
-          {% empty %}
-          <p>Aucune auto-école enregistrée pour le moment.</p>
-          {% endfor %}
-        </div>
-      </div>
-    </aside>
+    </div>
+    <div class="ae-hero-panel">
+      <span>{{ school_count }}</span>
+      <strong>auto-école{{ school_count|pluralize }} visible{{ school_count|pluralize }}</strong>
+      <p>Une fiche optimisée pour Google, un lien public, les contacts et les cours du centre.</p>
+      <a href="{% url 'auto_ecole:register' %}">Inscrire mon centre</a>
+    </div>
   </div>
-</div>
+</section>
 
-{% endblock %}
+<section class="ae-section">
+  <div class="ae-shell ae-section-head">
+    <div>
+      <span class="ae-kicker">Annuaire</span>
+      <h2>Auto-écoles disponibles</h2>
+    </div>
+    <a class="ae-link" href="{% url 'auto_ecole:register' %}">Ajouter une auto-école</a>
+  </div>
+  <div class="ae-shell ae-school-grid">
+    {% for school in schools %}
+    <article class="ae-school-card">
+      <a href="{{ school.get_absolute_url }}" class="ae-school-media">
+        {% if school.logo %}
+        <img src="{{ school.logo.url }}" alt="Logo {{ school.name }}" loading="lazy">
+        {% else %}
+        <img src="{% static 'auto_ecole/img/placeholder-school.svg' %}" alt="" loading="lazy">
+        {% endif %}
+      </a>
+      <div class="ae-card-body">
+        <div class="ae-badges">
+          {% if school.is_verified %}<span>Vérifiée</span>{% endif %}
+          {% if school.is_featured %}<span>Vedette</span>{% endif %}
+        </div>
+        <h3><a href="{{ school.get_absolute_url }}">{{ school.name }}</a></h3>
+        <p>{{ school.description|default:"Centre de formation à la conduite inscrit sur E-Shelle Auto-école."|truncatechars:150 }}</p>
+        <dl>
+          <div><dt>Ville</dt><dd>{{ school.city|default:"Cameroun" }}</dd></div>
+          <div><dt>Cours</dt><dd>{{ school.course_count }}</dd></div>
+        </dl>
+      </div>
+      <div class="ae-card-actions">
+        <a href="{{ school.get_absolute_url }}">Voir la fiche</a>
+        {% if school.whatsapp_url %}<a class="ae-whatsapp" href="{{ school.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
+      </div>
+    </article>
+    {% empty %}
+    <div class="ae-empty">
+      <h3>Aucune auto-école enregistrée pour le moment.</h3>
+      <p>Soyez le premier centre visible dans ce module.</p>
+      <a href="{% url 'auto_ecole:register' %}">Inscrire mon centre</a>
+    </div>
+    {% endfor %}
+  </div>
+</section>
 
-{% block extra_js %}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-  integrity="sha256-o9N1jRk2P+0S1b0i6wZ6e6b6Y9w9k1l9QBDk3aV+0+M=" crossorigin=""></script>
-<script src="{% static 'auto_ecole/js/auto_ecole.js' %}"></script>
+<section class="ae-section ae-muted" id="cours">
+  <div class="ae-shell ae-section-head">
+    <div>
+      <span class="ae-kicker">Apprendre</span>
+      <h2>Cours théoriques mis en avant</h2>
+    </div>
+  </div>
+  <div class="ae-shell ae-course-grid">
+    {% for course in featured_courses %}
+    <article class="ae-course-card">
+      <span>{{ course.school.city|default:"Auto-école" }}</span>
+      <h3><a href="{{ course.get_absolute_url }}">{{ course.title }}</a></h3>
+      <p>{{ course.summary|default:"Cours théorique pour mieux préparer le permis de conduire."|truncatechars:180 }}</p>
+      <a href="{{ course.get_absolute_url }}">Lire le cours</a>
+    </article>
+    {% empty %}
+    <div class="ae-empty">
+      <h3>Aucun cours publié.</h3>
+      <p>Les propriétaires pourront enrichir leur fiche avec des contenus utiles pour les candidats.</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="ae-section">
+  <div class="ae-shell ae-owner-band">
+    <div>
+      <span class="ae-kicker">Pour les propriétaires</span>
+      <h2>Votre centre mérite une fiche claire et visible.</h2>
+      <p>Inscrivez votre auto-école, ajoutez vos contacts, votre ville, vos tarifs indicatifs et vos cours. Chaque fiche publique est pensée pour le référencement local.</p>
+    </div>
+    <a href="{% url 'auto_ecole:register' %}">Créer ma fiche</a>
+  </div>
+</section>
 {% endblock %}

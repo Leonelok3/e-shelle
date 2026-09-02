@@ -5,8 +5,9 @@
        class="group flex h-full flex-col">
       <!-- Cover image -->
       <div class="relative h-36 bg-gray-200 overflow-hidden">
-        {% if restaurant.cover_image %}
-        <img src="{{ restaurant.cover_image.url }}"
+        {% with cover_url=restaurant.cover_image|file_url %}
+        {% if cover_url %}
+        <img src="{{ cover_url }}"
              alt="Photo de couverture — {{ restaurant.name }}"
              loading="lazy"
              class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
@@ -15,6 +16,7 @@
           <span class="text-4xl">🍽️</span>
         </div>
         {% endif %}
+        {% endwith %}
         <!-- Status badge -->
         <div class="absolute top-2 left-2">
           {{ restaurant|status_badge }}
@@ -31,10 +33,12 @@
       <div class="p-3 flex flex-1 flex-col">
         <!-- Logo + Name -->
         <div class="flex items-center gap-2 mb-1.5">
-          {% if restaurant.logo %}
-          <img src="{{ restaurant.logo.url }}" alt="Logo {{ restaurant.name }}"
+          {% with logo_url=restaurant.logo|file_url %}
+          {% if logo_url %}
+          <img src="{{ logo_url }}" alt="Logo {{ restaurant.name }}"
                loading="lazy" class="w-8 h-8 rounded-full object-cover border border-gray-100" />
           {% endif %}
+          {% endwith %}
           <h3 class="font-semibold text-gray-900 text-sm truncate">{{ restaurant.name }}</h3>
         </div>
 

@@ -1,5 +1,5 @@
 {% extends "resto/base.html" %}
-{% load static %}
+{% load static resto_tags %}
 
 {% block title %}Panel Admin — E-Shelle Resto{% endblock %}
 
@@ -83,12 +83,14 @@
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center gap-2">
-                  {% if resto.logo %}
-                  <img src="{{ resto.logo.url }}" alt="{{ resto.name }}" loading="lazy"
+                  {% with logo_url=resto.logo|file_url %}
+                  {% if logo_url %}
+                  <img src="{{ logo_url }}" alt="{{ resto.name }}" loading="lazy"
                        class="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
                   {% else %}
                   <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-sm flex-shrink-0">🍽️</div>
                   {% endif %}
+                  {% endwith %}
                   <div>
                     <a href="{% url 'resto:restaurant_detail' resto.slug %}" target="_blank"
                        class="font-semibold text-gray-900 hover:text-resto-primary transition">

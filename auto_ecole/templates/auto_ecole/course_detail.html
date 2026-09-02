@@ -1,11 +1,18 @@
-{% extends "base.html" %}
+{% extends "auto_ecole/base.html" %}
 
-{% block title %}{{ course.title }} — {{ course.school.name }}{% endblock %}
+{% block title %}{{ course.title }} | {{ course.school.name }}{% endblock %}
+{% block meta_description %}Cours théorique auto-école : {{ course.title }} par {{ course.school.name }}. {{ course.summary|default:"Préparation au permis de conduire avec E-Shelle Auto-école."|truncatechars:155 }}{% endblock %}
 
 {% block content %}
-<div class="wrap" style="padding:2rem 1rem">
-  <h1>{{ course.title }}</h1>
-  <div style="color:#666">{{ course.school.name }}</div>
-  <div style="margin-top:16px">{{ course.content|linebreaks }}</div>
-</div>
+<article class="ae-article">
+  <div class="ae-shell">
+    <a class="ae-back" href="{{ course.school.get_absolute_url }}">Retour à {{ course.school.name }}</a>
+    <span class="ae-kicker">{{ course.school.name }}</span>
+    <h1>{{ course.title }}</h1>
+    {% if course.summary %}<p class="ae-article-lead">{{ course.summary }}</p>{% endif %}
+    <div class="ae-article-body">
+      {{ course.content|linebreaks }}
+    </div>
+  </div>
+</article>
 {% endblock %}

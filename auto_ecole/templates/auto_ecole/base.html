@@ -1,0 +1,56 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}E-Shelle Auto-école{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Trouvez une auto-école au Cameroun, comparez les centres, contactez les promoteurs et révisez le code de la route avec E-Shelle Auto-école.{% endblock %}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{% block og_title %}E-Shelle Auto-école{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Annuaire SEO des auto-écoles et cours théoriques au Cameroun.{% endblock %}">
+  <link rel="icon" href="{% static 'img/logo.png' %}">
+  <link rel="stylesheet" href="{% static 'auto_ecole/css/auto_ecole.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="ae-topbar">
+    <a class="ae-brand" href="{% url 'auto_ecole:home' %}" aria-label="Accueil E-Shelle Auto-école">
+      <span class="ae-brand-mark">A</span>
+      <span><strong>Auto-école</strong><small>E-Shelle</small></span>
+    </a>
+    <nav class="ae-nav" aria-label="Navigation Auto-école">
+      <a href="{% url 'auto_ecole:home' %}">Centres</a>
+      <a href="{% url 'auto_ecole:home' %}#cours">Cours</a>
+      <a href="{% url 'auto_ecole:register' %}" class="ae-nav-cta">Inscrire mon centre</a>
+    </nav>
+  </header>
+
+  {% if messages %}
+  <div class="ae-messages">
+    {% for message in messages %}
+    <div class="ae-message">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="ae-footer">
+    <div>
+      <strong>E-Shelle Auto-école</strong>
+      <p>Un module indépendant pour rendre les centres de conduite visibles, crédibles et faciles à contacter.</p>
+    </div>
+    <div class="ae-footer-links">
+      <a href="{% url 'auto_ecole:home' %}">Annuaire</a>
+      <a href="{% url 'auto_ecole:register' %}">Inscription</a>
+      <a href="https://wa.me/237680625082">Support WhatsApp</a>
+      <a href="/">Portail E-Shelle</a>
+    </div>
+  </footer>
+  <script src="{% static 'auto_ecole/js/auto_ecole.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -8,6 +8,17 @@ register = template.Library()
 
 
 @register.filter
+def file_url(file_field):
+    """Return a FieldFile URL when available, otherwise an empty string."""
+    try:
+        if file_field and getattr(file_field, "name", ""):
+            return file_field.url
+    except (ValueError, AttributeError):
+        return ""
+    return ""
+
+
+@register.filter
 def fcfa(value):
     """Format a number as FCFA currency: 1500 → '1 500 FCFA'."""
     try:

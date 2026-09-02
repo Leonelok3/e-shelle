@@ -7,7 +7,7 @@
 
 {% block og_title %}{{ restaurant.name }} — E-Shelle Resto{% endblock %}
 {% block og_description %}{{ restaurant.name }} à {{ restaurant.city.name }}, Cameroun.{% if review_count %} Noté {{ avg_rating|floatformat:1 }}/5 par {{ review_count }} client{{ review_count|pluralize }}.{% endif %} Commandez par WhatsApp.{% endblock %}
-{% block og_image %}{% if restaurant.cover_image and restaurant.cover_image.name %}{{ restaurant.cover_image.url }}{% endif %}{% endblock %}
+{% block og_image %}{{ restaurant.cover_image|file_url }}{% endblock %}
 
 {% block extra_head %}
 <!-- JSON-LD Structured Data -->
@@ -25,7 +25,9 @@
   },
   "telephone": "{{ restaurant.phone }}",
   "url": "{{ request.build_absolute_uri }}",
-  {% if restaurant.cover_image and restaurant.cover_image.name %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ restaurant.cover_image.url }}",{% endif %}
+  {% with cover_url=restaurant.cover_image|file_url %}
+  {% if cover_url %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ cover_url }}",{% endif %}
+  {% endwith %}
   "openingHours": "Mo-Su {{ restaurant.opening_time|date:'H:i' }}-{{ restaurant.closing_time|date:'H:i' }}",
   "servesCuisine": [{% for cat in restaurant.categories.all %}"{{ cat.name|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]
   {% if avg_rating and review_count %},
@@ -56,8 +58,9 @@
 
 <!-- ── Cover Image ───────────────────────────────────────────────────────────── -->
 <div class="relative h-52 md:h-72 bg-gray-200 overflow-hidden">
-  {% if restaurant.cover_image and restaurant.cover_image.name %}
-  <img src="{{ restaurant.cover_image.url }}"
+  {% with cover_url=restaurant.cover_image|file_url %}
+  {% if cover_url %}
+  <img src="{{ cover_url }}"
        alt="Photo de couverture — {{ restaurant.name }}"
        loading="lazy"
        class="w-full h-full object-cover" />
@@ -79,6 +82,7 @@
     <span class="text-8xl opacity-30">🍽️</span>
   </div>
   {% endif %}
+  {% endwith %}
 </div>
 
 <!-- ── Restaurant Info Card ──────────────────────────────────────────────────── -->
@@ -87,11 +91,13 @@
     <div class="flex gap-4 items-start">
       <!-- Logo -->
       <div class="flex-shrink-0 w-18 h-18 rounded-xl overflow-hidden border-2 border-white shadow-md bg-orange-50 flex items-center justify-center" style="width:72px;height:72px">
-        {% if restaurant.logo and restaurant.logo.name %}
-        <img src="{{ restaurant.logo.url }}" alt="Logo {{ restaurant.name }}" loading="lazy" class="w-full h-full object-cover" />
+        {% with logo_url=restaurant.logo|file_url %}
+        {% if logo_url %}
+        <img src="{{ logo_url }}" alt="Logo {{ restaurant.name }}" loading="lazy" class="w-full h-full object-cover" />
         {% else %}
         <span class="text-3xl">🍽️</span>
         {% endif %}
+        {% endwith %}
       </div>
 
       <!-- Name + info -->

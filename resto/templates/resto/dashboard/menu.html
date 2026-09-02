@@ -99,11 +99,13 @@
       <div class="flex items-center gap-3 px-5 py-3">
         <!-- Dish image -->
         <div class="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
-          {% if dish.image %}
-          <img src="{{ dish.image.url }}" alt="{{ dish.name }}" loading="lazy" class="w-full h-full object-cover" />
+          {% with dish_image_url=dish.image|file_url %}
+          {% if dish_image_url %}
+          <img src="{{ dish_image_url }}" alt="{{ dish.name }}" loading="lazy" class="w-full h-full object-cover" />
           {% else %}
           <div class="w-full h-full flex items-center justify-center text-lg">🍛</div>
           {% endif %}
+          {% endwith %}
         </div>
         <!-- Info -->
         <div class="flex-1 min-w-0">
@@ -144,11 +146,13 @@
       {% for dish in uncategorized %}
       <div class="flex items-center gap-3 px-5 py-3">
         <div class="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
-          {% if dish.image %}
-          <img src="{{ dish.image.url }}" alt="{{ dish.name }}" loading="lazy" class="w-full h-full object-cover" />
+          {% with dish_image_url=dish.image|file_url %}
+          {% if dish_image_url %}
+          <img src="{{ dish_image_url }}" alt="{{ dish.name }}" loading="lazy" class="w-full h-full object-cover" />
           {% else %}
           <div class="w-full h-full flex items-center justify-center text-lg">🍛</div>
           {% endif %}
+          {% endwith %}
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-semibold text-gray-900 truncate">{{ dish.name }}</p>

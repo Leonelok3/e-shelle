@@ -1,0 +1,62 @@
+{% extends "auto_ecole/base.html" %}
+
+{% block title %}Inscrire mon auto-école | E-Shelle Auto-école{% endblock %}
+{% block meta_description %}Inscrivez votre auto-école sur E-Shelle pour obtenir une fiche publique, être trouvé localement et recevoir des contacts de candidats au permis.{% endblock %}
+
+{% block content %}
+<section class="ae-form-page">
+  <div class="ae-shell ae-form-grid">
+    <aside>
+      <span class="ae-kicker">Propriétaires</span>
+      <h1>Créez la fiche publique de votre auto-école.</h1>
+      <p>Votre centre devient consultable dans le module Auto-école, avec une URL dédiée, vos contacts et une structure prête pour le référencement local.</p>
+      <ul class="ae-checks">
+        <li>Fiche indépendante avec nom, ville, adresse et contacts</li>
+        <li>Boutons WhatsApp et appel direct</li>
+        <li>Pages indexables pour les moteurs de recherche</li>
+        <li>Possibilité d’ajouter des cours théoriques depuis l’admin</li>
+      </ul>
+    </aside>
+
+    <form class="ae-form-card" method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="ae-form-errors">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="ae-form-section">
+        <h2>Responsable</h2>
+        {% if form.first_name %}
+        <label>{{ form.first_name.label }}{{ form.first_name }}{{ form.first_name.errors }}</label>
+        <label>{{ form.last_name.label }}{{ form.last_name }}{{ form.last_name.errors }}</label>
+        <label>{{ form.password.label }}{{ form.password }}{{ form.password.errors }}</label>
+        {% else %}
+        <p class="ae-form-note">Vous êtes connecté. La fiche sera liée à votre compte.</p>
+        {% endif %}
+      </div>
+
+      <div class="ae-form-section">
+        <h2>Auto-école</h2>
+        <label>{{ form.name.label }}{{ form.name }}{{ form.name.errors }}</label>
+        <label>{{ form.description.label }}{{ form.description }}{{ form.description.errors }}</label>
+        <div class="ae-two">
+          <label>{{ form.city.label }}{{ form.city }}{{ form.city.errors }}</label>
+          <label>{{ form.address.label }}{{ form.address }}{{ form.address.errors }}</label>
+        </div>
+        <div class="ae-two">
+          <label>{{ form.phone.label }}{{ form.phone }}{{ form.phone.errors }}</label>
+          <label>{{ form.whatsapp.label }}{{ form.whatsapp }}{{ form.whatsapp.errors }}</label>
+        </div>
+        <div class="ae-two">
+          <label>{{ form.email.label }}{{ form.email }}{{ form.email.errors }}</label>
+          <label>{{ form.website.label }}{{ form.website }}{{ form.website.errors }}</label>
+        </div>
+        <label>{{ form.price_note.label }}{{ form.price_note }}{{ form.price_note.errors }}</label>
+        <label>{{ form.logo.label }}{{ form.logo }}{{ form.logo.errors }}</label>
+      </div>
+
+      <button class="ae-submit" type="submit">Publier ma fiche</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

@@ -1,5 +1,5 @@
 {% extends "resto/dashboard/base_dashboard.html" %}
-{% load static %}
+{% load static resto_tags %}
 
 {% block title %}Mon profil — {{ restaurant.name }}{% endblock %}
 {% block dash_nav_profile %}bg-orange-50 text-resto-primary font-semibold{% endblock %}
@@ -25,7 +25,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">Photo de couverture</label>
           <div class="relative">
             <div class="w-full h-36 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 mb-2">
-              <img :src="coverPreview || '{% if restaurant.cover_image %}{{ restaurant.cover_image.url }}{% endif %}'"
+              <img :src="coverPreview || '{{ restaurant.cover_image|file_url }}'"
                    x-show="coverPreview || '{% if restaurant.cover_image %}true{% endif %}'"
                    alt="Aperçu couverture"
                    class="w-full h-full object-cover" />
@@ -46,7 +46,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">Logo</label>
           <div class="relative">
             <div class="w-24 h-24 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 mb-2">
-              <img :src="logoPreview || '{% if restaurant.logo %}{{ restaurant.logo.url }}{% endif %}'"
+              <img :src="logoPreview || '{{ restaurant.logo|file_url }}'"
                    x-show="logoPreview || '{% if restaurant.logo %}true{% endif %}'"
                    alt="Aperçu logo"
                    class="w-full h-full object-cover" />

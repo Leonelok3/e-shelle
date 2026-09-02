@@ -1,4 +1,4 @@
-{% load static %}
+{% load static resto_tags %}
 {% if q|length >= 2 %}
   {% if restaurants or dishes %}
   <div class="py-2">
@@ -8,11 +8,13 @@
     <a href="{% url 'resto:restaurant_detail' r.slug %}"
        class="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition">
       <div class="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
-        {% if r.logo %}
-        <img src="{{ r.logo.url }}" alt="{{ r.name }}" class="w-9 h-9 rounded-lg object-cover" />
+        {% with logo_url=r.logo|file_url %}
+        {% if logo_url %}
+        <img src="{{ logo_url }}" alt="{{ r.name }}" class="w-9 h-9 rounded-lg object-cover" />
         {% else %}
         <span class="text-lg">🍽️</span>
         {% endif %}
+        {% endwith %}
       </div>
       <div class="min-w-0">
         <p class="text-sm font-semibold text-gray-900 truncate">{{ r.name }}</p>

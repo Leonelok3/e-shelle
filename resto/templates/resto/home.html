@@ -20,18 +20,19 @@
        :class="current === {{ forloop.index0 }} ? 'opacity-100 z-10' : 'opacity-0 z-0'"
        x-ref="slide{{ forloop.index0 }}">
 
-    {% if banner.media_type == "video" and banner.video %}
+    {% with banner_video_url=banner.video|file_url banner_poster_url=banner.video_poster|file_url banner_image_url=banner.image|file_url %}
+    {% if banner.media_type == "video" and banner_video_url %}
     <!-- Video slide -->
     <video class="w-full h-full object-cover absolute inset-0"
            autoplay muted loop playsinline
-           {% if banner.video_poster %}poster="{{ banner.video_poster.url }}"{% endif %}
+           {% if banner_poster_url %}poster="{{ banner_poster_url }}"{% endif %}
            x-ref="video{{ forloop.index0 }}"
            :x-effect="current === {{ forloop.index0 }} ? $refs.video{{ forloop.index0 }}.play() : $refs.video{{ forloop.index0 }}.pause()">
-      <source src="{{ banner.video.url }}" type="video/mp4" />
+      <source src="{{ banner_video_url }}" type="video/mp4" />
     </video>
-    {% elif banner.image %}
+    {% elif banner_image_url %}
     <!-- Image slide -->
-    <img src="{{ banner.image.url }}"
+    <img src="{{ banner_image_url }}"
          alt="{{ banner.title|default:'Bannière E-Shelle Resto' }}"
          loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
          class="w-full h-full object-cover absolute inset-0" />
@@ -39,6 +40,7 @@
     <!-- Fallback gradient -->
     <div class="w-full h-full absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"></div>
     {% endif %}
+    {% endwith %}
 
     <!-- Dark overlay -->
     <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/20 z-10"></div>

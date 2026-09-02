@@ -2,8 +2,9 @@
 <div class="h-full bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition">
   <!-- Image -->
   <div class="relative h-28 bg-gray-100 overflow-hidden">
-    {% if dish.image %}
-    <img src="{{ dish.image.url }}"
+    {% with dish_image_url=dish.image|file_url %}
+    {% if dish_image_url %}
+    <img src="{{ dish_image_url }}"
          alt="{{ dish.name }}"
          loading="lazy"
          class="w-full h-full object-cover" />
@@ -12,6 +13,7 @@
       <span class="text-3xl">🍛</span>
     </div>
     {% endif %}
+    {% endwith %}
     <!-- Availability badge -->
     <div class="absolute bottom-1.5 left-1.5">
       {{ dish|availability_badge }}
