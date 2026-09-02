@@ -790,7 +790,7 @@ class StartAdVideoView(LoginRequiredMixin, View):
         prompt = prompt[:1200]
         
         provider = _video_provider()
-        source_duration = 12 if provider == "openai" else 8
+        source_duration = getattr(settings, "OPENAI_VIDEO_SECONDS", 4) if provider == "openai" else 8
 
         # Encodage de l'image du produit si présente avec l'arrière-plan personnalisé
         image_b64 = None

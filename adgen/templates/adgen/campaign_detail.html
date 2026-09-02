@@ -808,7 +808,7 @@
           </div>
           <div>
             <div class="font-bold text-gray-800 text-sm" id="polling-step-title">1. Préparation de la vidéo...</div>
-            <div class="text-xs text-gray-400 mt-1" id="polling-step-desc">Sora prépare vos images. Temps estimé : 60-180s</div>
+            <div class="text-xs text-gray-400 mt-1" id="polling-step-desc">Sora prépare votre clip source. Temps estimé : quelques minutes.</div>
           </div>
         </div>
       `;
@@ -833,16 +833,19 @@
     const interval = setInterval(async () => {
       attempts++;
       
-      // Mettre à jour les étapes du polling de façon réaliste
+      // Mettre à jour les étapes du polling sans annoncer la composition avant la fin du rendu IA.
       const stepTitle = document.getElementById("polling-step-title");
       const stepDesc = document.getElementById("polling-step-desc");
       if (stepTitle && stepDesc) {
-        if (attempts > 35) {
-          stepTitle.innerText = "3. Composition finale et export...";
-          stepDesc.innerText = "FFmpeg intègre vos animations typographiques et le CTA.";
-        } else if (attempts > 12) {
-          stepTitle.innerText = "2. Génération audio et effets...";
-          stepDesc.innerText = "Synthèse sonore haute définition et transitions.";
+        if (attempts > 90) {
+          stepTitle.innerText = "Sora travaille encore...";
+          stepDesc.innerText = "Le rendu vidéo peut durer longtemps selon la file d'attente OpenAI.";
+        } else if (attempts > 30) {
+          stepTitle.innerText = "Rendu vidéo en cours...";
+          stepDesc.innerText = "AdGen vérifie automatiquement le résultat toutes les 4 secondes.";
+        } else if (attempts > 8) {
+          stepTitle.innerText = "Préparation du clip source...";
+          stepDesc.innerText = "Sora analyse l'image et le prompt publicitaire.";
         }
       }
 
@@ -886,6 +889,10 @@
  
         if (data.done) {
           clearInterval(interval);
+          const stepTitle = document.getElementById("polling-step-title");
+          const stepDesc = document.getElementById("polling-step-desc");
+          if (stepTitle) stepTitle.innerText = "Composition finale terminée";
+          if (stepDesc) stepDesc.innerText = "Votre publicité est prête.";
           wrapper.innerHTML = `
             <div class="message-video-container">
               <video controls class="w-full rounded-2xl border border-gray-200" style="max-width: 480px; display: block;">
