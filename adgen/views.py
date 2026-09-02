@@ -269,6 +269,7 @@ class ExportContentView(LoginRequiredMixin, View):
 
 # ─── Génération Vidéo Publicitaire ───────────────────────────────────────────
 from e_shelle_ai.services.tools.google_media_generator import start_google_video, check_google_video_status
+from e_shelle_ai.services.tools.openai_video_generator import start_openai_video, check_openai_video_status
 from e_shelle_ai.services.quota_service import QuotaService
 import base64
 import os
@@ -685,10 +686,35 @@ def clean_video_prompt(prompt: str, campaign) -> str:
             p += f", no {forbidden}"
     return p
 
+
+def _video_provider():
+    provider = getattr(settings, "VIDEO_PROVIDER", "google").lower()
+    return provider if provider in {"google", "openai"} else "google"
+
+
+def _start_ad_video(prompt: str, image_b64: str | None, duration: int) -> dict:
+    provider = _video_provider()
+    if provider == "openai":
+        result = start_openai_video(prompt, size="1280x720", image_b64=image_b64, seconds=duration)
+    else:
+        result = start_google_video(prompt, aspect_ratio="16:9", image_b64=image_b64, duration=8)
+    if result.get("operation_name") and ":" not in result["operation_name"]:
+        result["operation_name"] = f"{provider}:{result['operation_name']}"
+    result["provider"] = provider
+    return result
+
+
+def _check_ad_video_status(operation_name: str) -> dict:
+    if operation_name.startswith("openai:"):
+        return check_openai_video_status(operation_name)
+    if operation_name.startswith("google:"):
+        return check_google_video_status(operation_name.removeprefix("google:"))
+    return check_google_video_status(operation_name)
+
 class StartAdVideoView(LoginRequiredMixin, View):
     """
     POST /pub/api/campaign/<pk>/generate-video/start/
-    Démarre la génération de vidéo publicitaire avec Google Veo en utilisant la photo du produit.
+    Démarre la génération de vidéo publicitaire avec le fournisseur configuré.
     """
     def post(self, request, pk):
         campaign = get_object_or_404(AdCampaign, pk=pk, user=request.user)
@@ -763,8 +789,8 @@ class StartAdVideoView(LoginRequiredMixin, View):
         prompt = clean_video_prompt(prompt, campaign)
         prompt = prompt[:1200]
         
-        # Veo reference_to_video ne supporte QUE 8 secondes au départ
-        veo_duration = 8
+        provider = _video_provider()
+        source_duration = 12 if provider == "openai" else 8
 
         # Encodage de l'image du produit si présente avec l'arrière-plan personnalisé
         image_b64 = None
@@ -773,7 +799,7 @@ class StartAdVideoView(LoginRequiredMixin, View):
             try:
                 padded_image_bytes = prepare_image_for_veo(campaign.photo_produit, bg_config=bg_config)
                 image_b64 = base64.b64encode(padded_image_bytes).decode("utf-8")
-                logger.info(f"[AdGen Video Generation] Image du produit ajustée en 16:9 avec fond personnalisé pour Veo.")
+                logger.info(f"[AdGen Video Generation] Image du produit ajustée en 16:9 avec fond personnalisé.")
             except Exception as e:
                 logger.warning(f"Failed to pad campaign product image, using fallback: {e}")
                 try:
@@ -783,14 +809,15 @@ class StartAdVideoView(LoginRequiredMixin, View):
                     pass
 
         # Lancer la génération au format paysage 16:9
-        result = start_google_video(prompt, aspect_ratio="16:9", image_b64=image_b64, duration=veo_duration)
+        result = _start_ad_video(prompt, image_b64=image_b64, duration=source_duration)
 
         if result.get("error"):
             return JsonResponse({"error": f"Impossible de démarrer la génération vidéo : {result['error']}"}, status=500)
 
         return JsonResponse({
             "operation_name": result["operation_name"],
-            "prompt": prompt
+            "prompt": prompt,
+            "provider": result.get("provider", provider),
         })
 
 
@@ -810,7 +837,7 @@ class PollAdVideoView(LoginRequiredMixin, View):
         if not operation_name:
             return JsonResponse({"error": "Nom de l'opération manquant."}, status=400)
 
-        result = check_google_video_status(operation_name)
+        result = _check_ad_video_status(operation_name)
 
         if result.get("error"):
             return JsonResponse({"error": result["error"]}, status=500)
