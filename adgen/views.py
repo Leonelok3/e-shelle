@@ -814,6 +814,14 @@ class StartAdVideoView(LoginRequiredMixin, View):
         if result.get("error"):
             return JsonResponse({"error": f"Impossible de démarrer la génération vidéo : {result['error']}"}, status=500)
 
+        if not isinstance(content.raw_json, dict):
+            content.raw_json = {}
+        content.raw_json["video_operation_name"] = result["operation_name"]
+        content.raw_json["video_provider"] = result.get("provider", provider)
+        content.raw_json["video_prompt"] = prompt
+        content.raw_json["video_started_at"] = timezone.now().isoformat()
+        content.save(update_fields=["raw_json"])
+
         return JsonResponse({
             "operation_name": result["operation_name"],
             "prompt": prompt,
@@ -857,7 +865,10 @@ class PollAdVideoView(LoginRequiredMixin, View):
         video_url = add_voiceover_to_video(video_url, "bg_music", campaign.pk, music_style=music_style, duration=duration)
             
         content.ad_video_url = video_url
-        content.save(update_fields=["ad_video_url"])
+        if isinstance(content.raw_json, dict):
+            content.raw_json.pop("video_operation_name", None)
+            content.raw_json["video_completed_at"] = timezone.now().isoformat()
+        content.save(update_fields=["ad_video_url", "raw_json"])
 
         # Incrémenter le quota
         quota_service = QuotaService()

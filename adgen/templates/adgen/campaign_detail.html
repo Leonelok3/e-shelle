@@ -530,6 +530,16 @@
                 ⬇ Télécharger la vidéo publicitaire
               </a>
             </div>
+          {% elif content.raw_json.video_operation_name %}
+            <div class="flex items-center gap-4 bg-gradient-to-r from-purple-50 to-white border border-purple-100 rounded-2xl p-6" style="max-width: 500px;">
+              <div class="relative w-12 h-12 flex-shrink-0">
+                <div class="w-12 h-12 rounded-full border-4 border-purple-100 border-t-purple-600 animate-spin"></div>
+              </div>
+              <div>
+                <div class="font-bold text-gray-800 text-sm" id="polling-step-title">Génération vidéo en cours...</div>
+                <div class="text-xs text-gray-400 mt-1" id="polling-step-desc">Sora peut prendre plusieurs minutes. Vous pouvez laisser cette page ouverte.</div>
+              </div>
+            </div>
           {% endif %}
         </div>
       {% else %}
@@ -714,6 +724,25 @@
       firstBtn.click();
     }
     updateBgPreview();
+    {% if content.raw_json.video_operation_name and not content.ad_video_url %}
+    const btn = document.getElementById("btn-generate-ad-video");
+    const promptInput = document.getElementById("custom-ad-video-prompt");
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = "Génération en cours...";
+    }
+    if (promptInput) {
+      promptInput.disabled = true;
+    }
+    pollAdVideoStatus(
+      "{{ content.raw_json.video_operation_name|escapejs }}",
+      "{{ content.raw_json.video_prompt|default:''|escapejs }}",
+      btn,
+      promptInput,
+      "🎥 Lancer la création de la publicité IA",
+      {{ content.raw_json.duration|default:30 }}
+    );
+    {% endif %}
   });
 
   async function startAdVideoGen() {
@@ -799,7 +828,7 @@
     const pollUrl = "{% url 'adgen:api_generate_video_poll' pk=campaign.pk %}?operation_name=" + encodeURIComponent(operationName) + "&prompt=" + encodeURIComponent(promptText);
  
     let attempts = 0;
-    const maxAttempts = 75; // 75 * 4s = 300s
+    const maxAttempts = 225; // 225 * 4s = 900s
     
     const interval = setInterval(async () => {
       attempts++;
@@ -821,12 +850,16 @@
         clearInterval(interval);
         wrapper.innerHTML = `
           <div class="bg-red-50 border border-red-100 rounded-xl p-4 text-sm text-red-700">
-            ⚠️ <strong>Délai dépassé :</strong> La génération prend plus de temps que prévu. Veuillez actualiser la page plus tard pour voir le résultat.
+            ⚠️ <strong>Génération toujours en cours :</strong> Sora prend plus de temps que prévu. Actualisez cette page dans quelques minutes, AdGen reprendra le suivi automatiquement.
           </div>
         `;
-        btn.disabled = false;
-        promptInput.disabled = false;
-        btn.innerHTML = originalHtml;
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+        }
+        if (promptInput) {
+          promptInput.disabled = false;
+        }
         return;
       }
  
@@ -841,9 +874,13 @@
               ⚠️ <strong>Échec de la génération :</strong> ${data.error}
             </div>
           `;
-          btn.disabled = false;
-          promptInput.disabled = false;
-          btn.innerHTML = originalHtml;
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+          }
+          if (promptInput) {
+            promptInput.disabled = false;
+          }
           return;
         }
  
@@ -860,9 +897,13 @@
               </a>
             </div>
           `;
-          btn.disabled = false;
-          promptInput.disabled = false;
-          btn.innerHTML = originalHtml;
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+          }
+          if (promptInput) {
+            promptInput.disabled = false;
+          }
         }
       } catch (err) {
         console.error("Error polling video status:", err);
