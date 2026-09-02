@@ -405,11 +405,10 @@ class FFmpegFilterGenerator:
             scene = f"fastscene{i}"
             mixed = f"fastmix{i}"
             pan = 10 if i % 2 == 0 else -10
-            alpha = self.get_alpha_expr(start, end, 0.35, 0.45)
             base_filters.append(
                 f"[{input_idx}:v]scale=w={scaled_w}:h={scaled_h}:force_original_aspect_ratio=increase,"
                 f"crop={width}:{scene_h}:x='(in_w-{width})/2+{pan}*sin(2*PI*t/{max(duration, 1)})':y=(in_h-{scene_h})/2,"
-                f"format=rgba,colorchannelmixer=aa='{alpha}'[{scene}];"
+                f"format=rgba[{scene}];"
                 f"[{previous}][{scene}]overlay=0:{scene_y}:enable='between(t,{start},{end})'[{mixed}]"
             )
             previous = mixed
@@ -422,47 +421,43 @@ class FFmpegFilterGenerator:
         if "hook" in timeline:
             start, end = timeline["hook"]
             hook_file = self.write_temp_text("hook", wrap_text(content_data["hook"].upper(), 17))
-            alpha = self.get_alpha_expr(start, end, 0.30, 0.35)
             y = f"78-28*pow(1-clip((t-{start})/0.45,0,1),2)"
             text_filters.append(
-                f"drawtext=textfile='{hook_file}':x=(w-text_w)/2:y='{y}':alpha='{alpha}'{style}:"
+                f"drawtext=textfile='{hook_file}':x=(w-text_w)/2:y='{y}':enable='between(t,{start},{end})'{style}:"
                 f"fontsize=42:fontcolor={text_color}:box=1:boxcolor={box_color}:boxborderw=14"
             )
 
         if "price" in timeline:
             start, end = timeline["price"]
             price_file = self.write_temp_text("price", f"PRIX: {content_data['prix']}")
-            alpha = self.get_alpha_expr(start, end, 0.25, 0.35)
             y = f"98-22*pow(1-clip((t-{start})/0.35,0,1),2)"
             text_filters.append(
-                f"drawtext=textfile='{price_file}':x=(w-text_w)/2:y='{y}':alpha='{alpha}'{style}:"
+                f"drawtext=textfile='{price_file}':x=(w-text_w)/2:y='{y}':enable='between(t,{start},{end})'{style}:"
                 f"fontsize=46:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=12"
             )
 
         if "avantage" in timeline and content_data.get("avantage"):
             start, end = timeline["avantage"]
             av_file = self.write_temp_text("avantage_text", wrap_text(content_data["avantage"].upper(), 18))
-            alpha = self.get_alpha_expr(start, end, 0.25, 0.35)
             y = f"98-22*pow(1-clip((t-{start})/0.35,0,1),2)"
             text_filters.append(
-                f"drawtext=textfile='{av_file}':x=(w-text_w)/2:y='{y}':alpha='{alpha}'{style}:"
+                f"drawtext=textfile='{av_file}':x=(w-text_w)/2:y='{y}':enable='between(t,{start},{end})'{style}:"
                 f"fontsize=38:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=12"
             )
 
         if "cta" in timeline:
             start, end = timeline["cta"]
-            cta_alpha = self.get_alpha_expr(start, end, 0.35, 0.30)
             cta_file = self.write_temp_text("cta_title", "COMMANDER MAINTENANT")
             contact = f"WhatsApp: {content_data['whatsapp']}"
             if content_data.get("ville"):
                 contact += f"\n({content_data['ville']})"
             contact_file = self.write_temp_text("cta_contact", contact)
             text_filters.append(
-                f"drawtext=textfile='{cta_file}':x=(w-text_w)/2:y={height - 170}:alpha='{cta_alpha}'{style}:"
+                f"drawtext=textfile='{cta_file}':x=(w-text_w)/2:y={height - 170}:enable='between(t,{start},{end})'{style}:"
                 "fontsize=36:fontcolor=white:box=1:boxcolor=0x16a34a@0.96:boxborderw=14"
             )
             text_filters.append(
-                f"drawtext=textfile='{contact_file}':x=(w-text_w)/2:y={height - 112}:alpha='{cta_alpha}'{style}:"
+                f"drawtext=textfile='{contact_file}':x=(w-text_w)/2:y={height - 112}:enable='between(t,{start},{end})'{style}:"
                 f"fontsize=30:fontcolor={contact_text}:box=1:boxcolor={contact_box}:boxborderw=12"
             )
 

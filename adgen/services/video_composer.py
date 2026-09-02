@@ -289,7 +289,7 @@ class VideoComposer:
             res = subprocess.run(cmd, capture_output=True, text=True)
             if res.returncode != 0:
                 logger.error(f"[VideoComposer] Échec FFmpeg rapide: {res.stderr}")
-                raise RuntimeError(f"FFmpeg error: {res.stderr}")
+                raise RuntimeError("FFmpeg n'a pas pu finaliser la vidéo. Veuillez réessayer avec une autre photo produit.")
 
             try:
                 os.chmod(output_filepath, 0o644)
