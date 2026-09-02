@@ -6,6 +6,7 @@ import os
 import logging
 import requests
 import subprocess
+import glob
 from django.conf import settings
 from adgen.views import generate_ad_music, get_premium_font
 from .timeline_planner import TimelinePlanner
@@ -176,19 +177,12 @@ class VideoComposer:
 
     def cleanup_temp_files(self, content_data: dict):
         """Supprime tous les fichiers texte temporaires écrits pour FFmpeg."""
-        names = ["hook", "presentation", "benefits_title", "old_price", "price", "cta_title", "cta_contact"]
-        for i in range(len(content_data.get("benefits", []))):
-            names.append(f"benefit_{i}")
-        names.append("extra")
-        names.append("offer")
-
-        for name in names:
-            file_path = os.path.join(self.temp_dir, f"{name}_{self.campaign.pk}.txt")
-            if os.path.exists(file_path):
-                try:
-                    os.remove(file_path)
-                except Exception:
-                    pass
+        pattern = os.path.join(self.temp_dir, f"*_{self.campaign.pk}.txt")
+        for file_path in glob.glob(pattern):
+            try:
+                os.remove(file_path)
+            except Exception:
+                pass
 
     def generate_background_image(self, output_path: str):
         """Génère l'image d'arrière-plan 1080x1920 (couleur, dégradé ou template)."""

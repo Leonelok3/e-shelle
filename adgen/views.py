@@ -440,6 +440,15 @@ def get_premium_font() -> str:
     import os
     import urllib.request
     from django.conf import settings
+
+    system_fonts = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf",
+        "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf",
+    ]
+    for system_font in system_fonts:
+        if os.path.exists(system_font):
+            return system_font
     
     font_dir = os.path.join(settings.MEDIA_ROOT, "fonts")
     os.makedirs(font_dir, exist_ok=True)
@@ -447,7 +456,7 @@ def get_premium_font() -> str:
     
     if not os.path.exists(font_path):
         try:
-            url = "https://github.com/google/fonts/raw/main/ofl/outfit/static/Outfit-Bold.ttf"
+            url = "https://raw.githubusercontent.com/google/fonts/main/ofl/outfit/Outfit%5Bwght%5D.ttf"
             logger.info(f"[AdGen] Téléchargement de la police premium depuis {url}...")
             urllib.request.urlretrieve(url, font_path)
             logger.info(f"[AdGen] Police premium téléchargée : {font_path}")

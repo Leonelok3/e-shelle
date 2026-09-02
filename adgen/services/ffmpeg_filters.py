@@ -58,6 +58,49 @@ class FFmpegFilterGenerator:
             f"if(lt(t,{end}),1-(t-({end}-{fade_out}))/{fade_out},0))))"
         )
 
+    def motion_text_style(self) -> str:
+        """Options communes pour des incrustations plus cinématiques."""
+        return (
+            f"{self.font_opt}:shadowcolor=0x000000@0.45:shadowx=0:shadowy=5:"
+            "borderw=1:bordercolor=0x000000@0.20:line_spacing=12"
+        )
+
+    def add_typewriter_text(
+        self,
+        filters: list,
+        name: str,
+        text: str,
+        start: float,
+        end: float,
+        x_expr: str,
+        y_expr: str,
+        fontsize: int,
+        fontcolor: str,
+        boxcolor: str,
+        boxborderw: int,
+        reveal_duration: float = 1.2,
+        max_chars: int = 42,
+    ) -> None:
+        """Ajoute un effet machine à écrire avec une succession de fragments de texte."""
+        cleaned = text[:max_chars]
+        if not cleaned:
+            return
+
+        step = max(reveal_duration / max(len(cleaned), 1), 0.035)
+        fade_alpha = self.get_alpha_expr(start, end, fade_in=0.25, fade_out=0.45)
+        style = self.motion_text_style()
+
+        for i in range(1, len(cleaned) + 1):
+            partial = cleaned[:i]
+            partial_file = self.write_temp_text(f"{name}_tw_{i}", partial)
+            reveal_start = start + (i - 1) * step
+            reveal_end = start + i * step if i < len(cleaned) else end
+            filters.append(
+                f"drawtext=textfile='{partial_file}':x='{x_expr}':y='{y_expr}':"
+                f"enable='between(t,{reveal_start},{reveal_end})':alpha='{fade_alpha}'{style}:"
+                f"fontsize={fontsize}:fontcolor={fontcolor}:box=1:boxcolor={boxcolor}:boxborderw={boxborderw}"
+            )
+
     def write_temp_text(self, name: str, content: str) -> str:
         """Écrit un texte dans un fichier temporaire et retourne son chemin échappé pour FFmpeg."""
         file_path = os.path.join(self.temp_dir, f"{name}_{self.campaign_id}.txt")
@@ -100,33 +143,32 @@ class FFmpegFilterGenerator:
 
         # --- 2. Placement de la vidéo au centre du fond vertical 9:16 ---
         # Recadrage 3:4 (540x720) et mise à l'échelle en 1080x1440 pour occuper 75% de la hauteur
-        speed_ratio = duration / 8.0
         overlay_y = (1920 - 1440) // 2  # 240
         crop_zoom = (
             f"[0:v]setpts=PTS,"
-            f"crop=w=540:h=720:x='(in_w-540)/2 + 40*sin(2*PI*t/{duration})':y=0,"
-            f"scale=1080:1440[vid];"
+            f"crop=w=540:h=720:x='(in_w-540)/2 + 28*sin(2*PI*t/{max(duration, 1)})':y=0,"
+            f"scale=w='1080+18*sin(2*PI*t/{max(duration, 1)})':h=-1:eval=frame,"
+            f"crop=1080:1440[vid];"
             f"[2:v][vid]overlay=0:{overlay_y}"
         )
         filters.append(crop_zoom)
 
         # --- 3. Filigrane permanent ---
-        watermark = f"drawtext=text='E-SHELLE.COM':x=w-tw-w*0.06:y=h*0.02{self.font_opt}:fontsize=32:fontcolor=white:alpha=0.35"
+        watermark = (
+            f"drawtext=text='E-SHELLE.COM':x=w-tw-w*0.06:y=h*0.02{self.motion_text_style()}:"
+            "fontsize=30:fontcolor=white:alpha=0.28"
+        )
         filters.append(watermark)
 
         # --- 4. Scène : Hook ---
         if "hook" in timeline:
             start, end = timeline["hook"]
             hook_text = wrap_text(content_data["hook"].upper(), 18)
-            hook_file = self.write_temp_text("hook", hook_text)
             
-            # Animation slideDown + ease-out (quadratic) + fadeIn/fadeOut
-            alpha = self.get_alpha_expr(start, end)
-            y_expr = f"120 - 50 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
-            
-            filters.append(
-                f"drawtext=textfile='{hook_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
-                f"fontsize=64:fontcolor={text_color}:box=1:boxcolor={box_color}:boxborderw=20"
+            y_expr = f"120 - 42 * pow(1 - clip((t - {start}) / 0.7, 0, 1), 2)"
+            self.add_typewriter_text(
+                filters, "hook", hook_text, start, end, "(w-text_w)/2", y_expr,
+                66, text_color, box_color, 22, reveal_duration=1.25, max_chars=52
             )
 
         # --- 5. Scène : Présentation ---
@@ -140,7 +182,7 @@ class FFmpegFilterGenerator:
             y_expr = f"600 + 150 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
             
             filters.append(
-                f"drawtext=textfile='{pres_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
+                f"drawtext=textfile='{pres_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.motion_text_style()}:"
                 f"fontsize=48:fontcolor={text_color}:box=1:boxcolor={box_color}:boxborderw=20"
             )
 
@@ -151,8 +193,9 @@ class FFmpegFilterGenerator:
             # Titre des bénéfices
             title_file = self.write_temp_text("benefits_title", "POURQUOI CHOISIR ?")
             alpha_title = self.get_alpha_expr(start, end)
+            title_y = f"350 - 35 * pow(1 - clip((t - {start}) / 0.65, 0, 1), 2)"
             filters.append(
-                f"drawtext=textfile='{title_file}':x=(w-text_w)/2:y=350{self.font_opt}:"
+                f"drawtext=textfile='{title_file}':x=(w-text_w)/2:y='{title_y}'{self.motion_text_style()}:"
                 f"fontsize=52:fontcolor={accent_color}:alpha='{alpha_title}':box=1:boxcolor={box_color}:boxborderw=15"
             )
 
@@ -169,13 +212,13 @@ class FFmpegFilterGenerator:
                 
                 # Coche verte
                 filters.append(
-                    f"drawtext=text='V':x='{x_expr}':y={y_pos}{self.font_opt}:"
+                    f"drawtext=text='✓':x='{x_expr}':y={y_pos}{self.motion_text_style()}:"
                     f"fontsize=44:fontcolor=0x22c55e:alpha='{alpha_b}':box=1:boxcolor={box_color}:boxborderw=15"
                 )
                 
                 # Texte du bénéfice
                 filters.append(
-                    f"drawtext=textfile='{b_file}':x='{x_expr} + 60':y={y_pos}{self.font_opt}:"
+                    f"drawtext=textfile='{b_file}':x='{x_expr} + 60':y={y_pos}{self.motion_text_style()}:"
                     f"fontsize=42:fontcolor={text_color}:alpha='{alpha_b}':box=1:boxcolor={box_color}:boxborderw=15"
                 )
 
@@ -186,7 +229,7 @@ class FFmpegFilterGenerator:
             ext_file = self.write_temp_text("extra", ext_text)
             alpha = self.get_alpha_expr(start, end)
             filters.append(
-                f"drawtext=textfile='{ext_file}':x=(w-text_w)/2:y=650{self.font_opt}:"
+                f"drawtext=textfile='{ext_file}':x=(w-text_w)/2:y=650{self.motion_text_style()}:"
                 f"fontsize=46:fontcolor={text_color}:alpha='{alpha}':box=1:boxcolor={box_color}:boxborderw=20"
             )
 
@@ -198,7 +241,7 @@ class FFmpegFilterGenerator:
             alpha = self.get_alpha_expr(start, end)
             y_expr = f"600 - 100 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
             filters.append(
-                f"drawtext=textfile='{off_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
+                f"drawtext=textfile='{off_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.motion_text_style()}:"
                 f"fontsize=50:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=20"
             )
 
@@ -212,10 +255,9 @@ class FFmpegFilterGenerator:
             y_expr = f"180 - 30 * pow(1 - clip((t - {start}) / 0.7, 0, 1), 2)"
             
             new_text = f"PRIX: {prix}"
-            new_file = self.write_temp_text("price", new_text)
-            filters.append(
-                f"drawtext=textfile='{new_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
-                f"fontsize=68:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=16"
+            self.add_typewriter_text(
+                filters, "price", new_text, start, end, "(w-text_w)/2", y_expr,
+                68, accent_color, box_color, 16, reveal_duration=0.9, max_chars=30
             )
 
         # --- 9b. Scène : Avantage ---
@@ -229,7 +271,7 @@ class FFmpegFilterGenerator:
                 av_text = avantage.upper()
                 av_file = self.write_temp_text("avantage_text", wrap_text(av_text, 18))
                 filters.append(
-                    f"drawtext=textfile='{av_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.font_opt}:"
+                    f"drawtext=textfile='{av_file}':x=(w-text_w)/2:y='{y_expr}':alpha='{alpha}'{self.motion_text_style()}:"
                     f"fontsize=56:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=16"
                 )
 
@@ -245,7 +287,7 @@ class FFmpegFilterGenerator:
             y_cta = f"1610 - 55 * pow(1 - clip((t - {start}) / 0.8, 0, 1), 2)"
             
             filters.append(
-                    f"drawtext=textfile='{cta_file}':x=(w-text_w)/2:y='{y_cta}':alpha='{alpha}'{self.font_opt}:"
+                    f"drawtext=textfile='{cta_file}':x=(w-text_w)/2:y='{y_cta}':alpha='{alpha}'{self.motion_text_style()}:"
                     f"fontsize=56:fontcolor=white:box=1:boxcolor=0x16a34a:boxborderw=22" # Bouton vert brillant
                 )
 
@@ -257,7 +299,7 @@ class FFmpegFilterGenerator:
             
             y_contact = f"{y_cta} + 115"
             filters.append(
-                f"drawtext=textfile='{contact_file}':x=(w-text_w)/2:y='{y_contact}':alpha='{alpha}'{self.font_opt}:"
+                f"drawtext=textfile='{contact_file}':x=(w-text_w)/2:y='{y_contact}':alpha='{alpha}'{self.motion_text_style()}:"
                 f"fontsize=52:fontcolor={contact_text}:box=1:boxcolor={contact_box}:boxborderw=18"
             )
 
