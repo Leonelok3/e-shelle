@@ -221,6 +221,9 @@ class VideoComposer:
 
         try:
             logger.info(f"[VideoComposer] Début composition photo rapide pour la campagne #{self.campaign.pk} ({self.duration}s)")
+            fast_width = int(getattr(settings, "ADGEN_VIDEO_FAST_WIDTH", 720))
+            fast_height = int(getattr(settings, "ADGEN_VIDEO_FAST_HEIGHT", 1280))
+            scene_height = int(fast_height * 0.72)
 
             audio_path = os.path.join(self.temp_dir, f"audio_{self.campaign.pk}.wav")
             generate_ad_music(audio_path, duration=self.duration, style=self.music_style)
@@ -229,11 +232,11 @@ class VideoComposer:
             timeline = planner.get_timeline()
             content_data = planner.get_content_data()
 
-            bg_image_path = os.path.join(self.temp_dir, f"bg_1080_1920_{self.campaign.pk}.jpg")
-            self.generate_background_image(bg_image_path)
+            bg_image_path = os.path.join(self.temp_dir, f"bg_{fast_width}_{fast_height}_{self.campaign.pk}.jpg")
+            self.generate_background_image(bg_image_path, width=fast_width, height=fast_height)
             bg_image_rel = self._ffmpeg_relative_path(bg_image_path)
 
-            product_scene_paths = self.generate_product_scene_images()
+            product_scene_paths = self.generate_product_scene_images(width=fast_width, height=scene_height)
             if not product_scene_paths:
                 raise RuntimeError("Ajoutez au moins une photo du produit pour générer une vidéo rapide.")
 
@@ -241,15 +244,14 @@ class VideoComposer:
 
             font_path = get_premium_font()
             filter_gen = FFmpegFilterGenerator(self.temp_dir, self.campaign.pk, font_path)
-            vf_chain = filter_gen.build_vf_chain(
+            vf_chain = filter_gen.build_fast_photo_chain(
                 timeline,
                 content_data,
                 self.bg_config,
                 self.duration,
                 product_scene_count=len(product_scene_rels),
-                source_video=False,
-                background_input_index=1,
-                product_scene_input_start=2,
+                width=fast_width,
+                height=fast_height,
             )
 
             output_filename = f"ad_video_{self.campaign.pk}.mp4"
@@ -272,11 +274,14 @@ class VideoComposer:
                 "-map", "0:a",
                 "-c:v", "libx264",
                 "-pix_fmt", "yuv420p",
-                "-preset", "veryfast",
-                "-crf", "23",
+                "-r", "24",
+                "-preset", "ultrafast",
+                "-crf", "25",
                 "-c:a", "aac",
+                "-b:a", "96k",
                 "-t", str(self.duration),
                 "-shortest",
+                "-movflags", "+faststart",
                 output_filepath,
             ])
 
@@ -330,11 +335,11 @@ class VideoComposer:
                 pass
         return path.replace("\\", "/")
 
-    def generate_background_image(self, output_path: str):
+    def generate_background_image(self, output_path: str, width: int = 1080, height: int = 1920):
         """Génère l'image d'arrière-plan 1080x1920 (couleur, dégradé ou template)."""
         from PIL import Image, ImageDraw
-        canvas_w = 1080
-        canvas_h = 1920
+        canvas_w = width
+        canvas_h = height
         bg = Image.new("RGBA", (canvas_w, canvas_h))
         draw = ImageDraw.Draw(bg)
         
@@ -422,7 +427,7 @@ class VideoComposer:
         final_img = bg.convert("RGB")
         final_img.save(output_path, format="JPEG", quality=90)
 
-    def generate_product_scene_images(self) -> list[str]:
+    def generate_product_scene_images(self, width: int = 1080, height: int = 1440) -> list[str]:
         """Prépare les photos produit en plans verticaux premium 1080x1440."""
         from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
@@ -447,38 +452,41 @@ class VideoComposer:
                 img = Image.open(image_field).convert("RGB")
                 img = ImageOps.exif_transpose(img)
 
-                canvas_w, canvas_h = 1080, 1440
+                canvas_w, canvas_h = width, height
                 bg = ImageOps.fit(img, (canvas_w, canvas_h), method=Image.Resampling.LANCZOS)
-                bg = bg.filter(ImageFilter.GaussianBlur(radius=26))
+                blur_radius = max(14, int(canvas_w * 0.024))
+                bg = bg.filter(ImageFilter.GaussianBlur(radius=blur_radius))
                 overlay = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 70))
                 bg = Image.alpha_composite(bg.convert("RGBA"), overlay)
 
-                max_w, max_h = 930, 1180
+                max_w, max_h = int(canvas_w * 0.86), int(canvas_h * 0.82)
                 fg = img.copy()
                 fg.thumbnail((max_w, max_h), Image.Resampling.LANCZOS)
 
-                card_w, card_h = fg.width + 36, fg.height + 36
+                padding = max(14, int(canvas_w * 0.033))
+                radius = max(20, int(canvas_w * 0.031))
+                card_w, card_h = fg.width + (padding * 2), fg.height + (padding * 2)
                 card = Image.new("RGBA", (card_w, card_h), (255, 255, 255, 0))
                 draw = ImageDraw.Draw(card)
                 draw.rounded_rectangle(
                     (0, 0, card_w - 1, card_h - 1),
-                    radius=34,
+                    radius=radius,
                     fill=(255, 255, 255, 245),
                     outline=(255, 255, 255, 200),
                     width=3,
                 )
-                card.alpha_composite(fg.convert("RGBA"), (18, 18))
+                card.alpha_composite(fg.convert("RGBA"), (padding, padding))
 
                 x = (canvas_w - card_w) // 2
                 y = (canvas_h - card_h) // 2
                 shadow = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
                 shadow_draw = ImageDraw.Draw(shadow)
                 shadow_draw.rounded_rectangle(
-                    (x + 18, y + 24, x + card_w + 18, y + card_h + 24),
-                    radius=34,
+                    (x + padding, y + padding + 6, x + card_w + padding, y + card_h + padding + 6),
+                    radius=radius,
                     fill=(0, 0, 0, 95),
                 )
-                shadow = shadow.filter(ImageFilter.GaussianBlur(radius=22))
+                shadow = shadow.filter(ImageFilter.GaussianBlur(radius=max(12, int(canvas_w * 0.02))))
                 bg = Image.alpha_composite(bg, shadow)
                 bg.alpha_composite(card, (x, y))
 

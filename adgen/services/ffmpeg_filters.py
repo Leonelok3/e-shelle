@@ -365,3 +365,105 @@ class FFmpegFilterGenerator:
             candidates = [(i * segment, min(duration, (i + 1) * segment)) for i in range(count)]
 
         return candidates[:count]
+
+    def build_fast_photo_chain(
+        self,
+        timeline: dict,
+        content_data: dict,
+        bg_config: dict,
+        duration: float,
+        product_scene_count: int,
+        width: int = 720,
+        height: int = 1280,
+    ) -> str:
+        """Chaîne FFmpeg allégée pour sortir une vidéo pub 15s très rapidement."""
+        from adgen.views import is_bg_light
+
+        is_light = is_bg_light(bg_config)
+        text_color = "0x111827" if is_light else "white"
+        accent_color = "0xc2410c" if is_light else "0xffd91f"
+        box_color = "white@0.88" if is_light else "0x080816@0.78"
+        contact_box = "0xdcfce7@0.92" if is_light else "0x14532d@0.90"
+        contact_text = "0x14532d" if is_light else "white"
+        style = self.motion_text_style()
+
+        scene_h = int(height * 0.72)
+        scene_y = int(height * 0.14)
+        scaled_w = int(width * 1.04)
+        scaled_h = int(scene_h * 1.04)
+        base_filters = [f"[1:v]scale={width}:{height},format=rgba[base0]"]
+        text_filters = []
+
+        previous = "base0"
+        windows = self.get_photo_windows(timeline, duration, product_scene_count)
+        if not windows and product_scene_count:
+            segment = duration / product_scene_count
+            windows = [(i * segment, min(duration, (i + 1) * segment)) for i in range(product_scene_count)]
+
+        for i, (start, end) in enumerate(windows[:product_scene_count]):
+            input_idx = 2 + i
+            scene = f"fastscene{i}"
+            mixed = f"fastmix{i}"
+            pan = 10 if i % 2 == 0 else -10
+            alpha = self.get_alpha_expr(start, end, 0.35, 0.45)
+            base_filters.append(
+                f"[{input_idx}:v]scale=w={scaled_w}:h={scaled_h}:force_original_aspect_ratio=increase,"
+                f"crop={width}:{scene_h}:x='(in_w-{width})/2+{pan}*sin(2*PI*t/{max(duration, 1)})':y=(in_h-{scene_h})/2,"
+                f"format=rgba,colorchannelmixer=aa='{alpha}'[{scene}];"
+                f"[{previous}][{scene}]overlay=0:{scene_y}:enable='between(t,{start},{end})'[{mixed}]"
+            )
+            previous = mixed
+
+        text_filters.append(
+            f"[{previous}]drawtext=text='E-SHELLE.COM':x=w-tw-36:y=28{style}:"
+            "fontsize=22:fontcolor=white:alpha=0.30"
+        )
+
+        if "hook" in timeline:
+            start, end = timeline["hook"]
+            hook_file = self.write_temp_text("hook", wrap_text(content_data["hook"].upper(), 17))
+            alpha = self.get_alpha_expr(start, end, 0.30, 0.35)
+            y = f"78-28*pow(1-clip((t-{start})/0.45,0,1),2)"
+            text_filters.append(
+                f"drawtext=textfile='{hook_file}':x=(w-text_w)/2:y='{y}':alpha='{alpha}'{style}:"
+                f"fontsize=42:fontcolor={text_color}:box=1:boxcolor={box_color}:boxborderw=14"
+            )
+
+        if "price" in timeline:
+            start, end = timeline["price"]
+            price_file = self.write_temp_text("price", f"PRIX: {content_data['prix']}")
+            alpha = self.get_alpha_expr(start, end, 0.25, 0.35)
+            y = f"98-22*pow(1-clip((t-{start})/0.35,0,1),2)"
+            text_filters.append(
+                f"drawtext=textfile='{price_file}':x=(w-text_w)/2:y='{y}':alpha='{alpha}'{style}:"
+                f"fontsize=46:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=12"
+            )
+
+        if "avantage" in timeline and content_data.get("avantage"):
+            start, end = timeline["avantage"]
+            av_file = self.write_temp_text("avantage_text", wrap_text(content_data["avantage"].upper(), 18))
+            alpha = self.get_alpha_expr(start, end, 0.25, 0.35)
+            y = f"98-22*pow(1-clip((t-{start})/0.35,0,1),2)"
+            text_filters.append(
+                f"drawtext=textfile='{av_file}':x=(w-text_w)/2:y='{y}':alpha='{alpha}'{style}:"
+                f"fontsize=38:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=12"
+            )
+
+        if "cta" in timeline:
+            start, end = timeline["cta"]
+            cta_alpha = self.get_alpha_expr(start, end, 0.35, 0.30)
+            cta_file = self.write_temp_text("cta_title", "COMMANDER MAINTENANT")
+            contact = f"WhatsApp: {content_data['whatsapp']}"
+            if content_data.get("ville"):
+                contact += f"\n({content_data['ville']})"
+            contact_file = self.write_temp_text("cta_contact", contact)
+            text_filters.append(
+                f"drawtext=textfile='{cta_file}':x=(w-text_w)/2:y={height - 170}:alpha='{cta_alpha}'{style}:"
+                "fontsize=36:fontcolor=white:box=1:boxcolor=0x16a34a@0.96:boxborderw=14"
+            )
+            text_filters.append(
+                f"drawtext=textfile='{contact_file}':x=(w-text_w)/2:y={height - 112}:alpha='{cta_alpha}'{style}:"
+                f"fontsize=30:fontcolor={contact_text}:box=1:boxcolor={contact_box}:boxborderw=12"
+            )
+
+        return ";".join(base_filters) + ";" + ",".join(text_filters) + f",fps=24,scale={width}:{height},format=yuv420p[outv]"
