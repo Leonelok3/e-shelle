@@ -65,6 +65,31 @@ def _canada_landing(request):
     return render(request, "canada/landing.html", {"job_count": job_count})
 
 
+def immigration_view(request):
+    """Portail des outils immigration et mobilité internationale E-Shelle."""
+    ctx = {
+        "canada_jobs_count": 0,
+        "canada_scholarships_count": 0,
+        "canada_visitor_count": 0,
+        "canada_news_count": 0,
+        "germany_offers_count": 0,
+    }
+    try:
+        from jobs.models import CanadaJobOffer, CanadaScholarship, CanadaVisitorOpportunity, CanadaNews
+        ctx["canada_jobs_count"] = CanadaJobOffer.objects.filter(is_active=True).count()
+        ctx["canada_scholarships_count"] = CanadaScholarship.objects.filter(is_active=True).count()
+        ctx["canada_visitor_count"] = CanadaVisitorOpportunity.objects.filter(is_active=True).count()
+        ctx["canada_news_count"] = CanadaNews.objects.filter(is_active=True).count()
+    except Exception:
+        pass
+    try:
+        from germany_opportunities.models import AusbildungOffer
+        ctx["germany_offers_count"] = AusbildungOffer.objects.filter(is_active=True).count()
+    except Exception:
+        pass
+    return render(request, "immigration.html", ctx)
+
+
 
 def home_view(request):
     ctx = {}
@@ -824,6 +849,7 @@ urlpatterns = [
     path("", home_view, name="home"),
     path("produits-services/", products_services_view, name="products_services"),
     path("presentation/", presentation_view, name="presentation"),
+    path("immigration/", immigration_view, name="immigration"),
     path("tarifs/", tarifs_view, name="tarifs"),
 ]
 

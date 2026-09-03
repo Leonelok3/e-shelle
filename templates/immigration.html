@@ -1,0 +1,540 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Immigration & Travel | E-Shelle Canada, Allemagne et outils IA{% endblock %}
+{% block meta_description %}Accédez aux outils E-Shelle pour l'immigration : Canada, Allemagne, CV canadien, diagnostic, coach IA, offres d'emploi, bourses, visa visiteur, préparation TCF et accompagnement Immigration97.{% endblock %}
+{% block og_title %}E-Shelle Immigration | Canada, Allemagne et outils IA{% endblock %}
+{% block og_description %}Un portail pour préparer votre projet de mobilité internationale avec des outils IA, des opportunités vérifiées et des applications métiers E-Shelle.{% endblock %}
+{% block nav_immigration %}active{% endblock %}
+{% block nav_immigration_mobile %}active{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="index, follow">
+<meta name="keywords" content="immigration Canada Cameroun, E-Shelle Canada, Immigration97, visa Canada, CV canadien, TCF Canada, bourses Canada, offres EIMT, Allemagne Ausbildung">
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .travel-page {
+    min-height: 100vh;
+    background: #07100c;
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    overflow: hidden;
+  }
+  .travel-shell {
+    width: min(1180px, calc(100% - 36px));
+    margin: 0 auto;
+  }
+  .travel-hero {
+    padding: clamp(8rem, 12vw, 10.5rem) 0 5rem;
+    background:
+      radial-gradient(circle at 15% 18%, rgba(216, 6, 33, .28), transparent 30%),
+      radial-gradient(circle at 76% 12%, rgba(125, 236, 108, .18), transparent 28%),
+      radial-gradient(circle at 88% 76%, rgba(245, 158, 11, .2), transparent 32%),
+      linear-gradient(135deg, #07111f 0%, #07100c 48%, #1d1203 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+  }
+  .travel-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(320px, .78fr);
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: center;
+  }
+  .travel-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .58rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(216, 6, 33, .34);
+    background: rgba(216, 6, 33, .1);
+    color: #ffb4bf;
+    font-size: .76rem;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .travel-pill::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #D80621;
+    box-shadow: 0 0 18px rgba(216, 6, 33, .85);
+  }
+  .travel-title {
+    margin: 1.35rem 0 1.2rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2.7rem, 6vw, 5.3rem);
+    line-height: 1.02;
+    font-weight: 950;
+    letter-spacing: 0;
+  }
+  .travel-title span {
+    background: linear-gradient(135deg, #D80621 0%, #fff 42%, #7dec6c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .travel-lead {
+    max-width: 760px;
+    margin: 0;
+    color: rgba(255, 255, 255, .78);
+    font-size: clamp(1rem, 1.45vw, 1.22rem);
+    line-height: 1.75;
+  }
+  .travel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .9rem;
+    margin-top: 2rem;
+  }
+  .travel-btn {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .55rem;
+    padding: .78rem 1.35rem;
+    border-radius: 999px;
+    font-weight: 900;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, .16);
+    color: #fff;
+  }
+  .travel-btn-primary {
+    background: linear-gradient(135deg, #D80621 0%, #f59e0b 100%);
+    color: #fff;
+    border: 0;
+    box-shadow: 0 18px 42px rgba(216, 6, 33, .24);
+  }
+  .travel-btn-green {
+    background: linear-gradient(135deg, #7dec6c 0%, #f9c332 100%);
+    color: #08120d;
+    border: 0;
+    box-shadow: 0 18px 42px rgba(125, 236, 108, .18);
+  }
+  .travel-panel {
+    border: 1px solid rgba(255, 255, 255, .12);
+    background: rgba(255, 255, 255, .055);
+    border-radius: 22px;
+    padding: 1rem;
+    box-shadow: 0 28px 70px rgba(0, 0, 0, .28);
+  }
+  .travel-panel-card {
+    border-radius: 18px;
+    padding: 1.25rem;
+    background: rgba(5, 12, 21, .72);
+    border: 1px solid rgba(255, 255, 255, .1);
+    margin-bottom: .85rem;
+  }
+  .travel-panel-card:last-child {
+    margin-bottom: 0;
+  }
+  .travel-panel-card strong {
+    display: block;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.35rem;
+    line-height: 1.1;
+    margin-bottom: .45rem;
+  }
+  .travel-panel-card span {
+    color: rgba(255, 255, 255, .68);
+    line-height: 1.55;
+  }
+  .travel-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .9rem;
+    margin-top: 2rem;
+  }
+  .travel-stat {
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, .06);
+    padding: 1rem;
+  }
+  .travel-stat strong {
+    display: block;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.65rem;
+    line-height: 1;
+  }
+  .travel-stat span {
+    display: block;
+    margin-top: .45rem;
+    color: rgba(255, 255, 255, .68);
+    font-size: .84rem;
+  }
+  .travel-section {
+    padding: clamp(4rem, 8vw, 6rem) 0;
+  }
+  .travel-section.light {
+    background: #f7fafc;
+    color: #0f172a;
+  }
+  .travel-section.deep {
+    background:
+      radial-gradient(circle at 18% 10%, rgba(216, 6, 33, .11), transparent 30%),
+      linear-gradient(180deg, #07100c 0%, #0b1628 100%);
+  }
+  .travel-kicker {
+    color: #16a34a;
+    font-size: .75rem;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-bottom: .7rem;
+  }
+  .travel-heading {
+    margin: 0 auto 1rem;
+    max-width: 820px;
+    text-align: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    line-height: 1.08;
+    font-weight: 950;
+    color: inherit;
+  }
+  .travel-subtitle {
+    max-width: 760px;
+    margin: 0 auto 2.6rem;
+    color: #64748b;
+    line-height: 1.75;
+    text-align: center;
+  }
+  .deep .travel-subtitle {
+    color: rgba(255, 255, 255, .68);
+  }
+  .travel-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .travel-card {
+    min-height: 100%;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, .08);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, .08);
+    padding: 1.25rem;
+    text-decoration: none;
+    color: #0f172a;
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+  }
+  .deep .travel-card {
+    background: rgba(255, 255, 255, .06);
+    border-color: rgba(255, 255, 255, .12);
+    color: #fff;
+  }
+  .travel-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(216, 6, 33, .35);
+    box-shadow: 0 24px 58px rgba(15, 23, 42, .13);
+  }
+  .travel-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: #fff1f2;
+    color: #D80621;
+    font-size: 1.35rem;
+  }
+  .travel-card h3 {
+    margin: 0;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.18rem;
+    font-weight: 950;
+    color: inherit;
+  }
+  .travel-card p {
+    margin: 0;
+    color: #64748b;
+    line-height: 1.62;
+    font-size: .92rem;
+  }
+  .deep .travel-card p {
+    color: rgba(255, 255, 255, .68);
+  }
+  .travel-card small {
+    margin-top: auto;
+    color: #16a34a;
+    font-weight: 950;
+  }
+  .travel-feature {
+    display: grid;
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    gap: 1rem;
+    align-items: stretch;
+  }
+  .travel-red-card {
+    border-radius: 24px;
+    padding: clamp(1.5rem, 4vw, 2.6rem);
+    background:
+      radial-gradient(circle at 85% 12%, rgba(255, 255, 255, .28), transparent 20%),
+      linear-gradient(135deg, #D80621 0%, #7f1d1d 100%);
+    color: #fff;
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .travel-red-card h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    line-height: 1.05;
+    margin: 1rem 0;
+    font-weight: 950;
+  }
+  .travel-list {
+    display: grid;
+    gap: .85rem;
+  }
+  .travel-list-item {
+    border: 1px solid rgba(15, 23, 42, .08);
+    border-radius: 16px;
+    background: #fff;
+    padding: 1.1rem;
+    display: flex;
+    gap: .9rem;
+    align-items: flex-start;
+  }
+  .travel-list-item b {
+    display: block;
+    margin-bottom: .25rem;
+    color: #0f172a;
+  }
+  .travel-list-item span {
+    color: #64748b;
+    line-height: 1.55;
+  }
+  .travel-final {
+    text-align: center;
+    border-radius: 28px;
+    padding: clamp(2rem, 5vw, 4rem);
+    background:
+      radial-gradient(circle at 15% 20%, rgba(125, 236, 108, .24), transparent 26%),
+      linear-gradient(135deg, #07111f 0%, #081b12 100%);
+    border: 1px solid rgba(125, 236, 108, .18);
+  }
+  .travel-final h2 {
+    margin: 0 0 1rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2rem, 4vw, 3.8rem);
+    line-height: 1.05;
+    font-weight: 950;
+  }
+  .travel-final p {
+    max-width: 740px;
+    margin: 0 auto 1.8rem;
+    color: rgba(255, 255, 255, .72);
+    line-height: 1.75;
+  }
+  @media (max-width: 960px) {
+    .travel-grid,
+    .travel-feature {
+      grid-template-columns: 1fr;
+    }
+    .travel-stats,
+    .travel-cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 640px) {
+    .travel-shell {
+      width: min(100% - 24px, 1180px);
+    }
+    .travel-hero {
+      padding-top: 7rem;
+    }
+    .travel-stats,
+    .travel-cards {
+      grid-template-columns: 1fr;
+    }
+    .travel-panel {
+      padding: .75rem;
+      border-radius: 18px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="travel-page">
+  <section class="travel-hero">
+    <div class="travel-shell travel-grid">
+      <div>
+        <span class="travel-pill">E-Shelle Travel & Immigration</span>
+        <h1 class="travel-title">Tout votre projet <span>immigration</span> au même endroit</h1>
+        <p class="travel-lead">
+          E-Shelle rassemble les outils que nous avons construits pour Immigration97 et les candidats africains :
+          diagnostic, CV canadien, coach IA, offres d'emploi, bourses, visa visiteur, préparation langues, Allemagne
+          et pages publiques pour vendre vos services d'accompagnement.
+        </p>
+        <div class="travel-actions">
+          <a class="travel-btn travel-btn-primary" href="{% url 'canada_landing' %}">Ouvrir E-Shelle Canada →</a>
+          <a class="travel-btn" href="{% url 'canada_resume:diagnostic' %}">Faire mon diagnostic</a>
+          <a class="travel-btn travel-btn-green" href="/b/immigration97-douala/">Immigration97 →</a>
+        </div>
+        <div class="travel-stats">
+          <div class="travel-stat"><strong>{{ canada_jobs_count }}</strong><span>offres Canada suivies</span></div>
+          <div class="travel-stat"><strong>{{ canada_scholarships_count }}</strong><span>bourses indexées</span></div>
+          <div class="travel-stat"><strong>{{ canada_visitor_count }}</strong><span>opportunités visiteur</span></div>
+          <div class="travel-stat"><strong>{{ germany_offers_count }}</strong><span>pistes Allemagne</span></div>
+        </div>
+      </div>
+      <aside class="travel-panel" aria-label="Applications immigration">
+        <div class="travel-panel-card">
+          <strong>Canada Space</strong>
+          <span>Hub complet pour préparer le Canada : programmes, documents, opportunités et coach IA.</span>
+        </div>
+        <div class="travel-panel-card">
+          <strong>Immigration97</strong>
+          <span>Fiche prestataire, catalogue de services, WhatsApp et visibilité Google pour vendre l'accompagnement.</span>
+        </div>
+        <div class="travel-panel-card">
+          <strong>Allemagne & Europe</strong>
+          <span>Ausbildung, Chancenkarte, Lebenslauf, tests de langue et simulation d'entretien.</span>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="travel-section light">
+    <div class="travel-shell">
+      <p class="travel-kicker" style="text-align:center;">Canada en priorité</p>
+      <h2 class="travel-heading">Les applications essentielles pour préparer un dossier sérieux</h2>
+      <p class="travel-subtitle">
+        Le portail dirige l'utilisateur vers les bons modules sans le perdre : apprendre, vérifier son profil,
+        produire ses documents, chercher des opportunités et parler avec un coach IA.
+      </p>
+      <div class="travel-cards">
+        <a class="travel-card" href="{% url 'canada_resume:diagnostic' %}">
+          <span class="travel-icon">📊</span>
+          <h3>Diagnostic d'éligibilité</h3>
+          <p>Analyse du profil, orientation vers les programmes possibles et prochaines actions.</p>
+          <small>Commencer →</small>
+        </a>
+        <a class="travel-card" href="{% url 'canada_resume:dashboard' %}">
+          <span class="travel-icon">📄</span>
+          <h3>CV canadien & lettre</h3>
+          <p>Création de documents adaptés au marché canadien avec génération IA.</p>
+          <small>Créer mes documents →</small>
+        </a>
+        <a class="travel-card" href="{% url 'canada_resume:immigration_coach' %}">
+          <span class="travel-icon">🤖</span>
+          <h3>Coach IA Canada</h3>
+          <p>Assistant pour poser des questions, préparer les étapes et clarifier le dossier.</p>
+          <small>Discuter →</small>
+        </a>
+        <a class="travel-card" href="{% url 'jobs:canada_jobs' %}">
+          <span class="travel-icon">💼</span>
+          <h3>Emplois Canada</h3>
+          <p>Offres et pistes professionnelles pour candidats internationaux.</p>
+          <small>Voir les offres →</small>
+        </a>
+        <a class="travel-card" href="{% url 'jobs:canada_scholarships' %}">
+          <span class="travel-icon">🎓</span>
+          <h3>Bourses d'études</h3>
+          <p>Opportunités académiques pour financer et structurer un projet d'études.</p>
+          <small>Explorer →</small>
+        </a>
+        <a class="travel-card" href="{% url 'jobs:canada_visitor_opps' %}">
+          <span class="travel-icon">✈️</span>
+          <h3>Visa visiteur</h3>
+          <p>Conférences, séminaires et événements utiles pour renforcer un motif de voyage.</p>
+          <small>Trouver une opportunité →</small>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="travel-section deep">
+    <div class="travel-shell travel-feature">
+      <div class="travel-red-card">
+        <div>
+          <span class="travel-pill" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.22);color:#fff;">Immigration97 inside</span>
+          <h2>Une vitrine commerciale pour vendre l'accompagnement immigration</h2>
+          <p style="color:rgba(255,255,255,.78);line-height:1.75;">
+            Votre projet Immigration97 peut devenir la marque terrain : fiches services, catalogue, vidéos publicitaires
+            AdGen, WhatsApp direct, et visibilité locale sur E-Shelle.
+          </p>
+        </div>
+        <a class="travel-btn travel-btn-green" href="/b/immigration97-douala/">Voir la fiche Immigration97 →</a>
+      </div>
+      <div class="travel-cards" style="grid-template-columns:1fr;">
+        <a class="travel-card" href="{% url 'canada_resume:programs_hub' %}">
+          <span class="travel-icon">🧭</span>
+          <h3>Guide des programmes</h3>
+          <p>Entrée Express, Arrima, candidats des provinces, études, visiteur et voies francophones.</p>
+          <small>Consulter les programmes →</small>
+        </a>
+        <a class="travel-card" href="{% url 'canada_resume:canada_resources' %}">
+          <span class="travel-icon">📚</span>
+          <h3>Ressources & guides</h3>
+          <p>Supports, documents et contenus pratiques pour mieux préparer les démarches.</p>
+          <small>Ouvrir les ressources →</small>
+        </a>
+        <a class="travel-card" href="{% url 'canada_resume:talents_directory' %}">
+          <span class="travel-icon">👥</span>
+          <h3>Annuaire des talents</h3>
+          <p>Profils candidats qualifiés, utile pour recrutement, partenariat et visibilité professionnelle.</p>
+          <small>Voir les talents →</small>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="travel-section light">
+    <div class="travel-shell">
+      <p class="travel-kicker" style="text-align:center;">Langues, Allemagne et mobilité</p>
+      <h2 class="travel-heading">Le parcours ne s'arrête pas au Canada</h2>
+      <p class="travel-subtitle">
+        E-Shelle garde une logique modulaire : chaque destination peut avoir son propre espace, ses cours,
+        ses opportunités et ses outils IA.
+      </p>
+      <div class="travel-list">
+        <a class="travel-list-item" href="{% url 'preparation_tests:home' %}">
+          <span class="travel-icon">🗣️</span>
+          <span><b>Préparation TCF / TEF / langues</b>Tests, exercices, coach personnalisé et entraînement pour renforcer le dossier.</span>
+        </a>
+        <a class="travel-list-item" href="{% url 'allemagne_hub' %}">
+          <span class="travel-icon">🇩🇪</span>
+          <span><b>E-Shelle Allemagne</b>Ausbildung, Chancenkarte, cours d'allemand, Lebenslauf et simulation d'entretien.</span>
+        </a>
+        <a class="travel-list-item" href="{% url 'germany_opportunities:catalogue' %}">
+          <span class="travel-icon">🏭</span>
+          <span><b>Offres Ausbildung</b>Catalogue d'opportunités et outils de candidature pour les candidats francophones.</span>
+        </a>
+        <a class="travel-list-item" href="{% url 'lebenslauf:dashboard' %}">
+          <span class="travel-icon">📑</span>
+          <span><b>Lebenslauf IA</b>Création de CV allemand et documents de candidature structurés.</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="travel-section deep">
+    <div class="travel-shell">
+      <div class="travel-final">
+        <h2>Un portail clair pour vos utilisateurs et un vrai levier business</h2>
+        <p>
+          Le bouton Immigration donne une porte d'entrée simple vers toutes les applications liées au voyage,
+          aux études, à l'emploi et aux démarches. Les utilisateurs trouvent plus vite l'outil utile, et vos services
+          Immigration97 restent visibles comme offre commerciale premium.
+        </p>
+        <div class="travel-actions" style="justify-content:center;margin-top:0;">
+          <a class="travel-btn travel-btn-primary" href="{% url 'canada_landing' %}">Accéder au Canada →</a>
+          <a class="travel-btn" href="{% url 'jobs:canada_news' %}">Actualités immigration</a>
+          <a class="travel-btn travel-btn-green" href="/services/contact/">Demander un accompagnement →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
