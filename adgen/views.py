@@ -3,16 +3,19 @@ AdGen — Vues class-based
 """
 import json
 import logging
+import urllib.parse
 from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse, HttpResponse, FileResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.views.generic import ListView, DetailView, CreateView, View, TemplateView
 from django.utils import timezone
 from django.conf import settings
 
+from accounts.models import AppSubscription
 from .models import AdCampaign, AdContent, AdModule, AdUsageStat
 from .forms import CampaignForm
 
@@ -36,9 +39,40 @@ class UsageLimitMixin:
         return count < self.DAILY_LIMIT
 
 
+class PaidAdGenRequiredMixin(LoginRequiredMixin):
+    """Réserve AdGen aux abonnements réellement payés, sans essai gratuit."""
+
+    paid_message = "AdGen est une application payante. Activez un abonnement pour continuer."
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
+        if request.user.is_superuser or request.user.is_staff:
+            return super().dispatch(request, *args, **kwargs)
+
+        sub = AppSubscription.get_active_for_user(request.user, "adgen")
+        has_paid_access = (
+            sub is not None
+            and sub.status == "active"
+            and not sub.plan.is_free
+            and sub.plan.price_xaf > 0
+        )
+        if has_paid_access:
+            return super().dispatch(request, *args, **kwargs)
+
+        if request.path.startswith("/pub/api/"):
+            return JsonResponse({"error": self.paid_message, "payment_required": True}, status=402)
+
+        messages.warning(request, self.paid_message)
+        upgrade_url = reverse("accounts:upgrade")
+        query = urllib.parse.urlencode({"app": "adgen", "next": request.get_full_path()})
+        return redirect(f"{upgrade_url}?{query}")
+
+
 # ── Dashboard ──────────────────────────────────────────────────────────────────
 
-class DashboardView(LoginRequiredMixin, TemplateView):
+class DashboardView(PaidAdGenRequiredMixin, TemplateView):
     template_name = "adgen/dashboard.html"
 
     def get_context_data(self, **kwargs):
@@ -46,12 +80,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         user = self.request.user
         campaigns = AdCampaign.objects.filter(user=user).order_by("-created_at")
         stat, _ = AdUsageStat.objects.get_or_create(user=user)
-        max_free = getattr(settings, "ADGEN_MAX_CAMPAIGNS_FREE", 5)
 
         ctx.update({
             "campaigns": campaigns[:20],
             "stat": stat,
-            "max_free": max_free,
             "total": campaigns.count(),
             "done": campaigns.filter(status="done").count(),
             "failed": campaigns.filter(status="failed").count(),
@@ -62,7 +94,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
 # ── Création campagne ──────────────────────────────────────────────────────────
 
-class CampaignCreateView(LoginRequiredMixin, UsageLimitMixin, CreateView):
+class CampaignCreateView(PaidAdGenRequiredMixin, UsageLimitMixin, CreateView):
     model         = AdCampaign
     form_class    = CampaignForm
     template_name = "adgen/campaign_create.html"
@@ -105,7 +137,7 @@ class CampaignCreateView(LoginRequiredMixin, UsageLimitMixin, CreateView):
 
 # ── Liste des campagnes ────────────────────────────────────────────────────────
 
-class CampaignListView(LoginRequiredMixin, ListView):
+class CampaignListView(PaidAdGenRequiredMixin, ListView):
     model               = AdCampaign
     template_name       = "adgen/campaign_list.html"
     context_object_name = "campaigns"
@@ -117,7 +149,7 @@ class CampaignListView(LoginRequiredMixin, ListView):
 
 # ── Détail campagne ────────────────────────────────────────────────────────────
 
-class CampaignDetailView(LoginRequiredMixin, DetailView):
+class CampaignDetailView(PaidAdGenRequiredMixin, DetailView):
     model               = AdCampaign
     template_name       = "adgen/campaign_detail.html"
     context_object_name = "campaign"
@@ -139,7 +171,7 @@ class CampaignDetailView(LoginRequiredMixin, DetailView):
 import threading
 from django.db import connection
 
-class GenerateView(LoginRequiredMixin, UsageLimitMixin, View):
+class GenerateView(PaidAdGenRequiredMixin, UsageLimitMixin, View):
     """Déclenche la génération IA de façon asynchrone (thread arrière-plan) puis redirige immédiatement."""
 
     def get(self, request, pk):
@@ -191,7 +223,7 @@ class GenerateView(LoginRequiredMixin, UsageLimitMixin, View):
 
 # ── API JSON (AJAX) ────────────────────────────────────────────────────────────
 
-class GenerateAPIView(LoginRequiredMixin, UsageLimitMixin, View):
+class GenerateAPIView(PaidAdGenRequiredMixin, UsageLimitMixin, View):
     """Endpoint AJAX POST — retourne JSON avec le contenu généré."""
 
     def post(self, request, pk):
@@ -230,7 +262,7 @@ class GenerateAPIView(LoginRequiredMixin, UsageLimitMixin, View):
 
 # ── Export JSON ────────────────────────────────────────────────────────────────
 
-class ExportContentView(LoginRequiredMixin, View):
+class ExportContentView(PaidAdGenRequiredMixin, View):
     """Télécharge le contenu de la campagne en JSON."""
 
     def get(self, request, pk):
@@ -797,7 +829,7 @@ def _start_local_video_render(campaign_id: int, user_id: int, operation_name: st
     thread.daemon = True
     thread.start()
 
-class StartAdVideoView(LoginRequiredMixin, View):
+class StartAdVideoView(PaidAdGenRequiredMixin, View):
     """
     POST /pub/api/campaign/<pk>/generate-video/start/
     Démarre la génération de vidéo publicitaire avec le fournisseur configuré.
@@ -812,7 +844,7 @@ class StartAdVideoView(LoginRequiredMixin, View):
         # Vérifier le quota d'image/vidéo
         quota_service = QuotaService()
         if not quota_service.check_image_quota(request.user):
-            upgrade_msg = quota_service.get_upgrade_message(request.user, "image")
+            upgrade_msg = "Votre quota vidéo AdGen du mois est atteint. Contactez E-Shelle pour augmenter votre forfait."
             return JsonResponse({"error": upgrade_msg, "quota_exceeded": True}, status=402)
 
         # Lire le prompt personnalisé, la voix-off, la musique, la durée et l'arrière-plan s'ils sont fournis
@@ -932,7 +964,7 @@ class StartAdVideoView(LoginRequiredMixin, View):
         })
 
 
-class PollAdVideoView(LoginRequiredMixin, View):
+class PollAdVideoView(PaidAdGenRequiredMixin, View):
     """
     GET /pub/api/campaign/<pk>/generate-video/poll/
     Vérifie le statut et sauvegarde le résultat final de la vidéo.
@@ -999,7 +1031,7 @@ class PollAdVideoView(LoginRequiredMixin, View):
         })
 
 
-class DownloadVideoView(LoginRequiredMixin, View):
+class DownloadVideoView(PaidAdGenRequiredMixin, View):
     """
     Télécharge le fichier de la vidéo finale générée pour la campagne.
     Redirige directement vers l'URL statique du fichier média pour libérer
