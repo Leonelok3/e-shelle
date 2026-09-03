@@ -86,6 +86,28 @@ def home_view(request):
                 plan__in=[BusinessProfile.Plan.PREMIUM, BusinessProfile.Plan.BUSINESS],
             ).order_by("-boost_expires_at", "-subscription_expires_at", "-leads_count", "-updated_at")[:12]
         )
+        business_slides = []
+        for business in premium_businesses:
+            logo_url = ""
+            if business.logo:
+                try:
+                    logo_url = business.logo.url
+                except Exception:
+                    logo_url = ""
+            display_city = business.city or business.country or "Cameroun"
+            if business.district and business.city:
+                display_city = f"{business.district}, {business.city}"
+            business_slides.append(
+                {
+                    "name": business.name,
+                    "logo": logo_url,
+                    "initial": business.name[:1].upper() if business.name else "B",
+                    "city": display_city,
+                    "url": business.get_absolute_url(),
+                    "tag": business.get_module_display(),
+                    "description": business.description or business.promo_offer or "Prestataire disponible sur E-Shelle.",
+                }
+            )
         premium_showcase_items = []
         home_ad_slides = list(
             HomeAdSlide.objects.filter(is_active=True)
@@ -152,6 +174,8 @@ def home_view(request):
             paginated_items = paginator.page(paginator.num_pages)
 
         ctx["premium_showcase_items"] = paginated_items
+        ctx["business_slides"] = business_slides
+        ctx["business_slides_dup"] = business_slides + business_slides
         ctx["home_ad_slides"] = merged_slides[:10]
         app_promo_slides = list(AppPromotionSlide.objects.filter(is_active=True).order_by("order", "-created_at"))
         for slide in app_promo_slides:
@@ -176,6 +200,8 @@ def home_view(request):
     except Exception:
         ctx["premium_businesses"] = []
         ctx["premium_showcase_items"] = []
+        ctx["business_slides"] = []
+        ctx["business_slides_dup"] = []
         ctx["home_ad_slides"] = []
         ctx["hero_businesses"] = []
         ctx["live_needs"] = []
