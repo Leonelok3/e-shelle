@@ -106,7 +106,8 @@ echo "→ Migrations Django..."
 sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" migrate --noinput
 
 echo "→ Collecte des fichiers statiques..."
-sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput
+sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput --upload-unhashed-files
+sudo -u $APP_USER "$APP_DIR/.venv/bin/python" "$APP_DIR/scripts/check_staticfiles.py"
 
 # Superuser
 echo "→ Superuser Django : à créer manuellement après déploiement si nécessaire."
@@ -117,14 +118,21 @@ echo "   Commande : sudo -u $APP_USER $APP_DIR/.venv/bin/python $APP_DIR/manage.
 chmod o+x /home/$APP_USER
 chmod o+x "$APP_DIR"
 chmod -R o+r "$APP_DIR/staticfiles/"
+chmod o+x "$APP_DIR/staticfiles/"
 echo "✔  Permissions staticfiles corrigées pour Nginx"
 
 # ── 9. Service systemd Gunicorn ─────────────────────────────────────────────
 echo "→ Installation du service systemd..."
 cp "$APP_DIR/deploy/eshelle.service" /etc/systemd/system/eshelle.service
+cp "$APP_DIR/deploy/eshelle-celery.service" /etc/systemd/system/eshelle-celery.service
+cp "$APP_DIR/deploy/eshelle-celerybeat.service" /etc/systemd/system/eshelle-celerybeat.service
 systemctl daemon-reload
 systemctl enable eshelle
+systemctl enable eshelle-celery
+systemctl enable eshelle-celerybeat
 systemctl restart eshelle
+systemctl restart eshelle-celery
+systemctl restart eshelle-celerybeat
 echo "✔  Service Gunicorn démarré"
 
 # ── 10. Nginx ───────────────────────────────────────────────────────────────

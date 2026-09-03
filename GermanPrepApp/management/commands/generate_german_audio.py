@@ -146,7 +146,7 @@ class Command(BaseCommand):
 
         total = qs.count()
         self.stdout.write(
-            f"🎙️ {total} leçon(s) HÖREN à traiter"
+            f"{total} leçon(s) HÖREN à traiter"
             + (" (force=True, re-génération)" if force else "")
         )
 
@@ -163,7 +163,7 @@ class Command(BaseCommand):
                 continue
 
             self.stdout.write(
-                f"  [{lesson.id}] {lesson.exam.level}/{lesson.title[:50]}…", ending=" "
+                f"  [{lesson.id}] {lesson.exam.level}/{lesson.title[:50]}...", ending=" "
             )
             self.stdout.flush()
 
@@ -176,7 +176,7 @@ class Command(BaseCommand):
                 lesson.audio_url = rel_path
                 lesson.save(update_fields=["audio_url"])
                 done += 1
-                self.stdout.write(self.style.SUCCESS(f"OK → {rel_path}"))
+                self.stdout.write(self.style.SUCCESS(f"OK -> {rel_path}"))
 
             except Exception as exc:
                 failed += 1
@@ -191,6 +191,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"\n✅ Audio terminé : {done} généré(s), {failed} échec(s)."
+                f"\nOK - Audio terminé : {done} généré(s), {failed} échec(s)."
             )
         )

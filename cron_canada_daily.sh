@@ -1,7 +1,7 @@
 #!/bin/bash
 # Script d'automatisation des tâches quotidiennes Canada pour E-Shelle
 
-cd /var/www/e-shelle
+cd /home/eshelle/app
 source .venv/bin/activate
 
 echo "========================================================="

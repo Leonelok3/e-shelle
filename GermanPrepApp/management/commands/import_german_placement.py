@@ -75,7 +75,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(f"  {deleted} question(s) supprimée(s)."))
 
         existing = GermanPlacementQuestion.objects.count()
-        self.stdout.write(f"📂 {len(data)} question(s) à importer.")
+        self.stdout.write(f"{len(data)} question(s) à importer.")
 
         created = 0
         skipped = 0
@@ -102,7 +102,7 @@ class Command(BaseCommand):
 
             except Exception as exc:
                 skipped += 1
-                msg = f"  [{idx+1}] ❌ ERREUR : {exc}"
+                msg = f"  [{idx+1}] ERREUR : {exc}"
                 if continue_on_error:
                     self.stdout.write(self.style.WARNING(msg))
                 else:
@@ -111,7 +111,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"✅ {created} question(s) créée(s), {skipped} ignorée(s). "
+                f"OK - {created} question(s) créée(s), {skipped} ignorée(s). "
                 f"Total : {existing + created} questions."
             )
         )

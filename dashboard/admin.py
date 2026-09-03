@@ -26,6 +26,10 @@ class ParametrePlateformeAdmin(admin.ModelAdmin):
         ("SEO", {
             "fields": ("meta_description", "og_image", "google_analytics_id")
         }),
+        ("Visuels des pages", {
+            "fields": ("produits_services_hero_image",),
+            "classes": ("collapse",)
+        }),
         ("Paiement (Mobile Money)", {
             "fields": ("mtn_api_key", "airtel_api_key"),
             "classes": ("collapse",)

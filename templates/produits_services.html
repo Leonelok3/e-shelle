@@ -11,18 +11,32 @@
   /* Base premium wrapper */
   .esh-catalog-page {
     padding-top: 5.5rem;
-    background: radial-gradient(circle at 50% 0%, rgba(34,197,94,0.06) 0%, #070a0e 70%);
+    background:
+      radial-gradient(circle at 18% 0%, rgba(125, 236, 108, .12), transparent 34%),
+      radial-gradient(circle at 88% 8%, rgba(245, 158, 11, .1), transparent 28%),
+      linear-gradient(180deg, #061018 0%, #07130c 42%, #050914 100%);
     min-height: 100vh;
     color: #fff;
     font-family: 'Plus Jakarta Sans', sans-serif;
+    overflow-x: hidden;
   }
 
   /* Catalog Hero */
   .esh-catalog-hero {
-    text-align: center;
-    max-width: 800px;
-    margin: 3rem auto 2.5rem;
-    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: minmax(0, .95fr) minmax(300px, .72fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: center;
+    text-align: left;
+    max-width: 1120px;
+    margin: 3rem auto 2.75rem;
+    padding: clamp(1.4rem, 4vw, 2.5rem) 1rem 0;
+  }
+  .esh-catalog-copy {
+    min-width: 0;
+  }
+  .esh-catalog-copy .esh-pill {
+    margin: 0 0 1rem !important;
   }
   .esh-catalog-hero h1 {
     font-family: 'Outfit', sans-serif;
@@ -37,15 +51,94 @@
     line-height: 1.6;
     margin-bottom: 2rem;
   }
+  .esh-hero-visual {
+    position: relative;
+    min-height: 330px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(125, 236, 108, .2);
+    background:
+      radial-gradient(circle at 20% 15%, rgba(125, 236, 108, .18), transparent 28%),
+      radial-gradient(circle at 80% 18%, rgba(245, 158, 11, .16), transparent 28%),
+      linear-gradient(135deg, rgba(13, 28, 23, .9), rgba(11, 21, 40, .94));
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .24);
+  }
+  .esh-hero-visual img {
+    width: 100%;
+    height: 100%;
+    min-height: 330px;
+    object-fit: cover;
+    display: block;
+  }
+  .esh-hero-visual::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(6, 16, 24, .06), rgba(6, 16, 24, .24)),
+      radial-gradient(circle at 50% 100%, rgba(125, 236, 108, .16), transparent 48%);
+    pointer-events: none;
+  }
+  .esh-hero-visual-fallback {
+    min-height: 330px;
+    padding: 1.35rem;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 1rem;
+  }
+  .esh-hero-visual-chip {
+    width: max-content;
+    border-radius: 999px;
+    padding: .45rem .7rem;
+    background: rgba(125, 236, 108, .14);
+    border: 1px solid rgba(125, 236, 108, .28);
+    color: #9df58f;
+    font-size: .74rem;
+    font-weight: 950;
+    text-transform: uppercase;
+  }
+  .esh-hero-visual-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .8rem;
+    align-content: center;
+  }
+  .esh-hero-visual-tile {
+    min-height: 96px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .96);
+    color: #0f172a;
+    padding: .85rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid rgba(125, 236, 108, .14);
+  }
+  .esh-hero-visual-tile span {
+    font-size: 1.35rem;
+  }
+  .esh-hero-visual-tile strong {
+    font-family: 'Outfit', sans-serif;
+    font-size: .92rem;
+    line-height: 1.15;
+  }
+  .esh-hero-visual-caption {
+    color: rgba(255, 255, 255, .7);
+    font-size: .86rem;
+    line-height: 1.45;
+  }
 
   /* Search & Filter Bar */
   .esh-filter-bar {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background:
+      linear-gradient(135deg, rgba(125, 236, 108, .1), rgba(245, 158, 11, .055)),
+      rgba(255, 255, 255, .045);
+    border: 1px solid rgba(125, 236, 108, .2);
     border-radius: 20px;
-    padding: 1.2rem;
+    padding: clamp(1rem, 2.5vw, 1.35rem);
     backdrop-filter: blur(12px);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .24);
     margin-bottom: 3rem;
   }
 
@@ -59,7 +152,7 @@
     flex: 1;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 0.8rem 1.2rem;
     color: #fff;
     font-size: 0.95rem;
@@ -71,12 +164,12 @@
     background: rgba(255, 255, 255, 0.07);
   }
   .esh-search-btn {
-    background: linear-gradient(135deg, #7dec6c, #16a34a);
+    background: linear-gradient(135deg, #7dec6c, #f59e0b);
     color: #06120a;
     border: none;
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 0 1.8rem;
-    font-weight: 800;
+    font-weight: 950;
     cursor: pointer;
     transition: transform 0.2s, opacity 0.2s;
   }
@@ -89,6 +182,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    align-items: center;
   }
   .esh-cat-pill {
     background: rgba(255, 255, 255, 0.05);
@@ -122,18 +216,19 @@
 
   /* Business Card custom enhancements */
   .esh-feature-card {
-    background: rgba(255, 255, 255, 0.03) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 14px !important;
+    background: rgba(13, 28, 23, .78) !important;
+    border: 1px solid rgba(125, 236, 108, .18) !important;
+    border-radius: 8px !important;
     padding: 0.65rem !important;
-    width: auto !important;
+    width: clamp(230px, 23vw, 320px) !important;
+    flex: 0 0 clamp(230px, 23vw, 320px) !important;
     min-width: 0 !important;
     min-height: 270px !important;
     display: flex !important;
     flex-direction: column !important;
   }
   .esh-feature-media {
-    border-radius: 10px !important;
+    border-radius: 8px !important;
     overflow: hidden !important;
     height: 132px !important;
     display: flex !important;
@@ -159,14 +254,23 @@
     min-height: 2.45rem !important;
   }
   .esh-feature-slider {
-    overflow: visible !important;
+    overflow: hidden !important;
+    position: relative !important;
+    border-radius: 20px !important;
   }
   .esh-feature-track {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+    display: flex !important;
     gap: 1rem !important;
-    animation: none !important;
-    transform: none !important;
+    width: max-content !important;
+    animation: eshCatalogProviderRail 42s linear infinite !important;
+    will-change: transform !important;
+  }
+  .esh-feature-slider:hover .esh-feature-track {
+    animation-play-state: paused !important;
+  }
+  @keyframes eshCatalogProviderRail {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-50% - .5rem)); }
   }
   .esh-feature-body {
     display: flex !important;
@@ -195,7 +299,7 @@
     justify-content: center !important;
   }
   .esh-feature-card[aria-hidden="true"] {
-    display: none !important;
+    display: flex !important;
   }
 
   /* Products Grid layout */
@@ -209,12 +313,13 @@
     margin-bottom: 1.5rem;
     border-left: 4px solid #7dec6c;
     padding-left: 0.75rem;
+    color: #fff;
   }
 
   /* Custom Light Background Business Cards to match home */
   .esh-business-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 1.25rem;
   }
   .esh-business-card {
@@ -222,17 +327,18 @@
     flex-direction: column;
     overflow: hidden;
     text-decoration: none;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(125, 236, 108, .14);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .035);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
     min-height: 430px;
   }
   .esh-business-card:hover {
     transform: translateY(-3px);
-    border-color: rgba(125,236,108,0.3);
-    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(125,236,108,0.45);
+    background: rgba(13, 28, 23, .78);
+    box-shadow: 0 24px 58px rgba(0, 0, 0, .24), 0 0 0 1px rgba(245, 158, 11, .08);
   }
   .esh-card-media {
     position: relative;
@@ -317,13 +423,98 @@
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     padding-top: 0.75rem;
     margin-top: auto;
+    gap: .75rem;
+    min-width: 0;
+  }
+  .esh-card-foot span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* Responsive tweaks */
+  @media (max-width: 900px) {
+    .esh-catalog-hero {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+    .esh-catalog-copy .esh-pill {
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+    .esh-hero-visual {
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .esh-feature-track {
+      gap: .85rem !important;
+    }
+    .esh-feature-card {
+      width: min(72vw, 280px) !important;
+      flex-basis: min(72vw, 280px) !important;
+    }
+  }
   @media (max-width: 640px) {
+    .esh-catalog-page {
+      padding-top: 5rem;
+    }
+    .esh-catalog-hero {
+      margin: 1.5rem auto 1.5rem;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .esh-hero-visual,
+    .esh-hero-visual img,
+    .esh-hero-visual-fallback {
+      min-height: 260px;
+    }
+    .esh-hero-visual-grid {
+      gap: .55rem;
+    }
+    .esh-hero-visual-tile {
+      min-height: 78px;
+      padding: .65rem;
+    }
+    .esh-search-form {
+      flex-direction: column;
+    }
+    .esh-search-btn {
+      min-height: 46px;
+      width: 100%;
+    }
+    .esh-country-pills,
+    .esh-category-pills {
+      justify-content: flex-start !important;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      padding-bottom: .35rem;
+      scrollbar-width: none;
+    }
+    .esh-country-pills::-webkit-scrollbar,
+    .esh-category-pills::-webkit-scrollbar {
+      display: none;
+    }
+    .esh-cat-pill {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+    .esh-showcase-title-row {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: .85rem;
+    }
+    .esh-feature-track {
+      animation-duration: 34s !important;
+    }
+    .esh-feature-card {
+      width: min(82vw, 270px) !important;
+      flex-basis: min(82vw, 270px) !important;
+    }
     .esh-business-grid {
       grid-template-columns: 1fr;
-      gap: 0.75rem;
+      gap: 1rem;
     }
     .esh-business-card {
       min-height: 360px;
@@ -342,6 +533,18 @@
     .esh-card-price {
       font-size: 1rem;
     }
+    .esh-card-foot {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: .35rem;
+    }
+    .esh-card-foot span {
+      white-space: normal;
+    }
+    .esh-products-section-title {
+      font-size: 1.35rem;
+      line-height: 1.2;
+    }
   }
 </style>
 {% endblock %}
@@ -352,9 +555,27 @@
     
     {# 1. Hero Block #}
     <div class="esh-catalog-hero">
-      <div class="esh-pill" style="margin: 0 auto 1rem;">Vitrine premium</div>
-      <h1 class="esh-animated-gradient-text">Découvrez nos prestataires</h1>
-      <p>Trouvez le produit ou service adapté à vos besoins parmi les meilleures vitrines d'Afrique Francophone.</p>
+      <div class="esh-catalog-copy">
+        <div class="esh-pill">Vitrine premium</div>
+        <h1 class="esh-animated-gradient-text">Découvrez nos prestataires</h1>
+        <p>Trouvez le produit ou service adapté à vos besoins parmi les meilleures vitrines d'Afrique Francophone.</p>
+      </div>
+      <aside class="esh-hero-visual" aria-label="Visuel Produits et Services">
+        {% if produits_services_hero_image %}
+          <img src="{{ produits_services_hero_image.url }}" alt="Produits et services E-Shelle">
+        {% else %}
+          <div class="esh-hero-visual-fallback">
+            <div class="esh-hero-visual-chip">Image admin</div>
+            <div class="esh-hero-visual-grid">
+              <div class="esh-hero-visual-tile"><span>🛍️</span><strong>Produits</strong></div>
+              <div class="esh-hero-visual-tile"><span>💼</span><strong>Services</strong></div>
+              <div class="esh-hero-visual-tile"><span>🏢</span><strong>Immobilier</strong></div>
+              <div class="esh-hero-visual-tile"><span>🍳</span><strong>Restos</strong></div>
+            </div>
+            <p class="esh-hero-visual-caption">Ajoutez une image depuis l'admin pour personnaliser ce visuel.</p>
+          </div>
+        {% endif %}
+      </aside>
     </div>
 
     {# 2. Search and filter bar #}
@@ -403,31 +624,11 @@
       <div class="esh-showcase" style="margin-bottom: 3rem;">
         <div class="esh-feature-slider" aria-label="Prestataires premium en defilement">
           <div class="esh-feature-track">
-            {% for item in business_slides %}
+            {% for item in business_slides_dup %}
               <article class="esh-feature-card">
                 <div class="esh-feature-media">
                   {% if item.logo %}
                     <img src="{{ item.logo }}" alt="{{ item.name }}">
-                  {% else %}
-                    <span class="esh-initial">{{ item.initial }}</span>
-                  {% endif %}
-                  <span class="esh-tag">{{ item.tag }}</span>
-                </div>
-                <div class="esh-feature-body">
-                  <h2 class="esh-feature-title">{{ item.name }}</h2>
-                  <div class="esh-meta-row">
-                    <span class="esh-meta">📍 {{ item.city }}</span>
-                    <a class="esh-order" href="{{ item.url }}">Visiter →</a>
-                  </div>
-                </div>
-              </article>
-            {% endfor %}
-            {# Duplicates for infinite scrolling loop #}
-            {% for item in business_slides_dup %}
-              <article class="esh-feature-card" aria-hidden="true">
-                <div class="esh-feature-media">
-                  {% if item.logo %}
-                    <img src="{{ item.logo }}" alt="">
                   {% else %}
                     <span class="esh-initial">{{ item.initial }}</span>
                   {% endif %}

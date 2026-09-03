@@ -345,7 +345,9 @@ def products_services_view(request):
         from django.db.models import Q
         from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
         from business.models import BusinessCatalogItem, BusinessProfile
+        from dashboard.models import ParametrePlateforme
         now = timezone.now()
+        platform_config = ParametrePlateforme.get_config()
 
         # Récupération du paramètre de pays
         country_filter = request.GET.get("pays") or request.GET.get("country")
@@ -555,6 +557,7 @@ def products_services_view(request):
         ctx["search_query"] = search_query or ""
         ctx["available_countries"] = available_countries
         ctx["selected_country"] = country_filter or ""
+        ctx["produits_services_hero_image"] = platform_config.produits_services_hero_image
     except Exception as e:
         ctx["business_slides"] = []
         ctx["business_slides_dup"] = []
@@ -563,6 +566,7 @@ def products_services_view(request):
         ctx["search_query"] = ""
         ctx["available_countries"] = []
         ctx["selected_country"] = ""
+        ctx["produits_services_hero_image"] = None
 
     return render(request, "produits_services.html", ctx)
 

@@ -4,7 +4,8 @@ set -o errexit
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput --upload-unhashed-files
+python scripts/check_staticfiles.py
 python manage.py migrate --noinput
 python manage.py adgen_init_modules
 

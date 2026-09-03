@@ -11,6 +11,54 @@ from google.genai import types
 
 logger = logging.getLogger(__name__)
 
+def search_duckduckgo(query: str, max_results: int = 10) -> str:
+    """
+    Exécute une recherche DuckDuckGo et renvoie les résultats sous forme textuelle (titres, URLs, extraits).
+    Utile en tant que fallback gratuit sans quota/billing pour Google Search Grounding.
+    """
+    import urllib.parse
+    import re
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote(query)}"
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code == 200:
+            html = resp.text
+            # Regex pour isoler chaque bloc de résultat
+            results_divs = re.findall(r'<div class="result results_links results_links_deep web-result ">.*?</div>\s*</div>\s*</div>', html, re.DOTALL)
+            parsed_results = []
+            
+            # Fonction utilitaire pour nettoyer le HTML des snippets/titres
+            def clean_tags(text):
+                return re.sub(r'<.*?>', '', text).strip()
+                
+            for div in results_divs:
+                url_match = re.search(r'<a class="result__url"[^>]*href="(.*?)"[^>]*>(.*?)</a>', div, re.DOTALL)
+                snippet_match = re.search(r'<a class="result__snippet"[^>]*>(.*?)</a>', div, re.DOTALL)
+                
+                if url_match and snippet_match:
+                    link = url_match.group(1)
+                    title = clean_tags(url_match.group(2))
+                    snippet = clean_tags(snippet_match.group(1))
+                    
+                    if link.startswith('//'):
+                        link = 'https:' + link
+                    if '/l/?kh=' in link:
+                        link = link.replace('&amp;', '&')
+                        parsed_url = urllib.parse.urlparse(link)
+                        query_params = urllib.parse.parse_qs(parsed_url.query)
+                        real_link = query_params.get('uddg', [''])[0]
+                        if real_link:
+                            link = real_link
+                            
+                    parsed_results.append(f"Title: {title}\nLink: {link}\nSnippet: {snippet}\n")
+            return "\n".join(parsed_results[:max_results])
+    except Exception as e:
+        logger.warning(f"DuckDuckGo search failed: {e}")
+    return ""
+
 def get_vertex_client() -> tuple[genai.Client | None, str | None]:
     """
     Initialise le client Google GenAI avec Vertex AI si configuré.
@@ -30,6 +78,28 @@ def get_vertex_client() -> tuple[genai.Client | None, str | None]:
                 project=project_id,
                 location="us-central1"
             )
+            
+            # Monkey patch avec fallback dynamique sur AI Studio en cas d'erreur de billing/quota/permission
+            original_gen = client.models.generate_content
+            def patched_generate_content(*args, **kwargs):
+                new_args = list(args)
+                if 'model' in kwargs and kwargs['model'] == 'gemini-2.5-flash':
+                    kwargs['model'] = 'gemini-3.6-flash'
+                elif len(new_args) > 0 and new_args[0] == 'gemini-2.5-flash':
+                    new_args[0] = 'gemini-3.6-flash'
+                    
+                try:
+                    return original_gen(*tuple(new_args), **kwargs)
+                except Exception as e:
+                    err_str = str(e).lower()
+                    if "billing" in err_str or "permission" in err_str or "403" in err_str or "quota" in err_str:
+                        logger.warning("Appel Vertex AI échoué (facturation/quota/permission). Tentative avec AI Studio...")
+                        studio_client, _ = get_genai_studio_client()
+                        if studio_client:
+                            return studio_client.models.generate_content(*tuple(new_args), **kwargs)
+                    raise e
+            client.models.generate_content = patched_generate_content
+            
             return client, None
         except Exception as e:
             logger.warning(f"Vertex AI initialization failed: {e}. Falling back to AI Studio...")
@@ -54,6 +124,18 @@ def get_genai_studio_client() -> tuple[genai.Client | None, str | None]:
 
     try:
         client = genai.Client(api_key=api_key)
+        
+        # Monkey patch pour mapper gemini-2.5-flash vers gemini-3.6-flash
+        original_gen = client.models.generate_content
+        def patched_generate_content(*args, **kwargs):
+            new_args = list(args)
+            if 'model' in kwargs and kwargs['model'] == 'gemini-2.5-flash':
+                kwargs['model'] = 'gemini-3.6-flash'
+            elif len(new_args) > 0 and new_args[0] == 'gemini-2.5-flash':
+                new_args[0] = 'gemini-3.6-flash'
+            return original_gen(*tuple(new_args), **kwargs)
+        client.models.generate_content = patched_generate_content
+        
         return client, None
     except Exception as e:
         logger.exception("Exception initializing Gemini Developer API Client")
@@ -111,8 +193,7 @@ def generate_google_image(prompt: str, context: str = "general") -> dict:
                 "error": None,
             }
         except Exception as e:
-            logger.exception("Error generating image via Vertex AI SDK")
-            return {"error": f"Erreur Vertex AI: {str(e)}"}
+            logger.warning(f"Error generating image via Vertex AI SDK: {e}. Falling back to AI Studio REST API...")
     
     # Fallback vers l'API REST AI Studio
     api_key = getattr(settings, "GOOGLE_API_KEY", "")

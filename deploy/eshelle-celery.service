@@ -1,0 +1,19 @@
+[Unit]
+Description=E-Shelle Celery Worker
+After=network.target redis-server.service postgresql.service
+Wants=redis-server.service
+
+[Service]
+Type=simple
+User=eshelle
+Group=www-data
+WorkingDirectory=/home/eshelle/app
+EnvironmentFile=/home/eshelle/app/.env
+ExecStart=/home/eshelle/app/.venv/bin/celery -A edu_cm worker --loglevel=info --concurrency=1
+Restart=on-failure
+RestartSec=5s
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

@@ -161,7 +161,7 @@ class Command(BaseCommand):
             self.stderr.write("Le fichier JSON doit être un tableau de leçons.")
             return
 
-        self.stdout.write(f"📂 {len(data)} leçon(s) trouvée(s) dans {filepath}")
+        self.stdout.write(f"{len(data)} leçon(s) trouvée(s) dans {filepath}")
 
         # Flush si demandé
         if flush:
@@ -216,13 +216,13 @@ class Command(BaseCommand):
                 created += 1
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f"  [{idx+1}] ✅ {level}/{skill} — {lesson.title}"
+                        f"  [{idx+1}] OK {level}/{skill} - {lesson.title}"
                     )
                 )
 
             except Exception as exc:
                 skipped += 1
-                msg = f"  [{idx+1}] ❌ ERREUR : {exc}"
+                msg = f"  [{idx+1}] ERREUR : {exc}"
                 logger.warning("import_german_lessons: %s", exc)
                 if continue_on_error:
                     self.stdout.write(self.style.WARNING(msg))
@@ -232,6 +232,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"\n✅ Import terminé : {created} leçon(s) créée(s), {skipped} ignorée(s)."
+                f"\nOK - Import terminé : {created} leçon(s) créée(s), {skipped} ignorée(s)."
             )
         )

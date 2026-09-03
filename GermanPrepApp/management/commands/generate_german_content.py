@@ -79,27 +79,27 @@ EXAM_TYPE_LABELS = {
 
 LEVEL_DESCRIPTIONS = {
     "A1": (
-        "débutant absolu — phrases très simples, vocabulaire de base "
+        "débutant absolu - phrases très simples, vocabulaire de base "
         "(salutations, chiffres, couleurs, famille, quotidien immédiat)"
     ),
     "A2": (
-        "élémentaire — communication simple du quotidien, phrases courtes, "
+        "élémentaire - communication simple du quotidien, phrases courtes, "
         "présent/passé composé (Perfekt), vocabulaire courant 700-1000 mots"
     ),
     "B1": (
-        "intermédiaire — textes courts sur sujets familiers, verbes à particule, "
+        "intermédiaire - textes courts sur sujets familiers, verbes à particule, "
         "subordonnées simples, Präteritum, Konjunktiv II de base"
     ),
     "B2": (
-        "intermédiaire avancé — textes plus longs et nuancés, Konjunktiv II complet, "
+        "intermédiaire avancé - textes plus longs et nuancés, Konjunktiv II complet, "
         "structures complexes, registres formel/informel, argumentation"
     ),
     "C1": (
-        "avancé — textes académiques et professionnels, Konjunktiv I (discours indirect), "
+        "avancé - textes académiques et professionnels, Konjunktiv I (discours indirect), "
         "style soutenu, connecteurs logiques avancés, nuances lexicales"
     ),
     "C2": (
-        "maîtrise quasi-native — textes très complexes, style littéraire et rhétorique, "
+        "maîtrise quasi-native - textes très complexes, style littéraire et rhétorique, "
         "toutes les structures grammaticales, idiomes et expressions figées"
     ),
 }
@@ -152,7 +152,7 @@ def _get_or_create_exam(level: str, exam_type: str) -> GermanExam:
         defaults={
             "title": title,
             "short_description": (
-                f"Préparation {exam_label} niveau {level} — "
+                f"Préparation {exam_label} niveau {level} - "
                 f"leçons et exercices en allemand."
             ),
             "description": (
@@ -427,7 +427,7 @@ class Command(BaseCommand):
                 continue_on_error=continue_on_error,
             )
 
-        self.stdout.write(self.style.SUCCESS("✅ Génération terminée."))
+        self.stdout.write(self.style.SUCCESS("OK - Génération terminée."))
 
     def _generate_for_level(
         self,
@@ -441,7 +441,7 @@ class Command(BaseCommand):
     ):
         self.stdout.write(
             self.style.MIGRATE_HEADING(
-                f"\n▶ Niveau {level} — {EXAM_TYPE_LABELS.get(exam_type, exam_type)} "
+                f"\nNiveau {level} - {EXAM_TYPE_LABELS.get(exam_type, exam_type)} "
                 f"({total_lessons} leçons)"
             )
         )
@@ -469,7 +469,7 @@ class Command(BaseCommand):
 
             for i in range(1, count + 1):
                 self.stdout.write(
-                    f"    [{lesson_order}] Génération leçon {i}/{count}…", ending=" "
+                    f"    [{lesson_order}] Génération leçon {i}/{count}...", ending=" "
                 )
                 self.stdout.flush()
 
@@ -510,13 +510,13 @@ class Command(BaseCommand):
 
                     generated += 1
                     lesson_order += 1
-                    self.stdout.write(self.style.SUCCESS(f"OK — '{lesson.title}'"))
+                    self.stdout.write(self.style.SUCCESS(f"OK - '{lesson.title}'"))
 
                 except Exception as exc:
                     failed += 1
                     msg = f"ERREUR : {exc}"
                     logger.warning(
-                        "generate_german_content: échec leçon %d niveau %s skill %s — %s",
+                        "generate_german_content: échec leçon %d niveau %s skill %s - %s",
                         lesson_order,
                         level,
                         skill,
@@ -533,7 +533,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"\n  ✅ Niveau {level} terminé : {generated} leçon(s) créée(s), "
+                f"\n  OK - Niveau {level} terminé : {generated} leçon(s) créée(s), "
                 f"{failed} échec(s)."
             )
         )

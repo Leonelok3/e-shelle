@@ -5,6 +5,8 @@ import json
 import logging
 import re
 import requests
+from html import unescape
+from urllib.parse import urlencode
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -14,6 +16,24 @@ from ai_engine.services.openai_adapter import call_openai, call_openai_json, cal
 from jobs.models import CanadaJobOffer
 
 logger = logging.getLogger(__name__)
+
+JOBBANK_TFW_SEARCH_URL = "https://www.jobbank.gc.ca/jobsearch/jobsearch"
+JOBBANK_DETAIL_URL = "https://www.jobbank.gc.ca/jobsearch/jobposting/{job_number}"
+PROVINCE_LABELS = {
+    "AB": "Alberta",
+    "BC": "Colombie-Britannique",
+    "MB": "Manitoba",
+    "NB": "Nouveau-Brunswick",
+    "NL": "Terre-Neuve-et-Labrador",
+    "NS": "Nouvelle-Écosse",
+    "NT": "Territoires du Nord-Ouest",
+    "NU": "Nunavut",
+    "ON": "Ontario",
+    "PE": "Île-du-Prince-Édouard",
+    "QC": "Québec",
+    "SK": "Saskatchewan",
+    "YT": "Yukon",
+}
 
 _FR_MONTHS = {
     "janvier": "january", "février": "february", "fevrier": "february",
@@ -113,10 +133,183 @@ def _generate_content_with_retry(client, model, contents, config, retries=4, ini
             raise e
 
 
+def _clean_page_text(raw_html: str) -> str:
+    text = re.sub(r"<script.*?</script>|<style.*?</style>", " ", raw_html, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = unescape(text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _fetch_jobbank_page(page: int) -> str:
+    params = {
+        "fsrc": "32",       # Temporary Foreign Workers
+        "sort": "D",        # date posted first
+        "page": page,
+        "wbdisable": "true",
+    }
+    headers = {
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "en-CA,en;q=0.9,fr-CA;q=0.8,fr;q=0.7",
+        "User-Agent": "Mozilla/5.0 (compatible; EShelleCanadaJobs/1.0; +https://e-shelle.com)",
+    }
+    response = requests.get(f"{JOBBANK_TFW_SEARCH_URL}?{urlencode(params)}", headers=headers, timeout=20)
+    response.raise_for_status()
+    return _clean_page_text(response.text)
+
+
+def _parse_jobbank_search_text(text: str) -> list[dict]:
+    pattern = re.compile(
+        r"(?P<lmia>LMIA requested|Approved LMIA)?\s*Job Bank\s+"
+        r"(?P<title>.+?)\s+"
+        r"(?P<posted>(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+20\d{2})\s+"
+        r"(?P<company>.+?)\s+Location\s+"
+        r"(?P<city>.+?)\s+\((?P<province>[A-Z]{2})\)\s+"
+        r"Salary\s+(?P<salary>.+?)\s+Job Bank Job number:\s*(?P<job_number>\d+)",
+        re.IGNORECASE,
+    )
+    results = []
+    seen_numbers = set()
+    for match in pattern.finditer(text):
+        data = {key: (value or "").strip() for key, value in match.groupdict().items()}
+        job_number = data["job_number"]
+        if job_number in seen_numbers:
+            continue
+        seen_numbers.add(job_number)
+        province_code = data["province"].upper()
+        lmia_text = data.get("lmia") or "LMIA requested"
+        results.append(
+            {
+                "title": data["title"].strip(" -"),
+                "company": data["company"].strip(" -"),
+                "city": data["city"].strip(" -"),
+                "province": PROVINCE_LABELS.get(province_code, province_code),
+                "lmia_status": "EIMT approuvée" if "approved" in lmia_text.lower() else "EIMT demandée",
+                "salary": data["salary"].strip(" -") or "Non précisé",
+                "deadline": "Non précisé",
+                "description": (
+                    f"Cette offre Job Bank est publiée dans le volet Travailleurs étrangers temporaires. "
+                    f"Le poste de {data['title']} chez {data['company']} peut intéresser un candidat international "
+                    "qui prépare un projet professionnel au Canada avec EIMT/LMIA."
+                ),
+                "url_apply": JOBBANK_DETAIL_URL.format(job_number=job_number),
+            }
+        )
+    return results
+
+
+def _clean_jobbank_title(value: str) -> str:
+    title = (value or "").strip()
+    markers = [
+        "LMIA requested Job Bank ",
+        "Approved LMIA Job Bank ",
+        "Job Bank ",
+    ]
+    for marker in markers:
+        if marker in title:
+            title = title.split(marker)[-1].strip()
+    return re.sub(r"\s+", " ", title).strip(" -")
+
+
+def _import_job_offer(job: dict, *, verify_url: bool = True) -> tuple[bool, bool, str]:
+    def limit(value: str, max_length: int) -> str:
+        return (value or "").strip()[:max_length]
+
+    title = limit(_clean_jobbank_title(job.get("title") or ""), 300)
+    company = limit(job.get("company") or "", 200)
+    city = limit(job.get("city") or "", 100)
+    province = limit(job.get("province") or "", 100)
+    url_apply = limit(job.get("url_apply") or "", 500)
+    lmia_status = limit(job.get("lmia_status") or "Non précisé", 50)
+    salary = limit(job.get("salary") or "Non précisé", 100)
+    deadline = limit(job.get("deadline") or "Non précisé", 100)
+
+    if not title or not company or not url_apply:
+        return False, False, f"champs obligatoires manquants : {job}"
+
+    url_lower = url_apply.lower()
+    if not ("guichetemplois.gc.ca" in url_lower or "jobbank.gc.ca" in url_lower):
+        return False, False, f"URL non officielle : {url_apply}"
+
+    if verify_url and not _is_url_active(url_apply):
+        return False, False, f"lien inactif : {url_apply}"
+
+    allowed_status = (
+        "eimt" in lmia_status.lower()
+        or "lmia" in lmia_status.lower()
+        or "francophone" in lmia_status.lower()
+        or "exempt" in lmia_status.lower()
+    )
+    if not allowed_status:
+        return False, False, f"statut LMIA non autorisé : {lmia_status} - {title} ({company})"
+
+    ref_nr = _stable_ref_nr(company, title, city)
+    try:
+        _, created = CanadaJobOffer.objects.update_or_create(
+            ref_nr=ref_nr,
+            defaults={
+                "title": title,
+                "company": company,
+                "city": city,
+                "province": province,
+                "lmia_status": lmia_status,
+                "salary": salary,
+                "deadline": deadline,
+                "description": (job.get("description") or "").strip(),
+                "url_apply": url_apply,
+                "is_active": True,
+            },
+        )
+    except Exception as exc:
+        return False, False, f"erreur base de données : {exc} - {title} ({company})"
+    return created, not created, ""
+
+
 class Command(BaseCommand):
     help = "Cherche et importe les nouvelles offres d'emploi d'employeurs canadiens qui recrutent à l'étranger (EIMT/LMIA)"
 
+    def add_arguments(self, parser):
+        parser.add_argument("--target", type=int, default=48, help="Nombre cible minimal d'offres actives à garder.")
+        parser.add_argument("--pages", type=int, default=5, help="Nombre de pages Job Bank TFW à parcourir.")
+        parser.add_argument("--skip-ai", action="store_true", help="Importer seulement depuis Job Bank, sans complément IA.")
+
     def handle(self, *args, **options):
+        target = max(1, options["target"])
+        pages = max(1, options["pages"])
+        skip_ai = options["skip_ai"]
+
+        direct_created = 0
+        direct_updated = 0
+        direct_seen = 0
+        self.stdout.write("Lecture directe Job Bank - Temporary Foreign Workers...")
+        for page in range(1, pages + 1):
+            try:
+                page_text = _fetch_jobbank_page(page)
+                page_jobs = _parse_jobbank_search_text(page_text)
+                self.stdout.write(f"Page Job Bank {page}: {len(page_jobs)} offre(s) détectée(s).")
+                for job in page_jobs:
+                    created, updated, reason = _import_job_offer(job, verify_url=False)
+                    if reason:
+                        self.stdout.write(f"Offre ignorée: {reason}")
+                        continue
+                    direct_seen += 1
+                    if created:
+                        direct_created += 1
+                    elif updated:
+                        direct_updated += 1
+            except Exception as direct_error:
+                logger.warning("Import direct Job Bank page %s échoué: %s", page, direct_error)
+                self.stdout.write(f"Page Job Bank {page}: erreur {direct_error}")
+
+        active_after_direct = CanadaJobOffer.objects.filter(is_active=True).count()
+        self.stdout.write(
+            f"Import direct Job Bank: +{direct_created}, {direct_updated} mises à jour, "
+            f"{direct_seen} valides, {active_after_direct} actives."
+        )
+        if skip_ai or active_after_direct >= target:
+            self._cleanup_old_offers()
+            self.stdout.write(self.style.SUCCESS("Importation Canada terminée depuis Job Bank."))
+            return
+
         use_openai = bool(getattr(settings, "OPENAI_API_KEY", ""))
         self.stdout.write("Initialisation du client GenAI...")
         client = None
@@ -183,13 +376,13 @@ class Command(BaseCommand):
                         "Analyse ces résultats et liste au moins 8 offres d'emploi réelles et récentes avec : "
                         "le titre du poste, l'entreprise recruteuse, la ville, la province, le statut de l'EIMT/LMIA (approuvé, en cours, etc.), le salaire et l'URL source directe exacte."
                     )
-                response_search = _generate_content_with_retry(
-                    client=client,
-                    model="gemini-3.6-flash",
-                    contents=fallback_prompt,
-                    config=types.GenerateContentConfig(temperature=0.2)
-                )
-                search_results = response_search.text
+                    response_search = _generate_content_with_retry(
+                        client=client,
+                        model="gemini-3.6-flash",
+                        contents=fallback_prompt,
+                        config=types.GenerateContentConfig(temperature=0.2)
+                    )
+                    search_results = response_search.text
 
             self.stdout.write(f"Résultats de recherche récupérés (taille={len(search_results)}). Conversion en JSON...")
 
@@ -248,84 +441,38 @@ class Command(BaseCommand):
             updated_count = 0
 
             for job in jobs_list:
-                title = job.get("title", "").strip()
-                company = job.get("company", "").strip()
-                city = job.get("city", "").strip()
-                url_apply = job.get("url_apply", "").strip()
-                lmia_status = job.get("lmia_status", "Non précisé").strip()
-
-                if not title or not company or not url_apply:
-                    self.stdout.write(f"Offre ignorée car champs obligatoires manquants : {job}")
+                created, updated, reason = _import_job_offer(job)
+                if reason:
+                    self.stdout.write(f"Offre ignorée car {reason}")
                     continue
-
-                # Vérification stricte du domaine de l'URL pour n'accepter que Guichet Emplois (Canada Job Bank)
-                url_lower = url_apply.lower()
-                if not ("guichetemplois.gc.ca" in url_lower or "jobbank.gc.ca" in url_lower):
-                    self.stdout.write(f"Offre ignorée car l'URL ne provient pas de Guichet Emplois : {url_apply}")
-                    continue
-
-                # Check if the url_apply is active (returns 200/300 status code, not 404 or 410)
-                if not _is_url_active(url_apply):
-                    self.stdout.write(f"Offre ignorée car le lien url_apply est inactif ou renvoie un 404 : {url_apply}")
-                    continue
-
-                # Filet de sécurité supplémentaire : on n'affiche que les offres
-                # explicitement ouvertes aux candidats étrangers.
-                allowed_status = (
-                    "eimt" in lmia_status.lower()
-                    or "lmia" in lmia_status.lower()
-                    or "francophone" in lmia_status.lower()
-                    or "exempt" in lmia_status.lower()
-                )
-                if not allowed_status:
-                    self.stdout.write(f"Offre ignorée car statut LMIA '{lmia_status}' non autorisé : {title} ({company})")
-                    continue
-
-                ref_nr = _stable_ref_nr(company, title, city)
-
-                offer, created = CanadaJobOffer.objects.update_or_create(
-                    ref_nr=ref_nr,
-                    defaults={
-                        "title": title,
-                        "company": company,
-                        "city": city,
-                        "province": job.get("province", "").strip(),
-                        "lmia_status": lmia_status,
-                        "salary": job.get("salary", "Non précisé").strip(),
-                        "deadline": job.get("deadline", "Non précisé").strip(),
-                        "description": job.get("description", "").strip(),
-                        "url_apply": url_apply,
-                        "is_active": True,
-                    }
-                )
-
                 if created:
                     created_count += 1
-                else:
+                elif updated:
                     updated_count += 1
 
-            # Supprimer définitivement les offres dont la date limite est dépassée
-            expired_count = 0
-            for offer in CanadaJobOffer.objects.filter(is_active=True).exclude(deadline=""):
-                deadline_date = _parse_deadline(offer.deadline)
-                if deadline_date and deadline_date < timezone.localdate():
-                    offer.delete()
-                    expired_count += 1
-
-            # Supprimer définitivement les offres non revues depuis 14 jours
-            # (l'IA ne les retrouve plus sur le web => probablement pourvues/retirées)
-            cutoff = timezone.now() - timezone.timedelta(days=14)
-            stale_qs = CanadaJobOffer.objects.filter(last_seen__lt=cutoff)
-            stale_count = stale_qs.count()
-            stale_qs.delete()
+            expired_count, stale_count = self._cleanup_old_offers()
 
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Importation terminée ! +{created_count} nouvelles offres, "
-                    f"{updated_count} mises à jour, {expired_count} supprimées (date limite dépassée), "
+                    f"Importation terminée ! Job Bank direct +{direct_created}/{direct_updated}, "
+                    f"IA +{created_count}/{updated_count}, {expired_count} supprimées (date limite dépassée), "
                     f"{stale_count} supprimées (non revues depuis 14 jours)."
                 )
             )
 
         except Exception as e:
             self.stderr.write(f"Une erreur s'est produite lors de la génération : {e}")
+
+    def _cleanup_old_offers(self) -> tuple[int, int]:
+        expired_count = 0
+        for offer in CanadaJobOffer.objects.filter(is_active=True).exclude(deadline=""):
+            deadline_date = _parse_deadline(offer.deadline)
+            if deadline_date and deadline_date < timezone.localdate():
+                offer.delete()
+                expired_count += 1
+
+        cutoff = timezone.now() - timezone.timedelta(days=14)
+        stale_qs = CanadaJobOffer.objects.filter(last_seen__lt=cutoff)
+        stale_count = stale_qs.count()
+        stale_qs.delete()
+        return expired_count, stale_count

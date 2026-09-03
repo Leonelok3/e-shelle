@@ -199,6 +199,32 @@ app.conf.beat_schedule = {
         "task": "germany_opportunities.tasks.enrich_offers_with_ai",
         "schedule": crontab(hour=6, minute=30),
     },
+    # ── GermanPrepApp — Agents IA cours, leçons, exercices, examens blancs ──
+    # 6h45 : s'assure que le hub Goethe A1-C2 reste visible meme si la base est vide
+    "germanprep-ensure-exam-catalog": {
+        "task": "GermanPrepApp.tasks.ensure_german_exam_catalog",
+        "schedule": crontab(hour=6, minute=45),
+    },
+    # 7h05 : complete progressivement les cours et QCM utilises par les simulations
+    "germanprep-generate-learning-content": {
+        "task": "GermanPrepApp.tasks.generate_german_learning_content",
+        "schedule": crontab(hour=7, minute=5),
+    },
+    # 7h35 : complete le test de niveau A1-C2
+    "germanprep-generate-placement": {
+        "task": "GermanPrepApp.tasks.generate_german_placement_questions",
+        "schedule": crontab(hour=7, minute=35),
+    },
+    # 7h55 : genere les audios manquants pour les lecons Horen
+    "germanprep-generate-horen-audio": {
+        "task": "GermanPrepApp.tasks.generate_german_horen_audio",
+        "schedule": crontab(hour=7, minute=55),
+    },
+    # 8h10 : genere des examens blancs telechargeables avec corrige
+    "germanprep-generate-mock-exams": {
+        "task": "GermanPrepApp.tasks.generate_german_mock_exams",
+        "schedule": crontab(hour=8, minute=10),
+    },
 
     # ── Canada Opportunities — Recherche quotidien d'emplois ──────────────────
     # 3h30 (heure Douala/Cameroun) : les offres sont prêtes avant le départ au travail
@@ -211,6 +237,16 @@ app.conf.beat_schedule = {
     "canada-fetch-scholarships": {
         "task": "jobs.tasks.fetch_canada_scholarships_task",
         "schedule": crontab(hour=6, minute=45),
+    },
+    # Opportunites visiteur Canada — conferences, seminaires, certifications
+    "canada-fetch-visitor-opps": {
+        "task": "jobs.tasks.fetch_canada_visitor_opps_task",
+        "schedule": crontab(hour=7, minute=0),
+    },
+    # Actualites Canada — immigration, tirages, communiques officiels
+    "canada-fetch-news": {
+        "task": "jobs.tasks.fetch_canada_news_task",
+        "schedule": crontab(hour=7, minute=15),
     },
 
     # ── Business — Cycle de vie abonnement/essai ───────────────────────────

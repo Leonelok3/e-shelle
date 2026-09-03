@@ -38,7 +38,7 @@ avec la structure exacte :
 
 Règles :
 - Chaque question teste un point précis de grammaire, vocabulaire, ou compréhension
-- Les questions doivent couvrir progressivement les niveaux A1 (très facile) → C2 (très difficile)
+- Les questions doivent couvrir progressivement les niveaux A1 (très facile) -> C2 (très difficile)
 - 4 options toujours (A, B, C, D), une seule correcte
 - correct_option = "A", "B", "C" ou "D"
 - level_hint = niveau approximatif de la question ("A1", "A2", "B1", "B2", "C1", "C2")
@@ -58,6 +58,153 @@ Répartition demandée :
 
 Chaque question doit être distincte et pédagogiquement pertinente.
 """
+
+FALLBACK_QUESTIONS = [
+    {
+        "question_text": "Wie sagt man 'Bonjour' auf Deutsch ?",
+        "option_a": "Guten Tag",
+        "option_b": "Danke",
+        "option_c": "Tschüss",
+        "option_d": "Bitte",
+        "correct_option": "A",
+    },
+    {
+        "question_text": "Choisissez la bonne forme: Ich ___ aus Kamerun.",
+        "option_a": "bist",
+        "option_b": "bin",
+        "option_c": "ist",
+        "option_d": "sind",
+        "correct_option": "B",
+    },
+    {
+        "question_text": "Quel article convient ? ___ Haus",
+        "option_a": "der",
+        "option_b": "die",
+        "option_c": "das",
+        "option_d": "den",
+        "correct_option": "C",
+    },
+    {
+        "question_text": "Choisissez la phrase correcte.",
+        "option_a": "Ich heiße Paul.",
+        "option_b": "Ich heißen Paul.",
+        "option_c": "Ich heißt Paul.",
+        "option_d": "Ich heißt bin Paul.",
+        "correct_option": "A",
+    },
+    {
+        "question_text": "Wie spät ist es? 8:30",
+        "option_a": "Es ist halb neun.",
+        "option_b": "Es ist halb acht.",
+        "option_c": "Es ist acht halb.",
+        "option_d": "Es ist neun halb.",
+        "correct_option": "A",
+    },
+    {
+        "question_text": "Choisissez le bon auxiliaire au Perfekt: Ich ___ gestern Deutsch gelernt.",
+        "option_a": "bin",
+        "option_b": "habe",
+        "option_c": "wurde",
+        "option_d": "werde",
+        "correct_option": "B",
+    },
+    {
+        "question_text": "Complétez: Wir fahren ___ Berlin.",
+        "option_a": "nach",
+        "option_b": "in",
+        "option_c": "zu",
+        "option_d": "bei",
+        "correct_option": "A",
+    },
+    {
+        "question_text": "Quelle phrase est correcte ?",
+        "option_a": "Ich möchte einen Kaffee.",
+        "option_b": "Ich möchte ein Kaffee.",
+        "option_c": "Ich möchten einen Kaffee.",
+        "option_d": "Ich möchte eine Kaffee.",
+        "correct_option": "A",
+    },
+    {
+        "question_text": "Choisissez la bonne forme du comparatif: groß",
+        "option_a": "großer",
+        "option_b": "größer",
+        "option_c": "am groß",
+        "option_d": "großest",
+        "correct_option": "B",
+    },
+    {
+        "question_text": "Complétez: Ich bleibe zu Hause, ___ ich krank bin.",
+        "option_a": "weil",
+        "option_b": "aber",
+        "option_c": "oder",
+        "option_d": "und",
+        "correct_option": "A",
+    },
+    {
+        "question_text": "Choisissez la bonne position du verbe: Ich weiß, dass er morgen ___.",
+        "option_a": "kommt",
+        "option_b": "kommen",
+        "option_c": "kommt er",
+        "option_d": "er kommt",
+        "correct_option": "A",
+    },
+    {
+        "question_text": "Quel est le Präteritum de 'gehen' ?",
+        "option_a": "ging",
+        "option_b": "gegangen",
+        "option_c": "gehst",
+        "option_d": "ginge",
+        "correct_option": "A",
+    },
+    {
+        "question_text": "Complétez au Konjunktiv II: Wenn ich Zeit hätte, ___ ich reisen.",
+        "option_a": "werde",
+        "option_b": "wurde",
+        "option_c": "würde",
+        "option_d": "war",
+        "correct_option": "C",
+    },
+    {
+        "question_text": "Choisissez la forme passive correcte: Der Brief ___ geschrieben.",
+        "option_a": "wird",
+        "option_b": "ist werden",
+        "option_c": "hat",
+        "option_d": "wurde sein",
+        "correct_option": "A",
+    },
+    {
+        "question_text": "Quelle phrase exprime une concession ?",
+        "option_a": "Obwohl es regnet, gehen wir spazieren.",
+        "option_b": "Weil es regnet, bleiben wir zu Hause.",
+        "option_c": "Wenn es regnet, bleiben wir.",
+        "option_d": "Es regnet und wir bleiben.",
+        "correct_option": "A",
+    },
+    {
+        "question_text": "Discours indirect: Er sagt, er ___ keine Zeit.",
+        "option_a": "habe",
+        "option_b": "hat",
+        "option_c": "hätte gehabt",
+        "option_d": "haben",
+        "correct_option": "A",
+    },
+    {
+        "question_text": "Choisissez le connecteur le plus soutenu: ___ der hohen Kosten wurde das Projekt genehmigt.",
+        "option_a": "Trotz",
+        "option_b": "Weil",
+        "option_c": "Denn",
+        "option_d": "Und",
+        "correct_option": "A",
+    },
+    {
+        "question_text": "Que signifie 'etwas in Kauf nehmen' ?",
+        "option_a": "accepter un inconvénient",
+        "option_b": "acheter quelque chose",
+        "option_c": "refuser une offre",
+        "option_d": "oublier une règle",
+        "correct_option": "A",
+    },
+]
 
 
 def _extract_json(raw: str) -> list:
@@ -119,7 +266,7 @@ class Command(BaseCommand):
         existing = GermanPlacementQuestion.objects.count()
         self.stdout.write(
             f"Questions existantes : {existing}. "
-            f"Génération de {count} nouvelles questions…"
+            f"Génération de {count} nouvelles questions..."
         )
 
         user_prompt = USER_PROMPT_TPL.format(count=count)
@@ -132,9 +279,17 @@ class Command(BaseCommand):
             msg = f"Erreur lors de la génération LLM : {exc}"
             if continue_on_error:
                 self.stdout.write(self.style.WARNING(msg))
-                return
-            self.stderr.write(msg)
-            raise
+                repeats = (count // len(FALLBACK_QUESTIONS)) + 1
+                data = (FALLBACK_QUESTIONS * repeats)[:count]
+                self.stdout.write(
+                    self.style.WARNING(
+                        "Utilisation de la banque locale de secours pour garder le test de niveau actif."
+                    )
+                )
+                _validate_questions(data)
+            else:
+                self.stderr.write(msg)
+                raise
 
         order_start = existing + 1
         created = 0
@@ -159,7 +314,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"✅ {created} question(s) de placement créée(s). "
+                f"OK - {created} question(s) de placement créée(s). "
                 f"Total : {existing + created} questions."
             )
         )

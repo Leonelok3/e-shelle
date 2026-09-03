@@ -54,6 +54,12 @@ class ParametrePlateforme(models.Model):
     # SEO
     meta_description = models.CharField(max_length=300, blank=True)
     og_image         = models.ImageField(upload_to="config/", null=True, blank=True)
+    produits_services_hero_image = models.ImageField(
+        upload_to="config/heros/",
+        null=True,
+        blank=True,
+        help_text="Visuel affiche dans le hero de la page Produits & Services.",
+    )
     # Analytics
     google_analytics_id = models.CharField(max_length=50, blank=True)
     # Paiement
