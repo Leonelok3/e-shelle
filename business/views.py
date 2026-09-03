@@ -9,6 +9,8 @@ from django.db.models import Avg, Count, F, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
@@ -93,6 +95,22 @@ BUSINESS_KEY_PACKS = {
         "public": False,
     },
 }
+
+
+def _clean_catalog_video_url(video_url):
+    """Retourne une URL video acceptable ou une raison claire pour l'ignorer."""
+    video_url = (video_url or "").strip()
+    if not video_url:
+        return "", ""
+    if len(video_url) > 2048:
+        return "", "Le lien vidéo est trop long. Utilisez un lien direct YouTube, TikTok, Facebook, Instagram ou Cloudinary."
+    if not video_url.startswith(("http://", "https://")):
+        return "", "Le lien vidéo doit commencer par http:// ou https://."
+    try:
+        URLValidator(schemes=["http", "https"])(video_url)
+    except ValidationError:
+        return "", "Le lien vidéo n'est pas valide. Le produit a été ajouté sans vidéo."
+    return video_url, ""
 
 
 def _get_business_key_account(user):
@@ -2239,24 +2257,33 @@ def catalog_manage(request, business_id):
                     )
                     return redirect("business:catalog_manage", business_id=business.id)
                 video_url = ""
+            else:
+                video_url, video_warning = _clean_catalog_video_url(video_url)
+                if video_warning:
+                    messages.warning(request, video_warning)
 
             if item_type not in dict(BusinessCatalogItem.ItemType.choices):
                 item_type = BusinessCatalogItem.ItemType.PRODUCT
-            item = BusinessCatalogItem.objects.create(
-                business=business,
-                item_type=item_type,
-                title=title,
-                description=description,
-                price_label=price_label,
-                image=request.FILES.get("image"),
-                video_url=video_url,
-                order=order,
-                is_active=True,
-            )
-            # handle additional photos
-            extra_images = request.FILES.getlist("images")
-            for img in extra_images:
-                BusinessCatalogItemImage.objects.create(item=item, image=img)
+            try:
+                item = BusinessCatalogItem.objects.create(
+                    business=business,
+                    item_type=item_type,
+                    title=title,
+                    description=description,
+                    price_label=price_label,
+                    image=request.FILES.get("image"),
+                    video_url=video_url,
+                    order=order,
+                    is_active=True,
+                )
+                # handle additional photos
+                extra_images = request.FILES.getlist("images")
+                for img in extra_images:
+                    BusinessCatalogItemImage.objects.create(item=item, image=img)
+            except Exception as exc:
+                logger.exception("Erreur ajout catalogue business #%s", business.id)
+                messages.error(request, f"Impossible d'ajouter ce produit au catalogue : {exc}")
+                return redirect("business:catalog_manage", business_id=business.id)
 
             messages.success(request, "Produit/service ajoute sur la fiche publique.")
             return redirect("business:catalog_manage", business_id=business.id)
@@ -2648,6 +2675,9 @@ def catalog_item_edit(request, business_id, item_id):
             if business.plan == BusinessProfile.Plan.FREE:
                 item.video_url = ""
             else:
+                video_url, video_warning = _clean_catalog_video_url(video_url)
+                if video_warning:
+                    messages.warning(request, video_warning)
                 item.video_url = video_url
             item.order = order
 

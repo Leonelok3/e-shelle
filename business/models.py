@@ -261,7 +261,7 @@ class BusinessCatalogItem(models.Model):
     description = models.TextField(blank=True)
     price_label = models.CharField(max_length=80, blank=True, help_text="Ex: 2 500 FCFA, Prix a discuter.")
     image = models.ImageField(upload_to="business/catalogue/", blank=True, null=True)
-    video_url = models.URLField(max_length=500, blank=True, null=True, help_text="Lien de la vidéo (Cloudinary, YouTube, TikTok...)")
+    video_url = models.URLField(max_length=2048, blank=True, null=True, help_text="Lien de la vidéo (Cloudinary, YouTube, TikTok...)")
 
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
