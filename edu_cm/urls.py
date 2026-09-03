@@ -90,6 +90,27 @@ def immigration_view(request):
     return render(request, "immigration.html", ctx)
 
 
+def marketing_view(request):
+    """Portail central des outils marketing et commerciaux E-Shelle."""
+    ctx = {
+        "active_businesses_count": 0,
+        "published_campaigns_count": 0,
+        "business_products_count": 0,
+    }
+    try:
+        from business.models import BusinessProfile, BusinessCatalogItem
+        ctx["active_businesses_count"] = BusinessProfile.objects.filter(is_active=True).count()
+        ctx["business_products_count"] = BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True).count()
+    except Exception:
+        pass
+    try:
+        from adgen.models import AdCampaign
+        ctx["published_campaigns_count"] = AdCampaign.objects.count()
+    except Exception:
+        pass
+    return render(request, "marketing.html", ctx)
+
+
 
 def home_view(request):
     ctx = {}
@@ -850,6 +871,7 @@ urlpatterns = [
     path("produits-services/", products_services_view, name="products_services"),
     path("presentation/", presentation_view, name="presentation"),
     path("immigration/", immigration_view, name="immigration"),
+    path("marketing/", marketing_view, name="marketing"),
     path("tarifs/", tarifs_view, name="tarifs"),
 ]
 
