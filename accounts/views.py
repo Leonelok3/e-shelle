@@ -354,6 +354,8 @@ def upgrade(request):
     plans_qs = AppPlan.objects.filter(is_active=True).exclude(app_key="allemand").order_by("app_key", "order")
     if app_key and app_key in dict(AppKey.choices):
         plans_qs = plans_qs.filter(app_key=app_key)
+        if app_key == "adgen":
+            plans_qs = plans_qs.filter(is_free=False).exclude(level__in=["free", "trial"])
         app_label = dict(AppKey.choices).get(app_key, app_key)
         app_icon  = APP_ICONS.get(app_key, "📦")
         app_color = APP_COLORS.get(app_key, "#6B7280")
@@ -363,10 +365,20 @@ def upgrade(request):
         app_icon  = "🚀"
         app_color = "#6C3FE8"
 
+    app_url = f"/{app_key}/" if app_key else "/"
+    if app_key == "adgen":
+        app_url = "/pub/"
+    elif app_key == "prep":
+        app_url = "/prep/"
+    elif app_key == "autoecole":
+        app_url = "/auto-ecole/"
+
     # Plan actuel de l'utilisateur pour cette app
     current_sub = None
     if app_key and request.user.is_authenticated:
         current_sub = AppSubscription.get_active_for_user(request.user, app_key)
+        if app_key == "adgen" and current_sub and (current_sub.plan.is_free or current_sub.status != "active"):
+            current_sub = None
 
     # Grouper les plans par app si vue globale
     plans_by_app = {}
@@ -396,6 +408,7 @@ def upgrade(request):
         "plans_by_app": plans_by_app,
         "current_sub": current_sub,
         "next":        request.GET.get("next", ""),
+        "app_url":     app_url,
     }
     return render(request, "accounts/upgrade.html", context)
 
