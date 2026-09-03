@@ -155,11 +155,10 @@
             {{ plan.price_xaf_formatted }}
           </div>
           <div class="text-sm text-gray-400">
-            / {{ plan.duration_days }}
-            {% if plan.duration_days == 30 %}mois
-            {% elif plan.duration_days == 90 %}trimestre
-            {% elif plan.duration_days == 365 %}an
-            {% else %}jours{% endif %}
+            {% if plan.duration_days == 30 %}/ mois
+            {% elif plan.duration_days == 90 %}/ trimestre
+            {% elif plan.duration_days == 365 %}/ an
+            {% else %}/ {{ plan.duration_days }} jours{% endif %}
           </div>
           {% if plan.price_eur > 0 %}
           <div class="text-xs text-gray-300 mt-0.5">≈ {{ plan.price_eur }} EUR</div>
@@ -248,7 +247,12 @@
             {% if plan.price_xaf == 0 %}Gratuit{% else %}{{ plan.price_xaf_formatted }}{% endif %}
           </div>
           <div class="text-xs text-gray-400 mb-4">
-            {% if plan.price_xaf > 0 %}/ {{ plan.duration_days }} jours{% else %}Accès libre{% endif %}
+            {% if plan.price_xaf > 0 %}
+              {% if plan.duration_days == 30 %}/ mois
+              {% elif plan.duration_days == 90 %}/ trimestre
+              {% elif plan.duration_days == 365 %}/ an
+              {% else %}/ {{ plan.duration_days }} jours{% endif %}
+            {% else %}Accès libre{% endif %}
           </div>
           {% if plan.features %}
           <ul class="space-y-1.5 flex-1 mb-4">

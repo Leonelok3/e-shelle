@@ -17,6 +17,12 @@ PLAN_LIMITS = {
     "enterprise": {"messages": 99999, "images": 9999},
 }
 
+ADGEN_SUBSCRIPTION_LIMITS = {
+    "adgen-starter":  {"plan": "starter",    "messages": 300,  "images": 10},
+    "adgen-pro":      {"plan": "pro",        "messages": 1500, "images": 50},
+    "adgen-business": {"plan": "enterprise", "messages": 5000, "images": 150},
+}
+
 # Mapping plan UserProfile → plan IA
 PROFILE_TO_AI_PLAN = {
     "free":       "starter",
@@ -32,19 +38,15 @@ class QuotaService:
         """Récupère ou crée le quota de l'utilisateur, en le synchronisant avec son plan."""
         from e_shelle_ai.models import AIQuota
 
-        # Détecter le plan actuel depuis UserProfile
-        profile_plan = "free"
-        try:
-            profile = user.profile
-            profile_plan = profile.plan or "free"
-            # Vérifier si plan expiré
-            if profile.plan_expiry and profile.plan_expiry < date.today():
-                profile_plan = "free"
-        except Exception:
-            pass
-
-        ai_plan = PROFILE_TO_AI_PLAN.get(profile_plan, "starter")
-        limits  = PLAN_LIMITS.get(ai_plan, PLAN_LIMITS["starter"])
+        adgen_limits = self._get_adgen_subscription_limits(user)
+        if adgen_limits:
+            ai_plan = adgen_limits["plan"]
+            limits = {
+                "messages": adgen_limits["messages"],
+                "images": adgen_limits["images"],
+            }
+        else:
+            ai_plan, limits = self._get_profile_limits(user)
 
         quota, created = AIQuota.objects.get_or_create(
             user=user,
@@ -58,8 +60,8 @@ class QuotaService:
 
         if not created:
             # Synchroniser le plan ou les limites si configurés différemment
-            if (quota.plan != ai_plan or 
-                quota.messages_limit != limits["messages"] or 
+            if (quota.plan != ai_plan or
+                quota.messages_limit != limits["messages"] or
                 quota.images_limit != limits["images"]):
                 quota.plan           = ai_plan
                 quota.messages_limit = limits["messages"]
@@ -69,6 +71,36 @@ class QuotaService:
             quota.check_and_reset_if_needed()
 
         return quota
+
+    def _get_profile_limits(self, user):
+        """Limites IA historiques basees sur le profil E-Shelle global."""
+        # Détecter le plan actuel depuis UserProfile
+        profile_plan = "free"
+        try:
+            profile = user.profile
+            profile_plan = profile.plan or "free"
+            # Vérifier si plan expiré
+            if profile.plan_expiry and profile.plan_expiry < date.today():
+                profile_plan = "free"
+        except Exception:
+            pass
+
+        ai_plan = PROFILE_TO_AI_PLAN.get(profile_plan, "starter")
+        limits = PLAN_LIMITS.get(ai_plan, PLAN_LIMITS["starter"])
+        return ai_plan, limits
+
+    def _get_adgen_subscription_limits(self, user):
+        """Retourne les limites AdGen payantes, afin qu'un client ne depasse jamais son forfait."""
+        try:
+            from accounts.models import AppSubscription
+
+            sub = AppSubscription.get_active_for_user(user, "adgen")
+            if not sub or sub.status != "active" or sub.plan.is_free or sub.plan.price_xaf <= 0:
+                return None
+            return ADGEN_SUBSCRIPTION_LIMITS.get(sub.plan.slug)
+        except Exception as exc:
+            logger.warning(f"AdGen subscription quota lookup failed pour {user}: {exc}")
+            return None
 
     def _next_reset_date(self):
         """Retourne le 1er du mois prochain."""
@@ -132,13 +164,13 @@ class QuotaService:
         quota = self._get_or_create_quota(user)
         if quota.plan == "starter":
             return (
-                "Vous avez atteint votre limite mensuelle gratuite. "
-                "Passez au plan Pro (500 messages + 50 images/mois) pour continuer. "
+                "Vous avez atteint votre limite mensuelle. "
+                "Passez au plan AdGen Pro pour continuer a generer plus de publicites. "
                 "Contactez-nous sur WhatsApp pour souscrire."
             )
         elif quota.plan == "pro":
             return (
                 "Limite mensuelle Pro atteinte. "
-                "Passez au plan Enterprise pour un accès illimité."
+                "Passez au plan AdGen Business pour augmenter votre volume."
             )
         return "Limite atteinte. Contactez le support E-Shelle."
