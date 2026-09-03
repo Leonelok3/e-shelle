@@ -14,6 +14,7 @@ from django.core.validators import URLValidator
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
+from urllib.parse import urlparse
 
 from billing.models import AffiliateProfile, Commission, Referral
 from billing.affiliates import (
@@ -110,6 +111,10 @@ def _clean_catalog_video_url(video_url):
         URLValidator(schemes=["http", "https"])(video_url)
     except ValidationError:
         return "", "Le lien vidéo n'est pas valide. Le produit a été ajouté sans vidéo."
+    parsed_url = urlparse(video_url)
+    blocked_hosts = ("search.yahoo.", "google.", "bing.", "duckduckgo.")
+    if any(host in parsed_url.netloc.lower() for host in blocked_hosts):
+        return "", "Collez un vrai lien vidéo, pas une page de recherche. Utilisez YouTube, TikTok, Facebook, Instagram, Cloudinary ou un fichier .mp4 direct."
     return video_url, ""
 
 

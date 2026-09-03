@@ -307,6 +307,12 @@
         <div style="aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#050910;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;position:relative;" id="modal-img-container">
           <img id="modal-main-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
           <video id="modal-main-video" controls style="width:100%;height:100%;object-fit:contain;display:none;"></video>
+          <a id="modal-video-link" href="#" target="_blank" rel="noopener" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;padding:1.2rem;color:#fff;text-align:center;text-decoration:none;background:linear-gradient(135deg,#101c33,#050910);">
+            <span style="display:grid;gap:0.55rem;justify-items:center;">
+              <strong style="font-size:1rem;">Ouvrir la vidéo</strong>
+              <small style="color:rgba(255,255,255,0.72);line-height:1.45;">Ce lien n'est pas un fichier vidéo direct.</small>
+            </span>
+          </a>
         </div>
         <div id="modal-thumbnails" style="display:flex;gap:0.5rem;margin-top:0.8rem;overflow-x:auto;padding-bottom:0.3rem;">
           <!-- Les vignettes seront insérées ici en JS -->
@@ -377,6 +383,53 @@ document.querySelectorAll('[data-copy-link]').forEach(function(button){
   });
 });
 
+function isDirectVideoUrl(url) {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url, window.location.href);
+    const path = parsed.pathname.toLowerCase();
+    const host = parsed.hostname.toLowerCase();
+    return /\.(mp4|webm|ogg|mov|m4v)$/i.test(path) || (host.includes('res.cloudinary.com') && path.includes('/video/upload/'));
+  } catch (e) {
+    return false;
+  }
+}
+
+function showExternalVideoLink(url) {
+  const mainImg = document.getElementById('modal-main-img');
+  const mainVideo = document.getElementById('modal-main-video');
+  const videoLink = document.getElementById('modal-video-link');
+  mainImg.style.display = 'none';
+  if (mainVideo) {
+    mainVideo.pause();
+    mainVideo.removeAttribute('src');
+    mainVideo.load();
+    mainVideo.style.display = 'none';
+  }
+  if (videoLink) {
+    videoLink.href = url || '#';
+    videoLink.style.display = 'flex';
+  }
+}
+
+function showDirectVideo(url) {
+  const mainImg = document.getElementById('modal-main-img');
+  const mainVideo = document.getElementById('modal-main-video');
+  const videoLink = document.getElementById('modal-video-link');
+  mainImg.style.display = 'none';
+  if (videoLink) {
+    videoLink.style.display = 'none';
+  }
+  if (mainVideo) {
+    mainVideo.src = url;
+    mainVideo.style.display = 'block';
+    mainVideo.onerror = function() {
+      showExternalVideoLink(url);
+    };
+    mainVideo.play().catch(function () {});
+  }
+}
+
 function openProductModal(index) {
   const items = JSON.parse(document.getElementById('items-data').textContent);
   const item = items[index];
@@ -400,6 +453,7 @@ function openProductModal(index) {
   // Setup images
   const mainImg = document.getElementById('modal-main-img');
   const mainVideo = document.getElementById('modal-main-video');
+  const videoLink = document.getElementById('modal-video-link');
   const imgContainer = document.getElementById('modal-img-container');
   const thumbsContainer = document.getElementById('modal-thumbnails');
   thumbsContainer.innerHTML = '';
@@ -409,6 +463,10 @@ function openProductModal(index) {
     mainVideo.pause();
     mainVideo.src = '';
     mainVideo.style.display = 'none';
+  }
+  if (videoLink) {
+    videoLink.href = '#';
+    videoLink.style.display = 'none';
   }
   mainImg.style.display = 'block';
 
@@ -441,6 +499,9 @@ function openProductModal(index) {
           mainVideo.pause();
           mainVideo.style.display = 'none';
         }
+        if (videoLink) {
+          videoLink.style.display = 'none';
+        }
         mainImg.src = imgUrl;
         mainImg.style.display = 'block';
         Array.from(thumbsContainer.children).forEach(child => {
@@ -453,10 +514,10 @@ function openProductModal(index) {
     });
   } else if (item.video) {
     // Only video is present
-    mainImg.style.display = 'none';
-    if (mainVideo) {
-      mainVideo.src = item.video;
-      mainVideo.style.display = 'block';
+    if (isDirectVideoUrl(item.video)) {
+      showDirectVideo(item.video);
+    } else {
+      showExternalVideoLink(item.video);
     }
     activeMedia = 'video';
   } else {
@@ -494,13 +555,10 @@ function openProductModal(index) {
     videoThumb.innerHTML = '🎥';
 
     videoThumb.addEventListener('click', function() {
-      mainImg.style.display = 'none';
-      if (mainVideo) {
-        mainVideo.style.display = 'block';
-        if (mainVideo.src !== item.video) {
-          mainVideo.src = item.video;
-        }
-        mainVideo.play();
+      if (isDirectVideoUrl(item.video)) {
+        showDirectVideo(item.video);
+      } else {
+        showExternalVideoLink(item.video);
       }
       Array.from(thumbsContainer.children).forEach(child => {
         child.style.border = '1px solid rgba(255,255,255,0.2)';
@@ -525,6 +583,11 @@ function closeProductModal() {
   if (mainVideo) {
     mainVideo.pause();
     mainVideo.src = '';
+  }
+  const videoLink = document.getElementById('modal-video-link');
+  if (videoLink) {
+    videoLink.href = '#';
+    videoLink.style.display = 'none';
   }
   document.getElementById('productModal').style.display = 'none';
 }
