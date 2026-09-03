@@ -176,6 +176,64 @@ class AdContent(models.Model):
         return f"Contenu — {self.campaign.nom_produit}"
 
 
+class SoraCreditWallet(models.Model):
+    """Credits prepayes pour generer des videos OpenAI Sora."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="adgen_sora_wallet",
+        verbose_name="Utilisateur",
+    )
+    credits_4s = models.PositiveIntegerField(default=0, verbose_name="Credits Sora 4s")
+    credits_8s = models.PositiveIntegerField(default=0, verbose_name="Credits Sora 8s")
+    credits_12s = models.PositiveIntegerField(default=0, verbose_name="Credits Sora 12s")
+    used_4s = models.PositiveIntegerField(default=0, verbose_name="Sora 4s utilises")
+    used_8s = models.PositiveIntegerField(default=0, verbose_name="Sora 8s utilises")
+    used_12s = models.PositiveIntegerField(default=0, verbose_name="Sora 12s utilises")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Portefeuille Sora"
+        verbose_name_plural = "Portefeuilles Sora"
+
+    def __str__(self):
+        return f"Sora — {self.user} ({self.credits_4s}/{self.credits_8s}/{self.credits_12s})"
+
+    @classmethod
+    def seconds_field(cls, seconds):
+        try:
+            seconds = int(seconds)
+        except (TypeError, ValueError):
+            seconds = 4
+        if seconds <= 4:
+            return "credits_4s", "used_4s", 4
+        if seconds <= 8:
+            return "credits_8s", "used_8s", 8
+        return "credits_12s", "used_12s", 12
+
+    def balance_for(self, seconds):
+        credit_field, _, normalized_seconds = self.seconds_field(seconds)
+        return getattr(self, credit_field), normalized_seconds
+
+    def reserve(self, seconds):
+        credit_field, used_field, normalized_seconds = self.seconds_field(seconds)
+        available = getattr(self, credit_field)
+        if available <= 0:
+            return False, normalized_seconds
+        setattr(self, credit_field, available - 1)
+        setattr(self, used_field, getattr(self, used_field) + 1)
+        self.save(update_fields=[credit_field, used_field, "updated_at"])
+        return True, normalized_seconds
+
+    def refund(self, seconds):
+        credit_field, used_field, normalized_seconds = self.seconds_field(seconds)
+        setattr(self, credit_field, getattr(self, credit_field) + 1)
+        setattr(self, used_field, max(0, getattr(self, used_field) - 1))
+        self.save(update_fields=[credit_field, used_field, "updated_at"])
+        return normalized_seconds
+
+
 class AdUsageStat(models.Model):
     """Statistiques d'utilisation par utilisateur."""
     user              = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="adgen_stats")

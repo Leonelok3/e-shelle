@@ -16,5 +16,6 @@ urlpatterns = [
     path("<int:pk>/download-video/", views.DownloadVideoView.as_view(), name="download_video"),
     path("api/<int:pk>/generate/",views.GenerateAPIView.as_view(),    name="api_generate"),
     path("api/<int:pk>/generate-video/start/", views.StartAdVideoView.as_view(), name="api_generate_video_start"),
+    path("api/<int:pk>/generate-video/sora/start/", views.StartSoraAdVideoView.as_view(), name="api_generate_video_sora_start"),
     path("api/<int:pk>/generate-video/poll/",  views.PollAdVideoView.as_view(),  name="api_generate_video_poll"),
 ]

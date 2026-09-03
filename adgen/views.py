@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.conf import settings
 
 from accounts.models import AppSubscription
-from .models import AdCampaign, AdContent, AdModule, AdUsageStat
+from .models import AdCampaign, AdContent, AdModule, AdUsageStat, SoraCreditWallet
 from .forms import CampaignForm
 
 logger = logging.getLogger(__name__)
@@ -163,13 +163,14 @@ class CampaignDetailView(PaidAdGenRequiredMixin, DetailView):
             ctx["content"] = self.object.content
         except AdContent.DoesNotExist:
             ctx["content"] = None
+        ctx["sora_wallet"], _ = SoraCreditWallet.objects.get_or_create(user=self.request.user)
         return ctx
 
 
 # ── Génération IA (redirige vers detail après) ────────────────────────────────
 
 import threading
-from django.db import connection
+from django.db import connection, transaction
 
 class GenerateView(PaidAdGenRequiredMixin, UsageLimitMixin, View):
     """Déclenche la génération IA de façon asynchrone (thread arrière-plan) puis redirige immédiatement."""
@@ -751,6 +752,28 @@ def _start_ad_video(prompt: str, image_b64: str | None, duration: int) -> dict:
     return result
 
 
+def _sora_balances(wallet: SoraCreditWallet) -> dict:
+    return {
+        "4s": wallet.credits_4s,
+        "8s": wallet.credits_8s,
+        "12s": wallet.credits_12s,
+    }
+
+
+def _reserve_sora_credit(user, seconds: int) -> tuple[bool, int, dict]:
+    with transaction.atomic():
+        wallet, _ = SoraCreditWallet.objects.select_for_update().get_or_create(user=user)
+        ok, normalized_seconds = wallet.reserve(seconds)
+        return ok, normalized_seconds, _sora_balances(wallet)
+
+
+def _refund_sora_credit(user, seconds: int) -> dict:
+    with transaction.atomic():
+        wallet, _ = SoraCreditWallet.objects.select_for_update().get_or_create(user=user)
+        wallet.refund(seconds)
+        return _sora_balances(wallet)
+
+
 def _check_ad_video_status(operation_name: str) -> dict:
     if operation_name.startswith("local:"):
         return {"done": False, "provider": "local"}
@@ -947,10 +970,14 @@ class StartAdVideoView(PaidAdGenRequiredMixin, View):
 
         content.raw_json["video_operation_name"] = result["operation_name"]
         content.raw_json["video_provider"] = result.get("provider", provider)
+        content.raw_json["video_mode"] = "fast_local" if provider == "local" else "configured_provider"
         content.raw_json["video_prompt"] = prompt
         content.raw_json["video_started_at"] = timezone.now().isoformat()
         content.raw_json["video_local_status"] = "queued" if provider == "local" else ""
         content.raw_json.pop("video_local_error", None)
+        content.raw_json.pop("sora_reserved_seconds", None)
+        content.raw_json.pop("sora_credit_refunded", None)
+        content.raw_json.pop("sora_refunded_at", None)
         content.ad_video_url = ""
         content.save(update_fields=["ad_video_url", "raw_json"])
 
@@ -961,6 +988,105 @@ class StartAdVideoView(PaidAdGenRequiredMixin, View):
             "operation_name": result["operation_name"],
             "prompt": prompt,
             "provider": result.get("provider", provider),
+        })
+
+
+class StartSoraAdVideoView(PaidAdGenRequiredMixin, View):
+    """
+    POST /pub/api/campaign/<pk>/generate-video/sora/start/
+    Lance une vraie vidéo OpenAI Sora uniquement avec crédit prépayé.
+    """
+    def post(self, request, pk):
+        campaign = get_object_or_404(AdCampaign, pk=pk, user=request.user)
+        try:
+            content = campaign.content
+        except AdContent.DoesNotExist:
+            return JsonResponse({"error": "Veuillez d'abord générer le contenu textuel de la campagne."}, status=400)
+
+        data = {}
+        if request.content_type == "application/json" or request.body.startswith(b"{"):
+            try:
+                data = json.loads(request.body)
+            except Exception:
+                data = {}
+
+        requested_seconds = data.get("sora_seconds") or data.get("duration") or 4
+        credit_ok, source_duration, balances = _reserve_sora_credit(request.user, requested_seconds)
+        if not credit_ok:
+            return JsonResponse({
+                "error": (
+                    f"Aucun crédit Sora {source_duration}s disponible. "
+                    "Achetez un crédit Sora Premium avant de lancer cette génération."
+                ),
+                "sora_credit_required": True,
+                "balances": balances,
+            }, status=402)
+
+        custom_prompt = (data.get("prompt") or "").strip()
+        music_style = data.get("music_style", "piano")
+        bg_config = data.get("bg_config", {})
+        style_preset = data.get("style_preset", "premium")
+
+        if custom_prompt:
+            prompt = custom_prompt
+        else:
+            desc_clean = campaign.description.replace("\n", " ").strip()
+            prompt = (
+                f"A premium cinematic product advertisement for '{campaign.nom_produit}'. "
+                f"Create elegant realistic product motion, clean lighting, smooth camera movement, "
+                f"high-end commercial look, natural depth, no text on screen. Product context: {desc_clean[:250]}."
+            )
+
+        prompt = clean_video_prompt(prompt, campaign)[:1200]
+
+        image_b64 = None
+        if campaign.photo_produit:
+            try:
+                padded_image_bytes = prepare_image_for_veo(campaign.photo_produit, bg_config=bg_config)
+                image_b64 = base64.b64encode(padded_image_bytes).decode("utf-8")
+            except Exception as exc:
+                logger.warning("Failed to prepare Sora reference image: %s", exc)
+                try:
+                    with campaign.photo_produit.open("rb") as img_file:
+                        image_b64 = base64.b64encode(img_file.read()).decode("utf-8")
+                except Exception:
+                    pass
+
+        result = start_openai_video(prompt, size="1280x720", image_b64=image_b64, seconds=source_duration)
+        if result.get("error"):
+            balances = _refund_sora_credit(request.user, source_duration)
+            return JsonResponse({
+                "error": f"Impossible de démarrer Sora : {result['error']}",
+                "sora_refunded": True,
+                "balances": balances,
+            }, status=500)
+
+        if not isinstance(content.raw_json, dict):
+            content.raw_json = {}
+        content.raw_json["music_style"] = music_style
+        content.raw_json["duration"] = 15
+        content.raw_json["bg_config"] = bg_config
+        content.raw_json["style_preset"] = style_preset
+        content.raw_json["video_operation_name"] = result["operation_name"]
+        content.raw_json["video_provider"] = "openai"
+        content.raw_json["video_model"] = getattr(settings, "OPENAI_VIDEO_MODEL", "sora-2")
+        content.raw_json["video_mode"] = "sora_premium"
+        content.raw_json["video_prompt"] = prompt
+        content.raw_json["video_started_at"] = timezone.now().isoformat()
+        content.raw_json["sora_reserved_seconds"] = source_duration
+        content.raw_json["sora_credit_refunded"] = False
+        content.raw_json.pop("video_local_status", None)
+        content.raw_json.pop("video_local_error", None)
+        content.ad_video_url = ""
+        content.save(update_fields=["ad_video_url", "raw_json"])
+
+        return JsonResponse({
+            "operation_name": result["operation_name"],
+            "prompt": prompt,
+            "provider": "openai",
+            "mode": "sora_premium",
+            "sora_seconds": source_duration,
+            "balances": balances,
         })
 
 
@@ -995,9 +1121,24 @@ class PollAdVideoView(PaidAdGenRequiredMixin, View):
                 _start_local_video_render(campaign.pk, request.user.pk, operation_name)
             return JsonResponse({"done": False, "status": raw_json.get("video_local_status", "queued")})
 
+        raw_json = content.raw_json if isinstance(content.raw_json, dict) else {}
+        is_sora_premium = raw_json.get("video_mode") == "sora_premium"
+
         result = _check_ad_video_status(operation_name)
 
         if result.get("error"):
+            if is_sora_premium and raw_json.get("sora_credit_refunded") is not True:
+                seconds = raw_json.get("sora_reserved_seconds", 4)
+                balances = _refund_sora_credit(request.user, seconds)
+                raw_json["sora_credit_refunded"] = True
+                raw_json["sora_refunded_at"] = timezone.now().isoformat()
+                content.raw_json = raw_json
+                content.save(update_fields=["raw_json"])
+                return JsonResponse({
+                    "error": f"{result['error']} Crédit Sora remboursé automatiquement.",
+                    "sora_refunded": True,
+                    "balances": balances,
+                }, status=500)
             return JsonResponse({"error": result["error"]}, status=500)
 
         if not result.get("done"):
@@ -1018,11 +1159,14 @@ class PollAdVideoView(PaidAdGenRequiredMixin, View):
         if isinstance(content.raw_json, dict):
             content.raw_json.pop("video_operation_name", None)
             content.raw_json["video_completed_at"] = timezone.now().isoformat()
+            if is_sora_premium:
+                content.raw_json["video_provider"] = "openai"
+                content.raw_json["video_model"] = getattr(settings, "OPENAI_VIDEO_MODEL", "sora-2")
         content.save(update_fields=["ad_video_url", "raw_json"])
 
-        # Incrémenter le quota
         quota_service = QuotaService()
-        quota_service.increment_usage(request.user, "image")
+        if not is_sora_premium:
+            quota_service.increment_usage(request.user, "image")
 
         return JsonResponse({
             "done": True,

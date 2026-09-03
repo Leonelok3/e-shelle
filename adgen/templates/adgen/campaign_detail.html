@@ -511,10 +511,33 @@
           </div>
         </div>
 
-        <div class="mb-6">
-          <button id="btn-generate-ad-video" onclick="startAdVideoGen()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold text-white shadow-lg hover:opacity-95 transition bg-gradient-to-r from-purple-600 to-indigo-600">
-            🎥 Lancer la création de la publicité IA
-          </button>
+        <div class="mb-6 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 items-start">
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button id="btn-generate-ad-video" onclick="startAdVideoGen()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold text-white shadow-lg hover:opacity-95 transition bg-gradient-to-r from-purple-600 to-indigo-600">
+              🎥 Vidéo rapide incluse
+            </button>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <button id="btn-generate-sora-video" onclick="startSoraVideoGen(4, this)" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-bold text-white shadow-lg hover:opacity-95 transition bg-gradient-to-r from-amber-500 to-orange-600">
+                ✨ Sora 4s
+              </button>
+              <button onclick="startSoraVideoGen(8, this)" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition">
+                Sora 8s
+              </button>
+              <button onclick="startSoraVideoGen(12, this)" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition">
+                Sora 12s
+              </button>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+            <div class="font-black uppercase tracking-wide text-[10px] text-amber-700">Crédits Sora</div>
+            <div class="mt-1 font-bold">
+              4s: {{ sora_wallet.credits_4s }} · 8s: {{ sora_wallet.credits_8s }} · 12s: {{ sora_wallet.credits_12s }}
+            </div>
+            <a target="_blank" rel="noopener" class="inline-flex mt-2 font-extrabold text-amber-700 hover:text-amber-900"
+               href="https://wa.me/237680625082?text=Bonjour%20E-Shelle%2C%20je%20veux%20acheter%20des%20cr%C3%A9dits%20Sora%20Premium%20pour%20AdGen.">
+              Acheter des crédits →
+            </a>
+          </div>
         </div>
 
         <div id="ad-video-wrapper">
@@ -743,8 +766,9 @@
     {% endif %}
   });
 
-  async function startAdVideoGen() {
-    const btn = document.getElementById("btn-generate-ad-video");
+  async function startAdVideoGen(mode = "fast", soraSeconds = 4, triggerBtn = null) {
+    const isSora = mode === "sora";
+    const btn = triggerBtn || document.getElementById(isSora ? "btn-generate-sora-video" : "btn-generate-ad-video");
     const wrapper = document.getElementById("ad-video-wrapper");
     const promptInput = document.getElementById("custom-ad-video-prompt");
     const durationInput = document.getElementById("ad-video-duration");
@@ -754,18 +778,21 @@
     btn.disabled = true;
     promptInput.disabled = true;
  
-    const duration = 15;
+    const duration = isSora ? soraSeconds : 15;
     const originalHtml = btn.innerHTML;
     btn.innerHTML = `
       <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle; width: 16px; height: 16px; margin-right: 6px;">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
       </svg>
-      Génération en cours...
+      ${isSora ? "Sora Premium en cours..." : "Génération en cours..."}
     `;
  
     try {
-      const resp = await fetch("{% url 'adgen:api_generate_video_start' pk=campaign.pk %}", {
+      const endpoint = isSora
+        ? "{% url 'adgen:api_generate_video_sora_start' pk=campaign.pk %}"
+        : "{% url 'adgen:api_generate_video_start' pk=campaign.pk %}";
+      const resp = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -774,6 +801,7 @@
         body: JSON.stringify({
           prompt: promptInput.value,
           duration: duration,
+          sora_seconds: soraSeconds,
           music_style: document.getElementById("ad-video-music-style").value,
           style_preset: document.getElementById("ad-video-style-preset").value,
           bg_config: {
@@ -791,6 +819,9 @@
       const data = await resp.json();
  
       if (!resp.ok || data.error) {
+        if (data.sora_credit_required) {
+          window.open("https://wa.me/237680625082?text=Bonjour%20E-Shelle%2C%20je%20veux%20acheter%20des%20cr%C3%A9dits%20Sora%20Premium%20pour%20AdGen.", "_blank");
+        }
         alert("⚠️ " + (data.error || "Impossible de démarrer la génération."));
         btn.disabled = false;
         promptInput.disabled = false;
@@ -806,7 +837,7 @@
           </div>
           <div>
             <div class="font-bold text-gray-800 text-sm" id="polling-step-title">1. Préparation de la vidéo...</div>
-            <div class="text-xs text-gray-400 mt-1" id="polling-step-desc">AdGen Studio compose votre publicité. Temps estimé : moins d'une minute.</div>
+            <div class="text-xs text-gray-400 mt-1" id="polling-step-desc">${isSora ? "Sora prépare un rendu IA premium. Le crédit a été réservé." : "AdGen Studio compose votre publicité. Temps estimé : moins d'une minute."}</div>
           </div>
         </div>
       `;
@@ -819,6 +850,13 @@
       promptInput.disabled = false;
       btn.innerHTML = originalHtml;
     }
+  }
+
+  function startSoraVideoGen(seconds = 4, triggerBtn = null) {
+    if (!confirm(`Lancer une vidéo Sora Premium ${seconds}s ? Un crédit Sora ${seconds}s sera consommé si OpenAI accepte la génération.`)) {
+      return;
+    }
+    return startAdVideoGen("sora", seconds, triggerBtn);
   }
  
   function pollAdVideoStatus(operationName, promptText, btn, promptInput, originalHtml, duration = 15) {

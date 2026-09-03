@@ -2,7 +2,7 @@
 AdGen — Administration Django
 """
 from django.contrib import admin
-from .models import AdCampaign, AdContent, AdModule, AdUsageStat
+from .models import AdCampaign, AdContent, AdModule, AdUsageStat, SoraCreditWallet
 
 
 class AdContentInline(admin.StackedInline):
@@ -69,3 +69,10 @@ class AdUsageStatAdmin(admin.ModelAdmin):
     list_display  = ("user", "campaigns_count", "tokens_total", "last_generation")
     readonly_fields = ("last_generation",)
     search_fields = ("user__username", "user__email")
+
+
+@admin.register(SoraCreditWallet)
+class SoraCreditWalletAdmin(admin.ModelAdmin):
+    list_display = ("user", "credits_4s", "credits_8s", "credits_12s", "used_4s", "used_8s", "used_12s", "updated_at")
+    search_fields = ("user__username", "user__email")
+    readonly_fields = ("updated_at",)
