@@ -111,6 +111,30 @@ def marketing_view(request):
     return render(request, "marketing.html", ctx)
 
 
+def formation_view(request):
+    """Portail central des formations, cours et outils d'apprentissage E-Shelle."""
+    ctx = {
+        "published_formations": [],
+        "featured_formations": [],
+        "formations_count": 0,
+        "categories_count": 0,
+        "lessons_count": 0,
+    }
+    try:
+        from django.db.models import Sum
+        from formations.models import Categorie, Formation
+
+        formations_qs = Formation.objects.filter(is_published=True).select_related("categorie", "formateur")
+        ctx["published_formations"] = formations_qs.order_by("-is_featured", "-created_at")[:9]
+        ctx["featured_formations"] = formations_qs.filter(is_featured=True).order_by("-created_at")[:6]
+        ctx["formations_count"] = formations_qs.count()
+        ctx["categories_count"] = Categorie.objects.filter(active=True).count()
+        ctx["lessons_count"] = formations_qs.aggregate(total=Sum("nb_lecons")).get("total") or 0
+    except Exception:
+        pass
+    return render(request, "formation.html", ctx)
+
+
 
 def home_view(request):
     ctx = {}
@@ -872,6 +896,7 @@ urlpatterns = [
     path("presentation/", presentation_view, name="presentation"),
     path("immigration/", immigration_view, name="immigration"),
     path("marketing/", marketing_view, name="marketing"),
+    path("formation/", formation_view, name="formation"),
     path("tarifs/", tarifs_view, name="tarifs"),
 ]
 

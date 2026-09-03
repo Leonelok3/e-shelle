@@ -1,0 +1,591 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Formation E-Shelle | Mapex, cours, examens et coach IA{% endblock %}
+{% block meta_description %}Accédez au portail Formation E-Shelle : Mapex, EduCam, formations en ligne, préparation aux examens, langues, maths, coach IA et cours publiés depuis l'administration.{% endblock %}
+{% block og_title %}Formation E-Shelle | Tous les outils d'apprentissage{% endblock %}
+{% block og_description %}Un espace central pour apprendre, préparer les examens, suivre les cours et accéder aux formations E-Shelle.{% endblock %}
+{% block nav_formation %}active{% endblock %}
+{% block nav_formation_mobile %}active{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="index, follow">
+<meta name="keywords" content="formation en ligne Cameroun, Mapex, EduCam, cours E-Shelle, examens Cameroun, TCF, anglais, allemand, italien, maths, coach IA">
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .learn-page {
+    min-height: 100vh;
+    background: #07100c;
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    overflow: hidden;
+  }
+  .learn-shell {
+    width: min(1180px, calc(100% - 36px));
+    margin: 0 auto;
+  }
+  .learn-hero {
+    padding: clamp(8rem, 12vw, 10.5rem) 0 5rem;
+    background:
+      radial-gradient(circle at 12% 16%, rgba(59, 130, 246, .22), transparent 30%),
+      radial-gradient(circle at 74% 18%, rgba(125, 236, 108, .2), transparent 28%),
+      radial-gradient(circle at 90% 78%, rgba(245, 158, 11, .2), transparent 32%),
+      linear-gradient(135deg, #07111f 0%, #07100c 48%, #0f1f3a 100%);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .learn-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(320px, .78fr);
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: center;
+  }
+  .learn-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .58rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(125, 236, 108, .34);
+    background: rgba(125, 236, 108, .1);
+    color: #9df58f;
+    font-size: .76rem;
+    font-weight: 950;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .learn-pill::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #7dec6c;
+    box-shadow: 0 0 18px rgba(125, 236, 108, .85);
+  }
+  .learn-title {
+    margin: 1.35rem 0 1.2rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2.7rem, 6vw, 5.25rem);
+    line-height: 1.02;
+    font-weight: 950;
+    letter-spacing: 0;
+  }
+  .learn-title span {
+    background: linear-gradient(135deg, #7dec6c 0%, #fff 45%, #60a5fa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .learn-lead {
+    max-width: 760px;
+    margin: 0;
+    color: rgba(255,255,255,.78);
+    font-size: clamp(1rem, 1.45vw, 1.22rem);
+    line-height: 1.75;
+  }
+  .learn-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .9rem;
+    margin-top: 2rem;
+  }
+  .learn-btn {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .55rem;
+    padding: .78rem 1.35rem;
+    border-radius: 999px;
+    font-weight: 950;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,.16);
+    color: #fff;
+  }
+  .learn-btn-primary {
+    background: linear-gradient(135deg, #7dec6c 0%, #f9c332 100%);
+    color: #07100c;
+    border: 0;
+    box-shadow: 0 18px 42px rgba(125, 236, 108, .2);
+  }
+  .learn-btn-blue {
+    background: linear-gradient(135deg, #3b82f6 0%, #7c3aed 100%);
+    color: #fff;
+    border: 0;
+    box-shadow: 0 18px 42px rgba(59, 130, 246, .22);
+  }
+  .learn-panel {
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.055);
+    border-radius: 22px;
+    padding: 1rem;
+    box-shadow: 0 28px 70px rgba(0,0,0,.28);
+  }
+  .learn-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .85rem;
+  }
+  .learn-mini-card {
+    min-height: 150px;
+    border-radius: 16px;
+    background: #fff;
+    color: #0f172a;
+    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-decoration: none;
+    box-shadow: 0 18px 42px rgba(0,0,0,.14);
+  }
+  .learn-mini-card span:first-child {
+    font-size: 1.5rem;
+  }
+  .learn-mini-card strong {
+    display: block;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 950;
+    color: #111827;
+  }
+  .learn-mini-card small {
+    color: #64748b;
+    font-weight: 800;
+  }
+  .learn-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .9rem;
+    margin-top: 2rem;
+  }
+  .learn-stat {
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px;
+    background: rgba(255,255,255,.06);
+    padding: 1rem;
+  }
+  .learn-stat strong {
+    display: block;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.65rem;
+    line-height: 1;
+  }
+  .learn-stat span {
+    display: block;
+    margin-top: .45rem;
+    color: rgba(255,255,255,.68);
+    font-size: .84rem;
+  }
+  .learn-section {
+    padding: clamp(4rem, 8vw, 6rem) 0;
+  }
+  .learn-section.light {
+    background: #f7fafc;
+    color: #0f172a;
+  }
+  .learn-section.deep {
+    background:
+      radial-gradient(circle at 18% 10%, rgba(59, 130, 246, .14), transparent 30%),
+      linear-gradient(180deg, #07100c 0%, #0b1628 100%);
+  }
+  .learn-kicker {
+    color: #16a34a;
+    font-size: .75rem;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-bottom: .7rem;
+    text-align: center;
+  }
+  .learn-heading {
+    margin: 0 auto 1rem;
+    max-width: 860px;
+    text-align: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    line-height: 1.08;
+    font-weight: 950;
+    color: inherit;
+  }
+  .learn-subtitle {
+    max-width: 760px;
+    margin: 0 auto 2.6rem;
+    color: #64748b;
+    line-height: 1.75;
+    text-align: center;
+  }
+  .deep .learn-subtitle {
+    color: rgba(255,255,255,.68);
+  }
+  .learn-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .learn-card {
+    min-height: 100%;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid rgba(15,23,42,.08);
+    box-shadow: 0 18px 42px rgba(15,23,42,.08);
+    padding: 1.25rem;
+    text-decoration: none;
+    color: #0f172a;
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+  }
+  .deep .learn-card {
+    background: rgba(255,255,255,.06);
+    border-color: rgba(255,255,255,.12);
+    color: #fff;
+  }
+  .learn-card:hover,
+  .learn-mini-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(125,236,108,.38);
+    box-shadow: 0 24px 58px rgba(15,23,42,.14);
+  }
+  .learn-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: #ecfdf5;
+    color: #16a34a;
+    font-size: 1.35rem;
+  }
+  .learn-card h3 {
+    margin: 0;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.18rem;
+    font-weight: 950;
+    color: inherit;
+  }
+  .learn-card p {
+    margin: 0;
+    color: #64748b;
+    line-height: 1.62;
+    font-size: .92rem;
+  }
+  .deep .learn-card p {
+    color: rgba(255,255,255,.68);
+  }
+  .learn-card small {
+    margin-top: auto;
+    color: #16a34a;
+    font-weight: 950;
+  }
+  .learn-course-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .learn-course {
+    overflow: hidden;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid rgba(15,23,42,.08);
+    box-shadow: 0 18px 42px rgba(15,23,42,.08);
+    color: #0f172a;
+    text-decoration: none;
+  }
+  .learn-course-media {
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, #0b1528, #12351f);
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 2.2rem;
+    font-weight: 950;
+  }
+  .learn-course-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .learn-course-body {
+    padding: 1.15rem;
+  }
+  .learn-course-body h3 {
+    margin: 0 0 .55rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.12rem;
+    font-weight: 950;
+  }
+  .learn-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+    margin: .8rem 0;
+  }
+  .learn-tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    border-radius: 999px;
+    padding: .25rem .65rem;
+    background: #eef2ff;
+    color: #4338ca;
+    font-size: .72rem;
+    font-weight: 900;
+  }
+  .learn-empty {
+    border-radius: 24px;
+    border: 1px dashed rgba(22,163,74,.35);
+    background: rgba(22,163,74,.06);
+    padding: 2rem;
+    text-align: center;
+  }
+  .learn-final {
+    text-align: center;
+    border-radius: 28px;
+    padding: clamp(2rem, 5vw, 4rem);
+    background:
+      radial-gradient(circle at 16% 22%, rgba(125,236,108,.24), transparent 26%),
+      linear-gradient(135deg, #091827 0%, #081b12 100%);
+    border: 1px solid rgba(125,236,108,.18);
+  }
+  .learn-final h2 {
+    margin: 0 0 1rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2rem, 4vw, 3.8rem);
+    line-height: 1.05;
+    font-weight: 950;
+  }
+  .learn-final p {
+    max-width: 760px;
+    margin: 0 auto 1.8rem;
+    color: rgba(255,255,255,.72);
+    line-height: 1.75;
+  }
+  @media (max-width: 980px) {
+    .learn-grid {
+      grid-template-columns: 1fr;
+    }
+    .learn-cards,
+    .learn-course-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 640px) {
+    .learn-shell {
+      width: min(100% - 24px, 1180px);
+    }
+    .learn-hero {
+      padding-top: 7rem;
+    }
+    .learn-cards,
+    .learn-course-grid,
+    .learn-stats,
+    .learn-mini-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="learn-page">
+  <section class="learn-hero">
+    <div class="learn-shell learn-grid">
+      <div>
+        <span class="learn-pill">Campus numérique E-Shelle</span>
+        <h1 class="learn-title">Toutes vos <span>formations</span> et outils d'apprentissage au même endroit</h1>
+        <p class="learn-lead">
+          Mapex, EduCam, préparation aux examens, langues, maths, coach IA et formations publiées depuis l'admin :
+          cette page devient la vitrine centrale de tout l'écosystème formation E-Shelle.
+        </p>
+        <div class="learn-actions">
+          <a class="learn-btn learn-btn-primary" href="{{ MAPEX_PUBLIC_URL|default:'/edu/' }}">Ouvrir Mapex →</a>
+          <a class="learn-btn" href="{% url 'formations:catalogue' %}">Voir les formations</a>
+          <a class="learn-btn learn-btn-blue" href="{% url 'preparation_tests:home' %}">Préparer un examen →</a>
+        </div>
+        <div class="learn-stats">
+          <div class="learn-stat"><strong>{{ formations_count }}</strong><span>formations publiées</span></div>
+          <div class="learn-stat"><strong>{{ categories_count }}</strong><span>catégories actives</span></div>
+          <div class="learn-stat"><strong>{{ lessons_count }}</strong><span>leçons disponibles</span></div>
+        </div>
+      </div>
+      <aside class="learn-panel" aria-label="Applications formation principales">
+        <div class="learn-mini-grid">
+          <a class="learn-mini-card" href="{{ MAPEX_PUBLIC_URL|default:'/edu/' }}">
+            <span>🎓</span>
+            <span><strong>Mapex</strong><small>Examens camerounais</small></span>
+          </a>
+          <a class="learn-mini-card" href="{% url 'formations:catalogue' %}">
+            <span>📚</span>
+            <span><strong>Formations</strong><small>Cours depuis l'admin</small></span>
+          </a>
+          <a class="learn-mini-card" href="{% url 'langues_hub' %}">
+            <span>🌍</span>
+            <span><strong>Langues</strong><small>FR, DE, GB, IT</small></span>
+          </a>
+          <a class="learn-mini-card" href="{% url 'preparation_tests:home' %}">
+            <span>📝</span>
+            <span><strong>Tests officiels</strong><small>TCF, TEF, DELF</small></span>
+          </a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="learn-section light">
+    <div class="learn-shell">
+      <p class="learn-kicker">Applications incluses</p>
+      <h2 class="learn-heading">Les outils de formation prêts à être utilisés</h2>
+      <p class="learn-subtitle">
+        Chaque carte ouvre une application E-Shelle existante. La page est prête à recevoir de nouveaux modules
+        sans casser l'expérience utilisateur.
+      </p>
+      <div class="learn-cards">
+        <a class="learn-card" href="{{ MAPEX_PUBLIC_URL|default:'/edu/' }}">
+          <span class="learn-icon">🎓</span>
+          <h3>Mapex / EduCam Pro</h3>
+          <p>Cours, documents, vidéos, abonnements, codes d'accès et préparation aux examens camerounais.</p>
+          <small>Ouvrir Mapex →</small>
+        </a>
+        <a class="learn-card" href="{% url 'formations:catalogue' %}">
+          <span class="learn-icon">📚</span>
+          <h3>Catalogue formations</h3>
+          <p>Formations publiées depuis l'administration, chapitres, leçons, quiz, progression et certificats.</p>
+          <small>Voir le catalogue →</small>
+        </a>
+        <a class="learn-card" href="{% url 'formations:mon_dashboard' %}">
+          <span class="learn-icon">🧭</span>
+          <h3>Espace apprenant</h3>
+          <p>Tableau de bord pour suivre les inscriptions, reprendre les cours et mesurer la progression.</p>
+          <small>Mon espace →</small>
+        </a>
+        <a class="learn-card" href="{% url 'preparation_tests:home' %}">
+          <span class="learn-icon">📝</span>
+          <h3>Préparation examens</h3>
+          <p>Tests officiels, entraînements, compétences, corrections et coach pour examens de langues.</p>
+          <small>Préparer un examen →</small>
+        </a>
+        <a class="learn-card" href="{% url 'preparation_tests:tcf_hub' %}">
+          <span class="learn-icon">🇨🇦</span>
+          <h3>TCF Canada</h3>
+          <p>Compréhension orale, écrite, expression orale, expression écrite et simulations officielles.</p>
+          <small>Ouvrir TCF →</small>
+        </a>
+        <a class="learn-card" href="{% url 'math_cm:accueil' %}">
+          <span class="learn-icon">🧮</span>
+          <h3>Maths Cameroun</h3>
+          <p>Chapitres, leçons, exercices, corrections et examens pour progresser étape par étape.</p>
+          <small>Apprendre les maths →</small>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="learn-section deep">
+    <div class="learn-shell">
+      <p class="learn-kicker">Langues et mobilité</p>
+      <h2 class="learn-heading">Préparer les langues pour les études, l'emploi et l'immigration</h2>
+      <p class="learn-subtitle">
+        Les outils langues peuvent rester visibles ici tout en gardant leurs pages spécialisées.
+      </p>
+      <div class="learn-cards">
+        <a class="learn-card" href="{% url 'preparation_tests:french_exams' %}">
+          <span class="learn-icon">FR</span>
+          <h3>Français</h3>
+          <p>TEF, TCF, DELF, DALF, exercices CO/CE/EO/EE, chronomètre officiel et coach IA.</p>
+          <small>Commencer →</small>
+        </a>
+        <a class="learn-card" href="{% url 'germanprep:home' %}">
+          <span class="learn-icon">DE</span>
+          <h3>Allemand</h3>
+          <p>Niveaux A1 à C1, Goethe, test de niveau, coach IA, progression et préparation Allemagne.</p>
+          <small>Commencer →</small>
+        </a>
+        <a class="learn-card" href="{% url 'englishprep:dashboard' %}">
+          <span class="learn-icon">GB</span>
+          <h3>Anglais</h3>
+          <p>IELTS, TOEFL, TOEIC, entraînements, expression écrite/orale et suivi de progression.</p>
+          <small>Commencer →</small>
+        </a>
+        <a class="learn-card" href="{% url 'italian_courses:category_list' %}">
+          <span class="learn-icon">IT</span>
+          <h3>Italien</h3>
+          <p>Cours par niveau, leçons structurées, quiz et progression pour apprendre efficacement.</p>
+          <small>Commencer →</small>
+        </a>
+        <a class="learn-card" href="{% url 'langues_hub' %}">
+          <span class="learn-icon">🌍</span>
+          <h3>Hub langues</h3>
+          <p>Une porte d'entrée simple vers toutes les applications de langues E-Shelle.</p>
+          <small>Voir le hub →</small>
+        </a>
+        <a class="learn-card" href="{% url 'preparation_tests:ai_coach' %}">
+          <span class="learn-icon">🤖</span>
+          <h3>Coach IA</h3>
+          <p>Analyse des erreurs, conseils personnalisés et plan de travail pour progresser plus vite.</p>
+          <small>Ouvrir le coach →</small>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="learn-section light">
+    <div class="learn-shell">
+      <p class="learn-kicker">Depuis l'administration</p>
+      <h2 class="learn-heading">Formations publiées sur E-Shelle</h2>
+      <p class="learn-subtitle">
+        Dès qu'une formation est créée et marquée comme publiée dans l'admin, elle peut apparaître ici avec sa
+        miniature, son niveau, son prix et son lien de détail.
+      </p>
+      {% if published_formations %}
+      <div class="learn-course-grid">
+        {% for formation in published_formations %}
+        <a class="learn-course" href="{% url 'formations:detail' formation.slug %}">
+          <div class="learn-course-media">
+            {% if formation.thumbnail %}
+              <img src="{{ formation.thumbnail.url }}" alt="{{ formation.titre }}">
+            {% else %}
+              <span>{{ formation.categorie.icone|default:"📚" }}</span>
+            {% endif %}
+          </div>
+          <div class="learn-course-body">
+            <h3>{{ formation.titre }}</h3>
+            <p>{{ formation.description_courte|default:formation.description|truncatechars:130 }}</p>
+            <div class="learn-tags">
+              <span class="learn-tag">{{ formation.categorie.nom }}</span>
+              <span class="learn-tag">{{ formation.get_niveau_display }}</span>
+              <span class="learn-tag">{% if formation.est_gratuite %}Gratuit{% else %}{{ formation.prix|floatformat:0 }} FCFA{% endif %}</span>
+            </div>
+            <small>Voir la formation →</small>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="learn-empty">
+        <h3 style="font-family:'Outfit',sans-serif;font-size:1.45rem;margin:0 0 .6rem;">Aucune formation publiée pour le moment</h3>
+        <p style="margin:0;color:#64748b;">Ajoutez une formation depuis l'administration, activez “publiée”, puis elle apparaîtra dans cette vitrine.</p>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="learn-section deep">
+    <div class="learn-shell">
+      <div class="learn-final">
+        <h2>Une vitrine claire pour toutes les formations E-Shelle</h2>
+        <p>
+          Formation devient la porte d'entrée des cours, examens, langues, Mapex, coachs IA et nouvelles offres
+          pédagogiques que vous ajouterez progressivement depuis l'admin.
+        </p>
+        <div class="learn-actions" style="justify-content:center;margin-top:0;">
+          <a class="learn-btn learn-btn-primary" href="{{ MAPEX_PUBLIC_URL|default:'/edu/' }}">Ouvrir Mapex →</a>
+          <a class="learn-btn" href="{% url 'formations:catalogue' %}">Catalogue formations</a>
+          <a class="learn-btn learn-btn-blue" href="/admin/formations/formation/add/">Ajouter une formation</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
