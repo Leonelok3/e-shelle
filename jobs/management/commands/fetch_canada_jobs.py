@@ -125,6 +125,36 @@ def _parse_deadline(deadline_str: str):
         return None
 
 
+def _fetch_guichet_detail_metadata(url: str) -> dict:
+    if "guichetemplois.gc.ca" not in (url or "").lower():
+        return {}
+    headers = {
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "fr-CA,fr;q=0.9,en-CA;q=0.7,en;q=0.6",
+        "User-Agent": "Mozilla/5.0 (compatible; EShelleCanadaJobs/1.0; +https://e-shelle.com)",
+    }
+    response = requests.get(url, headers=headers, timeout=20, allow_redirects=True)
+    if response.status_code in [404, 410] or "jobpostingexpired" in response.url.lower():
+        return {"is_active": False}
+
+    text = _clean_page_text(response.text)
+    deadline = "Non précisé"
+    deadline_match = re.search(r"Publiée jusqu[’']au\s+(\d{4}-\d{2}-\d{2})", text, re.IGNORECASE)
+    if deadline_match:
+        deadline = deadline_match.group(1)
+
+    posted_label = ""
+    posted_match = re.search(r"Publiée le\s+(.+?)\s+par", text, re.IGNORECASE)
+    if posted_match:
+        posted_label = posted_match.group(1).strip()
+
+    return {
+        "is_active": True,
+        "deadline": deadline,
+        "source_posted_date": _parse_deadline(posted_label),
+    }
+
+
 def _generate_content_with_retry(client, model, contents, config, retries=4, initial_delay=5):
     import time
     for i in range(retries):
@@ -156,7 +186,7 @@ def _clean_fragment(raw_html: str) -> str:
 def _fetch_guichet_page(page: int, fskl: str) -> str:
     params = {
         "page": page,
-        "sort": "M",
+        "sort": "D",
         "fskl": fskl,
     }
     headers = {
@@ -323,8 +353,20 @@ def _import_job_offer(job: dict, *, verify_url: bool = True) -> tuple[bool, bool
     if not ("guichetemplois.gc.ca" in url_lower or "jobbank.gc.ca" in url_lower):
         return False, False, f"URL non officielle : {url_apply}"
 
-    if verify_url and not _is_url_active(url_apply):
+    detail_metadata = {}
+    if verify_url and "guichetemplois.gc.ca" in url_lower:
+        try:
+            detail_metadata = _fetch_guichet_detail_metadata(url_apply)
+        except Exception as exc:
+            return False, False, f"page Guichet-Emplois non vérifiable : {exc} ({url_apply})"
+    elif verify_url and not _is_url_active(url_apply):
         return False, False, f"lien inactif : {url_apply}"
+
+    if detail_metadata.get("is_active") is False:
+        return False, False, f"offre expirée sur Guichet-Emplois : {url_apply}"
+    if detail_metadata.get("deadline"):
+        deadline = limit(detail_metadata["deadline"], 100)
+    source_posted_date = detail_metadata.get("source_posted_date") or _parse_deadline(job.get("posted_date") or "")
 
     allowed_status = (
         "eimt" in lmia_status.lower()
@@ -347,6 +389,7 @@ def _import_job_offer(job: dict, *, verify_url: bool = True) -> tuple[bool, bool
                 "lmia_status": lmia_status,
                 "salary": salary,
                 "deadline": deadline,
+                "source_posted_date": source_posted_date,
                 "description": (job.get("description") or "").strip(),
                 "url_apply": url_apply,
                 "is_active": True,

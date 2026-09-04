@@ -111,7 +111,7 @@ def publier(request):
 
 def canada_jobs(request):
     has_premium = check_user_has_french_premium(request.user)
-    offres = CanadaJobOffer.objects.filter(is_active=True)
+    offres = CanadaJobOffer.objects.filter(is_active=True).order_by("-source_posted_date", "-fetched_at")
     q = request.GET.get("q", "").strip()
     province = request.GET.get("province", "").strip()
     city = request.GET.get("city", "").strip()

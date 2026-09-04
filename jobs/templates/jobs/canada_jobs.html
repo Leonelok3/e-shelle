@@ -123,7 +123,12 @@
 
           <div style="margin-top:auto;border-top:1px solid #f1f5f9;padding-top:1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
             <span style="font-size:.78rem;color:#94a3b8;font-weight:500;">
-              Mis en ligne : {{ offer.fetched_at|date:"d M Y" }}
+              Mis en ligne :
+              {% if offer.source_posted_date %}
+                {{ offer.source_posted_date|date:"d M Y" }}
+              {% else %}
+                {{ offer.fetched_at|date:"d M Y" }}
+              {% endif %}
             </span>
             <div style="display:flex;gap:.5rem;width:auto;">
               <a href="{% url 'canada_resume:generate_for_offer' offer.pk %}"
