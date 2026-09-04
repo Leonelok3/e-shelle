@@ -6,7 +6,7 @@ import logging
 import re
 import requests
 from html import unescape
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urljoin
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 JOBBANK_TFW_SEARCH_URL = "https://www.jobbank.gc.ca/jobsearch/jobsearch"
 JOBBANK_DETAIL_URL = "https://www.jobbank.gc.ca/jobsearch/jobposting/{job_number}"
+GUICHET_APPROVED_SEARCH_URL = "https://www.guichetemplois.gc.ca/jobsearch/rechercheemplois"
 PROVINCE_LABELS = {
     "AB": "Alberta",
     "BC": "Colombie-Britannique",
@@ -138,6 +139,94 @@ def _clean_page_text(raw_html: str) -> str:
     text = re.sub(r"<[^>]+>", " ", text)
     text = unescape(text)
     return re.sub(r"\s+", " ", text).strip()
+
+
+def _clean_fragment(raw_html: str) -> str:
+    text = re.sub(r"<script.*?</script>|<style.*?</style>", " ", raw_html, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r'<[^>]+class="[^"]*\bwb-inv\b[^"]*"[^>]*>.*?</[^>]+>', " ", text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = unescape(text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _fetch_guichet_approved_page(page: int) -> str:
+    params = {
+        "page": page,
+        "sort": "M",
+        "fskl": "101020",  # EIMT approuvée
+    }
+    headers = {
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "fr-CA,fr;q=0.9,en-CA;q=0.7,en;q=0.6",
+        "User-Agent": "Mozilla/5.0 (compatible; EShelleCanadaJobs/1.0; +https://e-shelle.com)",
+    }
+    response = requests.get(f"{GUICHET_APPROVED_SEARCH_URL}?{urlencode(params)}", headers=headers, timeout=20)
+    response.raise_for_status()
+    return response.text
+
+
+def _extract_article_field(article: str, css_class: str) -> str:
+    match = re.search(
+        rf'<(?P<tag>[a-z0-9]+)[^>]+class="{re.escape(css_class)}"[^>]*>(.*?)</(?P=tag)>',
+        article,
+        re.DOTALL | re.IGNORECASE,
+    )
+    return _clean_fragment(match.group(2)) if match else ""
+
+
+def _parse_guichet_approved_html(html: str) -> list[dict]:
+    jobs: list[dict] = []
+    seen_urls = set()
+    article_pattern = re.compile(
+        r'<article[^>]+class="[^"]*action-buttons[^"]*"[^>]*>\s*'
+        r'<a\s+href="(?P<href>[^"]+)"[^>]*class="[^"]*resultJobItem[^"]*"[^>]*>'
+        r'(?P<body>.*?)</a>',
+        re.DOTALL | re.IGNORECASE,
+    )
+
+    for match in article_pattern.finditer(html):
+        href = unescape(match.group("href")).split(";jsessionid=")[0]
+        body = match.group("body")
+        url_apply = urljoin("https://www.guichetemplois.gc.ca", href)
+        if url_apply in seen_urls:
+            continue
+        seen_urls.add(url_apply)
+
+        title = _extract_article_field(body, "noctitle")
+        company = _extract_article_field(body, "business")
+        location_raw = _extract_article_field(body, "location")
+        salary = _extract_article_field(body, "salary").replace("Salaire :", "").strip() or "Non précisé"
+        posted_date = _extract_article_field(body, "date")
+
+        city = location_raw
+        province = ""
+        loc_match = re.search(r"(.+?)\s*\(([A-Z]{2})\)", location_raw)
+        if loc_match:
+            city = loc_match.group(1).strip()
+            province = PROVINCE_LABELS.get(loc_match.group(2), loc_match.group(2))
+
+        if not title or not company or not url_apply:
+            continue
+
+        jobs.append(
+            {
+                "title": title,
+                "company": company,
+                "city": city,
+                "province": province,
+                "lmia_status": "EIMT approuvée",
+                "salary": salary,
+                "deadline": "Non précisé",
+                "description": (
+                    f"Offre publiée sur le Guichet-Emplois avec EIMT approuvée. "
+                    f"Le poste de {title} chez {company} est destiné aux candidats qui veulent postuler "
+                    "auprès d'un employeur canadien ayant déjà obtenu une EIMT."
+                ),
+                "url_apply": url_apply,
+                "posted_date": posted_date,
+            }
+        )
+    return jobs
 
 
 def _fetch_jobbank_page(page: int) -> str:
@@ -280,12 +369,12 @@ class Command(BaseCommand):
         direct_created = 0
         direct_updated = 0
         direct_seen = 0
-        self.stdout.write("Lecture directe Job Bank - Temporary Foreign Workers...")
+        self.stdout.write("Lecture directe Guichet-Emplois - EIMT approuvée...")
         for page in range(1, pages + 1):
             try:
-                page_text = _fetch_jobbank_page(page)
-                page_jobs = _parse_jobbank_search_text(page_text)
-                self.stdout.write(f"Page Job Bank {page}: {len(page_jobs)} offre(s) détectée(s).")
+                page_html = _fetch_guichet_approved_page(page)
+                page_jobs = _parse_guichet_approved_html(page_html)
+                self.stdout.write(f"Page Guichet-Emplois EIMT approuvée {page}: {len(page_jobs)} offre(s) détectée(s).")
                 for job in page_jobs:
                     created, updated, reason = _import_job_offer(job, verify_url=True)
                     if reason:
@@ -297,17 +386,17 @@ class Command(BaseCommand):
                     elif updated:
                         direct_updated += 1
             except Exception as direct_error:
-                logger.warning("Import direct Job Bank page %s échoué: %s", page, direct_error)
-                self.stdout.write(f"Page Job Bank {page}: erreur {direct_error}")
+                logger.warning("Import direct Guichet-Emplois page %s échoué: %s", page, direct_error)
+                self.stdout.write(f"Page Guichet-Emplois {page}: erreur {direct_error}")
 
         active_after_direct = CanadaJobOffer.objects.filter(is_active=True).count()
         self.stdout.write(
-            f"Import direct Job Bank: +{direct_created}, {direct_updated} mises à jour, "
+            f"Import direct Guichet-Emplois EIMT approuvée: +{direct_created}, {direct_updated} mises à jour, "
             f"{direct_seen} valides, {active_after_direct} actives."
         )
         if skip_ai or active_after_direct >= target:
             self._cleanup_old_offers()
-            self.stdout.write(self.style.SUCCESS("Importation Canada terminée depuis Job Bank."))
+            self.stdout.write(self.style.SUCCESS("Importation Canada terminée depuis Guichet-Emplois."))
             return
 
         use_openai = bool(getattr(settings, "OPENAI_API_KEY", ""))
