@@ -287,7 +287,7 @@ class Command(BaseCommand):
                 page_jobs = _parse_jobbank_search_text(page_text)
                 self.stdout.write(f"Page Job Bank {page}: {len(page_jobs)} offre(s) détectée(s).")
                 for job in page_jobs:
-                    created, updated, reason = _import_job_offer(job, verify_url=False)
+                    created, updated, reason = _import_job_offer(job, verify_url=True)
                     if reason:
                         self.stdout.write(f"Offre ignorée: {reason}")
                         continue

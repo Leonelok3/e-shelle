@@ -61,11 +61,6 @@ def _is_url_active(url: str) -> bool:
         return False
 
 
-def _is_official_jobbank_url(url: str) -> bool:
-    url = (url or "").lower()
-    return "jobbank.gc.ca/jobsearch/jobposting/" in url or "guichetemplois.gc.ca/rechercheemplois/offredemploi/" in url
-
-
 def _parse_deadline(deadline_str: str):
     if not deadline_str:
         return None
@@ -106,11 +101,6 @@ class Command(BaseCommand):
 
             # Vérifier l'activité du lien URL
             if not _is_url_active(offer.url_apply):
-                if _is_official_jobbank_url(offer.url_apply):
-                    self.stdout.write(
-                        f"[!] Offre d'emploi officielle conservée malgré vérification HTTP impossible : {offer.url_apply}"
-                    )
-                    continue
                 offer.is_active = False
                 offer.save(update_fields=["is_active"])
                 deactivated_jobs += 1
