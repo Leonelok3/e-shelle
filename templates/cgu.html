@@ -1,209 +1,887 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Mentions Légales & Conditions Générales d'Utilisation (CGU) | E-Shelle{% endblock %}
-{% block meta_description %}Consultez les mentions légales, conditions générales de vente et d'utilisation de la plateforme E-Shelle.{% endblock %}
+{% block title %}Mentions légales, CGU, confidentialité et paiements | E-Shelle{% endblock %}
+{% block meta_description %}Mentions légales, conditions générales d'utilisation, règles marketplace, paiements, confidentialité, propriété intellectuelle et responsabilités applicables aux services E-Shelle.{% endblock %}
+{% block og_title %}Mentions légales & CGU | E-Shelle{% endblock %}
+{% block og_description %}Le cadre légal et contractuel d'E-Shelle : éditeur, services, comptes, marketplace, paiements, données, IA, responsabilités et support.{% endblock %}
+
+{% block extra_head %}
+<link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{% url 'cgu' %}">
+<meta name="robots" content="index,follow">
+<meta name="keywords" content="mentions légales E-Shelle, CGU E-Shelle, confidentialité E-Shelle, marketplace Cameroun, conditions utilisation E-Shelle, paiement Mobile Money">
+{% endblock %}
 
 {% block extra_css %}
 <style>
-  :root {
-    --color-bg-dark: #050910;
-    --color-card-bg: #0b132b;
-    --color-primary-light: #7dec6c;
-    --color-primary: #22c55e;
-    --color-border: rgba(255, 255, 255, 0.08);
-    --color-text-white: #ffffff;
-    --color-text-gray: #94a3b8;
+  .legal-page {
+    --legal-bg: #04110b;
+    --legal-ink: #f8fafc;
+    --legal-muted: #a9b7c8;
+    --legal-soft: rgba(255,255,255,.075);
+    --legal-line: rgba(125,236,108,.18);
+    --legal-green: #7dec6c;
+    --legal-green-2: #22c55e;
+    --legal-gold: #f9c332;
+    --legal-orange: #f59e0b;
+    --legal-panel: rgba(9, 19, 34, .9);
+    background:
+      linear-gradient(135deg, rgba(4,31,15,.98) 0%, rgba(3,12,10,.98) 42%, rgba(25,16,2,.98) 100%);
+    color: var(--legal-ink);
+    font-family: "Plus Jakarta Sans", var(--font-body), sans-serif;
+    overflow: hidden;
   }
 
-  .cgu-page {
-    min-height: 100vh;
-    background: radial-gradient(circle at 50% 0%, rgba(34, 197, 94, 0.08) 0%, var(--color-bg-dark) 75%);
-    color: var(--color-text-white);
-    padding: 7rem 1.5rem 4rem;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
-
-  .cgu-container {
-    max-width: 900px;
+  .legal-shell {
+    width: min(1180px, calc(100% - 32px));
     margin: 0 auto;
   }
 
-  .cgu-header {
-    text-align: center;
-    margin-bottom: 4rem;
+  .legal-hero {
+    padding: clamp(7.5rem, 10vw, 10.5rem) 0 clamp(3rem, 6vw, 5rem);
+    position: relative;
+    border-bottom: 1px solid rgba(255,255,255,.06);
   }
 
-  .cgu-header h1 {
-    font-family: 'Outfit', sans-serif;
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin-bottom: 1rem;
-    background: linear-gradient(135deg, var(--color-text-white) 0%, var(--color-primary-light) 100%);
+  .legal-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, rgba(125,236,108,.1), transparent 34%, rgba(249,195,50,.1) 78%, transparent),
+      linear-gradient(180deg, rgba(255,255,255,.04), transparent 48%);
+    opacity: .9;
+  }
+
+  .legal-hero-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(300px, .68fr);
+    gap: clamp(1.5rem, 5vw, 4rem);
+    align-items: end;
+  }
+
+  .legal-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    min-height: 32px;
+    padding: .38rem .85rem;
+    border: 1px solid rgba(125,236,108,.34);
+    border-radius: 999px;
+    background: rgba(125,236,108,.08);
+    color: var(--legal-green);
+    font-size: .72rem;
+    font-weight: 900;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+
+  .legal-eyebrow::before {
+    content: "";
+    width: .45rem;
+    height: .45rem;
+    border-radius: 999px;
+    background: var(--legal-green);
+    box-shadow: 0 0 18px rgba(125,236,108,.85);
+  }
+
+  .legal-hero h1 {
+    margin: 1rem 0 1rem;
+    max-width: 820px;
+    font-family: "Outfit", var(--font-display), sans-serif;
+    font-size: clamp(2.35rem, 6vw, 5rem);
+    line-height: .96;
+    font-weight: 950;
+    letter-spacing: 0;
+  }
+
+  .legal-hero h1 span {
+    color: transparent;
+    background: linear-gradient(135deg, #fff 0%, #dfffd8 38%, #f9c332 100%);
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  .cgu-header p {
-    color: var(--color-text-gray);
-    font-size: 1rem;
+  .legal-lead {
+    max-width: 760px;
+    margin: 0;
+    color: rgba(255,255,255,.84);
+    font-size: clamp(1rem, 1.5vw, 1.2rem);
+    line-height: 1.75;
   }
 
-  .cgu-card {
-    background: var(--color-card-bg);
-    border: 1px solid var(--color-border);
+  .legal-quick-card {
+    border: 1px solid rgba(125,236,108,.24);
     border-radius: 20px;
-    padding: 3rem;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(12px);
+    background:
+      linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.025)),
+      rgba(8,17,31,.82);
+    box-shadow: 0 26px 80px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.08);
+    padding: 1.2rem;
   }
 
-  .cgu-section {
-    margin-bottom: 2.5rem;
+  .legal-quick-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,.08);
   }
 
-  .cgu-section h2 {
-    font-family: 'Outfit', sans-serif;
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--color-primary-light);
-    margin-bottom: 1.25rem;
+  .legal-quick-title strong {
+    font-family: "Outfit", var(--font-display), sans-serif;
+    font-size: 1.05rem;
+    font-weight: 900;
+  }
+
+  .legal-version {
+    display: inline-flex;
+    padding: .35rem .65rem;
+    border-radius: 999px;
+    background: rgba(249,195,50,.12);
+    color: var(--legal-gold);
+    font-size: .72rem;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+
+  .legal-facts {
+    display: grid;
+    gap: .8rem;
+  }
+
+  .legal-fact {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: .75rem;
+    align-items: start;
+  }
+
+  .legal-fact-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(125,236,108,.2), rgba(249,195,50,.16));
+    color: var(--legal-green);
+    font-weight: 900;
+  }
+
+  .legal-fact span {
+    display: block;
+    color: var(--legal-muted);
+    font-size: .78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  .legal-fact strong,
+  .legal-fact a {
+    display: inline-block;
+    margin-top: .12rem;
+    color: #fff;
+    font-size: .94rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .legal-fact a:hover {
+    color: var(--legal-green);
+  }
+
+  .legal-notice {
+    margin-top: 1rem;
+    padding: .9rem 1rem;
+    border-radius: 14px;
+    background: rgba(125,236,108,.08);
+    border: 1px solid rgba(125,236,108,.18);
+    color: rgba(255,255,255,.84);
+    font-size: .86rem;
+    line-height: 1.55;
+  }
+
+  .legal-body {
+    padding: clamp(2.5rem, 5vw, 4.5rem) 0 clamp(4rem, 7vw, 6rem);
+    background: #f8fafc;
+    color: #0f172a;
+  }
+
+  .legal-layout {
+    display: grid;
+    grid-template-columns: 270px minmax(0, 1fr);
+    gap: clamp(1.2rem, 4vw, 2rem);
+    align-items: start;
+  }
+
+  .legal-toc {
+    position: sticky;
+    top: 5.5rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 18px 50px rgba(15,23,42,.08);
+    overflow: hidden;
+  }
+
+  .legal-toc-header {
+    padding: 1rem 1.05rem;
+    background: linear-gradient(135deg, #06150d, #0b1528);
+    color: #fff;
+    font-family: "Outfit", var(--font-display), sans-serif;
+    font-weight: 900;
+  }
+
+  .legal-toc nav {
+    display: grid;
+    padding: .6rem;
+  }
+
+  .legal-toc a {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    border-bottom: 1px solid var(--color-border);
-    padding-bottom: 0.5rem;
+    gap: .55rem;
+    min-height: 38px;
+    padding: .55rem .65rem;
+    border-radius: 10px;
+    color: #475569;
+    text-decoration: none;
+    font-size: .86rem;
+    font-weight: 750;
   }
 
-  .cgu-section p, .cgu-section ul {
-    font-size: 0.95rem;
-    line-height: 1.7;
-    color: #e2e8f0;
-    margin-bottom: 1rem;
+  .legal-toc a:hover {
+    background: #eef9ef;
+    color: #15803d;
   }
 
-  .cgu-section ul {
-    list-style-type: disc;
-    padding-left: 1.5rem;
+  .legal-toc a span {
+    color: #16a34a;
+    font-weight: 950;
+    min-width: 1.5rem;
   }
 
-  .cgu-section li {
-    margin-bottom: 0.5rem;
+  .legal-doc {
+    display: grid;
+    gap: 1rem;
   }
 
-  .cgu-highlight-box {
-    background: rgba(34, 197, 94, 0.05);
-    border-left: 4px solid var(--color-primary);
-    padding: 1.25rem;
-    border-radius: 0 12px 12px 0;
-    margin: 1.5rem 0;
+  .legal-section {
+    border: 1px solid #dbe5ef;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 18px 48px rgba(15,23,42,.075);
+    overflow: hidden;
   }
 
-  .cgu-highlight-box p {
+  .legal-section-head {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: .9rem;
+    align-items: center;
+    padding: 1.15rem 1.3rem;
+    border-bottom: 1px solid #edf2f7;
+    background:
+      linear-gradient(90deg, rgba(125,236,108,.12), transparent 38%),
+      #fff;
+  }
+
+  .legal-section-number {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #7dec6c, #f9c332);
+    color: #07130c;
+    font-family: "Outfit", var(--font-display), sans-serif;
+    font-weight: 950;
+    box-shadow: 0 10px 24px rgba(34,197,94,.2);
+  }
+
+  .legal-section h2 {
     margin: 0;
-    font-weight: 500;
+    font-family: "Outfit", var(--font-display), sans-serif;
+    color: #0f172a;
+    font-size: clamp(1.18rem, 2vw, 1.6rem);
+    font-weight: 950;
+    line-height: 1.18;
   }
 
-  @media (max-width: 768px) {
-    .cgu-page {
-      padding-top: 5rem;
+  .legal-section-body {
+    padding: 1.3rem;
+  }
+
+  .legal-section p,
+  .legal-section li {
+    color: #334155;
+    font-size: .96rem;
+    line-height: 1.78;
+  }
+
+  .legal-section p {
+    margin: 0 0 1rem;
+  }
+
+  .legal-section p:last-child {
+    margin-bottom: 0;
+  }
+
+  .legal-section strong {
+    color: #0f172a;
+    font-weight: 850;
+  }
+
+  .legal-section a {
+    color: #15803d;
+    font-weight: 850;
+    text-decoration: none;
+  }
+
+  .legal-section a:hover {
+    color: #0f172a;
+    text-decoration: underline;
+  }
+
+  .legal-section ul {
+    margin: .75rem 0 1rem;
+    padding-left: 1.15rem;
+  }
+
+  .legal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .85rem;
+    margin: 1rem 0;
+  }
+
+  .legal-mini {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #f8fafc;
+    padding: 1rem;
+  }
+
+  .legal-mini h3 {
+    margin: 0 0 .35rem;
+    color: #0f172a;
+    font-family: "Outfit", var(--font-display), sans-serif;
+    font-size: 1rem;
+    font-weight: 900;
+  }
+
+  .legal-mini p {
+    margin: 0;
+    color: #526176;
+    font-size: .9rem;
+    line-height: 1.62;
+  }
+
+  .legal-callout {
+    margin: 1rem 0;
+    padding: 1rem 1.1rem;
+    border-left: 5px solid #22c55e;
+    border-radius: 0 14px 14px 0;
+    background: #effaf0;
+  }
+
+  .legal-warning {
+    border-left-color: #f59e0b;
+    background: #fff8e6;
+  }
+
+  .legal-contact-band {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .85rem;
+  }
+
+  .legal-contact-item {
+    padding: 1rem;
+    border-radius: 14px;
+    background: #0b1528;
+    color: #fff;
+  }
+
+  .legal-contact-item span {
+    display: block;
+    color: #94a3b8;
+    font-size: .76rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: .25rem;
+  }
+
+  .legal-contact-item a,
+  .legal-contact-item strong {
+    color: #7dec6c;
+    text-decoration: none;
+    font-weight: 900;
+  }
+
+  .legal-final {
+    border: 1px solid rgba(125,236,108,.26);
+    border-radius: 20px;
+    background:
+      linear-gradient(135deg, rgba(4,31,15,.96), rgba(3,12,10,.98) 50%, rgba(25,16,2,.96));
+    color: #fff;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    box-shadow: 0 22px 70px rgba(15,23,42,.18);
+  }
+
+  .legal-final h2 {
+    margin: 0 0 .6rem;
+    font-family: "Outfit", var(--font-display), sans-serif;
+    font-size: clamp(1.35rem, 3vw, 2.1rem);
+    font-weight: 950;
+  }
+
+  .legal-final p {
+    margin: 0;
+    max-width: 780px;
+    color: rgba(255,255,255,.82);
+    line-height: 1.75;
+  }
+
+  .legal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem;
+    margin-top: 1.25rem;
+  }
+
+  .legal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: .72rem 1.15rem;
+    border-radius: 999px;
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  .legal-btn-primary {
+    background: linear-gradient(135deg, #7dec6c, #f9c332);
+    color: #07130c;
+  }
+
+  .legal-btn-outline {
+    border: 1px solid rgba(255,255,255,.18);
+    color: #fff;
+    background: rgba(255,255,255,.06);
+  }
+
+  @media (max-width: 980px) {
+    .legal-hero-grid,
+    .legal-layout {
+      grid-template-columns: 1fr;
     }
-    .cgu-card {
-      padding: 1.5rem;
+
+    .legal-toc {
+      position: static;
     }
-    .cgu-header h1 {
-      font-size: 2rem;
+
+    .legal-toc nav {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .legal-shell {
+      width: min(100% - 20px, 1180px);
+    }
+
+    .legal-hero {
+      padding-top: 6.4rem;
+    }
+
+    .legal-quick-title,
+    .legal-section-head {
+      align-items: start;
+    }
+
+    .legal-toc nav,
+    .legal-grid,
+    .legal-contact-band {
+      grid-template-columns: 1fr;
+    }
+
+    .legal-section-body {
+      padding: 1rem;
     }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="cgu-page">
-  <div class="cgu-container">
-    
-    <div class="cgu-header">
-      <h1>Mentions Légales & CGU</h1>
-      <p>Dernière mise à jour : 16 août 2026</p>
-    </div>
-
-    <div class="cgu-card">
-      
-      <!-- Section 1: Mentions Légales -->
-      <div class="cgu-section">
-        <h2>⚖️ 1. Mentions Légales</h2>
-        <p>Conformément aux réglementations sur le commerce électronique en vigueur en Afrique subsaharienne (notamment au Cameroun et en Côte d'Ivoire), l'identité de l'éditeur de la plateforme <strong>E-Shelle</strong> est précisée ci-après :</p>
-        <ul>
-          <li><strong>Éditeur de la plateforme :</strong> <strong>E-SHELLE</strong>, entreprise enregistrée en tant qu'Établissement (Ets) sous les registres commerciaux légaux compétents.</li>
-          <li><strong>Directeur de publication :</strong> Le gérant et représentant légal de l'établissement E-Shelle.</li>
-          <li><strong>Adresse du siège social :</strong> Douala / Yaoundé, Cameroun.</li>
-          <li><strong>Contact WhatsApp commercial :</strong> +237 680 625 082</li>
-          <li><strong>Hébergement de la plateforme :</strong> La plateforme est hébergée sur des serveurs Cloud sécurisés localisés dans des datacenters certifiés conformes aux standards de sécurité bancaire internationaux.</li>
-        </ul>
+<div class="legal-page">
+  <section class="legal-hero">
+    <div class="legal-shell legal-hero-grid">
+      <div>
+        <div class="legal-eyebrow">Cadre légal E-Shelle</div>
+        <h1>Mentions légales, <span>CGU & confidentialité</span></h1>
+        <p class="legal-lead">
+          Cette page présente les règles applicables à l'utilisation de l'écosystème E-Shelle :
+          marketplace locale, vitrines business, boutique digitale, services de formation, outils marketing,
+          paiements, modules IA et espaces immigration.
+        </p>
       </div>
 
-      <!-- Section 2: Objet de la Plateforme -->
-      <div class="cgu-section">
-        <h2>🚀 2. Services Proposés</h2>
-        <p><strong>E-Shelle</strong> est une plateforme SaaS (Software as a Service) tout-en-un facilitant le commerce digital et la formation professionnelle en Afrique. La plateforme offre notamment :</p>
-        <ul>
-          <li>La création et l'hébergement de vitrines de vente pour les marchands et prestataires de services locaux.</li>
-          <li>La conception assistée par intelligence artificielle de supports publicitaires et vidéos promotionnelles de 15 secondes au format vertical (module AdGen).</li>
-          <li>La mise à disposition d'une boutique digitale pour les transactions de biens dématérialisés.</li>
-        </ul>
-      </div>
-
-      <!-- Section 3: Forfaits et Tarification -->
-      <div class="cgu-section">
-        <h2>💰 3. Forfaits et Tarification</h2>
-        <p>Les tarifs d'abonnement et de services à la carte pour l'accès aux modules avancés de la plateforme (comme la création de vidéos publicitaires IA) sont fixés en Francs CFA (XAF/XOF) :</p>
-        <ul>
-          <li><strong>Plan Gratuit :</strong> 0 FCFA (limité à 5 produits, vidéos publicitaires non incluses).</li>
-          <li><strong>Plan Propulseur :</strong> 3 000 FCFA / mois (Accès illimité au catalogue, 5 vidéos publicitaires IA incluses).</li>
-          <li><strong>Plan Premium :</strong> 7 500 FCFA / mois (Accès prioritaire, vidéos publicitaires IA illimitées).</li>
-          <li><strong>Option Vidéo Individuelle :</strong> 500 FCFA / génération supplémentaire de vidéo.</li>
-        </ul>
-      </div>
-
-      <!-- Section 4: Sécurité des Transactions et Paiement -->
-      <div class="cgu-section">
-        <h2>🔒 4. Sécurité des Paiements et Mobile Money</h2>
-        <p>Pour assurer une sécurité maximale à ses marchands et clients, E-Shelle utilise la technologie de l'opérateur agréé **CinetPay** pour le traitement des paiements.</p>
-        <p>Toutes les transactions effectuées en Mobile Money (MTN MoMo, Orange Money, Wave, Moov Money) ou par cartes bancaires sont cryptées selon le protocole de sécurité SSL/TLS et traitées directement sur l'infrastructure sécurisée de nos partenaires financiers. E-Shelle ne stocke aucun code PIN ou donnée d'accès financière confidentielle.</p>
-      </div>
-
-      <!-- Section 5: Politique de Livraison et Remboursement -->
-      <div class="cgu-section">
-        <h2>🔄 5. Politique d'Exécution et de Remboursement</h2>
-        <p>CinetPay et les réglementations bancaires imposent une clarification rigoureuse des termes de livraison et de rétractation :</p>
-        <div class="cgu-highlight-box">
-          <p><strong>Livraison Immédiate :</strong> Les forfaits et abonnements premium de la plateforme (dont le générateur de vidéo AdGen) sont des services entièrement numériques activés instantanément après la confirmation de la transaction financière par Mobile Money.</p>
+      <aside class="legal-quick-card" aria-label="Informations essentielles">
+        <div class="legal-quick-title">
+          <strong>Informations clés</strong>
+          <span class="legal-version">Version 04.09.2026</span>
         </div>
-        <p><strong>Droit de rétractation et Remboursements :</strong></p>
-        <ul>
-          <li>En raison du caractère numérique et de l'exécution instantanée des services (les tokens de génération IA et l'accès Premium étant consommés immédiatement), aucun remboursement ne pourra être consenti une fois que le service ou la vidéo IA a été généré avec succès.</li>
-          <li>En cas de défaillance technique avérée du système empêchant la livraison effective de la vidéo publicitaire ou du forfait payé, le client est invité à contacter notre service support WhatsApp sous 24h (+237 680 625 082) muni de son ID de transaction. Après vérification de l'échec de la transaction par nos équipes, un crédit équivalent sera crédité ou un remboursement sera initié par Mobile Money.</li>
-        </ul>
-      </div>
-
-      <!-- Section 6: Données Personnelles -->
-      <div class="cgu-section">
-        <h2>🛡️ 6. Confidentialité et Protection des Données</h2>
-        <p>Les informations recueillies sur les marchands et acheteurs (notamment les numéros WhatsApp de contact commercial et les photos de produits) sont traitées conformément aux réglementations de protection des données individuelles et sont strictement réservées à l'usage interne de livraison des services d'E-Shelle. Elles ne sont en aucun cas revendues à des tiers.</p>
-      </div>
-
-      <!-- Section 7: Support et Litiges -->
-      <div class="cgu-section">
-        <h2>📞 7. Résolution des Litiges</h2>
-        <p>Pour toute réclamation relative à votre compte, à vos abonnements ou à un paiement effectué par Mobile Money, notre équipe d'assistance est joignable à tout moment :</p>
-        <ul>
-          <li><strong>Par WhatsApp direct :</strong> +237 680 625 082</li>
-          <li><strong>Par E-mail :</strong> support@e-shelle.com</li>
-        </ul>
-        <p>En cas de litige non résolu à l'amiable, les tribunaux du siège social de l'établissement seront seuls compétents.</p>
-      </div>
-
+        <div class="legal-facts">
+          <div class="legal-fact">
+            <span class="legal-fact-icon">E</span>
+            <div><span>Plateforme</span><strong>E-Shelle</strong></div>
+          </div>
+          <div class="legal-fact">
+            <span class="legal-fact-icon">CM</span>
+            <div><span>Siège opérationnel</span><strong>Douala, Makepe, Cameroun</strong></div>
+          </div>
+          <div class="legal-fact">
+            <span class="legal-fact-icon">@</span>
+            <div><span>Email support</span><a href="mailto:e.shelleltd@gmail.com">e.shelleltd@gmail.com</a></div>
+          </div>
+          <div class="legal-fact">
+            <span class="legal-fact-icon">WA</span>
+            <div><span>WhatsApp</span><a href="https://wa.me/237680625082">+237 680 625 082</a></div>
+          </div>
+        </div>
+        <p class="legal-notice">
+          Les informations ci-dessous constituent le cadre contractuel général de la plateforme.
+          Elles peuvent être complétées par des conditions particulières propres à certains modules.
+        </p>
+      </aside>
     </div>
-  </div>
+  </section>
+
+  <section class="legal-body">
+    <div class="legal-shell legal-layout">
+      <aside class="legal-toc" aria-label="Sommaire des mentions légales">
+        <div class="legal-toc-header">Sommaire</div>
+        <nav>
+          <a href="#article-1"><span>01</span> Éditeur</a>
+          <a href="#article-2"><span>02</span> Services</a>
+          <a href="#article-3"><span>03</span> Accès</a>
+          <a href="#article-4"><span>04</span> Marketplace</a>
+          <a href="#article-5"><span>05</span> Paiements</a>
+          <a href="#article-6"><span>06</span> IA</a>
+          <a href="#article-7"><span>07</span> Données</a>
+          <a href="#article-8"><span>08</span> Contenus</a>
+          <a href="#article-9"><span>09</span> Responsabilité</a>
+          <a href="#article-10"><span>10</span> Litiges</a>
+        </nav>
+      </aside>
+
+      <div class="legal-doc">
+        <article class="legal-section" id="article-1">
+          <div class="legal-section-head">
+            <span class="legal-section-number">01</span>
+            <h2>Éditeur de la plateforme et informations légales</h2>
+          </div>
+          <div class="legal-section-body">
+            <p>
+              Le site <strong>e-shelle.com</strong>, ses sous-domaines, applications et modules associés sont édités
+              par <strong>E-Shelle</strong>, écosystème digital et IA exploité depuis le Cameroun pour faciliter la
+              visibilité, la vente, la formation et la mise en relation de commerces, prestataires et utilisateurs.
+            </p>
+            <ul>
+              <li><strong>Nom commercial :</strong> E-Shelle.</li>
+              <li><strong>Activité :</strong> plateforme numérique, marketplace, vitrines commerciales, outils IA, formation, services web et accompagnement digital.</li>
+              <li><strong>Siège opérationnel :</strong> Douala, Makepe, Cameroun.</li>
+              <li><strong>Directeur de publication :</strong> le représentant légal de E-Shelle.</li>
+              <li><strong>Contact officiel :</strong> e.shelleltd@gmail.com et WhatsApp +237 680 625 082.</li>
+            </ul>
+            <div class="legal-callout">
+              <p>
+                Les coordonnées administratives, références d'immatriculation et informations fiscales peuvent être
+                communiquées aux autorités compétentes, partenaires de paiement, prestataires contractuels ou clients
+                professionnels lorsque la réglementation ou la relation commerciale le justifie.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article class="legal-section" id="article-2">
+          <div class="legal-section-head">
+            <span class="legal-section-number">02</span>
+            <h2>Objet de E-Shelle et périmètre des services</h2>
+          </div>
+          <div class="legal-section-body">
+            <p>
+              E-Shelle rassemble plusieurs services numériques destinés aux particuliers, vendeurs, entreprises,
+              apprenants, candidats à l'immigration et créateurs de contenu. La plateforme peut notamment proposer :
+            </p>
+            <div class="legal-grid">
+              <div class="legal-mini">
+                <h3>Marketplace locale</h3>
+                <p>Produits, services, restaurants, immobilier, pressing, santé, transport, gaz, annonces et vitrines de prestataires.</p>
+              </div>
+              <div class="legal-mini">
+                <h3>Business & visibilité</h3>
+                <p>Création de fiches business, référencement local, pages optimisées, WhatsApp direct et visibilité sur moteurs de recherche.</p>
+              </div>
+              <div class="legal-mini">
+                <h3>Outils IA & marketing</h3>
+                <p>AdGen, génération de textes, supports publicitaires, vidéos, agents d'aide commerciale et automatisations.</p>
+              </div>
+              <div class="legal-mini">
+                <h3>Formation & immigration</h3>
+                <p>Préparation examens, langues, CanadaSpace, Allemagne, bourses, opportunités, CV et ressources documentaires.</p>
+              </div>
+            </div>
+            <p>
+              Certains modules peuvent être gratuits, en accès freemium, payants à l'usage ou disponibles via abonnement.
+              Les fonctionnalités exactes, quotas, tarifs et limites sont affichés dans les pages commerciales concernées.
+            </p>
+          </div>
+        </article>
+
+        <article class="legal-section" id="article-3">
+          <div class="legal-section-head">
+            <span class="legal-section-number">03</span>
+            <h2>Acceptation des conditions, comptes et accès utilisateur</h2>
+          </div>
+          <div class="legal-section-body">
+            <p>
+              L'accès à E-Shelle implique l'acceptation des présentes conditions. L'utilisateur s'engage à fournir des
+              informations exactes, à maintenir la confidentialité de ses accès et à ne pas utiliser la plateforme à des
+              fins frauduleuses, illicites, trompeuses, discriminatoires ou contraires aux droits de tiers.
+            </p>
+            <ul>
+              <li>Chaque utilisateur reste responsable des actions effectuées depuis son compte.</li>
+              <li>E-Shelle peut suspendre un compte en cas d'abus, d'usurpation, de fraude, de non-paiement ou de contenu dangereux.</li>
+              <li>Les professionnels doivent disposer des autorisations nécessaires pour vendre, publier ou promouvoir leurs offres.</li>
+              <li>Les mineurs doivent utiliser la plateforme sous la supervision d'un représentant légal.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="legal-section" id="article-4">
+          <div class="legal-section-head">
+            <span class="legal-section-number">04</span>
+            <h2>Règles marketplace, prestataires et relation avec les clients</h2>
+          </div>
+          <div class="legal-section-body">
+            <p>
+              E-Shelle facilite la découverte et la mise en relation. Sauf indication contraire, la vente finale,
+              la livraison physique, la disponibilité réelle, la qualité du produit, le prix négocié, les garanties
+              commerciales et le service après-vente relèvent du prestataire ou vendeur concerné.
+            </p>
+            <ul>
+              <li>Les prestataires doivent publier des descriptions loyales, prix cohérents, images autorisées et coordonnées valides.</li>
+              <li>Les produits interdits, contrefaits, dangereux, réglementés sans autorisation ou trompeurs peuvent être retirés.</li>
+              <li>E-Shelle peut améliorer la présentation d'une fiche pour le SEO, la lisibilité, la traduction ou la recherche IA.</li>
+              <li>Les avis, signalements et réclamations peuvent être utilisés pour protéger les utilisateurs et la qualité du catalogue.</li>
+            </ul>
+            <div class="legal-callout legal-warning">
+              <p>
+                Pour les achats physiques, rendez-vous, livraisons locales et prestations terrain, l'utilisateur doit
+                vérifier l'identité du vendeur, le produit, le lieu, le montant et les conditions avant paiement ou remise.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article class="legal-section" id="article-5">
+          <div class="legal-section-head">
+            <span class="legal-section-number">05</span>
+            <h2>Prix, abonnements, paiements et remboursements</h2>
+          </div>
+          <div class="legal-section-body">
+            <p>
+              Les prix sont généralement affichés en francs CFA, sauf mention différente. Les paiements peuvent être
+              réalisés par Mobile Money, carte bancaire, code prépayé, recharge manuelle ou tout autre moyen activé
+              par E-Shelle et ses partenaires de paiement.
+            </p>
+            <ul>
+              <li>Les services numériques peuvent être activés automatiquement après confirmation du paiement.</li>
+              <li>E-Shelle ne demande jamais le code PIN Mobile Money, mot de passe bancaire ou information secrète de paiement.</li>
+              <li>Les frais opérateurs, taxes, commissions de paiement ou frais de change peuvent varier selon le pays et le moyen de paiement.</li>
+              <li>Une facture, un reçu ou une preuve de transaction peut être généré selon le service utilisé.</li>
+            </ul>
+            <div class="legal-callout">
+              <p>
+                Les services numériques déjà consommés, crédits IA utilisés, contenus générés, abonnements activés ou
+                prestations déjà livrées ne sont pas automatiquement remboursables. En cas d'incident technique avéré,
+                E-Shelle peut proposer une correction, un avoir, une régénération, une extension d'accès ou un remboursement
+                après vérification.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article class="legal-section" id="article-6">
+          <div class="legal-section-head">
+            <span class="legal-section-number">06</span>
+            <h2>Services basés sur l'intelligence artificielle</h2>
+          </div>
+          <div class="legal-section-body">
+            <p>
+              Certains modules E-Shelle utilisent l'intelligence artificielle pour rechercher, rédiger, classifier,
+              générer des textes, images, scripts, documents, fiches business, descriptions SEO ou contenus marketing.
+              Ces résultats sont fournis comme assistance productive et doivent être vérifiés par l'utilisateur avant
+              publication, utilisation commerciale ou décision importante.
+            </p>
+            <ul>
+              <li>Les résultats IA peuvent contenir des erreurs, approximations, informations incomplètes ou formulations à adapter.</li>
+              <li>Les modules immigration, emploi, bourses, santé, finance, juridique ou formation ne remplacent pas un professionnel qualifié.</li>
+              <li>L'utilisateur doit posséder les droits nécessaires sur les images, marques, textes, sons et données fournis à l'IA.</li>
+              <li>E-Shelle peut refuser ou limiter les demandes visant la fraude, l'usurpation, la haine, la désinformation ou le contournement de règles.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="legal-section" id="article-7">
+          <div class="legal-section-head">
+            <span class="legal-section-number">07</span>
+            <h2>Données personnelles, confidentialité et sécurité</h2>
+          </div>
+          <div class="legal-section-body">
+            <p>
+              E-Shelle collecte uniquement les informations nécessaires au fonctionnement de ses services : compte,
+              identité déclarative, coordonnées, préférences, fiches business, produits, commandes, paiements, messages,
+              fichiers envoyés, données techniques et historiques d'utilisation.
+            </p>
+            <ul>
+              <li>Les données servent à créer les comptes, publier les fiches, exécuter les commandes, fournir le support et sécuriser la plateforme.</li>
+              <li>Les coordonnées professionnelles publiées dans une fiche peuvent être visibles publiquement pour permettre la mise en relation.</li>
+              <li>Les données ne sont pas revendues comme fichiers commerciaux indépendants.</li>
+              <li>Des prestataires techniques peuvent intervenir pour l'hébergement, le stockage, l'email, l'analyse, l'IA ou le paiement.</li>
+              <li>L'utilisateur peut demander l'accès, la correction, la limitation ou la suppression de ses données selon les obligations applicables.</li>
+            </ul>
+            <p>
+              La sécurité repose sur des accès contrôlés, communications chiffrées lorsque disponibles, sauvegardes,
+              journalisation technique et bonnes pratiques applicatives. Aucune infrastructure numérique n'étant
+              infaillible, l'utilisateur doit également protéger ses identifiants et appareils.
+            </p>
+          </div>
+        </article>
+
+        <article class="legal-section" id="article-8">
+          <div class="legal-section-head">
+            <span class="legal-section-number">08</span>
+            <h2>Propriété intellectuelle, contenus publiés et marques</h2>
+          </div>
+          <div class="legal-section-body">
+            <p>
+              Les interfaces, textes, logos, éléments graphiques, composants, bases de données, modèles de pages,
+              automatisations, prompts, parcours pédagogiques et développements propres à E-Shelle sont protégés par
+              les règles relatives à la propriété intellectuelle et au savoir-faire.
+            </p>
+            <ul>
+              <li>L'utilisateur conserve ses droits sur les contenus qu'il fournit, mais accorde à E-Shelle une licence d'affichage, d'hébergement, d'optimisation et de promotion nécessaire au service.</li>
+              <li>Il est interdit de copier massivement, scraper abusivement, revendre, désassembler ou reproduire les services E-Shelle sans autorisation.</li>
+              <li>Les marques de tiers citées restent la propriété de leurs détenteurs respectifs.</li>
+              <li>Tout contenu signalé comme contrefaisant, diffamatoire, trompeur ou illicite peut être retiré sans préavis.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="legal-section" id="article-9">
+          <div class="legal-section-head">
+            <span class="legal-section-number">09</span>
+            <h2>Disponibilité, limitations et responsabilités</h2>
+          </div>
+          <div class="legal-section-body">
+            <p>
+              E-Shelle met en oeuvre des moyens raisonnables pour maintenir une plateforme accessible, rapide et utile.
+              Des interruptions peuvent toutefois survenir en raison de maintenance, mises à jour, incidents réseaux,
+              fournisseurs tiers, force majeure, erreurs de configuration ou abus d'utilisation.
+            </p>
+            <ul>
+              <li>E-Shelle n'est pas responsable des engagements pris directement entre un client et un prestataire indépendant.</li>
+              <li>E-Shelle ne garantit pas un niveau déterminé de chiffre d'affaires, classement Google, conversion ou résultat administratif.</li>
+              <li>Les liens externes, sources publiques, sites gouvernementaux ou plateformes partenaires relèvent de leurs propres conditions.</li>
+              <li>La responsabilité de E-Shelle est limitée aux montants effectivement payés pour le service directement concerné, sauf règle impérative contraire.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="legal-section" id="article-10">
+          <div class="legal-section-head">
+            <span class="legal-section-number">10</span>
+            <h2>Réclamations, droit applicable et règlement des litiges</h2>
+          </div>
+          <div class="legal-section-body">
+            <p>
+              Toute demande relative à un compte, paiement, contenu, fiche business, accès premium ou incident technique
+              doit être adressée au support avec les éléments utiles : nom du compte, numéro, capture, ID de transaction,
+              URL concernée et description du problème.
+            </p>
+            <div class="legal-contact-band">
+              <div class="legal-contact-item">
+                <span>WhatsApp</span>
+                <a href="https://wa.me/237680625082">+237 680 625 082</a>
+              </div>
+              <div class="legal-contact-item">
+                <span>Email</span>
+                <a href="mailto:e.shelleltd@gmail.com">e.shelleltd@gmail.com</a>
+              </div>
+              <div class="legal-contact-item">
+                <span>Adresse</span>
+                <strong>Douala, Makepe, CM</strong>
+              </div>
+            </div>
+            <p style="margin-top:1rem;">
+              Les présentes conditions sont interprétées selon le droit applicable au siège opérationnel de la plateforme,
+              sous réserve des règles impératives protégeant les consommateurs et des dispositions applicables aux
+              transactions internationales. Les parties privilégieront une résolution amiable avant toute procédure.
+            </p>
+          </div>
+        </article>
+
+        <article class="legal-section" id="article-11">
+          <div class="legal-section-head">
+            <span class="legal-section-number">11</span>
+            <h2>Cadre de référence et évolution des conditions</h2>
+          </div>
+          <div class="legal-section-body">
+            <p>
+              E-Shelle tient compte du cadre camerounais relatif aux communications électroniques, à la cybersécurité,
+              à la cybercriminalité, au commerce électronique, à la protection des données personnelles, ainsi que des
+              bonnes pratiques contractuelles applicables aux plateformes numériques.
+            </p>
+            <ul>
+              <li><a href="https://www.minpostel.gov.cm/index.php/fr/les-textes/telecoms-tic/lois-telecoms-tic" target="_blank" rel="noopener">Textes télécoms / TIC publiés par le MINPOSTEL</a>.</li>
+              <li><a href="https://www.art.cm/fr/reglementation/lois?page=1" target="_blank" rel="noopener">Répertoire des lois sectorielles publié par l'Agence de Régulation des Télécommunications</a>.</li>
+              <li><a href="https://www.antic.cm/index.php/fr/cybersecurite/bonnes-pratiques/item/314-security-intelligence.html" target="_blank" rel="noopener">Textes TIC et cybersécurité relayés par l'ANTIC</a>.</li>
+            </ul>
+            <p>
+              Les présentes conditions peuvent être modifiées pour suivre l'évolution des services, des tarifs, de la
+              réglementation, des partenaires techniques ou des exigences de sécurité. La version publiée sur cette page
+              est celle applicable au moment de la consultation.
+            </p>
+          </div>
+        </article>
+
+        <section class="legal-final" aria-label="Acceptation finale">
+          <h2>Utiliser E-Shelle, c'est rejoindre un cadre clair.</h2>
+          <p>
+            En continuant à utiliser la plateforme, l'utilisateur reconnaît avoir pris connaissance de ces mentions
+            légales et conditions générales. Pour une demande contractuelle spécifique, contactez le support E-Shelle.
+          </p>
+          <div class="legal-actions">
+            <a class="legal-btn legal-btn-primary" href="{% url 'business:onboarding' %}">Inscrire mon business</a>
+            <a class="legal-btn legal-btn-outline" href="/services/contact/">Contacter E-Shelle</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
 </div>
 {% endblock %}
