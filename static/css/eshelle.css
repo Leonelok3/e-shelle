@@ -223,16 +223,19 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--font-display); line-height: 1.2; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: clamp(0.45rem, 1vw, 1.2rem);
+  width: min(1680px, calc(100% - 32px));
+  max-width: 1680px;
+  margin-inline: auto;
 }
 
 /* Logo */
 .navbar-logo {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.45rem;
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: clamp(1.05rem, 1.08vw, 1.4rem);
   font-weight: 800;
   color: var(--text-primary);
   flex-shrink: 0;
@@ -245,15 +248,18 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--font-display); line-height: 1.2; }
 .navbar-nav {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: clamp(0.05rem, 0.25vw, 0.25rem);
+  flex: 1 1 auto;
+  justify-content: center;
+  min-width: 0;
 }
 
 .nav-link {
   position: relative;
-  font-size: 0.98rem;
+  font-size: clamp(0.82rem, 0.78vw, 0.98rem);
   font-weight: 600;
   color: #cbd5e1;
-  padding: 0.45rem 0.9rem;
+  padding: 0.45rem clamp(0.42rem, 0.6vw, 0.9rem);
   border-radius: var(--radius-full);
   border: 1px solid transparent;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -292,7 +298,7 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--font-display); line-height: 1.2; }
 .navbar-actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: clamp(0.35rem, 0.45vw, 0.75rem);
   flex-shrink: 0;
 }
 
@@ -528,16 +534,52 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--font-display); line-height: 1.2; }
 }
 .btn-ghost:hover { background: rgba(255,255,255,0.1); }
 
-.btn-sm  { font-size: 0.8rem; padding: 0.45rem 1rem; }
+.btn-sm  { font-size: 0.8rem; padding: 0.45rem 0.85rem; }
 .btn-lg  { font-size: 1rem; padding: 0.85rem 2rem; border-radius: var(--radius-lg); }
 .btn-xl  { font-size: 1.05rem; padding: 1rem 2.5rem; border-radius: var(--radius-lg); }
 .btn-block { width: 100%; }
 
 .btn-icon {
-  width: 40px; height: 40px;
+  width: 38px; height: 38px;
   padding: 0;
   border-radius: var(--radius-md);
   flex-shrink: 0;
+}
+
+@media (max-width: 1320px) {
+  .navbar-logo img {
+    height: 32px !important;
+  }
+
+  .navbar-nav .nav-link {
+    font-size: 0.78rem;
+    padding-inline: 0.42rem;
+  }
+
+  .navbar-actions .btn-sm {
+    font-size: 0.74rem;
+    padding-inline: 0.65rem;
+  }
+
+  .navbar-actions .btn-icon,
+  .navbar-actions .notif-bell {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .navbar-nav {
+    display: none !important;
+  }
+
+  .burger {
+    display: flex !important;
+  }
+
+  .navbar-actions>*:not(#burger-btn) {
+    display: none !important;
+  }
 }
 
 /* ---- 9. GLASS CARDS -------------------------------------- */

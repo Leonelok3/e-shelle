@@ -328,26 +328,26 @@
     <div class="esh-shell esh-hero-grid">
 
       <div class="esh-hero-copy">
-        <div class="esh-pill">🌍 LA SUPER-APP DE L'AFRIQUE FRANCOPHONE</div>
+        <div class="esh-pill">Visibilité Google & moteurs IA</div>
         <h1 class="esh-hero-title">
-          <span class="esh-title-line esh-animated-gradient-text">Vous cherchez en Afrique ?</span>
-          <span class="esh-title-line" style="color: #f59e0b;">E-Shelle trouve.</span>
+          <span class="esh-title-line esh-animated-gradient-text">Faites trouver votre business</span>
+          <span class="esh-title-line" style="color: #f59e0b;">sur E-Shelle, Google et les IA.</span>
         </h1>
         <p class="esh-lead" style="max-width: 820px; margin: 0 auto 1.5rem;">
-          Décrivez votre besoin en quelques mots. Notre <span style="color: #7dec6c; font-weight: 700;">intelligence artificielle</span> trouve instantanément les meilleurs <span style="color: #7dec6c; font-weight: 700;">prestataires</span>, <span style="color: #f59e0b; font-weight: 700;">produits</span> et <span style="color: #f59e0b; font-weight: 700;">commerces de proximité</span> près de chez vous (Cameroun, Côte d'Ivoire, Sénégal, Gabon, Congo...).
+          Inscrivez votre <span style="color: #7dec6c; font-weight: 700;">commerce</span>, vos <span style="color: #7dec6c; font-weight: 700;">services</span> ou vos <span style="color: #f59e0b; font-weight: 700;">produits</span>. E-Shelle structure votre fiche, améliore votre présence locale et aide les clients à vous découvrir sur les moteurs de recherche et les assistants IA.
         </p>
-        <form class="esh-ai-search" action="/chat/" method="get">
-          <input name="q" type="search" placeholder="Ex : Un resto à Abidjan, un pressing à Douala, un appartement à Dakar, un électricien..." aria-label="Votre besoin">
-          <input type="hidden" name="source" value="home_hero">
-          <button type="submit">Rechercher avec l'IA <span style="display:inline-block;margin-left:4px;transition:transform .2s ease;">→</span></button>
+        <form class="esh-ai-search esh-business-signup" action="{% url 'business:onboarding' %}" method="get">
+          <input name="business_hint" type="search" placeholder="Ex : Pressing à Douala, restaurant à Abidjan, boutique cosmétique, électricien..." aria-label="Votre business">
+          <input type="hidden" name="source" value="home_hero_business">
+          <button type="submit">Inscrire mon business <span style="display:inline-block;margin-left:4px;transition:transform .2s ease;">→</span></button>
         </form>
-        <div class="esh-chip-row" aria-label="Recherches rapides">
-          <a class="esh-chip" href="/chat/?q=Resto%20%C3%A0%20Abidjan">🍽️ Resto à Abidjan</a>
-          <a class="esh-chip" href="/chat/?q=Pressing%20%C3%A0%20Douala">👔 Pressing à Douala</a>
-          <a class="esh-chip" href="/chat/?q=Appartement%20%C3%A0%20Dakar">🏠 Immo à Dakar</a>
-          <a class="esh-chip" href="/chat/?q=Pharmacie%20proche">💊 Pharmacie proche</a>
-          <a class="esh-chip" href="/chat/?q=Gaz%20proche">🔥 Gaz à domicile</a>
-          <a class="esh-chip" href="/chat/?q=Boutique%20agroalimentaire">🌿 Agroalimentaire</a>
+        <div class="esh-chip-row" aria-label="Arguments pour les prestataires">
+          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">Fiche business gratuite</a>
+          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">Visible sur Google</a>
+          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">Prêt pour les recherches IA</a>
+          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">WhatsApp direct</a>
+          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">Produits & services indexés</a>
+          <a class="esh-chip" href="{% url 'marketing' %}" data-direct="true">Marketing IA inclus</a>
         </div>
       </div>
     </div>
@@ -1503,6 +1503,7 @@
 <script>
 document.querySelectorAll('.esh-hero-copy .esh-chip').forEach(function(chip) {
   chip.addEventListener('click', function(event) {
+    if (chip.dataset.direct === 'true') return;
     var input = document.querySelector('.esh-hero-copy .esh-ai-search input[name="q"]');
     if (!input) return;
     event.preventDefault();
