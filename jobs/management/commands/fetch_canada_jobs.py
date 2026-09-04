@@ -19,7 +19,11 @@ logger = logging.getLogger(__name__)
 
 JOBBANK_TFW_SEARCH_URL = "https://www.jobbank.gc.ca/jobsearch/jobsearch"
 JOBBANK_DETAIL_URL = "https://www.jobbank.gc.ca/jobsearch/jobposting/{job_number}"
-GUICHET_APPROVED_SEARCH_URL = "https://www.guichetemplois.gc.ca/jobsearch/rechercheemplois"
+GUICHET_SEARCH_URL = "https://www.guichetemplois.gc.ca/jobsearch/rechercheemplois"
+GUICHET_EIMT_FILTERS = (
+    ("101020", "EIMT approuvée"),
+    ("101010", "EIMT demandée"),
+)
 PROVINCE_LABELS = {
     "AB": "Alberta",
     "BC": "Colombie-Britannique",
@@ -149,18 +153,18 @@ def _clean_fragment(raw_html: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def _fetch_guichet_approved_page(page: int) -> str:
+def _fetch_guichet_page(page: int, fskl: str) -> str:
     params = {
         "page": page,
         "sort": "M",
-        "fskl": "101020",  # EIMT approuvée
+        "fskl": fskl,
     }
     headers = {
         "Accept": "text/html,application/xhtml+xml",
         "Accept-Language": "fr-CA,fr;q=0.9,en-CA;q=0.7,en;q=0.6",
         "User-Agent": "Mozilla/5.0 (compatible; EShelleCanadaJobs/1.0; +https://e-shelle.com)",
     }
-    response = requests.get(f"{GUICHET_APPROVED_SEARCH_URL}?{urlencode(params)}", headers=headers, timeout=20)
+    response = requests.get(f"{GUICHET_SEARCH_URL}?{urlencode(params)}", headers=headers, timeout=20)
     response.raise_for_status()
     return response.text
 
@@ -174,7 +178,7 @@ def _extract_article_field(article: str, css_class: str) -> str:
     return _clean_fragment(match.group(2)) if match else ""
 
 
-def _parse_guichet_approved_html(html: str) -> list[dict]:
+def _parse_guichet_html(html: str, lmia_status: str) -> list[dict]:
     jobs: list[dict] = []
     seen_urls = set()
     article_pattern = re.compile(
@@ -214,13 +218,13 @@ def _parse_guichet_approved_html(html: str) -> list[dict]:
                 "company": company,
                 "city": city,
                 "province": province,
-                "lmia_status": "EIMT approuvée",
+                "lmia_status": lmia_status,
                 "salary": salary,
                 "deadline": "Non précisé",
                 "description": (
-                    f"Offre publiée sur le Guichet-Emplois avec EIMT approuvée. "
+                    f"Offre publiée sur le Guichet-Emplois avec {lmia_status}. "
                     f"Le poste de {title} chez {company} est destiné aux candidats qui veulent postuler "
-                    "auprès d'un employeur canadien ayant déjà obtenu une EIMT."
+                    "auprès d'un employeur canadien qui recrute des travailleurs étrangers."
                 ),
                 "url_apply": url_apply,
                 "posted_date": posted_date,
@@ -369,29 +373,32 @@ class Command(BaseCommand):
         direct_created = 0
         direct_updated = 0
         direct_seen = 0
-        self.stdout.write("Lecture directe Guichet-Emplois - EIMT approuvée...")
-        for page in range(1, pages + 1):
-            try:
-                page_html = _fetch_guichet_approved_page(page)
-                page_jobs = _parse_guichet_approved_html(page_html)
-                self.stdout.write(f"Page Guichet-Emplois EIMT approuvée {page}: {len(page_jobs)} offre(s) détectée(s).")
-                for job in page_jobs:
-                    created, updated, reason = _import_job_offer(job, verify_url=True)
-                    if reason:
-                        self.stdout.write(f"Offre ignorée: {reason}")
-                        continue
-                    direct_seen += 1
-                    if created:
-                        direct_created += 1
-                    elif updated:
-                        direct_updated += 1
-            except Exception as direct_error:
-                logger.warning("Import direct Guichet-Emplois page %s échoué: %s", page, direct_error)
-                self.stdout.write(f"Page Guichet-Emplois {page}: erreur {direct_error}")
+        self.stdout.write("Lecture directe Guichet-Emplois - EIMT approuvée et demandée...")
+        for fskl, lmia_status in GUICHET_EIMT_FILTERS:
+            for page in range(1, pages + 1):
+                try:
+                    page_html = _fetch_guichet_page(page, fskl)
+                    page_jobs = _parse_guichet_html(page_html, lmia_status)
+                    self.stdout.write(
+                        f"Page Guichet-Emplois {lmia_status} {page}: {len(page_jobs)} offre(s) détectée(s)."
+                    )
+                    for job in page_jobs:
+                        created, updated, reason = _import_job_offer(job, verify_url=True)
+                        if reason:
+                            self.stdout.write(f"Offre ignorée: {reason}")
+                            continue
+                        direct_seen += 1
+                        if created:
+                            direct_created += 1
+                        elif updated:
+                            direct_updated += 1
+                except Exception as direct_error:
+                    logger.warning("Import direct Guichet-Emplois %s page %s échoué: %s", lmia_status, page, direct_error)
+                    self.stdout.write(f"Page Guichet-Emplois {lmia_status} {page}: erreur {direct_error}")
 
         active_after_direct = CanadaJobOffer.objects.filter(is_active=True).count()
         self.stdout.write(
-            f"Import direct Guichet-Emplois EIMT approuvée: +{direct_created}, {direct_updated} mises à jour, "
+            f"Import direct Guichet-Emplois EIMT: +{direct_created}, {direct_updated} mises à jour, "
             f"{direct_seen} valides, {active_after_direct} actives."
         )
         if skip_ai or active_after_direct >= target:
