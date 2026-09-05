@@ -353,20 +353,22 @@ def _import_job_offer(job: dict, *, verify_url: bool = True) -> tuple[bool, bool
     if not ("guichetemplois.gc.ca" in url_lower or "jobbank.gc.ca" in url_lower):
         return False, False, f"URL non officielle : {url_apply}"
 
-    detail_metadata = {}
-    if verify_url and "guichetemplois.gc.ca" in url_lower:
+    from jobs.canada_validation import check_offer, parse_deadline
+    status, reason, source_deadline = check_offer(url_apply)
+    if status != "active":
+        return False, False, f"source non valide : {reason} ({url_apply})"
+    if source_deadline:
+        deadline = source_deadline.isoformat()
+    deadline_date = parse_deadline(deadline)
+    if deadline_date and deadline_date < timezone.localdate():
+        return False, False, f"date limite dépassée : {deadline}"
+    source_posted_date = _parse_deadline(job.get("posted_date") or "")
+    if "guichetemplois.gc.ca" in url_lower:
         try:
-            detail_metadata = _fetch_guichet_detail_metadata(url_apply)
-        except Exception as exc:
-            return False, False, f"page Guichet-Emplois non vérifiable : {exc} ({url_apply})"
-    elif verify_url and not _is_url_active(url_apply):
-        return False, False, f"lien inactif : {url_apply}"
-
-    if detail_metadata.get("is_active") is False:
-        return False, False, f"offre expirée sur Guichet-Emplois : {url_apply}"
-    if detail_metadata.get("deadline"):
-        deadline = limit(detail_metadata["deadline"], 100)
-    source_posted_date = detail_metadata.get("source_posted_date") or _parse_deadline(job.get("posted_date") or "")
+            metadata = _fetch_guichet_detail_metadata(url_apply)
+            source_posted_date = metadata.get("source_posted_date") or source_posted_date
+        except requests.RequestException:
+            pass
 
     allowed_status = (
         "eimt" in lmia_status.lower()
@@ -389,7 +391,7 @@ def _import_job_offer(job: dict, *, verify_url: bool = True) -> tuple[bool, bool
                 "lmia_status": lmia_status,
                 "salary": salary,
                 "deadline": deadline,
-                "source_posted_date": source_posted_date,
+                **({"source_posted_date": source_posted_date} if source_posted_date else {}),
                 "description": (job.get("description") or "").strip(),
                 "url_apply": url_apply,
                 "is_active": True,
@@ -603,15 +605,6 @@ class Command(BaseCommand):
             self.stderr.write(f"Une erreur s'est produite lors de la génération : {e}")
 
     def _cleanup_old_offers(self) -> tuple[int, int]:
-        expired_count = 0
-        for offer in CanadaJobOffer.objects.filter(is_active=True).exclude(deadline=""):
-            deadline_date = _parse_deadline(offer.deadline)
-            if deadline_date and deadline_date < timezone.localdate():
-                offer.delete()
-                expired_count += 1
-
-        cutoff = timezone.now() - timezone.timedelta(days=14)
-        stale_qs = CanadaJobOffer.objects.filter(last_seen__lt=cutoff)
-        stale_count = stale_qs.count()
-        stale_qs.delete()
-        return expired_count, stale_count
+        from django.core.management import call_command
+        call_command("clean_expired_canada_jobs", stdout=self.stdout)
+        return 0, 0

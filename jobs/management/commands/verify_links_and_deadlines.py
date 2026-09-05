@@ -40,10 +40,9 @@ def _is_url_active(url: str) -> bool:
         # On utilise GET avec stream=True pour pouvoir suivre les redirections et analyser l'URL finale
         resp = requests.get(url, headers=headers, timeout=5, allow_redirects=True, stream=True)
         
-        # 1. Vérification du code d'erreur HTTP (ex: 404 de Google redirect)
         if resp.status_code in [404, 410]:
             return False
-            
+
         # 2. Détection de redirection vers une page d'expiration (Job Bank redirect)
         final_url = resp.url.lower()
         if "jobpostingexpired" in final_url or "job-expired" in final_url:
@@ -85,26 +84,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("--- Début de la vérification de cohérence des offres (Canada) ---")
 
-        # 1. Vérification des offres d'emploi Canada
-        job_offers = CanadaJobOffer.objects.filter(is_active=True)
-        self.stdout.write(f"Vérification de {job_offers.count()} offres d'emploi active(s)...")
-        deactivated_jobs = 0
-        for offer in job_offers:
-            # Vérifier date limite
-            deadline_date = _parse_deadline(offer.deadline)
-            if deadline_date and deadline_date < timezone.localdate():
-                offer.is_active = False
-                offer.save(update_fields=["is_active"])
-                deactivated_jobs += 1
-                self.stdout.write(f"[-] Offre d'emploi '{offer.title}' désactivée : Date limite dépassée ({offer.deadline})")
-                continue
-
-            # Vérifier l'activité du lien URL
-            if not _is_url_active(offer.url_apply):
-                offer.is_active = False
-                offer.save(update_fields=["is_active"])
-                deactivated_jobs += 1
-                self.stdout.write(f"[-] Offre d'emploi '{offer.title}' désactivée : URL inaccessible ou renvoyant 404 ({offer.url_apply})")
+        from django.core.management import call_command
+        call_command("clean_expired_canada_jobs", stdout=self.stdout)
+        deactivated_jobs = 0  # Detailed employment report emitted by the command above.
 
         # 2. Vérification des bourses d'études Canada
         scholarships = CanadaScholarship.objects.filter(is_active=True)
@@ -158,7 +140,6 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"Vérification terminée avec succès !\n"
-                f"Offres d'emploi désactivées : {deactivated_jobs}\n"
                 f"Bourses d'études désactivées : {deactivated_scholarships}\n"
                 f"Opportunités touristiques désactivées : {deactivated_opps}\n"
                 f"Actualités désactivées : {deactivated_news}"

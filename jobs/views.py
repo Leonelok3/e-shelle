@@ -127,9 +127,12 @@ def canada_jobs(request):
     if city:
         offres = offres.filter(city__icontains=city)
 
-    # Obtenir la liste des provinces uniques pour le filtre
-    provinces = CanadaJobOffer.objects.filter(is_active=True).values_list("province", flat=True).distinct()
-    provinces = sorted(list({p.strip() for p in provinces if p}))
+    from jobs.canada_validation import parse_deadline
+    from django.utils import timezone
+    today = timezone.localdate()
+    offres = [offer for offer in offres
+              if not (parse_deadline(offer.deadline) and parse_deadline(offer.deadline) < today)]
+    provinces = sorted({offer.province.strip() for offer in offres if offer.province.strip()})
 
     context = {
         "offres": offres,
@@ -137,7 +140,7 @@ def canada_jobs(request):
         "province": province,
         "city": city,
         "provinces": provinces,
-        "total_offers": offres.count(),
+        "total_offers": len(offres),
         "has_premium": has_premium,
     }
     return render(request, "jobs/canada_jobs.html", context)
