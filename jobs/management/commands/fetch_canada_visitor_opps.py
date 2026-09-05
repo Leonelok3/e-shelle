@@ -4,7 +4,7 @@ import json
 import logging
 import requests
 from django.conf import settings
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from google.genai import types
 from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
@@ -90,8 +90,7 @@ class Command(BaseCommand):
                 client, err = get_genai_studio_client()
 
             if err or not client:
-                self.stderr.write(f"Erreur d'initialisation du client GenAI : {err}")
-                return
+                raise CommandError(f"Erreur d'initialisation du client GenAI : {err}")
 
         self.stdout.write("Recherche globale des opportunités de visa visiteur...")
 
@@ -178,12 +177,10 @@ class Command(BaseCommand):
                 try:
                     opps_list = json.loads(response_json.text)
                 except json.JSONDecodeError as je:
-                    self.stderr.write(f"Erreur de décodage JSON : {je}\nContenu brut : {response_json.text}")
-                    return
+                    raise CommandError(f"Erreur de décodage JSON : {je}\nContenu brut : {response_json.text}")
 
             if not isinstance(opps_list, list):
-                self.stderr.write("L'IA n'a pas retourné une liste d'opportunités.")
-                return
+                raise CommandError("L'IA n'a pas retourné une liste d'opportunités.")
 
             self.stdout.write(f"Nombre d'opportunités extraites par l'IA : {len(opps_list)}")
 
@@ -237,4 +234,4 @@ class Command(BaseCommand):
             )
 
         except Exception as e:
-            self.stderr.write(f"Une erreur s'est produite lors de la génération : {e}")
+            raise CommandError(f"Une erreur s'est produite lors de la génération : {e}")

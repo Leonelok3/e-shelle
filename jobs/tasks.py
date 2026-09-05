@@ -15,7 +15,8 @@ def fetch_canada_jobs_task():
         call_command("fetch_canada_jobs")
         log.info("fetch_canada_jobs_task: Importation réussie.")
     except Exception as e:
-        log.error(f"fetch_canada_jobs_task: Erreur lors de l'exécution : {e}")
+        log.exception(f"fetch_canada_jobs_task: Erreur lors de l'exécution : {e}")
+        raise
 
 
 @shared_task
@@ -29,7 +30,8 @@ def fetch_canada_scholarships_task():
         call_command("fetch_canada_scholarships")
         log.info("fetch_canada_scholarships_task: Recherche terminée avec succès.")
     except Exception as e:
-        log.error(f"fetch_canada_scholarships_task: Erreur lors de la recherche : {e}")
+        log.exception(f"fetch_canada_scholarships_task: Erreur lors de la recherche : {e}")
+        raise
 
 
 @shared_task
@@ -43,7 +45,8 @@ def fetch_canada_visitor_opps_task():
         call_command("fetch_canada_visitor_opps")
         log.info("fetch_canada_visitor_opps_task: Recherche terminée avec succès.")
     except Exception as e:
-        log.error(f"fetch_canada_visitor_opps_task: Erreur lors de la recherche : {e}")
+        log.exception(f"fetch_canada_visitor_opps_task: Erreur lors de la recherche : {e}")
+        raise
 
 
 @shared_task
@@ -56,7 +59,8 @@ def fetch_canada_news_task():
         call_command("fetch_canada_news")
         log.info("fetch_canada_news_task: Recherche d'actualités terminée avec succès.")
     except Exception as e:
-        log.error(f"fetch_canada_news_task: Erreur lors de la recherche : {e}")
+        log.exception(f"fetch_canada_news_task: Erreur lors de la recherche : {e}")
+        raise
 
 
 

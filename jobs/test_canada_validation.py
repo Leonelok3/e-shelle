@@ -77,3 +77,15 @@ class CleanupTests(TestCase):
         check.return_value = ("expired", "Removed", None)
         call_command("clean_expired_canada_jobs", dry_run=True, stdout=StringIO())
         self.assertTrue(CanadaJobOffer.objects.filter(pk=offer.pk, is_active=True).exists())
+
+
+class DailyTaskTests(SimpleTestCase):
+    @patch("jobs.tasks.call_command")
+    @patch("jobs.tasks.log")
+    def test_generation_failures_propagate_to_celery(self, log, command):
+        from jobs import tasks
+        command.side_effect = RuntimeError("Source unavailable")
+        for task in (tasks.fetch_canada_jobs_task, tasks.fetch_canada_scholarships_task,
+                     tasks.fetch_canada_visitor_opps_task, tasks.fetch_canada_news_task):
+            with self.assertRaises(RuntimeError):
+                task.run()

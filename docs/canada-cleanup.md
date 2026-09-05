@@ -21,6 +21,6 @@ sudo journalctl -u eshelle-canada-cleanup.service -n 50 --no-pager
 sudo systemctl list-timers eshelle-canada-cleanup.timer
 ```
 
-Le service s'exécute à nouveau une heure après la fin du passage précédent, sans chevauchement entre ses propres exécutions. Adapter utilisateur et chemin si la production utilise une autre installation. Recharger le service web après modification de la vue.
+Le service s'exécute trois fois par jour : 00 h, 08 h et 16 h UTC, sans chevauchement entre ses propres exécutions. Un passage manqué pendant un arrêt est rattrapé au démarrage. Adapter utilisateur et chemin si la production utilise une autre installation. Recharger le service web après modification de la vue.
 
 L'import utilise le même contrôle avant publication. La commande quotidienne existante appelle également ce nettoyage. La vue masque immédiatement les dates limites dépassées entre deux passages. Un retrait sur le site source reste détecté au prochain contrôle, pas instantanément.
