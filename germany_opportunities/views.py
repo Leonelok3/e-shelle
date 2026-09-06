@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.urls import reverse
 
 from .models import AusbildungOffer, ScholarshipOpportunity, UserOpportunityBookmark
+from .availability import available_offers, available_scholarships
 
 
 def check_user_has_germany_premium(user) -> bool:
@@ -47,10 +48,7 @@ def catalogue(request):
     search_q  = request.GET.get("q", "")
     sort      = request.GET.get("sort", "newest")
 
-    from datetime import date as dt_date
-    offers = AusbildungOffer.objects.filter(is_active=True).filter(
-        Q(start_date__isnull=True) | Q(start_date__gte=dt_date.today())
-    )
+    offers = available_offers()
 
     if sector:
         offers = offers.filter(sector=sector)
@@ -103,7 +101,7 @@ def catalogue(request):
     except EmptyPage:
         paginated_offers = paginator.page(paginator.num_pages)
 
-    scholarships = ScholarshipOpportunity.objects.filter(is_active=True).order_by("deadline")[:6]
+    scholarships = available_scholarships().order_by("deadline")[:6]
     has_active_filters = any([sector, level, city_q, region_q, search_q])
 
     context = {
@@ -128,7 +126,7 @@ def catalogue(request):
 
 def offer_detail(request, pk):
     """Detail d'une offre Ausbildung."""
-    offer = get_object_or_404(AusbildungOffer, pk=pk, is_active=True)
+    offer = get_object_or_404(available_offers(), pk=pk)
 
     # Enrichissement automatique à la volée du résumé si manquant
     if not offer.ai_summary_fr:
@@ -168,7 +166,7 @@ def offer_detail(request, pk):
             user=request.user, offer=offer
         ).exists()
 
-    similar = AusbildungOffer.objects.filter(
+    similar = available_offers().filter(
         sector=offer.sector, is_active=True
     ).exclude(pk=offer.pk).order_by("-fetched_at", "-pk")[:4]
 
@@ -185,7 +183,7 @@ def offer_detail(request, pk):
 @require_POST
 def toggle_bookmark(request, pk):
     """Toggle bookmark AJAX (JSON response)."""
-    offer = get_object_or_404(AusbildungOffer, pk=pk)
+    offer = get_object_or_404(available_offers(), pk=pk)
     bm, created = UserOpportunityBookmark.objects.get_or_create(
         user=request.user, offer=offer
     )
@@ -207,7 +205,7 @@ def my_bookmarks(request):
     """Liste des offres sauvegardees par l'utilisateur."""
     bookmarks = UserOpportunityBookmark.objects.filter(
         user=request.user
-    ).select_related("offer", "scholarship")
+    ).filter(Q(offer__in=available_offers()) | Q(scholarship__in=available_scholarships())).select_related("offer", "scholarship")
     return render(request, "germany_opportunities/my_bookmarks.html", {"bookmarks": bookmarks})
 
 
@@ -418,7 +416,7 @@ def top_companies(request):
     ]
 
     # Récupérer les offres actives en base regroupées par entreprise
-    db_counts = AusbildungOffer.objects.filter(is_active=True).values("company").annotate(
+    db_counts = available_offers().values("company").annotate(
         count=Count("id")
     )
     counts_map = {item["company"].lower().strip(): item["count"] for item in db_counts}

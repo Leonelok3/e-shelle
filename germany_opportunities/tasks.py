@@ -2,7 +2,7 @@
 Taches Celery pour germany_opportunities.
 - fetch_ausbildung_offers : quotidien (6h), appelle l'API Bundesagentur
 - enrich_offers_with_ai : enrichit les nouvelles offres avec un resume IA en francais
-- fetch_daad_scholarships : hebdomadaire, scrape les bourses DAAD Afrique
+- clean_expired_germany : controle des dates, sans suppression des favoris
 """
 import logging
 import requests
@@ -90,6 +90,9 @@ def fetch_ausbildung_offers(self):
         "User-Agent": "EShelle-Platform/1.0 (contact@e-shelle.com)",
     }
 
+    from .availability import clean_unavailable
+    clean_unavailable()
+    successful_queries = 0
     created_count = 0
     updated_count = 0
     errors = 0
@@ -112,6 +115,7 @@ def fetch_ausbildung_offers(self):
                     errors += 1
                     continue
 
+                successful_queries += 1
                 offers = _extract_offer_items(data)
                 for item in offers:
                     if not isinstance(item, dict):
@@ -182,6 +186,10 @@ def fetch_ausbildung_offers(self):
                         except Exception:
                             pass
 
+                    if start and start < timezone.localdate():
+                        AusbildungOffer.objects.filter(ref_nr=ref_nr).update(is_active=False)
+                        continue
+
                     # Apply URL
                     url_apply = _safe_text(
                         item.get("externeURL") or 
@@ -215,6 +223,9 @@ def fetch_ausbildung_offers(self):
             elif resp.status_code in (429, 503):
                 # Rate limit — retry
                 raise self.retry(countdown=600)
+            else:
+                errors += 1
+                log.warning("API BA HTTP %s for %s", resp.status_code, keyword)
         except requests.RequestException as exc:
             log.warning(f"API BA error for keyword '{keyword}': {exc}")
             errors += 1
@@ -225,11 +236,13 @@ def fetch_ausbildung_offers(self):
         last_seen__lt=stale_cutoff, is_active=True
     ).update(is_active=False)
 
-    # Supprimer les offres dont la date de debut (start_date) est depassee
-    from datetime import date as dt_date
-    deleted_expired, _ = AusbildungOffer.objects.filter(
-        start_date__lt=dt_date.today()
-    ).delete()
+    # Keep historical offers and their user bookmarks.
+    from .availability import clean_unavailable
+    cleanup = clean_unavailable()
+    deactivated += cleanup["offers_hidden"]
+    deleted_expired = 0
+    if not successful_queries:
+        raise RuntimeError("Aucune recherche Bundesagentur réussie; consulter les erreurs source.")
 
     log.info(
         f"fetch_ausbildung_offers: +{created_count} new, {updated_count} updated, "
@@ -251,7 +264,8 @@ def enrich_offers_with_ai():
     from ai_engine.services.llm_service import call_llm
 
     # Traiter les 20 dernieres offres sans resume
-    offers = AusbildungOffer.objects.filter(ai_summary_fr="", is_active=True).order_by("-fetched_at")[:20]
+    from .availability import available_offers
+    offers = available_offers().filter(ai_summary_fr="").order_by("-fetched_at")[:20]
     
     if not offers.exists():
         log.info("enrich_offers_with_ai: aucune offre à enrichir.")
@@ -292,3 +306,13 @@ def enrich_offers_with_ai():
 
     log.info(f"enrich_offers_with_ai: {enriched_count} offres enrichies avec succès.")
     return enriched_count
+
+
+@shared_task
+def clean_expired_germany():
+    from .availability import clean_unavailable
+    from .source_checks import check_sources
+    result = clean_unavailable()
+    result.update(check_sources())
+    log.info("Germany cleanup: %s", result)
+    return result

@@ -191,6 +191,10 @@ app.conf.beat_schedule = {
     },
 
     # ── Germany Opportunities — Recherche quotidien d'Ausbildung ──────────────
+    "germany-clean-expired": {
+        "task": "germany_opportunities.tasks.clean_expired_germany",
+        "schedule": crontab(hour="1,9,17", minute=0),
+    },
     "germany-fetch-ausbildung": {
         "task": "germany_opportunities.tasks.fetch_ausbildung_offers",
         "schedule": crontab(hour=6, minute=0),

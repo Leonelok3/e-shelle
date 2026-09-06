@@ -132,7 +132,7 @@ class ScholarshipOpportunity(models.Model):
         if not self.deadline:
             return False
         from django.utils import timezone
-        return self.deadline < timezone.now().date()
+        return self.deadline < timezone.localdate()
 
 
 class UserOpportunityBookmark(models.Model):
