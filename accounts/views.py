@@ -466,4 +466,5 @@ def activer_code(request):
         else:
             messages.error(request, msg)
 
-    return render(request, "accounts/activer_code.html", {"activated": activated})
+    code_input = request.GET.get("code", "").strip().upper()
+    return render(request, "accounts/activer_code.html", {"activated": activated, "code_input": code_input})

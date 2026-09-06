@@ -365,7 +365,7 @@ PLANS = [
         "name":         "Allemand Premium",
         "level":        "pro",
         "description":  "Préparez sereinement votre départ pour l'Allemagne.",
-        "price_xaf":    9000,
+        "price_xaf":    9900,
         "duration_days": 30,
         "is_free":      False,
         "is_popular":   True,
