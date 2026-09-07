@@ -33,10 +33,13 @@ class RestaurantForm(forms.ModelForm):
 
     def clean_cover_image(self):
         image = self.cleaned_data.get("cover_image")
-        if image and hasattr(image, "size"):
+        # image.content_type n'existe que sur un fichier fraichement televerse
+        # (UploadedFile). Si le champ n'est pas modifie, Django repasse le
+        # ImageFieldFile deja enregistre, qui n'a pas cet attribut.
+        if image and hasattr(image, "content_type"):
             if image.size > 5 * 1024 * 1024:
                 raise ValidationError("L'image ne doit pas dépasser 5 Mo.")
-            if not image.content_type in ["image/jpeg", "image/png", "image/webp"]:
+            if image.content_type not in ["image/jpeg", "image/png", "image/webp"]:
                 raise ValidationError("Format accepté : JPG, PNG ou WebP.")
         return image
 
