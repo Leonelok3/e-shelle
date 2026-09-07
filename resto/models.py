@@ -82,12 +82,26 @@ class FoodCategory(models.Model):
 # Restaurant
 # ──────────────────────────────────────────────────────────────────────────────
 
+class RestaurantQuerySet(models.QuerySet):
+    def visible(self):
+        """Restaurants reellement visibles publiquement : approuves, actifs
+        et avec un abonnement en cours (non expire)."""
+        return self.filter(
+            is_approved=True,
+            is_active=True,
+            subscription__is_active=True,
+            subscription__expiry_date__gte=timezone.localdate(),
+        )
+
+
 class Restaurant(models.Model):
     STATUS_CHOICES = [
         ("open", "Ouvert"),
         ("closed", "Fermé"),
         ("opening_soon", "Bientôt ouvert"),
     ]
+
+    objects = RestaurantQuerySet.as_manager()
 
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,

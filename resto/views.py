@@ -55,9 +55,7 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        approved_qs = Restaurant.objects.filter(
-            is_approved=True, is_active=True
-        ).select_related("city", "neighborhood")
+        approved_qs = Restaurant.objects.visible().select_related("city", "neighborhood")
 
         ctx["featured_restaurants"] = (
             approved_qs.filter(is_featured=True)
@@ -69,10 +67,11 @@ class HomeView(TemplateView):
             .prefetch_related("categories")
             .order_by("?")[:6]
         )
+        visible_restaurants = Restaurant.objects.visible()
         ctx["popular_dishes"] = (
             Dish.objects.filter(
                 is_popular=True, is_active=True,
-                restaurant__is_approved=True, restaurant__is_active=True,
+                restaurant__in=visible_restaurants,
             )
             .select_related("restaurant", "restaurant__city")
             .order_by("?")[:8]
@@ -80,7 +79,7 @@ class HomeView(TemplateView):
         ctx["affordable_dishes"] = (
             Dish.objects.filter(
                 price__lte=1500, is_active=True,
-                restaurant__is_approved=True, restaurant__is_active=True,
+                restaurant__in=visible_restaurants,
             )
             .select_related("restaurant", "restaurant__city")
             .order_by("?")[:6]
@@ -101,7 +100,7 @@ class RestaurantListView(View):
 
     def get(self, request, *args, **kwargs):
         qs = (
-            Restaurant.objects.filter(is_approved=True, is_active=True)
+            Restaurant.objects.visible()
             .select_related("city", "neighborhood")
             .prefetch_related("categories")
         )
@@ -170,9 +169,9 @@ class RestaurantDetailView(View):
         if is_owner:
             restaurant = get_object_or_404(qs, slug=slug, is_active=True)
         else:
-            restaurant = get_object_or_404(qs, slug=slug, is_approved=True, is_active=True)
+            restaurant = get_object_or_404(qs.visible(), slug=slug)
 
-        is_preview = is_owner and not restaurant.is_approved
+        is_preview = is_owner and not Restaurant.objects.visible().filter(pk=restaurant.pk).exists()
 
         # Increment views once per session
         session_key = f"resto_viewed_{restaurant.pk}"
@@ -280,10 +279,10 @@ class SearchView(View):
         dishes = []
 
         if len(q) >= 2:
+            visible_restaurants = Restaurant.objects.visible()
             restaurants = (
-                Restaurant.objects.filter(
+                visible_restaurants.filter(
                     Q(name__icontains=q) | Q(description__icontains=q),
-                    is_approved=True, is_active=True,
                 )
                 .select_related("city")[:6]
             )
@@ -291,7 +290,7 @@ class SearchView(View):
                 Dish.objects.filter(
                     Q(name__icontains=q),
                     is_active=True,
-                    restaurant__is_approved=True,
+                    restaurant__in=visible_restaurants,
                 )
                 .select_related("restaurant", "restaurant__city")[:6]
             )
