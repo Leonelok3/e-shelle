@@ -1127,6 +1127,11 @@ class PollAdVideoView(PaidAdGenRequiredMixin, View):
         result = _check_ad_video_status(operation_name)
 
         if result.get("error"):
+            # Echec definitif : on nettoie l'operation morte pour eviter qu'un
+            # rechargement de page ne relance indefiniment le meme job en panne.
+            raw_json.pop("video_operation_name", None)
+            raw_json["video_mode"] = None
+            error_message = result["error"]
             if is_sora_premium and raw_json.get("sora_credit_refunded") is not True:
                 seconds = raw_json.get("sora_reserved_seconds", 4)
                 balances = _refund_sora_credit(request.user, seconds)
@@ -1135,11 +1140,13 @@ class PollAdVideoView(PaidAdGenRequiredMixin, View):
                 content.raw_json = raw_json
                 content.save(update_fields=["raw_json"])
                 return JsonResponse({
-                    "error": f"{result['error']} Crédit Sora remboursé automatiquement.",
+                    "error": f"{error_message} Crédit Sora remboursé automatiquement.",
                     "sora_refunded": True,
                     "balances": balances,
                 }, status=500)
-            return JsonResponse({"error": result["error"]}, status=500)
+            content.raw_json = raw_json
+            content.save(update_fields=["raw_json"])
+            return JsonResponse({"error": error_message}, status=500)
 
         if not result.get("done"):
             return JsonResponse({"done": False})

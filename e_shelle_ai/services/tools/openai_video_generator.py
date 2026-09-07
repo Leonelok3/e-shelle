@@ -1,6 +1,7 @@
 import base64
 import logging
 import os
+import time
 import uuid
 
 import requests
@@ -111,12 +112,30 @@ def check_openai_video_status(operation_name: str) -> dict:
         if status != "completed":
             return {"done": False, "progress": payload.get("progress", 0)}
 
-        content_response = requests.get(
-            f"{OPENAI_VIDEO_API_BASE}/videos/{video_id}/content",
-            headers=headers,
-            timeout=180,
-        )
-        content_response.raise_for_status()
+        # L'asset final peut mettre quelques secondes a devenir disponible juste
+        # apres le passage au statut "completed" (decalage cote OpenAI) : on
+        # retente avant d'abandonner pour eviter un echec purement transitoire.
+        content_response = None
+        last_exc = None
+        for attempt in range(3):
+            if attempt:
+                time.sleep(3)
+            content_response = requests.get(
+                f"{OPENAI_VIDEO_API_BASE}/videos/{video_id}/content",
+                headers=headers,
+                timeout=180,
+            )
+            if content_response.status_code == 404:
+                last_exc = requests.exceptions.HTTPError(
+                    f"{content_response.status_code} Not Found (contenu pas encore disponible)",
+                    response=content_response,
+                )
+                continue
+            content_response.raise_for_status()
+            last_exc = None
+            break
+        if last_exc:
+            raise last_exc
 
         media_dir = os.path.join(settings.MEDIA_ROOT, "ai_videos")
         os.makedirs(media_dir, exist_ok=True)
