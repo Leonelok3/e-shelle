@@ -395,7 +395,11 @@
         <div class="mkt-actions">
           <a class="mkt-btn mkt-btn-primary" href="{% url 'adgen:dashboard' %}">Ouvrir AdGen →</a>
           <a class="mkt-btn" href="{% url 'business:eshelle_communication' %}">Lancer la communication</a>
+          {% if user_has_business %}
+          <a class="mkt-btn mkt-btn-green" href="{% url 'business:dashboard' %}">Gérer mon business →</a>
+          {% else %}
           <a class="mkt-btn mkt-btn-green" href="{% url 'business:onboarding' %}">Inscrire mon business →</a>
+          {% endif %}
         </div>
         <div class="mkt-stats">
           <div class="mkt-stat"><strong>{{ active_businesses_count }}</strong><span>business actifs</span></div>
@@ -463,12 +467,21 @@
           <p>Brainstorming d'offres, angles de vente, scripts, messages et idées de contenu.</p>
           <small>Discuter avec l'IA →</small>
         </a>
+        {% if user_has_business %}
+        <a class="mkt-card" href="{% url 'business:dashboard' %}">
+          <span class="mkt-icon">🏪</span>
+          <h3>Fiche business</h3>
+          <p>Gérez votre vitrine, votre catalogue et vos statistiques depuis votre dashboard.</p>
+          <small>Gérer mon business →</small>
+        </a>
+        {% else %}
         <a class="mkt-card" href="{% url 'business:onboarding' %}">
           <span class="mkt-icon">🏪</span>
           <h3>Fiche business</h3>
           <p>Créez une vitrine publique avec catalogue, WhatsApp direct, produits et référencement local.</p>
           <small>Inscrire mon business →</small>
         </a>
+        {% endif %}
         <a class="mkt-card" href="{% url 'products_services' %}">
           <span class="mkt-icon">🛍️</span>
           <h3>Produits & services</h3>

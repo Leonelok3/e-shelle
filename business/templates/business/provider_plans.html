@@ -10,7 +10,11 @@
       <h1>Devenir Premium sur E-Shelle.</h1>
       <p>Votre business devient plus visible dans les recherches, les vitrines premium, les carrousels de la page d'accueil et les réponses de E-Shelle AI. L'objectif est simple : plus de vues, plus de clics WhatsApp, plus de clients.</p>
       <div class="biz-sales-actions">
+        {% if user_has_business %}
+        <a href="{% url 'business:dashboard' %}" class="btn btn-primary btn-lg">Gérer mon business</a>
+        {% else %}
         <a href="{% url 'business:onboarding' %}?plan=business" class="btn btn-primary btn-lg">Inscrire mon business</a>
+        {% endif %}
         <a href="{% url 'business:solutions' %}" class="btn btn-outline-white btn-lg">Voir les solutions</a>
         <a href="/chat/?q=je%20veux%20vendre%20sur%20e-shelle" class="btn btn-outline-white btn-lg">Demander à E-Shelle AI</a>
       </div>
@@ -86,6 +90,8 @@
         </ul>
         {% if plan.monthly_price_xaf > 0 %}
           <a href="{{ plan.whatsapp_activation_url }}" target="_blank" rel="noopener" class="biz-plan-btn">Activer {{ plan.name }} →</a>
+        {% elif user_has_business %}
+          <a href="{% url 'business:dashboard' %}" class="biz-plan-btn biz-plan-btn--ghost">Gérer mon business</a>
         {% else %}
           <a href="{% url 'business:onboarding' %}?plan={{ plan.code }}" class="biz-plan-btn biz-plan-btn--ghost">Commencer gratuitement</a>
         {% endif %}

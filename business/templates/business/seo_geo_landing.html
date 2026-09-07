@@ -21,7 +21,11 @@
       <p>{{ seo_description }} Utilisez E-Shelle AI pour préciser votre quartier, comparer les offres et contacter le bon prestataire.</p>
       <div class="geo-actions">
         <a class="btn btn-primary btn-lg" href="{% url 'chat:home' %}?q=je%20cherche%20{{ service.singular|urlencode }}%20à%20{{ city_name|urlencode }}">Chercher avec E-Shelle AI</a>
+        {% if user_has_business %}
+        <a class="btn btn-outline-white btn-lg" href="{% url 'business:dashboard' %}">Gérer mon business</a>
+        {% else %}
         <a class="btn btn-outline-white btn-lg" href="{% url 'business:provider_plans' %}">Inscrire mon business</a>
+        {% endif %}
       </div>
     </div>
     <aside class="geo-local-proof">
@@ -66,7 +70,11 @@
       {% empty %}
         <div class="geo-empty">
           Aucun prestataire actif pour cette page. E-Shelle recrute encore des {{ service.plural }} à {{ city_name }}.
+          {% if user_has_business %}
+          <a href="{% url 'business:dashboard' %}">Gérer mon business</a>
+          {% else %}
           <a href="{% url 'business:onboarding' %}?plan=business">Inscrire mon business</a>
+          {% endif %}
         </div>
       {% endfor %}
     </div>
