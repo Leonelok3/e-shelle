@@ -50,27 +50,49 @@
 
 <section class="section" style="background:#08111d">
   <div class="container">
+    <div class="biz-plan-head">
+      <span class="biz-plan-eyebrow">Nos formules</span>
+      <h2>Choisissez la formule qui fait grandir votre business</h2>
+      <p>Paiement mobile (Orange Money / MTN MoMo), activation en moins de 24h, sans engagement.</p>
+    </div>
     <div class="biz-plan-grid">
       {% for plan in plans %}
-      <article class="biz-plan-card {% if plan.plan_level == 'business' or plan.plan_level == 'premium' %}biz-plan-card--hot{% endif %}">
-        <span>{{ plan.get_plan_level_display }}</span>
+      <article class="biz-plan-card {% if plan.plan_level == 'business' %}biz-plan-card--popular{% elif plan.plan_level == 'premium' %}biz-plan-card--premium{% endif %}">
+        {% if plan.plan_level == 'business' %}<span class="biz-plan-ribbon">⭐ Le plus choisi</span>{% endif %}
+        <span class="biz-plan-tag">{{ plan.get_plan_level_display }}</span>
         <h2>{{ plan.name }}</h2>
-        <strong>{{ plan.monthly_price_xaf }} FCFA</strong>
-        <p>{{ plan.description|default:"Une offre pour rendre votre business plus visible sur E-Shelle." }}</p>
+        <div class="biz-plan-price">
+          <strong>{{ plan.monthly_price_xaf }}</strong>
+          <span>FCFA {% if plan.monthly_price_xaf > 0 %}/ mois{% else %}à vie{% endif %}</span>
+        </div>
+        <p class="biz-plan-desc">{{ plan.description|default:"Une offre pour rendre votre business plus visible sur E-Shelle." }}</p>
         <ul>
-          <li>{{ plan.duration_days }} jours d'activation</li>
-          <li>{{ plan.included_boost_days }} jours de boost inclus</li>
-          <li>{{ plan.included_ai_credits }} crédits IA</li>
-          {% if plan.monthly_price_xaf > 0 %}<li>&#10003; Vérification E-Shelle incluse</li>{% endif %}
+          <li><b>✓</b> {{ plan.duration_days }} jours d'activation</li>
+          {% if plan.included_boost_days %}
+            <li><b>✓</b> {{ plan.included_boost_days }} jours de boost inclus</li>
+          {% else %}
+            <li class="is-muted"><b>–</b> Pas de boost de classement</li>
+          {% endif %}
+          {% if plan.included_ai_credits %}
+            <li><b>✓</b> {{ plan.included_ai_credits }} crédits IA</li>
+          {% else %}
+            <li class="is-muted"><b>–</b> Pas de crédits IA</li>
+          {% endif %}
+          {% if plan.monthly_price_xaf > 0 %}
+            <li><b>✓</b> Badge Vérifié E-Shelle</li>
+          {% else %}
+            <li class="is-muted"><b>–</b> Pas de badge Vérifié</li>
+          {% endif %}
         </ul>
         {% if plan.monthly_price_xaf > 0 %}
-          <a href="{{ plan.whatsapp_activation_url }}" target="_blank" rel="noopener" class="btn btn-primary">Choisir ce plan</a>
+          <a href="{{ plan.whatsapp_activation_url }}" target="_blank" rel="noopener" class="biz-plan-btn">Activer {{ plan.name }} →</a>
         {% else %}
-          <a href="{% url 'business:onboarding' %}?plan={{ plan.code }}" class="btn btn-primary">Commencer</a>
+          <a href="{% url 'business:onboarding' %}?plan={{ plan.code }}" class="biz-plan-btn biz-plan-btn--ghost">Commencer gratuitement</a>
         {% endif %}
       </article>
       {% endfor %}
     </div>
+    <p class="biz-plan-footnote">🔒 Paiement sécurisé par WhatsApp · Activation manuelle sous 24h · Résiliable à tout moment</p>
 
     <div class="biz-benefits">
       <article><strong>1</strong><h2>Visibilité immédiate</h2><p>Vos offres peuvent apparaître sur la page d'accueil, dans les blocs premium et dans les réponses de E-Shelle AI.</p></article>
@@ -133,11 +155,36 @@
 .biz-compare-col strong{display:block;color:#fff;font-size:1.8rem}
 .biz-compare-col--hot strong{color:#7cf66c}
 .biz-compare-col small{color:rgba(255,255,255,.55);font-size:.8rem}
-.biz-plan-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
-.biz-plan-card span{color:#7cf66c;font-weight:900;font-size:.78rem;text-transform:uppercase}
-.biz-plan-card strong{display:block;color:#fff;font-size:1.8rem;margin:.6rem 0}
-.biz-plan-card ul{padding-left:1.1rem;line-height:1.8;margin:1rem 0}
-.biz-plan-card--hot{border-color:rgba(124,246,108,.45);box-shadow:0 18px 50px rgba(34,197,94,.1)}
+.biz-plan-head{text-align:center;max-width:640px;margin:0 auto 2.5rem}
+.biz-plan-eyebrow{display:inline-block;color:#7cf66c;font-weight:900;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem}
+.biz-plan-head h2{color:#fff;font-size:clamp(1.6rem,3vw,2.3rem);margin:0 0 .6rem;line-height:1.2}
+.biz-plan-head p{color:rgba(255,255,255,.6);font-size:1rem;line-height:1.6;margin:0}
+.biz-plan-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.5rem;align-items:stretch}
+.biz-plan-card{position:relative;display:flex;flex-direction:column;padding:2.1rem 1.75rem;border-radius:20px;transition:transform .25s ease,box-shadow .25s ease}
+.biz-plan-card:hover{transform:translateY(-4px)}
+.biz-plan-tag{color:#7cf66c;font-weight:900;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em}
+.biz-plan-card h2{color:#fff;margin:.6rem 0 0;font-size:1.3rem;font-weight:800}
+.biz-plan-price{display:flex;align-items:baseline;gap:.4rem;margin:1rem 0 .25rem}
+.biz-plan-price strong{color:#fff;font-size:2.4rem;font-weight:900;line-height:1}
+.biz-plan-price span{color:rgba(255,255,255,.5);font-size:.85rem;font-weight:700}
+.biz-plan-desc{color:rgba(255,255,255,.6);font-size:.9rem;line-height:1.55;margin:0 0 1.4rem;min-height:2.7rem}
+.biz-plan-card ul{list-style:none;padding:0;margin:0 0 1.6rem;display:flex;flex-direction:column;gap:.65rem}
+.biz-plan-card ul li{display:flex;align-items:flex-start;gap:.55rem;color:rgba(255,255,255,.82);font-size:.88rem;line-height:1.4}
+.biz-plan-card ul li b{color:#7cf66c;font-size:1rem;flex-shrink:0}
+.biz-plan-card ul li.is-muted{color:rgba(255,255,255,.35)}
+.biz-plan-card ul li.is-muted b{color:rgba(255,255,255,.3)}
+.biz-plan-btn{margin-top:auto;display:flex;align-items:center;justify-content:center;min-height:50px;padding:.85rem 1.2rem;border-radius:12px;background:linear-gradient(135deg,#7dec6c,#f59e0b);color:#06120a;font-weight:900;font-size:.95rem;text-decoration:none;transition:transform .2s ease,box-shadow .2s ease;box-shadow:0 12px 26px rgba(34,197,94,.16)}
+.biz-plan-btn:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(34,197,94,.3)}
+.biz-plan-btn--ghost{background:transparent;border:1.5px solid rgba(255,255,255,.28);color:#fff;box-shadow:none}
+.biz-plan-btn--ghost:hover{border-color:#7cf66c;color:#7cf66c}
+.biz-plan-card--popular{border-color:rgba(124,246,108,.55);background:linear-gradient(180deg,rgba(124,246,108,.08),rgba(255,255,255,.04));box-shadow:0 20px 55px rgba(34,197,94,.16);transform:scale(1.035);z-index:1}
+.biz-plan-card--popular:hover{transform:scale(1.035) translateY(-4px)}
+.biz-plan-ribbon{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#7dec6c,#22c55e);color:#06120a;font-weight:900;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;padding:.4rem 1rem;border-radius:999px;white-space:nowrap;box-shadow:0 6px 16px rgba(34,197,94,.35)}
+.biz-plan-card--premium{border-color:rgba(245,158,11,.5);background:linear-gradient(180deg,rgba(245,158,11,.08),rgba(255,255,255,.04))}
+.biz-plan-card--premium .biz-plan-tag{color:#f59e0b}
+.biz-plan-card--premium .biz-plan-btn{background:linear-gradient(135deg,#f59e0b,#f97316);box-shadow:0 12px 26px rgba(245,158,11,.2)}
+.biz-plan-footnote{text-align:center;color:rgba(255,255,255,.45);font-size:.82rem;margin:1.6rem 0 2.5rem}
+@media(max-width:950px){.biz-plan-card--popular{transform:none}.biz-plan-card--popular:hover{transform:translateY(-4px)}}
 @media(max-width:950px){.biz-sales-wrap,.biz-benefits,.biz-plan-grid,.biz-funnel,.biz-launch-pack{grid-template-columns:1fr}}
 </style>
 {% endblock %}
