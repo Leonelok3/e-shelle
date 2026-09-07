@@ -334,6 +334,30 @@ class BusinessCatalogItem(models.Model):
             return ""
 
     @property
+    def price_numeric(self):
+        """Valeur numerique brute du prix, pour les donnees structurees Schema.org.
+        Retourne None si le prix n'est pas un montant exploitable (ex: 'Prix a discuter')."""
+        val = (self.price_label or "").strip()
+        if not val:
+            return None
+        try:
+            cleaned = val.replace(" ", "").replace(",", "")
+            return float(cleaned)
+        except ValueError:
+            return None
+
+    @property
+    def price_schema(self):
+        """Prix numerique en texte simple (point decimal, sans separateur regional),
+        pour les donnees structurees Schema.org. None si non exploitable."""
+        num = self.price_numeric
+        if num is None:
+            return None
+        if num.is_integer():
+            return str(int(num))
+        return f"{num:.2f}"
+
+    @property
     def formatted_price(self):
         val = (self.price_label or "").strip()
         if not val:
@@ -355,6 +379,7 @@ class BusinessCatalogItem(models.Model):
             "title": self.title,
             "description": self.description,
             "price": self.formatted_price,
+            "price_raw": self.price_schema,
             "image": self.image_url,
             "images": ([self.image.url] if self.image else []) + [img.image.url for img in self.images.all() if img.image],
             "video": self.video_url,
