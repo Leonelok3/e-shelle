@@ -48,8 +48,8 @@ class VoiceOverForm(forms.ModelForm):
         self.fields["voice_profile"].queryset = qs
         self.fields["voice_profile"].required = False
         self.fields["mode"].help_text = (
-            "« Voix IA (OpenAI) » genere une vraie voix parlee immediatement. "
-            "« Ma voix clonee » necessite un fournisseur specialise pas encore connecte."
+            "« Voix IA (OpenAI) » utilise une voix generique. "
+            "« Ma voix clonee » utilise votre propre voix enregistree ci-dessus (consentement requis)."
         )
 
 

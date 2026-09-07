@@ -401,6 +401,7 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
 # OpenAI (EnglishPrepApp, GermanPrepApp, italian_courses)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
 
 # Google GenAI / Vertex AI
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")

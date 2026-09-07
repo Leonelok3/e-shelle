@@ -5,7 +5,7 @@ from django.views.generic import CreateView, TemplateView
 
 from .forms import MusicTrackForm, VoiceOverForm, VoiceProfileForm
 from .models import MusicTrackJob, VoiceOverJob, VoiceProfile
-from .services import generate_music_track, generate_voiceover_audio
+from .services import generate_music_track, generate_voiceover_audio, register_cloned_voice
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -30,8 +30,20 @@ class VoiceProfileCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
-        messages.success(self.request, "Voix enregistree. Vous pouvez maintenant preparer une voix-off.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        if self.object.consent_confirmed:
+            try:
+                register_cloned_voice(self.object)
+                messages.success(self.request, "Voix enregistree et clonee avec succes. Vous pouvez generer une voix-off avec votre propre voix.")
+            except Exception as exc:
+                messages.warning(
+                    self.request,
+                    f"Voix sauvegardee, mais le clonage a echoue pour l'instant ({exc}). "
+                    "Vous pouvez reessayer plus tard depuis la generation de voix-off."
+                )
+        else:
+            messages.success(self.request, "Voix enregistree. Confirmez le consentement pour activer le clonage.")
+        return response
 
     def get_success_url(self):
         return "/audio-studio/"

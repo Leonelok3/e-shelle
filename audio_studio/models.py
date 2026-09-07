@@ -33,7 +33,7 @@ class VoiceOverJob(models.Model):
 
     class Mode(models.TextChoices):
         LOCAL = "local", "Voix IA (OpenAI)"
-        CLONE = "clone", "Ma voix clonee (bientot disponible)"
+        CLONE = "clone", "Ma voix clonee"
 
     class OpenAIVoice(models.TextChoices):
         ALLOY = "alloy", "Alloy - neutre"
