@@ -3,6 +3,7 @@ E-Shelle Resto — Formulaires
 """
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils.text import slugify
 
 from .models import Restaurant, Dish, MenuCategory, City, Neighborhood, FoodCategory, Review
 
@@ -10,11 +11,16 @@ from .models import Restaurant, Dish, MenuCategory, City, Neighborhood, FoodCate
 class RestaurantForm(forms.ModelForm):
     """Formulaire d'édition du profil restaurant (dashboard)."""
 
+    neighborhood_name = forms.CharField(
+        max_length=120, required=False, label="Quartier",
+        widget=forms.TextInput(attrs={"class": "form-input", "placeholder": "Ex: Makepe, Bonamoussadi, Ndokoti..."}),
+    )
+
     class Meta:
         model = Restaurant
         fields = [
             "name", "description", "cover_image", "logo",
-            "city", "neighborhood", "address", "phone", "whatsapp",
+            "city", "address", "phone", "whatsapp",
             "categories", "opening_time", "closing_time", "status",
         ]
         widgets = {
@@ -27,9 +33,30 @@ class RestaurantForm(forms.ModelForm):
             "closing_time": forms.TimeInput(attrs={"class": "form-input", "type": "time"}),
             "status": forms.Select(attrs={"class": "form-input"}),
             "city": forms.Select(attrs={"class": "form-input"}),
-            "neighborhood": forms.Select(attrs={"class": "form-input"}),
             "categories": forms.CheckboxSelectMultiple(),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.neighborhood_id:
+            self.fields["neighborhood_name"].initial = self.instance.neighborhood.name
+
+    def save(self, commit=True):
+        restaurant = super().save(commit=False)
+        name = (self.cleaned_data.get("neighborhood_name") or "").strip()
+        city = self.cleaned_data.get("city")
+        if name and city:
+            neighborhood, _ = Neighborhood.objects.get_or_create(
+                city=city, slug=slugify(name),
+                defaults={"name": name},
+            )
+            restaurant.neighborhood = neighborhood
+        else:
+            restaurant.neighborhood = None
+        if commit:
+            restaurant.save()
+            self.save_m2m()
+        return restaurant
 
     def clean_cover_image(self):
         image = self.cleaned_data.get("cover_image")
