@@ -758,7 +758,7 @@ def solutions(request):
             "title": "Je fais de la collecte terrain",
             "tag": "Microfinance",
             "desc": "Tchaslucpay suit collecteurs, clients, dépôts, retraits, reçus PDF et soldes.",
-            "url": "http://127.0.0.1:8001/",
+            "url": getattr(settings, "TCHASLUCPAY_PUBLIC_URL", "/tchaslucpay/"),
             "cta": "Voir la collecte",
             "accent": "#10b981",
         },
@@ -770,6 +770,14 @@ def solutions(request):
             "cta": "Voir artisans",
             "accent": "#facc15",
         },
+        {
+            "title": "Je veux immigrer ou travailler à l'étranger",
+            "tag": "Immigration",
+            "desc": "Canada Space (EIMT, CV canadien), Deutsch Space (Ausbildung, Goethe) et Italia Space (Nulla Osta) avec coach IA dédié.",
+            "url": "/immigration/",
+            "cta": "Voir Immigration",
+            "accent": "#ef4444",
+        },
     ]
     demos = [
         ("Santé", "/sante/produits/", "Produits santé avec photos et commande WhatsApp"),
@@ -777,13 +785,38 @@ def solutions(request):
         ("Auto", "/auto/", "Vente et location de véhicules"),
         ("Artisans", "/artisans/", "Profils artisans et demandes travaux"),
         ("Njangi", "/njangi/groupe/reunion-demo-e-shelle/", "Réunion/tontine démo"),
-        ("Collecte", "http://127.0.0.1:8001/", "Collecte terrain et reçus PDF"),
+        ("Collecte", getattr(settings, "TCHASLUCPAY_PUBLIC_URL", "/tchaslucpay/"), "Collecte terrain et reçus PDF"),
         ("AdGen", "/pub/", "Publicités IA pour business"),
+    ]
+    immigration_apps = [
+        {
+            "icon": "🍁",
+            "name": "Canada Space",
+            "desc": "Offres EIMT/LMIA, calcul CRS, CV canadien ATS et coach IA d'entretien.",
+            "url": "/canada/",
+        },
+        {
+            "icon": "🇩🇪",
+            "name": "Deutsch Space",
+            "desc": "Allemand A1-C2, examens Goethe/telc/TestDaF, Ausbildung et Lebenslauf officiel.",
+            "url": getattr(settings, "ALLEMAND_PUBLIC_URL", "/allemand/"),
+        },
+        {
+            "icon": "🇮🇹",
+            "name": "Italia Space",
+            "desc": "Cours d'italien A1-C2 pour préparer le Nulla Osta et la vie en Italie.",
+            "url": getattr(settings, "ITALIEN_PUBLIC_URL", "/italien/"),
+        },
     ]
     return render(
         request,
         "business/solutions.html",
-        {"solutions": solutions_grid, "demos": demos, "proof": proof},
+        {
+            "solutions": solutions_grid,
+            "demos": demos,
+            "immigration_apps": immigration_apps,
+            "proof": proof,
+        },
     )
 
 
