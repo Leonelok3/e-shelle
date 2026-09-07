@@ -33,7 +33,12 @@ CITIES_DATA = [
 
 NEIGHBORHOODS_DATA = {
     "Yaoundé": ["Bastos", "Biyem-Assi", "Melen", "Mvog-Ada", "Ngousso"],
-    "Douala": ["Akwa", "Bonapriso", "Bonanjo", "Makepe", "Deido"],
+    "Douala": [
+        "Akwa", "Bonapriso", "Bonanjo", "Makepe", "Deido", "Bonaberi",
+        "New-Bell", "Bali", "Ndokoti", "Bepanda", "Kotto", "Logbaba",
+        "PK8", "PK10", "PK14", "Yassa", "Cite SIC", "Denver",
+        "Ndogbong", "Nyalla", "Village", "Bassa", "Japoma",
+    ],
     "Bafoussam": ["Banengo", "Djeleng", "Kamkop", "Tamdja", "Tougang"],
     "Bamenda": ["Commercial Avenue", "Nkwen", "Mile 4", "Old Town", "Up Station"],
     "Garoua": ["Lopéré", "Bourrou", "Poumpoumré", "Yelwa", "Ngong"],
