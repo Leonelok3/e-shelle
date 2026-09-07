@@ -15,4 +15,9 @@ urlpatterns = [
     path("sync-whatsapp-contacts/", views.sync_whatsapp_contacts, name="sync_whatsapp_contacts"),
     path("campagne-auto/", views.create_auto_campaign, name="create_auto_campaign"),
     path("campagne-whatsapp/", views.create_whatsapp_campaign, name="create_whatsapp_campaign"),
+    path("sourcing/", views.sourcing_hub, name="sourcing_hub"),
+    path("sourcing/import-lead/", views.import_sourcing_lead, name="import_sourcing_lead"),
+    path("sourcing/import-bulk/", views.import_sourcing_bulk, name="import_sourcing_bulk"),
+    path("sourcing/create-resto-draft/", views.create_resto_draft_view, name="create_resto_draft"),
+    path("sourcing/export-csv/", views.export_sourcing_csv, name="export_sourcing_csv"),
 ]

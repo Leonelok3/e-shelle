@@ -11,6 +11,8 @@ class ProspectBusiness(models.Model):
         BUSINESS_PROFILE = "business_profile", "Fiche business"
         USER = "user", "Utilisateur"
         IMPORT = "import", "Import"
+        SOURCING_WEB = "sourcing_web", "Sourcing Web"
+        FACEBOOK = "facebook", "Facebook"
         DEMO = "demo", "Demo"
 
     class Statut(models.TextChoices):
