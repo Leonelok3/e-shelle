@@ -17,6 +17,23 @@
         </div>
       </div>
 
+      <form method="post" action="{% url 'business:catalog_item_generate_description' business.id item.id %}" style="background:rgba(125,236,108,.08);border:1px solid rgba(125,236,108,.3);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        {% csrf_token %}
+        <div>
+          <strong style="color:#fff;">✨ Description générée par l'IA</strong>
+          <p style="margin:.25rem 0 0;color:rgba(255,255,255,.6);font-size:.85rem;">
+            {% if business.ai_credits > 0 %}
+              Il vous reste {{ business.ai_credits }} crédit{{ business.ai_credits|pluralize }} IA.
+            {% else %}
+              Vous n'avez plus de crédits IA — passez à une formule supérieure pour en recevoir.
+            {% endif %}
+          </p>
+        </div>
+        <button type="submit" {% if business.ai_credits <= 0 %}disabled{% endif %} style="min-height:42px;padding:.6rem 1.1rem;border-radius:9px;border:0;background:linear-gradient(135deg,#7dec6c,#f59e0b);color:#06120a;font-weight:900;cursor:pointer;white-space:nowrap;{% if business.ai_credits <= 0 %}opacity:.5;cursor:not-allowed;{% endif %}">
+          Générer la description (1 crédit)
+        </button>
+      </form>
+
       <form method="post" enctype="multipart/form-data" style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem">
         {% csrf_token %}
 
@@ -76,10 +93,21 @@
             </div>
           {% endif %}
 
+          {% if business.catalog_extra_photo_limit %}
           <label class="item-field">Ajouter d'autres photos
             <input type="file" name="images" accept="image/png,image/jpeg,image/jpg" multiple>
-            <span style="font-size:0.75rem;color:rgba(255,255,255,0.48);margin-top:0.25rem;">Vous pouvez sélectionner plusieurs images en même temps.</span>
+            <span style="font-size:0.75rem;color:rgba(255,255,255,0.48);margin-top:0.25rem;">
+              Votre formule permet {{ business.catalog_extra_photo_limit }} photo(s) supplémentaire(s) par produit ({{ item.images.count }} déjà ajoutée(s)).
+            </span>
           </label>
+          {% else %}
+          <label class="item-field">Ajouter d'autres photos
+            <input type="file" disabled placeholder="🔒 Réservé aux formules payantes" style="opacity:.5;cursor:not-allowed;">
+            <span style="font-size:0.75rem;color:rgba(255,255,255,0.48);margin-top:0.25rem;">
+              🔒 La galerie de photos est réservée aux formules payantes (Pro, Business, Premium).
+            </span>
+          </label>
+          {% endif %}
         </div>
 
         <!-- Section Vidéo -->

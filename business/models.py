@@ -46,6 +46,21 @@ class BusinessProfile(models.Model):
         PENDING = "pending", "Paiement en attente"
         ACTIVE = "active", "Activee"
 
+    # Limites du catalogue par palier. None = illimite.
+    CATALOG_ITEM_LIMITS = {
+        Plan.FREE: 5,
+        Plan.PRO: 20,
+        Plan.BUSINESS: 50,
+        Plan.PREMIUM: None,
+    }
+    # Nombre de photos supplementaires (en plus de la photo principale) par produit/service.
+    CATALOG_EXTRA_PHOTO_LIMITS = {
+        Plan.FREE: 0,
+        Plan.PRO: 2,
+        Plan.BUSINESS: 4,
+        Plan.PREMIUM: 7,
+    }
+
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
@@ -189,6 +204,35 @@ class BusinessProfile(models.Model):
     @property
     def boost_active(self):
         return bool(self.boost_expires_at and self.boost_expires_at > timezone.now())
+
+    @property
+    def catalog_item_limit(self):
+        """Nombre max de produits/services actif pour ce plan. None = illimite."""
+        return self.CATALOG_ITEM_LIMITS.get(self.plan, 5)
+
+    @property
+    def catalog_extra_photo_limit(self):
+        """Nombre de photos supplementaires autorisees par produit/service pour ce plan."""
+        return self.CATALOG_EXTRA_PHOTO_LIMITS.get(self.plan, 0)
+
+    def check_expiry(self):
+        """
+        Retrograde la fiche vers le plan Gratuit si l'abonnement est expire.
+        A appeler avant toute verification de limite ou d'affichage du plan.
+        Retourne True si la fiche a ete retrogradee.
+        """
+        if (
+            self.plan != self.Plan.FREE
+            and self.subscription_expires_at
+            and timezone.now() > self.subscription_expires_at
+        ):
+            self.plan = self.Plan.FREE
+            self.activation_status = self.ActivationStatus.DEMO
+            self.is_verified = False
+            self.boost_expires_at = None
+            self.save(update_fields=["plan", "activation_status", "is_verified", "boost_expires_at", "updated_at"])
+            return True
+        return False
 
     @property
     def economic_score(self):

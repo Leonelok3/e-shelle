@@ -47,6 +47,7 @@ urlpatterns = [
     path("catalogue/<int:business_id>/", views.catalog_manage, name="catalog_manage"),
     path("catalogue/<int:business_id>/item/<int:item_id>/", views.catalog_item_action, name="catalog_item_action"),
     path("catalogue/<int:business_id>/item/<int:item_id>/modifier/", views.catalog_item_edit, name="catalog_item_edit"),
+    path("catalogue/<int:business_id>/item/<int:item_id>/generer-description/", views.catalog_item_generate_description, name="catalog_item_generate_description"),
     path("catalogue/item/<int:item_id>/vue/", views.track_item_view, name="track_item_view"),
     path("activer-code/", views.redeem_activation_code, name="redeem_activation_code"),
     path("avis/<int:business_id>/nouveau/", views.submit_review, name="submit_review"),

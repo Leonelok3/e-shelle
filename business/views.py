@@ -2196,6 +2196,7 @@ def dashboard(request):
     share_whatsapp_url = ""
     whatsapp_url = ""
     if current:
+        current.check_expiry()
         public_url = request.build_absolute_uri(current.get_absolute_url())
         share_text = f"Decouvrez {current.name} sur E-Shelle: {public_url}"
         share_whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(share_text)}"
@@ -2241,6 +2242,7 @@ def _positive_int_simple(value):
 def catalog_manage(request, business_id):
     """Gestion rapide des produits/services visibles sur la fiche publique."""
     business = get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
+    business.check_expiry()
 
     if request.method == "POST":
         title = request.POST.get("title", "").strip()
@@ -2253,14 +2255,18 @@ def catalog_manage(request, business_id):
         if not title:
             messages.error(request, "Le nom du produit ou service est obligatoire.")
         else:
-            if business.plan == BusinessProfile.Plan.FREE:
+            item_limit = business.catalog_item_limit
+            if item_limit is not None:
                 existing_count = BusinessCatalogItem.objects.filter(business=business).count()
-                if existing_count >= 5:
+                if existing_count >= item_limit:
                     messages.error(
                         request,
-                        "Désolé, votre formule gratuite est limitée à 5 produits ou services. Veuillez passer à une formule supérieure pour en ajouter plus."
+                        f"Votre formule actuelle est limitée à {item_limit} produits ou services. "
+                        "Passez à une formule supérieure pour en ajouter plus."
                     )
                     return redirect("business:catalog_manage", business_id=business.id)
+
+            if business.plan == BusinessProfile.Plan.FREE:
                 video_url = ""
             else:
                 video_url, video_warning = _clean_catalog_video_url(video_url)
@@ -2281,8 +2287,16 @@ def catalog_manage(request, business_id):
                     order=order,
                     is_active=True,
                 )
-                # handle additional photos
+                # handle additional photos (limitees selon le plan)
                 extra_images = request.FILES.getlist("images")
+                photo_limit = business.catalog_extra_photo_limit
+                if photo_limit is not None and len(extra_images) > photo_limit:
+                    messages.warning(
+                        request,
+                        f"Votre formule permet {photo_limit} photo(s) supplémentaire(s) par produit/service. "
+                        f"Seules les {photo_limit} premières ont été ajoutées."
+                    )
+                    extra_images = extra_images[:photo_limit]
                 for img in extra_images:
                     BusinessCatalogItemImage.objects.create(item=item, image=img)
             except Exception as exc:
@@ -2656,6 +2670,7 @@ def business_edit(request, business_id):
 def catalog_item_edit(request, business_id, item_id):
     """Modification d'un produit/service et de ses photos supplementaires."""
     business = get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
+    business.check_expiry()
     item = get_object_or_404(BusinessCatalogItem, pk=item_id, business=business)
 
     if request.method == "POST":
@@ -2695,8 +2710,18 @@ def catalog_item_edit(request, business_id, item_id):
             if delete_images_ids:
                 BusinessCatalogItemImage.objects.filter(item=item, id__in=delete_images_ids).delete()
 
-            # Add new extra images
+            # Add new extra images (limitees selon le plan)
             extra_images = request.FILES.getlist("images")
+            photo_limit = business.catalog_extra_photo_limit
+            if photo_limit is not None:
+                remaining_slots = max(0, photo_limit - item.images.count())
+                if len(extra_images) > remaining_slots:
+                    messages.warning(
+                        request,
+                        f"Votre formule permet {photo_limit} photo(s) supplémentaire(s) par produit/service. "
+                        f"Seules {remaining_slots} nouvelle(s) photo(s) ont été ajoutées."
+                    )
+                extra_images = extra_images[:remaining_slots]
             for img in extra_images:
                 BusinessCatalogItemImage.objects.create(item=item, image=img)
 
@@ -2723,6 +2748,51 @@ import json
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+@login_required
+@require_POST
+def catalog_item_generate_description(request, business_id, item_id):
+    """Genere une description produit avec l'IA en consommant 1 credit IA du business."""
+    business = get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
+    business.check_expiry()
+    item = get_object_or_404(BusinessCatalogItem, pk=item_id, business=business)
+
+    if business.ai_credits <= 0:
+        messages.error(
+            request,
+            "Vous n'avez plus de crédits IA. Passez à une formule supérieure (Pro, Business ou Premium) pour en recevoir."
+        )
+        return redirect("business:catalog_item_edit", business_id=business.id, item_id=item.id)
+
+    from e_shelle_ai.services.openai_service import EshelleAIService
+
+    prompt = (
+        f"Ecris une description commerciale courte (2 a 3 phrases, en francais, sans emoji excessif) "
+        f"pour ce produit/service vendu sur E-Shelle par '{business.name}' "
+        f"({business.get_module_display()}, {business.city or business.country}) :\n"
+        f"Nom : {item.title}\n"
+        f"Type : {item.get_item_type_display()}\n"
+        f"Prix indicatif : {item.price_label or 'non precise'}\n"
+        f"Reponds uniquement avec la description, sans titre ni guillemets."
+    )
+    text = EshelleAIService().chat_simple(
+        messages=[{"role": "user", "content": prompt}],
+        system_prompt="Tu es un copywriter e-commerce specialise dans les petites entreprises africaines.",
+        user=request.user,
+    )
+    if text:
+        item.description = text.strip()
+        item.save(update_fields=["description", "updated_at"])
+        business.ai_credits -= 1
+        business.save(update_fields=["ai_credits", "updated_at"])
+        messages.success(
+            request,
+            f"Description générée par l'IA. Il vous reste {business.ai_credits} crédit(s) IA."
+        )
+    else:
+        messages.error(request, "La génération IA a échoué. Réessayez dans un instant.")
+    return redirect("business:catalog_item_edit", business_id=business.id, item_id=item.id)
 
 @staff_member_required
 def ai_slide_generator_page(request):

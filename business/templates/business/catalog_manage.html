@@ -75,8 +75,14 @@
           </div>
         </div>
 
-        <label style="display:block;margin:.75rem 0 .35rem;color:#c8f7d7;font-weight:850">Photos secondaires (plusieurs)</label>
-        <input type="file" name="images" accept="image/png,image/jpeg,image/jpg" multiple>
+        {% if business.catalog_extra_photo_limit %}
+          <label style="display:block;margin:.75rem 0 .35rem;color:#c8f7d7;font-weight:850">Photos secondaires (jusqu'à {{ business.catalog_extra_photo_limit }})</label>
+          <input type="file" name="images" accept="image/png,image/jpeg,image/jpg" multiple>
+        {% else %}
+          <label style="display:block;margin:.75rem 0 .35rem;color:#c8f7d7;font-weight:850">Photos secondaires 🔒</label>
+          <input type="file" disabled placeholder="Réservé aux formules payantes" style="opacity:.5;cursor:not-allowed;">
+          <span style="font-size:.72rem;color:#bdebd0;opacity:.75;">Passez à une formule payante pour ajouter plusieurs photos par produit.</span>
+        {% endif %}
 
         <button type="submit">Ajouter au catalogue</button>
 
