@@ -138,6 +138,13 @@ def formation_view(request):
 
 def home_view(request):
     ctx = {}
+    ctx["user_business"] = None
+    if request.user.is_authenticated:
+        try:
+            from business.models import BusinessProfile
+            ctx["user_business"] = BusinessProfile.objects.filter(owner=request.user).order_by("-updated_at").first()
+        except Exception:
+            ctx["user_business"] = None
     try:
         from gaz.models import DepotGaz
         ctx["gaz_depots_vedette"] = DepotGaz.objects.filter(
