@@ -78,7 +78,7 @@
 <section class="solutions-section solutions-section--immigration">
   <div class="container">
     <div class="solutions-heading">
-      <span class="solutions-pill solutions-pill--immigration">🌍 Immigration & International</span>
+      <span class="solutions-pill">🌍 Immigration & International</span>
       <h2>Préparez votre départ avec un espace dédié à chaque destination.</h2>
     </div>
     <p class="solutions-immigration-sub">
@@ -88,11 +88,11 @@
 
     <div class="immigration-grid">
       {% for app in immigration_apps %}
-      <a class="immigration-card" href="{{ app.url }}">
+      <a class="immigration-card" href="{{ app.url }}" style="--flag-accent: {{ app.accent }}">
         <span class="immigration-flag">{{ app.icon }}</span>
         <h3>{{ app.name }}</h3>
         <p>{{ app.desc }}</p>
-        <span class="immigration-cta">Découvrir {{ app.name }} →</span>
+        <span class="immigration-cta">Découvrir {{ app.name }} <b>→</b></span>
       </a>
       {% endfor %}
     </div>
@@ -134,7 +134,6 @@
 .solutions-pill{display:inline-flex;align-items:center;gap:.5rem;border:1px solid rgba(126,229,111,.35);background:rgba(34,197,94,.12);color:#7ee56f;border-radius:999px;padding:.48rem .9rem;font-weight:900;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
 .solutions-pill:before{content:"";width:8px;height:8px;border-radius:999px;background:currentColor;box-shadow:0 0 18px currentColor}
 .solutions-pill--light{background:#eafff0;border-color:#b8f5c5;color:#0d7a38}
-.solutions-pill--immigration{background:#fef2f2;border-color:#fecaca;color:#b91c1c}
 .solutions-hero h1{font-size:clamp(2.35rem,5.8vw,5.6rem);line-height:.94;max-width:920px;margin:1rem 0}
 .solutions-hero p{max-width:760px;color:rgba(255,255,255,.7);font-size:1.08rem;line-height:1.75}
 .solutions-actions{display:flex;gap:.85rem;flex-wrap:wrap;margin-top:1.5rem}
@@ -145,9 +144,17 @@
 .solutions-proof strong{display:block;margin-top:.3rem;font-size:2.6rem}
 .solutions-section{padding:4.5rem 0;background:#f8fbfa;color:#08111d}
 .solutions-section--soft{background:#fff}
-.solutions-section--immigration{background:#0b0f1a;color:#fff}
+.solutions-section--immigration{
+  position:relative;overflow:hidden;color:#fff;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(125,236,108,.14), transparent 32%),
+    radial-gradient(circle at 84% 25%, rgba(245,158,11,.14), transparent 30%),
+    linear-gradient(135deg, #03130c 0%, #071a11 45%, #180f05 100%);
+  border-top:1px solid rgba(125,236,108,.12);
+  border-bottom:1px solid rgba(125,236,108,.12);
+}
 .solutions-heading{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:1.3rem}
-.solutions-heading h2{font-size:clamp(1.8rem,3vw,3rem);line-height:1.05;margin:0;max-width:780px}
+.solutions-heading h2{font-family:'Outfit',sans-serif;font-weight:900;font-size:clamp(1.8rem,3vw,3rem);line-height:1.05;margin:0;max-width:780px}
 .solutions-section--immigration .solutions-heading h2{color:#fff}
 .solutions-immigration-sub{max-width:760px;color:rgba(255,255,255,.62);line-height:1.7;margin:0 0 2rem}
 .solutions-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
@@ -158,12 +165,28 @@
 .solution-card p{color:#536279;line-height:1.65;margin:0 0 2.4rem}
 .solution-card a{position:absolute;left:1.25rem;bottom:1.25rem;color:#064e2b;font-weight:950;text-decoration:none}
 .immigration-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem}
-.immigration-card{display:flex;flex-direction:column;gap:.5rem;padding:1.75rem;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.12);text-decoration:none;color:#fff;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
-.immigration-card:hover{transform:translateY(-4px);border-color:rgba(239,68,68,.5);box-shadow:0 20px 50px rgba(239,68,68,.14)}
-.immigration-flag{font-size:2.2rem}
-.immigration-card h3{margin:.3rem 0 0;font-size:1.25rem;font-weight:800}
+.immigration-card{
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;gap:.5rem;
+  padding:1.85rem 1.75rem;border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.12);
+  text-decoration:none;color:#fff;
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.immigration-card:before{
+  content:"";position:absolute;inset:0 0 auto;height:4px;
+  background:linear-gradient(90deg,#7dec6c,var(--flag-accent),#f59e0b);
+}
+.immigration-card:hover{
+  transform:translateY(-4px);
+  border-color:color-mix(in srgb,var(--flag-accent) 55%,transparent);
+  box-shadow:0 20px 50px color-mix(in srgb,var(--flag-accent) 22%,transparent);
+}
+.immigration-flag{font-size:2.2rem;margin-top:.25rem}
+.immigration-card h3{margin:.3rem 0 0;font-family:'Outfit',sans-serif;font-size:1.25rem;font-weight:800}
 .immigration-card p{margin:0;color:rgba(255,255,255,.62);line-height:1.6;font-size:.92rem;flex:1}
-.immigration-cta{margin-top:.5rem;font-weight:900;color:#f87171;font-size:.88rem}
+.immigration-cta{margin-top:.5rem;font-weight:900;color:var(--flag-accent);font-size:.88rem}
 .demo-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
 .demo-card{display:block;border:1px solid #d8e9dd;border-radius:16px;background:#fff;padding:1rem;text-decoration:none;color:#08111d;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
 .demo-card:hover{transform:translateY(-3px);border-color:#22c55e;box-shadow:0 18px 45px rgba(34,197,94,.12)}

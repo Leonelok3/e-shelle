@@ -794,18 +794,21 @@ def solutions(request):
             "name": "Canada Space",
             "desc": "Offres EIMT/LMIA, calcul CRS, CV canadien ATS et coach IA d'entretien.",
             "url": "/canada/",
+            "accent": "#e8433d",
         },
         {
             "icon": "🇩🇪",
             "name": "Deutsch Space",
             "desc": "Allemand A1-C2, examens Goethe/telc/TestDaF, Ausbildung et Lebenslauf officiel.",
             "url": getattr(settings, "ALLEMAND_PUBLIC_URL", "/allemand/"),
+            "accent": "#ffce00",
         },
         {
             "icon": "🇮🇹",
             "name": "Italia Space",
             "desc": "Cours d'italien A1-C2 pour préparer le Nulla Osta et la vie en Italie.",
             "url": getattr(settings, "ITALIEN_PUBLIC_URL", "/italien/"),
+            "accent": "#009246",
         },
     ]
     return render(
