@@ -1,20 +1,64 @@
 import math
-import re
+import os
 import wave
 from pathlib import Path
 
+import requests
 from django.conf import settings
 from django.core.files import File
 
 
 SAMPLE_RATE = 44100
+OPENAI_TTS_URL = "https://api.openai.com/v1/audio/speech"
 
 
 def generate_voiceover_audio(job):
-    """Genere une voix-off. En local, produit un guide audio WAV testable."""
+    """Genere une voix-off. Mode local = vraie synthese vocale OpenAI. Mode clone = voix personnelle (a venir)."""
     if job.mode == "clone":
         return _generate_clone_placeholder(job)
-    return _generate_local_voice_guide(job)
+    return _generate_openai_voiceover(job)
+
+
+def _generate_openai_voiceover(job):
+    """Appelle l'API OpenAI Text-to-Speech (tts-1-hd) pour produire un vrai fichier audio parle."""
+    api_key = getattr(settings, "OPENAI_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY n'est pas configuree sur le serveur.")
+
+    script = (job.script or "").strip()
+    if not script:
+        raise ValueError("Le texte de la voix-off est vide.")
+
+    response = requests.post(
+        OPENAI_TTS_URL,
+        headers={"Authorization": f"Bearer {api_key}"},
+        json={
+            "model": "tts-1-hd",
+            "voice": job.openai_voice or "nova",
+            "input": script[:4000],
+            "response_format": "mp3",
+        },
+        timeout=120,
+    )
+    if response.status_code >= 400:
+        message = "Erreur de l'API OpenAI Text-to-Speech."
+        try:
+            message = response.json().get("error", {}).get("message", message)
+        except ValueError:
+            pass
+        raise RuntimeError(message)
+
+    media_path = _media_output_path("voiceovers", f"voiceover_{job.pk}.mp3")
+    media_path.write_bytes(response.content)
+
+    with media_path.open("rb") as fh:
+        job.audio_file.save(media_path.name, File(fh), save=False)
+    # Estimation simple : ~2,5 mots par seconde en lecture naturelle.
+    job.duration_seconds = max(1, round(len(script.split()) / 2.5))
+    job.status = job.Status.DONE
+    job.error_message = ""
+    job.save(update_fields=["audio_file", "duration_seconds", "status", "error_message"])
+    return job
 
 
 def generate_music_track(job):
@@ -49,42 +93,20 @@ def generate_music_track(job):
     return job
 
 
-def _generate_local_voice_guide(job):
-    """Guide audio local: rythme syllabique pour caler une voix-off en montage."""
-    words = re.findall(r"\w+", job.script, flags=re.UNICODE)
-    duration = max(3, min(len(words) // 2 + 2, 90))
-    media_path = _media_output_path("voiceovers", f"voiceover_{job.pk}.wav")
-
-    samples = []
-    intro = _tone(660, .12, volume=.25) + _silence(.08) + _tone(880, .12, volume=.25)
-    samples.extend(intro)
-    samples.extend(_silence(.25))
-    for index, word in enumerate(words[:180]):
-        freq = 420 + (len(word) % 8) * 35
-        samples.extend(_tone(freq, .055, volume=.2))
-        samples.extend(_silence(.055 if index % 7 else .13))
-    remaining = duration - (len(samples) / SAMPLE_RATE)
-    if remaining > 0:
-        samples.extend(_silence(remaining))
-    _write_wav(media_path, samples)
-
-    with media_path.open("rb") as fh:
-        job.audio_file.save(media_path.name, File(fh), save=False)
-    job.duration_seconds = int(len(samples) / SAMPLE_RATE)
-    job.status = job.Status.DONE
-    job.error_message = "Mode test local: audio guide genere. Branchez un fournisseur de clonage vocal pour obtenir votre vraie voix."
-    job.save(update_fields=["audio_file", "duration_seconds", "status", "error_message"])
-    return job
-
-
 def _generate_clone_placeholder(job):
-    """Point d'integration futur pour ElevenLabs/PlayHT/Resemble/etc."""
+    """Point d'integration futur pour ElevenLabs/PlayHT/Resemble/etc.
+    Le clonage de la voix personnelle de l'utilisateur n'est pas fourni par
+    l'API OpenAI publique : il faut un fournisseur specialise (ElevenLabs...)
+    non encore connecte a E-Shelle."""
     if not job.voice_profile:
         raise ValueError("Selectionnez une voix enregistree pour le mode voix clonee.")
     if not job.voice_profile.consent_confirmed:
         raise ValueError("Consentement vocal obligatoire.")
-    # Tant que le fournisseur n'est pas configure, on genere un guide local.
-    return _generate_local_voice_guide(job)
+    raise ValueError(
+        "Le clonage de votre voix personnelle n'est pas encore disponible : cela demande "
+        "un fournisseur specialise non connecte pour le moment. Utilisez le mode "
+        "« Voix IA (OpenAI) » en attendant."
+    )
 
 
 def _media_output_path(kind, filename):

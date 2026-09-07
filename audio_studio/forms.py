@@ -27,15 +27,16 @@ class VoiceProfileForm(forms.ModelForm):
 class VoiceOverForm(forms.ModelForm):
     class Meta:
         model = VoiceOverJob
-        fields = ["title", "voice_profile", "mode", "script"]
+        fields = ["title", "voice_profile", "mode", "openai_voice", "script"]
         widgets = {
             "title": forms.TextInput(attrs={"placeholder": "Ex: Voix-off pub restaurant"}),
             "script": forms.Textarea(attrs={"rows": 7, "placeholder": "Collez ici le texte de votre voix-off..."}),
         }
         labels = {
             "title": "Titre",
-            "voice_profile": "Voix a utiliser",
+            "voice_profile": "Ma voix enregistree (mode clone uniquement)",
             "mode": "Mode de generation",
+            "openai_voice": "Voix IA",
             "script": "Texte a transformer en audio",
         }
 
@@ -46,7 +47,10 @@ class VoiceOverForm(forms.ModelForm):
             qs = VoiceProfile.objects.filter(owner=user, is_active=True, consent_confirmed=True)
         self.fields["voice_profile"].queryset = qs
         self.fields["voice_profile"].required = False
-        self.fields["mode"].help_text = "Le mode clone demande une integration fournisseur. Le mode test local fonctionne sans API."
+        self.fields["mode"].help_text = (
+            "« Voix IA (OpenAI) » genere une vraie voix parlee immediatement. "
+            "« Ma voix clonee » necessite un fournisseur specialise pas encore connecte."
+        )
 
 
 class MusicTrackForm(forms.ModelForm):

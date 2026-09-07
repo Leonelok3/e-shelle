@@ -32,14 +32,23 @@ class VoiceOverJob(models.Model):
         FAILED = "failed", "Echec"
 
     class Mode(models.TextChoices):
-        LOCAL = "local", "Test local"
-        CLONE = "clone", "Voix clonee"
+        LOCAL = "local", "Voix IA (OpenAI)"
+        CLONE = "clone", "Ma voix clonee (bientot disponible)"
+
+    class OpenAIVoice(models.TextChoices):
+        ALLOY = "alloy", "Alloy - neutre"
+        ECHO = "echo", "Echo - grave, masculin"
+        FABLE = "fable", "Fable - chaleureux"
+        ONYX = "onyx", "Onyx - profond, masculin"
+        NOVA = "nova", "Nova - dynamique, feminin"
+        SHIMMER = "shimmer", "Shimmer - doux, feminin"
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="voiceover_jobs")
     voice_profile = models.ForeignKey(VoiceProfile, null=True, blank=True, on_delete=models.SET_NULL, related_name="jobs")
     title = models.CharField(max_length=160)
     script = models.TextField()
     mode = models.CharField(max_length=20, choices=Mode.choices, default=Mode.LOCAL)
+    openai_voice = models.CharField(max_length=20, choices=OpenAIVoice.choices, default=OpenAIVoice.NOVA)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     audio_file = models.FileField(upload_to="audio_studio/voiceovers/", blank=True, null=True)
     duration_seconds = models.PositiveIntegerField(default=0)
