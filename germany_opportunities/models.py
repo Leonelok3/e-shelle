@@ -47,7 +47,7 @@ class AusbildungOffer(models.Model):
     # Conditions
     start_date      = models.DateField(null=True, blank=True)
     salary_month    = models.CharField(max_length=50, blank=True)   # ex: "620-800 EUR"
-    language_req    = models.CharField(max_length=5, choices=LANGUAGE_CHOICES, default="B1")
+    language_req    = models.CharField(max_length=5, choices=LANGUAGE_CHOICES, default="B2")
     duration_months = models.IntegerField(default=36)               # duree de la formation
 
     # Contenu
