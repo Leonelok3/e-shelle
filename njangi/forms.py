@@ -123,15 +123,21 @@ class SessionFinancialForm(forms.ModelForm):
     class Meta:
         model = Session
         fields = [
+            "proposals",
             "notes",
             "loan_fund_available",
             "cash_returned_manual",
         ]
         widgets = {
+            "proposals": forms.Textarea(attrs={
+                "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
+                "rows": 4,
+                "placeholder": "Propositions, décisions et sujets à suivre...",
+            }),
             "notes": forms.Textarea(attrs={
                 "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
                 "rows": 3,
-                "placeholder": "Notes ou procès-verbal de la séance...",
+                "placeholder": "Résumez le déroulement de la séance et les décisions prises...",
             }),
             "loan_fund_available": forms.NumberInput(attrs={
                 "class": "w-full rounded-xl border border-gray-200 px-3 py-2",
@@ -145,3 +151,6 @@ class SessionFinancialForm(forms.ModelForm):
 
     def __init__(self, *args, group=None, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.status in ("completed", "cancelled"):
+            self.fields["loan_fund_available"].disabled = True
+            self.fields["cash_returned_manual"].disabled = True

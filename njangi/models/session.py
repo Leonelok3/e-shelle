@@ -1,7 +1,7 @@
 """
 Njangi+ — Modèles Séance & Cotisation
 """
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 
@@ -60,6 +60,7 @@ class Session(models.Model):
     penalties_collected = models.DecimalField(max_digits=12, decimal_places=0, default=0, verbose_name="Pénalités collectées (FCFA)")
 
     status     = models.CharField(max_length=15, choices=STATUS_CHOICES, default="planned")
+    proposals  = models.TextField(blank=True, verbose_name="Propositions et divers")
     notes      = models.TextField(blank=True, verbose_name="Notes / PV de séance")
     opened_at  = models.DateTimeField(null=True, blank=True)
     closed_at  = models.DateTimeField(null=True, blank=True)
@@ -83,18 +84,32 @@ class Session(models.Model):
         self.created_by = user
         self.save(update_fields=["status", "opened_at", "created_by"])
 
+    @transaction.atomic
     def close(self, user):
         """Clôture la séance : calcule totaux et verse la main."""
         from njangi.models.fund import FundTransaction
+        from njangi.models.group import Membership
+        from django.db.models import F
+        locked = Session.objects.select_for_update().get(pk=self.pk)
+        if locked.status == "completed":
+            return
         contributions = self.contributions.filter(status="paid")
         self.total_collected = sum(c.amount_paid for c in contributions)
-        self.hand_amount = self.total_collected
+        beneficiaries = self.session_beneficiaries.all()
+        if beneficiaries.exists():
+            self.hand_amount = sum(b.amount for b in beneficiaries)
+        else:
+            self.hand_amount = self.total_collected if self.beneficiary_id else 0
         self.closed_at = timezone.now()
         self.status = "completed"
         self.save()
 
         # Mise à jour des totaux du bénéficiaire
-        if self.beneficiary:
+        for beneficiary in beneficiaries:
+            Membership.objects.filter(pk=beneficiary.membership_id).update(
+                total_received=F("total_received") + beneficiary.amount,
+            )
+        if self.beneficiary and not beneficiaries.exists():
             self.beneficiary.total_received += self.hand_amount
             self.beneficiary.save(update_fields=["total_received"])
 
@@ -129,13 +144,8 @@ class Session(models.Model):
 
     @property
     def total_repayments(self):
-        from njangi.models.loan import LoanRepayment
         from django.db.models import Sum
-
-        return LoanRepayment.objects.filter(
-            loan__membership__group=self.group,
-            paid_at__date=self.date,
-        ).aggregate(total=Sum("amount_paid"))["total"] or 0
+        return self.repayments_made.aggregate(total=Sum("amount_paid"))["total"] or 0
 
     @property
     def main_raised_members(self):
@@ -157,13 +167,14 @@ class Session(models.Model):
     @property
     def repayments_made(self):
         from njangi.models.loan import LoanRepayment
-        qs = self.repayments.all().select_related("loan__membership__user")
-        if not qs.exists():
-            return LoanRepayment.objects.filter(
-                loan__membership__group=self.group,
-                paid_at__date=self.date,
-            ).select_related("loan__membership__user")
-        return qs
+        from django.db.models import Q
+        query = Q(session=self)
+        # Legacy repayments without a session are included only on an unambiguous date.
+        if not self.group.sessions.filter(date=self.date).exclude(pk=self.pk).exists():
+            query |= Q(session__isnull=True, paid_at__date=self.date)
+        return LoanRepayment.objects.filter(
+            query, loan__membership__group=self.group,
+        ).select_related("loan__membership__user")
 
     @property
     def repayment_members_list(self):

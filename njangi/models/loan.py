@@ -1,7 +1,7 @@
 """
 Njangi+ — Prêts & Remboursements
 """
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 
@@ -109,18 +109,29 @@ class Loan(models.Model):
         self.reviewed_by = reviewer
         self.save()
 
+    @transaction.atomic
     def disburse(self, user=None):
         """Décaisse le prêt : met à jour le fond commun."""
         from dateutil.relativedelta import relativedelta
         from njangi.models.fund import FundTransaction
         from njangi.models.session import Session
+        from njangi.models.group import Group
+
+        group = Group.objects.select_for_update().get(pk=self.membership.group_id)
+        stored = Loan.objects.select_for_update().get(pk=self.pk)
+        if stored.status != "approved":
+            raise ValueError("Ce prêt a déjà été décaissé ou n'est pas approuvé.")
+        if not self.amount_approved or self.amount_approved <= 0:
+            raise ValueError("Le montant du prêt doit être positif.")
+        if self.amount_approved > group.session_lending_available:
+            raise ValueError(f"Fonds insuffisants : {group.session_lending_available:,} FCFA disponibles pour prêt.")
 
         self.disbursed_at = timezone.now()
         self.due_date     = (self.disbursed_at + relativedelta(months=self.duration_months)).date()
         self.status       = "active"
         
         current_session = Session.objects.filter(group=self.membership.group, status="in_progress").first()
-        if current_session:
+        if current_session and not self.session_id:
             self.session = current_session
 
         self.save()

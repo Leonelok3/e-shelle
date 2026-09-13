@@ -141,6 +141,21 @@ class Group(models.Model):
     # ── Propriétés plan ───────────────────────────────────────────────────────
 
     @property
+    def session_lending_available(self):
+        """Cash usable for lending, excluding the separate base fund.
+
+        Legacy repayment entries already include interest: the parallel interest
+        entry must not create a second source of spendable cash.
+        """
+        from django.db.models import Sum
+        balance = self.fund_transactions.exclude(
+            type__in=["base_fund_in", "base_fund_out"],
+        ).exclude(type="interest_in", reference_loan__isnull=False).aggregate(
+            total=Sum("signed_amount"),
+        )["total"] or 0
+        return max(0, int(balance * (100 - self.fund_reserve_pct) / 100))
+
+    @property
     def plan_config(self):
         return PLAN_CONFIG.get(self.plan, PLAN_CONFIG["free"])
 

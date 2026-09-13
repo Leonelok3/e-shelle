@@ -12,6 +12,17 @@ from .models import Group, Membership, Session, Contribution, FundDeposit, Loan,
 from .forms import GroupCreateForm, JoinGroupForm, LoanRequestForm, DepositCreateForm, ContributionPayForm, RepaymentForm, SessionFinancialForm
 
 
+def session_amount(value):
+    from decimal import Decimal, InvalidOperation
+    try:
+        amount = Decimal(value or "")
+        if not amount.is_finite() or amount <= 0 or amount != amount.to_integral_value() or amount >= 10 ** 14:
+            raise ValueError
+        return amount
+    except (InvalidOperation, ValueError):
+        raise ValueError("Saisissez un montant entier positif en FCFA.")
+
+
 # ── Mixins ────────────────────────────────────────────────────────────────────
 
 class MembershipRequiredMixin(LoginRequiredMixin):
@@ -38,13 +49,14 @@ class BureauRequiredMixin(MembershipRequiredMixin):
     """Restreint aux membres du bureau (président, trésorier, secrétaire)."""
 
     def dispatch(self, request, *args, **kwargs):
-        response = super().dispatch(request, *args, **kwargs)
         if not request.user.is_authenticated:
-            return response
-        if hasattr(self, "membership") and not self.membership.is_bureau:
+            return self.handle_no_permission()
+        self.group = get_object_or_404(Group, slug=kwargs.get("slug"))
+        self.membership = get_object_or_404(Membership, group=self.group, user=request.user, is_active=True)
+        if not self.membership.is_bureau:
             messages.error(request, "Accès réservé au bureau du groupe.")
             return redirect("njangi:member_dashboard")
-        return response
+        return super().dispatch(request, *args, **kwargs)
 
 
 # ── Pages publiques ───────────────────────────────────────────────────────────
@@ -492,7 +504,7 @@ class SessionDetailView(BureauRequiredMixin, TemplateView):
         members = session.group.memberships.filter(is_active=True)
         existing_mids = set(session.contributions.values_list("membership_id", flat=True))
         missing_members = [m for m in members if m.id not in existing_mids]
-        if missing_members:
+        if missing_members and session.status in ("planned", "in_progress"):
             from njangi.models.session import Contribution
             Contribution.objects.bulk_create([
                 Contribution(
@@ -516,6 +528,12 @@ class SessionDetailView(BureauRequiredMixin, TemplateView):
         ctx["pending_loans_session"] = Loan.objects.filter(membership__group=self.group, status="pending").select_related("membership__user")
         ctx["approved_loans_session"] = Loan.objects.filter(membership__group=self.group, status="approved").select_related("membership__user")
         ctx["financial_form"] = SessionFinancialForm(instance=session, group=self.group)
+        from dateutil.relativedelta import relativedelta
+        interval = {"weekly": {"days": 7}, "biweekly": {"days": 15},
+                    "monthly": {"months": 1}, "quarterly": {"months": 3}}
+        ctx["default_loan_due_date"] = session.loan_due_date or (
+            session.date + relativedelta(**interval.get(self.group.frequency, {"months": 1}))
+        )
 
         # Passer les éléments riches pour le rapport / affichage
         ctx["group_members"] = self.group.memberships.filter(is_active=True).select_related("user").order_by("user__first_name", "user__username")
@@ -536,9 +554,16 @@ class SessionFinancialUpdateView(BureauRequiredMixin, View):
         form = SessionFinancialForm(request.POST, instance=session, group=self.group)
         if form.is_valid():
             form.save()
-            messages.success(request, "Données financières de la séance enregistrées.")
+            messages.success(request, "Propositions et rapport de séance enregistrés.")
         else:
             messages.error(request, "Veuillez corriger les erreurs du formulaire de finances de la séance.")
+            from django.shortcuts import render
+            view = SessionDetailView()
+            view.setup(request, slug=slug, pk=pk)
+            view.group, view.membership = self.group, self.membership
+            context = view.get_context_data()
+            context["financial_form"] = form
+            return render(request, view.template_name, context, status=400)
         return redirect("njangi:session_detail", slug=slug, pk=pk)
 
 
@@ -551,7 +576,7 @@ class SessionDirectLoanView(BureauRequiredMixin, View):
         from njangi.models.session import Session
         from njangi.models.group import Membership
 
-        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        session = get_object_or_404(Session, pk=session_pk, group=self.group, status__in=("planned", "in_progress"))
         membership_pk = request.POST.get("membership_pk")
         amount_str = request.POST.get("amount")
         total_due_str = request.POST.get("total_due")
@@ -562,10 +587,14 @@ class SessionDirectLoanView(BureauRequiredMixin, View):
             return redirect("njangi:session_detail", slug=slug, pk=session_pk)
 
         try:
-            membership = get_object_or_404(Membership, pk=membership_pk, group=self.group)
-            amount = Decimal(amount_str)
-            total_due = Decimal(total_due_str)
+            membership = get_object_or_404(Membership, pk=membership_pk, group=self.group, is_active=True)
+            amount = session_amount(amount_str)
+            total_due = session_amount(total_due_str)
             due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+            if total_due < amount:
+                raise ValueError("Le total à rembourser ne peut pas être inférieur au prêt.")
+            if due_date < session.date:
+                raise ValueError("La date limite doit être égale ou postérieure à la séance.")
             total_interest = total_due - amount
 
             with transaction.atomic():
@@ -607,7 +636,7 @@ class SessionDirectDepositView(BureauRequiredMixin, View):
         from njangi.models.session import Session
         from njangi.models.group import Membership
 
-        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        session = get_object_or_404(Session, pk=session_pk, group=self.group, status__in=("planned", "in_progress"))
         membership_pk = request.POST.get("membership_pk")
         amount_str = request.POST.get("amount")
 
@@ -616,8 +645,8 @@ class SessionDirectDepositView(BureauRequiredMixin, View):
             return redirect("njangi:session_detail", slug=slug, pk=session_pk)
 
         try:
-            membership = get_object_or_404(Membership, pk=membership_pk, group=self.group)
-            amount = Decimal(amount_str)
+            membership = get_object_or_404(Membership, pk=membership_pk, group=self.group, is_active=True)
+            amount = session_amount(amount_str)
 
             with transaction.atomic():
                 # Créer le dépôt de main levée
@@ -702,8 +731,11 @@ class LoanRejectView(BureauRequiredMixin, View):
 class LoanDisburseView(BureauRequiredMixin, View):
     def post(self, request, slug, pk):
         loan = get_object_or_404(Loan, pk=pk, membership__group=self.group, status="approved")
-        loan.disburse(user=request.user)
-        messages.success(request, f"Prêt décaissé : {loan.formatted_amount} versés.")
+        try:
+            loan.disburse(user=request.user)
+            messages.success(request, f"Prêt décaissé : {loan.formatted_amount} versés.")
+        except ValueError as exc:
+            messages.error(request, str(exc))
         referer = request.META.get('HTTP_REFERER')
         if referer:
             return redirect(referer)
@@ -751,7 +783,7 @@ class HtmxBureauContributionToggleView(BureauRequiredMixin, View):
     """Permet au bureau de cocher/decocher le paiement de la cotisation d'un membre."""
 
     def post(self, request, slug, session_pk, contribution_pk):
-        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        session = get_object_or_404(Session, pk=session_pk, group=self.group, status__in=("planned", "in_progress"))
         contribution = get_object_or_404(Contribution, pk=contribution_pk, session=session)
         
         contribution.toggle_paid(user=request.user)
@@ -802,7 +834,7 @@ class HtmxBureauContributionPresenceView(BureauRequiredMixin, View):
     """Permet au bureau de changer le statut de présence d'un membre pour une séance."""
 
     def post(self, request, slug, session_pk, contribution_pk):
-        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        session = get_object_or_404(Session, pk=session_pk, group=self.group, status__in=("planned", "in_progress"))
         contribution = get_object_or_404(Contribution, pk=contribution_pk, session=session)
         
         new_presence = request.POST.get("presence")
@@ -832,7 +864,7 @@ class HtmxBureauContributionMethodView(BureauRequiredMixin, View):
     """Permet au bureau de changer le mode de paiement (dépot ou cash) d'une cotisation payée."""
 
     def post(self, request, slug, session_pk, contribution_pk):
-        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        session = get_object_or_404(Session, pk=session_pk, group=self.group, status__in=("planned", "in_progress"))
         contribution = get_object_or_404(Contribution, pk=contribution_pk, session=session)
         
         new_method = request.POST.get("payment_method")
@@ -858,7 +890,7 @@ class HtmxBureauRepaymentView(BureauRequiredMixin, View):
     """Permet au bureau d'enregistrer manuellement un remboursement de prêt pendant une séance."""
 
     def post(self, request, slug, session_pk, loan_pk=None):
-        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        session = get_object_or_404(Session, pk=session_pk, group=self.group, status__in=("planned", "in_progress"))
         
         target_loan_pk = loan_pk or request.POST.get("loan_pk")
         if not target_loan_pk:
@@ -867,25 +899,23 @@ class HtmxBureauRepaymentView(BureauRequiredMixin, View):
             
         loan = get_object_or_404(Loan, pk=target_loan_pk, membership__group=self.group, status="active")
         
-        amount_str = request.POST.get("amount")
-        if amount_str:
-            try:
-                amount = int(float(amount_str))
-                if amount > 0:
-                    from njangi.models.loan import LoanRepayment
-                    # On cree le remboursement
-                    LoanRepayment.objects.create(
-                        loan=loan,
-                        session=session,
-                        amount_paid=amount,
-                        payment_method="cash",
-                        transaction_ref=f"Validé séance #{session.session_number}",
-                        recorded_by=request.user,
-                    )
-                    messages.success(request, f"Remboursement de {amount:,} FCFA enregistré pour {loan.membership.user}.")
-            except ValueError:
-                pass
-                
+        from django.db import transaction
+        try:
+            amount = session_amount(request.POST.get("amount"))
+            with transaction.atomic():
+                Group.objects.select_for_update().get(pk=self.group.pk)
+                loan = Loan.objects.select_for_update().get(pk=loan.pk)
+                if loan.status != "active" or amount > loan.balance_remaining:
+                    raise ValueError("Le remboursement dépasse le montant restant dû.")
+                LoanRepayment.objects.create(
+                    loan=loan, session=session, amount_paid=amount,
+                    payment_method="cash", transaction_ref=f"Validé séance #{session.session_number}",
+                    recorded_by=request.user,
+                )
+            messages.success(request, f"Remboursement de {amount:,} FCFA enregistré.")
+        except ValueError as exc:
+            messages.error(request, str(exc))
+
         return redirect("njangi:session_detail", slug=slug, pk=session_pk)
 
 
@@ -1397,258 +1427,17 @@ class FundStatementPDFView(BureauRequiredMixin, View):
 
 
 class SessionReportPDFView(BureauRequiredMixin, View):
-    """
-    Génère un rapport PDF complet pour une séance clôturée.
-    URL: /njangi/bureau/<slug>/seances/<pk>/rapport-pdf/
-    """
-
     def get(self, request, slug, pk):
-        from io import BytesIO
-        from datetime import datetime
-        from reportlab.lib.pagesizes import A4
-        from reportlab.lib import colors
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-        from reportlab.lib.units import cm
-
+        from .session_report import build_session_report
         session = get_object_or_404(Session, pk=pk, group=self.group)
         if session.status != "completed":
-            messages.error(request, "Le rapport PDF n'est disponible qu'après clôture de la séance.")
+            messages.error(request, "Le rapport PDF est disponible après clôture de la séance.")
             return redirect("njangi:session_detail", slug=slug, pk=pk)
-
-        contributions = session.contributions.select_related("membership__user").order_by("membership__hand_order")
-        absentees = session.contributions.filter(presence="absent").select_related("membership__user")
-        penalties = session.contributions.filter(penalty_amount__gt=0).select_related("membership__user")
-        repayments = session.repayments_made
-        loans_disbursed = session.loans_granted.select_related("membership__user").all()
-        deposits = session.deposits.select_related("membership__user").all()
-        session_beneficiaries = session.session_beneficiaries.select_related("membership__user").all()
-        base_funds = session.base_fund_deposits.select_related("membership__user").all()
-
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(
-            buffer, pagesize=A4,
-            rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm,
-        )
-        styles = getSampleStyleSheet()
-        PRIMARY = colors.HexColor("#1B6CA8")
-        LIGHT = colors.HexColor("#EFF6FF")
-
-        story = []
-        title_style = ParagraphStyle("title", parent=styles["Title"], textColor=PRIMARY, fontSize=18)
-        story.append(Paragraph(f"Rapport de séance #{session.session_number}", title_style))
-        story.append(Spacer(1, 0.2*cm))
-        story.append(Paragraph(
-            f"Groupe : <b>{self.group.name}</b> | Date : <b>{session.date.strftime('%d/%m/%Y')}</b> | Cycle : <b>{session.cycle}</b>",
-            styles["Normal"],
-        ))
-        beneficiary_names = ", ".join(b.membership.user.get_full_name() or b.membership.user.username for b in session_beneficiaries) or "—"
-        story.append(Paragraph(
-            f"Bénéficiaire(s) de la séance : <b>{beneficiary_names}</b> (Montant total : <b>{int(session.hand_amount):,} FCFA</b>)",
-            styles["Normal"],
-        ))
-        story.append(Paragraph(f"Statut : <b>{session.get_status_display()}</b>", styles["Normal"]))
-        story.append(Spacer(1, 0.4*cm))
-
-        overview_data = [
-            ["Indicateur", "Valeur"],
-            ["Total collecté", f"{int(session.total_collected):,} FCFA"],
-            ["Main levée totale", f"{int(session.total_deposits):,} FCFA"],
-            ["Remboursements réels", f"{int(session.total_repayments):,} FCFA"],
-            ["Retour en caisse", f"{int(session.cash_returned_manual):,} FCFA"],
-            ["Fonds disponibles pour prêt", f"{int(session.loan_fund_available):,} FCFA"],
-            ["Pénalités collectées", f"{int(session.penalties_collected):,} FCFA"],
-        ]
-        table = Table(overview_data, colWidths=[9*cm, 8*cm])
-        table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-            ("FONTSIZE", (0, 0), (-1, -1), 10),
-            ("PADDING", (0, 0), (-1, -1), 6),
-        ]))
-        story.append(table)
-        story.append(Spacer(1, 0.5*cm))
-
-        if deposits.exists():
-            story.append(Paragraph("Dépôts de main levée (Fonds mis à disposition)", styles["Heading2"]))
-            story.append(Spacer(1, 0.2*cm))
-            dep_data = [["Membre", "Montant déposé", "Taux d'intérêt"]]
-            for d in deposits:
-                dep_data.append([
-                    d.membership.user.get_full_name() or d.membership.user.username,
-                    f"{int(d.amount):,} FCFA",
-                    f"{d.interest_rate}%",
-                ])
-            t_dep = Table(dep_data, colWidths=[7*cm, 5*cm, 5*cm])
-            t_dep.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ("FONTSIZE", (0, 0), (-1, -1), 9),
-                ("PADDING", (0, 0), (-1, -1), 5),
-            ]))
-            story.append(t_dep)
-            story.append(Spacer(1, 0.5*cm))
-
-        if base_funds.exists():
-            story.append(Paragraph("Versements au fond de caisse (Fonds de base)", styles["Heading2"]))
-            story.append(Spacer(1, 0.2*cm))
-            bf_data = [["Membre", "Montant versé"]]
-            for bf in base_funds:
-                bf_data.append([
-                    bf.membership.user.get_full_name() or bf.membership.user.username,
-                    f"{int(bf.amount):,} FCFA",
-                ])
-            t_bf = Table(bf_data, colWidths=[9*cm, 8*cm])
-            t_bf.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ("FONTSIZE", (0, 0), (-1, -1), 9),
-                ("PADDING", (0, 0), (-1, -1), 5),
-            ]))
-            story.append(t_bf)
-            story.append(Spacer(1, 0.5*cm))
-
-        if contributions.exists():
-            story.append(Paragraph("Détail des cotisations", styles["Heading2"]))
-            story.append(Spacer(1, 0.2*cm))
-            contrib_data = [["Membre", "Dû", "Payé", "Statut", "Présence", "Méthode"]]
-            for c in contributions:
-                contrib_data.append([
-                    c.membership.user.get_full_name() or c.membership.user.username,
-                    f"{int(c.amount_due):,} FCFA",
-                    f"{int(c.amount_paid):,} FCFA",
-                    c.get_status_display(),
-                    c.get_presence_display(),
-                    c.payment_method or "—",
-                ])
-            t_contrib = Table(contrib_data, colWidths=[5*cm, 2.5*cm, 2.5*cm, 2.5*cm, 2.5*cm, 2*cm])
-            t_contrib.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ("FONTSIZE", (0, 0), (-1, -1), 9),
-                ("PADDING", (0, 0), (-1, -1), 5),
-            ]))
-            story.append(t_contrib)
-            story.append(Spacer(1, 0.5*cm))
-
-        if absentees.exists():
-            story.append(Paragraph("Membres absents", styles["Heading2"]))
-            story.append(Spacer(1, 0.2*cm))
-            absent_data = [["Membre", "Statut présence"]]
-            for a in absentees:
-                absent_data.append([
-                    a.membership.user.get_full_name() or a.membership.user.username,
-                    a.get_presence_display(),
-                ])
-            t_absent = Table(absent_data, colWidths=[9*cm, 8*cm])
-            t_absent.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ("FONTSIZE", (0, 0), (-1, -1), 9),
-                ("PADDING", (0, 0), (-1, -1), 5),
-            ]))
-            story.append(t_absent)
-            story.append(Spacer(1, 0.5*cm))
-
-        if penalties.exists():
-            story.append(Paragraph("Pénalités appliquées", styles["Heading2"]))
-            story.append(Spacer(1, 0.2*cm))
-            penalty_data = [["Membre", "Montant pénalité", "Statut paiement"]]
-            for p in penalties:
-                penalty_data.append([
-                    p.membership.user.get_full_name() or p.membership.user.username,
-                    f"{int(p.penalty_amount):,} FCFA",
-                    "Payée" if p.penalty_paid else "Non payée",
-                ])
-            t_penalty = Table(penalty_data, colWidths=[7*cm, 5*cm, 5*cm])
-            t_penalty.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ("FONTSIZE", (0, 0), (-1, -1), 9),
-                ("PADDING", (0, 0), (-1, -1), 5),
-            ]))
-            story.append(t_penalty)
-            story.append(Spacer(1, 0.5*cm))
-
-        if repayments.exists():
-            story.append(Paragraph("Remboursements enregistrés", styles["Heading2"]))
-            story.append(Spacer(1, 0.2*cm))
-            repay_data = [["Membre", "Montant", "Date"]]
-            for r in repayments:
-                repay_data.append([
-                    r.loan.membership.user.get_full_name() or r.loan.membership.user.username,
-                    f"{int(r.amount_paid):,} FCFA",
-                    r.paid_at.strftime("%d/%m/%Y"),
-                ])
-            t_repay = Table(repay_data, colWidths=[7*cm, 4*cm, 5*cm])
-            t_repay.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ("FONTSIZE", (0, 0), (-1, -1), 9),
-                ("PADDING", (0, 0), (-1, -1), 5),
-            ]))
-            story.append(t_repay)
-            story.append(Spacer(1, 0.5*cm))
-
-        if loans_disbursed.exists():
-            story.append(Paragraph("Prêts accordés durant la séance", styles["Heading2"]))
-            story.append(Spacer(1, 0.2*cm))
-            loan_data = [["Emprunteur", "Montant accordé", "Date butoire", "Total à rembourser"]]
-            for l in loans_disbursed:
-                loan_data.append([
-                    l.membership.user.get_full_name() or l.membership.user.username,
-                    f"{int(l.amount_approved):,} FCFA",
-                    l.due_date.strftime("%d/%m/%Y") if l.due_date else "—",
-                    f"{int(l.total_due):,} FCFA",
-                ])
-            t_loan = Table(loan_data, colWidths=[5*cm, 4*cm, 4*cm, 4*cm])
-            t_loan.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ("FONTSIZE", (0, 0), (-1, -1), 9),
-                ("PADDING", (0, 0), (-1, -1), 5),
-            ]))
-            story.append(t_loan)
-            story.append(Spacer(1, 0.5*cm))
-
-        story.append(Paragraph(
-            f"<font color='grey' size='8'>Document généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')} — E-Shelle Njangi+</font>",
-            styles["Normal"],
-        ))
-
-        doc.build(story)
-        buffer.seek(0)
-        filename = f"rapport_seance_{self.group.slug}_{session.session_number}_{session.date.strftime('%Y%m%d')}.pdf"
-        response = HttpResponse(buffer, content_type="application/pdf")
+        response = HttpResponse(build_session_report(session), content_type="application/pdf")
+        filename = f"rapport_seance_{self.group.slug}_{session.session_number}_{session.date:%Y%m%d}.pdf"
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
 
-
-# ── Réconciliation fond commun ─────────────────────────────────────────────────
 
 class FundReconciliationView(BureauRequiredMixin, TemplateView):
     """Vue de réconciliation du fond commun — compare transactions vs états réels."""
@@ -1692,7 +1481,7 @@ class SessionAddBeneficiaryView(BureauRequiredMixin, View):
         from njangi.models.session import Session, SessionBeneficiary
         from njangi.models.group import Membership
 
-        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        session = get_object_or_404(Session, pk=session_pk, group=self.group, status__in=("planned", "in_progress"))
         membership_pk = request.POST.get("membership_pk")
         amount_str = request.POST.get("amount")
 
@@ -1701,8 +1490,8 @@ class SessionAddBeneficiaryView(BureauRequiredMixin, View):
             return redirect("njangi:session_detail", slug=slug, pk=session_pk)
 
         try:
-            membership = get_object_or_404(Membership, pk=membership_pk, group=self.group)
-            amount = Decimal(amount_str)
+            membership = get_object_or_404(Membership, pk=membership_pk, group=self.group, is_active=True)
+            amount = session_amount(amount_str)
 
             with transaction.atomic():
                 SessionBeneficiary.objects.create(
@@ -1720,7 +1509,7 @@ class SessionAddBeneficiaryView(BureauRequiredMixin, View):
 class SessionRemoveBeneficiaryView(BureauRequiredMixin, View):
     def post(self, request, slug, session_pk, beneficiary_pk):
         from njangi.models.session import Session, SessionBeneficiary
-        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        session = get_object_or_404(Session, pk=session_pk, group=self.group, status__in=("planned", "in_progress"))
         beneficiary = get_object_or_404(SessionBeneficiary, pk=beneficiary_pk, session=session)
         beneficiary.delete()
         messages.success(request, "Bénéficiaire retiré de la séance.")
@@ -1732,7 +1521,7 @@ class SessionRemoveDepositView(BureauRequiredMixin, View):
         from njangi.models.fund import FundDeposit, FundTransaction
         from njangi.models.session import Session
         from django.db import transaction
-        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        session = get_object_or_404(Session, pk=session_pk, group=self.group, status__in=("planned", "in_progress"))
         deposit = get_object_or_404(FundDeposit, pk=deposit_pk, session=session)
         
         with transaction.atomic():
@@ -1749,7 +1538,7 @@ class SessionRemoveRepaymentView(BureauRequiredMixin, View):
         from njangi.models.fund import FundTransaction
         from njangi.models.session import Session
         from django.db import transaction
-        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        session = get_object_or_404(Session, pk=session_pk, group=self.group, status__in=("planned", "in_progress"))
         repayment = get_object_or_404(LoanRepayment, pk=repayment_pk, session=session)
         
         with transaction.atomic():
@@ -1779,7 +1568,7 @@ class SessionRemoveLoanView(BureauRequiredMixin, View):
         from njangi.models.fund import FundTransaction
         from njangi.models.session import Session
         from django.db import transaction
-        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        session = get_object_or_404(Session, pk=session_pk, group=self.group, status__in=("planned", "in_progress"))
         loan = get_object_or_404(Loan, pk=loan_pk, session=session)
         
         with transaction.atomic():
@@ -1798,7 +1587,7 @@ class SessionAddBaseFundView(BureauRequiredMixin, View):
         from njangi.models.group import Membership
         from njangi.models.fund import BaseFundDeposit
 
-        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        session = get_object_or_404(Session, pk=session_pk, group=self.group, status__in=("planned", "in_progress"))
         membership_pk = request.POST.get("membership_pk")
         amount_str = request.POST.get("amount")
 
@@ -1807,8 +1596,8 @@ class SessionAddBaseFundView(BureauRequiredMixin, View):
             return redirect("njangi:session_detail", slug=slug, pk=session_pk)
 
         try:
-            membership = get_object_or_404(Membership, pk=membership_pk, group=self.group)
-            amount = Decimal(amount_str)
+            membership = get_object_or_404(Membership, pk=membership_pk, group=self.group, is_active=True)
+            amount = session_amount(amount_str)
 
             with transaction.atomic():
                 BaseFundDeposit.objects.create(
@@ -1827,7 +1616,7 @@ class SessionRemoveBaseFundView(BureauRequiredMixin, View):
     def post(self, request, slug, session_pk, base_fund_pk):
         from njangi.models.session import Session
         from njangi.models.fund import BaseFundDeposit
-        session = get_object_or_404(Session, pk=session_pk, group=self.group)
+        session = get_object_or_404(Session, pk=session_pk, group=self.group, status__in=("planned", "in_progress"))
         deposit = get_object_or_404(BaseFundDeposit, pk=base_fund_pk, session=session)
         
         from django.db import transaction
