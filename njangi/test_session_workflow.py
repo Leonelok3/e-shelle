@@ -185,6 +185,7 @@ class SessionWorkflowTests(TestCase):
 
         response = self.client.post(url, {
             "name": "Tontine des Papas Solidaires",
+            "meeting_type": "family",
             "frequency": "monthly",
             "contribution_amount": "25000",
             "fund_loan_rate": "12",

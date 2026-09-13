@@ -26,6 +26,18 @@ PLAN_CONFIG = {
 class Group(models.Model):
     """Tontine/Njangi — groupe de cotisation."""
 
+    MEETING_TYPE_CHOICES = [
+        ("sport", "Sport"),
+        ("church", "Église"),
+        ("students", "Étudiants"),
+        ("family", "Famille"),
+        ("other", "Autre"),
+    ]
+    meeting_type = models.CharField(
+        max_length=12, choices=MEETING_TYPE_CHOICES, default="other",
+        verbose_name="Type de réunion",
+    )
+
     FREQUENCY_CHOICES = [
         ("weekly",    "Chaque semaine"),
         ("biweekly",  "Deux fois par mois"),

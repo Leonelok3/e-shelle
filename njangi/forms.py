@@ -11,6 +11,7 @@ class GroupCreateForm(forms.ModelForm):
         model = Group
         fields = [
             "name",
+            "meeting_type",
             "frequency",
             "contribution_amount",
             "fund_loan_rate",
@@ -33,6 +34,7 @@ class GroupCreateForm(forms.ModelForm):
         }
         help_texts = {
             "name": "Ex: Réunion Familiale, Amicale des Commerçants, Anciens Étudiants...",
+            "meeting_type": "Choisissez le type qui correspond à votre groupe.",
             "frequency": "À quel rythme les membres se réunissent pour cotiser.",
             "contribution_amount": "Somme versée par chaque membre à chaque séance.",
             "fund_loan_rate": "Pourcentage d'intérêt par mois. Ex: 10% (sur 50 000 FCFA prêtés, le membre rembourse 55 000 FCFA).",

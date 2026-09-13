@@ -27,7 +27,7 @@ class MembershipInline(admin.TabularInline):
 @admin.register(Group)
 class GroupAdmin(admin.ModelAdmin):
     list_display  = ("name", "status", "member_count", "frequency", "contribution_amount", "current_cycle", "created_at")
-    list_filter   = ("status", "frequency")
+    list_filter   = ("status", "frequency", "meeting_type")
     search_fields = ("name", "invite_code")
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ("fund_balance", "fund_available_for_loans", "invite_code")
@@ -36,7 +36,7 @@ class GroupAdmin(admin.ModelAdmin):
     fieldsets = (
         ("Identité", {"fields": ("name", "slug", "invite_code", "description", "logo", "created_by")}),
         ("Configuration", {"fields": (
-            "frequency", "contribution_amount", "max_members",
+            "meeting_type", "frequency", "contribution_amount", "max_members",
             "fund_loan_rate", "fund_deposit_rate", "penalty_per_day",
             "max_loan_multiplier", "fund_reserve_pct", "require_guarantor",
         )}),
