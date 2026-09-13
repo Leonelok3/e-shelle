@@ -27,9 +27,10 @@ class Group(models.Model):
     """Tontine/Njangi — groupe de cotisation."""
 
     FREQUENCY_CHOICES = [
-        ("weekly",    "Hebdomadaire"),
-        ("biweekly",  "Bimensuel"),
-        ("monthly",   "Mensuel"),
+        ("weekly",    "Chaque semaine"),
+        ("biweekly",  "Deux fois par mois"),
+        ("monthly",   "Chaque mois"),
+        ("quarterly", "Tous les 3 mois (trimestriel)"),
     ]
     STATUS_CHOICES = [
         ("active",  "Actif"),
