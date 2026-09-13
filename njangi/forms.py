@@ -2,6 +2,7 @@
 Njangi+ — Formulaires
 """
 from django import forms
+from django.utils import timezone
 from .models import Group, Membership, Session, Contribution, FundDeposit, Loan, LoanRepayment
 
 
@@ -10,15 +11,17 @@ class GroupCreateForm(forms.ModelForm):
         model = Group
         fields = [
             "name", "description", "logo", "frequency",
-            "contribution_amount", "max_members",
-            "fund_loan_rate", "fund_deposit_rate", "penalty_per_day",
-            "max_loan_multiplier", "fund_reserve_pct", "require_guarantor",
-            "start_date",
+            "contribution_amount",
         ]
         widgets = {
-            "start_date": forms.DateInput(attrs={"type": "date"}),
             "description": forms.Textarea(attrs={"rows": 3}),
         }
+
+    def save(self, commit=True):
+        # Creation stays simple while the model retains its advanced settings.
+        if not self.instance.pk and not self.instance.start_date:
+            self.instance.start_date = timezone.localdate()
+        return super().save(commit=commit)
 
 
 class JoinGroupForm(forms.Form):
