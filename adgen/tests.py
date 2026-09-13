@@ -4,6 +4,8 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from adgen.models import AdCampaign, AdContent
+from adgen.models import StudioUsage
+from accounts.models import AppPlan, AppSubscription
 from adgen.services.timeline_planner import TimelinePlanner
 from adgen.views import prepare_image_for_veo
 from PIL import Image
@@ -119,6 +121,9 @@ class DjangoViewsTests(TestCase):
             campaign=self.campaign,
             voice_over="Script de test."
         )
+        AppSubscription.objects.create(user=self.user, plan=AppPlan.objects.get(slug="adgen-studio-essentiel"), status="active")
+        self.campaign.photo_produit = "adgen/products/test.png"
+        self.campaign.save()
 
     def test_start_video_generation_anonymous(self):
         # Disconnect client
@@ -146,7 +151,7 @@ class DjangoViewsTests(TestCase):
         self.assertIn("operation_name", resp_json)
         
         # Verify db contents updated
-        self.content.refresh_from_db()
-        self.assertEqual(self.content.raw_json["duration"], 15)
-        self.assertEqual(self.content.raw_json["music_style"], "synth")
-        self.assertEqual(self.content.raw_json["bg_config"]["bg_grad_dir"], "diagonal")
+        job = StudioUsage.objects.get(campaign=self.campaign, resource="video")
+        self.assertEqual(job.status, "reserved")
+        self.assertEqual(job.payload["music_style"], "synth")
+        self.assertEqual(job.payload["bg_config"]["bg_grad_dir"], "diagonal")

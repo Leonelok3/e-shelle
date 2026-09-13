@@ -87,9 +87,19 @@ class CampaignForm(forms.ModelForm):
         val = self.cleaned_data.get("description", "").strip()
         if len(val) < 20:
             raise forms.ValidationError("La description doit faire au moins 20 caractères.")
+        if len(val) > 2000:
+            raise forms.ValidationError("Limitez la description à 2 000 caractères.")
         # Sécurité : on retire les balises HTML
         import html
         return html.escape(val)
+
+    def clean(self):
+        data = super().clean()
+        for name in ("photo_produit", "photo_produit_2", "photo_produit_3"):
+            photo = data.get(name)
+            if photo and getattr(photo, "size", 0) > 8 * 1024 * 1024:
+                self.add_error(name, "Chaque photo doit peser moins de 8 Mo.")
+        return data
 
     def clean_prix(self):
         val = self.cleaned_data.get("prix", "").strip()

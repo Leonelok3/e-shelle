@@ -370,9 +370,9 @@
       {% if campaign.photo_url %}
         <!-- Zone de saisie du scénario visuel pour l'IA en anglais -->
         <div class="mb-5">
-          <label for="custom-ad-video-prompt" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">🎬 Scénario visuel d'animation pour l'IA (Anglais) :</label>
+          <label for="custom-ad-video-prompt" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">🎬 Note de scénario (repère pour votre projet, non utilisée par le montage photo) :</label>
           <textarea id="custom-ad-video-prompt" rows="2" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition" placeholder="Instructions visuelles pour l'animation (ex: Cinematic slow zoom on the product...)">{% if content.raw_json.video_prompt %}{{ content.raw_json.video_prompt }}{% else %}A professional product commercial video showcasing '{{ campaign.nom_produit }}'. Animate the product from the image with realistic motion, smooth camera pan, cinematic lighting, and studio background. High-end advertising aesthetic, 4k, no text, no logo, no watermark.{% endif %}</textarea>
-          <p class="text-xxs text-gray-400 mt-1">Ce prompt guide le moteur vidéo IA pour animer le produit.</p>
+          <p class="text-xxs text-gray-400 mt-1">Le montage utilise vos photos, les textes affichés et les médias audio associés ci-dessous.</p>
         </div>
 
         <!-- Paramètres Avancés de Personnalisation -->
@@ -516,30 +516,21 @@
             <button id="btn-generate-ad-video" onclick="startAdVideoGen()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold text-white shadow-lg hover:opacity-95 transition bg-gradient-to-r from-purple-600 to-indigo-600">
               🎥 Vidéo rapide incluse
             </button>
-            <div class="flex flex-col sm:flex-row gap-2">
-              <button id="btn-generate-sora-video" onclick="startSoraVideoGen(4, this)" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-bold text-white shadow-lg hover:opacity-95 transition bg-gradient-to-r from-amber-500 to-orange-600">
-                ✨ Sora 4s
-              </button>
-              <button onclick="startSoraVideoGen(8, this)" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition">
-                Sora 8s
-              </button>
-              <button onclick="startSoraVideoGen(12, this)" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition">
-                Sora 12s
-              </button>
-            </div>
           </div>
-          <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
-            <div class="font-black uppercase tracking-wide text-[10px] text-amber-700">Crédits Sora</div>
-            <div class="mt-1 font-bold">
-              4s: {{ sora_wallet.credits_4s }} · 8s: {{ sora_wallet.credits_8s }} · 12s: {{ sora_wallet.credits_12s }}
-            </div>
-            <a target="_blank" rel="noopener" class="inline-flex mt-2 font-extrabold text-amber-700 hover:text-amber-900"
-               href="https://wa.me/237680625082?text=Bonjour%20E-Shelle%2C%20je%20veux%20acheter%20des%20cr%C3%A9dits%20Sora%20Premium%20pour%20AdGen.">
-              Acheter des crédits →
-            </a>
-          </div>
+          <p class="text-sm text-gray-600">Un montage de 15 secondes sera consommé. Les fichiers audio déjà créés sont réutilisés.</p>
         </div>
-
+        <section class="rounded-2xl border border-purple-200 bg-purple-50 p-5 mb-6">
+          <h3 class="font-bold text-lg mb-2">Voix et musique de cette publicité</h3>
+          <p class="text-sm text-gray-600 mb-3">Choisissez une narration de 15 secondes maximum. La musique sera atténuée pour laisser entendre la voix.</p>
+          <form method="post" action="{% url 'adgen:studio_media' pk=campaign.pk %}" class="space-y-3">
+            {% csrf_token %}{{ studio_media_form.as_p }}
+            <button class="bg-purple-700 text-white font-bold px-4 py-2 rounded-xl">Associer ces médias</button>
+          </form>
+          <a class="inline-block mt-4 text-purple-700 underline" href="{% url 'adgen:studio_audio' %}?campaign={{ campaign.pk }}">Créer la voix-off ou l’ambiance de cette campagne</a>
+          {% if sora_wallet.credits_4s or sora_wallet.credits_8s or sora_wallet.credits_12s %}
+          <p class="mt-4 text-sm">Anciens crédits Sora conservés : 4 s : {{ sora_wallet.credits_4s }} · 8 s : {{ sora_wallet.credits_8s }} · 12 s : {{ sora_wallet.credits_12s }}. Contactez le support pour leur traitement.</p>
+          {% endif %}
+        </section>
         <div id="ad-video-wrapper">
           {% if content.ad_video_url %}
             <div class="message-video-container">
@@ -745,7 +736,9 @@
       firstBtn.click();
     }
     updateBgPreview();
-    {% if content.raw_json.video_operation_name and not content.ad_video_url %}
+    {% if studio_render.status == "reserved" or studio_render.status == "running" %}
+    pollAdVideoStatus("studio:{{ studio_render.pk }}", "", document.getElementById("btn-generate-ad-video"), document.getElementById("custom-ad-video-prompt"), "Créer le montage", 15);
+    {% elif content.raw_json.video_operation_name and not content.ad_video_url %}
     const btn = document.getElementById("btn-generate-ad-video");
     const promptInput = document.getElementById("custom-ad-video-prompt");
     if (btn) {

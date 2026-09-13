@@ -89,6 +89,11 @@ class DashboardView(PaidAdGenRequiredMixin, TemplateView):
             "failed": campaigns.filter(status="failed").count(),
             "modules": AdModule.get_active_modules(),
         })
+        from .services.studio_usage import summary_for
+        ctx["studio_usage"] = summary_for(user)
+        from audio_studio.models import VoiceOverJob
+        ctx["studio_voice_count"] = VoiceOverJob.objects.filter(user=user, status="done").count()
+        ctx["studio_subscription"] = AppSubscription.get_active_for_user(user, "adgen")
         return ctx
 
 
@@ -117,6 +122,9 @@ class CampaignCreateView(PaidAdGenRequiredMixin, UsageLimitMixin, CreateView):
         return ctx
 
     def form_valid(self, form):
+        if AdCampaign.objects.filter(user=self.request.user, created_at__date=timezone.localdate()).count() >= self.DAILY_LIMIT:
+            form.add_error(None, "Vous avez déjà créé 10 projets aujourd’hui. Réutilisez un projet existant ou revenez demain.")
+            return self.form_invalid(form)
         if not self.check_daily_limit(self.request.user):
             messages.error(self.request, "Limite journalière atteinte (10 générations/jour).")
             return self.form_invalid(form)
@@ -164,6 +172,14 @@ class CampaignDetailView(PaidAdGenRequiredMixin, DetailView):
         except AdContent.DoesNotExist:
             ctx["content"] = None
         ctx["sora_wallet"], _ = SoraCreditWallet.objects.get_or_create(user=self.request.user)
+        from .studio_views import StudioMediaForm
+        content = ctx["content"]
+        ctx["studio_media_form"] = StudioMediaForm(user=self.request.user, initial={
+            "voice": content.studio_voice_id if content else None,
+            "music": content.studio_music_id if content else None,
+        })
+        from .models import StudioUsage
+        ctx["studio_render"] = StudioUsage.objects.filter(campaign=self.object, resource="video").order_by("-pk").first()
         return ctx
 
 
@@ -1105,6 +1121,22 @@ class PollAdVideoView(PaidAdGenRequiredMixin, View):
         operation_name = request.GET.get("operation_name")
         if not operation_name:
             return JsonResponse({"error": "Nom de l'opération manquant."}, status=400)
+
+        if operation_name.startswith("studio:"):
+            from .models import StudioUsage
+            job_id = operation_name.removeprefix("studio:")
+            if not job_id.isdigit():
+                return JsonResponse({"error": "Opération invalide."}, status=400)
+            job = get_object_or_404(StudioUsage, pk=int(job_id), user=request.user, campaign=campaign, resource="video")
+            if job.status == "consumed":
+                return JsonResponse({"done": True, "video_url": job.payload.get("video_url", "")})
+            if job.status in {"released", "failed"}:
+                return JsonResponse({"error": job.payload.get("error", "Le montage a échoué.")}, status=500)
+            return JsonResponse({"done": False, "status": job.status})
+
+        stored_operation = (content.raw_json or {}).get("video_operation_name")
+        if stored_operation != operation_name:
+            return JsonResponse({"error": "Cette opération ne correspond pas à la campagne."}, status=404)
 
         if operation_name.startswith("local:"):
             raw_json = content.raw_json if isinstance(content.raw_json, dict) else {}

@@ -1,14 +1,15 @@
-{% extends "base.html" %}
+{% extends "adgen/base_adgen.html" %}
 
-{% block title %}Audio Studio IA - E-Shelle{% endblock %}
+{% block title %}AdGen Studio · Voix et musique - E-Shelle{% endblock %}
 
-{% block content %}
+{% block adgen_content %}
+{% include "adgen/studio_usage.html" %}
 <section class="audio-page">
   <div class="audio-shell">
     <header class="audio-hero">
       <div>
-        <span>Creation video</span>
-        <h1>Audio Studio IA</h1>
+        <span>Votre bibliothèque publicitaire</span>
+        <h1>AdGen Studio · Voix et musique</h1>
         <p>Enregistrez votre voix, transformez vos textes en voix-off et creez des musiques simples pour vos videos.</p>
       </div>
       <div class="audio-proof">
@@ -18,10 +19,11 @@
       </div>
     </header>
 
+    {% if campaign %}<p class="audio-context">Campagne : <strong>{{ campaign.nom_produit }}</strong> · <a href="{% url 'adgen:detail' pk=campaign.pk %}">Retour au montage</a>. Pour la vidéo, préparez une voix-off de 15 secondes maximum.</p>{% endif %}
     <div class="audio-grid">
       <article class="audio-panel">
-        <h2>1. Enregistrer ma voix</h2>
-        <p>Ajoutez un extrait clair de 20 a 60 secondes. Le consentement est obligatoire.</p>
+        <h2>1. Mes extraits de voix</h2>
+        <p>Conservez un extrait de 20 à 60 secondes avec votre consentement. Le clonage vocal n’est pas inclus ; utilisez une voix standard pour vos publicités.</p>
         <form method="post" action="{% url 'audio_studio:voice_create' %}" enctype="multipart/form-data">
           {% csrf_token %}
           {{ voice_form.name }}
@@ -34,9 +36,11 @@
 
       <article class="audio-panel">
         <h2>2. Generer une voix-off</h2>
-        <p>Collez le script ChatGPT ou AdGen. Une vraie voix IA (OpenAI) lit votre texte.</p>
+        <p>Choisissez votre campagne ou créez une narration indépendante. Chaque nouvelle génération consomme les caractères du script.</p>
         <form method="post" action="{% url 'audio_studio:voiceover_create' %}">
           {% csrf_token %}
+          {{ voiceover_form.request_key }}
+          <label>{{ voiceover_form.campaign.label }} {{ voiceover_form.campaign }}</label>
           {{ voiceover_form.title }}
           {{ voiceover_form.mode }}
           {{ voiceover_form.openai_voice }}
@@ -47,12 +51,14 @@
       </article>
 
       <article class="audio-panel">
-        <h2>3. Creer une musique</h2>
-        <p>Choisissez une ambiance et une duree pour produire un fond sonore video.</p>
+        <h2>3. Créer une ambiance simple</h2>
+        <p>Choisissez un style et une durée. Ce mode produit une mélodie synthétique simple, réutilisable dans vos montages.</p>
         <form method="post" action="{% url 'audio_studio:music_create' %}">
           {% csrf_token %}
+          {{ music_form.request_key }}
+          <label>{{ music_form.campaign.label }} {{ music_form.campaign }}</label>
           {{ music_form.title }}
-          {{ music_form.prompt }}
+          <label>Note personnelle (ne modifie pas la mélodie) {{ music_form.prompt }}</label>
           {{ music_form.mood }}
           {{ music_form.duration_seconds }}
           <button class="audio-btn" type="submit">Generer la musique</button>
@@ -68,10 +74,10 @@
             <div>
               <strong>{{ job.title }}</strong>
               <span>{{ job.get_mode_display }} - {{ job.get_status_display }} - {{ job.created_at|date:"d/m H:i" }}</span>
-              {% if job.error_message %}<small>{{ job.error_message }}</small>{% endif %}
+              {% if job.error_message %}<small>Génération échouée. Contactez le support avec la référence {{ job.pk }}.</small>{% endif %}
             </div>
             {% if job.audio_file %}
-              <audio controls src="{{ job.audio_file.url }}"></audio>
+              <audio preload="none" controls src="{{ job.audio_file.url }}"></audio>
               <a href="{{ job.audio_file.url }}" download>Telecharger</a>
             {% endif %}
           </div>
@@ -89,7 +95,7 @@
               <span>{{ job.get_mood_display }} - {{ job.duration_seconds }}s - {{ job.get_status_display }}</span>
             </div>
             {% if job.audio_file %}
-              <audio controls src="{{ job.audio_file.url }}"></audio>
+              <audio preload="none" controls src="{{ job.audio_file.url }}"></audio>
               <a href="{{ job.audio_file.url }}" download>Telecharger</a>
             {% endif %}
           </div>
@@ -107,7 +113,7 @@
             <strong>{{ voice.name }}</strong>
             <span>{% if voice.consent_confirmed %}Consentement confirme{% else %}Consentement manquant{% endif %} - {{ voice.created_at|date:"d/m/Y" }}</span>
           </div>
-          <audio controls src="{{ voice.sample.url }}"></audio>
+          <audio preload="none" controls src="{{ voice.sample.url }}"></audio>
         </div>
       {% empty %}
         <p class="audio-empty">Ajoutez votre premiere voix pour commencer.</p>
@@ -141,5 +147,13 @@
 .audio-row strong{display:block;color:#fff}.audio-row span,.audio-row small{display:block;color:rgba(255,255,255,.55);font-size:.8rem;margin-top:.18rem}
 .audio-row audio{width:100%}.audio-row a{color:#7cf6ca;font-weight:850;text-decoration:none}
 @media(max-width:980px){.audio-hero,.audio-grid,.audio-two,.audio-row{grid-template-columns:1fr}.audio-proof{width:100%}}
+.audio-page{padding:2rem 1rem;background:#f5f3ff;color:#172033}
+.audio-panel,.audio-list,.audio-proof{background:#fff;border-color:#e5def8;box-shadow:0 6px 24px rgba(50,20,80,.05)}
+.audio-hero h1,.audio-panel h2,.audio-list h2,.audio-row strong{color:#241341}
+.audio-hero span,.audio-proof strong,.audio-row a,.audio-context a{color:#6c3fe8}
+.audio-hero p,.audio-panel p,.audio-empty,.audio-check,.audio-row span,.audio-row small,.audio-proof small{color:#596174}
+.audio-panel input,.audio-panel textarea,.audio-panel select,.audio-panel input[type=file]{background:#faf9ff;color:#172033;border-color:#d8d1eb}
+.audio-btn{background:#6c3fe8;color:#fff}.audio-hero h1{font-size:clamp(2rem,4vw,3.4rem);line-height:1.1}
+.audio-context{padding:1rem;background:white;border-radius:12px;margin-bottom:1rem}
 </style>
 {% endblock %}

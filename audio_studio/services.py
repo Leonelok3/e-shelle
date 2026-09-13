@@ -1,6 +1,7 @@
 import math
 import os
 import wave
+import subprocess
 from pathlib import Path
 
 import requests
@@ -11,6 +12,16 @@ from django.core.files import File
 SAMPLE_RATE = 44100
 OPENAI_TTS_URL = "https://api.openai.com/v1/audio/speech"
 ELEVENLABS_API_BASE = "https://api.elevenlabs.io/v1"
+
+
+def audio_duration(path):
+    result = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                             "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
+                            capture_output=True, text=True, timeout=15, check=True)
+    duration = float(result.stdout.strip())
+    if not math.isfinite(duration) or duration <= 0:
+        raise ValueError("Durée audio invalide.")
+    return duration
 
 
 def _elevenlabs_api_key():
@@ -48,7 +59,7 @@ def register_cloned_voice(voice_profile):
                 "description": voice_profile.consent_note or "Voix E-Shelle",
             },
             files={"files": (os.path.basename(voice_profile.sample.name), sample_file, "audio/mpeg")},
-            timeout=120,
+            timeout=90,
         )
     if response.status_code >= 400:
         raise RuntimeError(_elevenlabs_error(response, "Erreur ElevenLabs lors de la creation de la voix clonee."))
@@ -90,7 +101,7 @@ def _generate_elevenlabs_voiceover(job):
             "model_id": "eleven_multilingual_v2",
             "voice_settings": {"stability": 0.5, "similarity_boost": 0.75},
         },
-        timeout=120,
+        timeout=90,
     )
     if response.status_code >= 400:
         raise RuntimeError(_elevenlabs_error(response, "Erreur ElevenLabs lors de la generation de la voix-off."))
@@ -100,7 +111,7 @@ def _generate_elevenlabs_voiceover(job):
 
     with media_path.open("rb") as fh:
         job.audio_file.save(media_path.name, File(fh), save=False)
-    job.duration_seconds = max(1, round(len(script.split()) / 2.5))
+    job.duration_seconds = math.ceil(audio_duration(media_path))
     job.status = job.Status.DONE
     job.error_message = ""
     job.save(update_fields=["audio_file", "duration_seconds", "status", "error_message"])
@@ -133,7 +144,7 @@ def _generate_openai_voiceover(job):
             "input": script[:4000],
             "response_format": "mp3",
         },
-        timeout=120,
+        timeout=90,
     )
     if response.status_code >= 400:
         message = "Erreur de l'API OpenAI Text-to-Speech."
@@ -149,7 +160,7 @@ def _generate_openai_voiceover(job):
     with media_path.open("rb") as fh:
         job.audio_file.save(media_path.name, File(fh), save=False)
     # Estimation simple : ~2,5 mots par seconde en lecture naturelle.
-    job.duration_seconds = max(1, round(len(script.split()) / 2.5))
+    job.duration_seconds = math.ceil(audio_duration(media_path))
     job.status = job.Status.DONE
     job.error_message = ""
     job.save(update_fields=["audio_file", "duration_seconds", "status", "error_message"])

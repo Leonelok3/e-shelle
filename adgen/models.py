@@ -143,6 +143,10 @@ class AdCampaign(models.Model):
 class AdContent(models.Model):
     """Contenu généré pour une campagne."""
     campaign             = models.OneToOneField(AdCampaign, on_delete=models.CASCADE, related_name="content")
+    studio_voice = models.ForeignKey("audio_studio.VoiceOverJob", null=True, blank=True,
+                                    on_delete=models.SET_NULL, related_name="ad_contents")
+    studio_music = models.ForeignKey("audio_studio.MusicTrackJob", null=True, blank=True,
+                                    on_delete=models.SET_NULL, related_name="ad_contents")
 
     # Titres & description
     titles               = models.JSONField(default=list, blank=True)
@@ -253,3 +257,20 @@ class AdUsageStat(models.Model):
         from django.conf import settings
         limit = getattr(settings, "ADGEN_MAX_CAMPAIGNS_FREE", 5)
         return max(0, limit - self.campaigns_count)
+
+
+class StudioUsage(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    campaign = models.ForeignKey(AdCampaign, null=True, blank=True, on_delete=models.SET_NULL)
+    resource = models.CharField(max_length=12)
+    amount = models.PositiveIntegerField(default=1)
+    request_key = models.CharField(max_length=64)
+    payload = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=12, default="reserved", choices=[
+        ("reserved", "En attente"), ("running", "En cours"), ("consumed", "Terminé"),
+        ("failed", "À vérifier"), ("released", "Restitué")])
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["user", "request_key"], name="studio_request_once")]
+        indexes = [models.Index(fields=["user", "resource", "created_at"], name="studio_usage_window")]

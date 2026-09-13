@@ -56,7 +56,7 @@ class AdGenAIService:
                     logger.warning(f"[AdGen] Échec de l'initialisation Gemini API Studio: {e}")
 
         # 3. Tenter d'initialiser Anthropic Claude (ancien comportement)
-        if not self.google_client:
+        if not self.google_client and getattr(settings, "ADGEN_ANTHROPIC_FALLBACK_ENABLED", False):
             anthropic_key = getattr(settings, "ANTHROPIC_API_KEY", "")
             if anthropic_key:
                 try:
@@ -83,7 +83,7 @@ class AdGenAIService:
 
         if self.client_type in ["vertex", "gemini_api"] and self.google_client:
             # 1. Utiliser le modèle haut de gamme Gemini 2.5 Pro pour le meilleur rendu rédactionnel possible
-            model_used = "Gemini 2.5 Pro (Vertex AI)" if self.client_type == "vertex" else "Gemini 2.5 Pro"
+            model_used = getattr(settings, "ADGEN_TEXT_MODEL", "gemini-2.5-flash")
             try:
                 from google.genai import types
                 config = types.GenerateContentConfig(
@@ -93,7 +93,7 @@ class AdGenAIService:
                 )
                 logger.info(f"[AdGen] Envoi de la requête à {model_used}...")
                 response = self.google_client.models.generate_content(
-                    model="gemini-2.5-pro",
+                    model=getattr(settings, "ADGEN_TEXT_MODEL", "gemini-2.5-flash"),
                     contents=prompt,
                     config=config
                 )
@@ -103,6 +103,8 @@ class AdGenAIService:
                 else:
                     tokens_used = 1500
             except Exception as e:
+                if not getattr(settings, "ADGEN_TEXT_PAID_RETRY_ENABLED", False):
+                    raise RuntimeError("Le fournisseur de textes est indisponible ; aucun second appel payant automatique.") from e
                 logger.warning(f"[AdGen] Échec avec Gemini 2.5 Pro: {e}. Essai du modèle rapide Gemini 2.5 Flash...")
                 
                 # Fallback sur Gemini 2.5 Flash

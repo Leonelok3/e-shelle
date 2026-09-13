@@ -7,6 +7,8 @@ import logging
 import requests
 import subprocess
 import glob
+import uuid
+import shutil
 from django.conf import settings
 from adgen.views import generate_ad_music, get_premium_font
 from .timeline_planner import TimelinePlanner
@@ -17,19 +19,50 @@ logger = logging.getLogger(__name__)
 class VideoComposer:
     """Orchestrateur de composition vidéo publicitaire."""
 
-    def __init__(self, campaign, duration: float = 30.0, music_style: str = "piano", bg_config: dict = None):
+    def __init__(self, campaign, duration: float = 30.0, music_style: str = "piano", bg_config: dict = None, studio_media=None):
         self.campaign = campaign
         self.duration = duration
         self.music_style = music_style
         self.bg_config = bg_config or {}
+        self.studio_media = studio_media
+        self.render_id = uuid.uuid4().hex
         
         # Dossier de stockage temporaire
-        self.temp_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "temp")
+        self.temp_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "temp", self.render_id)
         os.makedirs(self.temp_dir, exist_ok=True)
         
         # Dossier d'export final
         self.output_dir = os.path.join(settings.MEDIA_ROOT, "adgen", "videos")
         os.makedirs(self.output_dir, exist_ok=True)
+
+    def prepare_studio_audio(self, audio_path):
+        """Mix the user's existing narration and music; never regenerate paid audio."""
+        from audio_studio.models import VoiceOverJob, MusicTrackJob
+        from audio_studio.services import audio_duration
+        media = self.studio_media
+        if media is None:
+            content = self.campaign.content
+            media = {"voice_id": content.studio_voice_id, "music_id": content.studio_music_id}
+        voice = VoiceOverJob.objects.filter(pk=media.get("voice_id"), user_id=self.campaign.user_id, status="done").first()
+        music = MusicTrackJob.objects.filter(pk=media.get("music_id"), user_id=self.campaign.user_id, status="done").first()
+        if media.get("voice_id") and (not voice or not voice.audio_file):
+            raise ValueError("Voix-off indisponible.")
+        if media.get("music_id") and (not music or not music.audio_file):
+            raise ValueError("Ambiance indisponible.")
+        if music:
+            shutil.copyfile(music.audio_file.path, audio_path)
+        if not voice:
+            return
+        if audio_duration(voice.audio_file.path) > self.duration:
+            raise ValueError("La voix-off dépasse la durée du montage. Raccourcissez le script.")
+        mixed = os.path.join(self.temp_dir, "mixed.wav")
+        cmd = ["ffmpeg", "-y", "-stream_loop", "-1", "-i", audio_path, "-i", voice.audio_file.path,
+               "-filter_complex", "[0:a]volume=0.12[bed];[1:a]apad[voice];[bed][voice]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95[out]",
+               "-map", "[out]", "-t", str(self.duration), mixed]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        if result.returncode:
+            raise RuntimeError("Le mixage de la voix-off a échoué.")
+        os.replace(mixed, audio_path)
 
     def compose(self, silent_video_url: str) -> str:
         """
@@ -66,6 +99,7 @@ class VideoComposer:
             # 2. Synthèse de l'audio avec fondu de fin (fade-out)
             audio_path = os.path.join(self.temp_dir, f"audio_{self.campaign.pk}.wav")
             generate_ad_music(audio_path, duration=self.duration, style=self.music_style)
+            self.prepare_studio_audio(audio_path)
             logger.info(f"[VideoComposer] Musique synthétisée ({self.music_style}) générée à : {audio_path}")
 
             # 3. Planification de la timeline et des textes
@@ -110,7 +144,7 @@ class VideoComposer:
             )
 
             # 5. Fichier final de sortie
-            output_filename = f"ad_video_{self.campaign.pk}.mp4"
+            output_filename = f"ad_video_{self.campaign.pk}_{self.render_id}.mp4"
             output_filepath = os.path.join(self.output_dir, output_filename)
 
             # 6. Exécution FFmpeg
@@ -144,7 +178,7 @@ class VideoComposer:
             ])
 
             logger.info(f"[VideoComposer] Commande FFmpeg : {' '.join(cmd)}")
-            res = subprocess.run(cmd, capture_output=True, text=True)
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
             
             # Nettoyage immédiat du fichier d'arrière-plan temporaire
             try:
@@ -227,6 +261,7 @@ class VideoComposer:
 
             audio_path = os.path.join(self.temp_dir, f"audio_{self.campaign.pk}.wav")
             generate_ad_music(audio_path, duration=self.duration, style=self.music_style)
+            self.prepare_studio_audio(audio_path)
 
             planner = TimelinePlanner(self.campaign, duration=int(self.duration))
             timeline = planner.get_timeline()
@@ -254,7 +289,7 @@ class VideoComposer:
                 height=fast_height,
             )
 
-            output_filename = f"ad_video_{self.campaign.pk}.mp4"
+            output_filename = f"ad_video_{self.campaign.pk}_{self.render_id}.mp4"
             output_filepath = os.path.join(self.output_dir, output_filename)
 
             cmd = [
@@ -286,7 +321,7 @@ class VideoComposer:
             ])
 
             logger.info(f"[VideoComposer] Commande FFmpeg rapide : {' '.join(cmd)}")
-            res = subprocess.run(cmd, capture_output=True, text=True)
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
             if res.returncode != 0:
                 logger.error(f"[VideoComposer] Échec FFmpeg rapide: {res.stderr}")
                 raise RuntimeError("FFmpeg n'a pas pu finaliser la vidéo. Veuillez réessayer avec une autre photo produit.")
@@ -513,5 +548,8 @@ class VideoComposer:
                 scene_paths.append(scene_path)
             except Exception as exc:
                 logger.warning("[VideoComposer] Photo produit ignorée pendant la préparation du plan: %s", exc)
+            finally:
+                if hasattr(image_field, "close"):
+                    image_field.close()
 
         return scene_paths

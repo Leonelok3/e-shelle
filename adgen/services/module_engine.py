@@ -28,6 +28,8 @@ class ModuleEngine:
         from adgen.models import AdContent, AdUsageStat
         from adgen.services.ai_service import AdGenAIService
         from django.utils import timezone
+        from .studio_usage import reserve, finish
+        reservation = reserve(self.campaign.user, "text", campaign=self.campaign)
 
         # Passer le statut à "processing"
         self.campaign.status = "processing"
@@ -36,7 +38,7 @@ class ModuleEngine:
         try:
             product_data = {
                 "nom_produit": self.campaign.nom_produit,
-                "description": self.campaign.description,
+                "description": self.campaign.description[:2000],
                 "photo_url": self.campaign.photo_url,
                 "prix": self.campaign.prix,
                 "cible": self.campaign.cible,
@@ -56,6 +58,8 @@ class ModuleEngine:
 
             tokens = result.pop("_tokens_used", 0)
             raw    = result.pop("_raw", "")
+            previous = AdContent.objects.filter(campaign=self.campaign).values_list("raw_json", flat=True).first()
+            preserved = previous if isinstance(previous, dict) else {}
 
             # Créer ou mettre à jour AdContent
             content, _ = AdContent.objects.update_or_create(
@@ -71,7 +75,7 @@ class ModuleEngine:
                     "tiktok_script":         result.get("video_script", ""),
                     "voice_over":            result.get("voice_over_text", ""),
                     "chatbot_reply":         result.get("chatbot_reply", ""),
-                    "raw_json":              result,
+                    "raw_json":              {**preserved, **result},
                     "tokens_used":           tokens,
                     "generated_at":          timezone.now(),
                 }
@@ -89,9 +93,11 @@ class ModuleEngine:
             self.campaign.save(update_fields=["status", "updated_at"])
 
             logger.info(f"[ModuleEngine] Campagne #{self.campaign.pk} générée avec succès. Tokens: {tokens}")
+            finish(reservation)
             return content
 
         except Exception as e:
+            finish(reservation, failed=True)
             logger.error(f"[ModuleEngine] Échec campagne #{self.campaign.pk}: {e}")
             self.campaign.status = "failed"
             self.campaign.save(update_fields=["status", "updated_at"])

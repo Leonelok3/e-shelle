@@ -3,6 +3,21 @@ AdGen — Administration Django
 """
 from django.contrib import admin
 from .models import AdCampaign, AdContent, AdModule, AdUsageStat, SoraCreditWallet
+from .models import StudioUsage
+
+
+@admin.register(StudioUsage)
+class StudioUsageAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "resource", "amount", "status", "created_at")
+    list_filter = ("resource", "status", "created_at")
+    search_fields = ("user__username", "request_key")
+    readonly_fields = ("user", "campaign", "resource", "amount", "request_key", "payload", "created_at")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class AdContentInline(admin.StackedInline):
