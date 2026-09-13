@@ -10,15 +10,60 @@ class GroupCreateForm(forms.ModelForm):
     class Meta:
         model = Group
         fields = [
-            "name", "description", "logo", "frequency",
+            "name",
+            "frequency",
             "contribution_amount",
+            "fund_loan_rate",
+            "fund_deposit_rate",
+            "base_fund_required",
+            "penalty_per_day",
+            "description",
+            "logo",
         ]
+        labels = {
+            "name": "Nom de la réunion",
+            "frequency": "Fréquence des séances",
+            "contribution_amount": "Cotisation par membre (FCFA)",
+            "fund_loan_rate": "Taux d'intérêt sur les prêts (%)",
+            "fund_deposit_rate": "Bénéfice versé aux épargnants (%)",
+            "base_fund_required": "Fond de caisse / Secours par membre (FCFA)",
+            "penalty_per_day": "Pénalité en cas d'absence (FCFA)",
+            "description": "Description ou devise de la réunion (facultatif)",
+            "logo": "Photo ou logo du groupe (facultatif)",
+        }
+        help_texts = {
+            "name": "Ex: Réunion Familiale, Amicale des Commerçants, Anciens Étudiants...",
+            "frequency": "À quel rythme les membres se réunissent pour cotiser.",
+            "contribution_amount": "Somme versée par chaque membre à chaque séance.",
+            "fund_loan_rate": "Pourcentage d'intérêt par mois. Ex: 10% (sur 50 000 FCFA prêtés, le membre rembourse 55 000 FCFA).",
+            "fund_deposit_rate": "Gain mensuel pour le membre qui dépose de l'argent dans la caisse de prêt (ex: 5%).",
+            "base_fund_required": "Caisse de réserve ou de secours (facultatif). Laissez 0 si vous n'en avez pas.",
+            "penalty_per_day": "Montant prélevé si un membre est absent sans motif valable.",
+            "description": "Présentez brièvement le but ou la devise de votre groupe.",
+        }
         widgets = {
-            "description": forms.Textarea(attrs={"rows": 3}),
+            "name": forms.TextInput(attrs={"placeholder": "Ex : Réunion Familiale Étoile"}),
+            "contribution_amount": forms.NumberInput(attrs={"placeholder": "Ex : 10000", "min": "100"}),
+            "fund_loan_rate": forms.NumberInput(attrs={"placeholder": "10", "min": "0", "step": "0.5"}),
+            "fund_deposit_rate": forms.NumberInput(attrs={"placeholder": "5", "min": "0", "step": "0.5"}),
+            "base_fund_required": forms.NumberInput(attrs={"placeholder": "0", "min": "0"}),
+            "penalty_per_day": forms.NumberInput(attrs={"placeholder": "1000", "min": "0"}),
+            "description": forms.Textarea(attrs={"rows": 2, "placeholder": "Ex : Fraternité, entraide et développement mutuel..."}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            if not self.initial.get("fund_loan_rate"):
+                self.initial["fund_loan_rate"] = 10
+            if not self.initial.get("fund_deposit_rate"):
+                self.initial["fund_deposit_rate"] = 5
+            if not self.initial.get("base_fund_required"):
+                self.initial["base_fund_required"] = 0
+            if not self.initial.get("penalty_per_day"):
+                self.initial["penalty_per_day"] = 1000
+
     def save(self, commit=True):
-        # Creation stays simple while the model retains its advanced settings.
         if not self.instance.pk and not self.instance.start_date:
             self.instance.start_date = timezone.localdate()
         return super().save(commit=commit)

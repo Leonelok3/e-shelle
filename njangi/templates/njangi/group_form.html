@@ -5,13 +5,12 @@
 <section class="relative overflow-hidden" style="background:linear-gradient(135deg,#0D3B6E 0%,#1B6CA8 62%,#F5A623 100%)">
   <div class="max-w-6xl mx-auto px-4 py-12 md:py-16 text-white">
     <a href="{% url 'njangi:landing' %}" class="inline-flex items-center text-sm text-blue-100 hover:text-white mb-6">← Retour à Njangi Digital</a>
-    <div class="grid grid-cols-1 lg:grid-cols-[.9fr_1.1fr] gap-8 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-[.85fr_1.15fr] gap-8 items-start">
       <div>
         <span class="inline-flex px-4 py-1 rounded-full text-sm font-bold bg-white/15 border border-white/20">Réunion · Tontine · Association</span>
         <h1 class="text-4xl md:text-5xl font-extrabold leading-tight mt-5">Créer ma réunion en ligne</h1>
         <p class="text-blue-100 text-lg mt-4 max-w-xl">
-          Donnez un nom à votre réunion, puis choisissez la fréquence des séances
-          et le montant de la cotisation. Vous pourrez ensuite ajouter les membres.
+          Créez votre réunion en quelques clics. Vous êtes guidé pas à pas avec des explications simples et claires pour la gestion de l'argent et des prêts.
         </p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8">
           <div class="bg-white/10 border border-white/15 rounded-2xl p-4">
@@ -23,43 +22,171 @@
             <p class="text-sm text-blue-100 mt-1">Cotisations, prêts, dépôts, pénalités et PDF.</p>
           </div>
         </div>
+
+        <div class="mt-6 bg-white/10 border border-white/15 rounded-2xl p-4">
+          <p class="font-bold flex items-center gap-2"><span>👥</span> Pour tous types de groupes</p>
+          <p class="text-sm text-blue-100 mt-1">
+            Famille, collègues, sportifs, fidèles d'église, tontines de quartier ou étudiants : chaque groupe personnalise ses séances et son fonctionnement.
+          </p>
+        </div>
       </div>
 
       <form method="post" enctype="multipart/form-data" class="bg-white rounded-3xl shadow-2xl border border-white/30 p-6 md:p-8 text-gray-900">
         {% csrf_token %}
         {% if form.non_field_errors %}
-        <div role="alert" class="mb-4 text-sm text-red-600">{{ form.non_field_errors }}</div>
+        <div role="alert" class="mb-5 p-3.5 bg-red-50 text-sm text-red-600 rounded-xl border border-red-100">{{ form.non_field_errors }}</div>
         {% endif %}
 
-        <div class="flex items-start gap-3 mb-6">
-          <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black" style="background:var(--njangi-primary)">1</div>
-          <div>
-            <h2 class="text-xl font-extrabold">Informations de la réunion</h2>
-            <p class="text-sm text-gray-400">Vous serez automatiquement président du groupe.</p>
+        <!-- Bloc 1 : Informations de base -->
+        <div class="mb-8">
+          <div class="flex items-start gap-3 mb-4">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-sm flex-shrink-0" style="background:var(--njangi-primary)">1</div>
+            <div>
+              <h2 class="text-lg font-extrabold text-gray-900">L'essentiel de la réunion</h2>
+              <p class="text-xs text-gray-500">Le nom du groupe, la fréquence des rencontres et la cotisation de chaque membre.</p>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label for="{{ form.name.id_for_label }}" class="block text-sm font-bold text-gray-800 mb-1">
+                {{ form.name.label }} <span class="text-red-500">*</span>
+              </label>
+              {{ form.name }}
+              {% if form.name.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.name.help_text }}</p>{% endif %}
+              {% if form.name.errors %}<p class="text-xs text-red-500 mt-1">{{ form.name.errors.as_text }}</p>{% endif %}
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="{{ form.frequency.id_for_label }}" class="block text-sm font-bold text-gray-800 mb-1">
+                  {{ form.frequency.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.frequency }}
+                {% if form.frequency.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.frequency.help_text }}</p>{% endif %}
+                {% if form.frequency.errors %}<p class="text-xs text-red-500 mt-1">{{ form.frequency.errors.as_text }}</p>{% endif %}
+              </div>
+              <div>
+                <label for="{{ form.contribution_amount.id_for_label }}" class="block text-sm font-bold text-gray-800 mb-1">
+                  {{ form.contribution_amount.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.contribution_amount }}
+                {% if form.contribution_amount.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.contribution_amount.help_text }}</p>{% endif %}
+                {% if form.contribution_amount.errors %}<p class="text-xs text-red-500 mt-1">{{ form.contribution_amount.errors.as_text }}</p>{% endif %}
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {% for field in form %}
-          <div class="{% if field.name == 'description' or field.name == 'logo' %}md:col-span-2{% endif %}">
-            <label for="{{ field.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1.5">{{ field.label }}</label>
-            {{ field }}
-            {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
-            {% if field.errors %}
-            <p class="text-xs text-red-500 mt-1">{{ field.errors.as_text }}</p>
-            {% endif %}
+        <!-- Bloc 2 : Gestion de l'argent et des prêts -->
+        <div class="mb-8 pt-6 border-t border-gray-100">
+          <div class="flex items-start gap-3 mb-4">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-sm flex-shrink-0 bg-emerald-600">2</div>
+            <div>
+              <h2 class="text-lg font-extrabold text-gray-900">Règles de la caisse et des prêts</h2>
+              <p class="text-xs text-gray-500">Les chiffres simples pour comprendre comment la caisse et les prêts fonctionnent.</p>
+            </div>
           </div>
-          {% endfor %}
+
+          <div class="bg-emerald-50/70 border border-emerald-100 rounded-2xl p-4 mb-4 text-xs text-emerald-900">
+            <p class="font-bold flex items-center gap-1.5 text-emerald-950 text-sm mb-1">
+              <span>💡</span> Règles standards déjà pré-remplies
+            </p>
+            <p>Ces montants et taux correspondent aux usages habituels des tontines. Vous pouvez les conserver ou les ajuster facilement.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="{{ form.fund_loan_rate.id_for_label }}" class="block text-sm font-bold text-gray-800 mb-1">
+                {{ form.fund_loan_rate.label }}
+              </label>
+              {{ form.fund_loan_rate }}
+              {% if form.fund_loan_rate.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.fund_loan_rate.help_text }}</p>{% endif %}
+              {% if form.fund_loan_rate.errors %}<p class="text-xs text-red-500 mt-1">{{ form.fund_loan_rate.errors.as_text }}</p>{% endif %}
+            </div>
+
+            <div>
+              <label for="{{ form.fund_deposit_rate.id_for_label }}" class="block text-sm font-bold text-gray-800 mb-1">
+                {{ form.fund_deposit_rate.label }}
+              </label>
+              {{ form.fund_deposit_rate }}
+              {% if form.fund_deposit_rate.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.fund_deposit_rate.help_text }}</p>{% endif %}
+              {% if form.fund_deposit_rate.errors %}<p class="text-xs text-red-500 mt-1">{{ form.fund_deposit_rate.errors.as_text }}</p>{% endif %}
+            </div>
+
+            <div>
+              <label for="{{ form.base_fund_required.id_for_label }}" class="block text-sm font-bold text-gray-800 mb-1">
+                {{ form.base_fund_required.label }}
+              </label>
+              {{ form.base_fund_required }}
+              {% if form.base_fund_required.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.base_fund_required.help_text }}</p>{% endif %}
+              {% if form.base_fund_required.errors %}<p class="text-xs text-red-500 mt-1">{{ form.base_fund_required.errors.as_text }}</p>{% endif %}
+            </div>
+
+            <div>
+              <label for="{{ form.penalty_per_day.id_for_label }}" class="block text-sm font-bold text-gray-800 mb-1">
+                {{ form.penalty_per_day.label }}
+              </label>
+              {{ form.penalty_per_day }}
+              {% if form.penalty_per_day.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.penalty_per_day.help_text }}</p>{% endif %}
+              {% if form.penalty_per_day.errors %}<p class="text-xs text-red-500 mt-1">{{ form.penalty_per_day.errors.as_text }}</p>{% endif %}
+            </div>
+          </div>
+
+          <!-- Exemple dynamique en direct pour les papas -->
+          <div class="mt-4 rounded-2xl p-4 bg-sky-50 border border-sky-100">
+            <p class="text-xs font-bold text-sky-900 uppercase tracking-wide mb-1">🔍 Comprendre l'intérêt en 1 coup d'œil</p>
+            <p class="text-sm text-gray-700">
+              Si la réunion prête <strong>50 000 FCFA</strong> avec votre taux de <strong id="calc-rate-badge" class="text-blue-700">10%</strong> :
+            </p>
+            <div class="mt-2 flex flex-wrap gap-3 text-xs">
+              <span class="bg-white px-3 py-1.5 rounded-lg border border-sky-200 text-gray-800">
+                Remboursement total : <strong id="calc-total-badge" class="text-green-700 font-bold">55 000 FCFA</strong>
+              </span>
+              <span class="bg-white px-3 py-1.5 rounded-lg border border-sky-200 text-gray-800">
+                Bénéfice direct pour la caisse : <strong id="calc-profit-badge" class="text-blue-700 font-bold">+5 000 FCFA</strong>
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div class="mt-7 rounded-2xl p-4 border border-blue-100" style="background:#F7FBFF">
+        <!-- Bloc 3 : Détails complémentaires (Facultatif) -->
+        <div class="mb-6 pt-6 border-t border-gray-100">
+          <details class="group">
+            <summary class="cursor-pointer flex items-center justify-between text-sm font-bold text-gray-700 hover:text-blue-700">
+              <span class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center text-xs">📸</span>
+                Photo et devise de la réunion (facultatif)
+              </span>
+              <span class="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <div class="mt-4 space-y-4 pt-2">
+              <div>
+                <label for="{{ form.description.id_for_label }}" class="block text-sm font-bold text-gray-800 mb-1">
+                  {{ form.description.label }}
+                </label>
+                {{ form.description }}
+                {% if form.description.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.description.help_text }}</p>{% endif %}
+              </div>
+              <div>
+                <label for="{{ form.logo.id_for_label }}" class="block text-sm font-bold text-gray-800 mb-1">
+                  {{ form.logo.label }}
+                </label>
+                {{ form.logo }}
+                {% if form.logo.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.logo.help_text }}</p>{% endif %}
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <div class="rounded-2xl p-4 border border-blue-100" style="background:#F7FBFF">
           <p class="text-sm font-bold" style="color:var(--njangi-primary)">Après création</p>
-          <p class="text-sm text-gray-500 mt-1">
-            En tant que créateur du groupe, vous pourrez ajouter directement des membres à l'aide de leur nom d'utilisateur ou email depuis l'onglet "Membres".
+          <p class="text-xs text-gray-500 mt-1">
+            En tant que créateur du groupe, vous devenez automatiquement le président. Vous pourrez ensuite ajouter les membres et désigner le secrétaire et le trésorier.
           </p>
         </div>
 
-        <button type="submit" class="w-full mt-6 py-3.5 rounded-2xl text-white font-extrabold text-lg transition shadow-lg hover:scale-[1.01]" style="background:linear-gradient(135deg,#1B6CA8,#0D3B6E)">
+        <button type="submit" class="w-full mt-6 py-4 rounded-2xl text-white font-extrabold text-lg transition shadow-lg hover:scale-[1.01]" style="background:linear-gradient(135deg,#1B6CA8,#0D3B6E)">
           Créer ma réunion →
         </button>
       </form>
@@ -67,13 +194,39 @@
   </div>
 </section>
 
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const rateInput = document.getElementById("id_fund_loan_rate");
+    const rateBadge = document.getElementById("calc-rate-badge");
+    const totalBadge = document.getElementById("calc-total-badge");
+    const profitBadge = document.getElementById("calc-profit-badge");
+
+    function updatePreview() {
+      if (!rateInput || !rateBadge || !totalBadge || !profitBadge) return;
+      let rate = parseFloat(rateInput.value);
+      if (isNaN(rate) || rate < 0) rate = 0;
+      rateBadge.textContent = rate + "%";
+      const base = 50000;
+      const profit = Math.round(base * (rate / 100));
+      const total = base + profit;
+      totalBadge.textContent = total.toLocaleString("fr-FR") + " FCFA";
+      profitBadge.textContent = "+" + profit.toLocaleString("fr-FR") + " FCFA";
+    }
+
+    if (rateInput) {
+      rateInput.addEventListener("input", updatePreview);
+      updatePreview();
+    }
+  });
+</script>
+
 <style>
   form input, form select, form textarea {
     width: 100%;
     border: 1px solid #dbe4ef;
     border-radius: 0.9rem;
     padding: 0.75rem 0.95rem;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: #111827;
     background: #fff;
     outline: none;
@@ -83,11 +236,9 @@
     border-color: var(--njangi-primary);
     box-shadow: 0 0 0 3px rgba(27,108,168,.12);
   }
-  form input[type="checkbox"] {
-    width: 1rem;
-    height: 1rem;
-    padding: 0;
-    border-radius: .25rem;
+  form input[type="file"] {
+    padding: 0.5rem;
+    font-size: 0.85rem;
   }
 </style>
 {% endblock %}

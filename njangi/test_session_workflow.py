@@ -175,3 +175,30 @@ class SessionWorkflowTests(TestCase):
         self.assertEqual(self.post("htmx_bureau_contribution_toggle", {}, session_pk=self.session.pk, contribution_pk=c.pk).status_code, 404)
         self.assertEqual(self.post("htmx_bureau_contribution_presence", {"presence": "absent"}, session_pk=self.session.pk, contribution_pk=c.pk).status_code, 404)
         self.assertEqual(self.post("htmx_bureau_contribution_method", {"payment_method": "transfer"}, session_pk=self.session.pk, contribution_pk=c.pk).status_code, 404)
+    def test_create_group_with_financial_rules(self):
+        url = reverse("njangi:create_group")
+        page = self.client.get(url)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "sur les prêts (%)")
+        self.assertContains(page, "Bénéfice versé aux épargnants (%)")
+        self.assertContains(page, "Fond de caisse / Secours par membre (FCFA)")
+
+        response = self.client.post(url, {
+            "name": "Tontine des Papas Solidaires",
+            "frequency": "monthly",
+            "contribution_amount": "25000",
+            "fund_loan_rate": "12",
+            "fund_deposit_rate": "6",
+            "base_fund_required": "10000",
+            "penalty_per_day": "1500",
+            "description": "Entraide entre papas du quartier",
+        })
+        from .models import Group
+        group = Group.objects.get(name="Tontine des Papas Solidaires")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(group.fund_loan_rate, 12)
+        self.assertEqual(group.fund_deposit_rate, 6)
+        self.assertEqual(group.base_fund_required, 10000)
+        self.assertEqual(group.penalty_per_day, 1500)
+        self.assertEqual(group.created_by, self.user)
+
