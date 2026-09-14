@@ -250,6 +250,8 @@ def generate_lebenslauf(request, offer_pk=None):
 
         html_content, cover_letter = _call_ai_generate(candidate_context, offer_context)
 
+        if html_content.startswith('<!-- eshelle:local -->'):
+            messages.info(request, "Document créé en mode local : vos informations sont conservées sans réécriture IA. Relisez et adaptez la lettre ; les descriptions restent dans leur langue d’origine.")
         if html_content:
             generated = GeneratedLebenslauf.objects.create(
                 user=request.user,
@@ -549,6 +551,7 @@ def _call_ai_generate(candidate_context: str, offer_context: str) -> tuple[str, 
     """
     import datetime
     from ai_engine.services.llm_service import call_llm
+    from ai_engine.services.local_content import resume_documents
 
     now = datetime.datetime.now()
     months_de = {
@@ -590,7 +593,7 @@ def _call_ai_generate(candidate_context: str, offer_context: str) -> tuple[str, 
     try:
         response = call_llm(system_prompt, user_prompt)
         if not response:
-            return "", ""
+            return resume_documents(candidate_context, offer_context, 'de')
 
         # Clean markdown code blocks if any
         response = response.replace("```html", "").replace("```", "").strip()
@@ -602,9 +605,9 @@ def _call_ai_generate(candidate_context: str, offer_context: str) -> tuple[str, 
         else:
             # Fallback if delimiter not found
             html_content = response
-            cover_letter = ""
+            cover_letter = resume_documents(candidate_context, offer_context, 'de')[1]
 
         return html_content, cover_letter
     except Exception as exc:
         log.error(f"Lebenslauf AI generation error: {exc}")
-        return "", ""
+        return resume_documents(candidate_context, offer_context, 'de')

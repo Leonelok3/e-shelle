@@ -216,6 +216,8 @@ def generate_resume(request, offer_pk=None):
 
         html_content, cover_letter = _call_ai_generate_canada(candidate_context, offer_context, lang_choice)
 
+        if html_content.startswith('<!-- eshelle:local -->'):
+            messages.info(request, "Document créé en mode local : vos informations sont conservées sans réécriture IA. Relisez et adaptez la lettre ; les descriptions restent dans leur langue d’origine.")
         if html_content:
             generated = GeneratedCanadaResume.objects.create(
                 user=request.user,
@@ -427,6 +429,7 @@ def _build_candidate_context(profile, experiences, educations, languages):
 def _call_ai_generate_canada(candidate_context: str, offer_context: str, lang_choice: str) -> tuple[str, str]:
     import datetime
     from ai_engine.services.llm_service import call_llm
+    from ai_engine.services.local_content import resume_documents
 
     today_str = datetime.date.today().strftime("%d/%m/%Y")
 
@@ -550,7 +553,7 @@ def _call_ai_generate_canada(candidate_context: str, offer_context: str, lang_ch
     try:
         response = call_llm(system_prompt, user_prompt)
         if not response:
-            return "", ""
+            return resume_documents(candidate_context, offer_context, lang_choice)
 
         response = response.replace("```html", "").replace("```", "").strip()
 
@@ -560,12 +563,12 @@ def _call_ai_generate_canada(candidate_context: str, offer_context: str, lang_ch
             cover_letter = parts[1].strip()
         else:
             html_content = response
-            cover_letter = ""
+            cover_letter = resume_documents(candidate_context, offer_context, lang_choice)[1]
 
         return html_content, cover_letter
     except Exception as exc:
         log.error(f"Canada CV generation error: {exc}")
-        return "", ""
+        return resume_documents(candidate_context, offer_context, lang_choice)
 
 
 @login_required
@@ -602,8 +605,9 @@ def improve_description_api(request):
             return JsonResponse({"success": True, "improved_text": improved_text.strip()})
         return JsonResponse({"success": False, "error": "L'IA a retourné une réponse vide."})
     except Exception as e:
-        log.error(f"Error in improve_description_api: {e}")
-        return JsonResponse({"success": False, "error": str(e)})
+        import re
+        bullets = '\n'.join('• ' + line.strip(' •-') for line in re.split(r'[\n;]+', raw_text) if line.strip())
+        return JsonResponse({'success': True, 'improved_text': bullets, 'mode': 'local'})
 
 
 @login_required
@@ -654,7 +658,8 @@ def immigration_diagnostic(request):
                 p.ai_roadmap = call_llm(system_prompt, candidate_details)
             except Exception as e:
                 log.error(f"Error calling LLM for CRS roadmap: {e}")
-                p.ai_roadmap = "Impossible de générer la feuille de route IA pour le moment. Veuillez réessayer."
+                from ai_engine.services.local_content import canada_guidance
+                p.ai_roadmap = canada_guidance(candidate_details)
                 
             p.save()
             messages.success(request, "Votre diagnostic Express Entry IA a été mis à jour avec succès !")
@@ -890,7 +895,9 @@ def immigration_coach_api(request):
         reply = call_llm(system_prompt, user_prompt)
         return JsonResponse({"reply": reply.strip()})
     except Exception as e:
-        return JsonResponse({"error": f"LLM error: {e}"}, status=500)
+        from ai_engine.services.local_content import canada_guidance
+        reply = canada_guidance(user_message)
+        return JsonResponse({'reply': reply, 'mode': 'local'})
 
 
 @login_required
@@ -988,8 +995,9 @@ def interview_simulation_api(request):
                 f"Débute l'entretien pour le secteur {sector}. Salue chaleureusement le candidat et pose la première question."
             )
             return JsonResponse({"reply": reply.strip()})
-        except Exception as e:
-            return JsonResponse({"error": f"LLM error: {e}"}, status=500)
+        except Exception:
+            from ai_engine.services.local_content import interview_question
+            return JsonResponse({'reply': interview_question([]), 'mode': 'local'})
             
     # Format convo history
     prompt_builder = []
@@ -1004,7 +1012,9 @@ def interview_simulation_api(request):
         reply = call_llm(system_prompt, user_prompt)
         return JsonResponse({"reply": reply.strip()})
     except Exception as e:
-        return JsonResponse({"error": f"LLM error: {e}"}, status=500)
+        from ai_engine.services.local_content import interview_question
+        reply = interview_question(history + ([{'role':'user','content':user_message}] if user_message else []))
+        return JsonResponse({'reply': reply, 'mode': 'local'})
 
 
 def talents_directory(request):

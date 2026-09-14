@@ -11,11 +11,14 @@ logger = logging.getLogger(__name__)
 
 
 def _client():
+    from ai_engine.services.availability import available
+    if not available('openai'):
+        raise RuntimeError('OpenAI temporarily unavailable')
     api_key = getattr(settings, "OPENAI_API_KEY", "")
     if not api_key:
         return None
     from openai import OpenAI
-    return OpenAI(api_key=api_key)
+    return OpenAI(api_key=api_key, timeout=30.0, max_retries=0)
 
 
 def call_openai(system_prompt: str, user_prompt: str, *, temperature: float = 0.4, max_tokens: int = 2500) -> str:

@@ -153,7 +153,8 @@ def offer_detail(request, pk):
                 f"Salaire : {offer.salary_display}\n"
                 f"Description : {offer.description[:1000]}"
             )
-            summary = call_llm(SYSTEM, user_msg)
+            from ai_engine.services.local_content import offer_summary
+            summary = call_llm(SYSTEM, user_msg, fallback=lambda: offer_summary(offer))
             if summary:
                 offer.ai_summary_fr = summary.strip()
                 offer.save(update_fields=["ai_summary_fr"])
@@ -619,7 +620,8 @@ def interview_simulation_message(request, pk):
         ai_response = ""
 
     if not ai_response:
-        ai_response = "Ich verstehe. Können Sie mir bitte erklären, wie Sie in stressigen Situationen die Ruhe bewahren?"
+        from ai_engine.services.local_content import interview_question
+        ai_response = interview_question(sim.messages, 'de')
 
     # Enregistrer la question du recruteur
     sim.messages.append({"role": "assistant", "content": ai_response})
@@ -665,11 +667,12 @@ def interview_simulation_evaluate(request, pk):
 
     try:
         evaluation_text = call_llm(system_prompt, history_str)
-    except Exception as exc:
-        evaluation_text = f"=== SCORE ===\n50\n\n=== CORRECTIONS ===\nErreur lors de la génération : {exc}\n\n=== VOCABULAIRE ===\nNon disponible\n\n=== RECOMMANDATIONS ===\nRéessayez ultérieurement."
+    except Exception:
+        from ai_engine.services.local_content import interview_review
+        evaluation_text = interview_review(sim.messages)
 
     # Parser le score
-    score = 65
+    score = None
     if "=== SCORE ===" in evaluation_text:
         try:
             score_part = evaluation_text.split("=== SCORE ===")[1].split("===")[0].strip()

@@ -10,6 +10,7 @@ from google.genai import types
 from e_shelle_ai.services.tools.google_media_generator import get_vertex_client
 from ai_engine.services.openai_adapter import call_openai, call_openai_json, call_openai_web, search_duckduckgo
 from jobs.models import CanadaVisitorOpportunity
+from jobs.content_fallback import import_visitor_opportunities
 
 logger = logging.getLogger(__name__)
 
@@ -20,65 +21,46 @@ def _truncate(value: str, max_length: int) -> str:
 
 
 def _is_url_active(url: str) -> bool:
-    if not url or not url.startswith("http"):
-        return False
-    if "example.com" in url or "localhost" in url:
-        return False
-        
-    # Liste de domaines de confiance pour tolérer les erreurs de connexion temporaires (timeouts/WAF)
-    trusted_domains = [
-        "gc.ca", "canada.ca", "quebec.ca", "mcgill.ca", "ubc.ca", 
-        "umontreal.ca", "ulaval.ca", "uottawa.ca", "alberta.ca",
-        "utoronto.ca", "jobbank.gc.ca", "guichet-emplois.gc.ca",
-        "indeed.ca", "workopolis.com", "randstad.ca", "jobillico.com",
-        "monster.ca", "emploisquebec.gouv.qc.ca", "linkedin.com"
-    ]
-
+    from ai_engine.services.official_sources import fetch
+    domains = ['gc.ca', 'canada.ca', 'quebec.ca', 'educanada.ca', 'mcgill.ca',
+        'ubc.ca', 'umontreal.ca', 'ulaval.ca', 'uottawa.ca', 'alberta.ca',
+        'utoronto.ca', 'destinationcanada.com']
     try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
-        # On utilise GET avec stream=True pour pouvoir suivre les redirections et analyser l'URL finale
-        resp = requests.get(url, headers=headers, timeout=5, allow_redirects=True, stream=True)
-        
-        # 1. Vérification du code d'erreur HTTP (ex: 404 de Google redirect)
-        if resp.status_code in [404, 410]:
-            return False
-            
-        # 2. Détection de redirection vers une page d'expiration (Job Bank redirect)
-        final_url = resp.url.lower()
-        if "jobpostingexpired" in final_url or "job-expired" in final_url:
-            return False
-            
-        # 3. Validation pour les codes valides ou d'accès restreint
-        if resp.status_code < 400 or resp.status_code in [401, 403, 503]:
-            return True
-            
-        return resp.status_code < 400
-    except Exception:
-        # En cas d'erreur de connexion, on tolère uniquement si le domaine est de confiance
-        if any(domain in url.lower() for domain in trusted_domains):
-            return True
+        fetch(url, domains)
+        return True
+    except (requests.RequestException, ValueError):
         return False
 
 
 def _generate_content_with_retry(client, model, contents, config, retries=4, initial_delay=5):
-    import time
-    for i in range(retries):
-        try:
-            return client.models.generate_content(model=model, contents=contents, config=config)
-        except Exception as e:
-            if "429" in str(e) and i < retries - 1:
-                sleep_time = initial_delay * (2 ** i)
-                time.sleep(sleep_time)
-                continue
-            raise e
+    # A quota failure is not fixed by immediate retries; switch to official sources.
+    return client.models.generate_content(model=model, contents=contents, config=config)
 
 
 class Command(BaseCommand):
     help = "Cherche et importe par IA les opportunités de visa visiteur/tourisme au Canada (conférences, séminaires, certifications)"
 
+    def add_arguments(self, parser):
+        parser.add_argument('--skip-ai', action='store_true', help='Sources officielles uniquement, sans appel IA.')
+
     def handle(self, *args, **options):
+        from ai_engine.services.availability import offline_mode, failed
+        if not options.get('skip_ai') and not offline_mode():
+            try:
+                return self._handle_ai(*args, **options)
+            except Exception as error:
+                if getattr(settings, 'OPENAI_API_KEY', ''):
+                    failed('openai', error)
+                logger.warning('Collecte IA indisponible (%s); utilisation des sources officielles.', type(error).__name__)
+        try:
+            result = import_visitor_opportunities()
+        except Exception as error:
+            raise CommandError('Source officielle indisponible. Les contenus existants sont conservés.') from error
+        if not result['found']:
+            raise CommandError('Aucun nouveau contenu vérifiable trouvé. Les contenus existants sont conservés.')
+        self.stdout.write(self.style.SUCCESS(f"Collecte sans IA : {result}"))
+
+    def _handle_ai(self, *args, **options):
         use_openai = bool(getattr(settings, "OPENAI_API_KEY", ""))
         self.stdout.write("Initialisation du client GenAI...")
         client = None
@@ -220,6 +202,9 @@ class Command(BaseCommand):
                 else:
                     updated_count += 1
 
+            if created_count + updated_count == 0:
+                raise ValueError('Aucun contenu IA exploitable')
+
             # Désactiver les anciennes opportunités après 30 jours
             cutoff = timezone.now() - timezone.timedelta(days=30)
             deactivated_count = CanadaVisitorOpportunity.objects.filter(
@@ -233,5 +218,5 @@ class Command(BaseCommand):
                 )
             )
 
-        except Exception as e:
-            raise CommandError(f"Une erreur s'est produite lors de la génération : {e}")
+        except Exception:
+            raise

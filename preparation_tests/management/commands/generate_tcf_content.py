@@ -415,9 +415,16 @@ class Command(BaseCommand):
                 )
 
                 try:
-                    from ai_engine.services.openai_adapter import call_openai_json
-                    data = call_openai_json(SYSTEM_PROMPT, user_prompt, temperature=0.5)
-                    _validate_lesson(data, exercises_count)
+                    try:
+                        data = _extract_json(call_llm(SYSTEM_PROMPT, user_prompt, max_tokens=8000))
+                        _validate_lesson(data, exercises_count)
+                    except Exception:
+                        from ai_engine.services.learning_fallback import lesson as local_lesson
+                        data = local_lesson('fr', level, section)
+                        if CourseLesson.objects.filter(exams=tcf_exam, level=level, section=section, title=data['title']).exists():
+                            self.stdout.write('Banque locale déjà présente pour cette compétence.')
+                            break
+                        self.stdout.write('Banque locale : atelier ciblé avec corrigé.')
 
                     # Création de la leçon
                     base_slug = slugify(f"tcf-{section}-{level}-{lesson_order}").lower()
@@ -427,51 +434,60 @@ class Command(BaseCommand):
                         slug = f"{base_slug}-{counter}"
                         counter += 1
 
-                    lesson = CourseLesson.objects.create(
-                        title=data["title"][:255],
-                        slug=slug,
-                        section=section,
-                        level=level,
-                        content_html=data["content"],
-                        order=lesson_order,
-                        is_published=True,
-                    )
-                    lesson.exams.add(tcf_exam)
-
-                    exo_list = data["exercises"][:exercises_count]
-                    for idx, exo_data in enumerate(exo_list):
-                        asset = None
-                        if section == "co":
-                            # Génération audio TTS en français
-                            audio_text = exo_data["audio_text"]
-                            try:
-                                rel_audio = generate_audio(audio_text, language="fr", output_dir="assets")
-                                asset = _build_asset(rel_audio, language="fr", title=f"Audio TCF CO {level} L{lesson_order} Ex{idx+1}")
-                            except Exception as tts_err:
-                                self.stdout.write(self.style.WARNING(f"TTS Fail: {tts_err}"))
-                                asset = None
-
-                        instruction = (
-                            "Écoutez le document sonore et répondez à la question."
-                            if section == "co"
-                            else "Lisez le document et répondez à la question."
+                    from django.db import transaction
+                    with transaction.atomic():
+                        lesson = CourseLesson.objects.create(
+                            title=data["title"][:255],
+                            slug=slug,
+                            section=section,
+                            level=level,
+                            content_html=data["content"],
+                            order=lesson_order,
+                            is_published=True,
                         )
+                        lesson.exams.add(tcf_exam)
 
-                        CourseExercise.objects.create(
-                            lesson=lesson,
-                            title=f"Question {idx+1}",
-                            instruction=instruction,
-                            question_text=exo_data["question_text"],
-                            audio=asset,
-                            option_a=exo_data["option_a"][:255],
-                            option_b=exo_data["option_b"][:255],
-                            option_c=exo_data["option_c"][:255],
-                            option_d=exo_data["option_d"][:255],
-                            correct_option=exo_data["correct_option"],
-                            summary=exo_data.get("explanation", ""),
-                            order=idx + 1,
-                            is_active=True,
-                        )
+                        exo_list = data["exercises"][:exercises_count]
+                        for idx, exo_data in enumerate(exo_list):
+                            asset = None
+                            if section == "co":
+                                # Génération audio TTS en français
+                                audio_text = exo_data["audio_text"]
+                                try:
+                                    rel_audio = generate_audio(audio_text, language="fr", output_dir="assets")
+                                    asset = _build_asset(rel_audio, language="fr", title=f"Audio TCF CO {level} L{lesson_order} Ex{idx+1}")
+                                except Exception as tts_err:
+                                    self.stdout.write(self.style.WARNING(f"TTS Fail: {tts_err}"))
+                                    asset = None
+
+                            instruction = (
+                                "Écoutez le document sonore et répondez à la question."
+                                if section == "co"
+                                else "Lisez le document et répondez à la question."
+                            )
+
+                            if section == 'co' and asset is None:
+                                instruction = 'Audio indisponible. Travaillez sur cette transcription : ' + exo_data['audio_text']
+                            elif section == 'ce':
+                                instruction += '\n\n' + exo_data['audio_text']
+                            elif section in ('ee', 'eo'):
+                                instruction = 'Production personnelle, à autoévaluer avec la grille.\n' + exo_data['audio_text']
+
+                            CourseExercise.objects.create(
+                                lesson=lesson,
+                                title=f"Question {idx+1}",
+                                instruction=instruction,
+                                question_text=exo_data["question_text"],
+                                audio=asset,
+                                option_a=exo_data["option_a"][:255],
+                                option_b=exo_data["option_b"][:255],
+                                option_c=exo_data["option_c"][:255],
+                                option_d=exo_data["option_d"][:255],
+                                correct_option=exo_data["correct_option"],
+                                summary=exo_data.get("explanation", ""),
+                                order=idx + 1,
+                                is_active=True,
+                            )
 
                     generated += 1
                     lesson_order += 1

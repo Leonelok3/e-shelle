@@ -254,14 +254,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         count = options["questions"]
+        if count < 1:
+            from django.core.management.base import CommandError
+            raise CommandError('Le nombre de questions doit être positif.')
         replace = options["replace"]
         continue_on_error = options["continue_on_error"]
-
-        if replace:
-            deleted, _ = GermanPlacementQuestion.objects.all().delete()
-            self.stdout.write(
-                self.style.WARNING(f"  {deleted} question(s) existante(s) supprimée(s).")
-            )
 
         existing = GermanPlacementQuestion.objects.count()
         self.stdout.write(
@@ -275,42 +272,30 @@ class Command(BaseCommand):
             raw = call_llm(SYSTEM_PROMPT, user_prompt)
             data = _extract_json(raw)
             _validate_questions(data)
-        except Exception as exc:
-            msg = f"Erreur lors de la génération LLM : {exc}"
-            if continue_on_error:
-                self.stdout.write(self.style.WARNING(msg))
-                repeats = (count // len(FALLBACK_QUESTIONS)) + 1
-                data = (FALLBACK_QUESTIONS * repeats)[:count]
-                self.stdout.write(
-                    self.style.WARNING(
-                        "Utilisation de la banque locale de secours pour garder le test de niveau actif."
-                    )
-                )
-                _validate_questions(data)
-            else:
-                self.stderr.write(msg)
-                raise
+        except Exception:
+            if replace and existing:
+                self.stdout.write(self.style.WARNING('IA indisponible : banque existante conservée ; ajout des questions locales manquantes.'))
+                replace = False
+            data = FALLBACK_QUESTIONS[:count]
+            self.stdout.write(self.style.WARNING('Banque locale de secours : questions uniques, sans appel IA réussi.'))
+            _validate_questions(data)
 
-        order_start = existing + 1
+        from django.db import transaction
         created = 0
-
-        for i, q in enumerate(data):
-            try:
+        with transaction.atomic():
+            if replace:
+                GermanPlacementQuestion.objects.all().delete()
+                existing = 0
+            for q in data[:count]:
+                if GermanPlacementQuestion.objects.filter(question_text=q['question_text']).exists():
+                    continue
                 GermanPlacementQuestion.objects.create(
-                    question_text=q["question_text"],
-                    option_a=q["option_a"][:255],
-                    option_b=q["option_b"][:255],
-                    option_c=q.get("option_c", "")[:255],
-                    option_d=q.get("option_d", "")[:255],
-                    correct_option=q["correct_option"],
-                    order=order_start + i,
-                    is_active=True,
-                )
+                    question_text=q['question_text'],
+                    option_a=q['option_a'][:255], option_b=q['option_b'][:255],
+                    option_c=q.get('option_c', '')[:255], option_d=q.get('option_d', '')[:255],
+                    correct_option=q['correct_option'], order=existing + created + 1,
+                    is_active=True)
                 created += 1
-            except Exception as exc:
-                logger.warning("Erreur insertion question %d : %s", i, exc)
-                if not continue_on_error:
-                    raise
 
         self.stdout.write(
             self.style.SUCCESS(

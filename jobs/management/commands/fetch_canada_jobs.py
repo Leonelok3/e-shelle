@@ -413,7 +413,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         target = max(1, options["target"])
         pages = max(1, options["pages"])
-        skip_ai = options["skip_ai"]
+        from ai_engine.services.availability import offline_mode, available
+        skip_ai = options['skip_ai'] or offline_mode()
 
         direct_created = 0
         direct_updated = 0
@@ -446,7 +447,9 @@ class Command(BaseCommand):
             f"Import direct Guichet-Emplois EIMT: +{direct_created}, {direct_updated} mises à jour, "
             f"{direct_seen} valides, {active_after_direct} actives."
         )
-        if skip_ai or active_after_direct >= target:
+        if skip_ai:
+            if not direct_seen:
+                raise CommandError('Aucune offre vérifiée pendant cette collecte. Catalogue existant conservé.')
             self._cleanup_old_offers()
             self.stdout.write(self.style.SUCCESS("Importation Canada terminée depuis Guichet-Emplois."))
             return
@@ -462,7 +465,11 @@ class Command(BaseCommand):
                 client, err = get_genai_studio_client()
 
             if err or not client:
-                raise CommandError(f"Erreur d'initialisation du client GenAI : {err}")
+                self._cleanup_old_offers()
+                self.stdout.write(self.style.WARNING('IA indisponible. Import direct conservé.'))
+                if direct_seen == 0 and active_after_direct == 0:
+                    raise CommandError('Aucune offre officielle disponible; réessayer la collecte plus tard.')
+                return
 
         self.stdout.write("Recherche globale des offres d'emploi Canada avec EIMT...")
 
@@ -599,7 +606,13 @@ class Command(BaseCommand):
             )
 
         except Exception as e:
-            raise CommandError(f"Une erreur s'est produite lors de la génération : {e}")
+            from ai_engine.services.availability import failed
+            if use_openai:
+                failed('openai', e)
+            self._cleanup_old_offers()
+            if direct_seen == 0 and active_after_direct == 0:
+                raise CommandError('Collecte et IA indisponibles; aucune offre inventée.') from e
+            self.stdout.write(self.style.WARNING('Complément IA indisponible. Les offres officielles restent disponibles.'))
 
     def _cleanup_old_offers(self) -> tuple[int, int]:
         from django.core.management import call_command

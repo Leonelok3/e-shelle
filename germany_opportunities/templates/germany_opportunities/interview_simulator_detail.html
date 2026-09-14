@@ -137,7 +137,7 @@
               Score Global
             </div>
             <div style="font-size:3.5rem;font-weight:950;color:#22c55e;line-height:1;margin-bottom:.5rem">
-              <span id="eval-score">{{ simulation.score|default:"--" }}</span><span style="font-size:1.5rem;font-weight:600;color:rgba(255,255,255,0.4)">/100</span>
+              <span id="eval-score">{{ simulation.score|default_if_none:"--" }}</span><span style="font-size:1.5rem;font-weight:600;color:rgba(255,255,255,0.4)">/100</span>
             </div>
             
             <div style="height:8px;background:rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;margin-bottom:1rem">
@@ -145,7 +145,7 @@
             </div>
 
             <p style="font-size:.8rem;color:rgba(255,255,255,0.4);line-height:1.4;margin:0">
-              Un score supérieur à 70 indique que vous êtes prêt pour des entretiens avec de vrais recruteurs.
+              Note indicative d’entraînement. Sans IA, consultez le bilan guidé : aucune note linguistique n’est attribuée.
             </p>
           </div>
 
@@ -314,8 +314,8 @@ function terminateAndEvaluate() {
       }
 
       // Populate evaluation section
-      document.getElementById("eval-score").textContent = data.score;
-      document.getElementById("eval-progress").style.width = data.score + "%";
+      document.getElementById("eval-score").textContent = data.score == null ? "--" : data.score;
+      document.getElementById("eval-progress").style.width = (data.score == null ? 0 : data.score) + "%";
       
       // Parse structured fields from feedback
       var rawFeedback = data.feedback;

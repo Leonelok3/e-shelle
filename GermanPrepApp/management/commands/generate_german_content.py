@@ -482,31 +482,41 @@ class Command(BaseCommand):
                 )
 
                 try:
-                    raw = call_llm(SYSTEM_PROMPT, user_prompt)
-                    data = _extract_json(raw)
-                    _validate_lesson(data, exercises_count)
+                    try:
+                        raw = call_llm(SYSTEM_PROMPT, user_prompt, max_tokens=8000)
+                        data = _extract_json(raw)
+                        _validate_lesson(data, exercises_count)
+                    except Exception:
+                        from ai_engine.services.learning_fallback import lesson as local_lesson
+                        data = local_lesson('de', level, skill)
+                        if GermanLesson.objects.filter(exam=exam, skill=skill, title=data['title']).exists():
+                            self.stdout.write('Banque locale déjà présente pour cette compétence.')
+                            break
+                        self.stdout.write('Banque locale : atelier ciblé avec corrigé.')
 
-                    lesson = GermanLesson.objects.create(
-                        exam=exam,
-                        title=data["title"][:255],
-                        skill=skill,
-                        order=lesson_order,
-                        intro=data.get("intro", "")[:500],
-                        content=data.get("content", ""),
-                    )
-
-                    exo_list = data["exercises"][:exercises_count]
-                    for exo_data in exo_list:
-                        GermanExercise.objects.create(
-                            lesson=lesson,
-                            question_text=exo_data["question_text"],
-                            option_a=exo_data["option_a"][:255],
-                            option_b=exo_data["option_b"][:255],
-                            option_c=exo_data.get("option_c", "")[:255],
-                            option_d=exo_data.get("option_d", "")[:255],
-                            correct_option=exo_data["correct_option"],
-                            explanation=exo_data.get("explanation", ""),
+                    from django.db import transaction
+                    with transaction.atomic():
+                        lesson = GermanLesson.objects.create(
+                            exam=exam,
+                            title=data["title"][:255],
+                            skill=skill,
+                            order=lesson_order,
+                            intro=data.get("intro", "")[:500],
+                            content=data.get("content", ""),
                         )
+
+                        exo_list = data["exercises"][:exercises_count]
+                        for exo_data in exo_list:
+                            GermanExercise.objects.create(
+                                lesson=lesson,
+                                question_text=exo_data["question_text"],
+                                option_a=exo_data["option_a"][:255],
+                                option_b=exo_data["option_b"][:255],
+                                option_c=exo_data.get("option_c", "")[:255],
+                                option_d=exo_data.get("option_d", "")[:255],
+                                correct_option=exo_data["correct_option"],
+                                explanation=exo_data.get("explanation", ""),
+                            )
 
                     generated += 1
                     lesson_order += 1

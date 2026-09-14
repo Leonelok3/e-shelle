@@ -90,8 +90,6 @@ def fetch_ausbildung_offers(self):
         "User-Agent": "EShelle-Platform/1.0 (contact@e-shelle.com)",
     }
 
-    from .availability import clean_unavailable
-    clean_unavailable()
     successful_queries = 0
     created_count = 0
     updated_count = 0
@@ -230,11 +228,16 @@ def fetch_ausbildung_offers(self):
             log.warning(f"API BA error for keyword '{keyword}': {exc}")
             errors += 1
 
+    if not successful_queries:
+        raise RuntimeError('Source Bundesagentur indisponible ; catalogue conservé.')
+
     # Desactiver les offres qui n'ont plus ete vues depuis 7 jours
     stale_cutoff = timezone.now() - timezone.timedelta(days=7)
-    deactivated = AusbildungOffer.objects.filter(
-        last_seen__lt=stale_cutoff, is_active=True
-    ).update(is_active=False)
+    deactivated = 0
+    if not errors:
+        deactivated = AusbildungOffer.objects.filter(
+            last_seen__lt=stale_cutoff, is_active=True
+        ).update(is_active=False)
 
     # Keep historical offers and their user bookmarks.
     from .availability import clean_unavailable
@@ -265,7 +268,8 @@ def enrich_offers_with_ai():
 
     # Traiter les 20 dernieres offres sans resume
     from .availability import available_offers
-    offers = available_offers().filter(ai_summary_fr="").order_by("-fetched_at")[:20]
+    from django.db.models import Q
+    offers = available_offers().filter(Q(ai_summary_fr='') | Q(ai_summary_fr__startswith='Fiche pratique (sans IA).')).order_by('ai_summary_fr', '-fetched_at')[:20]
     
     if not offers.exists():
         log.info("enrich_offers_with_ai: aucune offre à enrichir.")
@@ -296,7 +300,8 @@ def enrich_offers_with_ai():
             f"Description : {offer.description[:1000]}"
         )
         try:
-            summary = call_llm(SYSTEM, user_msg)
+            from ai_engine.services.local_content import offer_summary
+            summary = call_llm(SYSTEM, user_msg, fallback=lambda: offer_summary(offer))
             if summary:
                 offer.ai_summary_fr = summary.strip()
                 offer.save(update_fields=["ai_summary_fr"])
