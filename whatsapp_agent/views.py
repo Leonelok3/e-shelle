@@ -1,8 +1,11 @@
 import csv
+import hashlib
+import hmac
 import json
 import re
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
@@ -68,7 +71,10 @@ def _creer_messages_campagne(campagne):
     """Prepare les lignes MessageEnvoi selon les filtres de la campagne."""
 
     campagne.messages.all().delete()
-    contacts_whatsapp = campagne.destinataires_contacts.all().order_by("nom", "numero")
+    contacts_whatsapp = campagne.destinataires_contacts.filter(
+        consentement_confirme=True,
+        desinscrit=False,
+    ).order_by("nom", "numero")
     if contacts_whatsapp.exists():
         batch = []
         for contact in contacts_whatsapp:
@@ -143,7 +149,7 @@ def contacts_whatsapp(request):
     paginator = Paginator(contacts, 50)
     page_obj = paginator.get_page(request.GET.get("page"))
     total_contacts = ContactWhatsApp.objects.count()
-    total_autorises = ContactWhatsApp.objects.filter(consentement_confirme=True).count()
+    total_autorises = ContactWhatsApp.objects.filter(consentement_confirme=True, desinscrit=False).count()
 
     return render(
         request,
@@ -169,7 +175,11 @@ def creer_campagne_contacts(request):
     """Cree une campagne depuis une selection manuelle de contacts WhatsApp."""
 
     contact_ids = request.POST.getlist("contacts")
-    contacts = ContactWhatsApp.objects.filter(id__in=contact_ids, consentement_confirme=True)
+    contacts = ContactWhatsApp.objects.filter(
+        id__in=contact_ids,
+        consentement_confirme=True,
+        desinscrit=False,
+    )
     if not contact_ids or not contacts.exists():
         messages.warning(request, "Selectionne au moins un contact autorise avant de creer une campagne.")
         return redirect("whatsapp_agent:wa_contacts")
@@ -281,6 +291,8 @@ def importer_contacts(request):
                         "note": note,
                         "source": ContactWhatsApp.SOURCE_MANUEL,
                         "consentement_confirme": True,
+                        "consentement_source": "manual_confirmation",
+                        "consentement_le": timezone.now(),
                         "importe_par": request.user,
                     },
                 )
@@ -292,11 +304,13 @@ def importer_contacts(request):
                         if value and getattr(contact, field) != value:
                             setattr(contact, field, value)
                             changed = True
-                    if not contact.consentement_confirme:
+                    if not contact.consentement_confirme and not contact.desinscrit:
                         contact.consentement_confirme = True
+                        contact.consentement_source = "manual_confirmation"
+                        contact.consentement_le = timezone.now()
                         changed = True
                     if changed:
-                        contact.save(update_fields=["ville", "groupe", "note", "consentement_confirme", "mis_a_jour_le"])
+                        contact.save(update_fields=["ville", "groupe", "note", "consentement_confirme", "consentement_source", "consentement_le", "mis_a_jour_le"])
                     updated += 1
                 contact_ids.append(contact.id)
 
@@ -611,7 +625,7 @@ def api_import_contact(request):
     if not numero:
         return Response({"error": "Le numero WhatsApp est obligatoire."}, status=status.HTTP_400_BAD_REQUEST)
 
-    consentement = data.get("consentement_confirme", data.get("consent", True))
+    consentement = data.get("consentement_confirme", data.get("consent", False))
     if isinstance(consentement, str):
         consentement = consentement.lower() in ("1", "true", "yes", "oui")
 
@@ -628,6 +642,8 @@ def api_import_contact(request):
         "source": str(data.get("source") or ContactWhatsApp.SOURCE_API).strip()[:20],
         "note": str(data.get("note") or "").strip(),
         "consentement_confirme": True,
+        "consentement_source": str(data.get("consentement_source") or "api_confirmation").strip()[:80],
+        "consentement_le": timezone.now(),
         "importe_par": request.user if request.user.is_authenticated else None,
     }
     contact, created = ContactWhatsApp.objects.get_or_create(numero=numero, defaults=defaults)
@@ -638,11 +654,13 @@ def api_import_contact(request):
             if value and getattr(contact, field) != value:
                 setattr(contact, field, value)
                 updated = True
-        if not contact.consentement_confirme:
+        if not contact.consentement_confirme and not contact.desinscrit:
             contact.consentement_confirme = True
+            contact.consentement_source = defaults["consentement_source"]
+            contact.consentement_le = defaults["consentement_le"]
             updated = True
         if updated:
-            contact.save(update_fields=["nom", "ville", "groupe", "source", "note", "consentement_confirme", "mis_a_jour_le"])
+            contact.save(update_fields=["nom", "ville", "groupe", "source", "note", "consentement_confirme", "consentement_source", "consentement_le", "mis_a_jour_le"])
         return Response(
             {"status": "exists", "id": contact.id, "numero": contact.numero},
             status=status.HTTP_200_OK,
@@ -661,17 +679,59 @@ def webhook_meta(request):
     if request.method == "GET":
         verify_token = request.GET.get("hub.verify_token")
         challenge = request.GET.get("hub.challenge")
-        if verify_token == settings.WHATSAPP_VERIFY_TOKEN and challenge:
+        configured_token = getattr(settings, "WHATSAPP_VERIFY_TOKEN", "")
+        if configured_token and hmac.compare_digest(verify_token or "", configured_token) and challenge:
             return HttpResponse(challenge)
         return HttpResponse("Token invalide", status=403)
 
     if request.method != "POST":
         return HttpResponse(status=405)
 
-    data = _json_body(request)
+    if request.content_type != "application/json":
+        return JsonResponse({"error": "Content-Type application/json requis"}, status=415)
+
+    signature = request.headers.get("X-Hub-Signature-256", "")
+    app_secret = getattr(settings, "WHATSAPP_APP_SECRET", "")
+    if not app_secret:
+        return HttpResponse("Signature webhook non configuree", status=503)
+    expected = "sha256=" + hmac.new(app_secret.encode(), request.body, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(signature, expected):
+        return HttpResponse("Signature invalide", status=403)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return JsonResponse({"error": "JSON invalide"}, status=400)
+    if not isinstance(data, dict) or data.get("object") != "whatsapp_business_account":
+        return JsonResponse({"error": "Payload WhatsApp invalide"}, status=400)
+
     for entry in data.get("entry", []):
+        if not isinstance(entry, dict):
+            continue
         for change in entry.get("changes", []):
+            if not isinstance(change, dict):
+                continue
             value = change.get("value", {})
+            if not isinstance(value, dict):
+                continue
+            for incoming in value.get("messages", []):
+                if incoming.get("type") != "text":
+                    continue
+                text = (incoming.get("text", {}).get("body") or "").strip().lower()
+                if text not in {"stop", "arret", "arrêt", "desinscrire", "désinscrire", "unsubscribe"}:
+                    continue
+                numero = WhatsAppService.normaliser_numero(incoming.get("from", ""))
+                if numero:
+                    ContactWhatsApp.objects.filter(numero=numero).update(
+                        desinscrit=True,
+                        desinscrit_le=timezone.now(),
+                        consentement_confirme=False,
+                        mis_a_jour_le=timezone.now(),
+                    )
+                    get_user_model().objects.filter(whatsapp=numero).update(
+                        whatsapp_marketing_opt_in=False,
+                        whatsapp_marketing_opted_out=True,
+                    )
             for status in value.get("statuses", []):
                 message_id = status.get("id", "")
                 wa_status = status.get("status", "")

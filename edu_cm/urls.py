@@ -869,6 +869,7 @@ urlpatterns = [
 
     # ── WhatsApp Agent IA — Campagnes Meta WhatsApp Business ──────────
     path("whatsapp/", include("whatsapp_agent.urls", namespace="whatsapp_agent")),
+    path("api/whatsapp/", include("whatsapp_agent.urls", namespace="whatsapp_agent_api")),
 
     # ── Agent Commercial IA — Prospection & ventes prestataires ──────
     path("commercial-agent/", include("commercial_agent.urls", namespace="commercial_agent")),
