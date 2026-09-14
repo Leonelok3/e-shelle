@@ -13,7 +13,7 @@ import django
 django.setup()
 from django.conf import settings
 
-destination = Path('/home/eshelle/backups')
+destination = Path('/home/eshelle/love-backups')
 destination.mkdir(mode=0o700, parents=True, exist_ok=True)
 os.umask(0o077)
 stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')

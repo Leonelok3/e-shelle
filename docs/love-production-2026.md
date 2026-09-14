@@ -41,7 +41,7 @@ sudo -u eshelle git pull --ff-only origin main
 sudo bash deploy/update_love.sh
 ```
 
-Le script effectue le contrôle Django, une sauvegarde de la base sous `/home/eshelle/backups/` (hors répertoire web), la migration ciblée rencontres, `collectstatic`, le redémarrage d’E-Shelle et le contrôle des URL statiques avec leurs empreintes réelles. Pour PostgreSQL, `pg_dump` doit être installé et compatible avec le serveur. Si la sauvegarde échoue, la migration n’est pas exécutée. Aucune nouvelle dépendance d’exécution n’est nécessaire.
+Le script effectue le contrôle Django, une sauvegarde de la base sous `/home/eshelle/love-backups/` (hors répertoire web), la migration ciblée rencontres, `collectstatic`, le redémarrage d’E-Shelle et le contrôle des URL statiques avec leurs empreintes réelles. Pour PostgreSQL, `pg_dump` doit être installé et compatible avec le serveur. Si la sauvegarde échoue, la migration n’est pas exécutée. Aucune nouvelle dépendance d’exécution n’est nécessaire.
 
 Ne pas lancer `seed_love_demo` en production. Le script ne déploie pas les autres services E-Shelle.
 

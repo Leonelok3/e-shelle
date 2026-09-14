@@ -2,6 +2,7 @@
 # Run from your VPS session: sudo bash /home/eshelle/app/deploy/update_love.sh
 set -euo pipefail
 cd /home/eshelle/app
+install -d -m 700 -o eshelle -g eshelle /home/eshelle/love-backups
 sudo -u eshelle .venv/bin/python manage.py check
 sudo -u eshelle .venv/bin/python deploy/backup_love_database.py
 sudo -u eshelle .venv/bin/python manage.py migrate rencontres --noinput
