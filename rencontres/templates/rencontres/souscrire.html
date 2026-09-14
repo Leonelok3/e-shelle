@@ -1,85 +1,23 @@
 {% extends 'rencontres/base_rencontre.html' %}
-
-{% block title %}Souscrire {{ plan.get_nom_display }} — E-Shelle Love{% endblock %}
-
+{% block title %}Choisir mon pass — E-Shelle Love{% endblock %}
 {% block content %}
-<div style="max-width:500px;margin:0 auto;padding:2rem 1rem 5rem">
-
-    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
-        <a href="{% url 'rencontres:premium' %}" style="color:var(--love-muted);text-decoration:none">
-            <i class="bi bi-arrow-left"></i>
-        </a>
-        <h2 style="font-size:1.3rem;font-weight:700;margin:0">
-            {{ plan.get_icon }} Souscrire {{ plan.get_nom_display }}
-        </h2>
-    </div>
-
-    <div style="background:var(--love-card);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;border:1px solid var(--love-border)">
-        <h3 style="font-size:1rem;margin-bottom:1rem">Récapitulatif</h3>
-        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
-            <span style="color:var(--love-muted)">Plan</span>
-            <span style="font-weight:600">{{ plan.get_nom_display }}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
-            <span style="color:var(--love-muted)">Durée</span>
-            <span>{{ plan.duree_jours }} jour{{ plan.duree_jours|pluralize }}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between">
-            <span style="color:var(--love-muted)">Montant à payer</span>
-            <span>{{ plan.prix_xaf_mensuel|floatformat:0 }} FCFA</span>
-        </div>
-    </div>
-
-    <form method="post">
-        {% csrf_token %}
-
-        <div style="background:rgba(232,67,106,0.08);border:1px solid rgba(232,67,106,0.25);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem">
-            <h4 style="font-size:0.9rem;color:var(--love-primary);margin-bottom:0.75rem">Paiement manuel</h4>
-            <p style="color:var(--love-muted);font-size:0.86rem;margin:0">
-                Payez le montant indiqué sur le numéro officiel E-Shelle, puis saisissez votre numéro et la référence de transaction.
-                L'abonnement sera activé après vérification par l'administrateur.
-            </p>
-        </div>
-
-        <div style="background:var(--love-card);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem">
-            <h4 style="font-size:0.9rem;color:var(--love-primary);margin-bottom:0.75rem">Méthode de paiement</h4>
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="radio" name="methode" value="mtn_momo" id="mtn" checked>
-                <label class="form-check-label" for="mtn">📱 MTN Mobile Money</label>
-            </div>
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="radio" name="methode" value="orange" id="orange">
-                <label class="form-check-label" for="orange">🟠 Orange Money</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="methode" value="airtel" id="airtel">
-                <label class="form-check-label" for="airtel">📱 Airtel Money</label>
-            </div>
-        </div>
-
-        <div style="background:var(--love-card);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem">
-            <h4 style="font-size:0.9rem;color:var(--love-primary);margin-bottom:0.75rem">Numéro Mobile Money</h4>
-            <input type="tel" name="telephone" required
-                   placeholder="6XXXXXXXX" pattern="[0-9]{9}"
-                   style="width:100%;padding:.75rem 1rem;border-radius:8px;border:1px solid var(--love-border);
-                          background:rgba(255,255,255,.05);color:inherit;font-size:.95rem;">
-        </div>
-
-        <div style="background:var(--love-card);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem">
-            <h4 style="font-size:0.9rem;color:var(--love-primary);margin-bottom:0.75rem">Référence de paiement</h4>
-            <input type="text" name="reference_client"
-                   placeholder="Ex: OM2506..., MTN..., nom expéditeur"
-                   style="width:100%;padding:.75rem 1rem;border-radius:8px;border:1px solid var(--love-border);
-                          background:rgba(255,255,255,.05);color:inherit;font-size:.95rem;">
-        </div>
-
-        <button type="submit" class="btn-premium" style="width:100%">
-            Envoyer ma demande d'activation
-        </button>
-
-        <p style="text-align:center;color:var(--love-muted);font-size:0.75rem;margin-top:1rem">
-            Activation manuelle après confirmation du paiement.
-        </p>
-    </form>
+<section class="love-shell love-checkout">
+<a href="{% url 'rencontres:premium' %}">← Toutes les offres</a>
+<p class="love-eyebrow mt-4">UN PASS, À VOTRE RYTHME</p>
+<h1>{{ plan.get_nom_display }} pour faire connaissance.</h1>
+<div class="love-panel my-4">
+<strong class="love-price">{{ plan.prix_xaf_mensuel|floatformat:0 }} <small>FCFA (XAF)</small>
+</strong>
+<p>{{ plan.duree_jours }} jours à compter de l’activation · Sans renouvellement automatique</p>
 </div>
-{% endblock %}
+<p>Enregistrez votre demande, puis contactez notre équipe pour recevoir les coordonnées de paiement. MTN Mobile Money et Orange Money au Cameroun. Depuis un autre pays, vérifiez avec l’équipe le moyen disponible avant de payer.</p>
+<form method="post" class="love-panel love-form">{% csrf_token %}{{ form.non_field_errors }}
+
+{% for field in form %}<div class="mb-3">
+<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endfor %}
+
+<p class="small">Ne communiquez jamais votre code PIN ou un code de confirmation. La référence seule ne vaut pas confirmation de paiement.</p>
+<button type="submit" class="btn-love w-100">Enregistrer ma demande</button>
+</form>
+<p class="small mt-3">Le paiement est vérifié par l’équipe avant activation. Le service ne garantit pas un match ou une relation.</p>
+</section>{% endblock %}

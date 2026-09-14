@@ -32,9 +32,11 @@ class SwipeManager {
         this.card.addEventListener('touchend', e => this.onEnd(e));
 
         // Mouse (desktop)
+        this.moveHandler = e => this.onMove(e);
+        this.endHandler = e => this.onEnd(e);
         this.card.addEventListener('mousedown', e => this.onStart(e));
-        document.addEventListener('mousemove', e => this.onMove(e));
-        document.addEventListener('mouseup', e => this.onEnd(e));
+        document.addEventListener('mousemove', this.moveHandler);
+        document.addEventListener('mouseup', this.endHandler);
     }
 
     getX(e) {
@@ -120,8 +122,8 @@ class SwipeManager {
     }
 
     destroy() {
-        document.removeEventListener('mousemove', this.onMove);
-        document.removeEventListener('mouseup', this.onEnd);
+        document.removeEventListener('mousemove', this.moveHandler);
+        document.removeEventListener('mouseup', this.endHandler);
     }
 }
 
@@ -132,6 +134,7 @@ class DiscoveryManager {
         this.currentIndex = 0;
         this.swipeManager = null;
         this.isLoading = false;
+        this.actionPending = false;
         this.init();
     }
 
@@ -152,7 +155,7 @@ class DiscoveryManager {
         container.innerHTML = '';
 
         // Afficher jusqu'à 3 cartes (effet stack)
-        for (let i = Math.min(this.currentIndex + 2, this.profils.length - 1); i >= this.currentIndex; i--) {
+        for (let i = this.currentIndex; i <= Math.min(this.currentIndex + 2, this.profils.length - 1); i++) {
             const profil = this.profils[i];
             if (profil) {
                 const card = this.createCard(profil);
@@ -161,7 +164,7 @@ class DiscoveryManager {
         }
 
         // Attacher le swipe à la carte du dessus
-        const topCard = container.querySelector('.profile-card');
+        const topCard = container.querySelector('.profile-card:first-child');
         if (topCard) {
             const profil = this.getCurrentProfil();
             if (this.swipeManager) this.swipeManager.destroy();
@@ -184,7 +187,7 @@ class DiscoveryManager {
         const tone = Number(profil.id || 0) % 5;
         const initial = escapeHtml((profil.prenom || '?').charAt(0).toUpperCase());
         const photoHtml = profil.photo
-            ? `<img src="${profil.photo}" alt="${profil.prenom}" class="card-photo" loading="lazy">`
+            ? `<img src="${escapeHtml(profil.photo)}" alt="${escapeHtml(profil.prenom)}" class="card-photo" loading="lazy">`
             : `<div class="card-photo-placeholder avatar-tone-${tone}"><span>${initial}</span></div>`;
 
         const badgesHtml = [
@@ -193,8 +196,8 @@ class DiscoveryManager {
         ].filter(Boolean).join(' ');
 
         const tagsHtml = [
-            profil.religion ? `<span class="tag">${profil.religion}</span>` : '',
-            ...(profil.langues || []).map(l => `<span class="tag">${l}</span>`),
+            profil.religion ? `<span class="tag">${escapeHtml(profil.religion)}</span>` : '',
+            ...(profil.langues || []).map(l => `<span class="tag">${escapeHtml(l)}</span>`),
         ].filter(Boolean).slice(0, 3).join('');
 
         const scoreHtml = profil.score
@@ -202,8 +205,8 @@ class DiscoveryManager {
             : '';
 
         const distanceHtml = profil.distance_km && profil.distance_km < 9000
-            ? `📍 ${profil.ville}${profil.distance_km < 5000 ? ` · ${profil.distance_km} km` : ''}`
-            : `📍 ${profil.ville}, ${profil.pays}`;
+            ? `📍 ${escapeHtml(profil.ville)}${profil.distance_km < 5000 ? ` · ${profil.distance_km} km` : ''}`
+            : `📍 ${escapeHtml(profil.ville)}, ${escapeHtml(profil.pays)}`;
 
         card.innerHTML = `
             ${photoHtml}
@@ -230,6 +233,8 @@ class DiscoveryManager {
     }
 
     async handleLike(profilId, type = 'like') {
+        if (this.actionPending) return;
+        this.actionPending = true;
         try {
             const response = await fetch(`/rencontres/ajax/like/${profilId}/`, {
                 method: 'POST',
@@ -241,7 +246,9 @@ class DiscoveryManager {
             });
             const data = await response.json();
 
+            if (!response.ok) throw new Error(data.error || "Action impossible");
             if (data.limite_atteinte) {
+                this.swipeManager?.resetCard();
                 showPremiumModal(data.type_like === 'super_like' ? 'super_like' : 'likes');
                 return;
             }
@@ -253,21 +260,22 @@ class DiscoveryManager {
             this.updateLikesCounter(data.likes_restants);
             this.nextProfil();
         } catch (err) {
-            console.error('Erreur like:', err);
-            this.nextProfil();
-        }
+            this.swipeManager?.resetCard();
+            alert(err.message || 'Connexion interrompue. Réessayez.');
+        } finally { this.actionPending = false; }
     }
 
     async handlePass(profilId) {
+        if (this.actionPending) return;
+        this.actionPending = true;
         try {
-            await fetch(`/rencontres/ajax/passer/${profilId}/`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            const response = await fetch(`/rencontres/ajax/passer/${profilId}/`, {
+                method: 'POST', headers: {'X-CSRFToken': getCookie('csrftoken')}
             });
-        } catch (err) {
-            console.error('Erreur pass:', err);
-        }
-        this.nextProfil();
+            if (!response.ok) throw new Error('Action impossible');
+            this.nextProfil();
+        } catch (err) { this.swipeManager?.resetCard(); }
+        finally { this.actionPending = false; }
     }
 
     handleSuperLike(profilId) {
@@ -288,7 +296,9 @@ class DiscoveryManager {
             const resp = await fetch(`/rencontres/ajax/profils/?offset=${this.profils.length}`);
             const data = await resp.json();
             if (data.profils && data.profils.length > 0) {
-                this.profils.push(...data.profils);
+                const known = new Set(this.profils.map(p => p.id));
+                this.profils.push(...data.profils.filter(p => !known.has(p.id)));
+                this.renderCurrentCard();
             }
         } catch (err) {
             console.error('Erreur chargement:', err);
@@ -298,6 +308,14 @@ class DiscoveryManager {
     }
 
     bindButtons() {
+        document.getElementById('btn-rewind')?.addEventListener('click', async () => {
+            try {
+                const resp = await fetch('/rencontres/ajax/rembobiner/', {method: 'POST', headers: {'X-CSRFToken': getCookie('csrftoken')}});
+                const data = await resp.json();
+                if (data.success) window.location.reload();
+                else alert(data.error);
+            } catch (_) { alert('Connexion interrompue. Réessayez.'); }
+        });
         document.getElementById('btn-like')?.addEventListener('click', () => {
             const profil = this.getCurrentProfil();
             if (profil) {
@@ -378,7 +396,7 @@ function showMatchPopup(profilInfo, matchId) {
     const msgBtn = popup.querySelector('.btn-envoyer-message');
 
     if (nameEl) nameEl.textContent = profilInfo.prenom;
-    if (photoEl && profilInfo.photo) photoEl.src = profilInfo.photo;
+    if (photoEl && profilInfo.photo) { photoEl.src = profilInfo.photo; photoEl.style.display = 'block'; }
     if (msgBtn && matchId) {
         // Récupérer l'ID de conversation
         fetch(`/rencontres/match/nouveau/${matchId}/`)
@@ -431,8 +449,8 @@ function showPremiumModal(raison) {
     if (!modal) return;
 
     const messages = {
-        'likes': "Vous avez utilisé vos 5 likes gratuits aujourd'hui. Premium débloque les likes illimités.",
-        'messages': "Vous avez utilisé vos 5 messages gratuits aujourd'hui. Premium débloque les messages illimités.",
+        'likes': "Votre quota du jour est atteint. Revenez demain ou consultez les pass Love.",
+        'messages': "Votre limite est atteinte. Consultez votre offre.",
         'super_like': "Le super like gratuit du jour est utilisé. Premium débloque plus d'actions.",
         'filtres': "Les filtres avancés sont réservés aux membres premium.",
     };
@@ -473,7 +491,7 @@ function updateNotifBadges(data) {
 function escapeHtml(str) {
     const div = document.createElement('div');
     div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
+    return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 // ===== INIT =====

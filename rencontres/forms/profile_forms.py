@@ -83,6 +83,15 @@ class ProfilRencontreForm(forms.ModelForm):
             if self.instance.langues:
                 self.initial['langues'] = self.instance.langues
 
+    def clean_date_naissance(self):
+        from django.utils import timezone
+        born = self.cleaned_data['date_naissance']
+        today = timezone.localdate()
+        age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+        if not 18 <= age <= 99:
+            raise forms.ValidationError('E-Shelle Love est réservé aux adultes de 18 ans et plus (99 ans maximum).')
+        return born
+
     def clean_interets(self):
         return list(self.cleaned_data.get('interets', []))
 
@@ -97,6 +106,10 @@ class ProfilRencontreForm(forms.ModelForm):
             raise forms.ValidationError(
                 "L'âge minimum doit être inférieur à l'âge maximum."
             )
+        if age_min is not None and not 18 <= age_min <= 99:
+            self.add_error('recherche_age_min', 'Choisissez un âge entre 18 et 99 ans.')
+        if age_max is not None and not 18 <= age_max <= 99:
+            self.add_error('recherche_age_max', 'Choisissez un âge entre 18 et 99 ans.')
         return cleaned
 
 
@@ -115,4 +128,18 @@ class PhotoProfilForm(forms.ModelForm):
             allowed_types = ['image/jpeg', 'image/png', 'image/webp']
             if hasattr(image, 'content_type') and image.content_type not in allowed_types:
                 raise forms.ValidationError("Format accepté : JPEG, PNG, WebP.")
+            from PIL import Image, ImageOps
+            from io import BytesIO
+            from uuid import uuid4
+            from django.core.files.uploadedfile import SimpleUploadedFile
+            with Image.open(image) as source:
+                if source.width < 300 or source.height < 300:
+                    raise forms.ValidationError('La photo doit mesurer au moins 300 × 300 pixels.')
+                if source.width * source.height > 25000000:
+                    raise forms.ValidationError('Image trop grande. Réduisez sa résolution à 25 mégapixels maximum.')
+                picture = ImageOps.exif_transpose(source).convert('RGB')
+                picture.thumbnail((1600, 1600))
+                buffer = BytesIO()
+                picture.save(buffer, format='WEBP', quality=82)
+            image = SimpleUploadedFile(f'{uuid4().hex}.webp', buffer.getvalue(), content_type='image/webp')
         return image

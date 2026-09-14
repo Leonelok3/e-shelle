@@ -3,11 +3,11 @@ from .profile_views import (
     detail_profil, gerer_photos, parametres_rencontre,
     desactiver_compte_rencontre,
 )
-from .discovery_views import decouverte, filtres, ajax_like, ajax_passer, ajax_charger_profils
+from .discovery_views import ajax_rembobiner, decouverte, filtres, ajax_like, ajax_passer, ajax_charger_profils
 from .match_views import liste_matchs, detail_match, popup_nouveau_match, qui_maime
 from .messaging_views import (
     inbox, conversation, ajax_envoyer_message, ajax_marquer_lu,
-    ajax_check_notifications,
+    ajax_check_notifications, ajax_messages,
 )
 from .premium_views import page_premium, souscrire_premium, activer_boost, ajax_stats_profil
 from .moderation_views import bloquer_profil, signaler_profil, moderation_photos

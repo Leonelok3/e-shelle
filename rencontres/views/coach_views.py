@@ -30,6 +30,11 @@ def coach_love(request):
     elif target_id:
         target = get_object_or_404(ProfilRencontre, pk=target_id, est_actif=True)
 
+    if target:
+        from rencontres.utils.access import can_interact
+        if not can_interact(profil, target):
+            from django.http import Http404
+            raise Http404
     context = {
         "profil": profil,
         "target": target,

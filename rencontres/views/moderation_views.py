@@ -13,6 +13,9 @@ def bloquer_profil(request, profil_id):
     """Bloquer un profil."""
     mon_profil = request.user.profil_rencontre
     profil_a_bloquer = get_object_or_404(ProfilRencontre, pk=profil_id)
+    if profil_a_bloquer.pk == mon_profil.pk:
+        from django.http import Http404
+        raise Http404
 
     if request.method == 'POST':
         Blocage.objects.get_or_create(
@@ -43,10 +46,16 @@ def signaler_profil(request, profil_id):
     """Signaler un profil."""
     mon_profil = request.user.profil_rencontre
     profil_signale = get_object_or_404(ProfilRencontre, pk=profil_id)
+    if profil_signale.pk == mon_profil.pk:
+        from django.http import Http404
+        raise Http404
 
     if request.method == 'POST':
         raison = request.POST.get('raison', 'autre')
         description = request.POST.get('description', '')
+        if raison not in dict(Signalement.RAISON_CHOICES) or len(description) > 3000:
+            messages.error(request, 'Choisissez un motif valide et une description de moins de 3000 caractères.')
+            return redirect('rencontres:signaler', profil_id=profil_id)
 
         try:
             Signalement.objects.create(
@@ -81,6 +90,9 @@ def signaler_profil(request, profil_id):
 @staff_member_required
 def moderation_photos(request):
     """Interface de modération des photos (staff uniquement)."""
+    if not request.user.has_perm('rencontres.change_photoprofil'):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
     photos_en_attente = PhotoProfil.objects.filter(
         est_approuvee=False
     ).select_related('profil__user').order_by('date_ajout')
@@ -96,11 +108,9 @@ def moderation_photos(request):
             profil = photo.profil
             if photo.est_principale or not profil.photo_principale:
                 profil.photo_principale = photo.image
-            profil.est_verifie = True
-            profil.badge_verifie = True
             profil.calculer_completion()
             profil.save(update_fields=[
-                'photo_principale', 'est_verifie', 'badge_verifie', 'profil_complet'
+                'photo_principale', 'profil_complet'
             ])
             messages.success(request, "Photo approuvée.")
         elif action == 'rejeter':

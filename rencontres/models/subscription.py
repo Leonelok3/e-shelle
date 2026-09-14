@@ -61,7 +61,7 @@ class AbonnementRencontre(models.Model):
     date_debut = models.DateTimeField(auto_now_add=True)
     date_fin = models.DateTimeField()
     est_actif = models.BooleanField(default=True)
-    renouvellement_auto = models.BooleanField(default=True)
+    renouvellement_auto = models.BooleanField(default=False)
     payment_reference = models.CharField(
         max_length=200, blank=True,
         help_text="Référence de paiement dans billing/ ou payments/"

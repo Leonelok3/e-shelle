@@ -13,7 +13,9 @@ class MessagingManager {
     constructor() {
         this.conversationId = document.getElementById('conversation-data')?.dataset.convId;
         this.monProfilId = parseInt(document.getElementById('conversation-data')?.dataset.monProfilId);
-        this.lastMessageId = null;
+        this.lastMessageId = 0;
+        this.polling = false;
+        this.sending = false;
         this.pollingInterval = null;
         this.isTyping = false;
         this.init();
@@ -30,7 +32,7 @@ class MessagingManager {
     }
 
     setLastMessageId() {
-        const msgs = document.querySelectorAll('.message-bubble');
+        const msgs = document.querySelectorAll('[data-message-id]');
         if (msgs.length > 0) {
             const last = msgs[msgs.length - 1];
             this.lastMessageId = parseInt(last.dataset.messageId) || 0;
@@ -47,12 +49,15 @@ class MessagingManager {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const contenu = input.value.trim();
-            if (!contenu) return;
+            if (!contenu || this.sending) return;
+            this.sending = true;
 
             btn.disabled = true;
             input.value = '';
 
-            await this.sendMessage(contenu);
+            const sent = await this.sendMessage(contenu);
+            if (!sent && !input.value) input.value = contenu;
+            this.sending = false;
 
             btn.disabled = false;
             input.focus();
@@ -85,6 +90,7 @@ class MessagingManager {
             if (data.success) {
                 this.appendMessage(data.message, true);
                 this.updateMsgsCounter(data.msgs_restants);
+                return true;
             } else if (data.limite_atteinte) {
                 showLimitModal(data.message);
             } else {
@@ -97,7 +103,8 @@ class MessagingManager {
 
     appendMessage(msg, isMine) {
         const container = document.getElementById('messages-container');
-        if (!container) return;
+        if (!container || container.querySelector(`[data-message-id="${Number(msg.id)}"]`)) return;
+        container.querySelector('[data-empty-chat]')?.remove();
 
         const bubble = document.createElement('div');
         bubble.className = `message-wrapper ${isMine ? 'sent-wrapper' : 'received-wrapper'}`;
@@ -119,9 +126,7 @@ class MessagingManager {
         container.appendChild(bubble);
         this.scrollToBottom();
 
-        if (msg.id) {
-            this.lastMessageId = Math.max(this.lastMessageId || 0, msg.id);
-        }
+        // Only polling advances the cursor: sending must not skip an incoming message.
     }
 
     startPolling() {
@@ -130,16 +135,24 @@ class MessagingManager {
     }
 
     async checkNewMessages() {
-        if (!this.lastMessageId) return;
-
+        if (this.polling || document.hidden || !navigator.onLine) return;
+        this.polling = true;
         try {
-            const resp = await fetch(
-                `/rencontres/ajax/profils/?conv_id=${this.conversationId}&since=${this.lastMessageId}`
-            );
-            // Note: endpoint simplifié — en prod utiliser un endpoint dédié
+            const resp = await fetch(`/rencontres/ajax/messages/${this.conversationId}/?since=${this.lastMessageId}`);
+            if (!resp.ok) return;
+            const data = await resp.json();
+            for (const msg of data.messages) {
+                this.appendMessage(msg, msg.est_moi);
+                this.lastMessageId = Math.max(this.lastMessageId, msg.id);
+            }
+            if (data.messages.length) {
+                await fetch(`/rencontres/ajax/marquer-lu/${this.conversationId}/`, {
+                    method: 'POST', headers: {'X-CSRFToken': getCookie('csrftoken')}
+                });
+            }
         } catch (err) {
-            // Silencieux
-        }
+            // Retry after connectivity returns; preserve the cursor.
+        } finally { this.polling = false; }
     }
 
     scrollToBottom() {
@@ -235,7 +248,7 @@ function showLimitModal(message) {
 function escapeHtml(str) {
     const div = document.createElement('div');
     div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
+    return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 // ===== INIT =====

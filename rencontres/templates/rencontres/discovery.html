@@ -22,7 +22,7 @@
 
 {% block content %}
 <!-- Données JSON cachées pour JS -->
-<script id="profils-data" type="application/json">{{ profils_json|safe }}</script>
+{{ profils_json|json_script:"profils-data" }}
 
 <div class="discovery-container">
     {% if not profil_visible %}
@@ -36,7 +36,7 @@
     <div class="likes-info" id="likes-info">
         <i class="bi bi-heart"></i>
         <span>
-            <span id="likes-counter">{{ likes_restants|default:"∞" }}</span>
+            <span id="likes-counter">{% if likes_restants == -1 %}∞{% else %}{{ likes_restants }}{% endif %}</span>
             likes restants aujourd'hui
         </span>
         {% if not profil.est_premium %}
@@ -69,6 +69,7 @@
         </button>
     </div>
 
+    <div class="love-chips mt-3"><button type="button" id="btn-rewind" class="btn-love-outline">↶ Dernier profil passé</button><a href="{% url 'rencontres:boost' %}" class="btn-love-outline">⚡ Mes boosts</a></div>
     <!-- Légende (desktop) -->
     <div class="d-none d-md-flex" style="gap:2rem;justify-content:center;color:var(--love-muted);font-size:0.8rem">
         <span><kbd>←</kbd> Suivant</span>

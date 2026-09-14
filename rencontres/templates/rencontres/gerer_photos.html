@@ -12,7 +12,7 @@
         <h2 style="font-size:1.3rem;font-weight:700;margin:0">
             Mes photos
             <span style="color:var(--love-muted);font-size:0.9rem;font-weight:400">
-                {{ photos.count }}/{{ photos_max }}
+                {{ photos_total }}/{{ photos_max }}
             </span>
         </h2>
     </div>
@@ -33,6 +33,9 @@
                 Principale
             </span>
             {% endif %}
+            {% if not photo.est_principale %}
+            <form method="post">{% csrf_token %}<input type="hidden" name="photo_id" value="{{ photo.pk }}"><button name="principale" class="btn-love-outline" type="submit">Choisir comme principale</button></form>
+            {% endif %}
             <!-- Supprimer -->
             <form method="post" style="position:absolute;top:4px;right:4px">
                 {% csrf_token %}
@@ -46,7 +49,7 @@
         </div>
         {% empty %}
         <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--love-muted)">
-            Ajoutez votre première photo !
+            {% if photos_en_attente %}Votre photo est en cours de validation.{% else %}Ajoutez un portrait où votre visage est bien visible.{% endif %}
         </div>
         {% endfor %}
     </div>
@@ -82,6 +85,8 @@
         </h4>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
+            {{ form.errors }}
+            <p class="small">Un portrait récent, sans coordonnées ni document personnel. Les photos de plats ou de paysages ne permettent pas de vous reconnaître.</p>
             <div class="mb-3">
                 <input type="file" name="image" accept="image/jpeg,image/png,image/webp"
                     class="form-control"
@@ -97,7 +102,7 @@
                 </label>
             </div>
             <button type="submit" class="btn-love" style="width:100%;justify-content:center">
-                <i class="bi bi-cloud-upload"></i> Uploader
+                <i class="bi bi-cloud-upload"></i> Envoyer ma photo
             </button>
         </form>
     </div>
@@ -106,7 +111,7 @@
         <p style="color:var(--love-muted)">Vous avez atteint la limite de {{ photos_max }} photos.</p>
         {% if not profil.est_premium %}
         <a href="{% url 'rencontres:premium' %}" class="btn-premium" style="display:inline-flex;width:auto;padding:0.6rem 1.5rem">
-            ⭐ Passer en Premium pour 12 photos
+            ⭐ Voir les offres pour ajouter plus de photos
         </a>
         {% endif %}
     </div>

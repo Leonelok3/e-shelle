@@ -1,92 +1,72 @@
 {% extends 'rencontres/base_rencontre.html' %}
-{% load static %}
-
-{% block title %}Premium — E-Shelle Love{% endblock %}
-
-{% block content %}
-<div style="max-width:900px;margin:0 auto;padding:1.5rem 1rem 5rem">
-
-    <div style="text-align:center;margin-bottom:2.5rem">
-        <h1 style="font-size:1.8rem;font-weight:900;margin-bottom:0.5rem">
-            <span style="background:var(--gradient-premium);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
-                Passez en Premium
-            </span>
-        </h1>
-        <p style="color:var(--love-muted)">Choisissez une durée simple. Activation manuelle après vérification du paiement.</p>
-
-        {% if abonnement_actif %}
-        <div style="display:inline-block;background:var(--love-card);border:1px solid var(--love-gold);border-radius:12px;padding:0.75rem 1.5rem;margin-top:1rem">
-            <span style="color:var(--love-gold);font-weight:700">⭐ Abonnement {{ abonnement_actif.plan.get_nom_display }} actif</span>
-            <span style="color:var(--love-muted);font-size:0.85rem;display:block;margin-top:0.2rem">
-                Expire dans {{ abonnement_actif.jours_restants }} jour{{ abonnement_actif.jours_restants|pluralize }}
-            </span>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Plans -->
-    <div class="plans-grid">
-        {% for plan in plans %}
-        <div class="plan-card {% if plan.nom == 'platinum' %}plan-gold{% endif %}">
-            <div class="plan-name">
-                {{ plan.get_icon }} {{ plan.get_nom_display }}
-            </div>
-
-            <div class="plan-price">
-                {{ plan.prix_xaf_mensuel|floatformat:0 }} FCFA
-                <span>/ {{ plan.duree_jours }} jour{{ plan.duree_jours|pluralize }}</span>
-            </div>
-
-            <ul class="plan-features">
-                <li class="included">
-                    {% if plan.likes_par_jour == -1 %}Likes illimités{% else %}{{ plan.likes_par_jour }} likes/jour{% endif %}
-                </li>
-                <li class="included">
-                    {{ plan.super_likes_par_jour }} super like{{ plan.super_likes_par_jour|pluralize }}/jour
-                </li>
-                <li class="included">
-                    {% if plan.messages_par_jour == -1 %}Messages illimités{% else %}{{ plan.messages_par_jour }} messages/jour{% endif %}
-                </li>
-                <li class="included">{{ plan.photos_max }} photos maximum</li>
-                <li class="{% if plan.peut_voir_qui_a_like %}included{% else %}excluded{% endif %}">
-                    Voir qui a liké
-                </li>
-                <li class="{% if plan.peut_rembobiner %}included{% else %}excluded{% endif %}">
-                    Rembobiner le dernier profil
-                </li>
-                {% if plan.boost_profil_par_semaine %}
-                <li class="included">
-                    {{ plan.boost_profil_par_semaine }} boost{{ plan.boost_profil_par_semaine|pluralize }}/semaine
-                </li>
-                {% else %}
-                <li class="excluded">Boost de profil</li>
-                {% endif %}
-                <li class="{% if plan.filtre_avance %}included{% else %}excluded{% endif %}">
-                    Filtres avancés
-                </li>
-                <li class="{% if plan.mode_incognito %}included{% else %}excluded{% endif %}">
-                    Mode incognito
-                </li>
-                <li class="{% if plan.stats_profil %}included{% else %}excluded{% endif %}">
-                    Statistiques de profil
-                </li>
-            </ul>
-
-            <a href="{% url 'rencontres:souscrire' plan.nom %}" class="btn-premium">
-                Choisir {{ plan.get_nom_display }}
-            </a>
-        </div>
-        {% empty %}
-        <div style="text-align:center;color:var(--love-muted);grid-column:1/-1;padding:2rem">
-            Les plans premium seront bientôt disponibles.
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- Sécurité paiement -->
-    <div style="text-align:center;margin-top:2rem;color:var(--love-muted);font-size:0.8rem">
-        <p>MTN Mobile Money · Orange Money · Airtel Money</p>
-        <p>Après paiement, envoyez la référence. Le bureau E-Shelle active manuellement votre accès.</p>
-    </div>
+{% block title %}Gratuit & pass Love — E-Shelle Love{% endblock %}
+{% block content %}<section class="love-shell">
+<header class="love-hero">
+<p class="love-eyebrow">DES RENCONTRES. À VOTRE RYTHME.</p>
+<h1>Le premier pas est gratuit.<br>
+<span>La suite vous appartient.</span>
+</h1>
+<p>Des conversations entre adultes, au Cameroun et dans la diaspora.<br>Commencez sans payer. Choisissez un pass quand vous en avez envie.</p>
+<div class="love-chips">
+<span>Sans renouvellement automatique</span>
+<span>Prix en FCFA · XAF</span>
+<span>Sécurité incluse pour tous</span>
 </div>
-{% endblock %}
+</header>
+{% if abonnement_actif %}<div class="love-panel mb-4">
+<strong>Votre pass {{ abonnement_actif.plan.get_nom_display }} est actif</strong>
+<p>Valable jusqu’au {{ abonnement_actif.date_fin|date:"d/m/Y à H:i" }}. À l’expiration, votre compte revient au gratuit ; vos matchs et conversations restent disponibles.</p>
+<a href="{% url 'rencontres:boost' %}">Mes boosts</a> · <a href="{% url 'rencontres:parametres' %}">Ma confidentialité</a>
+</div>{% endif %}
+{% if pending %}<div class="love-panel love-pending mb-4">
+<strong>Demande {{ pending.reference }} en attente</strong>
+<p>{{ pending.montant|floatformat:0 }} FCFA · Votre accès gratuit reste disponible pendant la vérification.</p>
+<a href="{{ payment_contact }}" class="btn-love" target="_blank" rel="noopener">Contacter l’équipe pour ce paiement</a>
+</div>{% endif %}
+<div class="love-offers">
+<article class="plan-card love-free">
+<p class="love-eyebrow">POUR COMMENCER</p>
+<h2>Découverte</h2>
+<div class="love-price">0 <small>FCFA</small>
+</div>
+<p>Sans carte bancaire. Sans date limite.</p>
+<ul class="plan-features">
+<li class="included">15 likes et 1 super like par jour</li>
+<li class="included">Messages sans quota quotidien avec vos matchs</li>
+<li class="included">6 photos modérées</li>
+<li class="included">Filtres d’âge, pays et religion</li>
+<li class="included">Conseils pour votre profil et vos premiers messages</li>
+<li class="included">Blocage et signalement</li>
+</ul>
+<a class="btn-love-outline" href="{% url 'rencontres:decouverte' %}">Continuer gratuitement</a>
+</article>
+
+{% for plan in plans %}<article class="plan-card {% if plan.nom == 'platinum' %}plan-gold{% endif %}">
+<p class="love-eyebrow">{% if plan.nom == 'silver' %}UNE PREMIÈRE ENVIE{% elif plan.nom == 'gold' %}LE TEMPS D’ÉCHANGER{% else %}POUR PRENDRE SON TEMPS{% endif %}</p>
+<h2>{{ plan.get_nom_display }}</h2>
+<div class="love-price">{{ plan.prix_xaf_mensuel|floatformat:0 }} <small>FCFA</small>
+</div>
+<p>Un seul paiement · {{ plan.duree_jours }} jours</p>
+<ul class="plan-features">
+<li class="included">{% if plan.likes_par_jour == -1 %}Likes sans quota quotidien{% else %}{{ plan.likes_par_jour }} likes par jour{% endif %}</li>
+<li class="included">{% if plan.super_likes_par_jour == -1 %}Super likes sans quota quotidien{% else %}{{ plan.super_likes_par_jour }} super likes par jour{% endif %}</li>
+<li class="included">Messages avec vos matchs</li>
+<li class="included">{{ plan.photos_max }} photos</li>{% if plan.peut_voir_qui_a_like %}<li class="included">Voir les personnes qui vous aiment</li>{% endif %}{% if plan.peut_rembobiner %}<li class="included">Retrouver le dernier profil passé</li>{% endif %}{% if plan.boost_profil_par_semaine %}<li class="included">{{ plan.boost_profil_par_semaine }} boost{{ plan.boost_profil_par_semaine|pluralize }} de 30 min sur 7 jours glissants</li>{% endif %}{% if plan.filtre_avance %}<li class="included">Filtre de niveau d’études</li>{% endif %}{% if plan.mode_incognito %}<li class="included">Mode discret dans la découverte</li>{% endif %}{% if plan.stats_profil %}<li class="included">Statistiques du profil</li>{% endif %}</ul>
+<a class="btn-premium" href="{% url 'rencontres:souscrire' plan.nom %}">Choisir ce pass</a>
+</article>{% endfor %}
+</div>
+<div class="love-info-grid mt-4">
+<article class="love-panel">
+<h2>Vous gardez la main</h2>
+<p>Pas de prélèvement automatique. Vos jours commencent après validation du paiement. Un renouvellement du même pass conserve vos jours restants.</p>
+</article>
+<article class="love-panel">
+<h2>Une rencontre reste un choix</h2>
+<p>Les messages nécessitent un match. Aucun pass ne permet de contourner un blocage. Les protections contre le spam s’appliquent à tous.</p>
+</article>
+<article class="love-panel">
+<h2>Un paiement accompagné</h2>
+<p>MTN Mobile Money ou Orange Money au Cameroun, après confirmation des coordonnées par l’équipe. Aucune activation immédiate n’est promise.</p>
+</article>
+</div>
+</section>{% endblock %}

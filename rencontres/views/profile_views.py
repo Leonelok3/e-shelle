@@ -3,6 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import Http404
 from django.db.models import Q
+from django.db.models import F
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.cache import never_cache
 from django.utils import timezone
 
 from rencontres.models import (
@@ -18,25 +21,38 @@ def profil_requis(vue):
     from functools import wraps
 
     @wraps(vue)
+    @never_cache
     @login_required
     def wrapper(request, *args, **kwargs):
         if not hasattr(request.user, 'profil_rencontre'):
             messages.info(request, "Créez votre profil de rencontre pour continuer.")
             return redirect('rencontres:creer_profil')
+        from rencontres.utils.access import sync_premium
+        profil = request.user.profil_rencontre
+        sync_premium(profil)
+        if profil.age() < 18:
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden("E-Shelle Love est réservé aux personnes majeures.")
+        if not profil.est_actif and request.resolver_match.url_name not in ('parametres', 'desactiver'):
+            messages.info(request, "Votre profil est désactivé. Contactez l'assistance pour le réactiver.")
+            return redirect('rencontres:parametres')
         return vue(request, *args, **kwargs)
     return wrapper
 
 
-@login_required
 def accueil_rencontre(request):
     """Page d'entrée opérationnelle de l'app rencontres."""
     if not hasattr(request.user, 'profil_rencontre'):
         return render(request, 'rencontres/accueil.html')
 
     profil = request.user.profil_rencontre
+    from rencontres.utils.access import sync_premium
+    sync_premium(profil)
+    if not profil.est_actif or profil.age() < 18:
+        return redirect('rencontres:parametres')
     notifs = get_stats_notifications(profil)
 
-    profils_avec_scores = get_profils_compatibles(profil, limit=6)
+    profils_avec_scores = get_profils_compatibles(profil, limit=6, filters=request.session.get('filtres_rencontre', {}))
     suggestions = [
         {
             'profil': p,
@@ -158,6 +174,7 @@ def modifier_profil(request):
 
 
 @profil_requis
+@ensure_csrf_cookie
 def detail_profil(request, pk):
     """Détail d'un profil de rencontre."""
     mon_profil = request.user.profil_rencontre
@@ -170,12 +187,13 @@ def detail_profil(request, pk):
         est_mon_profil = False
 
         # Vérifier les blocages
-        if mon_profil.a_bloque(profil) or mon_profil.est_bloque_par(profil):
+        from rencontres.utils.access import can_interact
+        if not can_interact(mon_profil, profil):
             raise Http404
 
         # Incrémenter les vues
         ProfilRencontre.objects.filter(pk=pk).update(
-            vues_profil=profil.vues_profil + 1
+            vues_profil=F('vues_profil') + 1
         )
 
     # Statut du like
@@ -192,6 +210,10 @@ def detail_profil(request, pk):
     photos = profil.photos.filter(est_approuvee=True).order_by('ordre')
     photos_en_attente = profil.photos.filter(est_approuvee=False).count() if est_mon_profil else 0
     notifs = get_stats_notifications(mon_profil)
+    from rencontres.utils.access import entitlements
+    profile_stats = None
+    if est_mon_profil and entitlements(mon_profil)['stats_profil']:
+        profile_stats = {'vues': profil.vues_profil, 'likes': profil.likes_recus.count(), 'matchs': profil.get_matchs_actifs().count()}
 
     return render(request, 'rencontres/profile_detail.html', {
         'profil': profil,
@@ -201,6 +223,7 @@ def detail_profil(request, pk):
         'photos': photos,
         'photos_en_attente': photos_en_attente,
         'notifs': notifs,
+        'profile_stats': profile_stats,
     })
 
 
@@ -208,9 +231,15 @@ def detail_profil(request, pk):
 def gerer_photos(request):
     """Gérer les photos du profil."""
     profil = request.user.profil_rencontre
-    photos_max = 12 if profil.est_premium else 6
+    from rencontres.utils.access import entitlements
+    photos_max = entitlements(profil)['photos_max']
 
     if request.method == 'POST':
+        if 'principale' in request.POST:
+            photo = get_object_or_404(PhotoProfil, pk=request.POST.get('photo_id'), profil=profil, est_approuvee=True)
+            photo.est_principale = True
+            photo.save()
+            return redirect('rencontres:gerer_photos')
         if 'supprimer' in request.POST:
             photo_id = request.POST.get('photo_id')
             PhotoProfil.objects.filter(pk=photo_id, profil=profil).delete()
@@ -250,6 +279,7 @@ def gerer_photos(request):
         'photos_en_attente': photos_en_attente,
         'profil': profil,
         'photos_max': photos_max,
+        'photos_total': profil.photos.count(),
         'peut_ajouter': profil.photos.count() < photos_max,
     })
 
@@ -262,8 +292,12 @@ def parametres_rencontre(request):
     if request.method == 'POST':
         profil.afficher_en_ligne = 'afficher_en_ligne' in request.POST
         profil.afficher_distance = 'afficher_distance' in request.POST
-        profil.qui_peut_ecrire = request.POST.get('qui_peut_ecrire', 'tous')
-        profil.save(update_fields=['afficher_en_ligne', 'afficher_distance', 'qui_peut_ecrire'])
+        profil.qui_peut_ecrire = request.POST.get('qui_peut_ecrire', 'matchs')
+        if profil.qui_peut_ecrire not in ('tous', 'matchs', 'premium'):
+            profil.qui_peut_ecrire = 'matchs'
+        from rencontres.utils.access import entitlements
+        profil.incognito = entitlements(profil)['mode_incognito'] and 'incognito' in request.POST
+        profil.save(update_fields=['afficher_en_ligne', 'afficher_distance', 'qui_peut_ecrire', 'incognito'])
         messages.success(request, "Paramètres sauvegardés.")
         return redirect('rencontres:parametres')
 

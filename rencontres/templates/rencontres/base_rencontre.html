@@ -15,6 +15,8 @@
     <!-- App CSS -->
     <link rel="stylesheet" href="{% static 'rencontres/css/rencontre.css' %}">
 
+    <link rel="stylesheet" href="{% static 'rencontres/css/love-refresh.css' %}">
+    {% if request.resolver_match.url_name != 'accueil' and request.resolver_match.url_name != 'premium' and request.resolver_match.url_name != 'seo_cameroun' and request.resolver_match.url_name != 'seo_douala' and request.resolver_match.url_name != 'seo_yaounde' %}<meta name="robots" content="noindex, nofollow">{% endif %}
     {% block extra_css %}{% endblock %}
 </head>
 <body class="rencontres-app">
@@ -24,6 +26,7 @@
     <a href="{% url 'rencontres:decouverte' %}" class="brand">
         ❤️ E-Shelle Love
     </a>
+    <div class="love-desktop-nav"><a href="{% url 'rencontres:accueil' %}">Mon espace</a><a href="{% url 'rencontres:decouverte' %}">Découvrir</a><a href="{% url 'rencontres:matchs' %}">Matchs</a><a href="{% url 'rencontres:premium' %}">Gratuit & pass Love</a><a href="{% url 'rencontres:parametres' %}">Paramètres</a></div>
     <div class="nav-actions">
         {% if request.user.is_authenticated %}
             <a href="{% url 'rencontres:filtres' %}" class="btn-love-outline" style="padding:0.4rem 1rem;font-size:0.8rem">
@@ -39,14 +42,14 @@
                 </span>
             </div>
             {% if profil %}
-            <a href="{% url 'rencontres:detail_profil' profil.pk %}"
+            <a href="{% url 'rencontres:detail_profil' request.user.profil_rencontre.pk %}"
                 style="text-decoration:none">
-                {% if profil.photo_principale %}
-                    <img src="{{ profil.photo_principale.url }}" alt="moi"
+                {% if request.user.profil_rencontre.photo_principale %}
+                    <img src="{{ request.user.profil_rencontre.photo_principale.url }}" alt="moi"
                         style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--love-primary)">
                 {% else %}
                     <div style="width:36px;height:36px;border-radius:50%;background:var(--gradient-love);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:0.9rem">
-                        {{ profil.prenom_affiche|first }}
+                        {{ request.user.profil_rencontre.prenom_affiche|first }}
                     </div>
                 {% endif %}
             </a>
@@ -74,6 +77,7 @@
     {% block content %}{% endblock %}
 </main>
 
+<footer class="love-footer">18 ans et plus · <a href="{% url 'rencontres:securite' %}">Conseils de sécurité</a> · <a href="{% url 'rencontres:premium' %}">Gratuit & pass Love</a></footer>
 <!-- Navigation bas (mobile) -->
 {% if request.user.is_authenticated and profil %}
 <nav class="love-bottom-nav d-md-none">
@@ -94,7 +98,7 @@
         <i class="bi bi-star-fill"></i>
         M'aime
     </a>
-    <a href="{% url 'rencontres:detail_profil' profil.pk %}" class="nav-item {% if request.resolver_match.url_name == 'detail_profil' %}active{% endif %}">
+    <a href="{% url 'rencontres:detail_profil' request.user.profil_rencontre.pk %}" class="nav-item {% if request.resolver_match.url_name == 'detail_profil' %}active{% endif %}">
         <i class="bi bi-person-circle"></i>
         Profil
     </a>

@@ -88,22 +88,28 @@ def qui_maime(request):
     profil = request.user.profil_rencontre
     notifs = get_stats_notifications(profil)
 
-    if profil.est_premium:
+    from rencontres.utils.access import entitlements
+    can_see = entitlements(profil)['peut_voir_qui_a_like']
+    from rencontres.models import Blocage
+    blocked = set()
+    for pair in Blocage.objects.filter(Q(bloqueur=profil) | Q(bloque=profil)).values_list('bloqueur_id', 'bloque_id'):
+        blocked.update(pair)
+    if can_see:
         likes_recus = Like.objects.filter(
             recepteur=profil
-        ).select_related('envoyeur').order_by('-date_like')
+        ).filter(envoyeur__est_actif=True, envoyeur__user__is_active=True).exclude(envoyeur_id__in=blocked).select_related('envoyeur').order_by('-date_like')
         # Marquer comme lus
         likes_recus.filter(est_lu=False).update(est_lu=True)
     else:
         # Juste le nombre, pas les détails
         likes_recus = None
 
-    nb_likes = Like.objects.filter(recepteur=profil).count()
+    nb_likes = Like.objects.filter(recepteur=profil, envoyeur__est_actif=True).exclude(envoyeur_id__in=blocked).count()
 
     return render(request, 'rencontres/qui_maime.html', {
         'profil': profil,
         'likes_recus': likes_recus,
         'nb_likes': nb_likes,
-        'est_premium': profil.est_premium,
+        'est_premium': can_see,
         'notifs': notifs,
     })

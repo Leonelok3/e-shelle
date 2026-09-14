@@ -128,11 +128,9 @@ class PhotoProfilAdmin(admin.ModelAdmin):
             profil = photo.profil
             if photo.est_principale or not profil.photo_principale:
                 profil.photo_principale = photo.image
-            profil.est_verifie = True
-            profil.badge_verifie = True
             profil.calculer_completion()
             profil.save(update_fields=[
-                'photo_principale', 'est_verifie', 'badge_verifie', 'profil_complet'
+                'photo_principale', 'profil_complet'
             ])
         self.message_user(request, f"{queryset.count()} photo(s) approuvée(s).")
 
@@ -298,25 +296,15 @@ class AbonnementRencontreAdmin(admin.ModelAdmin):
 
     @admin.action(description="Activer manuellement les abonnements sélectionnés")
     def activer_abonnements(self, request, queryset):
+        from rencontres.utils.subscriptions import approve_subscription
         count = 0
-        for abo in queryset.select_related('profil', 'plan'):
-            AbonnementRencontre.objects.filter(
-                profil=abo.profil,
-                est_actif=True,
-            ).exclude(pk=abo.pk).update(est_actif=False)
-            abo.est_actif = True
-            abo.date_fin = timezone.now() + timezone.timedelta(days=abo.plan.duree_jours)
-            abo.save(update_fields=['est_actif', 'date_fin'])
-            abo.profil.est_premium = True
-            abo.profil.save(update_fields=['est_premium'])
-            if abo.payment_reference:
-                try:
-                    from payments.models import Transaction
-                    Transaction.objects.filter(reference=abo.payment_reference).update(statut='succes')
-                except Exception:
-                    pass
-            count += 1
-        self.message_user(request, f"{count} abonnement(s) activé(s).")
+        for abo in queryset:
+            try:
+                approve_subscription(abo.pk)
+                count += 1
+            except (ValueError, AbonnementRencontre.DoesNotExist) as exc:
+                self.message_user(request, f"Demande {abo.pk} : activation impossible, vérifier le paiement et le pass actif.", level='error')
+        self.message_user(request, f"{count} demande(s) vérifiée(s). Une demande déjà activée ne prolonge pas le pass.")
 
     @admin.action(description="Désactiver les abonnements sélectionnés")
     def desactiver_abonnements(self, request, queryset):

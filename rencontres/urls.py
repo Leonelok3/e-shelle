@@ -1,11 +1,13 @@
 from django.urls import path
 from rencontres import views
+from django.views.generic import TemplateView
 
 app_name = 'rencontres'
 
 urlpatterns = [
     # Entrée dans l'app
     path('', views.accueil_rencontre, name='accueil'),
+    path('securite/', TemplateView.as_view(template_name='rencontres/securite.html'), name='securite'),
     path('rencontre-serieuse-cameroun/', views.seo_landing, {'slug': 'cameroun'}, name='seo_cameroun'),
     path('rencontre-serieuse-douala/', views.seo_landing, {'slug': 'douala'}, name='seo_douala'),
     path('rencontre-serieuse-yaounde/', views.seo_landing, {'slug': 'yaounde'}, name='seo_yaounde'),
@@ -26,6 +28,9 @@ urlpatterns = [
     path('ajax/profils/', views.ajax_charger_profils, name='ajax_profils'),
     path('ajax/stats/', views.ajax_stats_profil, name='ajax_stats'),
     path('ajax/notifications/', views.ajax_check_notifications, name='ajax_notifications'),
+
+    path('ajax/messages/<int:conv_id>/', views.ajax_messages, name='ajax_messages'),
+    path('ajax/rembobiner/', views.ajax_rembobiner, name='ajax_rembobiner'),
 
     # Coach IA
     path('coach/', views.coach_love, name='coach'),

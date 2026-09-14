@@ -43,18 +43,20 @@ def verifier_limite_likes(profil, type_like='like'):
     from rencontres.models import Like
     from django.conf import settings
 
-    if profil.est_premium:
-        return True, -1  # illimité pour premium
+    from rencontres.utils.access import entitlements
+    rights = entitlements(profil)
 
     settings_rencontres = getattr(settings, 'RENCONTRES_SETTINGS', {})
     if type_like == 'super_like':
-        limite = settings_rencontres.get('SUPER_LIKES_PAR_JOUR_FREE', 1)
+        limite = rights['super_likes_par_jour']
         filters = {'type_like': 'super_like'}
     else:
-        limite = settings_rencontres.get('LIKES_PAR_JOUR_FREE', 5)
-        filters = {}
+        limite = rights['likes_par_jour']
+        filters = {'type_like': 'like'}
 
-    aujourd_hui = timezone.now().date()
+    if limite == -1:
+        return True, -1
+    aujourd_hui = timezone.localdate()
     likes_aujourd_hui = Like.objects.filter(
         envoyeur=profil,
         date_like__date=aujourd_hui,
@@ -73,11 +75,11 @@ def verifier_limite_messages(profil):
     from rencontres.models import Message
     from django.conf import settings
 
-    if profil.est_premium:
+    from rencontres.utils.access import entitlements
+    limite = entitlements(profil)['messages_par_jour']
+    if limite == -1:
         return True, -1
-
-    limite = getattr(settings, 'RENCONTRES_SETTINGS', {}).get('MESSAGES_PAR_JOUR_FREE', 5)
-    aujourd_hui = timezone.now().date()
+    aujourd_hui = timezone.localdate()
     messages_aujourd_hui = Message.objects.filter(
         expediteur=profil,
         date_envoi__date=aujourd_hui

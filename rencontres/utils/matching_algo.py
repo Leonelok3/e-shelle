@@ -134,56 +134,57 @@ def calculer_score_compatibilite(profil_a, profil_b):
     }
 
 
-def get_profils_compatibles(profil, limit=20, exclude_ids=None):
-    """
-    Retourne les profils compatibles triés par score décroissant.
-    Exclut les profils déjà likés, bloqués ou passés.
-    """
+def get_profils_compatibles(profil, limit=20, exclude_ids=None, filters=None):
     from rencontres.models import ProfilRencontre, Like, Blocage
+    from rencontres.utils.access import entitlements
     from django.db.models import Q
-
-    if exclude_ids is None:
-        exclude_ids = []
-
-    # IDs à exclure : déjà likés, bloquages mutuels, profil lui-même
-    likes_envoyes = Like.objects.filter(envoyeur=profil).values_list('recepteur_id', flat=True)
-    blocages = Blocage.objects.filter(
-        Q(bloqueur=profil) | Q(bloque=profil)
-    ).values_list('bloqueur_id', 'bloque_id')
-    bloques_ids = set()
-    for b1, b2 in blocages:
-        bloques_ids.add(b1)
-        bloques_ids.add(b2)
-
-    exclusions = set(exclude_ids) | set(likes_envoyes) | bloques_ids | {profil.id}
-
-    # Filtrer par critères de base
-    qs = ProfilRencontre.objects.filter(
-        est_actif=True,
-        photos__est_approuvee=True,
-    ).exclude(id__in=exclusions).select_related('user').distinct()
-
-    # Filtrer par genre recherché
+    from django.utils import timezone
+    if not profil.est_actif or profil.age() < 18:
+        return []
+    filters = filters or {}
+    rights = entitlements(profil)
+    likes = Like.objects.filter(envoyeur=profil).values_list('recepteur_id', flat=True)
+    blocks = Blocage.objects.filter(Q(bloqueur=profil) | Q(bloque=profil)).values_list('bloqueur_id', 'bloque_id')
+    excluded = set(exclude_ids or []) | set(likes) | {profil.pk}
+    for pair in blocks:
+        excluded.update(pair)
+    qs = ProfilRencontre.objects.filter(est_actif=True, user__is_active=True,
+        photos__est_approuvee=True).exclude(pk__in=excluded).select_related('user').distinct()
+    # Incognito only has effect while the feature is covered by a valid pass.
+    hidden = ProfilRencontre.objects.filter(incognito=True, abonnements__est_actif=True,
+        abonnements__date_fin__gt=timezone.now(), abonnements__plan__mode_incognito=True).values('pk')
+    qs = qs.exclude(pk__in=hidden)
     if profil.recherche_genre:
         qs = qs.filter(genre=profil.recherche_genre.lower())
-
-    # Filtrer par tranche d'âge recherchée
-    from datetime import date
-    today = date.today()
-
-    # Calculer les dates de naissance correspondant aux âges min/max
-    from datetime import timedelta
-    date_max = today.replace(year=today.year - profil.recherche_age_min)
-    date_min = today.replace(year=today.year - profil.recherche_age_max)
-    qs = qs.filter(date_naissance__gte=date_min, date_naissance__lte=date_max)
-
-    # Calculer les scores et trier
-    profils_scores = []
-    for p in qs[:100]:  # Limiter le calcul à 100 candidats max
-        result = calculer_score_compatibilite(profil, p)
-        profils_scores.append((p, result['score_total'], result['distance_km']))
-
-    # Trier par score décroissant
-    profils_scores.sort(key=lambda x: x[1], reverse=True)
-
-    return profils_scores[:limit]
+    if filters.get('pays'):
+        qs = qs.filter(pays__iexact=filters['pays'])
+    if filters.get('religion'):
+        qs = qs.filter(religion=filters['religion'])
+    if filters.get('verifie_seulement'):
+        qs = qs.filter(badge_verifie=True)
+    if rights['filtre_avance'] and filters.get('niveau_etude'):
+        levels = ['primaire', 'secondaire', 'bac2', 'licence', 'master', 'doctorat']
+        if filters['niveau_etude'] in levels:
+            qs = qs.filter(niveau_etude__in=levels[levels.index(filters['niveau_etude']):])
+    minimum = max(18, filters.get('age_min') or profil.recherche_age_min)
+    maximum = min(99, filters.get('age_max') or profil.recherche_age_max)
+    now = timezone.now()
+    results = []
+    # Boosted members enter the candidate pool first, but still meet all filters.
+    for candidate in qs.order_by('-boost_fin', '-derniere_connexion')[:500]:
+        if not minimum <= candidate.age() <= maximum:
+            continue
+        if candidate.recherche_genre and candidate.recherche_genre != profil.genre:
+            continue
+        if not candidate.recherche_age_min <= profil.age() <= candidate.recherche_age_max:
+            continue
+        result = calculer_score_compatibilite(profil, candidate)
+        distance = result['distance_km']
+        known = None not in (profil.latitude, profil.longitude, candidate.latitude, candidate.longitude)
+        if filters.get('distance_km') and (not known or distance > filters['distance_km']):
+            continue
+        public_distance = distance if known and candidate.afficher_distance else None
+        boosted = bool(candidate.boost_fin and candidate.boost_fin > now)
+        results.append((candidate, result['score_total'], public_distance, boosted))
+    results.sort(key=lambda item: (item[3], item[1]), reverse=True)
+    return [(p, score, distance) for p, score, distance, _ in results[:limit]]

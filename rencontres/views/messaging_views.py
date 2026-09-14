@@ -1,10 +1,11 @@
 import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db.models import Q
+from django.db import transaction
 
 from rencontres.models import Conversation, Message, Match
 from rencontres.utils.notifications import (
@@ -68,10 +69,13 @@ def conversation(request, conversation_id):
         Conversation,
         pk=conversation_id,
         match__in=Match.objects.filter(
-            Q(profil_1=profil) | Q(profil_2=profil)
+            Q(profil_1=profil) | Q(profil_2=profil), est_actif=True
         )
     )
     autre_profil = conv.get_other_profil(profil)
+    from rencontres.utils.access import can_interact
+    if not can_interact(profil, autre_profil):
+        raise Http404
     notifs = get_stats_notifications(profil)
 
     # Marquer les messages comme lus
@@ -104,6 +108,10 @@ def conversation(request, conversation_id):
 
 def _peut_ecrire(expediteur, destinataire):
     """Vérifie si l'expéditeur peut écrire au destinataire selon ses paramètres."""
+    from rencontres.utils.access import can_interact, sync_premium
+    if not can_interact(expediteur, destinataire):
+        return False
+    sync_premium(expediteur)
     pref = destinataire.qui_peut_ecrire
     if pref == 'tous':
         return True
@@ -121,16 +129,19 @@ def _peut_ecrire(expediteur, destinataire):
 
 @login_required
 @require_POST
+@transaction.atomic
 def ajax_envoyer_message(request):
     """Endpoint AJAX pour envoyer un message."""
     if not hasattr(request.user, 'profil_rencontre'):
         return JsonResponse({'error': 'Profil requis'}, status=403)
 
     profil = request.user.profil_rencontre
+    from rencontres.models import ProfilRencontre
+    profil = ProfilRencontre.objects.select_for_update().get(pk=profil.pk)
 
     try:
         body = json.loads(request.body)
-        conv_id = body.get('conversation_id')
+        conv_id = int(body.get('conversation_id'))
         contenu = body.get('contenu', '').strip()
     except Exception:
         return JsonResponse({'error': 'Données invalides'}, status=400)
@@ -145,7 +156,7 @@ def ajax_envoyer_message(request):
         Conversation,
         pk=conv_id,
         match__in=Match.objects.filter(
-            Q(profil_1=profil) | Q(profil_2=profil)
+            Q(profil_1=profil) | Q(profil_2=profil), est_actif=True
         )
     )
     autre = conv.get_other_profil(profil)
@@ -195,6 +206,7 @@ def ajax_envoyer_message(request):
 
 
 @login_required
+@require_POST
 def ajax_marquer_lu(request, conv_id):
     """Marquer les messages d'une conversation comme lus."""
     if not hasattr(request.user, 'profil_rencontre'):
@@ -205,9 +217,12 @@ def ajax_marquer_lu(request, conv_id):
         Conversation,
         pk=conv_id,
         match__in=Match.objects.filter(
-            Q(profil_1=profil) | Q(profil_2=profil)
+            Q(profil_1=profil) | Q(profil_2=profil), est_actif=True
         )
     )
+    from rencontres.utils.access import can_interact
+    if not can_interact(profil, conv.get_other_profil(profil)):
+        raise Http404
     updated = Message.objects.filter(
         conversation=conv, est_lu=False
     ).exclude(expediteur=profil).update(
@@ -224,3 +239,22 @@ def ajax_check_notifications(request):
 
     profil = request.user.profil_rencontre
     return JsonResponse(get_stats_notifications(profil))
+
+
+@profil_requis
+def ajax_messages(request, conv_id):
+    profil = request.user.profil_rencontre
+    conv = get_object_or_404(Conversation, pk=conv_id, match__in=profil.get_matchs_actifs())
+    from rencontres.utils.access import can_interact
+    if not can_interact(profil, conv.get_other_profil(profil)):
+        raise Http404
+    try:
+        since = max(0, int(request.GET.get('since', 0)))
+    except (TypeError, ValueError):
+        return JsonResponse({'error': 'Curseur invalide'}, status=400)
+    items = conv.messages.filter(pk__gt=since).exclude(
+        Q(expediteur=profil, est_supprime_expediteur=True) |
+        (~Q(expediteur=profil) & Q(est_supprime_destinataire=True))
+    ).order_by('pk')[:100]
+    return JsonResponse({'messages': [dict(id=m.pk, contenu=m.contenu,
+        date_envoi=m.date_envoi.isoformat(), est_moi=m.expediteur_id == profil.pk) for m in items]})

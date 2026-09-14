@@ -143,6 +143,10 @@ class ProfilRencontre(models.Model):
         help_text="Pourcentage de complétion 0-100"
     )
 
+    incognito = models.BooleanField(default=False)
+    boost_fin = models.DateTimeField(null=True, blank=True, db_index=True)
+    boost_utilisations = models.JSONField(default=list, blank=True)
+
     # Activité
     derniere_connexion = models.DateTimeField(auto_now=True)
     date_creation = models.DateTimeField(auto_now_add=True)
@@ -191,7 +195,8 @@ class ProfilRencontre(models.Model):
         from django.db.models import Q
         return Match.objects.filter(
             Q(profil_1=self) | Q(profil_2=self),
-            est_actif=True
+            est_actif=True, profil_1__est_actif=True, profil_2__est_actif=True,
+            profil_1__user__is_active=True, profil_2__user__is_active=True,
         )
 
     def est_bloque_par(self, autre_profil):
