@@ -78,6 +78,8 @@ def _creer_messages_campagne(campagne):
     if contacts_whatsapp.exists():
         batch = []
         for contact in contacts_whatsapp:
+            if WhatsAppService.deja_contacte(contact.numero):
+                continue
             batch.append(
                 MessageEnvoi(
                     campagne=campagne,
@@ -97,6 +99,8 @@ def _creer_messages_campagne(campagne):
     )
     batch = []
     for user in contacts:
+        if WhatsAppService.deja_contacte(user.whatsapp):
+            continue
         batch.append(
             MessageEnvoi(
                 campagne=campagne,

@@ -1,13 +1,13 @@
 from django.contrib import admin, messages
 
-from .models import Campagne, ContactWhatsApp, MessageEnvoi, TemplateWhatsApp
+from .models import Campagne, ContactWhatsApp, MessageEnvoi, OutreachLog, TemplateWhatsApp
 from .tasks import lancer_campagne_task
 
 
 @admin.register(ContactWhatsApp)
 class ContactWhatsAppAdmin(admin.ModelAdmin):
-    list_display = ["nom", "numero", "ville", "groupe", "source", "consentement_confirme", "cree_le"]
-    list_filter = ["source", "consentement_confirme", "ville", "cree_le"]
+    list_display = ["nom", "numero", "ville", "groupe", "source", "consentement_confirme", "desinscrit", "cree_le"]
+    list_filter = ["source", "consentement_confirme", "desinscrit", "ville", "cree_le"]
     search_fields = ["nom", "numero", "ville", "groupe", "note"]
     readonly_fields = ["cree_le", "mis_a_jour_le"]
 
@@ -42,3 +42,11 @@ class TemplateWhatsAppAdmin(admin.ModelAdmin):
     list_display = ["nom", "langue", "actif", "cree_le"]
     list_filter = ["langue", "actif"]
     search_fields = ["nom", "contenu_preview"]
+
+
+@admin.register(OutreachLog)
+class OutreachLogAdmin(admin.ModelAdmin):
+    list_display = ["canal", "identifiant", "statut", "sujet", "envoye_le", "campagne"]
+    list_filter = ["canal", "statut", "envoye_le"]
+    search_fields = ["identifiant", "sujet"]
+    readonly_fields = ["envoye_le"]

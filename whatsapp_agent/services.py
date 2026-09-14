@@ -75,7 +75,11 @@ Reponds UNIQUEMENT avec le texte du message, rien d'autre."""
         """Recupere les utilisateurs ayant un numero WhatsApp exploitable."""
 
         User = get_user_model()
-        qs = User.objects.filter(whatsapp__isnull=False).exclude(whatsapp="").order_by("-date_joined")
+        qs = User.objects.filter(
+            whatsapp__isnull=False,
+            whatsapp_marketing_opt_in=True,
+            whatsapp_marketing_opted_out=False,
+        ).exclude(whatsapp="").order_by("-date_joined")
 
         if filtre_role and filtre_role != "tous":
             qs = qs.filter(role__iexact=filtre_role)
@@ -125,6 +129,52 @@ Reponds UNIQUEMENT avec le texte du message, rien d'autre."""
 
         normalized = WhatsAppService.normaliser_numero(numero)
         return re.sub(r"\D", "", normalized)
+
+    @staticmethod
+    def deja_contacte(numero: str) -> bool:
+        """Retourne vrai si ce numero a deja recu un envoi WhatsApp reussi."""
+
+        from .models import OutreachLog
+
+        identifiant = WhatsAppService.normaliser_numero(numero)
+        return OutreachLog.objects.filter(
+            canal=OutreachLog.CANAL_WHATSAPP,
+            identifiant=identifiant,
+            statut__in=["envoye", "livre", "lu"],
+        ).exists()
+
+    @staticmethod
+    def journaliser_envoi(numero: str, message_envoi, statut="envoye"):
+        """Enregistre un envoi réussi sans exposer le contenu dans les logs."""
+
+        from .models import OutreachLog
+
+        OutreachLog.objects.get_or_create(
+            canal=OutreachLog.CANAL_WHATSAPP,
+            identifiant=WhatsAppService.normaliser_numero(numero),
+            defaults={
+                "campagne": message_envoi.campagne,
+                "message_envoi": message_envoi,
+                "statut": statut,
+            },
+        )
+
+    @staticmethod
+    def journaliser_email(email: str, sujet: str = "", campagne=None, statut="envoye"):
+        """Point d’entrée commun pour les futurs envois email marketing."""
+
+        from .models import OutreachLog
+
+        identifiant = (email or "").strip().lower()
+        if not identifiant:
+            return None
+        return OutreachLog.objects.create(
+            canal=OutreachLog.CANAL_EMAIL,
+            identifiant=identifiant,
+            campagne=campagne,
+            sujet=sujet[:255],
+            statut=statut,
+        )
 
 
 AI_PRESETS = {

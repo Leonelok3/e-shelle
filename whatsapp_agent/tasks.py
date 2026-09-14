@@ -35,6 +35,12 @@ def recalculer_stats_campagne(campagne: Campagne):
 def _traiter_message_direct(msg: MessageEnvoi):
     """Traite un message sans Celery, utile en local et en simulation."""
 
+    if WhatsAppService.deja_contacte(msg.numero_whatsapp):
+        msg.statut = MessageEnvoi.STATUT_ECHEC
+        msg.erreur = "Destinataire deja contacte par une campagne precedente."
+        msg.save(update_fields=["statut", "erreur", "mis_a_jour_le"])
+        return
+
     result = WhatsAppService.envoyer_message(msg.numero_whatsapp, msg.message_final)
     if result["success"]:
         msg.statut = MessageEnvoi.STATUT_ENVOYE
@@ -42,6 +48,7 @@ def _traiter_message_direct(msg: MessageEnvoi):
         msg.erreur = ""
         msg.envoye_le = timezone.now()
         msg.save(update_fields=["statut", "whatsapp_message_id", "erreur", "envoye_le", "mis_a_jour_le"])
+        WhatsAppService.journaliser_envoi(msg.numero_whatsapp, msg)
     else:
         msg.statut = MessageEnvoi.STATUT_ECHEC
         msg.erreur = result["erreur"]
@@ -76,6 +83,13 @@ def envoyer_message_task(self, message_envoi_id: int):
     """Envoie un seul message et reessaie deux fois en cas d'echec temporaire."""
 
     msg = MessageEnvoi.objects.select_related("campagne").get(id=message_envoi_id)
+    if WhatsAppService.deja_contacte(msg.numero_whatsapp):
+        msg.statut = MessageEnvoi.STATUT_ECHEC
+        msg.erreur = "Destinataire deja contacte par une campagne precedente."
+        msg.save(update_fields=["statut", "erreur", "mis_a_jour_le"])
+        recalculer_stats_campagne(msg.campagne)
+        return
+
     result = WhatsAppService.envoyer_message(msg.numero_whatsapp, msg.message_final)
 
     if result["success"]:
@@ -84,6 +98,7 @@ def envoyer_message_task(self, message_envoi_id: int):
         msg.erreur = ""
         msg.envoye_le = timezone.now()
         msg.save(update_fields=["statut", "whatsapp_message_id", "erreur", "envoye_le", "mis_a_jour_le"])
+        WhatsAppService.journaliser_envoi(msg.numero_whatsapp, msg)
     else:
         msg.erreur = result["erreur"]
         if self.request.retries < self.max_retries:

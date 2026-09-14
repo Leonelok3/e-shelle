@@ -22,7 +22,11 @@ class ContactWhatsApp(models.Model):
     ville = models.CharField(max_length=120, blank=True)
     groupe = models.CharField(max_length=180, blank=True)
     source = models.CharField(max_length=20, choices=SOURCES, default=SOURCE_API)
-    consentement_confirme = models.BooleanField(default=True)
+    consentement_confirme = models.BooleanField(default=False)
+    consentement_source = models.CharField(max_length=80, blank=True)
+    consentement_le = models.DateTimeField(null=True, blank=True)
+    desinscrit = models.BooleanField(default=False)
+    desinscrit_le = models.DateTimeField(null=True, blank=True)
     note = models.TextField(blank=True)
     importe_par = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     cree_le = models.DateTimeField(auto_now_add=True)
@@ -149,6 +153,28 @@ class MessageEnvoi(models.Model):
         if self.commercial_prospect_id:
             return self.commercial_prospect.nom
         return self.numero_whatsapp
+
+class OutreachLog(models.Model):
+    """Historique transversal des contacts marketing par email ou WhatsApp."""
+
+    CANAL_WHATSAPP = "whatsapp"
+    CANAL_EMAIL = "email"
+    CANAUX = [(CANAL_WHATSAPP, "WhatsApp"), (CANAL_EMAIL, "Email")]
+
+    canal = models.CharField(max_length=20, choices=CANAUX)
+    identifiant = models.CharField(max_length=320, db_index=True)
+    campagne = models.ForeignKey(Campagne, null=True, blank=True, on_delete=models.SET_NULL, related_name="outreach_logs")
+    message_envoi = models.OneToOneField(MessageEnvoi, null=True, blank=True, on_delete=models.SET_NULL, related_name="outreach_log")
+    statut = models.CharField(max_length=30, default="envoye")
+    sujet = models.CharField(max_length=255, blank=True)
+    envoye_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-envoye_le"]
+        indexes = [models.Index(fields=["canal", "identifiant", "envoye_le"])]
+
+    def __str__(self):
+        return f"{self.canal}: {self.identifiant}"
 
 
 class TemplateWhatsApp(models.Model):
