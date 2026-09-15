@@ -1,6 +1,13 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import Q, F
 from django.utils import timezone
+
+
+def whatsapp_status_q(status):
+    return Q(whatsapp_verification=status) & ~Q(whatsapp_verified_number="") & (
+        Q(whatsapp=F("whatsapp_verified_number")) |
+        Q(whatsapp="", telephone=F("whatsapp_verified_number")))
 
 
 class ProspectBusiness(models.Model):
@@ -37,6 +44,10 @@ class ProspectBusiness(models.Model):
     quartier = models.CharField(max_length=120, blank=True)
     telephone = models.CharField(max_length=40, blank=True)
     whatsapp = models.CharField(max_length=40, blank=True)
+    whatsapp_verification = models.CharField(max_length=16, default="unknown", db_index=True,
+        choices=[("unknown", "À vérifier"), ("confirmed", "Présent sur WhatsApp"), ("absent", "Absent de WhatsApp")])
+    whatsapp_verified_number = models.CharField(max_length=40, blank=True)
+    whatsapp_verified_at = models.DateTimeField(null=True, blank=True)
     email = models.EmailField(blank=True)
     responsable = models.CharField(max_length=120, blank=True)
     description = models.TextField(blank=True)
@@ -90,6 +101,12 @@ class ProspectBusiness(models.Model):
     @property
     def contact_whatsapp(self):
         return self.whatsapp or self.telephone
+
+    @property
+    def effective_whatsapp_verification(self):
+        if not self.contact_whatsapp or self.contact_whatsapp != self.whatsapp_verified_number:
+            return "unknown"
+        return self.whatsapp_verification
 
     @property
     def is_due(self):

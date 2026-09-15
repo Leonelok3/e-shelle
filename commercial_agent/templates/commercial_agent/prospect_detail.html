@@ -55,6 +55,15 @@
           <div><span>Priorite</span><strong>{{ prospect.get_priorite_display }}</strong></div>
         </div>
         <p class="ca-muted">Contact: {{ prospect.contact_whatsapp|default:"Aucun WhatsApp" }}</p>
+        <p>WhatsApp : {% if prospect.effective_whatsapp_verification == 'confirmed' %}Présence confirmée{% elif prospect.effective_whatsapp_verification == 'absent' %}Absent{% else %}À vérifier{% endif %}</p>
+        <p class="ca-muted">Vérifiez dans WhatsApp que la conversation est disponible. L’ouverture du lien seule ne confirme pas le compte.</p>
+        <form method="post" action="{% url 'commercial_agent:verify_whatsapp' prospect.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="number" value="{{ prospect.contact_whatsapp }}">
+          <button class="ca-btn" name="verification" value="confirmed">Présent sur WhatsApp</button>
+          <button class="ca-btn" name="verification" value="absent">Absent de WhatsApp</button>
+          <button class="ca-btn" name="verification" value="unknown">À revérifier</button>
+        </form>
         <p class="ca-muted">Quartier: {{ prospect.quartier|default:"-" }}</p>
         <p class="ca-muted">{{ prospect.description|default:"Aucune description." }}</p>
         {% if prospect.business_profile %}

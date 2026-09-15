@@ -5,6 +5,7 @@ from . import views
 app_name = "commercial_agent"
 
 urlpatterns = [
+    path("prospects/<int:pk>/whatsapp-verification/", views.verify_whatsapp, name="verify_whatsapp"),
     path("", views.dashboard, name="dashboard"),
     path("prospects/", views.prospect_list, name="prospect_list"),
     path("prospects/<int:pk>/", views.prospect_detail, name="prospect_detail"),

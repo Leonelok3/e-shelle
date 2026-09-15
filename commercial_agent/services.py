@@ -302,7 +302,8 @@ Reponds uniquement avec le message."""
         from whatsapp_agent.models import Campagne, MessageEnvoi
         from whatsapp_agent.tasks import recalculer_stats_campagne
 
-        qs = ProspectBusiness.objects.filter(Q(whatsapp__gt="") | Q(telephone__gt="")).filter(
+        from .models import whatsapp_status_q
+        qs = ProspectBusiness.objects.filter(whatsapp_status_q("confirmed")).filter(
             statut__in=[
                 ProspectBusiness.Statut.NOUVEAU,
                 ProspectBusiness.Statut.QUALIFIE,

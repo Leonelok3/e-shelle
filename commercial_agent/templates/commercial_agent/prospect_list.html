@@ -24,7 +24,14 @@
 <main class="ca-shell">
   <div class="ca-wrap">
     <h1 class="ca-title">Prospects commerciaux</h1>
+    <p class="ca-muted">La liste affiche par défaut les numéros confirmés sur WhatsApp. Les imports OCR restent à vérifier depuis leur fiche.</p>
     <form class="ca-filter" method="get">
+      <select class="ca-input" name="whatsapp_status" aria-label="Vérification WhatsApp">
+        <option value="confirmed" {% if filters.whatsapp_status == 'confirmed' %}selected{% endif %}>WhatsApp confirmés</option>
+        <option value="unknown" {% if filters.whatsapp_status == 'unknown' %}selected{% endif %}>À vérifier</option>
+        <option value="absent" {% if filters.whatsapp_status == 'absent' %}selected{% endif %}>Absents de WhatsApp</option>
+        <option value="all" {% if filters.whatsapp_status == 'all' %}selected{% endif %}>Tous les prospects</option>
+      </select>
       <input class="ca-input" name="q" value="{{ filters.q }}" placeholder="Recherche">
       <select class="ca-input" name="status">
         <option value="">Tous statuts</option>
@@ -66,14 +73,14 @@
             <td class="ca-muted">{{ prospect.prochain_contact|date:"d/m/Y"|default:"Maintenant" }}</td>
           </tr>
         {% empty %}
-          <tr><td colspan="8" class="ca-muted">Aucun prospect.</td></tr>
+          <tr><td colspan="8" class="ca-muted">Aucun prospect pour ce filtre. <a class="ca-link" href="?whatsapp_status=unknown">Voir les numéros à vérifier</a></td></tr>
         {% endfor %}
         </tbody>
       </table>
       <div class="ca-pages">
-        {% if page_obj.has_previous %}<a class="ca-link" href="?page={{ page_obj.previous_page_number }}">Precedent</a>{% endif %}
+        {% if page_obj.has_previous %}<a class="ca-link" href="?{{ pagination_query }}&amp;page={{ page_obj.previous_page_number }}">Precedent</a>{% endif %}
         <span class="ca-muted">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-        {% if page_obj.has_next %}<a class="ca-link" href="?page={{ page_obj.next_page_number }}">Suivant</a>{% endif %}
+        {% if page_obj.has_next %}<a class="ca-link" href="?{{ pagination_query }}&amp;page={{ page_obj.next_page_number }}">Suivant</a>{% endif %}
       </div>
     </section>
   </div>

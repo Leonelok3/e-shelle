@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .models import CampagneProspection, ProspectBusiness, RelanceProspect, ScriptCommercial
+from .models import CampagneProspection, ProspectBusiness, RelanceProspect, ScriptCommercial, whatsapp_status_q
 from .services import CommercialAgentService
 from . import sourcing_service
 
@@ -59,6 +59,15 @@ def dashboard(request):
 @staff_required
 def prospect_list(request):
     prospects = ProspectBusiness.objects.select_related("business_profile", "assigne_a")
+    verification = request.GET.get("whatsapp_status", "confirmed")
+    if verification not in {"confirmed", "unknown", "absent", "all"}:
+        verification = "confirmed"
+    if verification in {"confirmed", "absent"}:
+        prospects = prospects.filter(whatsapp_status_q(verification))
+    elif verification == "unknown":
+        prospects = prospects.exclude(whatsapp_status_q("confirmed") | whatsapp_status_q("absent"))
+    pagination_query = request.GET.copy()
+    pagination_query.pop("page", None)
     status = request.GET.get("status", "")
     module = request.GET.get("module", "")
     q = request.GET.get("q", "")
@@ -84,7 +93,8 @@ def prospect_list(request):
             "page_obj": page_obj,
             "statuts": ProspectBusiness.Statut.choices,
             "modules": modules,
-            "filters": {"status": status, "module": module, "q": q},
+            "filters": {"status": status, "module": module, "q": q, "whatsapp_status": verification},
+            "pagination_query": pagination_query.urlencode(),
         },
     )
 
@@ -456,3 +466,24 @@ def export_sourcing_csv(request):
 
     return response
 
+
+
+@staff_required
+@require_POST
+def verify_whatsapp(request, pk):
+    from django.db import transaction
+    with transaction.atomic():
+        prospect = get_object_or_404(ProspectBusiness.objects.select_for_update(), pk=pk)
+        value = request.POST.get("verification")
+        if value not in {"confirmed", "absent", "unknown"}:
+            return HttpResponse("Statut invalide", status=400)
+        if request.POST.get("number", "") != prospect.contact_whatsapp:
+            return HttpResponse("Le numéro a changé. Rechargez la fiche.", status=409)
+        if value != "unknown" and not prospect.contact_whatsapp:
+            return HttpResponse("Aucun numéro à vérifier", status=400)
+        prospect.whatsapp_verification = value
+        prospect.whatsapp_verified_number = prospect.contact_whatsapp if value != "unknown" else ""
+        prospect.whatsapp_verified_at = timezone.now() if value != "unknown" else None
+        prospect.save(update_fields=["whatsapp_verification", "whatsapp_verified_number", "whatsapp_verified_at", "maj_le"])
+    messages.success(request, "Vérification WhatsApp enregistrée.")
+    return redirect("commercial_agent:prospect_detail", pk=pk)
