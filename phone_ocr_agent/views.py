@@ -6,21 +6,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from .services import OCRError, extract_from_image, extract_from_video
 from whatsapp_agent.models import Campagne, ContactWhatsApp
-
-
-ALLOWED_CONTENT_TYPES = {
-    "image/png",
-    "image/jpeg",
-    "image/jpg",
-    "video/mp4",
-    "video/quicktime",
-    "video/x-matroska",
-    "video/webm",
-    "video/avi",
-    "video/x-msvideo",
-}
 
 
 def _dedupe_numbers(numbers):
@@ -92,6 +78,11 @@ def _save_whatsapp_contacts(request, numbers, ville, groupe, note, module, conse
 
 
 def dashboard(request):
+    from .job_views import owned_job, submit
+    job_id = request.POST.get("job") if request.method == "POST" else request.GET.get("job")
+    job = owned_job(request, job_id) if job_id else None
+    if request.method == "POST" and not job:
+        return submit(request)
     context = {
         "numbers": [],
         "whatsapp_numbers": [],
@@ -108,10 +99,13 @@ def dashboard(request):
         "campaign_message": "",
         "campaign_detail_url": "",
         "recent_imports": [],
+        "job": job,
     }
 
     history_groupe = request.GET.get("history_groupe", "").strip()
     context["history_groupe"] = history_groupe
+    if job:
+        context.update(numbers=job.numbers, whatsapp_numbers=job.numbers, raw_text=job.text, error=job.error)
 
     if request.method == "POST":
         files = request.FILES.getlist("media")
@@ -136,25 +130,13 @@ def dashboard(request):
             "campaign_message": campaign_message,
         })
 
-        if not files:
+        if job and job.status != "done":
+            context["error"] = "L’analyse n’est pas encore terminée."
+        elif not job:
             context["error"] = "Charge au moins un fichier image ou vidéo."
         else:
-            extracted_numbers = []
-            raw_texts = []
-            for media in files:
-                if media.content_type not in ALLOWED_CONTENT_TYPES:
-                    context["error"] = f"Format refuse pour {media.name}. Utilise PNG, JPG, JPEG, MP4, MOV, WEBM ou AVI."
-                    break
-                try:
-                    if media.content_type.startswith("video/"):
-                        result = extract_from_video(media)
-                    else:
-                        result = extract_from_image(media)
-                    extracted_numbers.extend(result.whatsapp_numbers)
-                    raw_texts.append(result.text)
-                except OCRError as exc:
-                    context["error"] = str(exc)
-                    break
+            extracted_numbers = job.numbers
+            raw_texts = [job.text]
 
             if not context["error"]:
                 all_numbers = _dedupe_numbers(extracted_numbers)

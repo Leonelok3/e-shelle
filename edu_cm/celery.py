@@ -26,6 +26,10 @@ def debug_task(self):
 
 # ── Facebook Agent IA — Beat Schedule ─────────────────────────────
 app.conf.beat_schedule = {
+    "phone-ocr-cleanup": {
+        "task": "phone_ocr_agent.tasks.cleanup_ocr_jobs",
+        "schedule": 600.0,
+    },
     # Publications automatiques par section
     # Annonces : 9h, 14h, 20h
     "fb-annonces-matin": {

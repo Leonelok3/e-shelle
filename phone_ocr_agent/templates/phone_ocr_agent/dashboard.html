@@ -53,12 +53,14 @@
     {% endif %}
 
     <section class="ocr-layout">
-      <form class="ocr-panel" method="post" enctype="multipart/form-data">
+      <form id="ocrForm" class="ocr-panel" method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        {% if job %}<input type="hidden" name="job" value="{{ job.pk }}">{% endif %}
+        <div id="uploadStatus" class="ocr-alert" role="status" aria-live="polite">{% if job.status == 'done' %}Terminé : {{ numbers|length }} numéro(s) trouvé(s).{% elif job.status == 'failed' %}Échec : {{ job.error }}{% else %}Maximum : 200 Mo au total. L’analyse continue en arrière-plan après l’envoi.{% endif %}</div>
         <h2>Charger une ou plusieurs captures</h2>
         <div class="ocr-field">
           <label class="ocr-label" for="media">Images ou vidéos</label>
-          <input id="media" class="ocr-input" name="media" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg,.mp4,.mov,.webm,.avi,.mkv,video/*" multiple required>
+          <input id="media" class="ocr-input" name="media" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg,.mp4,.mov,.webm,.avi,.mkv,video/*" multiple {% if not job %}required{% endif %}>
         </div>
         <div class="ocr-field">
           <label class="ocr-label" for="groupe">Groupe / source</label>
@@ -169,6 +171,54 @@
 </main>
 
 <script>
+  const ocrForm = document.getElementById('ocrForm');
+  const mediaInput = document.getElementById('media');
+  const uploadStatus = document.getElementById('uploadStatus');
+  const maxBytes = 200 * 1024 * 1024;
+  let busy = false;
+  function validateSize() {
+    const total = Array.from(mediaInput.files).reduce((sum, file) => sum + file.size, 0);
+    const error = total > maxBytes ? 'La taille totale dépasse 200 Mo. Compressez les vidéos ou réduisez la sélection.' : '';
+    mediaInput.setCustomValidity(error);
+    uploadStatus.textContent = error || `${(total / 1024 / 1024).toFixed(1)} Mo sélectionnés sur 200 Mo autorisés.`;
+    return !error;
+  }
+  mediaInput.addEventListener('change', validateSize);
+  async function pollJob(statusUrl, resultUrl) {
+    try {
+      const response = await fetch(statusUrl, {cache: 'no-store'});
+      if (!response.ok) throw new Error('Suivi indisponible. Réessayez en rechargeant cette page.');
+      const data = await response.json();
+      if (data.status === 'done') { window.location.assign(resultUrl); return; }
+      if (data.status === 'failed') throw new Error(data.error || 'Échec de l’analyse.');
+      uploadStatus.textContent = data.status === 'running' ? 'En cours : analyse des images et vidéos…' : 'En attente de traitement…';
+      setTimeout(() => pollJob(statusUrl, resultUrl), 3000);
+    } catch (error) { uploadStatus.textContent = error.message; busy = false; }
+  }
+  ocrForm.addEventListener('submit', async event => {
+    const action = event.submitter ? event.submitter.value : 'extract';
+    if (action !== 'extract') {
+      if (mediaInput.files.length) { event.preventDefault(); uploadStatus.textContent = 'Extrayez d’abord les nouveaux fichiers sélectionnés.'; }
+      return;
+    }
+    event.preventDefault();
+    if (busy || !validateSize()) return;
+    if (!mediaInput.files.length) { uploadStatus.textContent = 'Sélectionnez une image ou une vidéo.'; return; }
+    busy = true;
+    uploadStatus.textContent = 'Envoi des fichiers en cours…';
+    try {
+      const response = await fetch('{% url "phone_ocr_agent:submit" %}', {method: 'POST', headers: {'Accept': 'application/json'}, body: new FormData(ocrForm)});
+      let data;
+      try { data = await response.json(); } catch (_) { throw new Error(response.status === 413 ? 'Envoi trop volumineux : réduisez la sélection (maximum 200 Mo).' : 'Envoi impossible. Veuillez réessayer.'); }
+      if (!response.ok) throw new Error(data.error || 'Envoi impossible.');
+      window.history.replaceState({}, '', data.result_url);
+      pollJob(data.status_url, data.result_url);
+    } catch (error) { uploadStatus.textContent = error.message; busy = false; }
+  });
+  {% if job.status == 'queued' or job.status == 'running' %}
+    busy = true;
+    pollJob('{% url "phone_ocr_agent:job_status" job.pk %}', '{% url "phone_ocr_agent:dashboard" %}?job={{ job.pk }}');
+  {% endif %}
   function copyNumbers(){
     const box = document.getElementById("numbersBox");
     box.select();
