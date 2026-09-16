@@ -141,7 +141,7 @@ class CommercialAgentService:
         except Exception:
             return {"created": 0, "updated": 0, "skipped": 0}
 
-        qs = ContactWhatsApp.objects.filter(consentement_confirme=True)
+        qs = ContactWhatsApp.objects.filter(consentement_confirme=True, desinscrit=False)
         if contact_ids:
             qs = qs.filter(id__in=contact_ids)
         qs = qs.order_by("-cree_le")[:limit]

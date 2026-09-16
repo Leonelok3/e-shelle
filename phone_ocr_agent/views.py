@@ -4,6 +4,7 @@ from datetime import datetime
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from whatsapp_agent.models import Campagne, ContactWhatsApp
@@ -41,6 +42,8 @@ def _save_whatsapp_contacts(request, numbers, ville, groupe, note, module, conse
                 "note": note,
                 "source": ContactWhatsApp.SOURCE_MANUEL,
                 "consentement_confirme": True,
+                "consentement_source": "manual_confirmation",
+                "consentement_le": timezone.now(),
                 "importe_par": request.user if request.user.is_authenticated else None,
             },
         )
@@ -53,11 +56,13 @@ def _save_whatsapp_contacts(request, numbers, ville, groupe, note, module, conse
                     if value and getattr(contact, field) != value:
                         setattr(contact, field, value)
                         changed = True
-                if not contact.consentement_confirme:
+                if not contact.consentement_confirme and not contact.desinscrit:
                     contact.consentement_confirme = True
+                    contact.consentement_source = "manual_confirmation"
+                    contact.consentement_le = timezone.now()
                     changed = True
                 if changed:
-                    contact.save(update_fields=["ville", "groupe", "note", "consentement_confirme", "mis_a_jour_le"])
+                    contact.save(update_fields=["ville", "groupe", "note", "consentement_confirme", "consentement_source", "consentement_le", "mis_a_jour_le"])
                 updated += 1
         contact_ids.append(contact.id)
 
@@ -92,7 +97,7 @@ def dashboard(request):
         "groupe": "OCR repertoire",
         "note": "",
         "module": "services",
-        "consentement": True,
+        "consentement": False,
         "sync_commercial": True,
         "only_new": False,
         "campaign_name": "",

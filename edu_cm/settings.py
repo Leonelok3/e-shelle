@@ -607,7 +607,14 @@ WHATSAPP_API_URL = os.getenv(
 )
 WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "")
 WHATSAPP_DRY_RUN = os.getenv("WHATSAPP_DRY_RUN", "True").lower() in ("1", "true", "yes")
-WHATSAPP_CONFIG_READY = bool(WHATSAPP_TOKEN and WHATSAPP_PHONE_ID and WHATSAPP_VERIFY_TOKEN)
+WHATSAPP_APP_SECRET = os.getenv("WHATSAPP_APP_SECRET", "")
+WHATSAPP_CONFIG_READY = bool(
+    WHATSAPP_TOKEN
+    and WHATSAPP_PHONE_ID
+    and WHATSAPP_VERIFY_TOKEN
+    and WHATSAPP_APP_SECRET
+)
+WHATSAPP_DEFAULT_TEMPLATE = os.getenv("WHATSAPP_DEFAULT_TEMPLATE", "deutsch_space_decouverte")
 
 # ── Celery — Broker & Backend ──────────────────────────────────────
 CELERY_BROKER_URL         = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")

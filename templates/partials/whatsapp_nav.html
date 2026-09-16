@@ -1,0 +1,269 @@
+{# Barre d'onglets unifiée pour l'écosystème WhatsApp & Prospection E-Shelle #}
+<div class="wa-nav-tabs-wrapper">
+  <div class="wa-nav-tabs-container">
+    <div class="wa-nav-tabs-header">
+      <div class="wa-nav-brand">
+        <span class="wa-nav-badge-icon">💬</span>
+        <div>
+          <strong class="wa-nav-brand-title">E-Shelle WhatsApp &amp; Commercial Suite</strong>
+          <span class="wa-nav-brand-sub">Campagnes Meta &bull; Contacts &bull; Prospection &bull; Sourcing</span>
+        </div>
+      </div>
+      <div class="wa-nav-quick-status">
+        {% if whatsapp_dry_run %}
+          <span class="wa-nav-pill simulation" title="Les messages ne sont pas débités sur Meta">🟡 Mode Simulation</span>
+        {% else %}
+          <span class="wa-nav-pill live" title="Prêt pour les envois réels via l'API Meta">🟢 Meta API Direct</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <nav class="wa-nav-tabs" aria-label="Navigation WhatsApp et Prospection">
+      <a href="{% url 'whatsapp_agent:wa_dashboard' %}" 
+         class="wa-tab-item {% if request.resolver_match.url_name == 'wa_dashboard' or request.resolver_match.url_name == 'wa_detail' or request.resolver_match.url_name == 'wa_creer' %}active{% endif %}">
+        <span class="wa-tab-icon">📢</span>
+        <span>Campagnes</span>
+      </a>
+
+      <a href="{% url 'whatsapp_agent:wa_contacts' %}" 
+         class="wa-tab-item {% if request.resolver_match.url_name == 'wa_contacts' or request.resolver_match.url_name == 'wa_contacts_campagne' %}active{% endif %}">
+        <span class="wa-tab-icon">👥</span>
+        <span>Contacts WhatsApp</span>
+      </a>
+
+      <a href="{% url 'whatsapp_agent:wa_import_contacts' %}" 
+         class="wa-tab-item {% if request.resolver_match.url_name == 'wa_import_contacts' %}active{% endif %}">
+        <span class="wa-tab-icon">📥</span>
+        <span>Importer Numéros</span>
+      </a>
+
+      <a href="{% url 'whatsapp_agent:wa_creer' %}" 
+         class="wa-tab-item {% if request.resolver_match.url_name == 'wa_creer' %}active{% endif %}">
+        <span class="wa-tab-icon">✨</span>
+        <span>Créer campagne</span>
+      </a>
+
+      <a href="{% url 'commercial_agent:prospect_list' %}" 
+         class="wa-tab-item {% if request.resolver_match.url_name == 'prospect_list' or request.resolver_match.url_name == 'prospect_detail' %}active{% endif %}">
+        <span class="wa-tab-icon">🎯</span>
+        <span>Prospects Commerciaux</span>
+      </a>
+
+      <a href="{% url 'commercial_agent:sourcing_hub' %}" 
+         class="wa-tab-item {% if request.resolver_match.url_name == 'sourcing_hub' %}active{% endif %}">
+        <span class="wa-tab-icon">🔍</span>
+        <span>Sourcing Prestataires</span>
+      </a>
+
+      <a href="{% url 'phone_ocr_agent:dashboard' %}" 
+         class="wa-tab-item {% if request.resolver_match.app_name == 'phone_ocr_agent' %}active{% endif %}">
+        <span class="wa-tab-icon">📸</span>
+        <span>Scanner OCR</span>
+      </a>
+
+      <a href="{% url 'commercial_agent:dashboard' %}" 
+         class="wa-tab-item {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'commercial_agent' %}active{% endif %}">
+        <span class="wa-tab-icon">💼</span>
+        <span>Cockpit Commercial</span>
+      </a>
+    </nav>
+  </div>
+</div>
+
+<style>
+  .wa-nav-tabs-wrapper {
+    position: relative;
+    background: linear-gradient(180deg, rgba(7, 18, 13, 0.96), rgba(10, 24, 17, 0.98));
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: 18px;
+    box-shadow: 0 18px 40px rgba(2, 12, 8, 0.42), inset 0 1px 0 rgba(255,255,255,0.03);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+
+  .wa-nav-tabs-wrapper::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.06), transparent 24%, transparent 76%, rgba(34, 197, 94, 0.04));
+    pointer-events: none;
+  }
+
+  .wa-nav-tabs-container {
+    position: relative;
+    z-index: 1;
+    padding: 16px 18px 0;
+  }
+
+  .wa-nav-tabs-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 2px 2px 12px;
+    border-bottom: 1px solid rgba(108, 160, 123, 0.18);
+  }
+
+  .wa-nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .wa-nav-badge-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.26), rgba(16, 185, 129, 0.12));
+    border: 1px solid rgba(74, 222, 128, 0.38);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 8px 16px rgba(34, 197, 94, 0.12);
+    font-size: 1.35rem;
+  }
+
+  .wa-nav-brand-title {
+    display: block;
+    color: #ecfdf5;
+    font-size: 1.02rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
+
+  .wa-nav-brand-sub {
+    display: block;
+    color: #9db7a5;
+    font-size: 0.74rem;
+    margin-top: 2px;
+  }
+
+  .wa-nav-quick-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .wa-nav-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    border: 1px solid transparent;
+  }
+
+  .wa-nav-pill.simulation {
+    background: rgba(250, 204, 21, 0.12);
+    color: #facc15;
+    border-color: rgba(250, 204, 21, 0.3);
+  }
+
+  .wa-nav-pill.live {
+    background: rgba(34, 197, 94, 0.12);
+    color: #86efac;
+    border-color: rgba(34, 197, 94, 0.35);
+  }
+
+  .wa-nav-tabs {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    padding: 0 2px 8px;
+  }
+
+  .wa-nav-tabs::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .wa-nav-tabs::-webkit-scrollbar-thumb {
+    background: rgba(34, 197, 94, 0.35);
+    border-radius: 999px;
+  }
+
+  .wa-tab-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px 11px;
+    color: #b4c9bd;
+    text-decoration: none;
+    font-size: 0.83rem;
+    font-weight: 700;
+    white-space: nowrap;
+    border-radius: 12px 12px 0 0;
+    border: 1px solid transparent;
+    border-bottom-width: 2px;
+    transition: all 0.2s ease;
+    background: transparent;
+  }
+
+  .wa-tab-item:hover {
+    color: #ebfff2;
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(120, 135, 126, 0.18);
+  }
+
+  .wa-tab-item.active {
+    color: #d9ffe7;
+    background: linear-gradient(180deg, rgba(34, 197, 94, 0.18), rgba(16, 185, 129, 0.08));
+    border-color: rgba(74, 222, 128, 0.34);
+    border-bottom-color: #22c55e;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 18px rgba(21, 128, 61, 0.12);
+    transform: translateY(-1px);
+  }
+
+  .wa-tab-item.active .wa-tab-icon {
+    filter: drop-shadow(0 0 10px rgba(134, 239, 172, 0.55));
+  }
+
+  .wa-tab-item:hover .wa-tab-icon,
+  .wa-tab-item.active .wa-tab-icon {
+    transform: scale(1.08);
+  }
+
+  .wa-tab-icon {
+    font-size: 0.95rem;
+    filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.18));
+    transition: transform 0.2s ease, filter 0.2s ease;
+  }
+
+  @media (max-width: 760px) {
+    .wa-nav-tabs-wrapper {
+      border-radius: 14px;
+    }
+
+    .wa-nav-tabs-container {
+      padding: 12px 10px 0;
+    }
+
+    .wa-nav-tabs-header {
+      align-items: flex-start;
+    }
+
+    .wa-nav-brand {
+      gap: 10px;
+    }
+
+    .wa-nav-brand-title {
+      font-size: 0.9rem;
+    }
+
+    .wa-nav-brand-sub {
+      font-size: 0.68rem;
+    }
+
+    .wa-tab-item {
+      padding: 9px 12px 10px;
+      font-size: 0.77rem;
+    }
+  }
+</style>

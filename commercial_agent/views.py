@@ -24,7 +24,7 @@ def dashboard(request):
     try:
         from whatsapp_agent.models import ContactWhatsApp
 
-        contacts_whatsapp = ContactWhatsApp.objects.filter(consentement_confirme=True).count()
+        contacts_whatsapp = ContactWhatsApp.objects.filter(consentement_confirme=True, desinscrit=False).count()
     except Exception:
         contacts_whatsapp = 0
     today = timezone.localdate()

@@ -72,6 +72,9 @@ class CustomUser(AbstractUser):
         blank=True,
         help_text="Format international: +237612345678",
     )
+    whatsapp_marketing_opt_in = models.BooleanField(default=False)
+    whatsapp_marketing_opted_out = models.BooleanField(default=False)
+    whatsapp_marketing_opt_in_at = models.DateTimeField(null=True, blank=True)
     ville = models.CharField(max_length=100, blank=True)
 
     def __str__(self):

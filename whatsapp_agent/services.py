@@ -12,8 +12,21 @@ class WhatsAppService:
     """Services metier pour l'agent WhatsApp E-Shelle."""
 
     @staticmethod
-    def envoyer_message(numero: str, message: str) -> dict:
-        """Envoie un message texte via l'API Meta WhatsApp Business."""
+    def envoyer_message(numero: str, message: str, template_name: str = "", template_params: list = None) -> dict:
+        """
+        Envoie un message via l'API Meta WhatsApp Business.
+        Si un template_name est spécifié ou si le message commence par 'template:',
+        envoie via un modèle approuvé par Meta (obligatoire pour initier un contact hors fenêtre 24h).
+        """
+
+        if template_name or (message and message.strip().startswith("template:")):
+            tpl = template_name or message.strip().replace("template:", "").strip()
+            return WhatsAppService.envoyer_template(numero, tpl, body_params=template_params)
+
+        # Si un template par défaut est configuré dans Django et qu'on fait de l'outreach froid
+        default_tpl = getattr(settings, "WHATSAPP_DEFAULT_TEMPLATE", "")
+        if default_tpl and getattr(settings, "WHATSAPP_FORCE_TEMPLATE", False):
+            return WhatsAppService.envoyer_template(numero, default_tpl, body_params=template_params)
 
         if getattr(settings, "WHATSAPP_DRY_RUN", True):
             return {
@@ -34,6 +47,66 @@ class WhatsAppService:
             "to": WhatsAppService.normaliser_numero_meta(numero),
             "type": "text",
             "text": {"body": message, "preview_url": False},
+        }
+        headers = {
+            "Authorization": f"Bearer {settings.WHATSAPP_TOKEN}",
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = requests.post(settings.WHATSAPP_API_URL, json=payload, headers=headers, timeout=10)
+            data = response.json()
+            if response.status_code == 200 and data.get("messages"):
+                return {"success": True, "message_id": data["messages"][0]["id"], "erreur": ""}
+
+            # Si Meta indique qu'un template est obligatoire (erreur 131047 ou message hors fenêtre 24h)
+            err_code = data.get("error", {}).get("code")
+            if (err_code == 131047 or "24 hours" in str(data)) and default_tpl:
+                return WhatsAppService.envoyer_template(numero, default_tpl, body_params=template_params)
+
+            return {"success": False, "message_id": "", "erreur": str(data)}
+        except Exception as exc:
+            return {"success": False, "message_id": "", "erreur": str(exc)}
+
+    @staticmethod
+    def envoyer_template(numero: str, template_name: str, language_code: str = "fr", body_params: list = None) -> dict:
+        """
+        Envoie un modèle de message validé par Meta (Template).
+        Obligatoire pour contacter un prospect qui n'a pas écrit au numéro dans les dernières 24h.
+        """
+
+        if getattr(settings, "WHATSAPP_DRY_RUN", True):
+            return {
+                "success": True,
+                "message_id": f"dryrun-tpl-{int(time.time() * 1000)}",
+                "erreur": "Simulation: aucun appel Meta effectue (Template).",
+            }
+
+        if not settings.WHATSAPP_TOKEN or not settings.WHATSAPP_PHONE_ID:
+            return {
+                "success": False,
+                "message_id": "",
+                "erreur": "Configuration Meta incomplete: WHATSAPP_TOKEN ou WHATSAPP_PHONE_ID manquant.",
+            }
+
+        template_payload = {
+            "name": template_name.strip(),
+            "language": {"code": language_code},
+        }
+
+        if body_params:
+            template_payload["components"] = [
+                {
+                    "type": "body",
+                    "parameters": [{"type": "text", "text": str(p)} for p in body_params],
+                }
+            ]
+
+        payload = {
+            "messaging_product": "whatsapp",
+            "to": WhatsAppService.normaliser_numero_meta(numero),
+            "type": "template",
+            "template": template_payload,
         }
         headers = {
             "Authorization": f"Bearer {settings.WHATSAPP_TOKEN}",
