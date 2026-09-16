@@ -18,6 +18,7 @@ from django.conf import settings
 from accounts.models import AppSubscription
 from .models import AdCampaign, AdContent, AdModule, AdUsageStat, SoraCreditWallet
 from .forms import CampaignForm
+from .services.studio_usage import StudioLimitError
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +41,10 @@ class UsageLimitMixin:
 
 
 class PaidAdGenRequiredMixin(LoginRequiredMixin):
-    """Réserve AdGen aux abonnements réellement payés, sans essai gratuit."""
+    """Authenticated access with a lifetime trial, then a paid subscription."""
 
-    paid_message = "AdGen est une application payante. Activez un abonnement pour continuer."
+    allow_after_trial = False
+    paid_message = "Vos 3 utilisations gratuites sont épuisées. Choisissez un abonnement pour continuer."
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -51,14 +53,8 @@ class PaidAdGenRequiredMixin(LoginRequiredMixin):
         if request.user.is_superuser or request.user.is_staff:
             return super().dispatch(request, *args, **kwargs)
 
-        sub = AppSubscription.get_active_for_user(request.user, "adgen")
-        has_paid_access = (
-            sub is not None
-            and sub.status == "active"
-            and not sub.plan.is_free
-            and sub.plan.price_xaf > 0
-        )
-        if has_paid_access:
+        from .services.studio_usage import has_paid_access, trial_remaining
+        if self.allow_after_trial or has_paid_access(request.user) or trial_remaining(request.user) > 0:
             return super().dispatch(request, *args, **kwargs)
 
         if request.path.startswith("/pub/api/"):
@@ -73,6 +69,7 @@ class PaidAdGenRequiredMixin(LoginRequiredMixin):
 # ── Dashboard ──────────────────────────────────────────────────────────────────
 
 class DashboardView(PaidAdGenRequiredMixin, TemplateView):
+    allow_after_trial = True
     template_name = "adgen/dashboard.html"
 
     def get_context_data(self, **kwargs):
@@ -146,6 +143,7 @@ class CampaignCreateView(PaidAdGenRequiredMixin, UsageLimitMixin, CreateView):
 # ── Liste des campagnes ────────────────────────────────────────────────────────
 
 class CampaignListView(PaidAdGenRequiredMixin, ListView):
+    allow_after_trial = True
     model               = AdCampaign
     template_name       = "adgen/campaign_list.html"
     context_object_name = "campaigns"
@@ -158,6 +156,7 @@ class CampaignListView(PaidAdGenRequiredMixin, ListView):
 # ── Détail campagne ────────────────────────────────────────────────────────────
 
 class CampaignDetailView(PaidAdGenRequiredMixin, DetailView):
+    allow_after_trial = True
     model               = AdCampaign
     template_name       = "adgen/campaign_detail.html"
     context_object_name = "campaign"
@@ -273,6 +272,8 @@ class GenerateAPIView(PaidAdGenRequiredMixin, UsageLimitMixin, View):
                     "chatbot":     content.chatbot_reply,
                 }
             })
+        except StudioLimitError as e:
+            return JsonResponse({"error": str(e), "quota_exceeded": True}, status=429)
         except Exception as e:
             return JsonResponse({"error": str(e), "status": "failed"}, status=500)
 
@@ -280,6 +281,7 @@ class GenerateAPIView(PaidAdGenRequiredMixin, UsageLimitMixin, View):
 # ── Export JSON ────────────────────────────────────────────────────────────────
 
 class ExportContentView(PaidAdGenRequiredMixin, View):
+    allow_after_trial = True
     """Télécharge le contenu de la campagne en JSON."""
 
     def get(self, request, pk):
@@ -1107,6 +1109,7 @@ class StartSoraAdVideoView(PaidAdGenRequiredMixin, View):
 
 
 class PollAdVideoView(PaidAdGenRequiredMixin, View):
+    allow_after_trial = True
     """
     GET /pub/api/campaign/<pk>/generate-video/poll/
     Vérifie le statut et sauvegarde le résultat final de la vidéo.
@@ -1215,6 +1218,7 @@ class PollAdVideoView(PaidAdGenRequiredMixin, View):
 
 
 class DownloadVideoView(PaidAdGenRequiredMixin, View):
+    allow_after_trial = True
     """
     Télécharge le fichier de la vidéo finale générée pour la campagne.
     Redirige directement vers l'URL statique du fichier média pour libérer

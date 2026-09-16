@@ -48,9 +48,10 @@ class StudioTests(TestCase):
         self.assertEqual(limits_for(self.user)["video"], 10)
         self.assertEqual(limits_for(self.user)["text"], 30)
 
-    def test_expired_subscription_cannot_reserve(self):
+    def test_expired_subscription_with_exhausted_trial_cannot_reserve(self):
         self.sub.expires_at = timezone.now() - timedelta(seconds=1)
         self.sub.save()
+        StudioUsage.objects.bulk_create([StudioUsage(user=self.user, resource="text", is_trial=True, status="consumed", request_key=f"trial-{i}") for i in range(3)])
         with self.assertRaises(StudioLimitError):
             reserve(self.user, "voice", 10)
 
@@ -97,7 +98,8 @@ class StudioTests(TestCase):
         self.client.force_login(self.other)
         self.assertEqual(self.client.get(reverse("adgen:studio_audio"), {"campaign": self.campaign.pk}).status_code, 404)
 
-    def test_old_audio_post_requires_payment(self):
+    def test_old_audio_post_requires_payment_after_trial(self):
+        StudioUsage.objects.bulk_create([StudioUsage(user=self.other, resource="text", is_trial=True, status="consumed", request_key=f"trial-{i}") for i in range(3)])
         self.client.force_login(self.other)
         with patch("audio_studio.views.generate_voiceover_audio") as generate:
             response = self.client.post(reverse("audio_studio:voiceover_create"), {})

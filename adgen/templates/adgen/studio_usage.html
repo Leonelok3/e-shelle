@@ -1,6 +1,9 @@
 {% if studio_usage %}
 <section class="max-w-7xl mx-auto px-4 py-6" aria-label="Utilisation du forfait">
-  <h2 class="font-bold text-lg mb-3">Votre utilisation sur les 30 derniers jours</h2>
+  <h2 class="font-bold text-lg mb-3">{% if studio_usage.0.is_trial %}Votre essai gratuit : {{ studio_usage.0.remaining }} utilisation(s) restante(s){% else %}Votre utilisation sur les 30 derniers jours{% endif %}</h2>
+  {% if studio_usage.0.is_trial %}
+  <p class="text-gray-700 mb-3">3 générations offertes par compte, sans renouvellement : textes, voix-off, ambiance ou montage photo. Une voix-off d’essai est limitée à 1 000 caractères. Les consultations et téléchargements sont gratuits. Une tentative facturée par le fournisseur peut rester comptabilisée en cas d’échec ; les échecs locaux remboursés rendent l’essai disponible.</p>
+  {% endif %}
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
     {% for item in studio_usage %}
     <div class="rounded-xl border border-purple-100 bg-white p-4 text-gray-800">

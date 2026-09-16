@@ -260,6 +260,7 @@ class AdUsageStat(models.Model):
 
 
 class StudioUsage(models.Model):
+    is_trial = models.BooleanField(default=False, db_index=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     campaign = models.ForeignKey(AdCampaign, null=True, blank=True, on_delete=models.SET_NULL)
     resource = models.CharField(max_length=12)
