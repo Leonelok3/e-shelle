@@ -61,8 +61,12 @@ class WhatsAppService:
 
             # Si Meta indique qu'un template est obligatoire (erreur 131047 ou message hors fenêtre 24h)
             err_code = data.get("error", {}).get("code")
-            if (err_code == 131047 or "24 hours" in str(data)) and default_tpl:
-                return WhatsAppService.envoyer_template(numero, default_tpl, body_params=template_params)
+            if not err_code and isinstance(data.get("errors"), list) and data["errors"]:
+                err_code = data["errors"][0].get("code")
+
+            if (err_code == 131047 or "24 hours" in str(data) or "Re-engagement" in str(data)) and default_tpl:
+                fallback_params = template_params or ["Client"]
+                return WhatsAppService.envoyer_template(numero, default_tpl, body_params=fallback_params)
 
             return {"success": False, "message_id": "", "erreur": str(data)}
         except Exception as exc:

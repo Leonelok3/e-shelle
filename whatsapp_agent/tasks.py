@@ -41,7 +41,16 @@ def _traiter_message_direct(msg: MessageEnvoi):
         msg.save(update_fields=["statut", "erreur", "mis_a_jour_le"])
         return
 
-    result = WhatsAppService.envoyer_message(msg.numero_whatsapp, msg.message_final)
+    prenom = (msg.destinataire_nom or "").strip().split()[0] if msg.destinataire_nom else ""
+    if not prenom and msg.user and msg.user.first_name:
+        prenom = msg.user.first_name.strip()
+    params = [prenom or "Client"]
+
+    result = WhatsAppService.envoyer_message(
+        msg.numero_whatsapp,
+        msg.message_final,
+        template_params=params,
+    )
     if result["success"]:
         msg.statut = MessageEnvoi.STATUT_ENVOYE
         msg.whatsapp_message_id = result["message_id"]
@@ -90,7 +99,16 @@ def envoyer_message_task(self, message_envoi_id: int):
         recalculer_stats_campagne(msg.campagne)
         return
 
-    result = WhatsAppService.envoyer_message(msg.numero_whatsapp, msg.message_final)
+    prenom = (msg.destinataire_nom or "").strip().split()[0] if msg.destinataire_nom else ""
+    if not prenom and msg.user and msg.user.first_name:
+        prenom = msg.user.first_name.strip()
+    params = [prenom or "Client"]
+
+    result = WhatsAppService.envoyer_message(
+        msg.numero_whatsapp,
+        msg.message_final,
+        template_params=params,
+    )
 
     if result["success"]:
         msg.statut = MessageEnvoi.STATUT_ENVOYE
