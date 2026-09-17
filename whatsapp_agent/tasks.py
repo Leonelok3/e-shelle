@@ -35,7 +35,8 @@ def recalculer_stats_campagne(campagne: Campagne):
 def _traiter_message_direct(msg: MessageEnvoi):
     """Traite un message sans Celery, utile en local et en simulation."""
 
-    if WhatsAppService.deja_contacte(msg.numero_whatsapp):
+    is_manuel = msg.campagne.filtre_role == "selection_contacts" or msg.campagne.destinataires_contacts.exists()
+    if not is_manuel and WhatsAppService.deja_contacte(msg.numero_whatsapp):
         msg.statut = MessageEnvoi.STATUT_ECHEC
         msg.erreur = "Destinataire deja contacte par une campagne precedente."
         msg.save(update_fields=["statut", "erreur", "mis_a_jour_le"])
@@ -92,7 +93,8 @@ def envoyer_message_task(self, message_envoi_id: int):
     """Envoie un seul message et reessaie deux fois en cas d'echec temporaire."""
 
     msg = MessageEnvoi.objects.select_related("campagne").get(id=message_envoi_id)
-    if WhatsAppService.deja_contacte(msg.numero_whatsapp):
+    is_manuel = msg.campagne.filtre_role == "selection_contacts" or msg.campagne.destinataires_contacts.exists()
+    if not is_manuel and WhatsAppService.deja_contacte(msg.numero_whatsapp):
         msg.statut = MessageEnvoi.STATUT_ECHEC
         msg.erreur = "Destinataire deja contacte par une campagne precedente."
         msg.save(update_fields=["statut", "erreur", "mis_a_jour_le"])
