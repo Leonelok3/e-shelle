@@ -1,0 +1,1096 @@
+/* ============================================================
+   lesson_engine.css — E-Shelle 2026
+   Système universel ultra-pro : leçons, exercices, examens
+   Langues : Français · Anglais · Allemand · Italien
+   ============================================================ */
+
+/* ─── Variables ─────────────────────────────────────────────── */
+:root {
+  --le-primary:     #4CAF50;
+  --le-primary-dim: rgba(46,125,50,.18);
+  --le-primary-glow:rgba(76,175,80,.35);
+  --le-accent:      #FF9800;
+  --le-accent-dim:  rgba(255,152,0,.18);
+  --le-red:         #ef4444;
+  --le-red-dim:     rgba(239,68,68,.18);
+  --le-glass:       rgba(255,255,255,.04);
+  --le-glass-hover: rgba(255,255,255,.07);
+  --le-border:      rgba(255,255,255,.08);
+  --le-border-hover:rgba(255,255,255,.18);
+  --le-text:        #e8f5e9;
+  --le-text-muted:  rgba(255,255,255,.5);
+  --le-text-dim:    rgba(255,255,255,.3);
+  --le-radius:      16px;
+  --le-radius-sm:   10px;
+  --le-shadow:      0 4px 24px rgba(0,0,0,.45);
+  --le-shadow-glow: 0 0 0 3px var(--le-primary-glow);
+}
+
+/* ─── Layout wrappers ──────────────────────────────────────── */
+.le-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 1.25rem 5rem;
+}
+.le-wrap-wide {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.25rem 5rem;
+}
+.le-wrap-narrow {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0 1.25rem 5rem;
+}
+
+/* ─── Reading progress bar (top of page) ─────────────────── */
+#le-read-progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--le-primary), var(--le-accent));
+  z-index: 9999;
+  transition: width .1s linear;
+}
+
+/* ─── Breadcrumb ────────────────────────────────────────── */
+.le-bc {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .4rem;
+  font-size: .78rem;
+  color: var(--le-text-muted);
+  margin: 2rem 0 1.5rem;
+}
+.le-bc a {
+  color: var(--le-accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity .15s;
+}
+.le-bc a:hover { opacity: .8; }
+.le-bc-sep { opacity: .4; }
+
+/* ─── Lesson/Quiz Header card ──────────────────────────── */
+.le-header {
+  background: linear-gradient(135deg,
+    rgba(46,125,50,.22) 0%,
+    rgba(10,10,10,.85) 100%);
+  border: 1px solid rgba(76,175,80,.25);
+  border-radius: var(--le-radius);
+  padding: 2rem 2.25rem;
+  margin-bottom: 1.75rem;
+  position: relative;
+  overflow: hidden;
+}
+.le-header::before {
+  content: attr(data-flag);
+  position: absolute;
+  right: 1.75rem; top: 50%;
+  transform: translateY(-50%);
+  font-size: 5rem;
+  opacity: .07;
+  pointer-events: none;
+  line-height: 1;
+}
+.le-header-kicker {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--le-primary);
+  margin-bottom: .6rem;
+}
+.le-header-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -.025em;
+  color: var(--le-text);
+  margin: 0 0 .5rem;
+  line-height: 1.25;
+}
+.le-header-sub {
+  font-size: .85rem;
+  color: var(--le-text-muted);
+  margin: 0;
+}
+.le-header-meta {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+.le-header-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 999px;
+  padding: .3rem .85rem;
+  font-size: .75rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.75);
+}
+.le-header-chip.green {
+  background: var(--le-primary-dim);
+  border-color: rgba(76,175,80,.3);
+  color: var(--le-primary);
+}
+.le-header-chip.orange {
+  background: var(--le-accent-dim);
+  border-color: rgba(255,152,0,.3);
+  color: var(--le-accent);
+}
+
+/* ─── Stats bar (timer + progress) ─────────────────────── */
+.le-stats-bar {
+  position: sticky;
+  top: 70px;
+  z-index: 100;
+  background: rgba(10,10,10,.92);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--le-border);
+  border-radius: var(--le-radius-sm);
+  padding: .75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+.le-stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .15rem;
+  min-width: 60px;
+}
+.le-stats-label {
+  font-size: .62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--le-text-dim);
+}
+.le-stats-val {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--le-text);
+  font-variant-numeric: tabular-nums;
+}
+.le-stats-val.urgent { color: var(--le-red); animation: le-pulse .7s ease infinite; }
+.le-stats-val.good   { color: var(--le-primary); }
+
+.le-progress-mini {
+  flex: 1;
+  min-width: 120px;
+}
+.le-progress-track {
+  background: rgba(255,255,255,.08);
+  border-radius: 999px;
+  height: 6px;
+  overflow: hidden;
+}
+.le-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--le-primary), #66BB6A);
+  transition: width .4s ease;
+}
+.le-progress-fill.accent {
+  background: linear-gradient(90deg, var(--le-accent), #FFC107);
+}
+
+/* ─── Lesson content reader ─────────────────────────────── */
+.le-content-card {
+  background: var(--le-glass);
+  border: 1px solid var(--le-border);
+  border-radius: var(--le-radius);
+  padding: 2rem 2.25rem;
+  margin-bottom: 1.75rem;
+  box-shadow: var(--le-shadow);
+  color: var(--le-text);
+}
+/* Inner content typography */
+.le-content-card h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--le-primary);
+  margin: 1.75rem 0 .75rem;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid rgba(76,175,80,.2);
+}
+.le-content-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--le-text);
+  margin: 1.4rem 0 .6rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.le-content-card h3::before {
+  content: '';
+  display: inline-block;
+  width: 3px; height: 1em;
+  background: var(--le-primary);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.le-content-card h4 {
+  font-size: .95rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.8);
+  margin: 1.2rem 0 .5rem;
+}
+.le-content-card p {
+  color: rgba(255,255,255,.72);
+  line-height: 1.75;
+  margin: .75rem 0;
+  font-size: .95rem;
+}
+.le-content-card ul, .le-content-card ol {
+  padding-left: 1.4rem;
+  margin: .75rem 0;
+}
+.le-content-card li {
+  color: rgba(255,255,255,.68);
+  line-height: 1.7;
+  margin: .4rem 0;
+  font-size: .93rem;
+}
+.le-content-card strong { color: var(--le-text); }
+.le-content-card em { color: var(--le-accent); font-style: italic; }
+
+.le-content-card table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: .88rem;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.le-content-card thead tr {
+  background: rgba(76,175,80,.15);
+}
+.le-content-card th {
+  padding: .65rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--le-primary);
+  border-bottom: 1px solid rgba(76,175,80,.2);
+}
+.le-content-card td {
+  padding: .65rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  color: rgba(255,255,255,.7);
+}
+.le-content-card tbody tr:last-child td { border-bottom: none; }
+.le-content-card tbody tr:hover { background: rgba(255,255,255,.03); }
+
+.le-content-card blockquote {
+  border-left: 3px solid var(--le-accent);
+  background: rgba(255,152,0,.07);
+  margin: 1rem 0;
+  padding: .85rem 1.25rem;
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  color: rgba(255,152,0,.9);
+}
+
+/* ─── Audio block ───────────────────────────────────────── */
+.le-audio {
+  background: var(--le-glass);
+  border: 1px solid var(--le-border);
+  border-radius: var(--le-radius-sm);
+  padding: 1.1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.le-audio-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+.le-audio audio {
+  flex: 1;
+  min-width: 200px;
+  border-radius: 8px;
+  height: 40px;
+  filter: invert(1) hue-rotate(100deg) brightness(.9);
+}
+
+/* ─── Lesson list cards ─────────────────────────────────── */
+.le-lesson-list { display: flex; flex-direction: column; gap: .7rem; }
+
+.le-lesson-card {
+  background: var(--le-glass);
+  border: 1px solid var(--le-border);
+  border-radius: var(--le-radius-sm);
+  padding: 1.1rem 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  transition: background .2s, border-color .2s, box-shadow .2s;
+  text-decoration: none;
+  color: inherit;
+}
+.le-lesson-card:hover {
+  background: var(--le-glass-hover);
+  border-color: var(--le-border-hover);
+  box-shadow: 0 4px 20px rgba(0,0,0,.3);
+}
+.le-lesson-card.done {
+  border-left: 3px solid var(--le-primary);
+  background: rgba(46,125,50,.06);
+}
+
+.le-lesson-num {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--le-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; font-weight: 700;
+  color: var(--le-text-muted);
+  flex-shrink: 0;
+}
+.le-lesson-card.done .le-lesson-num {
+  background: var(--le-primary-dim);
+  border-color: rgba(76,175,80,.3);
+  color: var(--le-primary);
+}
+
+.le-lesson-body { flex: 1; min-width: 0; }
+.le-lesson-name {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--le-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: .25rem;
+}
+.le-lesson-meta-row {
+  display: flex;
+  gap: .6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.le-lesson-time {
+  font-size: .75rem;
+  color: var(--le-text-dim);
+}
+.le-badge-done {
+  font-size: .7rem;
+  font-weight: 700;
+  background: var(--le-primary-dim);
+  color: var(--le-primary);
+  border: 1px solid rgba(76,175,80,.25);
+  padding: .15rem .6rem;
+  border-radius: 999px;
+}
+
+.le-lesson-cta {
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--le-border);
+  color: var(--le-text-muted);
+  border-radius: 8px;
+  padding: .45rem .9rem;
+  font-size: .78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background .2s, color .2s;
+  text-decoration: none;
+}
+.le-lesson-card:hover .le-lesson-cta {
+  background: var(--le-primary-dim);
+  color: var(--le-primary);
+  border-color: rgba(76,175,80,.3);
+}
+
+/* Progress bar (lesson list) */
+.le-global-progress {
+  background: var(--le-glass);
+  border: 1px solid var(--le-border);
+  border-radius: var(--le-radius-sm);
+  padding: 1rem 1.4rem;
+  margin-bottom: 1.5rem;
+}
+.le-global-progress-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .6rem;
+}
+.le-global-progress-label { font-size: .82rem; font-weight: 600; color: var(--le-text-muted); }
+.le-global-progress-pct   { font-size: .82rem; font-weight: 700; color: var(--le-primary); }
+
+/* ─── QCM Engine ─────────────────────────────────────────── */
+
+/* Score flottant */
+.le-score-float {
+  position: fixed;
+  bottom: 1.5rem; right: 1.5rem;
+  background: rgba(10,10,10,.92);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--le-border);
+  border-radius: 14px;
+  padding: .8rem 1.25rem;
+  text-align: center;
+  z-index: 200;
+  min-width: 90px;
+  box-shadow: var(--le-shadow);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity .3s, transform .3s;
+  pointer-events: none;
+}
+.le-score-float.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.le-score-float-num {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--le-primary);
+}
+.le-score-float-label {
+  font-size: .62rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--le-text-dim);
+}
+
+/* Question card */
+.le-q-card {
+  background: var(--le-glass);
+  border: 1px solid var(--le-border);
+  border-radius: var(--le-radius);
+  padding: 1.6rem 1.75rem;
+  margin-bottom: 1rem;
+  transition: border-color .3s;
+  box-shadow: var(--le-shadow);
+}
+.le-q-card.answered { border-color: rgba(255,255,255,.12); }
+
+.le-q-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .75rem;
+}
+.le-q-num {
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--le-text-dim);
+}
+.le-q-skill-badge {
+  font-size: .68rem;
+  font-weight: 700;
+  background: var(--le-glass);
+  border: 1px solid var(--le-border);
+  color: var(--le-text-muted);
+  border-radius: 999px;
+  padding: .2rem .65rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.le-q-skill-badge.reading  { background: rgba(99,102,241,.12); border-color: rgba(99,102,241,.25); color: #a5b4fc; }
+.le-q-skill-badge.listening{ background: rgba(20,184,166,.12); border-color: rgba(20,184,166,.25); color: #5eead4; }
+.le-q-skill-badge.writing  { background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.25); color: #fcd34d; }
+.le-q-skill-badge.grammar  { background: rgba(168,85,247,.12); border-color: rgba(168,85,247,.25); color: #d8b4fe; }
+
+.le-q-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--le-text);
+  line-height: 1.6;
+  margin: 0 0 1.25rem;
+}
+
+/* Options */
+.le-options { display: flex; flex-direction: column; gap: .55rem; }
+
+.le-option {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: .85rem 1.1rem;
+  border: 1.5px solid var(--le-border);
+  border-radius: var(--le-radius-sm);
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s;
+  font-size: .9rem;
+  color: rgba(255,255,255,.75);
+  background: transparent;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+.le-option::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: transparent;
+  transition: background .15s;
+  border-radius: inherit;
+}
+.le-option:hover:not(.locked) {
+  border-color: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.04);
+  transform: translateX(2px);
+}
+.le-option.selected:not(.correct):not(.wrong) {
+  border-color: var(--le-accent);
+  background: var(--le-accent-dim);
+  color: var(--le-text);
+}
+.le-option.correct {
+  border-color: var(--le-primary) !important;
+  background: var(--le-primary-dim) !important;
+  color: var(--le-primary) !important;
+}
+.le-option.wrong {
+  border-color: var(--le-red) !important;
+  background: var(--le-red-dim) !important;
+  color: var(--le-red) !important;
+}
+.le-option.locked { cursor: default; }
+.le-option.locked:hover { transform: none; }
+
+/* Letter badge (A/B/C/D) */
+.le-option-letter {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 800;
+  color: var(--le-text-muted);
+  flex-shrink: 0;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.le-option.selected:not(.correct):not(.wrong) .le-option-letter {
+  background: var(--le-accent-dim);
+  border-color: var(--le-accent);
+  color: var(--le-accent);
+}
+.le-option.correct .le-option-letter {
+  background: var(--le-primary-dim);
+  border-color: var(--le-primary);
+  color: var(--le-primary);
+}
+.le-option.wrong .le-option-letter {
+  background: var(--le-red-dim);
+  border-color: var(--le-red);
+  color: var(--le-red);
+}
+
+/* Feedback icon */
+.le-option-feedback {
+  margin-left: auto;
+  font-size: 1rem;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.le-option.correct .le-option-feedback,
+.le-option.wrong   .le-option-feedback { opacity: 1; }
+
+/* Explication après réponse */
+.le-q-explanation {
+  margin-top: 1rem;
+  padding: .85rem 1.1rem;
+  background: rgba(76,175,80,.07);
+  border: 1px solid rgba(76,175,80,.2);
+  border-radius: var(--le-radius-sm);
+  font-size: .85rem;
+  color: rgba(255,255,255,.65);
+  line-height: 1.6;
+  display: none;
+}
+.le-q-explanation.visible { display: block; }
+.le-q-explanation strong { color: var(--le-primary); }
+
+/* ─── Submit / Navigation bar ────────────────────────────── */
+.le-action-bar {
+  background: rgba(10,10,10,.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--le-border);
+  border-radius: var(--le-radius);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: .5rem;
+}
+.le-action-bar-info {
+  font-size: .82rem;
+  color: var(--le-text-muted);
+  flex: 1;
+}
+
+/* ─── Buttons ────────────────────────────────────────────── */
+.le-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  border: none;
+  border-radius: var(--le-radius-sm);
+  padding: .75rem 1.5rem;
+  font-size: .88rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  transition: opacity .2s, transform .1s, box-shadow .2s;
+}
+.le-btn:active { transform: scale(.97); }
+
+.le-btn-primary {
+  background: linear-gradient(135deg, #2E7D32, #4CAF50);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(46,125,50,.35);
+}
+.le-btn-primary:hover {
+  opacity: .9;
+  box-shadow: 0 6px 22px rgba(46,125,50,.5);
+  color: #fff;
+}
+.le-btn-primary:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.le-btn-accent {
+  background: linear-gradient(135deg, #E65100, #FF9800);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255,152,0,.3);
+}
+.le-btn-accent:hover { opacity: .9; color: #fff; }
+
+.le-btn-ghost {
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--le-border);
+  color: var(--le-text-muted);
+}
+.le-btn-ghost:hover {
+  background: rgba(255,255,255,.1);
+  color: var(--le-text);
+}
+
+.le-btn-danger {
+  background: rgba(239,68,68,.15);
+  border: 1px solid rgba(239,68,68,.3);
+  color: #f87171;
+}
+.le-btn-danger:hover { background: rgba(239,68,68,.25); }
+
+/* ─── Score/Result page ─────────────────────────────────── */
+.le-result-hero {
+  border-radius: var(--le-radius);
+  padding: 3rem 2rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.le-result-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  opacity: .15;
+  filter: blur(30px);
+  transform: scale(1.2);
+}
+.le-result-hero.perfect {
+  background: linear-gradient(135deg, rgba(46,125,50,.3), rgba(76,175,80,.2));
+  border: 1px solid rgba(76,175,80,.4);
+}
+.le-result-hero.good {
+  background: linear-gradient(135deg, rgba(245,124,0,.3), rgba(255,152,0,.2));
+  border: 1px solid rgba(255,152,0,.4);
+}
+.le-result-hero.ok {
+  background: linear-gradient(135deg, rgba(59,130,246,.3), rgba(99,102,241,.2));
+  border: 1px solid rgba(99,102,241,.4);
+}
+.le-result-hero.retry {
+  background: linear-gradient(135deg, rgba(239,68,68,.3), rgba(220,38,38,.2));
+  border: 1px solid rgba(239,68,68,.4);
+}
+.le-result-emoji {
+  font-size: 3.5rem;
+  margin-bottom: .75rem;
+  display: block;
+}
+.le-result-score {
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: -.04em;
+  color: var(--le-text);
+  line-height: 1;
+  margin-bottom: .25rem;
+}
+.le-result-score-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--le-text);
+  margin-bottom: .35rem;
+}
+.le-result-score-msg {
+  font-size: .85rem;
+  color: var(--le-text-muted);
+}
+
+/* Skill breakdown */
+.le-skill-breakdown {
+  background: var(--le-glass);
+  border: 1px solid var(--le-border);
+  border-radius: var(--le-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.le-skill-breakdown h3 {
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--le-text-muted);
+  margin: 0 0 1.25rem;
+}
+.le-skill-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: .85rem;
+}
+.le-skill-row:last-child { margin-bottom: 0; }
+.le-skill-label {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--le-text-muted);
+  width: 130px;
+  flex-shrink: 0;
+}
+.le-skill-bar-wrap { flex: 1; }
+.le-skill-bar-track {
+  background: rgba(255,255,255,.07);
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+.le-skill-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--le-primary), #66BB6A);
+  width: 0%;
+  transition: width 1s cubic-bezier(.22,1,.36,1);
+}
+.le-skill-pct {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--le-text);
+  width: 42px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ─── Quiz CTA block ─────────────────────────────────────── */
+.le-quiz-cta {
+  background: linear-gradient(135deg, rgba(255,152,0,.1), rgba(255,87,34,.08));
+  border: 1px solid rgba(255,152,0,.25);
+  border-radius: var(--le-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.le-quiz-cta-title {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--le-accent);
+  margin: 0 0 .85rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.le-quiz-cta-desc {
+  font-size: .83rem;
+  color: var(--le-text-muted);
+  margin: 0 0 1rem;
+}
+.le-quiz-cta-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+
+/* ─── Complete/Done action ───────────────────────────────── */
+.le-complete-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--le-border);
+  margin-top: 1.5rem;
+}
+.le-badge-complete {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: var(--le-primary-dim);
+  color: var(--le-primary);
+  border: 1px solid rgba(76,175,80,.3);
+  border-radius: 999px;
+  padding: .35rem 1rem;
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+/* ─── Score counter animation ────────────────────────────── */
+@keyframes le-count-up {
+  from { transform: scale(1.4); opacity: .5; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.le-score-animate { animation: le-count-up .5s cubic-bezier(.22,1,.36,1); }
+
+@keyframes le-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .5; }
+}
+
+@keyframes le-slide-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.le-q-card { animation: le-slide-in .3s ease both; }
+.le-q-card:nth-child(1)  { animation-delay: .03s; }
+.le-q-card:nth-child(2)  { animation-delay: .06s; }
+.le-q-card:nth-child(3)  { animation-delay: .09s; }
+.le-q-card:nth-child(4)  { animation-delay: .12s; }
+.le-q-card:nth-child(5)  { animation-delay: .15s; }
+.le-q-card:nth-child(6)  { animation-delay: .18s; }
+.le-q-card:nth-child(7)  { animation-delay: .21s; }
+.le-q-card:nth-child(8)  { animation-delay: .24s; }
+.le-q-card:nth-child(9)  { animation-delay: .27s; }
+.le-q-card:nth-child(10) { animation-delay: .30s; }
+
+@keyframes le-pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.le-option.correct { animation: le-pop .3s ease; }
+
+/* ─── Overrides app-specific classes ────────────────────── */
+/* Ensure old templates get dark glass too */
+
+/* Italian lesson */
+.it-content {
+  background: var(--le-glass) !important;
+  border: 1px solid var(--le-border) !important;
+  color: rgba(255,255,255,.75) !important;
+  box-shadow: var(--le-shadow) !important;
+}
+.it-content h2 { color: var(--le-primary) !important; border-bottom-color: rgba(76,175,80,.2) !important; }
+.it-content h3 { color: var(--le-text) !important; }
+.it-content p, .it-content li { color: rgba(255,255,255,.68) !important; }
+.it-content strong { color: var(--le-text) !important; }
+.it-content table { box-shadow: 0 0 0 1px rgba(255,255,255,.07) !important; }
+.it-content thead tr { background: rgba(76,175,80,.12) !important; }
+.it-content th { color: var(--le-primary) !important; }
+.it-content td { color: rgba(255,255,255,.65) !important; border-bottom-color: rgba(255,255,255,.05) !important; }
+.it-content blockquote { background: rgba(255,152,0,.07) !important; border-left-color: var(--le-accent) !important; color: rgba(255,152,0,.85) !important; }
+
+/* English/German question cards */
+.ep-q-card {
+  background: var(--le-glass) !important;
+  border: 1px solid var(--le-border) !important;
+  box-shadow: var(--le-shadow) !important;
+}
+.ep-q-text, .ep-q-prompt { color: var(--le-text) !important; }
+.ep-q-num { color: var(--le-text-dim) !important; }
+.ep-choice-label, .ep-option, .it-choice-label {
+  background: transparent !important;
+  border-color: var(--le-border) !important;
+  color: rgba(255,255,255,.75) !important;
+}
+.ep-choice-label:hover, .ep-option:hover, .it-choice-label:hover {
+  border-color: rgba(255,255,255,.22) !important;
+  background: var(--le-glass-hover) !important;
+}
+.ep-meta-bar {
+  background: var(--le-glass) !important;
+  border-color: var(--le-border) !important;
+}
+.ep-meta-item strong { color: var(--le-text) !important; }
+.ep-submit-row, .ep-form-actions {
+  background: rgba(10,10,10,.85) !important;
+  border-color: var(--le-border) !important;
+}
+
+/* ─── Responsive ────────────────────────────────────────── */
+
+/* Tablette */
+@media (max-width: 768px) {
+  .le-wrap, .le-wrap-wide { padding: 0 1rem 4rem; }
+  .le-header { padding: 1.75rem 1.5rem; }
+  .le-header-title { font-size: 1.45rem; }
+  .le-stats-bar { top: 62px; padding: .6rem 1rem; gap: .65rem; }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  /* Layout */
+  .le-wrap, .le-wrap-wide, .le-wrap-narrow {
+    padding: 0 .85rem 4.5rem;
+  }
+
+  /* Header */
+  .le-header {
+    padding: 1.25rem 1rem;
+    border-radius: 12px;
+  }
+  .le-header::before { font-size: 3.5rem; right: 1rem; opacity: .05; }
+  .le-header-title { font-size: 1.2rem; line-height: 1.3; }
+  .le-header-kicker { font-size: .66rem; }
+  .le-header-meta { gap: .45rem; margin-top: .75rem; }
+  .le-header-chip { font-size: .68rem; padding: .25rem .65rem; }
+
+  /* Stats bar — inline compact sur mobile */
+  .le-stats-bar {
+    position: sticky;
+    top: 60px;
+    padding: .5rem .85rem;
+    gap: .5rem;
+    border-radius: 10px;
+    flex-wrap: nowrap;
+  }
+  .le-stats-item { min-width: 48px; gap: .1rem; }
+  .le-stats-label { font-size: .55rem; letter-spacing: .04em; }
+  .le-stats-val { font-size: .9rem; }
+  .le-progress-mini { min-width: 60px; flex: 1; }
+
+  /* Content card */
+  .le-content-card {
+    padding: 1rem .9rem;
+    border-radius: 12px;
+  }
+  .le-content-card h2 { font-size: 1rem; margin: 1.25rem 0 .5rem; }
+  .le-content-card h3 { font-size: .95rem; }
+  .le-content-card p, .le-content-card li { font-size: .88rem; line-height: 1.65; }
+
+  /* Tables scroll horizontal */
+  .le-content-card table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: .8rem;
+  }
+  .le-content-card th, .le-content-card td { padding: .5rem .65rem; white-space: nowrap; }
+
+  /* Question cards */
+  .le-q-card {
+    padding: 1rem .9rem;
+    border-radius: 12px;
+    margin-bottom: .75rem;
+  }
+  .le-q-header { margin-bottom: .6rem; }
+  .le-q-num { font-size: .62rem; }
+  .le-q-skill-badge { font-size: .6rem; padding: .15rem .5rem; }
+  .le-q-text { font-size: .92rem; line-height: 1.55; margin-bottom: 1rem; word-break: break-word; }
+
+  /* Options */
+  .le-option {
+    padding: .75rem .85rem;
+    gap: .65rem;
+    font-size: .86rem;
+    /* Larger touch target */
+    min-height: 48px;
+  }
+  .le-option:hover:not(.locked) { transform: none; }
+  .le-option-letter { width: 26px; height: 26px; font-size: .68rem; border-radius: 7px; }
+
+  /* Action bar — empilé sur mobile */
+  .le-action-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: .65rem;
+    padding: 1rem .9rem;
+    border-radius: 12px;
+  }
+  .le-action-bar-info { font-size: .8rem; text-align: center; }
+  .le-action-bar .le-btn {
+    width: 100%;
+    justify-content: center;
+    padding: .85rem 1rem;
+    font-size: .88rem;
+  }
+
+  /* Buttons general */
+  .le-btn { font-size: .85rem; padding: .7rem 1.1rem; }
+
+  /* Quiz CTA */
+  .le-quiz-cta { padding: 1.1rem; border-radius: 12px; }
+  .le-quiz-cta-actions { flex-direction: column; }
+  .le-quiz-cta-actions .le-btn { width: 100%; justify-content: center; }
+
+  /* Complete bar */
+  .le-complete-bar { flex-direction: column; align-items: stretch; gap: .65rem; }
+  .le-complete-bar .le-btn { width: 100%; justify-content: center; text-align: center; }
+
+  /* Result page */
+  .le-result-hero { padding: 2rem 1.1rem; border-radius: 12px; }
+  .le-result-emoji { font-size: 2.75rem; }
+  .le-result-score { font-size: 2.6rem; }
+  .le-result-score-label { font-size: .95rem; }
+
+  /* Skill breakdown */
+  .le-skill-breakdown { padding: 1rem; border-radius: 12px; }
+  .le-skill-label { width: 80px; font-size: .72rem; }
+  .le-skill-pct { width: 36px; font-size: .74rem; }
+
+  /* Lesson list */
+  .le-lesson-card { padding: .85rem 1rem; gap: .75rem; border-radius: 10px; }
+  .le-lesson-num { width: 32px; height: 32px; border-radius: 8px; font-size: .7rem; }
+  .le-lesson-name { font-size: .88rem; }
+  .le-lesson-cta { font-size: .72rem; padding: .35rem .7rem; }
+
+  /* Audio */
+  .le-audio { padding: .85rem 1rem; gap: .75rem; }
+  .le-audio audio { min-width: 0; }
+
+  /* Score float hidden on mobile */
+  .le-score-float { display: none; }
+
+  /* Action buttons row — full width on mobile */
+  [style*="display:flex"][style*="flex-wrap:wrap"],
+  div[style*="display:flex"][style*="gap:.75rem"] {
+    flex-direction: column;
+  }
+
+  /* Breadcrumb */
+  .le-bc { font-size: .72rem; margin: 1.25rem 0 1rem; gap: .3rem; }
+}
+
+/* Très petit écran */
+@media (max-width: 380px) {
+  .le-wrap, .le-wrap-wide, .le-wrap-narrow { padding: 0 .65rem 4rem; }
+  .le-header-title { font-size: 1.1rem; }
+  .le-stats-bar { flex-wrap: wrap; }
+  .le-stats-item { flex: 1; }
+  .le-q-text { font-size: .88rem; }
+  .le-option { font-size: .82rem; padding: .65rem .75rem; }
+}

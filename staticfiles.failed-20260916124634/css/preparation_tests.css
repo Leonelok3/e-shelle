@@ -1,0 +1,1185 @@
+/* ============================================================
+   preparation_tests.css — E-Shelle 2026
+   Thème « Canada Blanc » 🇨🇦
+   Leçons & exercices Français (TEF/TCF/DELF/DALF)
+   Palette : Rouge drapeau · Bleu nuit · Blanc · Feuille d'érable
+   ============================================================ */
+
+/* ─── Variables Canada — Rouge · Blanc · Noir ─────────── */
+:root {
+  --ca-red:        #D52B1E;   /* Rouge drapeau Canada */
+  --ca-red-dark:   #A41E1E;   /* Rouge profond (hover) */
+  --ca-red-soft:   #FDE8E6;   /* Rouge très clair (fonds) */
+  --ca-black:      #0A0A0A;   /* Noir profond (titres, texte fort) */
+  --ca-ink:        #1f2937;   /* Noir adouci (corps de texte) */
+  --ca-muted:      #64748b;   /* Gris (texte secondaire) */
+  --ca-white:      #FFFFFF;
+  --ca-snow:       #F8FAFC;   /* Gris neige (sections alternées) */
+  --ca-border:     #E2E8F0;   /* Bordure subtile */
+  --ca-maple:      #E8820E;   /* Orange feuille d'érable (accent) */
+  --ca-shadow:     0 4px 16px rgba(10, 10, 10, .08);
+  --ca-shadow-md:  0 8px 28px rgba(10, 10, 10, .14);
+  --ca-shadow-red: 0 4px 16px rgba(213, 43, 30, .25);
+}
+
+/* ─── Fond blanc forcé sur l'app ───────────────────────── */
+body.preparation-tests,
+body.preparation-tests #main-content {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: var(--ca-ink) !important;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes pt-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pt-maple-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.pt-fade-up { animation: pt-fade-up .45s cubic-bezier(.22,1,.36,1) both; }
+
+/* ============================================================
+   CONTAINER
+   ============================================================ */
+.container {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* ============================================================
+   HERO SECTION
+   ============================================================ */
+.pt-hero {
+  background:
+    linear-gradient(135deg, #ffffff 0%, var(--ca-red-soft) 100%);
+  border-bottom: 4px solid var(--ca-black);
+  box-shadow: inset 0 -4px 0 0 var(--ca-red);
+  padding: 3rem 0 2.5rem;
+  margin-top: 4.5rem;
+  position: relative;
+  overflow: hidden;
+}
+/* Feuille d'érable décorative (subtile) */
+.pt-hero::after {
+  content: '🍁';
+  position: absolute;
+  right: 3rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 8rem;
+  opacity: .06;
+  pointer-events: none;
+}
+.pt-hero--lesson { padding-bottom: 1.5rem; }
+.pt-hero--session { padding: 1.5rem 0 1.25rem; }
+.pt-hero--session::after { display: none; }
+
+/* Badge hero (rouge drapeau) */
+.pt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: var(--ca-red);
+  border: none;
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  padding: .35rem .9rem;
+  border-radius: 999px;
+  margin-bottom: 1rem;
+  box-shadow: var(--ca-shadow-red);
+}
+/* Badge soft (gris clair, contour noir) */
+.pt-badge--soft {
+  background: #ffffff;
+  border: 1px solid #0A0A0A;
+  color: #0A0A0A;
+  box-shadow: none;
+  font-weight: 700;
+}
+
+/* Titre principal (bleu nuit) */
+.pt-title {
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: 800;
+  color: var(--ca-black);
+  letter-spacing: -.025em;
+  line-height: 1.2;
+  margin: 0 0 .75rem;
+}
+/* Gradient sur le mot TCF/TEF (rouge Canada) */
+.pt-gradient-primary {
+  background: linear-gradient(135deg, var(--ca-red), var(--ca-red-dark));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Lead text */
+.pt-lead {
+  font-size: .95rem;
+  color: #475569;
+  line-height: 1.7;
+  margin: .75rem 0 0;
+  max-width: 680px;
+}
+.pt-lead strong { color: var(--ca-black); font-weight: 700; }
+
+/* Mode tag */
+.pt-mode-tag {
+  display: inline-block;
+  background: #FEF3C7;
+  border: 1px solid #FCD34D;
+  color: #92400E;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: .25rem .75rem;
+  border-radius: 999px;
+  margin-bottom: .75rem;
+}
+
+/* Avantages badges */
+.pt-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: 1.25rem;
+}
+
+/* Stats row */
+.pt-stats-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  font-size: .82rem;
+  color: #64748b;
+  margin-top: .5rem;
+}
+.pt-stats-row strong { color: var(--ca-red); font-weight: 700; }
+
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
+.pt-progress-wrap {
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  max-width: 640px;
+}
+.pt-progress-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .5rem;
+}
+.pt-progress-label {
+  font-size: .78rem;
+  font-weight: 600;
+  color: #64748b;
+}
+.pt-progress-stats {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--ca-red);
+}
+.pt-progress-bar {
+  background: #e2e8f0;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+.pt-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--ca-red-dark), var(--ca-red));
+  transition: width .5s ease;
+}
+.pt-progress-hint {
+  font-size: .72rem;
+  color: #94a3b8;
+  margin: .4rem 0 0;
+}
+
+/* ============================================================
+   SECTIONS
+   ============================================================ */
+.pt-section {
+  padding: 2rem 0;
+  background: #ffffff;
+}
+
+/* ============================================================
+   GRID LAYOUT (main + sidebar)
+   ============================================================ */
+.pt-grid-layout {
+  display: grid;
+  gap: 1.5rem;
+}
+@media (min-width: 840px) {
+  .pt-grid-layout {
+    grid-template-columns: 1fr 280px;
+  }
+  .pt-side {
+    align-self: start;
+    position: sticky;
+    top: 84px;
+  }
+}
+
+/* ============================================================
+   CARDS — cœur du design Canada
+   ============================================================ */
+.pt-card {
+  background: #ffffff;
+  border: 1px solid var(--ca-border);
+  border-radius: 16px;
+  padding: 1.6rem 1.75rem;
+  box-shadow: var(--ca-shadow);
+  color: #1f2937;
+  margin-bottom: 1.25rem;
+  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+.pt-card:hover {
+  box-shadow: var(--ca-shadow-md);
+  border-color: #cbd5e1;
+}
+.pt-card h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--ca-black);
+  margin: 0 0 .75rem;
+}
+.pt-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ca-black);
+  margin: 0 0 .5rem;
+}
+
+/* Carte premium (orange feuille d'érable) */
+.pt-card--premium-cta {
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+.pt-card--premium-cta strong { color: #92400E; }
+.pt-card--premium-cta p { color: #78350f; font-size: .88rem; }
+
+/* Carte question */
+.pt-card--question {
+  padding: 1.75rem 2rem;
+}
+
+/* Carte sidebar */
+.pt-card--side {
+  padding: 1.25rem 1.4rem;
+  background: var(--ca-snow);
+}
+.pt-card--side h3 {
+  font-size: .8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--ca-black);
+  margin: 0 0 .85rem;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+/* Carte module (CO/CE/EE/EO) */
+.pt-card--module {
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+}
+/* Liseré rouge à gauche */
+.pt-card--module::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--ca-red), var(--ca-red-dark));
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.pt-card--module:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--ca-shadow-md);
+  border-color: rgba(213, 43, 30, .3);
+}
+.pt-card--module:hover::before { opacity: 1; }
+.pt-card--module h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ca-black);
+}
+
+/* Métadonnée / description carte */
+.pt-card-meta {
+  font-size: .85rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 .85rem;
+}
+.pt-card-meta strong { color: var(--ca-black); font-weight: 700; }
+
+/* Carte actions (examen blanc / coach IA) */
+.pt-card--actions {
+  border-left: 4px solid var(--ca-red);
+}
+
+/* ============================================================
+   GRILLE DE MODULES (2 colonnes desktop)
+   ============================================================ */
+.pt-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: .5rem;
+}
+@media (max-width: 640px) {
+  .pt-modules-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   QUESTION HEADER
+   ============================================================ */
+.pt-question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--ca-border);
+}
+.pt-question-scope {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--ca-red);
+  margin: 0;
+}
+.pt-question-time {
+  font-size: .75rem;
+  color: #64748b;
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
+  border-radius: 999px;
+  padding: .2rem .65rem;
+}
+
+/* ============================================================
+   QUESTION STEM
+   ============================================================ */
+.pt-question-stem {
+  font-size: .95rem;
+  color: #334155;
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.1rem;
+  background: var(--ca-snow);
+  border-left: 3px solid var(--ca-red);
+  border-radius: 0 8px 8px 0;
+}
+
+/* ============================================================
+   AUDIO BLOCK
+   ============================================================ */
+.pt-audio-box {
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.pt-audio-box::before { content: '🔊'; font-size: 1.2rem; }
+.pt-audio-box audio {
+  flex: 1;
+  border-radius: 8px;
+  height: 38px;
+}
+
+/* ============================================================
+   CHOICES (QCM)
+   ============================================================ */
+.pt-choices {
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+  margin-bottom: 1.25rem;
+}
+.pt-choice {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: .85rem 1.1rem;
+  border: 1.5px solid var(--ca-border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: .9rem;
+  color: #334155;
+  background: #ffffff;
+  transition: border-color .15s, background .15s, transform .1s, box-shadow .15s;
+  user-select: none;
+}
+.pt-choice:hover {
+  border-color: var(--ca-red);
+  background: var(--ca-red-soft);
+  transform: translateX(2px);
+}
+.pt-choice input[type=radio] {
+  accent-color: var(--ca-red);
+  width: 16px; height: 16px;
+  flex-shrink: 0;
+}
+.pt-choice:has(input:checked) {
+  border-color: var(--ca-red);
+  background: var(--ca-red-soft);
+  color: var(--ca-black);
+  font-weight: 600;
+  box-shadow: 0 0 0 3px rgba(213, 43, 30, .1);
+}
+
+/* ============================================================
+   OPEN TEXT (EE/EO)
+   ============================================================ */
+.pt-open-text textarea {
+  width: 100%;
+  min-height: 160px;
+  background: #ffffff;
+  border: 1.5px solid var(--ca-border);
+  border-radius: 10px;
+  color: #1f2937;
+  font-family: inherit;
+  font-size: .93rem;
+  line-height: 1.65;
+  padding: .85rem 1.1rem;
+  resize: vertical;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
+}
+.pt-open-text textarea:focus {
+  border-color: var(--ca-red);
+  box-shadow: 0 0 0 3px rgba(213, 43, 30, .1);
+}
+.pt-open-text textarea::placeholder { color: #94a3b8; }
+
+/* ============================================================
+   CARD FOOTER
+   ============================================================ */
+.pt-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 1.1rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--ca-border);
+}
+
+/* ============================================================
+   BUTTONS — identité Canada
+   ============================================================ */
+
+/* Groupe CTA */
+.pt-cta-group {
+  display: flex;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin-top: .25rem;
+}
+.pt-cta-group .pt-btn-primary,
+.pt-cta-group .pt-btn-secondary,
+.pt-cta-group .pt-btn-ghost {
+  flex: 1;
+  min-width: 140px;
+  justify-content: center;
+}
+
+/* Primaire — rouge Canada */
+.pt-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  background: linear-gradient(135deg, var(--ca-red), var(--ca-red-dark));
+  color: #fff !important;
+  border: none;
+  border-radius: 10px;
+  padding: .7rem 1.4rem;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  transition: opacity .2s, transform .15s, box-shadow .2s;
+  box-shadow: var(--ca-shadow-red);
+}
+.pt-btn-primary:hover {
+  opacity: .92;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(213, 43, 30, .4);
+  color: #fff !important;
+}
+.pt-btn-primary:active { transform: translateY(0); }
+
+/* Secondaire — contour rouge sur blanc */
+.pt-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  background: #ffffff;
+  color: var(--ca-red) !important;
+  border: 1.5px solid var(--ca-red);
+  border-radius: 10px;
+  padding: .7rem 1.4rem;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  transition: background .15s, transform .15s, box-shadow .15s;
+}
+.pt-btn-secondary:hover {
+  background: var(--ca-red-soft);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(213, 43, 30, .15);
+  color: var(--ca-red-dark) !important;
+}
+
+/* Ghost — contour noir (très Canada) */
+.pt-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  background: transparent;
+  color: var(--ca-black) !important;
+  border: 1.5px solid var(--ca-black);
+  border-radius: 10px;
+  padding: .7rem 1.4rem;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  transition: background .15s, border-color .15s, transform .15s;
+}
+.pt-btn-ghost:hover {
+  background: var(--ca-black);
+  color: #fff !important;
+  transform: translateY(-1px);
+}
+
+/* Lien muted */
+.pt-link-muted {
+  font-size: .83rem;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color .15s;
+}
+.pt-link-muted:hover { color: var(--ca-red); }
+
+/* Back link wrapper */
+.pt-back-link {
+  margin-top: 1rem;
+}
+
+/* ============================================================
+   EXERCICES QCM — CE / CO (une réponse par ligne)
+   ============================================================ */
+.pt-exercise-form {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin-top: 1rem;
+}
+.pt-option {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid var(--ca-border);
+  border-radius: 10px;
+  padding: .65rem .85rem;
+  font-size: .9rem;
+  line-height: 1.4;
+  color: var(--ca-ink);
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.pt-option:hover {
+  border-color: var(--ca-red);
+  background: var(--ca-red-soft);
+}
+.pt-option input[type="radio"] {
+  margin-top: .2rem;
+  accent-color: var(--ca-red);
+  flex-shrink: 0;
+}
+.pt-option span {
+  font-weight: 700;
+  color: var(--ca-black);
+  margin-right: .15rem;
+}
+.pt-option.is-correct {
+  border-color: #16a34a;
+  background: #f0fdf4;
+}
+.pt-option.is-incorrect {
+  border-color: var(--ca-red);
+  background: var(--ca-red-soft);
+}
+
+.pt-feedback {
+  margin: .35rem 0 0;
+  font-size: .85rem;
+  font-weight: 700;
+  padding: .55rem .8rem;
+  border-radius: 8px;
+}
+.pt-feedback.is-correct {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+.pt-feedback.is-incorrect {
+  background: var(--ca-red-soft);
+  color: var(--ca-red-dark);
+  border: 1px solid rgba(213, 43, 30, .3);
+}
+.pt-feedback.is-warning {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+/* ============================================================
+   EXERCICES EO / EE — Structure commune
+   ============================================================ */
+.pt-exercise-header h3 {
+  margin: 0 0 .6rem;
+}
+.pt-exercise-question {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--ca-black);
+  line-height: 1.55;
+  margin-bottom: .9rem;
+}
+.pt-exercise-instruction {
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
+  border-radius: 10px;
+  padding: .75rem .95rem;
+  margin-bottom: .9rem;
+  font-size: .85rem;
+  color: #475569;
+}
+.pt-exercise-instruction strong {
+  color: var(--ca-black);
+}
+.pt-exercise-instruction p {
+  margin: .3rem 0 0;
+}
+
+/* Points à aborder (EO) */
+.pt-eo-expected {
+  background: var(--ca-red-soft);
+  border: 1px solid rgba(213, 43, 30, .25);
+  border-radius: 10px;
+  padding: .75rem .95rem;
+  margin-bottom: 1rem;
+  font-size: .85rem;
+}
+.pt-eo-expected strong {
+  color: var(--ca-red-dark);
+}
+.pt-eo-points-hint {
+  margin-top: .4rem;
+  color: #475569;
+  font-size: .85rem;
+  line-height: 1.6;
+}
+.pt-eo-points-hint ul {
+  margin: .3rem 0;
+  padding-left: 1.1rem;
+}
+.pt-eo-points-hint li {
+  margin-bottom: .25rem;
+}
+.pt-eo-points-hint em {
+  color: var(--ca-red-dark);
+  font-style: italic;
+}
+
+/* ============================================================
+   🎤 EO — Enregistreur audio
+   ============================================================ */
+.pt-recorder {
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  margin-bottom: .5rem;
+}
+.pt-recorder-controls {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  flex-wrap: wrap;
+}
+.pt-record-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  background: linear-gradient(135deg, var(--ca-red), var(--ca-red-dark));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: .65rem 1.25rem;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity .2s, transform .15s;
+}
+.pt-record-btn:hover { opacity: .92; transform: translateY(-1px); }
+.pt-record-btn.is-recording {
+  background: var(--ca-black);
+  animation: pt-record-pulse 1.4s ease-in-out infinite;
+}
+.pt-record-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  transform: none;
+}
+@keyframes pt-record-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(213, 43, 30, .4); }
+  50% { box-shadow: 0 0 0 8px rgba(213, 43, 30, 0); }
+}
+.pt-record-timer {
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--ca-black);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   ✍️ EE — Zone de rédaction
+   ============================================================ */
+.pt-ee-editor {
+  margin-bottom: .5rem;
+}
+.pt-ee-textarea {
+  width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  border: 1.5px solid var(--ca-border);
+  border-radius: 10px;
+  padding: .9rem 1rem;
+  font-family: inherit;
+  font-size: .92rem;
+  line-height: 1.6;
+  color: var(--ca-ink);
+  background: #fff;
+  transition: border-color .15s, box-shadow .15s;
+}
+.pt-ee-textarea:focus {
+  outline: none;
+  border-color: var(--ca-red);
+  box-shadow: 0 0 0 3px rgba(213, 43, 30, .1);
+}
+.pt-word-counter {
+  text-align: right;
+  font-size: .78rem;
+  color: #94a3b8;
+  margin-top: .4rem;
+  font-weight: 600;
+}
+
+/* ============================================================
+   🤖 RÉSULTATS IA — EO / EE
+   ============================================================ */
+.pt-eo-result,
+.pt-ee-result {
+  margin-top: 1rem;
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+}
+.pt-result-score {
+  display: inline-block;
+  font-size: .95rem;
+  font-weight: 800;
+  padding: .35rem .9rem;
+  border-radius: 999px;
+  margin-bottom: .75rem;
+}
+.pt-result-score.is-correct {
+  background: #dcfce7;
+  color: #15803d;
+}
+.pt-result-score.is-incorrect {
+  background: var(--ca-red-soft);
+  color: var(--ca-red-dark);
+}
+.pt-result-feedback {
+  font-size: .88rem;
+  color: #334155;
+  line-height: 1.65;
+  margin: 0 0 .75rem;
+}
+.pt-result-subtitle {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--ca-black);
+  margin: .75rem 0 .35rem;
+}
+.pt-result-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: .85rem;
+  color: #475569;
+  line-height: 1.6;
+}
+.pt-result-list li { margin-bottom: .3rem; }
+.pt-result-list s { color: #94a3b8; }
+.pt-result-details {
+  margin-top: .85rem;
+  font-size: .85rem;
+  color: #475569;
+}
+.pt-result-details summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--ca-red-dark);
+}
+.pt-result-details p {
+  margin: .5rem 0 0;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   SIDEBAR — Recrutement Canada
+   ============================================================ */
+
+/* Carte Recrutement Canada — identité forte 🍁 */
+.pt-card--side.pt-canada-card {
+  background: linear-gradient(160deg, #ffffff 0%, var(--ca-red-soft) 100%);
+  border: 1.5px solid rgba(213, 43, 30, .3);
+}
+.pt-canada-card h3 {
+  color: var(--ca-red) !important;
+  font-size: .95rem !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+/* Conteneur boutons sidebar */
+.pt-canada-links {
+  margin-top: .85rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.pt-canada-links a {
+  text-decoration: none;
+  padding: .55rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: .82rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  text-align: center;
+  justify-content: center;
+  transition: transform .15s, box-shadow .15s, background .15s;
+  border: 1.5px solid transparent;
+}
+.pt-canada-links a:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .08);
+}
+
+/* Variante : bouton plein rouge */
+.pt-canada-links .ca-link--primary {
+  background: var(--ca-red);
+  color: #fff;
+}
+.pt-canada-links .ca-link--primary:hover {
+  background: var(--ca-red-dark);
+}
+
+/* Variante : bouton contour coloré sur blanc */
+.pt-canada-links .ca-link--outline-red    { border-color: var(--ca-red);    color: var(--ca-red);    background: #fff; }
+.pt-canada-links .ca-link--outline-navy   { border-color: var(--ca-black);   color: var(--ca-black);   background: #fff; }
+.pt-canada-links .ca-link--outline-slate  { border-color: #475569;          color: #475569;          background: #fff; }
+.pt-canada-links .ca-link--outline-amber  { border-color: #854d0e;          color: #854d0e;          background: #fff; }
+.pt-canada-links .ca-link--outline-green  { border-color: #15803d;          color: #15803d;          background: #fff; }
+.pt-canada-links .ca-link--outline-blue   { border-color: #0369a1;          color: #0369a1;          background: #fff; }
+.pt-canada-links .ca-link--outline-indigo { border-color: #4f46e5;          color: #4f46e5;          background: #fff; }
+
+.pt-canada-links .ca-link--outline-red:hover    { background: var(--ca-red-soft); }
+.pt-canada-links .ca-link--outline-navy:hover   { background: #f1f5f9; }
+.pt-canada-links .ca-link--outline-slate:hover  { background: #f1f5f9; }
+.pt-canada-links .ca-link--outline-amber:hover  { background: #fef3c7; }
+.pt-canada-links .ca-link--outline-green:hover  { background: #dcfce7; }
+.pt-canada-links .ca-link--outline-blue:hover   { background: #dbeafe; }
+.pt-canada-links .ca-link--outline-indigo:hover { background: #e0e7ff; }
+
+/* ============================================================
+   SIDEBAR LIST — puces feuille d'érable 🍁
+   ============================================================ */
+.pt-side-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.pt-side-list li {
+  font-size: .82rem;
+  color: #475569;
+  line-height: 1.55;
+  padding: .4rem 0 .4rem 1.4rem;
+  border-bottom: 1px solid var(--ca-border);
+  position: relative;
+}
+.pt-side-list li::before {
+  content: '🍁';
+  position: absolute;
+  left: 0;
+  font-size: .7rem;
+  top: .55rem;
+}
+.pt-side-list li:last-child { border-bottom: none; }
+.pt-side-list li em {
+  color: var(--ca-maple);
+  font-style: italic;
+  font-weight: 600;
+}
+
+/* ============================================================
+   BANNER RETRY
+   ============================================================ */
+.pt-banner {
+  padding: .75rem 1.25rem;
+  font-size: .85rem;
+  font-weight: 600;
+  text-align: center;
+}
+.pt-banner--retry {
+  background: #FEF3C7;
+  border-bottom: 1px solid #FCD34D;
+  color: #92400E;
+}
+
+/* ============================================================
+   LESSON CONTENT
+   ============================================================ */
+.pt-lesson-content {
+  font-size: .95rem;
+  color: #334155;
+  line-height: 1.75;
+}
+.pt-lesson-content h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--ca-red);
+  margin: 1.75rem 0 .75rem;
+  padding-bottom: .5rem;
+  border-bottom: 2px solid var(--ca-red-soft);
+}
+.pt-lesson-content h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ca-black);
+  margin: 1.4rem 0 .6rem;
+}
+.pt-lesson-content p { margin: .75rem 0; }
+.pt-lesson-content ul, .pt-lesson-content ol {
+  padding-left: 1.4rem;
+  margin: .75rem 0;
+}
+.pt-lesson-content li { margin: .4rem 0; }
+.pt-lesson-content strong { color: var(--ca-black); font-weight: 700; }
+.pt-lesson-content em { color: var(--ca-maple); font-style: italic; }
+.pt-lesson-content blockquote {
+  border-left: 3px solid var(--ca-maple);
+  background: #fff7ed;
+  margin: 1rem 0;
+  padding: .85rem 1.25rem;
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  color: #9a3412;
+}
+
+/* EE sample answer */
+.ee-instructions {
+  background: var(--ca-red-soft);
+  border: 1px solid rgba(213, 43, 30, .2);
+  border-radius: 8px;
+  padding: .85rem 1.1rem;
+  margin: .75rem 0;
+  font-size: .9rem;
+  color: #475569;
+}
+.ee-minwords {
+  font-size: .85rem;
+  color: #64748b;
+}
+.ee-sample {
+  background: var(--ca-snow);
+  border: 1px solid var(--ca-border);
+  border-radius: 8px;
+  margin: .75rem 0;
+  padding: .85rem 1.1rem;
+}
+.ee-sample summary {
+  cursor: pointer;
+  color: var(--ca-red);
+  font-size: .85rem;
+  font-weight: 600;
+}
+.ee-sample p { font-size: .88rem; color: #475569; margin: .5rem 0 0; }
+
+/* EO expected points */
+.eo-instructions {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  padding: .85rem 1.1rem;
+  margin: .75rem 0;
+  font-size: .9rem;
+  color: #475569;
+}
+.eo-points {
+  margin: .75rem 0;
+  padding-left: 1.4rem;
+}
+.eo-points li {
+  color: #475569;
+  font-size: .9rem;
+  line-height: 1.65;
+  margin: .4rem 0;
+}
+
+/* ============================================================
+   CEFR BAR
+   ============================================================ */
+.pt-cefr-bar {
+  display: flex;
+  gap: .35rem;
+  flex-wrap: wrap;
+  margin: 1rem 0 0;
+}
+.pt-cefr-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .2rem;
+}
+.pt-cefr-bubble {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem;
+  font-weight: 800;
+  border: 2px solid var(--ca-border);
+  color: #94a3b8;
+  background: #ffffff;
+  transition: all .2s;
+}
+.pt-cefr-item.active .pt-cefr-bubble {
+  background: linear-gradient(135deg, var(--ca-red), var(--ca-red-dark));
+  border-color: var(--ca-red);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(213, 43, 30, .15);
+}
+.pt-cefr-item.done .pt-cefr-bubble {
+  background: var(--ca-red-soft);
+  border-color: rgba(213, 43, 30, .3);
+  color: var(--ca-red);
+}
+.pt-cefr-label {
+  font-size: .62rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+.pt-cefr-item.active .pt-cefr-label { color: var(--ca-red); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 640px) {
+  .container { padding: 0 .85rem; }
+
+  /* Hero */
+  .pt-hero { padding: 2rem 0 1.5rem; margin-top: 3.5rem; }
+  .pt-hero::after { font-size: 5rem; right: 1rem; }
+  .pt-title { font-size: 1.3rem; }
+  .pt-lead { font-size: .88rem; }
+  .pt-stats-row { gap: .75rem; font-size: .78rem; }
+
+  /* Grid — single column */
+  .pt-grid-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+  /* Cards */
+  .pt-card { padding: 1.1rem 1.1rem; border-radius: 12px; }
+  .pt-card--question { padding: 1rem; }
+  .pt-card--side { padding: .9rem 1rem; }
+
+  /* Progress */
+  .pt-progress-wrap { padding: .85rem 1rem; }
+
+  /* QCM choices */
+  .pt-choice {
+    padding: .7rem .85rem;
+    font-size: .88rem;
+    min-height: 48px;
+  }
+
+  /* Open text */
+  .pt-open-text textarea {
+    min-height: 120px;
+    font-size: .9rem;
+  }
+
+  /* CEFR bar */
+  .pt-cefr-bar { gap: .25rem; }
+  .pt-cefr-bubble { width: 30px; height: 30px; font-size: .65rem; }
+
+  /* Question stem */
+  .pt-question-stem { font-size: .88rem; padding: .75rem .85rem; }
+
+  /* Lesson content */
+  .pt-lesson-content h2 { font-size: 1rem; }
+  .pt-lesson-content p, .pt-lesson-content li { font-size: .88rem; }
+
+  /* CTA group stack on mobile */
+  .pt-cta-group { flex-direction: column; }
+  .pt-cta-group .pt-btn-primary,
+  .pt-cta-group .pt-btn-secondary,
+  .pt-cta-group .pt-btn-ghost {
+    width: 100%;
+  }
+}

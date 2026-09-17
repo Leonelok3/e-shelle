@@ -1,0 +1,628 @@
+/* ============================================================
+   E-SHELLE DESIGN SYSTEM — PREMIUM LAYER v2026
+   Couche ultra-premium au-dessus du design system de base
+   Made in Cameroon 🇨🇲  — The #1 Super-App in Africa
+   ============================================================ */
+
+/* ── 1. VARIABLES PREMIUM ─────────────────────────────────── */
+:root {
+  /* Ambient glow */
+  --glow-green:  0 0 40px rgba(46,125,50,0.35), 0 0 80px rgba(46,125,50,0.12);
+  --glow-orange: 0 0 40px rgba(245,124,0,0.35), 0 0 80px rgba(245,124,0,0.12);
+  --glow-blue:   0 0 40px rgba(14,165,233,0.35);
+
+  /* Glassmorphism premium */
+  --glass-premium-bg:     rgba(13,22,38,0.75);
+  --glass-premium-border: 1px solid rgba(255,255,255,0.1);
+  --glass-premium-blur:   blur(24px) saturate(180%);
+
+  /* Gradients mesh */
+  --mesh-1: radial-gradient(at 40% 20%, rgba(46,125,50,0.15) 0, transparent 50%),
+            radial-gradient(at 80% 80%, rgba(245,124,0,0.08) 0, transparent 50%),
+            radial-gradient(at 10% 80%, rgba(14,165,233,0.06) 0, transparent 40%);
+
+  /* Spotlight */
+  --spotlight: radial-gradient(circle 280px at var(--mx,50%) var(--my,50%),
+    rgba(255,255,255,0.06), transparent 70%);
+
+  /* Border gradient */
+  --border-glow: linear-gradient(135deg, rgba(46,125,50,0.6), rgba(245,124,0,0.4));
+
+  /* Transitions */
+  --spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+  --smooth:  cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── 2. PAGE LOAD ANIMATION ──────────────────────────────── */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.app-main {
+  animation: page-in 0.45s var(--smooth) both;
+}
+
+/* ── 3. SIDEBAR PREMIUM ──────────────────────────────────── */
+.sidebar {
+  background: var(--glass-premium-bg) !important;
+  backdrop-filter: var(--glass-premium-blur);
+  -webkit-backdrop-filter: var(--glass-premium-blur);
+  border-right: var(--glass-premium-border) !important;
+}
+
+.sidebar-header {
+  background: linear-gradient(135deg, rgba(46,125,50,0.12), rgba(245,124,0,0.06));
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+.sidebar-link {
+  border-radius: 10px !important;
+  transition: all 0.2s var(--smooth) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-link::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 0;
+  background: var(--gradient-cta);
+  border-radius: 0 3px 3px 0;
+  transition: height 0.25s var(--spring);
+}
+
+.sidebar-link:hover::before,
+.sidebar-link.active::before {
+  height: 60%;
+}
+
+.sidebar-link:hover {
+  background: rgba(255,255,255,0.06) !important;
+  color: var(--text-primary) !important;
+  transform: translateX(4px);
+}
+
+.sidebar-link.active {
+  background: linear-gradient(135deg, rgba(46,125,50,0.2), rgba(245,124,0,0.08)) !important;
+  color: var(--primary-light) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.sidebar-link .icon {
+  transition: transform 0.2s var(--spring);
+}
+.sidebar-link:hover .icon {
+  transform: scale(1.2);
+}
+
+/* Sidebar mobile backdrop */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: calc(var(--z-sticky) - 1);
+}
+.sidebar-backdrop.show {
+  display: block;
+  animation: fade-in 0.2s ease;
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    box-shadow: 4px 0 32px rgba(0,0,0,0.5) !important;
+  }
+}
+
+/* ── 4. STAT WIDGETS PREMIUM ─────────────────────────────── */
+.stat-widget {
+  background: var(--glass-premium-bg) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  transition: all 0.3s var(--smooth) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-widget::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--mesh-1);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.stat-widget:hover {
+  transform: translateY(-4px) !important;
+  border-color: rgba(46,125,50,0.35) !important;
+  box-shadow: var(--glow-green) !important;
+}
+
+.stat-widget:hover::before {
+  opacity: 1;
+}
+
+.stat-widget.green {
+  background: linear-gradient(135deg, rgba(46,125,50,0.12), rgba(13,22,38,0.8)) !important;
+  border-color: rgba(46,125,50,0.2) !important;
+}
+.stat-widget.orange {
+  background: linear-gradient(135deg, rgba(245,124,0,0.12), rgba(13,22,38,0.8)) !important;
+  border-color: rgba(245,124,0,0.2) !important;
+}
+
+.stat-widget .stat-value {
+  background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── 5. CARDS PREMIUM ────────────────────────────────────── */
+.card {
+  background: var(--glass-premium-bg) !important;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s var(--smooth) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Spotlight hover effect on cards */
+.card.spotlight-card,
+.glass-card {
+  --mx: 50%;
+  --my: 50%;
+}
+
+.card.spotlight-card::after,
+.glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--spotlight);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.card.spotlight-card:hover::after,
+.glass-card:hover::after {
+  opacity: 1;
+}
+
+/* ── 6. SERVICE CARDS HUB PREMIUM ────────────────────────── */
+.service-card {
+  background: var(--glass-premium-bg) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  transition: all 0.35s var(--smooth) !important;
+  --mx: 50%;
+  --my: 50%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Gradient mesh de fond */
+.service-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle 200px at var(--mx) var(--my),
+    rgba(255,255,255,0.05), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+
+.service-card:hover {
+  transform: translateY(-5px) scale(1.02) !important;
+  border-color: var(--svc-color, var(--primary)) !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4),
+              0 0 0 1px var(--svc-color, var(--primary)),
+              0 0 30px color-mix(in srgb, var(--svc-color, var(--primary)) 25%, transparent) !important;
+}
+
+.service-card:hover::after {
+  opacity: 1;
+}
+
+.service-card.has-activity {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--svc-color, var(--primary)) 12%, var(--glass-premium-bg)),
+    var(--glass-premium-bg)) !important;
+}
+
+/* Shimmer badge "Actif" */
+.svc-badge {
+  background: linear-gradient(135deg,
+    rgba(46,125,50,0.3), rgba(76,175,80,0.15)) !important;
+  border: 1px solid rgba(76,175,80,0.4);
+  color: var(--primary-light) !important;
+  position: relative;
+  overflow: hidden;
+}
+.svc-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer-badge 2s ease infinite;
+}
+@keyframes shimmer-badge {
+  0%   { background-position: -100% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ── 7. ACTIVE STAT CARDS (HUB) ─────────────────────────── */
+.active-stat-card {
+  background: var(--glass-premium-bg) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  transition: all 0.3s var(--smooth) !important;
+}
+
+.active-stat-card:hover {
+  transform: translateY(-3px) !important;
+  border-color: rgba(76,175,80,0.4) !important;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.3), var(--glow-green) !important;
+}
+
+/* ── 8. BUTTONS PREMIUM ─────────────────────────────────── */
+
+/* Ripple effect */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  transform: scale(0);
+  animation: ripple-out 0.55s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes ripple-out {
+  to { transform: scale(4); opacity: 0; }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2E7D32, #F57C00) !important;
+  box-shadow: 0 4px 20px rgba(46,125,50,0.4) !important;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 8px 32px rgba(46,125,50,0.6), var(--glow-green) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ── 9. FORMATION MINI CARDS ─────────────────────────────── */
+.formation-mini {
+  background: var(--glass-premium-bg) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  transition: all 0.3s var(--smooth) !important;
+}
+
+.formation-mini:hover {
+  border-color: rgba(139,92,246,0.5) !important;
+  transform: translateX(4px) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3),
+              0 0 20px rgba(139,92,246,0.2) !important;
+}
+
+/* ── 10. STAGGER ANIMATION (hub cards) ───────────────────── */
+@keyframes card-stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.services-grid .service-card {
+  animation: card-stagger-in 0.4s var(--smooth) both;
+}
+
+/* Delays auto via nth-child */
+.services-grid .service-card:nth-child(1)  { animation-delay: 0.04s; }
+.services-grid .service-card:nth-child(2)  { animation-delay: 0.08s; }
+.services-grid .service-card:nth-child(3)  { animation-delay: 0.12s; }
+.services-grid .service-card:nth-child(4)  { animation-delay: 0.16s; }
+.services-grid .service-card:nth-child(5)  { animation-delay: 0.20s; }
+.services-grid .service-card:nth-child(6)  { animation-delay: 0.24s; }
+.services-grid .service-card:nth-child(7)  { animation-delay: 0.28s; }
+.services-grid .service-card:nth-child(8)  { animation-delay: 0.32s; }
+.services-grid .service-card:nth-child(n+9) { animation-delay: 0.36s; }
+
+/* Désactiver animations si l'utilisateur préfère la réduction */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ── 11. TABLE PREMIUM ──────────────────────────────────── */
+.data-table tbody tr {
+  transition: background 0.15s ease;
+}
+.data-table tbody tr:hover {
+  background: rgba(46,125,50,0.06) !important;
+}
+.data-table th {
+  background: rgba(255,255,255,0.03) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+/* ── 12. GLASS CARD PREMIUM ─────────────────────────────── */
+.glass-card {
+  background: var(--glass-premium-bg) !important;
+  backdrop-filter: var(--glass-premium-blur) !important;
+  -webkit-backdrop-filter: var(--glass-premium-blur) !important;
+  border: var(--glass-premium-border) !important;
+  transition: all 0.35s var(--smooth) !important;
+}
+
+.glass-card:hover {
+  background: rgba(255,255,255,0.07) !important;
+  border-color: rgba(46,125,50,0.3) !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5), var(--glow-green) !important;
+  transform: translateY(-6px) !important;
+}
+
+/* ── 13. FORM CONTROLS PREMIUM ──────────────────────────── */
+.form-control {
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  transition: all 0.2s var(--smooth) !important;
+}
+
+.form-control:focus {
+  background: rgba(46,125,50,0.05) !important;
+  border-color: var(--primary-light) !important;
+  box-shadow: 0 0 0 3px rgba(46,125,50,0.15),
+              0 0 20px rgba(46,125,50,0.1) !important;
+  outline: none !important;
+}
+
+/* ── 14. SCROLLBAR PREMIUM ─────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--primary), var(--accent));
+  border-radius: 99px;
+}
+
+/* ── 15. BADGE PREMIUM ──────────────────────────────────── */
+.badge-green {
+  background: linear-gradient(135deg,
+    rgba(46,125,50,0.2), rgba(76,175,80,0.1)) !important;
+  border-color: rgba(76,175,80,0.35) !important;
+  box-shadow: 0 0 12px rgba(76,175,80,0.15);
+}
+
+/* ── 16. TOASTS PREMIUM ─────────────────────────────────── */
+.toast {
+  background: rgba(13,22,38,0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+}
+
+/* ── 17. SECTION TITLES HUB ─────────────────────────────── */
+.section-title {
+  background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: .5rem !important;
+}
+
+/* ── 18. ROLE BADGE ──────────────────────────────────────── */
+.role-badge {
+  background: linear-gradient(135deg,
+    rgba(46,125,50,0.25), rgba(76,175,80,0.1)) !important;
+  border: 1px solid rgba(76,175,80,0.3) !important;
+  box-shadow: 0 0 12px rgba(76,175,80,0.1);
+}
+
+/* ── 19. SECTION CATEGORY LABELS ────────────────────────── */
+.services-category-label {
+  background: linear-gradient(90deg, rgba(46,125,50,0.08), transparent);
+  border-left: 2px solid var(--primary);
+  padding-left: .75rem !important;
+  border-bottom: none !important;
+  border-radius: 0 4px 4px 0;
+}
+
+/* ── 20. PROGRESS BAR PREMIUM ───────────────────────────── */
+.progress-bar {
+  background: rgba(255,255,255,0.06) !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+}
+.progress-fill {
+  background: linear-gradient(90deg,
+    var(--primary), var(--primary-light), var(--accent-light)) !important;
+  background-size: 200% 100%;
+  animation: progress-shine 3s ease infinite;
+  box-shadow: 0 0 8px rgba(76,175,80,0.4);
+}
+@keyframes progress-shine {
+  0%   { background-position: 0% center; }
+  50%  { background-position: 100% center; }
+  100% { background-position: 0% center; }
+}
+
+/* ── 21. DOWNLOAD ITEM ──────────────────────────────────── */
+.dl-item {
+  background: var(--glass-premium-bg) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  transition: all 0.25s var(--smooth) !important;
+}
+.dl-item:hover {
+  border-color: rgba(14,165,233,0.4) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+  transform: translateX(4px) !important;
+}
+
+/* ── 22. WHATSAPP BTN PREMIUM ───────────────────────────── */
+.whatsapp-btn {
+  background: linear-gradient(135deg, #25D366, #128C7E) !important;
+  box-shadow: 0 4px 20px rgba(37,211,102,0.5) !important;
+  animation: wa-pulse 2.5s ease-in-out infinite !important;
+}
+@keyframes wa-pulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(37,211,102,0.5); }
+  50%       { box-shadow: 0 8px 40px rgba(37,211,102,0.7), 0 0 0 8px rgba(37,211,102,0.1); }
+}
+
+/* ── 23. SIDEBAR MOBILE OVERLAY PREMIUM ─────────────────── */
+@media (max-width: 1024px) {
+  .sidebar {
+    transition: transform 0.35s var(--spring) !important;
+  }
+  .sidebar.open {
+    box-shadow: 8px 0 48px rgba(0,0,0,0.6) !important;
+  }
+}
+
+/* ── 24. AUTH PAGES PREMIUM ──────────────────────────────── */
+.auth-layout {
+  background: var(--gradient-hero);
+}
+.auth-form-side {
+  background: rgba(6,11,18,0.92) !important;
+  backdrop-filter: blur(32px);
+}
+
+/* ── 25. NAVBAR PREMIUM ────────────────────────── */
+.navbar {
+  background: #0b1528 !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.3) !important;
+}
+
+.navbar.scrolled {
+  background: #0b1528 !important;
+  backdrop-filter: blur(28px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(160%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.5) !important;
+}
+
+/* ── 26. MODULE CARDS PREMIUM ───────────────────────────── */
+.module-card {
+  background: var(--glass-premium-bg) !important;
+  backdrop-filter: blur(12px);
+  transition: all 0.35s var(--smooth) !important;
+}
+.module-card:hover {
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), var(--glow-green) !important;
+  transform: translateY(-8px) !important;
+}
+
+/* ── 27. MOBILE TOUCH FEEDBACK ──────────────────────────── */
+@media (hover: none) {
+  .service-card:active {
+    transform: scale(0.97) !important;
+    transition-duration: 0.1s !important;
+  }
+  .btn:active {
+    transform: scale(0.96) !important;
+    transition-duration: 0.1s !important;
+  }
+  .sidebar-link:active {
+    background: rgba(46,125,50,0.2) !important;
+    transform: none !important;
+  }
+}
+
+/* ── 28. RESPONSIVE ADJUSTMENTS ─────────────────────────── */
+@media (max-width: 768px) {
+  .hub-greeting h1 {
+    font-size: 1.3rem !important;
+  }
+  .active-stats {
+    gap: .5rem !important;
+  }
+  .active-stat-card {
+    padding: .75rem 1rem !important;
+  }
+  .active-stat-val {
+    font-size: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .services-grid {
+    gap: .5rem !important;
+  }
+  .service-card {
+    padding: .85rem .75rem !important;
+  }
+  .svc-icon {
+    font-size: 1.3rem !important;
+  }
+  .svc-name {
+    font-size: .8rem !important;
+  }
+  .svc-desc {
+    font-size: .68rem !important;
+  }
+}
+
+/* ── 29. SELECTION COLOR ─────────────────────────────────── */
+::selection {
+  background: rgba(46,125,50,0.35);
+  color: #fff;
+}
+
+/* ── 30. FOCUS VISIBLE GLOBAL ───────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--primary-light) !important;
+  outline-offset: 3px !important;
+}
+
+/* ── 31. PREMIUM FOOTER ─────────────────────────────────── */
+.footer-grid {
+  grid-template-columns: 2fr 1.2fr 1.2fr 1.2fr 1.2fr !important;
+  gap: 2.5rem !important;
+}
+
+@media (max-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 2rem !important;
+  }
+  .footer-col:first-child {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+

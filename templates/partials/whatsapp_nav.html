@@ -25,6 +25,15 @@
         <span>Campagnes</span>
       </a>
 
+      <a href="{% url 'whatsapp_agent:wa_inbox' %}" 
+         class="wa-tab-item {% if request.resolver_match.url_name == 'wa_inbox' %}active{% endif %}">
+        <span class="wa-tab-icon">💬</span>
+        <span>Réponses &amp; Inbox</span>
+        {% if total_non_lus %}
+          <span class="wa-unread-badge">{{ total_non_lus }}</span>
+        {% endif %}
+      </a>
+
       <a href="{% url 'whatsapp_agent:wa_contacts' %}" 
          class="wa-tab-item {% if request.resolver_match.url_name == 'wa_contacts' or request.resolver_match.url_name == 'wa_contacts_campagne' %}active{% endif %}">
         <span class="wa-tab-icon">👥</span>
@@ -234,6 +243,17 @@
     font-size: 0.95rem;
     filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.18));
     transition: transform 0.2s ease, filter 0.2s ease;
+  }
+
+  .wa-unread-badge {
+    background: #ef4444;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 999px;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    line-height: 1;
   }
 
   @media (max-width: 760px) {

@@ -155,7 +155,10 @@ def lancer_campagne_task(campagne_id: int):
         campagne.save(update_fields=["statut", "termine_le"])
         return
 
+    import random
     for index, msg in enumerate(messages):
-        # Le countdown espace l'envoi sans bloquer le worker pendant une minute.
-        countdown = (index // 80) * 60
+        # Espacement intelligent par minute avec gigue aleatoire (anti-ban Meta)
+        base_minute = (index // 50) * 60
+        jitter = random.randint(2, 12)
+        countdown = base_minute + (index % 50) + jitter
         envoyer_message_task.apply_async(args=[msg.id], countdown=countdown)

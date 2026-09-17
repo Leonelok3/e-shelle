@@ -1,0 +1,904 @@
+{% extends "base.html" %}
+
+{% block title %}Boîte de Réception WhatsApp | E-Shelle Live Inbox{% endblock %}
+
+{% block content %}
+<style>
+  .wa-inbox-shell {
+    min-height: 100vh;
+    background: #060e09;
+    color: #e8f5ee;
+    padding: 100px 16px 30px;
+  }
+  .wa-inbox-wrap {
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+  .wa-inbox-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .wa-stat-card {
+    background: #0a1811;
+    border: 1px solid #193826;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .wa-stat-label {
+    color: #9cb2a5;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+  .wa-stat-val {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #4ade80;
+  }
+  .wa-stat-val.gold { color: #facc15; }
+  .wa-stat-val.red { color: #f87171; }
+  .wa-stat-val.blue { color: #38bdf8; }
+
+  /* Layout 3 colonnes */
+  .wa-inbox-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr 310px;
+    height: calc(100vh - 240px);
+    min-height: 600px;
+    background: #09150e;
+    border: 1px solid #1d3d2c;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  }
+
+  /* Colonne Gauche - Liste */
+  .wa-inbox-sidebar {
+    background: #07120c;
+    border-right: 1px solid #1a3927;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .wa-sidebar-header {
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid #1a3927;
+  }
+  .wa-search-box {
+    position: relative;
+    margin-bottom: 10px;
+  }
+  .wa-search-box input {
+    width: 100%;
+    box-sizing: border-box;
+    background: #0c1f15;
+    border: 1px solid #234d34;
+    color: #ecfdf5;
+    border-radius: 8px;
+    padding: 8px 12px 8px 32px;
+    font-size: 0.84rem;
+  }
+  .wa-search-box input:focus {
+    outline: none;
+    border-color: #22c55e;
+  }
+  .wa-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #648a74;
+    font-size: 0.85rem;
+  }
+  .wa-filter-chips {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .wa-filter-chips::-webkit-scrollbar { display: none; }
+  .wa-chip-btn {
+    background: #0e2218;
+    color: #9db5a7;
+    border: 1px solid #1f432e;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .wa-chip-btn:hover, .wa-chip-btn.active {
+    background: #16a34a;
+    color: #fff;
+    border-color: #22c55e;
+  }
+  .wa-conv-list {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .wa-conv-item {
+    display: flex;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid #12271c;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s ease;
+  }
+  .wa-conv-item:hover {
+    background: #0e2418;
+  }
+  .wa-conv-item.active {
+    background: #132e1f;
+    border-left: 3px solid #22c55e;
+  }
+  .wa-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1e4d34, #102d1e);
+    border: 1px solid #336d4b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: #86efac;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+  .wa-conv-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .wa-conv-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 3px;
+  }
+  .wa-conv-name {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #ecfdf5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .wa-conv-time {
+    font-size: 0.7rem;
+    color: #729481;
+  }
+  .wa-conv-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+  }
+  .wa-conv-snippet {
+    font-size: 0.77rem;
+    color: #92b09f;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .wa-unread-pill {
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 999px;
+    line-height: 1;
+  }
+  .wa-tag-pill {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+  .wa-tag-pill.interesse { background: rgba(250, 204, 21, 0.18); color: #fde047; }
+  .wa-tag-pill.qualifie { background: rgba(56, 189, 248, 0.18); color: #7dd3fc; }
+  .wa-tag-pill.converti { background: rgba(34, 197, 94, 0.18); color: #86efac; }
+  .wa-tag-pill.nouveau { background: rgba(148, 163, 184, 0.18); color: #cbd5e1; }
+
+  /* Colonne Centrale - Chat */
+  .wa-chat-main {
+    display: flex;
+    flex-direction: column;
+    background: #09170f;
+    overflow: hidden;
+    border-right: 1px solid #1a3927;
+  }
+  .wa-chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    background: #0b1c13;
+    border-bottom: 1px solid #1a3927;
+  }
+  .wa-chat-contact {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .wa-chat-title {
+    font-size: 0.96rem;
+    font-weight: 800;
+    color: #f0fdf4;
+  }
+  .wa-chat-meta {
+    font-size: 0.74rem;
+    color: #8faea0;
+  }
+  .wa-chat-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .wa-status-select {
+    background: #0c2016;
+    color: #86efac;
+    border: 1px solid #235137;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* Zone des messages */
+  .wa-messages-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: radial-gradient(circle at center, rgba(34, 197, 94, 0.03) 0%, transparent 70%), #07130c;
+  }
+  .wa-bubble-wrap {
+    display: flex;
+    flex-direction: column;
+    max-width: 76%;
+  }
+  .wa-bubble-wrap.entrant {
+    align-self: flex-start;
+  }
+  .wa-bubble-wrap.sortant {
+    align-self: flex-end;
+  }
+  .wa-bubble-chat {
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    line-height: 1.42;
+    white-space: pre-wrap;
+    word-break: break-word;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  .wa-bubble-wrap.entrant .wa-bubble-chat {
+    background: #132a1e;
+    color: #e6f7ee;
+    border: 1px solid #1f4733;
+    border-top-left-radius: 3px;
+  }
+  .wa-bubble-wrap.sortant .wa-bubble-chat {
+    background: #15803d;
+    color: #ffffff;
+    border: 1px solid #22c55e;
+    border-top-right-radius: 3px;
+  }
+  .wa-bubble-footer {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: flex-end;
+    font-size: 0.67rem;
+    color: #799a87;
+    margin-top: 3px;
+  }
+  .wa-bubble-wrap.sortant .wa-bubble-footer {
+    color: #bbf7d0;
+  }
+  .wa-tick { font-weight: 900; }
+
+  /* Toolbar IA & Composant d'envoi */
+  .wa-chat-composer {
+    padding: 12px 16px;
+    background: #0a1b12;
+    border-top: 1px solid #1a3927;
+  }
+  .wa-ai-assistant-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px dashed rgba(34, 197, 94, 0.3);
+    border-radius: 8px;
+    padding: 6px 12px;
+  }
+  .wa-ai-hint {
+    font-size: 0.74rem;
+    color: #86efac;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .wa-ai-btn {
+    background: linear-gradient(135deg, #15803d, #16a34a);
+    color: white;
+    border: 0;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .wa-ai-btn:hover { transform: scale(1.03); }
+  .wa-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .wa-input-row textarea {
+    flex: 1;
+    background: #06110b;
+    border: 1px solid #235137;
+    color: #ecfdf5;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    min-height: 44px;
+    max-height: 120px;
+    resize: none;
+    line-height: 1.35;
+  }
+  .wa-input-row textarea:focus {
+    outline: none;
+    border-color: #22c55e;
+  }
+  .wa-send-btn {
+    background: #22c55e;
+    color: #032110;
+    border: 0;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 0.9rem;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+  }
+  .wa-send-btn:hover { background: #4ade80; }
+
+  /* Colonne Droite - Fiche Prospect & CRM */
+  .wa-crm-panel {
+    background: #08160e;
+    padding: 18px 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .wa-crm-header {
+    border-bottom: 1px solid #1a3927;
+    padding-bottom: 12px;
+  }
+  .wa-crm-name {
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: #f0fdf4;
+    margin: 0 0 4px;
+  }
+  .wa-crm-phone {
+    font-size: 0.86rem;
+    color: #4ade80;
+    font-weight: 800;
+    text-decoration: none;
+  }
+  .wa-crm-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .wa-crm-title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    color: #6a8c79;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+  }
+  .wa-crm-badge-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .wa-crm-info-box {
+    background: #0c2016;
+    border: 1px solid #1c452e;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+    color: #b5cebf;
+  }
+  .wa-crm-convert-btn {
+    background: linear-gradient(135deg, #ca8a04, #eab308);
+    color: #1a1500;
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    box-sizing: border-box;
+  }
+  .wa-crm-convert-btn:hover {
+    background: #facc15;
+  }
+  .wa-crm-notes {
+    width: 100%;
+    box-sizing: border-box;
+    background: #06110b;
+    border: 1px solid #1c452e;
+    color: #ecfdf5;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.76rem;
+    min-height: 80px;
+    resize: vertical;
+  }
+  .wa-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6b8a78;
+    text-align: center;
+    padding: 20px;
+  }
+  .wa-empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
+
+  @media (max-width: 1100px) {
+    .wa-inbox-grid { grid-template-columns: 280px 1fr; }
+    .wa-crm-panel { display: none; }
+  }
+  @media (max-width: 768px) {
+    .wa-inbox-grid { grid-template-columns: 1fr; }
+    .wa-inbox-sidebar { display: none; }
+  }
+</style>
+
+<main class="wa-inbox-shell">
+  <div class="wa-inbox-wrap">
+    {% include "partials/whatsapp_nav.html" %}
+
+    <!-- Barre de statistiques clés -->
+    <div class="wa-inbox-stats">
+      <div class="wa-stat-card">
+        <div>
+          <span class="wa-stat-label">Total Discussions</span>
+          <div class="wa-stat-val">{{ total_convs }}</div>
+        </div>
+        <span style="font-size:1.6rem">💬</span>
+      </div>
+      <div class="wa-stat-card">
+        <div>
+          <span class="wa-stat-label">Messages Non Lus</span>
+          <div class="wa-stat-val red">{{ total_non_lus }}</div>
+        </div>
+        <span style="font-size:1.6rem">🔴</span>
+      </div>
+      <div class="wa-stat-card">
+        <div>
+          <span class="wa-stat-label">Prospects Intéressés</span>
+          <div class="wa-stat-val gold">{{ total_interesses }}</div>
+        </div>
+        <span style="font-size:1.6rem">🔥</span>
+      </div>
+      <div class="wa-stat-card">
+        <div>
+          <span class="wa-stat-label">Prospects Qualifiés</span>
+          <div class="wa-stat-val blue">{{ total_qualifies }}</div>
+        </div>
+        <span style="font-size:1.6rem">⭐</span>
+      </div>
+    </div>
+
+    <!-- Interface Principale 3 Colonnes -->
+    <div class="wa-inbox-grid">
+      <!-- Colonne 1: Liste des conversations -->
+      <aside class="wa-inbox-sidebar">
+        <div class="wa-sidebar-header">
+          <div class="wa-search-box">
+            <span class="wa-search-icon">🔍</span>
+            <input type="text" id="conv-search" placeholder="Nom, numéro, groupe..." value="{{ q }}">
+          </div>
+          <div class="wa-filter-chips">
+            <a href="{% url 'whatsapp_agent:wa_inbox' %}" class="wa-chip-btn {% if not statut %}active{% endif %}">Tous</a>
+            <a href="?statut=non_lus" class="wa-chip-btn {% if statut == 'non_lus' %}active{% endif %}">🔴 Non lus</a>
+            <a href="?statut=interesse" class="wa-chip-btn {% if statut == 'interesse' %}active{% endif %}">🔥 Chauds</a>
+            <a href="?statut=qualifie" class="wa-chip-btn {% if statut == 'qualifie' %}active{% endif %}">⭐ Qualifiés</a>
+            <a href="?statut=converti" class="wa-chip-btn {% if statut == 'converti' %}active{% endif %}">✅ Convertis</a>
+          </div>
+        </div>
+
+        <div class="wa-conv-list" id="conv-list-container">
+          {% for conv in conversations %}
+          <a href="?conv={{ conv.id }}&statut={{ statut }}&q={{ q }}" 
+             class="wa-conv-item {% if active_conv and active_conv.id == conv.id %}active{% endif %}" 
+             data-conv-id="{{ conv.id }}">
+            <div class="wa-avatar">
+              {{ conv.contact.nom|slice:":1"|default:"W"|upper }}
+            </div>
+            <div class="wa-conv-info">
+              <div class="wa-conv-top">
+                <span class="wa-conv-name">{{ conv.contact.nom|default:conv.contact.numero }}</span>
+                <span class="wa-conv-time">{{ conv.dernier_message_le|date:"H:i" }}</span>
+              </div>
+              <div class="wa-conv-bottom">
+                <span class="wa-conv-snippet">{{ conv.dernier_message_apercu|default:"Aucun message" }}</span>
+                {% if conv.non_lus_count > 0 %}
+                  <span class="wa-unread-pill">{{ conv.non_lus_count }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </a>
+          {% empty %}
+          <div class="wa-empty-state">
+            <span class="wa-empty-icon">📭</span>
+            <p>Aucune réponse reçue pour le moment.</p>
+            <button class="wa-ai-btn" id="btn-demo-simulate" style="margin-top:10px">
+              Simuler une réponse de test
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+      </aside>
+
+      <!-- Colonne 2: Chat Actif -->
+      <section class="wa-chat-main">
+        {% if active_conv %}
+        <div class="wa-chat-header">
+          <div class="wa-chat-contact">
+            <div class="wa-avatar">
+              {{ active_conv.contact.nom|slice:":1"|default:"W"|upper }}
+            </div>
+            <div>
+              <div class="wa-chat-title">
+                {{ active_conv.contact.nom|default:active_conv.contact.numero }}
+              </div>
+              <div class="wa-chat-meta">
+                {{ active_conv.contact.numero }} 
+                {% if active_conv.contact.ville %} &bull; 📍 {{ active_conv.contact.ville }}{% endif %}
+                {% if active_conv.contact.groupe %} &bull; 👥 {{ active_conv.contact.groupe }}{% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="wa-chat-actions">
+            <select class="wa-status-select" id="status-selector" data-conv-id="{{ active_conv.id }}">
+              {% for val, label in statuts_conv %}
+              <option value="{{ val }}" {% if active_conv.statut == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <!-- Corps des messages -->
+        <div class="wa-messages-body" id="chat-messages-container">
+          {% for msg in messages_active %}
+          <div class="wa-bubble-wrap {{ msg.direction }}">
+            <div class="wa-bubble-chat">{{ msg.texte }}</div>
+            <div class="wa-bubble-footer">
+              <span>{{ msg.cree_le|date:"H:i" }}</span>
+              {% if msg.direction == "sortant" %}
+                <span class="wa-tick">
+                  {% if msg.statut == "lu" %}✓✓{% elif msg.statut == "livre" %}✓✓{% elif msg.statut == "envoye" %}✓{% else %}⏱{% endif %}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="wa-empty-state">
+            <p>Début de la conversation avec ce prospect.</p>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Composer & Assistant IA -->
+        <div class="wa-chat-composer">
+          <div class="wa-ai-assistant-bar">
+            <span class="wa-ai-hint">✨ <strong>IA Copilot E-Shelle</strong> : Suggère une réponse commerciale sur-mesure</span>
+            <button type="button" class="wa-ai-btn" id="btn-suggest-ia" data-conv-id="{{ active_conv.id }}">
+              Générer réponse IA
+            </button>
+          </div>
+          <form id="chat-form" class="wa-input-row" data-conv-id="{{ active_conv.id }}">
+            {% csrf_token %}
+            <textarea id="chat-input" placeholder="Écrivez votre réponse WhatsApp... (Entrée pour envoyer, Maj+Entrée pour saut de ligne)"></textarea>
+            <button type="submit" class="wa-send-btn">
+              <span>Envoyer</span>
+              <span>➤</span>
+            </button>
+          </form>
+        </div>
+        {% else %}
+        <div class="wa-empty-state">
+          <span class="wa-empty-icon">💬</span>
+          <p>Sélectionnez une discussion pour afficher l'historique et répondre.</p>
+        </div>
+        {% endif %}
+      </section>
+
+      <!-- Colonne 3: Fiche Prospect & CRM -->
+      {% if active_conv %}
+      <aside class="wa-crm-panel">
+        <div class="wa-crm-header">
+          <h2 class="wa-crm-name">{{ active_conv.contact.nom|default:"Contact sans nom" }}</h2>
+          <a href="https://wa.me/{{ active_conv.contact.numero|cut:'+' }}" target="_blank" rel="noopener" class="wa-crm-phone">
+            {{ active_conv.contact.numero }} ↗
+          </a>
+        </div>
+
+        <div class="wa-crm-section">
+          <span class="wa-crm-title">Origine &amp; Localisation</span>
+          <div class="wa-crm-info-box">
+            <strong>Groupe source :</strong> {{ active_conv.contact.groupe|default:"Import manuel / Non spécifié" }}<br>
+            <strong>Ville :</strong> {{ active_conv.contact.ville|default:"Non renseignée" }}<br>
+            <strong>Opt-in :</strong> {% if active_conv.contact.consentement_confirme %}<span style="color:#4ade80">Confirmé</span>{% else %}<span style="color:#f87171">Non confirmé</span>{% endif %}
+          </div>
+        </div>
+
+        <div class="wa-crm-section">
+          <span class="wa-crm-title">Pipeline Commercial E-Shelle</span>
+          {% if active_conv.commercial_prospect %}
+            <div class="wa-crm-info-box" style="border-color:#ca8a04">
+              <strong>Lié au prospect :</strong><br>
+              <a href="{% url 'commercial_agent:prospect_detail' active_conv.commercial_prospect.id %}" style="color:#facc15; font-weight:800; text-decoration:none">
+                {{ active_conv.commercial_prospect.nom }} ↗
+              </a>
+              <div style="font-size:0.72rem; margin-top:4px">
+                Statut: {{ active_conv.commercial_prospect.get_statut_display }}
+              </div>
+            </div>
+          {% else %}
+            <button type="button" class="wa-crm-convert-btn" id="btn-convert-crm" data-conv-id="{{ active_conv.id }}">
+              ⭐ Convertir en Prospect CRM E-Shelle
+            </button>
+          {% endif %}
+        </div>
+
+        <div class="wa-crm-section">
+          <span class="wa-crm-title">Notes Commerciales</span>
+          <textarea class="wa-crm-notes" id="crm-notes-field" placeholder="Notes sur le client, budget, offre discutée...">{{ active_conv.notes }}</textarea>
+          <button type="button" class="wa-ai-btn" id="btn-save-notes" data-conv-id="{{ active_conv.id }}" style="align-self:flex-start">
+            Enregistrer les notes
+          </button>
+        </div>
+
+        <div class="wa-crm-section">
+          <span class="wa-crm-title">Test Rapide</span>
+          <button type="button" class="wa-chip-btn" id="btn-simulate-prospect-reply" data-phone="{{ active_conv.contact.numero }}" data-nom="{{ active_conv.contact.nom }}">
+            ⚡ Simuler une réponse de ce client
+          </button>
+        </div>
+      </aside>
+      {% endif %}
+    </div>
+  </div>
+</main>
+
+<script>
+  const csrfToken = '{{ csrf_token }}';
+  const chatMessagesContainer = document.getElementById('chat-messages-container');
+  const chatForm = document.getElementById('chat-form');
+  const chatInput = document.getElementById('chat-input');
+  const btnSuggestIa = document.getElementById('btn-suggest-ia');
+  const statusSelector = document.getElementById('status-selector');
+  const btnConvertCrm = document.getElementById('btn-convert-crm');
+  const btnSaveNotes = document.getElementById('btn-save-notes');
+  const crmNotesField = document.getElementById('crm-notes-field');
+  const btnDemoSimulate = document.getElementById('btn-demo-simulate');
+  const btnSimulateThis = document.getElementById('btn-simulate-prospect-reply');
+
+  // Auto-scroll messages vers le bas
+  function scrollToBottom() {
+    if (chatMessagesContainer) {
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
+  }
+  scrollToBottom();
+
+  // Envoi de message dans le chat
+  if (chatForm) {
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const texte = chatInput.value.trim();
+      if (!texte) return;
+
+      const convId = chatForm.dataset.convId;
+      chatInput.value = '';
+
+      // Insertion optimiste dans l'UI
+      const tempBubble = document.createElement('div');
+      tempBubble.className = 'wa-bubble-wrap sortant';
+      tempBubble.innerHTML = `
+        <div class="wa-bubble-chat">${escapeHtml(texte)}</div>
+        <div class="wa-bubble-footer">
+          <span>Maintenant</span>
+          <span class="wa-tick">⏱</span>
+        </div>
+      `;
+      chatMessagesContainer.appendChild(tempBubble);
+      scrollToBottom();
+
+      try {
+        const resp = await fetch(`/whatsapp/api/conversations/${convId}/repondre/`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+          body: JSON.stringify({texte: texte})
+        });
+        const res = await resp.json();
+        if (res.success) {
+          tempBubble.querySelector('.wa-tick').textContent = '✓';
+        } else {
+          tempBubble.querySelector('.wa-tick').textContent = '⚠️';
+          alert('Erreur envoi: ' + (res.erreur || 'Échec'));
+        }
+      } catch (err) {
+        tempBubble.querySelector('.wa-tick').textContent = '⚠️';
+      }
+    });
+
+    // Envoi par Entrée (Maj+Entrée pour nouvelle ligne)
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        chatForm.dispatchEvent(new Event('submit'));
+      }
+    });
+  }
+
+  // Assistant IA Réponse
+  if (btnSuggestIa) {
+    btnSuggestIa.addEventListener('click', async () => {
+      const convId = btnSuggestIa.dataset.convId;
+      btnSuggestIa.textContent = 'Génération en cours...';
+      btnSuggestIa.disabled = true;
+
+      try {
+        const resp = await fetch(`/whatsapp/api/conversations/${convId}/ia-reponse/`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken}
+        });
+        const res = await resp.json();
+        if (res.suggestion) {
+          chatInput.value = res.suggestion;
+          chatInput.focus();
+        }
+      } catch (err) {
+        alert('Erreur IA');
+      } finally {
+        btnSuggestIa.textContent = 'Générer réponse IA';
+        btnSuggestIa.disabled = false;
+      }
+    });
+  }
+
+  // Changement de statut
+  if (statusSelector) {
+    statusSelector.addEventListener('change', async () => {
+      const convId = statusSelector.dataset.convId;
+      await fetch(`/whatsapp/api/conversations/${convId}/statut/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+        body: JSON.stringify({statut: statusSelector.value})
+      });
+    });
+  }
+
+  // Enregistrer notes
+  if (btnSaveNotes && crmNotesField) {
+    btnSaveNotes.addEventListener('click', async () => {
+      const convId = btnSaveNotes.dataset.convId;
+      btnSaveNotes.textContent = 'Enregistrement...';
+      await fetch(`/whatsapp/api/conversations/${convId}/statut/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+        body: JSON.stringify({notes: crmNotesField.value})
+      });
+      btnSaveNotes.textContent = '✅ Enregistré !';
+      setTimeout(() => btnSaveNotes.textContent = 'Enregistrer les notes', 2000);
+    });
+  }
+
+  // Convertir en prospect CRM
+  if (btnConvertCrm) {
+    btnConvertCrm.addEventListener('click', async () => {
+      const convId = btnConvertCrm.dataset.convId;
+      btnConvertCrm.textContent = 'Conversion en cours...';
+      const resp = await fetch(`/whatsapp/api/conversations/${convId}/statut/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+        body: JSON.stringify({convertir_commercial: true})
+      });
+      const res = await resp.json();
+      if (res.success && res.commercial_prospect_id) {
+        window.location.reload();
+      }
+    });
+  }
+
+  // Simulateur de réponse de test
+  async function triggerSimulation(numero, nom) {
+    const textSample = prompt(
+      "Message du prospect :", 
+      "Bonjour ! J'ai vu votre message sur E-Shelle. Combien coûte le service et comment faire pour commencer ?"
+    );
+    if (!textSample) return;
+
+    const resp = await fetch('/whatsapp/api/simuler-reponse/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+      body: JSON.stringify({
+        numero: numero || '+237699123456',
+        profile_name: nom || 'Jean Client Douala',
+        texte: textSample
+      })
+    });
+    const res = await resp.json();
+    if (res.success) {
+      window.location.href = `/whatsapp/inbox/?conv=${res.conversation_id}`;
+    }
+  }
+
+  if (btnDemoSimulate) {
+    btnDemoSimulate.addEventListener('click', () => triggerSimulation('+237699112233', 'Prospect Démo E-Shelle'));
+  }
+  if (btnSimulateThis) {
+    btnSimulateThis.addEventListener('click', () => {
+      triggerSimulation(btnSimulateThis.dataset.phone, btnSimulateThis.dataset.nom);
+    });
+  }
+
+  // Recherche dynamique des conversations
+  const convSearch = document.getElementById('conv-search');
+  if (convSearch) {
+    let debounceTimer;
+    convSearch.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const query = convSearch.value.trim();
+        window.location.href = `?q=${encodeURIComponent(query)}&statut={{ statut }}`;
+      }, 600);
+    });
+  }
+
+  // Sécurisation injection HTML
+  function escapeHtml(str) {
+    return str.replace(/[&<>'"]/g, 
+      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+    );
+  }
+</script>
+{% endblock %}

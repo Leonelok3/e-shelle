@@ -72,16 +72,48 @@
 
       <form method="post" action="{% url 'whatsapp_agent:wa_contacts_campagne' %}" id="contacts-campaign-form">
         {% csrf_token %}
+        <input type="hidden" name="filter_q" value="{{ q }}">
+        <input type="hidden" name="filter_ville" value="{{ ville }}">
+        <input type="hidden" name="filter_groupe" value="{{ groupe }}">
+        <input type="hidden" name="filter_source" value="{{ source }}">
+        <input type="hidden" name="select_all_filtered" id="select_all_filtered_input" value="0">
+
         <div class="wa-builder">
-          <input class="wa-input" name="nom" placeholder="Nom campagne" value="Campagne contacts WhatsApp">
-          <textarea class="wa-input" name="message_template" placeholder="Bonjour {% templatetag openvariable %}prenom{% templatetag closevariable %}, je suis de E-Shelle. Nous pouvons vous aider a recevoir plus de clients via WhatsApp. Voulez-vous une demo rapide ?"></textarea>
-          <button class="wa-btn gold" type="submit">Creer campagne avec selection</button>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <input class="wa-input" name="nom" placeholder="Nom campagne" value="Campagne WhatsApp {{ groupe|default:'selection' }}">
+            <div style="font-size:0.72rem; color:#86efac; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+              <span>Variables :</span>
+              <code style="background:#07120d; border:1px solid #1c452e; padding:2px 6px; border-radius:4px; cursor:pointer" class="var-tag" data-tag="&#123;&#123;salutation&#125;&#125;">&#123;&#123;salutation&#125;&#125;</code>
+              <code style="background:#07120d; border:1px solid #1c452e; padding:2px 6px; border-radius:4px; cursor:pointer" class="var-tag" data-tag="&#123;&#123;prenom&#125;&#125;">&#123;&#123;prenom&#125;&#125;</code>
+              <code style="background:#07120d; border:1px solid #1c452e; padding:2px 6px; border-radius:4px; cursor:pointer" class="var-tag" data-tag="&#123;&#123;ville&#125;&#125;">&#123;&#123;ville&#125;&#125;</code>
+              <code style="background:#07120d; border:1px solid #1c452e; padding:2px 6px; border-radius:4px; cursor:pointer" class="var-tag" data-tag="&#123;&#123;groupe&#125;&#125;">&#123;&#123;groupe&#125;&#125;</code>
+            </div>
+            <button type="button" class="wa-btn ghost" id="btn-spin-insert" style="font-size:0.74rem; padding:6px 10px; border-color:#22c55e; color:#86efac; align-self:flex-start">
+              ✨ Modèle Anti-Spam (Spintax)
+            </button>
+          </div>
+          <textarea class="wa-input" id="message-template-input" name="message_template" placeholder="{Bonjour|Salut|Hello} {l'ami|cher entrepreneur}, {je vous contacte depuis E-Shelle|ici l'equipe commerciale E-Shelle}. {Nous aidons les commercants a recevoir plus de commandes WhatsApp|Augmentez vos ventes facilement dans votre ville}. Voulez-vous une demo rapide ?"></textarea>
+          <button class="wa-btn gold" type="submit" id="btn-submit-campaign">Creer campagne avec selection</button>
         </div>
-        <div class="wa-select-line">
-          <input class="wa-check" id="select-page" type="checkbox">
-          <label for="select-page">Selectionner tous les contacts affiches sur cette page</label>
-          <span class="wa-muted" id="selected-count">0 selectionne</span>
+
+        <div class="wa-select-line" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <input class="wa-check" id="select-page" type="checkbox">
+            <label for="select-page">Selectionner les {{ page_obj|length }} contacts de cette page</label>
+            <span class="wa-muted" id="selected-count">0 selectionne</span>
+          </div>
+          {% if total_filtres > page_obj|length %}
+          <div>
+            <button type="button" class="wa-btn ghost" id="btn-select-all-filtered" style="padding:6px 14px; font-size:0.8rem; border-color:#ca8a04; color:#facc15; font-weight:800">
+              ⚡ Cibler TOUS les {{ total_filtres }} contacts filtres
+            </button>
+            <span id="all-filtered-notice" style="display:none; color:#4ade80; font-size:0.8rem; font-weight:800; margin-left:8px">
+              ✓ Les {{ total_filtres }} contacts filtres seront inclus !
+            </span>
+          </div>
+          {% endif %}
         </div>
+
         <table class="wa-table">
           <thead>
             <tr>
@@ -134,17 +166,67 @@
   const selectPage = document.getElementById('select-page');
   const checks = Array.from(document.querySelectorAll('.contact-check:not(:disabled)'));
   const selectedCount = document.getElementById('selected-count');
+  const btnSelectAllFiltered = document.getElementById('btn-select-all-filtered');
+  const allFilteredNotice = document.getElementById('all-filtered-notice');
+  const selectAllFilteredInput = document.getElementById('select_all_filtered_input');
+  const btnSubmitCampaign = document.getElementById('btn-submit-campaign');
+  const msgInput = document.getElementById('message-template-input');
+  const btnSpinInsert = document.getElementById('btn-spin-insert');
 
   function updateSelectedCount() {
+    if (selectAllFilteredInput.value === '1') return;
     const total = checks.filter((item) => item.checked).length;
     selectedCount.textContent = `${total} selectionne${total > 1 ? 's' : ''}`;
   }
 
   selectPage.addEventListener('change', () => {
+    if (selectAllFilteredInput.value === '1') {
+      selectAllFilteredInput.value = '0';
+      if (allFilteredNotice) allFilteredNotice.style.display = 'none';
+      if (btnSelectAllFiltered) btnSelectAllFiltered.style.background = '';
+      btnSubmitCampaign.textContent = 'Creer campagne avec selection';
+    }
     checks.forEach((item) => item.checked = selectPage.checked);
     updateSelectedCount();
   });
-  checks.forEach((item) => item.addEventListener('change', updateSelectedCount));
+
+  checks.forEach((item) => item.addEventListener('change', () => {
+    if (selectAllFilteredInput.value === '1') {
+      selectAllFilteredInput.value = '0';
+      if (allFilteredNotice) allFilteredNotice.style.display = 'none';
+      if (btnSelectAllFiltered) btnSelectAllFiltered.style.background = '';
+      btnSubmitCampaign.textContent = 'Creer campagne avec selection';
+    }
+    updateSelectedCount();
+  }));
+
+  if (btnSelectAllFiltered) {
+    btnSelectAllFiltered.addEventListener('click', () => {
+      selectAllFilteredInput.value = '1';
+      allFilteredNotice.style.display = 'inline';
+      btnSelectAllFiltered.style.background = 'rgba(202, 138, 4, 0.2)';
+      selectedCount.textContent = '{{ total_filtres }} contact(s) filtres cibles';
+      btnSubmitCampaign.textContent = 'Creer campagne pour TOUS les {{ total_filtres }} contacts';
+      checks.forEach((item) => item.checked = true);
+    });
+  }
+
+  // Insertion de variables
+  document.querySelectorAll('.var-tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      msgInput.value += ' ' + tag.dataset.tag + ' ';
+      msgInput.focus();
+    });
+  });
+
+  // Insertion de template Spintax anti-spam
+  if (btnSpinInsert) {
+    btnSpinInsert.addEventListener('click', () => {
+      msgInput.value = "{salutation} {Avez-vous deja pense a|Saviez-vous qu'il est possible de} developper votre activite a {{ville}} avec E-Shelle ? Decouvrez comment nos partenaires trouvent plus de clients. Souhaitez-vous une presentation de 2 minutes ?";
+      msgInput.focus();
+    });
+  }
+
   updateSelectedCount();
 </script>
 {% endblock %}

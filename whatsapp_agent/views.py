@@ -21,7 +21,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .forms import CampagneForm
-from .models import Campagne, ContactWhatsApp, MessageEnvoi
+from .models import Campagne, ContactWhatsApp, ConversationWhatsApp, MessageEnvoi, MessageWhatsApp
 from .services import AI_PRESETS, WhatsAppService
 from .tasks import lancer_campagne_direct, lancer_campagne_task, recalculer_stats_campagne
 
@@ -71,19 +71,27 @@ def _creer_messages_campagne(campagne):
     """Prepare les lignes MessageEnvoi selon les filtres de la campagne."""
 
     campagne.messages.all().delete()
+    template_brut = campagne.message_template or ""
+    # Support du multi-variations si le texte contient le separateur ---VARIATION---
+    variantes = [v.strip() for v in template_brut.split("---VARIATION---") if v.strip()]
+    if not variantes:
+        variantes = [template_brut]
+
     contacts_whatsapp = campagne.destinataires_contacts.filter(
         consentement_confirme=True,
         desinscrit=False,
     ).order_by("nom", "numero")
     if contacts_whatsapp.exists():
         batch = []
-        for contact in contacts_whatsapp:
+        for idx, contact in enumerate(contacts_whatsapp):
+            tpl_choisi = variantes[idx % len(variantes)]
+            msg_final = WhatsAppService.personnaliser_message(tpl_choisi, contact=contact)
             batch.append(
                 MessageEnvoi(
                     campagne=campagne,
                     destinataire_nom=contact.nom or f"Contact WhatsApp {contact.numero}",
                     numero_whatsapp=contact.numero,
-                    message_final=_personnaliser_message_contact(campagne.message_template, contact),
+                    message_final=msg_final,
                 )
             )
         MessageEnvoi.objects.bulk_create(batch, batch_size=500)
@@ -96,32 +104,28 @@ def _creer_messages_campagne(campagne):
         campagne.filtre_date_inscription_depuis,
     )
     batch = []
+    idx = 0
     for user in contacts:
         if WhatsAppService.deja_contacte(user.whatsapp):
             continue
+        tpl_choisi = variantes[idx % len(variantes)]
+        msg_final = WhatsAppService.personnaliser_message(tpl_choisi, user=user)
         batch.append(
             MessageEnvoi(
                 campagne=campagne,
                 user=user,
                 numero_whatsapp=user.whatsapp,
-                message_final=WhatsAppService.personnaliser_message(campagne.message_template, user),
+                message_final=msg_final,
             )
         )
+        idx += 1
     MessageEnvoi.objects.bulk_create(batch, batch_size=500)
     recalculer_stats_campagne(campagne)
 
 
 def _personnaliser_message_contact(template, contact):
-    """Personnalise un message pour un contact WhatsApp importe."""
-
-    nom = (contact.nom or "").strip()
-    prenom = nom.split()[0] if nom else "Contact"
-    return (
-        template.replace("{{prenom}}", prenom)
-        .replace("{{nom}}", nom or prenom)
-        .replace("{{ville}}", (contact.ville or "").strip())
-        .replace("{{numero}}", contact.numero)
-    )
+    """Personnalise un message pour un contact WhatsApp importe avec fallback intelligent et Spintax."""
+    return WhatsAppService.personnaliser_message(template, contact=contact)
 
 
 @staff_required
@@ -174,15 +178,41 @@ def contacts_whatsapp(request):
 @staff_required
 @require_POST
 def creer_campagne_contacts(request):
-    """Cree une campagne depuis une selection manuelle de contacts WhatsApp."""
+    """Cree une campagne depuis une selection manuelle ou tous les contacts filtres."""
 
-    contact_ids = request.POST.getlist("contacts")
-    contacts = ContactWhatsApp.objects.filter(
-        id__in=contact_ids,
-        consentement_confirme=True,
-        desinscrit=False,
-    )
-    if not contact_ids or not contacts.exists():
+    select_all_filtered = request.POST.get("select_all_filtered") in ("1", "true", "on")
+    if select_all_filtered:
+        q = request.POST.get("filter_q", "").strip()
+        ville = request.POST.get("filter_ville", "").strip()
+        groupe = request.POST.get("filter_groupe", "").strip()
+        source = request.POST.get("filter_source", "").strip()
+
+        contacts = ContactWhatsApp.objects.filter(
+            consentement_confirme=True,
+            desinscrit=False,
+        )
+        if q:
+            contacts = contacts.filter(
+                Q(nom__icontains=q)
+                | Q(numero__icontains=q)
+                | Q(note__icontains=q)
+                | Q(groupe__icontains=q)
+            )
+        if ville:
+            contacts = contacts.filter(ville__icontains=ville)
+        if groupe:
+            contacts = contacts.filter(groupe__icontains=groupe)
+        if source:
+            contacts = contacts.filter(source=source)
+    else:
+        contact_ids = request.POST.getlist("contacts")
+        contacts = ContactWhatsApp.objects.filter(
+            id__in=contact_ids,
+            consentement_confirme=True,
+            desinscrit=False,
+        )
+
+    if not contacts.exists():
         messages.warning(request, "Selectionne au moins un contact autorise avant de creer une campagne.")
         return redirect("whatsapp_agent:wa_contacts")
 
@@ -255,6 +285,9 @@ def dashboard_campagnes(request):
             "taux_echec": taux_echec,
             "stats_villes": stats_villes,
             "stats_roles": stats_roles,
+            "total_conversations": ConversationWhatsApp.objects.count(),
+            "total_non_lus": ConversationWhatsApp.objects.filter(non_lus_count__gt=0).count(),
+            "total_interesses": ConversationWhatsApp.objects.filter(statut=ConversationWhatsApp.STATUT_INTERESSE).count(),
             "whatsapp_dry_run": settings.WHATSAPP_DRY_RUN,
             "whatsapp_config_ready": settings.WHATSAPP_CONFIG_READY,
         },
@@ -676,7 +709,7 @@ def api_import_contact(request):
 
 @csrf_exempt
 def webhook_meta(request):
-    """Webhook Meta: verification GET puis reception des statuts POST."""
+    """Webhook Meta: verification GET puis reception des statuts et reponses prospects POST."""
 
     if request.method == "GET":
         verify_token = request.GET.get("hub.verify_token")
@@ -716,24 +749,72 @@ def webhook_meta(request):
             value = change.get("value", {})
             if not isinstance(value, dict):
                 continue
+
+            # 1. Extraction des profils WhatsApp des contacts
+            profile_names = {}
+            for ct in value.get("contacts", []):
+                if isinstance(ct, dict):
+                    wa_id = ct.get("wa_id", "")
+                    p_name = ct.get("profile", {}).get("name", "")
+                    if wa_id and p_name:
+                        profile_names[wa_id] = p_name
+
+            # 2. Reception et enregistrement des reponses des prospects
             for incoming in value.get("messages", []):
-                if incoming.get("type") != "text":
+                if not isinstance(incoming, dict):
                     continue
-                text = (incoming.get("text", {}).get("body") or "").strip().lower()
-                if text not in {"stop", "arret", "arrêt", "desinscrire", "désinscrire", "unsubscribe"}:
+                from_raw = incoming.get("from", "")
+                numero = WhatsAppService.normaliser_numero(from_raw)
+                wa_msg_id = incoming.get("id", "")
+                msg_type = incoming.get("type", "text")
+                profile_name = profile_names.get(from_raw, "")
+
+                body_text = ""
+                media_url = ""
+                if msg_type == "text":
+                    body_text = (incoming.get("text", {}).get("body") or "").strip()
+                elif msg_type == "button":
+                    body_text = (incoming.get("button", {}).get("text") or "").strip()
+                elif msg_type == "interactive":
+                    interactive = incoming.get("interactive", {})
+                    if "button_reply" in interactive:
+                        body_text = interactive["button_reply"].get("title", "")
+                    elif "list_reply" in interactive:
+                        body_text = interactive["list_reply"].get("title", "")
+                elif msg_type in ["image", "audio", "document", "video"]:
+                    media_obj = incoming.get(msg_type, {})
+                    body_text = media_obj.get("caption", f"[{msg_type.upper()}]")
+                    media_url = media_obj.get("id", "")
+
+                text_lower = body_text.lower()
+
+                # Desinscription opt-out
+                if text_lower in {"stop", "arret", "arrêt", "desinscrire", "désinscrire", "unsubscribe"}:
+                    if numero:
+                        ContactWhatsApp.objects.filter(numero=numero).update(
+                            desinscrit=True,
+                            desinscrit_le=timezone.now(),
+                            consentement_confirme=False,
+                            mis_a_jour_le=timezone.now(),
+                        )
+                        get_user_model().objects.filter(whatsapp=numero).update(
+                            whatsapp_marketing_opt_in=False,
+                            whatsapp_marketing_opted_out=True,
+                        )
                     continue
-                numero = WhatsAppService.normaliser_numero(incoming.get("from", ""))
-                if numero:
-                    ContactWhatsApp.objects.filter(numero=numero).update(
-                        desinscrit=True,
-                        desinscrit_le=timezone.now(),
-                        consentement_confirme=False,
-                        mis_a_jour_le=timezone.now(),
+
+                # Message entrant normal (reponse du prospect)
+                if numero and (body_text or media_url):
+                    WhatsAppService.enregistrer_message_entrant(
+                        numero=numero,
+                        texte=body_text,
+                        whatsapp_msg_id=wa_msg_id,
+                        profile_name=profile_name,
+                        media_type=msg_type,
+                        media_url=media_url,
                     )
-                    get_user_model().objects.filter(whatsapp=numero).update(
-                        whatsapp_marketing_opt_in=False,
-                        whatsapp_marketing_opted_out=True,
-                    )
+
+            # 3. Statuts de remise des messages sortants
             for status in value.get("statuses", []):
                 message_id = status.get("id", "")
                 wa_status = status.get("status", "")
@@ -743,7 +824,270 @@ def webhook_meta(request):
                     if nouveau_statut == "echec":
                         update_data["erreur"] = str(status.get("errors", ""))
                     MessageEnvoi.objects.filter(whatsapp_message_id=message_id).update(**update_data)
+                    MessageWhatsApp.objects.filter(whatsapp_msg_id=message_id).update(statut=nouveau_statut)
                     for campagne in Campagne.objects.filter(messages__whatsapp_message_id=message_id).distinct():
                         recalculer_stats_campagne(campagne)
 
     return JsonResponse({"status": "ok"})
+
+
+@staff_required
+def inbox_whatsapp(request):
+    """Boite de reception (Inbox) en temps reel des reponses WhatsApp."""
+
+    q = request.GET.get("q", "").strip()
+    statut = request.GET.get("statut", "").strip()
+    groupe = request.GET.get("groupe", "").strip()
+    active_id = request.GET.get("conv", "").strip()
+
+    conversations = ConversationWhatsApp.objects.select_related("contact", "commercial_prospect", "assigne_a").order_by("-dernier_message_le", "-mis_a_jour_le")
+
+    if q:
+        conversations = conversations.filter(
+            Q(contact__nom__icontains=q)
+            | Q(contact__numero__icontains=q)
+            | Q(dernier_message_apercu__icontains=q)
+            | Q(notes__icontains=q)
+        )
+    if statut:
+        if statut == "non_lus":
+            conversations = conversations.filter(non_lus_count__gt=0)
+        else:
+            conversations = conversations.filter(statut=statut)
+    if groupe:
+        conversations = conversations.filter(contact__groupe__icontains=groupe)
+
+    total_convs = ConversationWhatsApp.objects.count()
+    total_non_lus = ConversationWhatsApp.objects.filter(non_lus_count__gt=0).count()
+    total_interesses = ConversationWhatsApp.objects.filter(statut=ConversationWhatsApp.STATUT_INTERESSE).count()
+    total_qualifies = ConversationWhatsApp.objects.filter(statut=ConversationWhatsApp.STATUT_QUALIFIE).count()
+
+    active_conv = None
+    if active_id and active_id.isdigit():
+        active_conv = conversations.filter(id=int(active_id)).first()
+    if not active_conv and conversations.exists():
+        active_conv = conversations.first()
+
+    messages_active = []
+    if active_conv:
+        messages_active = active_conv.messages.select_related("envoye_par").order_by("cree_le")
+        if active_conv.non_lus_count > 0:
+            active_conv.non_lus_count = 0
+            active_conv.save(update_fields=["non_lus_count"])
+
+    groupes_dispos = ContactWhatsApp.objects.exclude(groupe="").values_list("groupe", flat=True).distinct()[:15]
+
+    return render(
+        request,
+        "whatsapp_agent/inbox.html",
+        {
+            "conversations": conversations[:100],
+            "active_conv": active_conv,
+            "messages_active": messages_active,
+            "q": q,
+            "statut": statut,
+            "groupe": groupe,
+            "groupes_dispos": groupes_dispos,
+            "total_convs": total_convs,
+            "total_non_lus": total_non_lus,
+            "total_interesses": total_interesses,
+            "total_qualifies": total_qualifies,
+            "statuts_conv": ConversationWhatsApp.STATUTS,
+            "priorites_conv": ConversationWhatsApp.PRIORITES,
+            "whatsapp_dry_run": settings.WHATSAPP_DRY_RUN,
+            "whatsapp_config_ready": settings.WHATSAPP_CONFIG_READY,
+        },
+    )
+
+
+@staff_required
+def api_conversations_list(request):
+    """Retourne la liste des conversations en JSON pour auto-refresh."""
+    q = request.GET.get("q", "").strip()
+    statut = request.GET.get("statut", "").strip()
+
+    conversations = ConversationWhatsApp.objects.select_related("contact").order_by("-dernier_message_le")
+    if q:
+        conversations = conversations.filter(
+            Q(contact__nom__icontains=q) | Q(contact__numero__icontains=q) | Q(dernier_message_apercu__icontains=q)
+        )
+    if statut:
+        if statut == "non_lus":
+            conversations = conversations.filter(non_lus_count__gt=0)
+        else:
+            conversations = conversations.filter(statut=statut)
+
+    items = []
+    for c in conversations[:60]:
+        items.append({
+            "id": c.id,
+            "nom": c.contact.nom or f"Contact {c.contact.numero}",
+            "numero": c.contact.numero,
+            "ville": c.contact.ville or "",
+            "groupe": c.contact.groupe or "",
+            "statut": c.statut,
+            "statut_display": c.get_statut_display(),
+            "priorite": c.priorite,
+            "dernier_message": c.dernier_message_apercu or "",
+            "heure": c.dernier_message_le.strftime("%H:%M") if c.dernier_message_le else "",
+            "date": c.dernier_message_le.strftime("%d/%m") if c.dernier_message_le else "",
+            "non_lus": c.non_lus_count,
+        })
+    total_non_lus = ConversationWhatsApp.objects.filter(non_lus_count__gt=0).count()
+    return JsonResponse({"conversations": items, "total_non_lus": total_non_lus})
+
+
+@staff_required
+def api_conversation_detail(request, pk):
+    """Charge l'historique d'une conversation et efface les non-lus."""
+    conv = get_object_or_404(ConversationWhatsApp.objects.select_related("contact", "commercial_prospect"), pk=pk)
+    if conv.non_lus_count > 0:
+        conv.non_lus_count = 0
+        conv.save(update_fields=["non_lus_count"])
+
+    messages_list = []
+    for m in conv.messages.select_related("envoye_par").order_by("cree_le"):
+        messages_list.append({
+            "id": m.id,
+            "direction": m.direction,
+            "texte": m.texte,
+            "statut": m.statut,
+            "media_type": m.media_type,
+            "media_url": m.media_url,
+            "auteur": m.envoye_par.get_full_name() or m.envoye_par.username if m.envoye_par else "E-Shelle",
+            "heure": m.cree_le.strftime("%H:%M"),
+            "date": m.cree_le.strftime("%d/%m/%Y"),
+        })
+
+    contact = conv.contact
+    prospect_id = conv.commercial_prospect_id or None
+    prospect_nom = conv.commercial_prospect.nom if conv.commercial_prospect else ""
+
+    return JsonResponse({
+        "conversation": {
+            "id": conv.id,
+            "nom": contact.nom or f"Contact {contact.numero}",
+            "numero": contact.numero,
+            "ville": contact.ville or "",
+            "groupe": contact.groupe or "",
+            "source": contact.get_source_display(),
+            "statut": conv.statut,
+            "statut_display": conv.get_statut_display(),
+            "priorite": conv.priorite,
+            "notes": conv.notes,
+            "commercial_prospect_id": prospect_id,
+            "commercial_prospect_nom": prospect_nom,
+        },
+        "messages": messages_list,
+    })
+
+
+@staff_required
+@require_POST
+def api_envoyer_reponse(request, pk):
+    """Envoie une reponse directe via Meta WhatsApp Business."""
+    data = _json_body(request)
+    texte = (data.get("texte") or request.POST.get("texte", "")).strip()
+    if not texte:
+        return JsonResponse({"error": "Le message ne peut pas etre vide."}, status=400)
+
+    result = WhatsAppService.envoyer_message_conversation(pk, texte, auteur=request.user)
+    if result.get("success"):
+        return JsonResponse(result)
+    return JsonResponse(result, status=500 if not settings.WHATSAPP_DRY_RUN else 200)
+
+
+@staff_required
+@require_POST
+def api_generer_reponse_ia(request, pk):
+    """Genere une suggestion de reponse IA ideale selon le fil du prospect."""
+    suggestion = WhatsAppService.suggerer_reponse_ia(pk)
+    return JsonResponse({"suggestion": suggestion})
+
+
+@staff_required
+@require_POST
+def api_update_conversation_statut(request, pk):
+    """Met a jour le statut, les notes ou convertit en prospect commercial."""
+    conv = get_object_or_404(ConversationWhatsApp.objects.select_related("contact"), pk=pk)
+    data = _json_body(request)
+
+    statut = data.get("statut")
+    priorite = data.get("priorite")
+    notes = data.get("notes")
+    convertir_commercial = data.get("convertir_commercial") in (True, "true", "1")
+
+    fields = []
+    if statut and statut in dict(ConversationWhatsApp.STATUTS):
+        conv.statut = statut
+        fields.append("statut")
+    if priorite and priorite in dict(ConversationWhatsApp.PRIORITES):
+        conv.priorite = priorite
+        fields.append("priorite")
+    if notes is not None:
+        conv.notes = notes
+        fields.append("notes")
+
+    if convertir_commercial and not conv.commercial_prospect:
+        from commercial_agent.models import ProspectBusiness
+        prospect = ProspectBusiness.objects.create(
+            nom=conv.contact.nom or f"Prospect WhatsApp {conv.contact.numero}",
+            whatsapp=conv.contact.numero,
+            telephone=conv.contact.numero,
+            ville=conv.contact.ville or "",
+            source=ProspectBusiness.Source.IMPORT,
+            statut=ProspectBusiness.Statut.INTERESSE,
+            description=f"Prospect WhatsApp converti depuis l'Inbox E-Shelle. Groupe: {conv.contact.groupe or 'N/A'}",
+            notes=conv.notes,
+            cree_par=request.user,
+            assigne_a=request.user,
+        )
+        conv.commercial_prospect = prospect
+        fields.append("commercial_prospect")
+
+    if fields:
+        conv.save(update_fields=fields + ["mis_a_jour_le"])
+
+    return JsonResponse({
+        "success": True,
+        "statut": conv.statut,
+        "priorite": conv.priorite,
+        "commercial_prospect_id": conv.commercial_prospect_id,
+        "commercial_prospect_nom": conv.commercial_prospect.nom if conv.commercial_prospect else "",
+    })
+
+
+@staff_required
+@require_POST
+def api_generer_variations(request):
+    """Genere 5 variations IA du message pour eviter le spam et tester differents angles."""
+    data = _json_body(request)
+    segment = data.get("segment", "")
+    contexte = data.get("contexte", "")
+    variations = WhatsAppService.generer_variations_multiples_ia(segment, contexte, nb_variations=5)
+    return JsonResponse({"variations": variations})
+
+
+@staff_required
+@require_POST
+def api_simuler_message_entrant(request):
+    """Simulateur de message entrant pour tests et demonstrations en local."""
+    data = _json_body(request)
+    numero = data.get("numero", "+237699000000")
+    texte = data.get("texte", "Bonjour, je suis tres interesse par votre service E-Shelle ! Comment faire ?")
+    profile_name = data.get("profile_name", "Jean Prospect")
+
+    msg = WhatsAppService.enregistrer_message_entrant(
+        numero=numero,
+        texte=texte,
+        whatsapp_msg_id=f"sim-{int(time.time()*1000)}",
+        profile_name=profile_name,
+    )
+    if msg:
+        return JsonResponse({
+            "success": True,
+            "conversation_id": msg.conversation_id,
+            "contact_nom": msg.conversation.contact.nom,
+            "message": msg.texte,
+        })
+    return JsonResponse({"error": "Erreur simulation."}, status=400)

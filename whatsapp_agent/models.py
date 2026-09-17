@@ -193,3 +193,148 @@ class TemplateWhatsApp(models.Model):
 
     def __str__(self):
         return f"{self.nom} ({self.langue})"
+
+
+class ConversationWhatsApp(models.Model):
+    """Fil de discussion bidirectionnel avec un prospect/client WhatsApp."""
+
+    STATUT_NOUVEAU = "nouveau"
+    STATUT_EN_COURS = "en_cours"
+    STATUT_INTERESSE = "interesse"
+    STATUT_QUALIFIE = "qualifie"
+    STATUT_CONVERTI = "converti"
+    STATUT_FERME = "ferme"
+
+    STATUTS = [
+        (STATUT_NOUVEAU, "Nouveau"),
+        (STATUT_EN_COURS, "En cours"),
+        (STATUT_INTERESSE, "🔥 Intéressé"),
+        (STATUT_QUALIFIE, "⭐ Qualifié"),
+        (STATUT_CONVERTI, "✅ Converti / Vendu"),
+        (STATUT_FERME, "Archivé / Fermé"),
+    ]
+
+    PRIORITE_NORMALE = "normale"
+    PRIORITE_HAUTE = "haute"
+    PRIORITE_URGENTE = "urgente"
+
+    PRIORITES = [
+        (PRIORITE_NORMALE, "Normale"),
+        (PRIORITE_HAUTE, "Haute"),
+        (PRIORITE_URGENTE, "Urgente"),
+    ]
+
+    contact = models.ForeignKey(
+        ContactWhatsApp,
+        on_delete=models.CASCADE,
+        related_name="conversations",
+    )
+    statut = models.CharField(max_length=20, choices=STATUTS, default=STATUT_NOUVEAU, db_index=True)
+    priorite = models.CharField(max_length=20, choices=PRIORITES, default=PRIORITE_NORMALE, db_index=True)
+    dernier_message_apercu = models.TextField(blank=True)
+    dernier_message_le = models.DateTimeField(null=True, blank=True, db_index=True)
+    non_lus_count = models.PositiveIntegerField(default=0)
+
+    commercial_prospect = models.ForeignKey(
+        "commercial_agent.ProspectBusiness",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="conversations_whatsapp",
+    )
+    assigne_a = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="conversations_whatsapp_assignees",
+    )
+    derniere_campagne = models.ForeignKey(
+        Campagne,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="conversations_initiees",
+    )
+    notes = models.TextField(blank=True)
+    cree_le = models.DateTimeField(auto_now_add=True)
+    mis_a_jour_le = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-dernier_message_le", "-mis_a_jour_le"]
+        verbose_name = "Conversation WhatsApp"
+        verbose_name_plural = "Conversations WhatsApp"
+
+    def __str__(self):
+        return f"Chat avec {self.contact}"
+
+    @property
+    def a_des_non_lus(self):
+        return self.non_lus_count > 0
+
+
+class MessageWhatsApp(models.Model):
+    """Message individuel echange dans une conversation WhatsApp (entrant ou sortant)."""
+
+    DIRECTION_ENTRANT = "entrant"
+    DIRECTION_SORTANT = "sortant"
+
+    DIRECTIONS = [
+        (DIRECTION_ENTRANT, "Entrant (Prospect)"),
+        (DIRECTION_SORTANT, "Sortant (E-Shelle)"),
+    ]
+
+    STATUT_EN_ATTENTE = "en_attente"
+    STATUT_ENVOYE = "envoye"
+    STATUT_LIVRE = "livre"
+    STATUT_LU = "lu"
+    STATUT_RECU = "recu"
+    STATUT_ECHEC = "echec"
+
+    STATUTS = [
+        (STATUT_EN_ATTENTE, "En attente"),
+        (STATUT_ENVOYE, "Envoye"),
+        (STATUT_LIVRE, "Livre"),
+        (STATUT_LU, "Lu"),
+        (STATUT_RECU, "Recu"),
+        (STATUT_ECHEC, "Echec"),
+    ]
+
+    conversation = models.ForeignKey(
+        ConversationWhatsApp,
+        on_delete=models.CASCADE,
+        related_name="messages",
+    )
+    direction = models.CharField(max_length=10, choices=DIRECTIONS, default=DIRECTION_ENTRANT, db_index=True)
+    texte = models.TextField(blank=True)
+    whatsapp_msg_id = models.CharField(max_length=120, blank=True, db_index=True)
+    statut = models.CharField(max_length=20, choices=STATUTS, default=STATUT_RECU)
+
+    media_type = models.CharField(max_length=30, blank=True)
+    media_url = models.TextField(blank=True)
+
+    envoye_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="messages_whatsapp_envoyes",
+    )
+    campagne = models.ForeignKey(
+        Campagne,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="messages_inbox",
+    )
+    cree_le = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["cree_le"]
+        verbose_name = "Message WhatsApp (Chat)"
+        verbose_name_plural = "Messages WhatsApp (Chats)"
+
+    def __str__(self):
+        dir_label = "<-" if self.direction == self.DIRECTION_ENTRANT else "->"
+        return f"{dir_label} {self.conversation.contact.numero}: {self.texte[:40]}"
+

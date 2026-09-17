@@ -75,9 +75,17 @@
           <button class="wa-chip" type="button" data-preset="{{ key }}" data-segment="{{ preset.segment }}" data-context="{{ preset.contexte }}">{{ preset.label }}</button>
           {% endfor %}
         </div>
+        <div style="font-size:0.75rem; color:#86efac; display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; align-items:center;">
+          <span>Variables :</span>
+          <code style="background:#07120d; border:1px solid #1c452e; padding:2px 6px; border-radius:4px; cursor:pointer" class="var-tag" data-tag="&#123;&#123;salutation&#125;&#125;">&#123;&#123;salutation&#125;&#125;</code>
+          <code style="background:#07120d; border:1px solid #1c452e; padding:2px 6px; border-radius:4px; cursor:pointer" class="var-tag" data-tag="&#123;&#123;prenom&#125;&#125;">&#123;&#123;prenom&#125;&#125;</code>
+          <code style="background:#07120d; border:1px solid #1c452e; padding:2px 6px; border-radius:4px; cursor:pointer" class="var-tag" data-tag="&#123;&#123;ville&#125;&#125;">&#123;&#123;ville&#125;&#125;</code>
+          <code style="background:#07120d; border:1px solid #1c452e; padding:2px 6px; border-radius:4px; cursor:pointer" class="var-tag" data-tag="&#123;&#123;groupe&#125;&#125;">&#123;&#123;groupe&#125;&#125;</code>
+        </div>
         <div class="wa-field">{{ form.message_template.label_tag }}{{ form.message_template }}</div>
         <div class="wa-actions">
-          <button class="wa-btn gold" type="button" id="generate-ai">Generer avec l'IA E-Shelle</button>
+          <button class="wa-btn gold" type="button" id="generate-ai">Generer avec l'IA</button>
+          <button class="wa-btn ghost" type="button" id="generate-variations-ai" style="border-color:#22c55e; color:#86efac;">⚡ Generer 5 variantes Anti-Spam IA</button>
           <button class="wa-btn ghost" type="submit" name="action" value="draft">Sauvegarder brouillon</button>
           <button class="wa-btn validate" type="submit" name="action" value="validate">Valider la campagne</button>
         </div>
@@ -143,13 +151,34 @@
     button.textContent = "Generer avec l'IA E-Shelle";
   });
 
-  document.querySelectorAll('[data-preset]').forEach((button) => {
-    button.addEventListener('click', () => {
-      selectedPreset = button.dataset.preset;
-      roleInput.value = button.dataset.segment;
-      descInput.value = button.dataset.context;
-      document.querySelectorAll('[data-preset]').forEach((item) => item.style.borderColor = '#2f6b47');
-      button.style.borderColor = '#22c55e';
+  const btnVariations = document.getElementById('generate-variations-ai');
+  if (btnVariations) {
+    btnVariations.addEventListener('click', async () => {
+      btnVariations.disabled = true;
+      btnVariations.textContent = 'Generation de 5 variations IA...';
+      try {
+        const data = await postJson("{% url 'whatsapp_agent:wa_api_generer_variations' %}", {
+          segment: roleInput.value || 'utilisateurs E-Shelle',
+          contexte: descInput.value || 'Campagne publicitaire WhatsApp E-Shelle'
+        });
+        if (data.variations && data.variations.length > 0) {
+          messageInput.value = data.variations.join('\n\n---VARIATION---\n\n');
+          refreshPreview();
+        }
+      } catch (e) {
+        alert('Erreur lors de la generation des variations.');
+      } finally {
+        btnVariations.disabled = false;
+        btnVariations.textContent = '⚡ Generer 5 variantes Anti-Spam IA';
+      }
+    });
+  }
+
+  document.querySelectorAll('.var-tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      messageInput.value += ' ' + tag.dataset.tag + ' ';
+      messageInput.focus();
+      refreshPreview();
     });
   });
 </script>

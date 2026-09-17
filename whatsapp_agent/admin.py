@@ -1,6 +1,14 @@
 from django.contrib import admin, messages
 
-from .models import Campagne, ContactWhatsApp, MessageEnvoi, OutreachLog, TemplateWhatsApp
+from .models import (
+    Campagne,
+    ContactWhatsApp,
+    ConversationWhatsApp,
+    MessageEnvoi,
+    MessageWhatsApp,
+    OutreachLog,
+    TemplateWhatsApp,
+)
 from .tasks import lancer_campagne_task
 
 
@@ -35,6 +43,22 @@ class MessageEnvoiAdmin(admin.ModelAdmin):
     list_filter = ["statut", "campagne"]
     search_fields = ["numero_whatsapp", "user__username", "user__email", "whatsapp_message_id"]
     raw_id_fields = ["campagne", "user"]
+
+
+@admin.register(ConversationWhatsApp)
+class ConversationWhatsAppAdmin(admin.ModelAdmin):
+    list_display = ["contact", "statut", "priorite", "non_lus_count", "dernier_message_le", "assigne_a"]
+    list_filter = ["statut", "priorite", "dernier_message_le"]
+    search_fields = ["contact__nom", "contact__numero", "notes", "dernier_message_apercu"]
+    raw_id_fields = ["contact", "commercial_prospect", "assigne_a", "derniere_campagne"]
+
+
+@admin.register(MessageWhatsApp)
+class MessageWhatsAppAdmin(admin.ModelAdmin):
+    list_display = ["conversation", "direction", "statut", "whatsapp_msg_id", "cree_le"]
+    list_filter = ["direction", "statut", "cree_le"]
+    search_fields = ["texte", "whatsapp_msg_id", "conversation__contact__numero"]
+    raw_id_fields = ["conversation", "envoye_par", "campagne"]
 
 
 @admin.register(TemplateWhatsApp)
