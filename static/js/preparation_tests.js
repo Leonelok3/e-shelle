@@ -14,6 +14,8 @@
     var progressUrl = csrfInput.getAttribute("data-progress-url");
     var submitEoUrl = csrfInput.getAttribute("data-submit-eo-url");
     var submitEeUrl = csrfInput.getAttribute("data-submit-ee-url");
+    var explainUrl = csrfInput.getAttribute("data-explain-url");
+    var examCode = csrfInput.getAttribute("data-exam-code");
     var isAuthenticated = csrfInput.getAttribute("data-authenticated") === "1";
 
     function getCookie(name) {
@@ -135,6 +137,27 @@
       }
 
       if (exerciseId) sendProgress(exerciseId, selectedValue, isCorrect);
+      var explainButton = form.querySelector(".pt-explain-answer");
+      if (explainButton) {
+        explainButton.hidden = false;
+        explainButton.onclick = function () {
+          var output = form.querySelector(".learning-explanation");
+          if (!output || !explainUrl) return;
+          output.hidden = false;
+          if (!isAuthenticated) { output.textContent = "Connecte-toi pour recevoir l'explication du coach."; return; }
+          explainButton.disabled = true;
+          output.textContent = "Le coach analyse le corrigé…";
+          fetch(explainUrl, {method: "POST", credentials: "same-origin",
+            headers: {"Content-Type": "application/json", "X-CSRFToken": csrfToken || getCookie("csrftoken")},
+            body: JSON.stringify({exercise_id: exerciseId, selected: selectedValue})})
+            .then(readEvaluationResponse).then(function (response) {
+              output.textContent = response.httpOk && response.data.ok
+                ? (response.data.mode === "reference" ? "Aide du corrigé (IA indisponible)\n" : "Explication du coach IA\n") + response.data.explanation
+                : response.data.message || "L'explication est indisponible. Réessaie.";
+            }).catch(function () { output.textContent = "Connexion interrompue. Réessaie."; })
+            .finally(function () { explainButton.disabled = false; });
+        };
+      }
     }
 
     document.querySelectorAll(".pt-check-answer").forEach(function (button) {
@@ -182,7 +205,7 @@
           escapeHtml(data.transcript) +
           "</p></details>";
       }
-      return html;
+      return html + (typeof window !== "undefined" && window.EShelleLearning ? window.EShelleLearning.render(data) : "");
     }
 
     function initEoRecorders() {
@@ -193,6 +216,10 @@
         var submitBtn = card.querySelector(".pt-submit-eo");
         var resultBox = card.querySelector(".pt-eo-result");
         var exerciseId = card.getAttribute("data-exercise-id");
+        var savedFeedback = card.querySelector('script[type="application/json"]');
+        if (savedFeedback && resultBox) {
+          try { resultBox.innerHTML = renderEoResult(JSON.parse(savedFeedback.textContent)); resultBox.style.display = "block"; } catch (error) { /* A damaged old report must not block recording. */ }
+        }
 
         if (!recordBtn) return;
 
@@ -273,6 +300,7 @@
 
             var formData = new FormData();
             formData.append("exercise_id", exerciseId);
+            if (examCode) formData.append("exam", examCode);
             formData.append("audio", recordedBlob, "recording.webm");
 
             var originalLabel = submitBtn.textContent;
@@ -338,6 +366,7 @@
             html +=
               "<li><s>" + escapeHtml(err.original) + "</s> → <strong>" +
               escapeHtml(err.correction) + "</strong>" +
+              (err.kind === "style" ? " (suggestion de style)" : "") +
               (err.rule ? " — " + escapeHtml(err.rule) : "") +
               "</li>";
           } else {
@@ -352,7 +381,7 @@
           escapeHtml(data.corrected_version) +
           "</p></details>";
       }
-      return html;
+      return html + (typeof window !== "undefined" && window.EShelleLearning ? window.EShelleLearning.render(data) : "");
     }
 
     function initEeEditors() {
@@ -362,6 +391,11 @@
         var submitBtn = card.querySelector(".pt-submit-ee");
         var resultBox = card.querySelector(".pt-ee-result");
         var exerciseId = card.getAttribute("data-exercise-id");
+        var savedFeedback = card.querySelector('script[type="application/json"]');
+        if (savedFeedback && resultBox) {
+          try { resultBox.innerHTML = renderEeResult(JSON.parse(savedFeedback.textContent)); resultBox.style.display = "block"; } catch (error) { /* The editor remains usable. */ }
+        }
+        if (textarea && counter) counter.textContent = textarea.value.trim() ? textarea.value.trim().split(/\s+/).length : 0;
 
         if (textarea && counter) {
           textarea.addEventListener("input", function () {
@@ -395,7 +429,7 @@
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrfToken || getCookie("csrftoken"),
               },
-              body: JSON.stringify({ exercise_id: exerciseId, text: text }),
+              body: JSON.stringify({ exercise_id: exerciseId, text: text, exam: examCode }),
             })
               .then(readEvaluationResponse)
               .then(function (result) {

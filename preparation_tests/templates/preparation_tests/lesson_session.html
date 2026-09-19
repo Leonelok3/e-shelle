@@ -15,6 +15,7 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260226">
+<link rel="stylesheet" href="{% static 'css/learning-coach.css' %}?v=20260919">
 {% endblock %}
 
 {% block content %}
@@ -27,6 +28,7 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
     </span>
 
     <h1 class="pt-title">{{ lesson.title }}</h1>
+    <p><a href="{% url 'preparation_tests:learning_center' %}?exam={{ exam_code|lower }}" class="pt-btn-secondary">Mon entraînement IA · Objectif C2</a></p>
 
     {# ✅ PROGRESSION LIVE #}
     <div class="pt-progress-wrap" aria-label="Progression de la leçon">
@@ -152,6 +154,8 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
            data-progress-url="{% url 'preparation_tests:exercise_progress' %}"
            data-submit-eo-url="{% url 'preparation_tests:submit_eo' %}"
            data-submit-ee-url="{% url 'preparation_tests:submit_ee' %}"
+           data-explain-url="{% url 'preparation_tests:explain_answer' %}"
+           data-exam-code="{{ exam_code|lower }}"
            data-authenticated="{{ request.user.is_authenticated|yesno:'1,0' }}">
 
     <div class="pt-exercises-grid">
@@ -165,6 +169,7 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
       {% if section == "eo" %}
 
       <article class="pt-card pt-card--exercise pt-eo-card"
+               id="exercise-{{ exercise.id }}"
                data-exercise-id="{{ exercise.id }}">
 
         <header class="pt-exercise-header">
@@ -203,7 +208,8 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
           </button>
         </div>
 
-        <div class="pt-eo-result" style="display:none;"></div>
+        {% if row.last_feedback %}{{ row.last_feedback|json_script }}{% endif %}
+        <div class="pt-eo-result" role="status" style="display:none;"></div>
 
       </article>
 
@@ -213,6 +219,7 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
       {% elif section == "ee" %}
 
       <article class="pt-card pt-card--exercise pt-ee-card"
+               id="exercise-{{ exercise.id }}"
                data-exercise-id="{{ exercise.id }}">
 
         <header class="pt-exercise-header">
@@ -230,10 +237,12 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
 
         <div class="pt-ee-editor">
           <textarea
+            aria-label="Ma réponse au sujet {{ forloop.counter }}"
+            maxlength="15000"
             class="pt-ee-textarea"
             rows="11"
             placeholder="Rédigez votre réponse ici..."
-          ></textarea>
+          >{{ row.last_text }}</textarea>
           <div class="pt-word-counter">
             <span class="pt-word-count">0</span> mot(s)
           </div>
@@ -245,7 +254,8 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
           </button>
         </div>
 
-        <div class="pt-ee-result" style="display:none;"></div>
+        {% if row.last_feedback %}{{ row.last_feedback|json_script }}{% endif %}
+        <div class="pt-ee-result" role="status" style="display:none;"></div>
 
       </article>
 
@@ -308,6 +318,8 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
           </div>
 
           <p class="pt-feedback" hidden></p>
+          <button type="button" class="pt-btn-secondary pt-explain-answer" hidden>Comprendre ma réponse avec l'IA</button>
+          <div class="learning-explanation" role="status" hidden></div>
         </form>
 
       </article>
@@ -401,6 +413,8 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
           </div>
 
           <p class="pt-feedback" hidden></p>
+          <button type="button" class="pt-btn-secondary pt-explain-answer" hidden>Comprendre ma réponse avec l'IA</button>
+          <div class="learning-explanation" role="status" hidden></div>
         </form>
 
       </article>
@@ -419,5 +433,6 @@ audio, questions corrigées et entraînement progressif CECR avec E-Shelle.
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/preparation_tests.js' %}?v=20260919-ai" defer></script>
+<script src="{% static 'js/learning-feedback.js' %}?v=20260919" defer></script>
+<script src="{% static 'js/preparation_tests.js' %}?v=20260919-coach" defer></script>
 {% endblock %}

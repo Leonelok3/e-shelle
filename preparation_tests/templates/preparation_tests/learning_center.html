@@ -1,0 +1,66 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}Pack E-Shelle · Objectif C2, mon entraînement IA{% endblock %}
+{% block body_class %}preparation-tests{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}"><link rel="stylesheet" href="{% static 'css/learning-coach.css' %}">{% endblock %}
+{% block content %}
+<main class="learning-shell">
+  <section class="learning-hero">
+    <span class="learning-kicker">Pack E-Shelle · TCF & TEF Canada</span>
+    <h1>Objectif C2.<br>Chaque erreur devient un prochain pas.</h1>
+    <p>Entraîne-toi, comprends tes erreurs et améliore ta réponse avec ton coach IA. Travaille les quatre compétences, puis prépare les étapes de ton projet Canada.</p>
+    <nav class="learning-tabs" aria-label="Mon examen">
+      <a href="?exam=tcf" {% if exam_code == 'tcf' %}aria-current="page"{% endif %}>TCF Canada</a>
+      <a href="?exam=tef" {% if exam_code == 'tef' %}aria-current="page"{% endif %}>TEF Canada</a>
+      <a href="{% url 'preparation_tests:ai_coach' %}">Poser une question au coach</a>
+    </nav>
+  </section>
+  <div class="learning-grid">
+    <form method="post" class="learning-card learning-card--wide">
+      {% csrf_token %}<label for="target-level"><strong>Mon niveau de travail actuel</strong></label>
+      <select id="target-level" name="target_level" style="margin:0 12px;padding:8px;">
+        {% for level in levels %}<option value="{{ level }}" {% if level == target_level %}selected{% endif %}>{{ level }}</option>{% endfor %}
+      </select><button type="submit" class="pt-btn-secondary">Adapter mes exercices</button>
+      <p class="learning-note">Choisis le niveau auquel tu peux déjà répondre. Consolide-le avant de passer au suivant ; viser C2 commence par un travail adapté à aujourd'hui.</p>
+    </form>
+    <section class="learning-card learning-card--focus">
+      <p class="learning-kicker" style="color:#096a51">Ma séance · environ 25 minutes</p>
+      <h2>{{ focus_title }}</h2><p>{{ focus_technique }}</p>
+      <p class="learning-note">{% if has_personal_focus %}Priorité issue de tes dernières corrections sur cet examen.{% else %}Point de départ conseillé. Après ta première correction, cette priorité s'adaptera à ton travail.{% endif %}</p>
+      <div class="learning-session"><span>01</span><div><strong>5 min · Comprendre</strong>Relis une correction et reformule la règle sans regarder.</div></div>
+      <div class="learning-session"><span>02</span><div><strong>15 min · Pratiquer</strong>Fais le mini-exercice du coach puis reprends ta réponse.</div></div>
+      <div class="learning-session"><span>03</span><div><strong>5 min · Comparer</strong>Soumets ta nouvelle version et vérifie le critère travaillé. Reviens demain, puis dans trois jours.</div></div>
+    </section>
+    <section class="learning-card">
+      <h2>Mes quatre compétences</h2>
+      {% for item in next_lessons %}<div class="learning-session"><span>{{ item.skill }}</span><div>
+        <strong>{{ item.reason }}</strong>{% if item.lesson %}<a href="{{ item.url }}">{{ item.lesson.title }} · {{ item.lesson.level }}</a>
+        {% else %}<p>Les exercices de cette compétence seront proposés dès leur publication.</p>{% endif %}
+      </div></div>{% endfor %}
+      <p><a href="{% url 'preparation_tests:exam_format_hub' exam_code %}">M'entraîner avec un examen blanc →</a></p>
+    </section>
+    <section class="learning-card learning-card--wide">
+      <h2>Mon carnet de corrections</h2><p class="learning-note">Tes dernières productions et leurs actions de progrès. Les scores servent à travailler ; ils ne certifient pas un niveau C2.</p>
+      {% for item in history %}<details class="learning-history"><summary><strong>{{ item.skill }} · {{ item.title }}</strong> · {{ item.score|floatformat:0 }}/100<br><time>{{ item.created_at|date:"d/m/Y H:i" }}</time></summary>
+        <p>{{ item.feedback }}</p>
+        {% for priority in item.coaching.priorities %}<div class="learning-priority"><h3>{{ priority.diagnosis }}</h3>
+          {% if priority.evidence %}<blockquote>{{ priority.evidence }}</blockquote>{% endif %}
+          <p><strong>Technique :</strong> {{ priority.action }}</p><p><strong>Exercice :</strong> {{ priority.drill }}</p>
+          <details><summary>Vérifier mon travail</summary><p>{{ priority.success_check }}</p></details></div>{% endfor %}
+        <p>{{ item.coaching.assessment_note }}</p><a href="{{ item.url }}">Reprendre cet exercice et améliorer ma réponse →</a>
+      </details>{% empty %}<p>Ton carnet est prêt. Commence par une production écrite ou orale : ta correction et tes techniques d'amélioration apparaîtront ici.</p>{% endfor %}
+    </section>
+    <section class="learning-card"><h2>Les repères du {{ format.name }}</h2>
+      <p><strong>Compréhension orale :</strong> {{ format.co }}</p><p><strong>Compréhension écrite :</strong> {{ format.ce }}</p>
+      <p><strong>Expression écrite :</strong> {{ format.ee }}</p><p><strong>Expression orale :</strong> {{ format.eo }}</p>
+      <p class="learning-note">Vérifiés le 19 septembre 2026. Les séances E-Shelle peuvent être plus courtes et cibler une seule compétence.</p>
+      <a href="{{ format.source }}" target="_blank" rel="noopener">Consulter le format auprès de l'organisateur</a>
+    </section>
+    <section class="learning-card"><h2>Mon projet Canada</h2>
+      <ol><li>Préparer un test reconnu et conserver les résultats de chaque compétence.</li><li>Vérifier les critères du programme et préparer les justificatifs d'études et d'expérience.</li><li>Évaluer son dossier avec les outils officiels avant toute démarche.</li></ol>
+      <p><a href="{% url 'canada_resume:diagnostic' %}">Construire ma feuille de route Canada</a></p>
+      <p><a href="{% url 'canada_resume:dashboard' %}">Préparer mon CV et mes expériences</a></p>
+      <p class="learning-note">Le niveau CECR travaillé ici ne se convertit pas automatiquement en NCLC. La préparation ne garantit ni un score d'examen ni une invitation à immigrer.</p>
+    </section>
+  </div>
+</main>
+{% endblock %}

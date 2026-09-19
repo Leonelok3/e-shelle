@@ -611,6 +611,8 @@ WHATSAPP_CONFIG_READY = bool(
     and WHATSAPP_APP_SECRET
 )
 WHATSAPP_DEFAULT_TEMPLATE = os.getenv("WHATSAPP_DEFAULT_TEMPLATE", "deutsch_space_decouverte")
+WHATSAPP_TEMPLATE_LANGUAGE = os.getenv("WHATSAPP_TEMPLATE_LANGUAGE", "fr")
+WHATSAPP_FORCE_TEMPLATE = os.getenv("WHATSAPP_FORCE_TEMPLATE", "False").lower() in ("1", "true", "yes")
 
 # ── Celery — Broker & Backend ──────────────────────────────────────
 CELERY_BROKER_URL         = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")

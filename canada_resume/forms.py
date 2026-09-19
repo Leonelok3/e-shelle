@@ -2,6 +2,11 @@ from django import forms
 from .models import CanadaCVProfile, CanadaCVExperience, CanadaCVEducation, CanadaCVLanguage, CanadaImmigrationProfile
 
 class CanadaImmigrationProfileForm(forms.ModelForm):
+    age = forms.IntegerField(min_value=18, max_value=100, label="Âge")
+    work_experience_years = forms.IntegerField(min_value=0, max_value=60, label="Années d'expérience hors Canada")
+    tcf_level = forms.ChoiceField(choices=[(level, level + " — niveau de travail déclaré")
+                                         for level in ("A1", "A2", "B1", "B2", "C1", "C2")],
+                                 label="Niveau de français déclaré (sans équivalence NCLC automatique)")
     class Meta:
         model = CanadaImmigrationProfile
         fields = ["age", "education_level", "work_experience_years", "tcf_level", "has_lmia_job"]

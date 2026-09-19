@@ -101,6 +101,21 @@ class Campagne(models.Model):
         return round((self.total_envoyes + self.total_echecs) * 100 / self.total_destinataires)
 
 
+class WhatsAppTestSend(models.Model):
+    """Delivery receipts for individual tests, excluded from campaign recipients."""
+
+    campagne = models.ForeignKey(Campagne, on_delete=models.CASCADE, related_name="tests_envoi")
+    numero = models.CharField(max_length=20)
+    statut = models.CharField(max_length=20, default="en_attente")
+    whatsapp_message_id = models.CharField(max_length=200, blank=True, db_index=True)
+    erreur = models.TextField(blank=True)
+    cree_le = models.DateTimeField(auto_now_add=True)
+    mis_a_jour_le = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-cree_le"]
+
+
 class MessageEnvoi(models.Model):
     """Message personnalise envoye dans une campagne."""
 
@@ -337,4 +352,3 @@ class MessageWhatsApp(models.Model):
     def __str__(self):
         dir_label = "<-" if self.direction == self.DIRECTION_ENTRANT else "->"
         return f"{dir_label} {self.conversation.contact.numero}: {self.texte[:40]}"
-

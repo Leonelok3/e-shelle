@@ -64,7 +64,7 @@ class WhatsAppService:
     """Services metier pour l'agent WhatsApp E-Shelle."""
 
     @staticmethod
-    def envoyer_message(numero: str, message: str, template_name: str = "", template_params: list = None) -> dict:
+    def envoyer_message(numero: str, message: str, template_name: str = "", template_params: list = None, template_language: str = "") -> dict:
         """
         Envoie un message via l'API Meta WhatsApp Business.
         Si un template_name est spécifié ou si le message commence par 'template:',
@@ -73,7 +73,7 @@ class WhatsAppService:
 
         if template_name or (message and message.strip().startswith("template:")):
             tpl = template_name or message.strip().replace("template:", "").strip()
-            return WhatsAppService.envoyer_template(numero, tpl, body_params=template_params)
+            return WhatsAppService.envoyer_template(numero, tpl, language_code=template_language or None, body_params=template_params)
 
         # Si un template par défaut est configuré dans Django et qu'on fait de l'outreach froid
         default_tpl = getattr(settings, "WHATSAPP_DEFAULT_TEMPLATE", "")
@@ -125,7 +125,7 @@ class WhatsAppService:
             return {"success": False, "message_id": "", "erreur": str(exc)}
 
     @staticmethod
-    def envoyer_template(numero: str, template_name: str, language_code: str = "fr", body_params: list = None) -> dict:
+    def envoyer_template(numero: str, template_name: str, language_code: str = None, body_params: list = None) -> dict:
         """
         Envoie un modèle de message validé par Meta (Template).
         Obligatoire pour contacter un prospect qui n'a pas écrit au numéro dans les dernières 24h.
@@ -145,6 +145,11 @@ class WhatsAppService:
                 "erreur": "Configuration Meta incomplete: WHATSAPP_TOKEN ou WHATSAPP_PHONE_ID manquant.",
             }
 
+        if language_code is None:
+            language_code = "en_US" if template_name.strip() == "hello_world" else getattr(settings, "WHATSAPP_TEMPLATE_LANGUAGE", "fr")
+        # Meta's sample has no body placeholders, including during campaign sends.
+        if template_name.strip() == "hello_world":
+            body_params = []
         template_payload = {
             "name": template_name.strip(),
             "language": {"code": language_code},

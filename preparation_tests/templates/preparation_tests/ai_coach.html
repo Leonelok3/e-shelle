@@ -3,7 +3,7 @@
 
 {% block body_class %}preparation-tests{% endblock %}
 
-{% block title %}Coach IA – TCF – E-Shelle{% endblock %}
+{% block title %}Coach IA – {{ exam_label }} Canada – E-Shelle{% endblock %}
 
 {% block meta %}
 <meta name="description" content="Ton coach IA de français sur E-Shelle : plan de travail personnalisé, exercices TCF, explication de grammaire et préparation officielle TCF Canada.">
@@ -82,12 +82,12 @@
 
   <div class="ep-hero">
     <p class="ep-hero-kicker">E-Shelle · TCF · Coach IA</p>
-    <h1>Ton coach <span>IA de Français (TCF)</span></h1>
-    <p>Pose tes questions, demande un plan de travail personnalisé, des exercices TCF, des explications de grammaire, de vocabulaire ou des conseils pour les épreuves de l'examen officiel TCF.</p>
+    <h1>Ton coach <span>IA de français · {{ exam_label }}</span></h1>
+    <p>Comprends tes erreurs, travaille une technique puis réessaie. Ton coach propose des exercices originaux adaptés à ton objectif TCF ou TEF Canada.</p>
   </div>
 
   <div class="ep-quick">
-    <a href="{% url 'preparation_tests:tcf_hub' %}" class="ep-quick-link">🏠 Hub TCF</a>
+    <a href="{% url 'preparation_tests:learning_center' %}" class="ep-quick-link">Mon carnet et mon entraînement</a>
     <a href="{% url 'preparation_tests:dashboard_global' %}" class="ep-quick-link">📊 Progression</a>
   </div>
 
@@ -97,16 +97,17 @@
     <div>
       <div class="ep-card">
         <p class="ep-card-title">Profil & Niveau</p>
-        <div class="ep-profile-stat"><span>Niveau visé</span><strong>{{ user.profile.level|default:"B1" }}</strong></div>
+        <div class="ep-profile-stat"><span>Niveau travaillé</span><strong>{{ target_level }}</strong></div>
         <div class="ep-profile-stat"><span>Statut</span><strong>{% if is_pro %}Premium{% else %}Gratuit{% endif %}</strong></div>
+        {% if not is_pro %}<p>Messages disponibles aujourd'hui : <strong id="coach-messages-left">{{ messages_left }}</strong></p>{% endif %}
       </div>
 
       <div class="ep-card">
-        <p class="ep-card-title">🇨🇦 Spécial Score C1 / C2</p>
-        <button class="ep-preset-btn" onclick="setPreset('Voici ma rédaction pour que tu l\'évalues selon la grille TCF Canada (Donne-moi une note NCLC estimée et réécris-la au format C2) :\n\n[COLLE TON TEXTE ICI]')">📝 Évaluer ma production (Score & Correction C2)</button>
-        <button class="ep-preset-btn" onclick="setPreset('Donne-moi 10 expressions idiomatiques et structures grammaticales complexes indispensables pour viser le niveau C2 à l\'oral.')">🗣 Formules C2 pour l'Oral</button>
+        <p class="ep-card-title">Objectif C2 · Une technique à la fois</p>
+        <button class="ep-preset-btn" onclick="setPreset('Analyse mon texte : cite les erreurs réelles, explique une règle et propose un exercice ciblé. Ne donne pas de score officiel ni de NCLC.\n\n[COLLE TON TEXTE ICI]')">Comprendre et améliorer ma production</button>
+        <button class="ep-preset-btn" onclick="setPreset('Propose un exercice oral court pour apprendre à nuancer un avis : idée, raison, exemple et objection. Donne un critère pour vérifier ma réponse.')">Nuancer mon opinion à l’oral</button>
         <button class="ep-preset-btn" onclick="setPreset('Quels sont les pièges grammaticaux et les fautes récurrentes à éviter au niveau C1/C2 pour ne pas perdre de points ?')">⚠️ Pièges C1/C2 à éviter</button>
-        <button class="ep-preset-btn" onclick="setPreset('Donne-moi un sujet d\'Expression Écrite Tâche 3 (comparaison de deux points de vue) et explique-moi comment construire un plan parfait C2.')">✍️ TCF Écrit Tâche 3 : Plan C2</button>
+        <button class="ep-preset-btn" onclick="setPreset('Propose une tâche originale adaptée à mon examen TCF ou TEF et à mon niveau de travail. Précise la consigne, le temps, la longueur attendue et une méthode. Attends ma réponse avant de corriger.')">Une tâche guidée pour mon examen</button>
       </div>
 
       <div class="ep-card" style="border-left: 4px solid #0A0A0A; background: #f8fafc;">
@@ -146,6 +147,7 @@
   const userInput = document.getElementById('user-input');
   const sendBtn = document.getElementById('send-btn');
   let history = [];
+  let quotaReached = false;
 
   function appendMessage(role, text) {
     const wrapper = document.createElement('div');
@@ -160,7 +162,7 @@
 
   async function sendMessage() {
     const text = userInput.value.trim();
-    if (!text) return;
+    if (!text || sendBtn.disabled || quotaReached) return;
     appendMessage('user', text);
     history.push({role: 'user', content: text});
     userInput.value = '';
@@ -169,28 +171,32 @@
     try {
       const response = await fetch("{% url 'preparation_tests:ai_coach_api' %}", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({message: text, history: history})
+        headers: {"Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}"},
+        body: JSON.stringify({message: text, history: history.slice(0, -1)})
       });
       const data = await response.json();
-      if (data.reply) {
+      if (response.status === 403 && data.error === "subscription_required") {
+        appendMessage('assistant', data.reply);
+        quotaReached = true;
+        history.pop();
+        userInput.value = text;
+      } else if (response.ok && data.reply) {
         appendMessage('assistant', data.reply);
         history.push({role: 'assistant', content: data.reply});
-        {% if not is_pro %}
-        setTimeout(() => { window.location.reload(); }, 1500);
-        {% endif %}
-      } else if (data.error === "subscription_required") {
-        appendMessage('assistant', "⚠️ Limite atteinte : " + data.reply);
-        userInput.disabled = true;
-        userInput.placeholder = "Abonnez-vous pour continuer à chatter avec le coach IA.";
-        sendBtn.disabled = true;
-      } else if (data.error) {
+        const remaining = document.getElementById('coach-messages-left');
+        if (remaining && data.messages_left !== null) remaining.textContent = data.messages_left;
+        quotaReached = data.messages_left === 0;
+      } else {
         appendMessage('assistant', "Erreur : " + (data.reply || data.error));
+        history.pop();
+        userInput.value = text;
       }
     } catch (e) {
       appendMessage('assistant', "Une erreur est survenue lors de l'appel au coach IA.");
+      history.pop();
+      userInput.value = text;
     } finally {
-      sendBtn.disabled = false;
+      sendBtn.disabled = quotaReached;
       sendBtn.innerText = '▶ Envoyer';
     }
   }

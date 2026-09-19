@@ -623,26 +623,15 @@ def immigration_diagnostic(request):
         if form.is_valid():
             p = form.save(commit=False)
             
-            # Calcul du score CRS
-            p.crs_score = _calculate_crs(
-                p.age,
-                p.education_level,
-                p.work_experience_years,
-                p.tcf_level,
-                p.has_lmia_job
-            )
+            # This short form cannot establish CRS: do not invent a score.
+            p.crs_score = 0
             
             # Appel IA pour la feuille de route
             from ai_engine.services.llm_service import call_llm
+            from .guidance import GUIDANCE_CONTEXT, ROADMAP_PREFIX, local_roadmap
             system_prompt = (
-                "Tu es un consultant agréé en immigration pour le Canada (CRIC), bienveillant, rigoureux et stratégique.\n"
-                "Analyse le profil du candidat, son score CRS obtenu sur l'Entrée Express et rédige une feuille de route "
-                "sur mesure en français. Sois très constructif.\n"
-                "RÈGLES DE CONSEIL :\n"
-                "- Si le candidat n'a pas atteint le niveau C1/C2 (CLB 9+) en français (TCF), insiste sur le fait qu'il s'agit du levier le plus important : obtenir un C1/C2 lui donne un bonus massif de points (le bonus francophone Hors-Québec de 50 points + points de compétences transférables).\n"
-                "- Encourage-le à s'entraîner sérieusement grâce aux leçons et examens blancs du TCF de notre plateforme.\n"
-                "- Explique comment optimiser son profil (obtenir une EIMT via nos offres d'emploi Canada, passer l'anglais IELTS, etc.).\n"
-                "Rends le texte clair et structuré en rubriques."
+                GUIDANCE_CONTEXT + "\nPropose une feuille de route en français adaptée au profil déclaré. "
+                "Intègre un objectif linguistique réaliste et une action à faire cette semaine."
             )
             
             candidate_details = (
@@ -651,111 +640,35 @@ def immigration_diagnostic(request):
                 f"Expérience de travail à l'étranger : {p.work_experience_years} ans\n"
                 f"Niveau de Français (TCF) : {p.get_tcf_level_display()}\n"
                 f"Offre d'emploi approuvée par EIMT : {'Oui' if p.has_lmia_job else 'Non'}\n"
-                f"Score CRS (Express Entry) calculé : {p.crs_score} points"
+                "Résultats officiels par compétence et autres critères CRS : non renseignés."
             )
             
             try:
-                p.ai_roadmap = call_llm(system_prompt, candidate_details)
+                p.ai_roadmap = ROADMAP_PREFIX + call_llm(system_prompt, candidate_details)
             except Exception as e:
                 log.error(f"Error calling LLM for CRS roadmap: {e}")
-                from ai_engine.services.local_content import canada_guidance
-                p.ai_roadmap = canada_guidance(candidate_details)
+                p.ai_roadmap = ROADMAP_PREFIX + local_roadmap()
                 
             p.save()
-            messages.success(request, "Votre diagnostic Express Entry IA a été mis à jour avec succès !")
+            messages.success(request, "Votre feuille de route de préparation Canada a été mise à jour.")
             return redirect("canada_resume:diagnostic")
     else:
         form = CanadaImmigrationProfileForm(instance=profile)
 
+    from .guidance import SOURCES, REVIEWED_ON, ROADMAP_PREFIX
+    roadmap = profile.ai_roadmap[len(ROADMAP_PREFIX):] if profile.ai_roadmap.startswith(ROADMAP_PREFIX) else ""
     return render(request, "canada_resume/diagnostic.html", {
         "profile": profile,
         "form": form,
+        "roadmap": roadmap,
+        "guidance_sources": SOURCES,
+        "guidance_reviewed_on": REVIEWED_ON,
     })
 
 
 def _calculate_crs(age, education, experience, french_level, has_lmia):
-    score = 0
-    
-    # 1. Âge (maximum 110 points de 20 à 29 ans)
-    if 20 <= age <= 29:
-        score += 110
-    elif age == 18:
-        score += 99
-    elif age == 19:
-        score += 105
-    elif age == 30:
-        score += 105
-    elif age == 31:
-        score += 99
-    elif age == 32:
-        score += 94
-    elif age == 33:
-        score += 88
-    elif age == 34:
-        score += 83
-    elif age == 35:
-        score += 77
-    elif age == 36:
-        score += 72
-    elif age == 37:
-        score += 66
-    elif age == 38:
-        score += 61
-    elif age == 39:
-        score += 55
-    elif age == 40:
-        score += 50
-    elif age == 41:
-        score += 35
-    elif age == 42:
-        score += 25
-    elif age == 43:
-        score += 15
-    elif age == 44:
-        score += 5
-    else:
-        score += 0
-
-    # 2. Scolarité (maximum 150 points)
-    edu_points = {
-        "doctorate": 150,
-        "master": 135,
-        "two_degrees": 128,
-        "bachelor": 120,
-        "two_year": 98,
-        "one_year": 90,
-        "high_school": 30,
-    }
-    score += edu_points.get(education, 30)
-
-    # 3. Expérience professionnelle à l'étranger (maximum 25 points)
-    if experience >= 3:
-        score += 25
-    elif experience == 2:
-        score += 23
-    elif experience == 1:
-        score += 15
-    else:
-        score += 0
-
-    # 4. Compétences linguistiques en Français (1ère langue officielle) + Bonus francophone
-    # C1/C2 = CLB 9+. Donne de gros points de langue de base + bonus CRS Express Entry de 50 points.
-    if french_level in ("C1", "C2"):
-        score += 124  # Langue de base CLB 9/10
-        score += 50   # Bonus francophone hors Québec
-    elif french_level == "B2":
-        score += 88   # Langue de base CLB 7/8
-        score += 25   # Bonus partiel
-    elif french_level == "B1":
-        score += 48
-    else:
-        score += 0
-
-    # 5. Offre d'emploi reservée EIMT
-    if has_lmia:
-        score += 50
-
-    return score
+    """Deprecated: this incomplete, self-declared profile cannot establish CRS."""
+    return None
 
 
 def programs_hub(request):
@@ -873,14 +786,15 @@ def immigration_coach_api(request):
     # Call LLM
     from ai_engine.services.llm_service import call_llm
     
+    from .guidance import GUIDANCE_CONTEXT
     system_prompt = (
         "Tu es l'expert en immigration du Canada d'E-Shelle. Ton rôle est de conseiller "
         "les candidats à l'immigration sur toutes les procédures officielles basées sur le site "
         "du gouvernement du Canada (Canada.ca / IRCC). Réponds de façon précise, chaleureuse, professionnelle et structurée (utilises du gras et listes si besoin). "
         "Mentionne les programmes officiels : Entrée Express (FSTP, FSWP, CEC), Arrima (Québec), PNP (Candidats des Provinces), "
         "Permis d'études, PVT, ou Visa visiteur. Conseille toujours de faire évaluer son éligibilité avec "
-        "notre Calculateur CRS E-Shelle."
-    )
+        "les outils officiels IRCC."
+    ) + "\n" + GUIDANCE_CONTEXT
     
     # Format convo history
     prompt_builder = []
@@ -895,8 +809,8 @@ def immigration_coach_api(request):
         reply = call_llm(system_prompt, user_prompt)
         return JsonResponse({"reply": reply.strip()})
     except Exception as e:
-        from ai_engine.services.local_content import canada_guidance
-        reply = canada_guidance(user_message)
+        from .guidance import local_roadmap
+        reply = local_roadmap()
         return JsonResponse({'reply': reply, 'mode': 'local'})
 
 

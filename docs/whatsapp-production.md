@@ -1,5 +1,32 @@
 # E-Shelle - WhatsApp reel en production
 
+## Diagnostic et correctif du 19 septembre 2026
+
+Le diagnostic local constate `WHATSAPP_DRY_RUN=True`, sans token ni Phone Number ID. Cela ne permet pas de conclure sur la configuration du site en ligne. L'accès SSH configuré a refusé l'authentification ; aucun message réel ni lancement de campagne n'a été effectué pendant cet audit.
+
+Le bouton de test conserve maintenant les commandes `template:nom`, permet de choisir explicitement un modèle, sa langue et ses paramètres de corps (liste JSON). `hello_world` utilise `en_US` et aucun paramètre. Un modèle personnalisé doit utiliser le nom exact approuvé dans Meta : vérifier notamment `deutsch_space_decouvert` visible sur la capture, alors que la valeur locale est `deutsch_space_decouverte`. Le modèle immigration visible sur la capture est encore « In review ».
+
+Les tests sont enregistrés séparément des destinataires de campagne. L'acceptation HTTP n'est plus présentée comme une livraison : les webhooks signés mettent à jour le suivi et conservent les erreurs asynchrones, par exemple 131047. La page de campagne affiche les cinq derniers tests et leurs erreurs. Actualiser la page pour suivre la livraison. Les messages de campagne en attente ne sont pas relancés automatiquement par ce correctif.
+
+Avant déploiement de ce correctif, appliquer la migration additive `whatsapp_agent.0009_whatsapp_test_delivery` selon la procédure du projet. Elle crée uniquement la table de suivi des tests. Cette migration n'a pas été appliquée à la production pendant l'audit.
+
+Diagnostic serveur en lecture seule, sans affichage des secrets :
+
+```bash
+python manage.py check_whatsapp_delivery --campaign-id 25 --check-meta --check-workers
+# Ajouter --waba-id IDENTIFIANT_DU_COMPTE_WHATSAPP pour vérifier les noms, langues et statuts des modèles.
+```
+
+Un worker qui ne répond pas est un indice, pas une preuve absolue d'arrêt (inspection désactivée ou réseau possible). Ne pas redémarrer les consommateurs ni relancer une campagne avant d'avoir contrôlé les messages déjà dans la file : cela pourrait envoyer les destinataires en attente.
+
+Validation locale : 10 tests automatiques de soumission, modèles, paramètres, simulation, accès staff, signatures et statuts asynchrones ; `manage.py check` réussi. Aucun appel Meta dans ces tests.
+
+```powershell
+.\.venv\Scripts\python.exe manage.py test whatsapp_agent.tests_delivery --settings=whatsapp_agent.test_settings --noinput
+```
+
+Référence : [Meta — notifications de statut](https://www.postman.com/meta/whatsapp-business-platform/request/rgtfq23/message-status-update-notifications). La réception d'un identifiant de message ne prouve pas sa livraison au téléphone.
+
 Ce guide sert a passer du mode simulation au vrai envoi via l'API officielle Meta WhatsApp Cloud API.
 
 ## 1. Prerequis Meta

@@ -2,8 +2,9 @@
 Examens blancs format officiel : TEF Canada, TCF Canada, DELF (A1-B2), DALF (C1-C2).
 
 Expert config basée sur les formats réels :
-  - TEF Canada  : 60 CO (40 min) + 50 CE (60 min) → score 0-450/section → CECR
-  - TCF Canada  : 29 CO (25 min) + 29 CE (45 min) → score 0-699/section → CECR
+  - TEF Canada  : 40 CO (40 min) + 40 CE (60 min)
+  - TCF Canada  : 39 CO (35 min) + 39 CE (60 min)
+Les pourcentages locaux ne se convertissent pas en scores officiels ou niveaux CECR.
   - DELF A1-B2  : CO+CE variables → score /25 par épreuve (seuil 50/100 + 5/25)
   - DALF C1-C2  : CO+CE 20q chacun → score /25 par épreuve
 
@@ -38,14 +39,13 @@ EXAM_CONFIGS: dict = {
         "full_name": "Test d'Évaluation de Français — Canada",
         "badge": "⏱ TEF Canada",
         "levels": ["A1", "A2", "B1", "B2", "C1", "C2"],
-        # Entraînement: 20 CO + 15 CE (réel: 60 CO + 50 CE)
-        "co_count": 20, "ce_count": 15,
-        "co_min": 20, "ce_min": 20,
-        "eo_count": 1, "ee_count": 1,
+        "co_count": 40, "ce_count": 40,
+        "co_min": 40, "ce_min": 60,
+        "eo_count": 2, "ee_count": 2,
         "eo_min": 15, "ee_min": 60,
         "score_type": "tef",
-        "note": "Format entraînement (TEF réel : 60 CO / 50 CE). Score 0–450 par section.",
-        "timer_sec_co": 40,   # secondes simulées par question CO
+        "note": "Entraînement selon les exercices disponibles. TEF Canada : 40 CO / 40 CE ; 40 min / 60 min. Résultat pédagogique en pourcentage.",
+        "timer_sec_co": 60,
         "timer_sec_ce": 90,   # secondes simulées par question CE
     },
     "tcf": {
@@ -53,15 +53,14 @@ EXAM_CONFIGS: dict = {
         "full_name": "Test de Connaissance du Français — Canada",
         "badge": "⏱ TCF Canada",
         "levels": ["A1", "A2", "B1", "B2", "C1", "C2"],
-        # Format réel : 29 CO + 29 CE (adaptatif simulé)
-        "co_count": 29, "ce_count": 29,
-        "co_min": 25, "ce_min": 45,
-        "eo_count": 1, "ee_count": 2,
+        "co_count": 39, "ce_count": 39,
+        "co_min": 35, "ce_min": 60,
+        "eo_count": 3, "ee_count": 3,
         "eo_min": 12, "ee_min": 60,
         "score_type": "tcf",
-        "note": "Format réel TCF Canada (29 CO + 29 CE, adaptatif simulé). Score 0–699 par section.",
-        "timer_sec_co": 52,   # 25 min / 29 questions
-        "timer_sec_ce": 93,   # 45 min / 29 questions
+        "note": "Entraînement selon les exercices disponibles. TCF Canada : 39 CO / 39 CE ; 35 min / 60 min. Résultat pédagogique en pourcentage.",
+        "timer_sec_co": 54,
+        "timer_sec_ce": 92,
     },
     "delf": {
         "name": "DELF",
@@ -127,9 +126,9 @@ _LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
 
 def _pick_tcf_exercises(section: str, level: str, count: int) -> list:
-    """TCF adaptatif simulé : mix 30% niveau-1 + 40% niveau-cible + 30% niveau+1.
+    """Entraînement mixte : 30% niveau-1 + 40% niveau-cible + 30% niveau+1.
 
-    Simule la progression adaptative du TCF réel (questions s'ajustent selon le niveau).
+    Ce mélange est pédagogique et ne reproduit pas une calibration officielle.
     Fallback sur le niveau courant si les niveaux adjacents n'ont pas assez d'exercices.
     """
     try:
@@ -206,76 +205,37 @@ def _calc_score(score_type: str, co_correct: int, co_total: int,
     ce_pct = ce_correct / max(ce_total, 1) * 100
     g_pct = (co_correct + ce_correct) / max(co_total + ce_total, 1) * 100
 
-    if score_type == "tef":
-        # TEF Canada : 0–450 per section
-        # Official CEFR bands (approximate from IRB guidelines)
-        co_s = round(co_pct / 100 * 450)
-        ce_s = round(ce_pct / 100 * 450)
-        g_s = round(g_pct / 100 * 450)
-
-        def _cefr(s):
-            if s >= 417: return "C2"
-            if s >= 366: return "C1"
-            if s >= 304: return "B2"
-            if s >= 242: return "B1"
-            if s >= 181: return "A2"
-            return "A1"
-
+    if score_type in ("tcf", "tef"):
         return {
-            "co_score": co_s, "co_max": 450,
-            "ce_score": ce_s, "ce_max": 450,
-            "global": g_s, "global_max": 450,
-            "cefr_co": _cefr(co_s), "cefr_ce": _cefr(ce_s), "cefr_global": _cefr(g_s),
-            "passed": None, "unit": "pts",
+            "co_score": round(co_pct), "co_max": 100,
+            "ce_score": round(ce_pct), "ce_max": 100,
+            "global": round(g_pct), "global_max": 100,
+            "cefr_co": "—", "cefr_ce": "—", "cefr_global": "—",
+            "passed": None, "unit": "%", "training_only": True,
             "co_pct": round(co_pct), "ce_pct": round(ce_pct), "global_pct": round(g_pct),
         }
 
-    elif score_type == "tcf":
-        # TCF Canada : 0–699 per section
-        # Official CEFR thresholds from France Education International
-        co_s = round(co_pct / 100 * 699)
-        ce_s = round(ce_pct / 100 * 699)
-        g_s = round(g_pct / 100 * 699)
+    # DELF / DALF : /25 par section — CO+CE auto-scorés
+    co_s = round(co_pct / 100 * 25)
+    ce_s = round(ce_pct / 100 * 25)
+    g_s = co_s + ce_s  # out of 50 (CO+CE only; PE+PO need AI/human)
+    passed_co_ce = co_s >= 5 and ce_s >= 5 and g_s >= 25
 
-        def _cefr(s):
-            if s >= 589: return "C2"
-            if s >= 500: return "C1"
-            if s >= 400: return "B2"
-            if s >= 300: return "B1"
-            if s >= 226: return "A2"
-            return "A1"
+    def _cefr(pct):
+        if pct >= 90: return "C1–C2"
+        if pct >= 75: return "B2–C1"
+        if pct >= 60: return "B1–B2"
+        if pct >= 40: return "A2–B1"
+        return "A1–A2"
 
-        return {
-            "co_score": co_s, "co_max": 699,
-            "ce_score": ce_s, "ce_max": 699,
-            "global": g_s, "global_max": 699,
-            "cefr_co": _cefr(co_s), "cefr_ce": _cefr(ce_s), "cefr_global": _cefr(g_s),
-            "passed": None, "unit": "pts",
-            "co_pct": round(co_pct), "ce_pct": round(ce_pct), "global_pct": round(g_pct),
-        }
-
-    else:
-        # DELF / DALF : /25 par section — CO+CE auto-scorés
-        co_s = round(co_pct / 100 * 25)
-        ce_s = round(ce_pct / 100 * 25)
-        g_s = co_s + ce_s  # out of 50 (CO+CE only; PE+PO need AI/human)
-        passed_co_ce = co_s >= 5 and ce_s >= 5 and g_s >= 25
-
-        def _cefr(pct):
-            if pct >= 90: return "C1–C2"
-            if pct >= 75: return "B2–C1"
-            if pct >= 60: return "B1–B2"
-            if pct >= 40: return "A2–B1"
-            return "A1–A2"
-
-        return {
-            "co_score": co_s, "co_max": 25,
-            "ce_score": ce_s, "ce_max": 25,
-            "global": g_s, "global_max": 50,
-            "cefr_co": _cefr(co_pct), "cefr_ce": _cefr(ce_pct), "cefr_global": _cefr(g_pct),
-            "passed": passed_co_ce, "unit": "/25",
-            "co_pct": round(co_pct), "ce_pct": round(ce_pct), "global_pct": round(g_pct),
-        }
+    return {
+        "co_score": co_s, "co_max": 25,
+        "ce_score": ce_s, "ce_max": 25,
+        "global": g_s, "global_max": 50,
+        "cefr_co": _cefr(co_pct), "cefr_ce": _cefr(ce_pct), "cefr_global": _cefr(g_pct),
+        "passed": passed_co_ce, "unit": "/25",
+        "co_pct": round(co_pct), "ce_pct": round(ce_pct), "global_pct": round(g_pct),
+    }
 
 
 # ─── VUES ─────────────────────────────────────────────────────────────────────
@@ -469,7 +429,7 @@ def exam_format_exam(request, exam_code: str, level: str):
         "ee_items": ee_items,
         "total_min": total_min,
         "timer_sec": timer_sec,
-        "is_tcf_adaptive": exam_code == "tcf",
+        "is_tcf_adaptive": False,
     })
 
 

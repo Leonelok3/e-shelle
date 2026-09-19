@@ -1,9 +1,11 @@
 from django.urls import path
-from . import views, views_level_mock, views_mock_exam_format
+from . import views, views_level_mock, views_mock_exam_format, views_learning
 
 app_name = "preparation_tests"
 
 urlpatterns = [
+    path("fr/mon-coach/", views_learning.learning_center, name="learning_center"),
+    path("api/explain-answer/", views_learning.explain_answer, name="explain_answer"),
     # =====================================================
     # 🏠 ACCUEIL GÉNÉRAL
     # =====================================================

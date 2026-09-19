@@ -10,10 +10,11 @@ Résultats {{ cfg.name }} {{ level }} | E-Shelle
 
 {% block meta_description %}
 Résultats de ton examen blanc {{ cfg.name }} niveau {{ level }} :
-score officiel, analyse CECR et correction IA EO/EE.
+score pédagogique, analyse des réponses et correction IA EO/EE.
 {% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/learning-coach.css' %}">
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260301">
 {% endblock %}
 
@@ -32,7 +33,11 @@ score officiel, analyse CECR et correction IA EO/EE.
     </h1>
 
     <p class="pt-lead">
-      Niveau estimé (CO + CE) :
+      {% if scores.training_only %}
+      Réussite sur cette sélection CO + CE : <strong>{{ scores.global_pct }}%</strong>.
+      Ce résultat n'est pas un score officiel et ne détermine pas un niveau CECR ou NCLC.
+      {% else %}
+      Repère pédagogique (sans certification) :
       <strong class="pt-gradient-primary">{{ scores.cefr_global }}</strong>
       &nbsp;—&nbsp;
       Score global :
@@ -42,6 +47,7 @@ score officiel, analyse CECR et correction IA EO/EE.
       {% else %}
         <strong>{{ scores.global }}/{{ scores.global_max }}</strong>
         (CO+CE, {{ scores.global_pct }}%)
+      {% endif %}
       {% endif %}
     </p>
 
@@ -84,7 +90,7 @@ score officiel, analyse CECR et correction IA EO/EE.
       <div class="pt-score-summary">
         <p class="pt-score-eval">
           {% if scores.global_pct >= 80 %}
-            🚀 Excellent — prêt pour l'examen officiel !
+            Excellent sur cette sélection — vérifie aussi tes productions écrites et orales.
           {% elif scores.global_pct >= 65 %}
             💪 Bon niveau — quelques points à consolider
           {% elif scores.global_pct >= 45 %}
@@ -96,11 +102,11 @@ score officiel, analyse CECR et correction IA EO/EE.
 
         <div class="pt-pill-row">
           <span class="pt-pill">{{ cfg.name }} · {{ level }}</span>
-          <span class="pt-pill">CECR estimé : {{ scores.cefr_global }}</span>
+          <span class="pt-pill">Niveau travaillé : {{ level }}</span>
           {% if scores.unit == "pts" %}
             <span class="pt-pill">{{ scores.global }}/{{ scores.global_max }} pts</span>
           {% else %}
-            <span class="pt-pill">CO+CE : {{ scores.global }}/50</span>
+            <span class="pt-pill">CO+CE : {{ scores.global }}/{{ scores.global_max }}</span>
           {% endif %}
         </div>
       </div>
@@ -320,7 +326,7 @@ score officiel, analyse CECR et correction IA EO/EE.
         padding:2rem 1.5rem; color:#fff; text-align:center;
       ">
         <p style="font-size:.7rem; letter-spacing:.12em; opacity:.5; margin-bottom:.75rem; text-transform:uppercase;">
-          E-Shelle · Simulation Officielle
+          E-Shelle · Entraînement
         </p>
         <div style="font-size:3rem; font-weight:800; color:#22c55e; line-height:1;">
           {{ scores.cefr_global }}
@@ -524,7 +530,7 @@ score officiel, analyse CECR et correction IA EO/EE.
         href="{% url "preparation_tests:exam_format_history" %}"
         class="pt-btn-ghost"
       >
-        📈 Mon historique officiel
+        📈 Mon historique d’entraînement
       </a>
 
       <a
@@ -541,6 +547,7 @@ score officiel, analyse CECR et correction IA EO/EE.
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/learning-feedback.js' %}"></script>
 <script>
 /* ── Partage résultat + téléchargement carte ─────────────── */
 (function () {
@@ -549,7 +556,7 @@ score officiel, analyse CECR et correction IA EO/EE.
   var dlBtn    = document.getElementById("btn-download-card");
   if (!shareBtn) return;
 
-  var shareText = "J'ai obtenu {{ scores.cefr_global }} au {{ cfg.name }} simulé"
+  var shareText = "Mon entraînement {{ cfg.name }} : {{ scores.global_pct }}% sur cette sélection"
     + " ({{ scores.global_pct }}%) ! Prépare-toi aussi sur e-shelle.com \uD83C\uDDE8\uD83C\uDDE6";
 
   shareBtn.addEventListener("click", function () {
@@ -652,7 +659,7 @@ score officiel, analyse CECR et correction IA EO/EE.
     }
 
     html += "</div>";
-    div.innerHTML = html;
+    div.innerHTML = html + window.EShelleLearning.render(data);
     div.style.display = "";
   }
 
@@ -704,7 +711,7 @@ score officiel, analyse CECR et correction IA EO/EE.
     }
 
     html += "</div>";
-    div.innerHTML = html;
+    div.innerHTML = html + window.EShelleLearning.render(data);
     div.style.display = "";
   }
 
@@ -768,6 +775,7 @@ score officiel, analyse CECR et correction IA EO/EE.
 
       var fd = new FormData();
       fd.append("exercise_id", exId);
+      fd.append("exam", "{{ exam_code }}");
       fd.append("audio", audioBlob, "recording.webm");
 
       fetch("/prep/api/submit-eo/", {
@@ -815,7 +823,7 @@ score officiel, analyse CECR et correction IA EO/EE.
           "Content-Type": "application/json",
           "X-CSRFToken": getCsrf(),
         },
-        body: JSON.stringify({ exercise_id: parseInt(exId, 10), text: text }),
+        body: JSON.stringify({ exercise_id: parseInt(exId, 10), text: text, exam: "{{ exam_code }}" }),
       })
         .then(function (r) { return r.json(); })
         .then(function (data) {

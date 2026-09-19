@@ -72,5 +72,6 @@ class CanadaResumeAgentTests(TestCase):
             "tcf_level": "B2",
         })
         self.assertEqual(response.status_code, 302)
+        from .guidance import ROADMAP_PREFIX
         self.assertEqual(CanadaImmigrationProfile.objects.get(user=self.user).ai_roadmap,
-                         "Plan de préparation de test.")
+                         ROADMAP_PREFIX + "Plan de préparation de test.")

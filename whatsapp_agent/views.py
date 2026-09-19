@@ -21,7 +21,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .forms import CampagneForm
-from .models import Campagne, ContactWhatsApp, ConversationWhatsApp, MessageEnvoi, MessageWhatsApp
+from .models import Campagne, ContactWhatsApp, ConversationWhatsApp, MessageEnvoi, MessageWhatsApp, WhatsAppTestSend
 from .services import AI_PRESETS, WhatsAppService
 from .tasks import lancer_campagne_direct, lancer_campagne_task, recalculer_stats_campagne
 
@@ -443,6 +443,7 @@ def detail_campagne(request, pk):
             "whatsapp_dry_run": settings.WHATSAPP_DRY_RUN,
             "whatsapp_config_ready": settings.WHATSAPP_CONFIG_READY,
             "contacts_selectionnes": campagne.destinataires_contacts.count(),
+            "tests_envoi": campagne.tests_envoi.all()[:5],
         },
     )
 
@@ -486,7 +487,7 @@ def envoyer_test_campagne(request, pk):
 
     campagne = get_object_or_404(Campagne, pk=pk)
     numero_test = WhatsAppService.normaliser_numero(request.POST.get("numero_test", ""))
-    if not numero_test:
+    if not re.fullmatch(r"\+[1-9][0-9]{7,14}", numero_test):
         messages.warning(request, "Entre ton numero WhatsApp de test avant l'envoi.")
         return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
 
@@ -495,12 +496,31 @@ def envoyer_test_campagne(request, pk):
         messages.warning(request, "Aucun message prepare dans cette campagne.")
         return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
 
-    message_test = (
+    template_name = request.POST.get("template_name", "").strip()
+    template_language = request.POST.get("template_language", "").strip()
+    try:
+        raw_params = request.POST.get("template_params", "").strip()
+        params = json.loads(raw_params) if raw_params else [request.user.first_name or "Client"]
+        if not isinstance(params, list) or len(params) > 20 or not all(isinstance(p, str) and len(p) <= 1024 for p in params):
+            raise ValueError("invalid parameters")
+    except (ValueError, TypeError):
+        messages.error(request, 'Parametres invalides : utilise une liste JSON, par exemple ["Leonel"].')
+        return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
+    if (template_name and not re.fullmatch(r"[a-z0-9_]{1,512}", template_name)) or (template_language and not re.fullmatch(r"[a-z]{2,3}(?:_[A-Z]{2})?", template_language)):
+        messages.error(request, "Nom de modele ou code de langue invalide.")
+        return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
+    message_test = exemple.message_final if exemple.message_final.strip().startswith("template:") else (
         "[TEST E-SHELLE]\n"
         f"Campagne: {campagne.nom}\n\n"
         f"{exemple.message_final}"
     )
-    result = WhatsAppService.envoyer_message(numero_test, message_test)
+    test = WhatsAppTestSend.objects.create(campagne=campagne, numero=numero_test)
+    result = WhatsAppService.envoyer_message(numero_test, message_test, template_name=template_name,
+        template_params=params, template_language=template_language)
+    test.whatsapp_message_id = result.get("message_id", "")
+    test.statut = ("simulation" if settings.WHATSAPP_DRY_RUN else "accepte") if result["success"] else "echec"
+    test.erreur = result.get("erreur", "")
+    test.save(update_fields=["whatsapp_message_id", "statut", "erreur", "mis_a_jour_le"])
     if result["success"]:
         if settings.WHATSAPP_DRY_RUN:
             messages.success(
@@ -508,7 +528,7 @@ def envoyer_test_campagne(request, pk):
                 f"Test simule avec succes vers {numero_test}. Active Meta pour recevoir le message reel.",
             )
         else:
-            messages.success(request, f"Message test envoye vers {numero_test}.")
+            messages.success(request, f"Test accepte par Meta vers {numero_test}. La livraison reste a confirmer dans le suivi ci-dessous.")
     else:
         messages.error(request, f"Echec du test WhatsApp: {result['erreur']}")
     return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
@@ -823,6 +843,14 @@ def webhook_meta(request):
                     update_data = {"statut": nouveau_statut, "mis_a_jour_le": timezone.now()}
                     if nouveau_statut == "echec":
                         update_data["erreur"] = str(status.get("errors", ""))
+                    test_qs = WhatsAppTestSend.objects.filter(whatsapp_message_id=message_id)
+                    if nouveau_statut == "envoye":
+                        test_qs = test_qs.exclude(statut__in=["livre", "lu", "echec"])
+                    elif nouveau_statut == "livre":
+                        test_qs = test_qs.exclude(statut__in=["lu", "echec"])
+                    elif nouveau_statut == "echec":
+                        test_qs = test_qs.exclude(statut__in=["livre", "lu"])
+                    test_qs.update(**update_data)
                     MessageEnvoi.objects.filter(whatsapp_message_id=message_id).update(**update_data)
                     MessageWhatsApp.objects.filter(whatsapp_msg_id=message_id).update(statut=nouveau_statut)
                     for campagne in Campagne.objects.filter(messages__whatsapp_message_id=message_id).distinct():

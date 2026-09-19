@@ -2,6 +2,7 @@
 from ai_engine.test_content_settings import *
 
 ROOT_URLCONF = 'preparation_tests.test_urls'
+MIDDLEWARE = MIDDLEWARE + ['django.middleware.csrf.CsrfViewMiddleware']
 
 # Isolate application templates from the unrelated global navigation/apps.
 TEMPLATES = [{

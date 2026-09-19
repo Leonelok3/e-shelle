@@ -12,6 +12,8 @@ from django.conf import settings
 
 # Resolve LazySettings before temporary overrides, so local provider keys load.
 _ = settings.SECRET_KEY
+import django
+django.setup()
 
 
 def probe(name, callback):
@@ -55,7 +57,7 @@ if __name__ == '__main__':
         probe('French audio synthesis and transcription (real providers)', audio_round_trip)
         sys.exit(0)
 
-    if '--oral' in sys.argv:
+    if '--oral' in sys.argv or '--written' in sys.argv:
         import ai_engine.services.eval_service as evaluation
         for function_name in ('_call_gemini_eval_json', '_call_anthropic_eval_json'):
             original = getattr(evaluation, function_name)
@@ -63,16 +65,28 @@ if __name__ == '__main__':
                 try:
                     result = _fn(*args, **kwargs)
                     print(_name, 'OK', flush=True)
+                    if '--debug-feedback' in sys.argv:
+                        import json
+                        print(json.dumps(result, ensure_ascii=True)[:16000], flush=True)
                     return result
                 except Exception as exc:
                     print(_name, type(exc).__name__,
                           getattr(exc, 'status_code', None) or getattr(exc, 'code', None), flush=True)
                     raise
             setattr(evaluation, function_name, traced)
-        probe('French oral evaluation (real provider)', lambda: evaluation.evaluate_eo(
-            'Je propose une bibliotheque. Les habitants pourront y lire et etudier ensemble.',
-            'Proposer un service local', 'Expliquez votre proposition.', 'B1', [], 'fr', require_ai=True,
-        ).get('feedback'))
+        if '--written' in sys.argv:
+            probe('French written coaching (real provider)', lambda: evaluation.evaluate_ee(
+                'Je propose une bibliothèque dans notre quartier. Les habitants pourront y lire et étudier ensemble. '
+                'Par exemple, les élèves qui ne disposent pas de livres à la maison pourraient y préparer leurs devoirs. '
+                'Cependant, il faudrait prévoir un budget pour les locaux et les livres. Nous pourrions organiser une collecte.',
+                'Proposez une amélioration à votre association de quartier.',
+                'Présentez une proposition, un avantage et une difficulté.', 'B2', 'fr', require_ai=True,
+            ).get('coaching'))
+        else:
+            probe('French oral evaluation (real provider)', lambda: evaluation.evaluate_eo(
+                'Je propose une bibliotheque. Les habitants pourront y lire et etudier ensemble.',
+                'Proposer un service local', 'Expliquez votre proposition.', 'B1', [], 'fr', require_ai=True,
+            ).get('feedback'))
         sys.exit(0)
 
     if '--chat' in sys.argv:

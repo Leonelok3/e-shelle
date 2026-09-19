@@ -14,6 +14,7 @@ score CO, CE et estimation CECR personnalisée par E-Shelle.
 {% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/learning-coach.css' %}">
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260227">
 {% endblock %}
 
@@ -35,7 +36,7 @@ score CO, CE et estimation CECR personnalisée par E-Shelle.
       {% if score_global is not None %}
         Score global CO + CE :
         <strong>{{ score_global }}%</strong> —
-        Niveau CECR estimé : <strong>{{ cefr_estimate }}</strong>
+        Niveau travaillé : <strong>{{ level }}</strong> · Résultat pédagogique, sans certification CECR/NCLC.
       {% else %}
         Examen enregistré — CO et CE non disponibles pour ce niveau.
       {% endif %}
@@ -68,7 +69,7 @@ score CO, CE et estimation CECR personnalisée par E-Shelle.
         </p>
         <div class="pt-pill-row">
           <span class="pt-pill">Niveau {{ level }}</span>
-          <span class="pt-pill">CECR estimé : {{ cefr_estimate }}</span>
+          <span class="pt-pill">Niveau travaillé : {{ level }}</span>
           <span class="pt-pill">Examen blanc</span>
         </div>
       </div>
@@ -426,6 +427,7 @@ score CO, CE et estimation CECR personnalisée par E-Shelle.
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/learning-feedback.js' %}"></script>
 <script>
 (function () {
   "use strict";
@@ -489,7 +491,7 @@ score CO, CE et estimation CECR personnalisée par E-Shelle.
     }
 
     html += "</div>";
-    div.innerHTML = html;
+    div.innerHTML = html + window.EShelleLearning.render(data);
   }
 
   function renderEeResult(div, data) {
@@ -539,7 +541,7 @@ score CO, CE et estimation CECR personnalisée par E-Shelle.
     }
 
     html += "</div>";
-    div.innerHTML = html;
+    div.innerHTML = html + window.EShelleLearning.render(data);
   }
 
   /* ── EO : MediaRecorder par sujet ─────────────────────── */

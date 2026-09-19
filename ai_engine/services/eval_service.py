@@ -63,7 +63,7 @@ def _parse_json_safely(text: str) -> dict:
         raise
 
 
-def _call_gemini_eval_json(system_prompt: str, user_prompt: str, temperature: float = 0.2) -> dict:
+def _call_gemini_eval_json(system_prompt: str, user_prompt: str, temperature: float = 0.2, *, timeout_ms=None, max_models=2) -> dict:
     """
     Appelle l'API Google Gemini via Google AI Studio (clé gratuite).
     Tente les modèles rapides disponibles (gemini-flash-latest, gemini-3.6-flash).
@@ -79,7 +79,7 @@ def _call_gemini_eval_json(system_prompt: str, user_prompt: str, temperature: fl
         raise RuntimeError("Client Google Gemini non disponible")
 
     last_error = None
-    for model in candidate_models:
+    for model in candidate_models[:max_models]:
         try:
             response = studio_client.models.generate_content(
                 model=model,
@@ -88,6 +88,7 @@ def _call_gemini_eval_json(system_prompt: str, user_prompt: str, temperature: fl
                     system_instruction=system_prompt,
                     response_mime_type="application/json",
                     temperature=temperature,
+                    http_options=types.HttpOptions(timeout=timeout_ms, retry_options=types.HttpRetryOptions(attempts=1)) if timeout_ms else None,
                 ),
             )
             if response and response.text:
@@ -111,7 +112,7 @@ def _call_anthropic_eval_json(system_prompt: str, user_prompt: str, temperature:
         raise RuntimeError("ANTHROPIC_API_KEY non configurée")
 
     import anthropic
-    client = anthropic.Anthropic(api_key=api_key)
+    client = anthropic.Anthropic(api_key=api_key, timeout=20.0, max_retries=0)
     response = client.messages.create(
         model="claude-3-5-haiku-20241022",
         max_tokens=2500,
@@ -437,12 +438,18 @@ def transcribe_audio(audio_path: str, language: str = "de") -> str:
     return ""
 
 
-def evaluate_eo(transcript: str, topic: str, instructions: str, level: str, expected_points: list, language: str = "de", *, require_ai: bool = False) -> dict:
+def evaluate_eo(transcript: str, topic: str, instructions: str, level: str, expected_points: list, language: str = "de", *, require_ai: bool = False, coaching_context=None) -> dict:
     """
     Évalue la transcription d'une expression orale avec chaîne de repli robuste.
     Retourne un dictionnaire structuré contenant le score, le feedback et les suggestions.
     """
     logger.info(f"[eval_service] Évaluation Expression Orale ({language} · Niveau {level})...")
+
+    if language == "fr" and require_ai:
+        from preparation_tests.services.learning_coach import evaluate_production
+        context = dict(coaching_context or {})
+        context["expected_points"] = expected_points
+        return evaluate_production(transcript, topic, instructions, level, "eo", context)
 
     lang_key = _language_key(language)
     lang_phrase = _LANGUAGE_PHRASES[lang_key]
@@ -499,12 +506,16 @@ def evaluate_eo(transcript: str, topic: str, instructions: str, level: str, expe
     return _normalize_eo_dict(raw, transcript)
 
 
-def evaluate_ee(text: str, topic: str, instructions: str, level: str, language: str = "de", *, require_ai: bool = False) -> dict:
+def evaluate_ee(text: str, topic: str, instructions: str, level: str, language: str = "de", *, require_ai: bool = False, coaching_context=None) -> dict:
     """
     Évalue une expression écrite avec chaîne de secours robuste (OpenAI -> Gemini -> Claude -> Heuristique).
     Garantit un retour JSON valide et normalisé dans tous les cas.
     """
     logger.info(f"[eval_service] Évaluation Expression Écrite ({language} · Niveau {level})...")
+
+    if language == "fr" and require_ai:
+        from preparation_tests.services.learning_coach import evaluate_production
+        return evaluate_production(text, topic, instructions, level, "ee", coaching_context)
 
     lang_key = _language_key(language)
     lang_phrase = _LANGUAGE_PHRASES[lang_key]

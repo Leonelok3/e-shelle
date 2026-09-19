@@ -68,6 +68,9 @@
       </div>
     </div>
 
+    {% for notification in messages %}
+    <div role="status" class="wa-alert{% if notification.tags == 'error' %} danger{% endif %}">{{ notification }}</div>
+    {% endfor %}
     {% if whatsapp_dry_run %}
     <div class="wa-alert">Mode simulation actif: le lancement marquera les messages comme envoyes sans appel Meta.</div>
     {% elif not whatsapp_config_ready %}
@@ -94,8 +97,26 @@
           {% csrf_token %}
           <label class="wa-muted" for="numero_test">Envoyer un test a mon numero</label>
           <input id="numero_test" class="wa-input" name="numero_test" placeholder="+237 6XX XXX XXX" value="{{ request.user.whatsapp|default:'' }}">
+          <label for="template_name" class="wa-muted">Modele Meta approuve (facultatif)</label>
+          <input id="template_name" class="wa-input" name="template_name" placeholder="hello_world ou nom exact du modele">
+          <label for="template_language" class="wa-muted">Code de langue du modele</label>
+          <input id="template_language" class="wa-input" name="template_language" placeholder="fr ; en_US pour hello_world">
+          <label for="template_params" class="wa-muted">Parametres du corps, dans l'ordre</label>
+          <input id="template_params" class="wa-input" name="template_params" placeholder='["Leonel"] ou [] sans parametre'>
+          <p class="wa-muted">Hors conversation ouverte par ton message dans les dernieres 24 heures, utilise un modele approuve. Un modele « In review » ne permet pas ce test. Sans modele, le test utilise le contenu de la campagne. Un modele remplace ce contenu par le texte valide chez Meta.</p>
           <button class="wa-btn gold" type="submit">Envoyer le test</button>
         </form>
+        {% if tests_envoi %}
+        <h2 style="margin-top:16px">Suivi des derniers tests</h2>
+        <p class="wa-muted">Actualise cette page pour recevoir le dernier statut. « accepte » ne signifie pas « livre ». Les tests ne modifient pas les compteurs de la campagne.</p>
+        {% for test in tests_envoi %}
+        <div class="wa-example">
+          <strong>{{ test.numero }} · {{ test.statut }}</strong>
+          <p class="wa-muted">{{ test.mis_a_jour_le|date:"d/m/Y H:i:s" }}</p>
+          {% if test.erreur %}<p style="overflow-wrap:anywhere">{{ test.erreur }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
         {% if campagne.statut == "validee" %}
         <form method="post" action="{% url 'whatsapp_agent:wa_lancer' campagne.pk %}">
           {% csrf_token %}

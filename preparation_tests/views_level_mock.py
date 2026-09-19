@@ -38,16 +38,9 @@ NEXT_LEVEL = {
 }
 
 # Estimation CECR à partir du score global (CO+CE)
-def _estimate_cefr(score: int) -> str:
-    if score >= 90:
-        return "C1–C2"
-    if score >= 75:
-        return "B2–C1"
-    if score >= 60:
-        return "B1–B2"
-    if score >= 40:
-        return "A2–B1"
-    return "A1–A2"
+def _estimate_cefr(score: int, level=None) -> str:
+    """Only identify the practiced level; percentages cannot certify CEFR."""
+    return level if level in VALID_LEVELS else "—"
 
 
 def _get_level_data(level: str) -> dict:
@@ -198,7 +191,7 @@ def level_mock_exam(request, level: str):
         scored = [s for s in [score_co, score_ce] if s is not None]
         score_global = round(sum(scored) / len(scored)) if scored else None
 
-        cefr_estimate = _estimate_cefr(score_global) if score_global is not None else "—"
+        cefr_estimate = _estimate_cefr(score_global, level) if score_global is not None else "—"
         next_level = NEXT_LEVEL.get(level)
 
         # ── Sauvegarde du résultat ────────────────────────────
