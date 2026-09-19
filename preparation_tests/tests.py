@@ -6,7 +6,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import CourseExercise, CourseLesson, EESubmission, EOSubmission, Exam, ExamSection
+from .models import (CourseExercise, CourseLesson, EESubmission, EOSubmission, Exam,
+                     ExamSection, UserExerciseProgress, UserLessonProgress, Session, Attempt)
 
 
 class FrenchTcfAgentsTests(TestCase):
@@ -98,6 +99,9 @@ class FrenchTcfAgentsTests(TestCase):
         self.assertTrue(response.json()["ok"])
         self.assertEqual(EESubmission.objects.count(), 1)
         self.assertEqual(EESubmission.objects.first().score, 82)
+        progress = UserExerciseProgress.objects.get(exercise=self.ee_exercise)
+        progress.full_clean()  # SQLite alone does not enforce varchar(1).
+        self.assertEqual(progress.last_answer, "E")
         evaluate_ee.assert_called_once()
 
     @patch("ai_engine.services.eval_service.transcribe_audio", return_value="Je donne mon avis avec deux arguments.")
@@ -122,8 +126,47 @@ class FrenchTcfAgentsTests(TestCase):
         self.assertTrue(response.json()["ok"])
         self.assertEqual(EOSubmission.objects.count(), 1)
         self.assertEqual(EOSubmission.objects.first().score, 78)
+        progress = UserExerciseProgress.objects.get(exercise=self.eo_exercise)
+        progress.full_clean()
+        self.assertEqual(progress.last_answer, "O")
         transcribe_audio.assert_called_once()
         evaluate_eo.assert_called_once()
+
+    @patch("ai_engine.services.eval_service.evaluate_ee", side_effect=RuntimeError("quota"))
+    def test_provider_failure_returns_json_without_recording_a_grade(self, provider):
+        response = self.client.post(reverse("preparation_tests:submit_ee"),
+            data=json.dumps({"exercise_id": self.ee_exercise.id, "text": "Mon texte."}),
+            content_type="application/json")
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["error"], "evaluation_unavailable")
+        self.assertFalse(EESubmission.objects.exists())
+        self.assertFalse(UserExerciseProgress.objects.exists())
+
+    @patch("ai_engine.services.eval_service.evaluate_ee", return_value={"score": 80})
+    @patch("preparation_tests.models.UserLessonProgress.save", side_effect=RuntimeError("write failed"))
+    def test_failed_progress_write_rolls_back_submission(self, save, provider):
+        with self.assertRaises(RuntimeError):
+            self.client.post(reverse("preparation_tests:submit_ee"),
+                data=json.dumps({"exercise_id": self.ee_exercise.id, "text": "Mon texte."}),
+                content_type="application/json")
+        self.assertFalse(EESubmission.objects.exists())
+        self.assertFalse(UserExerciseProgress.objects.exists())
+
+    def test_expression_training_uses_lessons_instead_of_placeholder_choices(self):
+        for skill in ("ee", "eo"):
+            target = reverse("preparation_tests:course_section", args=["tcf", skill])
+            response = self.client.get(reverse("preparation_tests:start_session_with_section", args=["tcf", skill]))
+            self.assertRedirects(response, target, fetch_redirect_response=False)
+            session = Session.objects.create(user=self.user, exam=self.exam, mode="practice")
+            attempt = Attempt.objects.create(session=session, section=self.exam.sections.get(code=skill))
+            response = self.client.get(reverse("preparation_tests:take_section", args=[attempt.id]))
+            self.assertRedirects(response, target, fetch_redirect_response=False)
+
+    def test_invalid_written_payload_is_rejected(self):
+        for payload in ([], {"text": 42}):
+            response = self.client.post(reverse("preparation_tests:submit_ee"),
+                data=json.dumps(payload), content_type="application/json")
+            self.assertEqual(response.status_code, 400)
 
     def test_tcf_course_section_and_official_mock_render(self):
         course_response = self.client.get(reverse("preparation_tests:course_section", args=["tcf", "ce"]))

@@ -83,11 +83,13 @@ def get_vertex_client() -> tuple[genai.Client | None, str | None]:
             original_gen = client.models.generate_content
             def patched_generate_content(*args, **kwargs):
                 new_args = list(args)
-                if 'model' in kwargs and kwargs['model'] == 'gemini-2.5-flash':
-                    kwargs['model'] = 'gemini-3.6-flash'
-                elif len(new_args) > 0 and new_args[0] == 'gemini-2.5-flash':
-                    new_args[0] = 'gemini-3.6-flash'
-                    
+                model_name = kwargs.get('model') or (new_args[0] if new_args else None)
+                if model_name in ('gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'):
+                    if 'model' in kwargs:
+                        kwargs['model'] = 'gemini-flash-latest'
+                    elif new_args:
+                        new_args[0] = 'gemini-flash-latest'
+
                 try:
                     return original_gen(*tuple(new_args), **kwargs)
                 except Exception as e:
@@ -97,6 +99,13 @@ def get_vertex_client() -> tuple[genai.Client | None, str | None]:
                         studio_client, _ = get_genai_studio_client()
                         if studio_client:
                             return studio_client.models.generate_content(*tuple(new_args), **kwargs)
+                    elif "503" in err_str or "unavailable" in err_str:
+                        alt_model = "gemini-flash-latest" if kwargs.get('model') != "gemini-flash-latest" else "gemini-3.6-flash"
+                        try:
+                            kwargs['model'] = alt_model
+                            return original_gen(*tuple(new_args), **kwargs)
+                        except Exception:
+                            pass
                     raise e
             client.models.generate_content = patched_generate_content
             
@@ -125,15 +134,29 @@ def get_genai_studio_client() -> tuple[genai.Client | None, str | None]:
     try:
         client = genai.Client(api_key=api_key)
         
-        # Monkey patch pour mapper gemini-2.5-flash vers gemini-3.6-flash
+        # Monkey patch pour mapper les modèles obsolètes et gérer les 503
         original_gen = client.models.generate_content
         def patched_generate_content(*args, **kwargs):
             new_args = list(args)
-            if 'model' in kwargs and kwargs['model'] == 'gemini-2.5-flash':
-                kwargs['model'] = 'gemini-3.6-flash'
-            elif len(new_args) > 0 and new_args[0] == 'gemini-2.5-flash':
-                new_args[0] = 'gemini-3.6-flash'
-            return original_gen(*tuple(new_args), **kwargs)
+            model_name = kwargs.get('model') or (new_args[0] if new_args else None)
+            if model_name in ('gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'):
+                if 'model' in kwargs:
+                    kwargs['model'] = 'gemini-flash-latest'
+                elif new_args:
+                    new_args[0] = 'gemini-flash-latest'
+
+            try:
+                return original_gen(*tuple(new_args), **kwargs)
+            except Exception as e:
+                err_str = str(e).lower()
+                if "503" in err_str or "unavailable" in err_str or "404" in err_str:
+                    alt_model = "gemini-flash-latest" if kwargs.get('model') != "gemini-flash-latest" else "gemini-3.6-flash"
+                    try:
+                        kwargs['model'] = alt_model
+                        return original_gen(*tuple(new_args), **kwargs)
+                    except Exception:
+                        pass
+                raise e
         client.models.generate_content = patched_generate_content
         
         return client, None

@@ -29,6 +29,23 @@
         .replace(/"/g, "&quot;");
     }
 
+    function readEvaluationResponse(res) {
+      var message = "Le service de correction est temporairement indisponible. Réessaie dans un instant.";
+      if (res.redirected || res.status === 401) {
+        message = "Ta session a expiré. Reconnecte-toi avant de soumettre ta réponse.";
+      } else if (res.status === 403) {
+        message = "Recharge la page avant de soumettre à nouveau ta réponse.";
+      }
+      if (res.redirected || !res.ok) {
+        return { httpOk: false, data: { message: message } };
+      }
+      return res.json().then(function (data) {
+        return { httpOk: true, data: data };
+      }).catch(function () {
+        return { httpOk: false, data: { message: message } };
+      });
+    }
+
     function updateProgressBar(data) {
       var doneEl = document.getElementById("ptProgressDone");
       var totalEl = document.getElementById("ptProgressTotal");
@@ -269,11 +286,7 @@
               headers: { "X-CSRFToken": csrfToken || getCookie("csrftoken") },
               body: formData,
             })
-              .then(function (res) {
-                return res.json().then(function (data) {
-                  return { httpOk: res.ok, data: data };
-                });
-              })
+              .then(readEvaluationResponse)
               .then(function (result) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalLabel;
@@ -284,7 +297,7 @@
 
                 if (!result.httpOk || !result.data || !result.data.ok) {
                   resultBox.innerHTML =
-                    '<p class="pt-feedback is-incorrect">Une erreur est survenue pendant l’évaluation. Réessaie.</p>';
+                    '<p class="pt-feedback is-incorrect">' + escapeHtml(result.data && result.data.message || "L’évaluation est indisponible. Réessaie.") + '</p>';
                   return;
                 }
 
@@ -384,11 +397,7 @@
               },
               body: JSON.stringify({ exercise_id: exerciseId, text: text }),
             })
-              .then(function (res) {
-                return res.json().then(function (data) {
-                  return { httpOk: res.ok, data: data };
-                });
-              })
+              .then(readEvaluationResponse)
               .then(function (result) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalLabel;
@@ -398,7 +407,7 @@
 
                 if (!result.httpOk || !result.data || !result.data.ok) {
                   resultBox.innerHTML =
-                    '<p class="pt-feedback is-incorrect">Une erreur est survenue pendant la correction. Réessaie.</p>';
+                    '<p class="pt-feedback is-incorrect">' + escapeHtml(result.data && result.data.message || "La correction est indisponible. Réessaie.") + '</p>';
                   return;
                 }
 

@@ -4,6 +4,8 @@ from __future__ import annotations
 # 📦 IMPORTS STANDARD
 # =========================================================
 import json
+import logging
+import math
 from pathlib import Path
 
 # =========================================================
@@ -11,6 +13,7 @@ from pathlib import Path
 # =========================================================
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import (
     Http404,
     FileResponse,
@@ -314,6 +317,9 @@ def start_session_generic(request, exam_code, section_code=None):
         messages.error(request, "Aucune section disponible.")
         return redirect("preparation_tests:exam_detail", exam_code=exam.code)
 
+    if section.code.lower() in ("ee", "eo"):
+        return redirect("preparation_tests:course_section", exam_code=exam.code, section=section.code.lower())
+
     session = Session.objects.create(
         user=request.user,
         exam=exam,
@@ -349,6 +355,10 @@ def take_section(request, attempt_id):
         session__user=request.user,
     )
 
+    if attempt.section.code.lower() in ("ee", "eo"):
+        return redirect("preparation_tests:course_section", exam_code=attempt.session.exam.code,
+                        section=attempt.section.code.lower())
+
     question = _next_unanswered_question(attempt)
 
     if not question:
@@ -370,6 +380,8 @@ def take_section(request, attempt_id):
         "preparation_tests/question.html",
         {
             "attempt": attempt,
+            "exam": attempt.session.exam,
+            "section": attempt.section,
             "question": question,
             "choices": question.choices.all(),
             "audio_url": _audio_url_from_question(question),
@@ -1144,6 +1156,7 @@ def ee_by_level(request, level):
 # =========================================================
 @login_required
 @require_POST
+@transaction.atomic
 def submit_eo(request):
     """
     Reçoit: multipart/form-data avec exercise_id + audio (Blob)
@@ -1205,16 +1218,22 @@ def submit_eo(request):
         except (ValueError, TypeError):
             expected_points = [exercise.summary]
 
-    result = evaluate_eo(
-        transcript=transcript,
-        topic=exercise.question_text,
-        instructions=exercise.instruction,
-        level=lesson.level,
-        expected_points=expected_points,
-        language="fr",
-    )
-
-    score = float(result.get("score", 0))
+    try:
+        result = evaluate_eo(
+            transcript=transcript,
+            topic=exercise.question_text,
+            instructions=exercise.instruction,
+            level=lesson.level,
+            expected_points=expected_points,
+            language="fr",
+            require_ai=True,
+        )
+        score = float(result["score"])
+        if not math.isfinite(score) or not 0 <= score <= 100:
+            raise ValueError("Invalid AI score")
+    except Exception:
+        logging.getLogger(__name__).exception("French oral evaluation failed")
+        return JsonResponse({"ok": False, "error": "evaluation_unavailable"}, status=503)
 
     # Sauvegarder soumission (sans garder le fichier audio en DB pour économiser l'espace)
     EOSubmission.objects.create(
@@ -1234,7 +1253,7 @@ def submit_eo(request):
     )
     if prog.lesson_id != lesson.id:
         prog.lesson = lesson
-    prog.mark_attempt(selected="EO", correct=is_correct)
+    prog.mark_attempt(selected="O", correct=is_correct)
     prog.save()
 
     total = lesson.exercises.filter(is_active=True).count()
@@ -1275,6 +1294,7 @@ def submit_eo(request):
 # =========================================================
 @login_required
 @require_POST
+@transaction.atomic
 def submit_ee(request):
     """
     Reçoit: JSON avec exercise_id + text
@@ -1285,6 +1305,9 @@ def submit_ee(request):
     try:
         payload = json.loads(request.body.decode("utf-8"))
     except Exception:
+        return JsonResponse({"ok": False, "error": "invalid_json"}, status=400)
+
+    if not isinstance(payload, dict) or not isinstance(payload.get("text", ""), str):
         return JsonResponse({"ok": False, "error": "invalid_json"}, status=400)
 
     exercise_id = payload.get("exercise_id")
@@ -1304,15 +1327,21 @@ def submit_ee(request):
 
     word_count = len(text.split())
 
-    result = evaluate_ee(
-        text=text,
-        topic=exercise.question_text,
-        instructions=exercise.instruction,
-        level=lesson.level,
-        language="fr",
-    )
-
-    score = float(result.get("score", 0))
+    try:
+        result = evaluate_ee(
+            text=text,
+            topic=exercise.question_text,
+            instructions=exercise.instruction,
+            level=lesson.level,
+            language="fr",
+            require_ai=True,
+        )
+        score = float(result["score"])
+        if not math.isfinite(score) or not 0 <= score <= 100:
+            raise ValueError("Invalid AI score")
+    except Exception:
+        logging.getLogger(__name__).exception("French written evaluation failed")
+        return JsonResponse({"ok": False, "error": "evaluation_unavailable"}, status=503)
 
     EESubmission.objects.create(
         user=user,
@@ -1331,7 +1360,7 @@ def submit_ee(request):
     )
     if prog.lesson_id != lesson.id:
         prog.lesson = lesson
-    prog.mark_attempt(selected="EE", correct=is_correct)
+    prog.mark_attempt(selected="E", correct=is_correct)
     prog.save()
 
     total = lesson.exercises.filter(is_active=True).count()
