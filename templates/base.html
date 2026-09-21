@@ -58,7 +58,7 @@
 
   {# CSS spécifique à l'app — écrase le design system #}
   {% block extra_css %}{% endblock %}
-  {% if canada_menu.enabled %}<link rel="stylesheet" href="{% static 'css/canada-navigation.css' %}?v=20260921-canada-logo"><link rel="stylesheet" href="{% static 'css/immigration97.css' %}?v=20260921-canada-logo">{% endif %}
+  {% if canada_menu.enabled %}<link rel="stylesheet" href="{% static 'css/canada-navigation.css' %}?v=20260921-canada-whatsapp"><link rel="stylesheet" href="{% static 'css/immigration97.css' %}?v=20260921-canada-whatsapp">{% endif %}
 
   {% if "/allemand/" in request.path or "/allemagne/" in request.path or "/lebenslauf/" in request.path %}
   <style>
@@ -1475,7 +1475,14 @@
 
 
 
-  {% include "partials/chat_widget.html" %}
+  {% if canada_menu.enabled %}
+    <a class="canada-whatsapp" href="https://wa.me/237693649944" target="_blank" rel="noopener noreferrer" aria-label="Contacter Immigration97 sur WhatsApp au +237 693 649 944">
+      <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 11.5a9 9 0 0 1-13.4 7.8L3 21l1.7-4.6A9 9 0 1 1 21 11.5Z"/><path d="M8 7c0 5 4 9 9 9l1-3-3-1-1 1c-1.5-.7-2.3-1.5-3-3l1-1-1-3Z"/></svg>
+      <span>WhatsApp</span>
+    </a>
+  {% else %}
+    {% include "partials/chat_widget.html" %}
+  {% endif %}
 
   {# ── SCRIPTS ─────────────────────────────────────────────────── #}
   <script src="{% static 'js/eshelle.js' %}?v={% now 'U' %}"></script>
