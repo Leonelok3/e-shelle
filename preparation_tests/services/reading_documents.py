@@ -1,5 +1,6 @@
 """Generate grounded reading exercises; never substitute a generic fallback."""
 import json
+import re
 from django.utils.html import strip_tags
 
 
@@ -32,8 +33,17 @@ def validate_document(data, level):
         raise DocumentValidationError('Invalid option')
     if len({v.strip().casefold() for v in options.values()}) != 4:
         raise DocumentValidationError('Duplicate options')
-    if data['answer'] not in options or data['evidence'] not in data['document']:
-        raise DocumentValidationError('Answer lacks an exact supporting quotation')
+    if data['answer'] not in options:
+        raise DocumentValidationError('Answer must be one of A, B, C, D')
+    if data['evidence'] not in data['document']:
+        # Match only typography differences, never paraphrases or approximate meaning.
+        quote = data['evidence'].strip()
+        pattern = ''.join(r"['’]" if char in "'’" else r'\s+' if char.isspace()
+                          else re.escape(char) for char in re.sub(r'\s+', ' ', quote))
+        match = re.search(pattern, data['document']) if pattern else None
+        if not match:
+            raise DocumentValidationError('Supporting quotation absent from document: copy a complete sentence verbatim from the document field')
+        data = {**data, 'evidence': match.group(0)}
     if len(data['title']) > 255 or len(data['evidence'].split()) < 4:
         raise DocumentValidationError('Invalid title or supporting quotation')
     return data

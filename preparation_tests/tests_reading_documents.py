@@ -84,3 +84,13 @@ class ReadingDocumentTests(TestCase):
         with self.assertRaisesRegex(DocumentValidationError, 'Invalid JSON'):
             generate_document(self.lesson, 1, [])
         self.assertEqual(llm.call_count, 2)
+
+    def test_typographic_quote_is_replaced_by_actual_source_text(self):
+        source = self.data['document'].replace('La bibliothèque ouvre', 'La bibliothèque\nouvre')
+        result = validate_document({**self.data, 'document': source}, 'A1')
+        self.assertIn(result['evidence'], source)
+        self.assertIn('\n', result['evidence'])
+
+    def test_paraphrased_evidence_is_still_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'Supporting quotation absent'):
+            validate_document({**self.data, 'evidence': 'La bibliothèque accueille les lecteurs le lundi à neuf heures.'}, 'A1')
