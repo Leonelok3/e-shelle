@@ -64,10 +64,40 @@ def generate_document(lesson, position, previous_titles):
     targets = {'A1': (70, 2), 'A2': (120, 3), 'B1': (180, 3),
                'B2': (260, 4), 'C1': (350, 5), 'C2': (450, 6)}
     target, paragraphs = targets.get(lesson.level, (260, 4))
+    formats = [
+        'Courriel entre deux personnes : une demande précise, une contrainte et une réponse conditionnelle.',
+        'Avis destiné aux usagers : une organisation annoncée, une exception et une démarche à effectuer.',
+        'Compte rendu : deux propositions comparées et une décision motivée par une contrainte concrète.',
+        'Article local : un projet précis, deux points de vue nommés et une concession explicite.',
+        'Échange de messages : une proposition initiale, un changement et une confirmation finale.',
+    ]
+    scenario = ''
+    if 'logement' in lesson.title.casefold() and position == 5:
+        scenario = (
+            'Situation fictive de location : Nadia prépare son emménagement dans la résidence des Érables. '
+            'La remise des clés est confirmée le 12 octobre. Le monte-charge est indisponible les 12 et 13, '
+            'et doit être réservé pour transporter les meubles le 14. Les cartons légers peuvent être '
+            'montés par l’escalier dès le 12. Un voisin propose son aide le 13 mais cela ne change pas '
+            'la disponibilité du monte-charge. Nadia confirme qu’elle récupérera les clés le 12 et '
+            'fera livrer ses meubles le 14. Question sur la raison de la livraison le 14, pas une loi '
+            'du logement. Les distracteurs peuvent confondre date de remise des clés, disponibilité '
+            'du voisin et réservation du monte-charge ; le texte doit permettre de les départager.')
     specification = {
         'theme': lesson.title, 'level': lesson.level, 'position': position,
         'avoid_titles': previous_titles, 'document_target_words': target,
         'document_paragraphs': paragraphs,
+        'document_format': formats[(position - 1) % len(formats)],
+        'scenario_if_applicable': scenario,
+        'specificity_requirements': [
+            'Deux interlocuteurs ou organismes fictifs nommés, avec des rôles distincts.',
+            'Au moins trois détails concrets pertinents : date, lieu, horaire, action, condition ou conséquence.',
+            'La question porte sur une décision, une intention ou une condition propre à ce document.',
+            'Évite les dissertations générales sur les avantages et difficultés du thème.'],
+        'distractor_requirements': [
+            'Les quatre choix répondent exactement à la même question, avec une longueur comparable.',
+            'Chaque mauvais choix reprend un vrai détail du texte mais confond un acteur, une date, une cause ou une condition.',
+            'Aucun choix absurde, hors sujet ou réfuté seulement par une connaissance extérieure.',
+            'Dans explanation, explique pourquoi chaque choix A, B, C et D est correct ou incorrect en citant les détails pertinents.'],
         'document_plan': 'Présente la situation, développe les faits et exemples concrets, puis les points de vue et leur nuance. Chaque paragraphe apporte des informations nouvelles.',
         'length_instruction': f'Le champ document SEUL doit contenir environ {target} mots en {paragraphs} paragraphes développés. Ne compte ni les options ni le corrigé. Ne fournis pas un résumé.'}
     context = json.dumps(specification, ensure_ascii=False)

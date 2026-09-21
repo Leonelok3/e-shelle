@@ -118,3 +118,15 @@ class ReadingDocumentTests(TestCase):
         self.assertIn('plusieurs réponses', repair['correction_required'])
         self.assertEqual(repair['reviewer_feedback_to_address'], 'Les options A et B donnent le même jour.')
         self.assertEqual(llm.call_count, 4)
+
+    @patch('ai_engine.services.llm_service.call_llm')
+    def test_housing_prompt_has_concrete_scenario_and_distractor_requirements(self, llm):
+        import json
+        from preparation_tests.services.reading_documents import generate_document
+        self.lesson.title = 'TCF B2 - CE - Logement Et Installation Au Canada'
+        llm.side_effect = [json.dumps(self.data), json.dumps({'valid': True})]
+        generate_document(self.lesson, 5, [])
+        context = json.loads(llm.call_args_list[0].args[1])
+        self.assertIn('monte-charge', context['scenario_if_applicable'])
+        self.assertIn('Échange de messages', context['document_format'])
+        self.assertEqual(len(context['distractor_requirements']), 4)
