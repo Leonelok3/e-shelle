@@ -215,6 +215,10 @@ class Command(BaseCommand):
         )
 
     def _upsert_exercise(self, lesson: CourseLesson, section: str, level: str, theme: str, order: int):
+        # Never overwrite a validated document revision with the generic seed.
+        protected = lesson.exercises.filter(order=order, is_active=True).exclude(document_text="").first()
+        if protected:
+            return protected, False
         if section == "co":
             data = self._co_data(level, theme, order)
         elif section == "ce":

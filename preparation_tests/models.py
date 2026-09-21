@@ -295,6 +295,9 @@ class CourseExercise(models.Model):
     title = models.CharField(max_length=255)
     instruction = models.TextField(blank=True)
     question_text = models.TextField()
+    document_title = models.CharField(max_length=255, blank=True)
+    document_text = models.TextField(blank=True)
+
 
     audio = models.ForeignKey(
         Asset,

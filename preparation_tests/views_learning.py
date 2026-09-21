@@ -61,6 +61,7 @@ def explain_answer(request):
     # Cache only public exercise content, never learner productions.
     import hashlib
     source = json.dumps({"question": strip_tags(exercise.question_text),
+        "document": exercise.document_text, "document_title": exercise.document_title,
         "instructions": strip_tags(exercise.instruction), "reference_explanation": strip_tags(exercise.summary),
         "options": {key: getattr(exercise, "option_" + key.lower()) for key in "ABCD"},
         "correct": correct, "selected": selected, "skill": exercise.lesson.section}, ensure_ascii=False)

@@ -188,7 +188,7 @@ def _build_user_prompt(level: str, section: str, exercises_count: int, lesson_or
             "2. <h3>2. Vocabulaire essentiel</h3> : Liste de mots clés en français (strong) avec leur définition courte entre parenthèses.\n"
             "3. <h3>3. Documents de lecture</h3> : Les documents ou courts textes en français à lire (placés dans des blocs '<div class=\"reading-box\">...</div>'). Aucun mot anglais ou de traduction dans ces textes.\n"
             "4. <h3>4. Conseils pour l'épreuve</h3> : Stratégies de lecture rapide et d'élimination de distracteurs.\n\n"
-            "IMPORTANT : Le champ 'audio_text' de chaque exercice doit simplement contenir le court extrait de texte spécifique (issu des Documents de lecture) sur lequel porte la question.\n"
+            "IMPORTANT : Le champ 'audio_text' de chaque exercice doit contenir le document COMPLET et autonome sur lequel porte la question, en texte brut. Jamais une simple référence ni un résumé. Chaque document et chaque question doivent être différents.\n"
         )
     elif section == "ee":
         prompt += "Règles strictes de calibrage CECR pour l'expression écrite (EE) du TCF :\n"
@@ -477,6 +477,8 @@ class Command(BaseCommand):
                                 lesson=lesson,
                                 title=f"Question {idx+1}",
                                 instruction=instruction,
+                                document_title=data["title"][:255] if section == "ce" else "",
+                                document_text=exo_data["audio_text"] if section == "ce" else "",
                                 question_text=exo_data["question_text"],
                                 audio=asset,
                                 option_a=exo_data["option_a"][:255],
