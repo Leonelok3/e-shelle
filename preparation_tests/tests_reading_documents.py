@@ -105,3 +105,16 @@ class ReadingDocumentTests(TestCase):
         self.assertEqual(result['evidence'], self.data['evidence'])
         self.assertEqual(llm.call_count, 3)
         self.assertIn('citation justifie la réponse', llm.call_args_list[2].args[0])
+
+    @patch('ai_engine.services.llm_service.call_llm')
+    def test_pedagogical_feedback_is_used_for_correction(self, llm):
+        import json
+        from preparation_tests.services.reading_documents import generate_document
+        llm.side_effect = [json.dumps(self.data),
+            json.dumps({'valid': False, 'issues': ['ambiguous_answer'], 'reason': 'Les options A et B donnent le même jour.'}),
+            json.dumps(self.data), json.dumps({'valid': True})]
+        generate_document(self.lesson, 1, [])
+        repair = json.loads(llm.call_args_list[2].args[1])
+        self.assertIn('plusieurs réponses', repair['correction_required'])
+        self.assertEqual(repair['reviewer_feedback_to_address'], 'Les options A et B donnent le même jour.')
+        self.assertEqual(llm.call_count, 4)

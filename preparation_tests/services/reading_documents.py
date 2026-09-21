@@ -74,6 +74,7 @@ def generate_document(lesson, position, previous_titles):
     last_error = None
     for attempt in range(2):
         draft = None
+        review_feedback = ""
         try:
             draft = parse_json(call_llm(system, context, max_tokens=4500))
             try:
@@ -100,15 +101,34 @@ def generate_document(lesson, position, previous_titles):
                 'le document est cohérent avec le thème et le niveau, que la citation justifie la réponse '
                 'et que les trois distracteurs sont faux sans connaissances extérieures. Refuse les '
                 'questions ambiguës et les documents répétitifs/génériques. Réponds uniquement en JSON '
-                '{"valid":true ou false,"reason":"justification"}.',
+                'Le support est fictif et pédagogique, pas un document officiel. Retourne '
+                '{"valid":true ou false,"issues":[codes],"reason":"motif précis et correction nécessaire"}. '
+                'Codes autorisés : ambiguous_answer, unsupported_answer, weak_distractors, '
+                'level_mismatch, topic_mismatch, generic_document, inconsistent_document. '
+                'Si valid est false, explique exactement la contradiction et comment la corriger.',
                 json.dumps({'context': json.loads(context), 'exercise': data}, ensure_ascii=False), max_tokens=700))
             if not isinstance(review, dict) or review.get('valid') is not True:
-                raise DocumentValidationError('Document rejected by pedagogical consistency review')
+                labels = {
+                    'ambiguous_answer': 'plusieurs réponses possibles',
+                    'unsupported_answer': 'réponse non justifiée par le texte',
+                    'weak_distractors': 'choix incorrects insuffisamment plausibles ou réfutables',
+                    'level_mismatch': 'niveau de langue inadapté',
+                    'topic_mismatch': 'document hors thème',
+                    'generic_document': 'document trop générique',
+                    'inconsistent_document': 'contradiction dans le document',
+                }
+                issues = review.get('issues', []) if isinstance(review, dict) else []
+                reasons = [labels[item] for item in issues if isinstance(item, str) and item in labels] if isinstance(issues, list) else []
+                reason = review.get('reason', '') if isinstance(review, dict) else ''
+                review_feedback = reason[:2000] if isinstance(reason, str) else ''
+                # Only application-defined categories are printed; reviewer prose stays internal.
+                raise DocumentValidationError('Pedagogical review rejected: ' + ('; '.join(reasons) or 'motif non catégorisé'))
             return data
         except (DocumentValidationError, json.JSONDecodeError) as exc:
             last_error = exc if isinstance(exc, DocumentValidationError) else DocumentValidationError('Invalid JSON response')
             context = json.dumps({**specification,
                 'correction_required': str(last_error),
+                'reviewer_feedback_to_address': review_feedback,
                 'previous_draft': draft if isinstance(draft, dict) else None,
                 'instruction': f'Reprends le brouillon fourni comme donnée à corriger. Développe le document jusqu’à environ {target} mots en {paragraphs} paragraphes, sans répétitions ni remplissage. Ajoute des exemples contextualisés et des nuances utiles. Réévalue la question, les quatre options et la citation exacte après modification. Retourne le JSON COMPLET corrigé.'}, ensure_ascii=False)
 
