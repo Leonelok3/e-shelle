@@ -63,3 +63,21 @@ class ReadingDocumentTests(TestCase):
         self.assertIn('Document de lecture', rendered)
         self.assertIn('&lt;script&gt;', rendered)
         self.assertNotIn('<script>alert(1)</script>', rendered)
+
+    @patch('ai_engine.services.llm_service.call_llm')
+    def test_generation_repairs_invalid_length_once(self, llm):
+        import json
+        from preparation_tests.services.reading_documents import generate_document
+        llm.side_effect = [json.dumps({**self.data, 'document': 'Trop court.'}),
+                           json.dumps(self.data), json.dumps({'valid': True})]
+        result = generate_document(self.lesson, 1, [])
+        self.assertEqual(result['document'], self.data['document'])
+        self.assertEqual(llm.call_count, 3)
+        self.assertIn('Document length:', llm.call_args_list[1].args[1])
+
+    @patch('ai_engine.services.llm_service.call_llm', return_value='not JSON')
+    def test_generation_stops_after_two_invalid_attempts(self, llm):
+        from preparation_tests.services.reading_documents import generate_document, DocumentValidationError
+        with self.assertRaisesRegex(DocumentValidationError, 'Invalid JSON'):
+            generate_document(self.lesson, 1, [])
+        self.assertEqual(llm.call_count, 2)

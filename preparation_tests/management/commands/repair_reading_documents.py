@@ -2,7 +2,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from preparation_tests.models import CourseLesson, CourseExercise
-from preparation_tests.services.reading_documents import generate_document
+from preparation_tests.services.reading_documents import generate_document, DocumentValidationError
 
 
 class Command(BaseCommand):
@@ -40,6 +40,8 @@ class Command(BaseCommand):
                     raise ValueError('Repeated document or question')
                 generated.append(data)
                 titles.append(data['title'])
+            except DocumentValidationError as exc:
+                raise CommandError(f'Validation failed after two attempts: {exc}. No exercise changed.') from None
             except Exception as exc:
                 # Provider exceptions can contain credentials; never print their messages.
                 raise CommandError(f'Generation/validation failed ({type(exc).__name__}). No exercise changed.') from None
