@@ -1,6 +1,7 @@
 """Generate grounded reading exercises; never substitute a generic fallback."""
 import json
 import re
+from html.parser import HTMLParser
 from django.utils.html import strip_tags
 
 
@@ -15,14 +16,56 @@ def parse_json(text):
     return json.loads(text)
 
 
+class _PlainTextFormatting(HTMLParser):
+    allowed = {'p', 'br', 'strong', 'em', 'b', 'i', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'}
+    blocks = {'p', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.parts = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag not in self.allowed or attrs:
+            raise DocumentValidationError('Unsupported HTML element or attributes in generated text')
+        if tag in self.blocks:
+            self.parts.append('\n')
+
+    def handle_endtag(self, tag):
+        if tag not in self.allowed:
+            raise DocumentValidationError('Unsupported HTML element in generated text')
+        if tag in self.blocks:
+            self.parts.append('\n')
+
+    def handle_data(self, data):
+        self.parts.append(data)
+
+    def handle_comment(self, data):
+        raise DocumentValidationError('HTML comments are not supported')
+
+    def handle_decl(self, decl):
+        raise DocumentValidationError('HTML declarations are not supported')
+
+
+def normalize_formatting(value):
+    if not isinstance(value, str) or strip_tags(value) == value:
+        return value
+    parser = _PlainTextFormatting()
+    parser.feed(value)
+    parser.close()
+    return re.sub(r'\n{3,}', '\n\n', ''.join(parser.parts)).strip()
+
+
 def validate_document(data, level):
     if not isinstance(data, dict):
         raise DocumentValidationError('Invalid document structure')
+    data = {key: normalize_formatting(value) for key, value in data.items()}
+    if isinstance(data.get('options'), dict):
+        data['options'] = {key: normalize_formatting(value) for key, value in data['options'].items()}
     for key in ('title', 'document', 'question', 'answer', 'evidence', 'explanation'):
         if not isinstance(data.get(key), str) or not data[key].strip():
             raise DocumentValidationError('Missing document field: ' + key)
         if strip_tags(data[key]) != data[key]:
-            raise DocumentValidationError('Document must be plain text')
+            raise DocumentValidationError('Unsupported formatting in field: ' + key)
     minimum = {'A1': 35, 'A2': 60, 'B1': 100, 'B2': 150, 'C1': 220, 'C2': 260}.get(level, 100)
     if not minimum <= len(data['document'].split()) <= 700:
         raise DocumentValidationError(f'Document length: {len(data["document"].split())} words; required {minimum}-700 for {level}')

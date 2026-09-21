@@ -130,3 +130,14 @@ class ReadingDocumentTests(TestCase):
         self.assertIn('monte-charge', context['scenario_if_applicable'])
         self.assertIn('Échange de messages', context['document_format'])
         self.assertEqual(len(context['distractor_requirements']), 4)
+
+    def test_simple_formatting_is_converted_without_changing_content(self):
+        result = validate_document({**self.data, 'document': '<p>' + self.data['document'] + '</p>',
+            'evidence': '<strong>' + self.data['evidence'] + '</strong>'}, 'A1')
+        self.assertEqual(result['document'], self.data['document'])
+        self.assertEqual(result['evidence'], self.data['evidence'])
+
+    def test_active_html_and_attributes_are_rejected(self):
+        for markup in ['<script>alert(1)</script>', '<p onclick="alert(1)">Texte</p>', '<img src="x">']:
+            with self.subTest(markup=markup), self.assertRaises(ValueError):
+                validate_document({**self.data, 'document': self.data['document'] + markup}, 'A1')
