@@ -74,6 +74,9 @@ class ReadingDocumentTests(TestCase):
         self.assertEqual(result['document'], self.data['document'])
         self.assertEqual(llm.call_count, 3)
         self.assertIn('Document length:', llm.call_args_list[1].args[1])
+        repair = json.loads(llm.call_args_list[1].args[1])
+        self.assertEqual(repair['previous_draft']['document'], 'Trop court.')
+        self.assertEqual(repair['document_target_words'], 70)
 
     @patch('ai_engine.services.llm_service.call_llm', return_value='not JSON')
     def test_generation_stops_after_two_invalid_attempts(self, llm):
