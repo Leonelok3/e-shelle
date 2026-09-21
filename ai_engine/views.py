@@ -3,7 +3,7 @@ ai_engine/views.py — Vues IA E-Shelle
 Génération de contenu, chat IA, streaming SSE.
 """
 import json
-import os
+from ai_engine.services.llm_service import stream_llm
 from django.shortcuts import render
 from django.http import StreamingHttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -23,7 +23,7 @@ def generateur(request):
 @login_required
 def stream_generate(request):
     """
-    Endpoint SSE : génère du contenu IA en streaming via l'API Anthropic.
+    Endpoint SSE : génère du contenu IA en streaming via les fournisseurs OpenAI/Gemini.
     POST { prompt, type_gen, modele? }
     """
     if request.method != "POST":
@@ -33,64 +33,45 @@ def stream_generate(request):
         data      = json.loads(request.body)
         prompt    = data.get("prompt", "").strip()
         type_gen  = data.get("type_gen", "contenu")
-        modele    = data.get("modele", "claude-haiku-4-5-20251001")
     except Exception:
         return JsonResponse({"error": "JSON invalide"}, status=400)
 
     if not prompt:
         return JsonResponse({"error": "Prompt vide"}, status=400)
 
-    api_key = os.getenv("ANTHROPIC_API_KEY", "")
-    if not api_key or api_key.startswith("sk-ant-VOTRE"):
-        return JsonResponse({"error": "Clé API Anthropic non configurée."}, status=503)
-
     def event_stream():
-        import anthropic
         start = timezone.now()
         resultat_parts = []
         statut = "succes"
-        tokens_in = tokens_out = 0
+        usage = {"model": "", "input_tokens": 0, "output_tokens": 0}
 
         try:
-            client = anthropic.Anthropic(api_key=api_key)
-            with client.messages.stream(
-                model=modele,
-                max_tokens=2048,
-                messages=[{"role": "user", "content": prompt}],
-                system=(
-                    "Tu es un assistant expert en création de contenu éducatif et marketing "
-                    "pour la plateforme E-Shelle, ciblant les entrepreneurs africains. "
-                    "Réponds en français, de façon claire et structurée."
-                ),
-            ) as stream:
-                for chunk in stream.text_stream:
-                    resultat_parts.append(chunk)
-                    payload = json.dumps({"chunk": chunk})
-                    yield f"data: {payload}\n\n"
-
-                # Statistiques finales
-                final_msg = stream.get_final_message()
-                tokens_in  = final_msg.usage.input_tokens
-                tokens_out = final_msg.usage.output_tokens
-
-        except Exception as e:
+            system = (
+                "Tu es un assistant expert en création de contenu éducatif et marketing "
+                "pour la plateforme E-Shelle, ciblant les entrepreneurs africains. "
+                "Réponds en français, de façon claire et structurée."
+            )
+            for chunk in stream_llm(system, prompt, usage=usage, max_tokens=2048):
+                resultat_parts.append(chunk)
+                yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+        except Exception:
             statut = "erreur"
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            yield f"data: {json.dumps({'error': 'Génération IA indisponible. Veuillez réessayer.'})}\n\n"
 
         # Sauvegarder la génération en base
         duree = int((timezone.now() - start).total_seconds() * 1000)
         GenerationIA.objects.create(
             utilisateur=request.user,
             type_gen=type_gen,
-            modele=modele,
+            modele=usage["model"],
             prompt=prompt[:2000],
             resultat="".join(resultat_parts)[:8000],
-            tokens_input=tokens_in,
-            tokens_output=tokens_out,
+            tokens_input=usage["input_tokens"],
+            tokens_output=usage["output_tokens"],
             statut=statut,
             duree_ms=duree,
         )
-        yield f"data: {json.dumps({'done': True, 'tokens': tokens_out})}\n\n"
+        yield f"data: {json.dumps({'done': True, 'tokens': usage['output_tokens']})}\n\n"
 
     response = StreamingHttpResponse(event_stream(), content_type="text/event-stream")
     response["Cache-Control"] = "no-cache"

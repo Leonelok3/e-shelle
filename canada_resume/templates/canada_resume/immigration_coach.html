@@ -35,7 +35,7 @@
   .ep-card:last-child { margin-bottom: 0; }
   .ep-card:hover { box-shadow: 0 4px 16px rgba(10, 10, 10, .08); }
   .ep-card-title { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: #C8102E; margin-bottom: .85rem; }
-  
+
   /* Boutons presets — contour rouge au hover */
   .ep-preset-btn { display: flex; width: 100%; align-items: center; gap: .5rem; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: .6rem .9rem; font-size: .8rem; font-weight: 600; color: #0A0A0A; text-align: left; cursor: pointer; transition: border-color .2s, background .2s, transform .15s; margin-bottom: .4rem; }
   .ep-preset-btn:hover { border-color: #C8102E; background: #FDE8E6; color: #C8102E; transform: translateX(2px); }
@@ -50,12 +50,12 @@
   .ep-msg.assistant .ep-msg-content { background: #fff; border: 1px solid #e2e8f0; color: #334155; border-radius: 4px 14px 14px 14px; }
   /* Bulle utilisateur — rouge Canada */
   .ep-msg.user .ep-msg-content { background: #C8102E; color: #fff; border-radius: 14px 4px 14px 14px; }
-  
+
   .ep-chat-input-area { display: flex; gap: .75rem; align-items: flex-end; }
   .ep-chat-textarea { flex: 1; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: .75rem 1rem; font-size: .88rem; color: #1e293b; background: #fff; resize: vertical; min-height: 72px; font-family: inherit; outline: none; transition: border-color .2s, box-shadow .2s; }
   .ep-chat-textarea:focus { border-color: #C8102E; box-shadow: 0 0 0 3px rgba(200, 16, 46, .12); }
   .ep-chat-textarea::placeholder { color: #94a3b8; }
-  
+
   /* Bouton envoyer — rouge Canada */
   .ep-btn-send { display: inline-flex; align-items: center; gap: .4rem; background: linear-gradient(135deg, #C8102E, #960c22); color: #fff; border: none; border-radius: 10px; padding: .75rem 1.25rem; font-size: .88rem; font-weight: 700; cursor: pointer; transition: opacity .2s, transform .15s, box-shadow .2s; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 12px rgba(200, 16, 46, .3); }
   .ep-btn-send:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(200, 16, 46, .4); }
@@ -77,7 +77,7 @@
 <div class="ep-wrap">
 
   <!-- NAVIGATION TABS -->
-  {% include "canada_resume/partials/canada_nav.html" %}
+
 
   <div class="ep-hero">
     <p class="ep-hero-kicker">E-Shelle · Canada · Coach IA</p>
@@ -90,10 +90,10 @@
     <a href="{% url 'canada_resume:diagnostic' %}" class="ep-quick-link">🍁 Ma feuille de route Canada</a>
   </div>
 
-  {% if not is_pro %}
+  {% if messages_left >= 0 %}
   <div class="premium-banner">
-    <p>🍁 Version Gratuite : Il vous reste <strong>{{ messages_left }}</strong> messages gratuits aujourd'hui.</p>
-    <a href="{% url 'accounts:upgrade' %}?app=prep">Débloquer l'accès Premium Illimité</a>
+    <p>🍁 Utilisation IA : Il vous reste <strong>{{ messages_left }}</strong> demandes IA aujourd'hui, partagées entre les assistants.</p>
+
   </div>
   {% endif %}
 
@@ -109,7 +109,7 @@
         <button class="ep-preset-btn" onclick="sendPreset('Quels sont les frais de visa visiteur et délais ?')">✈️ Visa de Tourisme</button>
         <button class="ep-preset-btn" onclick="sendPreset('Comment postuler à une bourse d\'études au Canada ?')">🎓 Bourses d'études</button>
       </div>
-      
+
       <div class="ep-card" style="background: #FFF9E6; border-color: #FFE082;">
         <p class="ep-card-title" style="color: #B78103;">⚠️ Avertissement</p>
         <p style="font-size: .78rem; color: #6d4c00; margin: 0; line-height: 1.4;">
@@ -122,7 +122,7 @@
     <div class="ep-chat-card">
       <div class="ep-chat-box" id="chatBox">
         <div class="ep-msg assistant">
-          <div class="ep-msg-content">Bonjour ! Je suis votre conseiller IA E-Shelle spécialisé en immigration au Canada. 
+          <div class="ep-msg-content">Bonjour ! Je suis votre conseiller IA E-Shelle spécialisé en immigration au Canada.
 Comment puis-je vous aider aujourd'hui dans vos démarches d'immigration, de permis de travail ou de bourses d'études ? 🍁</div>
         </div>
       </div>
@@ -155,21 +155,21 @@ Comment puis-je vous aider aujourd'hui dans vos démarches d'immigration, de per
   function appendMessage(role, content) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `ep-msg ${role}`;
-    
+
     const contentDiv = document.createElement('div');
     contentDiv.className = 'ep-msg-content';
-    
+
     // Parse simple markdown/bold in reply
     if (role === 'assistant') {
       contentDiv.innerHTML = formatReply(content);
     } else {
       contentDiv.textContent = content;
     }
-    
+
     msgDiv.appendChild(contentDiv);
     chatBox.appendChild(msgDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
-    
+
     chatHistory.push({ role: role === 'user' ? 'user' : 'model', content: content });
   }
 
@@ -179,7 +179,7 @@ Comment puis-je vous aider aujourd'hui dans vos démarches d'immigration, de per
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
-    
+
     // Bold translation
     escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     // bullet list translation

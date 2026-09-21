@@ -392,9 +392,6 @@ if FACEBOOK_APP_ID and FACEBOOK_APP_SECRET and FACEBOOK_APP_ID != "VOTRE_APP_ID_
     }
 
 
-# Anthropic / Claude AI
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-
 # OpenAI (EnglishPrepApp, GermanPrepApp, italian_courses)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
@@ -678,3 +675,6 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
         "API_SECRET": CLOUDINARY_API_SECRET,
     }
     DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+# Shared per-account daily allowance for Immigration97 AI requests.
+IMMIGRATION97_DAILY_AI_LIMIT = int(os.getenv("IMMIGRATION97_DAILY_AI_LIMIT", "20"))

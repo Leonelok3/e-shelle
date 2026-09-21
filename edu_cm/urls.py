@@ -803,6 +803,7 @@ urlpatterns = [
     path("allemagne/",              _allemagne_hub,                       name="allemagne_hub"),
 
     # ── E-Shelle Canada — Hub immigration / Offres / CV Canadien ───────
+    path("canada/", include("canada_resume.journey_urls")),
     path("canada/mon-cv/",          include("canada_resume.urls",         namespace="canada_resume")),
     path("canada/",                 _canada_landing,                      name="canada_landing"),
 

@@ -198,7 +198,7 @@ class CommercialAgentService:
 
     @classmethod
     def generate_message(cls, prospect: ProspectBusiness, canal="whatsapp", contexte="") -> str:
-        """Genere un message commercial court. Utilise Claude si configure, sinon fallback solide."""
+        """Genere un message commercial court. Utilise les fournisseurs configurés, sinon le message de secours."""
 
         pitch = MODULE_PITCHES.get(prospect.module, "recevoir plus de clients via E-Shelle")
         plan = prospect.plan_recommande or cls.recommend_plan(prospect)
@@ -210,14 +210,8 @@ class CommercialAgentService:
             "Voulez-vous une demo rapide sur WhatsApp ?"
         ).replace(",", " ")
 
-        api_key = getattr(settings, "ANTHROPIC_API_KEY", "")
-        if not api_key:
-            return fallback
-
         try:
-            import anthropic
-
-            client = anthropic.Anthropic(api_key=api_key)
+            from ai_engine.services.llm_service import call_llm
             prompt = f"""Tu es l'agent commercial IA d'E-Shelle au Cameroun.
 Ecris un message {canal} court, professionnel, chaleureux, sans promesse excessive.
 Prospect: {prospect.nom}
@@ -228,12 +222,7 @@ Plan conseille: {plan} ({prix} FCFA/mois)
 Contexte: {contexte}
 Objectif: obtenir une reponse ou une demo rapide.
 Reponds uniquement avec le message."""
-            response = client.messages.create(
-                model=getattr(settings, "ANTHROPIC_MODEL", "claude-sonnet-4-20250514"),
-                max_tokens=220,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            return response.content[0].text.strip()
+            return call_llm("Tu es un assistant commercial.", prompt, max_tokens=220, fallback=fallback)
         except Exception:
             return fallback
 

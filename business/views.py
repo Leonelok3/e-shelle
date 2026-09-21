@@ -2888,10 +2888,10 @@ def ai_slide_generator_page(request):
 @staff_member_required
 @require_POST
 def api_generate_slide_ai(request):
-    """Endpoint API pour generer les specifications d'un slide via Claude AI."""
+    """Endpoint API pour generer les specifications d'un slide via les fournisseurs IA configurés."""
     from django.conf import settings
     from django.http import JsonResponse
-    import anthropic
+    from ai_engine.services.llm_service import call_llm
 
     try:
         data = json.loads(request.body)
@@ -2901,10 +2901,6 @@ def api_generate_slide_ai(request):
 
     if not prompt:
         return JsonResponse({"success": False, "error": "Le prompt ne doit pas être vide"}, status=400)
-
-    api_key = getattr(settings, "ANTHROPIC_API_KEY", "")
-    if not api_key:
-        return JsonResponse({"success": False, "error": "Cle API Anthropic non configuree dans settings.py"}, status=500)
 
     system_instruction = (
         "Tu es un expert en marketing et UI designer pour E-Shelle, une agence web au Cameroun. "
@@ -2928,20 +2924,9 @@ def api_generate_slide_ai(request):
     )
 
     try:
-        client = anthropic.Anthropic(api_key=api_key)
-        # Fallback cascade to avoid environment specific issues
-        model = getattr(settings, "ANTHROPIC_MODEL", "claude-3-5-haiku-20241022")
-        
-        response = client.messages.create(
-            model=model,
-            max_tokens=1000,
-            messages=[{"role": "user", "content": prompt}],
-            system=system_instruction,
-        )
+        content_text = call_llm(system_instruction, prompt, max_tokens=1000)
 
-        content_text = response.content[0].text.strip()
-        
-        # Clean potential markdown wrapping if Claude ignores prompt instructions
+        # Clean potential markdown wrapping if the model ignores prompt instructions
         if content_text.startswith("```"):
             lines = content_text.split("\n")
             if lines[0].startswith("```json") or lines[0].startswith("```"):
@@ -2951,6 +2936,6 @@ def api_generate_slide_ai(request):
         return JsonResponse({"success": True, "slide": slide_data})
 
     except Exception as e:
-        logger.exception("Erreur lors de l'appel Anthropic")
+        logger.exception("Erreur lors de l'appel au fournisseur IA")
         return JsonResponse({"success": False, "error": f"Erreur IA : {str(e)}"}, status=500)
 

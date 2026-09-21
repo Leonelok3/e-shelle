@@ -61,14 +61,14 @@ class LearningFeedbackTests(SimpleTestCase):
         self.assertNotIn("pronunciation", result["criteria"])
         self.assertIn("ne sont pas notées", result["coaching"]["assessment_note"])
 
-    @override_settings(OPENAI_API_KEY="")
-    @patch("ai_engine.services.eval_service._call_anthropic_eval_json")
-    @patch("ai_engine.services.eval_service._call_gemini_eval_json", return_value={"score": 99})
-    def test_invalid_provider_output_tries_the_next_provider(self, gemini, anthropic):
-        anthropic.return_value = example_feedback()
+    @override_settings(OPENAI_API_KEY="test-only")
+    @patch("ai_engine.services.eval_service._call_gemini_eval_json")
+    @patch("ai_engine.services.eval_service.call_openai_json", return_value={"score": 99})
+    def test_invalid_provider_output_tries_the_next_provider(self, openai, gemini):
+        gemini.return_value = example_feedback()
         result = evaluate_production("Je propose une bibliothèque.", "Sujet", "Consigne", "B2", "ee")
         self.assertEqual(result["score"], 61)
-        anthropic.assert_called_once()
+        gemini.assert_called_once()
 
     def test_training_percentages_never_become_official_c2_scores(self):
         for exam in ("tcf", "tef"):

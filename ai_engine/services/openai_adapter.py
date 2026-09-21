@@ -21,7 +21,7 @@ def _client():
     return OpenAI(api_key=api_key, timeout=30.0, max_retries=0)
 
 
-def call_openai(system_prompt: str, user_prompt: str, *, temperature: float = 0.4, max_tokens: int = 2500) -> str:
+def call_openai(system_prompt: str, user_prompt: str, *, temperature: float = 0.4, max_tokens: int = 2500, usage=None) -> str:
     client = _client()
     if not client:
         raise RuntimeError("OPENAI_API_KEY n'est pas configurée.")
@@ -36,6 +36,10 @@ def call_openai(system_prompt: str, user_prompt: str, *, temperature: float = 0.
         temperature=temperature,
         max_tokens=max_tokens,
     )
+    if usage is not None:
+        usage.update(model=response.model or model,
+                     input_tokens=response.usage.prompt_tokens if response.usage else 0,
+                     output_tokens=response.usage.completion_tokens if response.usage else 0)
     return (response.choices[0].message.content or "").strip()
 
 

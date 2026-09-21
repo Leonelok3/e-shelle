@@ -42,7 +42,7 @@ Utilise des contextes africains (marchés, agriculture, transport) quand c'est n
 
 
 class Command(BaseCommand):
-    help = 'Génère des exercices pour un chapitre via Claude API'
+    help = 'Génère des exercices pour un chapitre via les fournisseurs IA configurés'
 
     def add_arguments(self, parser):
         parser.add_argument('--chapitre', type=str, required=True)
@@ -51,11 +51,7 @@ class Command(BaseCommand):
         parser.add_argument('--nb', type=int, default=5)
 
     def handle(self, *args, **options):
-        try:
-            import anthropic
-        except ImportError:
-            self.stdout.write(self.style.ERROR("anthropic non installé. Lancer: pip install anthropic"))
-            return
+        from ai_engine.services.llm_service import call_llm
 
         try:
             chapitre = Chapitre.objects.get(slug=options['chapitre'])
@@ -63,7 +59,6 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR("Chapitre introuvable"))
             return
 
-        client = anthropic.Anthropic()
         prompt = PROMPT_EXERCICES.format(
             nb=options['nb'],
             niveau=options['niveau'],
@@ -73,13 +68,8 @@ class Command(BaseCommand):
 
         self.stdout.write(f"⏳ Génération de {options['nb']} exercices ({options['niveau']})...")
 
-        message = client.messages.create(
-            model="claude-opus-4-6",
-            max_tokens=8192,
-            messages=[{"role": "user", "content": prompt}]
-        )
-
-        raw = message.content[0].text.strip()
+        raw = call_llm("Tu es un professeur de mathématiques. Réponds uniquement en JSON.",
+                       prompt, max_tokens=8192)
         if raw.startswith('```'):
             raw = raw.split('\n', 1)[1].rsplit('```', 1)[0]
 

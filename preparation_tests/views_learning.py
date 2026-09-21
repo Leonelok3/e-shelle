@@ -1,3 +1,4 @@
+from canada_resume.ai_budget import ai_budget
 import json
 
 from django.contrib.auth.decorators import login_required
@@ -13,7 +14,9 @@ from .services.learning_coach import learning_dashboard, FORMATS
 
 @login_required
 def learning_center(request):
-    exam = request.GET.get("exam", "tcf").lower()
+    from canada_resume.models import ImmigrationJourney
+    journey = ImmigrationJourney.objects.filter(user=request.user).first()
+    exam = request.GET.get("exam", journey.exam if journey else "tcf").lower()
     if exam not in FORMATS:
         exam = "tcf"
     request.session["french_learning_exam"] = exam
@@ -21,13 +24,21 @@ def learning_center(request):
         level = request.POST.get("target_level", "B2")
         if level in ("A1", "A2", "B1", "B2", "C1", "C2"):
             request.session["french_learning_level"] = level
+            if journey:
+                journey.working_level = level
+                journey.exam = exam
+                levels = [value for value, _ in ImmigrationJourney.LEVELS]
+                if levels.index(journey.target_level) < levels.index(level):
+                    journey.target_level = level
+                journey.save(update_fields=['working_level', 'target_level', 'exam', 'updated_at'])
         return redirect(request.path + "?exam=" + exam)
-    level = request.session.get("french_learning_level", "B2")
+    level = journey.working_level if journey else request.session.get("french_learning_level", "B2")
     return render(request, "preparation_tests/learning_center.html", learning_dashboard(request.user, exam, level))
 
 
 @login_required
 @require_POST
+@ai_budget
 def explain_answer(request):
     try:
         payload = json.loads(request.body)

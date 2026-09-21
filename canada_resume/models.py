@@ -1,6 +1,43 @@
 from django.db import models
 from django.conf import settings
 
+
+class ImmigrationJourney(models.Model):
+    """Private preferences and preparation progress, never an immigration decision."""
+    GOALS = [('language', 'Préparer mon test de français'), ('work', 'Travailler au Canada'),
+             ('study', 'Étudier au Canada'), ('settle', 'Préparer mon installation'),
+             ('visit', 'Visiter le Canada')]
+    LEVELS = [(level, level) for level in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2')]
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                related_name='immigration_journey')
+    goal = models.CharField(max_length=12, choices=GOALS, default='language')
+    exam = models.CharField(max_length=3, choices=[('tcf', 'TCF Canada'), ('tef', 'TEF Canada')], default='tcf')
+    working_level = models.CharField(max_length=2, choices=LEVELS, default='A2')
+    target_level = models.CharField(max_length=2, choices=LEVELS, default='B2')
+    daily_minutes = models.PositiveSmallIntegerField(default=20, choices=[(10, '10 minutes'), (20, '20 minutes'), (30, '30 minutes'), (45, '45 minutes')])
+    assessment = models.JSONField(default=dict, blank=True)
+    checklist = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class ImmigrationAIUsage(models.Model):
+    """Daily request allowance shared across sessions and browsers."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    day = models.DateField()
+    attempts = models.PositiveIntegerField(default=0)
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'day'], name='imm97_user_day_usage')]
+
+
+class LearningDraft(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    exercise = models.ForeignKey('preparation_tests.CourseExercise', on_delete=models.CASCADE)
+    text = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'exercise'], name='imm97_user_exercise_draft')]
+
 class CanadaCVProfile(models.Model):
     """
     Profil du candidat pour un CV au format canadien.
@@ -300,6 +337,4 @@ class CanadaResource(models.Model):
 
     def __str__(self):
         return f"[{self.get_resource_type_display()}] {self.title}"
-
-
 

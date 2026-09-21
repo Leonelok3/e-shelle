@@ -130,8 +130,7 @@ def evaluate_production(text, topic, instructions, level, skill, context=None):
     providers = []
     if getattr(settings, "OPENAI_API_KEY", ""):
         providers.append(eval_service.call_openai_json)
-    providers += [partial(eval_service._call_gemini_eval_json, timeout_ms=15000, max_models=1),
-                  eval_service._call_anthropic_eval_json]
+    providers += [partial(eval_service._call_gemini_eval_json, timeout_ms=15000, max_models=1)]
     deadline = time.monotonic() + 85
     for provider in providers:
         if deadline - time.monotonic() < 35:

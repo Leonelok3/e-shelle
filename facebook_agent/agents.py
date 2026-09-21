@@ -1,7 +1,7 @@
 """
 Agents IA E-Shelle Facebook Auto-Post.
 Chaque agent est spécialisé pour une section de la plateforme.
-Utilise Claude claude-sonnet-4-6 pour la génération de contenu.
+Utilise les fournisseurs OpenAI/Gemini pour la génération de contenu.
 """
 
 import logging
@@ -9,7 +9,7 @@ import time
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 
-import anthropic
+from ai_engine.services.llm_service import call_llm
 from django.conf import settings
 from django.utils import timezone
 
@@ -138,13 +138,12 @@ HASHTAGS_BY_SECTION = {
 
 
 class BaseAgent:
-    """Agent de base avec génération de contenu Claude."""
+    """Agent de base avec génération de contenu IA."""
 
     def __init__(self, section: str, rule=None):
         self.section = section
         self.rule = rule
-        self.client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-        self.model = "claude-sonnet-4-6"
+        self.model = ""
         self.tokens_used = 0
 
     def _get_system_prompt(self) -> str:
@@ -159,7 +158,7 @@ class BaseAgent:
         return 300
 
     def generate_content(self, prompt: str, context: dict = None) -> str:
-        """Génère du contenu avec Claude claude-sonnet-4-6."""
+        """Génère du contenu avec les fournisseurs OpenAI/Gemini."""
         start = time.time()
         system = self._get_system_prompt()
 
@@ -179,21 +178,17 @@ Contraintes:
 Génère directement le texte du post Facebook, sans introduction ni explication."""
 
         try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=self._get_max_tokens(),
-                system=system,
-                messages=[{"role": "user", "content": full_prompt}],
-            )
-            content = response.content[0].text.strip()
-            self.tokens_used = response.usage.input_tokens + response.usage.output_tokens
+            usage = {}
+            content = call_llm(system, full_prompt, max_tokens=self._get_max_tokens(), usage=usage)
+            self.model = usage.get("model", "")
+            self.tokens_used = usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
             duration = int((time.time() - start) * 1000)
             logger.info(
                 f"[Agent:{self.section}] Contenu généré en {duration}ms, {self.tokens_used} tokens"
             )
             return content
-        except anthropic.APIError as e:
-            logger.error(f"[Agent:{self.section}] Erreur Claude API: {e}")
+        except Exception as e:
+            logger.error(f"[Agent:{self.section}] Erreur fournisseur IA: {e}")
             raise
 
     def run(self) -> Optional[Dict[str, Any]]:

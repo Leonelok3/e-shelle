@@ -633,7 +633,7 @@ def export_csv(request, pk):
 @staff_required
 @require_POST
 def api_generer_message(request):
-    """API AJAX qui genere un message marketing avec Claude."""
+    """API AJAX qui genere un message marketing avec les fournisseurs IA configurés."""
 
     data = _json_body(request)
     try:

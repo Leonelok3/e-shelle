@@ -3,7 +3,7 @@ import random
 import re
 import time
 
-import anthropic
+from ai_engine.services.llm_service import call_llm
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -185,9 +185,8 @@ class WhatsAppService:
 
     @staticmethod
     def generer_message_ia(segment: str, contexte: str, prenom: str = "") -> str:
-        """Genere un message court avec Claude pour une campagne marketing."""
+        """Genere un message court avec les fournisseurs IA configurés pour une campagne marketing."""
 
-        client = anthropic.Anthropic(api_key=getattr(settings, "ANTHROPIC_API_KEY", ""))
         salutation = f"Commence par 'Bonjour {prenom},' si c'est naturel." if prenom else ""
         prompt = f"""Tu es l'assistant marketing d'E-Shelle, marketplace africaine au Cameroun.
 Genere un message WhatsApp court (max 160 caracteres), chaleureux et en francais.
@@ -197,12 +196,7 @@ Contexte de la campagne: {contexte}.
 Le message doit inciter a l'action. Pas d'emoji excessif. Termine par un lien si pertinent.
 Reponds UNIQUEMENT avec le texte du message, rien d'autre."""
 
-        msg = client.messages.create(
-            model=getattr(settings, "ANTHROPIC_MODEL", "claude-sonnet-4-20250514"),
-            max_tokens=300,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return msg.content[0].text.strip()
+        return call_llm("Tu es un assistant marketing. Respecte le format demandé.", prompt, max_tokens=300)
 
     @staticmethod
     def recuperer_contacts(filtre_role="", filtre_ville="", date_depuis=None):
@@ -280,7 +274,7 @@ Reponds UNIQUEMENT avec le texte du message, rien d'autre."""
 
     @staticmethod
     def generer_variations_multiples_ia(segment: str, contexte: str, nb_variations: int = 5) -> list:
-        """Genere plusieurs variations distinctes d'un message publicitaire via Claude pour l'anti-spam."""
+        """Genere plusieurs variations distinctes d'un message publicitaire via les fournisseurs IA configurés pour l'anti-spam."""
         prompt = f"""Tu es un copywriter expert en WhatsApp Marketing pour le Cameroun et l'Afrique (plateforme E-Shelle).
 Genere exactement {nb_variations} variations tres differentes d'un message WhatsApp de prospection.
 Segment cible: {segment or 'commercants, prestataires et utilisateurs'}
@@ -295,13 +289,7 @@ REGLES:
 ["Variante 1...", "Variante 2...", "Variante 3..."]"""
 
         try:
-            client = anthropic.Anthropic(api_key=getattr(settings, "ANTHROPIC_API_KEY", ""))
-            msg = client.messages.create(
-                model=getattr(settings, "ANTHROPIC_MODEL", "claude-sonnet-4-20250514"),
-                max_tokens=900,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            raw = msg.content[0].text.strip()
+            raw = call_llm("Tu es un assistant marketing. Respecte le format demandé.", prompt, max_tokens=900)
             if "```" in raw:
                 match = re.search(r"\[.*\]", raw, re.DOTALL)
                 if match:
@@ -542,13 +530,7 @@ Propose une reponse WhatsApp ideale :
 Reponds UNIQUEMENT avec le texte du message."""
 
         try:
-            client = anthropic.Anthropic(api_key=getattr(settings, "ANTHROPIC_API_KEY", ""))
-            msg = client.messages.create(
-                model=getattr(settings, "ANTHROPIC_MODEL", "claude-sonnet-4-20250514"),
-                max_tokens=350,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            return msg.content[0].text.strip()
+            return call_llm("Tu es un assistant marketing. Respecte le format demandé.", prompt, max_tokens=350)
         except Exception:
             return f"Bonjour {conversation.contact.nom or ''}, merci pour votre message ! Nous serions ravis de vous accompagner avec nos solutions E-Shelle. Quel est le meilleur moment pour un bref echange aujourd'hui ?"
 

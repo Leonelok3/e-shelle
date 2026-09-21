@@ -1,0 +1,16 @@
+{% extends "canada_resume/journey/base.html" %}
+{% block title %}Mon bilan de départ · Immigration97{% endblock %}
+{% block journey_content %}<div class="i97-form">
+<span class="i97-kicker">Mon bilan de départ · environ 5 minutes</span><h1>Trouvons votre point de départ.</h1>
+<p>Huit questions de lecture et de grammaire pour vous orienter. L’écoute et l’expression seront travaillées dans vos séances ; ce bilan ne mesure pas votre niveau global de français.</p>
+{% if result %}<section class="i97-card"><h2>{{ result.score }}/{{ result.total }} réponses correctes</h2>
+<p>Point de départ proposé pour les exercices : <strong>{{ result.suggested_level }}</strong>. Vous pouvez conserver votre choix actuel ou utiliser cette proposition.</p>
+<form method="post" action="{% url 'immigration97:apply_assessment' %}">{% csrf_token %}<button class="i97-btn">Utiliser ce point de départ</button></form>
+<div class="i97-actions"><a href="{% url 'immigration97:dashboard' %}">Garder mon niveau actuel →</a></div>
+{% for item in result.feedback %}<details class="i97-step"><summary>{% if item.correct %}✓{% else %}À revoir{% endif %} · {{ item.question }}</summary><p><strong>{{ item.answer }}</strong> — {{ item.explanation }}</p></details>{% endfor %}
+</section>{% else %}<form method="post" class="i97-card">{% csrf_token %}
+{% if error %}<p class="i97-error" role="alert">{{ error }}</p>{% endif %}
+{% for item in questions %}<fieldset><legend>{{ forloop.counter }}. {{ item.question }}</legend>{% for option in item.options %}<label><input type="radio" name="{{ item.key }}" value="{{ forloop.counter0 }}" required {% if item.selected == forloop.counter0|stringformat:'s' %}checked{% endif %}>{{ option }}</label>{% endfor %}</fieldset>{% endfor %}
+<button class="i97-btn" type="submit">Voir mon bilan →</button>
+</form><p class="i97-note"><a href="{% url 'immigration97:dashboard' %}">Commencer avec mon niveau déclaré et faire le bilan plus tard</a></p>{% endif %}
+</div>{% endblock %}

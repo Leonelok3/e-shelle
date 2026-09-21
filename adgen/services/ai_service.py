@@ -15,7 +15,7 @@ class AdGenAIService:
     """
     Appelle l'API d'intelligence artificielle pour générer du contenu publicitaire.
     Utilise en priorité Vertex AI (Gemini 2.5 Pro) avec les crédits Google Cloud,
-    puis l'API Google AI Studio standard, et enfin Anthropic Claude en fallback.
+    puis l'API Google AI Studio standard, puis OpenAI si aucun client Google ne peut être initialisé.
     """
     MAX_TOKENS = 3000
 
@@ -23,7 +23,6 @@ class AdGenAIService:
         self.key_path = getattr(settings, "GCP_VERTEX_KEY_PATH", "")
         self.client_type = None
         self.google_client = None
-        self.anthropic_client = None
 
         # 1. Tenter d'initialiser Google GenAI avec Vertex AI (crédits GCP)
         if self.key_path and os.path.exists(self.key_path):
@@ -55,20 +54,10 @@ class AdGenAIService:
                 except Exception as e:
                     logger.warning(f"[AdGen] Échec de l'initialisation Gemini API Studio: {e}")
 
-        # 3. Tenter d'initialiser Anthropic Claude (ancien comportement)
-        if not self.google_client and getattr(settings, "ADGEN_ANTHROPIC_FALLBACK_ENABLED", False):
-            anthropic_key = getattr(settings, "ANTHROPIC_API_KEY", "")
-            if anthropic_key:
-                try:
-                    import anthropic
-                    self.anthropic_client = anthropic.Anthropic(api_key=anthropic_key)
-                    self.client_type = "anthropic"
-                    logger.info("[AdGen] Initialisé avec Anthropic Claude")
-                except Exception as e:
-                    logger.warning(f"[AdGen] Échec de l'initialisation Anthropic: {e}")
-
-        if not self.google_client and not self.anthropic_client:
-            logger.warning("[AdGen] Aucun client d'IA externe n'a pu être configuré.")
+        if not self.google_client and getattr(settings, "OPENAI_API_KEY", ""):
+            self.client_type = "openai"
+        if not self.client_type:
+            logger.warning("[AdGen] Aucun fournisseur IA n'est configuré.")
 
     def generate(self, product_data: dict, modules: list) -> dict:
         """
@@ -130,20 +119,13 @@ class AdGenAIService:
                     logger.error(f"[AdGen] Échec de la génération avec Gemini 2.5 Flash: {e2}")
                     raise RuntimeError(f"Échec complet de la génération Gemini: {e2}")
 
-        elif self.client_type == "anthropic" and self.anthropic_client:
-            model_used = "Claude 3.5 Sonnet"
-            try:
-                logger.info(f"[AdGen] Envoi de la requête à Anthropic ({model_used})...")
-                message = self.anthropic_client.messages.create(
-                    model="claude-3-5-sonnet-latest",
-                    max_tokens=self.MAX_TOKENS,
-                    messages=[{"role": "user", "content": prompt}],
-                )
-                raw_text = message.content[0].text.strip()
-                tokens_used = message.usage.input_tokens + message.usage.output_tokens
-            except Exception as e:
-                logger.error(f"[AdGen] Échec de la génération avec Anthropic: {e}")
-                raise RuntimeError(f"Échec de génération Anthropic: {e}")
+        elif self.client_type == "openai":
+            from ai_engine.services.openai_adapter import call_openai
+            usage = {}
+            raw_text = call_openai("Tu es un expert en publicité. Réponds uniquement en JSON.",
+                                   prompt, max_tokens=self.MAX_TOKENS, usage=usage)
+            model_used = usage.get("model", "OpenAI")
+            tokens_used = usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
         else:
             raise RuntimeError("Aucun client IA valide n'est configuré pour la génération en ligne.")
 

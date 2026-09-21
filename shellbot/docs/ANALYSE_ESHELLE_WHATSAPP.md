@@ -12,7 +12,7 @@ Fonctions:
 - import manuel/API de contacts;
 - creation de campagnes;
 - personnalisation de messages;
-- generation IA de messages courts via Anthropic;
+- generation IA de messages courts via OpenAI/Gemini;
 - envoi Cloud API Meta;
 - mode `WHATSAPP_DRY_RUN`;
 - suivi `envoye`, `livre`, `lu`, `echec`;
@@ -98,7 +98,7 @@ Pattern reutilisable:
 ## APIs et bibliotheques observees
 
 - Meta WhatsApp Business Cloud API via `requests`.
-- Anthropic Claude pour messages marketing.
+- OpenAI/Gemini pour messages marketing.
 - OpenAI dans d'autres agents E-Shelle.
 - Twilio dans `tchaslucpay` pour SMS, pas WhatsApp.
 - Celery pour envois asynchrones.

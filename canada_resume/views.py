@@ -1,3 +1,5 @@
+from canada_resume.ai_budget import ai_budget
+from canada_resume.journey import usage_status
 import logging
 import io
 import re
@@ -723,7 +725,7 @@ def immigration_coach(request):
         request.session["canada_coach_limit_date"] = today_str
         request.session["canada_coach_message_count"] = 0
         
-    messages_left = max(0, 5 - request.session.get("canada_coach_message_count", 0))
+    messages_left = usage_status(request.user)["remaining"]
     
     return render(
         request,
@@ -736,34 +738,11 @@ def immigration_coach(request):
 
 
 @login_required
-@csrf_exempt
+@ai_budget
 def immigration_coach_api(request):
     """
     API pour dialoguer avec le coach IA Immigration Canada.
     """
-    is_pro = check_user_has_paid_edu_subscription(request.user)
-    
-    # Vérifier le quota quotidien pour les comptes gratuits
-    if not is_pro:
-        import datetime
-        today_str = datetime.date.today().isoformat()
-        session_date = request.session.get("canada_coach_limit_date")
-        message_count = request.session.get("canada_coach_message_count", 0)
-        
-        if session_date != today_str:
-            request.session["canada_coach_limit_date"] = today_str
-            message_count = 0
-            request.session["canada_coach_message_count"] = 0
-            
-        if message_count >= 5:
-            return JsonResponse(
-                {
-                    "error": "subscription_required",
-                    "reply": "Vous avez atteint votre limite gratuite de 5 messages par jour pour le Coach IA Immigration Canada. Veuillez vous abonner à E-Shelle Premium pour discuter en illimité !",
-                },
-                status=403,
-            )
-            
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
         
@@ -779,9 +758,6 @@ def immigration_coach_api(request):
     if not user_message:
         return JsonResponse({"error": "Empty message"}, status=400)
         
-    # Increment message count for free users
-    if not is_pro:
-        request.session["canada_coach_message_count"] = request.session.get("canada_coach_message_count", 0) + 1
         
     # Call LLM
     from ai_engine.services.llm_service import call_llm
@@ -829,7 +805,7 @@ def interview_simulation(request):
         request.session["canada_interview_limit_date"] = today_str
         request.session["canada_interview_message_count"] = 0
         
-    messages_left = max(0, 5 - request.session.get("canada_interview_message_count", 0))
+    messages_left = usage_status(request.user)["remaining"]
     
     return render(
         request,
@@ -842,34 +818,11 @@ def interview_simulation(request):
 
 
 @login_required
-@csrf_exempt
+@ai_budget
 def interview_simulation_api(request):
     """
     API pour dialoguer avec l'interviewer IA (simulation d'entretien).
     """
-    is_pro = check_user_has_paid_edu_subscription(request.user)
-    
-    # Vérifier le quota quotidien pour les comptes gratuits
-    if not is_pro:
-        import datetime
-        today_str = datetime.date.today().isoformat()
-        session_date = request.session.get("canada_interview_limit_date")
-        message_count = request.session.get("canada_interview_message_count", 0)
-        
-        if session_date != today_str:
-            request.session["canada_interview_limit_date"] = today_str
-            message_count = 0
-            request.session["canada_interview_message_count"] = 0
-            
-        if message_count >= 5:
-            return JsonResponse(
-                {
-                    "error": "subscription_required",
-                    "reply": "Vous avez atteint votre limite gratuite de 5 messages par jour pour la simulation d'entretien. Veuillez vous abonner à E-Shelle Premium pour vous entraîner en illimité !",
-                },
-                status=403,
-            )
-            
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
         
@@ -886,9 +839,6 @@ def interview_simulation_api(request):
     if not user_message and len(history) > 0:
         return JsonResponse({"error": "Empty message"}, status=400)
         
-    # Increment message count for free users
-    if not is_pro and user_message:
-        request.session["canada_interview_message_count"] = request.session.get("canada_interview_message_count", 0) + 1
         
     from ai_engine.services.llm_service import call_llm
     

@@ -18,7 +18,6 @@ Variables obligatoires a renseigner sur le VPS dans `/home/eshelle/app/.env`:
 - `DJANGO_DEBUG=False`.
 - `DJANGO_ALLOWED_HOSTS`: `e-shelle.com`, `www.e-shelle.com` et les sous-domaines.
 - `DATABASE_URL`: PostgreSQL local du VPS.
-- `ANTHROPIC_API_KEY`: pour Claude si utilise.
 - `OPENAI_API_KEY`: pour les agents GPT/images si utilise.
 - `EMAIL_HOST_USER` et `EMAIL_HOST_PASSWORD`: SMTP reel.
 

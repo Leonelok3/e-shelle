@@ -123,7 +123,6 @@ TCHASLUCPAY_STATIC_URL=/tchaslucpay/static/
 TCHASLUCPAY_MEDIA_URL=/tchaslucpay/media/
 TCHASLUCPAY_DATABASE_URL=postgres://eshelle_user:$DB_PASSWORD@localhost:5432/tchaslucpay_db
 
-ANTHROPIC_API_KEY=sk-ant-REMPLACER_PAR_VOTRE_CLE
 OPENAI_API_KEY=sk-REMPLACER_PAR_VOTRE_CLE_OPENAI
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
@@ -147,7 +146,7 @@ SECURE_HSTS_SECONDS=63072000
 EOF
     chown $APP_USER:$APP_USER "$APP_DIR/.env"
     chmod 600 "$APP_DIR/.env"
-    echo "✔  .env créé (éditez-le pour ajouter ANTHROPIC_API_KEY et SMTP)"
+    echo "✔  .env créé (éditez-le pour ajouter OPENAI_API_KEY et SMTP)"
 else
     echo "→ .env existant conservé"
 fi
@@ -252,7 +251,7 @@ echo "  Admin     : créez-le avec python manage.py createsuperuser"
 echo ""
 echo "  ⚠️  Actions restantes :"
 echo "     1. Éditez /home/$APP_USER/app/.env"
-echo "        → Ajoutez ANTHROPIC_API_KEY"
+echo "        → Ajoutez OPENAI_API_KEY"
 echo "        → Ajoutez OPENAI_API_KEY si vous utilisez les agents GPT/images"
 echo "        → Laissez WHATSAPP_DRY_RUN=True tant que Meta WhatsApp n'est pas prêt"
 echo "        → Configurez SMTP (EMAIL_HOST_USER / EMAIL_HOST_PASSWORD)"

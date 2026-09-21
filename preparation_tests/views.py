@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from canada_resume.ai_budget import ai_budget
+from canada_resume.journey import usage_status
+
 # =========================================================
 # 📦 IMPORTS STANDARD
 # =========================================================
@@ -1183,6 +1186,7 @@ def ee_by_level(request, level):
 # =========================================================
 @login_required
 @require_POST
+@ai_budget
 @transaction.atomic
 def submit_eo(request):
     """
@@ -1332,6 +1336,7 @@ def submit_eo(request):
 # =========================================================
 @login_required
 @require_POST
+@ai_budget
 @transaction.atomic
 def submit_ee(request):
     """
@@ -1461,7 +1466,7 @@ def french_ai_coach_page(request):
         request.session["french_coach_limit_date"] = today_str
         request.session["french_coach_message_count"] = 0
 
-    messages_left = max(0, 5 - request.session.get("french_coach_message_count", 0))
+    messages_left = usage_status(request.user)["remaining"]
 
     preset = (request.GET.get("preset") or "").strip()
 
@@ -1488,35 +1493,13 @@ def french_ai_coach_page(request):
 
 
 @login_required
+@ai_budget
 def french_ai_coach_api(request):
     """
     Endpoint JSON pour le chat IA français (TCF).
     Reçoit : { "message": "...", "history": [ {role, content}, ... ] }
     Retourne : { "reply": "..." }
     """
-    is_pro = check_user_has_french_premium(request.user)
-    
-    # Vérifier le quota quotidien pour les comptes gratuits
-    if not is_pro:
-        import datetime
-        today_str = datetime.date.today().isoformat()
-        session_date = request.session.get("french_coach_limit_date")
-        message_count = request.session.get("french_coach_message_count", 0)
-        
-        if session_date != today_str:
-            request.session["french_coach_limit_date"] = today_str
-            message_count = 0
-            request.session["french_coach_message_count"] = 0
-            
-        if message_count >= 5:
-            return JsonResponse(
-                {
-                    "error": "subscription_required",
-                    "reply": "Vous avez atteint votre limite gratuite de 5 messages par jour pour le Coach IA français. Veuillez vous abonner à E-Shelle Premium pour discuter en illimité !",
-                },
-                status=403,
-            )
-
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
 
@@ -1613,10 +1596,5 @@ def french_ai_coach_api(request):
             status=500,
         )
 
-    # Incrémenter le quota
-    if not is_pro:
-        current_count = request.session.get("french_coach_message_count", 0)
-        request.session["french_coach_message_count"] = current_count + 1
 
-    return JsonResponse({"reply": reply_text, "messages_left": None if is_pro else
-                         max(0, 5 - request.session.get("french_coach_message_count", 0))})
+    return JsonResponse({"reply": reply_text, "messages_left": usage_status(request.user)["remaining"]})

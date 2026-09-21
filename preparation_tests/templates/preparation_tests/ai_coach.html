@@ -99,7 +99,7 @@
         <p class="ep-card-title">Profil & Niveau</p>
         <div class="ep-profile-stat"><span>Niveau travaillé</span><strong>{{ target_level }}</strong></div>
         <div class="ep-profile-stat"><span>Statut</span><strong>{% if is_pro %}Premium{% else %}Gratuit{% endif %}</strong></div>
-        {% if not is_pro %}<p>Messages disponibles aujourd'hui : <strong id="coach-messages-left">{{ messages_left }}</strong></p>{% endif %}
+        {% if messages_left >= 0 %}<p>Messages disponibles aujourd'hui : <strong id="coach-messages-left">{{ messages_left }}</strong></p>{% endif %}
       </div>
 
       <div class="ep-card">
@@ -119,11 +119,11 @@
     <!-- Droite : chat -->
     <div class="ep-chat-card">
       <p class="ep-card-title" style="margin-bottom:.75rem;">Chat avec le coach</p>
-      
-      {% if not is_pro %}
+
+      {% if messages_left >= 0 %}
         <div style="background: #FDE8E6; border: 1.5px solid #D52B1E; border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.85rem; color: #A41E1E; margin-bottom: 1.25rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-          <span>⚡ Version gratuite : il vous reste <strong>{{ messages_left }}</strong> messages gratuits aujourd'hui.</span>
-          <a href="{% url 'accounts:upgrade' %}?app=prep" style="font-size: 0.78rem; font-weight: 700; color: #fff; background: #0A0A0A; padding: 0.35rem 0.85rem; text-decoration: none; border-radius: 6px; display: inline-block;">Passer Premium</a>
+          <span>⚡ Utilisation IA : il vous reste <strong>{{ messages_left }}</strong> demandes IA aujourd'hui, partagées entre les assistants.</span>
+
         </div>
       {% endif %}
 
@@ -133,8 +133,8 @@
         </div>
       </div>
       <div class="ep-chat-input-area">
-        <textarea id="user-input" class="ep-chat-textarea" rows="3" placeholder="Écris ton message ici..." {% if not is_pro and messages_left <= 0 %}disabled placeholder="Limite journalière de messages gratuite atteinte. Abonnez-vous pour continuer."{% endif %}>{{ preset }}</textarea>
-        <button id="send-btn" class="ep-btn-send" {% if not is_pro and messages_left <= 0 %}disabled{% endif %}>▶ Envoyer</button>
+        <textarea id="user-input" class="ep-chat-textarea" rows="3" placeholder="Écris ton message ici..." {% if messages_left <= 0 %}disabled placeholder="Limite quotidienne atteinte. Revenez demain."{% endif %}>{{ preset }}</textarea>
+        <button id="send-btn" class="ep-btn-send" {% if messages_left <= 0 %}disabled{% endif %}>▶ Envoyer</button>
       </div>
     </div>
 

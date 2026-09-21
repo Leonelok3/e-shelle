@@ -42,18 +42,14 @@ Adapte le vocabulaire au niveau {classe}. Utilise des exemples concrets de la vi
 
 
 class Command(BaseCommand):
-    help = "Génère les leçons d'un chapitre via Claude API"
+    help = "Génère les leçons d'un chapitre via les fournisseurs IA configurés"
 
     def add_arguments(self, parser):
         parser.add_argument('--chapitre', type=str, required=True, help='Slug du chapitre')
         parser.add_argument('--lecons', type=int, default=4, help='Nombre de leçons à générer')
 
     def handle(self, *args, **options):
-        try:
-            import anthropic
-        except ImportError:
-            self.stdout.write(self.style.ERROR("anthropic non installé. Lancer: pip install anthropic"))
-            return
+        from ai_engine.services.llm_service import call_llm
 
         try:
             chapitre = Chapitre.objects.get(slug=options['chapitre'])
@@ -61,7 +57,6 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f"Chapitre '{options['chapitre']}' introuvable"))
             return
 
-        client = anthropic.Anthropic()
         prompt = PROMPT_COURS.format(
             titre=chapitre.titre,
             classe=chapitre.classe.label,
@@ -70,13 +65,8 @@ class Command(BaseCommand):
 
         self.stdout.write(f"⏳ Génération de {options['lecons']} leçons pour '{chapitre.titre}'...")
 
-        message = client.messages.create(
-            model="claude-opus-4-6",
-            max_tokens=8192,
-            messages=[{"role": "user", "content": prompt}]
-        )
-
-        raw = message.content[0].text.strip()
+        raw = call_llm("Tu es un professeur de mathématiques. Réponds uniquement en JSON.",
+                       prompt, max_tokens=8192)
         # Nettoyer si entouré de ```json
         if raw.startswith('```'):
             raw = raw.split('\n', 1)[1].rsplit('```', 1)[0]

@@ -70,64 +70,38 @@ def _call_gemini_eval_json(system_prompt: str, user_prompt: str, temperature: fl
     """
     candidate_models = ["gemini-flash-latest", "gemini-3.6-flash"]
 
-    studio_client, _ = get_genai_studio_client()
-    if not studio_client:
-        # Tenter Vertex AI uniquement si AI Studio n'a pas pu s'initialiser
-        studio_client, _ = get_vertex_client()
-
-    if not studio_client:
-        raise RuntimeError("Client Google Gemini non disponible")
-
     last_error = None
-    for model in candidate_models[:max_models]:
-        try:
-            response = studio_client.models.generate_content(
-                model=model,
-                contents=user_prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_prompt,
-                    response_mime_type="application/json",
-                    temperature=temperature,
-                    http_options=types.HttpOptions(timeout=timeout_ms, retry_options=types.HttpRetryOptions(attempts=1)) if timeout_ms else None,
-                ),
-            )
-            if response and response.text:
-                parsed = _parse_json_safely(response.text)
-                logger.info(f"[eval_service] Gemini succès ({model})")
-                return parsed
-        except Exception as e:
-            last_error = e
-            logger.warning(f"[eval_service] Gemini ({model}) indisponible : {e}")
+    for factory in (get_genai_studio_client, get_vertex_client):
+        client, _ = factory()
+        if not client:
             continue
-
-    raise RuntimeError(f"Tous les modèles Gemini ont échoué : {last_error}")
-
-
-def _call_anthropic_eval_json(system_prompt: str, user_prompt: str, temperature: float = 0.2) -> dict:
-    """
-    Appel optionnel à Claude / Anthropic en cas de secours.
-    """
-    api_key = getattr(settings, "ANTHROPIC_API_KEY", "") or os.getenv("ANTHROPIC_API_KEY", "")
-    if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY non configurée")
-
-    import anthropic
-    client = anthropic.Anthropic(api_key=api_key, timeout=20.0, max_retries=0)
-    response = client.messages.create(
-        model="claude-3-5-haiku-20241022",
-        max_tokens=2500,
-        temperature=temperature,
-        system=system_prompt,
-        messages=[{"role": "user", "content": user_prompt}],
-    )
-    text = response.content[0].text
-    return _parse_json_safely(text)
+        for model in candidate_models[:max_models]:
+            try:
+                response = client.models.generate_content(
+                    model=model,
+                    contents=user_prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_prompt,
+                        response_mime_type="application/json",
+                        temperature=temperature,
+                        http_options=types.HttpOptions(timeout=timeout_ms,
+                            retry_options=types.HttpRetryOptions(attempts=1)) if timeout_ms else None,
+                    ),
+                )
+                if response and response.text:
+                    parsed = _parse_json_safely(response.text)
+                    logger.info("[eval_service] Gemini success (%s)", model)
+                    return parsed
+            except Exception as exc:
+                last_error = exc
+                logger.warning("[eval_service] Gemini unavailable (%s, %s)", model, type(exc).__name__)
+    raise RuntimeError("Google evaluation providers unavailable") from last_error
 
 
 def _evaluate_ee_heuristic_fallback(text: str, topic: str, instructions: str, level: str, language: str = "fr") -> dict:
     """
     Évaluateur linguistique déterministe de secours en cas d'indisponibilité
-    temporaire des services IA distants (OpenAI, Gemini, Claude).
+    temporaire des services IA distants (OpenAI, Gemini).
     Analyse la longueur, la ponctuation, le vocabulaire et les fautes récurrentes
     pour toujours fournir une correction utile et pédagogique.
     """
@@ -488,19 +462,12 @@ def evaluate_eo(transcript: str, topic: str, instructions: str, level: str, expe
         raw = _call_gemini_eval_json(system_prompt, user_prompt, temperature=0.2)
         return _normalize_eo_dict(raw, transcript)
     except Exception as gemini_error:
-        logger.warning(f"[eval_service] Gemini EO indisponible, repli Claude/Heuristique : {gemini_error}")
-
-    # 3. Tentative Claude / Anthropic
-    try:
-        raw = _call_anthropic_eval_json(system_prompt, user_prompt, temperature=0.2)
-        return _normalize_eo_dict(raw, transcript)
-    except Exception as claude_error:
-        logger.warning(f"[eval_service] Claude EO indisponible : {claude_error}")
+        logger.warning(f"[eval_service] Gemini EO indisponible, correction indisponible ou repli local autorisé : {gemini_error}")
 
     if require_ai:
         raise RuntimeError("La correction IA est temporairement indisponible.")
 
-    # 4. Repli linguistique déterministe
+    # 3. Repli linguistique déterministe
     logger.info("[eval_service] Utilisation du repli déterministe pour Expression Orale")
     raw = _evaluate_eo_heuristic_fallback(transcript, topic, instructions, level, expected_points, language)
     return _normalize_eo_dict(raw, transcript)
@@ -508,7 +475,7 @@ def evaluate_eo(transcript: str, topic: str, instructions: str, level: str, expe
 
 def evaluate_ee(text: str, topic: str, instructions: str, level: str, language: str = "de", *, require_ai: bool = False, coaching_context=None) -> dict:
     """
-    Évalue une expression écrite avec chaîne de secours robuste (OpenAI -> Gemini -> Claude -> Heuristique).
+    Évalue une expression écrite avec chaîne de secours robuste (OpenAI -> Gemini -> Heuristique).
     Garantit un retour JSON valide et normalisé dans tous les cas.
     """
     logger.info(f"[eval_service] Évaluation Expression Écrite ({language} · Niveau {level})...")
@@ -554,19 +521,12 @@ def evaluate_ee(text: str, topic: str, instructions: str, level: str, language: 
         raw = _call_gemini_eval_json(system_prompt, user_prompt, temperature=0.2)
         return _normalize_ee_dict(raw, text)
     except Exception as gemini_error:
-        logger.warning(f"[eval_service] Gemini EE indisponible, repli Claude/Heuristique : {gemini_error}")
-
-    # 3. Tentative Claude / Anthropic
-    try:
-        raw = _call_anthropic_eval_json(system_prompt, user_prompt, temperature=0.2)
-        return _normalize_ee_dict(raw, text)
-    except Exception as claude_error:
-        logger.warning(f"[eval_service] Claude EE indisponible : {claude_error}")
+        logger.warning(f"[eval_service] Gemini EE indisponible, correction indisponible ou repli local autorisé : {gemini_error}")
 
     if require_ai:
         raise RuntimeError("La correction IA est temporairement indisponible.")
 
-    # 4. Repli linguistique déterministe (toujours opérationnel)
+    # 3. Repli linguistique déterministe (toujours opérationnel)
     logger.info("[eval_service] Utilisation du repli linguistique déterministe pour Expression Écrite")
     raw = _evaluate_ee_heuristic_fallback(text, topic, instructions, level, language)
     return _normalize_ee_dict(raw, text)

@@ -1,0 +1,23 @@
+{% extends "canada_resume/journey/base.html" %}
+{% block journey_content %}
+<div class="i97-intro"><span class="i97-kicker">Immigration97 · Mon parcours</span><h1>Votre prochaine étape commence ici.</h1><p>{{ journey.get_goal_display }} · {{ journey.get_exam_display }} · {{ journey.daily_minutes }} minutes par jour.</p>
+<a href="{% url 'immigration97:onboarding' %}">Modifier mon objectif et mon rythme</a></div>
+<div class="i97-stats"><div><strong>{{ completed_lessons }}</strong><span>leçons terminées</span></div><div><strong>{{ active_days }}/7</strong><span>jours actifs cette semaine</span></div><div><strong>{{ exercise_count }}</strong><span>exercices travaillés</span></div></div>
+<div class="i97-grid i97-grid--two">
+<section class="i97-card i97-card--dark"><span class="i97-kicker">Ma séance d’aujourd’hui</span>
+<h2>{% if next_action %}{{ next_action.title }}{% else %}Préparer ma première séance{% endif %}</h2>
+<p>Nous travaillons au niveau {{ journey.working_level }}. Votre objectif personnel : {{ journey.target_level }}.</p>
+{% if next_action %}<div class="i97-actions"><a class="i97-btn" href="{{ next_action.url }}">Continuer mon apprentissage →</a></div>{% else %}<div class="i97-actions"><a class="i97-btn" href="{% url 'preparation_tests:ai_coach' %}">Demander un exercice au coach →</a></div><p>Il n’y a pas encore de leçon publiée pour votre sélection. Le coach peut proposer un exercice ; vous pouvez aussi modifier votre niveau de travail.</p>{% endif %}
+<p>{{ learning.focus_technique }}</p></section>
+<section class="i97-card"><span class="i97-kicker">Mes repères</span><h2>Un rythme que vous pouvez tenir.</h2>
+<div class="i97-step"><span>1</span><div><strong>Comprendre</strong><p>Lisez la leçon et reformulez l’exemple.</p></div></div>
+<div class="i97-step"><span>2</span><div><strong>Pratiquer</strong><p>Répondez, écrivez ou enregistrez votre voix.</p></div></div>
+<div class="i97-step"><span>3</span><div><strong>Corriger et réessayer</strong><p>Appliquez une priorité du coach dans une nouvelle réponse.</p></div></div>
+</section></div>
+{% if not journey.assessment %}<div class="i97-callout">Vous pouvez affiner votre point de départ. <a href="{% url 'immigration97:assessment' %}">Faire mon bilan en 5 minutes →</a></div>{% endif %}
+<div class="i97-grid i97-grid--equal"><section class="i97-card"><h2>Mes sept prochains jours</h2><p class="i97-note">Un programme conseillé, actualisé à partir de vos exercices. Vous avancez à votre rythme.</p>
+<ul class="i97-list">{% for item in schedule %}<li><time>{{ item.day|date:'l d/m' }} · {{ item.minutes }} min</time><strong>{{ item.title }}</strong><br>{% if item.lesson %}<a href="{{ item.url }}">{{ item.lesson.title }}</a>{% else %}<a href="{% url 'preparation_tests:ai_coach' %}">Préparer cette séance avec le coach</a>{% endif %}</li>{% endfor %}</ul></section>
+<div><section class="i97-card"><h2>À revoir pour progresser</h2><ul class="i97-list">{% for item in reviews %}<li><span class="i97-tag">{{ item.skill }}</span><br><a href="{{ item.url }}">{{ item.title }} →</a></li>{% empty %}<li>Après vos exercices, vos difficultés et les acquis à consolider apparaîtront ici.</li>{% endfor %}</ul><p><a href="{% url 'preparation_tests:learning_center' %}">Ouvrir mon carnet de corrections →</a></p></section>
+<section class="i97-card i97-section"><h2>Mon dossier avance aussi.</h2><p>{{ checklist_done }}/{{ checklist|length }} étapes de préparation cochées par vous.</p><a class="i97-btn i97-btn--light" href="{% url 'immigration97:dossier' %}">Ouvrir mon dossier</a></section>
+<section class="i97-card i97-section"><h3>Mon utilisation IA aujourd’hui</h3><p><strong>{{ usage.remaining }}</strong> demandes restantes sur {{ usage.limit }}.</p><p class="i97-note">Ce compteur suit les demandes aux assistants, y compris les tentatives échouées. Les leçons publiées et vos corrections enregistrées restent accessibles une fois la limite atteinte.</p></section></div></div>
+{% endblock %}

@@ -8,12 +8,26 @@ from ai_engine.services.eval_service import evaluate_ee, evaluate_eo, transcribe
 from ai_engine.services.llm_service import call_llm
 
 
+class EvaluationFailoverTests(SimpleTestCase):
+    @patch('ai_engine.services.eval_service.get_vertex_client')
+    @patch('ai_engine.services.eval_service.get_genai_studio_client')
+    def test_studio_request_failure_tries_vertex(self, studio, vertex):
+        from ai_engine.services.eval_service import _call_gemini_eval_json
+        first, second = Mock(), Mock()
+        first.models.generate_content.side_effect = RuntimeError('unavailable')
+        second.models.generate_content.return_value.text = '{"feedback": "Correction"}'
+        studio.return_value = (first, None)
+        vertex.return_value = (second, None)
+        self.assertEqual(_call_gemini_eval_json('system', 'text', max_models=1)['feedback'], 'Correction')
+        second.models.generate_content.assert_called_once()
+
+
 @override_settings(OPENAI_API_KEY="test-only", AI_CONTENT_MODE="auto")
 class AIAgentServiceTests(SimpleTestCase):
     def setUp(self):
         from ai_engine.services.availability import reset
         reset()
-        for name in ("_call_gemini_eval_json", "_call_anthropic_eval_json"):
+        for name in ("_call_gemini_eval_json",):
             provider = patch("ai_engine.services.eval_service." + name,
                              side_effect=RuntimeError("provider unavailable"))
             provider.start()

@@ -39,7 +39,7 @@ Le module `whatsapp_agent` permet de creer des campagnes WhatsApp et d'envoyer d
 WHATSAPP_TOKEN=EAAxxxxx
 WHATSAPP_PHONE_ID=123456789
 WHATSAPP_VERIFY_TOKEN=mon_secret_webhook
-ANTHROPIC_API_KEY=sk-ant-xxxxx
+OPENAI_API_KEY=
 WHATSAPP_DRY_RUN=True
 ```
 

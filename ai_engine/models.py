@@ -7,7 +7,7 @@ from django.conf import settings
 
 
 class GenerationIA(models.Model):
-    """Enregistre chaque génération de contenu par l'IA (Claude)."""
+    """Enregistre chaque génération de contenu par l'IA."""
     TYPES = [
         ("cours",          "Plan de cours complet"),
         ("lecon",          "Contenu de leçon"),
@@ -28,7 +28,7 @@ class GenerationIA(models.Model):
     utilisateur  = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                       related_name="generations_ia", null=True, blank=True)
     type_gen     = models.CharField(max_length=20, choices=TYPES, default="autre")
-    modele       = models.CharField(max_length=100, default="claude-opus-4-6",
+    modele       = models.CharField(max_length=100, default="",
                                      help_text="Modèle IA utilisé")
     prompt       = models.TextField(help_text="Prompt envoyé au modèle")
     resultat     = models.TextField(blank=True, help_text="Résultat généré")

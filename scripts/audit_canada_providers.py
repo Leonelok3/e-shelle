@@ -32,7 +32,7 @@ if __name__ == '__main__':
         for factory in (get_genai_studio_client, get_vertex_client, get_genai_studio_client):
             client, error = factory()
             safe_error = str(error)
-            for name in ('OPENAI_API_KEY', 'GOOGLE_API_KEY', 'GEMINI_SEARCH_API_KEY', 'ANTHROPIC_API_KEY'):
+            for name in ('OPENAI_API_KEY', 'GOOGLE_API_KEY', 'GEMINI_SEARCH_API_KEY'):
                 value = getattr(settings, name, '') or os.getenv(name, '')
                 if value:
                     safe_error = safe_error.replace(value, '[REDACTED]')
@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     if '--oral' in sys.argv or '--written' in sys.argv:
         import ai_engine.services.eval_service as evaluation
-        for function_name in ('_call_gemini_eval_json', '_call_anthropic_eval_json'):
+        for function_name in ('_call_gemini_eval_json',):
             original = getattr(evaluation, function_name)
             def traced(*args, _fn=original, _name=function_name, **kwargs):
                 try:

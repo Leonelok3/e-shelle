@@ -35,11 +35,11 @@
   .ep-card:last-child { margin-bottom: 0; }
   .ep-card:hover { box-shadow: 0 4px 16px rgba(10, 10, 10, .08); }
   .ep-card-title { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: #C8102E; margin-bottom: .85rem; }
-  
+
   /* Bouton secteur */
   .sector-select { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: .65rem .85rem; font-size: .85rem; font-weight: 600; color: #0A0A0A; margin-bottom: .85rem; outline: none; }
   .sector-select:focus { border-color: #C8102E; }
-  
+
   .ep-btn-start { display: flex; width: 100%; justify-content: center; align-items: center; gap: .5rem; background: #C8102E; color: #fff; border: none; border-radius: 10px; padding: .7rem 1rem; font-size: .82rem; font-weight: 700; cursor: pointer; transition: background .2s, transform .15s; }
   .ep-btn-start:hover { background: #960c22; transform: translateY(-1px); }
 
@@ -53,12 +53,12 @@
   .ep-msg.assistant .ep-msg-content { background: #fff; border: 1px solid #e2e8f0; color: #334155; border-radius: 4px 14px 14px 14px; }
   /* Bulle utilisateur — rouge Canada */
   .ep-msg.user .ep-msg-content { background: #C8102E; color: #fff; border-radius: 14px 4px 14px 14px; }
-  
+
   .ep-chat-input-area { display: flex; gap: .75rem; align-items: flex-end; }
   .ep-chat-textarea { flex: 1; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: .75rem 1rem; font-size: .88rem; color: #1e293b; background: #fff; resize: vertical; min-height: 72px; font-family: inherit; outline: none; transition: border-color .2s, box-shadow .2s; }
   .ep-chat-textarea:focus { border-color: #C8102E; box-shadow: 0 0 0 3px rgba(200, 16, 46, .12); }
   .ep-chat-textarea::placeholder { color: #94a3b8; }
-  
+
   /* Bouton envoyer — rouge Canada */
   .ep-btn-send { display: inline-flex; align-items: center; gap: .4rem; background: linear-gradient(135deg, #C8102E, #960c22); color: #fff; border: none; border-radius: 10px; padding: .75rem 1.25rem; font-size: .88rem; font-weight: 700; cursor: pointer; transition: opacity .2s, transform .15s, box-shadow .2s; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 12px rgba(200, 16, 46, .3); }
   .ep-btn-send:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(200, 16, 46, .4); }
@@ -80,7 +80,7 @@
 <div class="ep-wrap">
 
   <!-- NAVIGATION TABS -->
-  {% include "canada_resume/partials/canada_nav.html" %}
+
 
   <div class="ep-hero">
     <p class="ep-hero-kicker">E-Shelle · Recrutement Canada · Entraînement</p>
@@ -93,10 +93,10 @@
     <a href="{% url 'jobs:canada_jobs' %}" class="ep-quick-link">💼 Offres d'emploi</a>
   </div>
 
-  {% if not is_pro %}
+  {% if messages_left >= 0 %}
   <div class="premium-banner">
-    <p>🍁 Version Gratuite : Il vous reste <strong>{{ messages_left }}</strong> sessions d'évaluation aujourd'hui.</p>
-    <a href="{% url 'accounts:upgrade' %}?app=prep">Débloquer l'accès Premium Illimité</a>
+    <p>🍁 Utilisation IA : Il vous reste <strong>{{ messages_left }}</strong> demandes IA aujourd'hui, partagées entre les assistants.</p>
+
   </div>
   {% endif %}
 
@@ -168,20 +168,20 @@
   function appendMessage(role, content) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `ep-msg ${role}`;
-    
+
     const contentDiv = document.createElement('div');
     contentDiv.className = 'ep-msg-content';
-    
+
     if (role === 'assistant') {
       contentDiv.innerHTML = formatReply(content);
     } else {
       contentDiv.textContent = content;
     }
-    
+
     msgDiv.appendChild(contentDiv);
     chatBox.appendChild(msgDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
-    
+
     chatHistory.push({ role: role === 'user' ? 'user' : 'model', content: content });
   }
 
@@ -190,7 +190,7 @@
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
-    
+
     escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     escaped = escaped.replace(/^\*\s(.*)$/gm, '• $1');
     return escaped;
