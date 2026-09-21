@@ -94,3 +94,14 @@ class ReadingDocumentTests(TestCase):
     def test_paraphrased_evidence_is_still_rejected(self):
         with self.assertRaisesRegex(ValueError, 'Supporting quotation absent'):
             validate_document({**self.data, 'evidence': 'La bibliothèque accueille les lecteurs le lundi à neuf heures.'}, 'A1')
+
+    @patch('ai_engine.services.llm_service.call_llm')
+    def test_quote_repair_selects_source_sentence_before_review(self, llm):
+        import json
+        from preparation_tests.services.reading_documents import generate_document
+        llm.side_effect = [json.dumps({**self.data, 'evidence': 'La bibliothèque ouvre tous les jours à neuf heures.'}),
+                           json.dumps({'sentence_index': 0}), json.dumps({'valid': True})]
+        result = generate_document(self.lesson, 1, [])
+        self.assertEqual(result['evidence'], self.data['evidence'])
+        self.assertEqual(llm.call_count, 3)
+        self.assertIn('citation justifie la réponse', llm.call_args_list[2].args[0])
