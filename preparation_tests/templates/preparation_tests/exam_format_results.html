@@ -5,7 +5,7 @@
 {% block app_scope %}preparation-tests{% endblock %}
 
 {% block title %}
-Résultats {{ cfg.name }} {{ level }} | E-Shelle
+Résultats {{ cfg.name }} {{ level }} | {{ request.site_brand|default:'E-Shelle' }}
 {% endblock %}
 
 {% block meta_description %}
@@ -326,7 +326,7 @@ score pédagogique, analyse des réponses et correction IA EO/EE.
         padding:2rem 1.5rem; color:#fff; text-align:center;
       ">
         <p style="font-size:.7rem; letter-spacing:.12em; opacity:.5; margin-bottom:.75rem; text-transform:uppercase;">
-          E-Shelle · Entraînement
+          {{ request.site_brand|default:'E-Shelle' }} · Entraînement
         </p>
         <div style="font-size:3rem; font-weight:800; color:#22c55e; line-height:1;">
           {{ scores.cefr_global }}
@@ -343,7 +343,7 @@ score pédagogique, analyse des réponses et correction IA EO/EE.
           {% endif %}
         </div>
         <p style="font-size:.68rem; opacity:.4; margin-top:1.25rem; letter-spacing:.04em;">
-          e-shelle.com · Prépare ton immigration au Canada 🇨🇦
+          {{ request.public_domain|default:'e-shelle.com' }} · Prépare ton immigration au Canada 🇨🇦
         </p>
       </div>
 
@@ -557,7 +557,7 @@ score pédagogique, analyse des réponses et correction IA EO/EE.
   if (!shareBtn) return;
 
   var shareText = "Mon entraînement {{ cfg.name }} : {{ scores.global_pct }}% sur cette sélection"
-    + " ({{ scores.global_pct }}%) ! Prépare-toi aussi sur e-shelle.com \uD83C\uDDE8\uD83C\uDDE6";
+    + " ({{ scores.global_pct }}%) ! Prépare-toi aussi sur {{ request.public_domain|default:'e-shelle.com' }} \uD83C\uDDE8\uD83C\uDDE6";
 
   shareBtn.addEventListener("click", function () {
     if (navigator.share) {

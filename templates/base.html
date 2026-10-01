@@ -25,12 +25,12 @@
   {# SEO dynamique #}
   <title>{% block title %}E-Shelle — L'expérience à votre service{% endblock %}</title>
   <meta name="description"
-    content="{% block meta_description %}E-Shelle, plateforme SaaS africaine tout-en-un : formation en ligne, boutique digitale, création web IA, automatisation. Made in Cameroun.{% endblock %}">
+    content="{% block meta_description %}{% if request.is_immigration97 %}Préparez votre français et votre projet Canada avec Immigration97.{% else %}E-Shelle, plateforme SaaS africaine tout-en-un : formation en ligne, boutique digitale, création web IA, automatisation. Made in Cameroun.{% endif %}{% endblock %}">
 
   {# Open Graph #}
-  <meta property="og:title" content="{% block og_title %}E-Shelle{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}{{ request.site_brand|default:'E-Shelle' }}{% endblock %}">
   <meta property="og:description"
-    content="{% block og_description %}Plateforme SaaS africaine tout-en-un{% endblock %}">
+    content="{% block og_description %}{% if request.is_immigration97 %}Préparation TCF et TEF, apprentissage et parcours Canada.{% else %}Plateforme SaaS africaine tout-en-un{% endif %}{% endblock %}">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ request.build_absolute_uri }}">
   <meta property="og:locale" content="fr_FR">
@@ -477,7 +477,12 @@
   {% endif %}
 
   {# Favicon SVG inline #}
+  {% if canada_menu.enabled %}
+  <link rel="icon" type="image/png" href="{% static 'img/immigration97-logo.png' %}?v=20261001">
+  <link rel="apple-touch-icon" href="{% static 'img/immigration97-logo.png' %}?v=20261001">
+  {% else %}
   <link rel="icon" href="{% static 'img/logo.png' %}">
+  {% endif %}
 
   {# PWA Configuration Allemagne uniquement #}
   {% if "/allemagne/" in request.path %}
@@ -1304,10 +1309,10 @@
           <div class="footer-col">
             <h4 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 1.25rem;">Support &amp; Contact</h4>
             <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-              <li><a href="https://wa.me/237680625082" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">💬 Assistance WhatsApp</a></li>
+              <li><a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">💬 Assistance WhatsApp</a></li>
               <li><a href="{% url 'canada_resume:canada_resources' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">📚 Guides &amp; Ressources</a></li>
-              <li><a href="{% url 'cgu' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">🔒 Mentions légales &amp; CGU</a></li>
-              <li><a href="/" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">🏠 Retour Portail E-Shelle</a></li>
+{% if not request.is_immigration97 %}              <li><a href="{% url 'cgu' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">🔒 Mentions légales &amp; CGU</a></li>{% endif %}
+              <li><a href="/" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if request.is_immigration97 %}🏠 Accueil Immigration97{% else %}🏠 Retour Portail E-Shelle{% endif %}</a></li>
             </ul>
           </div>
 
@@ -1315,7 +1320,7 @@
 
         {# Bas du footer #}
         <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.85rem; color: #94a3b8;">
-          <p>© {% now "Y" %} Canada Space &bull; E-Shelle. Tous droits réservés.</p>
+          <p>© {% now "Y" %} {% if request.is_immigration97 %}Immigration97{% else %}Canada Space &bull; E-Shelle{% endif %}. Tous droits réservés.</p>
           <p>Made with ❤️ &amp; IA in Cameroon 🇨🇲</p>
         </div>
       </div>
@@ -1365,9 +1370,9 @@
           <div class="footer-col">
             <h4 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 1.25rem;">Support &amp; Contact</h4>
             <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-              <li><a href="https://wa.me/237680625082" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">💬 Assistance WhatsApp</a></li>
-              <li><a href="{% url 'cgu' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">🔒 Mentions légales &amp; CGU</a></li>
-              <li><a href="/" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">🏠 Retour Portail E-Shelle</a></li>
+              <li><a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">💬 Assistance WhatsApp</a></li>
+{% if not request.is_immigration97 %}              <li><a href="{% url 'cgu' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">🔒 Mentions légales &amp; CGU</a></li>{% endif %}
+              <li><a href="/" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">{% if request.is_immigration97 %}🏠 Accueil Immigration97{% else %}🏠 Retour Portail E-Shelle{% endif %}</a></li>
             </ul>
           </div>
 
@@ -1450,8 +1455,8 @@
             <ul>
               <li><a href="/services/contact/">Contact</a></li>
               <li><a href="mailto:e.shelleltd@gmail.com">e.shelleltd@gmail.com</a></li>
-              <li><a href="https://wa.me/237680625082">WhatsApp direct</a></li>
-              <li><a href="{% url 'cgu' %}">Mentions légales &amp; CGU</a></li>
+              <li><a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}">WhatsApp direct</a></li>
+{% if not request.is_immigration97 %}              <li><a href="{% url 'cgu' %}">Mentions légales &amp; CGU</a></li>{% endif %}
               <li><a href="{% url 'cgu' %}#article-7">Confidentialité</a></li>
             </ul>
           </div>

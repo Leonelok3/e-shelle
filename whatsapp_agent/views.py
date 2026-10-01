@@ -2,15 +2,18 @@ import csv
 import hashlib
 import hmac
 import json
+import mimetypes
+import os
 import re
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core.files.storage import default_storage
 from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
-from django.http import HttpResponse, JsonResponse
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -801,10 +804,42 @@ def webhook_meta(request):
                         body_text = interactive["button_reply"].get("title", "")
                     elif "list_reply" in interactive:
                         body_text = interactive["list_reply"].get("title", "")
-                elif msg_type in ["image", "audio", "document", "video"]:
+                elif msg_type in ["image", "audio", "document", "video", "sticker"]:
                     media_obj = incoming.get(msg_type, {})
-                    body_text = media_obj.get("caption", f"[{msg_type.upper()}]")
-                    media_url = media_obj.get("id", "")
+                    caption = (media_obj.get("caption") or "").strip()
+                    doc_filename = (media_obj.get("filename") or "").strip()
+                    media_id = (media_obj.get("id") or "").strip()
+                    mime_type = (media_obj.get("mime_type") or "").strip()
+
+                    # Texte représentatif : légende si présente, sinon nom du document, sinon étiquette claire
+                    if caption:
+                        body_text = caption
+                    elif doc_filename:
+                        body_text = doc_filename
+                    else:
+                        labels = {
+                            "image": "📷 Photo",
+                            "document": "📄 Document",
+                            "audio": "🎤 Note vocale",
+                            "video": "🎥 Vidéo",
+                            "sticker": "Sticker",
+                        }
+                        body_text = labels.get(msg_type, f"[{msg_type.upper()}]")
+
+                    # Téléchargement et stockage immédiat
+                    media_url = media_id
+                    if media_id:
+                        try:
+                            saved_path = WhatsAppService.telecharger_media_whatsapp(
+                                media_id=media_id,
+                                media_type=msg_type,
+                                filename=doc_filename,
+                                mime_type=mime_type,
+                            )
+                            if saved_path:
+                                media_url = saved_path
+                        except Exception:
+                            pass
 
                 text_lower = body_text.lower()
 
@@ -982,6 +1017,12 @@ def api_conversation_detail(request, pk):
             "statut": m.statut,
             "media_type": m.media_type,
             "media_url": m.media_url,
+            "media_download_url": m.media_download_url,
+            "is_image": m.is_image,
+            "is_document": m.is_document,
+            "is_audio": m.is_audio,
+            "is_video": m.is_video,
+            "display_filename": m.display_filename,
             "auteur": m.envoye_par.get_full_name() or m.envoye_par.username if m.envoye_par else "E-Shelle",
             "heure": m.cree_le.strftime("%H:%M"),
             "date": m.cree_le.strftime("%d/%m/%Y"),
@@ -1008,6 +1049,74 @@ def api_conversation_detail(request, pk):
         },
         "messages": messages_list,
     })
+
+
+@staff_required
+def serve_whatsapp_media(request, pk):
+    """
+    Sert une pièce jointe WhatsApp (image, document, audio, vidéo) de manière sécurisée.
+    Télécharge et met en cache à la volée depuis Meta si le fichier n'est pas encore local.
+    """
+    msg = get_object_or_404(MessageWhatsApp, pk=pk)
+    if not msg.media_type and not msg.media_url:
+        raise Http404("Aucune pièce jointe.")
+
+    media_val = (msg.media_url or "").strip()
+
+    # 1. Si media_url est une URL absolue distante (ex: Cloudinary / S3)
+    if media_val.startswith("http://") or media_val.startswith("https://"):
+        return HttpResponseRedirect(media_val)
+
+    # 2. Si le fichier est déjà sauvegardé dans le stockage Django
+    media_prefix = getattr(settings, "MEDIA_URL", "/media/")
+    subpath = media_val
+    if subpath.startswith(media_prefix):
+        subpath = subpath[len(media_prefix):]
+
+    if subpath and default_storage.exists(subpath):
+        mime, _ = mimetypes.guess_type(subpath)
+        if not mime:
+            mime = "image/jpeg" if msg.is_image else "application/octet-stream"
+        file_obj = default_storage.open(subpath, "rb")
+        resp = FileResponse(file_obj, content_type=mime)
+        filename = msg.display_filename or os.path.basename(subpath)
+        if msg.is_document:
+            resp["Content-Disposition"] = f'inline; filename="{filename}"'
+        return resp
+
+    # 3. Si le média est un Media ID Meta (ex: anciens messages avec uniquement l'id)
+    media_id = ""
+    if media_val.isdigit():
+        media_id = media_val
+    elif media_val and not media_val.startswith("/"):
+        media_id = media_val
+
+    if media_id:
+        filename = msg.display_filename or ""
+        saved_url = WhatsAppService.telecharger_media_whatsapp(
+            media_id=media_id,
+            media_type=msg.media_type,
+            filename=filename,
+        )
+        if saved_url:
+            msg.media_url = saved_url
+            msg.save(update_fields=["media_url"])
+            if saved_url.startswith("http://") or saved_url.startswith("https://"):
+                return HttpResponseRedirect(saved_url)
+            subpath = saved_url
+            if subpath.startswith(media_prefix):
+                subpath = subpath[len(media_prefix):]
+            if default_storage.exists(subpath):
+                mime, _ = mimetypes.guess_type(subpath)
+                if not mime:
+                    mime = "image/jpeg" if msg.is_image else "application/octet-stream"
+                file_obj = default_storage.open(subpath, "rb")
+                resp = FileResponse(file_obj, content_type=mime)
+                if msg.is_document:
+                    resp["Content-Disposition"] = f'inline; filename="{filename or "document"}"'
+                return resp
+
+    raise Http404("Fichier média WhatsApp non disponible ou expiré.")
 
 
 @staff_required

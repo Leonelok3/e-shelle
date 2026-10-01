@@ -2,7 +2,7 @@
 {% load static %}
 {% load socialaccount %}
 
-{% block title %}S'inscrire — E-Shelle{% endblock %}
+{% block title %}S'inscrire — {% if request.is_immigration97 %}Immigration97{% else %}E-Shelle{% endif %}{% endblock %}
 {% block body_class %}auth-page{% endblock %}
 {% block navbar %}{% endblock %}
 {% block footer %}{% endblock %}
@@ -15,6 +15,9 @@
     <canvas id="particles-canvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
     <div style="position:relative;z-index:2;text-align:center">
       <a href="/" style="display:inline-flex;align-items:center;gap:.75rem;font-family:var(--font-display);font-size:1.75rem;font-weight:800;color:var(--text-primary);text-decoration:none;margin-bottom:2.5rem">
+        {% if request.is_immigration97 %}
+        <img src="{% static 'img/immigration97-logo.png' %}" alt="Immigration97" style="width:280px;max-width:100%;height:auto;background:white;padding:12px;border-radius:8px">
+        {% else %}
         <svg viewBox="0 0 40 40" width="44" height="44" fill="none">
           <rect width="40" height="40" rx="10" fill="#0D1F0D"/>
           <path d="M10 20 C10 12 18 8 20 14 C22 8 30 12 30 20" fill="#2E7D32"/>
@@ -22,6 +25,7 @@
           <rect x="10" y="29" width="20" height="4" rx="2" fill="#F57C00"/>
         </svg>
         E-<span style="color:var(--accent-light)">Shelle</span>
+        {% endif %}
       </a>
 
       <div style="background:rgba(46,125,50,.1);border:1px solid rgba(46,125,50,.25);border-radius:var(--radius-xl);padding:2rem;max-width:300px;margin:0 auto">
@@ -56,7 +60,7 @@
 
       <h1 style="font-family:var(--font-display);font-size:1.75rem;font-weight:800;margin-bottom:.35rem">Créer mon compte</h1>
       <p style="color:var(--text-secondary);margin-bottom:1.75rem;font-size:.9rem">
-        Rejoins 500+ entrepreneurs africains sur E-Shelle 🇨🇲
+        {% if request.is_immigration97 %}Commencez votre préparation et votre parcours Canada avec Immigration97.{% else %}Rejoins 500+ entrepreneurs africains sur E-Shelle 🇨🇲{% endif %}
       </p>
 
       {# ── Boutons sociaux ── #}

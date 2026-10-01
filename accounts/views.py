@@ -258,6 +258,9 @@ def mon_compte(request):
         .order_by("-started_at")
     )
 
+    if getattr(request, "is_immigration97", False):
+        all_subs = all_subs.filter(plan__app_key="prep")
+
     # Abonnements actifs par app_key
     active_subs = {}
     for sub in all_subs:
@@ -267,6 +270,8 @@ def mon_compte(request):
 
     # Historique paiements — total dépensé AVANT le slice
     payments_qs = PaymentHistory.objects.filter(user=user).select_related("subscription__plan")
+    if getattr(request, "is_immigration97", False):
+        payments_qs = payments_qs.filter(subscription__plan__app_key="prep")
     total_spent = sum(
         payments_qs.filter(status="success").values_list("amount_xaf", flat=True)
     )
@@ -275,6 +280,8 @@ def mon_compte(request):
     # Apps disponibles avec leur état
     apps_info = []
     for key, label in AppKey.choices:
+        if getattr(request, "is_immigration97", False) and key != "prep":
+            continue
         sub = active_subs.get(key)
         
         # Déterminer l'URL d'ouverture
@@ -347,6 +354,8 @@ def upgrade(request):
     Si aucun app_key fourni, affiche toutes les apps.
     """
     app_key = request.GET.get("app", "").strip()
+    if getattr(request, "is_immigration97", False):
+        app_key = "prep"
     if app_key == "allemand":
         return redirect("germany_opportunities:premium_pricing")
 
@@ -384,6 +393,7 @@ def upgrade(request):
     plans_by_app = {}
     for plan in plans_qs:
         plan.whatsapp_payment_url = payment_request_url(
+            brand=getattr(request, "site_brand", "E-Shelle"),
             service=f"{plan.get_app_key_display()} - {plan.name}",
             amount=plan.price_xaf_formatted,
             user=request.user,

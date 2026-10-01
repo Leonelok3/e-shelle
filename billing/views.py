@@ -59,7 +59,8 @@ def pricing(request):
     has_active_sub = request.user.is_authenticated and has_active_access(request.user)
     for plan in plans:
         plan.whatsapp_payment_url = payment_request_url(
-            service=f"Abonnement E-Shelle Premium - {plan.name}",
+            brand=getattr(request, "site_brand", "E-Shelle"),
+            service=f"Abonnement {getattr(request, 'site_brand', 'E-Shelle')} Premium - {plan.name}",
             amount=f"{plan.price_xaf} FCFA",
             user=request.user,
             details=f"Plan {plan.slug}, {plan.get_duration_display()}",
@@ -91,7 +92,8 @@ def access(request):
     plans = SubscriptionPlan.objects.filter(is_active=True).order_by("price_usd")
     for plan in plans:
         plan.whatsapp_payment_url = payment_request_url(
-            service=f"Abonnement E-Shelle Premium - {plan.name}",
+            brand=getattr(request, "site_brand", "E-Shelle"),
+            service=f"Abonnement {getattr(request, 'site_brand', 'E-Shelle')} Premium - {plan.name}",
             amount=f"{plan.price_xaf} FCFA",
             user=request.user,
             details=f"Plan {plan.slug}, {plan.get_duration_display()}",
@@ -114,6 +116,7 @@ def buy(request):
     plans = SubscriptionPlan.objects.filter(is_active=True).order_by("price_usd")
     for plan in plans:
         plan.whatsapp_payment_url = payment_request_url(
+            brand=getattr(request, "site_brand", "E-Shelle"),
             service=f"Code d'acces E-Shelle Premium - {plan.name}",
             amount=f"{plan.price_xaf} FCFA",
             user=request.user,
@@ -125,6 +128,7 @@ def buy(request):
         amount = f"{plan.price_xaf} FCFA" if plan else ""
         messages.info(request, "Contactez E-Shelle sur WhatsApp pour recevoir votre code d'accès après validation.")
         return redirect(payment_request_url(
+            brand=getattr(request, "site_brand", "E-Shelle"),
             service=service,
             amount=amount,
             user=request.user,
@@ -318,7 +322,8 @@ def buy_plan(request, plan_slug):
     plan = get_object_or_404(SubscriptionPlan, slug=plan_slug, is_active=True)
     messages.info(request, "Contactez E-Shelle sur WhatsApp pour choisir le bon plan et recevoir votre code d'accès.")
     return redirect(payment_request_url(
-        service=f"Abonnement E-Shelle Premium - {plan.name}",
+            brand=getattr(request, "site_brand", "E-Shelle"),
+        service=f"Abonnement {getattr(request, 'site_brand', 'E-Shelle')} Premium - {plan.name}",
         amount=f"{plan.price_xaf} FCFA",
         user=request.user,
         details=f"Plan {plan.slug}, {plan.get_duration_display()}",
@@ -336,6 +341,7 @@ def initiate_payment(request, transaction_id):
     if request.method == "POST":
         messages.info(request, "Contactez E-Shelle sur WhatsApp pour finaliser cette demande.")
         return redirect(payment_request_url(
+            brand=getattr(request, "site_brand", "E-Shelle"),
             service=f"Abonnement E-Shelle Premium - {tx.plan.name if tx.plan else tx.description}",
             amount=f"{tx.amount} {tx.currency}",
             user=request.user,

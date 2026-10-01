@@ -68,6 +68,10 @@ def social_login_context(request):
         google_prov = getattr(settings, "SOCIALACCOUNT_PROVIDERS", {}).get("google", {})
         if "APP" in google_prov and google_prov["APP"].get("client_id"):
             google_in_settings = True
+        if (getattr(request, 'is_immigration97', False)
+                and getattr(settings, 'IMMIGRATION97_GOOGLE_CLIENT_ID', '')
+                and getattr(settings, 'IMMIGRATION97_GOOGLE_CLIENT_SECRET', '')):
+            google_in_settings = True
 
         facebook_in_settings = False
         facebook_prov = getattr(settings, "SOCIALACCOUNT_PROVIDERS", {}).get("facebook", {})
@@ -75,7 +79,11 @@ def social_login_context(request):
             facebook_in_settings = True
 
         # Expose the absolute next URL for social login to ensure it redirects back to the subdomain
-        next_path = request.GET.get('next', '/')
+        from django.utils.http import url_has_allowed_host_and_scheme
+        default_next = '/canada/parcours/' if getattr(request, 'is_immigration97', False) else '/'
+        next_path = request.GET.get('next', default_next)
+        if not url_has_allowed_host_and_scheme(next_path, {request.get_host()}, require_https=request.is_secure()):
+            next_path = default_next
         if next_path.startswith('/'):
             absolute_next = request.build_absolute_uri(next_path)
         else:
@@ -94,7 +102,8 @@ def social_login_context(request):
             "social_google_enabled": google_in_settings or SocialApp.objects.filter(provider="google").exists(),
             "social_facebook_enabled": facebook_in_settings or SocialApp.objects.filter(provider="facebook").exists(),
             "social_next_url": absolute_next,
-            "SITE_URL": getattr(settings, "SITE_URL", "https://e-shelle.com").rstrip('/'),
+            "SITE_URL": ('https://immigration97.com' if getattr(request, 'is_immigration97', False)
+                         else getattr(settings, "SITE_URL", "https://e-shelle.com").rstrip('/')),
             "user_has_business": user_has_business,
         }
     except Exception:

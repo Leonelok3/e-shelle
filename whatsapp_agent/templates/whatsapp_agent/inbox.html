@@ -313,6 +313,105 @@
   }
   .wa-tick { font-weight: 900; }
 
+  /* Pièces jointes WhatsApp (Images, Documents, Audio, Vidéo) */
+  .wa-media-container {
+    margin-bottom: 6px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .wa-bubble-img {
+    max-width: 280px;
+    max-height: 280px;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .wa-bubble-img:hover {
+    opacity: 0.95;
+    transform: scale(1.01);
+  }
+  .wa-bubble-doc-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-width: 210px;
+    max-width: 320px;
+  }
+  .wa-doc-icon-wrap {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+  .wa-doc-details {
+    flex: 1;
+    min-width: 0;
+  }
+  .wa-doc-title {
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: #f0fdf4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  .wa-doc-sub {
+    font-size: 0.68rem;
+    color: #8faea0;
+    display: block;
+    margin-top: 1px;
+  }
+  .wa-doc-btn {
+    background: #22c55e;
+    color: #032110;
+    padding: 5px 9px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    transition: background 0.15s ease;
+  }
+  .wa-doc-btn:hover {
+    background: #4ade80;
+    color: #032110;
+  }
+  .wa-bubble-audio {
+    width: 100%;
+    min-width: 220px;
+    max-width: 280px;
+    height: 36px;
+    outline: none;
+  }
+  .wa-bubble-video {
+    max-width: 280px;
+    max-height: 240px;
+    border-radius: 8px;
+    display: block;
+  }
+  .wa-bubble-caption {
+    margin-top: 6px;
+    font-size: 0.85rem;
+    line-height: 1.35;
+  }
+
   /* Toolbar IA & Composant d'envoi */
   .wa-chat-composer {
     padding: 12px 16px;
@@ -557,7 +656,19 @@
                 <span class="wa-conv-time">{{ conv.dernier_message_le|date:"H:i" }}</span>
               </div>
               <div class="wa-conv-bottom">
-                <span class="wa-conv-snippet">{{ conv.dernier_message_apercu|default:"Aucun message" }}</span>
+                <span class="wa-conv-snippet">
+                  {% if conv.dernier_message_apercu == '[IMAGE]' or conv.dernier_message_apercu == '[image]' %}
+                    📷 Photo
+                  {% elif conv.dernier_message_apercu == '[DOCUMENT]' or conv.dernier_message_apercu == '[document]' %}
+                    📄 Document
+                  {% elif conv.dernier_message_apercu == '[AUDIO]' or conv.dernier_message_apercu == '[audio]' %}
+                    🎤 Note vocale
+                  {% elif conv.dernier_message_apercu == '[VIDEO]' or conv.dernier_message_apercu == '[video]' %}
+                    🎥 Vidéo
+                  {% else %}
+                    {{ conv.dernier_message_apercu|default:"Aucun message" }}
+                  {% endif %}
+                </span>
                 {% if conv.non_lus_count > 0 %}
                   <span class="wa-unread-pill">{{ conv.non_lus_count }}</span>
                 {% endif %}
@@ -608,7 +719,50 @@
         <div class="wa-messages-body" id="chat-messages-container">
           {% for msg in messages_active %}
           <div class="wa-bubble-wrap {{ msg.direction }}">
-            <div class="wa-bubble-chat">{{ msg.texte }}</div>
+            <div class="wa-bubble-chat">
+              {% if msg.is_image %}
+                <div class="wa-media-container">
+                  <a href="{{ msg.media_download_url }}" target="_blank" rel="noopener">
+                    <img src="{{ msg.media_download_url }}" alt="Photo WhatsApp" class="wa-bubble-img" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'wa-doc-sub\'>📷 Image WhatsApp (cliquez pour afficher)</div>';">
+                  </a>
+                </div>
+                {% if msg.texte and msg.texte != '[IMAGE]' and msg.texte != '[image]' and msg.texte != '📷 Photo' %}
+                  <div class="wa-bubble-caption">{{ msg.texte }}</div>
+                {% endif %}
+              {% elif msg.is_document %}
+                <div class="wa-media-container">
+                  <div class="wa-bubble-doc-card">
+                    <div class="wa-doc-icon-wrap">📄</div>
+                    <div class="wa-doc-details">
+                      <span class="wa-doc-title" title="{{ msg.display_filename }}">{{ msg.display_filename }}</span>
+                      <span class="wa-doc-sub">Document WhatsApp</span>
+                    </div>
+                    <a href="{{ msg.media_download_url }}" target="_blank" download class="wa-doc-btn" title="Télécharger le fichier">
+                      ⬇ Ouvrir
+                    </a>
+                  </div>
+                </div>
+                {% if msg.texte and msg.texte != '[DOCUMENT]' and msg.texte != '[document]' and msg.texte != '📄 Document' and msg.texte != msg.display_filename %}
+                  <div class="wa-bubble-caption">{{ msg.texte }}</div>
+                {% endif %}
+              {% elif msg.is_audio %}
+                <div class="wa-media-container">
+                  <audio controls class="wa-bubble-audio" src="{{ msg.media_download_url }}" preload="metadata"></audio>
+                </div>
+                {% if msg.texte and msg.texte != '[AUDIO]' and msg.texte != '[audio]' and msg.texte != '🎤 Note vocale' %}
+                  <div class="wa-bubble-caption">{{ msg.texte }}</div>
+                {% endif %}
+              {% elif msg.is_video %}
+                <div class="wa-media-container">
+                  <video controls class="wa-bubble-video" src="{{ msg.media_download_url }}" preload="metadata"></video>
+                </div>
+                {% if msg.texte and msg.texte != '[VIDEO]' and msg.texte != '[video]' and msg.texte != '🎥 Vidéo' %}
+                  <div class="wa-bubble-caption">{{ msg.texte }}</div>
+                {% endif %}
+              {% else %}
+                {{ msg.texte }}
+              {% endif %}
+            </div>
             <div class="wa-bubble-footer">
               <span>{{ msg.cree_le|date:"H:i" }}</span>
               {% if msg.direction == "sortant" %}

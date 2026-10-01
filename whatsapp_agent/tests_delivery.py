@@ -111,3 +111,54 @@ class DeliveryTests(TestCase):
         self.user.save()
         self.assertEqual(self.client.post(self.url, {"numero_test": "+237699000002"}).status_code, 302)
         send.assert_not_called()
+
+    def test_incoming_document_webhook_is_saved(self):
+        from .models import MessageWhatsApp
+        payload = {
+            "object": "whatsapp_business_account",
+            "entry": [{
+                "changes": [{
+                    "value": {
+                        "contacts": [{"wa_id": "237699112233", "profile": {"name": "Atlas Networks"}}],
+                        "messages": [{
+                            "from": "237699112233",
+                            "id": "wamid.doc1",
+                            "type": "document",
+                            "document": {
+                                "id": "media_meta_123",
+                                "filename": "Devis_Eshelle.pdf",
+                                "mime_type": "application/pdf"
+                            }
+                        }]
+                    }
+                }]
+            }]
+        }
+        body = json.dumps(payload)
+        signed = "sha256=" + hmac.new(b"test-secret", body.encode(), hashlib.sha256).hexdigest()
+        resp = self.client.post("/whatsapp/webhook/", body, content_type="application/json", HTTP_X_HUB_SIGNATURE_256=signed)
+        self.assertEqual(resp.status_code, 200)
+
+        msg = MessageWhatsApp.objects.filter(whatsapp_msg_id="wamid.doc1").first()
+        self.assertIsNotNone(msg)
+        self.assertEqual(msg.media_type, "document")
+        self.assertEqual(msg.display_filename, "Devis_Eshelle.pdf")
+        self.assertTrue(msg.is_document)
+        self.assertIn("Devis_Eshelle.pdf", msg.texte)
+
+    def test_serve_whatsapp_media_requires_staff(self):
+        from .models import ContactWhatsApp, ConversationWhatsApp, MessageWhatsApp
+        contact = ContactWhatsApp.objects.create(numero="+237699000005")
+        conv = ConversationWhatsApp.objects.create(contact=contact)
+        msg = MessageWhatsApp.objects.create(
+            conversation=conv,
+            direction=MessageWhatsApp.DIRECTION_ENTRANT,
+            media_type="image",
+            media_url="12345"
+        )
+        self.user.is_staff = False
+        self.user.save()
+        media_url = reverse("whatsapp_agent:wa_media", args=[msg.id])
+        resp = self.client.get(media_url)
+        self.assertEqual(resp.status_code, 302)
+

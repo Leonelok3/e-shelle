@@ -1,4 +1,6 @@
 import json
+import mimetypes
+import os
 import random
 import re
 import time
@@ -379,6 +381,76 @@ REGLES:
             sujet=sujet[:255],
             statut=statut,
         )
+
+    @staticmethod
+    def telecharger_media_whatsapp(media_id: str, media_type: str = "", filename: str = "", mime_type: str = "") -> str:
+        """
+        Télécharge un fichier média (photo, document, audio, vidéo) depuis l'API Graph Meta WhatsApp
+        et le stocke via Django default_storage.
+        Retourne l'URL / chemin du fichier sauvegardé, ou '' en cas d'échec / simulation.
+        """
+        if not media_id or getattr(settings, "WHATSAPP_DRY_RUN", True):
+            return ""
+
+        token = getattr(settings, "WHATSAPP_TOKEN", "")
+        if not token:
+            return ""
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "User-Agent": "curl/7.64.1",
+        }
+        meta_url = f"https://graph.facebook.com/v19.0/{media_id}"
+        try:
+            res_meta = requests.get(meta_url, headers=headers, timeout=15)
+            if res_meta.status_code != 200:
+                return ""
+            meta_data = res_meta.json()
+            download_url = meta_data.get("url")
+            if not download_url:
+                return ""
+
+            detected_mime = meta_data.get("mime_type") or mime_type or ""
+
+            # Téléchargement du binaire depuis le CDN Meta
+            res_file = requests.get(download_url, headers=headers, timeout=30)
+            if res_file.status_code != 200 or not res_file.content:
+                return ""
+
+            # Détermination de l'extension
+            ext = ""
+            if filename and "." in filename:
+                ext = os.path.splitext(filename)[1].lower()
+            elif detected_mime:
+                ext = mimetypes.guess_extension(detected_mime) or ""
+                if ext == ".jpe":
+                    ext = ".jpg"
+
+            if not ext:
+                ext_map = {
+                    "image": ".jpg",
+                    "document": ".pdf",
+                    "audio": ".ogg",
+                    "video": ".mp4",
+                    "sticker": ".webp",
+                }
+                ext = ext_map.get(media_type, "")
+
+            clean_name = filename or f"{media_type or 'media'}_{media_id}"
+            clean_name = re.sub(r"[^\w\-.]", "_", clean_name)
+            if not clean_name.lower().endswith(ext):
+                clean_name += ext
+
+            from django.core.files.base import ContentFile
+            from django.core.files.storage import default_storage
+
+            today_path = timezone.now().strftime("%Y/%m")
+            storage_path = f"whatsapp_media/{today_path}/{media_id}_{clean_name}"
+
+            saved_name = default_storage.save(storage_path, ContentFile(res_file.content))
+            return default_storage.url(saved_name)
+        except Exception:
+            return ""
 
     @staticmethod
     def enregistrer_message_entrant(

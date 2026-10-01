@@ -48,7 +48,8 @@ def canada_navigation(context):
     match = getattr(request, 'resolver_match', None)
     name = getattr(match, 'view_name', '')
     namespace = getattr(match, 'namespace', '')
-    enabled = (name == 'canada_landing' or namespace in ('canada_resume', 'immigration97')
+    enabled = (getattr(request, 'is_immigration97', False)
+               or name == 'canada_landing' or namespace in ('canada_resume', 'immigration97')
                or namespace == 'preparation_tests'
                or name in {route for _, _, links in GROUPS for route, _ in links})
     if not enabled:

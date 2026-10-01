@@ -52,6 +52,10 @@ DEFAULT_CSRF_ORIGINS += [
 ]
 CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(DEFAULT_CSRF_ORIGINS))
 
+# Dedicated Canada domain shares this deployment and the existing accounts.
+ALLOWED_HOSTS = list(dict.fromkeys(ALLOWED_HOSTS + ["immigration97.com", "www.immigration97.com"]))
+CSRF_TRUSTED_ORIGINS += ["https://immigration97.com", "https://www.immigration97.com"]
+
 # Headers / cookies de sécurité communs
 SECURE_REFERRER_POLICY = os.getenv("SECURE_REFERRER_POLICY", "strict-origin-when-cross-origin")
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -217,6 +221,7 @@ SITE_ID = 1
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "edu_cm.immigration_domain.ImmigrationDomainMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
 
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -358,6 +363,8 @@ SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True  # fusionne si email conn
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+IMMIGRATION97_GOOGLE_CLIENT_ID = os.getenv("IMMIGRATION97_GOOGLE_CLIENT_ID", "")
+IMMIGRATION97_GOOGLE_CLIENT_SECRET = os.getenv("IMMIGRATION97_GOOGLE_CLIENT_SECRET", "")
 FACEBOOK_APP_ID = os.getenv("FACEBOOK_APP_ID", "")
 FACEBOOK_APP_SECRET = os.getenv("FACEBOOK_APP_SECRET", "")
 

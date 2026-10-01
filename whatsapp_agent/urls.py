@@ -27,5 +27,7 @@ urlpatterns = [
     path("api/generer-message/", views.api_generer_message, name="wa_api_generer"),
     path("api/apercu-contacts/", views.api_apercu_contacts, name="wa_api_apercu"),
     path("api/import-contact/", views.api_import_contact, name="wa_api_import_contact"),
+    path("media/<int:pk>/", views.serve_whatsapp_media, name="wa_media"),
     path("webhook/", views.webhook_meta, name="wa_webhook"),
 ]
+

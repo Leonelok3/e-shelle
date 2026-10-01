@@ -25,6 +25,21 @@ class AccountAdapter(DefaultAccountAdapter):
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
     """Adaptateur pour les connexions sociales (Google, Facebook)."""
 
+    def get_app(self, request, provider, client_id=None):
+        # A separate Google project lets Immigration97 own its consent branding.
+        # Never replace the shared E-Shelle credentials globally.
+        from django.conf import settings
+        dedicated_id = getattr(settings, "IMMIGRATION97_GOOGLE_CLIENT_ID", "")
+        dedicated_secret = getattr(settings, "IMMIGRATION97_GOOGLE_CLIENT_SECRET", "")
+        if (getattr(request, "is_immigration97", False) and provider == "google"
+                and dedicated_id and dedicated_secret):
+            from allauth.socialaccount.models import SocialApp
+            if client_id and client_id != dedicated_id:
+                raise SocialApp.DoesNotExist()
+            return SocialApp(provider="google", name="Immigration97",
+                             client_id=dedicated_id, secret=dedicated_secret)
+        return super().get_app(request, provider, client_id=client_id)
+
     def is_open_for_signup(self, request, sociallogin):
         """Toujours autoriser les nouvelles inscriptions via social."""
         return True

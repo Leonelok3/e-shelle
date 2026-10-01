@@ -352,3 +352,52 @@ class MessageWhatsApp(models.Model):
     def __str__(self):
         dir_label = "<-" if self.direction == self.DIRECTION_ENTRANT else "->"
         return f"{dir_label} {self.conversation.contact.numero}: {self.texte[:40]}"
+
+    @property
+    def is_image(self):
+        return self.media_type in ("image", "sticker")
+
+    @property
+    def is_document(self):
+        return self.media_type == "document"
+
+    @property
+    def is_audio(self):
+        return self.media_type == "audio"
+
+    @property
+    def is_video(self):
+        return self.media_type == "video"
+
+    @property
+    def has_media(self):
+        return bool(self.media_type or self.media_url)
+
+    @property
+    def media_download_url(self):
+        if not self.has_media:
+            return ""
+        from django.urls import reverse
+        try:
+            return reverse("whatsapp_agent:wa_media", args=[self.pk])
+        except Exception:
+            return self.media_url or ""
+
+    @property
+    def display_filename(self):
+        if self.is_document:
+            txt = (self.texte or "").strip()
+            if txt and "." in txt and not txt.startswith("["):
+                return txt
+            if self.media_url:
+                import os
+                base = os.path.basename(self.media_url.split("?")[0])
+                if "." in base and not base.isdigit():
+                    if "_" in base:
+                        parts = base.split("_", 1)
+                        if parts[0].isdigit():
+                            return parts[1]
+                    return base
+            return "Document"
+        return ""
+

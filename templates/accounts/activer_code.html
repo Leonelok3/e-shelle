@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Activer un code d'accès — E-Shelle</title>
+  <title>Activer un code d'accès — {{ request.site_brand|default:'E-Shelle' }}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -33,7 +33,7 @@
       <a href="/" class="flex items-center gap-2.5 flex-shrink-0">
         <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-base shadow-sm"
              style="background:linear-gradient(135deg,#1B6534,#2d9a55)">E</div>
-        <span class="font-black text-gray-900 text-lg">E<span style="color:#1B6534">-Shelle</span></span>
+        <span class="font-black text-gray-900 text-lg">{% if request.is_immigration97 %}Immigration97{% else %}E<span style="color:#1B6534">-Shelle</span>{% endif %}</span>
       </a>
       <div class="ml-auto flex items-center gap-3">
         {% if user.is_authenticated %}
@@ -186,7 +186,7 @@
              class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm border-2 border-green-200 text-green-700 hover:bg-green-50 transition">
             📦 Voir les offres disponibles
           </a>
-          <a href="https://wa.me/237680625082?text=Bonjour, je souhaite souscrire à E-Shelle. Pouvez-vous m'envoyer un code d'accès ?"
+          <a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}?text=Bonjour, je souhaite souscrire à {{ request.site_brand|default:'E-Shelle' }}. Pouvez-vous m'envoyer un code d'accès ?"
              target="_blank" rel="noopener noreferrer"
              class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm text-white transition hover:opacity-90"
              style="background:#25D366">
@@ -212,7 +212,7 @@
 
   <footer class="border-t border-gray-100 bg-white py-6 text-center text-sm text-gray-400">
     <p>
-      <a href="/" class="font-bold hover:underline" style="color:#1B6534">E-Shelle</a>
+      <a href="/" class="font-bold hover:underline" style="color:#1B6534">{{ request.site_brand|default:'E-Shelle' }}</a>
       &mdash; Plateforme SaaS africaine &bull; Made in Cameroun 🇨🇲
     </p>
   </footer>

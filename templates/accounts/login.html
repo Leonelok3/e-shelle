@@ -2,7 +2,7 @@
 {% load static %}
 {% load socialaccount %}
 
-{% block title %}Connexion — E-Shelle{% endblock %}
+{% block title %}Connexion — {% if request.is_immigration97 %}Immigration97{% else %}E-Shelle{% endif %}{% endblock %}
 {% block body_class %}auth-page{% endblock %}
 {% block navbar %}{% endblock %}
 {% block footer %}{% endblock %}
@@ -15,6 +15,9 @@
     <canvas id="particles-canvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
     <div style="position:relative;z-index:2;text-align:center">
       <a href="/" style="display:inline-flex;align-items:center;gap:.75rem;font-family:var(--font-display);font-size:1.75rem;font-weight:800;color:var(--text-primary);text-decoration:none;margin-bottom:2.5rem">
+        {% if request.is_immigration97 %}
+        <img src="{% static 'img/immigration97-logo.png' %}" alt="Immigration97" style="width:280px;max-width:100%;height:auto;background:white;padding:12px;border-radius:8px">
+        {% else %}
         <svg viewBox="0 0 40 40" width="44" height="44" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect width="40" height="40" rx="10" fill="#0D1F0D"/>
           <path d="M10 20 C10 12 18 8 20 14 C22 8 30 12 30 20" fill="#2E7D32"/>
@@ -22,10 +25,11 @@
           <rect x="10" y="29" width="20" height="4" rx="2" fill="#F57C00"/>
         </svg>
         E-<span style="color:var(--accent-light)">Shelle</span>
+        {% endif %}
       </a>
       <h2 style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;margin-bottom:.75rem">Bienvenue 👋</h2>
       <p style="color:var(--text-secondary);max-width:300px;line-height:1.7;margin:0 auto 2.5rem">
-        Un seul compte pour accéder à tous les services E-Shelle — restaurants, pressing, gaz, formations, IA...
+        {% if request.is_immigration97 %}Retrouvez votre préparation au TCF, votre parcours et vos outils Canada.{% else %}Un seul compte pour accéder à tous les services E-Shelle — restaurants, pressing, gaz, formations, IA...{% endif %}
       </p>
       <div style="display:flex;flex-direction:column;gap:.85rem;text-align:left;max-width:280px;margin:0 auto">
         <div style="display:flex;align-items:center;gap:.6rem;color:var(--text-secondary);font-size:.88rem"><span style="color:var(--primary-light);font-weight:700">✓</span> Plateforme 100% camerounaise 🇨🇲</div>

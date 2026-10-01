@@ -33,15 +33,15 @@ def user_contact_label(user) -> str:
     return f"{name} ({email})"
 
 
-def payment_request_url(*, service: str, amount=None, user=None, details: str = "") -> str:
+def payment_request_url(*, service: str, amount=None, user=None, details: str = "", brand: str = "E-Shelle") -> str:
     amount_line = f"\nMontant affiche: {amount}" if amount not in (None, "", 0) else ""
     details_line = f"\nDetails: {details}" if details else ""
     message = (
-        "Bonjour E-Shelle, je veux activer/payer un service premium."
+        f"Bonjour {brand}, je veux activer/payer un service premium."
         f"\nService: {service}"
         f"{amount_line}"
         f"\nClient: {user_contact_label(user)}"
         f"{details_line}"
         "\nMerci de me confirmer le bon plan et de m'envoyer mon code d'acces apres validation."
     )
-    return whatsapp_url(message)
+    return whatsapp_url(message, number="237693649944" if brand == "Immigration97" else None)
