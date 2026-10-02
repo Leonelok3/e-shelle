@@ -1,0 +1,97 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}TCF Canada · Leçon et exercice du jour{% endblock %}
+{% block body_class %}preparation-tests{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}"><link rel="stylesheet" href="{% static 'css/tcf-daily.css' %}?v=20261002">{% endblock %}
+{% block content %}
+<main class="tcf-daily-shell" data-day="{{ daily.key }}">
+  <a href="{% url 'preparation_tests:tcf_hub' %}" class="tcf-daily-back">← Préparation TCF</a>
+  <header class="tcf-daily-hero">
+    <span class="pt-badge">TCF Canada · {{ daily.date|date:"j F Y" }}</span>
+    <h1>Ton rendez-vous du jour</h1>
+    <p>{{ daily.skill_label }} · {{ daily.topic }}</p>
+    {% if completed_days %}<p class="tcf-daily-note">{{ completed_days }} séance{{ completed_days|pluralize }} terminée{{ completed_days|pluralize }} sur ce navigateur, parmi les 31 dernières dates conservées.</p>{% endif %}
+    <div class="tcf-daily-tags"><span>{{ daily.duration_label }}</span><span>{{ daily.format_label }}</span></div>
+    <p class="tcf-daily-note">{{ daily.format_note }}</p>
+  </header>
+  {% if error %}<p role="alert" class="tcf-daily-error">{{ error }}</p>{% endif %}
+  {% if unsent_production %}<details open class="tcf-daily-card"><summary>Ta réponse non envoyée · copie-la avant de changer de séance</summary><textarea rows="8" readonly class="tcf-daily-textarea">{{ unsent_production }}</textarea></details>{% endif %}
+  {% if not active and not submitted %}
+    <section class="pt-card tcf-daily-card"><p class="tcf-daily-kicker">1 · La leçon du jour</p><h2>{{ daily.lesson_title }}</h2>
+      <ol>{% for step in daily.lesson_steps %}<li>{{ step }}</li>{% endfor %}</ol>
+      <p>Lis la méthode, puis commence : le chronomètre démarre et le corrigé reste masqué jusqu'à ta réponse.</p>
+      {% if daily.skill == 'co' and not daily.audio_ready %}
+        <p class="tcf-daily-error">L'audio du jour n'est pas encore prêt. La leçon reste disponible.</p>
+        <a class="pt-btn-secondary" href="{% url 'preparation_tests:co_hub' %}">Autres entraînements d'écoute</a>
+      {% else %}
+        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="start"><input type="hidden" name="day" value="{{ daily.key }}">
+          <button class="pt-btn-primary" type="submit">Commencer l'exercice chronométré</button>
+        </form>
+      {% endif %}
+    </section>
+  {% elif active %}
+    <section class="pt-card tcf-daily-card">
+      <div class="tcf-daily-exam-header"><div><p class="tcf-daily-kicker">2 · À toi de jouer</p><h2>{{ daily.skill_label }}</h2></div><div class="tcf-daily-timer" id="daily-timer" data-remaining="{{ remaining }}" role="timer" aria-label="Temps restant">--:--</div></div>
+      <noscript><p class="tcf-daily-error">Active JavaScript pour le chronomètre automatique, le lecteur audio et la correction IA. La remise manuelle reste disponible.</p></noscript>
+      <p id="daily-time-note" role="status">À la fin du temps, ta réponse sera envoyée automatiquement. Tu peux la rendre plus tôt.</p>
+      {% if daily.skill == 'co' %}
+        <p>Lis les questions avant de lancer l'audio. Une écoute dans cette séance ; le script sera visible après ta réponse.</p>
+        <audio id="daily-audio" preload="metadata" src="{{ daily.audio_url }}"></audio>
+        <button type="button" class="pt-btn-secondary" id="daily-play" data-used="{{ attempt.audio_used|yesno:'true,false' }}">Écouter le document une fois</button>
+        <p id="daily-audio-status" role="status"></p>
+      {% elif daily.document %}<div class="tcf-daily-document">{{ daily.document|linebreaksbr }}</div>{% endif %}
+      <form method="post" id="daily-exam-form">{% csrf_token %}<input type="hidden" name="action" value="submit"><input type="hidden" name="day" value="{{ daily.key }}">
+        {% if daily.questions %}
+          {% for question in daily.questions %}<fieldset class="tcf-daily-question"><legend>{{ forloop.counter }}. {{ question.prompt }}</legend>
+            {% for letter, option in question.options.items %}<label class="tcf-daily-option"><input type="radio" name="answer_{{ forloop.parentloop.counter0 }}" value="{{ letter }}"><span>{{ letter }}. {{ option }}</span></label>{% endfor %}
+          </fieldset>{% endfor %}
+        {% else %}
+          <h3>{{ daily.question }}</h3>
+          {% if daily.skill == 'eo' %}
+            <p>Réponds à voix haute dès le démarrage, sans préparer un texte. L'enregistrement est facultatif ; il reste sur ton appareil.</p>
+            <button type="button" class="pt-btn-secondary" id="daily-record">Enregistrer ma prise de parole</button>
+            <button type="button" class="pt-btn-secondary" id="daily-stop-record" hidden>Arrêter l'enregistrement</button>
+            <p id="daily-record-status" role="status"></p><audio id="daily-recording" controls hidden></audio><a id="daily-recording-download" hidden>Télécharger mon enregistrement</a>
+            <p>Pour une correction IA, transcris ensuite ce que tu as réellement dit. Tu pourras ajouter cette transcription après avoir arrêté le chronomètre.</p>
+          {% endif %}
+          <label for="daily-production"><strong>{% if daily.skill == 'eo' %}Transcription de ma prise de parole (facultative ici){% else %}Ma réponse · {{ daily.word_min }} à {{ daily.word_max }} mots{% endif %}</strong></label>
+          <textarea id="daily-production" name="production" rows="12" maxlength="12000" class="tcf-daily-textarea"></textarea>
+          {% if daily.skill == 'ee' %}<p id="daily-word-count" data-min="{{ daily.word_min }}" data-max="{{ daily.word_max }}" role="status">0 mot</p>{% endif %}
+        {% endif %}
+        <button type="submit" class="pt-btn-primary">Rendre ma réponse</button>
+      </form>
+    </section>
+  {% elif submitted %}
+    <section class="pt-card tcf-daily-card"><p class="tcf-daily-kicker">3 · Comprendre et progresser</p><h2>Séance terminée</h2>
+      {% if attempt.overtime %}<p class="tcf-daily-error">Réponse rendue après le temps prévu. Le corrigé reste disponible ; recommence pour travailler la gestion du temps.</p>{% endif %}
+      {% if result %}<p class="tcf-daily-score">{{ result.correct }} / {{ result.total }} réponses correctes</p>
+        {% for row in result.rows %}<article class="tcf-daily-correction"><h3>{{ forloop.counter }}. {{ row.prompt }}</h3>
+          <p>{% if row.is_correct %}✓ Bonne réponse{% else %}À retravailler · Ton choix : {{ row.selected|default:'aucune réponse' }}{% endif %}</p>
+          <p><strong>Réponse : {{ row.answer }}</strong></p><blockquote>{{ row.evidence }}</blockquote><p>{{ row.explanation }}</p>
+        </article>{% endfor %}
+        {% if daily.skill == 'co' %}<details class="tcf-daily-document"><summary>Transcription du document sonore</summary><p>{{ daily.document|linebreaksbr }}</p></details>{% endif %}
+      {% else %}
+        {% if daily.skill == 'eo' %}
+          <audio id="daily-recording" controls hidden></audio><a id="daily-recording-download" hidden>Télécharger mon enregistrement</a>
+          <form method="post">{% csrf_token %}<input type="hidden" name="action" value="transcript"><input type="hidden" name="day" value="{{ daily.key }}">
+            <label for="daily-transcript">Ajoute ou corrige la transcription fidèle de ta prise de parole.</label>
+            <textarea id="daily-transcript" name="production" rows="8" maxlength="12000" class="tcf-daily-textarea">{{ attempt.production }}</textarea><button class="pt-btn-secondary" type="submit">Conserver ma transcription</button>
+          </form>
+        {% else %}<h3>Ma production · {{ attempt.word_count }} mots</h3><div class="tcf-daily-document">{{ attempt.production|linebreaksbr }}</div>
+          <p>Vérifie les limites de {{ daily.word_min }} à {{ daily.word_max }} mots, le destinataire et chaque élément de la consigne.</p>
+        {% endif %}
+        <h3>Ma vérification avant correction</h3><ul><li>Ai-je répondu précisément au sujet ?</li><li>Mes idées sont-elles organisées et illustrées ?</li><li>Ai-je relu les accords, les temps et les mots répétés ?</li></ul>
+        {% if request.user.is_authenticated %}
+          <button type="button" class="pt-btn-primary" id="daily-ai" data-url="{% url 'preparation_tests:tcf_daily_correction' %}">Recevoir ma correction IA</button>
+          <div id="daily-ai-feedback" role="status" class="tcf-daily-ai"></div>
+        {% else %}<p><a href="{% url 'preparation_tests:learning_center' %}">Connecte-toi pour recevoir une correction IA</a>.</p>{% endif %}
+        {% if daily.skill == 'eo' %}<p class="tcf-daily-note">L'IA corrige ta transcription. Elle n'évalue pas la prononciation ni la fluidité de l'enregistrement.</p>{% endif %}
+      {% endif %}
+      <form method="post" class="tcf-daily-retry">{% csrf_token %}<input type="hidden" name="action" value="start"><input type="hidden" name="day" value="{{ daily.key }}"><button class="pt-btn-secondary" type="submit">Recommencer la séance</button></form>
+      <p>Reviens demain pour une autre compétence. Le cycle comprend 28 séances sur sept thèmes.</p>
+    </section>
+  {% endif %}
+  <p><a class="pt-btn-secondary" href="{% url 'preparation_tests:exam_format_hub' 'tcf' %}">Passer un examen blanc complet</a></p>
+  <footer class="tcf-daily-note">Sujets originaux d'entraînement, sans affiliation avec l'organisateur du TCF. <a href="{{ daily.source }}" target="_blank" rel="noopener">Consulter le format TCF Canada</a>.</footer>
+</main>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/tcf-daily.js' %}?v=20261002" defer></script>{% endblock %}

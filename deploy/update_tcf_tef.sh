@@ -31,9 +31,12 @@ for exam in tcf tef; do
   sudo -u eshelle "$PY" manage.py generate_exercise_audio --exam "$exam" --all
   sudo -u eshelle "$PY" manage.py audit_learning_materials --exam "$exam" --all-levels --check-audio-files > "$BACKUP/${exam}-after.json"
 done
+sudo -u eshelle "$PY" manage.py prepare_tcf_daily_audio
+sudo -u eshelle "$PY" manage.py collectstatic --noinput
 sudo -u eshelle "$PY" manage.py check
 systemctl restart eshelle
 systemctl is-active --quiet eshelle
 curl --fail --silent --show-error --retry 5 --retry-delay 2 --retry-connrefused --output /dev/null https://e-shelle.com/prep/fr/tcf/
+curl --fail --silent --show-error --retry 5 --retry-delay 2 --retry-connrefused --output /dev/null https://e-shelle.com/prep/fr/tcf/du-jour/
 echo "TCF/TEF mis à jour. Sauvegarde et audits : $BACKUP"
 sudo -u eshelle git log -1 --format='%h %s'

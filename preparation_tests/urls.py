@@ -1,9 +1,11 @@
 from django.urls import path
-from . import views, views_level_mock, views_mock_exam_format, views_learning
+from . import views, views_level_mock, views_mock_exam_format, views_learning, views_daily_tcf
 
 app_name = "preparation_tests"
 
 urlpatterns = [
+    path("fr/tcf/du-jour/", views_daily_tcf.daily_tcf, name="tcf_daily"),
+    path("api/tcf-du-jour/correction/", views_daily_tcf.correct_daily_production, name="tcf_daily_correction"),
     path("fr/mon-coach/", views_learning.learning_center, name="learning_center"),
     path("api/explain-answer/", views_learning.explain_answer, name="explain_answer"),
     # =====================================================

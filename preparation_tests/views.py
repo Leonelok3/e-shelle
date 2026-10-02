@@ -187,6 +187,8 @@ def tef_hub(request):
 
 
 def tcf_hub(request):
+    from .services.daily_tcf import daily_session
+    daily = daily_session()
     sections = [
         {"code": "co", "title": "Compréhension orale"},
         {"code": "ce", "title": "Compréhension écrite"},
@@ -203,7 +205,7 @@ def tcf_hub(request):
     return render(
         request,
         "preparation_tests/fr_tcf_hub.html",
-        {"sections": sections},
+        {"sections": sections, "daily_tcf": daily, "daily_tcf_done": daily["key"] in request.session.get("tcf_daily_completed", [])},
     )
 
 

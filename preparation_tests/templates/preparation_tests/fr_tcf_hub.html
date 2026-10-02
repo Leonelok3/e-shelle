@@ -25,6 +25,7 @@ et suivi intelligent avec {{ request.site_brand|default:'E-Shelle' }}.
 ================================================== #}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}?v=20260714-canada">
+<link rel="stylesheet" href="{% static 'css/tcf-daily.css' %}?v=20261002">
 {% endblock %}
 
 {% block content %}
@@ -72,6 +73,17 @@ COMPÉTENCES TCF
 
       <!-- ================= MAIN ================= -->
       <div class="pt-main">
+
+        {% if daily_tcf %}
+        <article class="pt-card tcf-daily-feature">
+          <span class="pt-badge">Leçon + exercice du jour · {{ daily_tcf.date|date:"j F" }}</span>
+          <h2>{{ daily_tcf.lesson_title }}</h2>
+          <p class="pt-card-meta">{{ daily_tcf.skill_label }} · {{ daily_tcf.topic }}</p>
+          <p>{{ daily_tcf.format_label }} · {{ daily_tcf.duration_label }}. Lis la méthode, entraîne-toi au chronomètre, puis comprends tes erreurs.</p>
+          <div class="pt-cta-group"><a class="pt-btn-primary" href="{% url 'preparation_tests:tcf_daily' %}">{% if daily_tcf_done %}✓ Revoir ma séance du jour{% else %}Faire ma séance du jour{% endif %}</a></div>
+          <p class="tcf-daily-note">Une nouvelle séance chaque jour, sur un cycle de 28 jours. Sujets originaux inspirés du format TCF Canada.</p>
+        </article>
+        {% endif %}
 
         <article class="pt-card">
           <h2>Choisis ta compétence TCF</h2>
