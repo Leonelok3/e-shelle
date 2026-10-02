@@ -1,4 +1,7 @@
-{% extends "base.html" %}{% load static %}
+{% extends "base.html" %}
+{% load public_brand %}
+
+{% load public_brand %}{% load static %}
 {% block title %}Immigration97 · Objectif C2, mon entraînement IA{% endblock %}
 {% block body_class %}preparation-tests{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}"><link rel="stylesheet" href="{% static 'css/learning-coach.css' %}">{% endblock %}
@@ -41,7 +44,7 @@
     <section class="learning-card learning-card--wide">
       <h2>Mon carnet de corrections</h2><p class="learning-note">Tes dernières productions et leurs actions de progrès. Les scores servent à travailler ; ils ne certifient pas un niveau C2.</p>
       {% for item in history %}<details class="learning-history"><summary><strong>{{ item.skill }} · {{ item.title }}</strong> · {{ item.score|floatformat:0 }}/100<br><time>{{ item.created_at|date:"d/m/Y H:i" }}</time></summary>
-        <p>{{ item.feedback }}</p>
+        <p>{{ item.feedback|public_brand:request }}</p>
         {% for priority in item.coaching.priorities %}<div class="learning-priority"><h3>{{ priority.diagnosis }}</h3>
           {% if priority.evidence %}<blockquote>{{ priority.evidence }}</blockquote>{% endif %}
           <p><strong>Technique :</strong> {{ priority.action }}</p><p><strong>Exercice :</strong> {{ priority.drill }}</p>
@@ -49,7 +52,7 @@
         <p>{{ item.coaching.assessment_note }}</p><a href="{{ item.url }}">Reprendre cet exercice et améliorer ma réponse →</a>
       </details>{% empty %}<p>Ton carnet est prêt. Commence par une production écrite ou orale : ta correction et tes techniques d'amélioration apparaîtront ici.</p>{% endfor %}
     </section>
-    <section class="learning-card"><h2>Les repères du {{ format.name }}</h2>
+    <section class="learning-card"><h2>Les repères du {{ format.name|public_brand:request }}</h2>
       <p><strong>Compréhension orale :</strong> {{ format.co }}</p><p><strong>Compréhension écrite :</strong> {{ format.ce }}</p>
       <p><strong>Expression écrite :</strong> {{ format.ee }}</p><p><strong>Expression orale :</strong> {{ format.eo }}</p>
       <p class="learning-note">Vérifiés le 19 septembre 2026. Les séances {{ request.site_brand|default:'E-Shelle' }} peuvent être plus courtes et cibler une seule compétence.</p>

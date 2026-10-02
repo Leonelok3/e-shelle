@@ -136,7 +136,7 @@ def initier(request, commande_id):
     articles_str = "\n".join(articles)
     
     message = (
-        f"Bonjour E-Shelle 👋,\n\n"
+        f"Bonjour {getattr(request, 'site_brand', 'E-Shelle')} 👋,\n\n"
         f"Je souhaite régler ma commande sur la Boutique Digitale :\n\n"
         f"Référence de commande : {commande.reference}\n"
         f"Articles :\n{articles_str}\n"
@@ -147,7 +147,7 @@ def initier(request, commande_id):
     )
     
     from core.whatsapp import whatsapp_url
-    whatsapp_payment_url = whatsapp_url(message)
+    whatsapp_payment_url = whatsapp_url(message, number="237693649944" if getattr(request, "is_immigration97", False) else None)
     
     messages.success(request, "Redirection vers WhatsApp pour finaliser votre commande...")
     return redirect(whatsapp_payment_url)
@@ -215,7 +215,7 @@ def payer_formation(request, formation_id):
         return redirect("formations:detail", slug=formation.slug)
 
     message = (
-        f"Bonjour E-Shelle 👋,\n\n"
+        f"Bonjour {getattr(request, 'site_brand', 'E-Shelle')} 👋,\n\n"
         f"Je souhaite m'inscrire à la formation suivante :\n\n"
         f"Formation : {formation.titre}\n"
         f"Prix : {formation.prix|floatformat:0} FCFA\n\n"
@@ -224,7 +224,7 @@ def payer_formation(request, formation_id):
     )
 
     from core.whatsapp import whatsapp_url
-    whatsapp_payment_url = whatsapp_url(message)
+    whatsapp_payment_url = whatsapp_url(message, number="237693649944" if getattr(request, "is_immigration97", False) else None)
 
     messages.success(request, "Redirection vers WhatsApp pour finaliser votre inscription...")
     return redirect(whatsapp_payment_url)
@@ -262,6 +262,7 @@ def premium_marketplace(request, module):
     plans = _get_plans_for_module(module)
     for slug, plan in plans.items():
         plan["whatsapp_url"] = payment_request_url(
+            brand=getattr(request, "site_brand", "E-Shelle"),
             service=f"{all_modules[module]} - Pack {plan['nom']}",
             amount=f"{plan['prix']} FCFA",
             user=request.user,
@@ -287,7 +288,7 @@ def payer_premium(request, module, plan_slug):
     module_label = MODULES_LABEL.get(module, module)
     
     message = (
-        f"Bonjour E-Shelle 👋,\n\n"
+        f"Bonjour {getattr(request, 'site_brand', 'E-Shelle')} 👋,\n\n"
         f"Je souhaite activer le Pack Premium suivant :\n\n"
         f"Module : {module_label}\n"
         f"Pack : {plan['nom']} ({plan['duree_jours']} jours)\n"
@@ -297,7 +298,7 @@ def payer_premium(request, module, plan_slug):
     )
 
     from core.whatsapp import whatsapp_url
-    whatsapp_payment_url = whatsapp_url(message)
+    whatsapp_payment_url = whatsapp_url(message, number="237693649944" if getattr(request, "is_immigration97", False) else None)
 
     messages.success(request, "Redirection vers WhatsApp pour finaliser votre abonnement Premium...")
     return redirect(whatsapp_payment_url)
@@ -338,7 +339,7 @@ def booster_annonce(request, annonce_id, type_boost):
     boost_info = BOOSTS_ANNONCE[type_boost]
     
     message = (
-        f"Bonjour E-Shelle 👋,\n\n"
+        f"Bonjour {getattr(request, 'site_brand', 'E-Shelle')} 👋,\n\n"
         f"Je souhaite booster mon annonce suivante :\n\n"
         f"Annonce : {annonce.titre} (ID #{annonce.pk})\n"
         f"Option de boost : {boost_info['nom']}\n"
@@ -348,7 +349,7 @@ def booster_annonce(request, annonce_id, type_boost):
     )
 
     from core.whatsapp import whatsapp_url
-    whatsapp_payment_url = whatsapp_url(message)
+    whatsapp_payment_url = whatsapp_url(message, number="237693649944" if getattr(request, "is_immigration97", False) else None)
 
     messages.success(request, "Redirection vers WhatsApp pour finaliser le boost de votre annonce...")
     return redirect(whatsapp_payment_url)

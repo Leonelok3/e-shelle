@@ -764,7 +764,7 @@ def immigration_coach_api(request):
     
     from .guidance import GUIDANCE_CONTEXT
     system_prompt = (
-        "Tu es l'expert en immigration du Canada d'E-Shelle. Ton rôle est de conseiller "
+        "Tu es l'expert en immigration du Canada Immigration97. Ton rôle est de conseiller "
         "les candidats à l'immigration sur toutes les procédures officielles basées sur le site "
         "du gouvernement du Canada (Canada.ca / IRCC). Réponds de façon précise, chaleureuse, professionnelle et structurée (utilises du gras et listes si besoin). "
         "Mentionne les programmes officiels : Entrée Express (FSTP, FSWP, CEC), Arrima (Québec), PNP (Candidats des Provinces), "

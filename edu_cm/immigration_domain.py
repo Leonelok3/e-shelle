@@ -13,22 +13,33 @@ def is_immigration_host(request):
 
 
 class ImmigrationDomainMiddleware:
-    """Keep shared authentication local; send unrelated apps to E-Shelle."""
+    """Keep authentication local and exclude unrelated applications."""
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if not is_immigration_host(request):
+        dedicated_host = is_immigration_host(request)
+        # Legacy Canada/preparation links share the same public identity.
+        legacy_canada = request.path_info.startswith(CANADA_PREFIXES) or (
+            request.path_info.rstrip('/') == '/accounts/upgrade'
+            and request.GET.get('app') == 'prep'
+        )
+        if not dedicated_host and not legacy_canada:
             return self.get_response(request)
 
         request.is_immigration97 = True
         request.site_brand = 'Immigration97'
         request.public_domain = 'immigration97.com'
 
+        if not dedicated_host:
+            return self.get_response(request)
+
         path = request.path_info
         if path == '/favicon.ico':
             return HttpResponseRedirect('/static/img/immigration97-logo.png?v=20261001')
+        if path == '/tarifs/':
+            return HttpResponseRedirect('/accounts/upgrade/?app=prep')
         if path in ('/', '/dashboard/', '/accounts/go/'):
             target = '/canada/' if path == '/' else '/canada/parcours/'
             if request.method not in ('GET', 'HEAD'):
@@ -51,7 +62,7 @@ class ImmigrationDomainMiddleware:
         if not allowed and normalized not in SHARED_PAGES:
             if request.method not in ('GET', 'HEAD'):
                 return HttpResponseNotFound()
-            return HttpResponseRedirect('https://e-shelle.com' + request.get_full_path())
+            return HttpResponseNotFound()
 
         response = self.get_response(request)
         # Existing .e-shelle.com cookie settings cannot apply to this domain.

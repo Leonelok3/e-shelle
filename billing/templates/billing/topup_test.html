@@ -1,5 +1,7 @@
 {# billing/templates/billing/reload_wallet.html #}
 {% extends 'base.html' %}
+{% load public_brand %}
+
 {% load static %}
 
 {% block title %}Recharger mon Wallet | {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
@@ -117,7 +119,7 @@ Rechargez votre portefeuille {{ request.site_brand|default:'E-Shelle' }} pour ac
         <span class="billing-reload-form__prefix">$</span>
         <input
           type="number"
-          name="{{ form.amount.name }}"
+          name="{{ form.amount.name|public_brand:request }}"
           id="{{ form.amount.id_for_label }}"
           class="billing-reload-form__input"
           placeholder="50"
@@ -165,7 +167,7 @@ Rechargez votre portefeuille {{ request.site_brand|default:'E-Shelle' }} pour ac
       </label>
 
       <textarea
-        name="{{ form.note.name }}"
+        name="{{ form.note.name|public_brand:request }}"
         id="{{ form.note.id_for_label }}"
         class="billing-reload-form__textarea"
         placeholder="Ex: Recharge pour accès Premium {{ request.site_brand|default:'E-Shelle' }}"

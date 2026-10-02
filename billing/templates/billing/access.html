@@ -1,5 +1,7 @@
 {# billing/templates/billing/access.html #}
 {% extends "base.html" %}
+{% load public_brand %}
+
 {% load static %}
 
 {% block title %}Mon Accès Premium | {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
@@ -47,7 +49,7 @@
 
                 <div class="status-details">
                     <p class="plan-name">
-                        Plan <strong>{{ active_subscription.plan.name }}</strong>
+                        Plan <strong>{{ active_subscription.plan.name|public_brand:request }}</strong>
                         <span class="badge badge-success">Actif</span>
                     </p>
 
@@ -170,7 +172,7 @@
                 </div>
 
                 <div class="plan-content">
-                    <h3 class="plan-title">{{ plan.name }}</h3>
+                    <h3 class="plan-title">{{ plan.name|public_brand:request }}</h3>
 
                     <p class="plan-meta">
                         ⏱️ {{ plan.get_duration_display }} d'accès complet
@@ -193,7 +195,7 @@
 
                 <div class="plan-action">
                     <a href="{{ plan.whatsapp_payment_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-                        WhatsApp {{ plan.name }}
+                        WhatsApp {{ plan.name|public_brand:request }}
                     </a>
                 </div>
             </article>

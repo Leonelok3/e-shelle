@@ -2,6 +2,7 @@
 from urllib.parse import quote
 
 from django.conf import settings
+from core.branding import IMMIGRATION97_PHONE, public_text
 
 
 DEFAULT_SUPPORT_NUMBER = "237680625082"
@@ -34,6 +35,8 @@ def user_contact_label(user) -> str:
 
 
 def payment_request_url(*, service: str, amount=None, user=None, details: str = "", brand: str = "E-Shelle") -> str:
+    service = public_text(service, brand)
+    details = public_text(details, brand)
     amount_line = f"\nMontant affiche: {amount}" if amount not in (None, "", 0) else ""
     details_line = f"\nDetails: {details}" if details else ""
     message = (
@@ -44,4 +47,4 @@ def payment_request_url(*, service: str, amount=None, user=None, details: str = 
         f"{details_line}"
         "\nMerci de me confirmer le bon plan et de m'envoyer mon code d'acces apres validation."
     )
-    return whatsapp_url(message, number="237693649944" if brand == "Immigration97" else None)
+    return whatsapp_url(message, number=IMMIGRATION97_PHONE if brand == "Immigration97" else None)

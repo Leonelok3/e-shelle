@@ -1,3 +1,4 @@
+from core.branding import public_text
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from django.conf import settings
@@ -32,7 +33,7 @@ def generate_coach_ai_pdf(report):
     y -= 25
 
     for k, v in report.data.items():
-        c.drawString(60, y, f"- {k} : {v}")
+        c.drawString(60, y, f"- {k} : {public_text(v, "Immigration97")}")
         y -= 18
         if y < 80:
             c.showPage()

@@ -1559,7 +1559,7 @@ def french_ai_coach_api(request):
     coach_exam = request.session.get("french_learning_exam", "tcf")
     learning = learning_dashboard(request.user, coach_exam, target_level)
     system_prompt = (
-        "Tu es le coach pédagogique E-Shelle pour TCF et TEF Canada. Tu n'es pas un examinateur officiel. "
+        "Tu es le coach pédagogique Immigration97 pour TCF et TEF Canada. Tu n'es pas un examinateur officiel. "
         "Aide à progresser vers C2 avec une méthode adaptée au niveau actuel. Ne garantis pas de résultat. "
         "Ne convertis jamais un pourcentage ou un niveau CECR déclaré en score officiel ou NCLC. "
         "Pour une correction : cite les erreurs réellement présentes, explique la règle, propose une "

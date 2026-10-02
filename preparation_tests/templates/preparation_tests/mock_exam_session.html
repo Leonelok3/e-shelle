@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load public_brand %}
+
 {% load static %}
 
 {# ==================================================
@@ -11,11 +13,11 @@
    SEO — TITLE & META
 ================================================== #}
 {% block title %}
-Examen blanc – {{ session.exam.name }} | {{ request.site_brand|default:'E-Shelle' }}
+Examen blanc – {{ session.exam.name|public_brand:request }} | {{ request.site_brand|default:'E-Shelle' }}
 {% endblock %}
 
 {% block meta_description %}
-Examen blanc {{ session.exam.name }}
+Examen blanc {{ session.exam.name|public_brand:request }}
 {% if session.section %}({{ session.section.code|upper }}){% endif %} :
 conditions réelles, chronométrage, correction intelligente
 et validation CECR avec {{ request.site_brand|default:'E-Shelle' }}.
@@ -41,7 +43,7 @@ HERO — EXAMEN BLANC
     </span>
 
     <h1 class="pt-title">
-      {{ session.exam.name }}
+      {{ session.exam.name|public_brand:request }}
       {% if session.section %}
         <span class="pt-title-sub">
           — {{ session.section.code|upper }}

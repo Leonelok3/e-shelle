@@ -41,11 +41,19 @@ class ImmigrationDomainTests(SimpleTestCase):
             self.assertEqual(response.cookies['sessionid']['domain'], '')
             self.assertTrue(response.cookies['sessionid']['httponly'])
 
-    def test_other_apps_return_to_eshelle_with_path_and_query(self):
-        self.assertEqual(self.request('/boutique/?page=2')['Location'],
-                         'https://e-shelle.com/boutique/?page=2')
-        self.assertEqual(self.request('/canada-fake/')['Location'],
-                         'https://e-shelle.com/canada-fake/')
+    def test_other_apps_do_not_send_users_to_another_brand(self):
+        self.assertEqual(self.request('/boutique/?page=2').status_code, 404)
+        self.assertEqual(self.request('/canada-fake/').status_code, 404)
+        self.assertEqual(self.seen, [])
+
+    def test_legacy_prep_payment_page_uses_immigration_brand(self):
+        request = self.factory.get('/accounts/upgrade/?app=prep', HTTP_HOST='e-shelle.com')
+        response = self.middleware(request)
+        self.assertEqual(request.site_brand, 'Immigration97')
+        self.assertEqual(response.cookies['sessionid']['domain'], '.e-shelle.com')
+
+    def test_tariffs_are_local_prep_offers(self):
+        self.assertEqual(self.request('/tarifs/')['Location'], '/accounts/upgrade/?app=prep')
 
     def test_does_not_forward_post_to_another_domain(self):
         self.assertEqual(self.request('/boutique/', method='post').status_code, 404)
@@ -59,7 +67,7 @@ class ImmigrationDomainTests(SimpleTestCase):
         self.assertNotIn(b'Sitemap:', self.request('/robots.txt').content)
 
     def test_brand_is_attached_only_to_immigration_requests(self):
-        for host, expected in [('immigration97.com', 'Immigration97'), ('e-shelle.com', None)]:
+        for host, expected in [('immigration97.com', 'Immigration97'), ('e-shelle.com', 'Immigration97')]:
             request = self.factory.get('/canada/', HTTP_HOST=host)
             self.middleware(request)
             self.assertEqual(getattr(request, 'site_brand', None), expected)

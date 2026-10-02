@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load public_brand %}
+
 {% load static %}
 
 {% block title %}Mon Parrainage | {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
@@ -41,7 +43,7 @@
       <tr style="border-bottom:1px solid #f1f5f9;">
         <td style="padding:10px;">{{ c.created_at|date:"d/m/Y H:i" }}</td>
         <td style="padding:10px;">{{ c.transaction.user.username }}</td>
-        <td style="padding:10px;">{% if c.transaction.plan %}{{ c.transaction.plan.name }}{% else %}-{% endif %}</td>
+        <td style="padding:10px;">{% if c.transaction.plan %}{{ c.transaction.plan.name|public_brand:request }}{% else %}-{% endif %}</td>
         <td style="padding:10px;"><strong>{{ c.amount }}</strong> {{ c.currency }}</td>
         <td style="padding:10px;">{{ c.status }}</td>
       </tr>

@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Mentions légales, CGU, confidentialité et paiements | E-Shelle{% endblock %}
-{% block meta_description %}Mentions légales, conditions générales d'utilisation, règles marketplace, paiements, confidentialité, propriété intellectuelle et responsabilités applicables aux services E-Shelle.{% endblock %}
-{% block og_title %}Mentions légales & CGU | E-Shelle{% endblock %}
-{% block og_description %}Le cadre légal et contractuel d'E-Shelle : éditeur, services, comptes, marketplace, paiements, données, IA, responsabilités et support.{% endblock %}
+{% block title %}Mentions légales, CGU, confidentialité et paiements | {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
+{% block meta_description %}Mentions légales, conditions générales d'utilisation, règles marketplace, paiements, confidentialité, propriété intellectuelle et responsabilités applicables aux services {{ request.site_brand|default:'E-Shelle' }}.{% endblock %}
+{% block og_title %}Mentions légales & CGU | {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
+{% block og_description %}Le cadre légal et contractuel d'{{ request.site_brand|default:'E-Shelle' }} : éditeur, services, comptes, marketplace, paiements, données, IA, responsabilités et support.{% endblock %}
 
 {% block extra_head %}
 <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{% url 'cgu' %}">
 <meta name="robots" content="index,follow">
-<meta name="keywords" content="mentions légales E-Shelle, CGU E-Shelle, confidentialité E-Shelle, marketplace Cameroun, conditions utilisation E-Shelle, paiement Mobile Money">
+<meta name="keywords" content="mentions légales {{ request.site_brand|default:'E-Shelle' }}, CGU {{ request.site_brand|default:'E-Shelle' }}, confidentialité {{ request.site_brand|default:'E-Shelle' }}, marketplace Cameroun, conditions utilisation {{ request.site_brand|default:'E-Shelle' }}, paiement Mobile Money">
 {% endblock %}
 
 {% block extra_css %}
@@ -529,10 +529,10 @@
   <section class="legal-hero">
     <div class="legal-shell legal-hero-grid">
       <div>
-        <div class="legal-eyebrow">Cadre légal E-Shelle</div>
+        <div class="legal-eyebrow">Cadre légal {{ request.site_brand|default:'E-Shelle' }}</div>
         <h1>Mentions légales, <span>CGU & confidentialité</span></h1>
         <p class="legal-lead">
-          Cette page présente les règles applicables à l'utilisation de l'écosystème E-Shelle :
+          Cette page présente les règles applicables à l'utilisation de l'écosystème {{ request.site_brand|default:'E-Shelle' }} :
           marketplace locale, vitrines business, boutique digitale, services de formation, outils marketing,
           paiements, modules IA et espaces immigration.
         </p>
@@ -546,7 +546,7 @@
         <div class="legal-facts">
           <div class="legal-fact">
             <span class="legal-fact-icon">E</span>
-            <div><span>Plateforme</span><strong>E-Shelle</strong></div>
+            <div><span>Plateforme</span><strong>{{ request.site_brand|default:'E-Shelle' }}</strong></div>
           </div>
           <div class="legal-fact">
             <span class="legal-fact-icon">CM</span>
@@ -554,11 +554,11 @@
           </div>
           <div class="legal-fact">
             <span class="legal-fact-icon">@</span>
-            <div><span>Email support</span><a href="mailto:e.shelleltd@gmail.com">e.shelleltd@gmail.com</a></div>
+            <div><span>Email support</span>{% if request.is_immigration97 %}<a href="https://wa.me/237693649944">WhatsApp Immigration97</a>{% else %}<a href="mailto:e.shelleltd@gmail.com">e.shelleltd@gmail.com</a>{% endif %}</div>
           </div>
           <div class="legal-fact">
             <span class="legal-fact-icon">WA</span>
-            <div><span>WhatsApp</span><a href="https://wa.me/237680625082">+237 680 625 082</a></div>
+            <div><span>WhatsApp</span><a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}">{% if request.is_immigration97 %}+237 693 649 944{% else %}+237 680 625 082{% endif %}</a></div>
           </div>
         </div>
         <p class="legal-notice">
@@ -595,16 +595,16 @@
           </div>
           <div class="legal-section-body">
             <p>
-              Le site <strong>e-shelle.com</strong>, ses sous-domaines, applications et modules associés sont édités
-              par <strong>E-Shelle</strong>, écosystème digital et IA exploité depuis le Cameroun pour faciliter la
+              Le site <strong>{{ request.public_domain|default:'e-shelle.com' }}</strong>, ses sous-domaines, applications et modules associés sont édités
+              par <strong>{{ request.site_brand|default:'E-Shelle' }}</strong>, écosystème digital et IA exploité depuis le Cameroun pour faciliter la
               visibilité, la vente, la formation et la mise en relation de commerces, prestataires et utilisateurs.
             </p>
             <ul>
-              <li><strong>Nom commercial :</strong> E-Shelle.</li>
+              <li><strong>Nom commercial :</strong> {{ request.site_brand|default:'E-Shelle' }}.</li>
               <li><strong>Activité :</strong> plateforme numérique, marketplace, vitrines commerciales, outils IA, formation, services web et accompagnement digital.</li>
               <li><strong>Siège opérationnel :</strong> Douala, Makepe, Cameroun.</li>
-              <li><strong>Directeur de publication :</strong> le représentant légal de E-Shelle.</li>
-              <li><strong>Contact officiel :</strong> e.shelleltd@gmail.com et WhatsApp +237 680 625 082.</li>
+              <li><strong>Directeur de publication :</strong> le représentant légal de {{ request.site_brand|default:'E-Shelle' }}.</li>
+              <li><strong>Contact officiel :</strong> {% if not request.is_immigration97 %}e.shelleltd@gmail.com et {% endif %}WhatsApp {% if request.is_immigration97 %}+237 693 649 944{% else %}+237 680 625 082{% endif %}.</li>
             </ul>
             <div class="legal-callout">
               <p>
@@ -619,11 +619,11 @@
         <article class="legal-section" id="article-2">
           <div class="legal-section-head">
             <span class="legal-section-number">02</span>
-            <h2>Objet de E-Shelle et périmètre des services</h2>
+            <h2>Objet de {{ request.site_brand|default:'E-Shelle' }} et périmètre des services</h2>
           </div>
           <div class="legal-section-body">
             <p>
-              E-Shelle rassemble plusieurs services numériques destinés aux particuliers, vendeurs, entreprises,
+              {{ request.site_brand|default:'E-Shelle' }} rassemble plusieurs services numériques destinés aux particuliers, vendeurs, entreprises,
               apprenants, candidats à l'immigration et créateurs de contenu. La plateforme peut notamment proposer :
             </p>
             <div class="legal-grid">
@@ -658,13 +658,13 @@
           </div>
           <div class="legal-section-body">
             <p>
-              L'accès à E-Shelle implique l'acceptation des présentes conditions. L'utilisateur s'engage à fournir des
+              L'accès à {{ request.site_brand|default:'E-Shelle' }} implique l'acceptation des présentes conditions. L'utilisateur s'engage à fournir des
               informations exactes, à maintenir la confidentialité de ses accès et à ne pas utiliser la plateforme à des
               fins frauduleuses, illicites, trompeuses, discriminatoires ou contraires aux droits de tiers.
             </p>
             <ul>
               <li>Chaque utilisateur reste responsable des actions effectuées depuis son compte.</li>
-              <li>E-Shelle peut suspendre un compte en cas d'abus, d'usurpation, de fraude, de non-paiement ou de contenu dangereux.</li>
+              <li>{{ request.site_brand|default:'E-Shelle' }} peut suspendre un compte en cas d'abus, d'usurpation, de fraude, de non-paiement ou de contenu dangereux.</li>
               <li>Les professionnels doivent disposer des autorisations nécessaires pour vendre, publier ou promouvoir leurs offres.</li>
               <li>Les mineurs doivent utiliser la plateforme sous la supervision d'un représentant légal.</li>
             </ul>
@@ -678,14 +678,14 @@
           </div>
           <div class="legal-section-body">
             <p>
-              E-Shelle facilite la découverte et la mise en relation. Sauf indication contraire, la vente finale,
+              {{ request.site_brand|default:'E-Shelle' }} facilite la découverte et la mise en relation. Sauf indication contraire, la vente finale,
               la livraison physique, la disponibilité réelle, la qualité du produit, le prix négocié, les garanties
               commerciales et le service après-vente relèvent du prestataire ou vendeur concerné.
             </p>
             <ul>
               <li>Les prestataires doivent publier des descriptions loyales, prix cohérents, images autorisées et coordonnées valides.</li>
               <li>Les produits interdits, contrefaits, dangereux, réglementés sans autorisation ou trompeurs peuvent être retirés.</li>
-              <li>E-Shelle peut améliorer la présentation d'une fiche pour le SEO, la lisibilité, la traduction ou la recherche IA.</li>
+              <li>{{ request.site_brand|default:'E-Shelle' }} peut améliorer la présentation d'une fiche pour le SEO, la lisibilité, la traduction ou la recherche IA.</li>
               <li>Les avis, signalements et réclamations peuvent être utilisés pour protéger les utilisateurs et la qualité du catalogue.</li>
             </ul>
             <div class="legal-callout legal-warning">
@@ -706,11 +706,11 @@
             <p>
               Les prix sont généralement affichés en francs CFA, sauf mention différente. Les paiements peuvent être
               réalisés par Mobile Money, carte bancaire, code prépayé, recharge manuelle ou tout autre moyen activé
-              par E-Shelle et ses partenaires de paiement.
+              par {{ request.site_brand|default:'E-Shelle' }} et ses partenaires de paiement.
             </p>
             <ul>
               <li>Les services numériques peuvent être activés automatiquement après confirmation du paiement.</li>
-              <li>E-Shelle ne demande jamais le code PIN Mobile Money, mot de passe bancaire ou information secrète de paiement.</li>
+              <li>{{ request.site_brand|default:'E-Shelle' }} ne demande jamais le code PIN Mobile Money, mot de passe bancaire ou information secrète de paiement.</li>
               <li>Les frais opérateurs, taxes, commissions de paiement ou frais de change peuvent varier selon le pays et le moyen de paiement.</li>
               <li>Une facture, un reçu ou une preuve de transaction peut être généré selon le service utilisé.</li>
             </ul>
@@ -718,7 +718,7 @@
               <p>
                 Les services numériques déjà consommés, crédits IA utilisés, contenus générés, abonnements activés ou
                 prestations déjà livrées ne sont pas automatiquement remboursables. En cas d'incident technique avéré,
-                E-Shelle peut proposer une correction, un avoir, une régénération, une extension d'accès ou un remboursement
+                {{ request.site_brand|default:'E-Shelle' }} peut proposer une correction, un avoir, une régénération, une extension d'accès ou un remboursement
                 après vérification.
               </p>
             </div>
@@ -732,7 +732,7 @@
           </div>
           <div class="legal-section-body">
             <p>
-              Certains modules E-Shelle utilisent l'intelligence artificielle pour rechercher, rédiger, classifier,
+              Certains modules {{ request.site_brand|default:'E-Shelle' }} utilisent l'intelligence artificielle pour rechercher, rédiger, classifier,
               générer des textes, images, scripts, documents, fiches business, descriptions SEO ou contenus marketing.
               Ces résultats sont fournis comme assistance productive et doivent être vérifiés par l'utilisateur avant
               publication, utilisation commerciale ou décision importante.
@@ -741,7 +741,7 @@
               <li>Les résultats IA peuvent contenir des erreurs, approximations, informations incomplètes ou formulations à adapter.</li>
               <li>Les modules immigration, emploi, bourses, santé, finance, juridique ou formation ne remplacent pas un professionnel qualifié.</li>
               <li>L'utilisateur doit posséder les droits nécessaires sur les images, marques, textes, sons et données fournis à l'IA.</li>
-              <li>E-Shelle peut refuser ou limiter les demandes visant la fraude, l'usurpation, la haine, la désinformation ou le contournement de règles.</li>
+              <li>{{ request.site_brand|default:'E-Shelle' }} peut refuser ou limiter les demandes visant la fraude, l'usurpation, la haine, la désinformation ou le contournement de règles.</li>
             </ul>
           </div>
         </article>
@@ -753,7 +753,7 @@
           </div>
           <div class="legal-section-body">
             <p>
-              E-Shelle collecte uniquement les informations nécessaires au fonctionnement de ses services : compte,
+              {{ request.site_brand|default:'E-Shelle' }} collecte uniquement les informations nécessaires au fonctionnement de ses services : compte,
               identité déclarative, coordonnées, préférences, fiches business, produits, commandes, paiements, messages,
               fichiers envoyés, données techniques et historiques d'utilisation.
             </p>
@@ -780,12 +780,12 @@
           <div class="legal-section-body">
             <p>
               Les interfaces, textes, logos, éléments graphiques, composants, bases de données, modèles de pages,
-              automatisations, prompts, parcours pédagogiques et développements propres à E-Shelle sont protégés par
+              automatisations, prompts, parcours pédagogiques et développements propres à {{ request.site_brand|default:'E-Shelle' }} sont protégés par
               les règles relatives à la propriété intellectuelle et au savoir-faire.
             </p>
             <ul>
-              <li>L'utilisateur conserve ses droits sur les contenus qu'il fournit, mais accorde à E-Shelle une licence d'affichage, d'hébergement, d'optimisation et de promotion nécessaire au service.</li>
-              <li>Il est interdit de copier massivement, scraper abusivement, revendre, désassembler ou reproduire les services E-Shelle sans autorisation.</li>
+              <li>L'utilisateur conserve ses droits sur les contenus qu'il fournit, mais accorde à {{ request.site_brand|default:'E-Shelle' }} une licence d'affichage, d'hébergement, d'optimisation et de promotion nécessaire au service.</li>
+              <li>Il est interdit de copier massivement, scraper abusivement, revendre, désassembler ou reproduire les services {{ request.site_brand|default:'E-Shelle' }} sans autorisation.</li>
               <li>Les marques de tiers citées restent la propriété de leurs détenteurs respectifs.</li>
               <li>Tout contenu signalé comme contrefaisant, diffamatoire, trompeur ou illicite peut être retiré sans préavis.</li>
             </ul>
@@ -799,15 +799,15 @@
           </div>
           <div class="legal-section-body">
             <p>
-              E-Shelle met en oeuvre des moyens raisonnables pour maintenir une plateforme accessible, rapide et utile.
+              {{ request.site_brand|default:'E-Shelle' }} met en oeuvre des moyens raisonnables pour maintenir une plateforme accessible, rapide et utile.
               Des interruptions peuvent toutefois survenir en raison de maintenance, mises à jour, incidents réseaux,
               fournisseurs tiers, force majeure, erreurs de configuration ou abus d'utilisation.
             </p>
             <ul>
-              <li>E-Shelle n'est pas responsable des engagements pris directement entre un client et un prestataire indépendant.</li>
-              <li>E-Shelle ne garantit pas un niveau déterminé de chiffre d'affaires, classement Google, conversion ou résultat administratif.</li>
+              <li>{{ request.site_brand|default:'E-Shelle' }} n'est pas responsable des engagements pris directement entre un client et un prestataire indépendant.</li>
+              <li>{{ request.site_brand|default:'E-Shelle' }} ne garantit pas un niveau déterminé de chiffre d'affaires, classement Google, conversion ou résultat administratif.</li>
               <li>Les liens externes, sources publiques, sites gouvernementaux ou plateformes partenaires relèvent de leurs propres conditions.</li>
-              <li>La responsabilité de E-Shelle est limitée aux montants effectivement payés pour le service directement concerné, sauf règle impérative contraire.</li>
+              <li>La responsabilité de {{ request.site_brand|default:'E-Shelle' }} est limitée aux montants effectivement payés pour le service directement concerné, sauf règle impérative contraire.</li>
             </ul>
           </div>
         </article>
@@ -826,11 +826,11 @@
             <div class="legal-contact-band">
               <div class="legal-contact-item">
                 <span>WhatsApp</span>
-                <a href="https://wa.me/237680625082">+237 680 625 082</a>
+                <a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}">{% if request.is_immigration97 %}+237 693 649 944{% else %}+237 680 625 082{% endif %}</a>
               </div>
               <div class="legal-contact-item">
                 <span>Email</span>
-                <a href="mailto:e.shelleltd@gmail.com">e.shelleltd@gmail.com</a>
+                {% if request.is_immigration97 %}<a href="https://wa.me/237693649944">WhatsApp Immigration97</a>{% else %}<a href="mailto:e.shelleltd@gmail.com">e.shelleltd@gmail.com</a>{% endif %}
               </div>
               <div class="legal-contact-item">
                 <span>Adresse</span>
@@ -852,7 +852,7 @@
           </div>
           <div class="legal-section-body">
             <p>
-              E-Shelle tient compte du cadre camerounais relatif aux communications électroniques, à la cybersécurité,
+              {{ request.site_brand|default:'E-Shelle' }} tient compte du cadre camerounais relatif aux communications électroniques, à la cybersécurité,
               à la cybercriminalité, au commerce électronique, à la protection des données personnelles, ainsi que des
               bonnes pratiques contractuelles applicables aux plateformes numériques.
             </p>
@@ -870,10 +870,10 @@
         </article>
 
         <section class="legal-final" aria-label="Acceptation finale">
-          <h2>Utiliser E-Shelle, c'est rejoindre un cadre clair.</h2>
+          <h2>Utiliser {{ request.site_brand|default:'E-Shelle' }}, c'est rejoindre un cadre clair.</h2>
           <p>
             En continuant à utiliser la plateforme, l'utilisateur reconnaît avoir pris connaissance de ces mentions
-            légales et conditions générales. Pour une demande contractuelle spécifique, contactez le support E-Shelle.
+            légales et conditions générales. Pour une demande contractuelle spécifique, contactez le support {{ request.site_brand|default:'E-Shelle' }}.
           </p>
           <div class="legal-actions">
             {% if user_has_business %}
@@ -881,7 +881,7 @@
             {% else %}
             <a class="legal-btn legal-btn-primary" href="{% url 'business:onboarding' %}">Inscrire mon business</a>
             {% endif %}
-            <a class="legal-btn legal-btn-outline" href="/services/contact/">Contacter E-Shelle</a>
+            <a class="legal-btn legal-btn-outline" href="{% if request.is_immigration97 %}https://wa.me/237693649944{% else %}/services/contact/{% endif %}">Contacter {{ request.site_brand|default:'E-Shelle' }}</a>
           </div>
         </section>
       </div>

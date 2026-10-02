@@ -1,5 +1,7 @@
 {# billing/templates/billing/pricing.html #}
 {% extends 'base.html' %}
+{% load public_brand %}
+
 {% load static %}
 
 {% block title %}Tarifs & Abonnements Premium | {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
@@ -70,7 +72,7 @@ Choisissez votre forfait {{ request.site_brand|default:'E-Shelle' }} : accès au
         </svg>
       </div>
 
-      <h3 class="billing-pricing-card__name" itemprop="name">{{ p.name }}</h3>
+      <h3 class="billing-pricing-card__name" itemprop="name">{{ p.name|public_brand:request }}</h3>
     </div>
 
     {# ---------
@@ -118,7 +120,7 @@ Choisissez votre forfait {{ request.site_brand|default:'E-Shelle' }} : accès au
 
     <!-- Description (safe : p.description peut ne pas exister) -->
     <p class="billing-pricing-card__desc" itemprop="description">
-      {% if p.description %}{{ p.description }}{% else %}Accès complet à la plateforme pour réussir vos objectifs.{% endif %}
+      {% if p.description %}{{ p.description|public_brand:request }}{% else %}Accès complet à la plateforme pour réussir vos objectifs.{% endif %}
     </p>
 
     <!-- Features List -->

@@ -1,7 +1,10 @@
+
+{% load public_brand %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="fr" class="scroll-smooth">
 <head>
+  {% if request.is_immigration97 %}<link rel="icon" href="{% static 'img/immigration97-logo.png' %}">{% endif %}
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mon Compte — {{ request.site_brand|default:'E-Shelle' }}</title>
@@ -114,10 +117,10 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
       <a href="/" class="flex items-center gap-2.5 flex-shrink-0">
         <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-base shadow-sm"
-             style="background:linear-gradient(135deg,#1B6534,#2d9a55)">E</div>
+             style="background:linear-gradient(135deg,#1B6534,#2d9a55)">{% if request.is_immigration97 %}I97{% else %}E{% endif %}</div>
         <div class="leading-none">
           <span class="font-black text-gray-900 text-lg">{{ request.site_brand|default:'E-Shelle' }}</span>
-          <div class="text-xs text-gray-400 font-medium -mt-0.5">Plateforme SaaS</div>
+          <div class="text-xs text-gray-400 font-medium -mt-0.5">{% if request.is_immigration97 %}Mon parcours Canada{% else %}Plateforme SaaS{% endif %}</div>
         </div>
       </a>
       <div class="hidden md:flex items-center gap-1 ml-4">
@@ -247,7 +250,7 @@
           </div>
           <h3 class="font-bold text-gray-800 text-sm mb-1">{{ app.label }}</h3>
           {% if app.sub %}
-          <p class="text-xs text-gray-500 mb-1">{{ app.sub.plan.name }}</p>
+          <p class="text-xs text-gray-500 mb-1">{{ app.sub.plan.name|public_brand:request }}</p>
           {% if app.sub.days_remaining is not None %}
           <div class="mt-2 mb-3">
             <div class="flex justify-between text-xs text-gray-400 mb-1">
@@ -316,7 +319,7 @@
                 <div class="flex items-center gap-3">
                   <span class="text-xl">{{ sub.plan.app_icon }}</span>
                   <div>
-                    <div class="font-semibold text-gray-800">{{ sub.plan.name }}</div>
+                    <div class="font-semibold text-gray-800">{{ sub.plan.name|public_brand:request }}</div>
                     <div class="text-xs text-gray-400">{{ sub.plan.get_app_key_display }}</div>
                   </div>
                 </div>
@@ -348,7 +351,7 @@
               </td>
               <td class="px-5 py-3.5 text-right">
                 {% if sub.is_active and sub.plan.price_xaf > 0 %}
-                <button onclick="confirmCancel({{ sub.pk }}, '{{ sub.plan.name|escapejs }}')"
+                <button onclick="confirmCancel({{ sub.pk }}, '{{ sub.plan.name|escapejs|public_brand:request }}')"
                         class="text-xs text-red-500 hover:text-red-700 font-medium hover:underline">
                   Annuler
                 </button>
@@ -438,7 +441,7 @@
             <tr class="hover:bg-gray-50/60 transition">
               <td class="px-5 py-3.5">
                 <div class="font-medium text-gray-800">
-                  {% if p.subscription %}{{ p.subscription.plan.name }}{% else %}{{ p.description|truncatechars:40 }}{% endif %}
+                  {% if p.subscription %}{{ p.subscription.plan.name|public_brand:request }}{% else %}{{ p.description|truncatechars:40 }}{% endif %}
                 </div>
                 <div class="text-xs text-gray-400 font-mono">{{ p.reference|truncatechars:24 }}</div>
               </td>

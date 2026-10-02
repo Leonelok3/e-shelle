@@ -685,3 +685,6 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
 
 # Shared per-account daily allowance for Immigration97 AI requests.
 IMMIGRATION97_DAILY_AI_LIMIT = int(os.getenv("IMMIGRATION97_DAILY_AI_LIMIT", "20"))
+
+# Dedicated sender, when configured and authorized by the mail provider.
+IMMIGRATION97_DEFAULT_FROM_EMAIL = os.getenv("IMMIGRATION97_DEFAULT_FROM_EMAIL", "")

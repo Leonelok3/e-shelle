@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load public_brand %}
+
 {% load static %}
 
 {# ==================================================
@@ -11,11 +13,11 @@
    SEO — TITLE & META
 ================================================== #}
 {% block title %}
-{{ exam.name }} – Structure, sections & barème | {{ request.site_brand|default:'E-Shelle' }}
+{{ exam.name|public_brand:request }} – Structure, sections & barème | {{ request.site_brand|default:'E-Shelle' }}
 {% endblock %}
 
 {% block meta_description %}
-Informations officielles sur {{ exam.name }} :
+Informations officielles sur {{ exam.name|public_brand:request }} :
 structure de l’examen, sections (CO, CE, EE, EO),
 barème et conseils de préparation avec {{ request.site_brand|default:'E-Shelle' }}.
 {% endblock %}
@@ -30,7 +32,7 @@ barème et conseils de préparation avec {{ request.site_brand|default:'E-Shelle
 {% block content %}
 
 <!-- ==================================================
-HERO — EXAMEN {{ exam.name }}
+HERO — EXAMEN {{ exam.name|public_brand:request }}
 ================================================== -->
 <section class="pt-hero">
   <div class="container pt-fade-up">
@@ -40,7 +42,7 @@ HERO — EXAMEN {{ exam.name }}
     </span>
 
     <h1 class="pt-title">
-      {{ exam.name }}
+      {{ exam.name|public_brand:request }}
     </h1>
 
     {% if exam.description %}

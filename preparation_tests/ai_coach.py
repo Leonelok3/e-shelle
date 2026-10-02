@@ -108,7 +108,7 @@ class AICoachCO:
 
         # Reco générique
         recommendations.append(
-            "Utilise les cours CO d’E-SHELLE : choisis une leçon, lis la théorie, puis fais les exercices liés."
+            "Utilise les cours CO Immigration97 : choisis une leçon, lis la théorie, puis fais les exercices liés."
         )
 
         return {

@@ -1,5 +1,6 @@
 # billing/utils/receipt_pdf.py
 from __future__ import annotations
+from core.branding import public_text
 
 from decimal import Decimal
 from django.conf import settings
@@ -54,7 +55,7 @@ def _wrap_text(text: str, max_chars: int = 90) -> list[str]:
     return lines
 
 
-def render_receipt_pdf(receipt, response: HttpResponse) -> None:
+def render_receipt_pdf(receipt, response: HttpResponse, brand="E-Shelle") -> None:
     """
     PDF A4 pro (ReportLab) : pas de superposition, logo + en-tête propre.
     """
@@ -84,7 +85,7 @@ def render_receipt_pdf(receipt, response: HttpResponse) -> None:
 
     logo_path = None
     try:
-        logo_path = settings.BASE_DIR / "static" / "img" / "logo.png"
+        logo_path = settings.BASE_DIR / "static" / "img" / ("immigration97-logo.png" if brand == "Immigration97" else "logo.png")
     except Exception:
         logo_path = None
 
@@ -112,12 +113,12 @@ def render_receipt_pdf(receipt, response: HttpResponse) -> None:
 
     p.setFont("Helvetica-Bold", 18)
     p.setFillColor(BRAND_GREEN)
-    p.drawString(text_x, title_y, "E-SHELLE")
+    p.drawString(text_x, title_y, brand)
 
     p.setFont("Helvetica", 10)
     p.setFillColor(GREY_TEXT)
-    p.drawString(text_x, title_y - 6.5 * mm, f"Plateforme digitale et IA — {WEBSITE}")
-    p.drawString(text_x, title_y - 12.5 * mm, f"WhatsApp : {WHATSAPP_NUMBER}")
+    p.drawString(text_x, title_y - 6.5 * mm, f"Plateforme digitale et IA — {'immigration97.com' if brand == 'Immigration97' else WEBSITE}")
+    p.drawString(text_x, title_y - 12.5 * mm, f"WhatsApp : {'+237 693 649 944' if brand == 'Immigration97' else WHATSAPP_NUMBER}")
 
     # Bande de séparation sous header (trait vert plein)
     p.setFillColor(BRAND_GREEN)
@@ -191,14 +192,14 @@ def render_receipt_pdf(receipt, response: HttpResponse) -> None:
 
     p.setFont("Helvetica", 10)
     p.setFillColor(BRAND_DARK)
-    p.drawString(left, y2, f"Nom : {receipt.service_name}")
+    p.drawString(left, y2, f"Nom : {public_text(receipt.service_name, brand)}")
     y2 -= 5 * mm
 
     if getattr(receipt, "service_description", None):
         p.setFillColor(GREY_TEXT)
         p.drawString(left, y2, "Description :")
         y2 -= 5 * mm
-        for ln in _wrap_text(receipt.service_description, max_chars=96)[:8]:
+        for ln in _wrap_text(public_text(receipt.service_description, brand), max_chars=96)[:8]:
             p.drawString(left + 6 * mm, y2, f"• {ln}")
             y2 -= 4.8 * mm
 
@@ -220,8 +221,8 @@ def render_receipt_pdf(receipt, response: HttpResponse) -> None:
     # ====== Footer
     p.setFont("Helvetica", 9)
     p.setFillColor(GREY_TEXT)
-    p.drawString(left, 18 * mm, "Ce reçu est généré automatiquement par E-Shelle.")
-    p.drawString(left, 12 * mm, f"Support : {SUPPORT_EMAIL}  |  WhatsApp : {WHATSAPP_NUMBER}")
+    p.drawString(left, 18 * mm, f"Ce reçu est généré automatiquement par {brand}.")
+    p.drawString(left, 12 * mm, f"Support : {'immigration97.com' if brand == 'Immigration97' else SUPPORT_EMAIL}  |  WhatsApp : {'+237 693 649 944' if brand == 'Immigration97' else WHATSAPP_NUMBER}")
 
     p.setFillColor(BRAND_GREEN)
     p.rect(0, 0, width, 6 * mm, stroke=0, fill=1)

@@ -1,5 +1,7 @@
 {# billing/templates/billing/generate_code.html #}
 {% extends 'base.html' %}
+{% load public_brand %}
+
 {% load static %}
 
 {% block title %}Générateur de Licence Premium | {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
@@ -70,7 +72,7 @@ Créez des clés d'activation pour accéder aux outils premium {{ request.site_b
               <div class="billing-generated__item">
                 <div class="billing-generated__code">{{ c.code }}</div>
                 <div class="billing-generated__meta">
-                  Plan : <strong>{{ c.plan.name }}</strong> · Expiration : {{ c.expiration_date|date:"d/m/Y H:i" }}
+                  Plan : <strong>{{ c.plan.name|public_brand:request }}</strong> · Expiration : {{ c.expiration_date|date:"d/m/Y H:i" }}
                 </div>
               </div>
             {% endfor %}
@@ -127,7 +129,7 @@ Créez des clés d'activation pour accéder aux outils premium {{ request.site_b
                 value="{{ plan.slug }}"
                 data-duration="{{ plan.duration_days }}"
               >
-                {{ plan.name }} — {{ plan.price_usd }} USD · {{ plan.duration_days }} jour{% if plan.duration_days > 1 %}s{% endif %}
+                {{ plan.name|public_brand:request }} — {{ plan.price_usd }} USD · {{ plan.duration_days }} jour{% if plan.duration_days > 1 %}s{% endif %}
               </option>
             {% empty %}
               <option disabled selected>Aucun plan actif configuré</option>

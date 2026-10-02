@@ -1,7 +1,9 @@
 {% extends "base.html" %}
+{% load public_brand %}
+
 {% load static %}
 
-{% block title %}Pack {{ plan.nom }} — {{ module_label }} · E-Shelle{% endblock %}
+{% block title %}Pack {{ plan.nom }} — {{ module_label }} · {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
 
 {% block content %}
 <div class="container" style="max-width:520px;padding:6rem 1rem 3rem;">
@@ -24,7 +26,7 @@
       <ul style="list-style:none;padding:0;margin:0 0 1rem;font-size:.88rem;">
         {% for feature in plan.features %}
         <li style="padding:.3rem 0;">
-          <span style="color:var(--primary-light);margin-right:.5rem;">✓</span>{{ feature }}
+          <span style="color:var(--primary-light);margin-right:.5rem;">✓</span>{{ feature|public_brand:request }}
         </li>
         {% endfor %}
       </ul>
@@ -49,7 +51,7 @@
     </div>
 
     <p style="text-align:center;color:var(--text-muted);font-size:.75rem;margin-top:1rem;">
-      Vous échangez avec E-Shelle sur WhatsApp, puis votre code d'accès est créé après validation.
+      Vous échangez avec {{ request.site_brand|default:'E-Shelle' }} sur WhatsApp, puis votre code d'accès est créé après validation.
     </p>
   </div>
 </div>

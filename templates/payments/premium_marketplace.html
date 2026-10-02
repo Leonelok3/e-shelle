@@ -1,7 +1,9 @@
 {% extends "base.html" %}
+{% load public_brand %}
+
 {% load static %}
 
-{% block title %}Pack Premium {{ module_label }} · E-Shelle{% endblock %}
+{% block title %}Pack Premium {{ module_label }} · {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
 
 {% block content %}
 <div class="container" style="max-width:900px;padding:6rem 1rem 4rem;">
@@ -66,7 +68,7 @@
       <ul style="list-style:none;padding:0;margin:0 0 1.5rem;text-align:left;font-size:.85rem;">
         {% for feature in plan.features %}
         <li style="padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.05);">
-          <span style="color:var(--primary-light);margin-right:.5rem;">✓</span>{{ feature }}
+          <span style="color:var(--primary-light);margin-right:.5rem;">✓</span>{{ feature|public_brand:request }}
         </li>
         {% endfor %}
       </ul>

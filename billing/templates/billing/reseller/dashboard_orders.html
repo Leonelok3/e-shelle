@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Mes Commandes d'Affiliation | E-Shelle{% endblock %}
+{% load public_brand %}
+
+{% block title %}Mes Commandes d'Affiliation | {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
 {% block content %}
 <div class="container" style="max-width: 1000px; margin: 30px auto; padding: 0 16px; font-family: 'Outfit', sans-serif; color: #fff;">
   
@@ -26,7 +28,7 @@
   <div style="display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;">
     {% for wallet in wallets %}
       <div style="background: rgba(14, 20, 28, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 15px; padding: 20px; flex: 1; min-width: 250px;">
-        <span style="color: rgba(255, 255, 255, 0.5); font-size: 13px; text-transform: uppercase;">{{ wallet.business.name }}</span>
+        <span style="color: rgba(255, 255, 255, 0.5); font-size: 13px; text-transform: uppercase;">{{ wallet.business.name|public_brand:request }}</span>
         <div style="font-size: 24px; font-weight: 800; color: #10b981; margin: 8px 0;">{{ wallet.balance|floatformat:0 }} FCFA</div>
         <small style="color: rgba(255, 255, 255, 0.4);">Solde prépayé pour les commissions</small>
       </div>

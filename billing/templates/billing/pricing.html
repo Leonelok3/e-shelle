@@ -1,5 +1,7 @@
 {# billing/templates/billing/access.html #}
 {% extends 'base.html' %}
+{% load public_brand %}
+
 {% load static %}
 
 {% block title %}Tarifs {{ request.site_brand|default:'E-Shelle' }} | Accès Premium {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
@@ -68,7 +70,7 @@ Débloquez la puissance d'{{ request.site_brand|default:'E-Shelle' }} Premium. A
           {% endif %}
         </svg>
       </div>
-      <h2 class="billing-access-card__name" itemprop="name">{{ plan.name }}</h2>
+      <h2 class="billing-access-card__name" itemprop="name">{{ plan.name|public_brand:request }}</h2>
     </div>
 
     <!-- Price USD -->
@@ -128,7 +130,7 @@ Débloquez la puissance d'{{ request.site_brand|default:'E-Shelle' }} Premium. A
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
           <polyline points="20 6 9 17 4 12"/>
         </svg>
-        <span>{{ feature }}</span>
+        <span>{{ feature|public_brand:request }}</span>
       </li>
       {% endfor %}
     </ul>
@@ -324,7 +326,7 @@ Débloquez la puissance d'{{ request.site_brand|default:'E-Shelle' }} Premium. A
     {% for plan in plans %}
     {
       "@type": "Offer",
-      "name": "{{ plan.name|escapejs }}",
+      "name": "{{ plan.name|escapejs|public_brand:request }}",
       "price": "{{ plan.price_usd }}",
       "priceCurrency": "USD",
       "availability": "https://schema.org/InStock",

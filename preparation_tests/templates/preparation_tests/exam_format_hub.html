@@ -1,15 +1,17 @@
 {% extends "base.html" %}
+{% load public_brand %}
+
 {% load static %}
 
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
 
 {% block title %}
-Examen blanc {{ cfg.name }} — Choisir le niveau | {{ request.site_brand|default:'E-Shelle' }}
+Examen blanc {{ cfg.name|public_brand:request }} — Choisir le niveau | {{ request.site_brand|default:'E-Shelle' }}
 {% endblock %}
 
 {% block meta_description %}
-Entraînement {{ cfg.name }} : séance chronométrée, correction et accompagnement IA.
+Entraînement {{ cfg.name|public_brand:request }} : séance chronométrée, correction et accompagnement IA.
 Sélectionne ton niveau CECR et commence la simulation.
 {% endblock %}
 
@@ -28,7 +30,7 @@ Sélectionne ton niveau CECR et commence la simulation.
     </span>
 
     <h1 class="pt-title">
-      Examen blanc <span class="pt-gradient-primary">{{ cfg.name }}</span>
+      Examen blanc <span class="pt-gradient-primary">{{ cfg.name|public_brand:request }}</span>
     </h1>
 
     <p class="pt-lead">
@@ -37,7 +39,7 @@ Sélectionne ton niveau CECR et commence la simulation.
 
     <div class="pt-badges" role="list" aria-label="Avantages">
       <span class="pt-badge pt-badge--soft" role="listitem">⏱ Entraînement chronométré</span>
-      <span class="pt-badge pt-badge--soft" role="listitem">📊 Score {{ cfg.name }}</span>
+      <span class="pt-badge pt-badge--soft" role="listitem">📊 Score {{ cfg.name|public_brand:request }}</span>
       <span class="pt-badge pt-badge--soft" role="listitem">🤖 Correction IA (EE/EO)</span>
     </div>
 
@@ -91,7 +93,7 @@ Sélectionne ton niveau CECR et commence la simulation.
                   href="{% url "preparation_tests:exam_format_exam" exam_code ld.level %}"
                   class="pt-btn-primary"
                   style="font-size:.85rem; margin-top:.5rem;"
-                  aria-label="Démarrer l'examen blanc {{ cfg.name }} niveau {{ ld.level }}"
+                  aria-label="Démarrer l'examen blanc {{ cfg.name|public_brand:request }} niveau {{ ld.level }}"
                 >
                   ▶ Démarrer {{ ld.level }}
                 </a>
@@ -100,7 +102,7 @@ Sélectionne ton niveau CECR et commence la simulation.
                   href="{% url 'accounts:upgrade' %}?app=prep&next={% url 'preparation_tests:exam_format_exam' exam_code ld.level %}"
                   class="pt-btn-primary"
                   style="font-size:.85rem; margin-top:.5rem;"
-                  aria-label="Accès Premium requis pour {{ cfg.name }} niveau {{ ld.level }}"
+                  aria-label="Accès Premium requis pour {{ cfg.name|public_brand:request }} niveau {{ ld.level }}"
                 >
                   🔒 Premium — {{ ld.level }}
                 </a>
@@ -136,7 +138,7 @@ Sélectionne ton niveau CECR et commence la simulation.
       <aside class="pt-side">
 
         <div class="pt-card pt-card--side">
-          <h3>Format {{ cfg.name }}</h3>
+          <h3>Format {{ cfg.name|public_brand:request }}</h3>
           <p class="pt-card-meta" style="font-size:.88rem;">{{ cfg.note }}</p>
         </div>
 
@@ -149,7 +151,7 @@ Sélectionne ton niveau CECR et commence la simulation.
         </div>
         {% elif exam_code == "delf" or exam_code == "dalf" %}
         <div class="pt-card pt-card--side" style="margin-top:1rem;">
-          <h3>Barème {{ cfg.name }}</h3>
+          <h3>Barème {{ cfg.name|public_brand:request }}</h3>
           <ul class="pt-side-list">
             <li>4 épreuves × 25 pts</li>
             <li>Total : 100 pts</li>

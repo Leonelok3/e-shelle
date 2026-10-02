@@ -13,6 +13,7 @@ from .models import (
     AppKey, APP_ICONS, APP_COLORS,
 )
 from core.whatsapp import payment_request_url
+from core.branding import public_text, request_brand
 
 
 class AppLoginView(LoginView):
@@ -30,24 +31,24 @@ def role_redirect(request):
     return redirect("dashboard:index")
 
 
-def _envoyer_code_verification(user, code):
+def _envoyer_code_verification(user, code, request=None):
     """Envoie l'email de vérification avec le code à 6 chiffres."""
-    sujet = f"[E-Shelle] Votre code de vérification : {code}"
+    brand = request_brand(request)
+    sujet = f"[{brand}] Votre code de vérification : {code}"
     corps_txt = (
         f"Bonjour {user.first_name or user.username},\n\n"
-        f"Votre code de vérification E-Shelle est :\n\n"
+        f"Votre code de vérification {brand} est :\n\n"
         f"  {code}\n\n"
         f"Ce code est valable 15 minutes.\n"
         f"Si vous n'avez pas créé de compte, ignorez cet email.\n\n"
-        f"— L'équipe E-Shelle"
+        f"— L'équipe {brand}"
     )
     corps_html = f"""
     <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:2rem;
                 background:#0d0d0d;color:#fff;border-radius:12px;">
       <div style="text-align:center;margin-bottom:2rem;">
         <span style="font-size:2rem;font-weight:900;letter-spacing:-1px;">
-          <span style="color:#4CAF50">E</span>
-          <span style="color:#F5C518">-Shelle</span>
+          <span style="color:#4CAF50">{brand}</span>
         </span>
       </div>
       <h2 style="text-align:center;font-size:1.2rem;margin-bottom:.5rem;">
@@ -64,25 +65,27 @@ def _envoyer_code_verification(user, code):
         <p style="color:#888;font-size:.8rem;margin:.75rem 0 0;">Valable 15 minutes</p>
       </div>
       <p style="color:#666;font-size:.78rem;text-align:center;">
-        Si vous n'avez pas créé de compte sur E-Shelle, ignorez cet email.
+        Si vous n'avez pas créé de compte sur {brand}, ignorez cet email.
       </p>
     </div>
     """
-    import traceback
+    import logging
+    from email.utils import parseaddr, formataddr
+    sender = settings.DEFAULT_FROM_EMAIL
+    if brand == "Immigration97":
+        sender = getattr(settings, "IMMIGRATION97_DEFAULT_FROM_EMAIL", "") or formataddr((brand, parseaddr(sender)[1]))
     try:
         send_mail(
             subject=sujet,
             message=corps_txt,
             html_message=corps_html,
-            from_email=settings.DEFAULT_FROM_EMAIL,
+            from_email=sender,
             recipient_list=[user.email],
             fail_silently=False,
         )
-        with open('/var/www/eshelle/email_debug.log', 'a') as f:
-            f.write(f"OK: {user.email} | BACKEND={settings.EMAIL_BACKEND} | USER={settings.EMAIL_HOST_USER}\n")
-    except Exception as e:
-        with open('/var/www/eshelle/email_debug.log', 'a') as f:
-            f.write(f"ERROR: {user.email} | {e}\n{traceback.format_exc()}\n")
+    except Exception:
+        logging.getLogger(__name__).exception("Échec d'envoi du code de vérification")
+
 
 
 def register(request):
@@ -205,7 +208,7 @@ def resend_code(request):
 
     user = get_object_or_404(CustomUser, pk=user_id, is_active=False)
     verif = EmailVerification.generer(user)
-    _envoyer_code_verification(user, verif.code)
+    _envoyer_code_verification(user, verif.code, request=request)
     messages.success(request, f"✅ Nouveau code envoyé à {user.email}. Vérifiez votre boîte mail.")
     return redirect("accounts:verify_email")
 
@@ -392,6 +395,8 @@ def upgrade(request):
     # Grouper les plans par app si vue globale
     plans_by_app = {}
     for plan in plans_qs:
+        plan.public_name = public_text(plan.name, request_brand(request))
+        plan.public_features = [public_text(feature, request_brand(request)) for feature in (plan.features or [])]
         plan.whatsapp_payment_url = payment_request_url(
             brand=getattr(request, "site_brand", "E-Shelle"),
             service=f"{plan.get_app_key_display()} - {plan.name}",

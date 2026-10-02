@@ -1,15 +1,17 @@
 {% extends "base.html" %}
+{% load public_brand %}
+
 {% load static %}
 
 {% block body_class %}preparation-tests{% endblock %}
 {% block app_scope %}preparation-tests{% endblock %}
 
 {% block title %}
-Résultats {{ cfg.name }} {{ level }} | {{ request.site_brand|default:'E-Shelle' }}
+Résultats {{ cfg.name|public_brand:request }} {{ level }} | {{ request.site_brand|default:'E-Shelle' }}
 {% endblock %}
 
 {% block meta_description %}
-Résultats de ton examen blanc {{ cfg.name }} niveau {{ level }} :
+Résultats de ton examen blanc {{ cfg.name|public_brand:request }} niveau {{ level }} :
 score pédagogique, analyse des réponses et correction IA EO/EE.
 {% endblock %}
 
@@ -29,7 +31,7 @@ score pédagogique, analyse des réponses et correction IA EO/EE.
     </span>
 
     <h1 class="pt-title">
-      Résultats <span class="pt-gradient-primary">{{ cfg.name }}</span>
+      Résultats <span class="pt-gradient-primary">{{ cfg.name|public_brand:request }}</span>
     </h1>
 
     <p class="pt-lead">
@@ -101,7 +103,7 @@ score pédagogique, analyse des réponses et correction IA EO/EE.
         </p>
 
         <div class="pt-pill-row">
-          <span class="pt-pill">{{ cfg.name }} · {{ level }}</span>
+          <span class="pt-pill">{{ cfg.name|public_brand:request }} · {{ level }}</span>
           <span class="pt-pill">Niveau travaillé : {{ level }}</span>
           {% if scores.unit == "pts" %}
             <span class="pt-pill">{{ scores.global }}/{{ scores.global_max }} pts</span>
@@ -332,7 +334,7 @@ score pédagogique, analyse des réponses et correction IA EO/EE.
           {{ scores.cefr_global }}
         </div>
         <p style="font-size:.95rem; opacity:.85; margin:.5rem 0;">
-          {{ cfg.name }} · Niveau {{ level }}
+          {{ cfg.name|public_brand:request }} · Niveau {{ level }}
         </p>
         <div style="font-size:1.6rem; font-weight:700; color:#fff; margin:.5rem 0;">
           {{ scores.global_pct }}%
@@ -556,13 +558,13 @@ score pédagogique, analyse des réponses et correction IA EO/EE.
   var dlBtn    = document.getElementById("btn-download-card");
   if (!shareBtn) return;
 
-  var shareText = "Mon entraînement {{ cfg.name }} : {{ scores.global_pct }}% sur cette sélection"
+  var shareText = "Mon entraînement {{ cfg.name|public_brand:request }} : {{ scores.global_pct }}% sur cette sélection"
     + " ({{ scores.global_pct }}%) ! Prépare-toi aussi sur {{ request.public_domain|default:'e-shelle.com' }} \uD83C\uDDE8\uD83C\uDDE6";
 
   shareBtn.addEventListener("click", function () {
     if (navigator.share) {
       navigator.share({
-        title: "Mon résultat {{ cfg.name }}",
+        title: "Mon résultat {{ cfg.name|public_brand:request }}",
         text: shareText,
       }).catch(function () {});
     } else {
@@ -588,7 +590,7 @@ score pédagogique, analyse des réponses et correction IA EO/EE.
         useCORS: true,
       }).then(function (canvas) {
         var a = document.createElement("a");
-        a.download = "resultat-{{ cfg.name|lower }}-{{ level }}.png";
+        a.download = "resultat-{{ cfg.name|lower|public_brand:request }}-{{ level }}.png";
         a.href = canvas.toDataURL("image/png");
         a.click();
         dlBtn.textContent = origText;

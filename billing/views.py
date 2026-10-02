@@ -117,16 +117,16 @@ def buy(request):
     for plan in plans:
         plan.whatsapp_payment_url = payment_request_url(
             brand=getattr(request, "site_brand", "E-Shelle"),
-            service=f"Code d'acces E-Shelle Premium - {plan.name}",
+            service=f"Code d'acces {getattr(request, 'site_brand', 'E-Shelle')} Premium - {plan.name}",
             amount=f"{plan.price_xaf} FCFA",
             user=request.user,
             details=f"Plan {plan.slug}, {plan.get_duration_display()}",
         )
     if request.method == "POST":
         plan = SubscriptionPlan.objects.filter(pk=request.POST.get("plan_id"), is_active=True).first()
-        service = f"Code d'acces E-Shelle Premium - {plan.name}" if plan else "Code d'acces E-Shelle Premium"
+        service = f"Code d'acces {getattr(request, 'site_brand', 'E-Shelle')} Premium - {plan.name}" if plan else f"Code d'acces {getattr(request, 'site_brand', 'E-Shelle')} Premium"
         amount = f"{plan.price_xaf} FCFA" if plan else ""
-        messages.info(request, "Contactez E-Shelle sur WhatsApp pour recevoir votre code d'accès après validation.")
+        messages.info(request, f"Contactez {getattr(request, 'site_brand', 'E-Shelle')} sur WhatsApp pour recevoir votre code d'accès après validation.")
         return redirect(payment_request_url(
             brand=getattr(request, "site_brand", "E-Shelle"),
             service=service,
@@ -320,7 +320,7 @@ def wallet_dashboard(request):
 @login_required
 def buy_plan(request, plan_slug):
     plan = get_object_or_404(SubscriptionPlan, slug=plan_slug, is_active=True)
-    messages.info(request, "Contactez E-Shelle sur WhatsApp pour choisir le bon plan et recevoir votre code d'accès.")
+    messages.info(request, f"Contactez {getattr(request, 'site_brand', 'E-Shelle')} sur WhatsApp pour choisir le bon plan et recevoir votre code d'accès.")
     return redirect(payment_request_url(
             brand=getattr(request, "site_brand", "E-Shelle"),
         service=f"Abonnement {getattr(request, 'site_brand', 'E-Shelle')} Premium - {plan.name}",
@@ -339,10 +339,10 @@ def initiate_payment(request, transaction_id):
         return redirect("billing:wallet")
 
     if request.method == "POST":
-        messages.info(request, "Contactez E-Shelle sur WhatsApp pour finaliser cette demande.")
+        messages.info(request, f"Contactez {getattr(request, 'site_brand', 'E-Shelle')} sur WhatsApp pour finaliser cette demande.")
         return redirect(payment_request_url(
             brand=getattr(request, "site_brand", "E-Shelle"),
-            service=f"Abonnement E-Shelle Premium - {tx.plan.name if tx.plan else tx.description}",
+            service=f"Abonnement {getattr(request, 'site_brand', 'E-Shelle')} Premium - {tx.plan.name if tx.plan else tx.description}",
             amount=f"{tx.amount} {tx.currency}",
             user=request.user,
             details=f"Transaction #{tx.pk}",
@@ -358,6 +358,8 @@ def initiate_payment(request, transaction_id):
 @login_required
 def reload_wallet(request):
     form = WalletReloadForm(request.POST or None)
+    if getattr(request, "is_immigration97", False):
+        form.fields["note"].widget.attrs["placeholder"] = "Ex : Recharge pour accès Premium Immigration97"
     wallet = None
 
     if request.method == "POST":
@@ -410,7 +412,7 @@ def receipt_detail(request, receipt_id):
 
 def receipt_pdf(request, receipt_id):
     receipt = get_object_or_404(Receipt, id=receipt_id)
-    pdf_bytes = build_receipt_pdf(receipt)
+    pdf_bytes = build_receipt_pdf(receipt, brand=getattr(request, "site_brand", "E-Shelle"))
 
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="{receipt.receipt_number}.pdf"'
@@ -434,16 +436,16 @@ from django.utils import timezone
 from .models import Receipt
 
 
-def render_receipt_pdf(receipt: Receipt, response: HttpResponse) -> None:
+def render_receipt_pdf(receipt: Receipt, response: HttpResponse, brand="E-Shelle") -> None:
     # même fonction que dans admin (copie-colle si besoin)
     p = canvas.Canvas(response, pagesize=A4)
     width, height = A4
     x, y = 50, height - 60
 
     p.setFont("Helvetica-Bold", 18)
-    p.drawString(x, y, "E-SHELLE")
+    p.drawString(x, y, brand)
     p.setFont("Helvetica", 10)
-    p.drawString(x, y - 18, "Plateforme digitale et IA — www.e-shelle.com")
+    p.drawString(x, y - 18, "Préparation linguistique et parcours Canada — immigration97.com" if brand == "Immigration97" else "Plateforme digitale et IA — www.e-shelle.com")
 
     y -= 60
     p.setFont("Helvetica-Bold", 14)
@@ -473,22 +475,22 @@ def render_receipt_pdf(receipt: Receipt, response: HttpResponse) -> None:
     p.drawString(x, y, f"{receipt.amount} {receipt.currency}")
 
     p.setFont("Helvetica", 9)
-    p.drawString(x, 55, "Ce reçu est généré automatiquement par E-Shelle.")
-    p.drawString(x, 40, "e.shelleltd@gmail.com")
+    p.drawString(x, 55, f"Ce reçu est généré automatiquement par {brand}.")
+    p.drawString(x, 40, "WhatsApp : +237 693 649 944" if brand == "Immigration97" else "e.shelleltd@gmail.com")
 
     p.showPage()
     p.save()
 
 
 @login_required
-def receipt_pdf(request, pk):
+def receipt_pdf(request, pk=None, receipt_id=None):
     try:
-        receipt = Receipt.objects.get(pk=pk)
+        receipt = Receipt.objects.get(pk=pk or receipt_id)
     except Receipt.DoesNotExist:
         raise Http404("Reçu introuvable")
 
     filename = f"recu-{receipt.receipt_number}.pdf"
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="{filename}"'
-    render_receipt_pdf(receipt, response)
+    render_receipt_pdf(receipt, response, brand=getattr(request, "site_brand", "E-Shelle"))
     return response

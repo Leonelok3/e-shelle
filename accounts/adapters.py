@@ -15,6 +15,22 @@ logger = logging.getLogger(__name__)
 class AccountAdapter(DefaultAccountAdapter):
     """Adaptateur pour les comptes classiques (email/password)."""
 
+    def render_mail(self, template_prefix, email, context, headers=None):
+        message = super().render_mail(template_prefix, email, context, headers=headers)
+        request = context.get("request") or self.request
+        if getattr(request, "is_immigration97", False):
+            from core.branding import public_text
+            from django.conf import settings
+            from email.utils import parseaddr, formataddr
+            message.subject = public_text(message.subject, "Immigration97")
+            message.body = public_text(message.body, "Immigration97")
+            if hasattr(message, "alternatives"):
+                message.alternatives = [(public_text(body, "Immigration97"), kind)
+                                        for body, kind in message.alternatives]
+            message.from_email = getattr(settings, "IMMIGRATION97_DEFAULT_FROM_EMAIL", "") or formataddr(
+                ("Immigration97", parseaddr(message.from_email)[1]))
+        return message
+
     def get_login_redirect_url(self, request):
         return "/"
 

@@ -1,7 +1,10 @@
+
+{% load public_brand %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="fr" class="scroll-smooth">
 <head>
+  {% if request.is_immigration97 %}<link rel="icon" href="{% static 'img/immigration97-logo.png' %}">{% endif %}
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{% if app_key %}{{ app_icon }} {{ app_label }} — Offres{% else %}Nos offres {{ request.site_brand|default:'E-Shelle' }}{% endif %}</title>
@@ -38,7 +41,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
       <a href="/" class="flex items-center gap-2.5 flex-shrink-0">
         <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-base shadow-sm"
-             style="background:linear-gradient(135deg,#1B6534,#2d9a55)">E</div>
+             style="background:linear-gradient(135deg,#1B6534,#2d9a55)">{% if request.is_immigration97 %}I97{% else %}E{% endif %}</div>
         <span class="font-black text-gray-900 text-lg">{% if request.is_immigration97 %}Immigration97{% else %}E<span style="color:#1B6534">-Shelle</span>{% endif %}</span>
       </a>
       <div class="ml-auto flex items-center gap-3">
@@ -112,7 +115,7 @@
       <div class="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center gap-4">
         <div class="text-2xl">✅</div>
         <div>
-          <div class="font-bold text-green-800">Abonnement actif : {{ current_sub.plan.name }}</div>
+          <div class="font-bold text-green-800">Abonnement actif : {% if request.is_immigration97 %}Immigration97 Premium{% else %}{{ current_sub.plan.name|public_brand:request }}{% endif %}</div>
           <div class="text-sm text-green-600">
             {% if current_sub.days_remaining is not None %}
             Expire dans {{ current_sub.days_remaining }} jour{{ current_sub.days_remaining|pluralize }}
@@ -148,7 +151,7 @@
           <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
                style="background:{{ app_color }}18">{{ plan.app_icon }}</div>
           <div>
-            <div class="font-bold text-gray-800">{{ plan.name }}</div>
+            <div class="font-bold text-gray-800">{{ plan.public_name }}</div>
             <div class="text-xs text-gray-400 capitalize">{{ plan.get_level_display }}</div>
           </div>
         </div>
@@ -176,16 +179,16 @@
 
         <!-- Description -->
         {% if plan.description %}
-        <p class="text-sm text-gray-500 mb-5 leading-relaxed">{{ plan.description }}</p>
+        <p class="text-sm text-gray-500 mb-5 leading-relaxed">{{ plan.description|public_brand:request }}</p>
         {% endif %}
 
         <!-- Features -->
-        {% if plan.features %}
+        {% if plan.public_features %}
         <ul class="space-y-2.5 mb-6 flex-1">
-          {% for feature in plan.features %}
+          {% for feature in plan.public_features %}
           <li class="flex items-start gap-2.5 text-sm text-gray-700">
             <span class="feature-check font-bold flex-shrink-0 mt-0.5">✓</span>
-            {{ feature }}
+            {{ feature|public_brand:request }}
           </li>
           {% endfor %}
         </ul>
@@ -250,7 +253,7 @@
             ⭐ Populaire
           </div>
           {% endif %}
-          <div class="font-bold text-gray-800 mb-1">{{ plan.name }}</div>
+          <div class="font-bold text-gray-800 mb-1">{{ plan.public_name }}</div>
           <div class="text-2xl font-black mb-1">
             {% if plan.price_xaf == 0 %}Gratuit{% else %}{{ plan.price_xaf_formatted }}{% endif %}
           </div>
@@ -262,15 +265,15 @@
               {% else %}/ {{ plan.duration_days }} jours{% endif %}
             {% else %}Accès libre{% endif %}
           </div>
-          {% if plan.features %}
+          {% if plan.public_features %}
           <ul class="space-y-1.5 flex-1 mb-4">
-            {% for feature in plan.features|slice:":4" %}
+            {% for feature in plan.public_features|slice:":4" %}
             <li class="flex items-start gap-2 text-xs text-gray-600">
-              <span class="feature-check font-bold flex-shrink-0">✓</span>{{ feature }}
+              <span class="feature-check font-bold flex-shrink-0">✓</span>{{ feature|public_brand:request }}
             </li>
             {% endfor %}
-            {% if plan.features|length > 4 %}
-            <li class="text-xs text-gray-400">+ {{ plan.features|length|add:"-4" }} autres…</li>
+            {% if plan.public_features|length > 4 %}
+            <li class="text-xs text-gray-400">+ {{ plan.public_features|length|add:"-4" }} autres…</li>
             {% endif %}
           </ul>
           {% endif %}
@@ -308,7 +311,7 @@
   <footer class="border-t border-gray-100 bg-gray-50 py-6 text-center text-sm text-gray-400">
     <p>
       <a href="/" class="font-bold hover:underline" style="color:#1B6534">{{ request.site_brand|default:'E-Shelle' }}</a>
-      &mdash; Plateforme SaaS africaine &bull; Made in Cameroun 🇨🇲
+      {% if request.is_immigration97 %}&mdash; Préparation linguistique et parcours Canada{% else %}&mdash; Plateforme SaaS africaine &bull; Made in Cameroun 🇨🇲{% endif %}
     </p>
   </footer>
 

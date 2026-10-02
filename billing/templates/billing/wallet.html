@@ -1,5 +1,7 @@
 {# billing/templates/billing/wallet.html #}
 {% extends 'base.html' %}
+{% load public_brand %}
+
 {% load static %}
 
 {% block title %}Mon Portefeuille & Abonnements | {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
@@ -117,7 +119,7 @@ Gérez votre compte {{ request.site_brand|default:'E-Shelle' }} : consultez votr
 
       {% if active_subscription %}
       <div class="billing-dashboard-card__desc">
-        <strong>Plan :</strong> {{ active_subscription.plan.name }}<br>
+        <strong>Plan :</strong> {{ active_subscription.plan.name|public_brand:request }}<br>
         <strong>Expiration :</strong> {{ active_subscription.expires_at|date:"d M Y à H:i" }}
       </div>
       {% endif %}
@@ -202,7 +204,7 @@ Gérez votre compte {{ request.site_brand|default:'E-Shelle' }} : consultez votr
       <tbody>
         {% for s in subscriptions %}
         <tr>
-          <td class="billing-table__cell--bold">{{ s.plan.name }}</td>
+          <td class="billing-table__cell--bold">{{ s.plan.name|public_brand:request }}</td>
           <td>{{ s.starts_at|date:"d M Y" }}</td>
           <td>{{ s.expires_at|date:"d M Y" }}</td>
           <td class="billing-table__cell--right">
@@ -314,7 +316,7 @@ Gérez votre compte {{ request.site_brand|default:'E-Shelle' }} : consultez votr
         {% for c in codes_used %}
         <tr>
           <td class="billing-table__cell--bold">{{ c.code }}</td>
-          <td>{{ c.plan.name }}</td>
+          <td>{{ c.plan.name|public_brand:request }}</td>
           <td>{% if c.used_at %}{{ c.used_at|date:"d M Y à H:i" }}{% else %}-{% endif %}</td>
         </tr>
         {% empty %}

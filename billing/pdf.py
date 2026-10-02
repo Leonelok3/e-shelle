@@ -1,3 +1,4 @@
+from core.branding import public_text
 import io
 from decimal import Decimal
 from django.conf import settings
@@ -15,7 +16,7 @@ def _money(value: Decimal, currency: str) -> str:
     return f"{v} {currency}"
 
 
-def build_receipt_pdf(receipt) -> bytes:
+def build_receipt_pdf(receipt, brand="E-Shelle") -> bytes:
     """
     Retourne le PDF en bytes (streamable).
     """
@@ -24,12 +25,15 @@ def build_receipt_pdf(receipt) -> bytes:
     width, height = A4
 
     # ==== BRAND CONFIG ====
-    brand_name = "E-Shelle"
+    brand_name = brand
     site = "e-shelle.com"
     email = "e.shelleltd@gmail.com"
     phone = "+237 680625082"
     address = "Ecosystème digital et IA — Douala, Makepe"
 
+    if brand == "Immigration97":
+        site, email, phone = "immigration97.com", "WhatsApp", "+237 693 649 944"
+        address = "Préparation linguistique et parcours Canada"
     # ==== HEADER ====
     top = height - 20 * mm
 
@@ -37,7 +41,7 @@ def build_receipt_pdf(receipt) -> bytes:
     # Mets ton logo ici: static/images/logo.png
     logo_path = None
     try:
-        logo_path = settings.BASE_DIR / "static" / "images" / "logo.png"
+        logo_path = settings.BASE_DIR / "static" / "img" / "immigration97-logo.png" if brand == "Immigration97" else settings.BASE_DIR / "static" / "images" / "logo.png"
         c.drawImage(ImageReader(str(logo_path)), 20 * mm, top - 18 * mm, width=35 * mm, height=18 * mm, mask="auto")
     except Exception:
         pass
@@ -93,12 +97,12 @@ def build_receipt_pdf(receipt) -> bytes:
     y -= 7 * mm
 
     c.setFont("Helvetica", 10)
-    c.drawString(20 * mm, y, f"Prestation : {receipt.service_name}")
+    c.drawString(20 * mm, y, f"Prestation : {public_text(receipt.service_name, brand)}")
     y -= 6 * mm
 
     if receipt.service_description:
         # multi-line safe
-        desc = receipt.service_description.strip()
+        desc = public_text(receipt.service_description, brand).strip()
         max_chars = 95
         lines = [desc[i:i+max_chars] for i in range(0, len(desc), max_chars)]
         c.setFont("Helvetica", 9)
@@ -131,8 +135,8 @@ def build_receipt_pdf(receipt) -> bytes:
     c.line(20 * mm, 28 * mm, width - 20 * mm, 28 * mm)
 
     c.setFont("Helvetica", 8)
-    c.drawString(20 * mm, 22 * mm, "Ce reçu confirme un paiement lié à un service E-Shelle.")
-    c.drawString(20 * mm, 18 * mm, "Pour toute réclamation : e.shelleltd@gmail.com • e-shelle.com")
+    c.drawString(20 * mm, 22 * mm, f"Ce reçu confirme un paiement lié à un service {brand}.")
+    c.drawString(20 * mm, 18 * mm, "Pour toute réclamation : +237 693 649 944 • immigration97.com" if brand == "Immigration97" else "Pour toute réclamation : e.shelleltd@gmail.com • e-shelle.com")
 
     c.showPage()
     c.save()
