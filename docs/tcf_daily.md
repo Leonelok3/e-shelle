@@ -37,3 +37,5 @@ bash deploy/update_tcf_tef.sh
 ```
 
 Préparation audio seule : `.venv/bin/python manage.py prepare_tcf_daily_audio`. Les MP3 sont versionnés par le hash de leur texte et réutilisés en cache. Aucune nouvelle dépendance n'est nécessaire.
+
+Le déploiement publie aussi explicitement les deux fichiers `tcf-daily.css` et `tcf-daily.js` dans le répertoire statique local du VPS, puis compare les fichiers reçus en HTTP aux sources. Un statut 200 de la page seule ne suffit pas à vérifier le chronomètre et le lecteur.

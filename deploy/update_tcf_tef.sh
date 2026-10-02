@@ -33,10 +33,20 @@ for exam in tcf tef; do
 done
 sudo -u eshelle "$PY" manage.py prepare_tcf_daily_audio
 sudo -u eshelle "$PY" manage.py collectstatic --noinput
+# Publish these two new assets explicitly even when collectstatic skips conflicts.
+install -D -m 0644 -o eshelle -g eshelle "$APP/static/css/tcf-daily.css" "$APP/staticfiles/css/tcf-daily.css"
+install -D -m 0644 -o eshelle -g eshelle "$APP/static/js/tcf-daily.js" "$APP/staticfiles/js/tcf-daily.js"
 sudo -u eshelle "$PY" manage.py check
 systemctl restart eshelle
 systemctl is-active --quiet eshelle
 curl --fail --silent --show-error --retry 5 --retry-delay 2 --retry-connrefused --output /dev/null https://e-shelle.com/prep/fr/tcf/
 curl --fail --silent --show-error --retry 5 --retry-delay 2 --retry-connrefused --output /dev/null https://e-shelle.com/prep/fr/tcf/du-jour/
+STATIC_CHECK=$(mktemp -d)
+trap 'rm -rf -- "$STATIC_CHECK"' EXIT
+for asset in css/tcf-daily.css js/tcf-daily.js; do
+  curl --fail --silent --show-error --retry 3 --retry-delay 2 \
+    "https://e-shelle.com/static/$asset?v=20261002-2" -o "$STATIC_CHECK/$(basename "$asset")"
+  cmp "$APP/static/$asset" "$STATIC_CHECK/$(basename "$asset")"
+done
 echo "TCF/TEF mis à jour. Sauvegarde et audits : $BACKUP"
 sudo -u eshelle git log -1 --format='%h %s'
