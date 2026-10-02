@@ -1,41 +1,44 @@
-import os
-import logging
-import urllib.parse
+"""Cached audio generation with atomic publication of complete files."""
 import hashlib
-import requests
+import logging
+import os
+import tempfile
+import unicodedata
+from pathlib import Path
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
+
 def generate_audio(text: str, language: str = "de", output_dir: str = "audio/german") -> str:
-    """
-    Génère un fichier audio MP3 à partir d'un texte allemand (ou autre langue)
-    en utilisant la bibliothèque gTTS qui gère automatiquement les longs textes sans troncature.
-    Sauvegarde le fichier dans MEDIA_ROOT / output_dir et retourne le chemin relatif.
-    """
-    logger.info(f"[TTS] Génération audio ({language}) pour : {text[:60]}...")
-    
-    # Créer le répertoire de sortie s'il n'existe pas
-    full_output_dir = os.path.join(settings.MEDIA_ROOT, output_dir)
-    os.makedirs(full_output_dir, exist_ok=True)
-    
-    # Créer un nom de fichier unique basé sur le hash du texte
-    text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
-    filename = f"tts_{text_hash}.mp3"
-    relative_path = os.path.join(output_dir, filename).replace("\\", "/")
-    full_path = os.path.join(full_output_dir, filename)
-    
-    # Si le fichier existe déjà, pas besoin de le recréer
-    if os.path.exists(full_path):
-        logger.info(f"[TTS] Fichier existant trouvé : {relative_path}")
-        return relative_path
-        
+    text = unicodedata.normalize("NFC", text.strip())
+    if not text:
+        raise ValueError("Le script sonore est vide.")
+    language = language.strip().lower()
+    media_root = Path(settings.MEDIA_ROOT).resolve()
+    directory = (media_root / output_dir).resolve()
+    if directory != media_root and media_root not in directory.parents:
+        raise ValueError("Le répertoire audio doit rester dans MEDIA_ROOT.")
+    directory.mkdir(parents=True, exist_ok=True)
+    # Include language and generator version; old assets remain untouched.
+    digest = hashlib.sha256(("gtts-v2\0" + language + "\0" + text).encode("utf-8")).hexdigest()
+    destination = directory / f"tts_{digest}.mp3"
+    relative = destination.relative_to(media_root).as_posix()
+    if destination.is_file() and destination.stat().st_size > 0:
+        return relative
+    temporary = None
     try:
         from gtts import gTTS
-        tts = gTTS(text=text.strip(), lang=language)
-        tts.save(full_path)
-        logger.info(f"[TTS] Succès de la génération gTTS : {relative_path}")
-        return relative_path
-    except Exception as e:
-        logger.error(f"[TTS] Échec de la génération audio gTTS : {e}")
+        with tempfile.NamedTemporaryFile(dir=directory, suffix=".mp3", delete=False) as stream:
+            temporary = Path(stream.name)
+        gTTS(text=text, lang=language).save(str(temporary))
+        if temporary.stat().st_size == 0:
+            raise ValueError("La génération a produit un audio vide.")
+        os.replace(temporary, destination)
+        return relative
+    except Exception:
+        logger.exception("Échec de génération audio (%s)", language)
         raise
+    finally:
+        if temporary and temporary.exists():
+            temporary.unlink()

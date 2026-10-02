@@ -137,7 +137,7 @@ class CourseExerciseInline(admin.TabularInline):
     form = CourseExerciseForm
     extra = 1
     fields = (
-        "order", "title", "instruction", "question_text",
+        "order", "title", "instruction", "document_title", "document_text", "question_text",
         "audio", "audio_upload",
         "option_a", "option_b", "option_c", "option_d",
         "correct_option", "summary", "is_active",

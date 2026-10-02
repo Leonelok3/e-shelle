@@ -6,6 +6,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import Q, Prefetch
 from django.utils.html import strip_tags
 from preparation_tests.models import CourseLesson, CourseExercise
+from preparation_tests.services.listening_material import listening_script, text_flags
 
 
 def normalized(text):
@@ -16,16 +17,18 @@ class Command(BaseCommand):
     help = 'Audit published C1/C2 lessons and active exercises without modifying content.'
 
     def add_arguments(self, parser):
+        parser.add_argument('--all-levels', action='store_true', help='Inclure A1 à C2')
         parser.add_argument('--exam', choices=['tcf', 'tef'], default='tcf')
         parser.add_argument('--check-audio-files', action='store_true')
 
     def handle(self, *args, **options):
         exam = options['exam']
-        lessons = CourseLesson.objects.filter(is_published=True, level__in=['C1', 'C2']).filter(
+        levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] if options['all_levels'] else ['C1', 'C2']
+        lessons = CourseLesson.objects.filter(is_published=True, level__in=levels).filter(
             Q(exam__code__iexact=exam) | Q(exams__code__iexact=exam)).distinct().prefetch_related(
                 Prefetch('exercises', queryset=CourseExercise.objects.filter(is_active=True).select_related('audio')))
         groups = {(level, skill): {'level': level, 'skill': skill, 'lessons': 0, 'exercises': 0,
-            'separate_documents': 0, 'audio_references': 0} for level in ['C1', 'C2'] for skill in ['ce', 'co', 'ee', 'eo']}
+            'separate_documents': 0, 'audio_references': 0} for level in levels for skill in ['ce', 'co', 'ee', 'eo']}
         issues = []
         for lesson in lessons:
             group = groups.get((lesson.level, lesson.section))
@@ -35,12 +38,16 @@ class Command(BaseCommand):
             exercises = list(lesson.exercises.all())
             group['exercises'] += len(exercises)
             flags = Counter()
+            for field in ('title', 'content_html'):
+                flags.update(text_flags(getattr(lesson, field)))
             if not normalized(lesson.content_html):
                 flags['empty_lesson_content'] += 1
             if not exercises:
                 flags['no_active_exercises'] += 1
             questions, documents = [], []
             for exercise in exercises:
+                for field in ('title', 'instruction', 'question_text', 'document_text', 'summary', 'option_a', 'option_b', 'option_c', 'option_d'):
+                    flags.update(text_flags(getattr(exercise, field)))
                 question = normalized(exercise.question_text)
                 if not question:
                     flags['empty_question_or_task'] += 1
@@ -66,9 +73,11 @@ class Command(BaseCommand):
                         flags['no_separate_document_review_legacy_instruction'] += 1
                         if not normalized(exercise.instruction):
                             flags['no_exercise_reading_support'] += 1
-                    if 'une enquete recente montre que les usagers acceptent' in normalized(exercise.instruction):
+                    if any(marker in normalized(exercise.instruction) for marker in ('une enquete recente montre que les usagers acceptent', 'une enquête récente montre que les usagers acceptent')):
                         flags['generic_seed_document'] += 1
                 if lesson.section == 'co':
+                    if not listening_script(exercise):
+                        flags['no_dedicated_audio_script'] += 1
                     asset = exercise.audio
                     if not asset or asset.kind != 'audio' or not asset.file:
                         flags['missing_audio_reference'] += 1

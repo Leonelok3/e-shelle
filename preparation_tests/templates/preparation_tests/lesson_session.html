@@ -345,7 +345,7 @@ audio, questions corrigées et entraînement progressif CECR avec {{ request.sit
         {% if exercise.audio_url %}
           {% if row.can_audio %}
             <div class="pt-audio-box">
-              <audio controls preload="metadata" playsinline controlslist="nodownload noplaybackrate">
+              <audio controls preload="metadata" playsinline controlslist="nodownload">
                 <source src="{{ exercise.audio_url }}" type="audio/mpeg">
                 Votre navigateur ne supporte pas l’audio.
               </audio>
@@ -359,17 +359,16 @@ audio, questions corrigées et entraînement progressif CECR avec {{ request.sit
             </div>
           {% endif %}
         {% else %}
-          {% if exercise.instruction %}
-            <div class="pt-audio-box pt-audio-box--missing">
-              <strong>Support d'écoute écrit</strong>
-              <span style="display:block; opacity:.85; margin-top:4px;">
-                L'audio sera ajouté ensuite. Utilise ce script pour tester la CO maintenant.
-              </span>
-              <p style="margin:10px 0 0;">{{ exercise.instruction|linebreaksbr }}</p>
-            </div>
-          {% else %}
-            <div class="pt-audio-box pt-audio-box--missing">⚠️ Aucun audio disponible pour cet exercice</div>
-          {% endif %}
+          <div class="pt-audio-box pt-audio-box--missing">
+            Audio temporairement indisponible. La lecture du script ne remplace pas un entraînement à l'écoute.
+          </div>
+        {% endif %}
+
+        {% if row.can_audio and exercise.listening_transcript %}
+          <details class="pt-audio-transcript">
+            <summary>Afficher la transcription après mon écoute</summary>
+            <p>{{ exercise.listening_transcript|linebreaksbr }}</p>
+          </details>
         {% endif %}
 
         <p class="pt-exercise-question">{{ exercise.question_text }}</p>

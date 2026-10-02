@@ -47,6 +47,8 @@ Règles impératives :
 - Pour EE/EO : les options (option_a, option_b, option_c, option_d) doivent être des chaînes vides (""). correct_option doit impérativement être la lettre "A".
 - Contenu HTML sans balises <html>, <head>, <body>.
 - JSON strict, pas de commentaires, pas de texte autour.
+- Français correctement accentué en Unicode, sans translittération.
+- Pour CO/CE, citer un indice exact du document et expliquer pourquoi chaque distracteur est incorrect. Une seule réponse justifiable.
 """
 
 LEVEL_DESCRIPTIONS = {
@@ -74,12 +76,16 @@ def _extract_json(raw: str) -> dict:
     return json.loads(cleaned[start:end])
 
 
-def _validate_lesson(data: dict, exercises_count: int) -> None:
+def _validate_lesson(data: dict, exercises_count: int, section: str = "") -> None:
     """Valide la structure JSON de la leçon."""
     for field in ("title", "intro", "content", "exercises"):
         if field not in data:
             raise ValueError(f"Champ manquant : '{field}'")
 
+    from preparation_tests.services.listening_material import text_flags
+    for field in ("title", "intro", "content"):
+        if not isinstance(data[field], str) or not data[field].strip() or text_flags(data[field]):
+            raise ValueError(f"Contenu vide ou mal encodé : {field}")
     exercises = data["exercises"]
     if not isinstance(exercises, list) or len(exercises) == 0:
         raise ValueError("exercises doit être une liste non vide.")
@@ -89,6 +95,15 @@ def _validate_lesson(data: dict, exercises_count: int) -> None:
                   "correct_option", "explanation"):
             if f not in ex:
                 raise ValueError(f"Exercice {i}: champ manquant '{f}'")
+        for field in ("audio_text", "question_text", "explanation"):
+            if not isinstance(ex[field], str) or not ex[field].strip() or text_flags(ex[field]):
+                raise ValueError(f"Exercice {i}: contenu vide ou invalide ({field})")
+        if section in ("co", "ce"):
+            choices = [ex["option_" + letter] for letter in "abcd"]
+            if any(not isinstance(value, str) or not value.strip() or len(value) > 255 for value in choices):
+                raise ValueError(f"Exercice {i}: quatre choix complets requis")
+            if len({value.strip().casefold() for value in choices}) != 4:
+                raise ValueError(f"Exercice {i}: choix dupliqués")
         if ex["correct_option"] not in ("A", "B", "C", "D"):
             raise ValueError(
                 f"Exercice {i}: correct_option='{ex['correct_option']}' invalide."
@@ -417,7 +432,7 @@ class Command(BaseCommand):
                 try:
                     try:
                         data = _extract_json(call_llm(SYSTEM_PROMPT, user_prompt, max_tokens=8000))
-                        _validate_lesson(data, exercises_count)
+                        _validate_lesson(data, exercises_count, section)
                     except Exception:
                         from ai_engine.services.learning_fallback import lesson as local_lesson
                         data = local_lesson('fr', level, section)
@@ -478,7 +493,7 @@ class Command(BaseCommand):
                                 title=f"Question {idx+1}",
                                 instruction=instruction,
                                 document_title=data["title"][:255] if section == "ce" else "",
-                                document_text=exo_data["audio_text"] if section == "ce" else "",
+                                document_text=exo_data["audio_text"] if section in ("ce", "co") else "",
                                 question_text=exo_data["question_text"],
                                 audio=asset,
                                 option_a=exo_data["option_a"][:255],

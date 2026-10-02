@@ -6,50 +6,51 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from preparation_tests.models import CourseExercise, CourseLesson, Exam, ExamSection
+from preparation_tests.services.listening_material import seed_listening_explanation
 
 
 LEVEL_THEMES = {
     "B2": [
-        "teletravail et integration professionnelle",
+        "télétravail et intégration professionnelle",
         "logement et installation au Canada",
         "formation continue et reconversion",
-        "mobilite urbaine durable",
-        "sante communautaire",
+        "mobilité urbaine durable",
+        "santé communautaire",
         "participation citoyenne",
-        "services publics numeriques",
+        "services publics numériques",
         "entrepreneuriat immigrant",
         "conciliation famille-travail",
-        "transport regional",
-        "benevolat et reseautage",
-        "securite alimentaire",
+        "transport régional",
+        "bénévolat et réseautage",
+        "sécurité alimentaire",
     ],
     "C1": [
-        "reconnaissance des diplomes",
+        "reconnaissance des diplômes",
         "intelligence artificielle au travail",
-        "politiques d'integration francophone",
-        "transition ecologique",
-        "universites et recherche appliquee",
-        "sante publique et prevention",
-        "gouvernance des donnees",
-        "mediation interculturelle",
-        "emploi qualifie et productivite",
+        "politiques d'intégration francophone",
+        "transition écologique",
+        "universités et recherche appliquée",
+        "santé publique et prévention",
+        "gouvernance des données",
+        "médiation interculturelle",
+        "emploi qualifié et productivité",
         "logement abordable",
         "financement de l'innovation",
-        "participation democratique",
+        "participation démocratique",
     ],
     "C2": [
-        "ethique algorithmique",
-        "souverainete linguistique",
+        "éthique algorithmique",
+        "souveraineté linguistique",
         "diplomatie migratoire",
         "justice sociale et institutions",
-        "memoire collective",
+        "mémoire collective",
         "innovation scientifique responsable",
         "philosophie du droit",
-        "geopolitique de la francophonie",
-        "epistemologie des sciences",
+        "géopolitique de la francophonie",
+        "épistémologie des sciences",
         "transmission culturelle",
-        "regulation economique",
-        "responsabilite environnementale",
+        "régulation économique",
+        "responsabilité environnementale",
     ],
 }
 
@@ -99,7 +100,7 @@ class Command(BaseCommand):
         for level in levels:
             themes = LEVEL_THEMES.get(level)
             if not themes:
-                self.stdout.write(self.style.WARNING(f"Niveau ignore: {level}"))
+                self.stdout.write(self.style.WARNING(f"Niveau ignoré: {level}"))
                 continue
 
             for section in ["co", "ce", "ee", "eo"]:
@@ -118,8 +119,8 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 "TCF seed OK: "
-                f"{created_lessons} lecons creees, {updated_lessons} mises a jour, "
-                f"{created_exercises} exercices crees, {updated_exercises} mis a jour."
+                f"{created_lessons} leçons créées, {updated_lessons} mises a jour, "
+                f"{created_exercises} exercices créés, {updated_exercises} mis a jour."
             )
         )
 
@@ -129,10 +130,10 @@ class Command(BaseCommand):
             defaults={
                 "name": "TCF Canada",
                 "language": "fr",
-                "description": "Preparation TCF Canada: CO, CE, EE, EO et examens blancs.",
+                "description": "Préparation TCF Canada: CO, CE, EE, EO et examens blancs.",
             },
         )
-        durations = {"co": 1500, "ce": 2700, "ee": 3600, "eo": 720}
+        durations = {"co": 2100, "ce": 3600, "ee": 3600, "eo": 720}
         for order, code in enumerate(["co", "ce", "ee", "eo"], start=1):
             ExamSection.objects.update_or_create(
                 exam=exam,
@@ -180,10 +181,10 @@ class Command(BaseCommand):
         title_long, code = SECTION_META[section]
         if section == "co":
             body = (
-                "Ecoute active: repere d'abord la situation, puis l'opinion implicite, "
+                "Écoute active: repère d'abord la situation, puis l'opinion implicite, "
                 "les connecteurs logiques et les nuances de certitude. En examen TCF, "
-                "ne cherche pas a tout memoriser: note mentalement qui parle, pourquoi, "
-                "et quelle consequence est annoncee."
+                "ne cherche pas à tout mémoriser: note mentalement qui parle, pourquoi, "
+                "et quelle conséquence est annoncée."
             )
         elif section == "ce":
             body = (
@@ -193,24 +194,24 @@ class Command(BaseCommand):
             )
         elif section == "ee":
             body = (
-                "Production ecrite: construis une reponse avec une these claire, deux "
-                "arguments developpes et une conclusion utile. Varie les connecteurs, "
-                "precise les exemples et relis les accords."
+                "Production écrite: construis une réponse avec une thèse claire, deux "
+                "arguments développés et une conclusion utile. Varie les connecteurs, "
+                "précise les exemples et relis les accords."
             )
         else:
             body = (
-                "Expression orale: annonce ton plan en une phrase, developpe avec des "
+                "Expression orale: annonce ton plan en une phrase, développe avec des "
                 "exemples concrets, puis termine par une prise de position nette. La "
-                "fluidite compte autant que la richesse lexicale."
+                "fluidité compte autant que la richesse lexicale."
             )
         return (
             f"<h2>{title_long} - niveau {level}</h2>"
-            f"<p><strong>Theme:</strong> {theme}.</p>"
+            f"<p><strong>Thème:</strong> {theme}.</p>"
             f"<p>{body}</p>"
             "<ul>"
             "<li>Objectif: comprendre la consigne et repondre sous contrainte de temps.</li>"
-            "<li>Methode: identifier les mots-cles, l'intention et le piege principal.</li>"
-            "<li>Evaluation: precision, coherence, correction linguistique et niveau CECR.</li>"
+            "<li>Méthode: identifier les mots-clés, l'intention et le piège principal.</li>"
+            "<li>Évaluation: précision, cohérence, correction linguistique et niveau CECR.</li>"
             "</ul>"
         )
 
@@ -235,6 +236,7 @@ class Command(BaseCommand):
                 "title": data["title"],
                 "instruction": data["instruction"],
                 "question_text": data["question_text"],
+                "document_text": data["instruction"].split(":", 1)[1].strip() if section == "co" else "",
                 "option_a": data["option_a"],
                 "option_b": data["option_b"],
                 "option_c": data.get("option_c", ""),
@@ -248,56 +250,56 @@ class Command(BaseCommand):
     def _co_data(self, level: str, theme: str, order: int) -> dict:
         scripts = [
             (
-                "Lors d'une reunion municipale, une responsable explique que le projet avance, "
-                "mais que son acceptation dependra surtout de la capacite a rassurer les habitants."
+                "Lors d'une réunion municipale, une responsable explique que le projet avance, "
+                "mais que son acceptation dépendra surtout de la capacité à rassurer les habitants."
             ),
             (
                 "Un conseiller d'orientation affirme que la formation courte n'est pas une solution "
-                "miracle, meme si elle facilite l'entree dans certains secteurs en tension."
+                "miracle, même si elle facilite l'entrée dans certains secteurs en tension."
             ),
             (
-                "Dans une chronique radio, l'intervenante reconnait les couts du programme, "
-                "tout en soulignant que l'inaction serait plus couteuse a long terme."
+                "Dans une chronique radio, l'intervenante reconnaît les coûts du programme, "
+                "tout en soulignant que l'inaction serait plus coûteuse à long terme."
             ),
             (
-                "Un employeur indique qu'il valorise l'experience internationale, a condition que "
+                "Un employeur indique qu'il valorise l'expérience internationale, à condition que "
                 "le candidat sache l'adapter aux normes professionnelles locales."
             ),
             (
-                "Une etudiante explique que la difficulte principale n'est pas le volume de travail, "
-                "mais la necessite de justifier chaque opinion avec precision."
+                "Une étudiante explique que la difficulté principale n'est pas le volume de travail, "
+                "mais la nécessité de justifier chaque opinion avec précision."
             ),
         ]
-        correct = ["B", "C", "A", "D", "B"][order - 1]
+        correct = "B"
         return {
-            "title": f"CO {level} - inference {order}",
-            "instruction": f"Script d'ecoute ({theme}): {scripts[order - 1]}",
-            "question_text": "Quelle idee principale faut-il retenir de cet extrait ?",
-            "option_a": "La situation est simple et ne presente aucune tension.",
-            "option_b": "La decision depend d'une condition ou d'une nuance importante.",
-            "option_c": "Le locuteur rejette totalement la proposition evoquee.",
-            "option_d": "Le locuteur se limite a donner une information administrative.",
+            "title": f"CO {level} - inférence {order}",
+            "instruction": f"Script d'écoute ({theme}): {scripts[order - 1]}",
+            "question_text": "Quelle idée principale faut-il retenir de cet extrait ?",
+            "option_a": "La situation est simple et ne présente aucune tension.",
+            "option_b": "La décision dépend d'une condition ou d'une nuance importante.",
+            "option_c": "Le locuteur rejette totalement la proposition évoquée.",
+            "option_d": "Le locuteur se limite à donner une information administrative.",
             "correct_option": correct,
-            "summary": "La bonne reponse tient compte de la concession et de la condition exprimees dans le script.",
+            "summary": seed_listening_explanation(scripts[order - 1]),
         }
 
     def _ce_data(self, level: str, theme: str, order: int) -> dict:
         text = (
-            f"Document {order} - {theme}. Une enquete recente montre que les usagers acceptent "
-            "plus facilement une reforme lorsqu'elle est accompagnee d'explications concretes, "
-            "d'un calendrier realiste et d'un mecanisme de recours. Les critiques ne portent pas "
-            "sur l'objectif general, mais sur la transparence de la mise en oeuvre."
+            f"Document {order} - {theme}. Une enquête récente montre que les usagers acceptent "
+            "plus facilement une réforme lorsqu'elle est accompagnée d'explications concrètes, "
+            "d'un calendrier réaliste et d'un mécanisme de recours. Les critiques ne portent pas "
+            "sur l'objectif général, mais sur la transparence de la mise en œuvre."
         )
         return {
             "title": f"CE {level} - document {order}",
             "instruction": text,
-            "question_text": "Selon le document, quel element provoque surtout les reserves ?",
+            "question_text": "Selon le document, quel élément provoque surtout les réserves ?",
             "option_a": "Le refus de tout changement collectif.",
             "option_b": "L'absence de transparence dans l'application.",
-            "option_c": "La disparition complete du calendrier.",
-            "option_d": "Le manque d'interet pour le sujet.",
+            "option_c": "La disparition complète du calendrier.",
+            "option_d": "Le manque d'intérêt pour le sujet.",
             "correct_option": "B",
-            "summary": "Le texte precise que les critiques portent surtout sur la transparence de la mise en oeuvre.",
+            "summary": "Le texte précise que les critiques portent surtout sur la transparence de la mise en œuvre.",
         }
 
     def _ee_data(self, level: str, theme: str, order: int) -> dict:
@@ -309,7 +311,7 @@ class Command(BaseCommand):
         return {
             "title": f"EE {level} - production {order}",
             "instruction": (
-                f"Theme: {theme}. Longueur conseillee: "
+                f"Thème: {theme}. Longueur conseillée: "
                 f"{180 if level == 'B2' else 230 if level == 'C1' else 280} a "
                 f"{230 if level == 'B2' else 300 if level == 'C1' else 360} mots. "
                 "Structure attendue: introduction, arguments, exemple, conclusion."
@@ -318,7 +320,7 @@ class Command(BaseCommand):
             "option_a": "Production libre",
             "option_b": "Correction IA",
             "correct_option": "A",
-            "summary": "La correction IA doit evaluer la clarte, la coherence, la richesse lexicale et la correction grammaticale.",
+            "summary": "La correction IA doit évaluer la clarté, la cohérence, la richesse lexicale et la correction grammaticale.",
         }
 
     def _eo_data(self, level: str, theme: str, order: int) -> dict:
@@ -329,20 +331,20 @@ class Command(BaseCommand):
         ]
         expected = [
             "annoncer une position claire",
-            "developper au moins deux arguments",
+            "développer au moins deux arguments",
             "illustrer avec un exemple concret",
             "conclure avec une recommandation",
         ]
         return {
             "title": f"EO {level} - simulation {order}",
             "instruction": (
-                f"Theme: {theme}. Preparation: 2 minutes. Reponse: "
+                f"Thème: {theme}. Préparation: 2 minutes. Réponse: "
                 f"{2 if level == 'B2' else 3} a {3 if level == 'B2' else 4} minutes. "
-                "Parlez de facon structuree et naturelle."
+                "Parlez de façon structurée et naturelle."
             ),
             "question_text": tasks[(order - 1) % len(tasks)],
             "option_a": "Production orale",
-            "option_b": "Evaluation IA",
+            "option_b": "Évaluation IA",
             "correct_option": "A",
             "summary": json.dumps(expected, ensure_ascii=False),
         }

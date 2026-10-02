@@ -357,6 +357,11 @@ class CourseExercise(models.Model):
         return self.audio.public_url
 
     @property
+    def listening_transcript(self) -> str:
+        from preparation_tests.services.listening_material import listening_script
+        return listening_script(self)
+
+    @property
     def audio_public_url(self) -> str:
         """
         URL audio publique (legacy) si tu as besoin de comparer.

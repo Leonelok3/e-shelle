@@ -1,32 +1,21 @@
-"""
-Commande : fix_co_audio
-=======================
-Pour chaque leçon CO, génère UN seul audio TTS depuis lesson.content_html
-(le vrai script audio) et l'assigne à tous les exercices de la leçon.
+"""Generate from dedicated exercise scripts by default.
 
-Usage :
-    python manage.py fix_co_audio                   # tous niveaux
-    python manage.py fix_co_audio --level B1        # un seul niveau
-    python manage.py fix_co_audio --dry-run         # simulation sans écriture
-    python manage.py fix_co_audio --limit 5         # 5 leçons max (test)
+The historical shared lesson audio requires --legacy-lesson-script and a human
+check that content_html contains only the listening document, not methodology.
+Existing audio references are preserved by the default mode.
 """
 from __future__ import annotations
-
-import re
 
 from django.core.management.base import BaseCommand
 
 from ai_engine.services.tts_service import generate_audio
 from preparation_tests.models import Asset, CourseLesson
+from preparation_tests.services.listening_material import spoken_text
 
 
 def _strip_html(html: str) -> str:
     """Supprime les balises HTML et nettoie les espaces."""
-    text = re.sub(r"<[^>]+>", " ", html)
-    text = re.sub(r"&nbsp;", " ", text)
-    text = re.sub(r"&[a-z]+;", "", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
+    return spoken_text(html)
 
 
 def _is_valid_audio_script(text: str) -> bool:
@@ -39,9 +28,10 @@ def _is_valid_audio_script(text: str) -> bool:
 
 
 class Command(BaseCommand):
-    help = "Régénère l'audio CO depuis lesson.content_html (le vrai script audio)"
+    help = "Génère les audios CO depuis les scripts dédiés, sans lire les consignes"
 
     def add_arguments(self, parser):
+        parser.add_argument("--legacy-lesson-script", action="store_true", help="Lecture du cours uniquement si vérifié comme script sonore")
         parser.add_argument("--level", type=str, default="", help="Niveau CECR (A1, A2, B1…). Vide = tous.")
         parser.add_argument("--language", type=str, default="fr")
         parser.add_argument("--limit", type=int, default=0, help="Nombre max de leçons à traiter (0 = toutes)")
@@ -50,6 +40,12 @@ class Command(BaseCommand):
                             help="Passer les leçons dont tous les exercices ont déjà un audio partagé")
 
     def handle(self, *args, **options):
+        if not options["legacy_lesson_script"]:
+            from django.core.management import call_command
+            call_command("generate_exercise_audio", section="co", levels=options["level"],
+                         language=options["language"], limit=options["limit"],
+                         dry_run=options["dry_run"], stdout=self.stdout, stderr=self.stderr)
+            return
         level = (options["level"] or "").strip().upper()
         language = (options["language"] or "fr").strip().lower()
         limit = int(options["limit"] or 0)
@@ -78,7 +74,7 @@ class Command(BaseCommand):
             # Option: passer si tous les exercices partagent déjà le même audio
             if skip_existing:
                 audio_ids = {ex.audio_id for ex in exercises if ex.audio_id}
-                if len(audio_ids) == 1:
+                if len(audio_ids) == 1 and all(ex.audio_id for ex in exercises):
                     self.stdout.write(f"  [skip] leçon#{lesson.pk}: audio partagé déjà présent")
                     skipped += 1
                     continue

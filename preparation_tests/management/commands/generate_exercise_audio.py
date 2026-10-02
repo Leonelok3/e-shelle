@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 
 from ai_engine.services.tts_service import generate_audio
 from preparation_tests.models import Asset, CourseExercise
+from preparation_tests.services.listening_material import listening_script
 
 
 def _build_asset(rel_audio_path: str, language: str, title: str = "") -> Asset:
@@ -50,6 +51,7 @@ class Command(BaseCommand):
         parser.add_argument("--section", type=str, default="co")
         parser.add_argument("--levels", type=str, default="")
         parser.add_argument("--limit", type=int, default=0)
+        parser.add_argument("--dry-run", action="store_true", help="Vérifier sans génération ni écriture")
         parser.add_argument("--all", action="store_true", help="Traiter tous les exercices, même ceux ayant déjà un audio")
 
     def handle(self, *args, **options):
@@ -64,7 +66,7 @@ class Command(BaseCommand):
         limit = int(options["limit"] or 0)
         process_all = bool(options["all"])
 
-        qs = CourseExercise.objects.select_related("lesson", "audio").all()
+        qs = CourseExercise.objects.select_related("lesson", "audio").filter(is_active=True, lesson__is_published=True)
         if section:
             qs = qs.filter(lesson__section=section)
         if exam:
@@ -86,13 +88,16 @@ class Command(BaseCommand):
         for ex in qs:
             total += 1
             try:
-                source_text = (getattr(ex, "instruction", None) or "").strip()
-                if not source_text:
-                    source_text = (getattr(ex, "question_text", None) or "").strip()
+                source_text = listening_script(ex)
 
                 if not source_text:
                     skipped += 1
-                    self.stdout.write(self.style.WARNING(f"[skip] ex#{ex.id}: empty text"))
+                    self.stdout.write(self.style.WARNING(f"[skip] ex#{ex.id}: script sonore dédié absent ; consigne non lue"))
+                    continue
+
+                if options["dry_run"]:
+                    ok += 1
+                    self.stdout.write(f"[dry-run] ex#{ex.id}: {len(source_text.split())} mots")
                     continue
 
                 rel_audio = generate_audio(
@@ -117,3 +122,6 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(f"Done total={total} ok={ok} skipped={skipped} failed={failed}")
         )
+
+        if failed:
+            raise CommandError(f"{failed} génération(s) audio en échec ; les audios existants sont conservés.")
