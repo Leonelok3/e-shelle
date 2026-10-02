@@ -112,6 +112,17 @@ class AudioCacheTests(SimpleTestCase):
                 self.assertEqual(tts.call_count, 2)
                 self.assertEqual(tts.call_args_list[0].kwargs["text"], "École")
 
+    def test_cached_audio_repairs_public_file_permissions_without_regeneration(self):
+        with tempfile.TemporaryDirectory() as directory, override_settings(MEDIA_ROOT=directory):
+            with patch("gtts.gTTS") as tts:
+                tts.return_value.save.side_effect = lambda name: Path(name).write_bytes(b"mock-mp3")
+                relative = generate_audio("Bonjour", "fr", "audio/fr/tcf_daily")
+                tts.reset_mock()
+                with patch.object(Path, "chmod", autospec=True) as chmod:
+                    self.assertEqual(generate_audio("Bonjour", "fr", "audio/fr/tcf_daily"), relative)
+                    chmod.assert_any_call(Path(directory) / relative, 0o644)
+                tts.assert_not_called()
+
     def test_failed_generation_never_publishes_partial_file(self):
         with tempfile.TemporaryDirectory() as directory, override_settings(MEDIA_ROOT=directory):
             def fail(name):

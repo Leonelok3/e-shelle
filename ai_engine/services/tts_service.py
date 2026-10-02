@@ -20,11 +20,17 @@ def generate_audio(text: str, language: str = "de", output_dir: str = "audio/ger
     if directory != media_root and media_root not in directory.parents:
         raise ValueError("Le répertoire audio doit rester dans MEDIA_ROOT.")
     directory.mkdir(parents=True, exist_ok=True)
+    # Public audio must be traversable by the web server, including under umask 027.
+    current = directory
+    while current != media_root:
+        current.chmod(current.stat().st_mode | 0o001)
+        current = current.parent
     # Include language and generator version; old assets remain untouched.
     digest = hashlib.sha256(("gtts-v2\0" + language + "\0" + text).encode("utf-8")).hexdigest()
     destination = directory / f"tts_{digest}.mp3"
     relative = destination.relative_to(media_root).as_posix()
     if destination.is_file() and destination.stat().st_size > 0:
+        destination.chmod(0o644)
         return relative
     temporary = None
     try:
@@ -34,6 +40,7 @@ def generate_audio(text: str, language: str = "de", output_dir: str = "audio/ger
         gTTS(text=text, lang=language).save(str(temporary))
         if temporary.stat().st_size == 0:
             raise ValueError("La génération a produit un audio vide.")
+        temporary.chmod(0o644)
         os.replace(temporary, destination)
         return relative
     except Exception:

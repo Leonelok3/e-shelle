@@ -48,5 +48,9 @@ for asset in css/tcf-daily.css js/tcf-daily.js; do
     "https://e-shelle.com/static/$asset?v=20261002-2" -o "$STATIC_CHECK/$(basename "$asset")"
   cmp "$APP/static/$asset" "$STATIC_CHECK/$(basename "$asset")"
 done
+for audio in "$APP"/media/audio/fr/tcf_daily/tts_*.mp3; do
+  curl --fail --silent --show-error --retry 3 --retry-delay 2 --output /dev/null \
+    "https://e-shelle.com/media/audio/fr/tcf_daily/$(basename "$audio")"
+done
 echo "TCF/TEF mis à jour. Sauvegarde et audits : $BACKUP"
 sudo -u eshelle git log -1 --format='%h %s'
