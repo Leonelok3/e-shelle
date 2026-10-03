@@ -11,6 +11,7 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.files.storage import default_storage
+from django.core.exceptions import ValidationError, SuspiciousFileOperation
 from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseRedirect, JsonResponse
@@ -794,6 +795,11 @@ def webhook_meta(request):
 
                 body_text = ""
                 media_url = ""
+                media_id = ""
+                doc_filename = ""
+                mime_type = ""
+                if wa_msg_id and MessageWhatsApp.objects.filter(whatsapp_msg_id=wa_msg_id).exists():
+                    continue
                 if msg_type == "text":
                     body_text = (incoming.get("text", {}).get("body") or "").strip()
                 elif msg_type == "button":
@@ -826,20 +832,9 @@ def webhook_meta(request):
                         }
                         body_text = labels.get(msg_type, f"[{msg_type.upper()}]")
 
-                    # Téléchargement et stockage immédiat
+                    # Acknowledge webhooks promptly; fetch bytes through the authenticated media endpoint.
+                    # Keeping the Meta ID allows a fresh download URL on retry.
                     media_url = media_id
-                    if media_id:
-                        try:
-                            saved_path = WhatsAppService.telecharger_media_whatsapp(
-                                media_id=media_id,
-                                media_type=msg_type,
-                                filename=doc_filename,
-                                mime_type=mime_type,
-                            )
-                            if saved_path:
-                                media_url = saved_path
-                        except Exception:
-                            pass
 
                 text_lower = body_text.lower()
 
@@ -867,6 +862,10 @@ def webhook_meta(request):
                         profile_name=profile_name,
                         media_type=msg_type,
                         media_url=media_url,
+                        media_id=media_id,
+                        media_filename=doc_filename[:255],
+                        media_mime_type=mime_type[:150],
+                        meta_timestamp=_meta_message_time(incoming.get('timestamp')),
                     )
 
             # 3. Statuts de remise des messages sortants
@@ -887,7 +886,8 @@ def webhook_meta(request):
                         test_qs = test_qs.exclude(statut__in=["livre", "lu"])
                     test_qs.update(**update_data)
                     MessageEnvoi.objects.filter(whatsapp_message_id=message_id).update(**update_data)
-                    MessageWhatsApp.objects.filter(whatsapp_msg_id=message_id).update(statut=nouveau_statut)
+                    MessageWhatsApp.objects.filter(whatsapp_msg_id=message_id).update(
+                        statut=nouveau_statut, erreur=str(status.get('errors', '')) if nouveau_statut == 'echec' else '')
                     for campagne in Campagne.objects.filter(messages__whatsapp_message_id=message_id).distinct():
                         recalculer_stats_campagne(campagne)
 
@@ -1016,8 +1016,10 @@ def api_conversation_detail(request, pk):
             "texte": m.texte,
             "statut": m.statut,
             "media_type": m.media_type,
-            "media_url": m.media_url,
             "media_download_url": m.media_download_url,
+            "has_media": m.has_media,
+            "media_size": m.media_size,
+            "erreur": m.erreur,
             "is_image": m.is_image,
             "is_document": m.is_document,
             "is_audio": m.is_audio,
@@ -1051,80 +1053,84 @@ def api_conversation_detail(request, pk):
     })
 
 
+def _meta_message_time(value):
+    try:
+        from datetime import datetime, timezone as dt_timezone
+        return datetime.fromtimestamp(int(value), tz=dt_timezone.utc)
+    except (ValueError, TypeError, OverflowError, OSError):
+        return None
+
+
 @staff_required
 def serve_whatsapp_media(request, pk):
-    """
-    Sert une pièce jointe WhatsApp (image, document, audio, vidéo) de manière sécurisée.
-    Télécharge et met en cache à la volée depuis Meta si le fichier n'est pas encore local.
-    """
+    """Stream attachments through an authenticated endpoint, including private uploads."""
+    from .media import private_storage, clean_filename
     msg = get_object_or_404(MessageWhatsApp, pk=pk)
-    if not msg.media_type and not msg.media_url:
-        raise Http404("Aucune pièce jointe.")
+    if not msg.has_media:
+        raise Http404('Aucune pièce jointe.')
+    value = (msg.media_url or '').strip()
+    prefix = getattr(settings, 'MEDIA_URL', '/media/')
 
-    media_val = (msg.media_url or "").strip()
+    def open_saved(stored):
+        if stored.startswith('private:'):
+            storage, key = private_storage(), stored.removeprefix('private:')
+        elif stored.startswith(('http://', 'https://')):
+            # Legacy storage URLs; all new files are streamed from private storage.
+            return HttpResponseRedirect(stored)
+        else:
+            storage = default_storage
+            key = stored[len(prefix):] if stored.startswith(prefix) else stored
+        try:
+            if not key or not storage.exists(key):
+                return None
+            mime = msg.media_mime_type or mimetypes.guess_type(key)[0] or 'application/octet-stream'
+            inline_types = {'image/jpeg', 'image/png', 'image/webp', 'audio/mpeg', 'audio/mp4',
+                            'audio/aac', 'audio/amr', 'audio/ogg', 'video/mp4', 'video/3gpp'}
+            attachment = msg.is_document or request.GET.get('download') == '1' or mime not in inline_types
+            if mime not in inline_types and not msg.is_document:
+                mime = 'application/octet-stream'
+            response = FileResponse(storage.open(key, 'rb'), content_type=mime,
+                as_attachment=attachment, filename=clean_filename(msg.display_filename or os.path.basename(key)))
+            response['Cache-Control'] = 'private, no-store'
+            response['X-Content-Type-Options'] = 'nosniff'
+            return response
+        except (OSError, SuspiciousFileOperation):
+            return None
 
-    # 1. Si media_url est une URL absolue distante (ex: Cloudinary / S3)
-    if media_val.startswith("http://") or media_val.startswith("https://"):
-        return HttpResponseRedirect(media_val)
-
-    # 2. Si le fichier est déjà sauvegardé dans le stockage Django
-    media_prefix = getattr(settings, "MEDIA_URL", "/media/")
-    subpath = media_val
-    if subpath.startswith(media_prefix):
-        subpath = subpath[len(media_prefix):]
-
-    if subpath and default_storage.exists(subpath):
-        mime, _ = mimetypes.guess_type(subpath)
-        if not mime:
-            mime = "image/jpeg" if msg.is_image else "application/octet-stream"
-        file_obj = default_storage.open(subpath, "rb")
-        resp = FileResponse(file_obj, content_type=mime)
-        filename = msg.display_filename or os.path.basename(subpath)
-        if msg.is_document:
-            resp["Content-Disposition"] = f'inline; filename="{filename}"'
-        return resp
-
-    # 3. Si le média est un Media ID Meta (ex: anciens messages avec uniquement l'id)
-    media_id = ""
-    if media_val.isdigit():
-        media_id = media_val
-    elif media_val and not media_val.startswith("/"):
-        media_id = media_val
-
+    response = open_saved(value)
+    if response is not None:
+        return response
+    media_id = msg.media_id or (value if value and '/' not in value and not value.startswith('private:') else '')
     if media_id:
-        filename = msg.display_filename or ""
-        saved_url = WhatsAppService.telecharger_media_whatsapp(
-            media_id=media_id,
-            media_type=msg.media_type,
-            filename=filename,
-        )
-        if saved_url:
-            msg.media_url = saved_url
-            msg.save(update_fields=["media_url"])
-            if saved_url.startswith("http://") or saved_url.startswith("https://"):
-                return HttpResponseRedirect(saved_url)
-            subpath = saved_url
-            if subpath.startswith(media_prefix):
-                subpath = subpath[len(media_prefix):]
-            if default_storage.exists(subpath):
-                mime, _ = mimetypes.guess_type(subpath)
-                if not mime:
-                    mime = "image/jpeg" if msg.is_image else "application/octet-stream"
-                file_obj = default_storage.open(subpath, "rb")
-                resp = FileResponse(file_obj, content_type=mime)
-                if msg.is_document:
-                    resp["Content-Disposition"] = f'inline; filename="{filename or "document"}"'
-                return resp
-
-    raise Http404("Fichier média WhatsApp non disponible ou expiré.")
+        saved = WhatsAppService.telecharger_media_whatsapp(media_id, msg.media_type,
+            msg.media_filename or msg.display_filename, msg.media_mime_type)
+        if saved:
+            msg.media_url = saved
+            if saved.startswith('private:'):
+                msg.media_size = private_storage().size(saved.removeprefix('private:'))
+            msg.save(update_fields=['media_url', 'media_size'])
+            response = open_saved(saved)
+            if response is not None:
+                return response
+    raise Http404('Fichier WhatsApp indisponible. Le téléchargement peut être réessayé si Meta est temporairement inaccessible.')
 
 
 @staff_required
 @require_POST
 def api_envoyer_reponse(request, pk):
     """Envoie une reponse directe via Meta WhatsApp Business."""
-    data = _json_body(request)
+    get_object_or_404(ConversationWhatsApp, pk=pk)
+    data = _json_body(request) if request.content_type == 'application/json' else request.POST
+    if not isinstance(data, dict) and not hasattr(data, 'get'):
+        return JsonResponse({'error': 'Requête invalide.'}, status=400)
     texte = (data.get("texte") or request.POST.get("texte", "")).strip()
+    upload = request.FILES.get('fichier')
+    if upload:
+        try:
+            result = WhatsAppService.envoyer_fichier_conversation(pk, upload, texte, request.user)
+        except ValidationError as exc:
+            return JsonResponse({'success': False, 'erreur': ' '.join(exc.messages)}, status=400)
+        return JsonResponse(result, status=200 if result.get('success') else 502)
     if not texte:
         return JsonResponse({"error": "Le message ne peut pas etre vide."}, status=400)
 

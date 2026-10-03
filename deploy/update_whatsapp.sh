@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Execute on the VPS after pulling main.
+set -euo pipefail
+cd /home/eshelle/app
+install -d -m 0700 -o eshelle -g eshelle /home/eshelle/whatsapp-backups
+backup_path="/home/eshelle/whatsapp-backups/database-$(date -u +%Y%m%dT%H%M%SZ)"
+sudo -u eshelle .venv/bin/python manage.py check
+sudo -u eshelle .venv/bin/python deploy/backup_studio_database.py "$backup_path"
+install -d -m 0700 -o eshelle -g eshelle data/whatsapp-private
+sudo -u eshelle .venv/bin/python manage.py migrate whatsapp_agent --noinput
+sudo -u eshelle .venv/bin/python manage.py collectstatic --noinput
+install -D -m 0644 -o eshelle -g eshelle \
+    whatsapp_agent/static/whatsapp_agent/js/inbox-media.js \
+    staticfiles/whatsapp_agent/js/inbox-media.js
+chmod o+rx staticfiles/whatsapp_agent staticfiles/whatsapp_agent/js
+sudo systemctl restart eshelle
+sudo systemctl is-active --quiet eshelle
+curl --fail --silent --show-error --retry 5 --retry-delay 2 --retry-connrefused \
+    'https://e-shelle.com/static/whatsapp_agent/js/inbox-media.js?v=20261003-1' \
+    | cmp - staticfiles/whatsapp_agent/js/inbox-media.js
+sudo -u eshelle .venv/bin/python manage.py check_whatsapp_delivery
+echo 'WhatsApp mis à jour. Testez une pièce jointe avec un contact de test ayant écrit depuis moins de 24 heures.'

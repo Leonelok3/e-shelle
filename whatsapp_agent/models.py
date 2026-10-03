@@ -304,6 +304,7 @@ class MessageWhatsApp(models.Model):
     STATUT_LIVRE = "livre"
     STATUT_LU = "lu"
     STATUT_RECU = "recu"
+    STATUT_SIMULATION = "simulation"
     STATUT_ECHEC = "echec"
 
     STATUTS = [
@@ -312,6 +313,7 @@ class MessageWhatsApp(models.Model):
         (STATUT_LIVRE, "Livre"),
         (STATUT_LU, "Lu"),
         (STATUT_RECU, "Recu"),
+        (STATUT_SIMULATION, "Simulation"),
         (STATUT_ECHEC, "Echec"),
     ]
 
@@ -327,6 +329,12 @@ class MessageWhatsApp(models.Model):
 
     media_type = models.CharField(max_length=30, blank=True)
     media_url = models.TextField(blank=True)
+    media_id = models.CharField(max_length=200, blank=True)
+    media_filename = models.CharField(max_length=255, blank=True)
+    media_mime_type = models.CharField(max_length=150, blank=True)
+    media_size = models.PositiveBigIntegerField(default=0)
+    erreur = models.TextField(blank=True)
+    meta_timestamp = models.DateTimeField(null=True, blank=True)
 
     envoye_par = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -371,7 +379,7 @@ class MessageWhatsApp(models.Model):
 
     @property
     def has_media(self):
-        return bool(self.media_type or self.media_url)
+        return self.media_type in ('image', 'document', 'audio', 'video', 'sticker') or bool(self.media_url)
 
     @property
     def media_download_url(self):
@@ -385,6 +393,8 @@ class MessageWhatsApp(models.Model):
 
     @property
     def display_filename(self):
+        if self.media_filename:
+            return self.media_filename
         if self.is_document:
             txt = (self.texte or "").strip()
             if txt and "." in txt and not txt.startswith("["):
@@ -400,4 +410,3 @@ class MessageWhatsApp(models.Model):
                     return base
             return "Document"
         return ""
-

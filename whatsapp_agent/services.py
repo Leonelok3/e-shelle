@@ -384,73 +384,9 @@ REGLES:
 
     @staticmethod
     def telecharger_media_whatsapp(media_id: str, media_type: str = "", filename: str = "", mime_type: str = "") -> str:
-        """
-        Télécharge un fichier média (photo, document, audio, vidéo) depuis l'API Graph Meta WhatsApp
-        et le stocke via Django default_storage.
-        Retourne l'URL / chemin du fichier sauvegardé, ou '' en cas d'échec / simulation.
-        """
-        if not media_id or getattr(settings, "WHATSAPP_DRY_RUN", True):
-            return ""
-
-        token = getattr(settings, "WHATSAPP_TOKEN", "")
-        if not token:
-            return ""
-
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "User-Agent": "curl/7.64.1",
-        }
-        meta_url = f"https://graph.facebook.com/v19.0/{media_id}"
-        try:
-            res_meta = requests.get(meta_url, headers=headers, timeout=15)
-            if res_meta.status_code != 200:
-                return ""
-            meta_data = res_meta.json()
-            download_url = meta_data.get("url")
-            if not download_url:
-                return ""
-
-            detected_mime = meta_data.get("mime_type") or mime_type or ""
-
-            # Téléchargement du binaire depuis le CDN Meta
-            res_file = requests.get(download_url, headers=headers, timeout=30)
-            if res_file.status_code != 200 or not res_file.content:
-                return ""
-
-            # Détermination de l'extension
-            ext = ""
-            if filename and "." in filename:
-                ext = os.path.splitext(filename)[1].lower()
-            elif detected_mime:
-                ext = mimetypes.guess_extension(detected_mime) or ""
-                if ext == ".jpe":
-                    ext = ".jpg"
-
-            if not ext:
-                ext_map = {
-                    "image": ".jpg",
-                    "document": ".pdf",
-                    "audio": ".ogg",
-                    "video": ".mp4",
-                    "sticker": ".webp",
-                }
-                ext = ext_map.get(media_type, "")
-
-            clean_name = filename or f"{media_type or 'media'}_{media_id}"
-            clean_name = re.sub(r"[^\w\-.]", "_", clean_name)
-            if not clean_name.lower().endswith(ext):
-                clean_name += ext
-
-            from django.core.files.base import ContentFile
-            from django.core.files.storage import default_storage
-
-            today_path = timezone.now().strftime("%Y/%m")
-            storage_path = f"whatsapp_media/{today_path}/{media_id}_{clean_name}"
-
-            saved_name = default_storage.save(storage_path, ContentFile(res_file.content))
-            return default_storage.url(saved_name)
-        except Exception:
-            return ""
+        """Download privately, retaining the media ID if Meta is temporarily unavailable."""
+        from .media import download_attachment
+        return download_attachment(media_id, media_type, filename, mime_type)
 
     @staticmethod
     def enregistrer_message_entrant(
@@ -460,6 +396,10 @@ REGLES:
         profile_name: str = "",
         media_type: str = "",
         media_url: str = "",
+        media_id: str = "",
+        media_filename: str = "",
+        media_mime_type: str = "",
+        meta_timestamp=None,
     ):
         """
         Enregistre un message recu d'un prospect.
@@ -500,7 +440,7 @@ REGLES:
                 "priorite": ConversationWhatsApp.PRIORITE_HAUTE if any(mot in (texte or "").lower() for mot in ["prix", "combien", "demo", "interess", "achete", "commander", "oui"]) else ConversationWhatsApp.PRIORITE_NORMALE,
                 "dernier_message_apercu": (texte or f"[{media_type or 'Piece jointe'}]")[:200],
                 "dernier_message_le": timezone.now(),
-                "non_lus_count": 1,
+                "non_lus_count": 0,
             },
         )
 
@@ -516,6 +456,10 @@ REGLES:
             statut=MessageWhatsApp.STATUT_RECU,
             media_type=media_type,
             media_url=media_url,
+            media_id=media_id,
+            media_filename=media_filename,
+            media_mime_type=media_mime_type,
+            meta_timestamp=meta_timestamp,
         )
 
         # Detection d'intention positive automatique
@@ -531,6 +475,49 @@ REGLES:
         conversation.save(update_fields=["statut", "priorite", "dernier_message_apercu", "dernier_message_le", "non_lus_count", "mis_a_jour_le"])
 
         return msg
+
+    @staticmethod
+    def envoyer_fichier_conversation(conversation_id, upload, caption='', auteur=None):
+        from datetime import timedelta
+        from django.core.exceptions import ValidationError
+        from .models import ConversationWhatsApp, MessageWhatsApp
+        from .media import validate_upload, save_private, send_attachment, private_storage
+        conversation = ConversationWhatsApp.objects.select_related('contact').get(pk=conversation_id)
+        metadata = validate_upload(upload)
+        if len(caption) > 1024:
+            raise ValidationError('La légende ne doit pas dépasser 1 024 caractères.')
+        if caption and metadata['kind'] == 'audio':
+            raise ValidationError('WhatsApp ne prend pas en charge les légendes audio. Envoyez le texte séparément.')
+        latest = conversation.messages.filter(direction=MessageWhatsApp.DIRECTION_ENTRANT).order_by('-cree_le').first()
+        last_time = (latest.meta_timestamp or latest.cree_le) if latest else None
+        if not getattr(settings, 'WHATSAPP_DRY_RUN', True) and (not last_time or last_time < timezone.now() - timedelta(hours=24)):
+            raise ValidationError('Pour envoyer un fichier, le client doit avoir écrit dans les dernières 24 heures. Attendez sa réponse à un message modèle.')
+        path = save_private(upload, metadata['filename'])
+        try:
+            msg = MessageWhatsApp.objects.create(conversation=conversation,
+                direction=MessageWhatsApp.DIRECTION_SORTANT, texte=caption,
+                statut=MessageWhatsApp.STATUT_EN_ATTENTE, media_type=metadata['kind'],
+                media_url=path, media_filename=metadata['filename'], media_mime_type=metadata['mime'],
+                media_size=metadata['size'], envoye_par=auteur)
+        except Exception:
+            private_storage().delete(path.removeprefix('private:'))
+            raise
+        # Send the saved copy, ensuring validation and the uploaded bytes agree.
+        with private_storage().open(path.removeprefix('private:'), 'rb') as saved:
+            result = send_attachment(conversation.contact.numero, saved, metadata, caption)
+        msg.whatsapp_msg_id = result.get('message_id', '')
+        msg.media_id = result.get('media_id', '')
+        msg.statut = (MessageWhatsApp.STATUT_SIMULATION if result.get('simulation')
+                      else MessageWhatsApp.STATUT_ENVOYE if result.get('success') else MessageWhatsApp.STATUT_ECHEC)
+        msg.erreur = result.get('erreur', '')
+        msg.save(update_fields=['whatsapp_msg_id', 'media_id', 'statut', 'erreur'])
+        conversation.dernier_message_apercu = f'Vous : {caption or metadata["filename"]}'[:200]
+        conversation.dernier_message_le = timezone.now()
+        if result.get('success') and conversation.statut == ConversationWhatsApp.STATUT_NOUVEAU:
+            conversation.statut = ConversationWhatsApp.STATUT_EN_COURS
+        conversation.save(update_fields=['dernier_message_apercu', 'dernier_message_le', 'statut', 'mis_a_jour_le'])
+        return {**result, 'message_id': msg.pk, 'statut': msg.statut,
+                'media_download_url': msg.media_download_url, 'filename': metadata['filename']}
 
     @staticmethod
     def envoyer_message_conversation(conversation_id: int, texte: str, auteur=None) -> dict:

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Boîte de Réception WhatsApp | E-Shelle Live Inbox{% endblock %}
 
@@ -282,7 +283,7 @@
     border-radius: 12px;
     font-size: 0.88rem;
     line-height: 1.42;
-    white-space: pre-wrap;
+    white-space: normal;
     word-break: break-word;
     position: relative;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -586,6 +587,14 @@
     .wa-inbox-grid { grid-template-columns: 1fr; }
     .wa-inbox-sidebar { display: none; }
   }
+
+  .wa-attach-btn{width:44px;height:44px;flex-shrink:0;display:grid;place-items:center;background:#123723;color:#d8ffe9;border:1px solid #287c4b;border-radius:10px;font-size:1.3rem;cursor:pointer}
+  .wa-file-preview{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#123723;border:1px solid #287c4b;border-radius:10px;padding:10px 12px;margin:8px 0;color:#d8ffe9;font-size:.82rem;overflow-wrap:anywhere}
+  .wa-file-preview[hidden]{display:none}.wa-file-preview button{background:none;border:0;color:#d8ffe9;cursor:pointer;min-width:36px;min-height:36px}
+  .wa-send-feedback{font-size:.78rem;color:#9af0ba;margin:6px 0;line-height:1.5}.wa-error{color:#ffb6b6}.wa-attachment-help{font-size:.7rem;color:#97bca7;margin:9px 0 0;line-height:1.5}.wa-download-link{margin-top:6px}
+  .wa-input-row textarea{min-width:0}.wa-input-row button:disabled{opacity:.6;cursor:wait}.wa-input-row button:focus-visible{outline:2px solid #86efac;outline-offset:3px}
+  .wa-bubble-caption{white-space:pre-wrap}
+  @media(max-width:480px){.wa-chat-composer{padding:10px}.wa-input-row{gap:6px}.wa-send-btn{padding:12px 10px;font-size:.8rem}.wa-bubble-doc-card{min-width:0;width:100%;max-width:270px}.wa-bubble-audio{min-width:0}.wa-input-row textarea{padding:10px;font-size:.8rem}}
 </style>
 
 <main class="wa-inbox-shell">
@@ -760,7 +769,7 @@
                   <div class="wa-bubble-caption">{{ msg.texte }}</div>
                 {% endif %}
               {% else %}
-                {{ msg.texte }}
+                <div class="wa-bubble-caption">{{ msg.texte }}</div>
               {% endif %}
             </div>
             <div class="wa-bubble-footer">
@@ -787,14 +796,19 @@
               Générer réponse IA
             </button>
           </div>
-          <form id="chat-form" class="wa-input-row" data-conv-id="{{ active_conv.id }}">
+          <div id="wa-file-preview" class="wa-file-preview" hidden><span id="wa-file-description"></span><button id="wa-remove-file" type="button" aria-label="Retirer le fichier">✕</button></div>
+          <p id="wa-send-feedback" role="status" aria-live="polite" class="wa-send-feedback"></p>
+          <form id="chat-form" class="wa-input-row" data-conv-id="{{ active_conv.id }}" data-send-url="{% url 'whatsapp_agent:wa_api_repondre' active_conv.id %}" data-detail-url="{% url 'whatsapp_agent:wa_api_conv_detail' active_conv.id %}">
             {% csrf_token %}
+            <input type="file" id="wa-file-input" name="fichier" hidden accept=".pdf,.txt,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.mp3,.m4a,.aac,.amr,.ogg,.mp4,.3gp">
+            <button type="button" id="wa-attach-button" class="wa-attach-btn" title="Joindre un fichier" aria-label="Joindre un fichier">📎</button>
             <textarea id="chat-input" placeholder="Écrivez votre réponse WhatsApp... (Entrée pour envoyer, Maj+Entrée pour saut de ligne)"></textarea>
             <button type="submit" class="wa-send-btn">
               <span>Envoyer</span>
               <span>➤</span>
             </button>
           </form>
+          <p class="wa-attachment-help">PDF, Word, Excel, PowerPoint, TXT, photos, audio et vidéo · Documents : 25 Mo, photos : 5 Mo, audio/vidéo : 16 Mo.</p>
         </div>
         {% else %}
         <div class="wa-empty-state">
@@ -882,56 +896,6 @@
     }
   }
   scrollToBottom();
-
-  // Envoi de message dans le chat
-  if (chatForm) {
-    chatForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const texte = chatInput.value.trim();
-      if (!texte) return;
-
-      const convId = chatForm.dataset.convId;
-      chatInput.value = '';
-
-      // Insertion optimiste dans l'UI
-      const tempBubble = document.createElement('div');
-      tempBubble.className = 'wa-bubble-wrap sortant';
-      tempBubble.innerHTML = `
-        <div class="wa-bubble-chat">${escapeHtml(texte)}</div>
-        <div class="wa-bubble-footer">
-          <span>Maintenant</span>
-          <span class="wa-tick">⏱</span>
-        </div>
-      `;
-      chatMessagesContainer.appendChild(tempBubble);
-      scrollToBottom();
-
-      try {
-        const resp = await fetch(`/whatsapp/api/conversations/${convId}/repondre/`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
-          body: JSON.stringify({texte: texte})
-        });
-        const res = await resp.json();
-        if (res.success) {
-          tempBubble.querySelector('.wa-tick').textContent = '✓';
-        } else {
-          tempBubble.querySelector('.wa-tick').textContent = '⚠️';
-          alert('Erreur envoi: ' + (res.erreur || 'Échec'));
-        }
-      } catch (err) {
-        tempBubble.querySelector('.wa-tick').textContent = '⚠️';
-      }
-    });
-
-    // Envoi par Entrée (Maj+Entrée pour nouvelle ligne)
-    chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        chatForm.dispatchEvent(new Event('submit'));
-      }
-    });
-  }
 
   // Assistant IA Réponse
   if (btnSuggestIa) {
@@ -1055,4 +1019,5 @@
     );
   }
 </script>
+<script src="{% static 'whatsapp_agent/js/inbox-media.js' %}?v=20261003-1" defer></script>
 {% endblock %}
