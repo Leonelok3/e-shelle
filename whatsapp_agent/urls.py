@@ -5,6 +5,8 @@ from . import views
 app_name = "whatsapp_agent"
 
 urlpatterns = [
+    path("api/templates-meta/", views.api_templates_meta, name="wa_api_templates_meta"),
+    path("campagnes/<int:pk>/modele/", views.selectionner_modele, name="wa_modele"),
     path("campagnes/", views.dashboard_campagnes, name="wa_dashboard"),
     path("inbox/", views.inbox_whatsapp, name="wa_inbox"),
     path("contacts/", views.contacts_whatsapp, name="wa_contacts"),
@@ -30,4 +32,3 @@ urlpatterns = [
     path("media/<int:pk>/", views.serve_whatsapp_media, name="wa_media"),
     path("webhook/", views.webhook_meta, name="wa_webhook"),
 ]
-

@@ -63,6 +63,10 @@ class Campagne(models.Model):
     message_template = models.TextField(
         help_text="Message a envoyer. Utilise {{prenom}} pour personnaliser."
     )
+    template_meta_name = models.CharField(max_length=512, blank=True)
+    template_meta_language = models.CharField(max_length=20, blank=True)
+    template_meta_params = models.JSONField(default=list, blank=True)
+    template_meta_preview = models.TextField(blank=True)
     statut = models.CharField(max_length=20, choices=STATUTS, default=STATUT_BROUILLON)
 
     filtre_role = models.CharField(max_length=50, blank=True, help_text="ex: vendeur, acheteur, tous")

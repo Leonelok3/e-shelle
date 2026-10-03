@@ -14,6 +14,7 @@ from django.core.files.storage import default_storage
 from django.core.exceptions import ValidationError, SuspiciousFileOperation
 from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
+from django.db import transaction
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -24,7 +25,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .forms import CampagneForm
+from .forms import CampagneForm, TemplateSelectionForm
+from .meta_templates import TemplateError, approved_templates, validate_selection, message_parameters, template_preview
 from .models import Campagne, ContactWhatsApp, ConversationWhatsApp, MessageEnvoi, MessageWhatsApp, WhatsAppTestSend
 from .services import AI_PRESETS, WhatsAppService
 from .tasks import lancer_campagne_direct, lancer_campagne_task, recalculer_stats_campagne
@@ -32,6 +34,32 @@ from .tasks import lancer_campagne_direct, lancer_campagne_task, recalculer_stat
 
 def staff_required(view_func):
     return staff_member_required(view_func, login_url="/accounts/login/")
+
+
+@staff_required
+def api_templates_meta(request):
+    try:
+        return JsonResponse({'templates': approved_templates()})
+    except TemplateError as exc:
+        return JsonResponse({'templates': [], 'error': str(exc)}, status=503)
+
+
+@staff_required
+@require_POST
+def selectionner_modele(request, pk):
+    selection = TemplateSelectionForm(request.POST)
+    if not selection.is_valid():
+        messages.error(request, ' '.join(str(e) for errors in selection.errors.values() for e in errors))
+        return redirect('whatsapp_agent:wa_detail', pk=pk)
+    with transaction.atomic():
+        campaign = get_object_or_404(Campagne.objects.select_for_update(), pk=pk)
+        if campaign.statut not in (Campagne.STATUT_BROUILLON, Campagne.STATUT_VALIDEE) or campaign.messages.exclude(statut=MessageEnvoi.STATUT_EN_ATTENTE).exists():
+            messages.error(request, 'Le modele ne peut plus etre change apres le debut des envois. Duplique la campagne pour un nouvel envoi.')
+        else:
+            selection.apply(campaign)
+            campaign.save(update_fields=['template_meta_name', 'template_meta_language', 'template_meta_params', 'template_meta_preview'])
+            messages.success(request, 'Modele enregistre pour le test et toute la campagne.')
+    return redirect('whatsapp_agent:wa_detail', pk=pk)
 
 
 def _json_body(request):
@@ -393,8 +421,12 @@ def creer_campagne(request):
 
     if request.method == "POST":
         form = CampagneForm(request.POST)
-        if form.is_valid():
+        selection = TemplateSelectionForm(request.POST)
+        form_valid = form.is_valid()
+        selection_valid = selection.is_valid()
+        if form_valid and selection_valid:
             campagne = form.save(commit=False)
+            selection.apply(campagne)
             campagne.cree_par = request.user
             action = request.POST.get("action", "draft")
             campagne.statut = Campagne.STATUT_VALIDEE if action == "validate" else Campagne.STATUT_BROUILLON
@@ -410,12 +442,16 @@ def creer_campagne(request):
             return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
     else:
         form = CampagneForm()
+        selection = TemplateSelectionForm()
 
     return render(
         request,
         "whatsapp_agent/creer_campagne.html",
         {
             "form": form,
+            "selection": selection,
+            "template_key": selection.data.get('meta_template', '') if selection.is_bound else '',
+            "meta_params_initial": selection.cleaned_data.get('meta_params') or [] if selection.is_bound else [],
             "ai_presets": AI_PRESETS,
             "whatsapp_dry_run": settings.WHATSAPP_DRY_RUN,
         },
@@ -432,6 +468,9 @@ def detail_campagne(request, pk):
     paginator = Paginator(messages_qs, 30)
     page_obj = paginator.get_page(request.GET.get("page"))
     exemples = campagne.messages.select_related("user", "commercial_prospect").order_by("id")[:5]
+    if campagne.template_meta_name:
+        for exemple in exemples:
+            exemple.message_final = template_preview(campagne, exemple)
 
     return render(
         request,
@@ -448,6 +487,7 @@ def detail_campagne(request, pk):
             "whatsapp_config_ready": settings.WHATSAPP_CONFIG_READY,
             "contacts_selectionnes": campagne.destinataires_contacts.count(),
             "tests_envoi": campagne.tests_envoi.all()[:5],
+            "template_key": campagne.template_meta_name + '|' + campagne.template_meta_language if campagne.template_meta_name else '',
         },
     )
 
@@ -469,6 +509,21 @@ def lancer_campagne(request, pk):
     if not confirmation:
         messages.warning(request, "Coche la confirmation finale avant de lancer la campagne.")
         return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
+    if campagne.template_meta_name:
+        try:
+            validate_selection(campagne.template_meta_name + '|' + campagne.template_meta_language,
+                campagne.template_meta_params, refresh=True)
+        except TemplateError as exc:
+            messages.error(request, str(exc))
+            return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
+    # Freeze the configuration before queueing, including the gap before Celery starts.
+    claimed = Campagne.objects.filter(pk=campagne.pk, statut=Campagne.STATUT_VALIDEE,
+        template_meta_name=campagne.template_meta_name,
+        template_meta_language=campagne.template_meta_language,
+        template_meta_params=campagne.template_meta_params).update(statut=Campagne.STATUT_EN_COURS)
+    if not claimed:
+        messages.warning(request, 'Cette campagne a ete lancee ou modifiee. Actualise la page avant de continuer.')
+        return redirect('whatsapp_agent:wa_detail', pk=campagne.pk)
     if settings.WHATSAPP_DRY_RUN:
         lancer_campagne_direct(campagne.pk)
         messages.success(request, "Simulation terminee: les messages ont ete marques comme envoyes sans appel Meta.")
@@ -477,6 +532,7 @@ def lancer_campagne(request, pk):
             lancer_campagne_task.delay(campagne.pk)
             messages.success(request, "Lancement reel de la campagne programme.")
         except Exception as exc:
+            Campagne.objects.filter(pk=campagne.pk, statut=Campagne.STATUT_EN_COURS, lance_le__isnull=True).update(statut=Campagne.STATUT_VALIDEE)
             messages.error(
                 request,
                 f"Celery/Redis indisponible: impossible de lancer l'envoi reel. Detail: {exc}",
@@ -513,6 +569,16 @@ def envoyer_test_campagne(request, pk):
     if (template_name and not re.fullmatch(r"[a-z0-9_]{1,512}", template_name)) or (template_language and not re.fullmatch(r"[a-z]{2,3}(?:_[A-Z]{2})?", template_language)):
         messages.error(request, "Nom de modele ou code de langue invalide.")
         return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
+    if campagne.template_meta_name:
+        try:
+            validate_selection(campagne.template_meta_name + '|' + campagne.template_meta_language,
+                campagne.template_meta_params, refresh=True)
+        except TemplateError as exc:
+            messages.error(request, str(exc))
+            return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
+        template_name = campagne.template_meta_name
+        template_language = campagne.template_meta_language
+        params = message_parameters(campagne, exemple)
     message_test = exemple.message_final if exemple.message_final.strip().startswith("template:") else (
         "[TEST E-SHELLE]\n"
         f"Campagne: {campagne.nom}\n\n"
@@ -559,6 +625,10 @@ def dupliquer_campagne(request, pk):
         nom=f"Copie - {campagne.nom}",
         description=f"Copie de la campagne #{campagne.pk}. Verifie avant lancement.",
         message_template=campagne.message_template,
+        template_meta_name=campagne.template_meta_name,
+        template_meta_language=campagne.template_meta_language,
+        template_meta_params=campagne.template_meta_params,
+        template_meta_preview=campagne.template_meta_preview,
         statut=Campagne.STATUT_VALIDEE,
         filtre_role=campagne.filtre_role,
         filtre_ville=campagne.filtre_ville,

@@ -605,6 +605,8 @@ FACEBOOK_APP_SECRET = os.getenv("FACEBOOK_APP_SECRET", "")
 # ── WhatsApp Agent IA — Meta WhatsApp Business API ────────────────
 WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN", "")
 WHATSAPP_PHONE_ID = os.getenv("WHATSAPP_PHONE_ID", "")
+WHATSAPP_WABA_ID = os.getenv("WHATSAPP_WABA_ID", "")
+WHATSAPP_BUSINESS_ID = os.getenv("WHATSAPP_BUSINESS_ID", "")
 WHATSAPP_API_URL = os.getenv(
     "WHATSAPP_API_URL",
     f"https://graph.facebook.com/v19.0/{WHATSAPP_PHONE_ID}/messages",

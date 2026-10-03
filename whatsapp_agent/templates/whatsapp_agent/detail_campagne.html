@@ -84,6 +84,22 @@
       <div class="wa-card"><span>Echecs</span><strong>{{ campagne.total_echecs }}</strong><div class="wa-bar"><i class="red" style="width:{{ progress_echecs }}%"></i></div></div>
     </section>
 
+    <section class="wa-preview-card" style="margin-bottom:18px">
+      <h2>Modele de la campagne</h2>
+      {% if campagne.template_meta_name %}
+      <p class="wa-muted">{{ campagne.template_meta_name }} ({{ campagne.template_meta_language }})</p>
+      {% else %}
+      <p class="wa-muted">Aucun modele Meta enregistre.</p>
+      {% endif %}
+      {% if campagne.statut == 'brouillon' or campagne.statut == 'validee' %}
+      {{ campagne.template_meta_params|json_script:'saved-meta-params' }}
+      <form method="post" action="{% url 'whatsapp_agent:wa_modele' campagne.pk %}">
+        {% csrf_token %}
+        {% include 'whatsapp_agent/_meta_selector.html' %}
+        <button class="wa-btn gold" type="submit">Enregistrer le modele pour la campagne</button>
+      </form>
+      {% endif %}
+    </section>
     <section class="wa-preview">
       <div class="wa-preview-card">
         <h2>Apercu final avant envoi</h2>
@@ -97,13 +113,17 @@
           {% csrf_token %}
           <label class="wa-muted" for="numero_test">Envoyer un test a mon numero</label>
           <input id="numero_test" class="wa-input" name="numero_test" placeholder="+237 6XX XXX XXX" value="{{ request.user.whatsapp|default:'' }}">
-          <label for="template_name" class="wa-muted">Modele Meta approuve (facultatif)</label>
+          {% if campagne.template_meta_name %}
+          <p class="wa-muted">Ce test utilise le modele et les variables enregistres pour la campagne.</p>
+          {% else %}
+          <label for="template_name" class="wa-muted">Modele Meta approuve (test manuel uniquement)</label>
           <input id="template_name" class="wa-input" name="template_name" placeholder="hello_world ou nom exact du modele">
           <label for="template_language" class="wa-muted">Code de langue du modele</label>
           <input id="template_language" class="wa-input" name="template_language" placeholder="fr ; en_US pour hello_world">
           <label for="template_params" class="wa-muted">Parametres du corps, dans l'ordre</label>
           <input id="template_params" class="wa-input" name="template_params" placeholder='["Leonel"] ou [] sans parametre'>
           <p class="wa-muted">Hors conversation ouverte par ton message dans les dernieres 24 heures, utilise un modele approuve. Un modele « In review » ne permet pas ce test. Sans modele, le test utilise le contenu de la campagne. Un modele remplace ce contenu par le texte valide chez Meta.</p>
+          {% endif %}
           <button class="wa-btn gold" type="submit">Envoyer le test</button>
         </form>
         {% if tests_envoi %}

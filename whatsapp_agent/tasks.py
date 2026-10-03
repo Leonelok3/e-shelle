@@ -4,6 +4,7 @@ from django.utils import timezone
 
 from .models import Campagne, MessageEnvoi
 from .services import WhatsAppService
+from .meta_templates import message_parameters
 
 
 def recalculer_stats_campagne(campagne: Campagne):
@@ -50,7 +51,9 @@ def _traiter_message_direct(msg: MessageEnvoi):
     result = WhatsAppService.envoyer_message(
         msg.numero_whatsapp,
         msg.message_final,
-        template_params=params,
+        template_name=msg.campagne.template_meta_name,
+        template_language=msg.campagne.template_meta_language,
+        template_params=message_parameters(msg.campagne, msg) if msg.campagne.template_meta_name else params,
     )
     if result["success"]:
         msg.statut = MessageEnvoi.STATUT_ENVOYE
@@ -109,7 +112,9 @@ def envoyer_message_task(self, message_envoi_id: int):
     result = WhatsAppService.envoyer_message(
         msg.numero_whatsapp,
         msg.message_final,
-        template_params=params,
+        template_name=msg.campagne.template_meta_name,
+        template_language=msg.campagne.template_meta_language,
+        template_params=message_parameters(msg.campagne, msg) if msg.campagne.template_meta_name else params,
     )
 
     if result["success"]:
