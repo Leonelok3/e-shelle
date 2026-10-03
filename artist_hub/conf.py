@@ -29,8 +29,8 @@ DEFAULTS = {
     "TEXT_MUTED": os.getenv("ARTIST_HUB_TEXT_MUTED", "#9CA3AF"),
     # Monnaie & Tarifs par défaut
     "CURRENCY": os.getenv("ARTIST_HUB_CURRENCY", "XAF"),
-    "FEE_CAMEROON": int(os.getenv("ARTIST_HUB_FEE_CAMEROON", "3000")),
-    "FEE_INTERNATIONAL": int(os.getenv("ARTIST_HUB_FEE_INTERNATIONAL", "5000")),
+    "FEE_CAMEROON": int(os.getenv("ARTIST_HUB_FEE_CAMEROON", "0")),
+    "FEE_INTERNATIONAL": int(os.getenv("ARTIST_HUB_FEE_INTERNATIONAL", "0")),
     # Coordonnées officielles de paiement manuel / WhatsApp
     "ORANGE_MONEY_NUMBER": os.getenv("ARTIST_HUB_ORANGE_MONEY", "+237 695 487 796"),
     "MTN_MOMO_NUMBER": os.getenv("ARTIST_HUB_MTN_MOMO", "+237 675 293 836"),

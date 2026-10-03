@@ -9,6 +9,7 @@ from . import views_dashboard
 app_name = "casting"
 
 urlpatterns = [
+    path("confirmation/", views.CandidateConfirmationView.as_view(), name="confirmation"),
     # Parcours public
     path("", views.CastingIndexView.as_view(), name="index"),
     path("inscription/", views.CandidateRegisterWizardView.as_view(), name="register"),

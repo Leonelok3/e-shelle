@@ -29,7 +29,7 @@
     <div class="hub-card hub-card-gold">
       <div class="hub-card-header">
         <h2 class="hub-card-title">Étape 1 — Informations Personnelles</h2>
-        <span class="hub-badge hub-badge-info">Étape 1 / 4</span>
+        <span class="hub-badge hub-badge-info">Étape 1 / 2</span>
       </div>
 
       <div class="hub-grid-2">
@@ -152,106 +152,11 @@
       </div>
     </div>
 
-    <!-- ÉTAPE 2 : PAIEMENT -->
-    <div class="hub-card hub-card-gold">
-      <div class="hub-card-header">
-        <h2 class="hub-card-title">Étape 2 — Paiement des Frais de Casting</h2>
-        <span class="hub-badge hub-badge-warning">Étape 2 / 4</span>
-      </div>
-
-      <!-- Récapitulatif du tarif dynamique -->
-      <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: var(--hub-radius); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
-        <div>
-          <span style="font-size: 0.82rem; color: var(--hub-text-muted); text-transform: uppercase;">Montant à régler :</span>
-          <div id="display-fee" style="font-size: 1.8rem; font-weight: 800; color: var(--hub-primary);">
-            {{ session.fee_cameroon|floatformat:0 }} XAF
-          </div>
-        </div>
-        <div style="text-align: right; font-size: 0.85rem; color: var(--hub-text-muted);">
-          🇨🇲 Cameroun : 3 000 FCFA<br>
-          🌍 International : 5 000 FCFA
-        </div>
-      </div>
-
-      <!-- Coordonnées des comptes -->
-      <div style="margin-bottom: 1.25rem;">
-        <div style="font-weight: 700; margin-bottom: 0.75rem; font-size: 0.92rem;">
-          Effectuez votre versement sur l'un des comptes officiels ci-dessous :
-        </div>
-
-        <div class="hub-pay-box">
-          <div class="hub-pay-info">
-            <div class="hub-pay-icon hub-pay-orange">OM</div>
-            <div>
-              <div style="font-size: 0.82rem; color: var(--hub-text-muted);">Orange Money Cameroun</div>
-              <div class="hub-pay-number">{{ hub_settings.ORANGE_MONEY_NUMBER }}</div>
-            </div>
-          </div>
-          <button type="button" class="hub-btn hub-btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="copyNumber('{{ hub_settings.ORANGE_MONEY_NUMBER }}', this)">Copier</button>
-        </div>
-
-        <div class="hub-pay-box">
-          <div class="hub-pay-info">
-            <div class="hub-pay-icon hub-pay-momo">M</div>
-            <div>
-              <div style="font-size: 0.82rem; color: var(--hub-text-muted);">MTN Mobile Money Cameroun</div>
-              <div class="hub-pay-number">{{ hub_settings.MTN_MOMO_NUMBER }}</div>
-            </div>
-          </div>
-          <button type="button" class="hub-btn hub-btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="copyNumber('{{ hub_settings.MTN_MOMO_NUMBER }}', this)">Copier</button>
-        </div>
-
-        <div class="hub-pay-box">
-          <div class="hub-pay-info">
-            <div class="hub-pay-icon hub-pay-ecobank">ECO</div>
-            <div>
-              <div style="font-size: 0.82rem; color: var(--hub-text-muted);">Ecobank (RIB Virement / Dépôt)</div>
-              <div class="hub-pay-number" style="font-size: 1rem;">{{ hub_settings.ECOBANK_RIB }}</div>
-            </div>
-          </div>
-          <button type="button" class="hub-btn hub-btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="copyNumber('{{ hub_settings.ECOBANK_RIB }}', this)">Copier</button>
-        </div>
-      </div>
-
-      <div class="hub-form-group">
-        <label class="hub-label hub-label-required">{{ form.payment_method.label }}</label>
-        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
-          {% for radio in form.payment_method %}
-            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.92rem; background: var(--hub-surface-2); padding: 0.65rem 1rem; border-radius: var(--hub-radius-sm); border: 1px solid var(--hub-border);">
-              {{ radio.tag }}
-              <span>{{ radio.choice_label }}</span>
-            </label>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-
-    <!-- ÉTAPE 3 : JUSTIFICATIF OBLIGATOIRE -->
-    <div class="hub-card hub-card-gold">
-      <div class="hub-card-header">
-        <h2 class="hub-card-title">Étape 3 — Justificatif de Paiement</h2>
-        <span class="hub-badge hub-badge-warning">Étape 3 / 4</span>
-      </div>
-
-      <div class="hub-form-group">
-        <label class="hub-label hub-label-required" for="{{ form.proof_file.id_for_label }}">{{ form.proof_file.label }}</label>
-        {{ form.proof_file }}
-        <div class="hub-help-text">{{ form.proof_file.help_text }}</div>
-        {% if form.proof_file.errors %}<div class="hub-error-text">{{ form.proof_file.errors.0 }}</div>{% endif %}
-      </div>
-
-      <div class="hub-form-group">
-        <label class="hub-label" for="{{ form.proof_notes.id_for_label }}">{{ form.proof_notes.label }}</label>
-        {{ form.proof_notes }}
-        {% if form.proof_notes.errors %}<div class="hub-error-text">{{ form.proof_notes.errors.0 }}</div>{% endif %}
-      </div>
-    </div>
-
     <!-- ÉTAPE 4 : CASTING (PHOTOS & VIDÉO) -->
     <div class="hub-card hub-card-gold">
       <div class="hub-card-header">
-        <h2 class="hub-card-title">Étape 4 — Photos et Vidéo de Casting</h2>
-        <span class="hub-badge hub-badge-warning">Étape 4 / 4</span>
+        <h2 class="hub-card-title">Étape 2 — Photos et Vidéo de Casting</h2>
+        <span class="hub-badge hub-badge-warning">Étape 2 / 2</span>
       </div>
 
       <div class="hub-grid-2">
@@ -318,14 +223,6 @@
 
 {% block extra_js %}
 <script>
-  function copyNumber(text, btn) {
-    navigator.clipboard.writeText(text).then(function() {
-      var old = btn.innerText;
-      btn.innerText = "Copié !";
-      setTimeout(function() { btn.innerText = old; }, 2000);
-    });
-  }
-
   // Détection dynamique de l'âge pour affichage de la section mineur
   var birthInput = document.getElementById("id_birth_date");
   var minorSec = document.getElementById("minor-section");
@@ -355,23 +252,5 @@
     evaluateAge();
   }
 
-  // Détection dynamique Cameroun vs International pour mise à jour du tarif affiché
-  var countryInput = document.getElementById("id_country");
-  var feeDisplay = document.getElementById("display-fee");
-
-  function evaluateCountry() {
-    if (!countryInput || !feeDisplay) return;
-    var c = countryInput.value.trim().toLowerCase();
-    if (c && c !== "cameroun" && c !== "cm" && c !== "cameroon") {
-      feeDisplay.innerText = "5 000 XAF";
-    } else {
-      feeDisplay.innerText = "3 000 XAF";
-    }
-  }
-
-  if (countryInput) {
-    countryInput.addEventListener("input", evaluateCountry);
-    evaluateCountry();
-  }
 </script>
 {% endblock %}

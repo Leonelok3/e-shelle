@@ -25,12 +25,12 @@ class Command(BaseCommand):
                     "Fashion Week Douala 2026 présentée par OPLUS / GROUP OPUS.\n\n"
                     "• Hommes : Taille 1m83 minimum\n"
                     "• Femmes : Taille 1m75 minimum\n"
-                    "• Inscription ouverte au Cameroun (3 000 FCFA) et à l'International (5 000 FCFA)."
+                    "• Inscription ouverte au Cameroun et à l'International. Casting gratuit."
                 ),
                 "event_date": datetime.date(2026, 12, 26),
                 "event_location": "Hôtel Krystal Palace, Douala, Cameroun",
-                "fee_cameroon": 3000,
-                "fee_international": 5000,
+                "fee_cameroon": 0,
+                "fee_international": 0,
                 "min_height_male": 183,
                 "min_height_female": 175,
                 "closes_at": deadline,

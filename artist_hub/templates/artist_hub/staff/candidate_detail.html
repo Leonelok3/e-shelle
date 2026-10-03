@@ -29,7 +29,7 @@
         </span>
 
         <a href="{% url 'artist_hub:casting:download_card' candidate_number=candidate.candidate_number %}" class="hub-btn hub-btn-primary" style="padding: 0.5rem 1rem;">
-          📄 Fiche PDF & Reçu
+          📄 Fiche PDF
         </a>
       </div>
     </div>
@@ -82,26 +82,6 @@
         {% endif %}
       </div>
 
-      <!-- Preuve de Paiement -->
-      <div class="hub-card" style="border-color: rgba(212, 175, 55, 0.35);">
-        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--hub-primary);">
-          Justificatif de Versement
-        </h2>
-        {% if payment and payment.proof_file %}
-          <p><a class="hub-btn hub-btn-secondary" href="{% url 'artist_hub:casting:staff_payment_proof' candidate_number=candidate.candidate_number %}" target="_blank" rel="noopener">Ouvrir le justificatif</a></p>
-          <iframe title="Justificatif de paiement" src="{% url 'artist_hub:casting:staff_payment_proof' candidate_number=candidate.candidate_number %}" style="width:100%;height:320px;border:1px solid var(--hub-border);margin-bottom:1rem"></iframe>
-          <div style="font-size: 0.85rem; color: var(--hub-text-muted); line-height: 1.5;">
-            <div>Réf Transaction : <strong style="color: #fff; font-family: monospace;">{{ payment.reference }}</strong></div>
-            <div>Méthode : <strong>{{ payment.get_method_display }}</strong></div>
-            <div>Montant : <strong style="color: var(--hub-primary);">{{ payment.amount|floatformat:0 }} {{ payment.currency }}</strong></div>
-            {% if payment.proof_notes %}
-              <div style="margin-top: 0.35rem; color: #fff;">Note payeur : <em>{{ payment.proof_notes }}</em></div>
-            {% endif %}
-          </div>
-        {% else %}
-          <p style="color: var(--hub-text-muted); font-size: 0.85rem;">Aucun justificatif téléversé.</p>
-        {% endif %}
-      </div>
     </div>
 
     <!-- Colonne DROITE : Données détaillées & Actions Staff -->
@@ -112,13 +92,13 @@
           Actions Staff & Décision
         </h2>
 
-        <!-- Action 1 : Valider paiement direct -->
+        <!-- Action 1 : Confirmer inscription -->
         {% if candidate.status != 'INSCRIT' and candidate.status != 'RETENU' and candidate.status != 'PRESELECTIONNE' %}
           <form method="post" style="margin-bottom: 1rem;">
             {% csrf_token %}
-            <input type="hidden" name="action" value="validate_payment">
+            <input type="hidden" name="action" value="validate_registration">
             <button type="submit" class="hub-btn hub-btn-primary hub-btn-block hub-btn-lg" style="box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); background: #10B981; color: #fff;">
-              ✓ Confirmer le versement vérifié
+              ✓ Confirmer l’inscription gratuite
             </button>
           </form>
         {% endif %}

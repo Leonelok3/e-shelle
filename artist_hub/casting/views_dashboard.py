@@ -31,46 +31,23 @@ class StaffOnlyMixin(UserPassesTestMixin):
 
 def metrics(qs):
     total = qs.count()
-    paid = qs.filter(payment__status=PaymentStatus.SUCCESS).count()
-    payments = Payment.objects.filter(pk__in=qs.order_by().values("payment_id"), status=PaymentStatus.SUCCESS)
-    by_currency = list(payments.values("currency").annotate(amount=Sum("amount"), count=Count("pk")).order_by("currency"))
-    return {"total": total, "inscrits": paid,
-        "unpaid": total - paid, "refused": qs.filter(status=CandidateStatus.REFUSE).count(),
-        "pending_validation": qs.filter(status=CandidateStatus.EN_ATTENTE_VALIDATION).count(),
+    registered = qs.filter(status__in=[CandidateStatus.INSCRIT, CandidateStatus.PRESELECTIONNE, CandidateStatus.RETENU]).count()
+    return {"total": total, "inscrits": registered,
+        "pending_validation": qs.filter(status__in=[CandidateStatus.EN_ATTENTE_VALIDATION, CandidateStatus.EN_ATTENTE_PAIEMENT]).count(),
         "preselected": qs.filter(status=CandidateStatus.PRESELECTIONNE).count(),
         "retained": qs.filter(status=CandidateStatus.RETENU).count(),
-        "revenue": payments.filter(currency="XAF").aggregate(total=Sum("amount"))["total"] or 0,
-        "revenue_count": payments.count(), "by_currency": by_currency,
-        "conversion_rate": round(paid * 100 / total, 1) if total else 0}
+        "refused": qs.filter(status=CandidateStatus.REFUSE).count(),
+        "conversion_rate": round(registered * 100 / total, 1) if total else 0}
 
 def filter_context(request, qs, form):
     query = request.GET.copy()
     query.pop("page", None)
     return {"hub_settings": hub_settings, "filter_form": form, "filter_query": query.urlencode(), "kpis": metrics(qs)}
 
-def validate_payment(candidate, user):
-    if not candidate.payment_id:
-        raise ValueError("Ce dossier n’a aucun paiement associé.")
-    payment = Payment.objects.select_for_update().get(pk=candidate.payment_id)
-    if not payment.content_type_id or str(payment.object_id) != str(candidate.pk) or payment.content_type.model_class() is not Candidate:
-        raise ValueError("Le paiement n’est pas rattaché à ce candidat.")
-    if payment.currency != candidate.session.currency or payment.amount < candidate.required_fee:
-        raise ValueError("Le montant ou la devise ne correspond pas aux frais exigés.")
-    if payment.status != PaymentStatus.SUCCESS:
-        if payment.provider != "manual_proof" and not (settings.DEBUG and payment.provider == "mock"):
-            raise ValueError("Ce paiement doit être confirmé par sa passerelle.")
-        if payment.provider == "manual_proof" and not (payment.proof_file or payment.external_reference):
-            raise ValueError("Ajoutez une preuve ou une référence de versement avant validation.")
-    handle_payment_success(payment, verified_by_user=user)
-    candidate.refresh_from_db()
-    finalize_candidate_registration(candidate, verified_by_user=user)
-
 def set_candidate_status(candidate, status):
     allowed = {CandidateStatus.INSCRIT, CandidateStatus.PRESELECTIONNE, CandidateStatus.RETENU, CandidateStatus.REFUSE}
     if status not in allowed:
-        raise ValueError("Statut non autorisé : les étapes de paiement sont gérées automatiquement.")
-    if status != CandidateStatus.REFUSE and not (candidate.payment and candidate.payment.is_successful):
-        raise ValueError("Le paiement doit être confirmé avant l’inscription ou la sélection.")
+        raise ValueError("Statut non autorisé.")
     candidate.status = status
     candidate.save(update_fields=["status", "updated_at"])
 
@@ -106,9 +83,9 @@ class StaffCandidateDetailView(StaffOnlyMixin, DetailView):
             candidate = Candidate.objects.select_for_update().get(pk=self.get_object().pk)
             action = request.POST.get("action")
             try:
-                if action == "validate_payment":
-                    validate_payment(candidate, request.user)
-                    messages.success(request, "Paiement confirmé. La décision du jury est conservée.")
+                if action == "validate_registration":
+                    finalize_candidate_registration(candidate)
+                    messages.success(request, "Inscription confirmée. La décision du jury est conservée.")
                 elif action == "set_status":
                     set_candidate_status(candidate, request.POST.get("new_status"))
                     messages.success(request, "Statut du dossier mis à jour.")
@@ -132,7 +109,7 @@ class StaffBulkActionView(StaffOnlyMixin, View):
         if not selected or len(selected) > 200 or any(not value.isdigit() for value in selected):
             messages.error(request, "Sélection invalide : choisissez entre 1 et 200 dossiers.")
             return redirect("artist_hub:casting:dashboard")
-        if action not in targets and action != "validate_payments":
+        if action not in targets and action != "validate_registrations":
             messages.error(request, "Action groupée inconnue.")
             return redirect("artist_hub:casting:dashboard")
         updated = skipped = 0
@@ -140,12 +117,12 @@ class StaffBulkActionView(StaffOnlyMixin, View):
             with transaction.atomic():
                 candidate = Candidate.objects.select_for_update().select_related("session", "payment").get(pk=pk)
                 try:
-                    if action == "validate_payments": validate_payment(candidate, request.user)
+                    if action == "validate_registrations": finalize_candidate_registration(candidate)
                     else: set_candidate_status(candidate, targets[action])
                     updated += 1
                 except ValueError:
                     skipped += 1
-        messages.info(request, f"{updated} dossier(s) traité(s), {skipped} ignoré(s) : paiement à vérifier.")
+        messages.info(request, f"{updated} dossier(s) traité(s), {skipped} ignoré(s) : dossier à vérifier.")
         return redirect("artist_hub:casting:dashboard")
 
 def csv_cell(value):
@@ -161,16 +138,9 @@ class StaffExportCsvView(StaffOnlyMixin, View):
         response["Content-Disposition"] = 'attachment; filename="casting_' + timezone.now().strftime("%Y%m%d_%H%M") + '.csv"'
         response.write("\ufeff")
         writer = csv.writer(response, delimiter=";")
-        writer.writerow(["Numéro", "Code Accès", "Nom", "Prénom", "Sexe", "Date Naissance", "Âge", "Taille (cm)",
-            "Poids (kg)", "Mensurations", "Ville", "Pays", "Téléphone", "Email", "Statut", "Paiement Réf", "Montant", "Devise", "Paiement statut", "Date Candidature"])
+        writer.writerow(["Numéro", "Nom", "Prénom", "Sexe", "Âge", "Taille (cm)", "Ville", "Pays", "Téléphone", "Email", "Statut", "Date Candidature"])
         for c in candidates:
-            p = c.payment
-            row = [c.candidate_number, c.access_code, c.last_name, c.first_name, c.get_gender_display(),
-                c.birth_date.strftime("%d/%m/%Y"), c.age, c.height_cm, c.weight_kg or "", c.measurements or "",
-                c.city, c.country, c.phone, c.email, c.get_status_display(), p.reference if p else "",
-                p.amount if p else "", p.currency if p else "", p.get_status_display() if p else "",
-                timezone.localtime(c.created_at).strftime("%d/%m/%Y %H:%M")]
-            writer.writerow([csv_cell(value) for value in row])
+            writer.writerow([csv_cell(value) for value in [c.candidate_number, c.last_name, c.first_name, c.get_gender_display(), c.age, c.height_cm, c.city, c.country, c.phone, c.email, c.get_status_display(), timezone.localtime(c.created_at).strftime("%d/%m/%Y %H:%M")]])
         return response
 
 class StaffPaymentProofView(StaffOnlyMixin, View):
@@ -200,15 +170,15 @@ class StaffStatsView(StaffOnlyMixin, TemplateView):
         qs, form = filtered_candidates(self.request.GET)
         ctx.update(filter_context(self.request, qs, form))
         data = ctx["kpis"]
-        ctx.update(total=data["total"], revenue_total=data["revenue"], revenue_count=data["revenue_count"],
+        ctx.update(total=data["total"],
             femmes=qs.filter(gender=CandidateGender.FEMME).count(), hommes=qs.filter(gender=CandidateGender.HOMME).count())
         ctx["top_cities"] = list(qs.order_by().values("city").annotate(count=Count("pk")).order_by("-count", "city")[:10])
         counts = dict(qs.order_by().values_list("status").annotate(count=Count("pk")))
         ctx["status_data"] = [{"status": label, "count": counts.get(code, 0)} for code, label in CandidateStatus.choices]
-        ctx["funnel"] = [{"label": "Dossiers déposés", "count": data["total"]}, {"label": "Paiements confirmés", "count": data["inscrits"]},
+        ctx["funnel"] = [{"label": "Dossiers déposés", "count": data["total"]}, {"label": "Inscriptions confirmées", "count": data["inscrits"]},
             {"label": "Présélectionnés ou retenus", "count": data["preselected"] + data["retained"]}, {"label": "Retenus", "count": data["retained"]}]
         ctx["daily"] = list(qs.order_by().annotate(day=TruncDate("created_at")).values("day").annotate(
-            total=Count("pk"), paid=Count("pk", filter=Q(payment__status=PaymentStatus.SUCCESS))).order_by("day"))
+            total=Count("pk"), paid=Count("pk", filter=Q(status__in=[CandidateStatus.INSCRIT, CandidateStatus.PRESELECTIONNE, CandidateStatus.RETENU]))).order_by("day"))
         for day in ctx["daily"]: day["rate"] = round(day["paid"] * 100 / day["total"], 1)
         ages = {"Moins de 18 ans": 0, "18–24 ans": 0, "25–34 ans": 0, "35 ans et plus": 0}
         for candidate in qs.only("birth_date", "session_id", "payment_id"):

@@ -13,7 +13,7 @@
         Tableau de Bord Staff — {{ hub_settings.EVENT_TITLE }}
       </h1>
       <p style="color: var(--hub-text-muted); font-size: 0.9rem;">
-        Gestion des candidatures, validation des versements et sélection artistique.
+        Gestion des candidatures, confirmation des inscriptions et sélection artistique.
       </p>
     </div>
 
@@ -29,12 +29,12 @@
 
 <section class="hub-staff-banner">
     <img src="{% static 'artist_hub/img/douala-fashion-week.jpeg' %}" alt="Douala Fashion Week 2026" width="1066" height="1600">
-    <div><p class="hub-eyebrow">CENTRE DE PILOTAGE · OPLUS</p><h2>Du dossier au défilé</h2><p>Contrôlez les justificatifs, consultez les profils et préparez la sélection du jury.</p><a href="{% url 'artist_hub:casting:index' %}" class="hub-nav-link">Voir la page publique →</a></div>
+    <div><p class="hub-eyebrow">CENTRE DE PILOTAGE · OPLUS</p><h2>Du dossier au défilé</h2><p>Examinez les candidatures, consultez les profils et préparez la sélection du jury.</p><a href="{% url 'artist_hub:casting:index' %}" class="hub-nav-link">Voir la page publique →</a></div>
   </section>
   <section class="hub-session-list" aria-label="Sessions de casting">
     {% for casting in casting_sessions %}<div class="hub-session-item"><div><strong>{{ casting.title }}</strong><p class="hub-muted">{% if casting.closes_at %}Clôture : {{ casting.closes_at|date:"d/m/Y H:i" }} (heure de Douala){% else %}Aucune date de clôture{% endif %}</p></div><span class="hub-badge {% if casting.is_open %}hub-badge-success{% else %}hub-badge-warning{% endif %}">{% if casting.is_open %}Inscriptions ouvertes{% else %}Inscriptions fermées{% endif %}</span></div>{% empty %}<p>Aucune session configurée.</p>{% endfor %}
   </section>
-  <div class="hub-queue-summary"><span>Non payés : <strong>{{ kpis.unpaid }}</strong></span><span>Présélectionnés : <strong>{{ kpis.preselected }}</strong></span><span>Retenus : <strong>{{ kpis.retained }}</strong></span><span>Refusés : <strong>{{ kpis.refused }}</strong></span></div>
+  <div class="hub-queue-summary"><span>Présélectionnés : <strong>{{ kpis.preselected }}</strong></span><span>Retenus : <strong>{{ kpis.retained }}</strong></span><span>Refusés : <strong>{{ kpis.refused }}</strong></span></div>
 
   <!-- Cartes KPIs -->
   <div class="hub-kpi-grid" style="margin-bottom: 1.5rem;">
@@ -45,24 +45,18 @@
     </div>
 
     <div class="hub-card" style="padding: 1.25rem; margin-bottom: 0; border-color: rgba(16, 185, 129, 0.4);">
-      <div style="font-size: 0.8rem; color: var(--hub-success); text-transform: uppercase;">Paiements confirmés</div>
+      <div style="font-size: 0.8rem; color: var(--hub-success); text-transform: uppercase;">Inscriptions confirmées</div>
       <div style="font-size: 1.8rem; font-weight: 800; color: var(--hub-success); margin-top: 0.25rem;">{{ kpis.inscrits }}</div>
       <div style="font-size: 0.8rem; color: var(--hub-text-muted);">Présélect : {{ kpis.preselected }} • Retenus : {{ kpis.retained }}</div>
     </div>
 
     <div class="hub-card" style="padding: 1.25rem; margin-bottom: 0; border-color: rgba(245, 158, 11, 0.4);">
-      <div style="font-size: 0.8rem; color: var(--hub-warning); text-transform: uppercase;">À Valider (Preuves)</div>
+      <div style="font-size: 0.8rem; color: var(--hub-warning); text-transform: uppercase;">À confirmer</div>
       <div style="font-size: 1.8rem; font-weight: 800; color: var(--hub-warning); margin-top: 0.25rem;">{{ kpis.pending_validation }}</div>
       <div style="font-size: 0.8rem; color: var(--hub-text-muted);">En attente contrôle staff</div>
     </div>
 
-    <div class="hub-card hub-card-gold" style="padding: 1.25rem; margin-bottom: 0;">
-      <div style="font-size: 0.8rem; color: var(--hub-primary); text-transform: uppercase;">Revenus Collectés</div>
-      <div style="font-size: 1.8rem; font-weight: 800; color: var(--hub-primary); margin-top: 0.25rem;">
-        {{ kpis.revenue|floatformat:0 }} <span style="font-size: 1rem;">XAF</span>
-      </div>
-      <div style="font-size: 0.8rem; color: var(--hub-text-muted);">Paiements confirmés</div>
-    </div>
+    <div class="hub-card hub-card-gold" style="padding:1.25rem;margin-bottom:0"><div>Retenus pour le défilé</div><strong style="font-size:1.8rem">{{ kpis.retained }}</strong><p class="hub-muted">Sélection du jury</p></div>
   </div>
 
   {% include "artist_hub/staff/_filters.html" %}
@@ -75,7 +69,7 @@
       <div style="display: flex; align-items: center; gap: 0.5rem;">
         <span style="font-size: 0.85rem; color: var(--hub-text-muted);">Action groupée sur la sélection :</span>
         <select name="bulk_action" class="hub-select" style="padding: 0.4rem 0.6rem; font-size: 0.85rem; width: auto;">
-          <option value="validate_payments">✓ Valider les paiements (INSCRIT)</option>
+          <option value="validate_registrations">✓ Confirmer les inscriptions</option>
           <option value="mark_preselected">★ Marquer Présélectionnés</option>
           <option value="mark_retained">👑 Marquer Retenus (Défilé)</option>
           <option value="mark_refused">✕ Marquer Refusés</option>
@@ -102,7 +96,7 @@
             <th style="padding: 0.75rem 0.75rem;">Localisation</th>
             <th style="padding: 0.75rem 0.75rem;">WhatsApp</th>
             <th style="padding: 0.75rem 0.75rem;">Statut</th>
-            <th style="padding: 0.75rem 0.75rem;">Preuve</th>
+            <th style="padding: 0.75rem 0.75rem;">Participation</th>
             <th style="padding: 0.75rem 1rem; text-align: right;">Action</th>
           </tr>
         </thead>
@@ -157,18 +151,11 @@
                 {% elif c.status == 'REFUSE' %}
                   <span class="hub-badge" style="background: rgba(239, 68, 68, 0.2); color: #FCA5A5;">REFUSÉ</span>
                 {% else %}
-                  <span class="hub-badge" style="background: rgba(107, 114, 128, 0.2); color: #D1D5DB;">NON PAYÉ</span>
+                  <span class="hub-badge" style="background: rgba(107, 114, 128, 0.2); color: #D1D5DB;">À CONFIRMER</span>
                 {% endif %}
               </td>
               <td style="padding: 0.75rem 0.75rem;">
-                {% if c.payment %}<div class="hub-payment-summary">{{ c.payment.amount|floatformat:0 }} {{ c.payment.currency }}<small>{{ c.payment.get_status_display }}</small></div>{% endif %}
-                {% if c.payment and c.payment.proof_file %}
-                  <a href="{% url 'artist_hub:casting:staff_payment_proof' candidate_number=c.candidate_number %}" target="_blank" class="hub-btn hub-btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
-                    Voir preuve
-                  </a>
-                {% else %}
-                  <span style="color: var(--hub-text-muted); font-size: 0.75rem;">Aucune</span>
-                {% endif %}
+                <span class="hub-badge hub-badge-success">Gratuite</span>
               </td>
               <td style="padding: 0.75rem 1rem; text-align: right;">
                 <a href="{% url 'artist_hub:casting:staff_candidate_detail' candidate_number=c.candidate_number %}" class="hub-btn hub-btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">

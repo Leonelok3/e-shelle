@@ -36,8 +36,8 @@ class CastingSession(models.Model):
         blank=True,
         verbose_name=_("Règlement & conditions"),
         default=(
-            "1. Le paiement des frais de casting est obligatoire pour valider la candidature.\n"
-            "2. IMPORTANT : Le paiement des frais de casting ne garantit en aucun cas la sélection finale.\n"
+            "1. Le casting est gratuit.\n"
+            "2. L’inscription ne garantit pas la sélection finale.\n"
             "3. Les candidats mineurs doivent impérativement fournir l'autorisation d'un tuteur légal.\n"
             "4. Les photos et vidéos fournies doivent être récentes, fidèles et sans filtres déformants."
         ),
@@ -55,13 +55,13 @@ class CastingSession(models.Model):
     fee_cameroon = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        default=3000,
+        default=0,
         verbose_name=_("Frais Candidats Cameroun (FCFA)"),
     )
     fee_international = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        default=5000,
+        default=0,
         verbose_name=_("Frais Candidats International (FCFA)"),
     )
     currency = models.CharField(
@@ -141,9 +141,9 @@ class CastingSession(models.Model):
 
 
 class CandidateStatus(models.TextChoices):
-    EN_ATTENTE_PAIEMENT = "EN_ATTENTE_PAIEMENT", _("En attente de paiement")
-    EN_ATTENTE_VALIDATION = "EN_ATTENTE_VALIDATION", _("Preuve soumise / En attente de validation")
-    INSCRIT = "INSCRIT", _("Inscrit (Paiement validé)")
+    EN_ATTENTE_PAIEMENT = "EN_ATTENTE_PAIEMENT", _("À confirmer")
+    EN_ATTENTE_VALIDATION = "EN_ATTENTE_VALIDATION", _("En attente de validation")
+    INSCRIT = "INSCRIT", _("Inscription confirmée")
     PRESELECTIONNE = "PRESELECTIONNE", _("Présélectionné")
     RETENU = "RETENU", _("Retenu")
     REFUSE = "REFUSE", _("Refusé")

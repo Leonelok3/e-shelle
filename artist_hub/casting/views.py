@@ -27,9 +27,8 @@ from artist_hub.casting.services import (
     generate_access_code,
     process_uploaded_image,
     generate_candidate_pdf,
+    finalize_candidate_registration,
 )
-from artist_hub.payments.services import create_payment
-from artist_hub.payments.providers.factory import get_payment_provider
 from artist_hub.conf import hub_settings
 
 logger = logging.getLogger("artist_hub.casting")
@@ -105,29 +104,11 @@ class CandidateRegisterWizardView(View):
         cd = form.cleaned_data
         country = cd.get("country", "").strip()
         is_international = bool(country and country.lower() != "cameroun")
-        amount = session.fee_international if is_international else session.fee_cameroon
 
         with transaction.atomic():
             # 1. Génération des identifiants uniques
             candidate_number = generate_candidate_number(session)
             access_code = generate_access_code()
-
-            # 2. Création de l'entité Payment
-            proof_file = cd.get("proof_file")
-            proof_notes = cd.get("proof_notes", "")
-            payment_method = cd.get("payment_method")
-
-            payment = create_payment(
-                amount=amount,
-                currency=session.currency,
-                payer_name=f"{cd['first_name']} {cd['last_name']}",
-                payer_phone=cd["phone"],
-                payer_email=cd["email"],
-                method=payment_method,
-                provider_name=hub_settings.ACTIVE_PAYMENT_PROVIDER,
-                proof_file=proof_file,
-                proof_notes=proof_notes,
-            )
 
             # 3. Création du Candidat
             candidate = Candidate.objects.create(
@@ -148,21 +129,15 @@ class CandidateRegisterWizardView(View):
                 social_links=cd.get("social_links", ""),
                 candidate_number=candidate_number,
                 access_code=access_code,
-                status=CandidateStatus.EN_ATTENTE_VALIDATION if proof_file else CandidateStatus.EN_ATTENTE_PAIEMENT,
-                payment=payment,
+                status=CandidateStatus.EN_ATTENTE_VALIDATION,
                 video_url=cd.get("video_url", ""),
                 video_file=cd.get("video_file"),
-                is_minor=cd.get("birth_date") and (datetime.date.today().year - cd["birth_date"].year < 18),
                 guardian_name=cd.get("guardian_name", ""),
                 guardian_phone=cd.get("guardian_phone", ""),
                 parental_consent=cd.get("parental_consent", False),
                 gdpr_consent=cd.get("gdpr_consent", False),
                 selection_disclaimer_accepted=cd.get("selection_disclaimer_accepted", False),
             )
-
-            # Mettre à jour l'objet cible du paiement
-            payment.content_object = candidate
-            payment.save(update_fields=["content_type", "object_id"])
 
             # 4. Traitement et sauvegarde sécurisée des photos avec Pillow
             photo_portrait = cd.get("photo_portrait")
@@ -185,28 +160,13 @@ class CandidateRegisterWizardView(View):
                     order=2,
                 )
 
-        logger.info(
-            "CANDIDATE_REGISTERED: Num=%s, Nom=%s, Tel=%s, Montant=%s %s",
-            candidate.candidate_number,
-            candidate.full_name,
-            candidate.phone,
-            amount,
-            session.currency,
-        )
+            candidate.check_and_update_minor_status()
+            candidate.save(update_fields=["is_minor"])
+            finalize_candidate_registration(candidate)
 
-        messages.success(
-            request,
-            _("Votre dossier de candidature a été créé avec succès ! Vos identifiants ont été générés."),
-        )
-
-        # 5. Initiation de la passerelle de paiement
-        provider = get_payment_provider(payment.provider)
-        init_result = provider.initiate(payment)
-
-        if init_result.success and init_result.payment_url:
-            return redirect(init_result.payment_url)
-
-        return redirect("artist_hub:payments:waiting", reference=payment.reference)
+        messages.success(request, _("Votre inscription gratuite est confirmée. Conservez votre numéro et votre code d’accès."))
+        request.session["artist_hub_access_code"] = candidate.access_code
+        return redirect("artist_hub:casting:confirmation")
 
 
 class CandidateTrackView(View):
@@ -263,3 +223,12 @@ class CandidateCardPdfView(View):
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'inline; filename="Fiche_Casting_{candidate.candidate_number}.pdf"'
         return response
+
+
+class CandidateConfirmationView(View):
+    def get(self, request):
+        code = request.session.get("artist_hub_access_code")
+        candidate = Candidate.objects.filter(access_code=code).first() if code else None
+        if not candidate:
+            return redirect("artist_hub:casting:track")
+        return render(request, "artist_hub/casting/track.html", {"candidate": candidate, "hub_settings": hub_settings})

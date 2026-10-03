@@ -232,50 +232,15 @@ def generate_candidate_pdf(candidate: Candidate) -> bytes:
         p.setFont("Helvetica", 9)
         y_right -= 0.65 * cm
 
-    # 4. Détails du Paiement & Reçu
-    y = y_right - 0.6 * cm
-    p.setFillColor(dark_bg)
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(1.5 * cm, y, "2. REÇU DE PAIEMENT DES FRAIS DE CASTING")
-    p.setStrokeColor(primary_color)
-    p.line(1.5 * cm, y - 0.15 * cm, width - 1.5 * cm, y - 0.15 * cm)
-
-    y -= 1.0 * cm
-    # Cadre de reçu
-    p.setFillColor(light_box)
-    p.roundRect(1.5 * cm, y - 2.8 * cm, width - 3 * cm, 3.0 * cm, 8, fill=1, stroke=0)
-
-    payment = candidate.payment
-    montant_str = f"{int(payment.amount)} {payment.currency}" if payment else f"{int(candidate.required_fee)} XAF"
-    ref_str = payment.reference if payment else "RÉF-MANUELLE"
-    methode_str = payment.get_method_display() if payment and payment.method else "Mobile Money / Virement"
-
+    # Confirmation de participation gratuite
+    y -= 1.2 * cm
     p.setFillColor(text_dark)
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(2 * cm, y, "CASTING GRATUIT - FICHE DE CANDIDATURE")
     p.setFont("Helvetica", 9)
-    p.drawString(2 * cm, y - 0.5 * cm, "Référence Transaction :")
-    p.setFont("Helvetica-Bold", 9)
-    p.drawString(6 * cm, y - 0.5 * cm, ref_str)
-
-    p.setFont("Helvetica", 9)
-    p.drawString(2 * cm, y - 1.1 * cm, "Moyen de paiement :")
-    p.setFont("Helvetica-Bold", 9)
-    p.drawString(6 * cm, y - 1.1 * cm, methode_str)
-
-    p.setFont("Helvetica", 9)
-    p.drawString(2 * cm, y - 1.7 * cm, "Montant encaissé :")
-    p.setFont("Helvetica-Bold", 11)
-    p.setFillColor(primary_color)
-    p.drawString(6 * cm, y - 1.7 * cm, montant_str)
-
-    p.setFont("Helvetica", 8)
-    p.setFillColor(gray_muted)
-    date_val = (payment.verified_at or payment.created_at) if payment else (candidate.created_at or timezone.now())
-    if not date_val:
-        date_val = timezone.now()
-    p.drawString(2 * cm, y - 2.3 * cm, f"Paiement validé le {date_val.strftime('%d/%m/%Y à %H:%M')}")
-
+    p.drawString(2 * cm, y - 0.7 * cm, "Inscription enregistrée. La sélection finale appartient au jury.")
     # QR Code incrusté dans le reçu
-    qr_data = f"https://e-shelle.com/artist-hub/track/?code={candidate.access_code}&num={candidate.candidate_number}"
+    qr_data = f"https://e-shelle.com/artist-hub/suivi/?code={candidate.access_code}&num={candidate.candidate_number}"
     qr_buf = generate_qr_code_image(qr_data)
     from reportlab.lib.utils import ImageReader
     qr_img = ImageReader(qr_buf)
@@ -294,8 +259,8 @@ def generate_candidate_pdf(candidate: Candidate) -> bytes:
     p.drawString(2 * cm, y - 0.4 * cm, "MENTION LÉGALE OBLIGATOIRE :")
     p.setFont("Helvetica", 7.5)
     disclaimer_text = (
-        "Le paiement des frais de casting constitue une participation administrative obligatoire. "
-        "Il ne garantit en aucun cas la sélection finale du candidat pour le défilé de la Fashion Week Douala. "
+        "Le casting est gratuit. L’inscription est ouverte aux candidats admissibles. "
+        "Elle ne garantit en aucun cas la sélection finale du candidat pour le défilé de la Fashion Week Douala. "
         "Le jury est souverain et se réserve le droit d'admettre ou de refuser toute candidature selon les critères artistiques."
     )
     # Affichage sur 2 lignes
@@ -334,10 +299,6 @@ def finalize_candidate_registration(candidate: Candidate, verified_by_user=None)
     Finalise l'inscription : passe le statut à INSCRIT,
     génère la fiche PDF et envoie l'email de confirmation au candidat.
     """
-    if not candidate.payment or not candidate.payment.is_successful:
-        return False
-    if candidate.payment.currency != candidate.session.currency or candidate.payment.amount < candidate.required_fee:
-        return False
     if candidate.status in (CandidateStatus.INSCRIT, CandidateStatus.PRESELECTIONNE, CandidateStatus.RETENU, CandidateStatus.REFUSE):
         logger.info("CANDIDATE_ALREADY_INSCRIT: %s", candidate.candidate_number)
         return False
@@ -364,12 +325,12 @@ def _send_registration_confirmation(candidate):
             subject = f"Confirmation de votre inscription — {hub_settings.BRAND_NAME} ({candidate.candidate_number})"
             body = (
                 f"Bonjour {candidate.first_name},\n\n"
-                f"Nous avons le plaisir de vous confirmer la bonne réception de votre paiement et la validation de votre candidature "
+                f"Nous avons le plaisir de vous confirmer votre inscription gratuite "
                 f"pour le casting de la {hub_settings.EVENT_TITLE}.\n\n"
                 f"Vos identifiants officiels :\n"
                 f"• Numéro de candidature : {candidate.candidate_number}\n"
                 f"• Code d'accès : {candidate.access_code}\n\n"
-                f"Vous trouverez ci-joint votre Fiche Officielle de Candidature et votre Reçu de Paiement (PDF).\n"
+                f"Vous trouverez ci-joint votre Fiche Officielle de Candidature (PDF).\n"
                 f"Vous pouvez également suivre l'avancement de votre sélection en ligne à tout moment.\n\n"
                 f"Cordialement,\n"
                 f"L'équipe {hub_settings.BRAND_NAME} / {hub_settings.ARTIST_NAME}\n"

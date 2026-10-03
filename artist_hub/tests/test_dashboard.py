@@ -103,13 +103,13 @@ class StaffDashboardSecurityTests(TestCase):
             "artist_hub:casting:staff_candidate_detail",
             kwargs={"candidate_number": self.candidate.candidate_number},
         )
-        response = self.client.post(url, data={"action": "validate_payment"})
+        response = self.client.post(url, data={"action": "validate_registration"})
         self.assertEqual(response.status_code, 302)
 
         self.candidate.refresh_from_db()
         self.assertEqual(self.candidate.status, CandidateStatus.INSCRIT)
         self.candidate.payment.refresh_from_db()
-        self.assertTrue(self.candidate.payment.is_successful)
+        self.assertFalse(self.candidate.payment.is_successful)
 
     def test_staff_export_csv(self):
         self.client.login(username="staff_user", password="Password123!")
@@ -132,9 +132,8 @@ class StaffDashboardSecurityTests(TestCase):
         response = self.client.get(reverse("artist_hub:casting:dashboard"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["kpis"]["inscrits"], 1)
-        self.assertEqual(response.context["kpis"]["unpaid"], 0)
+        self.assertEqual(response.context["kpis"]["pending_validation"], 0)
         self.assertEqual(response.context["kpis"]["retained"], 1)
-        self.assertEqual(response.context["kpis"]["revenue"], 3000)
         self.assertContains(response, "Session Staff Test")
 
     def test_public_countdown_uses_session_date_and_posters(self):
@@ -143,8 +142,8 @@ class StaffDashboardSecurityTests(TestCase):
         self.session.save(update_fields=["closes_at"])
         response = self.client.get(reverse("artist_hub:casting:index"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'data-open="yes"')
-        self.assertContains(response, 'data-deadline="')
+        self.assertContains(response, "Inscription gratuite")
+        self.assertContains(response, "Clôture le")
         self.assertNotContains(response, "2026-09-28")
         for filename in ("douala-fashion-week.jpeg", "casting-oplus.jpeg", "fashion-week-2026.jpeg"):
             self.assertContains(response, filename)

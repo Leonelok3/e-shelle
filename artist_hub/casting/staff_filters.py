@@ -7,7 +7,6 @@ class StaffFilterForm(forms.Form):
     status = forms.ChoiceField(choices=[("", "Tous les statuts")] + list(CandidateStatus.choices), required=False, label="Statut")
     gender = forms.ChoiceField(choices=[("", "Tous")] + list(CandidateGender.choices), required=False, label="Sexe")
     city = forms.CharField(required=False, max_length=150, label="Ville")
-    paid = forms.ChoiceField(choices=[("", "Tous"), ("yes", "Payés"), ("no", "Non payés")], required=False, label="Paiement")
     minor = forms.ChoiceField(choices=[("", "Tous"), ("yes", "Mineurs"), ("no", "Majeurs")], required=False, label="Âge")
     q = forms.CharField(required=False, max_length=150, label="Recherche")
     start = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}), label="Depuis")
@@ -34,8 +33,6 @@ def filtered_candidates(params):
     for key in ("session", "status", "gender"):
         if data.get(key): qs = qs.filter(**{key: data[key]})
     if data.get("city"): qs = qs.filter(city__icontains=data["city"])
-    if data.get("paid") == "yes": qs = qs.filter(payment__status="SUCCESS")
-    if data.get("paid") == "no": qs = qs.exclude(payment__status="SUCCESS")
     if data.get("minor"): qs = qs.filter(is_minor=data["minor"] == "yes")
     if data.get("start"): qs = qs.filter(created_at__date__gte=data["start"])
     if data.get("end"): qs = qs.filter(created_at__date__lte=data["end"])

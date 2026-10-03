@@ -16,7 +16,6 @@ from artist_hub.casting.models import (
     Candidate,
     CandidateGender,
 )
-from artist_hub.payments.models import PaymentMethod
 from artist_hub.conf import hub_settings
 
 
@@ -86,7 +85,7 @@ class CandidateRegistrationForm(forms.Form):
     email = forms.EmailField(
         label=_("Adresse Email"),
         widget=forms.EmailInput(attrs={"placeholder": "Ex : candidat@gmail.com", "class": "hub-input"}),
-        help_text=_("Votre fiche officielle et votre reçu y seront envoyés."),
+        help_text=_("Votre fiche officielle y sera envoyée."),
     )
     experience = forms.CharField(
         label=_("Expérience / Défilés précédents"),
@@ -115,30 +114,6 @@ class CandidateRegistrationForm(forms.Form):
     parental_consent = forms.BooleanField(
         label=_("J'atteste avoir l'autorisation formelle de mon tuteur légal pour participer à ce casting."),
         required=False,
-    )
-
-    # --- ÉTAPE 2 & 3 : PAIEMENT ET JUSTIFICATIF ---
-    payment_method = forms.ChoiceField(
-        label=_("Moyen de paiement utilisé"),
-        choices=[
-            (PaymentMethod.ORANGE_MONEY, _("Orange Money Cameroun (+237 695 487 796)")),
-            (PaymentMethod.MTN_MOMO, _("MTN Mobile Money Cameroun (+237 675 293 836)")),
-            (PaymentMethod.ECOBANK_RIB, _("Virement / Dépôt Ecobank (RIB: 4020789949967166)")),
-            (PaymentMethod.CARD, _("Carte bancaire (Visa / Mastercard en ligne)")),
-        ],
-        widget=forms.RadioSelect(attrs={"class": "hub-radio"}),
-        initial=PaymentMethod.ORANGE_MONEY,
-    )
-    proof_file = forms.FileField(
-        label=_("Capture / Preuve du virement de paiement"),
-        required=True,
-        help_text=_("Téléversez la capture d'écran du message MoMo/OM ou le reçu Ecobank (PNG, JPG, PDF, max 5 Mo)."),
-    )
-    proof_notes = forms.CharField(
-        label=_("Référence de la transaction / Nom de l'expéditeur"),
-        max_length=200,
-        required=False,
-        widget=forms.TextInput(attrs={"placeholder": "Ex: ID Tx Orange/MTN ou nom du compte émetteur", "class": "hub-input"}),
     )
 
     # --- ÉTAPE 4 : PHOTOS & VIDÉO ---
@@ -170,11 +145,7 @@ class CandidateRegistrationForm(forms.Form):
         required=True,
     )
     selection_disclaimer_accepted = forms.BooleanField(
-        label=_(
-            "⚠️ JE RECONNAIS EXPRESSÉMENT QUE LE PAIEMENT DES FRAIS DE CASTING "
-            "(3 000 FCFA Cameroun / 5 000 FCFA International) CONSTITUE UNE PARTICIPATION OBLIGATOIRE "
-            "AUX FRAIS D'ORGANISATION ET NE GARANTIT EN AUCUN CAS MA SÉLECTION FINALE."
-        ),
+        label=_("Je comprends que cette inscription gratuite ne garantit pas ma sélection finale par le jury."),
         required=True,
     )
 
@@ -248,9 +219,5 @@ class CandidateRegistrationForm(forms.Form):
             file = cleaned_data.get(photo_field)
             if file and file.size > max_size:
                 self.add_error(photo_field, _(f"La taille de l'image ne doit pas dépasser {hub_settings.MAX_UPLOAD_SIZE_MB} Mo."))
-
-        proof_file = cleaned_data.get("proof_file")
-        if proof_file and proof_file.size > max_size:
-            self.add_error("proof_file", _(f"La taille de la preuve ne doit pas dépasser {hub_settings.MAX_UPLOAD_SIZE_MB} Mo."))
 
         return cleaned_data
