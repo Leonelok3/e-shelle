@@ -63,6 +63,17 @@ class Campagne(models.Model):
     message_template = models.TextField(
         help_text="Message a envoyer. Utilise {{prenom}} pour personnaliser."
     )
+    template_meta_name = models.CharField(
+        max_length=512,
+        blank=True,
+        help_text="Nom du template Meta approuve (HSM). Si vide, envoie un message texte standard."
+    )
+    template_meta_language = models.CharField(
+        max_length=20,
+        blank=True,
+        default="fr_FR",
+        help_text="Code langue du template Meta, ex: fr_FR, en_US."
+    )
     statut = models.CharField(max_length=20, choices=STATUTS, default=STATUT_BROUILLON)
 
     filtre_role = models.CharField(max_length=50, blank=True, help_text="ex: vendeur, acheteur, tous")
