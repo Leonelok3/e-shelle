@@ -1,0 +1,82 @@
+{% extends "artist_hub/base.html" %}
+
+{% block title %}Paiement Validé — {{ hub_settings.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="hub-container-sm" style="padding-top: 2.5rem; padding-bottom: 3.5rem;">
+  <div class="hub-card hub-card-gold" style="text-align: center;">
+    <div style="width: 70px; height: 70px; background: rgba(16, 185, 129, 0.15); border: 2px solid var(--hub-success); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: var(--hub-success); margin: 0 auto 1.25rem;">
+      ✓
+    </div>
+
+    <span class="hub-badge hub-badge-success" style="font-size: 0.85rem; margin-bottom: 0.75rem;">
+      INSCRIPTION & PAIEMENT VALIDÉS
+    </span>
+
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.5rem;">
+      Félicitations, votre candidature est enregistrée !
+    </h1>
+    <p style="color: var(--hub-text-muted); margin-bottom: 1.75rem;">
+      Votre participation au casting pour la <strong>{{ hub_settings.EVENT_TITLE }}</strong> est officiellement confirmée.
+    </p>
+
+    <!-- Bloc Identifiants Candidat -->
+    {% if candidate %}
+      <div style="background: var(--hub-surface-2); border: 1px solid var(--hub-border); border-radius: var(--hub-radius); padding: 1.5rem; text-align: left; margin-bottom: 1.75rem;">
+        <h2 style="font-size: 0.9rem; text-transform: uppercase; color: var(--hub-primary); letter-spacing: 1px; margin-bottom: 1rem;">
+          Vos Identifiants Officiels
+        </h2>
+        <div class="hub-grid-2">
+          <div>
+            <div style="font-size: 0.8rem; color: var(--hub-text-muted);">Numéro de Candidature</div>
+            <div style="font-size: 1.25rem; font-weight: 800; font-family: monospace; color: #fff;">
+              {{ candidate.candidate_number }}
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; color: var(--hub-text-muted);">Code d'Accès Sécurisé</div>
+            <div style="font-size: 1.25rem; font-weight: 800; font-family: monospace; color: var(--hub-primary);">
+              {{ candidate.access_code }}
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.82rem; color: var(--hub-text-muted);">
+          Conservez précieusement ce code d'accès : il vous permettra de consulter votre fiche et de suivre le statut de la sélection.
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Détails du paiement -->
+    <div style="background: rgba(0,0,0,0.25); border-radius: var(--hub-radius-sm); padding: 1rem; font-size: 0.88rem; text-align: left; margin-bottom: 1.75rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
+        <span style="color: var(--hub-text-muted);">Référence :</span>
+        <strong style="font-family: monospace;">{{ payment.reference }}</strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
+        <span style="color: var(--hub-text-muted);">Montant réglé :</span>
+        <strong style="color: var(--hub-primary);">{{ payment.amount|floatformat:0 }} {{ payment.currency }}</strong>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span style="color: var(--hub-text-muted);">Date de validation :</span>
+        <span>{{ payment.verified_at|default:payment.created_at|date:"d/m/Y à H:i" }}</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      {% if candidate %}
+        <a href="{% url 'artist_hub:casting:download_card' candidate_number=candidate.candidate_number %}" class="hub-btn hub-btn-primary hub-btn-block hub-btn-lg">
+          📄 Télécharger ma Fiche Officielle & Reçu (PDF)
+        </a>
+        <a href="{% url 'artist_hub:casting:track' %}?code={{ candidate.access_code }}" class="hub-btn hub-btn-secondary hub-btn-block">
+          🔍 Suivre l'état de ma candidature
+        </a>
+      {% else %}
+        <a href="{% url 'artist_hub:casting:index' %}" class="hub-btn hub-btn-secondary hub-btn-block">
+          Retour à l'accueil
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

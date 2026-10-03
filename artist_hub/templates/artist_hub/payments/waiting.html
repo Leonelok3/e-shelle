@@ -1,0 +1,116 @@
+{% extends "artist_hub/base.html" %}
+{% load static %}
+
+{% block title %}Paiement en attente — {{ hub_settings.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="hub-container-sm" style="padding-top: 2rem; padding-bottom: 3rem;">
+  <div class="hub-card hub-card-gold" style="text-align: center;">
+    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⏳</div>
+    <h1 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.5rem;">Paiement en attente de validation</h1>
+    <p style="color: var(--hub-text-muted); margin-bottom: 1.5rem;">
+      Référence transaction : <strong style="color: var(--hub-primary); font-family: monospace;">{{ payment.reference }}</strong>
+    </p>
+
+    <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: var(--hub-radius); padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-size: 0.85rem; color: var(--hub-text-muted); text-transform: uppercase; letter-spacing: 1px;">Montant à régler</div>
+      <div style="font-size: 2.2rem; font-weight: 800; color: var(--hub-primary);">
+        {{ payment.amount|floatformat:0 }} {{ payment.currency }}
+      </div>
+      {% if payment.payer_name %}
+        <div style="font-size: 0.9rem; color: var(--hub-text-light); margin-top: 0.25rem;">
+          Candidat : <strong>{{ payment.payer_name }}</strong>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Coordonnées officielles de paiement -->
+    <div style="text-align: left; margin-bottom: 1.5rem;">
+      <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--hub-text-light); text-transform: uppercase; letter-spacing: 0.5px;">
+        Comptes officiels {{ hub_settings.BRAND_NAME }}
+      </h2>
+
+      <!-- Orange Money -->
+      <div class="hub-pay-box">
+        <div class="hub-pay-info">
+          <div class="hub-pay-icon hub-pay-orange">OM</div>
+          <div>
+            <div style="font-size: 0.85rem; color: var(--hub-text-muted);">Orange Money Cameroun</div>
+            <div class="hub-pay-number" id="om-number">{{ orange_money }}</div>
+          </div>
+        </div>
+        <button type="button" class="hub-btn hub-btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="copyToClipboard('{{ orange_money }}', this)">
+          Copier
+        </button>
+      </div>
+
+      <!-- MTN MoMo -->
+      <div class="hub-pay-box">
+        <div class="hub-pay-info">
+          <div class="hub-pay-icon hub-pay-momo">M</div>
+          <div>
+            <div style="font-size: 0.85rem; color: var(--hub-text-muted);">MTN Mobile Money Cameroun</div>
+            <div class="hub-pay-number" id="momo-number">{{ mtn_momo }}</div>
+          </div>
+        </div>
+        <button type="button" class="hub-btn hub-btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="copyToClipboard('{{ mtn_momo }}', this)">
+          Copier
+        </button>
+      </div>
+
+      <!-- Ecobank RIB -->
+      <div class="hub-pay-box">
+        <div class="hub-pay-info">
+          <div class="hub-pay-icon hub-pay-ecobank">ECO</div>
+          <div>
+            <div style="font-size: 0.85rem; color: var(--hub-text-muted);">Ecobank (Dépôt / Virement RIB)</div>
+            <div class="hub-pay-number" id="eco-rib" style="font-size: 1rem;">{{ ecobank_rib }}</div>
+          </div>
+        </div>
+        <button type="button" class="hub-btn hub-btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="copyToClipboard('{{ ecobank_rib }}', this)">
+          Copier
+        </button>
+      </div>
+    </div>
+
+    <!-- Animation Polling -->
+    <div class="hub-spinner"></div>
+    <div id="poll-status-message" style="font-size: 0.9rem; color: var(--hub-text-muted); margin-bottom: 1.5rem;">
+      Vérification automatique en cours... Dès confirmation par le réseau ou le staff, votre fiche candidat sera activée instantanément.
+    </div>
+
+    <!-- Actions complémentaires -->
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      <a href="https://wa.me/{{ contact_whatsapp|cut:'+'|cut:' ' }}?text=Bonjour%20OPLUS,%20j%27ai%20effectué%20mon%20paiement%20de%20casting%20Réf:%20{{ payment.reference }}" target="_blank" rel="noopener" class="hub-btn hub-btn-secondary hub-btn-block">
+        💬 Signaler mon virement sur WhatsApp
+      </a>
+
+      {% if hub_settings.ACTIVE_PAYMENT_PROVIDER == 'mock' %}
+        <a href="{% url 'artist_hub:payments:mock_simulate' reference=payment.reference %}" class="hub-btn hub-btn-primary hub-btn-block" style="background: #2563EB;">
+          ⚡ Simuler la validation (Mode Test Local)
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'artist_hub/js/payment_poll.js' %}"></script>
+<script>
+  function copyToClipboard(text, btn) {
+    navigator.clipboard.writeText(text).then(function() {
+      var oldText = btn.innerText;
+      btn.innerText = "Copié !";
+      setTimeout(function() { btn.innerText = oldText; }, 2000);
+    });
+  }
+
+  // Démarrage du polling automatique
+  document.addEventListener("DOMContentLoaded", function() {
+    var statusUrl = "{% url 'artist_hub:payments:status_api' reference=payment.reference %}";
+    var redirectUrl = "{% url 'artist_hub:payments:success' reference=payment.reference %}";
+    window.initPaymentPolling("{{ payment.reference }}", statusUrl, redirectUrl);
+  });
+</script>
+{% endblock %}

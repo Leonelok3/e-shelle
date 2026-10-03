@@ -203,6 +203,9 @@ INSTALLED_APPS = [
     "germany_opportunities.apps.GermanyOpportunitiesConfig",
     "lebenslauf.apps.LebenslaufConfig",
     "canada_resume.apps.CanadaResumeConfig",
+
+    # ── Artist Hub (Group Opus / Fashion Week Douala) ───────────────
+    "artist_hub.apps.ArtistHubConfig",
 ]
 
 # ── E-Shelle AI — Configuration ─────────────────────────────────────

@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ hub_settings.BRAND_NAME }} — {{ hub_settings.EVENT_TITLE }}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{{ hub_settings.SLOGAN }} — Inscription officielle et casting mannequins en ligne pour la Fashion Week Douala.{% endblock %}">
+
+  <!-- Style CSS autonome -->
+  <link rel="stylesheet" href="{% static 'artist_hub/css/artist_hub.css' %}">
+
+  <!-- Variables de thème personnalisables depuis settings.ARTIST_HUB / conf.py -->
+  <style>
+    :root {
+      --hub-primary: {{ hub_settings.PRIMARY_COLOR|default:'#D4AF37' }};
+      --hub-bg: {{ hub_settings.SECONDARY_COLOR|default:'#0B0C10' }};
+      --hub-accent: {{ hub_settings.ACCENT_COLOR|default:'#E11D48' }};
+      --hub-surface: {{ hub_settings.BG_CARD|default:'#14161D' }};
+    }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Barre de navigation supérieure -->
+  <header class="hub-header">
+    <div class="hub-container hub-nav">
+      <a href="{% url 'artist_hub:casting:index' %}" class="hub-brand">
+        <span class="hub-brand-badge">{{ hub_settings.BRAND_NAME }}</span>
+        <span class="hub-brand-title">{{ hub_settings.ARTIST_NAME }}</span>
+      </a>
+
+      <nav class="hub-nav-links">
+        <a href="{% url 'artist_hub:casting:index' %}" class="hub-nav-link">Casting</a>
+        <a href="{% url 'artist_hub:casting:track' %}" class="hub-nav-link">Suivre ma candidature</a>
+        {% if user.is_staff %}
+          <a href="{% url 'artist_hub:casting:dashboard' %}" class="hub-nav-link" style="color: var(--hub-primary);">★ Staff</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <!-- Messages flash Django -->
+  {% if messages %}
+    <div class="hub-container" style="margin-top: 1.25rem;">
+      {% for message in messages %}
+        <div class="hub-alert hub-alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% else %}warning{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Contenu principal -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Pied de page -->
+  <footer class="hub-footer">
+    <div class="hub-container">
+      <div class="hub-footer-links">
+        <a href="{% url 'artist_hub:casting:index' %}" class="hub-nav-link">Présentation</a>
+        <a href="{% url 'artist_hub:casting:track' %}" class="hub-nav-link">Espace Candidat</a>
+        <a href="https://wa.me/{{ hub_settings.CONTACT_WHATSAPP|cut:'+'|cut:' ' }}" target="_blank" rel="noopener" class="hub-nav-link">WhatsApp Support</a>
+      </div>
+      <p style="margin-bottom: 0.5rem;">
+        <strong>{{ hub_settings.BRAND_NAME }}</strong> • {{ hub_settings.EVENT_TITLE }} • Douala, Cameroun
+      </p>
+      <p style="font-size: 0.78rem; opacity: 0.75; max-width: 600px; margin: 0 auto;">
+        Notice légale : Le paiement des frais de casting est une contribution aux frais de gestion et d'organisation et ne garantit pas la sélection finale du candidat.
+      </p>
+    </div>
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

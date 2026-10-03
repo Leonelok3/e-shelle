@@ -896,6 +896,10 @@ urlpatterns = [
     path("tibo/", include("apps.tibo.urls", namespace="tibo")),
     path("api/tibo/", include("apps.tibo.api.urls", namespace="tibo_api")),
 
+    # ── Artist Hub (Group Opus / Casting Fashion Week Douala) ─────────
+    path("artist-hub/", include("artist_hub.urls", namespace="artist_hub")),
+
+
     # Page d'accueil
     path("", home_view, name="home"),
     path("produits-services/", products_services_view, name="products_services"),

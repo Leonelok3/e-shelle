@@ -1,0 +1,40 @@
+{% extends "artist_hub/base.html" %}
+
+{% block title %}Simulateur de Paiement Local — {{ hub_settings.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="hub-container-sm" style="padding-top: 2.5rem; padding-bottom: 3.5rem;">
+  <div class="hub-card hub-card-gold">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+      <h1 style="font-size: 1.35rem; font-weight: 800;">Simulateur de Paiement (Mock)</h1>
+      <span class="hub-badge hub-badge-info">Environnement Dev / Test</span>
+    </div>
+
+    <p style="color: var(--hub-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+      Ce panneau permet de tester immédiatement les flux de validation de paiement et d'activation de candidature en local, sans carte bancaire ni solde Mobile Money.
+    </p>
+
+    <div style="background: var(--hub-surface-2); border-radius: var(--hub-radius-sm); padding: 1.25rem; font-size: 0.9rem; margin-bottom: 1.5rem;">
+      <div style="margin-bottom: 0.5rem;">Référence transaction : <strong>{{ payment.reference }}</strong></div>
+      <div style="margin-bottom: 0.5rem;">Montant : <strong style="color: var(--hub-primary);">{{ payment.amount|floatformat:0 }} {{ payment.currency }}</strong></div>
+      <div style="margin-bottom: 0.5rem;">Payeur : <strong>{{ payment.payer_name|default:"Non renseigné" }} ({{ payment.payer_phone }})</strong></div>
+      <div>Statut actuel : <strong style="text-transform: uppercase;">{{ payment.status }}</strong></div>
+    </div>
+
+    <form method="post" style="display: flex; flex-direction: column; gap: 1rem;">
+      {% csrf_token %}
+      <button type="submit" name="action" value="success" class="hub-btn hub-btn-primary hub-btn-block hub-btn-lg">
+        ✓ Simuler Paiement RÉUSSI (MoMo / OM / Carte)
+      </button>
+
+      <button type="submit" name="action" value="fail" class="hub-btn hub-btn-danger hub-btn-block">
+        ✕ Simuler Paiement ÉCHOUÉ / ANNULÉ
+      </button>
+
+      <a href="{% url 'artist_hub:payments:waiting' reference=payment.reference %}" class="hub-btn hub-btn-secondary hub-btn-block">
+        ← Retourner à la page d'attente
+      </a>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,205 @@
+{% extends "artist_hub/base.html" %}
+
+{% block title %}Dashboard Staff — {{ hub_settings.EVENT_TITLE }}{% endblock %}
+
+{% block content %}
+<div class="hub-container" style="padding-top: 1.5rem; padding-bottom: 3.5rem;">
+
+  <!-- Titre & Boutons d'export -->
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+    <div>
+      <h1 style="font-size: 1.75rem; font-weight: 800; color: #fff;">
+        Tableau de Bord Staff — {{ hub_settings.EVENT_TITLE }}
+      </h1>
+      <p style="color: var(--hub-text-muted); font-size: 0.9rem;">
+        Gestion des candidatures, validation des versements et sélection artistique.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{% url 'artist_hub:casting:staff_stats' %}?{{ filter_query }}" class="hub-btn hub-btn-secondary" style="padding: 0.6rem 1rem;">
+        📊 Statistiques
+      </a>
+      <a href="{% url 'artist_hub:casting:staff_export_csv' %}?{{ filter_query }}" class="hub-btn hub-btn-primary" style="padding: 0.6rem 1.25rem;">
+        📥 Exporter CSV (Excel)
+      </a>
+    </div>
+  </div>
+
+  <!-- Cartes KPIs -->
+  <div class="hub-grid-3" style="margin-bottom: 1.5rem;">
+    <div class="hub-card" style="padding: 1.25rem; margin-bottom: 0;">
+      <div style="font-size: 0.8rem; color: var(--hub-text-muted); text-transform: uppercase;">Total Dossiers</div>
+      <div style="font-size: 1.8rem; font-weight: 800; color: #fff; margin-top: 0.25rem;">{{ kpis.total }}</div>
+      <div style="font-size: 0.8rem; color: var(--hub-text-muted);">Taux conv : {{ kpis.conversion_rate }}%</div>
+    </div>
+
+    <div class="hub-card" style="padding: 1.25rem; margin-bottom: 0; border-color: rgba(16, 185, 129, 0.4);">
+      <div style="font-size: 0.8rem; color: var(--hub-success); text-transform: uppercase;">Paiements confirmés</div>
+      <div style="font-size: 1.8rem; font-weight: 800; color: var(--hub-success); margin-top: 0.25rem;">{{ kpis.inscrits }}</div>
+      <div style="font-size: 0.8rem; color: var(--hub-text-muted);">Présélect : {{ kpis.preselected }} • Retenus : {{ kpis.retained }}</div>
+    </div>
+
+    <div class="hub-card" style="padding: 1.25rem; margin-bottom: 0; border-color: rgba(245, 158, 11, 0.4);">
+      <div style="font-size: 0.8rem; color: var(--hub-warning); text-transform: uppercase;">À Valider (Preuves)</div>
+      <div style="font-size: 1.8rem; font-weight: 800; color: var(--hub-warning); margin-top: 0.25rem;">{{ kpis.pending_validation }}</div>
+      <div style="font-size: 0.8rem; color: var(--hub-text-muted);">En attente contrôle staff</div>
+    </div>
+
+    <div class="hub-card hub-card-gold" style="padding: 1.25rem; margin-bottom: 0;">
+      <div style="font-size: 0.8rem; color: var(--hub-primary); text-transform: uppercase;">Revenus Collectés</div>
+      <div style="font-size: 1.8rem; font-weight: 800; color: var(--hub-primary); margin-top: 0.25rem;">
+        {{ kpis.revenue|floatformat:0 }} <span style="font-size: 1rem;">XAF</span>
+      </div>
+      <div style="font-size: 0.8rem; color: var(--hub-text-muted);">Paiements confirmés</div>
+    </div>
+  </div>
+
+  {% include "artist_hub/staff/_filters.html" %}
+
+  <!-- Formulaire d'actions groupées & Table des candidats -->
+  <form method="post" onsubmit="return confirm('Appliquer cette action aux dossiers sélectionnés ?')" action="{% url 'artist_hub:casting:staff_bulk_action' %}">
+    {% csrf_token %}
+
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 0.85rem; color: var(--hub-text-muted);">Action groupée sur la sélection :</span>
+        <select name="bulk_action" class="hub-select" style="padding: 0.4rem 0.6rem; font-size: 0.85rem; width: auto;">
+          <option value="validate_payments">✓ Valider les paiements (INSCRIT)</option>
+          <option value="mark_preselected">★ Marquer Présélectionnés</option>
+          <option value="mark_retained">👑 Marquer Retenus (Défilé)</option>
+          <option value="mark_refused">✕ Marquer Refusés</option>
+        </select>
+        <button type="submit" class="hub-btn hub-btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;">Appliquer</button>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--hub-text-muted);">
+        {{ page_obj.paginator.count }} candidat(s) trouvé(s)
+      </div>
+    </div>
+
+    <!-- Table Responsive -->
+    <div style="overflow-x: auto; background: var(--hub-surface); border: 1px solid var(--hub-border); border-radius: var(--hub-radius); box-shadow: var(--hub-shadow);">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--hub-border); background: var(--hub-surface-2); color: var(--hub-text-muted); font-size: 0.78rem; text-transform: uppercase;">
+            <th style="padding: 0.75rem 1rem; width: 40px;">
+              <input type="checkbox" id="select-all" onclick="toggleSelectAll(this)">
+            </th>
+            <th style="padding: 0.75rem 0.5rem;">Photo</th>
+            <th style="padding: 0.75rem 0.75rem;">Identifiants</th>
+            <th style="padding: 0.75rem 0.75rem;">Candidat</th>
+            <th style="padding: 0.75rem 0.75rem;">Taille / Mens.</th>
+            <th style="padding: 0.75rem 0.75rem;">Localisation</th>
+            <th style="padding: 0.75rem 0.75rem;">WhatsApp</th>
+            <th style="padding: 0.75rem 0.75rem;">Statut</th>
+            <th style="padding: 0.75rem 0.75rem;">Preuve</th>
+            <th style="padding: 0.75rem 1rem; text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in candidates %}
+            <tr style="border-bottom: 1px solid var(--hub-border); transition: background 0.15s ease;">
+              <td style="padding: 0.75rem 1rem;">
+                <input type="checkbox" name="selected_candidates" value="{{ c.id }}" class="candidate-checkbox">
+              </td>
+              <td style="padding: 0.75rem 0.5rem;">
+                {% with c.photos.first as p %}
+                  {% if p and p.image %}
+                    <img src="{{ p.image.url }}" style="width: 44px; height: 56px; object-fit: cover; border-radius: 4px; border: 1px solid var(--hub-border);">
+                  {% else %}
+                    <div style="width: 44px; height: 56px; background: var(--hub-surface-2); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--hub-text-muted);">N/A</div>
+                  {% endif %}
+                {% endwith %}
+              </td>
+              <td style="padding: 0.75rem 0.75rem;">
+                <strong style="color: #fff; font-family: monospace;">{{ c.candidate_number }}</strong>
+                <div style="font-family: monospace; font-size: 0.78rem; color: var(--hub-primary);">Code: {{ c.access_code }}</div>
+              </td>
+              <td style="padding: 0.75rem 0.75rem;">
+                <div style="font-weight: 700; color: #fff;">{{ c.full_name }}</div>
+                <div style="font-size: 0.78rem; color: var(--hub-text-muted);">
+                  {{ c.age }} ans ({{ c.get_gender_display }})
+                  {% if c.is_minor %}<span style="color: var(--hub-warning); font-weight: bold;">• Mineur</span>{% endif %}
+                </div>
+              </td>
+              <td style="padding: 0.75rem 0.75rem;">
+                <span style="font-weight: 700; color: var(--hub-primary);">{{ c.height_cm }} cm</span>
+                {% if c.measurements %}<div style="font-size: 0.78rem; color: var(--hub-text-muted);">{{ c.measurements }}</div>{% endif %}
+              </td>
+              <td style="padding: 0.75rem 0.75rem;">
+                {{ c.city }}
+                <div style="font-size: 0.75rem; color: var(--hub-text-muted);">{{ c.country }}</div>
+              </td>
+              <td style="padding: 0.75rem 0.75rem;">
+                <a href="https://wa.me/{{ c.phone|cut:'+'|cut:' ' }}" target="_blank" rel="noopener" style="color: #34D399; text-decoration: none; font-weight: 600;">
+                  {{ c.phone }} ↗
+                </a>
+              </td>
+              <td style="padding: 0.75rem 0.75rem;">
+                {% if c.status == 'INSCRIT' %}
+                  <span class="hub-badge hub-badge-success">INSCRIT</span>
+                {% elif c.status == 'EN_ATTENTE_VALIDATION' %}
+                  <span class="hub-badge hub-badge-warning">À VALIDER</span>
+                {% elif c.status == 'PRESELECTIONNE' %}
+                  <span class="hub-badge" style="background: rgba(139, 92, 246, 0.2); color: #C4B5FD;">PRÉSÉLECTION</span>
+                {% elif c.status == 'RETENU' %}
+                  <span class="hub-badge" style="background: rgba(5, 150, 105, 0.25); color: #34D399;">RETENU</span>
+                {% elif c.status == 'REFUSE' %}
+                  <span class="hub-badge" style="background: rgba(239, 68, 68, 0.2); color: #FCA5A5;">REFUSÉ</span>
+                {% else %}
+                  <span class="hub-badge" style="background: rgba(107, 114, 128, 0.2); color: #D1D5DB;">NON PAYÉ</span>
+                {% endif %}
+              </td>
+              <td style="padding: 0.75rem 0.75rem;">
+                {% if c.payment and c.payment.proof_file %}
+                  <a href="{% url 'artist_hub:casting:staff_payment_proof' candidate_number=c.candidate_number %}" target="_blank" class="hub-btn hub-btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                    Voir preuve
+                  </a>
+                {% else %}
+                  <span style="color: var(--hub-text-muted); font-size: 0.75rem;">Aucune</span>
+                {% endif %}
+              </td>
+              <td style="padding: 0.75rem 1rem; text-align: right;">
+                <a href="{% url 'artist_hub:casting:staff_candidate_detail' candidate_number=c.candidate_number %}" class="hub-btn hub-btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                  Fiche →
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="10" style="padding: 2.5rem; text-align: center; color: var(--hub-text-muted);">
+                Aucun candidat ne correspond aux filtres actuels.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </form>
+
+  <!-- Pagination -->
+  {% if is_paginated %}
+    <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;">
+      {% if page_obj.has_previous %}
+        <a href="?{{ filter_query }}&page={{ page_obj.previous_page_number }}" class="hub-btn hub-btn-secondary" style="padding: 0.4rem 0.8rem;">← Précédent</a>
+      {% endif %}
+      <span style="align-self: center; font-size: 0.85rem; color: var(--hub-text-muted);">
+        Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+      </span>
+      {% if page_obj.has_next %}
+        <a href="?{{ filter_query }}&page={{ page_obj.next_page_number }}" class="hub-btn hub-btn-secondary" style="padding: 0.4rem 0.8rem;">Suivant →</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function toggleSelectAll(master) {
+    var cbs = document.querySelectorAll('.candidate-checkbox');
+    cbs.forEach(function(cb) { cb.checked = master.checked; });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,377 @@
+{% extends "artist_hub/base.html" %}
+{% load static %}
+
+{% block title %}Inscription Casting — {{ hub_settings.EVENT_TITLE }} | {{ hub_settings.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="hub-container-sm" style="padding-top: 2rem; padding-bottom: 4rem;">
+
+  <!-- En-tête formulaire -->
+  <div style="text-align: center; margin-bottom: 2rem;">
+    <span class="hub-hero-badge">CANDIDATURE OFFICIELLE</span>
+    <h1 style="font-size: clamp(1.5rem, 3.5vw, 2.2rem); font-weight: 800; margin-bottom: 0.5rem;">
+      Formulaire de Candidature Mannequin
+    </h1>
+    <p style="color: var(--hub-text-muted); font-size: 0.95rem;">
+      {{ hub_settings.EVENT_TITLE }} • Douala, 26 décembre 2026
+    </p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" novalidate id="casting-form">
+    {% csrf_token %}
+
+    <!-- Champ honeypot anti-spam caché -->
+    <div style="display:none !important; position:absolute; left:-9999px;">
+      {{ form.website_url_hp }}
+    </div>
+
+    <!-- ÉTAPE 1 : INFORMATIONS PERSONNELLES -->
+    <div class="hub-card hub-card-gold">
+      <div class="hub-card-header">
+        <h2 class="hub-card-title">Étape 1 — Informations Personnelles</h2>
+        <span class="hub-badge hub-badge-info">Étape 1 / 4</span>
+      </div>
+
+      <div class="hub-grid-2">
+        <div class="hub-form-group">
+          <label class="hub-label hub-label-required" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}<div class="hub-error-text">{{ form.first_name.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="hub-form-group">
+          <label class="hub-label hub-label-required" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}<div class="hub-error-text">{{ form.last_name.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="hub-grid-2">
+        <div class="hub-form-group">
+          <label class="hub-label hub-label-required" for="{{ form.birth_date.id_for_label }}">{{ form.birth_date.label }}</label>
+          {{ form.birth_date }}
+          <div id="age-calc-badge" style="margin-top: 0.35rem; font-size: 0.8rem; color: var(--hub-primary);"></div>
+          {% if form.birth_date.errors %}<div class="hub-error-text">{{ form.birth_date.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="hub-form-group">
+          <label class="hub-label hub-label-required" for="{{ form.gender.id_for_label }}">{{ form.gender.label }}</label>
+          {{ form.gender }}
+          {% if form.gender.errors %}<div class="hub-error-text">{{ form.gender.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="hub-grid-3">
+        <div class="hub-form-group">
+          <label class="hub-label hub-label-required" for="{{ form.height_cm.id_for_label }}">{{ form.height_cm.label }}</label>
+          {{ form.height_cm }}
+          <div class="hub-help-text">Hommes: min 183cm • Femmes: min 175cm</div>
+          {% if form.height_cm.errors %}<div class="hub-error-text">{{ form.height_cm.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="hub-form-group">
+          <label class="hub-label" for="{{ form.weight_kg.id_for_label }}">{{ form.weight_kg.label }}</label>
+          {{ form.weight_kg }}
+          {% if form.weight_kg.errors %}<div class="hub-error-text">{{ form.weight_kg.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="hub-form-group">
+          <label class="hub-label" for="{{ form.measurements.id_for_label }}">{{ form.measurements.label }}</label>
+          {{ form.measurements }}
+          {% if form.measurements.errors %}<div class="hub-error-text">{{ form.measurements.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="hub-grid-2">
+        <div class="hub-form-group">
+          <label class="hub-label hub-label-required" for="{{ form.city.id_for_label }}">{{ form.city.label }}</label>
+          {{ form.city }}
+          {% if form.city.errors %}<div class="hub-error-text">{{ form.city.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="hub-form-group">
+          <label class="hub-label hub-label-required" for="{{ form.country.id_for_label }}">{{ form.country.label }}</label>
+          {{ form.country }}
+          {% if form.country.errors %}<div class="hub-error-text">{{ form.country.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="hub-grid-2">
+        <div class="hub-form-group">
+          <label class="hub-label hub-label-required" for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
+          {{ form.phone }}
+          <div class="hub-help-text">{{ form.phone.help_text }}</div>
+          {% if form.phone.errors %}<div class="hub-error-text">{{ form.phone.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="hub-form-group">
+          <label class="hub-label hub-label-required" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+          {{ form.email }}
+          <div class="hub-help-text">{{ form.email.help_text }}</div>
+          {% if form.email.errors %}<div class="hub-error-text">{{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="hub-form-group">
+        <label class="hub-label" for="{{ form.social_links.id_for_label }}">{{ form.social_links.label }}</label>
+        {{ form.social_links }}
+      </div>
+
+      <div class="hub-form-group">
+        <label class="hub-label" for="{{ form.experience.id_for_label }}">{{ form.experience.label }}</label>
+        {{ form.experience }}
+      </div>
+
+      <!-- SECTION MINEURS DYNAMIQUE (< 18 ANS) -->
+      <div id="minor-section" style="display: none; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--hub-radius); padding: 1.25rem; margin-top: 1rem;">
+        <div style="font-weight: 700; color: var(--hub-warning); margin-bottom: 0.75rem;">
+          ⚠️ Candidat(e) Mineur(e) — Accord parental obligatoire
+        </div>
+
+        <div class="hub-grid-2">
+          <div class="hub-form-group">
+            <label class="hub-label hub-label-required" for="{{ form.guardian_name.id_for_label }}">{{ form.guardian_name.label }}</label>
+            {{ form.guardian_name }}
+            {% if form.guardian_name.errors %}<div class="hub-error-text">{{ form.guardian_name.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="hub-form-group">
+            <label class="hub-label hub-label-required" for="{{ form.guardian_phone.id_for_label }}">{{ form.guardian_phone.label }}</label>
+            {{ form.guardian_phone }}
+            {% if form.guardian_phone.errors %}<div class="hub-error-text">{{ form.guardian_phone.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div style="margin-top: 0.5rem;">
+          <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+            {{ form.parental_consent }}
+            <span>{{ form.parental_consent.label }}</span>
+          </label>
+          {% if form.parental_consent.errors %}<div class="hub-error-text">{{ form.parental_consent.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 2 : PAIEMENT -->
+    <div class="hub-card hub-card-gold">
+      <div class="hub-card-header">
+        <h2 class="hub-card-title">Étape 2 — Paiement des Frais de Casting</h2>
+        <span class="hub-badge hub-badge-warning">Étape 2 / 4</span>
+      </div>
+
+      <!-- Récapitulatif du tarif dynamique -->
+      <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: var(--hub-radius); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <span style="font-size: 0.82rem; color: var(--hub-text-muted); text-transform: uppercase;">Montant à régler :</span>
+          <div id="display-fee" style="font-size: 1.8rem; font-weight: 800; color: var(--hub-primary);">
+            {{ session.fee_cameroon|floatformat:0 }} XAF
+          </div>
+        </div>
+        <div style="text-align: right; font-size: 0.85rem; color: var(--hub-text-muted);">
+          🇨🇲 Cameroun : 3 000 FCFA<br>
+          🌍 International : 5 000 FCFA
+        </div>
+      </div>
+
+      <!-- Coordonnées des comptes -->
+      <div style="margin-bottom: 1.25rem;">
+        <div style="font-weight: 700; margin-bottom: 0.75rem; font-size: 0.92rem;">
+          Effectuez votre versement sur l'un des comptes officiels ci-dessous :
+        </div>
+
+        <div class="hub-pay-box">
+          <div class="hub-pay-info">
+            <div class="hub-pay-icon hub-pay-orange">OM</div>
+            <div>
+              <div style="font-size: 0.82rem; color: var(--hub-text-muted);">Orange Money Cameroun</div>
+              <div class="hub-pay-number">{{ hub_settings.ORANGE_MONEY_NUMBER }}</div>
+            </div>
+          </div>
+          <button type="button" class="hub-btn hub-btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="copyNumber('{{ hub_settings.ORANGE_MONEY_NUMBER }}', this)">Copier</button>
+        </div>
+
+        <div class="hub-pay-box">
+          <div class="hub-pay-info">
+            <div class="hub-pay-icon hub-pay-momo">M</div>
+            <div>
+              <div style="font-size: 0.82rem; color: var(--hub-text-muted);">MTN Mobile Money Cameroun</div>
+              <div class="hub-pay-number">{{ hub_settings.MTN_MOMO_NUMBER }}</div>
+            </div>
+          </div>
+          <button type="button" class="hub-btn hub-btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="copyNumber('{{ hub_settings.MTN_MOMO_NUMBER }}', this)">Copier</button>
+        </div>
+
+        <div class="hub-pay-box">
+          <div class="hub-pay-info">
+            <div class="hub-pay-icon hub-pay-ecobank">ECO</div>
+            <div>
+              <div style="font-size: 0.82rem; color: var(--hub-text-muted);">Ecobank (RIB Virement / Dépôt)</div>
+              <div class="hub-pay-number" style="font-size: 1rem;">{{ hub_settings.ECOBANK_RIB }}</div>
+            </div>
+          </div>
+          <button type="button" class="hub-btn hub-btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="copyNumber('{{ hub_settings.ECOBANK_RIB }}', this)">Copier</button>
+        </div>
+      </div>
+
+      <div class="hub-form-group">
+        <label class="hub-label hub-label-required">{{ form.payment_method.label }}</label>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+          {% for radio in form.payment_method %}
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.92rem; background: var(--hub-surface-2); padding: 0.65rem 1rem; border-radius: var(--hub-radius-sm); border: 1px solid var(--hub-border);">
+              {{ radio.tag }}
+              <span>{{ radio.choice_label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 3 : JUSTIFICATIF OBLIGATOIRE -->
+    <div class="hub-card hub-card-gold">
+      <div class="hub-card-header">
+        <h2 class="hub-card-title">Étape 3 — Justificatif de Paiement</h2>
+        <span class="hub-badge hub-badge-warning">Étape 3 / 4</span>
+      </div>
+
+      <div class="hub-form-group">
+        <label class="hub-label hub-label-required" for="{{ form.proof_file.id_for_label }}">{{ form.proof_file.label }}</label>
+        {{ form.proof_file }}
+        <div class="hub-help-text">{{ form.proof_file.help_text }}</div>
+        {% if form.proof_file.errors %}<div class="hub-error-text">{{ form.proof_file.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="hub-form-group">
+        <label class="hub-label" for="{{ form.proof_notes.id_for_label }}">{{ form.proof_notes.label }}</label>
+        {{ form.proof_notes }}
+        {% if form.proof_notes.errors %}<div class="hub-error-text">{{ form.proof_notes.errors.0 }}</div>{% endif %}
+      </div>
+    </div>
+
+    <!-- ÉTAPE 4 : CASTING (PHOTOS & VIDÉO) -->
+    <div class="hub-card hub-card-gold">
+      <div class="hub-card-header">
+        <h2 class="hub-card-title">Étape 4 — Photos et Vidéo de Casting</h2>
+        <span class="hub-badge hub-badge-warning">Étape 4 / 4</span>
+      </div>
+
+      <div class="hub-grid-2">
+        <div class="hub-form-group">
+          <label class="hub-label hub-label-required" for="{{ form.photo_portrait.id_for_label }}">{{ form.photo_portrait.label }}</label>
+          {{ form.photo_portrait }}
+          <div class="hub-help-text">{{ form.photo_portrait.help_text }}</div>
+          {% if form.photo_portrait.errors %}<div class="hub-error-text">{{ form.photo_portrait.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="hub-form-group">
+          <label class="hub-label hub-label-required" for="{{ form.photo_full_length.id_for_label }}">{{ form.photo_full_length.label }}</label>
+          {{ form.photo_full_length }}
+          <div class="hub-help-text">{{ form.photo_full_length.help_text }}</div>
+          {% if form.photo_full_length.errors %}<div class="hub-error-text">{{ form.photo_full_length.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="hub-form-group" style="margin-top: 0.5rem;">
+        <label class="hub-label" for="{{ form.video_url.id_for_label }}">{{ form.video_url.label }}</label>
+        {{ form.video_url }}
+        <div class="hub-help-text">{{ form.video_url.help_text }}</div>
+        {% if form.video_url.errors %}<div class="hub-error-text">{{ form.video_url.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="hub-form-group">
+        <label class="hub-label" for="{{ form.video_file.id_for_label }}">{{ form.video_file.label }}</label>
+        {{ form.video_file }}
+        {% if form.video_file.errors %}<div class="hub-error-text">{{ form.video_file.errors.0 }}</div>{% endif %}
+      </div>
+    </div>
+
+    <!-- CONSENTEMENTS & MENTION LÉGALE OBLIGATOIRE -->
+    <div class="hub-card" style="border-color: rgba(225, 29, 72, 0.4); background: rgba(225, 29, 72, 0.04);">
+      <div style="margin-bottom: 1rem;">
+        <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; font-size: 0.9rem;">
+          {{ form.gdpr_consent }}
+          <span>{{ form.gdpr_consent.label }}</span>
+        </label>
+        {% if form.gdpr_consent.errors %}<div class="hub-error-text">{{ form.gdpr_consent.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div style="padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08);">
+        <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; font-size: 0.9rem; font-weight: 700; color: #fff;">
+          {{ form.selection_disclaimer_accepted }}
+          <span style="color: #FCA5A5;">{{ form.selection_disclaimer_accepted.label }}</span>
+        </label>
+        {% if form.selection_disclaimer_accepted.errors %}<div class="hub-error-text">{{ form.selection_disclaimer_accepted.errors.0 }}</div>{% endif %}
+      </div>
+    </div>
+
+    <!-- Bouton de validation final -->
+    <div style="margin-top: 1.5rem; text-align: center;">
+      <button type="submit" class="hub-btn hub-btn-primary hub-btn-block hub-btn-lg" style="box-shadow: 0 8px 25px rgba(212, 175, 55, 0.35);">
+        ✦ JE M’INSCRIS AU CASTING
+      </button>
+      <div style="font-size: 0.8rem; color: var(--hub-text-muted); margin-top: 0.75rem;">
+        Vos données sont sécurisées et traitées selon les normes de confidentialité.
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function copyNumber(text, btn) {
+    navigator.clipboard.writeText(text).then(function() {
+      var old = btn.innerText;
+      btn.innerText = "Copié !";
+      setTimeout(function() { btn.innerText = old; }, 2000);
+    });
+  }
+
+  // Détection dynamique de l'âge pour affichage de la section mineur
+  var birthInput = document.getElementById("id_birth_date");
+  var minorSec = document.getElementById("minor-section");
+  var ageBadge = document.getElementById("age-calc-badge");
+
+  function evaluateAge() {
+    if (!birthInput || !birthInput.value) return;
+    var bDate = new Date(birthInput.value);
+    var today = new Date();
+    var age = today.getFullYear() - bDate.getFullYear();
+    var m = today.getMonth() - bDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < bDate.getDate())) {
+      age--;
+    }
+    if (!isNaN(age)) {
+      ageBadge.innerText = age + " ans calculés";
+      if (age < 18) {
+        minorSec.style.display = "block";
+      } else {
+        minorSec.style.display = "none";
+      }
+    }
+  }
+
+  if (birthInput) {
+    birthInput.addEventListener("change", evaluateAge);
+    evaluateAge();
+  }
+
+  // Détection dynamique Cameroun vs International pour mise à jour du tarif affiché
+  var countryInput = document.getElementById("id_country");
+  var feeDisplay = document.getElementById("display-fee");
+
+  function evaluateCountry() {
+    if (!countryInput || !feeDisplay) return;
+    var c = countryInput.value.trim().toLowerCase();
+    if (c && c !== "cameroun" && c !== "cm" && c !== "cameroon") {
+      feeDisplay.innerText = "5 000 XAF";
+    } else {
+      feeDisplay.innerText = "3 000 XAF";
+    }
+  }
+
+  if (countryInput) {
+    countryInput.addEventListener("input", evaluateCountry);
+    evaluateCountry();
+  }
+</script>
+{% endblock %}
