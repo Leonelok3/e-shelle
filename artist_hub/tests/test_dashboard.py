@@ -121,3 +121,33 @@ class StaffDashboardSecurityTests(TestCase):
         content = response.content.decode("utf-8")
         self.assertIn("CAST-2026-0777", content)
         self.assertIn("Tchoupo", content)
+
+    def test_dashboard_metrics_follow_payment_and_jury_decision(self):
+        from artist_hub.payments.services import handle_payment_success
+        handle_payment_success(self.payment)
+        self.candidate.refresh_from_db()
+        self.candidate.status = CandidateStatus.RETENU
+        self.candidate.save(update_fields=["status"])
+        self.client.force_login(self.staff_user)
+        response = self.client.get(reverse("artist_hub:casting:dashboard"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["kpis"]["inscrits"], 1)
+        self.assertEqual(response.context["kpis"]["unpaid"], 0)
+        self.assertEqual(response.context["kpis"]["retained"], 1)
+        self.assertEqual(response.context["kpis"]["revenue"], 3000)
+        self.assertContains(response, "Session Staff Test")
+
+    def test_public_countdown_uses_session_date_and_posters(self):
+        from django.utils import timezone
+        self.session.closes_at = timezone.now() + datetime.timedelta(days=30)
+        self.session.save(update_fields=["closes_at"])
+        response = self.client.get(reverse("artist_hub:casting:index"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-open="yes"')
+        self.assertContains(response, 'data-deadline="')
+        self.assertNotContains(response, "2026-09-28")
+        for filename in ("douala-fashion-week.jpeg", "casting-oplus.jpeg", "fashion-week-2026.jpeg"):
+            self.assertContains(response, filename)
+        stats = self.client
+        stats.force_login(self.staff_user)
+        self.assertEqual(stats.get(reverse("artist_hub:casting:staff_stats")).status_code, 200)

@@ -1,4 +1,5 @@
 {% extends "artist_hub/base.html" %}
+{% load static %}
 
 {% block title %}Dashboard Staff — {{ hub_settings.EVENT_TITLE }}{% endblock %}
 
@@ -26,8 +27,17 @@
     </div>
   </div>
 
+<section class="hub-staff-banner">
+    <img src="{% static 'artist_hub/img/douala-fashion-week.jpeg' %}" alt="Douala Fashion Week 2026" width="1066" height="1600">
+    <div><p class="hub-eyebrow">CENTRE DE PILOTAGE · OPLUS</p><h2>Du dossier au défilé</h2><p>Contrôlez les justificatifs, consultez les profils et préparez la sélection du jury.</p><a href="{% url 'artist_hub:casting:index' %}" class="hub-nav-link">Voir la page publique →</a></div>
+  </section>
+  <section class="hub-session-list" aria-label="Sessions de casting">
+    {% for casting in casting_sessions %}<div class="hub-session-item"><div><strong>{{ casting.title }}</strong><p class="hub-muted">{% if casting.closes_at %}Clôture : {{ casting.closes_at|date:"d/m/Y H:i" }} (heure de Douala){% else %}Aucune date de clôture{% endif %}</p></div><span class="hub-badge {% if casting.is_open %}hub-badge-success{% else %}hub-badge-warning{% endif %}">{% if casting.is_open %}Inscriptions ouvertes{% else %}Inscriptions fermées{% endif %}</span></div>{% empty %}<p>Aucune session configurée.</p>{% endfor %}
+  </section>
+  <div class="hub-queue-summary"><span>Non payés : <strong>{{ kpis.unpaid }}</strong></span><span>Présélectionnés : <strong>{{ kpis.preselected }}</strong></span><span>Retenus : <strong>{{ kpis.retained }}</strong></span><span>Refusés : <strong>{{ kpis.refused }}</strong></span></div>
+
   <!-- Cartes KPIs -->
-  <div class="hub-grid-3" style="margin-bottom: 1.5rem;">
+  <div class="hub-kpi-grid" style="margin-bottom: 1.5rem;">
     <div class="hub-card" style="padding: 1.25rem; margin-bottom: 0;">
       <div style="font-size: 0.8rem; color: var(--hub-text-muted); text-transform: uppercase;">Total Dossiers</div>
       <div style="font-size: 1.8rem; font-weight: 800; color: #fff; margin-top: 0.25rem;">{{ kpis.total }}</div>
@@ -83,7 +93,7 @@
         <thead>
           <tr style="border-bottom: 1px solid var(--hub-border); background: var(--hub-surface-2); color: var(--hub-text-muted); font-size: 0.78rem; text-transform: uppercase;">
             <th style="padding: 0.75rem 1rem; width: 40px;">
-              <input type="checkbox" id="select-all" onclick="toggleSelectAll(this)">
+              <input type="checkbox" id="select-all" aria-label="Sélectionner tous les dossiers de cette page" onclick="toggleSelectAll(this)">
             </th>
             <th style="padding: 0.75rem 0.5rem;">Photo</th>
             <th style="padding: 0.75rem 0.75rem;">Identifiants</th>
@@ -105,7 +115,7 @@
               <td style="padding: 0.75rem 0.5rem;">
                 {% with c.photos.first as p %}
                   {% if p and p.image %}
-                    <img src="{{ p.image.url }}" style="width: 44px; height: 56px; object-fit: cover; border-radius: 4px; border: 1px solid var(--hub-border);">
+                    <img src="{{ p.image.url }}" alt="Photo de {{ c.full_name }}" loading="lazy" style="width: 44px; height: 56px; object-fit: cover; border-radius: 4px; border: 1px solid var(--hub-border);">
                   {% else %}
                     <div style="width: 44px; height: 56px; background: var(--hub-surface-2); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--hub-text-muted);">N/A</div>
                   {% endif %}
@@ -113,7 +123,7 @@
               </td>
               <td style="padding: 0.75rem 0.75rem;">
                 <strong style="color: #fff; font-family: monospace;">{{ c.candidate_number }}</strong>
-                <div style="font-family: monospace; font-size: 0.78rem; color: var(--hub-primary);">Code: {{ c.access_code }}</div>
+                <div style="font-family: monospace; font-size: 0.78rem; color: var(--hub-primary);">{{ c.created_at|date:"d/m/Y H:i" }}</div>
               </td>
               <td style="padding: 0.75rem 0.75rem;">
                 <div style="font-weight: 700; color: #fff;">{{ c.full_name }}</div>
@@ -151,6 +161,7 @@
                 {% endif %}
               </td>
               <td style="padding: 0.75rem 0.75rem;">
+                {% if c.payment %}<div class="hub-payment-summary">{{ c.payment.amount|floatformat:0 }} {{ c.payment.currency }}<small>{{ c.payment.get_status_display }}</small></div>{% endif %}
                 {% if c.payment and c.payment.proof_file %}
                   <a href="{% url 'artist_hub:casting:staff_payment_proof' candidate_number=c.candidate_number %}" target="_blank" class="hub-btn hub-btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
                     Voir preuve

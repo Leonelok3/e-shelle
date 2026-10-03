@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.generic import View, ListView, DetailView, TemplateView
-from .models import Candidate, CandidateStatus, CandidateGender
+from .models import Candidate, CandidateStatus, CandidateGender, CastingSession
 from .staff_filters import filtered_candidates
 from artist_hub.conf import hub_settings
 from artist_hub.payments.models import Payment, PaymentStatus
@@ -35,6 +35,7 @@ def metrics(qs):
     payments = Payment.objects.filter(pk__in=qs.order_by().values("payment_id"), status=PaymentStatus.SUCCESS)
     by_currency = list(payments.values("currency").annotate(amount=Sum("amount"), count=Count("pk")).order_by("currency"))
     return {"total": total, "inscrits": paid,
+        "unpaid": total - paid, "refused": qs.filter(status=CandidateStatus.REFUSE).count(),
         "pending_validation": qs.filter(status=CandidateStatus.EN_ATTENTE_VALIDATION).count(),
         "preselected": qs.filter(status=CandidateStatus.PRESELECTIONNE).count(),
         "retained": qs.filter(status=CandidateStatus.RETENU).count(),
@@ -84,6 +85,7 @@ class StaffDashboardListView(StaffOnlyMixin, ListView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx.update(filter_context(self.request, self.filtered, self.filter_form))
+        ctx["casting_sessions"] = CastingSession.objects.order_by("-created_at")
         return ctx
 
 class StaffCandidateDetailView(StaffOnlyMixin, DetailView):

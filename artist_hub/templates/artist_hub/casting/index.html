@@ -17,8 +17,8 @@
     <!-- Compte à rebours avant clôture -->
     <div style="background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 50px; display: inline-flex; align-items: center; gap: 1rem; padding: 0.6rem 1.5rem; margin-bottom: 2rem;">
       <span style="color: var(--hub-primary); font-weight: 700;">⏱ Clôture des inscriptions :</span>
-      <span id="countdown" style="font-family: monospace; font-size: 1.1rem; font-weight: 800; color: #fff;">
-        28 Septembre 2026
+      <span id="countdown" data-deadline="{{ session.closes_at|date:'c' }}" data-open="{{ session.is_open|yesno:'yes,no' }}" style="font-family: monospace; font-size: 1.1rem; font-weight: 800; color: #fff;">
+        {% if session.is_open %}{% if session.closes_at %}{{ session.closes_at|date:"d/m/Y H:i" }}{% else %}Inscriptions ouvertes{% endif %}{% else %}Inscriptions closes{% endif %}
       </span>
     </div>
 
@@ -35,6 +35,7 @@
 
 <!-- Critères officiels de recrutement (depuis les affiches OPLUS) -->
 <section class="hub-container" style="padding-bottom: 2.5rem;">
+  {% include "artist_hub/_posters.html" %}
   <div class="hub-grid-3">
     <!-- Critère Hommes -->
     <div class="hub-card hub-card-gold" style="text-align: center;">
@@ -147,8 +148,10 @@
 <script>
   // Compte à rebours dynamique
   (function() {
-    var targetDate = new Date("2026-09-28T23:59:59").getTime();
     var countdownEl = document.getElementById("countdown");
+    if (countdownEl.dataset.open !== "yes" || !countdownEl.dataset.deadline) return;
+    var targetDate = new Date(countdownEl.dataset.deadline).getTime();
+    if (!Number.isFinite(targetDate)) return;
 
     function updateTimer() {
       var now = new Date().getTime();

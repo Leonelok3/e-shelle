@@ -27,6 +27,7 @@ sudo -u eshelle .venv/bin/python manage.py dumpdata --all --output "$backup_file
 sudo -u eshelle .venv/bin/python manage.py migrate --noinput
 sudo -u eshelle .venv/bin/python manage.py init_casting_session
 sudo -u eshelle .venv/bin/python manage.py collectstatic --noinput
+sudo bash deploy/publish_artist_hub_static.sh
 sudo -u eshelle .venv/bin/python manage.py showmigrations artist_hub
 sudo systemctl restart eshelle
 sudo systemctl is-active eshelle
