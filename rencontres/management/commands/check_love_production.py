@@ -2,6 +2,8 @@ from urllib.parse import urljoin
 from urllib.request import urlopen
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.staticfiles.storage import staticfiles_storage
+from django.contrib.staticfiles import finders
+from pathlib import Path
 from django.db.migrations.executor import MigrationExecutor
 from django.db import connection
 from rencontres.models import PlanPremiumRencontre
@@ -32,11 +34,17 @@ class Command(BaseCommand):
                          'rencontres/images/love-social.png',
                          'rencontres/js/discovery.js', 'rencontres/js/messaging.js']:
                 url = urljoin(options['origin'], staticfiles_storage.url(name))
+                if name.endswith(('love-experience.css', 'love-experience.js', 'love-social.png')):
+                    url += '?v=20261003-2'
                 try:
                     with urlopen(url, timeout=20) as response:
                         mime = response.headers.get_content_type()
                         if response.status != 200 or mime == 'text/html':
                             raise CommandError(f'Fichier statique incorrect : {url}')
+                        if name.endswith(('love-experience.css', 'love-experience.js', 'love-social.png')):
+                            source = finders.find(name)
+                            if not source or response.read() != Path(source).read_bytes():
+                                raise CommandError(f'Le fichier publié ne correspond pas au code Love : {url}')
                     self.stdout.write(f'HTTP 200 : {url}')
                 except OSError as exc:
                     raise CommandError(f'Fichier inaccessible : {url}') from exc
