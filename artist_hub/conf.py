@@ -13,7 +13,7 @@ DEFAULTS = {
     "EVENT_TITLE": os.getenv("ARTIST_HUB_EVENT_TITLE", "Douala Fashion Week 2026"),
     "EVENT_SUBTITLE": os.getenv(
         "ARTIST_HUB_EVENT_SUBTITLE",
-        "Samedi 26 Décembre 2026 — Hôtel Krystal Palace Douala",
+        "Casting : 14 novembre 2026 · Défilé : 26 décembre 2026 — Hôtel Krystal Palace Douala",
     ),
     "SLOGAN": os.getenv(
         "ARTIST_HUB_SLOGAN",

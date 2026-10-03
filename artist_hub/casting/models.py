@@ -42,6 +42,9 @@ class CastingSession(models.Model):
             "4. Les photos et vidéos fournies doivent être récentes, fidèles et sans filtres déformants."
         ),
     )
+    casting_date = models.DateField(
+        null=True, blank=True, verbose_name=_("Date du casting"),
+    )
     event_date = models.DateField(
         null=True,
         blank=True,

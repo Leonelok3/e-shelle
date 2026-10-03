@@ -34,6 +34,7 @@ class CandidatePhotoInline(admin.TabularInline):
 class CastingSessionAdmin(admin.ModelAdmin):
     list_display = (
         "title",
+        "casting_date",
         "event_date",
         "event_location",
         "is_active",

@@ -23,7 +23,24 @@ class SessionCommandTests(TestCase):
         call_command("init_casting_session", extend_registration=True, stdout=StringIO())
         session.refresh_from_db()
         self.assertEqual(session.closes_at, datetime.datetime(
-            2026, 12, 25, 23, 59, 59, tzinfo=ZoneInfo("Africa/Douala")))
+            2026, 11, 13, 23, 59, 59, tzinfo=ZoneInfo("Africa/Douala")))
+        self.assertEqual(session.casting_date, datetime.date(2026, 11, 14))
+        self.assertEqual(session.event_date, datetime.date(2026, 12, 26))
         self.assertTrue(session.is_open)
         self.assertEqual(session.title, "Titre personnalisé")
         self.assertEqual(session.fee_cameroon, 4000)
+
+    def test_calendar_migration_only_updates_official_session(self):
+        from importlib import import_module
+        from types import SimpleNamespace
+        from django.apps import apps
+        from django.db import connection
+        official = CastingSession.objects.create(slug="douala-fashion-week-2026", title="OPLUS")
+        other = CastingSession.objects.create(slug="other-event", title="Autre casting")
+        import_module("artist_hub.migrations.0006_casting_november_calendar").update_calendar(apps, SimpleNamespace(connection=connection))
+        official.refresh_from_db()
+        other.refresh_from_db()
+        self.assertEqual(official.casting_date, datetime.date(2026, 11, 14))
+        self.assertEqual(official.event_date, datetime.date(2026, 12, 26))
+        self.assertEqual(official.closes_at, datetime.datetime(2026, 11, 13, 23, 59, 59, tzinfo=ZoneInfo("Africa/Douala")))
+        self.assertIsNone(other.casting_date)

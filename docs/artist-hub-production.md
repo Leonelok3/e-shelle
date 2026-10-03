@@ -52,7 +52,7 @@ aucun paiement. Les routes publiques de paiement Artist Hub sont désactivées.
 - Dashboard staff : https://e-shelle.com/artist-hub/staff/dashboard/
 - Administration : https://e-shelle.com/admin/
 
-La commande d'initialisation fixe les nouvelles sessions au **25 décembre 2026
+La commande d'initialisation fixe les nouvelles sessions au **13 novembre 2026
 à 23:59:59, heure de Douala**. Pour prolonger et réactiver la session existante :
 
 ```bash
@@ -69,3 +69,5 @@ En cas d'échec du service :
 ```bash
 sudo journalctl -u eshelle -n 100 --no-pager
 ```
+
+Le casting a lieu le 14 novembre 2026 ; le défilé le 26 décembre 2026. La migration du calendrier met à jour la session officielle existante.

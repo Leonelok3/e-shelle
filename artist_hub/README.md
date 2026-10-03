@@ -20,7 +20,7 @@ python manage.py init_casting_session --extend-registration
 python manage.py collectstatic --noinput
 ```
 
-La clôture est fixée au 25 décembre 2026 à 23:59:59, heure de Douala.
+La clôture est fixée au 13 novembre 2026 à 23:59:59, heure de Douala.
 Les migrations confirment les anciens dossiers en attente et conservent les
 décisions du jury. Les anciens enregistrements financiers restent conservés ;
 aucune route publique de paiement n’est activée.
@@ -30,3 +30,5 @@ Déploiement du VPS existant : `docs/artist-hub-production.md`.
 ```bash
 python manage.py test artist_hub.tests --settings=artist_hub.tests.settings --noinput
 ```
+
+Casting : 14 novembre 2026. Défilé : 26 décembre 2026.

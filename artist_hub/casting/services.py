@@ -239,6 +239,8 @@ def generate_candidate_pdf(candidate: Candidate) -> bytes:
     p.drawString(2 * cm, y, "CASTING GRATUIT - FICHE DE CANDIDATURE")
     p.setFont("Helvetica", 9)
     p.drawString(2 * cm, y - 0.7 * cm, "Inscription enregistrée. La sélection finale appartient au jury.")
+    p.drawString(2 * cm, y - 1.25 * cm, f"Casting : {candidate.session.casting_date.strftime('%d/%m/%Y') if candidate.session.casting_date else 'À préciser'}")
+    p.drawString(2 * cm, y - 1.8 * cm, f"Défilé : {candidate.session.event_date.strftime('%d/%m/%Y') if candidate.session.event_date else 'À préciser'}")
     # QR Code incrusté dans le reçu
     qr_data = f"https://e-shelle.com/artist-hub/suivi/?code={candidate.access_code}&num={candidate.candidate_number}"
     qr_buf = generate_qr_code_image(qr_data)
@@ -327,6 +329,8 @@ def _send_registration_confirmation(candidate):
                 f"Bonjour {candidate.first_name},\n\n"
                 f"Nous avons le plaisir de vous confirmer votre inscription gratuite "
                 f"pour le casting de la {hub_settings.EVENT_TITLE}.\n\n"
+                f"Casting : {candidate.session.casting_date.strftime('%d/%m/%Y') if candidate.session.casting_date else 'À préciser'}.\n"
+                f"Défilé : {candidate.session.event_date.strftime('%d/%m/%Y') if candidate.session.event_date else 'À préciser'}, pour les profils retenus.\n\n"
                 f"Vos identifiants officiels :\n"
                 f"• Numéro de candidature : {candidate.candidate_number}\n"
                 f"• Code d'accès : {candidate.access_code}\n\n"
