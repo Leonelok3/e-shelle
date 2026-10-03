@@ -303,6 +303,12 @@ class SEOCorrectionAgent:
 def build_sitemap_entries(request):
     base = f"{request.scheme}://{request.get_host()}"
     entries = [{"loc": f"{base}{url}", "label": label, "kind": kind} for url, label, kind in PUBLIC_URLS]
+    from rencontres.seo_content import public_routes
+    love_origin = getattr(settings, 'RENCONTRES_PUBLIC_ORIGIN', 'https://e-shelle.com').rstrip('/')
+    for route in public_routes():
+        entries.append({'loc': love_origin + reverse('rencontres:' + route),
+                        'label': 'E-Shelle Love', 'kind': 'Rencontres locales et internationales',
+                        'lastmod': '2026-10-03'})
     for page in LocalSEOAgent().prioritized_pages(request=request, limit=100):
         entries.append({"loc": page["url"], "label": page["title"], "kind": "GEO rentable"})
 

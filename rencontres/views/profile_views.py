@@ -14,6 +14,7 @@ from rencontres.models import (
 from rencontres.forms import ProfilRencontreForm, PhotoProfilForm
 from rencontres.utils.matching_algo import get_profils_compatibles
 from rencontres.utils.notifications import get_stats_notifications
+from rencontres.utils.geography import horizon_context
 
 
 def profil_requis(vue):
@@ -104,6 +105,7 @@ def accueil_rencontre(request):
     ).count()
 
     return render(request, 'rencontres/accueil.html', {
+        **horizon_context(request),
         'profil': profil,
         'notifs': notifs,
         'suggestions': suggestions,
@@ -133,7 +135,7 @@ def creer_profil(request):
             profil.save()
             profil.calculer_completion()
             messages.success(request, "Votre profil a été créé ! Bienvenue sur E-Shelle Love.")
-            return redirect('rencontres:decouverte')
+            return redirect('rencontres:gerer_photos')
     else:
         # Pré-remplir avec les données du profil existant
         initial = {}
@@ -259,12 +261,12 @@ def gerer_photos(request):
                 photo = form.save(commit=False)
                 photo.profil = profil
                 photo.ordre = nb_photos
-                photo.est_approuvee = False
+                photo.est_approuvee = True
                 photo.est_principale = nb_photos == 0 or form.cleaned_data.get('est_principale')
                 photo.save()
                 messages.success(
                     request,
-                    "Photo envoyée. Elle sera visible après validation par l'administration."
+                    "Photo publiée ! Votre profil est maintenant visible dans Découvrir selon les préférences des autres membres."
                 )
                 profil.calculer_completion()
             return redirect('rencontres:gerer_photos')

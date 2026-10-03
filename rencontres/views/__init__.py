@@ -3,7 +3,7 @@ from .profile_views import (
     detail_profil, gerer_photos, parametres_rencontre,
     desactiver_compte_rencontre,
 )
-from .discovery_views import ajax_rembobiner, decouverte, filtres, ajax_like, ajax_passer, ajax_charger_profils
+from .discovery_views import ajax_rembobiner, decouverte, filtres, ajax_like, ajax_passer, ajax_charger_profils, choisir_horizon
 from .match_views import liste_matchs, detail_match, popup_nouveau_match, qui_maime
 from .messaging_views import (
     inbox, conversation, ajax_envoyer_message, ajax_marquer_lu,
@@ -17,7 +17,7 @@ from .seo_views import seo_landing
 __all__ = [
     'accueil_rencontre', 'creer_profil', 'modifier_profil',
     'detail_profil', 'gerer_photos', 'parametres_rencontre', 'desactiver_compte_rencontre',
-    'decouverte', 'filtres', 'ajax_like', 'ajax_passer', 'ajax_charger_profils',
+    'decouverte', 'filtres', 'ajax_like', 'ajax_passer', 'ajax_charger_profils', 'choisir_horizon',
     'liste_matchs', 'detail_match', 'popup_nouveau_match', 'qui_maime',
     'inbox', 'conversation', 'ajax_envoyer_message', 'ajax_marquer_lu',
     'ajax_check_notifications',

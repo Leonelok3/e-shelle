@@ -1,0 +1,8 @@
+<section class="love-horizons" aria-label="Choisir mon horizon de rencontre">
+    <div class="love-horizon-heading"><div><p class="love-eyebrow">VOTRE HISTOIRE, VOTRE HORIZON</p><h2>Tout près ou au-delà des frontières ?</h2></div><a href="{% url 'rencontres:filtres' %}">Affiner mes critères <i class="bi bi-sliders" aria-hidden="true"></i></a></div>
+    <form method="post" action="{% url 'rencontres:choisir_horizon' %}" class="love-horizon-options">
+        {% csrf_token %}
+        {% for horizon in horizons %}<button type="submit" name="horizon" value="{{ horizon.value }}" class="love-horizon {% if horizon_selectionne == horizon.value %}selected{% endif %}" aria-pressed="{% if horizon_selectionne == horizon.value %}true{% else %}false{% endif %}"><i class="bi {{ horizon.icon }}" aria-hidden="true"></i>{{ horizon.label }}</button>{% endfor %}
+    </form>
+    <p class="love-tiny">Changer d’horizon retire les anciens filtres de pays, ville et distance. Vos critères d’âge et de langue sont conservés.</p>
+</section>

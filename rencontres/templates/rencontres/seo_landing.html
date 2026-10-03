@@ -1,4 +1,5 @@
 {% extends 'rencontres/base_rencontre.html' %}
+{% load love_seo %}
 
 {% block title %}{{ page.title }} — E-Shelle Love{% endblock %}
 {% block meta_description %}{{ page.intro }}{% endblock %}
@@ -72,6 +73,7 @@
 
 {% block content %}
 <div class="seo-wrap">
+    <nav class="love-breadcrumb" aria-label="Fil d’Ariane"><a href="{% url 'rencontres:accueil' %}">E-Shelle Love</a><span aria-hidden="true">/</span><span>{{ page.city }}</span></nav>
     <section class="seo-hero">
         <div>
             <div style="color:var(--love-primary);font-weight:800;margin-bottom:.5rem">
@@ -96,11 +98,11 @@
             <h2>Rencontres plus sérieuses</h2>
             <p>
                 L'objectif est de favoriser des échanges respectueux, avec profils détaillés,
-                photos validées et messagerie après match.
+                photos publiées immédiatement et messagerie après match.
             </p>
         </article>
         <article class="seo-card">
-            <h2>Pourquoi {{ page.city }}</h2>
+            <h2>Votre horizon {{ page.city }}</h2>
             <ul style="margin:0;padding-left:1.1rem">
                 {% for point in page.points %}
                 <li>{{ point }}</li>
@@ -116,14 +118,9 @@
         </article>
     </div>
 
-    <section class="seo-card">
-        <h2>Explorer les pages locales</h2>
-        <div class="seo-links">
-            <a href="{% url 'rencontres:seo_cameroun' %}" class="btn-love-outline">Cameroun</a>
-            <a href="{% url 'rencontres:seo_douala' %}" class="btn-love-outline">Douala</a>
-            <a href="{% url 'rencontres:seo_yaounde' %}" class="btn-love-outline">Yaoundé</a>
-            <a href="{% url 'rencontres:premium' %}" class="btn-love-outline">Abonnements</a>
-        </div>
-    </section>
+    <div class="love-editorial-grid">{% for heading, text in page.sections %}<article class="seo-card"><h2>{{ heading }}</h2><p>{{ text }}</p></article>{% endfor %}</div>
+    {% love_destinations %}
+    {% love_questions %}
+    <section class="love-landing-bottom"><h2>La prochaine conversation commence par vous.</h2><p>Tout près. Au-delà des frontières. À votre rythme.</p><a href="{% url 'rencontres:creer_profil' %}" class="btn-love">Créer mon profil gratuitement</a><p class="love-tiny"><a href="{% url 'rencontres:securite' %}">Les conseils pour des rencontres sereines</a></p></section>
 </div>
 {% endblock %}

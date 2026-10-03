@@ -101,7 +101,7 @@ def activer_boost(request):
             now = timezone.now()
             uses = [stamp for stamp in profil.boost_utilisations if stamp > (now - timedelta(days=7)).isoformat()]
             if not profil.photos.filter(est_approuvee=True).exists():
-                messages.info(request, "Ajoutez une photo approuvée avant d'activer un boost.")
+                messages.info(request, "Ajoutez une photo avant d'activer un boost.")
             elif profil.boost_fin and profil.boost_fin > now:
                 messages.info(request, "Votre boost est déjà actif.")
             elif len(uses) >= quota:

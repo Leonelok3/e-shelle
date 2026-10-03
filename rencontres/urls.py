@@ -11,6 +11,10 @@ urlpatterns = [
     path('rencontre-serieuse-cameroun/', views.seo_landing, {'slug': 'cameroun'}, name='seo_cameroun'),
     path('rencontre-serieuse-douala/', views.seo_landing, {'slug': 'douala'}, name='seo_douala'),
     path('rencontre-serieuse-yaounde/', views.seo_landing, {'slug': 'yaounde'}, name='seo_yaounde'),
+    path('rencontre-internationale/', views.seo_landing, {'slug': 'international'}, name='seo_international'),
+    path('rencontre-afrique/', views.seo_landing, {'slug': 'afrique'}, name='seo_afrique'),
+    path('rencontre-europe/', views.seo_landing, {'slug': 'europe'}, name='seo_europe'),
+    path('rencontre-canada/', views.seo_landing, {'slug': 'canada'}, name='seo_canada'),
 
     # Profil
     path('profil/creer/', views.creer_profil, name='creer_profil'),
@@ -21,6 +25,7 @@ urlpatterns = [
     # Découverte
     path('decouverte/', views.decouverte, name='decouverte'),
     path('filtres/', views.filtres, name='filtres'),
+    path('horizon/', views.choisir_horizon, name='choisir_horizon'),
 
     # Actions AJAX
     path('ajax/like/<int:profil_id>/', views.ajax_like, name='ajax_like'),

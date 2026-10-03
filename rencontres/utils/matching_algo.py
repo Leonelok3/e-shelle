@@ -138,6 +138,9 @@ def get_profils_compatibles(profil, limit=20, exclude_ids=None, filters=None):
     from rencontres.models import ProfilRencontre, Like, Blocage
     from rencontres.utils.access import entitlements
     from django.db.models import Q
+    from django.db.models import Case, When, F
+    from django.db.models.functions import Trim
+    from rencontres.utils.geography import AFRICA, EUROPE
     from django.utils import timezone
     if not profil.est_actif or profil.age() < 18:
         return []
@@ -156,8 +159,25 @@ def get_profils_compatibles(profil, limit=20, exclude_ids=None, filters=None):
     qs = qs.exclude(pk__in=hidden)
     if profil.recherche_genre:
         qs = qs.filter(genre=profil.recherche_genre.lower())
+    qs = qs.annotate(residence_trimmed=Trim('pays_residence'), current_city=Trim('ville'),
+        current_country=Case(
+            When(Q(est_diaspora=True) & ~Q(residence_trimmed=''), then=F('residence_trimmed')),
+            default=Trim('pays')))
+    horizon = filters.get('horizon') or 'monde'
+    if horizon == 'ma_ville':
+        qs = qs.filter(current_country__iexact=profil.pays_actuel, current_city__iexact=profil.ville.strip())
+    elif horizon in ('afrique', 'europe'):
+        countries = AFRICA if horizon == 'afrique' else EUROPE
+        country_query = Q()
+        for country in countries:
+            country_query |= Q(current_country__iexact=country)
+        qs = qs.filter(country_query)
+    elif horizon == 'canada':
+        qs = qs.filter(current_country__iexact='Canada')
     if filters.get('pays'):
-        qs = qs.filter(pays__iexact=filters['pays'])
+        qs = qs.filter(current_country__iexact=filters['pays'])
+    if filters.get('ville'):
+        qs = qs.filter(current_city__iexact=filters['ville'].strip())
     if filters.get('religion'):
         qs = qs.filter(religion=filters['religion'])
     if filters.get('verifie_seulement'):
@@ -172,6 +192,8 @@ def get_profils_compatibles(profil, limit=20, exclude_ids=None, filters=None):
     results = []
     # Boosted members enter the candidate pool first, but still meet all filters.
     for candidate in qs.order_by('-boost_fin', '-derniere_connexion')[:500]:
+        if filters.get('langue') and filters['langue'] not in (candidate.langues or []):
+            continue
         if not minimum <= candidate.age() <= maximum:
             continue
         if candidate.recherche_genre and candidate.recherche_genre != profil.genre:

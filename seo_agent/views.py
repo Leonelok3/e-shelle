@@ -78,6 +78,13 @@ def robots_txt(request):
         "Disallow: /whatsapp/",
         "Disallow: /commercial-agent/",
         "Disallow: /phone-ocr/",
+        "Disallow: /rencontres/profil/",
+        "Disallow: /rencontres/messages/",
+        "Disallow: /rencontres/matchs/",
+        "Disallow: /rencontres/match/",
+        "Disallow: /rencontres/ajax/",
+        "Disallow: /rencontres/moderation/",
+        "Disallow: /rencontres/parametres/",
     ]
     
     lines = []
@@ -110,7 +117,7 @@ def sitemap_xml(request):
     for entry in entries:
         xml.append("  <url>")
         xml.append(f"    <loc>{entry['loc']}</loc>")
-        xml.append(f"    <lastmod>{today}</lastmod>")
+        xml.append(f"    <lastmod>{entry.get('lastmod', today)}</lastmod>")
         xml.append("    <changefreq>weekly</changefreq>")
         xml.append("    <priority>0.8</priority>")
         xml.append("  </url>")

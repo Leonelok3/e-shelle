@@ -14,6 +14,7 @@ from rencontres.utils.notifications import get_stats_notifications, verifier_lim
 from rencontres.views.profile_views import profil_requis
 from rencontres.utils.access import entitlements
 from django.views.decorators.csrf import ensure_csrf_cookie
+from rencontres.utils.geography import HORIZONS, horizon_context
 
 
 @profil_requis
@@ -31,7 +32,7 @@ def decouverte(request):
             'prenom': p.prenom_affiche,
             'age': p.age(),
             'ville': p.ville,
-            'pays': p.pays,
+            'pays': p.pays_actuel,
             'profession': p.profession,
             'biographie': p.biographie[:200] if p.biographie else '',
             'religion': p.get_religion_display() if p.religion else '',
@@ -49,6 +50,7 @@ def decouverte(request):
     profil_visible = profil.photos.filter(est_approuvee=True).exists()
 
     return render(request, 'rencontres/discovery.html', {
+        **horizon_context(request),
         'profil': profil,
         'profils_json': profils_initiaux,
         'likes_restants': likes_restants,
@@ -218,7 +220,7 @@ def ajax_charger_profils(request):
             'prenom': p.prenom_affiche,
             'age': p.age(),
             'ville': p.ville,
-            'pays': p.pays,
+            'pays': p.pays_actuel,
             'profession': p.profession,
             'biographie': p.biographie[:200] if p.biographie else '',
             'religion': p.get_religion_display() if p.religion else '',
@@ -233,6 +235,21 @@ def ajax_charger_profils(request):
     ]
 
     return JsonResponse({'profils': data, 'total': len(data)})
+
+
+@profil_requis
+@require_POST
+def choisir_horizon(request):
+    selected = request.POST.get('horizon')
+    if selected not in {value for value, _, _ in HORIZONS}:
+        return JsonResponse({'error': 'Horizon inconnu.'}, status=400)
+    filters = dict(request.session.get('filtres_rencontre', {}))
+    # A new horizon must not retain a contradictory country, city or radius.
+    for key in ('pays', 'ville', 'distance_km'):
+        filters.pop(key, None)
+    filters['horizon'] = selected
+    request.session['filtres_rencontre'] = filters
+    return redirect('rencontres:decouverte')
 
 
 @profil_requis

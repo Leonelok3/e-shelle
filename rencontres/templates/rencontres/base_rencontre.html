@@ -1,12 +1,32 @@
-{% load static %}
+{% load static love_seo %}
+{% love_metadata as love_meta %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}E-Shelle Love{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}Rencontres sérieuses pour les Africains et la diaspora{% endblock %}">
+    <meta name="description" content="{% block meta_description %}Rencontres locales et internationales en Afrique, en Europe et au Canada{% endblock %}">
     <meta name="theme-color" content="#E8436A">
+    {% if love_meta.public %}
+    <link rel="canonical" href="{{ love_meta.canonical }}">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="E-Shelle Love">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:title" content="{{ love_meta.title }}">
+    <meta property="og:description" content="{{ love_meta.description }}">
+    <meta property="og:url" content="{{ love_meta.canonical }}">
+    <meta property="og:image" content="{{ love_meta.image }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="E-Shelle Love — Rencontres locales et internationales, Afrique, Europe et Canada">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ love_meta.title }}">
+    <meta name="twitter:description" content="{{ love_meta.description }}">
+    <meta name="twitter:image" content="{{ love_meta.image }}">
+    <script type="application/ld+json">{{ love_meta.schema }}</script>
+    {% else %}<meta name="robots" content="noindex, nofollow">{% endif %}
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -16,10 +36,11 @@
     <link rel="stylesheet" href="{% static 'rencontres/css/rencontre.css' %}">
 
     <link rel="stylesheet" href="{% static 'rencontres/css/love-refresh.css' %}">
-    {% if request.resolver_match.url_name != 'accueil' and request.resolver_match.url_name != 'premium' and request.resolver_match.url_name != 'seo_cameroun' and request.resolver_match.url_name != 'seo_douala' and request.resolver_match.url_name != 'seo_yaounde' %}<meta name="robots" content="noindex, nofollow">{% endif %}
+    <link rel="stylesheet" href="{% static 'rencontres/css/love-experience.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
-<body class="rencontres-app">
+<body class="rencontres-app" data-love-page="{{ request.resolver_match.url_name }}">
+<a class="love-skip" href="#love-main">Aller au contenu</a>
 
 <!-- Navbar -->
 <nav class="love-navbar">
@@ -73,11 +94,11 @@
 {% endif %}
 
 <!-- Contenu principal -->
-<main>
+<main id="love-main">
     {% block content %}{% endblock %}
 </main>
 
-<footer class="love-footer">18 ans et plus · <a href="{% url 'rencontres:securite' %}">Conseils de sécurité</a> · <a href="{% url 'rencontres:premium' %}">Gratuit & pass Love</a></footer>
+<footer class="love-footer"><p>Tout près. Au-delà des frontières. À votre rythme.</p><p>Afrique · Europe · Canada</p>18 ans et plus · <a href="{% url 'rencontres:securite' %}">Conseils de sécurité</a> · <a href="{% url 'rencontres:seo_international' %}">Rencontres internationales</a> · <a href="{% url 'rencontres:premium' %}">Gratuit & pass Love</a></footer>
 <!-- Navigation bas (mobile) -->
 {% if request.user.is_authenticated and profil %}
 <nav class="love-bottom-nav d-md-none">
@@ -165,6 +186,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'rencontres/js/love-experience.js' %}" defer></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

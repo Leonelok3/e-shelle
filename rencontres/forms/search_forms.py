@@ -1,4 +1,6 @@
 from django import forms
+from rencontres.utils.geography import HORIZONS, AFRICA, EUROPE
+from rencontres.forms.profile_forms import LANGUES_CHOICES
 
 
 PAYS_CHOICES = [
@@ -25,8 +27,22 @@ RELIGION_CHOICES = [
     ('autre', 'Autre'),
 ]
 
+# Preserve historical values, while covering the wider international audience.
+existing_countries = {value for value, _ in PAYS_CHOICES}
+PAYS_CHOICES += [(country, country) for country in sorted(set(AFRICA + EUROPE))
+                 if country not in existing_countries]
+
 
 class FiltresRechercheForm(forms.Form):
+    horizon = forms.ChoiceField(
+        choices=[(value, label) for value, label, _ in HORIZONS], required=False,
+        initial='monde', label='Mon horizon de rencontre',
+        widget=forms.Select(attrs={'class': 'form-select'}))
+    ville = forms.CharField(max_length=100, required=False, label='Ville',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Paris, Montréal, Dakar…'}))
+    langue = forms.ChoiceField(choices=[('', 'Toutes les langues')] + LANGUES_CHOICES,
+        required=False, label='Une langue en commun',
+        widget=forms.Select(attrs={'class': 'form-select'}))
     age_min = forms.IntegerField(
         min_value=18, max_value=99, required=False,
         label="Âge minimum",
@@ -39,7 +55,7 @@ class FiltresRechercheForm(forms.Form):
     )
     pays = forms.ChoiceField(
         choices=PAYS_CHOICES, required=False,
-        label="Pays",
+        label="Pays de résidence",
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     religion = forms.ChoiceField(
@@ -84,4 +100,9 @@ class FiltresRechercheForm(forms.Form):
             raise forms.ValidationError(
                 "L'âge minimum doit être inférieur à l'âge maximum."
             )
+        horizon = cleaned.get('horizon') or 'monde'
+        country = cleaned.get('pays')
+        region = {'afrique': AFRICA, 'europe': EUROPE, 'canada': ('Canada',)}.get(horizon)
+        if region and country and country not in region:
+            self.add_error('pays', 'Choisissez un pays de cet horizon ou sélectionnez Sans frontières.')
         return cleaned

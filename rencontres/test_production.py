@@ -166,6 +166,48 @@ class LoveProductionTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('date_naissance', form.errors)
 
+    def test_upload_immediately_publishes_profile_and_main_photo(self):
+        self.b.photos.all().delete()
+        self.assertEqual(get_profils_compatibles(self.a), [])
+        self.client.force_login(self.b.user)
+        out = BytesIO()
+        Image.new('RGB', (400, 400)).save(out, format='PNG')
+        with TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
+            result = self.client.post(reverse('rencontres:gerer_photos'), {
+                'image': SimpleUploadedFile('portrait.png', out.getvalue(), content_type='image/png')})
+            self.assertEqual(result.status_code, 302)
+            photo = self.b.photos.get()
+            self.assertTrue(photo.est_approuvee)
+            self.assertTrue(photo.est_principale)
+            self.b.refresh_from_db()
+            self.assertEqual(self.b.photo_principale.name, photo.image.name)
+            self.assertFalse(self.b.badge_verifie)
+            self.assertContains(self.client.get(reverse('rencontres:gerer_photos')), photo.image.url)
+            self.client.force_login(self.a.user)
+            self.assertEqual(get_profils_compatibles(self.a)[0][0].pk, self.b.pk)
+            self.assertContains(self.client.get(reverse('rencontres:detail_profil', args=[self.b.pk])), photo.image.url)
+            self.assertEqual(self.client.post(reverse('rencontres:ajax_like', args=[self.b.pk]),
+                '{}', content_type='application/json').status_code, 200)
+
+    def test_pending_photo_migration_restores_visibility(self):
+        from importlib import import_module
+        from types import SimpleNamespace
+        from django.apps import apps
+        from django.db import connection
+        self.b.photos.all().delete()
+        photo = PhotoProfil.objects.create(profil=self.b, image='old-pending.webp', est_approuvee=False)
+        migrate = import_module('rencontres.migrations.0007_immediate_photo_publication').publish_pending_photos
+        migrate(apps, SimpleNamespace(connection=connection))
+        migrate(apps, SimpleNamespace(connection=connection))
+        photo.refresh_from_db()
+        self.b.refresh_from_db()
+        self.assertTrue(photo.est_approuvee)
+        self.assertTrue(photo.est_principale)
+        self.assertEqual(self.b.photo_principale.name, photo.image.name)
+        self.assertEqual(self.b.profil_complet, self.b.calculer_completion())
+        self.assertFalse(self.b.badge_verifie)
+        self.assertEqual(get_profils_compatibles(self.a)[0][0].pk, self.b.pk)
+
     def test_all_main_pages_render(self):
         for name in ['accueil', 'decouverte', 'premium', 'gerer_photos', 'parametres', 'filtres', 'matchs', 'inbox', 'coach', 'qui_maime']:
             with self.subTest(name=name):
@@ -191,7 +233,7 @@ class LoveProductionTests(TestCase):
         self.assertEqual(self.a.abonnements.filter(est_actif=True).count(), 1)
 
     def test_moderation_requires_permission_and_never_verifies_identity(self):
-        pending = PhotoProfil.objects.create(profil=self.a, image='pending.webp')
+        pending = PhotoProfil.objects.create(profil=self.a, image='pending.webp', est_approuvee=False)
         self.a.user.is_staff = True
         self.a.user.save()
         url = reverse('rencontres:moderation')
@@ -207,3 +249,138 @@ class LoveProductionTests(TestCase):
         self.b.save()
         response = self.client.get(reverse('rencontres:decouverte'))
         self.assertNotContains(response, '</script><script>alert(1)</script>')
+
+    def test_international_horizons_use_residence_and_languages(self):
+        self.b.est_diaspora = True
+        self.b.pays_residence = ' Canada '
+        self.b.ville = 'Montréal'
+        self.b.langues = ['Français', 'Anglais']
+        self.b.save()
+        self.assertEqual(self.b.pays_actuel, 'Canada')
+        self.assertEqual(get_profils_compatibles(self.a, filters={'horizon': 'afrique'}), [])
+        self.assertEqual(get_profils_compatibles(self.a, filters={'horizon': 'europe'}), [])
+        for filters in [{'horizon': 'canada'}, {'pays': 'Canada'},
+                        {'horizon': 'monde', 'ville': 'Montréal', 'langue': 'Français'}]:
+            with self.subTest(filters=filters):
+                self.assertEqual(get_profils_compatibles(self.a, filters=filters)[0][0].pk, self.b.pk)
+        self.assertEqual(get_profils_compatibles(self.a, filters={'langue': 'Espagnol'}), [])
+        self.assertEqual(get_profils_compatibles(self.a, filters={'horizon': 'ma_ville'}), [])
+        self.b.pays_residence = 'France'
+        self.b.save()
+        self.assertEqual(get_profils_compatibles(self.a, filters={'horizon': 'europe'})[0][0].pk, self.b.pk)
+        self.assertEqual(get_profils_compatibles(self.a, filters={'horizon': 'canada'}), [])
+
+    def test_local_horizon_and_international_blocks(self):
+        self.assertEqual(get_profils_compatibles(self.a, filters={'horizon': 'ma_ville'})[0][0].pk, self.b.pk)
+        self.b.pays = 'France'
+        self.b.save()
+        self.assertEqual(get_profils_compatibles(self.a, filters={'horizon': 'ma_ville'}), [])
+        Blocage.objects.create(bloqueur=self.b, bloque=self.a)
+        self.assertEqual(get_profils_compatibles(self.a, filters={'horizon': 'europe'}), [])
+
+    def test_horizon_switch_is_post_only_and_keeps_non_geographic_preferences(self):
+        session = self.client.session
+        session['filtres_rencontre'] = {'pays': 'Cameroun', 'ville': 'Douala', 'distance_km': 20,
+                                      'age_min': 25, 'langue': 'Français', 'religion': 'chretien'}
+        session.save()
+        url = reverse('rencontres:choisir_horizon')
+        self.assertEqual(self.client.get(url).status_code, 405)
+        self.assertEqual(self.client.post(url, {'horizon': 'invalid'}).status_code, 400)
+        self.assertEqual(self.client.post(url, {'horizon': 'canada'}).status_code, 302)
+        self.assertEqual(self.client.session['filtres_rencontre'], {
+            'horizon': 'canada', 'age_min': 25, 'langue': 'Français', 'religion': 'chretien'})
+
+    def test_international_filters_apply_to_initial_and_ajax_discovery(self):
+        self.b.est_diaspora = True
+        self.b.pays_residence = 'Canada'
+        self.b.save()
+        self.client.post(reverse('rencontres:choisir_horizon'), {'horizon': 'canada'})
+        response = self.client.get(reverse('rencontres:decouverte'))
+        self.assertEqual(response.context['profils_json'][0]['pays'], 'Canada')
+        result = self.client.get(reverse('rencontres:ajax_profils')).json()
+        self.assertEqual(result['profils'][0]['pays'], 'Canada')
+        self.client.post(reverse('rencontres:choisir_horizon'), {'horizon': 'afrique'})
+        self.assertEqual(self.client.get(reverse('rencontres:ajax_profils')).json()['profils'], [])
+
+    def test_regional_filter_conflicts_are_explained(self):
+        from rencontres.forms.search_forms import FiltresRechercheForm
+        form = FiltresRechercheForm({'horizon': 'canada', 'pays': 'France'})
+        self.assertFalse(form.is_valid())
+        self.assertIn('pays', form.errors)
+        form = FiltresRechercheForm({'horizon': 'europe', 'pays': 'Portugal', 'langue': 'Français'})
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_public_seo_pages_have_canonicals_valid_schema_and_visible_answers(self):
+        import json
+        import re
+        from html import unescape
+        from rencontres.seo_content import SEO_PAGES, COMMON_FAQ
+        self.client.logout()
+        routes = ['accueil'] + [page['route'] for page in SEO_PAGES.values()]
+        for route in routes:
+            with self.subTest(route=route):
+                url = reverse('rencontres:' + route)
+                response = self.client.get(url, {'source': 'Canada'})
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, f'<link rel="canonical" href="https://e-shelle.com{url}">', html=True)
+                self.assertNotContains(response, 'noindex')
+                html = response.content.decode()
+                data = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)[1])
+                faq = next(item for item in data['@graph'] if item['@type'] == 'FAQPage')
+                self.assertEqual(len(faq['mainEntity']), len(COMMON_FAQ))
+                visible = re.sub(r'<script.*?</script>', '', html, flags=re.S)
+                for question in COMMON_FAQ:
+                    self.assertIn(question['question'], unescape(visible))
+                    self.assertIn(question['answer'], unescape(visible))
+                self.assertContains(response, 'og:image')
+
+    def test_private_love_pages_do_not_expose_structured_member_data(self):
+        for route in ['accueil', 'decouverte', 'inbox', 'gerer_photos']:
+            response = self.client.get(reverse('rencontres:' + route))
+            self.assertContains(response, '<meta name="robots" content="noindex, nofollow">', html=True)
+            self.assertNotContains(response, 'application/ld+json')
+
+    def test_seo_json_escapes_html_delimiters(self):
+        import json
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from rencontres.seo_content import SEO_PAGES
+        from rencontres.templatetags.love_seo import love_metadata
+        page = dict(SEO_PAGES['canada'], title='</script><script>alert(1)</script>')
+        request = SimpleNamespace(resolver_match=SimpleNamespace(url_name='seo_canada'), user=self.a.user)
+        with patch.dict(SEO_PAGES, {'canada': page}):
+            data = love_metadata({'request': request})
+        self.assertNotIn('</script>', data['schema'])
+        self.assertEqual(json.loads(data['schema'])['@graph'][1]['name'], page['title'])
+
+    def test_love_public_routes_are_in_sitemap_and_private_routes_are_not(self):
+        from unittest.mock import patch
+        from django.test import RequestFactory
+        from seo_agent.services import build_sitemap_entries
+        from rencontres.seo_content import public_routes
+        with patch('seo_agent.services.LocalSEOAgent.prioritized_pages', return_value=[]):
+            entries = build_sitemap_entries(RequestFactory().get('/sitemap.xml'))
+        urls = {item['loc'] for item in entries}
+        for route in public_routes():
+            self.assertIn('https://e-shelle.com' + reverse('rencontres:' + route), urls)
+        self.assertFalse(any('/rencontres/profil/' in url or '/rencontres/messages/' in url for url in urls))
+
+    def test_international_coach_respects_real_profile_details(self):
+        from rencontres.utils.love_coach import first_messages, compatibility_notes
+        self.b.pays = 'Canada'
+        self.a.langues = self.b.langues = ['Français']
+        messages = first_messages(self.a, self.b)
+        self.assertTrue(any('Français' in message for message in messages))
+        self.assertTrue(any('moment' in message for message in messages))
+        notes = compatibility_notes(self.a, self.b)
+        self.assertTrue(any('pays différents' in note for note in notes))
+        self.assertFalse(any('meme ville' in note for note in notes))
+
+    def test_robot_rules_keep_love_member_areas_out_of_crawling(self):
+        from django.test import RequestFactory
+        from seo_agent.views import robots_txt
+        response = robots_txt(RequestFactory().get('/robots.txt'))
+        text = response.content.decode()
+        self.assertIn('Disallow: /rencontres/profil/', text)
+        self.assertIn('Disallow: /rencontres/messages/', text)
+        self.assertNotIn('Disallow: /rencontres/rencontre-', text)

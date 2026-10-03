@@ -166,6 +166,12 @@ class ProfilRencontre(models.Model):
         verbose_name_plural = "Profils de rencontre"
         ordering = ['-derniere_connexion']
 
+    @property
+    def pays_actuel(self):
+        """Use residence for diaspora members; never infer location from nationality."""
+        return (self.pays_residence.strip() if self.est_diaspora and self.pays_residence.strip()
+                else self.pays.strip())
+
     def age(self):
         from datetime import date
         today = date.today()
@@ -219,7 +225,7 @@ class PhotoProfil(models.Model):
     )
     image = models.ImageField(upload_to='rencontres/photos/%Y/%m/')
     est_principale = models.BooleanField(default=False)
-    est_approuvee = models.BooleanField(default=False)
+    est_approuvee = models.BooleanField(default=True)
     ordre = models.IntegerField(default=0)
     date_ajout = models.DateTimeField(auto_now_add=True)
 

@@ -11,7 +11,7 @@ def serialize_profil_card(profil, score=None, distance_km=None):
         'prenom': profil.prenom_affiche,
         'age': profil.age(),
         'ville': profil.ville,
-        'pays': profil.pays,
+        'pays': profil.pays_actuel,
         'profession': profil.profession,
         'biographie': profil.biographie[:200] if profil.biographie else '',
         'religion': profil.get_religion_display() if profil.religion else '',

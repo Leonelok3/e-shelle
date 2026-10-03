@@ -1,7 +1,9 @@
 {% extends 'rencontres/base_rencontre.html' %}
-{% load static %}
+{% load static love_seo %}
 
-{% block title %}E-Shelle Love — Rencontres sérieuses africaines{% endblock %}
+{% block title %}Rencontres locales & internationales — E-Shelle Love{% endblock %}
+
+{% block meta_description %}Rencontres locales et internationales entre adultes en Afrique, en Europe et au Canada. Créez votre profil sur E-Shelle Love et échangez après match.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -170,15 +172,16 @@
 {% if profil %}
 <div class="love-home">
     <div class="home-hero">
-        <section class="home-panel">
+        <section class="home-panel love-welcome">
             <p class="home-muted" style="font-size:.82rem;margin-bottom:.35rem">Bonjour {{ profil.prenom_affiche }}</p>
-            <h1 class="home-title">Votre espace Love est prêt.</h1>
+            <span class="love-kicker"><i class="bi bi-heart-fill" aria-hidden="true"></i> Tout près. Au-delà des frontières.</span>
+            <h1 class="home-title">Une affinité n’a pas de frontière.<br><em>Votre prochaine histoire non plus.</em></h1>
             <p class="home-muted">
-                Retrouvez vos profils compatibles, vos matchs et vos messages depuis un seul écran.
+                Dans votre ville, en Afrique, en Europe ou au Canada : découvrez une personne qui partage vos envies. Choisissez votre horizon, puis laissez la conversation faire le reste.
             </p>
             {% if not profil.photo_principale %}
             <div style="margin-top:1rem;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.32);border-radius:12px;padding:.85rem;color:#fbbf24;font-size:.88rem">
-                Ajoutez une photo et attendez sa validation pour apparaître dans Découvrir.
+                Ajoutez une photo pour apparaître immédiatement dans Découvrir.
             </div>
             {% endif %}
 
@@ -188,12 +191,16 @@
                 <a href="{% url 'rencontres:coach' %}" class="btn-love-outline">
                     <i class="bi bi-stars"></i> Coach IA
                 </a>
-                <a href="{% url 'rencontres:gerer_photos' %}" class="btn-love-outline">Photos</a>
-                <a href="{% url 'rencontres:premium' %}" class="btn-love-outline">Abonnement</a>
+            </div>
+            <div class="love-start-links">
+                <a href="{% url 'rencontres:detail_profil' profil.pk %}"><i class="bi bi-person-heart"></i> Voir mon profil</a>
+                <a href="{% url 'rencontres:gerer_photos' %}"><i class="bi bi-camera"></i> Mes photos</a>
+                <a href="{% url 'rencontres:premium' %}"><i class="bi bi-stars"></i> Les pass Love</a>
             </div>
         </section>
 
         <aside class="home-panel">
+            <h2 class="love-dashboard-title">Vos débuts de belles histoires</h2>
             <div class="stat-grid">
                 <div class="stat-box">
                     <div class="stat-value">{{ stats.suggestions }}</div>
@@ -210,6 +217,7 @@
                 <div class="stat-box">
                     <div class="stat-value">{{ profil.profil_complet }}%</div>
                     <div class="stat-label">profil complété</div>
+                    <div class="love-progress" role="progressbar" aria-label="Complétion du profil" aria-valuenow="{{ profil.profil_complet }}" aria-valuemin="0" aria-valuemax="100"><span style="width:{{ profil.profil_complet }}%"></span></div>
                 </div>
             </div>
             <div style="margin-top:.85rem;color:var(--love-muted);font-size:.84rem">
@@ -218,10 +226,17 @@
                 {% elif abonnement_en_attente %}
                     Activation {{ abonnement_en_attente.plan.get_nom_display }} en attente de validation.
                 {% else %}
-                    Compte gratuit. Passez en premium pour débloquer plus d'actions.
+                    Découvrez, likez et échangez avec vos matchs gratuitement.
                 {% endif %}
             </div>
+            <div class="love-tip"><i class="bi bi-lightbulb" aria-hidden="true"></i> Un bon premier message ? Rebondissez sur un détail du profil et posez une question qui donne envie de répondre.</div>
         </aside>
+    </div>
+    {% include 'rencontres/components/horizons.html' %}
+    <div class="love-paths">
+        <a class="love-path" href="{% url 'rencontres:decouverte' %}"><i class="bi bi-heart" aria-hidden="true"></i><div><strong>Laissez parler la curiosité</strong><p>Découvrez les personnes qui correspondent à vos préférences.</p></div></a>
+        <a class="love-path" href="{% url 'rencontres:modifier_profil' %}"><i class="bi bi-person-heart" aria-hidden="true"></i><div><strong>Montrez ce qui vous rend unique</strong><p>Vos passions, votre sourire, vos envies : racontez-vous.</p></div></a>
+        <a class="love-path" href="{% url 'rencontres:coach' %}"><i class="bi bi-chat-quote" aria-hidden="true"></i><div><strong>Trouvez les mots pour commencer</strong><p>Un peu d’inspiration pour un premier bonjour qui vous ressemble.</p></div></a>
     </div>
 
     <div class="section-head">
@@ -241,7 +256,7 @@
             {% endif %}
             <div class="profile-preview-body">
                 <div class="profile-preview-name">{{ p.prenom_affiche }}, {{ p.age }} ans</div>
-                <div class="profile-preview-meta">{{ p.ville }} · {{ p.profession|default:"Profil sérieux" }}</div>
+                <div class="profile-preview-meta">{{ p.ville }}, {{ p.pays_actuel }} · {{ p.profession|default:"Profil sérieux" }}</div>
                 <span class="compat-score">⭐ {{ item.score }}% compatible</span>
             </div>
         </a>
@@ -250,7 +265,7 @@
     </div>
     {% else %}
     <div class="empty-panel">
-        Aucun profil compatible pour le moment. Élargissez vos critères ou ajoutez de nouveaux profils.
+        <div class="love-empty-icon"><i class="bi bi-compass" aria-hidden="true"></i></div><h3 class="love-empty-title">Ouvrez un peu le champ des possibles</h3>Personne ne correspond à vos critères pour le moment. Essayez une autre ville ou une tranche d’âge plus large.
         <div style="margin-top:1rem">
             <a href="{% url 'rencontres:filtres' %}" class="btn-love-outline">Modifier les filtres</a>
         </div>
@@ -292,86 +307,46 @@
     </div>
     {% else %}
     <div class="empty-panel">
-        Aucun match pour le moment. Likez des profils compatibles pour commencer une conversation.
+        <div class="love-empty-icon"><i class="bi bi-chat-heart" aria-hidden="true"></i></div><h3 class="love-empty-title">Votre premier bonjour vous attend</h3>Quand l’intérêt est réciproque, la conversation peut commencer. Découvrez des profils et faites le premier pas.<div class="mt-3"><a href="{% url 'rencontres:decouverte' %}" class="btn-love">Trouver des profils</a></div>
     </div>
     {% endif %}
 
-    <div class="section-head">
-        <h2>Autour de vous</h2>
-    </div>
-    <div class="home-panel" style="display:flex;flex-wrap:wrap;gap:.65rem;align-items:center">
-        <span style="color:var(--love-muted);font-size:.88rem;margin-right:.25rem">Rencontrer près de chez vous :</span>
-        <a href="{% url 'rencontres:seo_cameroun' %}" class="btn-love-outline" style="padding:.5rem .9rem;font-size:.82rem">Cameroun</a>
-        <a href="{% url 'rencontres:seo_douala' %}" class="btn-love-outline" style="padding:.5rem .9rem;font-size:.82rem">Douala</a>
-        <a href="{% url 'rencontres:seo_yaounde' %}" class="btn-love-outline" style="padding:.5rem .9rem;font-size:.82rem">Yaoundé</a>
-    </div>
+    <section class="love-international-note"><i class="bi bi-globe2" aria-hidden="true"></i><div><p class="love-eyebrow">LA DISTANCE CHANGE LE RYTHME, PAS LA CURIOSITÉ</p><h2>Douala, Paris, Montréal… et votre prochain bonjour.</h2><p>Une langue en commun. Des valeurs qui se rejoignent. Dites dans votre profil si vous êtes ouvert à une relation à distance, et prenez le temps de vous découvrir.</p><a href="{% url 'rencontres:seo_international' %}">Explorer les rencontres internationales <i class="bi bi-arrow-right" aria-hidden="true"></i></a></div></section>
+    {% love_destinations %}
 </div>
 {% else %}
-<div style="max-width:640px;margin:0 auto;padding:3rem 1.5rem;text-align:center">
-
-    <!-- Hero -->
-    <div style="margin-bottom:3rem">
-        <div style="font-size:4rem;margin-bottom:1rem">❤️</div>
-        <h1 style="font-size:2.2rem;font-weight:900;margin-bottom:0.75rem">
-            <span style="background:var(--gradient-love);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
-                E-Shelle Love
-            </span>
-        </h1>
-        <p style="font-size:1.15rem;color:var(--love-muted);max-width:420px;margin:0 auto 2rem">
-            Des connexions vraies, basées sur la compatibilité réelle.<br>
-            Pour les Africains du continent et de la diaspora.
-        </p>
-        <a href="{% url 'rencontres:creer_profil' %}" class="btn-love" style="font-size:1.1rem;padding:0.9rem 2.5rem">
-            Créer mon profil gratuitement ❤️
-        </a>
-        <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-top:1rem">
-            <a href="{% url 'rencontres:seo_cameroun' %}" class="btn-love-outline" style="padding:.5rem .9rem;font-size:.82rem">Cameroun</a>
-            <a href="{% url 'rencontres:seo_douala' %}" class="btn-love-outline" style="padding:.5rem .9rem;font-size:.82rem">Douala</a>
-            <a href="{% url 'rencontres:seo_yaounde' %}" class="btn-love-outline" style="padding:.5rem .9rem;font-size:.82rem">Yaoundé</a>
+<div class="love-landing">
+    <section class="love-landing-hero">
+        <div>
+            <span class="love-kicker"><i class="bi bi-heart-fill" aria-hidden="true"></i> Afrique · Europe · Canada</span>
+            <h1>Tout près.<br>Au-delà des frontières.<br><em>Une rencontre à votre rythme.</em></h1>
+            <p class="love-landing-intro">De votre ville à l’autre bout du monde, les affinités rapprochent. Découvrez des personnes en Afrique, en Europe et au Canada : une langue partagée, des envies communes et un premier bonjour qui vous ressemble.</p>
+            <div class="love-landing-actions">
+                <a href="{% url 'rencontres:creer_profil' %}" class="btn-love"><i class="bi bi-heart" aria-hidden="true"></i> Commencer gratuitement</a>
+                <a href="{% url 'rencontres:decouverte' %}" class="btn-love-outline">J’ai déjà un profil</a>
+            </div>
+            <p class="love-tiny">18 ans et plus · Photos publiées immédiatement · Messages après match</p>
         </div>
+        <div class="love-orbit" aria-hidden="true">
+            <div class="love-orbit-ring"></div>
+            <div class="love-orbit-heart"><i class="bi bi-heart-fill"></i></div>
+            <div class="love-orbit-note"><i class="bi bi-stars"></i> Des valeurs à partager</div>
+            <div class="love-orbit-note"><i class="bi bi-chat-heart"></i> Un bonjour qui change tout</div>
+            <div class="love-orbit-note"><i class="bi bi-globe2"></i> Douala · Paris · Montréal</div>
+        </div>
+    </section>
+    <div class="love-section-intro"><p class="love-eyebrow">À VOTRE RYTHME</p><h2>Trois petits pas. De nouvelles possibilités.</h2><p>Pas besoin de trouver les mots parfaits. Commencez par être vous-même.</p></div>
+    <div class="love-paths">
+        <a class="love-path" href="{% url 'rencontres:creer_profil' %}"><i class="bi bi-camera" aria-hidden="true"></i><div><strong>01 · Présentez-vous</strong><p>Une photo, quelques passions et ce que vous recherchez. Votre profil prend vie immédiatement.</p></div></a>
+        <a class="love-path" href="{% url 'rencontres:decouverte' %}"><i class="bi bi-heart" aria-hidden="true"></i><div><strong>02 · Suivez votre curiosité</strong><p>Explorez les profils selon vos préférences. Un like permet d’exprimer votre intérêt.</p></div></a>
+        <a class="love-path" href="{% url 'rencontres:matchs' %}"><i class="bi bi-chat-heart" aria-hidden="true"></i><div><strong>03 · Dites bonjour</strong><p>Vous vous plaisez tous les deux ? Échangez gratuitement après votre match.</p></div></a>
     </div>
-
-    <a href="{% url 'rencontres:premium' %}" class="btn-love-outline mb-4">Comparer le gratuit et les pass Love</a>
-    <p class="small">18 ans et plus · Messages avec vos matchs · Sans renouvellement automatique</p>
-    <!-- Points clés -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1.25rem;margin-bottom:3rem">
-        {% for feature in features %}
-        <div style="background:var(--love-card);border-radius:var(--radius);padding:1.5rem;border:1px solid var(--love-border)">
-            <div style="font-size:2rem;margin-bottom:0.5rem">{{ feature.icon }}</div>
-            <h4 style="font-size:0.9rem;font-weight:600;margin-bottom:0.3rem">{{ feature.titre }}</h4>
-            <p style="font-size:0.8rem;color:var(--love-muted);margin:0">{{ feature.desc }}</p>
-        </div>
-        {% empty %}
-        <div style="background:var(--love-card);border-radius:var(--radius);padding:1.5rem;border:1px solid var(--love-border)">
-            <div style="font-size:2rem;margin-bottom:0.5rem">🌍</div>
-            <h4 style="font-size:0.9rem;font-weight:600;margin-bottom:0.3rem">Diaspora & Continent</h4>
-            <p style="font-size:0.8rem;color:var(--love-muted);margin:0">Connects africains partout dans le monde</p>
-        </div>
-        <div style="background:var(--love-card);border-radius:var(--radius);padding:1.5rem;border:1px solid var(--love-border)">
-            <div style="font-size:2rem;margin-bottom:0.5rem">⭐</div>
-            <h4 style="font-size:0.9rem;font-weight:600;margin-bottom:0.3rem">Compatibilité réelle</h4>
-            <p style="font-size:0.8rem;color:var(--love-muted);margin:0">Algorithme basé sur vos valeurs</p>
-        </div>
-        <div style="background:var(--love-card);border-radius:var(--radius);padding:1.5rem;border:1px solid var(--love-border)">
-            <div style="font-size:2rem;margin-bottom:0.5rem">🔒</div>
-            <h4 style="font-size:0.9rem;font-weight:600;margin-bottom:0.3rem">Photos modérées</h4>
-            <p style="font-size:0.8rem;color:var(--love-muted);margin:0">Photos approuvées avant publication</p>
-        </div>
-        <div style="background:var(--love-card);border-radius:var(--radius);padding:1.5rem;border:1px solid var(--love-border)">
-            <div style="font-size:2rem;margin-bottom:0.5rem">💰</div>
-            <h4 style="font-size:0.9rem;font-weight:600;margin-bottom:0.3rem">Mobile Money</h4>
-            <p style="font-size:0.8rem;color:var(--love-muted);margin:0">MTN et Orange au Cameroun, après confirmation</p>
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- CTA secondaire -->
-    <p style="color:var(--love-muted);font-size:0.9rem">
-        Déjà membre ?
-        <a href="{% url 'rencontres:decouverte' %}" style="color:var(--love-primary);font-weight:600;text-decoration:none">
-            Découvrir les profils →
-        </a>
-    </p>
+    <div class="love-chips"><span><i class="bi bi-globe2"></i> Afrique, Europe & Canada</span><span><i class="bi bi-sliders"></i> Vos préférences, votre rythme</span><span><i class="bi bi-shield-heart"></i> Blocage & signalement</span></div>
+    <section class="love-international-note"><i class="bi bi-globe2" aria-hidden="true"></i><div><p class="love-eyebrow">VOS RACINES, VOS ENVIES, VOTRE LIBERTÉ</p><h2>Des cultures à partager. Une histoire à construire.</h2><p>Vous préférez rencontrer dans votre ville ? Vous êtes ouvert à la distance ? Sur Love, vous choisissez votre horizon. Vos origines racontent une partie de vous, vos affinités ouvrent de nouvelles possibilités.</p><a href="{% url 'rencontres:seo_international' %}">Découvrir les rencontres locales et internationales <i class="bi bi-arrow-right" aria-hidden="true"></i></a></div></section>
+    {% love_destinations %}
+    {% love_questions %}
+    <section class="love-landing-bottom"><h2>Prêt à faire le premier pas ?</h2><p class="home-muted">Votre prochaine conversation commence avec votre profil.</p><div class="love-landing-actions" style="justify-content:center"><a href="{% url 'rencontres:creer_profil' %}" class="btn-love">Créer mon profil</a><a href="{% url 'rencontres:premium' %}" class="btn-love-outline">Découvrir le gratuit et les pass</a></div></section>
+    <p class="love-tiny" style="text-align:center"><a href="{% url 'rencontres:securite' %}" style="color:#ffadc1">Quelques conseils pour des rencontres sereines</a></p>
 </div>
 {% endif %}
 {% endblock %}

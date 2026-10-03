@@ -28,6 +28,8 @@ class Command(BaseCommand):
             self.stdout.write(f'{p.get_nom_display()} : {p.prix_xaf_mensuel} XAF, {p.duree_jours} jours')
         if not options['offline']:
             for name in ['rencontres/css/rencontre.css', 'rencontres/css/love-refresh.css',
+                         'rencontres/css/love-experience.css', 'rencontres/js/love-experience.js',
+                         'rencontres/images/love-social.png',
                          'rencontres/js/discovery.js', 'rencontres/js/messaging.js']:
                 url = urljoin(options['origin'], staticfiles_storage.url(name))
                 try:
