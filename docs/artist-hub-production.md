@@ -52,10 +52,14 @@ inscriptible par `eshelle` et inclus dans les sauvegardes privées.
 - Dashboard staff : https://e-shelle.com/artist-hub/staff/dashboard/
 - Administration : https://e-shelle.com/admin/
 
-La commande d'initialisation conserve la clôture prévue au **28 septembre 2026**.
-Cette date est passée. Pour ouvrir les inscriptions, modifier la session dans
-l'administration avec une date autorisée par l'organisateur. La commande ne
-modifie pas une session existante.
+La commande d'initialisation fixe les nouvelles sessions au **25 décembre 2026
+à 23:59:59, heure de Douala**. Pour prolonger et réactiver la session existante :
+
+```bash
+sudo -u eshelle .venv/bin/python manage.py init_casting_session --extend-registration
+```
+
+Sans cette option, une session existante reste inchangée.
 
 Vérifier le parcours inscription, versement manuel, validation avec un compte
 staff, suivi et téléchargement PDF. Booking et ticketing sont des squelettes
