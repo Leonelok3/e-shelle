@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from django.conf import settings
 from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -14,6 +15,12 @@ from .tasks import _traiter_message_direct, envoyer_message_task
 
 TEMPLATE = {'key': 'intro|fr', 'name': 'intro', 'language': 'fr', 'category': 'MARKETING',
     'body': 'Bonjour {{1}}', 'parameter_count': 1, 'supported': True, 'reason': ''}
+
+
+class ConfigTests(TestCase):
+    def test_meta_account_ids_are_exposed_in_settings(self):
+        self.assertTrue(hasattr(settings, 'WHATSAPP_WABA_ID'))
+        self.assertTrue(hasattr(settings, 'WHATSAPP_BUSINESS_ID'))
 
 
 @override_settings(WHATSAPP_WABA_ID='456', WHATSAPP_BUSINESS_ID='')
