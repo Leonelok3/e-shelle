@@ -25,6 +25,8 @@ class ContactWhatsApp(models.Model):
     consentement_confirme = models.BooleanField(default=False)
     consentement_source = models.CharField(max_length=80, blank=True)
     consentement_le = models.DateTimeField(null=True, blank=True)
+    call_permission_status = models.CharField(max_length=20, default="no_permission")
+    call_permission_expires_at = models.DateTimeField(null=True, blank=True)
     desinscrit = models.BooleanField(default=False)
     desinscrit_le = models.DateTimeField(null=True, blank=True)
     note = models.TextField(blank=True)
@@ -414,3 +416,52 @@ class MessageWhatsApp(models.Model):
                     return base
             return "Document"
         return ""
+
+
+class WhatsAppCall(models.Model):
+    DIRECTION_INBOUND = "inbound"
+    DIRECTION_OUTBOUND = "outbound"
+    DIRECTIONS = [(DIRECTION_INBOUND, "Entrant"), (DIRECTION_OUTBOUND, "Sortant")]
+
+    STATUS_PENDING = "pending"
+    STATUS_RINGING = "ringing"
+    STATUS_CONNECTING = "connecting"
+    STATUS_ACTIVE = "active"
+    STATUS_REJECTED = "rejected"
+    STATUS_ENDED = "ended"
+    STATUS_FAILED = "failed"
+    STATUSES = [
+        (STATUS_PENDING, "En attente"),
+        (STATUS_RINGING, "Sonnerie"),
+        (STATUS_CONNECTING, "Connexion"),
+        (STATUS_ACTIVE, "En cours"),
+        (STATUS_REJECTED, "Refuse"),
+        (STATUS_ENDED, "Termine"),
+        (STATUS_FAILED, "Echec"),
+    ]
+
+    conversation = models.ForeignKey(ConversationWhatsApp, on_delete=models.CASCADE, related_name="calls")
+    contact = models.ForeignKey(ContactWhatsApp, on_delete=models.CASCADE, related_name="calls")
+    initiated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="whatsapp_calls",
+    )
+    meta_call_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    direction = models.CharField(max_length=10, choices=DIRECTIONS)
+    status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_PENDING, db_index=True)
+    sdp_offer = models.TextField(blank=True)
+    sdp_answer = models.TextField(blank=True)
+    error = models.TextField(blank=True)
+    duration_seconds = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["status", "created_at"])]
+
+    def __str__(self):
+        return f"{self.direction} call with {self.contact.numero} ({self.status})"

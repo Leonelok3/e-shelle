@@ -30,5 +30,8 @@ curl --fail --silent --show-error --retry 5 --retry-delay 2 --retry-connrefused 
 curl --fail --silent --show-error --retry 5 --retry-delay 2 --retry-connrefused \
     'https://e-shelle.com/static/whatsapp_agent/meta_selector.js?v=20261003-1' \
     | cmp - staticfiles/whatsapp_agent/meta_selector.js
+curl --fail --silent --show-error --retry 5 --retry-delay 2 --retry-connrefused \
+    'https://e-shelle.com/static/whatsapp_agent/calling.js?v=20261005-1' \
+    | cmp - staticfiles/whatsapp_agent/calling.js
 sudo -u eshelle .venv/bin/python manage.py check_whatsapp_delivery
 echo 'WhatsApp mis a jour. Configurez le compte Meta puis selectionnez et enregistrez un modele dans la campagne avant le test.'

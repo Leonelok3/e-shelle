@@ -26,8 +26,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .forms import CampagneForm, TemplateSelectionForm
+from .calling import WhatsAppCallingError, get_call_permission, initiate_call, post_call_action, request_call_permission
 from .meta_templates import TemplateError, approved_templates, validate_selection, message_parameters, template_preview
-from .models import Campagne, ContactWhatsApp, ConversationWhatsApp, MessageEnvoi, MessageWhatsApp, WhatsAppTestSend
+from .models import Campagne, ContactWhatsApp, ConversationWhatsApp, MessageEnvoi, MessageWhatsApp, WhatsAppCall, WhatsAppTestSend
 from .services import AI_PRESETS, WhatsAppService
 from .tasks import lancer_campagne_direct, lancer_campagne_task, recalculer_stats_campagne
 
@@ -853,6 +854,8 @@ def webhook_meta(request):
                     if wa_id and p_name:
                         profile_names[wa_id] = p_name
 
+            _handle_call_events(value, profile_names)
+
             # 2. Reception et enregistrement des reponses des prospects
             for incoming in value.get("messages", []):
                 if not isinstance(incoming, dict):
@@ -880,6 +883,19 @@ def webhook_meta(request):
                         body_text = interactive["button_reply"].get("title", "")
                     elif "list_reply" in interactive:
                         body_text = interactive["list_reply"].get("title", "")
+                    elif interactive.get("type") == "call_permission_reply":
+                        reply = interactive.get("call_permission_reply", {})
+                        permission_status = "no_permission"
+                        expiration = None
+                        if reply.get("response") == "accept":
+                            permission_status = "permanent" if reply.get("is_permanent") else "temporary"
+                            expiration = _meta_message_time(reply.get("expiration_timestamp"))
+                        ContactWhatsApp.objects.filter(numero=numero).update(
+                            call_permission_status=permission_status,
+                            call_permission_expires_at=expiration,
+                            mis_a_jour_le=timezone.now(),
+                        )
+                        body_text = "Autorisation d’appel accordée" if permission_status != "no_permission" else "Autorisation d’appel refusée"
                 elif msg_type in ["image", "audio", "document", "video", "sticker"]:
                     media_obj = incoming.get(msg_type, {})
                     caption = (media_obj.get("caption") or "").strip()
@@ -1123,12 +1139,272 @@ def api_conversation_detail(request, pk):
     })
 
 
+@staff_required
+def api_conversation_calls(request, pk):
+    if request.method != "GET":
+        return JsonResponse({"error": "Méthode non autorisée."}, status=405)
+    conversation = get_object_or_404(ConversationWhatsApp.objects.select_related("contact"), pk=pk)
+    calls = conversation.calls.order_by("-created_at")[:5]
+    return JsonResponse({"calls": [{
+        "id": call.pk,
+        "meta_call_id": call.meta_call_id,
+        "direction": call.direction,
+        "status": call.status,
+        "sdp_offer": call.sdp_offer if call.direction == WhatsAppCall.DIRECTION_INBOUND and call.status == WhatsAppCall.STATUS_RINGING else "",
+        "sdp_answer": call.sdp_answer if call.direction == WhatsAppCall.DIRECTION_OUTBOUND and call.status == WhatsAppCall.STATUS_CONNECTING else "",
+        "error": call.error,
+        "updated_at": call.updated_at.isoformat(),
+    } for call in calls]})
+
+
+@staff_required
+def api_pending_calls(request):
+    if request.method != "GET":
+        return JsonResponse({"error": "Méthode non autorisée."}, status=405)
+    calls = WhatsAppCall.objects.filter(
+        status__in=[WhatsAppCall.STATUS_RINGING, WhatsAppCall.STATUS_CONNECTING, WhatsAppCall.STATUS_ACTIVE]
+    ).select_related("contact", "conversation").order_by("created_at")[:20]
+    return JsonResponse({"calls": [{
+        "id": call.pk,
+        "conversation_id": call.conversation_id,
+        "contact_name": call.contact.nom or call.contact.numero,
+        "number": call.contact.numero,
+        "direction": call.direction,
+        "status": call.status,
+        "sdp_offer": call.sdp_offer if call.direction == WhatsAppCall.DIRECTION_INBOUND and call.status == WhatsAppCall.STATUS_RINGING else "",
+        "sdp_answer": call.sdp_answer if call.direction == WhatsAppCall.DIRECTION_OUTBOUND and call.status == WhatsAppCall.STATUS_CONNECTING else "",
+        "error": call.error,
+    } for call in calls]})
+
+
+@staff_required
+@require_POST
+def api_request_call_permission(request, pk):
+    conversation = get_object_or_404(ConversationWhatsApp.objects.select_related("contact"), pk=pk)
+    context = _json_body(request).get("context") or "E-Shelle souhaite vous appeler sur WhatsApp afin de répondre à votre demande. Autorisez l’appel si cela vous convient."
+    try:
+        result = request_call_permission(conversation.contact.numero, context)
+    except WhatsAppCallingError as exc:
+        return JsonResponse({"error": str(exc)}, status=502)
+    return JsonResponse({"success": True, "message_id": result.get("messages", [{}])[0].get("id", "")})
+
+
+@staff_required
+@require_POST
+def api_start_call(request, pk):
+    conversation = get_object_or_404(ConversationWhatsApp.objects.select_related("contact"), pk=pk)
+    body = _json_body(request)
+    sdp_offer = body.get("sdp_offer", "")
+    if not isinstance(sdp_offer, str) or not sdp_offer.startswith("v=") or len(sdp_offer) > 30000:
+        return JsonResponse({"error": "Offre WebRTC invalide."}, status=400)
+    try:
+        permission = get_call_permission(conversation.contact.numero)
+    except WhatsAppCallingError as exc:
+        return JsonResponse({"error": str(exc)}, status=502)
+    permission_info = permission.get("permission", {})
+    actions = {item.get("action_name"): item for item in permission.get("actions", [])}
+    allowed = permission_info.get("status") in ("temporary", "permanent")
+    start_action = actions.get("start_call", {})
+    if not allowed or start_action.get("can_perform_action") is not True:
+        return JsonResponse({"error": "Le contact doit d’abord autoriser les appels WhatsApp."}, status=403)
+    contact = conversation.contact
+    contact.call_permission_status = permission_info.get("status", "no_permission")
+    expires = permission_info.get("expiration_time") or permission_info.get("expiration")
+    contact.call_permission_expires_at = _meta_message_time(expires) if expires else None
+    contact.save(update_fields=["call_permission_status", "call_permission_expires_at", "mis_a_jour_le"])
+    call = WhatsAppCall.objects.create(
+        conversation=conversation,
+        contact=contact,
+        initiated_by=request.user,
+        direction=WhatsAppCall.DIRECTION_OUTBOUND,
+        status=WhatsAppCall.STATUS_PENDING,
+        sdp_offer=sdp_offer,
+    )
+    try:
+        result = initiate_call(contact.numero, sdp_offer, str(call.pk))
+    except WhatsAppCallingError as exc:
+        call.status = WhatsAppCall.STATUS_FAILED
+        call.error = str(exc)
+        call.save(update_fields=["status", "error", "updated_at"])
+        return JsonResponse({"error": str(exc)}, status=502)
+    call_info = (result.get("calls") or [{}])[0]
+    if not call_info.get("id"):
+        call.status = WhatsAppCall.STATUS_FAILED
+        call.error = "Meta n’a pas retourné d’identifiant d’appel."
+        call.save(update_fields=["status", "error", "updated_at"])
+        return JsonResponse({"error": call.error}, status=502)
+    call.meta_call_id = call_info["id"]
+    call.status = WhatsAppCall.STATUS_CONNECTING
+    call.save(update_fields=["meta_call_id", "status", "updated_at"])
+    return JsonResponse({"success": True, "call_id": call.pk})
+
+
+@staff_required
+@require_POST
+def api_call_action(request, pk):
+    call = get_object_or_404(WhatsAppCall.objects.select_related("conversation"), pk=pk)
+    body = _json_body(request)
+    action = body.get("action")
+    if action not in {"pre_accept", "accept", "reject", "terminate", "media_connected"}:
+        return JsonResponse({"error": "Action d’appel invalide."}, status=400)
+    if action == "media_connected" and call.direction != WhatsAppCall.DIRECTION_OUTBOUND:
+        return JsonResponse({"error": "Action non autorisée pour cet appel."}, status=400)
+    if call.direction != WhatsAppCall.DIRECTION_INBOUND and action not in {"terminate", "media_connected"}:
+        return JsonResponse({"error": "Action non autorisée pour cet appel."}, status=400)
+    if call.direction == WhatsAppCall.DIRECTION_INBOUND:
+        if action == "pre_accept":
+            claimed = WhatsAppCall.objects.filter(
+                pk=call.pk,
+                status=WhatsAppCall.STATUS_RINGING,
+                initiated_by__isnull=True,
+            ).update(
+                status=WhatsAppCall.STATUS_CONNECTING,
+                initiated_by=request.user,
+                updated_at=timezone.now(),
+            )
+            if not claimed:
+                return JsonResponse({"error": "Cet appel est déjà pris en charge ou terminé."}, status=409)
+            call.refresh_from_db()
+        elif call.initiated_by_id and call.initiated_by_id != request.user.pk:
+            return JsonResponse({"error": "Cet appel est pris en charge par un autre agent."}, status=409)
+        elif action == "accept" and call.status != WhatsAppCall.STATUS_CONNECTING:
+            return JsonResponse({"error": "Pré-accepte d’abord cet appel."}, status=409)
+    session = None
+    if action in {"pre_accept", "accept"}:
+        sdp_answer = body.get("sdp_answer", "")
+        if not isinstance(sdp_answer, str) or not sdp_answer.startswith("v=") or len(sdp_answer) > 30000:
+            return JsonResponse({"error": "Réponse WebRTC invalide."}, status=400)
+        session = {"sdp_type": "answer", "sdp": sdp_answer}
+    if not call.meta_call_id:
+        return JsonResponse({"error": "Identifiant Meta de l’appel absent."}, status=409)
+    if action != "media_connected":
+        try:
+            post_call_action(call.meta_call_id, action, session)
+        except WhatsAppCallingError as exc:
+            call.error = str(exc)
+            fields = ["error", "updated_at"]
+            if action == "pre_accept":
+                call.status = WhatsAppCall.STATUS_RINGING
+                call.initiated_by = None
+                fields.extend(["status", "initiated_by"])
+            call.save(update_fields=fields)
+            return JsonResponse({"error": str(exc)}, status=502)
+    if action == "reject":
+        call.status = WhatsAppCall.STATUS_REJECTED
+    elif action == "terminate":
+        call.status = WhatsAppCall.STATUS_ENDED
+        call.sdp_offer = ""
+        call.sdp_answer = ""
+    elif action == "pre_accept":
+        call.status = WhatsAppCall.STATUS_CONNECTING
+        call.sdp_answer = ""
+    elif action == "accept":
+        call.status = WhatsAppCall.STATUS_ACTIVE
+        call.sdp_offer = ""
+        call.sdp_answer = ""
+    elif action == "media_connected":
+        call.status = WhatsAppCall.STATUS_ACTIVE
+        call.sdp_offer = ""
+        call.sdp_answer = ""
+    call.save(update_fields=["status", "sdp_offer", "sdp_answer", "updated_at"])
+    return JsonResponse({"success": True, "status": call.status})
+
+
 def _meta_message_time(value):
     try:
         from datetime import datetime, timezone as dt_timezone
         return datetime.fromtimestamp(int(value), tz=dt_timezone.utc)
     except (ValueError, TypeError, OverflowError, OSError):
         return None
+
+
+def _handle_call_events(value, profile_names):
+    for event in value.get("calls", []):
+        if not isinstance(event, dict):
+            continue
+        meta_call_id = event.get("id", "")
+        callback_data = event.get("biz_opaque_callback_data", "")
+        call = WhatsAppCall.objects.filter(meta_call_id=meta_call_id).first() if meta_call_id else None
+        if call is None and str(callback_data).isdigit():
+            call = WhatsAppCall.objects.filter(pk=int(callback_data)).first()
+
+        direction = event.get("direction", "")
+        event_name = event.get("event", "")
+        if direction == "USER_INITIATED" and event_name == "connect":
+            if not meta_call_id:
+                continue
+            numero = WhatsAppService.normaliser_numero(event.get("from", ""))
+            if not numero:
+                continue
+            contact, _ = ContactWhatsApp.objects.get_or_create(
+                numero=numero,
+                defaults={
+                    "nom": profile_names.get(event.get("from", ""), ""),
+                    "source": ContactWhatsApp.SOURCE_API,
+                },
+            )
+            profile_name = profile_names.get(event.get("from", ""), "")
+            if profile_name and not contact.nom:
+                contact.nom = profile_name
+                contact.save(update_fields=["nom", "mis_a_jour_le"])
+            conversation, _ = ConversationWhatsApp.objects.get_or_create(
+                contact=contact,
+                defaults={"statut": ConversationWhatsApp.STATUT_NOUVEAU},
+            )
+            call, created = WhatsAppCall.objects.get_or_create(
+                meta_call_id=meta_call_id,
+                defaults={
+                    "conversation": conversation,
+                    "contact": contact,
+                    "direction": WhatsAppCall.DIRECTION_INBOUND,
+                    "status": WhatsAppCall.STATUS_RINGING,
+                    "sdp_offer": (event.get("session") or {}).get("sdp", ""),
+                },
+            )
+            if created:
+                conversation.dernier_message_apercu = "Appel WhatsApp entrant"
+                conversation.dernier_message_le = timezone.now()
+                conversation.non_lus_count += 1
+                conversation.save(update_fields=["dernier_message_apercu", "dernier_message_le", "non_lus_count", "mis_a_jour_le"])
+            continue
+
+        if call is None:
+            continue
+        if event_name == "connect" and call.direction == WhatsAppCall.DIRECTION_OUTBOUND:
+            answer = (event.get("session") or {}).get("sdp", "")
+            if not answer:
+                answer = (event.get("connection", {}).get("webrtc") or {}).get("sdp", "")
+            if answer:
+                call.sdp_answer = answer
+                call.status = WhatsAppCall.STATUS_CONNECTING
+                call.error = ""
+                call.save(update_fields=["sdp_answer", "status", "error", "updated_at"])
+        elif event_name == "terminate":
+            call.status = WhatsAppCall.STATUS_ENDED if event.get("status") == "COMPLETED" else WhatsAppCall.STATUS_FAILED
+            call.duration_seconds = int(event.get("duration") or 0)
+            call.sdp_offer = ""
+            call.sdp_answer = ""
+            errors = event.get("errors") or []
+            call.error = str(errors[0].get("message", ""))[:1000] if errors else ""
+            call.save(update_fields=["status", "duration_seconds", "sdp_offer", "sdp_answer", "error", "updated_at"])
+
+    for status_item in value.get("statuses", []):
+        if not isinstance(status_item, dict) or status_item.get("type") != "call":
+            continue
+        call = WhatsAppCall.objects.filter(meta_call_id=status_item.get("id", "")).first()
+        if not call:
+            continue
+        call.status = {
+            "RINGING": WhatsAppCall.STATUS_RINGING,
+            "ACCEPTED": WhatsAppCall.STATUS_ACTIVE,
+            "REJECTED": WhatsAppCall.STATUS_REJECTED,
+        }.get(status_item.get("status"), call.status)
+        fields = ["status", "updated_at"]
+        if call.status == WhatsAppCall.STATUS_REJECTED:
+            call.sdp_offer = ""
+            call.sdp_answer = ""
+            fields.extend(["sdp_offer", "sdp_answer"])
+        call.save(update_fields=fields)
 
 
 @staff_required

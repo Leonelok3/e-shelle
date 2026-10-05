@@ -721,6 +721,11 @@
               <option value="{{ val }}" {% if active_conv.statut == val %}selected{% endif %}>{{ label }}</option>
               {% endfor %}
             </select>
+            <button type="button" class="wa-ai-btn" id="btn-request-call-permission" data-url="{% url 'whatsapp_agent:wa_api_call_permission' active_conv.id %}">Demander permission d’appel</button>
+            <button type="button" class="wa-send-btn" id="btn-start-whatsapp-call" data-url="{% url 'whatsapp_agent:wa_api_start_call' active_conv.id %}" data-name="{{ active_conv.contact.nom|default:active_conv.contact.numero|escapejs }}">Appeler</button>
+            <button type="button" class="wa-chip-btn" id="btn-end-whatsapp-call" hidden>Raccrocher</button>
+            <span id="whatsapp-call-status" class="wa-send-feedback" role="status" aria-live="polite"></span>
+            <audio id="whatsapp-call-audio" autoplay playsinline hidden></audio>
           </div>
         </div>
 
@@ -1020,4 +1025,5 @@
   }
 </script>
 <script src="{% static 'whatsapp_agent/js/inbox-media.js' %}?v=20261003-1" defer></script>
+<script src="{% static 'whatsapp_agent/calling.js' %}?v=20261005-1" defer></script>
 {% endblock %}
