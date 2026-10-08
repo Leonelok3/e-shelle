@@ -57,20 +57,36 @@
     <div class="biz-plan-head">
       <span class="biz-plan-eyebrow">Nos formules</span>
       <h2>Choisissez la formule qui fait grandir votre business</h2>
-      <p>Paiement mobile (Orange Money / MTN MoMo), activation en moins de 24h, sans engagement.</p>
+      <p>Paiement Mobile Money confirmé manuellement via WhatsApp. Activation après validation du paiement.</p>
     </div>
     <div class="biz-plan-grid">
       {% for plan in plans %}
       <article class="biz-plan-card {% if plan.plan_level == 'business' %}biz-plan-card--popular{% elif plan.plan_level == 'premium' %}biz-plan-card--premium{% endif %}">
         {% if plan.plan_level == 'business' %}<span class="biz-plan-ribbon">⭐ Le plus choisi</span>{% endif %}
         <span class="biz-plan-tag">{{ plan.get_plan_level_display }}</span>
-        <h2>{{ plan.name }}</h2>
+        <h2>{% if plan.plan_level == 'pro' %}Présence — Pro{% elif plan.plan_level == 'business' %}Croissance — Business{% elif plan.plan_level == 'premium' %}Premium{% else %}{{ plan.name }}{% endif %}</h2>
         <div class="biz-plan-price">
           <strong>{{ plan.monthly_price_xaf }}</strong>
           <span>FCFA {% if plan.monthly_price_xaf > 0 %}/ mois{% else %}à vie{% endif %}</span>
         </div>
         <p class="biz-plan-desc">{{ plan.description|default:"Une offre pour rendre votre business plus visible sur E-Shelle." }}</p>
         <ul>
+          {% if plan.plan_level == 'free' %}
+            <li><b>✓</b> Catalogue Business : jusqu'à 5 articles, sans photo supplémentaire</li>
+          {% elif plan.plan_level == 'pro' %}
+            <li><b>✓</b> Catalogue Business : jusqu'à 20 articles, 2 photos supplémentaires par article</li>
+            <li><b>✓</b> 1 connexion WhatsApp Business (WABA) par fiche</li>
+            <li><b>✓</b> CRM contacts et réponses texte dans la fenêtre de 24 h</li>
+          {% elif plan.plan_level == 'business' %}
+            <li><b>✓</b> Catalogue Business : jusqu'à 50 articles, 4 photos supplémentaires par article</li>
+            <li><b>✓</b> 1 connexion WhatsApp Business (WABA) par fiche</li>
+            <li><b>✓</b> Synchronisation du catalogue Business vers le catalogue Meta associé</li>
+            <li><b>✓</b> Relances individuelles par modèle Meta approuvé avec consentement explicite, si activées côté serveur</li>
+          {% elif plan.plan_level == 'premium' %}
+            <li><b>✓</b> Catalogue Business sans plafond déclaré dans le code, 7 photos supplémentaires par article</li>
+            <li><b>✓</b> 1 connexion WhatsApp Business (WABA) par fiche</li>
+            <li><b>✓</b> Synchronisation et relances individuelles par modèle approuvé avec consentement, si activées côté serveur</li>
+          {% endif %}
           <li><b>✓</b> {{ plan.duration_days }} jours d'activation</li>
           {% if plan.included_boost_days %}
             <li><b>✓</b> {{ plan.included_boost_days }} jours de boost inclus</li>
@@ -98,7 +114,9 @@
       </article>
       {% endfor %}
     </div>
-    <p class="biz-plan-footnote">🔒 Paiement sécurisé par WhatsApp · Activation manuelle sous 24h · Résiliable à tout moment</p>
+    <p class="biz-plan-footnote">Paiement Mobile Money confirmé manuellement via WhatsApp. Activation après validation du paiement.</p>
+    <p class="biz-plan-footnote">Les abonnements ne comprennent pas nécessairement les frais facturés par Meta pour WhatsApp Business Platform. La connexion et la synchronisation dépendent de la configuration, des droits et de l'approbation Meta. Les relances sont individuelles, nécessitent un modèle approuvé et le consentement explicite du contact ; les messages de masse ne sont pas inclus. E-Shelle ne garantit ni l'approbation Meta ni un résultat commercial particulier.</p>
+    <p class="biz-plan-footnote">Les plafonds affichés concernent le catalogue Business (`BusinessCatalogItem`), pas une boutique digitale illimitée. Les relances sont soumises à l'activation du service côté serveur ; le plafond technique de traitement n'est pas un quota client.</p>
 
     <div class="biz-benefits">
       <article><strong>1</strong><h2>Visibilité immédiate</h2><p>Vos offres peuvent apparaître sur la page d'accueil, dans les blocs premium et dans les réponses de E-Shelle AI.</p></article>
