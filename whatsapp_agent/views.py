@@ -6,6 +6,7 @@ import mimetypes
 import os
 import re
 
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib import messages
@@ -835,6 +836,11 @@ def webhook_meta(request):
     if not isinstance(data, dict) or data.get("object") != "whatsapp_business_account":
         return JsonResponse({"error": "Payload WhatsApp invalide"}, status=400)
 
+    if apps.is_installed("whatsapp_commerce"):
+        from whatsapp_commerce.inbox import process_business_whatsapp_webhook
+
+        process_business_whatsapp_webhook(data)
+
     for entry in data.get("entry", []):
         if not isinstance(entry, dict):
             continue
@@ -844,6 +850,13 @@ def webhook_meta(request):
             value = change.get("value", {})
             if not isinstance(value, dict):
                 continue
+            if apps.is_installed("whatsapp_commerce"):
+                from whatsapp_commerce.inbox import is_business_whatsapp_connection
+
+                metadata = value.get("metadata", {})
+                phone_id = metadata.get("phone_number_id", "") if isinstance(metadata, dict) else ""
+                if is_business_whatsapp_connection(entry.get("id", ""), phone_id):
+                    continue
 
             # 1. Extraction des profils WhatsApp des contacts
             profile_names = {}

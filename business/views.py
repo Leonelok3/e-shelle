@@ -2370,8 +2370,18 @@ def catalog_item_action(request, business_id, item_id):
         item.save(update_fields=["is_active", "updated_at"])
         messages.success(request, "Visibilite du produit mise a jour.")
     elif action == "delete":
-        item.delete()
-        messages.success(request, "Produit/service supprime du catalogue.")
+        from whatsapp_commerce.models import BusinessCatalogWhatsAppSync
+
+        was_synced = BusinessCatalogWhatsAppSync.objects.filter(
+            business_catalog_item=item,
+        ).exists()
+        if was_synced:
+            item.is_active = False
+            item.save(update_fields=["is_active", "updated_at"])
+            messages.success(request, "Article retiré : il est conservé comme indisponible dans le catalogue WhatsApp.")
+        else:
+            item.delete()
+            messages.success(request, "Produit/service supprime du catalogue.")
     else:
         messages.error(request, "Action catalogue inconnue.")
     referer = request.META.get("HTTP_REFERER")
@@ -2938,4 +2948,3 @@ def api_generate_slide_ai(request):
     except Exception as e:
         logger.exception("Erreur lors de l'appel au fournisseur IA")
         return JsonResponse({"success": False, "error": f"Erreur IA : {str(e)}"}, status=500)
-

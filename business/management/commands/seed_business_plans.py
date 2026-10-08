@@ -17,7 +17,7 @@ class Command(BaseCommand):
                 "included_boost_days": 0,
                 "included_ai_credits": 0,
                 "order": 0,
-                "description": "Fiche basique, visibilite limitee, contact WhatsApp.",
+                "description": "Fiche basique et contact WhatsApp public. Le WhatsApp CRM n'est pas inclus.",
             },
             {
                 "code": "pro",
@@ -28,7 +28,7 @@ class Command(BaseCommand):
                 "included_boost_days": 0,
                 "included_ai_credits": 5,
                 "order": 10,
-                "description": "Fiche de présence sur E-Shelle, catalogue de produits/services visibles, lien de partage et 5 crédits IA.",
+                "description": "Fiche et catalogue publics, partage, 5 crédits IA, connexion WhatsApp et CRM de contacts avec réponses dans la fenêtre de 24 h.",
             },
             {
                 "code": "business",
@@ -39,7 +39,7 @@ class Command(BaseCommand):
                 "included_boost_days": 7,
                 "included_ai_credits": 20,
                 "order": 20,
-                "description": "Meilleur classement, 7 jours de boost, demandes recues, 20 credits IA.",
+                "description": "Avantages Pro, meilleur classement, 7 jours de boost, demandes reçues, 20 crédits IA, synchronisation du catalogue et relances CRM individuelles par modèles Meta approuvés avec consentement explicite.",
             },
             {
                 "code": "premium",
@@ -50,7 +50,7 @@ class Command(BaseCommand):
                 "included_boost_days": 15,
                 "included_ai_credits": 50,
                 "order": 30,
-                "description": "Top resultats IA, carrousels premium, accompagnement marketing, 50 credits IA.",
+                "description": "Avantages Business, top résultats IA, carrousels premium, accompagnement marketing, 50 crédits IA et relances CRM individuelles par modèles Meta approuvés avec consentement explicite.",
             },
         ]
         created = 0

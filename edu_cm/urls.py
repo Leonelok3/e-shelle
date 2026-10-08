@@ -785,7 +785,10 @@ urlpatterns = [
     # Hub des langues
     path("langues/", TemplateView.as_view(template_name="langues/hub.html"), name="langues_hub"),
     path("cgu/", TemplateView.as_view(template_name="cgu.html"), name="cgu"),
-    path("terms/", TemplateView.as_view(template_name="cgu.html"), name="terms"),
+    path("privacy-policy", TemplateView.as_view(template_name="privacy_policy.html"), name="privacy_policy"),
+    path("terms", TemplateView.as_view(template_name="terms_of_service.html"), name="terms"),
+    path("terms/", TemplateView.as_view(template_name="terms_of_service.html"), name="terms_slash"),
+    path("about", TemplateView.as_view(template_name="about_us.html"), name="about_us"),
     path("llms.txt", TemplateView.as_view(template_name="llms.txt", content_type="text/plain; charset=utf-8"), name="llms_txt"),
 
     # Cours de langues
@@ -871,6 +874,7 @@ urlpatterns = [
     # ── WhatsApp Agent IA — Campagnes Meta WhatsApp Business ──────────
     path("whatsapp/", include("whatsapp_agent.urls", namespace="whatsapp_agent")),
     path("api/whatsapp/", include("whatsapp_agent.urls", namespace="whatsapp_agent_api")),
+    path("whatsapp-commerce/", include("whatsapp_commerce.urls", namespace="whatsapp_commerce")),
 
     # ── Agent Commercial IA — Prospection & ventes prestataires ──────
     path("commercial-agent/", include("commercial_agent.urls", namespace="commercial_agent")),

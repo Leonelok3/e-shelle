@@ -160,6 +160,7 @@ INSTALLED_APPS = [
     "e_shelle_ai.apps.EshelleAiConfig",
     "chat.apps.ChatConfig",
     "business.apps.BusinessConfig",
+    "whatsapp_commerce.apps.WhatsappCommerceConfig",
 
     # ── Facebook Agent IA — Auto-publication sur la page Facebook ──
     "facebook_agent.apps.FacebookAgentConfig",
@@ -623,6 +624,16 @@ WHATSAPP_CONFIG_READY = bool(
 WHATSAPP_DEFAULT_TEMPLATE = os.getenv("WHATSAPP_DEFAULT_TEMPLATE", "deutsch_space_decouverte")
 WHATSAPP_TEMPLATE_LANGUAGE = os.getenv("WHATSAPP_TEMPLATE_LANGUAGE", "fr")
 WHATSAPP_FORCE_TEMPLATE = os.getenv("WHATSAPP_FORCE_TEMPLATE", "False").lower() in ("1", "true", "yes")
+WHATSAPP_TECH_PROVIDER_APP_ID = os.getenv("WHATSAPP_TECH_PROVIDER_APP_ID", "")
+WHATSAPP_TECH_PROVIDER_APP_SECRET = os.getenv("WHATSAPP_TECH_PROVIDER_APP_SECRET", "")
+WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID = os.getenv("WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID", "")
+WHATSAPP_GRAPH_API_VERSION = os.getenv("WHATSAPP_GRAPH_API_VERSION", "v25.0")
+WHATSAPP_COMMERCE_ENABLED = os.getenv("WHATSAPP_COMMERCE_ENABLED", "False").lower() in ("1", "true", "yes")
+WHATSAPP_COMMERCE_SITE_URL = os.getenv("WHATSAPP_COMMERCE_SITE_URL", "https://e-shelle.com")
+WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED = os.getenv(
+    "WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED",
+    "False",
+).lower() in ("1", "true", "yes")
 
 # ── Celery — Broker & Backend ──────────────────────────────────────
 CELERY_BROKER_URL         = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")

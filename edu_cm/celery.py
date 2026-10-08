@@ -268,5 +268,9 @@ app.conf.beat_schedule = {
         "task": "business.tasks.downgrade_expired_businesses",
         "schedule": crontab(hour=8, minute=15),
     },
+    # Relances CRM planifiées : la tâche reste sans effet si WhatsApp Commerce est désactivé.
+    "business-whatsapp-follow-ups": {
+        "task": "whatsapp_commerce.tasks.process_due_business_whatsapp_follow_ups",
+        "schedule": crontab(minute="*/1"),
+    },
 }
-

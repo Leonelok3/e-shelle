@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Connecter WhatsApp Business — {{ business.name }} | E-Shelle{% endblock %}
+{% block content %}
+<section style="min-height:75vh;padding:7rem 1rem 3rem;background:#0a1628;color:#fff">
+  <div style="max-width:760px;margin:auto;padding:clamp(1.25rem,4vw,2.5rem);border:1px solid rgba(255,255,255,.12);border-radius:20px;background:rgba(255,255,255,.05)">
+    <a href="{% url 'whatsapp_commerce:business_dashboard' business.id %}" style="color:#86efac">← Retour au tableau WhatsApp</a>
+    <h1 style="margin:1.25rem 0 .5rem">Connecter {{ business.name }} à WhatsApp</h1>
+    <p style="color:rgba(255,255,255,.72)">Vous gardez la propriété de vos comptes et numéros. E-Shelle ne demande jamais votre mot de passe Meta.</p>
+    <div style="margin:1.25rem 0;padding:1rem;border-radius:12px;background:rgba(34,197,94,.08);line-height:1.6">
+      Après la connexion Meta, votre compte WhatsApp Business doit avoir un moyen de paiement ajouté à Meta avant de pouvoir envoyer des messages. Les frais d’usage WhatsApp sont facturés par Meta à votre entreprise ; l’abonnement E-Shelle est séparé.
+    </div>
+
+    {% if signup_configured %}
+      <label for="wa-pin" style="display:block;margin:1.2rem 0 .4rem">PIN de vérification en deux étapes WhatsApp (6 chiffres)</label>
+      <input id="wa-pin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="6" pattern="[0-9]{6}" required
+             style="padding:.8rem;border-radius:9px;border:1px solid #64748b;background:#101c33;color:#fff">
+      <p style="color:rgba(255,255,255,.65);font-size:.9rem">Choisissez ou saisissez le PIN à 6 chiffres demandé pour enregistrer le numéro sur Cloud API. Il ne sera pas conservé après la configuration.</p>
+      <button id="wa-connect" type="button" style="padding:.8rem 1.2rem;border:0;border-radius:10px;background:#1877f2;color:#fff;font-weight:800;cursor:pointer">Continuer avec Meta</button>
+      <p id="wa-status" role="status" aria-live="polite" style="margin-top:1rem;color:#fde68a"></p>
+      {% csrf_token %}
+      <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+      <script>
+        (() => {
+          const appId = "{{ app_id|escapejs }}";
+          const configId = "{{ config_id|escapejs }}";
+          const state = "{{ state|escapejs }}";
+          const graphVersion = "{{ graph_api_version|escapejs }}";
+          const status = document.getElementById("wa-status");
+          const button = document.getElementById("wa-connect");
+          let code = "";
+          let signup = null;
+          let submitting = false;
+
+          window.fbAsyncInit = () => FB.init({
+            appId,
+            autoLogAppEvents: true,
+            xfbml: true,
+            version: graphVersion
+          });
+
+          const finish = async () => {
+            if (!code || !signup || submitting) return;
+            if (!signup.waba_id || !signup.phone_number_id) {
+              status.textContent = "Meta n’a pas retourné de WABA et de numéro Cloud API. Vérifiez le parcours puis réessayez.";
+              return;
+            }
+            const pin = document.getElementById("wa-pin").value.trim();
+            if (!/^\d{6}$/.test(pin)) {
+              status.textContent = "Saisissez un PIN de 6 chiffres avant de continuer.";
+              button.disabled = false;
+              return;
+            }
+            submitting = true;
+            button.disabled = true;
+            status.textContent = "Sécurisation de la connexion avec Meta…";
+            const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
+            try {
+              const response = await fetch("{% url 'whatsapp_commerce:business_connect_complete' business.id %}", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {"Content-Type": "application/json", "X-CSRFToken": csrf},
+                body: JSON.stringify({
+                  code,
+                  state,
+                  pin,
+                  event: signup.event,
+                  waba_id: signup.data.waba_id,
+                  phone_number_id: signup.data.phone_number_id,
+                  business_id: signup.data.business_id || ""
+                })
+              });
+              const data = await response.json();
+              if (data.redirect) {
+                window.location.assign(data.redirect);
+                return;
+              }
+              status.textContent = data.error || "La connexion n’a pas abouti. Relancez le parcours Meta.";
+              submitting = false;
+              button.disabled = false;
+            } catch {
+              status.textContent = "Connexion réseau interrompue. Vérifiez le statut avant de relancer le parcours.";
+              submitting = false;
+              button.disabled = false;
+            }
+          };
+
+          window.addEventListener("message", event => {
+            if (!["https://www.facebook.com", "https://web.facebook.com"].includes(event.origin)) return;
+            let message = event.data;
+            if (typeof message === "string") {
+              try { message = JSON.parse(message); } catch { return; }
+            }
+            if (message && message.type === "WA_EMBEDDED_SIGNUP" && message.event === "FINISH") {
+              signup = message;
+              finish();
+            }
+          });
+
+          button.addEventListener("click", () => {
+            if (!/^\d{6}$/.test(document.getElementById("wa-pin").value.trim())) {
+              status.textContent = "Saisissez d’abord un PIN de 6 chiffres.";
+              return;
+            }
+            if (!window.FB) {
+              status.textContent = "Le service Meta n’est pas encore chargé. Réessayez.";
+              return;
+            }
+            button.disabled = true;
+            status.textContent = "Ouverture sécurisée de Meta…";
+            FB.login(response => {
+              if (response.authResponse && response.authResponse.code) {
+                code = response.authResponse.code;
+                finish();
+              } else {
+                status.textContent = "Connexion annulée ou non autorisée par Meta.";
+                button.disabled = false;
+              }
+            }, {
+              config_id: configId,
+              response_type: "code",
+              override_default_response_type: true,
+              extras: {setup: {}}
+            });
+          });
+        })();
+      </script>
+    {% else %}
+      <div role="status" style="padding:1rem;border-radius:12px;background:rgba(250,204,21,.12);color:#fde68a">
+        La connexion libre-service n’est pas encore configurée. E-Shelle doit terminer l’examen Meta et définir côté serveur l’ID d’application, le secret et la configuration Embedded Signup v4. Aucun identifiant sensible ne doit être ajouté dans le navigateur.
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,36 @@
+<form method="post" action="{% url 'whatsapp_commerce:whatsapp_order_click' produit.pk %}" class="wa-commerce-order" data-view-url="{% url 'whatsapp_commerce:product_view_ping' produit.pk %}">
+  {% csrf_token %}
+  <label class="wa-commerce-phone-label" for="wa-commerce-phone-{{ produit.pk }}">Téléphone WhatsApp pour le suivi (facultatif)</label>
+  <input id="wa-commerce-phone-{{ produit.pk }}" class="wa-commerce-phone" type="tel" name="visitor_phone" inputmode="tel" autocomplete="tel" placeholder="+237 6XX XXX XXX">
+  <label class="wa-commerce-consent" for="wa-commerce-optin-{{ produit.pk }}">
+    <input id="wa-commerce-optin-{{ produit.pk }}" type="checkbox" name="whatsapp_opt_in">
+    J’accepte de recevoir un seul rappel WhatsApp au sujet de ce produit si je ne finalise pas ma commande.
+  </label>
+  <button class="wa-commerce-order-button" type="submit">
+    <span>Commander sur WhatsApp Officiel</span>
+    <small>Réponse en 2 min · Numéro certifié</small>
+  </button>
+</form>
+<style>
+  .wa-commerce-order{display:grid;gap:.6rem;margin:1rem 0}
+  .wa-commerce-phone-label,.wa-commerce-consent{font-size:.82rem;line-height:1.45}
+  .wa-commerce-phone{width:100%;box-sizing:border-box;padding:.7rem .8rem;border:1px solid #cbd5d1;border-radius:6px;background:#fff;color:#10231b}
+  .wa-commerce-consent{display:flex;align-items:flex-start;gap:.5rem}
+  .wa-commerce-consent input{margin-top:.18rem;accent-color:#128c4a}
+  .wa-commerce-order-button{display:flex;flex-direction:column;align-items:center;gap:.2rem;width:100%;padding:.8rem 1rem;border:0;border-radius:7px;background:#128c4a;color:#fff;font-weight:700;cursor:pointer}
+  .wa-commerce-order-button:hover{background:#0b753c}
+  .wa-commerce-order-button small{font-size:.76rem;font-weight:500;opacity:.92}
+</style>
+<script>
+  (function (script) {
+    const form = script.previousElementSibling.previousElementSibling;
+    const token = form && form.querySelector('[name=csrfmiddlewaretoken]');
+    if (!form || !token || !form.dataset.viewUrl) return;
+    fetch(form.dataset.viewUrl, {
+      method: 'POST',
+      headers: {'X-CSRFToken': token.value},
+      credentials: 'same-origin',
+      keepalive: true
+    }).catch(() => {});
+  })(document.currentScript);
+</script>

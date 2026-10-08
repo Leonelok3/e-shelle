@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block title %}WhatsApp Business — {{ business.name }} | E-Shelle{% endblock %}
+{% block content %}
+<section style="min-height:75vh;padding:7rem 1rem 3rem;background:#0a1628;color:#fff">
+  <div style="max-width:1100px;margin:auto">
+    <a href="{% url 'business:dashboard' %}?business={{ business.id }}" style="color:#86efac">← Tableau de bord Business</a>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin:1rem 0">
+      <div>
+        <h1 style="margin:0">WhatsApp Business</h1>
+        <p style="color:rgba(255,255,255,.68);margin:.35rem 0">{{ business.name }}</p>
+      </div>
+      {% if connection.status == "active" %}
+        <span style="padding:.55rem .85rem;border-radius:999px;background:rgba(34,197,94,.15);color:#86efac;font-weight:800">Compte WhatsApp connecté</span>
+      {% elif entitlements.can_connect %}
+        <a href="{% url 'whatsapp_commerce:business_connect' business.id %}" style="padding:.8rem 1rem;border-radius:10px;background:#1877f2;color:white;text-decoration:none;font-weight:800">Connecter mon compte WhatsApp</a>
+      {% endif %}
+    </div>
+    {% for message in messages %}
+      <p role="status" style="padding:.75rem 1rem;border-radius:10px;background:rgba(255,255,255,.08)">{{ message }}</p>
+    {% endfor %}
+
+    {% if not entitlements.can_use_crm %}
+      <div style="margin:1rem 0;padding:1rem;border:1px solid rgba(250,204,21,.25);border-radius:12px;background:rgba(250,204,21,.08);color:#fde68a">
+        Le WhatsApp CRM est inclus dans les formules Pro, Business et Premium actives. Votre connexion et vos données sont conservées si l’abonnement expire.
+      </div>
+    {% elif entitlements.can_sync_catalog %}
+      <div style="margin:1rem 0;padding:1rem;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.04)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
+          <div>
+            <strong>Catalogue Meta</strong>
+            <p style="margin:.3rem 0 0;color:rgba(255,255,255,.62)">{{ catalog_item_count }} article(s) sur votre fiche E-Shelle. Une image HTTPS et un prix numérique XAF sont requis.</p>
+          </div>
+          {% if connection.status == "active" %}
+            <form method="post" action="{% url 'whatsapp_commerce:business_catalog_sync' business.id %}">
+              {% csrf_token %}
+              <button type="submit" style="padding:.65rem .9rem;border:0;border-radius:8px;background:#1877f2;color:white;font-weight:800;cursor:pointer">Synchroniser le catalogue</button>
+            </form>
+          {% endif %}
+        </div>
+        {% if catalog_syncs %}
+          <ul style="margin:.75rem 0 0;padding-left:1.2rem;color:rgba(255,255,255,.7)">
+            {% for sync in catalog_syncs %}
+              <li>{{ sync.business_catalog_item.title }} — {{ sync.get_sync_status_display }}{% if sync.last_error %}: {{ sync.last_error }}{% endif %}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    {% elif entitlements.can_use_crm %}
+      <p style="color:rgba(255,255,255,.6)">La synchronisation du catalogue Meta est incluse dans Business et Premium.</p>
+    {% endif %}
+
+    {% if connection.status == "action_required" %}
+      <div style="margin:1rem 0;padding:1rem;border-radius:12px;background:rgba(250,204,21,.12);color:#fde68a">
+        <strong>Une action Meta est nécessaire :</strong> {{ connection.last_error }}
+        <form method="post" action="{% url 'whatsapp_commerce:business_connect_retry' business.id %}" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem">
+          {% csrf_token %}
+          <input name="pin" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{6}" maxlength="6" placeholder="PIN à 6 chiffres" required style="padding:.65rem;border-radius:8px">
+          <button type="submit" style="padding:.65rem 1rem;border:0;border-radius:8px;cursor:pointer">Reprendre la configuration</button>
+        </form>
+      </div>
+    {% endif %}
+
+    {% if not signup_configured and connection.status != "active" %}
+      <p style="padding:1rem;border-radius:12px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.72)">Le parcours Meta sera disponible après configuration et validation des accès du Tech Provider.</p>
+    {% endif %}
+    {% if entitlements.can_use_crm %}
+    <div style="display:grid;grid-template-columns:minmax(220px,.75fr) minmax(0,1.5fr);gap:1rem;margin-top:1.2rem">
+      <aside style="padding:1rem;border:1px solid rgba(255,255,255,.12);border-radius:14px">
+        <h2 style="margin-top:0">Contacts et prospects</h2>
+        <form method="get" style="display:grid;gap:.45rem;margin-bottom:.5rem">
+          <input type="search" name="q" value="{{ search_query }}" maxlength="100" placeholder="Nom ou numéro" style="width:100%;box-sizing:border-box;padding:.6rem;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:#101c33;color:#fff">
+          <select name="status" style="width:100%;padding:.6rem;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:#101c33;color:#fff">
+            <option value="">Tous les statuts</option>
+            {% for value, label in status_choices %}<option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+          <button type="submit" style="padding:.55rem;border:0;border-radius:8px;cursor:pointer">Filtrer</button>
+        </form>
+        {% for contact in contacts %}
+          <a href="?contact={{ contact.id }}" style="display:block;padding:.8rem .2rem;border-bottom:1px solid rgba(255,255,255,.1);color:#fff;text-decoration:none">
+            <strong>{{ contact.display_name|default:contact.phone }}</strong>
+            <small style="display:block;color:rgba(255,255,255,.58)">{{ contact.get_pipeline_status_display }} · {{ contact.phone }}{% if contact.opted_out_at %} · désinscrit{% endif %}</small>
+          </a>
+        {% empty %}
+          <p style="color:rgba(255,255,255,.62)">Les nouveaux messages WhatsApp autorisés apparaîtront ici.</p>
+        {% endfor %}
+      </aside>
+      <article style="padding:1rem;border:1px solid rgba(255,255,255,.12);border-radius:14px">
+        {% if selected_contact %}
+          <h2 style="margin-top:0">{{ selected_contact.display_name|default:selected_contact.phone }}</h2>
+          <p style="color:rgba(255,255,255,.58)">{{ selected_contact.phone }}{% if selected_contact.opted_out_at %} · Ce contact a demandé à ne plus recevoir de messages.{% endif %}</p>
+          <form method="post" action="{% url 'whatsapp_commerce:business_contact_update' business.id selected_contact.id %}" style="display:grid;gap:.55rem;margin:1rem 0;padding:1rem;border-radius:10px;background:rgba(255,255,255,.05)">
+            {% csrf_token %}
+            <label for="pipeline-status">Suivi commercial</label>
+            <select id="pipeline-status" name="pipeline_status" style="padding:.65rem;border-radius:8px;background:#101c33;color:#fff">
+              {% for value, label in status_choices %}<option value="{{ value }}" {% if selected_contact.pipeline_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+            <label for="contact-tags">Étiquettes (séparées par des virgules)</label>
+            <input id="contact-tags" name="tags" value="{% for tag in selected_contact.tags %}{% if not forloop.first %}, {% endif %}{{ tag }}{% endfor %}" maxlength="400" style="padding:.65rem;border-radius:8px;background:#101c33;color:#fff">
+            <label for="next-follow-up">Prochaine relance</label>
+            <input id="next-follow-up" type="date" name="next_follow_up_at" value="{{ selected_contact.next_follow_up_at|date:'Y-m-d' }}" style="padding:.65rem;border-radius:8px;background:#101c33;color:#fff">
+            <label for="contact-notes">Notes internes</label>
+            <textarea id="contact-notes" name="notes" maxlength="5000" rows="3" style="padding:.65rem;border-radius:8px;background:#101c33;color:#fff">{{ selected_contact.notes }}</textarea>
+            <button type="submit" style="justify-self:start;padding:.6rem .9rem;border:0;border-radius:8px;cursor:pointer">Enregistrer le suivi</button>
+          </form>
+          {% if selected_contact.marketing_opt_in and selected_contact.consented_at and not selected_contact.opted_out_at %}
+            <div style="padding:.8rem;border-radius:10px;background:rgba(34,197,94,.08);color:#bbf7d0">
+              Consentement actif enregistré le {{ selected_contact.consented_at|date:"d/m/Y H:i" }} — {{ selected_contact.consent_source }}
+            </div>
+            <form method="post" action="{% url 'whatsapp_commerce:business_contact_consent' business.id selected_contact.id %}" style="margin:.6rem 0">
+              {% csrf_token %}
+              <button type="submit" style="padding:.55rem .8rem;border:1px solid rgba(248,113,113,.45);border-radius:8px;background:transparent;color:#fecaca;cursor:pointer">Retirer le consentement et annuler les relances</button>
+            </form>
+          {% else %}
+            <form method="post" action="{% url 'whatsapp_commerce:business_contact_consent' business.id selected_contact.id %}" style="display:grid;gap:.55rem;margin:1rem 0;padding:1rem;border:1px solid rgba(250,204,21,.2);border-radius:10px">
+              {% csrf_token %}
+              <input type="hidden" name="marketing_opt_in" value="on">
+              <strong>Consentement aux messages WhatsApp</strong>
+              <p style="margin:0;color:rgba(255,255,255,.62)">Ne cochez cette confirmation que si le client a réellement accepté de recevoir des messages de cette entreprise.</p>
+              <label for="consent-source">Source / preuve (ex. formulaire daté, accord verbal documenté)</label>
+              <input id="consent-source" name="consent_source" required minlength="5" maxlength="120" placeholder="Décrivez où le consentement a été obtenu" style="padding:.65rem;border-radius:8px;background:#101c33;color:#fff">
+              <label style="display:flex;gap:.5rem;align-items:flex-start">
+                <input type="checkbox" name="consent_confirmed" required>
+                <span>J’atteste que le client a donné son accord explicite pour recevoir des messages WhatsApp de cette entreprise.</span>
+              </label>
+              <button type="submit" style="justify-self:start;padding:.6rem .9rem;border:0;border-radius:8px;background:#166534;color:#fff;cursor:pointer">Enregistrer le consentement</button>
+            </form>
+          {% endif %}
+          {% if entitlements.can_automate and automations_enabled and connection.status == "active" and selected_contact.marketing_opt_in and selected_contact.consented_at and not selected_contact.opted_out_at %}
+            <section style="margin:1rem 0;padding:1rem;border:1px solid rgba(59,130,246,.25);border-radius:12px;background:rgba(59,130,246,.06)">
+              <h3 style="margin:.1rem 0 .5rem">Planifier une relance par modèle approuvé</h3>
+              <p style="color:rgba(255,255,255,.62);font-size:.9rem">Envoi unique à ce contact. La formule, le consentement et l’approbation Meta seront revérifiés juste avant l’envoi.</p>
+              <button type="button" id="load-wa-templates" data-url="{% url 'whatsapp_commerce:business_approved_templates' business.id %}" style="padding:.55rem .8rem;border:0;border-radius:8px;background:#1d4ed8;color:#fff;cursor:pointer">Charger les modèles approuvés de mon WABA</button>
+              <p id="wa-template-error" role="status" style="color:#fca5a5"></p>
+              <form method="post" action="{% url 'whatsapp_commerce:business_contact_schedule' business.id selected_contact.id %}" style="display:grid;gap:.55rem;margin-top:.7rem">
+                {% csrf_token %}
+                <label for="wa-template">Modèle et langue</label>
+                <select id="wa-template" required style="padding:.65rem;border-radius:8px;background:#101c33;color:#fff">
+                  <option value="">Charger puis choisir un modèle</option>
+                </select>
+                <input type="hidden" name="template_name" id="wa-template-name">
+                <input type="hidden" name="template_language" id="wa-template-language">
+                <label for="wa-template-params">Variables du corps, sous forme de tableau JSON (ex. ["Amina", "lundi"])</label>
+                <textarea id="wa-template-params" name="body_parameters" rows="2" required style="padding:.65rem;border-radius:8px;background:#101c33;color:#fff">[]</textarea>
+                <label for="wa-template-schedule">Date et heure locale</label>
+                <input id="wa-template-schedule" type="datetime-local" name="scheduled_for" required style="padding:.65rem;border-radius:8px;background:#101c33;color:#fff">
+                <label style="display:flex;gap:.5rem;align-items:flex-start">
+                  <input type="checkbox" name="confirm_send" required>
+                  <span>Je confirme que cette relance individuelle est attendue et conforme au consentement du client.</span>
+                </label>
+                <button type="submit" style="justify-self:start;padding:.65rem .9rem;border:0;border-radius:8px;background:#1877f2;color:#fff;font-weight:800;cursor:pointer">Planifier la relance</button>
+              </form>
+            </section>
+          {% elif entitlements.can_automate and not automations_enabled %}
+            <p style="margin:1rem 0;padding:.8rem;border-radius:10px;background:rgba(250,204,21,.08);color:#fde68a">L’envoi planifié est prêt mais désactivé par la configuration serveur. Aucun modèle ne sera envoyé tant que l’intégration n’a pas été validée et activée.</p>
+          {% endif %}
+          {% if scheduled_messages %}
+            <section style="margin:1rem 0">
+              <h3>Relances planifiées et récentes</h3>
+              {% for scheduled in scheduled_messages %}
+                <div style="display:flex;justify-content:space-between;gap:.75rem;align-items:center;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.1)">
+                  <span>{{ scheduled.template_name }} · {{ scheduled.get_status_display }} · {{ scheduled.scheduled_for|date:"d/m/Y H:i" }}{% if scheduled.delivery_status %} · livraison : {{ scheduled.delivery_status }}{% endif %}{% if scheduled.last_error %}<small style="display:block;color:#fca5a5">{{ scheduled.last_error }}</small>{% endif %}</span>
+                  {% if scheduled.status == "scheduled" and entitlements.can_automate %}
+                    <form method="post" action="{% url 'whatsapp_commerce:business_contact_schedule_cancel' business.id selected_contact.id scheduled.id %}">
+                      {% csrf_token %}<button type="submit" style="padding:.45rem .65rem;border:1px solid rgba(248,113,113,.4);border-radius:7px;background:transparent;color:#fecaca;cursor:pointer">Annuler</button>
+                    </form>
+                  {% endif %}
+                </div>
+              {% endfor %}
+              <small style="display:block;margin-top:.5rem;color:rgba(255,255,255,.55)">« Accepté par Meta » ne signifie pas que le message a été livré ; le statut de livraison est mis à jour par webhook.</small>
+            </section>
+          {% endif %}
+          <div style="display:grid;gap:.65rem">
+            {% for item in conversation_messages %}
+              <div style="max-width:85%;justify-self:{% if item.direction == 'outbound' %}end{% else %}start{% endif %};padding:.7rem .85rem;border-radius:12px;background:{% if item.direction == 'outbound' %}rgba(34,197,94,.14){% else %}rgba(255,255,255,.08){% endif %}">
+                <small style="color:#86efac">{{ item.get_direction_display }} · {{ item.status }}</small>
+                <div style="white-space:pre-wrap;overflow-wrap:anywhere">{{ item.body|default:"Message média" }}</div>
+              </div>
+            {% empty %}
+              <p style="color:rgba(255,255,255,.6)">Aucun message enregistré.</p>
+            {% endfor %}
+          </div>
+          {% if connection.status == "active" and selected_contact.last_inbound_at and not selected_contact.opted_out_at %}
+            <form method="post" action="{% url 'whatsapp_commerce:business_contact_reply' business.id selected_contact.id %}" style="display:grid;gap:.5rem;margin-top:1rem">
+              {% csrf_token %}
+              <label for="reply-body">Réponse directe (fenêtre client de 24 h)</label>
+              <textarea id="reply-body" name="body" maxlength="4096" required rows="3" placeholder="Votre réponse…" style="padding:.75rem;border-radius:9px;background:#101c33;color:#fff"></textarea>
+              <small style="color:rgba(255,255,255,.6)">Les messages marketing et les modèles approuvés ne sont pas activés dans ce premier pilote.</small>
+              <button type="submit" style="justify-self:start;padding:.65rem 1rem;border:0;border-radius:8px;background:#128c4a;color:#fff;font-weight:800;cursor:pointer">Envoyer la réponse</button>
+            </form>
+          {% endif %}
+        {% else %}
+          <h2 style="margin-top:0">Votre boîte de réception</h2>
+          <p style="color:rgba(255,255,255,.68)">Les conversations sont isolées sur cette fiche business. Les réponses directes sont disponibles uniquement dans la fenêtre de service de 24 h ouverte par le client. Les campagnes et automatisations seront activées après validation des garde-fous Meta.</p>
+        {% endif %}
+      </article>
+    </div>
+    {% endif %}
+    <p style="margin-top:1.5rem;color:rgba(255,255,255,.55);font-size:.9rem">Meta facture directement à votre entreprise les frais de messagerie WhatsApp. E-Shelle ne peut pas garantir le volume de messages ou les ventes.</p>
+  </div>
+</section>
+<script>
+(function () {
+  var loadButton = document.getElementById("load-wa-templates");
+  var select = document.getElementById("wa-template");
+  var nameField = document.getElementById("wa-template-name");
+  var languageField = document.getElementById("wa-template-language");
+  var error = document.getElementById("wa-template-error");
+  if (!loadButton || !select) return;
+
+  loadButton.addEventListener("click", function () {
+    error.textContent = "Chargement…";
+    fetch(loadButton.dataset.url, { credentials: "same-origin" })
+      .then(function (response) {
+        return response.json().then(function (data) {
+          if (!response.ok) throw new Error(data.error || "Impossible de charger les modèles Meta.");
+          return data;
+        });
+      })
+      .then(function (data) {
+        select.replaceChildren(new Option("Choisir un modèle approuvé", ""));
+        data.templates.forEach(function (template) {
+          var option = new Option(
+            template.name + " (" + template.language + ", " + template.category + ", " + template.body_variables + " variable(s))",
+            template.name + "|" + template.language
+          );
+          option.dataset.name = template.name;
+          option.dataset.language = template.language;
+          option.dataset.variables = template.body_variables;
+          select.add(option);
+        });
+        error.textContent = data.templates.length ? "" : "Aucun modèle approuvé et compatible n’a été trouvé.";
+      })
+      .catch(function (exception) { error.textContent = exception.message; });
+  });
+  select.addEventListener("change", function () {
+    var option = select.options[select.selectedIndex];
+    nameField.value = option.dataset.name || "";
+    languageField.value = option.dataset.language || "";
+    document.getElementById("wa-template-params").value =
+      option.dataset.variables === "0" ? "[]" : "";
+  });
+})();
+</script>
+{% endblock %}
