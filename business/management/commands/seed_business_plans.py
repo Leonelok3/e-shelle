@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand
 from business.models import BusinessProfile, ProviderPlan
 
 
+# Prix mis à jour 8 oct 2026 pour Tech Provider - Audit safe
 class Command(BaseCommand):
     help = "Cree les plans prestataires E-Shelle par defaut."
 
@@ -34,7 +35,7 @@ class Command(BaseCommand):
                 "code": "business",
                 "name": "Business",
                 "plan_level": BusinessProfile.Plan.BUSINESS,
-                "monthly_price_xaf": 10000,
+                "monthly_price_xaf": 15000,
                 "duration_days": 30,
                 "included_boost_days": 7,
                 "included_ai_credits": 20,

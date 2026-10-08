@@ -18,10 +18,10 @@ class PublicMetaReviewPagesTests(TestCase):
     def test_global_footer_has_business_information_and_legal_links(self):
         response = self.client.get("/services/contact/")
 
-        self.assertContains(response, "SaaS E-commerce Platform for SMEs in Cameroon and Central Africa")
+        self.assertContains(response, "SaaS E-commerce Platform for SMEs in Cameroon")
         self.assertContains(response, "Business ID: 1837509733943082")
         self.assertContains(response, "App ID Meta: 1841260056892991")
-        self.assertContains(response, "Intégration WhatsApp Business Platform, sous réserve de l’approbation Meta.")
+        self.assertContains(response, "Candidature Tech Provider en cours d’examen par Meta.")
         self.assertContains(response, 'href="/privacy-policy"')
         self.assertContains(response, 'href="/terms"')
         self.assertContains(response, 'href="/about"')
