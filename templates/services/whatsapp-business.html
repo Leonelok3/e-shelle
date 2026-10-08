@@ -1,75 +1,325 @@
 {% extends "base.html" %}
+
 {% block title %}WhatsApp Business Platform sur E-Shelle - Connexion WABA officielle{% endblock %}
 {% block meta_description %}Découvrez les outils E-Shelle pour connecter le compte WhatsApp Business de votre entreprise, gérer vos contacts et suivre vos échanges.{% endblock %}
+
+{% block extra_css %}
+<style>
+  .wa-business-page {
+    min-height: 100vh;
+    padding: 9rem 0 5rem;
+    color: #fff;
+    background:
+      radial-gradient(circle at 85% 8%, rgba(34, 197, 94, .16), transparent 34rem),
+      radial-gradient(circle at 12% 48%, rgba(245, 158, 11, .09), transparent 30rem),
+      #05100c;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  }
+
+  .wa-business-container {
+    width: min(1120px, calc(100% - 2rem));
+    margin: 0 auto;
+  }
+
+  .wa-business-hero {
+    max-width: 850px;
+    margin: 0 auto 3rem;
+    text-align: center;
+  }
+
+  .wa-business-eyebrow {
+    display: inline-block;
+    margin-bottom: .9rem;
+    color: #7dec6c;
+    font-size: .78rem;
+    font-weight: 900;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  .wa-business-hero h1 {
+    margin: 0 0 1.2rem;
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(2.2rem, 5vw, 4.2rem);
+    font-weight: 900;
+    line-height: 1.08;
+  }
+
+  .wa-business-gradient {
+    color: #7dec6c;
+    background: linear-gradient(120deg, #7dec6c, #f6c453);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .wa-business-hero p {
+    color: #cbd5e1;
+    font-size: 1.02rem;
+    line-height: 1.8;
+  }
+
+  .wa-business-section {
+    margin-top: 3.5rem;
+  }
+
+  .wa-business-section-heading {
+    margin: 0 0 .7rem;
+    color: #fff;
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(1.65rem, 3vw, 2.3rem);
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .wa-business-section-intro {
+    max-width: 760px;
+    margin: 0 auto 1.8rem;
+    color: #cbd5e1;
+    line-height: 1.7;
+    text-align: center;
+  }
+
+  .wa-business-features,
+  .wa-business-plans {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .wa-business-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wa-business-feature {
+    padding: 1.25rem 1.4rem;
+    color: #334155;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+    line-height: 1.65;
+  }
+
+  .wa-business-feature strong {
+    display: block;
+    margin-bottom: .3rem;
+    color: #0f172a;
+  }
+
+  .wa-business-plans {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .wa-business-plan {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    color: #334155;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .15);
+  }
+
+  .wa-business-plan--featured {
+    border: 2px solid #22c55e;
+    box-shadow: 0 16px 40px rgba(34, 197, 94, .16);
+  }
+
+  .wa-business-plan h3 {
+    margin: 0 0 .6rem;
+    color: #0f172a;
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+  }
+
+  .wa-business-plan-price {
+    margin: 0 0 1rem;
+    color: #15803d;
+    font-size: 1.45rem;
+    font-weight: 900;
+  }
+
+  .wa-business-plan p,
+  .wa-business-plan li {
+    color: #475569;
+    line-height: 1.65;
+  }
+
+  .wa-business-plan ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+
+  .wa-business-note {
+    margin-top: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    color: #334155;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 16px;
+    line-height: 1.75;
+  }
+
+  .wa-business-note strong {
+    color: #0f172a;
+  }
+
+  .wa-business-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .75rem;
+    margin: 2rem 0 0;
+  }
+
+  .wa-business-links a {
+    display: inline-flex;
+    padding: .7rem 1rem;
+    color: #14532d;
+    background: #fff;
+    border: 1px solid #bbf7d0;
+    border-radius: 999px;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .wa-business-links a:hover {
+    background: #f0fdf4;
+  }
+
+  .wa-business-footer {
+    margin-top: 2.5rem;
+    padding: 1.25rem 0 0;
+    color: #cbd5e1;
+    border-top: 1px solid rgba(255, 255, 255, .18);
+    line-height: 1.7;
+    text-align: center;
+  }
+
+  .wa-business-footer p {
+    margin: .3rem 0;
+  }
+
+  @media (max-width: 760px) {
+    .wa-business-page {
+      padding-top: 7.5rem;
+    }
+
+    .wa-business-features,
+    .wa-business-plans {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<main class="container" style="max-width:1000px;padding:8rem 1.25rem 4rem;color:#e5e7eb;line-height:1.75">
-  <h1>WhatsApp Business Platform sur E-Shelle</h1>
-  <p>E-Shelle propose une intégration avec la plateforme officielle WhatsApp Business afin qu'une entreprise puisse connecter son propre compte WhatsApp Business et son propre numéro. La candidature E-Shelle au programme Tech Provider est en cours d'examen par Meta ; l'accès aux fonctionnalités dépend des validations, permissions et configurations applicables.</p>
+<main class="wa-business-page">
+  <div class="wa-business-container">
+    <header class="wa-business-hero">
+      <span class="wa-business-eyebrow">E-Shelle Business</span>
+      <h1>WhatsApp Business Platform <span class="wa-business-gradient">sur E-Shelle</span></h1>
+      <p>E-Shelle propose une intégration avec la plateforme officielle WhatsApp Business afin qu'une entreprise puisse connecter son propre compte WhatsApp Business et son propre numéro. La candidature E-Shelle au programme Tech Provider est en cours d'examen par Meta ; l'accès aux fonctionnalités dépend des validations, permissions et configurations applicables.</p>
+    </header>
 
-  <h2>Connexion et gestion des contacts</h2>
-  <ul>
-    <li>Une connexion WABA maximum par fiche BusinessProfile.</li>
-    <li>Le parcours de connexion utilise Meta Embedded Signup. Le jeton d'accès de la connexion est chiffré par E-Shelle.</li>
-    <li>Le CRM permet de classer les contacts, tenir des notes et gérer le consentement ainsi que les demandes d'arrêt, dont le mot-clé STOP.</li>
-    <li>Les réponses texte libre sont limitées à la fenêtre de service de 24 heures ouverte par le message du client.</li>
-    <li>Les relances planifiées sont individuelles et utilisent uniquement un modèle approuvé par Meta, avec consentement marketing explicite et actif. Le contact peut retirer son consentement ou demander la désinscription.</li>
-    <li>Les campagnes de masse ne sont pas incluses dans le CRM WhatsApp Business par fiche.</li>
-  </ul>
+    <section class="wa-business-section" aria-labelledby="wa-connection-title">
+      <h2 id="wa-connection-title" class="wa-business-section-heading">Une connexion conçue pour votre activité</h2>
+      <p class="wa-business-section-intro">Connectez votre compte, organisez vos échanges et gardez le contrôle du consentement de vos contacts.</p>
+      <div class="wa-business-features">
+        <article class="wa-business-feature">
+          <strong>Une WABA par fiche</strong>
+          Une connexion WhatsApp Business Account (WABA) maximum par fiche BusinessProfile.
+        </article>
+        <article class="wa-business-feature">
+          <strong>Connexion Meta</strong>
+          Le parcours de connexion utilise Meta Embedded Signup. Le jeton d'accès de la connexion est chiffré par E-Shelle.
+        </article>
+        <article class="wa-business-feature">
+          <strong>CRM avec consentement et STOP</strong>
+          Le CRM permet de classer les contacts, tenir des notes et gérer le consentement ainsi que les demandes d'arrêt, dont le mot-clé STOP.
+        </article>
+        <article class="wa-business-feature">
+          <strong>Fenêtre de réponse de 24 heures</strong>
+          Les réponses texte libre sont limitées à la fenêtre de service de 24 heures ouverte par le message du client.
+        </article>
+        <article class="wa-business-feature">
+          <strong>Relances individuelles encadrées</strong>
+          Les relances planifiées sont individuelles et utilisent uniquement un modèle approuvé par Meta, avec consentement marketing explicite et actif. Le contact peut retirer son consentement ou demander la désinscription.
+        </article>
+        <article class="wa-business-feature">
+          <strong>Pas de campagnes de masse</strong>
+          Les campagnes de masse ne sont pas incluses dans le CRM WhatsApp Business par fiche.
+        </article>
+      </div>
+    </section>
 
-  <h2>Tarifs des fiches Business</h2>
-  <div style="overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse">
-      <thead>
-        <tr>
-          <th scope="col" style="text-align:left;padding:.75rem;border-bottom:1px solid #475569">Formule</th>
-          <th scope="col" style="text-align:left;padding:.75rem;border-bottom:1px solid #475569">Catalogue Business</th>
-          <th scope="col" style="text-align:left;padding:.75rem;border-bottom:1px solid #475569">Prix</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th scope="row" style="text-align:left;padding:.75rem;border-bottom:1px solid #334155">Présence — Pro</th>
-          <td style="padding:.75rem;border-bottom:1px solid #334155">20 articles, 2 photos supplémentaires par article ; 1 WABA par fiche</td>
-          <td style="padding:.75rem;border-bottom:1px solid #334155">5 000 XAF/mois</td>
-        </tr>
-        <tr>
-          <th scope="row" style="text-align:left;padding:.75rem;border-bottom:1px solid #334155">Croissance — Business</th>
-          <td style="padding:.75rem;border-bottom:1px solid #334155">50 articles, 4 photos supplémentaires par article ; 1 WABA par fiche ; synchronisation vers le catalogue Meta associé</td>
-          <td style="padding:.75rem;border-bottom:1px solid #334155">15 000 XAF/mois</td>
-        </tr>
-        <tr>
-          <th scope="row" style="text-align:left;padding:.75rem;border-bottom:1px solid #334155">Premium</th>
-          <td style="padding:.75rem;border-bottom:1px solid #334155">Sans plafond déclaré dans le code, 7 photos supplémentaires par article ; 1 WABA par fiche</td>
-          <td style="padding:.75rem;border-bottom:1px solid #334155">25 000 XAF/mois</td>
-        </tr>
-        <tr>
-          <th scope="row" style="text-align:left;padding:.75rem;border-bottom:1px solid #334155">Empire — sur devis</th>
-          <td style="padding:.75rem;border-bottom:1px solid #334155">Activation manuelle des modules convenus : immobilier, auto, annonces, agro et éducation</td>
-          <td style="padding:.75rem;border-bottom:1px solid #334155">35 000 XAF indicatifs, sur devis</td>
-        </tr>
-        <tr>
-          <th scope="row" style="text-align:left;padding:.75rem">Écosystème — sur devis</th>
-          <td style="padding:.75rem">Périmètre multi-modules défini dans le devis, avec activation manuelle</td>
-          <td style="padding:.75rem">60 000 XAF indicatifs, sur devis</td>
-        </tr>
-      </tbody>
-    </table>
+    <section class="wa-business-section" aria-labelledby="wa-pricing-title">
+      <h2 id="wa-pricing-title" class="wa-business-section-heading">Tarifs des fiches <span class="wa-business-gradient">Business</span></h2>
+      <p class="wa-business-section-intro">Des formules avec des limites de catalogue explicites. « Sans plafond déclaré » ne signifie pas stockage ou capacité illimités.</p>
+      <div class="wa-business-plans">
+        <article class="wa-business-plan">
+          <h3>Présence — Pro</h3>
+          <p class="wa-business-plan-price">5 000 XAF/mois</p>
+          <ul>
+            <li>Jusqu'à 20 articles</li>
+            <li>2 photos supplémentaires par article</li>
+            <li>1 WABA par fiche</li>
+          </ul>
+        </article>
+        <article class="wa-business-plan wa-business-plan--featured">
+          <h3>Croissance — Business</h3>
+          <p class="wa-business-plan-price">15 000 XAF/mois</p>
+          <ul>
+            <li>Jusqu'à 50 articles</li>
+            <li>4 photos supplémentaires par article</li>
+            <li>1 WABA par fiche</li>
+            <li>Synchronisation vers le catalogue Meta associé</li>
+          </ul>
+        </article>
+        <article class="wa-business-plan">
+          <h3>Premium</h3>
+          <p class="wa-business-plan-price">25 000 XAF/mois</p>
+          <ul>
+            <li>Catalogue Business sans plafond déclaré dans le code</li>
+            <li>7 photos supplémentaires par article</li>
+            <li>1 WABA par fiche</li>
+          </ul>
+        </article>
+        <article class="wa-business-plan">
+          <h3>Empire — sur devis</h3>
+          <p class="wa-business-plan-price">35 000 XAF — sur devis</p>
+          <p>Activation manuelle des modules convenus : immobilier, auto, annonces, agro et éducation.</p>
+        </article>
+        <article class="wa-business-plan">
+          <h3>Écosystème — sur devis</h3>
+          <p class="wa-business-plan-price">60 000 XAF — sur devis</p>
+          <p>Périmètre multi-modules défini ensemble dans le devis, avec activation manuelle.</p>
+        </article>
+      </div>
+
+      <aside class="wa-business-note" aria-label="Conditions WhatsApp Business et Meta">
+        <strong>À savoir :</strong> les frais de messagerie et de conversation applicables à WhatsApp Business Platform sont facturés séparément par Meta et ne sont pas inclus dans l'abonnement E-Shelle. La connexion et la synchronisation du catalogue dépendent de la configuration, des droits et de l'approbation Meta. Les relances exigent un modèle approuvé, l'activation côté serveur et le consentement explicite du contact. Une désinscription arrête les relances en attente. Aucun envoi de masse n'est proposé par ce CRM. E-Shelle ne garantit ni l'approbation Meta, ni la livraison de chaque message, ni un résultat commercial particulier.
+      </aside>
+      <aside class="wa-business-note">
+        La mention Premium « sans plafond déclaré » correspond à l'absence de limite chiffrée dans le modèle du catalogue Business ; elle ne garantit pas un stockage, une synchronisation ou une capacité illimités.
+      </aside>
+    </section>
+
+    <nav class="wa-business-links" aria-label="Liens utiles">
+      <a href="/privacy-policy">Privacy Policy</a>
+      <a href="/terms">Terms</a>
+      <a href="/services/contact/">Contact</a>
+      <a href="/business/plans/">Plans Business</a>
+    </nav>
+
+    <footer class="wa-business-footer">
+      <p>E-Shelle — Siège : Bepanda, Douala, BP 4241, Littoral, Cameroun. Bureau technique : Bafoussam, Région de l'Ouest, Cameroun.</p>
+      <p>Business ID: 1837509733943082 | App ID: 1841260056892991</p>
+    </footer>
   </div>
-
-  <h2>Conditions importantes</h2>
-  <p>Les frais de messagerie et de conversation applicables à WhatsApp Business Platform sont facturés séparément par Meta et ne sont pas inclus dans l'abonnement E-Shelle. La connexion et la synchronisation du catalogue dépendent de la configuration, des droits et de l'approbation Meta. Les relances exigent un modèle approuvé, l'activation côté serveur et le consentement explicite du contact. Une désinscription arrête les relances en attente. Aucun envoi de masse n'est proposé par ce CRM.</p>
-  <p>Le plafond Premium « sans plafond déclaré » correspond à l'absence de limite chiffrée dans le modèle du catalogue Business ; il ne garantit pas un stockage, une synchronisation ou une capacité illimités. E-Shelle ne garantit ni l'approbation Meta, ni la livraison de chaque message, ni un résultat commercial particulier.</p>
-
-  <nav aria-label="Liens utiles" style="display:flex;gap:1rem;flex-wrap:wrap;margin:2rem 0">
-    <a href="/privacy-policy">Privacy Policy</a>
-    <a href="/terms">Terms</a>
-    <a href="/services/contact/">Contact</a>
-    <a href="/business/plans/">Plans Business</a>
-  </nav>
-
-  <footer style="border-top:1px solid #334155;padding-top:1rem">
-    <p>E-Shelle — Siège : Bepanda, Douala, BP 4241, Littoral, Cameroun. Bureau technique : Bafoussam, Région de l'Ouest, Cameroun.</p>
-    <p>Business ID: 1837509733943082 | App ID: 1841260056892991</p>
-  </footer>
 </main>
 {% endblock %}
