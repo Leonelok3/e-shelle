@@ -304,6 +304,145 @@
       overflow-x: auto;
     }
   }
+  .home-catalog-section {
+    padding: 3.5rem 0;
+    background: linear-gradient(180deg, #07130c 0%, #050914 100%);
+    border-bottom: 1px solid rgba(125, 236, 108, 0.12);
+  }
+  .home-catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
+  }
+  .home-catalog-card {
+    display: flex;
+    min-width: 0;
+    min-height: 360px;
+    flex-direction: column;
+    overflow: hidden;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(125, 236, 108, 0.16);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+    transition: transform 0.25s ease, border-color 0.25s ease;
+  }
+  .home-catalog-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(125, 236, 108, 0.5);
+  }
+  .home-catalog-media {
+    display: grid;
+    height: 170px;
+    place-items: center;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(20, 83, 45, 0.7), rgba(217, 119, 6, 0.28));
+  }
+  .home-catalog-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .home-catalog-initial {
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    font-weight: 900;
+  }
+  .home-catalog-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 1rem;
+  }
+  .home-catalog-tag {
+    align-self: flex-start;
+    padding: 0.25rem 0.55rem;
+    color: #07130c;
+    background: #ffd91f;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+  .home-catalog-kind {
+    margin-top: 0.65rem;
+    color: rgba(255, 255, 255, 0.56);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .home-catalog-card h3 {
+    display: -webkit-box;
+    min-height: 2.6rem;
+    margin: 0.3rem 0;
+    overflow: hidden;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 850;
+    line-height: 1.3;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .home-catalog-description {
+    display: -webkit-box;
+    min-height: 2.4rem;
+    margin: 0.15rem 0 0.7rem;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .home-catalog-price {
+    margin-top: auto;
+    color: #7dec6c;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 900;
+  }
+  .home-catalog-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+    padding-top: 0.65rem;
+    color: rgba(255, 255, 255, 0.48);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.7rem;
+  }
+  .home-catalog-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.75rem;
+  }
+  .home-catalog-empty {
+    padding: 1.5rem;
+    color: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    text-align: center;
+  }
+  @media (max-width: 600px) {
+    .home-catalog-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    .home-catalog-card {
+      min-height: 330px;
+    }
+    .home-catalog-media {
+      height: 130px;
+    }
+    .home-catalog-body {
+      padding: 0.75rem;
+    }
+  }
 </style>
 {# Balises GEO SEO et Indexation #}
 <meta name="geo.region" content="CM" />
@@ -713,6 +852,56 @@
     </div>
   </section>
   {% endif %}
+
+  <section class="home-catalog-section" aria-labelledby="home-catalog-title">
+    <div class="esh-shell">
+      <div class="home-featured-head">
+        <div>
+          <span class="home-featured-kicker">🛍️ Catalogue E-Shelle</span>
+          <h2 id="home-catalog-title">Produits &amp; services des prestataires</h2>
+          <p>Parcourez les offres publiées par les commerces et prestataires présents sur E-Shelle.</p>
+        </div>
+        <a class="home-provider-cta" href="{% url 'products_services' %}">Voir tous les produits &amp; services →</a>
+      </div>
+
+      {% if home_catalog_items %}
+      <div class="home-catalog-grid">
+        {% for item in home_catalog_items %}
+        <a class="home-catalog-card" href="{{ item.business.get_absolute_url }}?produit={{ item.id }}">
+          <div class="home-catalog-media">
+            {% if item.image_url %}
+            <img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy">
+            {% else %}
+            <span class="home-catalog-initial">{{ item.title|first|upper }}</span>
+            {% endif %}
+          </div>
+          <div class="home-catalog-body">
+            <span class="home-catalog-tag">{{ item.get_item_type_display }}</span>
+            <span class="home-catalog-kind">{{ item.business.get_module_display }} · {{ item.business.city|default:"Cameroun" }}</span>
+            <h3>{{ item.title }}</h3>
+            {% if item.description %}
+            <p class="home-catalog-description">{{ item.description|truncatechars:90 }}</p>
+            {% else %}
+            <p class="home-catalog-description">Découvrez cette offre auprès du prestataire.</p>
+            {% endif %}
+            <span class="home-catalog-price">{{ item.formatted_price }}</span>
+            <span class="home-catalog-meta">
+              <span>{{ item.views_count }} vues</span>
+              <span>📍 {{ item.business.district|default:item.business.city|default:"Cameroun" }}</span>
+            </span>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="home-catalog-empty">Les nouvelles offres des prestataires s’afficheront ici. Consultez le catalogue complet pour découvrir les autres catégories.</p>
+      {% endif %}
+
+      <div class="home-catalog-footer">
+        <a class="home-provider-cta" href="{% url 'products_services' %}">Explorer le catalogue complet →</a>
+      </div>
+    </div>
+  </section>
 
   {# 2.2. Agence Digitale & Académie E-Shelle (Création Sites Web, Agents IA, Automatisation & Formations) #}
   <section class="esh-section esh-tech-training-hub" style="background: linear-gradient(135deg, #020617 0%, #0b1528 100%); padding: 5rem 0; border-top: 1px solid rgba(255,255,255,0.05); font-family: 'Plus Jakarta Sans', sans-serif; position: relative; overflow: hidden;">

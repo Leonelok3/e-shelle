@@ -156,6 +156,13 @@ def home_view(request):
                 plan__in=[BusinessProfile.Plan.PREMIUM, BusinessProfile.Plan.BUSINESS],
             ).order_by("-boost_expires_at", "-subscription_expires_at", "-leads_count", "-updated_at")[:12]
         )
+        if len(premium_businesses) < 12:
+            featured_business_ids = [business.pk for business in premium_businesses]
+            premium_businesses.extend(
+                BusinessProfile.objects.filter(is_active=True)
+                .exclude(pk__in=featured_business_ids)
+                .order_by("-updated_at")[: 12 - len(premium_businesses)]
+            )
         business_slides = []
         for business in premium_businesses:
             logo_url = ""
@@ -178,6 +185,11 @@ def home_view(request):
                     "description": business.description or business.promo_offer or "Prestataire disponible sur E-Shelle.",
                 }
             )
+        home_catalog_items = list(
+            BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True)
+            .select_related("business")
+            .order_by("-created_at")[:8]
+        )
         premium_showcase_items = []
         home_ad_slides = list(
             HomeAdSlide.objects.filter(is_active=True)
@@ -244,6 +256,7 @@ def home_view(request):
             paginated_items = paginator.page(paginator.num_pages)
 
         ctx["premium_showcase_items"] = paginated_items
+        ctx["home_catalog_items"] = home_catalog_items
         ctx["business_slides"] = business_slides
         ctx["business_slides_dup"] = business_slides + business_slides
         ctx["home_ad_slides"] = merged_slides[:10]
@@ -270,6 +283,7 @@ def home_view(request):
     except Exception:
         ctx["premium_businesses"] = []
         ctx["premium_showcase_items"] = []
+        ctx["home_catalog_items"] = []
         ctx["business_slides"] = []
         ctx["business_slides_dup"] = []
         ctx["home_ad_slides"] = []
