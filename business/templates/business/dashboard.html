@@ -1,109 +1,109 @@
 {% extends "base.html" %}
 
-{% block title %}Mon business - E-Shelle{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}My business - E-Shelle{% else %}Mon business - E-Shelle{% endif %}{% endblock %}
 
 {% block content %}
 <section class="section" style="padding-top:7rem;background:#0a1628">
   <div class="container">
     <div style="display:flex;justify-content:space-between;align-items:end;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem">
       <div>
-        <span class="section-label" style="display:inline-flex">Prestataire E-Shelle</span>
-        <h1 class="section-title" style="color:#fff;margin-top:.8rem">Mon business</h1>
+        <span class="section-label" style="display:inline-flex">{% if LANGUAGE_CODE == 'en' %}E-Shelle provider{% else %}Prestataire E-Shelle{% endif %}</span>
+        <h1 class="section-title" style="color:#fff;margin-top:.8rem">{% if LANGUAGE_CODE == 'en' %}My business{% else %}Mon business{% endif %}</h1>
       </div>
-      <a href="{% url 'business:onboarding' %}" class="btn btn-primary">Ajouter une fiche</a>
+      <a href="{% url 'business:onboarding' %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Add a profile{% else %}Ajouter une fiche{% endif %}</a>
     </div>
 
     {% if current %}
     <form class="biz-filter" method="get">
       <select name="business">
         {% for business in businesses %}
-          <option value="{{ business.id }}" {% if filters.business == business.id %}selected{% endif %}>{{ business.name }}</option>
+          <option value="{{ business.id }}" {% if filters.business == business.id %}selected{% endif %}>{{ business.display_name }}</option>
         {% endfor %}
       </select>
       <select name="days">
-        <option value="7" {% if filters.days == 7 %}selected{% endif %}>7 jours</option>
-        <option value="30" {% if filters.days == 30 %}selected{% endif %}>30 jours</option>
-        <option value="90" {% if filters.days == 90 %}selected{% endif %}>90 jours</option>
-        <option value="365" {% if filters.days == 365 %}selected{% endif %}>1 an</option>
+        <option value="7" {% if filters.days == 7 %}selected{% endif %}>7 days</option>
+        <option value="30" {% if filters.days == 30 %}selected{% endif %}>30 days</option>
+        <option value="90" {% if filters.days == 90 %}selected{% endif %}>90 days</option>
+        <option value="365" {% if filters.days == 365 %}selected{% endif %}>1 year</option>
       </select>
-      <button class="btn btn-primary" type="submit">Filtrer</button>
+      <button class="btn btn-primary" type="submit">{% if LANGUAGE_CODE == 'en' %}Filter{% else %}Filtrer{% endif %}</button>
     </form>
     <div style="display:grid;grid-template-columns:1.2fr .8fr;gap:1rem">
       <article style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem">
         <div style="display:flex;justify-content:space-between;gap:1rem;align-items:start">
           <div>
-            <h2 style="color:#fff;margin-bottom:.25rem">{{ current.name }}</h2>
-            <p style="color:rgba(255,255,255,.58)">{{ current.get_module_display }}{% if current.city %} — {{ current.city }}{% endif %}{% if current.district %}, {{ current.district }}{% endif %}</p>
+            <h2 style="color:#fff;margin-bottom:.25rem">{{ current.display_name }}</h2>
+            <p style="color:rgba(255,255,255,.58)">{{ current.display_module }}{% if current.city %} — {{ current.city }}{% endif %}{% if current.district %}, {{ current.district }}{% endif %}</p>
           </div>
           <div style="display:flex;gap:.45rem;flex-wrap:wrap;justify-content:flex-end">
-            <span style="padding:.35rem .7rem;border-radius:999px;background:rgba(34,197,94,.13);color:#4ade80;font-size:.75rem;font-weight:800">{{ current.get_plan_display }}</span>
+            <span style="padding:.35rem .7rem;border-radius:999px;background:rgba(34,197,94,.13);color:#4ade80;font-size:.75rem;font-weight:800">{% if LANGUAGE_CODE == 'en' %}{% if current.plan == 'free' %}Free{% elif current.plan == 'pro' %}Pro{% elif current.plan == 'business' %}Business{% elif current.plan == 'premium' %}Premium{% endif %}{% else %}{{ current.get_plan_display }}{% endif %}</span>
             <span style="padding:.35rem .7rem;border-radius:999px;background:{% if current.activation_status == 'active' %}rgba(34,197,94,.16){% elif current.activation_status == 'pending' %}rgba(250,204,21,.14){% else %}rgba(148,163,184,.14){% endif %};color:{% if current.activation_status == 'active' %}#86efac{% elif current.activation_status == 'pending' %}#fde68a{% else %}#cbd5e1{% endif %};font-size:.75rem;font-weight:900">
-              {{ current.get_activation_status_display }}
+              {% if LANGUAGE_CODE == 'en' %}{% if current.activation_status == 'active' %}Active{% elif current.activation_status == 'pending' %}Pending{% else %}Inactive{% endif %}{% else %}{{ current.get_activation_status_display }}{% endif %}
             </span>
           </div>
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.75rem;margin-top:1.25rem">
-          <div class="biz-stat biz-stat--green"><span>Vues</span><strong>{{ current.views_count }}</strong><i></i></div>
+          <div class="biz-stat biz-stat--green"><span>{% if LANGUAGE_CODE == 'en' %}Views{% else %}Vues{% endif %}</span><strong>{{ current.views_count }}</strong><i></i></div>
           <div class="biz-stat biz-stat--blue"><span>WhatsApp</span><strong>{{ current.whatsapp_clicks }}</strong><i></i></div>
-          <div class="biz-stat biz-stat--amber"><span>Appels</span><strong>{{ current.phone_clicks }}</strong><i></i></div>
-          <div class="biz-stat biz-stat--pink"><span>Demandes</span><strong>{{ current.leads_count }}</strong><i></i></div>
-          <div class="biz-stat biz-stat--violet"><span>Crédits IA</span><strong>{{ current.ai_credits }}</strong><i></i></div>
+          <div class="biz-stat biz-stat--amber"><span>{% if LANGUAGE_CODE == 'en' %}Calls{% else %}Appels{% endif %}</span><strong>{{ current.phone_clicks }}</strong><i></i></div>
+          <div class="biz-stat biz-stat--pink"><span>{% if LANGUAGE_CODE == 'en' %}Enquiries{% else %}Demandes{% endif %}</span><strong>{{ current.leads_count }}</strong><i></i></div>
+          <div class="biz-stat biz-stat--violet"><span>{% if LANGUAGE_CODE == 'en' %}AI credits{% else %}Crédits IA{% endif %}</span><strong>{{ current.ai_credits }}</strong><i></i></div>
         </div>
 
         <div style="display:flex;gap:.55rem;flex-wrap:wrap;margin-top:1rem">
           {% for row in event_stats %}
             <span class="biz-chip">{{ row.event_type }} · {{ row.total }}</span>
           {% empty %}
-            <span class="biz-chip">En attente des premiers clics IA</span>
+            <span class="biz-chip">{% if LANGUAGE_CODE == 'en' %}Waiting for your first AI referrals{% else %}En attente des premiers clics IA{% endif %}</span>
           {% endfor %}
         </div>
 
         <div class="biz-preview">
           <div>
-            <span>Apercu fiche publique</span>
-            <h3>{{ current.promo_headline|default:current.name }}</h3>
-            <p>{{ current.promo_offer|default:current.description|default:"Ajoutez une accroche et une offre pour rendre votre fiche plus vendeuse." }}</p>
+            <span>{% if LANGUAGE_CODE == 'en' %}Public profile preview{% else %}Apercu fiche publique{% endif %}</span>
+            <h3>{{ current.display_promo_headline|default:current.display_name }}</h3>
+            <p>{{ current.display_promo_offer|default:current.display_description|default:"Add a headline and offer to improve your profile." }}</p>
           </div>
           <ul>
             <li class="{% if current.description %}ok{% endif %}">Description</li>
             <li class="{% if current.whatsapp %}ok{% endif %}">WhatsApp</li>
-            <li class="{% if current.city and current.district %}ok{% endif %}">Ville/quartier</li>
-            <li class="{% if current.promo_headline or current.promo_offer %}ok{% endif %}">Accroche/offre</li>
+            <li class="{% if current.city and current.district %}ok{% endif %}">{% if LANGUAGE_CODE == 'en' %}City/district{% else %}Ville/quartier{% endif %}</li>
+            <li class="{% if current.promo_headline or current.promo_offer %}ok{% endif %}">{% if LANGUAGE_CODE == 'en' %}Headline/offer{% else %}Accroche/offre{% endif %}</li>
           </ul>
         </div>
 
         <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.25rem">
-          <a href="{{ public_url }}" target="_blank" rel="noopener" class="btn btn-primary">Voir ma boutique</a>
-          <a href="{% url 'business:business_edit' current.id %}" class="btn btn-primary">Modifier la fiche</a>
-          <a href="{% url 'business:ai_delivery_kit' current.id %}" class="btn btn-primary">Kit IA client</a>
-          <a href="{% url 'business:catalog_manage' current.id %}" class="btn btn-primary">Gérer les produits</a>
+          <a href="{{ public_url }}" target="_blank" rel="noopener" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}View my profile{% else %}Voir ma boutique{% endif %}</a>
+          <a href="{% url 'business:business_edit' current.id %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Edit profile{% else %}Modifier la fiche{% endif %}</a>
+          <a href="{% url 'business:ai_delivery_kit' current.id %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}AI customer kit{% else %}Kit IA client{% endif %}</a>
+          <a href="{% url 'business:catalog_manage' current.id %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Manage products{% else %}Gérer les produits{% endif %}</a>
           <a href="{% url 'whatsapp_commerce:business_dashboard' current.id %}" class="btn btn-primary">WhatsApp CRM</a>
-          <a href="{{ share_whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-outline-white">Partager ma boutique</a>
+          <a href="{{ share_whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-outline-white">{% if LANGUAGE_CODE == 'en' %}Share my profile{% else %}Partager ma boutique{% endif %}</a>
           {% if whatsapp_url %}
-            <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-outline-white">Contacter WhatsApp</a>
+            <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-outline-white">{% if LANGUAGE_CODE == 'en' %}Contact on WhatsApp{% else %}Contacter WhatsApp{% endif %}</a>
           {% endif %}
-          <a href="{% url 'business:provider_plans' %}" class="btn btn-primary">Passer Premium</a>
+          <a href="{% url 'business:provider_plans' %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Upgrade to Premium{% else %}Passer Premium{% endif %}</a>
           <a href="{% url 'business:custom_app_offer' %}" class="btn btn-outline-white">Application personnalisée</a>
-          <a href="/chat/" class="btn btn-outline-white">Tester dans le chat</a>
-          <a href="{% url 'business:performance_report' current.id %}" class="btn btn-outline-white">Rapport PDF/WhatsApp</a>
+          <a href="/chat/" class="btn btn-outline-white">{% if LANGUAGE_CODE == 'en' %}Try in chat{% else %}Tester dans le chat{% endif %}</a>
+          <a href="{% url 'business:performance_report' current.id %}" class="btn btn-outline-white">{% if LANGUAGE_CODE == 'en' %}PDF/WhatsApp report{% else %}Rapport PDF/WhatsApp{% endif %}</a>
         </div>
       </article>
 
       <aside style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem;color:rgba(255,255,255,.74)">
-        <h3 style="color:#fff;margin-bottom:.75rem">Paiement adapté local</h3>
-        <p>Contactez E-Shelle sur WhatsApp pour payer (Mobile Money, cash...). Vous recevrez en retour un code d'activation à entrer ci-dessous.</p>
+        <h3 style="color:#fff;margin-bottom:.75rem">{% if LANGUAGE_CODE == 'en' %}Local payment options{% else %}Paiement adapté local{% endif %}</h3>
+        <p>{% if LANGUAGE_CODE == 'en' %}Contact E-Shelle on WhatsApp to pay (Mobile Money, cash, etc.). You will receive an activation code to enter below.{% else %}Contactez E-Shelle sur WhatsApp pour payer (Mobile Money, cash...). Vous recevrez en retour un code d'activation à entrer ci-dessous.{% endif %}</p>
 
         <form method="post" action="{% url 'business:redeem_activation_code' %}" style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
           {% csrf_token %}
-          <input type="text" name="code" placeholder="Ex: ESH-AB12CD34" required
+          <input type="text" name="code" placeholder="{% if LANGUAGE_CODE == 'en' %}e.g. ESH-AB12CD34{% else %}Ex: ESH-AB12CD34{% endif %}" required
                  style="flex:1;min-width:160px;background:#101c33;border:1px solid rgba(255,255,255,.16);border-radius:10px;color:#fff;padding:.65rem .85rem;text-transform:uppercase">
-          <button type="submit" class="btn btn-primary">Activer avec un code</button>
+          <button type="submit" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Activate with a code{% else %}Activer avec un code{% endif %}</button>
         </form>
 
         {% if public_url %}
           <div style="margin-top:1rem;padding:.8rem;border-radius:12px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08)">
-            <strong style="display:block;color:#fff;margin-bottom:.35rem">Lien public</strong>
+            <strong style="display:block;color:#fff;margin-bottom:.35rem">{% if LANGUAGE_CODE == 'en' %}Public link{% else %}Lien public{% endif %}</strong>
             <span style="word-break:break-all;color:#86efac;font-size:.86rem">{{ public_url }}</span>
           </div>
         {% endif %}
@@ -112,61 +112,61 @@
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
       <article class="biz-panel">
-        <h3>Événements récents depuis E-Shelle AI</h3>
+        <h3>{% if LANGUAGE_CODE == 'en' %}Recent activity from E-Shelle AI{% else %}Événements récents depuis E-Shelle AI{% endif %}</h3>
         <div class="biz-chart">
           {% for row in chart_stats %}
             <div><span>{{ row.label }}</span><i style="width:{{ row.percent }}%"></i><strong>{{ row.total }}</strong></div>
           {% empty %}
-            <p style="color:rgba(255,255,255,.52)">Pas encore assez de données pour afficher un graphique.</p>
+            <p style="color:rgba(255,255,255,.52)">{% if LANGUAGE_CODE == 'en' %}Not enough data to show a chart yet.{% else %}Pas encore assez de données pour afficher un graphique.{% endif %}</p>
           {% endfor %}
         </div>
         {% for event in recent_events %}
           <div class="biz-event">
-            <span>{{ event.get_event_type_display }}</span>
+            <span>{% if LANGUAGE_CODE == 'en' %}{% if event.event_type == 'view' %}View{% elif event.event_type == 'whatsapp' %}WhatsApp click{% elif event.event_type == 'phone' %}Call{% elif event.event_type == 'detail' %}Details{% elif event.event_type == 'order' %}Order{% endif %}{% else %}{{ event.get_event_type_display }}{% endif %}</span>
             <strong>{{ event.source }}</strong>
             <small>{{ event.created_at|date:"d/m/Y H:i" }}</small>
           </div>
         {% empty %}
-          <p style="color:rgba(255,255,255,.52)">Aucun clic récent. Les vues apparaîtront quand l'agent IA affichera votre fiche.</p>
+          <p style="color:rgba(255,255,255,.52)">{% if LANGUAGE_CODE == 'en' %}No recent clicks. Views will appear when the AI agent displays your profile.{% else %}Aucun clic récent. Les vues apparaîtront quand l'agent IA affichera votre fiche.{% endif %}</p>
         {% endfor %}
       </article>
 
       <article class="biz-panel">
-        <h3>Kit marketing IA prêt à publier</h3>
+        <h3>{% if LANGUAGE_CODE == 'en' %}AI marketing kit ready to publish{% else %}Kit marketing IA prêt à publier{% endif %}</h3>
         {% if marketing_pack %}
-          <label>Statut WhatsApp</label>
+          <label>{% if LANGUAGE_CODE == 'en' %}WhatsApp status{% else %}Statut WhatsApp{% endif %}</label>
           <textarea readonly>{{ marketing_pack.status }}</textarea>
-          <label>Message WhatsApp</label>
+          <label>{% if LANGUAGE_CODE == 'en' %}WhatsApp message{% else %}Message WhatsApp{% endif %}</label>
           <textarea readonly>{{ marketing_pack.whatsapp }}</textarea>
-          <label>Post Facebook</label>
+          <label>{% if LANGUAGE_CODE == 'en' %}Facebook post{% else %}Post Facebook{% endif %}</label>
           <textarea readonly>{{ marketing_pack.facebook }}</textarea>
-          <label>Idées carrousel</label>
+          <label>{% if LANGUAGE_CODE == 'en' %}Carousel ideas{% else %}Idées carrousel{% endif %}</label>
           <ol>
             {% for line in marketing_pack.carousel %}
               <li>{{ line }}</li>
             {% endfor %}
           </ol>
-          <label>Prompt visuel IA</label>
+          <label>{% if LANGUAGE_CODE == 'en' %}AI visual prompt{% else %}Prompt visuel IA{% endif %}</label>
           <textarea readonly>{{ marketing_pack.image_prompt }}</textarea>
-          <a href="{% url 'adgen:dashboard' %}" class="btn btn-primary" style="margin-top:.85rem">Créer une pub avec IA</a>
+          <a href="{% url 'adgen:dashboard' %}" class="btn btn-primary" style="margin-top:.85rem">{% if LANGUAGE_CODE == 'en' %}Create an AI ad{% else %}Créer une pub avec IA{% endif %}</a>
         {% endif %}
       </article>
     </div>
     {% else %}
     <div style="text-align:center;padding:2rem;border:1px solid rgba(255,255,255,.1);border-radius:18px;color:rgba(255,255,255,.7)">
       Vous n'avez pas encore de fiche business.
-      <div style="margin-top:1rem"><a href="{% url 'business:onboarding' %}" class="btn btn-primary">Créer ma fiche</a></div>
+      <div style="margin-top:1rem"><a href="{% url 'business:onboarding' %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Create my profile{% else %}Créer ma fiche{% endif %}</a></div>
     </div>
     {% endif %}
 
     <div style="margin-top:1.5rem;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;overflow:hidden">
-      <div style="padding:1rem;color:#fff;font-weight:800;border-bottom:1px solid rgba(255,255,255,.08)">Demandes d'activation</div>
+      <div style="padding:1rem;color:#fff;font-weight:800;border-bottom:1px solid rgba(255,255,255,.08)">{% if LANGUAGE_CODE == 'en' %}Activation requests{% else %}Demandes d'activation{% endif %}</div>
       {% for req in pending_requests %}
       <div style="padding:1rem;border-bottom:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.72)">
-        {{ req.business.name }} — {{ req.plan.name }} — {{ req.amount_xaf }} FCFA — <strong>{{ req.get_status_display }}</strong>
+        {{ req.business.display_name }} — {{ req.plan.display_name }} — {{ req.amount_xaf }} {% if LANGUAGE_CODE == 'en' %}XAF{% else %}FCFA{% endif %} — <strong>{% if LANGUAGE_CODE == 'en' %}{% if req.status == 'pending' %}Pending{% elif req.status == 'confirmed' %}Confirmed{% elif req.status == 'canceled' %}Cancelled{% else %}{{ req.status }}{% endif %}{% else %}{{ req.get_status_display }}{% endif %}</strong>
       </div>
       {% empty %}
-      <div style="padding:1rem;color:rgba(255,255,255,.52)">Aucune demande pour le moment.</div>
+      <div style="padding:1rem;color:rgba(255,255,255,.52)">{% if LANGUAGE_CODE == 'en' %}No requests yet.{% else %}Aucune demande pour le moment.{% endif %}</div>
       {% endfor %}
     </div>
   </div>

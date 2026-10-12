@@ -2252,9 +2252,9 @@ def dashboard(request):
     if current:
         current.check_expiry()
         public_url = request.build_absolute_uri(current.get_absolute_url())
-        share_text = f"Decouvrez {current.name} sur E-Shelle: {public_url}"
+        share_text = (f"Discover {current.display_name} on E-Shelle: {public_url}" if request.LANGUAGE_CODE == "en" else f"Decouvrez {current.display_name} sur E-Shelle: {public_url}")
         share_whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(share_text)}"
-        whatsapp_url = current.whatsapp_url(f"Bonjour {current.name}, je viens de votre boutique E-Shelle: {public_url}")
+        whatsapp_url = current.whatsapp_url((f"Hello {current.display_name}, I found your E-Shelle business listing: {public_url}" if request.LANGUAGE_CODE == "en" else f"Bonjour {current.display_name}, je viens de votre boutique E-Shelle: {public_url}"))
         filtered_events = current.lead_events.filter(created_at__gte=since)
         recent_events = filtered_events.order_by("-created_at")[:12]
         event_stats = (
@@ -2262,8 +2262,8 @@ def dashboard(request):
             .annotate(total=Count("id"))
             .order_by("-total")
         )
-        chart_stats = _event_chart_stats(event_stats)
-        marketing_pack = _build_marketing_pack(current)
+        chart_stats = _event_chart_stats(event_stats, request.LANGUAGE_CODE)
+        marketing_pack = _build_marketing_pack(current, request.LANGUAGE_CODE)
     return render(
         request,
         "business/dashboard.html",
@@ -2480,12 +2480,12 @@ def redeem_activation_code(request):
     code_value = request.POST.get("code", "").strip().upper()
 
     if not code_value:
-        messages.error(request, "Merci de saisir un code d'activation.")
+        messages.error(request, "Please enter an activation code." if request.LANGUAGE_CODE == "en" else "Merci de saisir un code d'activation.")
         return redirect(referer)
 
     code_obj = BusinessActivationCode.objects.filter(code=code_value).select_related("business", "plan").first()
     if not code_obj:
-        messages.error(request, "Code d'activation introuvable. Verifiez et reessayez.")
+        messages.error(request, "Activation code not found. Check it and try again." if request.LANGUAGE_CODE == "en" else "Code d'activation introuvable. Verifiez et reessayez.")
         return redirect(referer)
 
     try:
@@ -2496,7 +2496,7 @@ def redeem_activation_code(request):
 
     messages.success(
         request,
-        f"Fiche « {code_obj.business.name} » activee sur le plan {code_obj.plan.name} !",
+        (f'Profile "{code_obj.business.display_name}" activated on the {code_obj.plan.display_name} plan!' if request.LANGUAGE_CODE == "en" else f"Fiche « {code_obj.business.display_name} » activee sur le plan {code_obj.plan.display_name} !"),
     )
     return redirect(f"{reverse('business:dashboard')}?business={code_obj.business.id}")
 
@@ -2507,11 +2507,11 @@ def performance_report(request, business_id):
     business = get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
     days = _positive_int(request.GET.get("days"), 30)
     since = timezone.now() - timezone.timedelta(days=days)
-    report_context = business_report_context(business, days)
+    report_context = business_report_context(business, days, request.LANGUAGE_CODE)
     filtered_events = report_context["events"]
     events = filtered_events.order_by("-created_at")[:80]
     event_stats = filtered_events.values("event_type").annotate(total=Count("id")).order_by("-total")
-    chart_stats = _event_chart_stats(event_stats)
+    chart_stats = _event_chart_stats(event_stats, request.LANGUAGE_CODE)
     report_text = report_context["summary"]
     import urllib.parse
     whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(report_text)}"
@@ -2534,7 +2534,7 @@ def performance_report(request, business_id):
 def performance_report_pdf(request, business_id):
     business = get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
     days = _positive_int(request.GET.get("days"), 30)
-    report_context = business_report_context(business, days)
+    report_context = business_report_context(business, days, request.LANGUAGE_CODE)
     pdf = render_business_report_pdf(business, report_context)
     filename = f"rapport-e-shelle-{business.slug or business.id}-{days}j.pdf"
     response = HttpResponse(pdf, content_type="application/pdf")
@@ -2569,18 +2569,18 @@ def ai_delivery_kit(request, business_id):
     )
 
 
-def _event_chart_stats(event_stats):
+def _event_chart_stats(event_stats, language="fr"):
     rows = list(event_stats)
     max_total = max([row["total"] for row in rows] or [1])
+    labels_en = {"view": "Views", "whatsapp": "WhatsApp", "phone": "Calls", "detail": "Details", "order": "Orders"}
     return [
         {
-            "label": row["event_type"],
+            "label": labels_en.get(row["event_type"], row["event_type"]) if language == "en" else row["event_type"],
             "total": row["total"],
             "percent": max(6, round((row["total"] / max_total) * 100)),
         }
         for row in rows
     ]
-
 
 def _positive_int(value, default):
     try:
@@ -2590,37 +2590,26 @@ def _positive_int(value, default):
     return number if number in {7, 30, 90, 365} else default
 
 
-def _build_marketing_pack(business):
-    offer = business.promo_offer or "une offre spéciale disponible aujourd'hui"
+def _build_marketing_pack(business, language="fr"):
+    is_english = language == "en"
+    offer = (business.display_promo_offer or "A special offer available today") if is_english else (business.promo_offer or "une offre spéciale disponible aujourd'hui")
     location = ", ".join(part for part in [business.city, business.district] if part)
-    location_text = f" à {location}" if location else ""
-    name = business.name
-    module = business.get_module_display()
-    whatsapp = (
-        f"Bonjour, profitez de {offer} chez {name}{location_text}. "
-        "Répondez à ce message pour réserver ou commander via E-Shelle."
-    )
-    facebook = (
-        f"{name} vous accueille{location_text}. {offer}. "
-        f"Service {module}, contact rapide, visibilité E-Shelle et réponse directe sur WhatsApp."
-    )
-    status = f"{name} · {offer} · Commandez maintenant sur E-Shelle."
-    carousel = [
-        business.promo_headline or f"Découvrez {name}",
-        offer,
-        f"Disponible{location_text}",
-        "Contact rapide via E-Shelle AI",
-    ]
-    return {
-        "whatsapp": whatsapp,
-        "facebook": facebook,
-        "status": status,
-        "carousel": carousel,
-        "image_prompt": (
-            f"Professional premium advertising visual for {name}, {module}, Cameroon market, "
-            f"highlighting: {offer}. Clean modern layout, product/service in focus."
-        ),
-    }
+    location_text = (f" in {location}" if location else "") if is_english else (f" à {location}" if location else "")
+    name = business.display_name
+    module = business.display_module
+    if is_english:
+        whatsapp = f"Hello, enjoy {offer} at {name}{location_text}. Reply to this message to book or order through E-Shelle."
+        facebook = f"{name} welcomes you{location_text}. {offer}. {module} services, quick contact, E-Shelle visibility and direct WhatsApp replies."
+        status = f"{name} · {offer} · Order now on E-Shelle."
+        carousel = [business.display_promo_headline or f"Discover {name}", offer, f"Available{location_text}", "Quick contact through E-Shelle AI"]
+    else:
+        whatsapp = f"Bonjour, profitez de {offer} chez {name}{location_text}. Répondez à ce message pour réserver ou commander via E-Shelle."
+        facebook = f"{name} vous accueille{location_text}. {offer}. Service {module}, contact rapide, visibilité E-Shelle et réponse directe sur WhatsApp."
+        status = f"{name} · {offer} · Commandez maintenant sur E-Shelle."
+        carousel = [business.promo_headline or f"Découvrez {name}", offer, f"Disponible{location_text}", "Contact rapide via E-Shelle AI"]
+    image_prompt = f"Professional premium advertising visual for {name}, {module}, Cameroon market, highlighting: {offer}. Clean modern layout, product/service in focus."
+    return {"whatsapp": whatsapp, "facebook": facebook, "status": status, "carousel": carousel, "image_prompt": image_prompt}
+
 
 
 @login_required

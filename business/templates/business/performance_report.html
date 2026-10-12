@@ -1,67 +1,67 @@
 {% extends "base.html" %}
 
-{% block title %}Rapport {{ business.name }} - E-Shelle{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Report {{ business.display_name }} - E-Shelle{% else %}Rapport {{ business.display_name }} - E-Shelle{% endif %}{% endblock %}
 
 {% block content %}
 <section class="section report-page" style="padding-top:7rem;background:#f7faf8;min-height:100vh;color:#101827">
   <div class="container">
     <div class="report-head">
       <div>
-        <span>Rapport E-Shelle</span>
-        <h1>{{ business.name }}</h1>
-        <p>{{ business.get_module_display }}{% if business.city %} · {{ business.city }}{% endif %}{% if business.district %} · {{ business.district }}{% endif %}</p>
+        <span>{% if LANGUAGE_CODE == 'en' %}E-Shelle report{% else %}Rapport E-Shelle{% endif %}</span>
+        <h1>{{ business.display_name }}</h1>
+        <p>{{ business.display_module }}{% if business.city %} · {{ business.city }}{% endif %}{% if business.district %} · {{ business.district }}{% endif %}</p>
       </div>
       <div class="report-actions">
         <form method="get" class="report-filter">
           <select name="days" onchange="this.form.submit()">
-            <option value="7" {% if days == 7 %}selected{% endif %}>7 jours</option>
-            <option value="30" {% if days == 30 %}selected{% endif %}>30 jours</option>
-            <option value="90" {% if days == 90 %}selected{% endif %}>90 jours</option>
-            <option value="365" {% if days == 365 %}selected{% endif %}>1 an</option>
+            <option value="7" {% if days == 7 %}selected{% endif %}>{% if LANGUAGE_CODE == 'en' %}7 days{% else %}7 jours{% endif %}</option>
+            <option value="30" {% if days == 30 %}selected{% endif %}>{% if LANGUAGE_CODE == 'en' %}30 days{% else %}30 jours{% endif %}</option>
+            <option value="90" {% if days == 90 %}selected{% endif %}>{% if LANGUAGE_CODE == 'en' %}90 days{% else %}90 jours{% endif %}</option>
+            <option value="365" {% if days == 365 %}selected{% endif %}>{% if LANGUAGE_CODE == 'en' %}1 year{% else %}1 an{% endif %}</option>
           </select>
         </form>
-        <a href="{% url 'business:performance_report_pdf' business.id %}?days={{ days }}" class="btn btn-primary">Télécharger PDF</a>
-        <button onclick="window.print()" class="btn btn-outline">Imprimer</button>
-        <a href="{{ whatsapp_url }}" class="btn btn-outline" target="_blank">Partager WhatsApp</a>
+        <a href="{% url 'business:performance_report_pdf' business.id %}?days={{ days }}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Download PDF{% else %}Télécharger PDF{% endif %}</a>
+        <button onclick="window.print()" class="btn btn-outline">{% if LANGUAGE_CODE == 'en' %}Print{% else %}Imprimer{% endif %}</button>
+        <a href="{{ whatsapp_url }}" class="btn btn-outline" target="_blank">{% if LANGUAGE_CODE == 'en' %}Share on WhatsApp{% else %}Partager WhatsApp{% endif %}</a>
       </div>
     </div>
 
     <div class="report-grid">
-      <div><span>Vues</span><strong>{{ business.views_count }}</strong></div>
+      <div><span>{% if LANGUAGE_CODE == 'en' %}Views{% else %}Vues{% endif %}</span><strong>{{ business.views_count }}</strong></div>
       <div><span>WhatsApp</span><strong>{{ business.whatsapp_clicks }}</strong></div>
-      <div><span>Appels</span><strong>{{ business.phone_clicks }}</strong></div>
-      <div><span>Demandes</span><strong>{{ business.leads_count }}</strong></div>
+      <div><span>{% if LANGUAGE_CODE == 'en' %}Calls{% else %}Appels{% endif %}</span><strong>{{ business.phone_clicks }}</strong></div>
+      <div><span>{% if LANGUAGE_CODE == 'en' %}Enquiries{% else %}Demandes{% endif %}</span><strong>{{ business.leads_count }}</strong></div>
     </div>
 
     <article class="report-panel">
-      <h2>Résumé partageable</h2>
+      <h2>{% if LANGUAGE_CODE == 'en' %}Shareable summary{% else %}Résumé partageable{% endif %}</h2>
       <p>{{ report_text }}</p>
     </article>
 
     <article class="report-panel" style="margin-top:1rem">
-      <h2>Graphique de performance</h2>
+      <h2>{% if LANGUAGE_CODE == 'en' %}Performance chart{% else %}Graphique de performance{% endif %}</h2>
       {% for row in chart_stats %}
         <div class="report-chart"><span>{{ row.label }}</span><i style="width:{{ row.percent }}%"></i><strong>{{ row.total }}</strong></div>
       {% empty %}
-        <p>Aucune donnée sur cette période.</p>
+        <p>{% if LANGUAGE_CODE == 'en' %}No data for this period.{% else %}Aucune donnée sur cette période.{% endif %}</p>
       {% endfor %}
     </article>
 
     <div class="report-two">
       <article class="report-panel">
-        <h2>Statistiques par action</h2>
+        <h2>{% if LANGUAGE_CODE == 'en' %}Statistics by action{% else %}Statistiques par action{% endif %}</h2>
         {% for row in event_stats %}
           <div class="report-row"><span>{{ row.event_type }}</span><strong>{{ row.total }}</strong></div>
         {% empty %}
-          <p>Aucune action enregistrée.</p>
+          <p>{% if LANGUAGE_CODE == 'en' %}No actions recorded.{% else %}Aucune action enregistrée.{% endif %}</p>
         {% endfor %}
       </article>
       <article class="report-panel">
-        <h2>Derniers événements</h2>
+        <h2>{% if LANGUAGE_CODE == 'en' %}Recent activity{% else %}Derniers événements{% endif %}</h2>
         {% for event in events %}
-          <div class="report-row"><span>{{ event.get_event_type_display }} · {{ event.source }}</span><strong>{{ event.created_at|date:"d/m" }}</strong></div>
+          <div class="report-row"><span>{% if LANGUAGE_CODE == 'en' %}{% if event.event_type == 'view' %}View{% elif event.event_type == 'whatsapp' %}WhatsApp click{% elif event.event_type == 'phone' %}Call{% elif event.event_type == 'detail' %}Details{% elif event.event_type == 'order' %}Order{% endif %}{% else %}{{ event.get_event_type_display }}{% endif %} · {{ event.source }}</span><strong>{{ event.created_at|date:"d/m" }}</strong></div>
         {% empty %}
-          <p>Aucun événement enregistré.</p>
+          <p>{% if LANGUAGE_CODE == 'en' %}No activity recorded.{% else %}Aucun événement enregistré.{% endif %}</p>
         {% endfor %}
       </article>
     </div>
