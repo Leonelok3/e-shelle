@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Mon Profil — {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}My {% if LANGUAGE_CODE == 'en' %}Profile{% else %}Profil{% endif %}e{% else %}Mon {% if LANGUAGE_CODE == 'en' %}Profile{% else %}Profil{% endif %}{% endif %} — {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
 
 {% block content %}
 <div style="padding-top:5rem">
   <section class="section">
     <div class="container" style="max-width:900px">
       <div style="margin-bottom:2rem">
-        <div class="section-label" style="display:inline-flex">👤 Profil</div>
-        <h1 class="section-title" style="margin-top:.5rem">Mon profil</h1>
+        <div class="section-label" style="display:inline-flex">👤 {% if LANGUAGE_CODE == 'en' %}Profile{% else %}Profil{% endif %}</div>
+        <h1 class="section-title" style="margin-top:.5rem">{% if LANGUAGE_CODE == 'en' %}My profile{% else %}Mon profil{% endif %}</h1>
       </div>
 
       <div style="display:grid;grid-template-columns:260px 1fr;gap:2rem;align-items:start">
@@ -19,7 +19,7 @@
             <div style="position:relative;display:inline-block;margin-bottom:1.25rem">
               <img src="{{ profile.avatar_url }}" alt="{{ request.user.username }}" id="avatar-preview"
                    style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--primary-light)">
-              <label for="avatar-input" style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--gradient-cta);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.8rem;border:2px solid var(--bg-card)" title="Changer l'avatar">✏️</label>
+              <label for="avatar-input" style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--gradient-cta);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.8rem;border:2px solid var(--bg-card)" title="{% if LANGUAGE_CODE == 'en' %}Change avatar{% else %}Changer l'avatar{% endif %}">✏️</label>
             </div>
             <div style="font-family:var(--font-display);font-weight:700;font-size:1.1rem">{{ request.user.get_full_name|default:request.user.username }}</div>
             <div style="font-size:.82rem;color:var(--text-muted);margin-top:.2rem">@{{ request.user.username }}</div>
@@ -60,14 +60,14 @@
             <input type="file" name="avatar" id="avatar-input" accept="image/*" style="display:none" onchange="previewAvatar(this)">
 
             <div class="glass-card" style="margin-bottom:1.25rem">
-              <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1.25rem">👤 Informations personnelles</h3>
+              <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1.25rem">👤 {% if LANGUAGE_CODE == 'en' %}Personal information{% else %}Informations personnelles{% endif %}</h3>
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label">Prénom</label>
-                  <input type="text" name="first_name" class="form-control" value="{{ request.user.first_name }}" placeholder="Prénom">
+                  <label class="form-label">{% if LANGUAGE_CODE == 'en' %}First name{% else %}Prénom{% endif %}</label>
+                  <input type="text" name="first_name" class="form-control" value="{{ request.user.first_name }}" placeholder="{% if LANGUAGE_CODE == 'en' %}First name{% else %}Prénom{% endif %}">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Nom</label>
+                  <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Last name{% else %}Nom{% endif %}</label>
                   <input type="text" name="last_name" class="form-control" value="{{ request.user.last_name }}" placeholder="Nom">
                 </div>
               </div>
@@ -77,40 +77,40 @@
               </div>
               <div class="form-group" style="margin-bottom:0">
                 <label class="form-label">Bio</label>
-                <textarea name="bio" class="form-control" rows="3" placeholder="Quelques mots sur vous…">{{ profile.bio }}</textarea>
+                <textarea name="bio" class="form-control" rows="3" placeholder="{% if LANGUAGE_CODE == 'en' %}A few words about yourself…{% else %}Quelques mots sur vous…{% endif %}">{{ profile.bio }}</textarea>
               </div>
             </div>
 
             <div class="glass-card" style="margin-bottom:1.25rem">
-              <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1.25rem">📍 Coordonnées</h3>
+              <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1.25rem">📍 {% if LANGUAGE_CODE == 'en' %}Contact details{% else %}Coordonnées{% endif %}</h3>
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label">Téléphone</label>
+                  <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Phone{% else %}Téléphone{% endif %}</label>
                   <input type="tel" name="telephone" class="form-control" value="{{ profile.telephone }}" placeholder="+237 6XX XXX XXX">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Ville</label>
+                  <label class="form-label">{% if LANGUAGE_CODE == 'en' %}City{% else %}Ville{% endif %}</label>
                   <input type="text" name="ville" class="form-control" value="{{ profile.ville }}" placeholder="Douala">
                 </div>
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label">Pays</label>
-                  <input type="text" name="pays" class="form-control" value="{{ profile.pays }}" placeholder="Cameroun">
+                  <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Country{% else %}Pays{% endif %}</label>
+                  <input type="text" name="pays" class="form-control" value="{{ profile.pays }}" placeholder="{% if LANGUAGE_CODE == 'en' %}Cameroon{% else %}Cameroun{% endif %}">
                 </div>
                 <div class="form-group" style="margin-bottom:0">
-                  <label class="form-label">Site web</label>
+                  <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Website{% else %}Site web{% endif %}</label>
                   <input type="url" name="site_web" class="form-control" value="{{ profile.site_web }}" placeholder="https://votre-site.com">
                 </div>
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block btn-lg">💾 Enregistrer les modifications</button>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">💾 {% if LANGUAGE_CODE == 'en' %}Save changes{% else %}Enregistrer les modifications{% endif %}</button>
           </form>
 
-          {# Sécurité du compte #}
+          {# {% if LANGUAGE_CODE == 'en' %}Security{% else %}Sécurité{% endif %} du compte #}
           <div class="glass-card" style="margin-top:1.25rem">
-            <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1rem">🔒 Sécurité</h3>
+            <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1rem">🔒 {% if LANGUAGE_CODE == 'en' %}Security{% else %}Sécurité{% endif %}</h3>
             <div style="display:flex;align-items:center;justify-content:space-between">
               <div>
                 <div style="font-weight:600;font-size:.9rem">Mot de passe</div>
