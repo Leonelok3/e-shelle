@@ -51,6 +51,7 @@ def catalogue(request):
     if recherche:
         produits = produits.filter(
             Q(titre__icontains=recherche) | Q(description__icontains=recherche)
+            | Q(titre_en__icontains=recherche) | Q(description_en__icontains=recherche)
         )
 
     produits = produits.order_by(tri)
@@ -115,7 +116,8 @@ def ajouter_au_panier(request, produit_id):
         from django.http import JsonResponse
         return JsonResponse({"nb_articles": panier.nb_articles, "total": str(panier.total)})
 
-    messages.success(request, f"« {produit.titre} » ajouté au panier.")
+    product_title = produit.titre_en or produit.titre if request.LANGUAGE_CODE == "en" else produit.titre
+    messages.success(request, f'"{product_title}" added to your cart.' if request.LANGUAGE_CODE == "en" else f"« {product_title} » ajouté au panier.")
     return redirect("boutique:panier")
 
 
@@ -132,7 +134,7 @@ def checkout(request):
     """Page de paiement / finalisation commande."""
     panier = _get_panier(request)
     if not panier.lignes.exists():
-        messages.warning(request, "Votre panier est vide.")
+        messages.warning(request, "Your cart is empty." if request.LANGUAGE_CODE == "en" else "Votre panier est vide.")
         return redirect("boutique:catalogue")
 
     if request.method == "POST":

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Finaliser la commande — E-Shelle{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Checkout — E-Shelle{% else %}{% if LANGUAGE_CODE == 'en' %}Complete your order{% else %}Finaliser la commande{% endif %} — E-Shelle{% endif %}{% endblock %}
 {% block nav_boutique %}active{% endblock %}
 
 {% block content %}
@@ -10,7 +10,7 @@
     <div class="container" style="max-width:880px">
       <div style="margin-bottom:2rem;text-align:center">
         <div class="section-label" style="display:inline-flex">💳 Commande</div>
-        <h1 class="section-title" style="margin-top:.5rem">Finaliser la commande</h1>
+        <h1 class="section-title" style="margin-top:.5rem">{% if LANGUAGE_CODE == 'en' %}Complete your order{% else %}Finaliser la commande{% endif %}</h1>
       </div>
 
       {# Étapes #}
@@ -27,7 +27,7 @@
         <div style="width:60px;height:2px;background:var(--border);margin:0 .5rem"></div>
         <div style="display:flex;align-items:center;gap:.5rem">
           <div style="width:32px;height:32px;border-radius:50%;background:var(--bg-elevated);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--text-muted)">3</div>
-          <span style="font-size:.85rem;color:var(--text-muted)">Paiement</span>
+          <span style="font-size:.85rem;color:var(--text-muted)">{% if LANGUAGE_CODE == 'en' %}Payment{% else %}Paiement{% endif %}</span>
         </div>
       </div>
 
@@ -37,14 +37,14 @@
           {# Formulaire #}
           <div>
             <div class="glass-card" style="margin-bottom:1.25rem">
-              <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1.25rem">📦 Informations de livraison</h3>
+              <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1.25rem">{% if LANGUAGE_CODE == 'en' %}📦 Delivery information{% else %}📦 Informations de livraison{% endif %}</h3>
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label">Prénom</label>
+                  <label class="form-label">{% if LANGUAGE_CODE == 'en' %}First name{% else %}Prénom{% endif %}</label>
                   <input type="text" class="form-control" value="{{ request.user.first_name }}" readonly style="opacity:.7">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Nom</label>
+                  <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Last name{% else %}Nom{% endif %}</label>
                   <input type="text" class="form-control" value="{{ request.user.last_name }}" readonly style="opacity:.7">
                 </div>
               </div>
@@ -53,23 +53,23 @@
                 <input type="email" class="form-control" value="{{ request.user.email }}" readonly style="opacity:.7">
               </div>
               <div class="form-group">
-                <label class="form-label">Numéro WhatsApp / Téléphone *</label>
+                <label class="form-label">Numéro WhatsApp / {% if LANGUAGE_CODE == 'en' %}Phone{% else %}Téléphone{% endif %} *</label>
                 <input type="tel" name="telephone" class="form-control" placeholder="+237 6XX XXX XXX" required>
                 <div style="font-size:.75rem;color:var(--text-muted);margin-top:.35rem">Ce numéro sera enregistré dans votre commande E-Shelle.</div>
               </div>
             </div>
 
             <div class="glass-card">
-              <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1rem">📋 Récapitulatif</h3>
+              <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1rem">📋 {% if LANGUAGE_CODE == 'en' %}Order summary{% else %}Récapitulatif{% endif %}</h3>
               {% for ligne in panier.lignes.all %}
               <div style="display:flex;align-items:center;gap:.75rem;padding:.65rem 0;{% if not forloop.last %}border-bottom:1px solid rgba(255,255,255,.04);{% endif %}">
                 <div style="font-size:1.25rem">{{ ligne.produit.categorie.icone }}</div>
                 <div style="flex:1">
-                  <div style="font-size:.88rem;font-weight:600">{{ ligne.produit.titre }}</div>
+                  <div style="font-size:.88rem;font-weight:600">{% if LANGUAGE_CODE == 'en' %}{{ ligne.produit.display_title }}{% else %}{{ ligne.produit.titre }}{% endif %}</div>
                   <div style="font-size:.75rem;color:var(--text-muted)">{{ ligne.produit.get_type_produit_display }}</div>
                 </div>
                 <div style="font-weight:700;font-size:.9rem;color:var(--primary-light)">
-                  {% if ligne.produit.is_gratuit %}Gratuit{% else %}{{ ligne.produit.prix|floatformat:0 }} FCFA{% endif %}
+                  {% if ligne.produit.is_gratuit %}{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}{% else %}{{ ligne.produit.prix|floatformat:0 }} FCFA{% endif %}
                 </div>
               </div>
               {% endfor %}
@@ -78,9 +78,9 @@
 
           {# Résumé + CTA #}
           <div class="glass-card" style="position:sticky;top:6rem">
-            <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1.25rem">💰 Total à payer</h3>
+            <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:1.25rem">💰 {% if LANGUAGE_CODE == 'en' %}Total{% else %}Total{% endif %} {% if LANGUAGE_CODE == 'en' %}due{% else %}à payer{% endif %}</h3>
             <div style="display:flex;justify-content:space-between;margin-bottom:.6rem;font-size:.88rem;color:var(--text-secondary)">
-              <span>Sous-total</span>
+              <span>{% if LANGUAGE_CODE == 'en' %}Subtotal{% else %}{% if LANGUAGE_CODE == 'en' %}Subtotal{% else %}Sous-total{% endif %}{% endif %}</span>
               <span>{{ panier.total|floatformat:0 }} FCFA</span>
             </div>
             <div style="display:flex;justify-content:space-between;margin-bottom:.6rem;font-size:.88rem;color:var(--text-secondary)">
@@ -88,7 +88,7 @@
               <span style="color:var(--primary-light)">0 FCFA</span>
             </div>
             <div style="border-top:1px solid var(--border);padding-top:1rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;font-family:var(--font-display);font-size:1.3rem;font-weight:800">
-              <span>Total</span>
+              <span>{% if LANGUAGE_CODE == 'en' %}Total{% else %}Total{% endif %}</span>
               <span style="color:var(--primary-light)">{{ panier.total|floatformat:0 }} FCFA</span>
             </div>
 
@@ -97,7 +97,7 @@
             </button>
 
             <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:1rem;font-size:.75rem;color:var(--text-muted);text-align:center;">
-              💬 Paiement par Orange Money ou MTN MoMo<br>après contact direct sur WhatsApp.
+              💬 {% if LANGUAGE_CODE == 'en' %}Payment{% else %}Paiement{% endif %} {% if LANGUAGE_CODE == 'en' %}via Orange Money or MTN MoMo{% else %}par Orange Money ou MTN MoMo{% endif %}<br>{% if LANGUAGE_CODE == 'en' %}after contacting us on WhatsApp.{% else %}après contact direct sur WhatsApp.{% endif %}
             </div>
 
             <div style="margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1rem;text-align:center">

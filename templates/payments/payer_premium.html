@@ -31,7 +31,7 @@
         {% endfor %}
       </ul>
       <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.08);padding-top:.85rem;">
-        <span style="color:var(--text-secondary);font-size:.88rem;">Montant à payer</span>
+        <span style="color:var(--text-secondary);font-size:.88rem;">{% if LANGUAGE_CODE == 'en' %}Amount due{% else %}Montant à payer{% endif %}</span>
         <span style="font-family:var(--font-display);font-size:1.6rem;font-weight:800;color:var(--primary-light);">
           {{ plan.prix|floatformat:"0" }} FCFA
         </span>
@@ -42,16 +42,16 @@
        target="_blank" rel="noopener noreferrer"
        class="btn btn-primary"
        style="width:100%;display:block;padding:1rem;font-size:1rem;margin-top:.5rem;text-align:center;">
-      Contacter sur WhatsApp →
+      {% if LANGUAGE_CODE == 'en' %}Contact us on WhatsApp →{% else %}Contacter sur WhatsApp →{% endif %}
     </a>
 
     <div style="text-align:center;margin-top:1rem;">
       <a href="{% url 'payments:premium_marketplace' module=module %}"
-         style="color:var(--text-muted);font-size:.82rem;">← Changer de plan</a>
+         style="color:var(--text-muted);font-size:.82rem;">{% if LANGUAGE_CODE == 'en' %}← Change plan{% else %}← Changer de plan{% endif %}</a>
     </div>
 
     <p style="text-align:center;color:var(--text-muted);font-size:.75rem;margin-top:1rem;">
-      Vous échangez avec {{ request.site_brand|default:'E-Shelle' }} sur WhatsApp, puis votre code d'accès est créé après validation.
+      {% if LANGUAGE_CODE == 'en' %}Contact {{ request.site_brand|default:'E-Shelle' }} on WhatsApp. Your access code will be created after confirmation.{% else %}Vous échangez avec {{ request.site_brand|default:'E-Shelle' }} sur WhatsApp, puis votre code d'accès est créé après validation.{% endif %}
     </p>
   </div>
 </div>

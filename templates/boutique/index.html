@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Boutique Digitale — E-Shelle{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Digital Store — E-Shelle{% else %}Boutique Digitale — E-Shelle{% endif %}{% endblock %}
 {% block nav_boutique %}active{% endblock %}
 
 {% block content %}
@@ -19,8 +19,8 @@
           <div class="input-group aos-hidden aos-delay-3" style="max-width:420px">
             <form method="get" action="{% url 'boutique:catalogue' %}" style="display:flex;width:100%">
               <span style="display:flex;align-items:center;padding:0 1rem;background:rgba(255,255,255,.04);color:var(--text-muted)">🔍</span>
-              <input type="search" name="q" class="form-control" placeholder="Rechercher un produit…" style="border:none;border-radius:0">
-              <button type="submit" class="btn btn-accent" style="border-radius:0">Chercher</button>
+              <input type="search" name="q" class="form-control" placeholder="{% if LANGUAGE_CODE == 'en' %}Search{% else %}Rechercher{% endif %} un produit…" style="border:none;border-radius:0">
+              <button type="submit" class="btn btn-accent" style="border-radius:0">{% if LANGUAGE_CODE == 'en' %}Search{% else %}Chercher{% endif %}</button>
             </form>
           </div>
         </div>
@@ -29,7 +29,7 @@
             {% for cat in categories|slice:":4" %}
             <a href="{% url 'boutique:catalogue' %}?categorie={{ cat.slug }}" class="glass-card" style="text-align:center;padding:1.25rem;text-decoration:none">
               <div style="font-size:2rem;margin-bottom:.5rem">{{ cat.icone }}</div>
-              <div style="font-size:.82rem;font-weight:600">{{ cat.nom }}</div>
+              <div style="font-size:.82rem;font-weight:600">{{ cat.display_name }}</div>
             </a>
             {% empty %}
             <div class="glass-card" style="text-align:center"><div style="font-size:2rem">📦</div><div style="font-size:.82rem">Templates</div></div>
@@ -43,14 +43,14 @@
     </div>
   </section>
 
-  {# Produits populaires #}
+  {# {% if LANGUAGE_CODE == 'en' %}Popular products{% else %}Produits populaires{% endif %} #}
   {% if produits_featured %}
   <section class="section">
     <div class="container">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem">
         <div>
           <div class="section-label" style="display:inline-flex">⭐ Best-sellers</div>
-          <h2 class="section-title" style="margin-top:.75rem">Produits populaires</h2>
+          <h2 class="section-title" style="margin-top:.75rem">{% if LANGUAGE_CODE == 'en' %}Popular products{% else %}Produits populaires{% endif %}</h2>
         </div>
         <a href="{% url 'boutique:catalogue' %}" class="btn btn-outline btn-sm">Voir tout →</a>
       </div>
@@ -59,20 +59,20 @@
         <div class="product-card aos-hidden">
           <div class="product-thumbnail">
             {% if produit.thumbnail %}
-              <img src="{{ produit.thumbnail.url }}" alt="{{ produit.titre }}" loading="lazy">
+              <img src="{{ produit.thumbnail.url }}" alt="{{ produit.display_title }}" loading="lazy">
             {% else %}
               <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem">📦</div>
             {% endif %}
             <div class="product-badges">
               {% if produit.is_featured %}<span class="badge badge-orange">⭐ Populaire</span>{% endif %}
-              {% if produit.is_gratuit %}<span class="badge badge-green">Gratuit</span>{% endif %}
+              {% if produit.is_gratuit %}<span class="badge badge-green">{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}</span>{% endif %}
               {% if produit.pourcentage_reduction %}<span class="badge badge-red">-{{ produit.pourcentage_reduction }}%</span>{% endif %}
             </div>
           </div>
           <div class="product-body">
-            <div class="product-category">{{ produit.categorie.icone }} {{ produit.categorie.nom }}</div>
+            <div class="product-category">{{ produit.categorie.icone }} {{ produit.categorie.display_name }}</div>
             <h3 class="product-title">
-              <a href="{% url 'boutique:detail' slug=produit.slug %}" style="color:inherit">{{ produit.titre }}</a>
+              <a href="{% url 'boutique:detail' slug=produit.slug %}" style="color:inherit">{{ produit.display_title }}</a>
             </h3>
             {% if produit.note_moyenne > 0 %}
             <div class="course-stars">★ {{ produit.note_moyenne|floatformat:1 }} <span>({{ produit.nb_avis }} avis)</span></div>
@@ -81,11 +81,11 @@
           <div class="product-footer">
             <div class="product-price">
               {% if produit.prix_barre %}<span class="product-price-original">{{ produit.prix_barre|floatformat:0 }} FCFA</span>{% endif %}
-              {% if produit.is_gratuit %}Gratuit{% else %}{{ produit.prix|floatformat:0 }} FCFA{% endif %}
+              {% if produit.is_gratuit %}{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}{% else %}{{ produit.prix|floatformat:0 }} FCFA{% endif %}
             </div>
             <form method="post" action="{% url 'boutique:ajouter' produit_id=produit.pk %}" style="display:inline">
               {% csrf_token %}
-              <button type="submit" class="add-to-cart" title="Ajouter au panier" onclick="window.EShelle.animateAddToCart(this)">🛒</button>
+              <button type="submit" class="add-to-cart" title="{% if LANGUAGE_CODE == 'en' %}Add to cart{% else %}Ajouter au panier{% endif %}" onclick="window.EShelle.animateAddToCart(this)">🛒</button>
             </form>
           </div>
         </div>
@@ -95,11 +95,11 @@
   </section>
   {% endif %}
 
-  {# Nouveautés #}
+  {# {% if LANGUAGE_CODE == 'en' %}New arrivals{% else %}Nouveautés{% endif %} #}
   <section class="section" style="background:var(--bg-surface)">
     <div class="container">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem">
-        <h2 class="section-title">🆕 Nouveautés</h2>
+        <h2 class="section-title">🆕 {% if LANGUAGE_CODE == 'en' %}New arrivals{% else %}Nouveautés{% endif %}</h2>
         <a href="{% url 'boutique:catalogue' %}?tri=-created_at" class="btn btn-outline btn-sm">Voir tout →</a>
       </div>
       <div class="grid-4">
@@ -107,20 +107,20 @@
         <div class="product-card aos-hidden">
           <div class="product-thumbnail" style="aspect-ratio:4/3">
             {% if produit.thumbnail %}
-              <img src="{{ produit.thumbnail.url }}" alt="{{ produit.titre }}" loading="lazy">
+              <img src="{{ produit.thumbnail.url }}" alt="{{ produit.display_title }}" loading="lazy">
             {% else %}
               <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem">📦</div>
             {% endif %}
           </div>
           <div class="product-body">
-            <div class="product-category">{{ produit.categorie.nom }}</div>
+            <div class="product-category">{{ produit.categorie.display_name }}</div>
             <h3 class="product-title" style="font-size:.88rem">
-              <a href="{% url 'boutique:detail' slug=produit.slug %}" style="color:inherit">{{ produit.titre }}</a>
+              <a href="{% url 'boutique:detail' slug=produit.slug %}" style="color:inherit">{{ produit.display_title }}</a>
             </h3>
           </div>
           <div class="product-footer">
             <div class="product-price" style="font-size:.95rem">
-              {% if produit.is_gratuit %}Gratuit{% else %}{{ produit.prix|floatformat:0 }} FCFA{% endif %}
+              {% if produit.is_gratuit %}{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}{% else %}{{ produit.prix|floatformat:0 }} FCFA{% endif %}
             </div>
             <form method="post" action="{% url 'boutique:ajouter' produit_id=produit.pk %}">
               {% csrf_token %}
@@ -131,7 +131,7 @@
         {% empty %}
         <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-secondary)">
           <div style="font-size:3rem;margin-bottom:1rem">🛍️</div>
-          <p>La boutique sera bientôt remplie de produits premium !</p>
+          <p>{% if LANGUAGE_CODE == 'en' %}Premium products are coming soon!{% else %}La boutique sera bientôt remplie de produits premium !{% endif %}</p>
         </div>
         {% endfor %}
       </div>

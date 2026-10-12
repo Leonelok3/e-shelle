@@ -10,6 +10,7 @@ import uuid
 
 class CategorieProduit(models.Model):
     nom    = models.CharField(max_length=100)
+    nom_en = models.CharField(max_length=100, blank=True)
     slug   = models.SlugField(max_length=120, unique=True, blank=True)
     icone  = models.CharField(max_length=10, default="📦")
     ordre  = models.PositiveIntegerField(default=0)
@@ -26,6 +27,11 @@ class CategorieProduit(models.Model):
 
     def __str__(self):
         return self.nom
+
+    @property
+    def display_name(self):
+        from django.utils.translation import get_language
+        return (self.nom_en or self.nom) if get_language() == "en" else self.nom
 
 
 def produit_upload_path(instance, filename):
@@ -47,9 +53,12 @@ class Produit(models.Model):
     ]
 
     titre         = models.CharField(max_length=200)
+    titre_en      = models.CharField(max_length=200, blank=True)
     slug          = models.SlugField(max_length=220, unique=True, blank=True)
     description   = models.TextField()
+    description_en = models.TextField(blank=True)
     description_courte = models.CharField(max_length=300, blank=True)
+    description_courte_en = models.CharField(max_length=300, blank=True)
     thumbnail     = models.ImageField(upload_to=thumbnail_upload_path, null=True, blank=True)
     # Fichier à télécharger après achat
     fichier       = models.FileField(upload_to=produit_upload_path, null=True, blank=True,
@@ -85,6 +94,21 @@ class Produit(models.Model):
 
     def __str__(self):
         return self.titre
+
+    @property
+    def display_title(self):
+        from django.utils.translation import get_language
+        return (self.titre_en or self.titre) if get_language() == "en" else self.titre
+
+    @property
+    def display_description(self):
+        from django.utils.translation import get_language
+        return (self.description_en or self.description) if get_language() == "en" else self.description
+
+    @property
+    def display_short_description(self):
+        from django.utils.translation import get_language
+        return (self.description_courte_en or self.description_courte or self.display_description) if get_language() == "en" else (self.description_courte or self.description)
 
     @property
     def thumbnail_url(self):

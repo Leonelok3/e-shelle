@@ -15,6 +15,7 @@ class CategorieProduitAdmin(admin.ModelAdmin):
     list_display  = ("icone", "nom", "slug", "ordre", "active")
     list_editable = ("ordre", "active")
     prepopulated_fields = {"slug": ("nom",)}
+    fields = ("nom", "nom_en", "slug", "icone", "ordre", "active")
 
 
 class ImageProduitInline(admin.TabularInline):
@@ -39,6 +40,7 @@ class ProduitAdmin(admin.ModelAdmin):
             "fields": ("titre", "slug", "type_produit", "categorie", "vendeur",
                        "description", "description_courte", "thumbnail", "tags")
         }),
+        ("English content", {"fields": ("titre_en", "description_en", "description_courte_en"), "classes": ("collapse",)}),
         ("Fichier / Livraison", {
             "fields": ("fichier", "url_externe")
         }),

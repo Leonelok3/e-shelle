@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ produit.titre }} — Boutique E-Shelle{% endblock %}
+{% block title %}{{ produit.display_title }} — Boutique E-Shelle{% endblock %}
 {% block nav_boutique %}active{% endblock %}
 
 {% block content %}
@@ -12,9 +12,9 @@
       <nav style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--text-muted);margin-bottom:2rem">
         <a href="{% url 'boutique:index' %}" style="color:var(--text-muted)">Boutique</a>
         <span>›</span>
-        <a href="{% url 'boutique:catalogue' %}?categorie={{ produit.categorie.slug }}" style="color:var(--text-muted)">{{ produit.categorie.nom }}</a>
+        <a href="{% url 'boutique:catalogue' %}?categorie={{ produit.categorie.slug }}" style="color:var(--text-muted)">{{ produit.categorie.display_name }}</a>
         <span>›</span>
-        <span style="color:var(--text-secondary)">{{ produit.titre }}</span>
+        <span style="color:var(--text-secondary)">{{ produit.display_title }}</span>
       </nav>
 
       <div style="display:grid;grid-template-columns:1fr 380px;gap:3rem;align-items:start">
@@ -23,7 +23,7 @@
           {# Image principale #}
           <div style="border-radius:var(--radius-lg);overflow:hidden;margin-bottom:2rem;border:1px solid var(--border)">
             {% if produit.thumbnail %}
-            <img src="{{ produit.thumbnail.url }}" alt="{{ produit.titre }}" style="width:100%;aspect-ratio:16/9;object-fit:cover">
+            <img src="{{ produit.thumbnail.url }}" alt="{{ produit.display_title }}" style="width:100%;aspect-ratio:16/9;object-fit:cover">
             {% else %}
             <div style="width:100%;aspect-ratio:16/9;background:var(--bg-surface);display:flex;align-items:center;justify-content:center;font-size:4rem">📦</div>
             {% endif %}
@@ -33,7 +33,7 @@
           {% if produit.images.exists %}
           <div style="display:flex;gap:.75rem;margin-bottom:2rem;overflow-x:auto">
             {% for img in produit.images.all %}
-            <img src="{{ img.image.url }}" alt="{{ produit.titre }}" style="width:100px;height:70px;object-fit:cover;border-radius:var(--radius-sm);border:2px solid var(--border);cursor:pointer;flex-shrink:0"
+            <img src="{{ img.image.url }}" alt="{{ produit.display_title }}" style="width:100px;height:70px;object-fit:cover;border-radius:var(--radius-sm);border:2px solid var(--border);cursor:pointer;flex-shrink:0"
                  onclick="document.querySelector('.main-img img')?.setAttribute('src','{{ img.image.url }}')">
             {% endfor %}
           </div>
@@ -41,9 +41,9 @@
 
           {# Onglets description / détails / avis #}
           <div class="tabs-header" style="margin-bottom:1.5rem">
-            <button class="tab-btn active" data-tab="desc">Description</button>
-            <button class="tab-btn" data-tab="details">Détails</button>
-            <button class="tab-btn" data-tab="avis">Avis ({{ avis.count }})</button>
+            <button class="tab-btn active" data-tab="desc">{% if LANGUAGE_CODE == 'en' %}Description{% else %}Description{% endif %}</button>
+            <button class="tab-btn" data-tab="details">{% if LANGUAGE_CODE == 'en' %}Details{% else %}Détails{% endif %}</button>
+            <button class="tab-btn" data-tab="avis">{% if LANGUAGE_CODE == 'en' %}Reviews ({{ avis.count }}){% else %}Avis ({{ avis.count }}){% endif %}</button>
           </div>
 
           <div data-tab-content="desc">
@@ -111,8 +111,8 @@
         {# Droite : achat #}
         <div class="glass-card" style="position:sticky;top:6rem">
           <div style="margin-bottom:1.25rem">
-            <div style="font-size:.82rem;color:var(--primary-light);font-weight:600;margin-bottom:.35rem">{{ produit.categorie.icone }} {{ produit.categorie.nom }}</div>
-            <h1 style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;line-height:1.4">{{ produit.titre }}</h1>
+            <div style="font-size:.82rem;color:var(--primary-light);font-weight:600;margin-bottom:.35rem">{{ produit.categorie.icone }} {{ produit.categorie.display_name }}</div>
+            <h1 style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;line-height:1.4">{{ produit.display_title }}</h1>
           </div>
 
           {% if produit.note_moyenne > 0 %}
@@ -124,7 +124,7 @@
             <div style="font-size:.88rem;color:var(--text-muted);text-decoration:line-through">{{ produit.prix_barre|floatformat:0 }} FCFA</div>
             {% endif %}
             <div style="font-family:var(--font-display);font-size:2.2rem;font-weight:800;color:var(--primary-light)">
-              {% if produit.is_gratuit %}Gratuit{% else %}{{ produit.prix|floatformat:0 }} FCFA{% endif %}
+              {% if produit.is_gratuit %}{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}{% else %}{{ produit.prix|floatformat:0 }} FCFA{% endif %}
             </div>
             {% if produit.pourcentage_reduction %}
             <span class="badge badge-red">-{{ produit.pourcentage_reduction }}% de réduction</span>
@@ -134,7 +134,7 @@
           <form method="post" action="{% url 'boutique:ajouter' produit_id=produit.pk %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-primary btn-block btn-lg" onclick="window.EShelle.animateAddToCart(this)">
-              🛒 {% if produit.is_gratuit %}Obtenir gratuitement{% else %}Ajouter au panier{% endif %}
+              🛒 {% if produit.is_gratuit %}{% if LANGUAGE_CODE == 'en' %}{% if LANGUAGE_CODE == 'en' %}Get it for free{% else %}Obtenir gratuitement{% endif %}{% else %}Obtenir gratuitement{% endif %}{% else %}{% if LANGUAGE_CODE == 'en' %}Add to cart{% else %}Ajouter au panier{% endif %}{% endif %}
             </button>
           </form>
 
@@ -148,21 +148,21 @@
         </div>
       </div>
 
-      {# Produits similaires #}
+      {# {% if LANGUAGE_CODE == 'en' %}Related products{% else %}{% if LANGUAGE_CODE == 'en' %}Related products{% else %}Produits similaires{% endif %}{% endif %} #}
       {% if similaires %}
       <div style="margin-top:4rem">
-        <h2 style="font-family:var(--font-display);font-size:1.1rem;font-weight:700;margin-bottom:1.5rem">Vous aimerez aussi</h2>
+        <h2 style="font-family:var(--font-display);font-size:1.1rem;font-weight:700;margin-bottom:1.5rem">{% if LANGUAGE_CODE == 'en' %}You may also like{% else %}Vous aimerez aussi{% endif %}</h2>
         <div class="grid-4">
           {% for p in similaires %}
           <div class="product-card">
             <div class="product-thumbnail" style="aspect-ratio:4/3">
-              {% if p.thumbnail %}<img src="{{ p.thumbnail.url }}" alt="{{ p.titre }}" loading="lazy">{% else %}<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem">📦</div>{% endif %}
+              {% if p.thumbnail %}<img src="{{ p.thumbnail.url }}" alt="{% if LANGUAGE_CODE == 'en' %}{{ p.display_title }}{% else %}{{ p.titre }}{% endif %}" loading="lazy">{% else %}<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem">📦</div>{% endif %}
             </div>
             <div class="product-body">
-              <h3 class="product-title" style="font-size:.85rem"><a href="{% url 'boutique:detail' slug=p.slug %}" style="color:inherit">{{ p.titre }}</a></h3>
+              <h3 class="product-title" style="font-size:.85rem"><a href="{% url 'boutique:detail' slug=p.slug %}" style="color:inherit">{% if LANGUAGE_CODE == 'en' %}{{ p.display_title }}{% else %}{{ p.titre }}{% endif %}</a></h3>
             </div>
             <div class="product-footer">
-              <div class="product-price" style="font-size:.9rem">{% if p.is_gratuit %}Gratuit{% else %}{{ p.prix|floatformat:0 }} FCFA{% endif %}</div>
+              <div class="product-price" style="font-size:.9rem">{% if p.is_gratuit %}{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}{% else %}{{ p.prix|floatformat:0 }} FCFA{% endif %}</div>
             </div>
           </div>
           {% endfor %}
