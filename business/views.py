@@ -821,6 +821,34 @@ def solutions(request):
             "accent": "#009246",
         },
     ]
+    if request.LANGUAGE_CODE == "en":
+        solution_translations = [
+            ("I want more customers", "Visibility", "Business profile, WhatsApp, local promotion, analytics and a premium carousel.", "Become Premium"),
+            ("I want to sell my products", "Marketplace", "List products, services, vehicles, properties or health products with a shareable link.", "Browse marketplace"),
+            ("I want to create an ad", "AI marketing", "AdGen creates headlines, Facebook/Instagram posts, WhatsApp messages and video scripts.", "Open AdGen"),
+            ("I manage a savings group or association", "Association", "Njangi Digital tracks members, contributions, loans, shared funds and PDF reports.", "Explore Njangi"),
+            ("I collect payments in the field", "Microfinance", "Tchaslucpay tracks collectors, customers, deposits, withdrawals, PDF receipts and balances.", "Explore collections"),
+            ("I need a reliable tradesperson", "Home services", "Find plumbers, electricians, masons, tilers, painters and carpenters near you.", "Find a tradesperson"),
+            ("I want to move or work abroad", "Immigration", "Canada Space, Deutsch Space and Italia Space offer dedicated AI support for study, work and relocation.", "Explore immigration"),
+        ]
+        for item, translated in zip(solutions_grid, solution_translations):
+            item.update(dict(zip(("title", "tag", "desc", "cta"), translated)))
+        immigration_translations = [
+            "LMIA opportunities, CRS calculator, ATS-ready Canadian resume and AI interview coach.",
+            "German A1-C2, Goethe/telc/TestDaF exams, Ausbildung and official CV support.",
+            "Italian A1-C2 courses to prepare for the Nulla Osta process and life in Italy.",
+        ]
+        for app, description in zip(immigration_apps, immigration_translations):
+            app["desc"] = description
+        demos = [
+            ("Health", "/sante/produits/", "Health products with photos and WhatsApp ordering"),
+            ("Real estate", "/immobilier/", "Properties, agencies and public listings"),
+            ("Automotive", "/auto/", "Vehicle sales and rentals"),
+            ("Tradespeople", "/artisans/", "Tradesperson profiles and service requests"),
+            ("Njangi", "/njangi/groupe/reunion-demo-e-shelle/", "Savings group demo"),
+            ("Collections", getattr(settings, "TCHASLUCPAY_PUBLIC_URL", "/tchaslucpay/"), "Field collections and PDF receipts"),
+            ("AdGen", "/pub/", "AI advertising for businesses"),
+        ]
     return render(
         request,
         "business/solutions.html",
@@ -836,7 +864,9 @@ def solutions(request):
 def custom_app_offer(request):
     """Offre application personnalisee hebergee sur domaine client."""
     whatsapp_text = urllib.parse.quote(
-        "Bonjour E-Shelle, je veux une application personnalisee pour mon business avec hebergement sur mon domaine."
+        "Hello E-Shelle, I would like a custom application for my business hosted on my own domain."
+        if request.LANGUAGE_CODE == "en"
+        else "Bonjour E-Shelle, je veux une application personnalisee pour mon business avec hebergement sur mon domaine."
     )
     return render(
         request,
