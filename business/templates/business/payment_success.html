@@ -1,28 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Demande reçue - E-Shelle{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Request received - E-Shelle{% else %}{% if LANGUAGE_CODE == 'en' %}Request received{% else %}Demande reçue{% endif %} - E-Shelle{% endif %}{% endblock %}
 
 {% block content %}
 <section class="section" style="padding-top:7rem;background:linear-gradient(180deg,#071321 0%,#0a1628 100%)">
   <div class="container">
     <div style="max-width:720px;margin:0 auto;text-align:center;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:2rem">
       <div style="width:64px;height:64px;border-radius:20px;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:#4ade80;font-size:1.8rem">✓</div>
-      <h1 class="section-title" style="color:#fff;margin-bottom:.75rem">Demande reçue</h1>
+      <h1 class="section-title" style="color:#fff;margin-bottom:.75rem">{% if LANGUAGE_CODE == 'en' %}Request received{% else %}Demande reçue{% endif %}</h1>
       <p style="color:rgba(255,255,255,.68);line-height:1.7">
-        Votre demande d'activation pour <strong style="color:#fff">{{ payment.business.name }}</strong> est enregistrée.
-        Un agent E-Shelle va vous contacter sur WhatsApp pour confirmer le paiement et activer votre fiche.
+        {% if LANGUAGE_CODE == 'en' %}Your activation request for{% else %}Votre demande d'activation pour{% endif %} <strong style="color:#fff">{{ payment.business.display_name }}</strong> {% if LANGUAGE_CODE == 'en' %}has been recorded.{% else %}est enregistrée.{% endif %}
+        {% if LANGUAGE_CODE == 'en' %}An E-Shelle agent will contact you on WhatsApp to confirm payment and activate your profile.{% else %}Un agent E-Shelle va vous contacter sur WhatsApp pour confirmer le paiement et activer votre fiche.{% endif %}
       </p>
 
       <div style="margin:1.5rem 0;padding:1rem;border-radius:16px;background:#101c33;color:rgba(255,255,255,.74);text-align:left">
-        <div>Référence: <strong style="color:#fff">#{{ payment.pk }}</strong></div>
-        <div>Plan: <strong style="color:#fff">{{ payment.plan.name }}</strong></div>
-        <div>Montant: <strong style="color:#fff">{{ payment.amount_xaf }} FCFA</strong></div>
-        <div>Mode: <strong style="color:#fff">{{ payment.get_method_display }}</strong></div>
+        <div>{% if LANGUAGE_CODE == 'en' %}Reference:{% else %}Référence:{% endif %} <strong style="color:#fff">#{{ payment.pk }}</strong></div>
+        <div>Plan: <strong style="color:#fff">{{ payment.plan.display_name }}</strong></div>
+        <div>{% if LANGUAGE_CODE == 'en' %}Amount:{% else %}Montant:{% endif %} <strong style="color:#fff">{{ payment.amount_xaf }} {% if LANGUAGE_CODE == 'en' %}XAF{% else %}FCFA{% endif %}</strong></div>
+        <div>{% if LANGUAGE_CODE == 'en' %}Method:{% else %}Mode:{% endif %} <strong style="color:#fff">{% if LANGUAGE_CODE == 'en' %}{% if payment.method == 'cash_on_delivery' %}Cash on delivery{% elif payment.method == 'momo_manual' %}Manual Mobile Money{% elif payment.method == 'access_code' %}Access code{% elif payment.method == 'online' %}Online payment{% endif %}{% else %}{{ payment.get_method_display }}{% endif %}</strong></div>
       </div>
 
       <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
-        <a href="{{ whatsapp_url }}" class="btn btn-primary btn-lg">Confirmer sur WhatsApp</a>
-        <a href="{% url 'business:dashboard' %}" class="btn btn-outline-white btn-lg">Voir mon dashboard</a>
+        <a href="{{ whatsapp_url }}" class="btn btn-primary btn-lg">{% if LANGUAGE_CODE == 'en' %}Confirm on WhatsApp{% else %}Confirmer sur WhatsApp{% endif %}</a>
+        <a href="{% url 'business:dashboard' %}" class="btn btn-outline-white btn-lg">{% if LANGUAGE_CODE == 'en' %}View my dashboard{% else %}Voir mon dashboard{% endif %}</a>
       </div>
     </div>
   </div>

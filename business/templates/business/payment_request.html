@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Activer mon plan - E-Shelle{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Activate my plan - E-Shelle{% else %}Activer mon plan - E-Shelle{% endif %}{% endblock %}
 
 {% block content %}
 <section class="section" style="padding-top:7rem;background:linear-gradient(180deg,#071321 0%,#0a1628 100%)">
   <div class="container">
     <div style="max-width:720px;margin:0 auto">
       <div style="text-align:center;margin-bottom:1.5rem">
-        <span class="section-label" style="display:inline-flex">Activation abonnement</span>
-        <h1 class="section-title" style="color:#fff;margin-top:.8rem">Choisissez comment payer.</h1>
+        <span class="section-label" style="display:inline-flex">{% if LANGUAGE_CODE == 'en' %}Subscription activation{% else %}Activation abonnement{% endif %}</span>
+        <h1 class="section-title" style="color:#fff;margin-top:.8rem">{% if LANGUAGE_CODE == 'en' %}Choose how to pay.{% else %}Choisissez comment payer.{% endif %}</h1>
         <p class="section-subtitle" style="color:rgba(255,255,255,.62)">
-          Ici, on s'adapte au terrain: paiement à la réception, Mobile Money manuel, code d'accès ou paiement en ligne.
+          {% if LANGUAGE_CODE == 'en' %}Choose an option that works for you: cash on delivery, manual Mobile Money, an access code or online payment.{% else %}Ici, on s'adapte au terrain: paiement à la réception, Mobile Money manuel, code d'accès ou paiement en ligne.{% endif %}
         </p>
       </div>
 
@@ -18,29 +18,29 @@
         {% csrf_token %}
         <input type="hidden" name="plan" value="{{ plan.code }}">
         <div style="padding:1rem;border-radius:14px;background:#101c33;color:rgba(255,255,255,.75);margin-bottom:1rem">
-          Business: <strong style="color:#fff">{{ business.name }}</strong><br>
-          Plan: <strong style="color:#fff">{{ plan.name }}</strong> — {{ plan.monthly_price_xaf }} FCFA
+          {% if LANGUAGE_CODE == 'en' %}Business:{% else %}Business:{% endif %} <strong style="color:#fff">{{ business.display_name }}</strong><br>
+          Plan: <strong style="color:#fff">{{ plan.display_name }}</strong> — {{ plan.monthly_price_xaf }} {% if LANGUAGE_CODE == 'en' %}XAF{% else %}FCFA{% endif %}
           {% if plan.code == "pro" %}
             <div style="margin-top:.75rem;padding:.75rem;border-radius:12px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.18);color:#bbf7d0">
-              Activation fiche: la boutique devient officiellement active, les produits restent visibles et le lien peut etre partage au client.
+              {% if LANGUAGE_CODE == 'en' %}Profile activation: your business becomes officially active, products stay visible and you can share your profile link with customers.{% else %}Activation fiche: la boutique devient officiellement active, les produits restent visibles et le lien peut etre partage au client.{% endif %}
             </div>
           {% endif %}
         </div>
 
-        <label class="pay-field">Mode de paiement
+        <label class="pay-field">{% if LANGUAGE_CODE == 'en' %}Payment method{% else %}Mode de paiement{% endif %}
           <select name="method">
             {% for value,label in methods %}
             <option value="{{ value }}">{{ label }}</option>
             {% endfor %}
           </select>
         </label>
-        <label class="pay-field">Téléphone de contact / Mobile Money
+        <label class="pay-field">{% if LANGUAGE_CODE == 'en' %}Contact phone / Mobile Money{% else %}Téléphone de contact / Mobile Money{% endif %}
           <input name="phone" value="{{ business.whatsapp|default:business.phone }}" placeholder="+237 6XX XXX XXX">
         </label>
-        <label class="pay-field">Note
-          <textarea name="note" rows="3" placeholder="Ex: Je veux payer à la livraison / Je vais envoyer par Orange Money / J'ai un code d'accès."></textarea>
+        <label class="pay-field">{% if LANGUAGE_CODE == 'en' %}Note{% else %}Note{% endif %}
+          <textarea name="note" rows="3" placeholder="{% if LANGUAGE_CODE == 'en' %}For example: I want to pay on delivery / I will send Orange Money / I have an access code.{% else %}Ex: Je veux payer à la livraison / Je vais envoyer par Orange Money / J'ai un code d'accès.{% endif %}"></textarea>
         </label>
-        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center">Envoyer la demande</button>
+        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center">{% if LANGUAGE_CODE == 'en' %}Submit request{% else %}Envoyer la demande{% endif %}</button>
       </form>
     </div>
   </div>

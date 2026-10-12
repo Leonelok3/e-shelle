@@ -2645,12 +2645,12 @@ def payment_request(request, business_id):
         business.activation_status = BusinessProfile.ActivationStatus.PENDING
         business.save(update_fields=["activation_status", "updated_at"])
         whatsapp_url = payment_request_url(
-            service=f"Activation Business - {business.name} ({plan.name})",
-            amount=f"{plan.monthly_price_xaf} FCFA",
+            service=f"Business activation - {business.display_name} ({plan.display_name})" if request.LANGUAGE_CODE == "en" else f"Activation Business - {business.display_name} ({plan.display_name})",
+            amount=f"{plan.monthly_price_xaf} XAF" if request.LANGUAGE_CODE == "en" else f"{plan.monthly_price_xaf} FCFA",
             user=request.user,
-            details=f"Demande #{payment.pk} | {note or 'Activation business'}",
+            details=(f"Request #{payment.pk} | {note or 'Business activation'}" if request.LANGUAGE_CODE == "en" else f"Demande #{payment.pk} | {note or 'Activation business'}"),
         )
-        messages.info(request, "Contactez E-Shelle sur WhatsApp pour confirmer votre demande et recevoir votre accès après validation.")
+        messages.info(request, "Contact E-Shelle on WhatsApp to confirm your request and receive access after approval." if request.LANGUAGE_CODE == "en" else "Contactez E-Shelle sur WhatsApp pour confirmer votre demande et recevoir votre accès après validation.")
         return redirect(whatsapp_url)
 
     return render(
@@ -2659,7 +2659,7 @@ def payment_request(request, business_id):
         {
             "business": business,
             "plan": plan,
-            "methods": PaymentRequest.Method.choices,
+            "methods": ([(value, {PaymentRequest.Method.CASH_ON_DELIVERY: "Cash on delivery", PaymentRequest.Method.MOMO_MANUAL: "Manual Mobile Money", PaymentRequest.Method.ACCESS_CODE: "Access code", PaymentRequest.Method.ONLINE: "Online payment"}[value]) for value, _label in PaymentRequest.Method.choices] if request.LANGUAGE_CODE == "en" else PaymentRequest.Method.choices),
         },
     )
 
