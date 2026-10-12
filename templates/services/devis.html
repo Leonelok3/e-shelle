@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Demande de Devis — E-Shelle{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Request a Quote — E-Shelle{% else %}Demande de Devis — E-Shelle{% endif %}{% endblock %}
 {% block nav_services %}active{% endblock %}
 
 {% block content %}
@@ -9,9 +9,9 @@
   <section class="section">
     <div class="container" style="max-width:800px">
       <div style="text-align:center;margin-bottom:3rem">
-        <div class="section-label" style="display:inline-flex">📋 Devis</div>
-        <h1 class="section-title" style="margin-top:1rem">Demande de devis <span class="text-gradient">gratuit</span></h1>
-        <p class="section-subtitle">Réponse garantie sous 24h. Accompagnement de A à Z.</p>
+        <div class="section-label" style="display:inline-flex">📋 {% if LANGUAGE_CODE == 'en' %}Quote{% else %}Devis{% endif %}</div>
+        <h1 class="section-title" style="margin-top:1rem">{% if LANGUAGE_CODE == 'en' %}Request a <span class="text-gradient">free quote</span>{% else %}Demande de devis <span class="text-gradient">gratuit</span>{% endif %}</h1>
+        <p class="section-subtitle">{% if LANGUAGE_CODE == 'en' %}Reply within 24 hours. Support from start to launch.{% else %}Réponse garantie sous 24h. Accompagnement de A à Z.{% endif %}</p>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 280px;gap:2rem;align-items:start">
@@ -29,7 +29,7 @@
             {% csrf_token %}
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Nom complet *</label>
+                <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Full name *{% else %}Nom complet *{% endif %}</label>
                 <input type="text" name="nom" class="form-control" placeholder="Jean Dupont" required value="{{ request.user.get_full_name }}">
               </div>
               <div class="form-group">
@@ -39,31 +39,30 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Téléphone</label>
+                <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Phone{% else %}Téléphone{% endif %}</label>
                 <input type="tel" name="telephone" class="form-control" placeholder="+237 6XX XXX XXX">
               </div>
               <div class="form-group">
-                <label class="form-label">Entreprise</label>
-                <input type="text" name="entreprise" class="form-control" placeholder="Votre entreprise">
+                <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Company{% else %}Entreprise{% endif %}</label>
+                <input type="text" name="entreprise" class="form-control" placeholder="{% if LANGUAGE_CODE == 'en' %}Your company{% else %}Votre entreprise{% endif %}">
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Type de projet</label>
+                <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Project type{% else %}Type de projet{% endif %}</label>
                 <select name="type_projet" class="form-control">
-                  <option value="site_vitrine">Site Vitrine</option>
-                  <option value="ecommerce">E-Commerce</option>
-                  <option value="app_web">Application Web</option>
-                  <option value="blog">Blog / Média</option>
-                  <option value="saas">Plateforme SaaS</option>
-                  <option value="mobile">App Mobile</option>
-                  <option value="autre">Autre</option>
+                  <option value="vitrine">{% if LANGUAGE_CODE == 'en' %}Brochure website{% else %}Site vitrine{% endif %}</option>
+                  <option value="ecommerce">E-commerce</option>
+                  <option value="webapp">{% if LANGUAGE_CODE == 'en' %}Web application{% else %}Application web{% endif %}</option>
+                  <option value="mobile">{% if LANGUAGE_CODE == 'en' %}Mobile app{% else %}Application mobile{% endif %}</option>
+                  <option value="agent_ia">{% if LANGUAGE_CODE == 'en' %}Custom AI agent{% else %}Agent IA personnalisé{% endif %}</option>
+                  <option value="autre">{% if LANGUAGE_CODE == 'en' %}Other{% else %}Autre{% endif %}</option>
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">Budget estimé</label>
+                <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Estimated budget{% else %}Budget estimé{% endif %}</label>
                 <select name="budget" class="form-control">
-                  <option value="nd">Non défini</option>
+                  <option value="nd">{% if LANGUAGE_CODE == 'en' %}Not specified{% else %}Non défini{% endif %}</option>
                   <option value="budget_s">&lt; 100 000 FCFA</option>
                   <option value="budget_m">100 000 – 300 000 FCFA</option>
                   <option value="budget_l">300 000 – 700 000 FCFA</option>
@@ -72,38 +71,38 @@
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label">Délai souhaité</label>
+              <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Preferred timeline{% else %}Délai souhaité{% endif %}</label>
               <select name="delai" class="form-control">
-                <option value="urgent">🔥 Urgent — sous 7 jours</option>
-                <option value="normal" selected>📅 Normal — 2 à 4 semaines</option>
-                <option value="flexible">🌿 Flexible — + d'un mois</option>
+                <option value="urgent">🔥 Urgent — within 7 days</option>
+                <option value="normal" selected>📅 Normal — 2 to 4 weeks</option>
+                <option value="flexible">🌿 Flexible — over a month</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Description du projet *</label>
-              <textarea name="description" class="form-control" rows="5" placeholder="Décrivez votre projet : objectif, fonctionnalités souhaitées, public cible, inspiration…" required></textarea>
+              <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Project description *{% else %}Description du projet *{% endif %}</label>
+              <textarea name="description" class="form-control" rows="5" placeholder="{% if LANGUAGE_CODE == 'en' %}Describe your project: goals, desired features, target audience and inspiration…{% else %}Décrivez votre projet : objectif, fonctionnalités souhaitées, public cible, inspiration…{% endif %}" required></textarea>
             </div>
-            <button type="submit" class="btn btn-primary btn-block btn-lg">📋 Envoyer ma demande →</button>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">📋 {% if LANGUAGE_CODE == 'en' %}Send my request →{% else %}Envoyer ma demande →{% endif %}</button>
           </form>
         </div>
 
         {# Infos latérales #}
         <div style="display:flex;flex-direction:column;gap:1rem">
           <div class="glass-card" style="padding:1.25rem;border:1px solid rgba(46,125,50,.2);background:rgba(46,125,50,.05)">
-            <div style="font-weight:700;margin-bottom:.75rem;color:var(--primary-light)">🎁 Devis 100% gratuit</div>
-            <p style="font-size:.83rem;color:var(--text-secondary);line-height:1.6">Aucun engagement. Nous analysons votre projet et vous envoyons une proposition détaillée.</p>
+            <div style="font-weight:700;margin-bottom:.75rem;color:var(--primary-light)">🎁 {% if LANGUAGE_CODE == 'en' %}100% free quote{% else %}Devis 100% gratuit{% endif %}</div>
+            <p style="font-size:.83rem;color:var(--text-secondary);line-height:1.6">{% if LANGUAGE_CODE == 'en' %}No commitment. We review your project and send you a detailed proposal.{% else %}Aucun engagement. Nous analysons votre projet et vous envoyons une proposition détaillée.{% endif %}</p>
           </div>
           <div class="glass-card" style="padding:1.25rem">
-            <div style="font-weight:700;margin-bottom:.75rem">⚡ Réponse sous 24h</div>
-            <p style="font-size:.83rem;color:var(--text-secondary);line-height:1.6">Notre équipe examine chaque demande et revient vers vous rapidement avec un chiffrage précis.</p>
+            <div style="font-weight:700;margin-bottom:.75rem">⚡ {% if LANGUAGE_CODE == 'en' %}Reply within 24 hours{% else %}Réponse sous 24h{% endif %}</div>
+            <p style="font-size:.83rem;color:var(--text-secondary);line-height:1.6">{% if LANGUAGE_CODE == 'en' %}Our team reviews every request and gets back to you quickly with a clear estimate.{% else %}Notre équipe examine chaque demande et revient vers vous rapidement avec un chiffrage précis.{% endif %}</p>
           </div>
           <div class="glass-card" style="padding:1.25rem">
-            <div style="font-weight:700;margin-bottom:.5rem">📞 Préférez un appel ?</div>
+            <div style="font-weight:700;margin-bottom:.5rem">📞 {% if LANGUAGE_CODE == 'en' %}Prefer a call?{% else %}Préférez un appel ?{% endif %}</div>
             <a href="https://wa.me/237680625082" target="_blank" class="btn btn-outline btn-sm btn-block" style="margin-top:.75rem">💬 WhatsApp direct</a>
           </div>
           <div class="glass-card" style="padding:1.25rem;text-align:center">
             <div style="font-size:1.8rem;margin-bottom:.5rem">🌍</div>
-            <div style="font-size:.83rem;color:var(--text-secondary)">Nous travaillons avec des clients à travers toute l'Afrique.</div>
+            <div style="font-size:.83rem;color:var(--text-secondary)">{% if LANGUAGE_CODE == 'en' %}We work with clients across Africa.{% else %}Nous travaillons avec des clients à travers toute l'Afrique.{% endif %}</div>
           </div>
         </div>
       </div>

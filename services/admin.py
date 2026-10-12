@@ -11,6 +11,11 @@ class OffreServiceAdmin(admin.ModelAdmin):
     list_display  = ("icone", "titre", "prix_affiche", "delai_jours", "is_active", "is_featured", "ordre")
     list_editable = ("is_active", "is_featured", "ordre")
     prepopulated_fields = {"slug": ("titre",)}
+    fieldsets = (
+        ("Contenu français", {"fields": ("titre", "description", "features")}),
+        ("English content", {"fields": ("titre_en", "description_en", "features_en"), "classes": ("collapse",)}),
+        ("Offre", {"fields": ("slug", "icone", "prix_base", "delai_jours", "is_active", "is_featured", "ordre")}),
+    )
 
     def prix_affiche(self, obj):
         return obj.prix_affiche
@@ -22,6 +27,7 @@ class CategoriePortfolioAdmin(admin.ModelAdmin):
     list_display  = ("nom", "slug", "ordre")
     list_editable = ("ordre",)
     prepopulated_fields = {"slug": ("nom",)}
+    fields = ("nom", "nom_en", "slug", "ordre")
 
 
 @admin.register(ProjetPortfolio)
@@ -31,6 +37,11 @@ class ProjetPortfolioAdmin(admin.ModelAdmin):
     list_editable = ("is_published", "is_featured", "ordre")
     search_fields = ("titre", "description", "client")
     prepopulated_fields = {"slug": ("titre",)}
+    fieldsets = (
+        ("Contenu français", {"fields": ("titre", "description")}),
+        ("English content", {"fields": ("titre_en", "description_en"), "classes": ("collapse",)}),
+        ("Projet", {"fields": ("slug", "image", "categorie", "technologies", "lien_demo", "lien_code", "client", "is_published", "is_featured", "ordre")}),
+    )
 
     def image_preview(self, obj):
         if obj.image:

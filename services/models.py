@@ -13,6 +13,9 @@ class OffreService(models.Model):
     slug         = models.SlugField(max_length=220, unique=True, blank=True)
     icone        = models.CharField(max_length=10, default="🌐")
     description  = models.TextField()
+    titre_en     = models.CharField(max_length=200, blank=True)
+    description_en = models.TextField(blank=True)
+    features_en  = models.JSONField(default=list, blank=True)
     prix_base    = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True,
                                         help_text="Null = sur devis")
     delai_jours  = models.PositiveIntegerField(default=7, help_text="Délai de livraison en jours")
@@ -35,12 +38,28 @@ class OffreService(models.Model):
         return self.titre
 
     @property
+    def display_title(self):
+        from django.utils.translation import get_language
+        return (self.titre_en or self.titre) if get_language() == "en" else self.titre
+
+    @property
+    def display_description(self):
+        from django.utils.translation import get_language
+        return (self.description_en or self.description) if get_language() == "en" else self.description
+
+    @property
+    def display_features(self):
+        from django.utils.translation import get_language
+        return (self.features_en or self.features) if get_language() == "en" else self.features
+
+    @property
     def prix_affiche(self):
         return f"{int(self.prix_base):,} FCFA".replace(",", " ") if self.prix_base else "Sur devis"
 
 
 class CategoriePortfolio(models.Model):
     nom   = models.CharField(max_length=100)
+    nom_en = models.CharField(max_length=100, blank=True)
     slug  = models.SlugField(unique=True, blank=True)
     ordre = models.PositiveIntegerField(default=0)
 
@@ -55,11 +74,18 @@ class CategoriePortfolio(models.Model):
     def __str__(self):
         return self.nom
 
+    @property
+    def display_name(self):
+        from django.utils.translation import get_language
+        return (self.nom_en or self.nom) if get_language() == "en" else self.nom
+
 
 class ProjetPortfolio(models.Model):
     titre       = models.CharField(max_length=200)
+    titre_en    = models.CharField(max_length=200, blank=True)
     slug        = models.SlugField(max_length=220, unique=True, blank=True)
     description = models.TextField()
+    description_en = models.TextField(blank=True)
     image       = models.ImageField(upload_to="services/portfolio/")
     categorie   = models.ForeignKey(CategoriePortfolio, on_delete=models.PROTECT,
                                      related_name="projets")
@@ -84,6 +110,16 @@ class ProjetPortfolio(models.Model):
 
     def __str__(self):
         return self.titre
+
+    @property
+    def display_title(self):
+        from django.utils.translation import get_language
+        return (self.titre_en or self.titre) if get_language() == "en" else self.titre
+
+    @property
+    def display_description(self):
+        from django.utils.translation import get_language
+        return (self.description_en or self.description) if get_language() == "en" else self.description
 
 
 class Devis(models.Model):

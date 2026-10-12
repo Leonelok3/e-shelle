@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Contact — E-Shelle{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Contact — E-Shelle{% else %}Contact — E-Shelle{% endif %}{% endblock %}
 {% block nav_contact %}active{% endblock %}
 
 {% block extra_css %}
@@ -173,9 +173,9 @@
   <section class="section">
     <div class="container contact-shell">
       <div class="contact-head">
-        <div class="section-label">📩 Contact</div>
-        <h1 class="section-title" style="margin-top:1rem">Contactez-nous</h1>
-        <p class="section-subtitle">Réponse garantie sous 24h. Support en français.</p>
+        <div class="section-label">📩 {% if LANGUAGE_CODE == 'en' %}Contact{% else %}Contact{% endif %}</div>
+        <h1 class="section-title" style="margin-top:1rem">{% if LANGUAGE_CODE == 'en' %}Get in touch{% else %}Contactez-nous{% endif %}</h1>
+        <p class="section-subtitle">{% if LANGUAGE_CODE == 'en' %}Reply within 24 hours. Support in French and English.{% else %}Réponse garantie sous 24h. Support en français.{% endif %}</p>
       </div>
 
       <div class="contact-grid">
@@ -193,8 +193,8 @@
           <form method="post" novalidate>
             {% csrf_token %}
             <div class="form-group">
-              <label class="form-label">Nom complet *</label>
-              <input type="text" name="nom" class="form-control" placeholder="Jean Dupont" required>
+              <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Full name *{% else %}Nom complet *{% endif %}</label>
+              <input type="text" name="nom" class="form-control" placeholder="{% if LANGUAGE_CODE == 'en' %}Jane Doe{% else %}Jean Dupont{% endif %}" required>
             </div>
             <div class="form-row">
               <div class="form-group">
@@ -202,25 +202,25 @@
                 <input type="email" name="email" class="form-control" placeholder="jean@email.com" required>
               </div>
               <div class="form-group">
-                <label class="form-label">Téléphone</label>
+                <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Phone{% else %}Téléphone{% endif %}</label>
                 <input type="tel" name="telephone" class="form-control" placeholder="+237 6XX XXX XXX">
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label">Sujet</label>
+              <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Subject{% else %}Sujet{% endif %}</label>
               <select name="sujet" class="form-control">
-                <option value="devis">Demande de devis</option>
-                <option value="support">Support technique</option>
-                <option value="partenariat">Partenariat</option>
-                <option value="facturation">Facturation</option>
-                <option value="autre">Autre</option>
+                <option value="devis">{% if LANGUAGE_CODE == 'en' %}Request a quote{% else %}Demande de devis{% endif %}</option>
+                <option value="support">{% if LANGUAGE_CODE == 'en' %}Technical support{% else %}Support technique{% endif %}</option>
+                <option value="partenariat">{% if LANGUAGE_CODE == 'en' %}Partnership{% else %}Partenariat{% endif %}</option>
+                <option value="facturation">{% if LANGUAGE_CODE == 'en' %}Billing{% else %}Facturation{% endif %}</option>
+                <option value="autre">{% if LANGUAGE_CODE == 'en' %}Other{% else %}Autre{% endif %}</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Message *</label>
-              <textarea name="message" class="form-control" rows="5" placeholder="Décrivez votre demande…" required></textarea>
+              <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Message *{% else %}Message *{% endif %}</label>
+              <textarea name="message" class="form-control" rows="5" placeholder="{% if LANGUAGE_CODE == 'en' %}Describe your request…{% else %}Décrivez votre demande…{% endif %}" required></textarea>
             </div>
-            <button type="submit" class="btn btn-primary btn-block btn-lg">Envoyer le message →</button>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">{% if LANGUAGE_CODE == 'en' %}Send message →{% else %}Envoyer le message →{% endif %}</button>
           </form>
         </div>
 
@@ -249,10 +249,10 @@
               <div class="contact-info-row">
                 <div class="contact-icon">📍</div>
                 <div>
-                  <div class="contact-info-title">Localisation</div>
+                  <div class="contact-info-title">{% if LANGUAGE_CODE == 'en' %}Location{% else %}Localisation{% endif %}</div>
                   <div class="contact-info-muted">
-                    <strong>Siège Social:</strong> Bepanda, Douala, BP 4241, Littoral, Cameroun<br>
-                    <strong>Bureau Technique:</strong> Bafoussam, Région de l'Ouest, Cameroun<br>
+                    <strong>{% if LANGUAGE_CODE == 'en' %}Head office:{% else %}Siège Social:{% endif %}</strong> Bepanda, Douala, BP 4241, Littoral, Cameroun<br>
+                    <strong>{% if LANGUAGE_CODE == 'en' %}Technical office:{% else %}Bureau Technique:{% endif %}</strong> Bafoussam, Région de l'Ouest, Cameroun<br>
                     <span>Business ID: 1837509733943082 | App ID: 1841260056892991</span>
                   </div>
                 </div>
@@ -262,8 +262,8 @@
               <div class="contact-info-row">
                 <div class="contact-icon">⏰</div>
                 <div>
-                  <div class="contact-info-title">Disponibilité</div>
-                  <div class="contact-info-muted">Lun-Sam 8h-18h (WAT)</div>
+                  <div class="contact-info-title">{% if LANGUAGE_CODE == 'en' %}Hours{% else %}Disponibilité{% endif %}</div>
+                  <div class="contact-info-muted">{% if LANGUAGE_CODE == 'en' %}Mon–Sat, 8 am–6 pm (WAT){% else %}Lun-Sam 8h-18h (WAT){% endif %}</div>
                 </div>
               </div>
             </div>
@@ -272,7 +272,7 @@
           <div class="contact-map">
             <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=9.6,3.8,9.8,4.1&layer=mapnik"
                     loading="lazy"
-                    title="Carte Douala, Cameroun"></iframe>
+                    title="{% if LANGUAGE_CODE == 'en' %}Map of Douala, Cameroon{% else %}Carte Douala, Cameroun{% endif %}"></iframe>
           </div>
         </div>
       </div>

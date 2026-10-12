@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Portfolio — Nos Réalisations E-Shelle{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Portfolio — E-Shelle Projects{% else %}Portfolio — Nos Réalisations E-Shelle{% endif %}{% endblock %}
 {% block nav_services %}active{% endblock %}
 
 {% block content %}
@@ -10,8 +10,8 @@
   <section style="background:var(--gradient-hero);padding:4rem 0;border-bottom:1px solid var(--border)">
     <div class="container text-center">
       <div class="section-label" style="display:inline-flex">🎨 Portfolio</div>
-      <h1 class="section-title" style="margin-top:1rem">Nos <span class="text-gradient">réalisations</span></h1>
-      <p class="section-subtitle">Sites web, apps mobile, plateformes e-commerce livrés clé en main pour nos clients africains.</p>
+      <h1 class="section-title" style="margin-top:1rem">{% if LANGUAGE_CODE == 'en' %}Our <span class="text-gradient">work</span>{% else %}Nos <span class="text-gradient">réalisations</span>{% endif %}</h1>
+      <p class="section-subtitle">{% if LANGUAGE_CODE == 'en' %}Websites, mobile apps and e-commerce platforms delivered for our clients across Africa.{% else %}Sites web, apps mobile, plateformes e-commerce livrés clé en main pour nos clients africains.{% endif %}</p>
     </div>
   </section>
 
@@ -20,9 +20,9 @@
     <div class="container">
       {# Filtres par catégorie #}
       <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:2.5rem;justify-content:center">
-        <a href="{% url 'services:portfolio' %}" class="btn {% if not cat_slug %}btn-primary{% else %}btn-outline{% endif %} btn-sm">Tout</a>
+        <a href="{% url 'services:portfolio' %}" class="btn {% if not cat_slug %}btn-primary{% else %}btn-outline{% endif %} btn-sm">{% if LANGUAGE_CODE == 'en' %}All{% else %}Tout{% endif %}</a>
         {% for cat in categories %}
-        <a href="{% url 'services:portfolio' %}?categorie={{ cat.slug }}" class="btn {% if cat_slug == cat.slug %}btn-primary{% else %}btn-outline{% endif %} btn-sm">{{ cat.nom }}</a>
+        <a href="{% url 'services:portfolio' %}?categorie={{ cat.slug }}" class="btn {% if cat_slug == cat.slug %}btn-primary{% else %}btn-outline{% endif %} btn-sm">{{ cat.display_name }}</a>
         {% endfor %}
       </div>
 
@@ -32,7 +32,7 @@
         {% for projet in projets %}
         <div class="card aos-hidden portfolio-item" data-cat="{{ projet.categorie.slug }}">
           {% if projet.image %}
-          <div style="position:relative;overflow:hidden;cursor:pointer" onclick="openLightbox('{{ projet.image.url }}','{{ projet.titre }}')" >
+          <div style="position:relative;overflow:hidden;cursor:pointer" onclick="openLightbox('{{ projet.image.url }}','{{ projet.display_title }}')" >
             <img src="{{ projet.image.url }}" alt="{{ projet.titre }}" style="width:100%;aspect-ratio:16/9;object-fit:cover;transition:transform .4s" onmouseenter="this.style.transform='scale(1.04)'" onmouseleave="this.style.transform='scale(1)'">
             <div style="position:absolute;inset:0;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:0;transition:all .3s" onmouseenter="this.style.opacity='1';this.style.background='rgba(0,0,0,.4)'" onmouseleave="this.style.opacity='0';this.style.background='rgba(0,0,0,0)'">🔍</div>
           </div>
@@ -42,9 +42,9 @@
           <div style="padding:1.25rem">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.75rem">
               <h3 style="font-size:.95rem;font-weight:700">{{ projet.titre }}</h3>
-              <span class="badge badge-green">{{ projet.categorie.nom }}</span>
+              <span class="badge badge-green">{{ projet.categorie.display_name }}</span>
             </div>
-            <p style="font-size:.82rem;color:var(--text-secondary);line-height:1.6;margin-bottom:.75rem">{{ projet.description|truncatechars:120 }}</p>
+            <p style="font-size:.82rem;color:var(--text-secondary);line-height:1.6;margin-bottom:.75rem">{{ projet.display_description|truncatechars:120 }}</p>
             {% if projet.technologies %}
             <div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.75rem">
               {% for tech in projet.technologies %}<span class="chip" style="font-size:.72rem">{{ tech }}</span>{% endfor %}
@@ -52,7 +52,7 @@
             {% endif %}
             <div style="display:flex;align-items:center;justify-content:space-between">
               <div style="font-size:.78rem;color:var(--text-muted)">{{ projet.date_realisation|date:"M Y"|default:"" }}</div>
-              {% if projet.url_site %}<a href="{{ projet.url_site }}" target="_blank" style="font-size:.78rem;color:var(--primary-light);text-decoration:none">Voir le site →</a>{% endif %}
+              {% if projet.url_site %}<a href="{{ projet.url_site }}" target="_blank" style="font-size:.78rem;color:var(--primary-light);text-decoration:none">{% if LANGUAGE_CODE == 'en' %}View project →{% else %}Voir le site →{% endif %}</a>{% endif %}
             </div>
           </div>
         </div>
@@ -61,9 +61,9 @@
       {% else %}
       <div style="text-align:center;padding:4rem">
         <div style="font-size:3rem;margin-bottom:1rem">🎨</div>
-        <h3 style="font-family:var(--font-display);margin-bottom:.75rem">Portfolio en cours de construction</h3>
-        <p style="color:var(--text-muted);margin-bottom:1.5rem">Revenez bientôt pour découvrir nos réalisations.</p>
-        <a href="{% url 'services:devis' %}" class="btn btn-primary">Démarrer mon projet →</a>
+        <h3 style="font-family:var(--font-display);margin-bottom:.75rem">{% if LANGUAGE_CODE == 'en' %}Portfolio coming soon{% else %}Portfolio en cours de construction{% endif %}</h3>
+        <p style="color:var(--text-muted);margin-bottom:1.5rem">{% if LANGUAGE_CODE == 'en' %}Check back soon to see our work.{% else %}Revenez bientôt pour découvrir nos réalisations.{% endif %}</p>
+        <a href="{% url 'services:devis' %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Start my project →{% else %}Démarrer mon projet →{% endif %}</a>
       </div>
       {% endif %}
     </div>
@@ -73,11 +73,11 @@
   <section class="section" style="background:var(--bg-surface)">
     <div class="container container-sm">
       <div class="cta-section">
-        <h2 class="section-title">Votre projet sera la<br><span class="text-gradient">prochaine réalisation</span></h2>
-        <p class="section-subtitle" style="margin:1rem auto 2rem">Devis gratuit · Livraison en 7 jours · Support inclus</p>
+        <h2 class="section-title">{% if LANGUAGE_CODE == 'en' %}Your project could be our<br><span class="text-gradient">next success story</span>{% else %}Votre projet sera la<br><span class="text-gradient">prochaine réalisation</span>{% endif %}</h2>
+        <p class="section-subtitle" style="margin:1rem auto 2rem">{% if LANGUAGE_CODE == 'en' %}Free quote · Delivery in 7 days · Support included{% else %}Devis gratuit · Livraison en 7 jours · Support inclus{% endif %}</p>
         <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-          <a href="{% url 'services:configurateur' %}" class="btn btn-primary btn-lg">Configurer mon projet →</a>
-          <a href="{% url 'services:contact' %}" class="btn btn-outline btn-lg">Nous contacter</a>
+          <a href="{% url 'services:configurateur' %}" class="btn btn-primary btn-lg">{% if LANGUAGE_CODE == 'en' %}Configure my project →{% else %}Configurer mon projet →{% endif %}</a>
+          <a href="{% url 'services:contact' %}" class="btn btn-outline btn-lg">{% if LANGUAGE_CODE == 'en' %}Contact us{% else %}Nous contacter{% endif %}</a>
         </div>
       </div>
     </div>

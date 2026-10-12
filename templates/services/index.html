@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Services & Création Web IA — E-Shelle{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Web and AI Services — E-Shelle{% else %}Services & Création Web IA — E-Shelle{% endif %}{% endblock %}
 {% block nav_services %}active{% endblock %}
 
 {% block content %}
@@ -12,12 +12,12 @@
     <div class="container text-center" style="position:relative;z-index:2">
       <div class="section-label aos-hidden" style="display:inline-flex">🌐 Services</div>
       <h1 class="section-title aos-hidden aos-delay-1" style="margin-top:1rem">
-        Votre site web en <span class="text-gradient">7 jours</span> grâce à l'IA
+        {% if LANGUAGE_CODE == 'en' %}Your website in <span class="text-gradient">7 days</span> with AI{% else %}Votre site web en <span class="text-gradient">7 jours</span> grâce à l'IA{% endif %}
       </h1>
-      <p class="section-subtitle aos-hidden aos-delay-2">Design professionnel, SEO optimisé, Mobile Money intégré. Livré clé en main.</p>
+      <p class="section-subtitle aos-hidden aos-delay-2">{% if LANGUAGE_CODE == 'en' %}Professional design, optimized SEO and Mobile Money integration. Ready to launch.{% else %}Design professionnel, SEO optimisé, Mobile Money intégré. Livré clé en main.{% endif %}</p>
       <div class="aos-hidden aos-delay-3" style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:2rem">
-        <a href="{% url 'services:configurateur' %}" class="btn btn-primary btn-lg">Configurer mon projet →</a>
-        <a href="{% url 'services:portfolio' %}" class="btn btn-outline btn-lg">Voir nos réalisations</a>
+        <a href="{% url 'services:configurateur' %}" class="btn btn-primary btn-lg">{% if LANGUAGE_CODE == 'en' %}Configure my project →{% else %}Configurer mon projet →{% endif %}</a>
+        <a href="{% url 'services:portfolio' %}" class="btn btn-outline btn-lg">{% if LANGUAGE_CODE == 'en' %}View our work{% else %}Voir nos réalisations{% endif %}</a>
       </div>
     </div>
   </section>
@@ -26,30 +26,30 @@
   <section class="section">
     <div class="container">
       <div class="text-center" style="margin-bottom:3rem">
-        <div class="section-label aos-hidden">Nos offres</div>
-        <h2 class="section-title aos-hidden aos-delay-1">Choisissez votre formule</h2>
+        <div class="section-label aos-hidden">{% if LANGUAGE_CODE == 'en' %}Our services{% else %}Nos offres{% endif %}</div>
+        <h2 class="section-title aos-hidden aos-delay-1">{% if LANGUAGE_CODE == 'en' %}Choose your plan{% else %}Choisissez votre formule{% endif %}</h2>
       </div>
       <div class="grid-{% if offres|length == 4 %}4{% else %}3{% endif %}">
         {% for offre in offres %}
         <div class="glass-card aos-hidden aos-delay-{{ forloop.counter }}" style="text-align:center">
           <div style="font-size:2.5rem;margin-bottom:1rem">{{ offre.icone }}</div>
-          <h3 style="font-family:var(--font-display);font-size:1.1rem;font-weight:700;margin-bottom:.5rem">{{ offre.titre }}</h3>
-          <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:1rem;line-height:1.6">{{ offre.description }}</p>
+          <h3 style="font-family:var(--font-display);font-size:1.1rem;font-weight:700;margin-bottom:.5rem">{{ offre.display_title }}</h3>
+          <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:1rem;line-height:1.6">{{ offre.display_description }}</p>
           <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:var(--primary-light);margin-bottom:.25rem">{{ offre.prix_affiche }}</div>
-          {% if offre.delai_jours %}<div style="font-size:.75rem;color:var(--text-muted);margin-bottom:1rem">⏱️ Livraison {{ offre.delai_jours }} jours</div>{% endif %}
+          {% if offre.delai_jours %}<div style="font-size:.75rem;color:var(--text-muted);margin-bottom:1rem">{% if LANGUAGE_CODE == 'en' %}⏱️ Delivery in {{ offre.delai_jours }} days{% else %}⏱️ Livraison {{ offre.delai_jours }} jours{% endif %}</div>{% endif %}
           {% if offre.features %}
           <ul style="text-align:left;margin-bottom:1.25rem;display:flex;flex-direction:column;gap:.4rem">
-            {% for f in offre.features %}
+            {% for f in offre.display_features %}
             <li style="font-size:.82rem;color:var(--text-secondary);display:flex;align-items:center;gap:.4rem">
               <span style="color:var(--primary-light)">✓</span> {{ f }}
             </li>
             {% endfor %}
           </ul>
           {% endif %}
-          <a href="{% url 'services:configurateur' %}?offre={{ offre.slug }}" class="btn btn-primary btn-sm btn-block">Commander →</a>
+          <a href="{% url 'services:configurateur' %}?offre={{ offre.slug }}" class="btn btn-primary btn-sm btn-block">{% if LANGUAGE_CODE == 'en' %}Order →{% else %}Commander →{% endif %}</a>
         </div>
         {% empty %}
-        <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-secondary)">Offres bientôt disponibles.</div>
+        <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-secondary)">{% if LANGUAGE_CODE == 'en' %}Services coming soon.{% else %}Offres bientôt disponibles.{% endif %}</div>
         {% endfor %}
       </div>
     </div>
@@ -61,20 +61,20 @@
     <div class="container">
       <div class="text-center" style="margin-bottom:3rem">
         <div class="section-label aos-hidden">Portfolio</div>
-        <h2 class="section-title aos-hidden aos-delay-1">Nos dernières réalisations</h2>
+        <h2 class="section-title aos-hidden aos-delay-1">{% if LANGUAGE_CODE == 'en' %}Latest projects{% else %}Nos dernières réalisations{% endif %}</h2>
       </div>
       <div class="grid-3">
         {% for projet in projets %}
         <div class="card aos-hidden">
           {% if projet.image %}
-          <img src="{{ projet.image.url }}" alt="{{ projet.titre }}" style="width:100%;aspect-ratio:16/9;object-fit:cover">
+          <img src="{{ projet.image.url }}" alt="{{ projet.display_title }}" style="width:100%;aspect-ratio:16/9;object-fit:cover">
           {% endif %}
           <div style="padding:1.25rem">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem">
               <h3 style="font-size:.95rem;font-weight:700">{{ projet.titre }}</h3>
               <span class="badge badge-green">{{ projet.categorie.nom }}</span>
             </div>
-            <p style="font-size:.82rem;color:var(--text-secondary);line-height:1.6">{{ projet.description|truncatechars:100 }}</p>
+            <p style="font-size:.82rem;color:var(--text-secondary);line-height:1.6">{{ projet.display_description|truncatechars:100 }}</p>
             {% if projet.technologies %}
             <div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.75rem">
               {% for tech in projet.technologies %}<span class="chip">{{ tech }}</span>{% endfor %}
@@ -85,7 +85,7 @@
         {% endfor %}
       </div>
       <div style="text-align:center;margin-top:2.5rem">
-        <a href="{% url 'services:portfolio' %}" class="btn btn-outline btn-lg">Voir tout le portfolio →</a>
+        <a href="{% url 'services:portfolio' %}" class="btn btn-outline btn-lg">{% if LANGUAGE_CODE == 'en' %}View all projects →{% else %}Voir tout le portfolio →{% endif %}</a>
       </div>
     </div>
   </section>
@@ -95,11 +95,11 @@
   <section class="section">
     <div class="container container-sm">
       <div class="cta-section">
-        <h2 class="section-title">Un projet en tête ? <span class="text-gradient">Parlons-en.</span></h2>
-        <p class="section-subtitle" style="margin:1rem auto 2rem">Réponse sous 24h. Devis gratuit. Accompagnement de A à Z.</p>
+        <h2 class="section-title">{% if LANGUAGE_CODE == 'en' %}Have a project in mind? <span class="text-gradient">Let's talk.</span>{% else %}Un projet en tête ? <span class="text-gradient">Parlons-en.</span>{% endif %}</h2>
+        <p class="section-subtitle" style="margin:1rem auto 2rem">{% if LANGUAGE_CODE == 'en' %}Reply within 24 hours. Free quote. Support from start to launch.{% else %}Réponse sous 24h. Devis gratuit. Accompagnement de A à Z.{% endif %}</p>
         <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-          <a href="{% url 'services:devis' %}" class="btn btn-primary btn-lg">Demander un devis gratuit →</a>
-          <a href="https://wa.me/237680625082" class="btn btn-outline btn-lg" target="_blank">💬 WhatsApp direct</a>
+          <a href="{% url 'services:devis' %}" class="btn btn-primary btn-lg">{% if LANGUAGE_CODE == 'en' %}Request a free quote →{% else %}Demander un devis gratuit →{% endif %}</a>
+          <a href="https://wa.me/237680625082" class="btn btn-outline btn-lg" target="_blank">💬 {% if LANGUAGE_CODE == 'en' %}WhatsApp us{% else %}WhatsApp direct{% endif %}</a>
         </div>
       </div>
     </div>
