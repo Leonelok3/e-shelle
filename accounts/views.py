@@ -44,8 +44,11 @@ def role_redirect(request):
 def _envoyer_code_verification(user, code, request=None):
     """Envoie l'email de vérification avec le code à 6 chiffres."""
     brand = request_brand(request)
-    sujet = f"[{brand}] Votre code de vérification : {code}"
+    is_english = bool(request and request.LANGUAGE_CODE == "en")
+    sujet = f"[{brand}] Your verification code: {code}" if is_english else f"[{brand}] Votre code de vérification : {code}"
     corps_txt = (
+        f"Hello {user.first_name or user.username},\n\nYour {brand} verification code is:\n\n  {code}\n\nThis code is valid for 15 minutes.\nIf you did not create an account, ignore this email.\n\n— The {brand} team"
+        if is_english else
         f"Bonjour {user.first_name or user.username},\n\n"
         f"Votre code de vérification {brand} est :\n\n"
         f"  {code}\n\n"
@@ -62,20 +65,20 @@ def _envoyer_code_verification(user, code, request=None):
         </span>
       </div>
       <h2 style="text-align:center;font-size:1.2rem;margin-bottom:.5rem;">
-        Vérifiez votre adresse email
+        {"Verify your email address" if is_english else "Vérifiez votre adresse email"}
       </h2>
       <p style="color:#aaa;text-align:center;font-size:.9rem;margin-bottom:2rem;">
         Bonjour <strong style="color:#fff">{user.first_name or user.username}</strong>,<br>
-        entrez ce code dans l'application pour activer votre compte :
+        {"enter this code in the app to activate your account:" if is_english else "entrez ce code dans l'application pour activer votre compte :"}
       </p>
       <div style="background:#1a1a1a;border:2px solid #4CAF50;border-radius:12px;
                   padding:2rem;text-align:center;margin-bottom:2rem;">
         <span style="font-size:2.5rem;font-weight:900;letter-spacing:.5rem;
                      font-family:monospace;color:#4CAF50">{code}</span>
-        <p style="color:#888;font-size:.8rem;margin:.75rem 0 0;">Valable 15 minutes</p>
+        <p style="color:#888;font-size:.8rem;margin:.75rem 0 0;">{"Valid for 15 minutes" if is_english else "Valable 15 minutes"}</p>
       </div>
       <p style="color:#666;font-size:.78rem;text-align:center;">
-        Si vous n'avez pas créé de compte sur {brand}, ignorez cet email.
+        {'If you did not create an account on' if is_english else "Si vous n'avez pas créé de compte sur"} {brand}, {'ignore this email.' if is_english else "ignorez cet email."}
       </p>
     </div>
     """
@@ -171,22 +174,22 @@ def verify_email(request):
         try:
             verif = EmailVerification.objects.get(user=user)
         except EmailVerification.DoesNotExist:
-            messages.error(request, "Aucun code trouvé. Veuillez vous réinscrire.")
+            messages.error(request, "No code was found. Please register again." if request.LANGUAGE_CODE == "en" else "Aucun code trouvé. Veuillez vous réinscrire.")
             return redirect("accounts:register")
 
         if verif.is_verified:
-            messages.info(request, "Compte déjà vérifié. Connectez-vous.")
+            messages.info(request, "This account is already verified. Please sign in." if request.LANGUAGE_CODE == "en" else "Compte déjà vérifié. Connectez-vous.")
             return redirect("accounts:login")
 
         if verif.est_expire:
-            messages.error(request, "⏰ Code expiré. Cliquez sur « Renvoyer le code ».")
+            messages.error(request, "⏰ Code expired. Select “Send a new code”." if request.LANGUAGE_CODE == "en" else "⏰ Code expiré. Cliquez sur « Renvoyer le code ».")
         elif verif.tentatives >= 5:
-            messages.error(request, "Trop de tentatives. Cliquez sur « Renvoyer le code ».")
+            messages.error(request, "Too many attempts. Select “Send a new code”." if request.LANGUAGE_CODE == "en" else "Trop de tentatives. Cliquez sur « Renvoyer le code ».")
         elif code_saisi != verif.code:
             verif.tentatives += 1
             verif.save(update_fields=["tentatives"])
             restantes = 5 - verif.tentatives
-            messages.error(request, f"❌ Code incorrect. {restantes} tentative(s) restante(s).")
+            messages.error(request, f"❌ Incorrect code. {restantes} attempt(s) remaining." if request.LANGUAGE_CODE == "en" else f"❌ Code incorrect. {restantes} tentative(s) restante(s).")
         else:
             # ✅ Code correct — activer le compte
             verif.is_verified = True
@@ -196,7 +199,7 @@ def verify_email(request):
 
             del request.session["verif_user_id"]
             login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-            messages.success(request, f"🎉 Bienvenue {user.first_name or user.username} ! Votre compte est activé.")
+            messages.success(request, f"🎉 Welcome {user.first_name or user.username}! Your account is active." if request.LANGUAGE_CODE == "en" else f"🎉 Bienvenue {user.first_name or user.username} ! Votre compte est activé.")
             return redirect("dashboard:index")
 
     # Masquer une partie de l'email pour affichage
@@ -219,7 +222,7 @@ def resend_code(request):
     user = get_object_or_404(CustomUser, pk=user_id, is_active=False)
     verif = EmailVerification.generer(user)
     _envoyer_code_verification(user, verif.code, request=request)
-    messages.success(request, f"✅ Nouveau code envoyé à {user.email}. Vérifiez votre boîte mail.")
+    messages.success(request, f"✅ A new code was sent to {user.email}. Check your inbox." if request.LANGUAGE_CODE == "en" else f"✅ Nouveau code envoyé à {user.email}. Vérifiez votre boîte mail.")
     return redirect("accounts:verify_email")
 
 
@@ -499,15 +502,15 @@ def activer_code(request):
         try:
             code_obj = GlobalAccessCode.objects.get(code=raw)
         except GlobalAccessCode.DoesNotExist:
-            messages.error(request, "Code invalide. Vérifiez et réessayez.")
+            messages.error(request, "Invalid code. Check it and try again." if request.LANGUAGE_CODE == "en" else "Code invalide. Vérifiez et réessayez.")
             return render(request, "accounts/activer_code.html", {"code_input": raw})
 
         ok, msg = code_obj.activate(request.user)
         if ok:
-            messages.success(request, f"Code activé avec succès ! {msg}")
+            messages.success(request, "Access code activated successfully. Your apps are now available." if request.LANGUAGE_CODE == "en" else f"Code activé avec succès ! {msg}")
             activated = code_obj
         else:
-            messages.error(request, msg)
+            messages.error(request, ("This access code has been disabled." if msg == "Ce code a été désactivé." else "This access code has already been used." if msg == "Ce code a déjà été utilisé." else msg) if request.LANGUAGE_CODE == "en" else msg)
 
     code_input = request.GET.get("code", "").strip().upper()
     return render(request, "accounts/activer_code.html", {"activated": activated, "code_input": code_input})

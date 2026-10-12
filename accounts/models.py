@@ -379,6 +379,7 @@ class GlobalAccessCode(models.Model):
     # Le code lui-même
     code          = models.CharField(max_length=20, unique=True, default=_generate_code)
     label         = models.CharField(max_length=150, help_text="Ex: Pack AdGen Pro 30j — Jean Dupont")
+    label_en      = models.CharField(max_length=150, blank=True)
 
     # Ce que donne le code
     apps          = models.JSONField(

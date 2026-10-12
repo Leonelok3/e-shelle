@@ -173,7 +173,7 @@ class GlobalAccessCodeAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ("CODE GÉNÉRÉ AUTOMATIQUEMENT", {
-            "fields": ("code", "label"),
+            "fields": ("code", "label", "label_en"),
             "description": "Le code est généré automatiquement. Envoyez-le au client par WhatsApp."
         }),
         ("CE QUE LE CODE DÉBLOQUE", {

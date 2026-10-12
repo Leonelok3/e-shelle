@@ -1,11 +1,11 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fr" class="scroll-smooth">
+<html lang="{{ LANGUAGE_CODE|default:'fr' }}" class="scroll-smooth">
 <head>
   {% if request.is_immigration97 %}<link rel="icon" href="{% static 'img/immigration97-logo.png' %}">{% endif %}
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Activer un code d'accès — {{ request.site_brand|default:'E-Shelle' }}</title>
+  <title>{% if LANGUAGE_CODE == 'en' %}Activate an access code{% else %}Activer un code d'accès{% endif %} — {{ request.site_brand|default:'E-Shelle' }}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -36,11 +36,11 @@
              style="background:linear-gradient(135deg,#1B6534,#2d9a55)">{% if request.is_immigration97 %}I97{% else %}E{% endif %}</div>
         <span class="font-black text-gray-900 text-lg">{% if request.is_immigration97 %}Immigration97{% else %}E<span style="color:#1B6534">-Shelle</span>{% endif %}</span>
       </a>
-      <div class="ml-auto flex items-center gap-3">
+      <div class="ml-auto flex items-center gap-3"><form action="{% url 'set_language' %}" method="post">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><select name="language" onchange="this.form.submit()" aria-label="{% if LANGUAGE_CODE == 'en' %}Language{% else %}Langue{% endif %}" class="text-sm border rounded-lg px-2 py-1"><option value="fr"{% if LANGUAGE_CODE == 'fr' %} selected{% endif %}>FR</option><option value="en"{% if LANGUAGE_CODE == 'en' %} selected{% endif %}>EN</option></select></form>
         {% if user.is_authenticated %}
         <a href="{% url 'accounts:mon_compte' %}"
            class="text-sm font-semibold px-4 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition">
-          ← Mon Compte
+          {% if LANGUAGE_CODE == 'en' %}← My account{% else %}← Mon Compte{% endif %}
         </a>
         {% endif %}
       </div>
@@ -51,9 +51,9 @@
   <div class="text-white py-12 px-4 text-center"
        style="background:linear-gradient(135deg,#0d1f0d 0%,#1B6534 100%)">
     <div class="text-5xl mb-3">🎟️</div>
-    <h1 class="text-3xl sm:text-4xl font-black mb-2">Activer un code d'accès</h1>
+    <h1 class="text-3xl sm:text-4xl font-black mb-2">{% if LANGUAGE_CODE == 'en' %}Activate an access code{% else %}Activer un code d'accès{% endif %}</h1>
     <p class="text-white/70 text-base max-w-md mx-auto">
-      Entrez le code que vous avez reçu par WhatsApp pour débloquer vos applications.
+      {% if LANGUAGE_CODE == 'en' %}Enter the code you received on WhatsApp to unlock your apps.{% else %}Entrez le code que vous avez reçu par WhatsApp pour débloquer vos applications.{% endif %}
     </p>
   </div>
 
@@ -87,37 +87,37 @@
     <div class="bg-white rounded-3xl shadow-lg border border-green-100 overflow-hidden pulse-success">
       <div class="bg-green-600 text-white px-6 py-5 text-center">
         <div class="text-4xl mb-2">🎉</div>
-        <h2 class="text-xl font-black">Code activé avec succès !</h2>
-        <p class="text-green-100 text-sm mt-1">Vos accès sont maintenant disponibles</p>
+        <h2 class="text-xl font-black">{% if LANGUAGE_CODE == 'en' %}Access code activated!{% else %}Code activé avec succès !{% endif %}</h2>
+        <p class="text-green-100 text-sm mt-1">{% if LANGUAGE_CODE == 'en' %}Your access is now available{% else %}Vos accès sont maintenant disponibles{% endif %}</p>
       </div>
       <div class="p-6 space-y-4">
         <div class="bg-gray-50 rounded-2xl p-4">
-          <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Code utilisé</div>
+          <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{% if LANGUAGE_CODE == 'en' %}Code used{% else %}Code utilisé{% endif %}</div>
           <code class="text-lg font-black text-gray-800 code-input">{{ activated.code }}</code>
         </div>
         {% if activated.label %}
         <div class="bg-gray-50 rounded-2xl p-4">
           <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Description</div>
-          <p class="text-sm font-semibold text-gray-700">{{ activated.label }}</p>
+          <p class="text-sm font-semibold text-gray-700">{% if LANGUAGE_CODE == 'en' %}{{ activated.label_en|default:activated.label }}{% else %}{{ activated.label }}{% endif %}</p>
         </div>
         {% endif %}
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-green-50 rounded-2xl p-4 text-center">
             <div class="text-2xl font-black text-green-700">{{ activated.duration_days }}</div>
-            <div class="text-xs text-green-600 font-semibold">jours d'accès</div>
+            <div class="text-xs text-green-600 font-semibold">{% if LANGUAGE_CODE == 'en' %}days of access{% else %}jours d'accès{% endif %}</div>
           </div>
           <div class="bg-blue-50 rounded-2xl p-4 text-center">
             <div class="text-2xl font-black text-blue-700">
               {% if "all" in activated.apps %}Tout{% else %}{{ activated.apps|length }}{% endif %}
             </div>
             <div class="text-xs text-blue-600 font-semibold">
-              {% if "all" in activated.apps %}les apps{% else %}application{{ activated.apps|length|pluralize }}{% endif %}
+              {% if LANGUAGE_CODE == 'en' %}{% if "all" in activated.apps %}all apps{% else %}application{{ activated.apps|length|pluralize }}{% endif %}{% else %}{% if "all" in activated.apps %}toutes les applications{% else %}application{{ activated.apps|length|pluralize }}{% endif %}{% endif %}
             </div>
           </div>
         </div>
         {% if activated.expires_at %}
         <div class="text-center text-sm text-gray-500">
-          Expire le <strong class="text-gray-700">{{ activated.expires_at|date:"d/m/Y à H\hi" }}</strong>
+          {% if LANGUAGE_CODE == 'en' %}Expires on{% else %}Expire le{% endif %} <strong class="text-gray-700">{{ activated.expires_at|date:"d/m/Y à H\hi" }}</strong>
         </div>
         {% endif %}
         <a href="{% url 'accounts:mon_compte' %}"
@@ -134,14 +134,14 @@
 
       <div class="text-center mb-8">
         <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">🔑</div>
-        <h2 class="text-xl font-black text-gray-900">Votre code d'accès</h2>
-        <p class="text-sm text-gray-500 mt-1">Format : XXXX-XXXX-XXXX</p>
+        <h2 class="text-xl font-black text-gray-900">{% if LANGUAGE_CODE == 'en' %}Your access code{% else %}Votre code d'accès{% endif %}</h2>
+        <p class="text-sm text-gray-500 mt-1">{% if LANGUAGE_CODE == 'en' %}Format: XXXX-XXXX-XXXX{% else %}Format : XXXX-XXXX-XXXX{% endif %}</p>
       </div>
 
       <form method="post" class="space-y-5">
         {% csrf_token %}
         <div>
-          <label class="block text-sm font-bold text-gray-700 mb-2">Code d'accès</label>
+          <label class="block text-sm font-bold text-gray-700 mb-2">{% if LANGUAGE_CODE == 'en' %}Access code{% else %}Code d'accès{% endif %}</label>
           <input
             type="text"
             name="code"
@@ -157,37 +157,38 @@
             oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9\-]/g,'').substring(0,14)"
           />
           <p class="text-xs text-gray-400 mt-2 text-center">
-            Entrez le code exactement tel qu'il vous a été envoyé
+            {% if LANGUAGE_CODE == 'en' %}Enter the code exactly as it was sent to you{% else %}Entrez le code exactement tel qu'il vous a été envoyé{% endif %}
           </p>
         </div>
 
         <button type="submit"
                 class="w-full py-4 rounded-2xl font-black text-white text-base transition hover:opacity-90 active:scale-95"
                 style="background:linear-gradient(135deg,#1B6534,#2d9a55)">
-          🎟️ Activer le code
+          🎟️ {% if LANGUAGE_CODE == 'en' %}Activate code{% else %}Activer le code{% endif %}
         </button>
       </form>
 
       <!-- Séparateur -->
       <div class="flex items-center gap-4 my-6">
         <div class="flex-1 border-t border-gray-100"></div>
-        <span class="text-xs text-gray-300 font-semibold">ou</span>
+        <span class="text-xs text-gray-300 font-semibold">{% if LANGUAGE_CODE == 'en' %}or{% else %}ou{% endif %}</span>
         <div class="flex-1 border-t border-gray-100"></div>
       </div>
 
       <!-- Aide -->
       <div class="bg-gray-50 rounded-2xl p-5">
-        <h3 class="text-sm font-bold text-gray-700 mb-3">Pas encore de code ?</h3>
+        <h3 class="text-sm font-bold text-gray-700 mb-3">{% if LANGUAGE_CODE == 'en' %}No access code yet?{% else %}Pas encore de code ?{% endif %}</h3>
         <p class="text-xs text-gray-500 mb-4 leading-relaxed">
-          Choisissez vos applications, effectuez votre paiement via Orange Money ou MTN Money,
-          puis contactez-nous sur WhatsApp pour recevoir votre code d'accès.
+          {% if LANGUAGE_CODE == 'en' %}Choose your apps and pay with Orange Money or MTN Mobile Money,
+          then contact us on WhatsApp to receive your access code.{% else %}Choisissez vos applications, effectuez votre paiement via Orange Money ou MTN Money,
+          puis contactez-nous sur WhatsApp pour recevoir votre code d'accès.{% endif %}
         </p>
         <div class="space-y-2">
           <a href="{% url 'accounts:upgrade' %}"
              class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm border-2 border-green-200 text-green-700 hover:bg-green-50 transition">
-            📦 Voir les offres disponibles
+            {% if LANGUAGE_CODE == 'en' %}📦 View available plans{% else %}📦 Voir les offres disponibles{% endif %}
           </a>
-          <a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}?text=Bonjour, je souhaite souscrire à {{ request.site_brand|default:'E-Shelle' }}. Pouvez-vous m'envoyer un code d'accès ?"
+          <a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}?text={% if LANGUAGE_CODE == 'en' %}Hello, I would like to subscribe to {{ request.site_brand|default:'E-Shelle' }}. Can you send me an access code?{% else %}Bonjour, je souhaite souscrire à {{ request.site_brand|default:'E-Shelle' }}. Pouvez-vous m'envoyer un code d'accès ?{% endif %}"
              target="_blank" rel="noopener noreferrer"
              class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm text-white transition hover:opacity-90"
              style="background:#25D366">

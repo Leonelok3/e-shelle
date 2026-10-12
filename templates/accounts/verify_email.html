@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Vérifiez votre email · {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Verify your email{% else %}Vérifiez votre email{% endif %} · {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
 
 {% block content %}
 <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;">
@@ -15,12 +15,12 @@
   </div>
 
   <h1 style="font-family:var(--font-display);font-size:1.5rem;font-weight:800;margin-bottom:.5rem;">
-    Vérifiez votre email
+    {% if LANGUAGE_CODE == 'en' %}Verify your email{% else %}Vérifiez votre email{% endif %}
   </h1>
   <p style="color:var(--text-secondary);font-size:.9rem;margin-bottom:2rem;line-height:1.6;">
-    Nous avons envoyé un code à 6 chiffres à<br>
+    {% if LANGUAGE_CODE == 'en' %}We sent a 6-digit code to{% else %}Nous avons envoyé un code à 6 chiffres à{% endif %}<br>
     <strong style="color:var(--primary-light)">{{ email_masque }}</strong><br>
-    <span style="font-size:.8rem;color:var(--text-muted);">Valable 15 minutes · Vérifiez vos spams</span>
+    <span style="font-size:.8rem;color:var(--text-muted);">{% if LANGUAGE_CODE == 'en' %}Valid for 15 minutes · Check your spam folder{% else %}Valable 15 minutes · Vérifiez vos spams{% endif %}</span>
   </p>
 
   {% if messages %}
@@ -51,25 +51,25 @@
     </div>
 
     <button type="submit" class="btn btn-primary" style="width:100%;padding:1rem;font-size:1rem;">
-      Vérifier mon compte →
+      {% if LANGUAGE_CODE == 'en' %}Verify my account →{% else %}Vérifier mon compte →{% endif %}
     </button>
   </form>
 
   <!-- Renvoyer le code -->
   <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.08);">
     <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:.75rem;">
-      Vous n'avez pas reçu le code ?
+      {% if LANGUAGE_CODE == 'en' %}Didn't receive the code?{% else %}Vous n'avez pas reçu le code ?{% endif %}
     </p>
     <a href="{% url 'accounts:resend_code' %}"
        style="color:var(--primary-light);font-size:.9rem;font-weight:600;text-decoration:none;">
-      📨 Renvoyer un nouveau code
+      📨 {% if LANGUAGE_CODE == 'en' %}Send a new code{% else %}Renvoyer un nouveau code{% endif %}
     </a>
   </div>
 
   <div style="margin-top:1.25rem;">
     <a href="{% url 'accounts:register' %}"
        style="color:var(--text-muted);font-size:.8rem;text-decoration:none;">
-      ← Utiliser une autre adresse email
+      {% if LANGUAGE_CODE == 'en' %}← Use a different email address{% else %}← Utiliser une autre adresse email{% endif %}
     </a>
   </div>
 
