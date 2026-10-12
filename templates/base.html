@@ -1,6 +1,6 @@
 {% load canada_navigation %}{% canada_navigation as canada_menu %}
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="{{ LANGUAGE_CODE|default:'fr' }}" data-theme="dark">
 
 <head>
   <meta charset="UTF-8">
@@ -797,6 +797,15 @@
 
   {# ── NAVBAR ─────────────────────────────────────────────────── #}
   {% block navbar %}
+  <form action="{% url 'set_language' %}" method="post" class="site-language-switcher" aria-label="Choose site language" style="position:fixed;right:12px;top:78px;z-index:1100;display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:#102039;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.25)">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <label for="site-language">🌐</label>
+    <select id="site-language" name="language" aria-label="Language" onchange="this.form.submit()" style="border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;outline:none">
+      <option value="fr"{% if LANGUAGE_CODE == 'fr' %} selected{% endif %}>Français</option>
+      <option value="en"{% if LANGUAGE_CODE == 'en' %} selected{% endif %}>English</option>
+    </select>
+  </form>
   {% if canada_menu.enabled %}
     {% include "canada_resume/partials/navigation_header.html" %}
   {% elif "/allemand/" in request.path or "/allemagne/" in request.path or request.path == "/allemand" or request.path == "/allemand/" or request.path == "/allemagne" or request.path == "/allemagne/" %}

@@ -230,6 +230,7 @@ MIDDLEWARE = [
 
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -310,6 +311,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Langue / Heure
 LANGUAGE_CODE = "fr"
+LANGUAGES = [
+    ("fr", "Français"),
+    ("en", "English"),
+]
 TIME_ZONE = "Africa/Douala"
 USE_I18N = True
 USE_TZ = True

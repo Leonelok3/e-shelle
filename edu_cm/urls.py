@@ -760,6 +760,7 @@ def commercial_pdf_view(request):
     return response
 
 urlpatterns = [
+    path("i18n/", include("django.conf.urls.i18n")),
     path("avatar/", avatar_redirect, name="avatar_redirect"),
     path("e-shelle-commercial.pdf", commercial_pdf_view, name="commercial_pdf"),
     path("admin/", admin.site.urls),
