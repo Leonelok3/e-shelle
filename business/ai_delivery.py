@@ -129,15 +129,20 @@ def generate_client_ai_kit(business: BusinessProfile, user=None, extra_brief: st
     return kit
 
 
-def kit_summary_for_whatsapp(kit: ClientAIKit) -> str:
+def kit_summary_for_whatsapp(kit: ClientAIKit, language="fr") -> str:
     business = kit.business
     public_url = business.get_absolute_url()
-    return (
-        f"Kit IA E-Shelle prêt pour {business.name}.\n"
-        f"Offre: {business.promo_offer or business.description[:90] or 'vitrine IA + chatbot + WhatsApp'}\n"
-        f"Livrables: chatbot, mini-site, contenus, WhatsApp, SEO, vidéo, automatisation.\n"
-        f"Lien: {public_url}"
-    )
+    if language == "en":
+        offer = business.display_promo_offer or business.display_description[:90] or "AI showcase + chatbot + WhatsApp"
+        return f"""E-Shelle AI kit ready for {business.display_name}.
+Offer: {offer}
+Deliverables: chatbot, mini-site, content, WhatsApp, SEO, video and automation.
+Link: {public_url}"""
+    offer = business.promo_offer or business.description[:90] or "vitrine IA + chatbot + WhatsApp"
+    return f"""Kit IA E-Shelle prêt pour {business.display_name}.
+Offre: {offer}
+Livrables: chatbot, mini-site, contenus, WhatsApp, SEO, vidéo, automatisation.
+Lien: {public_url}"""
 
 
 def _context(business, items, extra_brief):

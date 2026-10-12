@@ -2581,13 +2581,13 @@ def ai_delivery_kit(request, business_id):
     if request.method == "POST":
         extra_brief = request.POST.get("extra_brief", "")
         kit = generate_client_ai_kit(business, user=request.user, extra_brief=extra_brief)
-        messages.success(request, "Kit IA client généré. Vous pouvez maintenant vendre/livrer ce pack.")
+        messages.success(request, "AI client kit generated. You can now sell or deliver this package." if request.LANGUAGE_CODE == "en" else "Kit IA client généré. Vous pouvez maintenant vendre/livrer ce pack.")
         return redirect("business:ai_delivery_kit", business_id=business.id)
 
     if not kit:
         kit = ClientAIKit.objects.create(business=business, created_by=request.user)
 
-    whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(kit_summary_for_whatsapp(kit))}" if kit.generated_at else ""
+    whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(kit_summary_for_whatsapp(kit, request.LANGUAGE_CODE))}" if kit.generated_at else ""
     return render(
         request,
         "business/ai_delivery_kit.html",
