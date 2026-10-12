@@ -1,0 +1,28 @@
+<main class="container" style="padding:3rem 1rem">
+  <header style="text-align:center;max-width:850px;margin:0 auto 3rem">
+    <p class="learn-kicker">Clear options for local businesses</p>
+    <h1>Plans and pricing</h1>
+    <p>Choose a plan for your business presence, catalogue and customer follow-up. Contact our team for a tailored website or AI project.</p>
+  </header>
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem">
+    {% for plan in plans %}
+    <article class="card" style="padding:1.25rem">
+      <h2>{{ plan.name|default:plan.title }}</h2>
+      {% if plan.description %}<p>{{ plan.description }}</p>{% endif %}
+      {% if plan.monthly_price_xaf %}<p style="font-size:1.5rem;font-weight:800">{{ plan.monthly_price_xaf }} XAF <small>/ month</small></p>{% endif %}
+      <a class="btn btn-accent" href="{% url 'business:onboarding' %}">Choose this plan →</a>
+    </article>
+    {% empty %}<article class="card" style="padding:1.25rem"><h2>Business plan</h2><p>Contact us for current plan options and pricing.</p><a href="/services/contact/">Request pricing →</a></article>{% endfor %}
+    <article class="card" style="padding:1.25rem">
+      <h2>Custom web and AI projects</h2>
+      <p>Websites, online stores, automation and AI integrations tailored to your business needs.</p>
+      <a class="btn btn-outline" href="/services/contact/">Request a quote →</a>
+    </article>
+  </section>
+  <section class="card" style="margin-top:2rem;padding:1.5rem">
+    <h2>Business Key partner program</h2>
+    <p>Join the E-Shelle partner network and earn commissions by referring local businesses.</p>
+    <p>Current joining fee: {{ business_key_price }} XAF. Partner commission: {{ partner_recruit_rate }}% on referrals and {{ provider_rate }}% on eligible provider subscriptions.</p>
+    <a href="/business/">Learn about the partner program →</a>
+  </section>
+</main>

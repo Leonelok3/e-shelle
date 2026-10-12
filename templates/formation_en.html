@@ -1,0 +1,31 @@
+<main class="container" style="padding:3rem 1rem">
+  <header style="text-align:center;max-width:850px;margin:0 auto 3rem">
+    <p class="learn-kicker">E-Shelle Academy</p>
+    <h1 class="learn-title">Learning, courses and exam preparation in one place</h1>
+    <p class="learn-lead">Study online, build practical skills, prepare for exams and track your progress with E-Shelle learning tools.</p>
+    <a class="btn btn-accent" href="/formations/">Browse courses →</a>
+  </header>
+  <section style="margin-bottom:3rem">
+    <h2>Learning apps</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
+      <article class="card" style="padding:1rem"><h3>Mapex / EduCam Pro</h3><p>Courses, documents, videos, subscriptions and Cameroon exam preparation.</p><a href="/edu/">Explore EduCam →</a></article>
+      <article class="card" style="padding:1rem"><h3>Online course catalogue</h3><p>Structured courses with chapters, lessons, quizzes, progress tracking and certificates.</p><a href="/formations/">Open course catalogue →</a></article>
+      <article class="card" style="padding:1rem"><h3>Language learning</h3><p>Build French, English, German and Italian skills through guided practice.</p><a href="/langues/">Explore languages →</a></article>
+      <article class="card" style="padding:1rem"><h3>Exam preparation</h3><p>Practice language exams with timed exercises, feedback and an AI coach.</p><a href="/prep/">Prepare for an exam →</a></article>
+      <article class="card" style="padding:1rem"><h3>Mathematics</h3><p>Review lessons, solve exercises and prepare for Cameroon school exams.</p><a href="/maths/">Study mathematics →</a></article>
+      <article class="card" style="padding:1rem"><h3>Learner dashboard</h3><p>Resume your courses and follow your enrolments and learning progress.</p><a href="/dashboard/">Open your dashboard →</a></article>
+    </div>
+  </section>
+  <section>
+    <h2>Courses published on E-Shelle</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem">
+      {% for course in published_formations %}
+      <article class="card" style="padding:1rem">
+        <h3>{{ course.titre }}</h3>
+        {% if course.description_courte or course.description %}<p>{{ course.description_courte|default:course.description|truncatechars:140 }}</p>{% endif %}
+        <a href="{% url 'formations:detail' course.slug %}">View course →</a>
+      </article>
+      {% empty %}<p>New courses will appear here soon.</p>{% endfor %}
+    </div>
+  </section>
+</main>

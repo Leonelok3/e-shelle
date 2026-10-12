@@ -55,12 +55,12 @@
 
       <a href="{% url 'accounts:login' %}" style="color:var(--text-secondary);font-size:.85rem;display:inline-flex;align-items:center;gap:.35rem;margin-bottom:2rem;text-decoration:none">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-        Déjà un compte ? Se connecter
+        {% if LANGUAGE_CODE == 'en' %}Already have an account? Sign in{% else %}Déjà un compte ? Se connecter{% endif %}
       </a>
 
-      <h1 style="font-family:var(--font-display);font-size:1.75rem;font-weight:800;margin-bottom:.35rem">Créer mon compte</h1>
+      <h1 style="font-family:var(--font-display);font-size:1.75rem;font-weight:800;margin-bottom:.35rem">{% if LANGUAGE_CODE == 'en' %}Create your account{% else %}Créer mon compte{% endif %}</h1>
       <p style="color:var(--text-secondary);margin-bottom:1.75rem;font-size:.9rem">
-        {% if request.is_immigration97 %}Commencez votre préparation et votre parcours Canada avec Immigration97.{% else %}Rejoins 500+ entrepreneurs africains sur E-Shelle 🇨🇲{% endif %}
+        {% if LANGUAGE_CODE == 'en' %}{% if request.is_immigration97 %}Start your preparation and Canada pathway with Immigration97.{% else %}Join entrepreneurs across Africa on E-Shelle 🇨🇲{% endif %}{% else %}{% if request.is_immigration97 %}Commencez votre préparation et votre parcours Canada avec Immigration97.{% else %}Rejoins 500+ entrepreneurs africains sur E-Shelle 🇨🇲{% endif %}{% endif %}
       </p>
 
       {# ── Boutons sociaux ── #}
@@ -80,7 +80,7 @@
 
       {# ── Séparateur ─────────────────────────────────────────── #}
       <div class="auth-divider">
-        <span>{% if social_google_enabled %}ou créer un compte avec email{% else %}Créer un compte avec email{% endif %}</span>
+        <span>{% if LANGUAGE_CODE == 'en' %}{% if social_google_enabled %}or create an account with email{% else %}Create an account with email{% endif %}{% else %}{% if social_google_enabled %}ou créer un compte avec email{% else %}Créer un compte avec email{% endif %}{% endif %}</span>
       </div>
 
       {# ── Messages d'erreur/succès ───────────────────────────── #}
@@ -99,48 +99,48 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Prénom</label>
+            <label class="form-label">{% if LANGUAGE_CODE == 'en' %}First name{% else %}Prénom{% endif %}</label>
             <input type="text" name="first_name" class="form-control" placeholder="Jean" autocomplete="given-name">
           </div>
           <div class="form-group">
-            <label class="form-label">Nom</label>
+            <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Last name{% else %}Nom{% endif %}</label>
             <input type="text" name="last_name" class="form-control" placeholder="Dupont" autocomplete="family-name">
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Nom d'utilisateur <span style="color:#EF5350">*</span></label>
+          <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Username{% else %}Nom d'utilisateur{% endif %} <span style="color:#EF5350">*</span></label>
           <input type="text" name="username" class="form-control" placeholder="jean_dupont" required autocomplete="username">
         </div>
 
         <div class="form-group">
-          <label class="form-label">Adresse email <span style="color:#EF5350">*</span></label>
+          <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Email address{% else %}Adresse email{% endif %} <span style="color:#EF5350">*</span></label>
           <input type="email" name="email" class="form-control" placeholder="jean@email.com" required autocomplete="email">
         </div>
 
         <div class="form-group">
-          <label class="form-label">Je suis</label>
+          <label class="form-label">{% if LANGUAGE_CODE == 'en' %}I am a{% else %}Je suis{% endif %}</label>
           <select name="role" class="form-control">
-            <option value="STUDENT">📚 Apprenant / Étudiant</option>
-            <option value="CLIENT">💼 Entrepreneur / Client</option>
-            <option value="TEACHER">🎓 Formateur</option>
+            <option value="STUDENT">📚 {% if LANGUAGE_CODE == 'en' %}Learner / Student{% else %}Apprenant / Étudiant{% endif %}</option>
+            <option value="CLIENT">💼 {% if LANGUAGE_CODE == 'en' %}Business owner / Client{% else %}Entrepreneur / Client{% endif %}</option>
+            <option value="TEACHER">🎓 {% if LANGUAGE_CODE == 'en' %}Teacher{% else %}Formateur{% endif %}</option>
           </select>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Mot de passe <span style="color:#EF5350">*</span></label>
+            <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Password{% else %}Mot de passe{% endif %} <span style="color:#EF5350">*</span></label>
             <div class="input-password-wrap">
-              <input type="password" name="password1" id="pwd1" class="form-control" placeholder="Min. 8 caractères" required autocomplete="new-password">
+              <input type="password" name="password1" id="pwd1" class="form-control" placeholder="{% if LANGUAGE_CODE == 'en' %}At least 8 characters{% else %}Min. 8 caractères{% endif %}" required autocomplete="new-password">
               <button type="button" class="toggle-password" onclick="togglePwd('pwd1')" title="Afficher">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Confirmer <span style="color:#EF5350">*</span></label>
+            <label class="form-label">{% if LANGUAGE_CODE == 'en' %}Confirm password{% else %}Confirmer{% endif %} <span style="color:#EF5350">*</span></label>
             <div class="input-password-wrap">
-              <input type="password" name="password2" id="pwd2" class="form-control" placeholder="Répéter" required autocomplete="new-password">
+              <input type="password" name="password2" id="pwd2" class="form-control" placeholder="{% if LANGUAGE_CODE == 'en' %}Repeat password{% else %}Répéter{% endif %}" required autocomplete="new-password">
               <button type="button" class="toggle-password" onclick="togglePwd('pwd2')" title="Afficher">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
@@ -154,7 +154,7 @@
         </div>
 
         <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:.75rem">
-          Créer mon compte gratuitement →
+          {% if LANGUAGE_CODE == 'en' %}Create my free account →{% else %}Créer mon compte gratuitement →{% endif %}
         </button>
 
         <p style="font-size:.75rem;color:var(--text-muted);text-align:center;margin-top:.75rem">

@@ -1,0 +1,111 @@
+<main class="esh-home-en">
+  <section style="padding:5rem 1rem 4rem;text-align:center;background:radial-gradient(circle at top,rgba(39,174,96,.18),transparent 60%)">
+    <div class="esh-pill">Local discovery · Google · AI</div>
+    <h1 style="max-width:900px;margin:1rem auto;font-size:clamp(2.3rem,6vw,4.5rem);line-height:1.05">Help customers find your business</h1>
+    <p style="max-width:780px;margin:0 auto 1.5rem;font-size:1.1rem;line-height:1.7">List your business, services or products. E-Shelle gives you a professional profile, improves your local visibility and helps customers find you through search engines and AI assistants.</p>
+    <a class="btn btn-accent" href="{% url 'business:onboarding' %}">List your business for free →</a>
+    <p style="margin-top:1rem">Free business profile · Google visibility · Direct WhatsApp contact</p>
+  </section>
+
+  <section class="container" style="padding:3rem 1rem">
+    <h2>Featured local businesses</h2>
+    <p>Discover businesses and service providers near you.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
+      {% for business in business_slides_dup %}
+      <article class="card" style="padding:1rem">
+        <h3>{{ business.name }}</h3>
+        {% if business.description %}<p>{{ business.description|truncatechars:150 }}</p>{% endif %}
+        {% if business.city %}<p>{{ business.city }}</p>{% endif %}
+        <a href="{{ business.url|default:'#' }}">View business →</a>
+      </article>
+      {% empty %}<p>New business listings will appear here soon.</p>{% endfor %}
+    </div>
+  </section>
+
+  <section class="container" style="padding:2rem 1rem">
+    <h2>Products and services</h2>
+    <p>Browse offers published by businesses and service providers on E-Shelle.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
+      {% for item in home_catalog_items %}
+      <article class="card" style="padding:1rem">
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.description|default:"Discover this offer from a local provider."|truncatechars:140 }}</p>
+        {% if item.formatted_price %}<p>{{ item.formatted_price }}</p>{% endif %}
+      </article>
+      {% empty %}<p>New offers will be listed here soon.</p>{% endfor %}
+    </div>
+    <p><a href="{% url 'products_services' %}">Explore all products and services →</a></p>
+  </section>
+
+  <section class="container" style="padding:2rem 1rem">
+    <h2>Explore the E-Shelle ecosystem</h2>
+    <p>One account connects you to useful services for everyday life and business.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.75rem">
+      <a class="card" style="padding:1rem" href="/resto/">Restaurants</a>
+      <a class="card" style="padding:1rem" href="/gaz/">Gas delivery</a>
+      <a class="card" style="padding:1rem" href="/pressing/">Laundry</a>
+      <a class="card" style="padding:1rem" href="/pharma/">Pharmacies</a>
+      <a class="card" style="padding:1rem" href="/sante/">Health and wellness</a>
+      <a class="card" style="padding:1rem" href="/immobilier/">Real estate</a>
+      <a class="card" style="padding:1rem" href="/auto/">Cars and parts</a>
+      <a class="card" style="padding:1rem" href="/auto-ecole/">Driving schools</a>
+      <a class="card" style="padding:1rem" href="/annonces/">Local marketplace</a>
+      <a class="card" style="padding:1rem" href="/agro/">Agriculture</a>
+      <a class="card" style="padding:1rem" href="/jobs/">Jobs</a>
+      <a class="card" style="padding:1rem" href="/njangi/">Digital savings groups</a>
+      <a class="card" style="padding:1rem" href="/transport/">Transport</a>
+      <a class="card" style="padding:1rem" href="/salons/">Salons and beauty</a>
+      <a class="card" style="padding:1rem" href="/canada/">Canada opportunities</a>
+      <a class="card" style="padding:1rem" href="/allemagne/">Germany opportunities</a>
+      <a class="card" style="padding:1rem" href="/langues/">Language learning</a>
+      <a class="card" style="padding:1rem" href="/formations/">Online training</a>
+      <a class="card" style="padding:1rem" href="/services/">Web and AI services</a>
+      <a class="card" style="padding:1rem" href="/pub/">AI advertising</a>
+    </div>
+  </section>
+
+  <section class="container" style="padding:3rem 1rem">
+    <h2>Tools to grow your business</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
+      <article class="card" style="padding:1rem"><h3>Local visibility</h3><p>Help nearby customers find your business, contact you and explore your offers.</p></article>
+      <article class="card" style="padding:1rem"><h3>Websites and online stores</h3><p>Launch a professional website, landing page or online shop for your activity.</p></article>
+      <article class="card" style="padding:1rem"><h3>AI and automation</h3><p>Use practical digital tools to create content and respond to customers faster.</p></article>
+      <article class="card" style="padding:1rem"><h3>Training</h3><p>Build useful skills with online courses and exam preparation.</p></article>
+    </div>
+    <p><a href="{% url 'services:index' %}">Explore our services →</a> · <a href="{% url 'formation' %}">Browse training →</a></p>
+  </section>
+
+  <section class="container" style="padding:2rem 1rem">
+    <h2>Explore by city</h2>
+    <p>Find nearby services in cities across Cameroon.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:.75rem">
+      {% for city in geo_cities %}<span class="card" style="padding:.75rem 1rem">{{ city }}</span>{% empty %}<span>Douala · Yaoundé · Bafoussam · Garoua</span>{% endfor %}
+    </div>
+  </section>
+
+  <section class="container" style="padding:3rem 1rem">
+    <h2>Join E-Shelle</h2>
+    <p>Create your free business profile and make your products and services easier to discover.</p>
+    <a class="btn btn-accent" href="{% url 'business:onboarding' %}">Get started for free →</a>
+    <p style="margin-top:1rem"><a href="{% url 'accounts:register' %}">Create an account</a> · <a href="{% url 'accounts:login' %}">Sign in</a></p>
+  </section>
+
+  <section class="container" style="padding:2rem 1rem">
+    <h2>Grow with E-Shelle Business Key</h2>
+    <p>Refer local businesses to E-Shelle and earn recurring commissions when they subscribe.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
+      <article class="card" style="padding:1rem"><h3>Recurring rewards</h3><p>Earn commission on subscriptions from businesses you refer.</p></article>
+      <article class="card" style="padding:1rem"><h3>Mobile Money payouts</h3><p>Receive your eligible earnings through MTN or Orange Money.</p></article>
+      <article class="card" style="padding:1rem"><h3>Track your referrals</h3><p>Follow referrals and commissions from your partner dashboard.</p></article>
+    </div>
+    <a href="/business/">Learn about Business Key →</a>
+  </section>
+
+  <section class="container" style="padding:2rem 1rem">
+    <h2>Frequently asked questions</h2>
+    <details><summary>What is E-Shelle?</summary><p>E-Shelle brings together local services, online business tools, training and AI features in one platform.</p></details>
+    <details><summary>Can I list my business for free?</summary><p>Yes. Create an account and add your business profile to help local customers find you.</p></details>
+    <details><summary>How can customers contact a provider?</summary><p>Business listings include contact options so customers can reach providers directly.</p></details>
+    <details><summary>Can I use E-Shelle on my phone?</summary><p>Yes. The website and its services are designed to work on mobile devices.</p></details>
+  </section>
+</main>

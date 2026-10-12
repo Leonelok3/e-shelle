@@ -1,0 +1,41 @@
+<main class="container" style="padding:3rem 1rem">
+  <header style="text-align:center;margin-bottom:2rem">
+    <h1 class="esh-animated-gradient-text">Discover local businesses and services</h1>
+    <p>Find products, services and trusted providers across Cameroon and French-speaking Africa.</p>
+  </header>
+  <form method="get" role="search" style="display:flex;gap:.5rem;max-width:760px;margin:0 auto 2rem">
+    <input class="form-control" type="search" name="q" value="{{ search_query }}" placeholder="Search for a product, service or provider" aria-label="Search">
+    {% if selected_country %}<input type="hidden" name="pays" value="{{ selected_country }}">{% endif %}
+    {% if current_category %}<input type="hidden" name="categorie" value="{{ current_category }}">{% endif %}
+    <button class="btn btn-accent" type="submit">Search</button>
+  </form>
+  <section style="margin-bottom:2.5rem">
+    <h2>Featured providers</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
+      {% for item in business_slides %}
+      <a class="card" href="{{ item.url }}" style="padding:1rem;text-decoration:none;color:inherit">
+        <h3>{{ item.name }}</h3><p>{{ item.description|truncatechars:130 }}</p><span>{{ item.city }} · View →</span>
+      </a>
+      {% empty %}<p>New provider listings will appear here soon.</p>{% endfor %}
+    </div>
+  </section>
+  <section>
+    <h2>Products and services</h2>
+    <nav aria-label="Filter by category" style="display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0">
+      <a class="btn btn-outline btn-sm" href="?">All</a>
+      <a class="btn btn-outline btn-sm" href="?categorie=Produit">Products</a>
+      <a class="btn btn-outline btn-sm" href="?categorie=Service">Services</a>
+    </nav>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
+      {% for item in premium_showcase_items %}
+      <article class="card" style="padding:1rem">
+        <h3>{{ item.title }}</h3>
+        {% if item.description %}<p>{{ item.description|truncatechars:140 }}</p>{% endif %}
+        {% if item.price %}<p>{{ item.price }}</p>{% endif %}
+        {% if item.meta %}<small>{{ item.meta }}</small>{% endif %}
+      </article>
+      {% empty %}<p>No offers match your search. Try another keyword or category.</p>{% endfor %}
+    </div>
+  </section>
+  <p style="margin-top:2rem"><a href="{% url 'business:onboarding' %}">List your business on E-Shelle →</a></p>
+</main>

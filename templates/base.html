@@ -23,9 +23,9 @@
   {% endif %}
 
   {# SEO dynamique #}
-  <title>{% block title %}{{ request.site_brand|default:'E-Shelle' }} — L'expérience à votre service{% endblock %}</title>
+  <title>{% block title %}{{ request.site_brand|default:'E-Shelle' }} — {% if LANGUAGE_CODE == 'en' %}Experience at your service{% else %}L'expérience à votre service{% endif %}{% endblock %}</title>
   <meta name="description"
-    content="{% block meta_description %}{% if request.is_immigration97 %}Préparez votre français et votre projet Canada avec Immigration97.{% else %}E-Shelle, plateforme SaaS africaine tout-en-un : formation en ligne, boutique digitale, création web IA, automatisation. Made in Cameroun.{% endif %}{% endblock %}">
+    content="{% block meta_description %}{% if request.is_immigration97 %}{% if LANGUAGE_CODE == 'en' %}Improve your French and prepare your Canada plans with Immigration97.{% else %}Préparez votre français et votre projet Canada avec Immigration97.{% endif %}{% else %}{% if LANGUAGE_CODE == 'en' %}E-Shelle, an all-in-one African platform for online learning, digital commerce, AI web services and automation. Made in Cameroon.{% else %}E-Shelle, plateforme SaaS africaine tout-en-un : formation en ligne, boutique digitale, création web IA, automatisation. Made in Cameroun.{% endif %}{% endif %}{% endblock %}">
 
   {# Open Graph #}
   <meta property="og:title" content="{% block og_title %}{{ request.site_brand|default:'E-Shelle' }}{% endblock %}">
@@ -796,7 +796,6 @@
   {% endif %}
 
   {# ── NAVBAR ─────────────────────────────────────────────────── #}
-  {% block navbar %}
   <form action="{% url 'set_language' %}" method="post" class="site-language-switcher" aria-label="Choose site language" style="position:fixed;right:12px;top:78px;z-index:1100;display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:#102039;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.25)">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -806,6 +805,7 @@
       <option value="en"{% if LANGUAGE_CODE == 'en' %} selected{% endif %}>English</option>
     </select>
   </form>
+  {% block navbar %}
   {% if canada_menu.enabled %}
     {% include "canada_resume/partials/navigation_header.html" %}
   {% elif "/allemand/" in request.path or "/allemagne/" in request.path or request.path == "/allemand" or request.path == "/allemand/" or request.path == "/allemagne" or request.path == "/allemagne/" %}
@@ -892,8 +892,8 @@
 
       {# Liens de navigation #}
       <ul class="navbar-nav" role="list">
-        <li><a href="/" class="nav-link {% block nav_home %}{% endblock %}">Accueil</a></li>
-        <li><a href="{% url 'products_services' %}" class="nav-link {% block nav_products_services %}{% endblock %}">🛒 Produits &amp; Services</a></li>
+        <li><a href="/" class="nav-link {% block nav_home %}{% endblock %}">{% if LANGUAGE_CODE == 'en' %}Home{% else %}Accueil{% endif %}</a></li>
+        <li><a href="{% url 'products_services' %}" class="nav-link {% block nav_products_services %}{% endblock %}">🛒 {% if LANGUAGE_CODE == 'en' %}Products &amp; Services{% else %}Produits &amp; Services{% endif %}</a></li>
         <li class="nav-dropdown">
           <a href="{% url 'marketing' %}" class="nav-link {% block nav_marketing %}{% endblock %}">📣 Marketing ▾</a>
           <div class="nav-dropdown__menu">
@@ -907,21 +907,21 @@
             <a href="{% url 'commercial_agent:prospect_list' %}" class="nav-dropdown__item">
               <span class="nav-dropdown__icon">🎯</span>
               <div>
-                <strong>Prospects Commerciaux</strong>
+                <strong>{% if LANGUAGE_CODE == 'en' %}Sales Prospects{% else %}Prospects Commerciaux{% endif %}</strong>
                 <small>Qualifier &amp; envoyer vers WhatsApp</small>
               </div>
             </a>
             <a href="{% url 'commercial_agent:sourcing_hub' %}" class="nav-dropdown__item">
               <span class="nav-dropdown__icon">🔍</span>
               <div>
-                <strong>Sourcing Prestataires</strong>
+                <strong>{% if LANGUAGE_CODE == 'en' %}Provider Sourcing{% else %}Sourcing Prestataires{% endif %}</strong>
                 <small>Détection restaurants &amp; commerces</small>
               </div>
             </a>
             <a href="{% url 'phone_ocr_agent:dashboard' %}" class="nav-dropdown__item">
               <span class="nav-dropdown__icon">📸</span>
               <div>
-                <strong>Scanner OCR Téléphones</strong>
+                <strong>{% if LANGUAGE_CODE == 'en' %}Phone OCR Scanner{% else %}Scanner OCR Téléphones{% endif %}</strong>
                 <small>Extraction auto depuis captures d'écran</small>
               </div>
             </a>
@@ -936,11 +936,11 @@
           </div>
         </li>
         <li><a href="{% url 'whatsapp_agent:wa_dashboard' %}" class="nav-link {% block nav_whatsapp %}{% endblock %}" style="color:#4ade80; font-weight:800;">💬 WhatsApp</a></li>
-        <li><a href="{% url 'formation' %}" class="nav-link {% block nav_formation %}{% endblock %}">🎓 Formation</a></li>
-        <li><a href="{% url 'boutique:index' %}" class="nav-link {% block nav_boutique %}{% endblock %}">🛍️ Boutique Digital</a></li>
-        <li><a href="{% url 'immigration' %}" class="nav-link {% block nav_immigration %}{% endblock %}" style="color: #D80621; font-weight: 700;">✈️ Immigration</a></li>
-        <li><a href="/presentation/" class="nav-link {% block nav_presentation %}{% endblock %}">À Propos</a></li>
-        <li><a href="/services/contact/" class="nav-link {% block nav_contact %}{% endblock %}">Contact</a></li>
+        <li><a href="{% url 'formation' %}" class="nav-link {% block nav_formation %}{% endblock %}">🎓 {% if LANGUAGE_CODE == 'en' %}Learning{% else %}Formation{% endif %}</a></li>
+        <li><a href="{% url 'boutique:index' %}" class="nav-link {% block nav_boutique %}{% endblock %}">🛍️ {% if LANGUAGE_CODE == 'en' %}Digital Store{% else %}Boutique Digital{% endif %}</a></li>
+        <li><a href="{% url 'immigration' %}" class="nav-link {% block nav_immigration %}{% endblock %}" style="color: #D80621; font-weight: 700;">✈️ {% if LANGUAGE_CODE == 'en' %}Immigration{% else %}Immigration{% endif %}</a></li>
+        <li><a href="/presentation/" class="nav-link {% block nav_presentation %}{% endblock %}">{% if LANGUAGE_CODE == 'en' %}About{% else %}À propos{% endif %}</a></li>
+        <li><a href="/services/contact/" class="nav-link {% block nav_contact %}{% endblock %}">{% if LANGUAGE_CODE == 'en' %}Contact{% else %}Contact{% endif %}</a></li>
       </ul>
 
       {# Boutons d'action #}
@@ -987,8 +987,8 @@
         </a>
 
         {% else %}
-        <a href="{% url 'business:onboarding' %}" class="btn btn-accent btn-sm">Créer ma boutique</a>
-        <a href="/accounts/login/" class="btn btn-outline btn-sm">Connexion</a>
+        <a href="{% url 'business:onboarding' %}" class="btn btn-accent btn-sm">{% if LANGUAGE_CODE == 'en' %}List your business{% else %}Créer ma boutique{% endif %}</a>
+        <a href="/accounts/login/" class="btn btn-outline btn-sm">{% if LANGUAGE_CODE == 'en' %}Sign in{% else %}Connexion{% endif %}</a>
         {% endif %}
 
         {# Burger mobile #}
@@ -1001,20 +1001,20 @@
     {# Menu mobile déroulant #}
     <div class="navbar-mobile" id="navbar-mobile" role="menu">
       <div style="padding:0 .5rem">
-        <a href="/" class="nav-link" role="menuitem">🏠 Accueil</a>
-        <a href="{% url 'products_services' %}" class="nav-link {% block nav_products_services_mobile %}{% endblock %}" role="menuitem">🛒 Produits &amp; Services</a>
+        <a href="/" class="nav-link" role="menuitem">🏠 {% if LANGUAGE_CODE == 'en' %}Home{% else %}Accueil{% endif %}</a>
+        <a href="{% url 'products_services' %}" class="nav-link {% block nav_products_services_mobile %}{% endblock %}" role="menuitem">🛒 {% if LANGUAGE_CODE == 'en' %}Products &amp; Services{% else %}Produits &amp; Services{% endif %}</a>
         <a href="{% url 'marketing' %}" class="nav-link {% block nav_marketing_mobile %}{% endblock %}" role="menuitem">📣 Marketing</a>
         <a href="{% url 'whatsapp_agent:wa_dashboard' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">💬 WhatsApp</a>
-        <a href="{% url 'whatsapp_agent:wa_inbox' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">📥 Réponses &amp; Inbox</a>
+        <a href="{% url 'whatsapp_agent:wa_inbox' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">📥 {% if LANGUAGE_CODE == 'en' %}Replies &amp; Inbox{% else %}Réponses &amp; Inbox{% endif %}</a>
         <a href="{% url 'whatsapp_agent:wa_contacts' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">👥 Contacts WhatsApp</a>
         <a href="{% url 'whatsapp_agent:wa_import_contacts' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">📥 Importer Numéros</a>
-        <a href="{% url 'commercial_agent:prospect_list' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">🎯 Prospects Commerciaux</a>
-        <a href="{% url 'commercial_agent:sourcing_hub' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">🔍 Sourcing Prestataires</a>
-        <a href="{% url 'phone_ocr_agent:dashboard' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">📸 Scanner OCR</a>
-        <a href="{% url 'formation' %}" class="nav-link {% block nav_formation_mobile %}{% endblock %}" role="menuitem">🎓 Formation</a>
-        <a href="{% url 'boutique:index' %}" class="nav-link {% block nav_boutique_mobile %}{% endblock %}" role="menuitem">🛍️ Boutique Digital</a>
+        <a href="{% url 'commercial_agent:prospect_list' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">🎯 {% if LANGUAGE_CODE == 'en' %}Sales Prospects{% else %}Prospects Commerciaux{% endif %}</a>
+        <a href="{% url 'commercial_agent:sourcing_hub' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">🔍 {% if LANGUAGE_CODE == 'en' %}Provider Sourcing{% else %}Sourcing Prestataires{% endif %}</a>
+        <a href="{% url 'phone_ocr_agent:dashboard' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">📸 {% if LANGUAGE_CODE == 'en' %}OCR Scanner{% else %}Scanner OCR{% endif %}</a>
+        <a href="{% url 'formation' %}" class="nav-link {% block nav_formation_mobile %}{% endblock %}" role="menuitem">🎓 {% if LANGUAGE_CODE == 'en' %}Learning{% else %}Formation{% endif %}</a>
+        <a href="{% url 'boutique:index' %}" class="nav-link {% block nav_boutique_mobile %}{% endblock %}" role="menuitem">🛍️ {% if LANGUAGE_CODE == 'en' %}Digital Store{% else %}Boutique Digital{% endif %}</a>
         <a href="{% url 'immigration' %}" class="nav-link {% block nav_immigration_mobile %}{% endblock %}" role="menuitem" style="color: #D80621; font-weight: 700;">✈️ Immigration</a>
-        <a href="/presentation/" class="nav-link" role="menuitem">ℹ️ À Propos</a>
+        <a href="/presentation/" class="nav-link" role="menuitem">ℹ️ {% if LANGUAGE_CODE == 'en' %}About{% else %}À propos{% endif %}</a>
         <a href="/services/contact/" class="nav-link" role="menuitem">📩 Contact</a>
         {% if not user_has_business %}
         <a href="{% url 'business:onboarding' %}" class="nav-link" role="menuitem" style="color:#7dec6c;font-weight:900">🚀 Créer ma boutique</a>
@@ -1022,10 +1022,10 @@
 
         <div style="display:flex;gap:.75rem;padding:.75rem 1rem 1rem">
           {% if user.is_authenticated %}
-          <a href="/dashboard/" class="btn btn-primary btn-sm" style="flex:1">Mon espace →</a>
+          <a href="/dashboard/" class="btn btn-primary btn-sm" style="flex:1">{% if LANGUAGE_CODE == 'en' %}My dashboard →{% else %}Mon espace →{% endif %}</a>
           {% else %}
-          <a href="/accounts/login/" class="btn btn-outline btn-sm" style="flex:1">Connexion</a>
-          <a href="/accounts/register/" class="btn btn-accent  btn-sm" style="flex:1">S'inscrire</a>
+          <a href="/accounts/login/" class="btn btn-outline btn-sm" style="flex:1">{% if LANGUAGE_CODE == 'en' %}Sign in{% else %}Connexion{% endif %}</a>
+          <a href="/accounts/register/" class="btn btn-accent  btn-sm" style="flex:1">{% if LANGUAGE_CODE == 'en' %}Create account{% else %}S'inscrire{% endif %}</a>
           {% endif %}
         </div>
       </div>
@@ -1431,7 +1431,7 @@
             <ul>
               <li><a href="/">Accueil</a></li>
               <li><a href="/presentation/">À propos</a></li>
-              <li><a href="{% url 'products_services' %}">Produits &amp; Services</a></li>
+              <li><a href="{% url 'products_services' %}">{% if LANGUAGE_CODE == 'en' %}Products &amp; Services{% else %}Produits &amp; Services{% endif %}</a></li>
               <li><a href="{% url 'formation' %}">Formation</a></li>
               <li><a href="{% url 'immigration' %}">Immigration</a></li>
             </ul>
@@ -1443,7 +1443,7 @@
               <li><a href="{% url 'business:onboarding' %}">Créer une fiche business</a></li>
               <li><a href="{% url 'marketing' %}">Marketing &amp; visibilité</a></li>
               <li><a href="{% url 'adgen:dashboard' %}">AdGen publicité IA</a></li>
-              <li><a href="{% url 'boutique:index' %}">Boutique digitale</a></li>
+              <li><a href="{% url 'boutique:index' %}">{% if LANGUAGE_CODE == 'en' %}Digital Store{% else %}Boutique digitale{% endif %}</a></li>
               <li><a href="{% url 'products_services' %}">Annuaire des prestataires</a></li>
             </ul>
           </div>
@@ -1465,8 +1465,8 @@
               <li><a href="/services/contact/">Contact</a></li>
               <li><a href="mailto:e.shelleltd@gmail.com">e.shelleltd@gmail.com</a></li>
               <li><a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}">WhatsApp direct</a></li>
-{% if not request.is_immigration97 %}              <li><a href="{% url 'cgu' %}">Mentions légales &amp; CGU</a></li>{% endif %}
-              <li><a href="{% url 'cgu' %}#article-7">Confidentialité</a></li>
+{% if not request.is_immigration97 %}              <li><a href="{% url 'cgu' %}">{% if LANGUAGE_CODE == 'en' %}Legal notice &amp; terms{% else %}Mentions légales &amp; CGU{% endif %}</a></li>{% endif %}
+              <li><a href="{% url 'cgu' %}#article-7">{% if LANGUAGE_CODE == 'en' %}Privacy{% else %}Confidentialité{% endif %}</a></li>
             </ul>
           </div>
         </div>
