@@ -1,6 +1,7 @@
 import urllib.parse
 
 from django.utils import timezone
+from django.utils.translation import override
 
 from .models import BusinessCatalogItem, BusinessProfile, ClientAIKit
 
@@ -58,10 +59,13 @@ _NOTE_LABELS = {
     "cible": "cible",
     "audience": "cible",
     "ton": "ton",
+    "tone": "ton",
     "offre": "offre",
+    "offer": "offre",
     "offre speciale": "offre",
     "offre spéciale": "offre",
     "contrainte": "contrainte",
+    "constraint": "contrainte",
     "contraintes": "contrainte",
 }
 
@@ -95,18 +99,20 @@ def generate_client_ai_kit(business: BusinessProfile, user=None, extra_brief: st
     items = list(
         BusinessCatalogItem.objects.filter(business=business, is_active=True).order_by("order", "-created_at")[:8]
     )
-    context = _context(business, items, extra_brief)
-
-    kit.client_brief = _client_brief(context)
-    kit.recommended_agents = _recommended_agents(context)
-    kit.chatbot_prompt = _chatbot_prompt(context)
-    kit.website_plan = _website_plan(context)
-    kit.content_pack = _content_pack(context)
-    kit.whatsapp_scripts = _whatsapp_scripts(context)
-    kit.seo_plan = _seo_plan(context)
-    kit.video_plan = _video_plan(context)
-    kit.automation_plan = _automation_plan(context)
-    kit.qa_checklist = _qa_checklist(context)
+    french_context = _context(business, items, extra_brief, language="fr")
+    english_context = _context(business, items, extra_brief, language="en")
+    french_content = _kit_payload(french_context)
+    kit.client_brief = french_content["client_brief"]
+    kit.recommended_agents = french_content["recommended_agents"]
+    kit.chatbot_prompt = french_content["chatbot_prompt"]
+    kit.website_plan = french_content["website_plan"]
+    kit.content_pack = french_content["content_pack"]
+    kit.whatsapp_scripts = french_content["whatsapp_scripts"]
+    kit.seo_plan = french_content["seo_plan"]
+    kit.video_plan = french_content["video_plan"]
+    kit.automation_plan = french_content["automation_plan"]
+    kit.qa_checklist = french_content["qa_checklist"]
+    kit.content_en = _kit_payload(english_context)
     kit.status = ClientAIKit.Status.READY
     kit.generated_at = timezone.now()
     kit.save(
@@ -121,6 +127,7 @@ def generate_client_ai_kit(business: BusinessProfile, user=None, extra_brief: st
             "video_plan",
             "automation_plan",
             "qa_checklist",
+            "content_en",
             "status",
             "generated_at",
             "updated_at",
@@ -129,11 +136,37 @@ def generate_client_ai_kit(business: BusinessProfile, user=None, extra_brief: st
     return kit
 
 
+
+def _kit_payload(ctx):
+    return {
+        "client_brief": _client_brief(ctx),
+        "recommended_agents": _recommended_agents(ctx),
+        "chatbot_prompt": _chatbot_prompt(ctx),
+        "website_plan": _website_plan(ctx),
+        "content_pack": _content_pack(ctx),
+        "whatsapp_scripts": _whatsapp_scripts(ctx),
+        "seo_plan": _seo_plan(ctx),
+        "video_plan": _video_plan(ctx),
+        "automation_plan": _automation_plan(ctx),
+        "qa_checklist": _qa_checklist(ctx),
+    }
+
+
+def ensure_english_kit_content(kit):
+    if not kit.generated_at or kit.content_en:
+        return kit.content_en
+    items = list(BusinessCatalogItem.objects.filter(business=kit.business, is_active=True).order_by("order", "-created_at")[:8])
+    extra_brief = (kit.client_brief or {}).get("note_client", "")
+    context = _context(kit.business, items, extra_brief, language="en")
+    kit.content_en = _kit_payload(context)
+    kit.save(update_fields=["content_en", "updated_at"])
+    return kit.content_en
+
 def kit_summary_for_whatsapp(kit: ClientAIKit, language="fr") -> str:
     business = kit.business
     public_url = business.get_absolute_url()
     if language == "en":
-        offer = business.display_promo_offer or business.display_description[:90] or "AI showcase + chatbot + WhatsApp"
+        offer = ((kit.content_en or {}).get("client_brief") or {}).get("promesse") or business.display_promo_offer or business.display_description[:90] or "AI showcase + chatbot + WhatsApp"
         return f"""E-Shelle AI kit ready for {business.display_name}.
 Offer: {offer}
 Deliverables: chatbot, mini-site, content, WhatsApp, SEO, video and automation.
@@ -145,57 +178,65 @@ Livrables: chatbot, mini-site, contenus, WhatsApp, SEO, vidéo, automatisation.
 Lien: {public_url}"""
 
 
-def _context(business, items, extra_brief):
-    module_info = MODULE_VALUE.get(
-        business.module,
-        {
-            "audience": "clients locaux et prospects professionnels",
-            "primary_action": "Contacter le business",
-            "proof": "offre claire, lien public, WhatsApp",
-        },
-    )
+def _context(business, items, extra_brief, language="fr"):
+    is_english = language == "en"
+    module_values = {
+        BusinessProfile.Module.RESTO: ("restaurant customers seeking quick ordering or reservations", "Order on WhatsApp", "clear menu, visible prices, direct contact"),
+        BusinessProfile.Module.GAZ: ("families and businesses that need gas quickly", "Order gas", "delivery area, prices, reliable phone"),
+        BusinessProfile.Module.PRESSING: ("workers, families and students looking to save time", "Request pickup or delivery", "services, timing, prices, neighborhood"),
+        BusinessProfile.Module.SANTE: ("customers looking for a reliable health contact", "Contact a health professional", "clear information, contact details, medical caution"),
+        BusinessProfile.Module.PHARMA: ("customers looking for a nearby pharmacy or product", "Check product availability", "stock, prices, neighborhood, contact"),
+        BusinessProfile.Module.IMMOBILIER: ("renters, buyers and investors", "Schedule a viewing", "photos, location, price, property status"),
+        BusinessProfile.Module.AUTO: ("buyers comparing vehicles before contacting a seller", "Contact the seller", "photos, price, condition, mileage"),
+        BusinessProfile.Module.AGRO: ("buyers, wholesalers and producers", "Request a quote", "stock, price, origin, delivery"),
+        BusinessProfile.Module.SERVICES: ("customers looking for a reliable provider", "Request a quote", "work samples, service area, availability"),
+    }
+    if is_english:
+        audience, primary_action, proof = module_values.get(business.module, ("local customers and professional prospects", "Contact the business", "clear offer, public link, WhatsApp"))
+        module_label = {
+            "resto": "Restaurant", "gaz": "Gas", "pressing": "Laundry", "sante": "Health",
+            "pharma": "Pharmacy", "immobilier": "Real estate", "auto": "Automotive",
+            "agro": "Agriculture", "services": "Services", "formation": "Learning",
+            "boutique": "Store", "market": "Marketplace", "transport": "Transport",
+        }.get(business.module, business.get_module_display())
+        name = business.name_en or business.name
+        description = business.description_en or business.description
+        offer = business.promo_offer_en or business.promo_offer or business.promo_headline_en or business.promo_headline or description[:140] or "a professional offer"
+        location = ", ".join(part for part in [business.city, business.district] if part) or "Cameroon"
+    else:
+        module_info = MODULE_VALUE.get(business.module, {"audience": "clients locaux et prospects professionnels", "primary_action": "Contacter le business", "proof": "offre claire, lien public, WhatsApp"})
+        audience, primary_action, proof = module_info["audience"], module_info["primary_action"], module_info["proof"]
+        module_label = business.get_module_display()
+        name = business.name
+        description = business.description
+        offer = business.promo_offer or business.promo_headline or description[:140] or "une offre professionnelle"
+        location = ", ".join(part for part in [business.city, business.district] if part) or "Cameroun"
     hints = _parse_brief_note(extra_brief)
-    location = ", ".join(part for part in [business.city, business.district] if part) or "Cameroun"
-    offer = (
-        hints["offre"]
-        or business.promo_offer
-        or business.promo_headline
-        or business.description[:140]
-        or "une offre professionnelle"
-    )
-    tone = hints["ton"] or "professionnel, direct, chaleureux, adapté au Cameroun"
-    catalog = [
-        {
-            "title": item.title,
-            "type": item.get_item_type_display(),
-            "price": item.formatted_price,
-            "description": item.description[:160],
-        }
-        for item in items
-    ]
+    catalog = []
+    with override(language):
+        for item in items:
+            catalog.append({
+                "title": item.display_title,
+                "type": item.display_item_type,
+                "price": item.formatted_price,
+                "description": item.display_description[:160],
+            })
     top_products = [entry["title"] for entry in catalog[:3]]
     return {
-        "business": business,
-        "name": business.name,
-        "module": business.module,
-        "module_label": business.get_module_display(),
-        "location": location,
-        "phone": business.phone,
-        "whatsapp": business.whatsapp or business.phone,
-        "offer": offer,
-        "description": business.description,
-        "catalog": catalog,
-        "top_products": top_products,
-        "extra_brief": extra_brief.strip(),
-        "tone": tone,
-        "constraint": hints["contrainte"],
-        "audience": hints["cible"] or module_info["audience"],
-        "primary_action": module_info["primary_action"],
-        "proof": module_info["proof"],
+        "business": business, "name": name, "module": business.module, "module_label": module_label,
+        "location": location, "phone": business.phone, "whatsapp": business.whatsapp or business.phone,
+        "offer": hints["offre"] or offer, "description": description, "catalog": catalog,
+        "top_products": top_products, "extra_brief": extra_brief.strip(),
+        "tone": hints["ton"] or ("professional, direct, warm and tailored to Cameroon" if is_english else "professionnel, direct, chaleureux, adapté au Cameroun"),
+        "constraint": hints["contrainte"], "audience": hints["cible"] or audience,
+        "primary_action": primary_action, "proof": proof, "language": language,
+        "display_headline": (business.promo_headline_en or business.promo_headline) if is_english else business.promo_headline,
     }
 
 
 def _client_brief(ctx):
+    if ctx["language"] == "en":
+        return {"business": ctx["name"], "secteur": ctx["module_label"], "zone": ctx["location"], "cible": ctx["audience"], "promesse": ctx["offer"], "ton": ctx["tone"], "contrainte": ctx["constraint"] or "No special constraint provided.", "preuve": ctx["proof"], "action_principale": ctx["primary_action"], "catalogue": ctx["catalog"], "note_client": ctx["extra_brief"]}
     return {
         "business": ctx["name"],
         "secteur": ctx["module_label"],
@@ -212,6 +253,15 @@ def _client_brief(ctx):
 
 
 def _recommended_agents(ctx):
+    if ctx["language"] == "en":
+        return [
+            {"agent": "Client Onboarding Agent", "role": "Turn the business profile into a brief, FAQ, scripts and delivery plan.", "source": "business.ai_delivery.generate_client_ai_kit"},
+            {"agent": "CentralAgentService", "role": "Connect the chatbot and direct customers to the profile, WhatsApp and catalogue.", "source": "e_shelle_ai.services.central_agent"},
+            {"agent": "ContentWriter / AdGen", "role": "Create posts, descriptions, FAQs, sales scripts and video scripts.", "source": "e_shelle_ai.services.tools.content_writer + adgen"},
+            {"agent": "WhatsAppAgent", "role": "Prepare campaigns, follow-ups and personalized short messages.", "source": "whatsapp_agent"},
+            {"agent": "SEOAgent", "role": "Create local keywords, calls to action, GEO pages and an SEO checklist.", "source": "seo_agent"},
+            {"agent": "CommercialAgent", "role": "Manage outreach, lead scoring, follow-ups and conversion tracking.", "source": "commercial_agent"},
+        ]
     return [
         {
             "agent": "Agent Onboarding Client",
@@ -247,6 +297,10 @@ def _recommended_agents(ctx):
 
 
 def _chatbot_prompt(ctx):
+    if ctx["language"] == "en":
+        catalog_lines = "\n".join(f"- {item['title']} ({item['type']}): {item['price']} - {item['description']}" for item in ctx["catalog"]) or "- No products or services listed: ask what the customer needs, then direct them to WhatsApp."
+        constraint = f"\n6. Strictly respect this provider constraint: {ctx['constraint']}." if ctx["constraint"] else ""
+        return f"""You are the official E-Shelle chatbot for {ctx['name']}.\nIndustry: {ctx['module_label']}.\nArea: {ctx['location']}.\nTarget audience: {ctx['audience']}.\nOffer: {ctx['offer']}.\nProof points: {ctx['proof']}.\n\nGoals:\n1. Understand the customer in no more than one or two questions.\n2. Recommend the most relevant product or service.\n3. Keep replies brief, reassuring and helpful.\n4. Always suggest this next step: {ctx['primary_action']} through WhatsApp.\n5. Never invent a price, availability or condition missing from the brief.{constraint}\n\nKnown catalogue:\n{catalog_lines}\n\nTone: {ctx['tone']}.\nIf the customer asks for something else, collect their name, need, city or neighborhood and direct them to WhatsApp: {ctx['whatsapp']}."""
     catalog_lines = "\n".join(
         f"- {item['title']} ({item['type']}): {item['price']} - {item['description']}"
         for item in ctx["catalog"]
@@ -277,6 +331,10 @@ Si le client demande autre chose, collecte nom, besoin, ville/quartier et renvoi
 
 
 def _website_plan(ctx):
+    if ctx["language"] == "en":
+        products = ctx["top_products"]
+        products_section = f"Priority products or services: {', '.join(products)}" if products else "Priority products or services"
+        return {"page_type": "E-Shelle AI mini-site / business profile", "hero": {"h1": ctx["name"], "subtitle": ctx["offer"], "cta_primary": ctx["primary_action"], "cta_secondary": "Browse products and services"}, "sections": ["Hero with a clear offer and WhatsApp button", products_section, "Why choose this provider", "Service area and opening hours", "Quick FAQ", "Final WhatsApp and sharing call to action"], "assets_needed": ["Logo or main photo", "3 to 8 product or service photos", "Active WhatsApp number", "Prices or ranges, if available"], "tracking": ["profile view", "WhatsApp click", "call", "enquiry", "share"]}
     products = ctx["top_products"]
     products_section = (
         f"Produits ou services prioritaires: {', '.join(products)}"
@@ -309,6 +367,10 @@ def _website_plan(ctx):
 
 
 def _content_pack(ctx):
+    if ctx["language"] == "en":
+        name, offer, products = ctx["name"], ctx["offer"], ctx["top_products"]
+        products_line = f" Featured products: {', '.join(products)}." if products else ""
+        return {"facebook_post": f"{name} is available in {ctx['location']}. {offer}.{products_line} Contact us on WhatsApp to {ctx['primary_action'].lower()}.", "instagram_caption": f"{offer}\nAvailable in {ctx['location']}" + (f"\nFeatured products: {', '.join(products)}" if products else "") + f"\nQuick action: {ctx['primary_action']}.", "whatsapp_status": f"{name} — {offer}. Message us now to {ctx['primary_action'].lower()}.", "product_description_template": "Lead with the customer need, then the benefit, price if available, service area and a simple WhatsApp call to action.", "image_prompt": f"Professional advertising visual for {name}, {ctx['module_label']}, Cameroon market, showing {offer}" + (f", featuring {products[0]}" if products else "") + ", clean modern layout, premium but local, high conversion.", "adgen_modules": ["headlines", "description", "social", "TikTok", "chatbot"]}
     name = ctx["name"]
     offer = ctx["offer"]
     products = ctx["top_products"]
@@ -339,6 +401,9 @@ def _content_pack(ctx):
 
 
 def _whatsapp_scripts(ctx):
+    if ctx["language"] == "en":
+        name = ctx["name"]
+        return [{"label": "First contact", "text": f"Hello, welcome to {name}. Tell us what you need and your neighborhood, and we will help you with {ctx['primary_action'].lower()}."}, {"label": "Lead follow-up", "text": f"Hello, I am following up on your enquiry with {name}. {ctx['offer']}. Would you like us to confirm the details now?"}, {"label": "After an enquiry", "text": "Thanks for your message. To proceed, send your name, neighborhood, exact need and preferred time."}, {"label": "Review request", "text": f"Thank you for choosing {name}. Your review helps other customers trust us. Could you share a short comment?"}]
     name = ctx["name"]
     return [
         {
@@ -373,6 +438,13 @@ def _whatsapp_scripts(ctx):
 
 
 def _seo_plan(ctx):
+    if ctx["language"] == "en":
+        service_slug = urllib.parse.quote(ctx["module_label"].lower().replace(" ", "-"))
+        city = ctx["location"].split(",")[0].strip() or "Douala"
+        products = ctx["top_products"]
+        keywords = [f"{ctx['module_label']} {city}", f"{ctx['name']} {city}", f"{ctx['primary_action']} {city}", "E-Shelle Cameroon", "WhatsApp Business Cameroon"]
+        if products: keywords.insert(2, f"{products[0]} {city}")
+        return {"title": f"{ctx['name']} - {ctx['module_label']} in {city}", "meta_description": f"Discover {ctx['name']} on E-Shelle: {ctx['offer']} in {ctx['location']}. Contact them quickly on WhatsApp."[:155], "keywords": keywords, "geo_page": f"/business/local/{urllib.parse.quote(city.lower())}/{service_slug}/", "schema": ["LocalBusiness", "Service", "FAQPage", "BreadcrumbList"], "cta": ctx["primary_action"]}
     service_slug = urllib.parse.quote(ctx["module_label"].lower().replace(" ", "-"))
     city = ctx["location"].split(",")[0].strip() or "Douala"
     products = ctx["top_products"]
@@ -399,6 +471,10 @@ def _seo_plan(ctx):
 
 
 def _video_plan(ctx):
+    if ctx["language"] == "en":
+        products = ctx["top_products"]
+        subject = products[0] if products else ctx["module_label"].lower()
+        return {"format": "20-second TikTok/Reels video", "hook": f"Need {subject} in {ctx['location']}?", "scenes": ["Show the customer problem in a real setting", f"Introduce {ctx['name']} and its offer" + (f": {subject}" if products else ""), "Show proof: area, price or service, direct contact", f"Call to action: {ctx['primary_action']} on WhatsApp through E-Shelle"], "voiceover": f"In {ctx['location']}, {ctx['name']} makes things easier. {ctx['offer']}. Visit E-Shelle and contact them directly on WhatsApp.", "generation_status": "Script ready. Add a video agent to automatically produce the MP4 and voice-over."}
     products = ctx["top_products"]
     subject = products[0] if products else ctx["module_label"].lower()
     return {
@@ -419,6 +495,8 @@ def _video_plan(ctx):
 
 
 def _automation_plan(ctx):
+    if ctx["language"] == "en":
+        return [{"workflow": "Chatbot lead capture", "steps": ["Identify the need", "Collect name, neighborhood and phone", "Send the lead to WhatsApp", "Log the enquiry"]}, {"workflow": "WhatsApp follow-up", "steps": ["Day 1: friendly follow-up", "Day 3: confirmation", "Day 7: review request or new offer"]}, {"workflow": "Weekly content", "steps": ["One Facebook post", "One WhatsApp status", "One video script", "One promotional offer"]}, {"workflow": "Reporting", "steps": ["Count profile views", "Count WhatsApp clicks", "Count enquiries", "Send a summary to the customer"]}]
     return [
         {
             "workflow": "Capture lead chatbot",
@@ -440,6 +518,8 @@ def _automation_plan(ctx):
 
 
 def _qa_checklist(ctx):
+    if ctx["language"] == "en":
+        return [{"item": "The business profile has a name, city, neighborhood and WhatsApp number.", "done": bool(ctx["name"] and ctx["whatsapp"])}, {"item": "The chatbot does not promise unlisted prices or stock.", "done": True}, {"item": "The WhatsApp call to action includes a useful message.", "done": bool(ctx["whatsapp"])}, {"item": "The mini-site presents at least one clear offer.", "done": bool(ctx["offer"])}, {"item": "The SEO plan includes a city, industry and schema.", "done": True}, {"item": "The kit includes WhatsApp scripts, social content and a video script.", "done": True}]
     return [
         {"item": "La fiche business a un nom, une ville, un quartier et un WhatsApp.", "done": bool(ctx["name"] and ctx["whatsapp"])},
         {"item": "Le chatbot ne promet pas de prix ou stock non renseigné.", "done": True},

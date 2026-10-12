@@ -1188,6 +1188,7 @@ class ClientAIKit(models.Model):
     video_plan = models.JSONField(default=dict, blank=True)
     automation_plan = models.JSONField(default=list, blank=True)
     qa_checklist = models.JSONField(default=list, blank=True)
+    content_en = models.JSONField(default=dict, blank=True, verbose_name="English content")
     notes = models.TextField(blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

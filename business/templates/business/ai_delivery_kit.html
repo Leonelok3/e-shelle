@@ -19,7 +19,7 @@
             {% if LANGUAGE_CODE == 'en' %}Enter one detail per line using these exact labels to guide generation:{% else %}Une info par ligne, avec ces mots-clés exacts pour orienter la génération :{% endif %}<br>
             {% if LANGUAGE_CODE == 'en' %}<code>Audience:</code> · <code>Tone:</code> · <code>Offer:</code> · <code>Constraint:</code>{% else %}<code>Cible:</code> · <code>Ton:</code> · <code>Offre:</code> · <code>Contrainte:</code>{% endif %}
           </p>
-          <textarea name="extra_brief" rows="5" placeholder="{% if LANGUAGE_CODE == 'en' %}Audience: clinics and laboratories (B2B)&#10;Tone: professional and technical&#10;Offer: 10% off the first wholesale order&#10;Constraint: never give medical advice{% else %}Cible: cliniques et laboratoires (B2B)&#10;Ton: professionnel et technique&#10;Offre: -10% sur la première commande de gros&#10;Contrainte: ne jamais donner de conseil médical{% endif %}">{{ kit.client_brief.note_client }}</textarea>
+          <textarea name="extra_brief" rows="5" placeholder="{% if LANGUAGE_CODE == 'en' %}Audience: clinics and laboratories (B2B)&#10;Tone: professional and technical&#10;Offer: 10% off the first wholesale order&#10;Constraint: never give medical advice{% else %}Cible: cliniques et laboratoires (B2B)&#10;Ton: professionnel et technique&#10;Offre: -10% sur la première commande de gros&#10;Contrainte: ne jamais donner de conseil médical{% endif %}">{{ kit_content.client_brief.note_client }}</textarea>
           <button class="btn btn-primary" type="submit">{% if LANGUAGE_CODE == 'en' %}Generate / update{% else %}Générer / mettre à jour{% endif %}</button>
         </form>
         {% if whatsapp_url %}
@@ -44,19 +44,19 @@
         <article class="ai-kit-panel">
           <h2>{% if LANGUAGE_CODE == 'en' %}Client brief{% else %}Brief client{% endif %}</h2>
           <dl class="ai-kit-brief">
-            <div><dt>{% if LANGUAGE_CODE == 'en' %}Industry{% else %}Secteur{% endif %}</dt><dd>{{ kit.client_brief.secteur }}</dd></div>
-            <div><dt>{% if LANGUAGE_CODE == 'en' %}Area{% else %}Zone{% endif %}</dt><dd>{{ kit.client_brief.zone }}</dd></div>
-            <div><dt>{% if LANGUAGE_CODE == 'en' %}Audience{% else %}Cible{% endif %}</dt><dd>{{ kit.client_brief.cible }}</dd></div>
-            <div><dt>{% if LANGUAGE_CODE == 'en' %}Offer{% else %}Promesse{% endif %}</dt><dd>{{ kit.client_brief.promesse }}</dd></div>
-            <div><dt>{% if LANGUAGE_CODE == 'en' %}Tone{% else %}Ton{% endif %}</dt><dd>{{ kit.client_brief.ton }}</dd></div>
-            <div><dt>{% if LANGUAGE_CODE == 'en' %}Constraint{% else %}Contrainte{% endif %}</dt><dd>{{ kit.client_brief.contrainte }}</dd></div>
-            <div><dt>{% if LANGUAGE_CODE == 'en' %}Action{% else %}Action{% endif %}</dt><dd>{{ kit.client_brief.action_principale }}</dd></div>
+            <div><dt>{% if LANGUAGE_CODE == 'en' %}Industry{% else %}Secteur{% endif %}</dt><dd>{{ kit_content.client_brief.secteur }}</dd></div>
+            <div><dt>{% if LANGUAGE_CODE == 'en' %}Area{% else %}Zone{% endif %}</dt><dd>{{ kit_content.client_brief.zone }}</dd></div>
+            <div><dt>{% if LANGUAGE_CODE == 'en' %}Audience{% else %}Cible{% endif %}</dt><dd>{{ kit_content.client_brief.cible }}</dd></div>
+            <div><dt>{% if LANGUAGE_CODE == 'en' %}Offer{% else %}Promesse{% endif %}</dt><dd>{{ kit_content.client_brief.promesse }}</dd></div>
+            <div><dt>{% if LANGUAGE_CODE == 'en' %}Tone{% else %}Ton{% endif %}</dt><dd>{{ kit_content.client_brief.ton }}</dd></div>
+            <div><dt>{% if LANGUAGE_CODE == 'en' %}Constraint{% else %}Contrainte{% endif %}</dt><dd>{{ kit_content.client_brief.contrainte }}</dd></div>
+            <div><dt>{% if LANGUAGE_CODE == 'en' %}Action{% else %}Action{% endif %}</dt><dd>{{ kit_content.client_brief.action_principale }}</dd></div>
           </dl>
         </article>
 
         <article class="ai-kit-panel">
           <h2>{% if LANGUAGE_CODE == 'en' %}Agents to use{% else %}Agents à utiliser{% endif %}</h2>
-          {% for agent in kit.recommended_agents %}
+          {% for agent in kit_content.recommended_agents %}
             <div class="ai-kit-row">
               <strong>{{ agent.agent }}</strong>
               <span>{{ agent.role }}</span>
@@ -68,16 +68,16 @@
 
       <article class="ai-kit-panel">
         <h2>{% if LANGUAGE_CODE == 'en' %}Client chatbot prompt{% else %}Prompt chatbot client{% endif %}</h2>
-        <textarea readonly class="ai-kit-textarea ai-kit-textarea--large">{{ kit.chatbot_prompt }}</textarea>
+        <textarea readonly class="ai-kit-textarea ai-kit-textarea--large">{{ kit_content.chatbot_prompt }}</textarea>
       </article>
 
       <div class="ai-kit-grid ai-kit-grid--two">
         <article class="ai-kit-panel">
           <h2>{% if LANGUAGE_CODE == 'en' %}AI mini-site plan{% else %}Plan mini-site IA{% endif %}</h2>
-          <h3>{{ kit.website_plan.hero.h1 }}</h3>
-          <p>{{ kit.website_plan.hero.subtitle }}</p>
+          <h3>{{ kit_content.website_plan.hero.h1 }}</h3>
+          <p>{{ kit_content.website_plan.hero.subtitle }}</p>
           <ul>
-            {% for section in kit.website_plan.sections %}
+            {% for section in kit_content.website_plan.sections %}
               <li>{{ section }}</li>
             {% endfor %}
           </ul>
@@ -86,18 +86,18 @@
         <article class="ai-kit-panel">
           <h2>{% if LANGUAGE_CODE == 'en' %}Ready-to-use content{% else %}Contenus prêts{% endif %}</h2>
           <label>{% if LANGUAGE_CODE == 'en' %}Facebook post{% else %}Post Facebook{% endif %}</label>
-          <textarea readonly>{{ kit.content_pack.facebook_post }}</textarea>
+          <textarea readonly>{{ kit_content.content_pack.facebook_post }}</textarea>
           <label>{% if LANGUAGE_CODE == 'en' %}Status{% else %}Statut{% endif %} WhatsApp</label>
-          <textarea readonly>{{ kit.content_pack.whatsapp_status }}</textarea>
+          <textarea readonly>{{ kit_content.content_pack.whatsapp_status }}</textarea>
           <label>{% if LANGUAGE_CODE == 'en' %}Visual prompt{% else %}Prompt visuel{% endif %}</label>
-          <textarea readonly>{{ kit.content_pack.image_prompt }}</textarea>
+          <textarea readonly>{{ kit_content.content_pack.image_prompt }}</textarea>
         </article>
       </div>
 
       <div class="ai-kit-grid ai-kit-grid--three">
         <article class="ai-kit-panel">
           <h2>{% if LANGUAGE_CODE == 'en' %}WhatsApp scripts{% else %}Scripts WhatsApp{% endif %}</h2>
-          {% for script in kit.whatsapp_scripts %}
+          {% for script in kit_content.whatsapp_scripts %}
             <div class="ai-kit-script">
               <strong>{{ script.label }}</strong>
               <p>{{ script.text }}</p>
@@ -107,22 +107,22 @@
 
         <article class="ai-kit-panel">
           <h2>{% if LANGUAGE_CODE == 'en' %}Local SEO{% else %}SEO local{% endif %}</h2>
-          <p><strong>{{ kit.seo_plan.title }}</strong></p>
-          <p>{{ kit.seo_plan.meta_description }}</p>
+          <p><strong>{{ kit_content.seo_plan.title }}</strong></p>
+          <p>{{ kit_content.seo_plan.meta_description }}</p>
           <div class="ai-kit-tags">
-            {% for keyword in kit.seo_plan.keywords %}
+            {% for keyword in kit_content.seo_plan.keywords %}
               <span>{{ keyword }}</span>
             {% endfor %}
           </div>
-          <small>{{ kit.seo_plan.geo_page }}</small>
+          <small>{{ kit_content.seo_plan.geo_page }}</small>
         </article>
 
         <article class="ai-kit-panel">
           <h2>{% if LANGUAGE_CODE == 'en' %}AI video{% else %}Vidéo IA{% endif %}</h2>
-          <p><strong>{{ kit.video_plan.format }}</strong></p>
-          <p>{{ kit.video_plan.hook }}</p>
+          <p><strong>{{ kit_content.video_plan.format }}</strong></p>
+          <p>{{ kit_content.video_plan.hook }}</p>
           <ol>
-            {% for scene in kit.video_plan.scenes %}
+            {% for scene in kit_content.video_plan.scenes %}
               <li>{{ scene }}</li>
             {% endfor %}
           </ol>
@@ -132,7 +132,7 @@
       <div class="ai-kit-grid ai-kit-grid--two">
         <article class="ai-kit-panel">
           <h2>{% if LANGUAGE_CODE == 'en' %}Automations{% else %}Automatisations{% endif %}</h2>
-          {% for workflow in kit.automation_plan %}
+          {% for workflow in kit_content.automation_plan %}
             <div class="ai-kit-workflow">
               <strong>{{ workflow.workflow }}</strong>
               <ol>
@@ -146,7 +146,7 @@
 
         <article class="ai-kit-panel">
           <h2>{% if LANGUAGE_CODE == 'en' %}Quality checklist{% else %}Checklist qualité{% endif %}</h2>
-          {% for row in kit.qa_checklist %}
+          {% for row in kit_content.qa_checklist %}
             <div class="ai-kit-check {% if row.done %}ok{% endif %}">
               <span>{% if row.done %}OK{% else %}{% if LANGUAGE_CODE == 'en' %}To do{% else %}À faire{% endif %}{% endif %}</span>
               <p>{{ row.item }}</p>

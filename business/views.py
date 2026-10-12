@@ -44,7 +44,7 @@ from .models import (
     UnmetSearchRequest,
     UnmetSearchResponse,
 )
-from .ai_delivery import generate_client_ai_kit, kit_summary_for_whatsapp
+from .ai_delivery import ensure_english_kit_content, generate_client_ai_kit, kit_summary_for_whatsapp
 from .ai_arsenal import arsenal_agents, arsenal_stats, fidelisation_agent, opportunites_agent
 from .reporting import business_report_context, render_business_report_pdf
 from .services import collect_business_items, create_tracking_event, record_event_hit
@@ -2587,6 +2587,10 @@ def ai_delivery_kit(request, business_id):
     if not kit:
         kit = ClientAIKit.objects.create(business=business, created_by=request.user)
 
+    kit_content = kit
+    if request.LANGUAGE_CODE == "en" and kit.generated_at:
+        kit_content = ensure_english_kit_content(kit)
+
     whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(kit_summary_for_whatsapp(kit, request.LANGUAGE_CODE))}" if kit.generated_at else ""
     return render(
         request,
@@ -2594,6 +2598,7 @@ def ai_delivery_kit(request, business_id):
         {
             "business": business,
             "kit": kit,
+            "kit_content": kit_content,
             "whatsapp_url": whatsapp_url,
         },
     )

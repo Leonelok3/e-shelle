@@ -387,6 +387,7 @@ class ClientAIKitAdmin(admin.ModelAdmin):
                 "video_plan",
                 "automation_plan",
                 "qa_checklist",
+                "content_en",
             )
         }),
         ("Dates", {"fields": ("generated_at", "created_at", "updated_at"), "classes": ("collapse",)}),
