@@ -1,54 +1,60 @@
 {% extends "base.html" %}
 
-{% block title %}Catalogue - {{ business.name }}{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Catalogue - {{ business.display_name }}{% else %}Catalogue - {{ business.name }}{% endif %}{% endblock %}
 
 {% block content %}
 <section class="catalog-admin">
   <div class="container">
     <div class="catalog-head">
       <div>
-        <a class="catalog-back" href="{% url 'business:dashboard' %}?business={{ business.id }}">Retour dashboard</a>
-        <h1>Catalogue de {{ business.name }}</h1>
-        <p>Ajoute ici les produits, menus ou services visibles sur la fiche publique.</p>
+        <a class="catalog-back" href="{% url 'business:dashboard' %}?business={{ business.id }}">{% if LANGUAGE_CODE == 'en' %}Back to dashboard{% else %}Retour dashboard{% endif %}</a>
+        <h1>{% if LANGUAGE_CODE == 'en' %}{{ business.display_name }} catalogue{% else %}Catalogue de {{ business.name }}{% endif %}</h1>
+        <p>{% if LANGUAGE_CODE == 'en' %}Add products, menu items or services to your public profile.{% else %}Ajoute ici les produits, menus ou services visibles sur la fiche publique.{% endif %}</p>
       </div>
       <div class="catalog-actions">
-        <a href="{{ public_url }}" target="_blank" rel="noopener">Voir la fiche</a>
+        <a href="{{ public_url }}" target="_blank" rel="noopener">{% if LANGUAGE_CODE == 'en' %}View public profile{% else %}Voir la fiche{% endif %}</a>
       </div>
     </div>
 
     <div class="catalog-grid">
       <form class="catalog-card" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <h2>Ajouter un produit/service</h2>
-        <label>Nom *</label>
+        <h2>{% if LANGUAGE_CODE == 'en' %}Add a product or service{% else %}Ajouter un produit/service{% endif %}</h2>
+        <label>{% if LANGUAGE_CODE == 'en' %}Name *{% else %}Nom *{% endif %}</label>
         <input name="title" maxlength="140" required placeholder="Ex: Ndole plantain, Poulet DG, Livraison Makepe">
+        <label for="catalog-title-en">Title (English)</label>
+        <input id="catalog-title-en" name="title_en" maxlength="140" placeholder="Optional English version">
 
-        <label>Type</label>
+        <label>{% if LANGUAGE_CODE == 'en' %}Type{% else %}Type{% endif %}</label>
         <select name="item_type">
           {% for value, label in item_types %}
-            <option value="{{ value }}">{{ label }}</option>
+            <option value="{{ value }}">{% if LANGUAGE_CODE == 'en' %}{% if value == 'product' %}Product{% elif value == 'service' %}Service{% elif value == 'menu' %}Menu{% elif value == 'delivery' %}Delivery{% elif value == 'offer' %}Offer{% else %}{{ label }}{% endif %}{% else %}{{ label }}{% endif %}</option>
           {% endfor %}
         </select>
 
-        <label>Prix</label>
+        <label>{% if LANGUAGE_CODE == 'en' %}Price{% else %}Prix{% endif %}</label>
         <input name="price_label" maxlength="80" placeholder="Ex: 2 500 FCFA, Prix a discuter">
+        <label for="catalog-price-en">Price note (English)</label>
+        <input id="catalog-price-en" name="price_label_en" maxlength="80" placeholder="Optional English price note">
 
-        <label>Description courte</label>
+        <label>{% if LANGUAGE_CODE == 'en' %}Short description{% else %}Description courte{% endif %}</label>
         <textarea name="description" rows="4" placeholder="Ex: Plat chaud disponible aujourd'hui, livraison Makepe et Logpom."></textarea>
+        <label for="catalog-description-en">Description (English)</label>
+        <textarea id="catalog-description-en" name="description_en" rows="4" placeholder="Optional English description."></textarea>
 
         <div class="catalog-row">
           <div>
-            <label>Photo principale</label>
+            <label>{% if LANGUAGE_CODE == 'en' %}Main photo{% else %}Photo principale{% endif %}</label>
             <input type="file" name="image" accept="image/png,image/jpeg,image/jpg">
           </div>
           <div>
-            <label>Ordre</label>
+            <label>{% if LANGUAGE_CODE == 'en' %}Order{% else %}Ordre{% endif %}</label>
             <input name="order" type="number" min="0" value="0">
           </div>
         </div>
 
         <div style="margin-top: 1rem; margin-bottom: 1rem;">
-          <label style="color:#ffd91f;">Vidéo du produit (Fichier ou Lien externe)</label>
+          <label style="color:#ffd91f;">{% if LANGUAGE_CODE == 'en' %}Product video (file or external link){% else %}Vidéo du produit (Fichier ou Lien externe){% endif %}</label>
           <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.35rem;">
             {% if business.plan == "free" %}
               <input type="url" placeholder="🔒 Option Réservée aux Fiches Premium (YouTube, TikTok, Téléversement...)" style="width:100%; background: #1a1a1a; color: #666; cursor: not-allowed;" readonly>
@@ -64,7 +70,7 @@
                   <button type="button" id="cloudinary_upload_btn" style="min-height:38px;padding:.5rem 1rem;background:#03130c;color:#ffd91f;border:1px dashed #ffd91f;border-radius:8px;font-weight:700;cursor:pointer;flex-shrink:0;">
                     🎥 Téléverser un fichier vidéo
                   </button>
-                  <span id="video_upload_status" style="font-size:.78rem;color:#bdebd0;">Prêt</span>
+                  <span id="video_upload_status" style="font-size:.78rem;color:#bdebd0;">{% if LANGUAGE_CODE == 'en' %}Ready{% else %}Prêt{% endif %}</span>
                 </div>
               {% else %}
                 <span style="font-size:.72rem;color:#bdebd0;opacity:0.75;">
@@ -76,15 +82,15 @@
         </div>
 
         {% if business.catalog_extra_photo_limit %}
-          <label style="display:block;margin:.75rem 0 .35rem;color:#c8f7d7;font-weight:850">Photos secondaires (jusqu'à {{ business.catalog_extra_photo_limit }})</label>
+          <label style="display:block;margin:.75rem 0 .35rem;color:#c8f7d7;font-weight:850">{% if LANGUAGE_CODE == 'en' %}Additional photos (up to {{ business.catalog_extra_photo_limit }}){% else %}Photos secondaires (jusqu'à {{ business.catalog_extra_photo_limit }}){% endif %}</label>
           <input type="file" name="images" accept="image/png,image/jpeg,image/jpg" multiple>
         {% else %}
-          <label style="display:block;margin:.75rem 0 .35rem;color:#c8f7d7;font-weight:850">Photos secondaires 🔒</label>
+          <label style="display:block;margin:.75rem 0 .35rem;color:#c8f7d7;font-weight:850">{% if LANGUAGE_CODE == 'en' %}Additional photos 🔒{% else %}Photos secondaires 🔒{% endif %}</label>
           <input type="file" disabled placeholder="Réservé aux formules payantes" style="opacity:.5;cursor:not-allowed;">
-          <span style="font-size:.72rem;color:#bdebd0;opacity:.75;">Passez à une formule payante pour ajouter plusieurs photos par produit.</span>
+          <span style="font-size:.72rem;color:#bdebd0;opacity:.75;">{% if LANGUAGE_CODE == 'en' %}Upgrade to a paid plan to add multiple photos per product.{% else %}Passez à une formule payante pour ajouter plusieurs photos par produit.{% endif %}</span>
         {% endif %}
 
-        <button type="submit">Ajouter au catalogue</button>
+        <button type="submit">{% if LANGUAGE_CODE == 'en' %}Add to catalogue{% else %}Ajouter au catalogue{% endif %}</button>
 
         {% if cloudinary_cloud_name and cloudinary_upload_preset %}
         <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
@@ -124,10 +130,8 @@
       </form>
 
       <aside class="catalog-card catalog-guide">
-        <h2>Comment bien remplir</h2>
-        <p><strong>Pour un restaurant :</strong> ajoute les plats les plus vendeurs, pas tout le menu au debut.</p>
-        <p><strong>Pour un service :</strong> ajoute les prestations claires avec un prix de depart.</p>
-        <p><strong>Pour vendre vite :</strong> photo propre + prix + zone de livraison + bouton WhatsApp.</p>
+        <h2>{% if LANGUAGE_CODE == 'en' %}Tips for a strong catalogue{% else %}Comment bien remplir{% endif %}</h2>
+        {% if LANGUAGE_CODE == 'en' %}<p><strong>For restaurants:</strong> add your best-selling dishes first.</p><p><strong>For services:</strong> describe each service clearly and include a starting price.</p><p><strong>To sell faster:</strong> use a clear photo, price, delivery area and WhatsApp contact.</p>{% else %}<p><strong>Pour un restaurant :</strong> ajoute les plats les plus vendeurs, pas tout le menu au debut.</p><p><strong>Pour un service :</strong> ajoute les prestations claires avec un prix de depart.</p><p><strong>Pour vendre vite :</strong> photo propre + prix + zone de livraison + bouton WhatsApp.</p>{% endif %}
         <div>
           <span>{{ items|length }}</span>
           produit/service dans cette fiche
@@ -137,7 +141,7 @@
 
     <div class="catalog-list">
       <div class="catalog-list-head">
-        <h2>Catalogue de la fiche</h2>
+        <h2>{% if LANGUAGE_CODE == 'en' %}Profile catalogue{% else %}Catalogue de la fiche{% endif %}</h2>
         <span>{{ items|length }} element(s)</span>
       </div>
 
@@ -151,15 +155,15 @@
             {% endif %}
           </div>
           <div>
-            <strong>{{ item.title }}</strong>
-            <p>{{ item.description|default:"Aucune description." }}</p>
-            <small>{{ item.get_item_type_display }} · {{ item.formatted_price }} · ordre {{ item.order }} · {{ item.views_count }} vue{{ item.views_count|pluralize }}</small>
+              <strong>{{ item.display_title }}</strong>
+            <p>{% if item.display_description %}{{ item.display_description }}{% elif LANGUAGE_CODE == 'en' %}No description.{% else %}Aucune description.{% endif %}</p>
+            <small>{{ item.display_item_type }} · {{ item.formatted_price }} · {% if LANGUAGE_CODE == 'en' %}order{% else %}ordre{% endif %} {{ item.order }} · {{ item.views_count }} {% if LANGUAGE_CODE == 'en' %}views{% else %}vues{% endif %}</small>
             <em class="{% if item.is_active %}status-on{% else %}status-off{% endif %}">
               {% if item.is_active %}Visible sur la fiche publique{% else %}Masque sur la fiche publique{% endif %}
             </em>
           </div>
           <div class="catalog-item-actions">
-            <a href="{% url 'business:catalog_item_edit' business.id item.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:9px;border:1px solid rgba(124,246,108,.25);background:#101c33;color:#fff;font-weight:900;text-decoration:none;cursor:pointer">Modifier</a>
+            <a href="{% url 'business:catalog_item_edit' business.id item.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:9px;border:1px solid rgba(124,246,108,.25);background:#101c33;color:#fff;font-weight:900;text-decoration:none;cursor:pointer">{% if LANGUAGE_CODE == 'en' %}Edit{% else %}Modifier{% endif %}</a>
             <form method="post" action="{% url 'business:catalog_item_action' business.id item.id %}">
               {% csrf_token %}
               <input type="hidden" name="action" value="toggle">
@@ -170,7 +174,7 @@
             <form method="post" action="{% url 'business:catalog_item_action' business.id item.id %}">
               {% csrf_token %}
               <input type="hidden" name="action" value="delete">
-              <button type="submit" class="danger">Supprimer</button>
+              <button type="submit" class="danger">{% if LANGUAGE_CODE == 'en' %}Delete{% else %}Supprimer{% endif %}</button>
             </form>
           </div>
         </article>

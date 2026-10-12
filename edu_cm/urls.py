@@ -87,7 +87,7 @@ def immigration_view(request):
         ctx["germany_offers_count"] = AusbildungOffer.objects.filter(is_active=True).count()
     except Exception:
         pass
-    return render(request, "immigration.html", ctx)
+    return render(request, "immigration_en.html" if request.LANGUAGE_CODE == "en" else "immigration.html", ctx)
 
 
 def marketing_view(request):
@@ -108,7 +108,7 @@ def marketing_view(request):
         ctx["published_campaigns_count"] = AdCampaign.objects.count()
     except Exception:
         pass
-    return render(request, "marketing.html", ctx)
+    return render(request, "marketing_en.html" if request.LANGUAGE_CODE == "en" else "marketing.html", ctx)
 
 
 def formation_view(request):
@@ -132,7 +132,7 @@ def formation_view(request):
         ctx["lessons_count"] = formations_qs.aggregate(total=Sum("nb_lecons")).get("total") or 0
     except Exception:
         pass
-    return render(request, "formation.html", ctx)
+    return render(request, "formation_en.html" if request.LANGUAGE_CODE == "en" else "formation.html", ctx)
 
 
 
@@ -171,18 +171,18 @@ def home_view(request):
                     logo_url = business.logo.url
                 except Exception:
                     logo_url = ""
-            display_city = business.city or business.country or "Cameroun"
+            display_city = business.city or ("Cameroon" if request.LANGUAGE_CODE == "en" and business.country in ("", "Cameroun", "Cameroon") else business.country or "Cameroun")
             if business.district and business.city:
                 display_city = f"{business.district}, {business.city}"
             business_slides.append(
                 {
-                    "name": business.name,
+                    "name": business.display_name,
                     "logo": logo_url,
-                    "initial": business.name[:1].upper() if business.name else "B",
+                    "initial": business.display_name[:1].upper() if business.display_name else "B",
                     "city": display_city,
                     "url": business.get_absolute_url(),
-                    "tag": business.get_module_display(),
-                    "description": business.description or business.promo_offer or "Prestataire disponible sur E-Shelle.",
+                    "tag": business.display_module,
+                    "description": business.display_description or business.display_promo_offer or ("Provider listed on E-Shelle." if request.LANGUAGE_CODE == "en" else "Prestataire disponible sur E-Shelle."),
                 }
             )
         home_catalog_items = list(
@@ -293,7 +293,7 @@ def home_view(request):
         ctx["geo_cities"] = []
         ctx["geo_services"] = []
         ctx["home_numbers"] = {"businesses": 0, "premium": 0, "products": 0, "leads": 0, "ads": 0, "events": 0}
-    return render(request, "home.html", ctx)
+    return render(request, "home_en.html" if request.LANGUAGE_CODE == "en" else "home.html", ctx)
 
 
 def presentation_view(request):
@@ -318,7 +318,7 @@ def presentation_view(request):
     except Exception:
         ctx["home_numbers"] = {"businesses": 0, "premium": 0, "products": 0, "leads": 0, "events": 0}
         ctx["slides"] = []
-    return render(request, "presentation.html", ctx)
+    return render(request, "presentation_en.html" if request.LANGUAGE_CODE == "en" else "presentation.html", ctx)
 
 
 def tarifs_view(request):
@@ -349,7 +349,7 @@ def tarifs_view(request):
         ctx["partner_recruit_rate"] = 50
         ctx["provider_rate"] = 30
 
-    return render(request, "tarifs.html", ctx)
+    return render(request, "tarifs_en.html" if request.LANGUAGE_CODE == "en" else "tarifs.html", ctx)
 
 
 def products_services_view(request):
@@ -414,14 +414,14 @@ def products_services_view(request):
                     logo_url = ""
             display_city = f"{b.city} ({b.country})" if b.city and b.country and b.country != "Cameroun" else (b.city or b.country or "Cameroun")
             business_slides.append({
-                "name": b.name,
+                "name": b.display_name,
                 "logo": logo_url,
-                "initial": b.name[:1].upper() if b.name else "B",
+                "initial": b.display_name[:1].upper() if b.display_name else "B",
                 "city": display_city,
                 "district": b.district or "Proche",
                 "url": b.get_absolute_url(),
-                "tag": b.get_module_display(),
-                "description": b.description or "Aucune description disponible.",
+                "tag": b.display_module,
+                "description": b.display_description or ("No description available." if request.LANGUAGE_CODE == "en" else "Aucune description disponible."),
             })
 
         # 2. Products Block: Individual products/services added by businesses.
@@ -461,11 +461,13 @@ def products_services_view(request):
             premium_showcase_items.append(
                 {
                     "_rank": item.created_at,
-                    "tag": item.get_item_type_display(),
-                    "title": item.title,
-                    "description": item.description,
-                    "kind": f"{business.get_module_display()} · {business.city or 'Cameroun'}",
-                    "meta": business.district or business.city or "Proche",
+                    "tag": item.display_item_type,
+                    "title": item.display_title,
+                    "title_en": item.title_en,
+                    "description": item.display_description,
+                    "description_en": item.description_en,
+                    "kind": f"{business.display_module} · {business.city or ('Cameroon' if request.LANGUAGE_CODE == 'en' else 'Cameroun')}",
+                    "meta": business.district or business.city or ("Nearby" if request.LANGUAGE_CODE == "en" else "Proche"),
                     "price": item.formatted_price,
                     "image": item.image_url,
                     "initial": item.title[:1],
@@ -551,7 +553,10 @@ def products_services_view(request):
             q_lower = search_query.lower()
             premium_showcase_items = [
                 item for item in premium_showcase_items
-                if q_lower in item["title"].lower() or (item["description"] and q_lower in item["description"].lower())
+                if q_lower in item["title"].lower()
+                or (item["description"] and q_lower in item["description"].lower())
+                or (item.get("title_en") and q_lower in item["title_en"].lower())
+                or (item.get("description_en") and q_lower in item["description_en"].lower())
             ]
 
         paginator = Paginator(premium_showcase_items, 30)
@@ -582,7 +587,7 @@ def products_services_view(request):
         ctx["selected_country"] = ""
         ctx["produits_services_hero_image"] = None
 
-    return render(request, "produits_services.html", ctx)
+    return render(request, "produits_services_en.html" if request.LANGUAGE_CODE == "en" else "produits_services.html", ctx)
 
 
 def commercial_pdf_view(request):

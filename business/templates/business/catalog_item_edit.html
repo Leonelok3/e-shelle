@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Modifier le produit - {{ item.title }}{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Edit product - {{ item.display_title }}{% else %}Modifier le produit - {{ item.title }}{% endif %}{% endblock %}
 
 {% block content %}
 <section class="section" style="padding-top:7rem;background:linear-gradient(180deg,#071321 0%,#0a1628 100%);min-height:100vh;">
@@ -12,15 +12,15 @@
         </a>
         <div style="text-align:center;margin-top:1rem">
           <span class="section-label" style="display:inline-flex">Gestion Catalogue</span>
-          <h1 class="section-title" style="color:#fff;margin-top:.8rem">Modifier le produit</h1>
-          <p style="color:rgba(255,255,255,.62)">{{ item.title }} - {{ business.name }}</p>
+          <h1 class="section-title" style="color:#fff;margin-top:.8rem">{% if LANGUAGE_CODE == 'en' %}Edit product or service{% else %}Modifier le produit{% endif %}</h1>
+          <p style="color:rgba(255,255,255,.62)">{{ item.display_title }} - {{ business.display_name }}</p>
         </div>
       </div>
 
       <form method="post" action="{% url 'business:catalog_item_generate_description' business.id item.id %}" style="background:rgba(125,236,108,.08);border:1px solid rgba(125,236,108,.3);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
         {% csrf_token %}
         <div>
-          <strong style="color:#fff;">✨ Description générée par l'IA</strong>
+          <strong style="color:#fff;">{% if LANGUAGE_CODE == 'en' %}✨ AI-generated description{% else %}✨ Description générée par l'IA{% endif %}</strong>
           <p style="margin:.25rem 0 0;color:rgba(255,255,255,.6);font-size:.85rem;">
             {% if business.ai_credits > 0 %}
               Il vous reste {{ business.ai_credits }} crédit{{ business.ai_credits|pluralize }} IA.
@@ -38,30 +38,36 @@
         {% csrf_token %}
 
         <div style="display:grid;grid-template-columns:1fr;gap:1rem">
-          <label class="item-field">Nom du produit/service *
+          <label class="item-field">{% if LANGUAGE_CODE == 'en' %}Product/service name *{% else %}Nom du produit/service *{% endif %}
             <input name="title" value="{{ item.title }}" maxlength="140" required placeholder="Ex: Ndole plantain, Poulet DG, Livraison Makepe">
+            <label for="catalog-title-en">Title (English)</label>
+            <input id="catalog-title-en" name="title_en" value="{{ item.title_en }}" maxlength="140" placeholder="Optional English version">
           </label>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
-          <label class="item-field">Type
+          <label class="item-field">{% if LANGUAGE_CODE == 'en' %}Type{% else %}Type{% endif %}
             <select name="item_type">
               {% for value, label in item_types %}
-                <option value="{{ value }}" {% if item.item_type == value %}selected{% endif %}>{{ label }}</option>
+                <option value="{{ value }}" {% if item.item_type == value %}selected{% endif %}>{% if LANGUAGE_CODE == 'en' %}{% if value == 'product' %}Product{% elif value == 'service' %}Service{% elif value == 'menu' %}Menu{% elif value == 'delivery' %}Delivery{% elif value == 'offer' %}Offer{% else %}{{ label }}{% endif %}{% else %}{{ label }}{% endif %}</option>
               {% endfor %}
             </select>
           </label>
-          <label class="item-field">Prix
+          <label class="item-field">{% if LANGUAGE_CODE == 'en' %}Price{% else %}Prix{% endif %}
             <input name="price_label" value="{{ item.price_label }}" maxlength="80" placeholder="Ex: 2 500 FCFA, Prix à discuter">
+            <label for="catalog-price-en">Price note (English)</label>
+            <input id="catalog-price-en" name="price_label_en" value="{{ item.price_label_en }}" maxlength="80" placeholder="Optional English price note">
           </label>
         </div>
 
-        <label class="item-field" style="margin-top:1rem">Description courte
+        <label class="item-field" style="margin-top:1rem">{% if LANGUAGE_CODE == 'en' %}Short description{% else %}Description courte{% endif %}
           <textarea name="description" rows="4" placeholder="Ex: Plat chaud disponible aujourd'hui, livraison Makepe et Logpom.">{{ item.description }}</textarea>
+          <label for="catalog-description-en">Description (English)</label>
+          <textarea id="catalog-description-en" name="description_en" rows="4" placeholder="Optional English description.">{{ item.description_en }}</textarea>
         </label>
 
         <div style="display:grid;grid-template-columns:1fr 120px;gap:.8rem;margin-top:1rem">
-          <label class="item-field">Photo principale
+          <label class="item-field">{% if LANGUAGE_CODE == 'en' %}Main photo{% else %}Photo principale{% endif %}
             {% if item.image %}
               <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
                 <img src="{{ item.image.url }}" alt="Photo principale actuelle" style="width:50px;height:50px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,0.2);">
@@ -70,14 +76,14 @@
             {% endif %}
             <input type="file" name="image" accept="image/png,image/jpeg,image/jpg">
           </label>
-          <label class="item-field">Ordre d'affichage
+          <label class="item-field">{% if LANGUAGE_CODE == 'en' %}Display order{% else %}Ordre d'affichage{% endif %}
             <input name="order" type="number" min="0" value="{{ item.order }}">
           </label>
         </div>
 
         <!-- Section Photos Supplémentaires -->
         <div style="margin-top:1.5rem;border-top:1px solid rgba(255,255,255,0.08);padding-top:1.5rem">
-          <h3 style="color:#ffd91f;margin:0 0 0.5rem;font-size:1.1rem;font-weight:bold;">Photos supplémentaires (galerie)</h3>
+          <h3 style="color:#ffd91f;margin:0 0 0.5rem;font-size:1.1rem;font-weight:bold;">{% if LANGUAGE_CODE == 'en' %}Additional photos (gallery){% else %}Photos supplémentaires (galerie){% endif %}</h3>
           <p style="color:rgba(255,255,255,.55);font-size:0.82rem;margin-bottom:1rem;">Permet aux clients de faire défiler plusieurs photos dans les détails du produit.</p>
           
           {% if item.images.all %}
@@ -146,7 +152,7 @@
           {% endif %}
         </div>
 
-        <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:2rem;background:linear-gradient(135deg,#3aae4e,#d49412);border:0;">Enregistrer les modifications</button>
+        <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:2rem;background:linear-gradient(135deg,#3aae4e,#d49412);border:0;">{% if LANGUAGE_CODE == 'en' %}Save changes{% else %}Enregistrer les modifications{% endif %}</button>
       </form>
 
       {% if cloudinary_cloud_name and cloudinary_upload_preset %}

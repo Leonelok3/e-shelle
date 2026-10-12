@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Créer ma fiche business - E-Shelle{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Create my business profile - E-Shelle{% else %}Créer ma fiche business - E-Shelle{% endif %}{% endblock %}
 
 {% block content %}
 <section class="section" style="padding-top:7rem;background:linear-gradient(180deg,#071321 0%,#0a1628 100%)">
   <div class="container">
     <div style="max-width:780px;margin:0 auto">
       <div style="text-align:center;margin-bottom:1.5rem">
-        <span class="section-label" style="display:inline-flex">Fiche prestataire</span>
-        <h1 class="section-title" style="color:#fff;margin-top:.8rem">Quel business voulez-vous inscrire ?</h1>
+        <span class="section-label" style="display:inline-flex">{% if LANGUAGE_CODE == 'en' %}Business profile{% else %}Fiche prestataire{% endif %}</span>
+        <h1 class="section-title" style="color:#fff;margin-top:.8rem">{% if LANGUAGE_CODE == 'en' %}What business would you like to list?{% else %}Quel business voulez-vous inscrire ?{% endif %}</h1>
         <p class="section-subtitle" style="color:rgba(255,255,255,.62)">
-          Créez votre fiche. Un client pourra vous trouver dans le chat IA et vous contacter sur WhatsApp.
+          {% if LANGUAGE_CODE == 'en' %}Create your profile so customers can find you through AI search and contact you on WhatsApp.{% else %}Créez votre fiche. Un client pourra vous trouver dans le chat IA et vous contacter sur WhatsApp.{% endif %}
         </p>
       </div>
 
@@ -19,19 +19,21 @@
         <input type="hidden" name="plan" value="{{ plan.code|default:'free' }}">
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-          <label class="biz-field">Nom du business *
+          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}Business name *{% else %}Nom du business *{% endif %}
             <input name="name" required placeholder="Ex: Gaz Rapide Bonamoussadi">
+            <label for="business-name-en">Business name (English)</label>
+            <input id="business-name-en" name="name_en" placeholder="Optional English version">
           </label>
-          <label class="biz-field">Type de service
+          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}Business category{% else %}Type de service{% endif %}
             <select name="module">
               {% for value,label in modules %}
               <option value="{{ value }}">{{ label }}</option>
               {% endfor %}
             </select>
           </label>
-          <label class="biz-field">Pays *
+          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}Country *{% else %}Pays *{% endif %}
             <select name="country" id="country-select" onchange="updateCities()">
-              <option value="Cameroun" selected>Cameroun</option>
+              <option value="Cameroun" selected>{% if LANGUAGE_CODE == 'en' %}Cameroon{% else %}Cameroun{% endif %}</option>
               <option value="Côte d'Ivoire">Côte d'Ivoire</option>
               <option value="Sénégal">Sénégal</option>
               <option value="Gabon">Gabon</option>
@@ -44,19 +46,19 @@
               <option value="Guinée">Guinée</option>
               <option value="Tchad">Tchad</option>
               <option value="Niger">Niger</option>
-              <option value="Autre">Autre Pays</option>
+              <option value="Autre">{% if LANGUAGE_CODE == 'en' %}Other country{% else %}Autre Pays{% endif %}</option>
             </select>
           </label>
-          <label class="biz-field">Ville *
+          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}City *{% else %}Ville *{% endif %}
             <select name="city" id="city-select" onchange="checkCustomCity()">
               <!-- Options dynamiques en JS -->
             </select>
             <input type="text" id="custom-city-input" name="city_custom" placeholder="Saisir la ville..." style="display:none; margin-top: 0.5rem;">
           </label>
-          <label class="biz-field">Quartier
+          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}District / neighbourhood{% else %}Quartier{% endif %}
             <input name="district" placeholder="Ex: Bonamoussadi, Cocody, Médina...">
           </label>
-          <label class="biz-field">Téléphone *
+          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}Phone *{% else %}Téléphone *{% endif %}
             <input name="phone" id="phone-input" required placeholder="+237 6XX XXX XXX">
           </label>
           <label class="biz-field">WhatsApp
@@ -65,34 +67,39 @@
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
-          <label class="biz-field">Phrase d'accroche
+          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}Headline{% else %}Phrase d'accroche{% endif %}
             <input name="promo_headline" placeholder="Ex: Fast Food chaud livre a Makepe">
+            <label for="promo-headline-en">Promotion headline (English)</label>
+            <input id="promo-headline-en" name="promo_headline_en" placeholder="Optional English version">
           </label>
-          <label class="biz-field">Offre ou specialite
+          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}Offer or speciality{% else %}Offre ou specialite{% endif %}
             <input name="promo_offer" placeholder="Ex: Livraison Makepe, Logpom, Bonamoussadi">
+            <label for="promo-offer-en">Promotion text (English)</label>
+            <input id="promo-offer-en" name="promo_offer_en" placeholder="Optional English version">
           </label>
         </div>
 
-        <label class="biz-field" style="margin-top:1rem">Description courte
+        <label class="biz-field" style="margin-top:1rem">{% if LANGUAGE_CODE == 'en' %}Short description{% else %}Description courte{% endif %}
           <textarea name="description" rows="3" placeholder="Décrivez vos produits, services, horaires ou zone de livraison."></textarea>
+          <label for="business-description-en">Business description (English)</label>
+          <textarea id="business-description-en" name="description_en" rows="3" placeholder="Optional English version of your business description."></textarea>
         </label>
 
-        <label class="biz-field" style="margin-top:1rem">Logo du business (optionnel)
+        <label class="biz-field" style="margin-top:1rem">{% if LANGUAGE_CODE == 'en' %}Business logo (optional){% else %}Logo du business (optionnel){% endif %}
           <input type="file" name="logo" accept="image/png,image/jpeg,image/jpg">
         </label>
 
         <div class="biz-helper">
-          <strong>Conseil pour une fiche qui vend:</strong>
-          ajoutez les horaires, quartiers servis, specialites, prix indicatif, frais de livraison et le meilleur appel a l'action.
+          {% if LANGUAGE_CODE == 'en' %}<strong>Tip for a strong profile:</strong> add your opening hours, service areas, specialities, indicative prices, delivery fees and a clear call to action.{% else %}<strong>Conseil pour une fiche qui vend:</strong> ajoutez les horaires, quartiers servis, specialites, prix indicatif, frais de livraison et le meilleur appel a l'action.{% endif %}
         </div>
 
         {% if plan %}
         <div style="margin:1rem 0;padding:1rem;border-radius:14px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.18);color:rgba(255,255,255,.76)">
-          Plan choisi: <strong style="color:#fff">{{ plan.name }}</strong> — {{ plan.monthly_price_xaf }} FCFA / {{ plan.duration_days }} jours.
+          {% if LANGUAGE_CODE == 'en' %}Selected plan: <strong style="color:#fff">{{ plan.display_name }}</strong> — {{ plan.monthly_price_xaf }} XAF / {{ plan.duration_days }} days.{% else %}Plan choisi: <strong style="color:#fff">{{ plan.name }}</strong> — {{ plan.monthly_price_xaf }} FCFA / {{ plan.duration_days }} jours.{% endif %}
         </div>
         {% endif %}
 
-        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center">Créer ma fiche</button>
+          <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center">{% if LANGUAGE_CODE == 'en' %}Create my business profile{% else %}Créer ma fiche{% endif %}</button>
       </form>
     </div>
   </div>

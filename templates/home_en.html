@@ -7,6 +7,23 @@
     <p style="margin-top:1rem">Free business profile · Google visibility · Direct WhatsApp contact</p>
   </section>
 
+  {% if home_ad_slides %}
+  <section class="container" style="padding:2rem 1rem">
+    <h2>Featured offers</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem">
+      {% for slide in home_ad_slides %}
+      <article class="card" style="overflow:hidden">
+        {% if slide.image %}<img src="{{ slide.image.url }}" alt="{{ slide.display_title }}" style="width:100%;max-height:220px;object-fit:cover">{% endif %}
+        <div style="padding:1rem"><small>{{ slide.display_badge }} · {{ slide.city }}</small><h3>{{ slide.display_title }}</h3>
+          {% if slide.display_subtitle %}<p>{{ slide.display_subtitle }}</p>{% endif %}
+          {% if slide.cta_url %}<a href="{{ slide.cta_url }}">{{ slide.display_cta_label }} →</a>{% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
   <section class="container" style="padding:3rem 1rem">
     <h2>Featured local businesses</h2>
     <p>Discover businesses and service providers near you.</p>
@@ -28,8 +45,8 @@
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
       {% for item in home_catalog_items %}
       <article class="card" style="padding:1rem">
-        <h3>{{ item.title }}</h3>
-        <p>{{ item.description|default:"Discover this offer from a local provider."|truncatechars:140 }}</p>
+        <h3>{{ item.display_title }}</h3>
+        <p>{{ item.display_description|default:"Discover this offer from a local provider."|truncatechars:140 }}</p>
         {% if item.formatted_price %}<p>{{ item.formatted_price }}</p>{% endif %}
       </article>
       {% empty %}<p>New offers will be listed here soon.</p>{% endfor %}
@@ -63,6 +80,21 @@
       <a class="card" style="padding:1rem" href="/pub/">AI advertising</a>
     </div>
   </section>
+
+  {% if app_promo_slides %}
+  <section class="container" style="padding:2rem 1rem">
+    <h2>Explore E-Shelle apps</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
+      {% for slide in app_promo_slides %}
+      <article class="card" style="padding:1rem">
+        {% if slide.image %}<img src="{{ slide.image.url }}" alt="{{ slide.display_title }}" style="width:100%;max-height:180px;object-fit:contain">{% endif %}
+        <h3>{{ slide.display_title }}</h3>
+        {% if slide.cta_url %}<a href="{{ slide.cta_url }}">{{ slide.display_cta_label }} →</a>{% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
 
   <section class="container" style="padding:3rem 1rem">
     <h2>Tools to grow your business</h2>

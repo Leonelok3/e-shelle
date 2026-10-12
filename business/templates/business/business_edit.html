@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Modifier ma fiche business - E-Shelle{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Edit my business profile - E-Shelle{% else %}Modifier ma fiche business - E-Shelle{% endif %}{% endblock %}
 
 {% block content %}
 <section class="section" style="padding-top:7rem;background:linear-gradient(180deg,#071321 0%,#0a1628 100%)">
@@ -11,8 +11,8 @@
           &larr; Retour dashboard
         </a>
         <div style="text-align:center;margin-top:1rem">
-          <span class="section-label" style="display:inline-flex">Fiche prestataire</span>
-          <h1 class="section-title" style="color:#fff;margin-top:.8rem">Modifier {{ business.name }}</h1>
+          <span class="section-label" style="display:inline-flex">{% if LANGUAGE_CODE == 'en' %}Business profile{% else %}Fiche prestataire{% endif %}</span>
+          <h1 class="section-title" style="color:#fff;margin-top:.8rem">{% if LANGUAGE_CODE == 'en' %}Edit {{ business.display_name }}{% else %}Modifier {{ business.name }}{% endif %}</h1>
         </div>
       </div>
 
@@ -22,6 +22,8 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
           <label class="biz-field">Nom du business *
             <input name="name" value="{{ business.name }}" required placeholder="Ex: Gaz Rapide Bonamoussadi">
+            <label for="business-name-en">Business name (English)</label>
+            <input id="business-name-en" name="name_en" value="{{ business.name_en }}" placeholder="Optional English version">
           </label>
           <label class="biz-field">Type de service
             <select name="module">
@@ -47,14 +49,20 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
           <label class="biz-field">Phrase d'accroche
             <input name="promo_headline" value="{{ business.promo_headline }}" placeholder="Ex: Fast Food chaud livré à Makepe">
+            <label for="promo-headline-en">Promotion headline (English)</label>
+            <input id="promo-headline-en" name="promo_headline_en" value="{{ business.promo_headline_en }}" placeholder="Optional English version">
           </label>
           <label class="biz-field">Offre ou spécialité
             <input name="promo_offer" value="{{ business.promo_offer }}" placeholder="Ex: Livraison Makepe, Logpom, Bonamoussadi">
+            <label for="promo-offer-en">Promotion text (English)</label>
+            <input id="promo-offer-en" name="promo_offer_en" value="{{ business.promo_offer_en }}" placeholder="Optional English version">
           </label>
         </div>
 
         <label class="biz-field" style="margin-top:1rem">Description courte
           <textarea name="description" rows="4" placeholder="Décrivez vos produits, services, horaires ou zone de livraison.">{{ business.description }}</textarea>
+          <label for="business-description-en">Business description (English)</label>
+          <textarea id="business-description-en" name="description_en" rows="4" placeholder="Optional English version of your business description.">{{ business.description_en }}</textarea>
         </label>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem;border-top:1px solid rgba(255,255,255,0.08);padding-top:1.5rem">
@@ -91,7 +99,7 @@
           Assurez-vous que le numéro WhatsApp est correct et écrit avec l'indicatif pays si possible (ex: 6XX XXX XXX ou +237 6XX...). Un logo soigné renforce la confiance des clients.
         </div>
 
-        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:1.5rem;">Enregistrer les modifications</button>
+          <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:1.5rem;">{% if LANGUAGE_CODE == 'en' %}Save changes{% else %}Enregistrer les modifications{% endif %}</button>
       </form>
     </div>
   </div>

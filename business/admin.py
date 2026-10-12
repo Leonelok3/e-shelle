@@ -34,7 +34,7 @@ from .models import (
 class BusinessCatalogItemInline(admin.TabularInline):
     model = BusinessCatalogItem
     extra = 1
-    fields = ("title", "item_type", "price_label", "order", "is_active")
+    fields = ("title", "title_en", "item_type", "description", "description_en", "price_label", "price_label_en", "order", "is_active")
 
 
 @admin.register(BusinessProfile)
@@ -50,12 +50,12 @@ class BusinessProfileAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             "fields": (
-                "owner", "module", "name", "slug", "public_slug", "city", "district",
-                "phone", "whatsapp", "description", "logo", "is_active", "is_verified",
+                "owner", "module", "name", "name_en", "slug", "public_slug", "city", "district",
+                "phone", "whatsapp", "description", "description_en", "logo", "is_active", "is_verified",
             )
         }),
         ("Publicite page d'accueil", {
-            "fields": ("promo_headline", "promo_offer", "promo_image", "promo_url"),
+            "fields": ("promo_headline", "promo_headline_en", "promo_offer", "promo_offer_en", "promo_image", "promo_url"),
             "description": "Ces champs alimentent le hero et les blocs Premium/Business de la page d'accueil.",
         }),
         ("Abonnement et performance", {
@@ -188,11 +188,11 @@ class HomeAdSlideAdmin(admin.ModelAdmin):
     readonly_fields = ("preview", "impressions_count", "clicks_count", "ctr_display", "created_at", "updated_at")
     fieldsets = (
         ("Contenu du slide", {
-            "fields": ("business", "title", "subtitle", "media_type", "image", "video", "video_url", "badge", "city"),
+            "fields": ("business", "title", "title_en", "subtitle", "subtitle_en", "media_type", "image", "video", "video_url", "badge", "badge_en", "city"),
             "description": "Ajoutez ici le montage publicitaire: flyer, plat de restaurant, ecole, produit vedette, offre speciale ou video.",
         }),
         ("Action client", {
-            "fields": ("cta_label", "cta_url"),
+            "fields": ("cta_label", "cta_label_en", "cta_url"),
             "description": "Si le lien est vide, le bouton utilisera WhatsApp du business ou E-Shelle IA.",
         }),
         ("Publication", {

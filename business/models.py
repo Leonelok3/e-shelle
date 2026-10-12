@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+from django.utils.translation import get_language
 from django.utils.text import slugify
 
 
@@ -70,6 +71,7 @@ class BusinessProfile(models.Model):
     )
     module = models.CharField(max_length=30, choices=Module.choices, db_index=True)
     name = models.CharField(max_length=180)
+    name_en = models.CharField(max_length=180, blank=True, verbose_name="Business name (English)")
     slug = models.SlugField(max_length=220, blank=True)
     public_slug = models.SlugField(
         max_length=240,
@@ -85,16 +87,19 @@ class BusinessProfile(models.Model):
     phone = models.CharField(max_length=40, blank=True)
     whatsapp = models.CharField(max_length=40, blank=True)
     description = models.TextField(blank=True)
+    description_en = models.TextField(blank=True, verbose_name="Business description (English)")
     promo_headline = models.CharField(
         max_length=140,
         blank=True,
         help_text="Titre court affiche sur la page d'accueil.",
     )
+    promo_headline_en = models.CharField(max_length=140, blank=True, verbose_name="Promotion headline (English)")
     promo_offer = models.CharField(
         max_length=160,
         blank=True,
         help_text="Offre, phrase d'accroche ou avantage commercial.",
     )
+    promo_offer_en = models.CharField(max_length=160, blank=True, verbose_name="Promotion text (English)")
     promo_image = models.ImageField(
         upload_to="business/promos/",
         blank=True,
@@ -190,12 +195,19 @@ class BusinessProfile(models.Model):
         number = self.clean_whatsapp_number
         if not number:
             return ""
-        message = text or f"Bonjour {self.name}, je viens de E-Shelle."
+        if text:
+            message = text
+        elif get_language() == "en":
+            message = f"Hello {self.display_name}, I found your business on E-Shelle."
+        else:
+            message = f"Bonjour {self.display_name}, je viens de E-Shelle."
         import urllib.parse
         return f"https://wa.me/{number}?text={urllib.parse.quote(message)}"
 
     def share_text(self):
-        return f"Decouvrez {self.name} sur E-Shelle: {self.get_absolute_url()}"
+        if get_language() == "en":
+            return f"Discover {self.display_name} on E-Shelle: {self.get_absolute_url()}"
+        return f"Decouvrez {self.display_name} sur E-Shelle: {self.get_absolute_url()}"
 
     @property
     def subscription_active(self):
@@ -284,6 +296,36 @@ class BusinessProfile(models.Model):
         self.boost_expires_at = base + timedelta(days=days)
         self.save(update_fields=["boost_expires_at", "updated_at"])
 
+    @property
+    def display_name(self):
+        return (self.name_en or self.name) if get_language() == "en" else self.name
+
+    @property
+    def display_description(self):
+        return (self.description_en or self.description) if get_language() == "en" else self.description
+
+    @property
+    def display_promo_headline(self):
+        return (self.promo_headline_en or self.promo_headline) if get_language() == "en" else self.promo_headline
+
+    @property
+    def display_promo_offer(self):
+        return (self.promo_offer_en or self.promo_offer) if get_language() == "en" else self.promo_offer
+
+    @property
+    def display_module(self):
+        if get_language() != "en":
+            return self.get_module_display()
+        return {
+            "resto": "Restaurant", "gaz": "Gas", "pressing": "Laundry",
+            "sante": "Health", "pharma": "Pharmacy", "jobs": "Jobs",
+            "services": "Services", "formation": "Learning", "boutique": "Store",
+            "market": "Marketplace", "agro": "Agriculture", "immobilier": "Real estate",
+            "auto": "Automotive", "transport": "Transport", "njangi": "Njangi",
+            "adgen": "AdGen", "edu": "EduCam Pro", "quincaillerie": "Hardware store",
+            "general": "General",
+        }.get(self.module, self.get_module_display())
+
 
 class BusinessCatalogItem(models.Model):
     """Produit ou service ajoute directement sur une fiche business autonome."""
@@ -302,8 +344,11 @@ class BusinessCatalogItem(models.Model):
     )
     item_type = models.CharField(max_length=20, choices=ItemType.choices, default=ItemType.PRODUCT)
     title = models.CharField(max_length=140)
+    title_en = models.CharField(max_length=140, blank=True, verbose_name="Title (English)")
     description = models.TextField(blank=True)
+    description_en = models.TextField(blank=True, verbose_name="Description (English)")
     price_label = models.CharField(max_length=80, blank=True, help_text="Ex: 2 500 FCFA, Prix a discuter.")
+    price_label_en = models.CharField(max_length=80, blank=True, verbose_name="Price label (English)")
     image = models.ImageField(upload_to="business/catalogue/", blank=True, null=True)
     video_url = models.URLField(max_length=2048, blank=True, null=True, help_text="Lien de la vidéo (Cloudinary, YouTube, TikTok...)")
 
@@ -334,10 +379,31 @@ class BusinessCatalogItem(models.Model):
             return ""
 
     @property
+    def display_title(self):
+        return (self.title_en or self.title) if get_language() == "en" else self.title
+
+    @property
+    def display_description(self):
+        return (self.description_en or self.description) if get_language() == "en" else self.description
+
+    @property
+    def display_price_label(self):
+        return (self.price_label_en or self.price_label) if get_language() == "en" else self.price_label
+
+    @property
+    def display_item_type(self):
+        if get_language() != "en":
+            return self.get_item_type_display()
+        return {
+            "product": "Product", "service": "Service", "menu": "Menu",
+            "delivery": "Delivery", "offer": "Offer",
+        }.get(self.item_type, self.get_item_type_display())
+
+    @property
     def price_numeric(self):
         """Valeur numerique brute du prix, pour les donnees structurees Schema.org.
         Retourne None si le prix n'est pas un montant exploitable (ex: 'Prix a discuter')."""
-        val = (self.price_label or "").strip()
+        val = (self.display_price_label or "").strip()
         if not val:
             return None
         try:
@@ -359,9 +425,9 @@ class BusinessCatalogItem(models.Model):
 
     @property
     def formatted_price(self):
-        val = (self.price_label or "").strip()
+        val = (self.display_price_label or "").strip()
         if not val:
-            return "Prix a discuter"
+            return "Price negotiable" if get_language() == "en" else "Prix a discuter"
         try:
             cleaned = val.replace(" ", "").replace(",", "")
             num_val = float(cleaned)
@@ -375,9 +441,9 @@ class BusinessCatalogItem(models.Model):
     def to_public_item(self):
         return {
             "id": self.id,
-            "type": self.get_item_type_display(),
-            "title": self.title,
-            "description": self.description,
+            "type": self.display_item_type,
+            "title": self.display_title,
+            "description": self.display_description,
             "price": self.formatted_price,
             "price_raw": self.price_schema,
             "image": self.image_url,
@@ -385,7 +451,11 @@ class BusinessCatalogItem(models.Model):
             "video": self.video_url,
             "url": "",
             "contact_url": self.business.whatsapp_url(
-                f"Bonjour {self.business.name}, je suis interesse par {self.title} vu sur E-Shelle."
+                (
+                    f"Hello {self.business.display_name}, I am interested in {self.display_title} on E-Shelle."
+                    if get_language() == "en"
+                    else f"Bonjour {self.business.display_name}, je suis interesse par {self.display_title} vu sur E-Shelle."
+                )
             ),
             "meta": self.business.district or self.business.city,
             "views": self.views_count,
@@ -442,12 +512,14 @@ class ProviderPlan(models.Model):
 
     code = models.CharField(max_length=40, unique=True)
     name = models.CharField(max_length=120)
+    name_en = models.CharField(max_length=120, blank=True, verbose_name="Plan name (English)")
     plan_level = models.CharField(max_length=20, choices=BusinessProfile.Plan.choices)
     monthly_price_xaf = models.PositiveIntegerField(default=0)
     duration_days = models.PositiveIntegerField(default=30)
     included_boost_days = models.PositiveIntegerField(default=0)
     included_ai_credits = models.PositiveIntegerField(default=0)
     description = models.TextField(blank=True)
+    description_en = models.TextField(blank=True, verbose_name="Plan description (English)")
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
 
@@ -460,12 +532,20 @@ class ProviderPlan(models.Model):
         return f"{self.name} - {self.monthly_price_xaf:,} FCFA".replace(",", " ")
 
     @property
+    def display_name(self):
+        return (self.name_en or self.name) if get_language() == "en" else self.name
+
+    @property
+    def display_description(self):
+        return (self.description_en or self.description) if get_language() == "en" else self.description
+
+    @property
     def whatsapp_activation_url(self):
         """Lien WhatsApp pre-rempli pour demander l'activation de ce plan."""
-        text = (
-            f"Bonjour E-Shelle, je veux activer le plan {self.name} "
-            f"({self.monthly_price_xaf:,} FCFA/mois) pour ma fiche business.".replace(",", " ")
-        )
+        if get_language() == "en":
+            text = f"Hello E-Shelle, I want to activate the {self.display_name} plan ({self.monthly_price_xaf:,} XAF/month) for my business profile.".replace(",", " ")
+        else:
+            text = f"Bonjour E-Shelle, je veux activer le plan {self.name} ({self.monthly_price_xaf:,} FCFA/mois) pour ma fiche business.".replace(",", " ")
         return f"https://wa.me/237680625082?text={urllib.parse.quote(text)}"
 
 
@@ -485,13 +565,17 @@ class HomeAdSlide(models.Model):
         help_text="Business premium/business associe au slide.",
     )
     title = models.CharField(max_length=140)
+    title_en = models.CharField(max_length=140, blank=True, verbose_name="Title (English)")
     subtitle = models.CharField(max_length=190, blank=True)
+    subtitle_en = models.CharField(max_length=190, blank=True, verbose_name="Subtitle (English)")
     image = models.ImageField(upload_to="business/home-slides/")
     media_type = models.CharField(max_length=10, choices=MediaType.choices, default=MediaType.IMAGE)
     video = models.FileField(upload_to="business/home-slides/videos/", blank=True, null=True)
     video_url = models.URLField(blank=True, help_text="Lien direct MP4 optionnel si la video n'est pas uploadee.")
     badge = models.CharField(max_length=60, blank=True, default="Premium")
+    badge_en = models.CharField(max_length=60, blank=True, verbose_name="Badge (English)")
     cta_label = models.CharField(max_length=40, blank=True, default="Commander")
+    cta_label_en = models.CharField(max_length=40, blank=True, verbose_name="CTA label (English)")
     cta_url = models.URLField(
         blank=True,
         help_text="Lien de commande. Si vide, E-Shelle utilise WhatsApp ou la recherche IA du business.",
@@ -513,6 +597,22 @@ class HomeAdSlide(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def display_title(self):
+        return (self.title_en or self.title) if get_language() == "en" else self.title
+
+    @property
+    def display_subtitle(self):
+        return (self.subtitle_en or self.subtitle) if get_language() == "en" else self.subtitle
+
+    @property
+    def display_badge(self):
+        return (self.badge_en or self.badge) if get_language() == "en" else self.badge
+
+    @property
+    def display_cta_label(self):
+        return (self.cta_label_en or self.cta_label) if get_language() == "en" else self.cta_label
 
     @property
     def is_live(self):
@@ -1290,9 +1390,11 @@ class AppPromotionSlide(models.Model):
     """Slide pour uploader les affiches Canva de promotion des applications d'E-Shelle."""
 
     title = models.CharField(max_length=150, verbose_name="Titre descriptif (admin)")
+    title_en = models.CharField(max_length=150, blank=True, verbose_name="Title (English)")
     image = models.ImageField(upload_to="business/promo-slides/", verbose_name="Affiche Canva")
     cta_url = models.CharField(max_length=250, blank=True, verbose_name="Lien de l'application (optionnel)")
     cta_label = models.CharField(max_length=100, blank=True, default="Accéder à l'application", verbose_name="Texte du bouton sous l'affiche (optionnel)")
+    cta_label_en = models.CharField(max_length=100, blank=True, verbose_name="Button label (English)")
     is_active = models.BooleanField(default=True, verbose_name="Actif")
     order = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1304,6 +1406,14 @@ class AppPromotionSlide(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def display_title(self):
+        return (self.title_en or self.title) if get_language() == "en" else self.title
+
+    @property
+    def display_cta_label(self):
+        return (self.cta_label_en or self.cta_label) if get_language() == "en" else self.cta_label
 
 
 class PartnerLogo(models.Model):

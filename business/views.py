@@ -600,7 +600,7 @@ def go_business(request, business_id, event_type):
         "order": BusinessLeadEvent.EventType.ORDER,
     }
     event_kind = allowed.get(event_type, BusinessLeadEvent.EventType.DETAIL)
-    target_url = _business_public_target(business, event_kind)
+    target_url = _business_public_target(request, business, event_kind)
     if event_kind != BusinessLeadEvent.EventType.VIEW:
         BusinessProfile.objects.filter(pk=business.pk).update(views_count=F("views_count") + 1)
     event = create_tracking_event(business, event_kind, target_url, source="home")
@@ -626,19 +626,24 @@ def go_slide(request, slide_id):
     return redirect(target_url)
 
 
-def _business_public_target(business, event_kind):
+def _business_public_target(request, business, event_kind):
     if event_kind in {BusinessLeadEvent.EventType.WHATSAPP, BusinessLeadEvent.EventType.ORDER}:
         number = (business.whatsapp or business.phone or "").replace("+", "").replace(" ", "").replace("-", "")
         if number:
             if not number.startswith("237"):
                 number = f"237{number}"
             import urllib.parse
-            text = urllib.parse.quote(f"Bonjour {business.name}, je viens de E-Shelle.")
+            if request.LANGUAGE_CODE == "en":
+                message = f"Hello {business.display_name}, I found your business on E-Shelle."
+            else:
+                message = f"Bonjour {business.display_name}, je viens de E-Shelle."
+            text = urllib.parse.quote(message)
             return f"https://wa.me/{number}?text={text}"
     if business.promo_url:
         return business.promo_url
     import urllib.parse
-    return f"/chat/?q={urllib.parse.quote(f'Je veux contacter {business.name}')}"
+    query = f"I want to contact {business.display_name}" if request.LANGUAGE_CODE == "en" else f"Je veux contacter {business.display_name}"
+    return f"/chat/?q={urllib.parse.quote(query)}"
 
 
 def public_profile(request, public_slug):
@@ -653,8 +658,13 @@ def public_profile(request, public_slug):
         except Exception:
             source_url = ""
     public_url = request.build_absolute_uri(business.get_absolute_url())
-    share_text = f"Decouvrez {business.name} sur E-Shelle: {public_url}"
-    whatsapp_url = business.whatsapp_url(f"Bonjour {business.name}, je viens de votre boutique E-Shelle: {public_url}")
+    if request.LANGUAGE_CODE == "en":
+        share_text = f"Discover {business.display_name} on E-Shelle: {public_url}"
+        whatsapp_message = f"Hello {business.display_name}, I found your E-Shelle business listing: {public_url}"
+    else:
+        share_text = f"Decouvrez {business.display_name} sur E-Shelle: {public_url}"
+        whatsapp_message = f"Bonjour {business.display_name}, je viens de votre boutique E-Shelle: {public_url}"
+    whatsapp_url = business.whatsapp_url(whatsapp_message)
     is_owner = request.user.is_authenticated and business.owner == request.user
     reviews = business.reviews.all() if is_owner else business.approved_reviews
     return render(
@@ -2164,11 +2174,15 @@ def onboarding(request):
         phone = request.POST.get("phone", "").strip()
         whatsapp = request.POST.get("whatsapp", "").strip()
         promo_headline = request.POST.get("promo_headline", "").strip()
+        promo_headline_en = request.POST.get("promo_headline_en", "").strip()
         promo_offer = request.POST.get("promo_offer", "").strip()
+        promo_offer_en = request.POST.get("promo_offer_en", "").strip()
         description = request.POST.get("description", "").strip()
+        name_en = request.POST.get("name_en", "").strip()
+        description_en = request.POST.get("description_en", "").strip()
 
         if not name or not phone:
-            messages.error(request, "Le nom du business et le telephone sont obligatoires.")
+            messages.error(request, "Business name and phone number are required." if request.LANGUAGE_CODE == "en" else "Le nom du business et le telephone sont obligatoires.")
         else:
             affiliate = get_affiliate_by_code(request.session.get("ref_code"))
             if affiliate:
@@ -2177,14 +2191,18 @@ def onboarding(request):
                 owner=request.user,
                 module=module if module in dict(BusinessProfile.Module.choices) else BusinessProfile.Module.GENERAL,
                 name=name,
+                name_en=name_en,
                 country=country,
                 city=city,
                 district=district,
                 phone=phone,
                 whatsapp=whatsapp or phone,
                 promo_headline=promo_headline,
+                promo_headline_en=promo_headline_en,
                 promo_offer=promo_offer,
+                promo_offer_en=promo_offer_en,
                 description=description,
+                description_en=description_en,
                 logo=request.FILES.get("logo"),
                 plan=BusinessProfile.Plan.FREE,
                 is_active=True,
@@ -2284,22 +2302,24 @@ def catalog_manage(request, business_id):
         title = request.POST.get("title", "").strip()
         item_type = request.POST.get("item_type", BusinessCatalogItem.ItemType.PRODUCT)
         description = request.POST.get("description", "").strip()
+        title_en = request.POST.get("title_en", "").strip()
+        description_en = request.POST.get("description_en", "").strip()
         price_label = request.POST.get("price_label", "").strip()
+        price_label_en = request.POST.get("price_label_en", "").strip()
         video_url = request.POST.get("video_url", "").strip()
         order = _positive_int(request.POST.get("order"), 0)
 
         if not title:
-            messages.error(request, "Le nom du produit ou service est obligatoire.")
+            messages.error(request, "A product or service name is required." if request.LANGUAGE_CODE == "en" else "Le nom du produit ou service est obligatoire.")
         else:
             item_limit = business.catalog_item_limit
             if item_limit is not None:
                 existing_count = BusinessCatalogItem.objects.filter(business=business).count()
                 if existing_count >= item_limit:
-                    messages.error(
-                        request,
-                        f"Votre formule actuelle est limitée à {item_limit} produits ou services. "
-                        "Passez à une formule supérieure pour en ajouter plus."
-                    )
+                    if request.LANGUAGE_CODE == "en":
+                        messages.error(request, f"Your current plan allows up to {item_limit} products or services. Upgrade to add more.")
+                    else:
+                        messages.error(request, f"Votre formule actuelle est limitée à {item_limit} produits ou services. Passez à une formule supérieure pour en ajouter plus.")
                     return redirect("business:catalog_manage", business_id=business.id)
 
             if business.plan == BusinessProfile.Plan.FREE:
@@ -2316,8 +2336,11 @@ def catalog_manage(request, business_id):
                     business=business,
                     item_type=item_type,
                     title=title,
+                    title_en=title_en,
                     description=description,
+                    description_en=description_en,
                     price_label=price_label,
+                    price_label_en=price_label_en,
                     image=request.FILES.get("image"),
                     video_url=video_url,
                     order=order,
@@ -2340,7 +2363,7 @@ def catalog_manage(request, business_id):
                 messages.error(request, f"Impossible d'ajouter ce produit au catalogue : {exc}")
                 return redirect("business:catalog_manage", business_id=business.id)
 
-            messages.success(request, "Produit/service ajoute sur la fiche publique.")
+                messages.success(request, "Product/service added to your public profile." if request.LANGUAGE_CODE == "en" else "Produit/service ajoute sur la fiche publique.")
             return redirect("business:catalog_manage", business_id=business.id)
 
     items = business.catalog_items.all()
@@ -2674,14 +2697,19 @@ def business_edit(request, business_id):
         phone = request.POST.get("phone", "").strip()
         whatsapp = request.POST.get("whatsapp", "").strip()
         promo_headline = request.POST.get("promo_headline", "").strip()
+        promo_headline_en = request.POST.get("promo_headline_en", "").strip()
         promo_offer = request.POST.get("promo_offer", "").strip()
+        promo_offer_en = request.POST.get("promo_offer_en", "").strip()
         description = request.POST.get("description", "").strip()
+        name_en = request.POST.get("name_en", "").strip()
+        description_en = request.POST.get("description_en", "").strip()
         promo_url = request.POST.get("promo_url", "").strip()
 
         if not name or not phone:
-            messages.error(request, "Le nom du business et le telephone sont obligatoires.")
+            messages.error(request, "Business name and phone number are required." if request.LANGUAGE_CODE == "en" else "Le nom du business et le telephone sont obligatoires.")
         else:
             business.name = name
+            business.name_en = name_en
             if module in dict(BusinessProfile.Module.choices):
                 business.module = module
             business.city = city
@@ -2689,8 +2717,11 @@ def business_edit(request, business_id):
             business.phone = phone
             business.whatsapp = whatsapp or phone
             business.promo_headline = promo_headline
+            business.promo_headline_en = promo_headline_en
             business.promo_offer = promo_offer
+            business.promo_offer_en = promo_offer_en
             business.description = description
+            business.description_en = description_en
             business.promo_url = promo_url
 
             if "logo" in request.FILES:
@@ -2699,7 +2730,7 @@ def business_edit(request, business_id):
                 business.promo_image = request.FILES["promo_image"]
 
             business.save()
-            messages.success(request, "Votre fiche business a été mise à jour.")
+            messages.success(request, "Your business profile has been updated." if request.LANGUAGE_CODE == "en" else "Votre fiche business a été mise à jour.")
             return redirect(f"/business/dashboard/?business={business.id}")
 
     return render(
@@ -2723,21 +2754,27 @@ def catalog_item_edit(request, business_id, item_id):
         title = request.POST.get("title", "").strip()
         item_type = request.POST.get("item_type", BusinessCatalogItem.ItemType.PRODUCT)
         description = request.POST.get("description", "").strip()
+        title_en = request.POST.get("title_en", "").strip()
+        description_en = request.POST.get("description_en", "").strip()
         price_label = request.POST.get("price_label", "").strip()
+        price_label_en = request.POST.get("price_label_en", "").strip()
         video_url = request.POST.get("video_url", "").strip()
         order = _positive_int(request.POST.get("order"), 0)
 
         delete_images_ids = request.POST.getlist("delete_images")
 
         if not title:
-            messages.error(request, "Le nom du produit ou service est obligatoire.")
+            messages.error(request, "A product or service name is required." if request.LANGUAGE_CODE == "en" else "Le nom du produit ou service est obligatoire.")
         else:
             if item_type not in dict(BusinessCatalogItem.ItemType.choices):
                 item_type = BusinessCatalogItem.ItemType.PRODUCT
             item.title = title
+            item.title_en = title_en
             item.item_type = item_type
             item.description = description
+            item.description_en = description_en
             item.price_label = price_label
+            item.price_label_en = price_label_en
             if business.plan == BusinessProfile.Plan.FREE:
                 item.video_url = ""
             else:
@@ -2771,7 +2808,7 @@ def catalog_item_edit(request, business_id, item_id):
             for img in extra_images:
                 BusinessCatalogItemImage.objects.create(item=item, image=img)
 
-            messages.success(request, "Produit/service mis à jour.")
+            messages.success(request, "Product/service updated." if request.LANGUAGE_CODE == "en" else "Produit/service mis à jour.")
             return redirect("business:catalog_manage", business_id=business.id)
 
     return render(
@@ -2813,31 +2850,45 @@ def catalog_item_generate_description(request, business_id, item_id):
 
     from e_shelle_ai.services.openai_service import EshelleAIService
 
-    prompt = (
-        f"Ecris une description commerciale courte (2 a 3 phrases, en francais, sans emoji excessif) "
-        f"pour ce produit/service vendu sur E-Shelle par '{business.name}' "
-        f"({business.get_module_display()}, {business.city or business.country}) :\n"
-        f"Nom : {item.title}\n"
-        f"Type : {item.get_item_type_display()}\n"
-        f"Prix indicatif : {item.price_label or 'non precise'}\n"
-        f"Reponds uniquement avec la description, sans titre ni guillemets."
-    )
+    is_english = request.LANGUAGE_CODE == "en"
+    if is_english:
+        prompt = (
+            f"Write a short sales description (2–3 sentences, in English, without excessive emojis) "
+            f"for this product/service listed on E-Shelle by '{business.display_name}' "
+            f"({business.display_module}, {business.city or business.country}):\n"
+            f"Name: {item.display_title}\nType: {item.display_item_type}\n"
+            f"Indicative price: {item.display_price_label or 'not specified'}\n"
+            "Return only the description, without a title or quotation marks."
+        )
+    else:
+        prompt = (
+            f"Ecris une description commerciale courte (2 a 3 phrases, en francais, sans emoji excessif) "
+            f"pour ce produit/service vendu sur E-Shelle par '{business.display_name}' "
+            f"({business.display_module}, {business.city or business.country}) :\n"
+            f"Nom : {item.display_title}\nType : {item.display_item_type}\n"
+            f"Prix indicatif : {item.display_price_label or 'non precise'}\n"
+            f"Reponds uniquement avec la description, sans titre ni guillemets."
+        )
     text = EshelleAIService().chat_simple(
         messages=[{"role": "user", "content": prompt}],
-        system_prompt="Tu es un copywriter e-commerce specialise dans les petites entreprises africaines.",
+        system_prompt=(
+            "You are an e-commerce copywriter specializing in small African businesses."
+            if is_english else "Tu es un copywriter e-commerce specialise dans les petites entreprises africaines."
+        ),
         user=request.user,
     )
     if text:
-        item.description = text.strip()
-        item.save(update_fields=["description", "updated_at"])
+        target_field = "description_en" if is_english else "description"
+        setattr(item, target_field, text.strip())
+        item.save(update_fields=[target_field, "updated_at"])
         business.ai_credits -= 1
         business.save(update_fields=["ai_credits", "updated_at"])
-        messages.success(
-            request,
-            f"Description générée par l'IA. Il vous reste {business.ai_credits} crédit(s) IA."
-        )
+        if is_english:
+            messages.success(request, f"AI description generated. You have {business.ai_credits} AI credit(s) left.")
+        else:
+            messages.success(request, f"Description générée par l'IA. Il vous reste {business.ai_credits} crédit(s) IA.")
     else:
-        messages.error(request, "La génération IA a échoué. Réessayez dans un instant.")
+        messages.error(request, "AI generation failed. Please try again." if is_english else "La génération IA a échoué. Réessayez dans un instant.")
     return redirect("business:catalog_item_edit", business_id=business.id, item_id=item.id)
 
 @staff_member_required
