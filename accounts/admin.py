@@ -50,11 +50,12 @@ class AppPlanAdmin(admin.ModelAdmin):
         ("Identité", {
             "fields": ("app_key", "slug", "name", "level", "description")
         }),
+        ("English content", {"fields": ("name_en", "description_en"), "classes": ("collapse",)}),
         ("Tarification", {
             "fields": ("price_xaf", "price_eur", "duration_days", "is_free")
         }),
         ("Fonctionnalités", {
-            "fields": ("features",)
+            "fields": ("features", "features_en")
         }),
         ("Affichage", {
             "fields": ("is_popular", "is_active", "order")

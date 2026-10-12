@@ -16,6 +16,16 @@ from core.whatsapp import payment_request_url
 from core.branding import public_text, request_brand
 
 
+APP_LABELS_EN = {
+    "AdGen — Publicités IA": "AdGen — AI Ads", "E-Shelle Resto": "E-Shelle Restaurant",
+    "E-Shelle Love": "E-Shelle Love", "Njangi Digital": "Njangi Digital",
+    "EduCam Pro": "EduCam Pro", "E-Shelle Allemand (Ausbildung & Goethe)": "E-Shelle German (Vocational Training & Goethe)",
+    "Préparation Français (TEF/TCF)": "French Preparation (TEF/TCF)", "Formations": "Courses",
+    "Boutique": "Digital Store", "E-Shelle Agro": "E-Shelle Agriculture", "E-Shelle Gaz": "E-Shelle Gas",
+    "Auto": "Automotive", "Auto-école": "Driving School", "Toutes les applications": "All applications",
+}
+
+
 class AppLoginView(LoginView):
     template_name = "accounts/login.html"
     authentication_form = LoginForm
@@ -302,7 +312,7 @@ def mon_compte(request):
 
         apps_info.append({
             "key":    key,
-            "label":  label,
+            "label":  APP_LABELS_EN.get(label, label) if request.LANGUAGE_CODE == "en" else label,
             "icon":   APP_ICONS.get(key, "📦"),
             "color":  APP_COLORS.get(key, "#6B7280"),
             "sub":    sub,
@@ -332,7 +342,7 @@ def mon_compte(request):
             profile.avatar = request.FILES["avatar"]
         profile.save()
 
-        messages.success(request, "Profil mis à jour.")
+        messages.success(request, "Profile updated." if request.LANGUAGE_CODE == "en" else "Profil mis à jour.")
         return redirect("accounts:mon_compte")
 
     context = {
@@ -343,6 +353,20 @@ def mon_compte(request):
         "apps_info":   apps_info,
         "stats":       stats,
     }
+    for sub in context["all_subs"]:
+        sub.plan.public_name = (sub.plan.name_en or sub.plan.name) if request.LANGUAGE_CODE == "en" else sub.plan.name
+        sub.plan.public_app_label = APP_LABELS_EN.get(sub.plan.get_app_key_display(), sub.plan.get_app_key_display()) if request.LANGUAGE_CODE == "en" else sub.plan.get_app_key_display()
+    for sub in active_subs.values():
+        sub.plan.public_name = (sub.plan.name_en or sub.plan.name) if request.LANGUAGE_CODE == "en" else sub.plan.name
+        sub.plan.public_app_label = APP_LABELS_EN.get(sub.plan.get_app_key_display(), sub.plan.get_app_key_display()) if request.LANGUAGE_CODE == "en" else sub.plan.get_app_key_display()
+    for payment in payments:
+        if payment.subscription:
+            plan = payment.subscription.plan
+            plan.public_name = (plan.name_en or plan.name) if request.LANGUAGE_CODE == "en" else plan.name
+        payment.public_method = {
+            "orange_money": "Orange Money", "mtn_momo": "MTN Mobile Money", "stripe": "Bank card",
+            "cinetpay": "CinetPay", "manual": "Manual (admin)", "free": "Free",
+        }.get(payment.method, payment.get_method_display()) if request.LANGUAGE_CODE == "en" else payment.get_method_display()
     return render(request, "accounts/mon_compte.html", context)
 
 
@@ -377,6 +401,9 @@ def upgrade(request):
         app_icon  = "🚀"
         app_color = "#6C3FE8"
 
+    if request.LANGUAGE_CODE == "en":
+        app_label = APP_LABELS_EN.get(app_label, app_label)
+
     app_url = f"/{app_key}/" if app_key else "/"
     if app_key == "adgen":
         app_url = "/pub/"
@@ -395,19 +422,21 @@ def upgrade(request):
     # Grouper les plans par app si vue globale
     plans_by_app = {}
     for plan in plans_qs:
-        plan.public_name = public_text(plan.name, request_brand(request))
-        plan.public_features = [public_text(feature, request_brand(request)) for feature in (plan.features or [])]
+        plan.public_name = public_text((plan.name_en or plan.name) if request.LANGUAGE_CODE == "en" else plan.name, request_brand(request))
+        plan.public_description = public_text((plan.description_en or plan.description) if request.LANGUAGE_CODE == "en" else plan.description, request_brand(request))
+        features = (plan.features_en or plan.features) if request.LANGUAGE_CODE == "en" else plan.features
+        plan.public_features = [public_text(feature, request_brand(request)) for feature in (features or [])]
         plan.whatsapp_payment_url = payment_request_url(
             brand=getattr(request, "site_brand", "E-Shelle"),
             service=f"{plan.get_app_key_display()} - {plan.name}",
             amount=plan.price_xaf_formatted,
             user=request.user,
-            details=f"Plan {plan.get_level_display()} pour {plan.duration_days} jours",
+            details=(f"{plan.name_en or plan.name} plan for {plan.duration_days} days" if request.LANGUAGE_CODE == "en" else f"Plan {plan.get_level_display()} pour {plan.duration_days} jours"),
         )
         k = plan.app_key
         if k not in plans_by_app:
             plans_by_app[k] = {
-                "label": plan.get_app_key_display(),
+                "label": APP_LABELS_EN.get(plan.get_app_key_display(), plan.get_app_key_display()) if request.LANGUAGE_CODE == "en" else plan.get_app_key_display(),
                 "icon":  plan.app_icon,
                 "color": plan.app_color,
                 "plans": [],
@@ -444,11 +473,10 @@ def cancel_subscription(request, pk):
             sub.save(update_fields=["status", "auto_renew"])
             messages.success(
                 request,
-                f"Votre abonnement {sub.plan.name} a été annulé. "
-                f"Vous conservez l'accès jusqu'au {sub.expires_at.strftime('%d/%m/%Y') if sub.expires_at else 'terme'}."
+                (f"Your {sub.plan.name_en or sub.plan.name} subscription was cancelled. Access remains available until {sub.expires_at.strftime('%d/%m/%Y') if sub.expires_at else 'the end of the term'}." if request.LANGUAGE_CODE == "en" else f"Votre abonnement {sub.plan.name} a été annulé. Vous conservez l'accès jusqu'au {sub.expires_at.strftime('%d/%m/%Y') if sub.expires_at else 'terme'}." )
             )
         else:
-            messages.warning(request, "Cet abonnement n'est pas actif.")
+            messages.warning(request, "This subscription is not active." if request.LANGUAGE_CODE == "en" else "Cet abonnement n'est pas actif.")
 
     return redirect("accounts:mon_compte")
 

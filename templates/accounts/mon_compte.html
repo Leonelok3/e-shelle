@@ -7,7 +7,7 @@
   {% if request.is_immigration97 %}<link rel="icon" href="{% static 'img/immigration97-logo.png' %}">{% endif %}
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mon Compte — {{ request.site_brand|default:'E-Shelle' }}</title>
+  <title>{% if LANGUAGE_CODE == 'en' %}My account{% else %}Mon Compte{% endif %} — {{ request.site_brand|default:'E-Shelle' }}</title>
   <meta name="description" content="Gérez votre compte, vos abonnements et votre profil {{ request.site_brand|default:'E-Shelle' }}."/>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -124,19 +124,20 @@
         </div>
       </a>
       <div class="hidden md:flex items-center gap-1 ml-4">
-        <a href="/" class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Accueil</a>
-        <a href="{% url 'dashboard:index' %}" class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Dashboard</a>
-        <a href="{% url 'accounts:upgrade' %}" class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Nos offres</a>
+        <a href="/" class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition">{% if LANGUAGE_CODE == 'en' %}Home{% else %}Accueil{% endif %}</a>
+        <a href="{% url 'dashboard:index' %}" class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition">{% if LANGUAGE_CODE == 'en' %}Dashboard{% else %}Dashboard{% endif %}</a>
+        <a href="{% url 'accounts:upgrade' %}" class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition">{% if LANGUAGE_CODE == 'en' %}Plans{% else %}Nos offres{% endif %}</a>
         <a href="{% url 'accounts:activer_code' %}" class="px-3 py-2 rounded-lg text-sm font-medium text-white transition"
-           style="background:linear-gradient(135deg,#1B6534,#2d9a55)">🎟️ Code d'accès</a>
+           style="background:linear-gradient(135deg,#1B6534,#2d9a55)">🎟️ {% if LANGUAGE_CODE == 'en' %}Access code{% else %}Code d'accès{% endif %}</a>
       </div>
       <div class="ml-auto flex items-center gap-3">
+        <form action="{% url 'set_language' %}" method="post" class="flex items-center gap-1">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><select name="language" aria-label="{% if LANGUAGE_CODE == 'en' %}Language{% else %}Langue{% endif %}" onchange="this.form.submit()" class="text-sm border rounded-lg px-2 py-1"><option value="fr"{% if LANGUAGE_CODE == 'fr' %} selected{% endif %}>FR</option><option value="en"{% if LANGUAGE_CODE == 'en' %} selected{% endif %}>EN</option></select></form>
         <span class="hidden sm:block text-sm font-semibold text-gray-600">
           {{ user.get_full_name|default:user.username }}
         </span>
         <a href="{% url 'accounts:logout' %}"
            class="text-sm font-medium text-red-500 hover:text-red-700 transition px-3 py-2 rounded-lg hover:bg-red-50">
-          Déconnexion
+          {% if LANGUAGE_CODE == 'en' %}Sign out{% else %}Déconnexion{% endif %}
         </a>
       </div>
     </div>
@@ -170,12 +171,12 @@
           <div class="flex flex-wrap gap-2 mt-3">
             <span class="text-xs font-semibold px-3 py-1 rounded-full"
                   style="background:rgba(255,255,255,.15)">
-              Membre depuis {{ user.date_joined|date:"M Y" }}
+              {% if LANGUAGE_CODE == 'en' %}Member since{% else %}Membre depuis{% endif %} {{ user.date_joined|date:"M Y" }}
             </span>
             {% if stats.total_subs > 0 %}
             <span class="text-xs font-semibold px-3 py-1 rounded-full"
                   style="background:rgba(245,197,24,.25);color:#F5C518">
-              {{ stats.total_subs }} app{{ stats.total_subs|pluralize }} active{{ stats.total_subs|pluralize }}
+              {% if LANGUAGE_CODE == 'en' %}{{ stats.total_subs }} active app{% if stats.total_subs != 1 %}s{% endif %}{% else %}{{ stats.total_subs }} app{{ stats.total_subs|pluralize }} active{{ stats.total_subs|pluralize }}{% endif %}
             </span>
             {% endif %}
           </div>
@@ -184,17 +185,17 @@
         <div class="grid grid-cols-3 gap-3 sm:gap-4 flex-shrink-0">
           <div class="glass px-4 py-3 text-center">
             <div class="text-2xl font-black">{{ stats.total_subs }}</div>
-            <div class="text-white/60 text-xs mt-0.5">Abonnements</div>
+            <div class="text-white/60 text-xs mt-0.5">{% if LANGUAGE_CODE == 'en' %}Subscriptions{% else %}Abonnements{% endif %}</div>
           </div>
           <div class="glass px-4 py-3 text-center">
             <div class="text-2xl font-black text-yellow-300">{{ stats.paid_subs }}</div>
-            <div class="text-white/60 text-xs mt-0.5">Payants</div>
+            <div class="text-white/60 text-xs mt-0.5">{% if LANGUAGE_CODE == 'en' %}Paid{% else %}Payants{% endif %}</div>
           </div>
           <div class="glass px-4 py-3 text-center">
             <div class="text-2xl font-black text-green-300">
               {% if stats.total_spent > 0 %}{{ stats.total_spent|floatformat:0 }}{% else %}0{% endif %}
             </div>
-            <div class="text-white/60 text-xs mt-0.5">FCFA dépensés</div>
+            <div class="text-white/60 text-xs mt-0.5">{% if LANGUAGE_CODE == 'en' %}XAF spent{% else %}FCFA dépensés{% endif %}</div>
           </div>
         </div>
       </div>
@@ -208,19 +209,19 @@
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3 mb-6 overflow-x-auto">
       <div class="flex gap-1.5 min-w-max">
         <button class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold text-gray-600" onclick="showTab('apps', this)">
-          🚀 Mes applications
+          🚀 {% if LANGUAGE_CODE == 'en' %}My apps{% else %}Mes applications{% endif %}
         </button>
         <button class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-gray-600" onclick="showTab('subscriptions', this)">
-          📋 Abonnements
+          📋 {% if LANGUAGE_CODE == 'en' %}Subscriptions{% else %}Abonnements{% endif %}
         </button>
         <button class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-gray-600" onclick="showTab('payments', this)">
-          💳 Paiements
+          💳 {% if LANGUAGE_CODE == 'en' %}Payments{% else %}Paiements{% endif %}
         </button>
         <button class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-gray-600" onclick="showTab('profile', this)">
-          👤 Mon profil
+          👤 {% if LANGUAGE_CODE == 'en' %}My profile{% else %}Mon profil{% endif %}
         </button>
         <button class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-gray-600" onclick="showTab('security', this)">
-          🔒 Sécurité
+          🔒 {% if LANGUAGE_CODE == 'en' %}Security{% else %}Sécurité{% endif %}
         </button>
       </div>
     </div>
@@ -228,11 +229,11 @@
     <!-- ═══ TAB: MES APPLICATIONS ═══════════════════════════════════ -->
     <div class="tab-pane active" id="tab-apps">
       <div class="mb-4 flex items-center justify-between">
-        <h2 class="text-lg font-bold text-gray-800">Applications {{ request.site_brand|default:'E-Shelle' }}</h2>
+        <h2 class="text-lg font-bold text-gray-800">{% if LANGUAGE_CODE == 'en' %}{{ request.site_brand|default:'E-Shelle' }} Applications{% else %}Applications {{ request.site_brand|default:'E-Shelle' }}{% endif %}</h2>
         <a href="{% url 'accounts:upgrade' %}"
            class="text-sm font-semibold px-4 py-2 rounded-xl text-white shadow-sm transition hover:opacity-90"
            style="background:linear-gradient(135deg,#1B6534,#2d9a55)">
-          Découvrir les offres
+          {% if LANGUAGE_CODE == 'en' %}Explore plans{% else %}Découvrir les offres{% endif %}
         </a>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -250,11 +251,11 @@
           </div>
           <h3 class="font-bold text-gray-800 text-sm mb-1">{{ app.label }}</h3>
           {% if app.sub %}
-          <p class="text-xs text-gray-500 mb-1">{{ app.sub.plan.name|public_brand:request }}</p>
+          <p class="text-xs text-gray-500 mb-1">{{ app.sub.plan.public_name|default:app.sub.plan.name|public_brand:request }}</p>
           {% if app.sub.days_remaining is not None %}
           <div class="mt-2 mb-3">
             <div class="flex justify-between text-xs text-gray-400 mb-1">
-              <span>Expire dans</span>
+              <span>{% if LANGUAGE_CODE == 'en' %}Expires in{% else %}Expire dans{% endif %}</span>
               <span class="font-semibold {% if app.sub.is_expiring_soon %}text-amber-600{% else %}text-gray-600{% endif %}">
                 {{ app.sub.days_remaining }}j
               </span>
@@ -268,7 +269,7 @@
           </div>
           {% endif %}
           {% else %}
-          <p class="text-xs text-gray-400 mb-3">Aucun abonnement actif</p>
+          <p class="text-xs text-gray-400 mb-3">{% if LANGUAGE_CODE == 'en' %}No active subscription{% else %}Aucun abonnement actif{% endif %}</p>
           {% endif %}
           <div class="flex gap-2 mt-auto">
             <!-- Lien vers l'app -->
@@ -292,7 +293,7 @@
     <!-- ═══ TAB: ABONNEMENTS ════════════════════════════════════════ -->
     <div class="tab-pane" id="tab-subscriptions">
       <div class="mb-4 flex items-center justify-between">
-        <h2 class="text-lg font-bold text-gray-800">Mes abonnements</h2>
+        <h2 class="text-lg font-bold text-gray-800">{% if LANGUAGE_CODE == 'en' %}My subscriptions{% else %}Mes abonnements{% endif %}</h2>
         <a href="{% url 'accounts:upgrade' %}"
            class="text-sm font-semibold px-4 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition">
           + Ajouter une app
@@ -304,11 +305,11 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
-              <th class="px-5 py-3.5 text-left font-semibold">Application / Plan</th>
-              <th class="px-4 py-3.5 text-left font-semibold">Statut</th>
-              <th class="px-4 py-3.5 text-left font-semibold hidden sm:table-cell">Début</th>
-              <th class="px-4 py-3.5 text-left font-semibold hidden sm:table-cell">Expiration</th>
-              <th class="px-4 py-3.5 text-left font-semibold hidden md:table-cell">Prix</th>
+              <th class="px-5 py-3.5 text-left font-semibold">{% if LANGUAGE_CODE == 'en' %}App / Plan{% else %}Application / Plan{% endif %}</th>
+              <th class="px-4 py-3.5 text-left font-semibold">{% if LANGUAGE_CODE == 'en' %}Status{% else %}Statut{% endif %}</th>
+              <th class="px-4 py-3.5 text-left font-semibold hidden sm:table-cell">{% if LANGUAGE_CODE == 'en' %}Start{% else %}Début{% endif %}</th>
+              <th class="px-4 py-3.5 text-left font-semibold hidden sm:table-cell">{% if LANGUAGE_CODE == 'en' %}Expiry{% else %}Expiration{% endif %}</th>
+              <th class="px-4 py-3.5 text-left font-semibold hidden md:table-cell">{% if LANGUAGE_CODE == 'en' %}Price{% else %}Prix{% endif %}</th>
               <th class="px-5 py-3.5"></th>
             </tr>
           </thead>
@@ -319,18 +320,18 @@
                 <div class="flex items-center gap-3">
                   <span class="text-xl">{{ sub.plan.app_icon }}</span>
                   <div>
-                    <div class="font-semibold text-gray-800">{{ sub.plan.name|public_brand:request }}</div>
-                    <div class="text-xs text-gray-400">{{ sub.plan.get_app_key_display }}</div>
+                    <div class="font-semibold text-gray-800">{{ sub.plan.public_name|default:sub.plan.name|public_brand:request }}</div>
+                    <div class="text-xs text-gray-400">{{ sub.plan.public_app_label|default:sub.plan.get_app_key_display }}</div>
                   </div>
                 </div>
               </td>
               <td class="px-4 py-3.5">
                 <span class="text-xs font-bold px-2.5 py-1 rounded-full badge-{{ sub.status }}">
-                  {{ sub.get_status_display }}
+                  {% if LANGUAGE_CODE == 'en' %}{% if sub.status == 'trial' %}Free trial{% elif sub.status == 'active' %}Active{% elif sub.status == 'expired' %}Expired{% elif sub.status == 'cancelled' %}Cancelled{% elif sub.status == 'pending' %}Pending{% endif %}{% else %}{{ sub.get_status_display }}{% endif %}
                 </span>
                 {% if sub.is_expiring_soon and sub.is_active %}
                 <div class="text-xs text-amber-600 font-semibold mt-1">
-                  Expire dans {{ sub.days_remaining }}j
+                  {% if LANGUAGE_CODE == 'en' %}Expires in{% else %}Expire dans{% endif %} {{ sub.days_remaining }}j
                 </div>
                 {% endif %}
               </td>
@@ -343,7 +344,7 @@
                   {{ sub.expires_at|date:"d/m/Y" }}
                 </span>
                 {% else %}
-                <span class="text-green-600 font-semibold">Illimité</span>
+                <span class="text-green-600 font-semibold">{% if LANGUAGE_CODE == 'en' %}Unlimited{% else %}Illimité{% endif %}</span>
                 {% endif %}
               </td>
               <td class="px-4 py-3.5 text-xs font-semibold hidden md:table-cell">
@@ -353,7 +354,7 @@
                 {% if sub.is_active and sub.plan.price_xaf > 0 %}
                 <button onclick="confirmCancel({{ sub.pk }}, '{{ sub.plan.name|escapejs|public_brand:request }}')"
                         class="text-xs text-red-500 hover:text-red-700 font-medium hover:underline">
-                  Annuler
+                  {% if LANGUAGE_CODE == 'en' %}Cancel{% else %}Annuler{% endif %}
                 </button>
                 {% elif not sub.is_active %}
                 <a href="{% url 'accounts:upgrade' %}?app={{ sub.plan.app_key }}"
@@ -371,12 +372,12 @@
       {% else %}
       <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
         <div class="text-5xl mb-4">📭</div>
-        <h3 class="text-lg font-bold text-gray-700 mb-2">Aucun abonnement</h3>
-        <p class="text-gray-400 text-sm mb-6">Explorez nos applications et choisissez ce qui vous convient.</p>
+        <h3 class="text-lg font-bold text-gray-700 mb-2">{% if LANGUAGE_CODE == 'en' %}No subscriptions{% else %}Aucun abonnement{% endif %}</h3>
+        <p class="text-gray-400 text-sm mb-6">{% if LANGUAGE_CODE == 'en' %}Explore our apps and choose what works for you.{% else %}Explorez nos applications et choisissez ce qui vous convient.{% endif %}</p>
         <a href="{% url 'accounts:upgrade' %}"
            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white"
            style="background:linear-gradient(135deg,#1B6534,#2d9a55)">
-          Découvrir les offres
+          {% if LANGUAGE_CODE == 'en' %}Explore plans{% else %}Découvrir les offres{% endif %}
         </a>
       </div>
       {% endif %}
@@ -386,7 +387,7 @@
         <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">🎟️</div>
         <div class="flex-1 min-w-0">
           <h3 class="font-bold text-green-900 text-sm">Vous avez un code d'accès ?</h3>
-          <p class="text-xs text-green-700 mt-0.5">Activez-le pour débloquer vos applications instantanément.</p>
+          <p class="text-xs text-green-700 mt-0.5">{% if LANGUAGE_CODE == 'en' %}Activate it to unlock your apps instantly.{% else %}Activez-le pour débloquer vos applications instantanément.{% endif %}</p>
         </div>
         <a href="{% url 'accounts:activer_code' %}"
            class="flex-shrink-0 text-sm font-bold px-4 py-2.5 rounded-xl text-white transition hover:opacity-90 shadow-sm"
@@ -398,21 +399,21 @@
       <!-- Modal annulation -->
       <div id="cancelModal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
-          <h3 class="text-lg font-bold text-gray-900 mb-2">Annuler l'abonnement</h3>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">{% if LANGUAGE_CODE == 'en' %}Cancel subscription{% else %}Annuler l'abonnement{% endif %}</h3>
           <p class="text-gray-500 text-sm mb-6" id="cancelMsg">
-            Êtes-vous sûr(e) de vouloir annuler cet abonnement ?
-            Vous conserverez l'accès jusqu'à la fin de la période payée.
+            {% if LANGUAGE_CODE == 'en' %}Are you sure you want to cancel this subscription?{% else %}Êtes-vous sûr(e) de vouloir annuler cet abonnement ?{% endif %}
+            {% if LANGUAGE_CODE == 'en' %}You will keep access until the end of the paid period.{% else %}Vous conserverez l'accès jusqu'à la fin de la période payée.{% endif %}
           </p>
           <div class="flex gap-3">
             <button onclick="closeCancelModal()"
                     class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50">
-              Annuler
+              {% if LANGUAGE_CODE == 'en' %}Cancel{% else %}Annuler{% endif %}
             </button>
             <form id="cancelForm" method="post" class="flex-1">
               {% csrf_token %}
               <button type="submit"
                       class="w-full px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600">
-                Confirmer
+                {% if LANGUAGE_CODE == 'en' %}Confirm{% else %}Confirmer{% endif %}
               </button>
             </form>
           </div>
@@ -422,17 +423,17 @@
 
     <!-- ═══ TAB: PAIEMENTS ══════════════════════════════════════════ -->
     <div class="tab-pane" id="tab-payments">
-      <h2 class="text-lg font-bold text-gray-800 mb-4">Historique des paiements</h2>
+      <h2 class="text-lg font-bold text-gray-800 mb-4">{% if LANGUAGE_CODE == 'en' %}Payment history{% else %}Historique des paiements{% endif %}</h2>
 
       {% if payments %}
       <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
-              <th class="px-5 py-3.5 text-left font-semibold">Description</th>
-              <th class="px-4 py-3.5 text-left font-semibold hidden sm:table-cell">Méthode</th>
-              <th class="px-4 py-3.5 text-left font-semibold">Montant</th>
-              <th class="px-4 py-3.5 text-center font-semibold">Statut</th>
+              <th class="px-5 py-3.5 text-left font-semibold">{% if LANGUAGE_CODE == 'en' %}Description{% else %}Description{% endif %}</th>
+              <th class="px-4 py-3.5 text-left font-semibold hidden sm:table-cell">{% if LANGUAGE_CODE == 'en' %}Method{% else %}Méthode{% endif %}</th>
+              <th class="px-4 py-3.5 text-left font-semibold">{% if LANGUAGE_CODE == 'en' %}Amount{% else %}Montant{% endif %}</th>
+              <th class="px-4 py-3.5 text-center font-semibold">{% if LANGUAGE_CODE == 'en' %}Status{% else %}Statut{% endif %}</th>
               <th class="px-4 py-3.5 text-right font-semibold hidden sm:table-cell">Date</th>
             </tr>
           </thead>
@@ -441,11 +442,11 @@
             <tr class="hover:bg-gray-50/60 transition">
               <td class="px-5 py-3.5">
                 <div class="font-medium text-gray-800">
-                  {% if p.subscription %}{{ p.subscription.plan.name|public_brand:request }}{% else %}{{ p.description|truncatechars:40 }}{% endif %}
+                  {% if p.subscription %}{{ p.subscription.plan.public_name|default:p.subscription.plan.name|public_brand:request }}{% else %}{{ p.description|truncatechars:40 }}{% endif %}
                 </div>
                 <div class="text-xs text-gray-400 font-mono">{{ p.reference|truncatechars:24 }}</div>
               </td>
-              <td class="px-4 py-3.5 text-gray-500 text-xs hidden sm:table-cell">{{ p.get_method_display }}</td>
+              <td class="px-4 py-3.5 text-gray-500 text-xs hidden sm:table-cell">{{ p.public_method|default:p.get_method_display }}</td>
               <td class="px-4 py-3.5 font-bold text-gray-800">{{ p.amount_formatted }}</td>
               <td class="px-4 py-3.5 text-center">
                 <span class="text-xs font-bold px-2.5 py-1 rounded-full
@@ -453,7 +454,7 @@
                   {% elif p.status == 'failed' %}badge-expired
                   {% elif p.status == 'pending' %}badge-pending
                   {% else %}badge-cancelled{% endif %}">
-                  {{ p.get_status_display }}
+                  {% if LANGUAGE_CODE == 'en' %}{% if p.status == 'pending' %}Pending{% elif p.status == 'success' %}Successful{% elif p.status == 'failed' %}Failed{% elif p.status == 'refunded' %}Refunded{% endif %}{% else %}{{ p.get_status_display }}{% endif %}
                 </span>
               </td>
               <td class="px-4 py-3.5 text-right text-xs text-gray-400 hidden sm:table-cell">
@@ -467,8 +468,8 @@
       {% else %}
       <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
         <div class="text-5xl mb-4">💳</div>
-        <h3 class="text-lg font-bold text-gray-700 mb-2">Aucun paiement encore</h3>
-        <p class="text-gray-400 text-sm">Vos transactions apparaîtront ici.</p>
+        <h3 class="text-lg font-bold text-gray-700 mb-2">{% if LANGUAGE_CODE == 'en' %}No payments yet{% else %}Aucun paiement encore{% endif %}</h3>
+        <p class="text-gray-400 text-sm">{% if LANGUAGE_CODE == 'en' %}Your transactions will appear here.{% else %}Vos transactions apparaîtront ici.{% endif %}</p>
       </div>
       {% endif %}
     </div>
@@ -479,51 +480,51 @@
         <!-- Formulaire -->
         <div class="lg:col-span-2">
           <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
-            <h2 class="text-lg font-bold text-gray-800 mb-6">Informations personnelles</h2>
+            <h2 class="text-lg font-bold text-gray-800 mb-6">{% if LANGUAGE_CODE == 'en' %}Personal information{% else %}Informations personnelles{% endif %}</h2>
             <form method="post" enctype="multipart/form-data">
               {% csrf_token %}
               <input type="hidden" name="save_profile" value="1"/>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-1.5">Prénom</label>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1.5">{% if LANGUAGE_CODE == 'en' %}First name{% else %}Prénom{% endif %}</label>
                   <input type="text" name="first_name" class="form-field"
-                         value="{{ user.first_name }}" placeholder="Votre prénom"/>
+                         value="{{ user.first_name }}" placeholder="{% if LANGUAGE_CODE == 'en' %}Your first name{% else %}Votre prénom{% endif %}"/>
                 </div>
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nom</label>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1.5">{% if LANGUAGE_CODE == 'en' %}Last name{% else %}Nom{% endif %}</label>
                   <input type="text" name="last_name" class="form-field"
-                         value="{{ user.last_name }}" placeholder="Votre nom"/>
+                         value="{{ user.last_name }}" placeholder="{% if LANGUAGE_CODE == 'en' %}Your last name{% else %}Votre nom{% endif %}"/>
                 </div>
               </div>
               <div class="mb-5">
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
                 <input type="email" name="email" class="form-field"
-                       value="{{ user.email }}" placeholder="votre@email.com"/>
+                       value="{{ user.email }}" placeholder="{% if LANGUAGE_CODE == 'en' %}you@email.com{% else %}votre@email.com{% endif %}"/>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-1.5">Téléphone</label>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1.5">{% if LANGUAGE_CODE == 'en' %}Phone{% else %}Téléphone{% endif %}</label>
                   <input type="text" name="telephone" class="form-field"
                          value="{{ profile.telephone }}" placeholder="+237 6XX XXX XXX"/>
                 </div>
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-1.5">Ville</label>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1.5">{% if LANGUAGE_CODE == 'en' %}City{% else %}Ville{% endif %}</label>
                   <input type="text" name="ville" class="form-field"
-                         value="{{ profile.ville }}" placeholder="Douala, Yaoundé…"/>
+                         value="{{ profile.ville }}" placeholder="{% if LANGUAGE_CODE == 'en' %}Douala, Yaoundé…{% else %}Douala, Yaoundé…{% endif %}"/>
                 </div>
               </div>
               <div class="mb-5">
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Pays</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">{% if LANGUAGE_CODE == 'en' %}Country{% else %}Pays{% endif %}</label>
                 <input type="text" name="pays" class="form-field"
-                       value="{{ profile.pays|default:'Cameroun' }}" placeholder="Cameroun"/>
+                       value="{% if profile.pays %}{{ profile.pays }}{% elif LANGUAGE_CODE == 'en' %}Cameroon{% else %}Cameroun{% endif %}" placeholder="{% if LANGUAGE_CODE == 'en' %}Cameroon{% else %}Cameroun{% endif %}"/>
               </div>
               <div class="mb-6">
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Bio</label>
                 <textarea name="bio" rows="3" class="form-field resize-none"
-                          placeholder="Parlez de vous…">{{ profile.bio }}</textarea>
+                          placeholder="{% if LANGUAGE_CODE == 'en' %}Tell us about yourself…{% else %}Parlez de vous…{% endif %}">{{ profile.bio }}</textarea>
               </div>
               <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Photo de profil</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">{% if LANGUAGE_CODE == 'en' %}Profile photo{% else %}Photo de profil{% endif %}</label>
                 <input type="file" name="avatar" accept="image/*"
                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:text-white cursor-pointer"
                        style="--tw-file-bg:#1B6534"/>
@@ -531,7 +532,7 @@
               <button type="submit"
                       class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-white shadow-sm hover:opacity-90 transition"
                       style="background:linear-gradient(135deg,#1B6534,#2d9a55)">
-                Enregistrer les modifications
+                {% if LANGUAGE_CODE == 'en' %}Save changes{% else %}Enregistrer les modifications{% endif %}
               </button>
             </form>
           </div>
@@ -540,29 +541,29 @@
         <!-- Sidebar infos -->
         <div class="space-y-4">
           <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <h3 class="font-bold text-gray-800 mb-4 text-sm">Informations du compte</h3>
+            <h3 class="font-bold text-gray-800 mb-4 text-sm">{% if LANGUAGE_CODE == 'en' %}Account information{% else %}Informations du compte{% endif %}</h3>
             <dl class="space-y-3 text-sm">
               <div class="flex justify-between">
-                <dt class="text-gray-500">Nom d'utilisateur</dt>
+                <dt class="text-gray-500">{% if LANGUAGE_CODE == 'en' %}Username{% else %}Nom d'utilisateur{% endif %}</dt>
                 <dd class="font-semibold text-gray-800 font-mono">{{ user.username }}</dd>
               </div>
               <div class="flex justify-between">
-                <dt class="text-gray-500">Rôle</dt>
-                <dd class="font-semibold text-gray-800">{{ user.get_role_display }}</dd>
+                <dt class="text-gray-500">{% if LANGUAGE_CODE == 'en' %}Role{% else %}Rôle{% endif %}</dt>
+                <dd class="font-semibold text-gray-800">{% if LANGUAGE_CODE == 'en' %}{% if user.role == 'CLIENT' %}Business owner{% elif user.role == 'STUDENT' %}Learner{% elif user.role == 'TEACHER' %}Teacher{% elif user.role == 'ADMIN' %}Administrator{% else %}{{ user.get_role_display }}{% endif %}{% else %}{{ user.get_role_display }}{% endif %}</dd>
               </div>
               <div class="flex justify-between">
-                <dt class="text-gray-500">Inscription</dt>
+                <dt class="text-gray-500">{% if LANGUAGE_CODE == 'en' %}Joined{% else %}Inscription{% endif %}</dt>
                 <dd class="font-semibold text-gray-800">{{ user.date_joined|date:"d/m/Y" }}</dd>
               </div>
               <div class="flex justify-between">
-                <dt class="text-gray-500">Dernière connexion</dt>
+                <dt class="text-gray-500">{% if LANGUAGE_CODE == 'en' %}Last sign-in{% else %}Dernière connexion{% endif %}</dt>
                 <dd class="font-semibold text-gray-800">{{ user.last_login|date:"d/m/Y H:i"|default:"—" }}</dd>
               </div>
             </dl>
           </div>
 
           <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <h3 class="font-bold text-gray-800 mb-3 text-sm">Avatar actuel</h3>
+            <h3 class="font-bold text-gray-800 mb-3 text-sm">{% if LANGUAGE_CODE == 'en' %}Current avatar{% else %}Avatar actuel{% endif %}</h3>
             {% if profile.avatar %}
             <img src="{{ profile.avatar.url }}" alt="Avatar"
                  class="w-20 h-20 rounded-2xl object-cover border border-gray-100"/>
@@ -581,7 +582,7 @@
     <!-- ═══ TAB: SÉCURITÉ ═══════════════════════════════════════════ -->
     <div class="tab-pane" id="tab-security">
       <div class="max-w-2xl">
-        <h2 class="text-lg font-bold text-gray-800 mb-6">Sécurité du compte</h2>
+        <h2 class="text-lg font-bold text-gray-800 mb-6">{% if LANGUAGE_CODE == 'en' %}Account security{% else %}Sécurité du compte{% endif %}</h2>
 
         <!-- Changer mot de passe -->
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
@@ -589,14 +590,14 @@
             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
                  style="background:#dcfce7">🔑</div>
             <div class="flex-1">
-              <h3 class="font-bold text-gray-800 mb-1">Mot de passe</h3>
+              <h3 class="font-bold text-gray-800 mb-1">{% if LANGUAGE_CODE == 'en' %}Password{% else %}Mot de passe{% endif %}</h3>
               <p class="text-sm text-gray-500 mb-4">
-                Utilisez un mot de passe fort d'au moins 12 caractères.
+                {% if LANGUAGE_CODE == 'en' %}Use a strong password with at least 12 characters.{% else %}Utilisez un mot de passe fort d'au moins 12 caractères.{% endif %}
               </p>
               <a href="{% url 'accounts:password_change' %}"
                  class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
                  style="background:linear-gradient(135deg,#1B6534,#2d9a55)">
-                Changer le mot de passe
+                {% if LANGUAGE_CODE == 'en' %}Change password{% else %}Changer le mot de passe{% endif %}
               </a>
             </div>
           </div>
@@ -607,19 +608,19 @@
           <div class="flex items-start gap-4">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 bg-red-50">⚠️</div>
             <div class="flex-1">
-              <h3 class="font-bold text-gray-800 mb-1">Zone dangereuse</h3>
+              <h3 class="font-bold text-gray-800 mb-1">{% if LANGUAGE_CODE == 'en' %}Danger zone{% else %}Zone dangereuse{% endif %}</h3>
               <p class="text-sm text-gray-500 mb-4">
                 Ces actions sont irréversibles. Procédez avec prudence.
               </p>
               <div class="space-y-3">
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                   <div>
-                    <div class="text-sm font-semibold text-gray-700">Déconnexion partout</div>
-                    <div class="text-xs text-gray-400">Déconnecte tous vos appareils actifs</div>
+                    <div class="text-sm font-semibold text-gray-700">{% if LANGUAGE_CODE == 'en' %}Sign out everywhere{% else %}Déconnexion partout{% endif %}</div>
+                    <div class="text-xs text-gray-400">{% if LANGUAGE_CODE == 'en' %}Sign out of all your active devices{% else %}Déconnecte tous vos appareils actifs{% endif %}</div>
                   </div>
                   <a href="{% url 'accounts:logout' %}"
                      class="text-sm font-bold px-4 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition">
-                    Déconnecter
+                    {% if LANGUAGE_CODE == 'en' %}Sign out{% else %}Déconnecter{% endif %}
                   </a>
                 </div>
               </div>
@@ -631,8 +632,8 @@
         <div class="mt-4 bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
           <span class="text-xl flex-shrink-0">ℹ️</span>
           <div class="text-sm text-blue-700">
-            <strong>Email vérifié :</strong> {{ user.email }}<br>
-            Pour changer votre email, modifiez-le dans l'onglet Profil et contactez le support pour re-vérification.
+            <strong>{% if LANGUAGE_CODE == 'en' %}Verified email:{% else %}Email vérifié :{% endif %}</strong> {{ user.email }}<br>
+            {% if LANGUAGE_CODE == 'en' %}To change your email, edit it in the Profile tab and contact support to verify it again.{% else %}Pour changer votre email, modifiez-le dans l'onglet Profil et contactez le support pour re-vérification.{% endif %}
           </div>
         </div>
       </div>
@@ -644,7 +645,7 @@
   <footer class="border-t border-gray-100 bg-white mt-16 py-6 text-center text-sm text-gray-400">
     <p>
       <span class="font-bold" style="color:var(--brand-primary)">{{ request.site_brand|default:'E-Shelle' }}</span>
-      &mdash; Plateforme SaaS africaine &bull; Made in Cameroun 🇨🇲
+      &mdash; {% if LANGUAGE_CODE == 'en' %}African SaaS platform{% else %}Plateforme SaaS africaine{% endif %} &bull; Made in Cameroun 🇨🇲
     </p>
   </footer>
 
@@ -674,7 +675,7 @@
   // ── Cancel subscription modal ────────────────────────────────
   function confirmCancel(pk, planName) {
     document.getElementById('cancelMsg').textContent =
-      `Annuler "${planName}" ? Vous conserverez l'accès jusqu'à la fin de la période payée.`;
+      `{% if LANGUAGE_CODE == 'en' %}Cancel{% else %}Annuler{% endif %} "${planName}" ? {% if LANGUAGE_CODE == 'en' %}You will keep access until the end of the paid period.{% else %}Vous conserverez l'accès jusqu'à la fin de la période payée.{% endif %}`;
     document.getElementById('cancelForm').action =
       `/accounts/abonnement/${pk}/annuler/`;
     const modal = document.getElementById('cancelModal');

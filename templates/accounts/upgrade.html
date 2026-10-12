@@ -7,7 +7,7 @@
   {% if request.is_immigration97 %}<link rel="icon" href="{% static 'img/immigration97-logo.png' %}">{% endif %}
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{% if app_key %}{{ app_icon }} {{ app_label }} — Offres{% else %}Nos offres {{ request.site_brand|default:'E-Shelle' }}{% endif %}</title>
+  <title>{% if app_key %}{{ app_icon }} {{ app_label }} — {% if LANGUAGE_CODE == 'en' %}Plans{% else %}Offres{% endif %}{% else %}{% if LANGUAGE_CODE == 'en' %}Plans{% else %}Nos offres{% endif %} {{ request.site_brand|default:'E-Shelle' }}{% endif %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -29,9 +29,9 @@
 <body class="bg-gray-50 antialiased min-h-screen" style="--app-color:{{ app_color }}">
 {% if app_key == 'adgen' %}
 <section style="padding:20px;text-align:center;background:#f3e8ff;color:#3b0764">
-  <strong>Découvrez AdGen avec 3 utilisations gratuites par compte.</strong>
-  <p>Connectez-vous pour essayer. Si vos essais sont épuisés, choisissez une offre ci-dessous.</p>
-  <a href="/pub/" style="display:inline-block;padding:12px 20px;background:#6c3fe8;color:white;border-radius:12px">Accéder à mon essai AdGen</a>
+  <strong>{% if LANGUAGE_CODE == 'en' %}Discover AdGen with 3 free uses per account.{% else %}Découvrez AdGen avec 3 utilisations gratuites par compte.{% endif %}</strong>
+  <p>{% if LANGUAGE_CODE == 'en' %}Sign in to try it. If you have used all free trials, choose a plan below.{% else %}Connectez-vous pour essayer. Si vos essais sont épuisés, choisissez une offre ci-dessous.{% endif %}</p>
+  <a href="/pub/" style="display:inline-block;padding:12px 20px;background:#6c3fe8;color:white;border-radius:12px">{% if LANGUAGE_CODE == 'en' %}Open my AdGen trial{% else %}Accéder à mon essai AdGen{% endif %}</a>
 </section>
 {% endif %}
 
@@ -45,16 +45,17 @@
         <span class="font-black text-gray-900 text-lg">{% if request.is_immigration97 %}Immigration97{% else %}E<span style="color:#1B6534">-Shelle</span>{% endif %}</span>
       </a>
       <div class="ml-auto flex items-center gap-3">
+        <form action="{% url 'set_language' %}" method="post" class="flex items-center gap-1">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><select name="language" aria-label="{% if LANGUAGE_CODE == 'en' %}Language{% else %}Langue{% endif %}" onchange="this.form.submit()" class="text-sm border rounded-lg px-2 py-1"><option value="fr"{% if LANGUAGE_CODE == 'fr' %} selected{% endif %}>FR</option><option value="en"{% if LANGUAGE_CODE == 'en' %} selected{% endif %}>EN</option></select></form>
         {% if user.is_authenticated %}
         <a href="{% url 'accounts:mon_compte' %}"
            class="text-sm font-semibold px-4 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition">
-          Mon Compte
+          {% if LANGUAGE_CODE == 'en' %}My account{% else %}Mon Compte{% endif %}
         </a>
         {% else %}
-        <a href="{% url 'accounts:login' %}" class="text-sm font-medium text-gray-600 hover:text-gray-900">Connexion</a>
+        <a href="{% url 'accounts:login' %}" class="text-sm font-medium text-gray-600 hover:text-gray-900">{% if LANGUAGE_CODE == 'en' %}Sign in{% else %}Connexion{% endif %}</a>
         <a href="{% url 'accounts:register' %}"
            class="text-sm font-bold px-4 py-2 rounded-xl text-white"
-           style="background:linear-gradient(135deg,#1B6534,#2d9a55)">S'inscrire</a>
+           style="background:linear-gradient(135deg,#1B6534,#2d9a55)">{% if LANGUAGE_CODE == 'en' %}Sign up{% else %}S'inscrire{% endif %}</a>
         {% endif %}
       </div>
     </div>
@@ -72,19 +73,19 @@
 
     <div class="text-5xl mb-4 relative z-10">{{ app_icon }}</div>
     <h1 class="text-3xl sm:text-4xl font-extrabold mb-3 relative z-10 text-white drop-shadow-sm">
-      {% if app_key == 'prep' %}🍁 Accès {{ request.site_brand|default:'E-Shelle' }} Canada Premium{% else %}{{ app_label }}{% endif %}
+      {% if app_key == 'prep' %}🍁 {% if LANGUAGE_CODE == 'en' %}Canada Premium access for {{ request.site_brand|default:'E-Shelle' }}{% else %}Accès {{ request.site_brand|default:'E-Shelle' }} Canada Premium{% endif %}{% else %}{{ app_label }}{% endif %}
     </h1>
     {% if app_key == 'prep' %}
     <p class="text-white/95 text-sm sm:text-base max-w-xl mx-auto font-medium relative z-10 leading-relaxed">
-      Dossier Canada Express & Langue : Boostez vos chances d'immigration avec nos outils IA complets.
+      {% if LANGUAGE_CODE == 'en' %}Canada Express and Language pathway: improve your immigration prospects with our complete AI tools.{% else %}Dossier Canada Express & Langue : Boostez vos chances d'immigration avec nos outils IA complets.{% endif %}
     </p>
     {% elif app_key %}
     <p class="text-white/70 text-base max-w-xl mx-auto relative z-10">
-      Choisissez le plan qui correspond à vos besoins. Changez ou annulez à tout moment.
+      {% if LANGUAGE_CODE == 'en' %}Choose the plan that fits your needs. Change or cancel at any time.{% else %}Choisissez le plan qui correspond à vos besoins. Changez ou annulez à tout moment.{% endif %}
     </p>
     {% else %}
     <p class="text-white/70 text-base max-w-xl mx-auto relative z-10">
-      Toutes nos applications en un coup d'oeil. Abonnez-vous à celles qui vous correspondent.
+      {% if LANGUAGE_CODE == 'en' %}All our apps at a glance. Subscribe to the ones that fit your needs.{% else %}Toutes nos applications en un coup d'oeil. Abonnez-vous à celles qui vous correspondent.{% endif %}
     </p>
     {% endif %}
 
@@ -93,13 +94,13 @@
       <a href="{% url 'accounts:mon_compte' %}"
          class="text-sm font-semibold px-5 py-2.5 rounded-xl transition hover:scale-105"
          style="background:rgba(255,255,255,.2); backdrop-filter: blur(5px);">
-        ← Mon Compte
+        ← {% if LANGUAGE_CODE == 'en' %}My account{% else %}Mon Compte{% endif %}
       </a>
       {% if app_key %}
       <a href="{{ app_url }}"
          class="text-sm font-semibold px-5 py-2.5 rounded-xl transition hover:scale-105"
          style="background:rgba(255,255,255,.2); backdrop-filter: blur(5px);">
-        Ouvrir l'app →
+        {% if LANGUAGE_CODE == 'en' %}Open app →{% else %}Ouvrir l'app →{% endif %}
       </a>
       {% endif %}
     </div>
@@ -118,15 +119,15 @@
           <div class="font-bold text-green-800">Abonnement actif : {% if request.is_immigration97 %}Immigration97 Premium{% else %}{{ current_sub.plan.name|public_brand:request }}{% endif %}</div>
           <div class="text-sm text-green-600">
             {% if current_sub.days_remaining is not None %}
-            Expire dans {{ current_sub.days_remaining }} jour{{ current_sub.days_remaining|pluralize }}
+            {% if LANGUAGE_CODE == 'en' %}Expires in{% else %}Expire dans{% endif %} {{ current_sub.days_remaining }} {% if LANGUAGE_CODE == 'en' %}day{% if current_sub.days_remaining != 1 %}s{% endif %}{% else %}jour{{ current_sub.days_remaining|pluralize }}{% endif %}
             {% else %}
-            Accès illimité
+            {% if LANGUAGE_CODE == 'en' %}Unlimited access{% else %}Accès illimité{% endif %}
             {% endif %}
           </div>
         </div>
         <a href="{% url 'accounts:mon_compte' %}#subscriptions"
            class="ml-auto text-sm font-bold px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700">
-          Gérer →
+          {% if LANGUAGE_CODE == 'en' %}Manage →{% else %}Gérer →{% endif %}
         </a>
       </div>
     </div>
@@ -141,7 +142,7 @@
         <div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
           <span class="text-xs font-black px-4 py-1.5 rounded-full text-white shadow-sm"
                 style="background:{{ app_color }}">
-            ⭐ Populaire
+            ⭐ {% if LANGUAGE_CODE == 'en' %}Popular{% else %}Populaire{% endif %}
           </span>
         </div>
         {% endif %}
@@ -152,24 +153,24 @@
                style="background:{{ app_color }}18">{{ plan.app_icon }}</div>
           <div>
             <div class="font-bold text-gray-800">{{ plan.public_name }}</div>
-            <div class="text-xs text-gray-400 capitalize">{{ plan.get_level_display }}</div>
+            <div class="text-xs text-gray-400 capitalize">{% if LANGUAGE_CODE == 'en' %}{% if plan.level == 'free' %}Free{% elif plan.level == 'trial' %}Trial{% elif plan.level == 'starter' %}Starter{% elif plan.level == 'pro' %}Pro{% elif plan.level == 'enterprise' %}Enterprise{% endif %}{% else %}{{ plan.get_level_display }}{% endif %}</div>
           </div>
         </div>
 
-        <!-- Prix -->
+        <!-- Plan price -->
         <div class="mb-4">
           {% if plan.price_xaf == 0 %}
-          <div class="text-3xl font-black text-gray-900">Gratuit</div>
-          <div class="text-sm text-gray-400">pour toujours</div>
+          <div class="text-3xl font-black text-gray-900">{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}</div>
+          <div class="text-sm text-gray-400">{% if LANGUAGE_CODE == 'en' %}forever{% else %}pour toujours{% endif %}</div>
           {% else %}
           <div class="text-3xl font-black text-gray-900">
             {{ plan.price_xaf_formatted }}
           </div>
           <div class="text-sm text-gray-400">
-            {% if plan.duration_days == 30 %}/ mois
-            {% elif plan.duration_days == 90 %}/ trimestre
-            {% elif plan.duration_days == 365 %}/ an
-            {% else %}/ {{ plan.duration_days }} jours{% endif %}
+            {% if plan.duration_days == 30 %}{% if LANGUAGE_CODE == 'en' %}/ month{% else %}/ mois{% endif %}
+            {% elif plan.duration_days == 90 %}{% if LANGUAGE_CODE == 'en' %}/ quarter{% else %}/ trimestre{% endif %}
+            {% elif plan.duration_days == 365 %}{% if LANGUAGE_CODE == 'en' %}/ year{% else %}/ an{% endif %}
+            {% else %}/ {{ plan.duration_days }} {% if LANGUAGE_CODE == 'en' %}days{% else %}jours{% endif %}{% endif %}
           </div>
           {% if plan.price_eur > 0 %}
           <div class="text-xs text-gray-300 mt-0.5">≈ {{ plan.price_eur }} EUR</div>
@@ -177,9 +178,9 @@
           {% endif %}
         </div>
 
-        <!-- Description -->
+        <!-- Plan description -->
         {% if plan.description %}
-        <p class="text-sm text-gray-500 mb-5 leading-relaxed">{{ plan.description|public_brand:request }}</p>
+        <p class="text-sm text-gray-500 mb-5 leading-relaxed">{{ plan.public_description|default:plan.description|public_brand:request }}</p>
         {% endif %}
 
         <!-- Features -->
@@ -200,12 +201,12 @@
           <button disabled
                   class="w-full py-3 rounded-xl text-sm font-bold text-white opacity-60 cursor-not-allowed"
                   style="background:{{ app_color }}">
-            Plan actuel
+            {% if LANGUAGE_CODE == 'en' %}Current plan{% else %}Plan actuel{% endif %}
           </button>
           {% elif plan.is_free %}
           <div class="w-full py-3 rounded-xl text-sm font-bold text-center"
                style="color:{{ app_color }};background:{{ app_color }}12;border:2px solid {{ app_color }}30">
-            Accès libre
+            {% if LANGUAGE_CODE == 'en' %}Free access{% else %}Accès libre{% endif %}
           </div>
           {% else %}
           <a href="{{ plan.whatsapp_payment_url }}"
@@ -219,7 +220,7 @@
         <a href="{% url 'accounts:register' %}?plan={{ plan.slug }}"
            class="w-full block py-3 rounded-xl text-sm font-bold text-center text-white transition hover:opacity-90"
            style="background:{{ app_color }}">
-          Commencer
+          {% if LANGUAGE_CODE == 'en' %}Get started{% else %}Commencer{% endif %}
         </a>
         {% endif %}
       </div>
@@ -238,7 +239,7 @@
           <a href="{% url 'accounts:upgrade' %}?app={{ key }}"
              class="text-sm font-semibold hover:underline"
              style="color:{{ app_data.color }}">
-            Voir les détails →
+            {% if LANGUAGE_CODE == 'en' %}View details →{% else %}Voir les détails →{% endif %}
           </a>
         </div>
       </div>
@@ -250,20 +251,20 @@
           {% if plan.is_popular %}
           <div class="text-xs font-black px-3 py-1 rounded-full text-white mb-3 self-start"
                style="background:{{ app_data.color }}">
-            ⭐ Populaire
+            ⭐ {% if LANGUAGE_CODE == 'en' %}Popular{% else %}Populaire{% endif %}
           </div>
           {% endif %}
           <div class="font-bold text-gray-800 mb-1">{{ plan.public_name }}</div>
           <div class="text-2xl font-black mb-1">
-            {% if plan.price_xaf == 0 %}Gratuit{% else %}{{ plan.price_xaf_formatted }}{% endif %}
+            {% if plan.price_xaf == 0 %}{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}{% else %}{{ plan.price_xaf_formatted }}{% endif %}
           </div>
           <div class="text-xs text-gray-400 mb-4">
             {% if plan.price_xaf > 0 %}
-              {% if plan.duration_days == 30 %}/ mois
-              {% elif plan.duration_days == 90 %}/ trimestre
-              {% elif plan.duration_days == 365 %}/ an
-              {% else %}/ {{ plan.duration_days }} jours{% endif %}
-            {% else %}Accès libre{% endif %}
+              {% if plan.duration_days == 30 %}{% if LANGUAGE_CODE == 'en' %}/ month{% else %}/ mois{% endif %}
+              {% elif plan.duration_days == 90 %}{% if LANGUAGE_CODE == 'en' %}/ quarter{% else %}/ trimestre{% endif %}
+              {% elif plan.duration_days == 365 %}{% if LANGUAGE_CODE == 'en' %}/ year{% else %}/ an{% endif %}
+              {% else %}/ {{ plan.duration_days }} {% if LANGUAGE_CODE == 'en' %}days{% else %}jours{% endif %}{% endif %}
+            {% else %}{% if LANGUAGE_CODE == 'en' %}Free access{% else %}Accès libre{% endif %}{% endif %}
           </div>
           {% if plan.public_features %}
           <ul class="space-y-1.5 flex-1 mb-4">
@@ -273,14 +274,14 @@
             </li>
             {% endfor %}
             {% if plan.public_features|length > 4 %}
-            <li class="text-xs text-gray-400">+ {{ plan.public_features|length|add:"-4" }} autres…</li>
+            <li class="text-xs text-gray-400">+ {{ plan.public_features|length|add:"-4" }} {% if LANGUAGE_CODE == 'en' %}more…{% else %}autres…{% endif %}</li>
             {% endif %}
           </ul>
           {% endif %}
           <a href="{% url 'accounts:upgrade' %}?app={{ key }}"
              class="w-full block py-2.5 rounded-xl text-xs font-bold text-center transition hover:opacity-90"
              style="background:{{ app_data.color }}18;color:{{ app_data.color }}">
-            Voir les offres →
+            {% if LANGUAGE_CODE == 'en' %}View plans →{% else %}Voir les offres →{% endif %}
           </a>
         </div>
         {% endfor %}
@@ -293,9 +294,9 @@
 
   <!-- Contact section -->
   <div class="bg-white border-t border-gray-100 py-10 px-4 text-center">
-    <h3 class="text-lg font-bold text-gray-800 mb-2">Besoin d'aide pour choisir ?</h3>
+    <h3 class="text-lg font-bold text-gray-800 mb-2">{% if LANGUAGE_CODE == 'en' %}Need help choosing?{% else %}Besoin d'aide pour choisir ?{% endif %}</h3>
     <p class="text-gray-500 text-sm mb-4">
-      Nos équipes répondent en moins de 2 heures via WhatsApp.
+      {% if LANGUAGE_CODE == 'en' %}Our team replies on WhatsApp within 2 hours.{% else %}Nos équipes répondent en moins de 2 heures via WhatsApp.{% endif %}
     </p>
     <a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}?text=Bonjour, j'ai besoin d'aide pour choisir un abonnement {{ request.site_brand|default:'E-Shelle' }}."
        target="_blank" rel="noopener noreferrer"
@@ -304,14 +305,14 @@
       <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
       </svg>
-      Contacter sur WhatsApp
+      {% if LANGUAGE_CODE == 'en' %}Contact us on WhatsApp{% else %}Contacter sur WhatsApp{% endif %}
     </a>
   </div>
 
   <footer class="border-t border-gray-100 bg-gray-50 py-6 text-center text-sm text-gray-400">
     <p>
       <a href="/" class="font-bold hover:underline" style="color:#1B6534">{{ request.site_brand|default:'E-Shelle' }}</a>
-      {% if request.is_immigration97 %}&mdash; Préparation linguistique et parcours Canada{% else %}&mdash; Plateforme SaaS africaine &bull; Made in Cameroun 🇨🇲{% endif %}
+      {% if request.is_immigration97 %}&mdash; {% if LANGUAGE_CODE == 'en' %}Language preparation and Canada pathway{% else %}Préparation linguistique et parcours Canada{% endif %}{% else %}&mdash; {% if LANGUAGE_CODE == 'en' %}African SaaS platform{% else %}Plateforme SaaS africaine{% endif %} &bull; Made in Cameroun 🇨🇲{% endif %}
     </p>
   </footer>
 

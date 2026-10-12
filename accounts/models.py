@@ -173,12 +173,15 @@ class AppPlan(models.Model):
     app_key      = models.CharField(max_length=30, choices=AppKey.choices, db_index=True)
     slug         = models.SlugField(max_length=60, unique=True)   # ex: "adgen-pro"
     name         = models.CharField(max_length=100)               # ex: "AdGen Pro"
+    name_en      = models.CharField(max_length=100, blank=True)
     level        = models.CharField(max_length=20, choices=LEVEL_CHOICES, default="starter")
     description  = models.TextField(blank=True)
+    description_en = models.TextField(blank=True)
     price_xaf    = models.PositiveIntegerField(default=0)         # 0 = gratuit
     price_eur    = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     duration_days = models.PositiveIntegerField(default=30)       # 0 = illimité
     features     = models.JSONField(default=list)                 # liste de strings
+    features_en  = models.JSONField(default=list, blank=True)
     is_free      = models.BooleanField(default=False)
     is_popular   = models.BooleanField(default=False)
     is_active    = models.BooleanField(default=True)
