@@ -1,11 +1,13 @@
 """Tenant-isolated WhatsApp inbox and webhook processing."""
 
+import logging
 from datetime import datetime, timedelta, timezone as datetime_timezone
 
 from django.db import transaction
 from django.utils import timezone
 
 from .models import (
+	BusinessWhatsAppAudit,
 	BusinessWhatsAppConnection,
 	BusinessWhatsAppContact,
 	BusinessWhatsAppMessage,
@@ -14,6 +16,8 @@ from .models import (
 from .onboarding import MetaOnboardingError, _request_meta
 from .services import normalize_phone
 from .entitlements import require_whatsapp_entitlement
+
+logger = logging.getLogger(__name__)
 
 
 def _message_datetime(value):
@@ -44,7 +48,7 @@ def _save_inbound(connection, message, display_name, received_at):
 	phone = normalize_phone(message.get("from", ""))
 	message_id = message.get("id", "")
 	if not phone or not message_id:
-		return
+		return None, None, False
 
 	contact, _ = BusinessWhatsAppContact.objects.get_or_create(
 		business=connection.business,
@@ -68,7 +72,14 @@ def _save_inbound(connection, message, display_name, received_at):
 		from .automations import cancel_scheduled_contact_messages
 
 		cancel_scheduled_contact_messages(contact, "Le contact a envoyé une demande STOP.")
-	BusinessWhatsAppMessage.objects.get_or_create(
+		BusinessWhatsAppAudit.objects.create(
+			connection=connection,
+			contact=contact,
+			event_type="contact_opted_out",
+			action="stop_keyword",
+			details={"message_id": message_id},
+		)
+	saved_message, created = BusinessWhatsAppMessage.objects.get_or_create(
 		wa_message_id=message_id,
 		defaults={
 			"contact": contact,
@@ -77,6 +88,81 @@ def _save_inbound(connection, message, display_name, received_at):
 			"body": body,
 			"status": "received",
 			"meta_timestamp": received_at,
+		},
+	)
+	if created and not did_opt_out:
+		from .automations import cancel_scheduled_contact_messages
+
+		cancel_scheduled_contact_messages(
+			contact,
+			"Le contact a répondu; les relances précédentes sont annulées.",
+		)
+	return contact, saved_message, created
+
+
+def _run_sales_agent(connection, contact, inbound_message):
+	from django.conf import settings
+
+	if (
+		not getattr(settings, "WHATSAPP_COMMERCE_AI_ENABLED", False)
+		or not connection.agent_enabled
+		or contact.opted_out_at
+	):
+		return
+
+	from .entitlements import require_whatsapp_entitlement
+	from .funnel import build_funnel_reply
+	from .orchestrator import record_sales_decision, resolve_action
+
+	try:
+		if not require_whatsapp_entitlement(contact.business, "can_use_crm"):
+			return
+		decision = build_funnel_reply(connection, contact, inbound_message)
+		action = resolve_action(connection, contact, decision)
+		decision["action_next"] = action
+		audit = record_sales_decision(connection, contact, decision)
+		message_id = send_business_reply(contact, decision["reponse"])
+		audit.details = {
+			**audit.details,
+			"outcome": "sent",
+			"wa_message_id": message_id,
+		}
+		audit.save(update_fields=["details"])
+		from .automations import schedule_sales_follow_ups
+
+		try:
+			schedule_sales_follow_ups(contact)
+		except Exception:
+			logger.exception(
+				"WhatsApp Commerce: planification des relances échouée (business_id=%s, contact_id=%s).",
+				connection.business_id,
+				contact.pk,
+			)
+	except Exception as exc:
+		logger.exception(
+			"WhatsApp Commerce: agent vendeur en échec (business_id=%s, contact_id=%s).",
+			connection.business_id,
+			contact.pk,
+		)
+		BusinessWhatsAppAudit.objects.create(
+			connection=connection,
+			contact=contact,
+			event_type="sales_agent_error",
+			action="reply_failed",
+			details={"error_type": type(exc).__name__, "message": str(exc)[:400]},
+		)
+
+
+def _record_template_status_update(connection, value):
+	BusinessWhatsAppAudit.objects.create(
+		connection=connection,
+		event_type="message_template_status_update",
+		action=str(value.get("event", "unknown"))[:64],
+		details={
+			"template_name": str(value.get("message_template_name", ""))[:128],
+			"template_language": str(value.get("message_template_language", ""))[:32],
+			"template_id": str(value.get("message_template_id", ""))[:64],
+			"reason": str(value.get("reason", ""))[:300],
 		},
 	)
 
@@ -92,6 +178,14 @@ def process_business_whatsapp_webhook(payload):
 				continue
 			value = change.get("value", {})
 			if not isinstance(value, dict):
+				continue
+			if change.get("field") == "message_template_status_update":
+				template_connection = BusinessWhatsAppConnection.objects.filter(
+					waba_id=waba_id,
+					status=BusinessWhatsAppConnection.Status.ACTIVE,
+				).first()
+				if template_connection:
+					_record_template_status_update(template_connection, value)
 				continue
 			metadata = value.get("metadata", {})
 			phone_id = str(metadata.get("phone_number_id", "")) if isinstance(metadata, dict) else ""
@@ -110,12 +204,14 @@ def process_business_whatsapp_webhook(payload):
 
 			for message in value.get("messages", []):
 				if isinstance(message, dict):
-					_save_inbound(
+					contact, saved_message, created = _save_inbound(
 						connection,
 						message,
 						names.get(str(message.get("from", "")), ""),
 						_message_datetime(message.get("timestamp")),
 					)
+					if created and contact and saved_message and not contact.opted_out_at:
+						_run_sales_agent(connection, contact, saved_message)
 
 			for status in value.get("statuses", []):
 				if not isinstance(status, dict) or not status.get("id"):

@@ -14,6 +14,7 @@ from django.utils import timezone
 from business.models import BusinessCatalogItem, BusinessProfile
 from .inbox import process_business_whatsapp_webhook, send_business_reply
 from .models import (
+	BusinessWhatsAppAudit,
 	BusinessWhatsAppConnection,
 	BusinessWhatsAppContact,
 	BusinessWhatsAppMessage,
@@ -25,7 +26,13 @@ from .models import (
 from .onboarding import MetaOnboardingError, connect_business
 from .services import get_whatsapp_schema_extension, send_abandoned_cart_whatsapp, sync_product_to_whatsapp_catalog
 from .entitlements import whatsapp_entitlements
-from .automations import schedule_template_follow_up, send_due_template_follow_ups
+from .automations import (
+	schedule_sales_follow_ups,
+	schedule_template_follow_up,
+	send_due_template_follow_ups,
+)
+from .brain import generate_sales_decision
+from .orchestrator import can_create_order
 
 
 class BusinessWhatsAppTests(TestCase):
@@ -142,6 +149,253 @@ class BusinessWhatsAppTests(TestCase):
 		self.assertEqual(contact.display_name, "Amina")
 		self.assertFalse(contact.marketing_opt_in)
 		self.assertEqual(BusinessWhatsAppMessage.objects.filter(contact=contact).count(), 1)
+		self.assertFalse(first.agent_enabled)
+
+	@override_settings(WHATSAPP_APP_SECRET="webhook-test-secret", WHATSAPP_VERIFY_TOKEN="verify-test")
+	def test_existing_webhook_still_verifies_challenge(self):
+		response = self.client.get("/whatsapp/webhook/", {
+			"hub.mode": "subscribe",
+			"hub.verify_token": "verify-test",
+			"hub.challenge": "challenge-123",
+		})
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.content, b"challenge-123")
+
+	@override_settings(WHATSAPP_APP_SECRET="webhook-test-secret")
+	def test_template_status_update_is_logged_for_matching_waba(self):
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="template-status-waba",
+			phone_number_id="template-status-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+		)
+		body = json.dumps({
+			"object": "whatsapp_business_account",
+			"entry": [{
+				"id": connection.waba_id,
+				"changes": [{
+					"field": "message_template_status_update",
+					"value": {
+						"event": "APPROVED",
+						"message_template_name": "suivi_client",
+						"message_template_language": "fr",
+						"message_template_id": "template-id",
+					},
+				}],
+			}],
+		})
+		signature = "sha256=" + hmac.new(
+			b"webhook-test-secret",
+			body.encode(),
+			hashlib.sha256,
+		).hexdigest()
+		response = self.client.post(
+			"/whatsapp/webhook/",
+			body,
+			content_type="application/json",
+			HTTP_X_HUB_SIGNATURE_256=signature,
+		)
+		self.assertEqual(response.status_code, 200)
+		audit = BusinessWhatsAppAudit.objects.get(event_type="message_template_status_update")
+		self.assertEqual(audit.connection, connection)
+		self.assertEqual(audit.action, "APPROVED")
+		self.assertEqual(audit.details["template_name"], "suivi_client")
+
+	@override_settings(WHATSAPP_APP_SECRET="webhook-test-secret", WHATSAPP_COMMERCE_AI_ENABLED=True)
+	@patch("whatsapp_commerce.inbox._request_meta")
+	@patch("whatsapp_commerce.brain.call_llm")
+	def test_enabled_sales_agent_replies_only_in_matching_tenant(self, call_llm_mock, meta_request):
+		self.business.plan = BusinessProfile.Plan.BUSINESS
+		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=10)
+		self.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="agent-waba",
+			phone_number_id="agent-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+			agent_enabled=True,
+		)
+		connection.set_access_token("agent-token")
+		connection.save(update_fields=["access_token_encrypted"])
+		call_llm_mock.return_value = json.dumps({
+			"intention": "qualification",
+			"reponse": "Quel service recherches-tu et quel budget prévois-tu ?",
+			"action_next": "qualifier",
+		})
+		meta_request.return_value = {"messages": [{"id": "wamid-agent-response"}]}
+		body = json.dumps({
+			"object": "whatsapp_business_account",
+			"entry": [{
+				"id": connection.waba_id,
+				"changes": [{
+					"value": {
+						"metadata": {"phone_number_id": connection.phone_number_id},
+						"messages": [{
+							"id": "wamid-agent-inbound",
+							"from": "237699000003",
+							"type": "text",
+							"text": {"body": "Bonjour"},
+						}],
+					},
+				}],
+			}],
+		})
+		signature = "sha256=" + hmac.new(
+			b"webhook-test-secret",
+			body.encode(),
+			hashlib.sha256,
+		).hexdigest()
+		response = self.client.post(
+			"/whatsapp/webhook/",
+			body,
+			content_type="application/json",
+			HTTP_X_HUB_SIGNATURE_256=signature,
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(call_llm_mock.call_count, 1)
+		self.assertEqual(meta_request.call_count, 1)
+		self.assertEqual(
+			BusinessWhatsAppMessage.objects.filter(
+				contact__business=self.business,
+				direction=BusinessWhatsAppMessage.Direction.OUTBOUND,
+			).count(),
+			1,
+		)
+		audit = BusinessWhatsAppAudit.objects.get(event_type="sales_decision")
+		self.assertEqual(audit.connection, connection)
+		self.assertEqual(audit.details["outcome"], "sent")
+
+	@patch("whatsapp_commerce.brain.call_llm")
+	def test_order_intent_records_guarded_pending_action(self, call_llm_mock):
+		self.business.plan = BusinessProfile.Plan.BUSINESS
+		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=10)
+		self.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="order-guard-waba",
+			phone_number_id="order-guard-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+		)
+		item = BusinessCatalogItem.objects.create(
+			business=self.business,
+			title="Sac artisanal",
+			price_label="5000 FCFA",
+		)
+		contact = BusinessWhatsAppContact.objects.create(
+			business=self.business,
+			phone="+237699000012",
+			marketing_opt_in=True,
+			consented_at=timezone.now(),
+			last_inbound_at=timezone.now(),
+		)
+		call_llm_mock.return_value = json.dumps({
+			"intention": "commande",
+			"reponse": "Je prépare cela après confirmation.",
+			"action_next": "proposer_commande",
+		})
+
+		decision = generate_sales_decision(connection, contact, "Je commande le sac artisanal")
+		audit = BusinessWhatsAppAudit.objects.get(event_type="sales_action_pending")
+
+		self.assertEqual(decision["action_next"], "pending_approval")
+		self.assertEqual(audit.details["pending_action"]["status"], "pending_approval")
+		self.assertEqual(audit.details["pending_action"]["catalog_item_id"], item.pk)
+		self.assertTrue(audit.details["guard_passed"])
+		contact.last_inbound_at = timezone.now() - timezone.timedelta(hours=25)
+		contact.save(update_fields=["last_inbound_at"])
+		with patch("whatsapp_commerce.automations.get_approved_template_catalog", return_value=[]):
+			self.assertEqual(
+				can_create_order(connection, contact, item),
+				(False, "message_window_expired"),
+			)
+		with patch(
+			"whatsapp_commerce.automations.get_approved_template_catalog",
+			return_value=[{"name": "approved", "status": "APPROVED"}],
+		):
+			self.assertEqual(can_create_order(connection, contact, item), (True, ""))
+		contact.marketing_opt_in = False
+		contact.save(update_fields=["marketing_opt_in"])
+		self.assertEqual(
+			can_create_order(connection, contact, item),
+			(False, "contact_consent_required"),
+		)
+
+	def test_auto_follow_ups_schedule_only_approved_templates_with_stop(self):
+		self.business.plan = BusinessProfile.Plan.BUSINESS
+		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=10)
+		self.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="auto-follow-up-waba",
+			phone_number_id="auto-follow-up-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+			automations_enabled=True,
+		)
+		connection.set_access_token("auto-follow-up-token")
+		connection.save(update_fields=["access_token_encrypted"])
+		contact = BusinessWhatsAppContact.objects.create(
+			business=self.business,
+			phone="+237699000013",
+			display_name="Amina",
+			marketing_opt_in=True,
+			consented_at=timezone.now(),
+		)
+		templates = [
+			{
+				"name": f"suivi_j{day}",
+				"language": "fr",
+				"status": "APPROVED",
+				"category": "MARKETING",
+				"components": [
+					{"type": "BODY", "text": "Bonjour {{1}}, des questions ?"},
+					{"type": "BUTTONS", "buttons": [{"type": "QUICK_REPLY", "text": "STOP"}]},
+				],
+			}
+			for day in (1, 3, 7)
+		]
+		with self.settings(
+			WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED=True,
+			WHATSAPP_COMMERCE_FOLLOW_UP_TEMPLATES={
+				f"j{day}": {"name": f"suivi_j{day}", "language": "fr"}
+				for day in (1, 3, 7)
+			},
+		):
+			with patch("whatsapp_commerce.automations.get_approved_template_catalog", return_value=templates):
+				self.assertEqual(schedule_sales_follow_ups(contact), 3)
+
+		scheduled = list(ScheduledBusinessWhatsAppMessage.objects.filter(contact=contact).order_by("scheduled_for"))
+		self.assertEqual([message.body_parameters for message in scheduled], [["Amina"]] * 3)
+		self.assertEqual(
+			set(BusinessWhatsAppAudit.objects.filter(
+				event_type="follow_up_scheduled",
+			).values_list("action", flat=True)),
+			{"j1", "j3", "j7"},
+		)
+		contact_without_stop = BusinessWhatsAppContact.objects.create(
+			business=self.business,
+			phone="+237699000015",
+			marketing_opt_in=True,
+			consented_at=timezone.now(),
+		)
+		templates_without_stop = [
+			{
+				**template,
+				"components": [{"type": "BODY", "text": "Bonjour {{1}}, des questions ?"}],
+			}
+			for template in templates
+		]
+		with self.settings(
+			WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED=True,
+			WHATSAPP_COMMERCE_FOLLOW_UP_TEMPLATES={
+				f"j{day}": {"name": f"suivi_j{day}", "language": "fr"}
+				for day in (1, 3, 7)
+			},
+		):
+			with patch(
+				"whatsapp_commerce.automations.get_approved_template_catalog",
+				return_value=templates_without_stop,
+			):
+				self.assertEqual(schedule_sales_follow_ups(contact_without_stop), 0)
 
 	def test_stop_webhook_cancels_pending_follow_up(self):
 		connection = BusinessWhatsAppConnection.objects.create(
@@ -184,6 +438,46 @@ class BusinessWhatsAppTests(TestCase):
 		scheduled.refresh_from_db()
 		self.assertFalse(contact.marketing_opt_in)
 		self.assertIsNotNone(contact.opted_out_at)
+		self.assertEqual(scheduled.status, ScheduledBusinessWhatsAppMessage.Status.CANCELLED)
+
+	def test_new_inbound_reply_cancels_scheduled_follow_ups(self):
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="reply-cancel-waba",
+			phone_number_id="reply-cancel-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+		)
+		contact = BusinessWhatsAppContact.objects.create(
+			business=self.business,
+			phone="+237699000016",
+			marketing_opt_in=True,
+			consented_at=timezone.now(),
+		)
+		scheduled = ScheduledBusinessWhatsAppMessage.objects.create(
+			contact=contact,
+			connection=connection,
+			template_name="rappel_service",
+			template_language="fr",
+			scheduled_for=timezone.now() + timezone.timedelta(hours=1),
+		)
+
+		process_business_whatsapp_webhook({
+			"entry": [{
+				"id": connection.waba_id,
+				"changes": [{
+					"value": {
+						"metadata": {"phone_number_id": connection.phone_number_id},
+						"messages": [{
+							"id": "wamid-follow-up-reply",
+							"from": "237699000016",
+							"type": "text",
+							"text": {"body": "Merci, j’ai compris."},
+						}],
+					},
+				}],
+			}],
+		})
+		scheduled.refresh_from_db()
 		self.assertEqual(scheduled.status, ScheduledBusinessWhatsAppMessage.Status.CANCELLED)
 
 	@override_settings(WHATSAPP_APP_SECRET="webhook-test-secret")
@@ -257,6 +551,13 @@ class BusinessWhatsAppTests(TestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, "WhatsApp Business")
 
+	def test_inbox_entry_lists_only_owned_businesses(self):
+		self.client.force_login(self.owner)
+		response = self.client.get("/whatsapp-commerce/inbox/")
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, self.business.name)
+		self.assertNotContains(response, self.other_business.name)
+
 	@override_settings(WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED=True)
 	def test_dashboard_shows_template_follow_up_controls_only_for_consented_contact(self):
 		self.business.plan = BusinessProfile.Plan.BUSINESS
@@ -267,6 +568,7 @@ class BusinessWhatsAppTests(TestCase):
 			waba_id="wa-ui-waba",
 			phone_number_id="wa-ui-phone",
 			status=BusinessWhatsAppConnection.Status.ACTIVE,
+			automations_enabled=True,
 		)
 		contact = BusinessWhatsAppContact.objects.create(
 			business=self.business,
@@ -380,6 +682,7 @@ class BusinessWhatsAppTests(TestCase):
 			waba_id="wa-template-waba",
 			phone_number_id="wa-template-phone",
 			status=BusinessWhatsAppConnection.Status.ACTIVE,
+			automations_enabled=True,
 		)
 		connection.set_access_token("tenant-template-token")
 		connection.save(update_fields=["access_token_encrypted"])
@@ -429,6 +732,7 @@ class BusinessWhatsAppTests(TestCase):
 			waba_id="wa-send-waba",
 			phone_number_id="wa-send-phone",
 			status=BusinessWhatsAppConnection.Status.ACTIVE,
+			automations_enabled=True,
 		)
 		connection.set_access_token("tenant-send-token")
 		connection.save(update_fields=["access_token_encrypted"])
@@ -530,6 +834,7 @@ class BusinessWhatsAppTests(TestCase):
 			waba_id="wa-optout-waba",
 			phone_number_id="wa-optout-phone",
 			status=BusinessWhatsAppConnection.Status.ACTIVE,
+			automations_enabled=True,
 		)
 		scheduled = ScheduledBusinessWhatsAppMessage.objects.create(
 			contact=contact,
@@ -543,6 +848,7 @@ class BusinessWhatsAppTests(TestCase):
 		scheduled.refresh_from_db()
 		self.assertEqual(scheduled.status, ScheduledBusinessWhatsAppMessage.Status.FAILED)
 
+	@override_settings(WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED=False)
 	@patch("whatsapp_commerce.automations._request_meta")
 	def test_disabled_automation_flag_cancels_queue_without_meta_request(self, request):
 		contact = BusinessWhatsAppContact.objects.create(

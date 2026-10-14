@@ -87,7 +87,7 @@ def immigration_view(request):
         ctx["germany_offers_count"] = AusbildungOffer.objects.filter(is_active=True).count()
     except Exception:
         pass
-    return render(request, "immigration_en.html" if request.LANGUAGE_CODE == "en" else "immigration.html", ctx)
+    return render(request, "immigration.html", ctx)
 
 
 def marketing_view(request):
@@ -108,7 +108,7 @@ def marketing_view(request):
         ctx["published_campaigns_count"] = AdCampaign.objects.count()
     except Exception:
         pass
-    return render(request, "marketing_en.html" if request.LANGUAGE_CODE == "en" else "marketing.html", ctx)
+    return render(request, "marketing.html", ctx)
 
 
 def formation_view(request):
@@ -132,7 +132,7 @@ def formation_view(request):
         ctx["lessons_count"] = formations_qs.aggregate(total=Sum("nb_lecons")).get("total") or 0
     except Exception:
         pass
-    return render(request, "formation_en.html" if request.LANGUAGE_CODE == "en" else "formation.html", ctx)
+    return render(request, "formation.html", ctx)
 
 
 
@@ -293,7 +293,7 @@ def home_view(request):
         ctx["geo_cities"] = []
         ctx["geo_services"] = []
         ctx["home_numbers"] = {"businesses": 0, "premium": 0, "products": 0, "leads": 0, "ads": 0, "events": 0}
-    return render(request, "home_en.html" if request.LANGUAGE_CODE == "en" else "home.html", ctx)
+    return render(request, "home.html", ctx)
 
 
 def presentation_view(request):
@@ -318,7 +318,7 @@ def presentation_view(request):
     except Exception:
         ctx["home_numbers"] = {"businesses": 0, "premium": 0, "products": 0, "leads": 0, "events": 0}
         ctx["slides"] = []
-    return render(request, "presentation_en.html" if request.LANGUAGE_CODE == "en" else "presentation.html", ctx)
+    return render(request, "presentation.html", ctx)
 
 
 def tarifs_view(request):
@@ -349,7 +349,7 @@ def tarifs_view(request):
         ctx["partner_recruit_rate"] = 50
         ctx["provider_rate"] = 30
 
-    return render(request, "tarifs_en.html" if request.LANGUAGE_CODE == "en" else "tarifs.html", ctx)
+    return render(request, "tarifs.html", ctx)
 
 
 def products_services_view(request):
@@ -587,7 +587,7 @@ def products_services_view(request):
         ctx["selected_country"] = ""
         ctx["produits_services_hero_image"] = None
 
-    return render(request, "produits_services_en.html" if request.LANGUAGE_CODE == "en" else "produits_services.html", ctx)
+    return render(request, "produits_services.html", ctx)
 
 
 def commercial_pdf_view(request):

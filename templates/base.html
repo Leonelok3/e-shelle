@@ -1,4 +1,4 @@
-{% load canada_navigation %}{% canada_navigation as canada_menu %}
+{% load i18n canada_navigation %}{% canada_navigation as canada_menu %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE|default:'fr' }}" data-theme="dark">
 
@@ -796,15 +796,6 @@
   {% endif %}
 
   {# ── NAVBAR ─────────────────────────────────────────────────── #}
-  <form action="{% url 'set_language' %}" method="post" class="site-language-switcher" aria-label="Choose site language" style="position:fixed;right:12px;top:78px;z-index:1100;display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:#102039;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.25)">
-    {% csrf_token %}
-    <input type="hidden" name="next" value="{{ request.get_full_path }}">
-    <label for="site-language">🌐</label>
-    <select id="site-language" name="language" aria-label="Language" onchange="this.form.submit()" style="border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;outline:none">
-      <option value="fr"{% if LANGUAGE_CODE == 'fr' %} selected{% endif %}>Français</option>
-      <option value="en"{% if LANGUAGE_CODE == 'en' %} selected{% endif %}>English</option>
-    </select>
-  </form>
   {% block navbar %}
   {% if canada_menu.enabled %}
     {% include "canada_resume/partials/navigation_header.html" %}
@@ -831,6 +822,13 @@
 
         {# Actions Allemagne #}
         <div class="navbar-actions" style="display: flex; align-items: center; gap: 0.75rem;">
+          <form action="{% url 'set_language' %}" method="post" style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:999px;padding:2px 4px;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" name="language" value="fr" style="border:none;background:{% if LANGUAGE_CODE == 'fr' %}rgba(224,168,0,0.3){% else %}transparent{% endif %};color:{% if LANGUAGE_CODE == 'fr' %}#ffce00{% else %}#94a3b8{% endif %};font-size:0.75rem;font-weight:700;padding:2px 8px;border-radius:999px;cursor:pointer;">FR</button>
+            <span style="color:rgba(255,255,255,0.2);font-size:0.7rem;">|</span>
+            <button type="submit" name="language" value="en" style="border:none;background:{% if LANGUAGE_CODE == 'en' %}rgba(224,168,0,0.3){% else %}transparent{% endif %};color:{% if LANGUAGE_CODE == 'en' %}#ffce00{% else %}#94a3b8{% endif %};font-size:0.75rem;font-weight:700;padding:2px 8px;border-radius:999px;cursor:pointer;">EN</button>
+          </form>
           {% if user.is_authenticated %}
             <a href="{% url 'germanprep:progress_dashboard' %}" class="btn btn-primary btn-sm" style="background: #E3000F !important; color: #fff !important; border: none !important; border-radius: 30px; font-weight: 700; padding: 0.45rem 1.15rem; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(227, 0, 15, 0.2);">
               Mon espace →
@@ -900,37 +898,37 @@
             <a href="{% url 'whatsapp_agent:wa_dashboard' %}" class="nav-dropdown__item">
               <span class="nav-dropdown__icon">💬</span>
               <div>
-                <strong>Campagnes WhatsApp</strong>
-                <small>Envois massifs via l'API officielle Meta</small>
+                <strong>{% if LANGUAGE_CODE == 'en' %}WhatsApp Campaigns{% else %}Campagnes WhatsApp{% endif %}</strong>
+                <small>{% if LANGUAGE_CODE == 'en' %}Bulk messaging via official Meta API{% else %}Envois massifs via l'API officielle Meta{% endif %}</small>
               </div>
             </a>
             <a href="{% url 'commercial_agent:prospect_list' %}" class="nav-dropdown__item">
               <span class="nav-dropdown__icon">🎯</span>
               <div>
                 <strong>{% if LANGUAGE_CODE == 'en' %}Sales Prospects{% else %}Prospects Commerciaux{% endif %}</strong>
-                <small>Qualifier &amp; envoyer vers WhatsApp</small>
+                <small>{% if LANGUAGE_CODE == 'en' %}Qualify &amp; engage on WhatsApp{% else %}Qualifier &amp; envoyer vers WhatsApp{% endif %}</small>
               </div>
             </a>
             <a href="{% url 'commercial_agent:sourcing_hub' %}" class="nav-dropdown__item">
               <span class="nav-dropdown__icon">🔍</span>
               <div>
                 <strong>{% if LANGUAGE_CODE == 'en' %}Provider Sourcing{% else %}Sourcing Prestataires{% endif %}</strong>
-                <small>Détection restaurants &amp; commerces</small>
+                <small>{% if LANGUAGE_CODE == 'en' %}Discover restaurants &amp; shops{% else %}Détection restaurants &amp; commerces{% endif %}</small>
               </div>
             </a>
             <a href="{% url 'phone_ocr_agent:dashboard' %}" class="nav-dropdown__item">
               <span class="nav-dropdown__icon">📸</span>
               <div>
                 <strong>{% if LANGUAGE_CODE == 'en' %}Phone OCR Scanner{% else %}Scanner OCR Téléphones{% endif %}</strong>
-                <small>Extraction auto depuis captures d'écran</small>
+                <small>{% if LANGUAGE_CODE == 'en' %}Auto extraction from screenshots{% else %}Extraction auto depuis captures d'écran{% endif %}</small>
               </div>
             </a>
             <div class="nav-dropdown__sep"></div>
             <a href="{% url 'marketing' %}" class="nav-dropdown__item">
               <span class="nav-dropdown__icon">📣</span>
               <div>
-                <strong>Hub Marketing</strong>
-                <small>Présentation des outils &amp; vitrines</small>
+                <strong>{% if LANGUAGE_CODE == 'en' %}Marketing Hub{% else %}Hub Marketing{% endif %}</strong>
+                <small>{% if LANGUAGE_CODE == 'en' %}Overview of tools &amp; storefronts{% else %}Présentation des outils &amp; vitrines{% endif %}</small>
               </div>
             </a>
           </div>
@@ -945,6 +943,15 @@
 
       {# Boutons d'action #}
       <div class="navbar-actions">
+
+        {# Sélecteur de langue FR / EN #}
+        <form action="{% url 'set_language' %}" method="post" class="esh-lang-toggle" aria-label="Choisir la langue" style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:999px;padding:2px 4px;margin-right:2px;">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button type="submit" name="language" value="fr" title="Français" style="border:none;background:{% if LANGUAGE_CODE == 'fr' %}rgba(125,236,108,0.22){% else %}transparent{% endif %};color:{% if LANGUAGE_CODE == 'fr' %}#7dec6c{% else %}#94a3b8{% endif %};font-size:0.75rem;font-weight:800;padding:2px 8px;border-radius:999px;cursor:pointer;transition:all 0.2s;">FR</button>
+          <span style="color:rgba(255,255,255,0.2);font-size:0.7rem;line-height:1;">|</span>
+          <button type="submit" name="language" value="en" title="English" style="border:none;background:{% if LANGUAGE_CODE == 'en' %}rgba(125,236,108,0.22){% else %}transparent{% endif %};color:{% if LANGUAGE_CODE == 'en' %}#7dec6c{% else %}#94a3b8{% endif %};font-size:0.75rem;font-weight:800;padding:2px 8px;border-radius:999px;cursor:pointer;transition:all 0.2s;">EN</button>
+        </form>
 
         {# Recherche #}
         <button class="btn-icon btn-ghost" id="search-btn" aria-label="Rechercher (Ctrl+K)" title="Rechercher">
@@ -978,7 +985,7 @@
         </button>
 
         {% if not user_has_business %}
-        <a href="{% url 'business:onboarding' %}" class="btn btn-accent btn-sm">Créer ma boutique</a>
+        <a href="{% url 'business:onboarding' %}" class="btn btn-accent btn-sm">{% if LANGUAGE_CODE == 'en' %}List your business{% else %}Créer ma boutique{% endif %}</a>
         {% endif %}
 
         {# Lien dashboard #}
@@ -1001,23 +1008,33 @@
     {# Menu mobile déroulant #}
     <div class="navbar-mobile" id="navbar-mobile" role="menu">
       <div style="padding:0 .5rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.65rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:0.5rem">
+          <span style="font-size:0.85rem;color:#94a3b8;font-weight:600;">🌐 Langue / Language</span>
+          <form action="{% url 'set_language' %}" method="post" style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:999px;padding:2px 4px;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" name="language" value="fr" style="border:none;background:{% if LANGUAGE_CODE == 'fr' %}rgba(125,236,108,0.22){% else %}transparent{% endif %};color:{% if LANGUAGE_CODE == 'fr' %}#7dec6c{% else %}#94a3b8{% endif %};font-size:0.78rem;font-weight:800;padding:3px 10px;border-radius:999px;cursor:pointer;">FR</button>
+            <span style="color:rgba(255,255,255,0.2);font-size:0.7rem;">|</span>
+            <button type="submit" name="language" value="en" style="border:none;background:{% if LANGUAGE_CODE == 'en' %}rgba(125,236,108,0.22){% else %}transparent{% endif %};color:{% if LANGUAGE_CODE == 'en' %}#7dec6c{% else %}#94a3b8{% endif %};font-size:0.78rem;font-weight:800;padding:3px 10px;border-radius:999px;cursor:pointer;">EN</button>
+          </form>
+        </div>
         <a href="/" class="nav-link" role="menuitem">🏠 {% if LANGUAGE_CODE == 'en' %}Home{% else %}Accueil{% endif %}</a>
         <a href="{% url 'products_services' %}" class="nav-link {% block nav_products_services_mobile %}{% endblock %}" role="menuitem">🛒 {% if LANGUAGE_CODE == 'en' %}Products &amp; Services{% else %}Produits &amp; Services{% endif %}</a>
         <a href="{% url 'marketing' %}" class="nav-link {% block nav_marketing_mobile %}{% endblock %}" role="menuitem">📣 Marketing</a>
         <a href="{% url 'whatsapp_agent:wa_dashboard' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">💬 WhatsApp</a>
         <a href="{% url 'whatsapp_agent:wa_inbox' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">📥 {% if LANGUAGE_CODE == 'en' %}Replies &amp; Inbox{% else %}Réponses &amp; Inbox{% endif %}</a>
-        <a href="{% url 'whatsapp_agent:wa_contacts' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">👥 Contacts WhatsApp</a>
-        <a href="{% url 'whatsapp_agent:wa_import_contacts' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">📥 Importer Numéros</a>
+        <a href="{% url 'whatsapp_agent:wa_contacts' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">👥 {% if LANGUAGE_CODE == 'en' %}WhatsApp Contacts{% else %}Contacts WhatsApp{% endif %}</a>
+        <a href="{% url 'whatsapp_agent:wa_import_contacts' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">📥 {% if LANGUAGE_CODE == 'en' %}Import Contacts{% else %}Importer Numéros{% endif %}</a>
         <a href="{% url 'commercial_agent:prospect_list' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">🎯 {% if LANGUAGE_CODE == 'en' %}Sales Prospects{% else %}Prospects Commerciaux{% endif %}</a>
         <a href="{% url 'commercial_agent:sourcing_hub' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">🔍 {% if LANGUAGE_CODE == 'en' %}Provider Sourcing{% else %}Sourcing Prestataires{% endif %}</a>
         <a href="{% url 'phone_ocr_agent:dashboard' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">📸 {% if LANGUAGE_CODE == 'en' %}OCR Scanner{% else %}Scanner OCR{% endif %}</a>
         <a href="{% url 'formation' %}" class="nav-link {% block nav_formation_mobile %}{% endblock %}" role="menuitem">🎓 {% if LANGUAGE_CODE == 'en' %}Learning{% else %}Formation{% endif %}</a>
         <a href="{% url 'boutique:index' %}" class="nav-link {% block nav_boutique_mobile %}{% endblock %}" role="menuitem">🛍️ {% if LANGUAGE_CODE == 'en' %}Digital Store{% else %}Boutique Digital{% endif %}</a>
-        <a href="{% url 'immigration' %}" class="nav-link {% block nav_immigration_mobile %}{% endblock %}" role="menuitem" style="color: #D80621; font-weight: 700;">✈️ Immigration</a>
+        <a href="{% url 'immigration' %}" class="nav-link {% block nav_immigration_mobile %}{% endblock %}" role="menuitem" style="color: #D80621; font-weight: 700;">✈️ {% if LANGUAGE_CODE == 'en' %}Immigration{% else %}Immigration{% endif %}</a>
         <a href="/presentation/" class="nav-link" role="menuitem">ℹ️ {% if LANGUAGE_CODE == 'en' %}About{% else %}À propos{% endif %}</a>
         <a href="/services/contact/" class="nav-link" role="menuitem">📩 Contact</a>
         {% if not user_has_business %}
-        <a href="{% url 'business:onboarding' %}" class="nav-link" role="menuitem" style="color:#7dec6c;font-weight:900">🚀 Créer ma boutique</a>
+        <a href="{% url 'business:onboarding' %}" class="nav-link" role="menuitem" style="color:#7dec6c;font-weight:900">🚀 {% if LANGUAGE_CODE == 'en' %}List your business{% else %}Créer ma boutique{% endif %}</a>
         {% endif %}
 
         <div style="display:flex;gap:.75rem;padding:.75rem 1rem 1rem">
@@ -1047,16 +1064,15 @@
           </svg>
         </span>
         <input type="search" id="search-input" class="form-control"
-          placeholder="Rechercher formations, produits, services…" autocomplete="off"
+          placeholder="{% if LANGUAGE_CODE == 'en' %}Search courses, products, services…{% else %}Rechercher formations, produits, services…{% endif %}" autocomplete="off"
           style="background:rgba(255,255,255,.04);border:none;font-size:1rem;padding:.85rem 1rem;">
         <button class="btn btn-ghost" style="border-radius:0;padding:0 1rem"
-          onclick="document.getElementById('search-overlay').classList.remove('open')" aria-label="Fermer">✕</button>
+          onclick="document.getElementById('search-overlay').classList.remove('open')" aria-label="{% if LANGUAGE_CODE == 'en' %}Close{% else %}Fermer{% endif %}">✕</button>
       </div>
       <div id="search-results"
         style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);margin-top:.5rem;overflow:hidden;max-height:400px;overflow-y:auto;">
       </div>
-      <p style="text-align:center;color:var(--text-muted);font-size:.78rem;margin-top:.75rem">Appuie sur <kbd
-          style="background:rgba(255,255,255,.08);padding:.1rem .4rem;border-radius:4px">Échap</kbd> pour fermer</p>
+      <p style="text-align:center;color:var(--text-muted);font-size:.78rem;margin-top:.75rem">{% if LANGUAGE_CODE == 'en' %}Press <kbd style="background:rgba(255,255,255,.08);padding:.1rem .4rem;border-radius:4px">Esc</kbd> to close{% else %}Appuie sur <kbd style="background:rgba(255,255,255,.08);padding:.1rem .4rem;border-radius:4px">Échap</kbd> pour fermer{% endif %}</p>
     </div>
   </div>
   <style>
@@ -1224,7 +1240,7 @@
 
   {# ── PANIER SLIDE-IN ─────────────────────────────────────────── #}
   <div id="cart-backdrop" class="cart-panel-backdrop" role="presentation"></div>
-  <aside id="cart-panel" class="cart-panel" aria-label="Panier" role="complementary">
+  <aside id="cart-panel" class="cart-panel" aria-label="{% if LANGUAGE_CODE == 'en' %}Cart{% else %}Panier{% endif %}" role="complementary">
     <div class="cart-header">
       <span style="font-family:var(--font-display);font-weight:700;font-size:1rem">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -1233,16 +1249,15 @@
           <circle cx="20" cy="21" r="1" />
           <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
         </svg>
-        Mon panier
+        {% if LANGUAGE_CODE == 'en' %}My cart{% else %}Mon panier{% endif %}
       </span>
-      <button class="modal-close" data-close-cart aria-label="Fermer le panier">✕</button>
+      <button class="modal-close" data-close-cart aria-label="{% if LANGUAGE_CODE == 'en' %}Close cart{% else %}Fermer le panier{% endif %}">✕</button>
     </div>
     <div class="cart-body" id="cart-items">
       <div style="text-align:center;padding:3rem 1rem">
         <div style="font-size:3rem;margin-bottom:1rem">🛒</div>
-        <p style="color:var(--text-secondary);font-size:.9rem">Votre panier est vide.</p>
-        <a href="/boutique/" class="btn btn-outline btn-sm" style="margin-top:1rem" data-close-cart>Découvrir la
-          boutique</a>
+        <p style="color:var(--text-secondary);font-size:.9rem">{% if LANGUAGE_CODE == 'en' %}Your cart is empty.{% else %}Votre panier est vide.{% endif %}</p>
+        <a href="/boutique/" class="btn btn-outline btn-sm" style="margin-top:1rem" data-close-cart>{% if LANGUAGE_CODE == 'en' %}Explore store{% else %}Découvrir la boutique{% endif %}</a>
       </div>
     </div>
     <div class="cart-footer">
@@ -1252,7 +1267,7 @@
           style="font-family:var(--font-display);font-weight:800;font-size:1.15rem;color:var(--primary-light)">0
           FCFA</span>
       </div>
-      <a href="/boutique/checkout/" class="btn btn-primary btn-block">Passer commande →</a>
+      <a href="/boutique/checkout/" class="btn btn-primary btn-block">{% if LANGUAGE_CODE == 'en' %}Checkout →{% else %}Passer commande →{% endif %}</a>
     </div>
   </aside>
 
@@ -1261,14 +1276,14 @@
     <div class="modal" style="max-width:420px">
       <div class="modal-header">
         <span class="modal-title">🔔 Notifications</span>
-        <button class="modal-close" data-modal-close="notif-modal" aria-label="Fermer">✕</button>
+        <button class="modal-close" data-modal-close="notif-modal" aria-label="{% if LANGUAGE_CODE == 'en' %}Close{% else %}Fermer{% endif %}">✕</button>
       </div>
       <div id="notif-list">
-        <p style="color:var(--text-secondary);padding:1.5rem 0;text-align:center">Aucune nouvelle notification.</p>
+        <p style="color:var(--text-secondary);padding:1.5rem 0;text-align:center">{% if LANGUAGE_CODE == 'en' %}No new notifications.{% else %}Aucune nouvelle notification.{% endif %}</p>
       </div>
       {% if user.is_authenticated %}
       <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
-        <a href="/dashboard/notifications/" class="btn btn-ghost btn-sm btn-block">Voir tout l'historique</a>
+        <a href="/dashboard/notifications/" class="btn btn-ghost btn-sm btn-block">{% if LANGUAGE_CODE == 'en' %}View full history{% else %}Voir tout l'historique{% endif %}</a>
       </div>
       {% endif %}
     </div>
@@ -1288,29 +1303,29 @@
               <a class="canada-footer-logo" href="{% url 'canada_landing' %}"><img src="{% static 'img/immigration97-logo.png' %}" alt="Immigration97 — Préparer, apprendre, s’installer" width="2170" height="725" loading="lazy"></a>
             </div>
             <p style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; max-width: 280px; margin-bottom: 1.5rem;">
-              Votre parcours d'immigration vers le Canada simplifié de A à Z en toute indépendance et autonomie.
+              {% if LANGUAGE_CODE == 'en' %}Your immigration pathway to Canada simplified from A to Z with complete independence and autonomy.{% else %}Votre parcours d'immigration vers le Canada simplifié de A à Z en toute indépendance et autonomie.{% endif %}
             </p>
           </div>
 
           {# Liens Utiles #}
           <div class="footer-col">
-            <h4 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 1.25rem;">Outils & Diagnostics</h4>
+            <h4 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 1.25rem;">{% if LANGUAGE_CODE == 'en' %}Tools &amp; Assessments{% else %}Outils &amp; Diagnostics{% endif %}</h4>
             <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-              <li><a href="{% url 'canada_resume:diagnostic' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">📊 Diagnostic d'éligibilité</a></li>
-              <li><a href="{% url 'canada_resume:dashboard' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">📄 Créateur de CV Canadien</a></li>
-              <li><a href="{% url 'canada_resume:immigration_coach' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">🤖 Coach IA Immigration</a></li>
-              <li><a href="{% url 'canada_resume:talents_directory' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">👥 Répertoire des Talents</a></li>
+              <li><a href="{% url 'canada_resume:diagnostic' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}📊 Eligibility Assessment{% else %}📊 Diagnostic d'éligibilité{% endif %}</a></li>
+              <li><a href="{% url 'canada_resume:dashboard' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}📄 Canadian Resume Builder{% else %}📄 Créateur de CV Canadien{% endif %}</a></li>
+              <li><a href="{% url 'canada_resume:immigration_coach' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}🤖 AI Immigration Coach{% else %}🤖 Coach IA Immigration{% endif %}</a></li>
+              <li><a href="{% url 'canada_resume:talents_directory' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}👥 Talent Directory{% else %}👥 Répertoire des Talents{% endif %}</a></li>
             </ul>
           </div>
 
           {# Programmes d'immigration #}
           <div class="footer-col">
-            <h4 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 1.25rem;">Programmes d'Immigration</h4>
+            <h4 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 1.25rem;">{% if LANGUAGE_CODE == 'en' %}Immigration Programs{% else %}Programmes d'Immigration{% endif %}</h4>
             <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-              <li><a href="{% url 'canada_resume:program_ee' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">🍁 Entrée Express</a></li>
-              <li><a href="{% url 'canada_resume:program_arrima' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">⚜️ Québec Arrima</a></li>
-              <li><a href="{% url 'canada_resume:program_pnp' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">📍 Candidats des Provinces</a></li>
-              <li><a href="{% url 'canada_resume:program_study' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">🎓 Permis d'études</a></li>
+              <li><a href="{% url 'canada_resume:program_ee' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}🍁 Express Entry{% else %}🍁 Entrée Express{% endif %}</a></li>
+              <li><a href="{% url 'canada_resume:program_arrima' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}⚜️ Quebec Arrima{% else %}⚜️ Québec Arrima{% endif %}</a></li>
+              <li><a href="{% url 'canada_resume:program_pnp' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}📍 Provincial Nominees (PNP){% else %}📍 Candidats des Provinces{% endif %}</a></li>
+              <li><a href="{% url 'canada_resume:program_study' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}🎓 Study Permits{% else %}🎓 Permis d'études{% endif %}</a></li>
             </ul>
           </div>
 
@@ -1318,10 +1333,10 @@
           <div class="footer-col">
             <h4 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 1.25rem;">Support &amp; Contact</h4>
             <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-              <li><a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">💬 Assistance WhatsApp</a></li>
-              <li><a href="{% url 'canada_resume:canada_resources' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">📚 Guides &amp; Ressources</a></li>
-{% if not request.is_immigration97 %}              <li><a href="{% url 'cgu' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">🔒 Mentions légales &amp; CGU</a></li>{% endif %}
-              <li><a href="/" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if request.is_immigration97 %}🏠 Accueil Immigration97{% else %}🏠 Retour Portail E-Shelle{% endif %}</a></li>
+              <li><a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}💬 WhatsApp Support{% else %}💬 Assistance WhatsApp{% endif %}</a></li>
+              <li><a href="{% url 'canada_resume:canada_resources' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}📚 Guides &amp; Resources{% else %}📚 Guides &amp; Ressources{% endif %}</a></li>
+{% if not request.is_immigration97 %}              <li><a href="{% url 'cgu' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}🔒 Legal notice &amp; terms{% else %}🔒 Mentions légales &amp; CGU{% endif %}</a></li>{% endif %}
+              <li><a href="/" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#D80621'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}{% if request.is_immigration97 %}🏠 Immigration97 Home{% else %}🏠 Back to E-Shelle Portal{% endif %}{% else %}{% if request.is_immigration97 %}🏠 Accueil Immigration97{% else %}🏠 Retour Portail E-Shelle{% endif %}{% endif %}</a></li>
             </ul>
           </div>
 
@@ -1329,7 +1344,7 @@
 
         {# Bas du footer #}
         <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.85rem; color: #94a3b8;">
-          <p>© {% now "Y" %} {% if request.is_immigration97 %}Immigration97{% else %}Canada Space &bull; E-Shelle{% endif %}. Tous droits réservés.</p>
+          <p>© {% now "Y" %} {% if request.is_immigration97 %}Immigration97{% else %}Canada Space &bull; E-Shelle{% endif %}. {% if LANGUAGE_CODE == 'en' %}All rights reserved.{% else %}Tous droits réservés.{% endif %}</p>
           <p>Made with ❤️ &amp; IA in Cameroon 🇨🇲</p>
         </div>
       </div>
@@ -1349,29 +1364,29 @@
               </a>
             </div>
             <p style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; max-width: 280px; margin-bottom: 1.5rem;">
-              Votre parcours vers l'Allemagne simplifié de A à Z : cours de langue, préparation aux examens officiels et opportunités Ausbildung.
+              {% if LANGUAGE_CODE == 'en' %}Your pathway to Germany simplified from A to Z: language courses, exam prep and Ausbildung opportunities.{% else %}Votre parcours vers l'Allemagne simplifié de A à Z : cours de langue, préparation aux examens officiels et opportunités Ausbildung.{% endif %}
             </p>
           </div>
 
           {# Liens Utiles #}
           <div class="footer-col">
-            <h4 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 1.25rem;">Outils & Diagnostics</h4>
+            <h4 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 1.25rem;">{% if LANGUAGE_CODE == 'en' %}Tools &amp; Assessments{% else %}Outils &amp; Diagnostics{% endif %}</h4>
             <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-              <li><a href="{% url 'germanprep:placement_test' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">📊 Test de niveau</a></li>
-              <li><a href="{% url 'lebenslauf:dashboard' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">📄 Créateur de CV Lebenslauf</a></li>
-              <li><a href="{% url 'germanprep:ai_coach' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">🤖 Coach IA Allemand</a></li>
-              <li><a href="{% url 'germany_opportunities:interview_simulator_hub' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">🗣️ Simulateur d'entretien</a></li>
+              <li><a href="{% url 'germanprep:placement_test' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}📊 Level Test{% else %}📊 Test de niveau{% endif %}</a></li>
+              <li><a href="{% url 'lebenslauf:dashboard' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}📄 Lebenslauf Resume Builder{% else %}📄 Créateur de CV Lebenslauf{% endif %}</a></li>
+              <li><a href="{% url 'germanprep:ai_coach' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}🤖 German AI Coach{% else %}🤖 Coach IA Allemand{% endif %}</a></li>
+              <li><a href="{% url 'germany_opportunities:interview_simulator_hub' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}🗣️ Interview Simulator{% else %}🗣️ Simulateur d'entretien{% endif %}</a></li>
             </ul>
           </div>
 
           {# Programmes / Opportunités #}
           <div class="footer-col">
-            <h4 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 1.25rem;">Opportunités</h4>
+            <h4 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 1.25rem;">{% if LANGUAGE_CODE == 'en' %}Opportunities{% else %}Opportunités{% endif %}</h4>
             <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-              <li><a href="{% url 'germany_opportunities:catalogue' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">💼 Offres Ausbildung</a></li>
-              <li><a href="{% url 'germany_opportunities:candidate_profiles' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">👥 Profils Candidats</a></li>
-              <li><a href="{% url 'germany_opportunities:top_companies' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">🏢 Top Entreprises</a></li>
-              <li><a href="{% url 'germany_opportunities:premium_pricing' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">⭐ Formules Premium</a></li>
+              <li><a href="{% url 'germany_opportunities:catalogue' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}💼 Ausbildung Offers{% else %}💼 Offres Ausbildung{% endif %}</a></li>
+              <li><a href="{% url 'germany_opportunities:candidate_profiles' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}👥 Candidate Profiles{% else %}👥 Profils Candidats{% endif %}</a></li>
+              <li><a href="{% url 'germany_opportunities:top_companies' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}🏢 Top Companies{% else %}🏢 Top Entreprises{% endif %}</a></li>
+              <li><a href="{% url 'germany_opportunities:premium_pricing' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}⭐ Premium Plans{% else %}⭐ Formules Premium{% endif %}</a></li>
             </ul>
           </div>
 
@@ -1379,9 +1394,9 @@
           <div class="footer-col">
             <h4 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 1.25rem;">Support &amp; Contact</h4>
             <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-              <li><a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">💬 Assistance WhatsApp</a></li>
-{% if not request.is_immigration97 %}              <li><a href="{% url 'cgu' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">🔒 Mentions légales &amp; CGU</a></li>{% endif %}
-              <li><a href="/" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">{% if request.is_immigration97 %}🏠 Accueil Immigration97{% else %}🏠 Retour Portail E-Shelle{% endif %}</a></li>
+              <li><a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}💬 WhatsApp Support{% else %}💬 Assistance WhatsApp{% endif %}</a></li>
+{% if not request.is_immigration97 %}              <li><a href="{% url 'cgu' %}" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}🔒 Legal notice &amp; terms{% else %}🔒 Mentions légales &amp; CGU{% endif %}</a></li>{% endif %}
+              <li><a href="/" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#e0a800'" onmouseout="this.style.color='#cbd5e1'">{% if LANGUAGE_CODE == 'en' %}{% if request.is_immigration97 %}🏠 Immigration97 Home{% else %}🏠 Back to E-Shelle Portal{% endif %}{% else %}{% if request.is_immigration97 %}🏠 Accueil Immigration97{% else %}🏠 Retour Portail E-Shelle{% endif %}{% endif %}</a></li>
             </ul>
           </div>
 
@@ -1389,7 +1404,7 @@
 
         {# Bas du footer #}
         <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.85rem; color: #94a3b8;">
-          <p>© {% now "Y" %} DeutschSpace &bull; E-Shelle. Tous droits réservés.</p>
+          <p>© {% now "Y" %} DeutschSpace &bull; E-Shelle. {% if LANGUAGE_CODE == 'en' %}All rights reserved.{% else %}Tous droits réservés.{% endif %}</p>
           <p>Made with ❤️ &amp; IA in Cameroon 🇨🇲</p>
         </div>
       </div>
@@ -1400,71 +1415,70 @@
       <div class="container footer-premium-shell">
         <div class="footer-premium-top">
           <div class="footer-premium-brand">
-            <a href="/" class="footer-premium-logo" aria-label="Accueil E-Shelle">
+            <a href="/" class="footer-premium-logo" aria-label="{% if LANGUAGE_CODE == 'en' %}E-Shelle Home{% else %}Accueil E-Shelle{% endif %}">
               <img src="{% static 'img/logo.png' %}" alt="" width="38" height="38">
               <span><strong>E</strong>-Shelle</span>
             </a>
             <p>
-              La plateforme qui transforme les commerces, prestataires et services locaux en vitrines visibles
-              sur E-Shelle, Google et les moteurs de recherche IA.
+              {% if LANGUAGE_CODE == 'en' %}The platform transforming local shops, service providers and businesses into visible storefronts on E-Shelle, Google and AI search engines.{% else %}La plateforme qui transforme les commerces, prestataires et services locaux en vitrines visibles sur E-Shelle, Google et les moteurs de recherche IA.{% endif %}
             </p>
             <div class="footer-premium-actions">
               {% if user_has_business %}
-              <a class="footer-premium-primary" href="{% url 'business:dashboard' %}">Gérer mon business</a>
+              <a class="footer-premium-primary" href="{% url 'business:dashboard' %}">{% if LANGUAGE_CODE == 'en' %}Manage my business{% else %}Gérer mon business{% endif %}</a>
               {% else %}
-              <a class="footer-premium-primary" href="{% url 'business:onboarding' %}">Inscrire mon business</a>
+              <a class="footer-premium-primary" href="{% url 'business:onboarding' %}">{% if LANGUAGE_CODE == 'en' %}Register my business{% else %}Inscrire mon business{% endif %}</a>
               {% endif %}
-              <a class="footer-premium-secondary" href="/services/contact/">Parler à E-Shelle</a>
+              <a class="footer-premium-secondary" href="/services/contact/">{% if LANGUAGE_CODE == 'en' %}Talk to E-Shelle{% else %}Parler à E-Shelle{% endif %}</a>
             </div>
           </div>
 
           <div class="footer-premium-panel">
             <span class="footer-panel-label">E-Shelle Business</span>
-            <strong>Votre fiche, vos produits, votre WhatsApp et votre visibilité locale.</strong>
-            <p>Un espace pensé pour être trouvé plus facilement par les clients et les assistants IA.</p>
+            <strong>{% if LANGUAGE_CODE == 'en' %}Your profile, products, WhatsApp and local visibility.{% else %}Votre fiche, vos produits, votre WhatsApp et votre visibilité locale.{% endif %}</strong>
+            <p>{% if LANGUAGE_CODE == 'en' %}A workspace designed to be easily found by customers and AI assistants.{% else %}Un espace pensé pour être trouvé plus facilement par les clients et les assistants IA.{% endif %}</p>
           </div>
         </div>
 
         <div class="footer-premium-grid">
           <div class="footer-premium-col">
-            <h4>Découvrir</h4>
+            <h4>{% if LANGUAGE_CODE == 'en' %}Discover{% else %}Découvrir{% endif %}</h4>
             <ul>
-              <li><a href="/">Accueil</a></li>
-              <li><a href="/presentation/">À propos</a></li>
+              <li><a href="/">{% if LANGUAGE_CODE == 'en' %}Home{% else %}Accueil{% endif %}</a></li>
+              <li><a href="/presentation/">{% if LANGUAGE_CODE == 'en' %}About{% else %}À propos{% endif %}</a></li>
               <li><a href="{% url 'products_services' %}">{% if LANGUAGE_CODE == 'en' %}Products &amp; Services{% else %}Produits &amp; Services{% endif %}</a></li>
-              <li><a href="{% url 'formation' %}">Formation</a></li>
-              <li><a href="{% url 'immigration' %}">Immigration</a></li>
+              <li><a href="{% url 'formation' %}">{% if LANGUAGE_CODE == 'en' %}Learning{% else %}Formation{% endif %}</a></li>
+              <li><a href="{% url 'immigration' %}">{% if LANGUAGE_CODE == 'en' %}Immigration{% else %}Immigration{% endif %}</a></li>
             </ul>
           </div>
 
           <div class="footer-premium-col">
             <h4>Business</h4>
             <ul>
-              <li><a href="{% url 'business:onboarding' %}">Créer une fiche business</a></li>
-              <li><a href="{% url 'marketing' %}">Marketing &amp; visibilité</a></li>
-              <li><a href="{% url 'adgen:dashboard' %}">AdGen publicité IA</a></li>
+              <li><a href="{% url 'business:onboarding' %}">{% if LANGUAGE_CODE == 'en' %}Create business profile{% else %}Créer une fiche business{% endif %}</a></li>
+              <li><a href="{% url 'marketing' %}">{% if LANGUAGE_CODE == 'en' %}Marketing &amp; visibility{% else %}Marketing &amp; visibilité{% endif %}</a></li>
+              <li><a href="{% url 'adgen:dashboard' %}">{% if LANGUAGE_CODE == 'en' %}AdGen AI advertising{% else %}AdGen publicité IA{% endif %}</a></li>
               <li><a href="{% url 'boutique:index' %}">{% if LANGUAGE_CODE == 'en' %}Digital Store{% else %}Boutique digitale{% endif %}</a></li>
-              <li><a href="{% url 'products_services' %}">Annuaire des prestataires</a></li>
+              <li><a href="{% url 'products_services' %}">{% if LANGUAGE_CODE == 'en' %}Provider directory{% else %}Annuaire des prestataires{% endif %}</a></li>
             </ul>
           </div>
 
           <div class="footer-premium-col">
             <h4>Applications</h4>
             <ul>
-              <li><a href="{% url 'njangi:landing' %}">Tontine Njangi</a></li>
-              <li><a href="{% url 'jobs:canada_jobs' %}">Emplois Canada EIMT</a></li>
-              <li><a href="{% url 'jobs:canada_news' %}">Actualités Canada</a></li>
-              <li><a href="{% url 'canada_resume:talents_directory' %}">Talents Canada</a></li>
-              <li><a href="{% url 'canada_resume:dashboard' %}">Mon CV Canadien</a></li>
+              <li><a href="{% url 'njangi:landing' %}">{% if LANGUAGE_CODE == 'en' %}Njangi Tontine{% else %}Tontine Njangi{% endif %}</a></li>
+              <li><a href="{% url 'jobs:canada_jobs' %}">{% if LANGUAGE_CODE == 'en' %}Canada LMIA Jobs{% else %}Emplois Canada EIMT{% endif %}</a></li>
+              <li><a href="{% url 'jobs:canada_news' %}">{% if LANGUAGE_CODE == 'en' %}Canada News{% else %}Actualités Canada{% endif %}</a></li>
+              <li><a href="{% url 'canada_resume:talents_directory' %}">{% if LANGUAGE_CODE == 'en' %}Canada Talents{% else %}Talents Canada{% endif %}</a></li>
+              <li><a href="{% url 'canada_resume:dashboard' %}">{% if LANGUAGE_CODE == 'en' %}My Canadian Resume{% else %}Mon CV Canadien{% endif %}</a></li>
             </ul>
           </div>
 
           <div class="footer-premium-col">
             <h4>Support</h4>
             <ul>
-              <li><a href="/services/contact/">Contact</a></li>
+              <li><a href="/services/contact/">{% if LANGUAGE_CODE == 'en' %}Contact{% else %}Contact{% endif %}</a></li>
               <li><a href="mailto:e.shelleltd@gmail.com">e.shelleltd@gmail.com</a></li>
-              <li><a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}">WhatsApp direct</a></li>
+              <li><a href="https://wa.me/{% if request.is_immigration97 %}237693649944{% else %}237680625082{% endif %}">{% if LANGUAGE_CODE == 'en' %}Direct WhatsApp{% else %}WhatsApp direct{% endif %}</a></li>
 {% if not request.is_immigration97 %}              <li><a href="{% url 'cgu' %}">{% if LANGUAGE_CODE == 'en' %}Legal notice &amp; terms{% else %}Mentions légales &amp; CGU{% endif %}</a></li>{% endif %}
               <li><a href="{% url 'cgu' %}#article-7">{% if LANGUAGE_CODE == 'en' %}Privacy{% else %}Confidentialité{% endif %}</a></li>
             </ul>
@@ -1472,7 +1486,7 @@
         </div>
 
         <div class="footer-premium-bottom">
-          <p>© {% now "Y" %} E-Shelle. Tous droits réservés.</p>
+          <p>© {% now "Y" %} E-Shelle. {% if LANGUAGE_CODE == 'en' %}All rights reserved.{% else %}Tous droits réservés.{% endif %}</p>
           <div class="footer-premium-social" aria-label="Réseaux sociaux E-Shelle">
             <a href="https://www.facebook.com/profile.php?id=61592929354034" target="_blank" rel="noopener" aria-label="Facebook E-Shelle">Fb</a>
             <a href="https://www.instagram.com/e.shelleltd/" target="_blank" rel="noopener" aria-label="Instagram E-Shelle">Ig</a>
@@ -1480,7 +1494,7 @@
             <a href="https://www.tiktok.com/@eshelle.com" target="_blank" rel="noopener" aria-label="TikTok E-Shelle">Tk</a>
             <a href="https://www.linkedin.com/company/144596949/" target="_blank" rel="noopener" aria-label="LinkedIn E-Shelle">In</a>
           </div>
-          <p>Siège : Bepanda, Douala, BP 4241 · Bureau : Bafoussam · <a href="https://e-shelle.com">e-shelle.com</a></p>
+          <p>{% if LANGUAGE_CODE == 'en' %}Headquarters: Bepanda, Douala, PO Box 4241 · Technical Office: Bafoussam{% else %}Siège : Bepanda, Douala, BP 4241 · Bureau : Bafoussam{% endif %} · <a href="https://e-shelle.com">e-shelle.com</a></p>
         </div>
       </div>
     </footer>

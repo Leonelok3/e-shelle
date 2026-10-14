@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
@@ -26,6 +27,7 @@ from .business_catalog import sync_business_catalog as sync_business_catalog_ite
 from .entitlements import whatsapp_entitlements
 from .inbox import send_business_reply
 from .models import (
+	BusinessWhatsAppAudit,
 	BusinessCatalogWhatsAppSync,
 	BusinessWhatsAppConnection,
 	BusinessWhatsAppContact,
@@ -50,6 +52,29 @@ def business_whatsapp_dashboard(request, business_id):
 	entitlements = whatsapp_entitlements(business)
 	connection = BusinessWhatsAppConnection.objects.filter(business=business).first()
 	contacts = BusinessWhatsAppContact.objects.filter(business=business)
+	today = timezone.localdate()
+	agent_metrics = {
+		"conversations": contacts.exclude(pipeline_status__in=[
+			BusinessWhatsAppContact.PipelineStatus.WON,
+			BusinessWhatsAppContact.PipelineStatus.LOST,
+		]).count(),
+		"sales_today": contacts.filter(
+			pipeline_status=BusinessWhatsAppContact.PipelineStatus.WON,
+			last_activity_at__date=today,
+		).count(),
+		"appointments_upcoming": 0,
+		"follow_ups_pending": ScheduledBusinessWhatsAppMessage.objects.filter(
+			connection__business=business,
+			status=ScheduledBusinessWhatsAppMessage.Status.SCHEDULED,
+		).count(),
+		"conversion_percent": 0,
+	}
+	contact_count = contacts.count()
+	if contact_count:
+		agent_metrics["conversion_percent"] = round(
+			contacts.filter(pipeline_status=BusinessWhatsAppContact.PipelineStatus.WON).count()
+			* 100 / contact_count
+		)
 	status_filter = request.GET.get("status", "")
 	query = request.GET.get("q", "").strip()[:100]
 	if not entitlements["can_use_crm"]:
@@ -75,6 +100,15 @@ def business_whatsapp_dashboard(request, business_id):
 		{
 			"business": business,
 			"connection": connection,
+			"agent_enabled": bool(connection and connection.agent_enabled),
+			"business_automations_enabled": bool(connection and connection.automations_enabled),
+			"agent_tone": connection.agent_tone if connection else "friendly",
+			"agent_catalog_items": business.catalog_items.filter(is_active=True).order_by("order", "-created_at"),
+			"selected_agent_catalog_items": (
+				list(connection.agent_catalog_items.values_list("pk", flat=True)) if connection else []
+			),
+			"agent_metrics": agent_metrics,
+			"agent_globally_enabled": getattr(settings, "WHATSAPP_COMMERCE_AI_ENABLED", False),
 			"contacts": contacts[:100],
 			"selected_contact": contact,
 			"conversation_messages": contact.messages.all()[:100] if contact else [],
@@ -94,6 +128,75 @@ def business_whatsapp_dashboard(request, business_id):
 				and getattr(settings, "WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID", "")
 			),
 		},
+	)
+
+
+@login_required
+@require_POST
+def configure_sales_agent(request, business_id):
+	business = _owned_business(request, business_id)
+	connection = get_object_or_404(BusinessWhatsAppConnection, business=business)
+	enabled = request.POST.get("agent_enabled") == "on"
+	automations_enabled = request.POST.get("automations_enabled") == "on"
+	if enabled and (
+		not getattr(settings, "WHATSAPP_COMMERCE_AI_ENABLED", False)
+		or connection.status != BusinessWhatsAppConnection.Status.ACTIVE
+		or not whatsapp_entitlements(business)["can_use_crm"]
+	):
+		messages.error(request, "L’agent nécessite le drapeau serveur actif, une connexion WhatsApp et une formule éligible.")
+		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+	if automations_enabled and (
+		connection.status != BusinessWhatsAppConnection.Status.ACTIVE
+		or not whatsapp_entitlements(business)["can_automate"]
+	):
+		messages.error(request, "Les relances exigent une connexion active et une formule Business ou Premium.")
+		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+	tone = request.POST.get("agent_tone", "friendly")
+	if tone not in {"professional", "friendly", "pidgin"}:
+		messages.error(request, "Choisissez un ton valide.")
+		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+	item_ids = request.POST.getlist("agent_catalog_items")
+	items = business.catalog_items.filter(pk__in=item_ids, is_active=True)
+	connection.agent_enabled = enabled
+	connection.automations_enabled = automations_enabled
+	connection.agent_tone = tone
+	connection.save(update_fields=["agent_enabled", "automations_enabled", "agent_tone", "updated_at"])
+	connection.agent_catalog_items.set(items)
+	BusinessWhatsAppAudit.objects.create(
+		connection=connection,
+		event_type="sales_agent_configured",
+		action="enabled" if enabled else "disabled",
+		details={
+			"tone": tone,
+			"catalog_item_ids": list(items.values_list("pk", flat=True)),
+			"automations_enabled": automations_enabled,
+		},
+	)
+	messages.success(request, "Les réglages de l’agent vendeur ont été enregistrés.")
+	return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+
+
+@login_required
+@require_GET
+def business_whatsapp_inbox(request):
+	owned_businesses = BusinessProfile.objects.filter(owner=request.user).order_by("name", "pk")
+	business_id = request.GET.get("business_id")
+	if business_id:
+		business = get_object_or_404(owned_businesses, pk=business_id)
+		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+
+	connected_businesses = owned_businesses.filter(
+		whatsapp_connection__status=BusinessWhatsAppConnection.Status.ACTIVE,
+	)
+	if connected_businesses.count() == 1:
+		business = connected_businesses.first()
+		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+	if connected_businesses.exists():
+		businesses = connected_businesses
+	else:
+		businesses = owned_businesses
+	return HttpResponse(
+		get_template("whatsapp_commerce/inbox_entry.html").render({"businesses": businesses})
 	)
 
 

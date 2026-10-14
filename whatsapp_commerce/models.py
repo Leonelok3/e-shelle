@@ -25,6 +25,22 @@ class BusinessWhatsAppConnection(models.Model):
 	phone_registered = models.BooleanField(default=False)
 	webhook_subscribed = models.BooleanField(default=False)
 	status = models.CharField(max_length=24, choices=Status.choices, default=Status.CONNECTING)
+	agent_enabled = models.BooleanField(default=False)
+	automations_enabled = models.BooleanField(default=False)
+	agent_tone = models.CharField(
+		max_length=16,
+		choices=[
+			("professional", "Professionnel"),
+			("friendly", "Familier"),
+			("pidgin", "Pidgin"),
+		],
+		default="friendly",
+	)
+	agent_catalog_items = models.ManyToManyField(
+		"business.BusinessCatalogItem",
+		blank=True,
+		related_name="whatsapp_agent_connections",
+	)
 	last_error = models.CharField(max_length=500, blank=True)
 	connected_at = models.DateTimeField(null=True, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
@@ -82,6 +98,7 @@ class BusinessWhatsAppContact(models.Model):
 		db_index=True,
 	)
 	tags = models.JSONField(default=list, blank=True)
+	custom_fields = models.JSONField(default=dict, blank=True)
 	notes = models.TextField(blank=True)
 	next_follow_up_at = models.DateField(null=True, blank=True, db_index=True)
 	last_activity_at = models.DateTimeField(auto_now=True, db_index=True)
@@ -133,6 +150,32 @@ class BusinessWhatsAppMessage(models.Model):
 
 	def __str__(self):
 		return f"{self.contact.phone} - {self.direction}"
+
+
+class BusinessWhatsAppAudit(models.Model):
+	"""Tenant-scoped record of automated WhatsApp decisions and Meta events."""
+
+	connection = models.ForeignKey(
+		BusinessWhatsAppConnection,
+		on_delete=models.CASCADE,
+		related_name="audit_events",
+	)
+	contact = models.ForeignKey(
+		BusinessWhatsAppContact,
+		null=True,
+		blank=True,
+		on_delete=models.SET_NULL,
+		related_name="audit_events",
+	)
+	event_type = models.CharField(max_length=48, db_index=True)
+	intent = models.CharField(max_length=32, blank=True)
+	action = models.CharField(max_length=64, blank=True)
+	details = models.JSONField(default=dict, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+	class Meta:
+		ordering = ["-created_at", "-pk"]
+		indexes = [models.Index(fields=["connection", "event_type", "created_at"])]
 
 
 class ScheduledBusinessWhatsAppMessage(models.Model):

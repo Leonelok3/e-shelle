@@ -19,6 +19,45 @@
       <p role="status" style="padding:.75rem 1rem;border-radius:10px;background:rgba(255,255,255,.08)">{{ message }}</p>
     {% endfor %}
 
+    {% if entitlements.can_use_crm and connection %}
+      <section style="margin:1rem 0;padding:1rem;border:1px solid rgba(34,197,94,.3);border-radius:14px;background:rgba(34,197,94,.06)">
+        <h2 style="margin-top:0">Agent vendeur IA — {% if agent_enabled %}ON{% else %}OFF{% endif %}</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:.65rem">
+          <div><strong>{{ agent_metrics.conversations }}</strong><small style="display:block;color:rgba(255,255,255,.65)">Conversations actives</small></div>
+          <div><strong>{{ agent_metrics.sales_today }}</strong><small style="display:block;color:rgba(255,255,255,.65)">Contacts gagnés aujourd’hui</small></div>
+          <div><strong>{{ agent_metrics.appointments_upcoming }}</strong><small style="display:block;color:rgba(255,255,255,.65)">Rendez-vous à venir</small></div>
+          <div><strong>{{ agent_metrics.follow_ups_pending }}</strong><small style="display:block;color:rgba(255,255,255,.65)">Relances planifiées</small></div>
+          <div><strong>{{ agent_metrics.conversion_percent }}%</strong><small style="display:block;color:rgba(255,255,255,.65)">Taux contacts gagnés</small></div>
+        </div>
+        {% if agent_globally_enabled and connection.status == "active" %}
+          <form method="post" action="{% url 'whatsapp_commerce:business_agent_configure' business.id %}" style="display:grid;gap:.65rem;margin-top:1rem">
+            {% csrf_token %}
+            <label><input type="checkbox" name="agent_enabled" {% if agent_enabled %}checked{% endif %}> Activer les réponses automatiques pour cette fiche</label>
+            {% if entitlements.can_automate %}
+              <label><input type="checkbox" name="automations_enabled" {% if business_automations_enabled %}checked{% endif %}> Autoriser les relances planifiées consenties sur cette fiche</label>
+            {% endif %}
+            <label for="agent-tone">Ton</label>
+            <select id="agent-tone" name="agent_tone" style="max-width:320px;padding:.6rem;border-radius:8px;background:#101c33;color:#fff">
+              <option value="professional" {% if agent_tone == "professional" %}selected{% endif %}>Professionnel</option>
+              <option value="friendly" {% if agent_tone == "friendly" %}selected{% endif %}>Familier</option>
+              <option value="pidgin" {% if agent_tone == "pidgin" %}selected{% endif %}>Pidgin</option>
+            </select>
+            <fieldset style="border:1px solid rgba(255,255,255,.14);border-radius:8px">
+              <legend>Produits et services mis en avant</legend>
+              {% for item in agent_catalog_items %}
+                <label style="display:block;padding:.25rem 0"><input type="checkbox" name="agent_catalog_items" value="{{ item.pk }}" {% if item.pk in selected_agent_catalog_items %}checked{% endif %}> {{ item.title }}</label>
+              {% empty %}
+                <small>Ajoute des articles actifs à ta fiche Business pour les proposer.</small>
+              {% endfor %}
+            </fieldset>
+            <button type="submit" style="justify-self:start;padding:.65rem 1rem;border:0;border-radius:8px;background:#16a34a;color:#fff;font-weight:800;cursor:pointer">Enregistrer les réglages</button>
+          </form>
+        {% else %}
+          <p style="margin-bottom:0;color:#fde68a">L’agent reste inactif : active le drapeau serveur, connecte le numéro WhatsApp et vérifie la formule Business.</p>
+        {% endif %}
+      </section>
+    {% endif %}
+
     {% if not entitlements.can_use_crm %}
       <div style="margin:1rem 0;padding:1rem;border:1px solid rgba(250,204,21,.25);border-radius:12px;background:rgba(250,204,21,.08);color:#fde68a">
         Le WhatsApp CRM est inclus dans les formules Pro, Business et Premium actives. Votre connexion et vos données sont conservées si l’abonnement expire.
@@ -125,7 +164,7 @@
               <button type="submit" style="justify-self:start;padding:.6rem .9rem;border:0;border-radius:8px;background:#166534;color:#fff;cursor:pointer">Enregistrer le consentement</button>
             </form>
           {% endif %}
-          {% if entitlements.can_automate and automations_enabled and connection.status == "active" and selected_contact.marketing_opt_in and selected_contact.consented_at and not selected_contact.opted_out_at %}
+          {% if entitlements.can_automate and automations_enabled and business_automations_enabled and connection.status == "active" and selected_contact.marketing_opt_in and selected_contact.consented_at and not selected_contact.opted_out_at %}
             <section style="margin:1rem 0;padding:1rem;border:1px solid rgba(59,130,246,.25);border-radius:12px;background:rgba(59,130,246,.06)">
               <h3 style="margin:.1rem 0 .5rem">Planifier une relance par modèle approuvé</h3>
               <p style="color:rgba(255,255,255,.62);font-size:.9rem">Envoi unique à ce contact. La formule, le consentement et l’approbation Meta seront revérifiés juste avant l’envoi.</p>
@@ -150,7 +189,7 @@
                 <button type="submit" style="justify-self:start;padding:.65rem .9rem;border:0;border-radius:8px;background:#1877f2;color:#fff;font-weight:800;cursor:pointer">Planifier la relance</button>
               </form>
             </section>
-          {% elif entitlements.can_automate and not automations_enabled %}
+          {% elif entitlements.can_automate and not automations_enabled or entitlements.can_automate and not business_automations_enabled %}
             <p style="margin:1rem 0;padding:.8rem;border-radius:10px;background:rgba(250,204,21,.08);color:#fde68a">L’envoi planifié est prêt mais désactivé par la configuration serveur. Aucun modèle ne sera envoyé tant que l’intégration n’a pas été validée et activée.</p>
           {% endif %}
           {% if scheduled_messages %}

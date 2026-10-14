@@ -316,6 +316,9 @@ LANGUAGES = [
     ("fr", "Français"),
     ("en", "English"),
 ]
+LOCALE_PATHS = [
+    BASE_DIR / "locale",
+]
 TIME_ZONE = "Africa/Douala"
 USE_I18N = True
 USE_TZ = True
@@ -638,8 +641,16 @@ WHATSAPP_COMMERCE_ENABLED = os.getenv("WHATSAPP_COMMERCE_ENABLED", "False").lowe
 WHATSAPP_COMMERCE_SITE_URL = os.getenv("WHATSAPP_COMMERCE_SITE_URL", "https://e-shelle.com")
 WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED = os.getenv(
     "WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED",
-    "False",
+    "True",
 ).lower() in ("1", "true", "yes")
+WHATSAPP_COMMERCE_AI_ENABLED = os.getenv("WHATSAPP_COMMERCE_AI_ENABLED", "True").lower() in ("1", "true", "yes")
+WHATSAPP_COMMERCE_FOLLOW_UP_TEMPLATES = {
+    f"j{day}": {
+        "name": os.getenv(f"WHATSAPP_COMMERCE_FOLLOW_UP_J{day}_TEMPLATE", ""),
+        "language": os.getenv(f"WHATSAPP_COMMERCE_FOLLOW_UP_J{day}_LANGUAGE", "fr"),
+    }
+    for day in (1, 3, 7)
+}
 
 # ── Celery — Broker & Backend ──────────────────────────────────────
 CELERY_BROKER_URL         = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")

@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from .entitlements import require_whatsapp_entitlement
 from .models import (
+    BusinessWhatsAppAudit,
     BusinessWhatsAppContact,
     BusinessWhatsAppConnection,
     BusinessWhatsAppMessage,
@@ -99,6 +100,143 @@ def _find_approved_template(business, name, language):
     raise MetaOnboardingError("Ce modèle et cette langue ne sont pas approuvés par Meta pour ce WABA.")
 
 
+def _sales_follow_up_template_config():
+    configured = getattr(settings, "WHATSAPP_COMMERCE_FOLLOW_UP_TEMPLATES", {})
+    return configured if isinstance(configured, dict) else {}
+
+
+def _has_stop_quick_reply(template):
+    components = template.get("components", [])
+    if not isinstance(components, list):
+        return False
+    for component in components:
+        if not isinstance(component, dict) or str(component.get("type", "")).upper() != "BUTTONS":
+            continue
+        for button in component.get("buttons", []):
+            if (
+                isinstance(button, dict)
+                and str(button.get("type", "")).upper() == "QUICK_REPLY"
+                and str(button.get("text", "")).strip().casefold() == "stop"
+            ):
+                return True
+    return False
+
+
+def _sales_follow_up_parameters(contact, template):
+    variable_count = _body_variable_count(template)
+    values = [contact.display_name or contact.phone, contact.business.name]
+    if variable_count > len(values):
+        return None
+    return values[:variable_count]
+
+
+def schedule_sales_follow_ups(contact):
+    """Queue J+1/J+3/J+7 only for opted-in contacts and approved STOP templates."""
+    if not getattr(settings, "WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED", False):
+        return 0
+    if not contact.marketing_opt_in or not contact.consented_at or contact.opted_out_at:
+        return 0
+    if not require_whatsapp_entitlement(contact.business, "can_automate"):
+        return 0
+    connection = BusinessWhatsAppConnection.objects.filter(
+        business=contact.business,
+        status=BusinessWhatsAppConnection.Status.ACTIVE,
+        automations_enabled=True,
+    ).first()
+    if connection is None or not connection.get_access_token():
+        return 0
+    config = _sales_follow_up_template_config()
+    if not any(
+        isinstance(config.get(f"j{day}"), dict) and config[f"j{day}"].get("name")
+        for day in (1, 3, 7)
+    ):
+        return 0
+    try:
+        approved = get_approved_template_catalog(contact.business)
+    except MetaOnboardingError:
+        logger.warning(
+            "WhatsApp Business: catalogue de modèles indisponible pour les relances automatiques.",
+            exc_info=True,
+        )
+        return 0
+    by_name_language = {
+        (template.get("name"), template.get("language")): template
+        for template in approved
+    }
+    now = timezone.now()
+    created = 0
+    with transaction.atomic():
+        contact = BusinessWhatsAppContact.objects.select_for_update().get(pk=contact.pk)
+        connection = BusinessWhatsAppConnection.objects.select_for_update().get(pk=connection.pk)
+        if (
+            not contact.marketing_opt_in
+            or not contact.consented_at
+            or contact.opted_out_at
+            or not connection.automations_enabled
+            or connection.status != BusinessWhatsAppConnection.Status.ACTIVE
+        ):
+            return 0
+        if ScheduledBusinessWhatsAppMessage.objects.filter(
+            contact=contact,
+            status__in=(
+                ScheduledBusinessWhatsAppMessage.Status.SCHEDULED,
+                ScheduledBusinessWhatsAppMessage.Status.SENDING,
+            ),
+        ).exists():
+            return 0
+        for day in (1, 3, 7):
+            template_config = config.get(f"j{day}")
+            if not isinstance(template_config, dict):
+                continue
+            name = str(template_config.get("name", ""))
+            language = str(template_config.get("language", "fr"))
+            template = by_name_language.get((name, language))
+            if not template or not _has_stop_quick_reply(template):
+                if name:
+                    logger.warning(
+                        "WhatsApp Business: relance J+%s ignorée; modèle non approuvé ou sans bouton STOP.",
+                        day,
+                    )
+                continue
+            try:
+                parameters = _sales_follow_up_parameters(contact, template)
+            except MetaOnboardingError:
+                logger.warning(
+                    "WhatsApp Business: relance J+%s ignorée; structure du modèle non prise en charge.",
+                    day,
+                    exc_info=True,
+                )
+                continue
+            if parameters is None:
+                logger.warning(
+                    "WhatsApp Business: relance J+%s ignorée; variables de modèle non prises en charge.",
+                    day,
+                )
+                continue
+            scheduled = ScheduledBusinessWhatsAppMessage.objects.create(
+                contact=contact,
+                connection=connection,
+                template_name=name,
+                template_language=language,
+                body_parameters=parameters,
+                scheduled_for=now + timedelta(days=day),
+            )
+            BusinessWhatsAppAudit.objects.create(
+                connection=connection,
+                contact=contact,
+                event_type="follow_up_scheduled",
+                action=f"j{day}",
+                details={
+                    "scheduled_message_id": scheduled.pk,
+                    "template_name": name,
+                    "cadence": f"J+{day}",
+                    "stop_quick_reply_required": True,
+                },
+            )
+            created += 1
+    return created
+
+
 def schedule_template_follow_up(
     contact,
     *,
@@ -134,7 +272,9 @@ def schedule_template_follow_up(
     if _body_variable_count(template) != len(body_parameters):
         raise MetaOnboardingError("Le nombre de valeurs ne correspond pas aux variables du corps du modèle.")
     connection = _connection_for_business(business)
-    return ScheduledBusinessWhatsAppMessage.objects.create(
+    if not connection.automations_enabled:
+        raise MetaOnboardingError("Les relances doivent être activées par le propriétaire de cette fiche.")
+    scheduled = ScheduledBusinessWhatsAppMessage.objects.create(
         contact=contact,
         connection=connection,
         template_name=template_name,
@@ -143,6 +283,14 @@ def schedule_template_follow_up(
         scheduled_for=scheduled_for,
         created_by=created_by,
     )
+    BusinessWhatsAppAudit.objects.create(
+        connection=connection,
+        contact=contact,
+        event_type="follow_up_scheduled",
+        action="scheduled",
+        details={"scheduled_message_id": scheduled.pk, "template_name": template_name},
+    )
+    return scheduled
 
 
 def cancel_scheduled_contact_messages(contact, reason="Le consentement de contact est inactif."):
@@ -162,6 +310,17 @@ def cancel_all_scheduled_follow_ups(reason):
     ).update(
         status=ScheduledBusinessWhatsAppMessage.Status.CANCELLED,
         last_error=reason[:500],
+        updated_at=timezone.now(),
+    )
+
+
+def cancel_disabled_connection_follow_ups():
+    return ScheduledBusinessWhatsAppMessage.objects.filter(
+        status=ScheduledBusinessWhatsAppMessage.Status.SCHEDULED,
+        connection__automations_enabled=False,
+    ).update(
+        status=ScheduledBusinessWhatsAppMessage.Status.CANCELLED,
+        last_error="Les relances sont désactivées pour cette fiche business.",
         updated_at=timezone.now(),
     )
 
@@ -206,13 +365,21 @@ def send_scheduled_template_message(message_id):
             business=business,
             status=BusinessWhatsAppConnection.Status.ACTIVE,
         ).first()
-        if connection is None or not connection.get_access_token():
+        if connection is None or not connection.automations_enabled or not connection.get_access_token():
             raise MetaOnboardingError("La connexion WhatsApp n’est plus active.")
         template = _find_approved_template(
             business,
             scheduled.template_name,
             scheduled.template_language,
         )
+        configured_follow_up = any(
+            isinstance(item, dict)
+            and item.get("name") == scheduled.template_name
+            and item.get("language", "fr") == scheduled.template_language
+            for item in _sales_follow_up_template_config().values()
+        )
+        if configured_follow_up and not _has_stop_quick_reply(template):
+            raise MetaOnboardingError("Le modèle de relance doit inclure un bouton de réponse rapide STOP.")
         if _body_variable_count(template) != len(scheduled.body_parameters):
             raise MetaOnboardingError("Les variables du modèle approuvé ont changé depuis la planification.")
         business.refresh_from_db()
@@ -223,6 +390,25 @@ def send_scheduled_template_message(message_id):
             raise MetaOnboardingError("Le consentement marketing n’est plus actif.")
         if contact.business_id != connection.business_id or scheduled.connection_id != connection.pk:
             raise MetaOnboardingError("Le contact et le WABA planifié ne correspondent plus.")
+        replied_after_schedule = (
+            contact.last_inbound_at and contact.last_inbound_at > scheduled.created_at
+        ) or BusinessWhatsAppMessage.objects.filter(
+            contact=contact,
+            direction=BusinessWhatsAppMessage.Direction.INBOUND,
+            created_at__gt=scheduled.created_at,
+        ).exists()
+        if replied_after_schedule:
+            scheduled.status = ScheduledBusinessWhatsAppMessage.Status.CANCELLED
+            scheduled.last_error = "Le contact a répondu après la planification de cette relance."
+            scheduled.save(update_fields=["status", "last_error", "updated_at"])
+            BusinessWhatsAppAudit.objects.create(
+                connection=connection,
+                contact=contact,
+                event_type="follow_up_cancelled",
+                action="customer_replied",
+                details={"scheduled_message_id": scheduled.pk},
+            )
+            return False
 
         template_payload = {
             "name": scheduled.template_name,
@@ -268,14 +454,39 @@ def send_scheduled_template_message(message_id):
         scheduled.save(update_fields=[
             "status", "wa_message_id", "sent_at", "last_error", "updated_at",
         ])
+        BusinessWhatsAppAudit.objects.create(
+            connection=connection,
+            contact=contact,
+            event_type="follow_up_sent",
+            action="template_sent",
+            details={
+                "scheduled_message_id": scheduled.pk,
+                "template_name": scheduled.template_name,
+                "wa_message_id": wa_message_id,
+            },
+        )
         return True
     except MetaOnboardingError as exc:
         scheduled.status = ScheduledBusinessWhatsAppMessage.Status.FAILED
         scheduled.last_error = str(exc)[:500]
+        BusinessWhatsAppAudit.objects.create(
+            connection=scheduled.connection,
+            contact=contact,
+            event_type="follow_up_failed",
+            action="template_rejected",
+            details={"scheduled_message_id": scheduled.pk, "error": str(exc)[:400]},
+        )
     except Exception:
         scheduled.status = ScheduledBusinessWhatsAppMessage.Status.FAILED
         scheduled.last_error = "Échec de l’envoi. Vérifiez le statut Meta avant toute nouvelle planification."
         logger.exception("WhatsApp Business: relance planifiée en échec (message_id=%s).", message_id)
+        BusinessWhatsAppAudit.objects.create(
+            connection=scheduled.connection,
+            contact=scheduled.contact,
+            event_type="follow_up_failed",
+            action="send_error",
+            details={"scheduled_message_id": scheduled.pk, "error_type": "unexpected_error"},
+        )
     scheduled.save(update_fields=["status", "last_error", "updated_at"])
     return False
 
@@ -284,10 +495,12 @@ def send_due_template_follow_ups(limit=10):
     if not getattr(settings, "WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED", False):
         cancel_all_scheduled_follow_ups("Les relances WhatsApp sont désactivées côté serveur.")
         return 0
+    cancel_disabled_connection_follow_ups()
     due_ids = list(
         ScheduledBusinessWhatsAppMessage.objects.filter(
             status=ScheduledBusinessWhatsAppMessage.Status.SCHEDULED,
             scheduled_for__lte=timezone.now(),
+            connection__automations_enabled=True,
         ).order_by("scheduled_for", "pk").values_list("pk", flat=True)[:limit]
     )
     return sum(send_scheduled_template_message(message_id) for message_id in due_ids)
